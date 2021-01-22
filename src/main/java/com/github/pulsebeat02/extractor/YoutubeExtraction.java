@@ -25,10 +25,6 @@ public class YoutubeExtraction implements AbstractVideoExtractor {
     public YoutubeExtraction(final String url, final String directory) {
         this.url = url;
         this.directory = directory;
-        new Thread(() -> {
-            this.video = downloadVideo();
-            this.audio = extractAudio();
-        }).start();
     }
 
     @Override
@@ -96,7 +92,6 @@ public class YoutubeExtraction implements AbstractVideoExtractor {
     public File getAudio() {
         return audio;
     }
-
 
     public String getUrl() {
         return url;

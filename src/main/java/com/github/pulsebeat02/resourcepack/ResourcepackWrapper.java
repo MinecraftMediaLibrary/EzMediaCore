@@ -37,19 +37,12 @@ public class ResourcepackWrapper implements AbstractPackHolder {
         if (!ResourcepackUtilities.validatePackFormat(packFormat)) {
             throw new InvalidPackFormatException("Invalid Pack Format Exception (" + packFormat + ")");
         }
-        if (!ResourcepackUtilities.validateResourcepackIcon(icon)) {
+        if (icon != null && !ResourcepackUtilities.validateResourcepackIcon(icon)) {
             throw new InvalidPackIconException("Invalid Pack Icon! Must be PNG (" + icon.getName() + ")");
         }
-        new Thread(() -> {
-            try {
-                buildResourcePack();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();
     }
 
-    public class ResourcepackWrapperBuilder {
+    public static class ResourcepackWrapperBuilder {
 
         private File audio;
         private File icon;
