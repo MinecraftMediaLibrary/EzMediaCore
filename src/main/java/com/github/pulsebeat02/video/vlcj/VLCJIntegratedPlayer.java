@@ -22,7 +22,10 @@ public class VLCJIntegratedPlayer {
 
     private EmbeddedMediaPlayer mediaPlayerComponent;
 
-    public VLCJIntegratedPlayer(String url, int width, int height, Consumer<int[]> callback) {
+    public VLCJIntegratedPlayer(final String url,
+                                final int width,
+                                final int height,
+                                final Consumer<int[]> callback) {
         this.url = url;
         this.width = width;
         this.height = height;
@@ -51,7 +54,6 @@ public class VLCJIntegratedPlayer {
             public BufferFormat getBufferFormat(int sourceWidth, int sourceHeight) {
                 return new RV32BufferFormat(width, height);
             }
-
             @Override
             public void allocatedBuffers(ByteBuffer[] buffers) {
             }
@@ -87,14 +89,16 @@ public class VLCJIntegratedPlayer {
     }
 
     private class MinecraftRenderCallback extends RenderCallbackAdapter {
+
         private MinecraftRenderCallback() {
             super(new int[width * height]);
         }
 
         @Override
-        protected void onDisplay(MediaPlayer mediaPlayer, int[] buffer) {
+        protected void onDisplay(final MediaPlayer mediaPlayer, final int[] buffer) {
             callback.accept(buffer);
         }
+
     }
 
 }
