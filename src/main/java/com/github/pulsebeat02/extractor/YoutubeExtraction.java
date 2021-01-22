@@ -49,6 +49,9 @@ public class YoutubeExtraction implements AbstractVideoExtractor {
 
     @Override
     public File extractAudio() {
+        if (video == null) {
+            downloadVideo();
+        }
         onAudioExtraction();
         File sound = new File(directory + "/audio.ogg");
         AudioAttributes audio = new AudioAttributes();
