@@ -6,7 +6,7 @@ import com.github.pulsebeat02.video.JetpImageDither;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
-public class ItemFrameCallback implements AbstractItemFrameCallback {
+public class ItemFrameCallback implements AbstractCallback {
 
     private final MinecraftMediaLibrary library;
     private final UUID[] viewers;

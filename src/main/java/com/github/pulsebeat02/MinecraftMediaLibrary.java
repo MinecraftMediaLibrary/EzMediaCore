@@ -13,12 +13,14 @@ import java.nio.file.Path;
 
 public class MinecraftMediaLibrary {
 
+    private Plugin plugin;
     private PacketHandler handler;
     private TinyProtocol protocol;
     private Path parent;
     private boolean vlcj;
 
     public MinecraftMediaLibrary(final Plugin plugin, final Path path, final boolean isUsingVLCJ) {
+        this.plugin = plugin;
         this.protocol = new TinyProtocol(plugin) {
             @Override
             public Object onPacketOutAsync(Player player, Channel channel, Object packet) {
@@ -39,6 +41,10 @@ public class MinecraftMediaLibrary {
 
     public PacketHandler getHandler() {
         return handler;
+    }
+
+    public Plugin getPlugin() {
+        return plugin;
     }
 
 }

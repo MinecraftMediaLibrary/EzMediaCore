@@ -19,7 +19,7 @@ public class ExtractorUtilities {
         if (matcher.find()) {
             return matcher.group();
         }
-        throw new InvalidYoutubeURLException("Cannot extract Video ID from " + url);
+        throw new InvalidYoutubeURLException("Cannot extract Video ID (" + url + ")");
     }
 
     public static byte[] createHashSHA(final File file) throws NoSuchAlgorithmException, IOException {

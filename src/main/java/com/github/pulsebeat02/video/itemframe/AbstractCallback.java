@@ -1,6 +1,6 @@
 package com.github.pulsebeat02.video.itemframe;
 
-public interface AbstractItemFrameCallback {
+public interface AbstractCallback {
 
     void send(int[] data);
 

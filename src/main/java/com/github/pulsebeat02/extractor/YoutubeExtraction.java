@@ -14,7 +14,7 @@ import ws.schild.jave.MultimediaObject;
 import java.io.File;
 import java.io.IOException;
 
-public class YoutubeExtraction implements AbstractYoutubeExtractor {
+public class YoutubeExtraction implements AbstractVideoExtractor {
 
     private final String url;
     private final String directory;
@@ -33,6 +33,7 @@ public class YoutubeExtraction implements AbstractYoutubeExtractor {
 
     @Override
     public File downloadVideo() {
+        onVideoDownload();
         File videoFile = null;
         final YoutubeDownloader downloader = new YoutubeDownloader();
         final String ID = ExtractorUtilities.getVideoID(url);
@@ -52,6 +53,7 @@ public class YoutubeExtraction implements AbstractYoutubeExtractor {
 
     @Override
     public File extractAudio() {
+        onAudioExtraction();
         File sound = new File(directory + "/audio.ogg");
         AudioAttributes audio = new AudioAttributes();
         audio.setCodec("libvorbis");
@@ -69,6 +71,14 @@ public class YoutubeExtraction implements AbstractYoutubeExtractor {
             e.printStackTrace();
         }
         return sound;
+    }
+
+    @Override
+    public void onVideoDownload() {
+    }
+
+    @Override
+    public void onAudioExtraction() {
     }
 
     public String getDirectory() {
