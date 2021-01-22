@@ -4,6 +4,7 @@ import com.github.pulsebeat02.http.HttpDaemon;
 import org.bukkit.Bukkit;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 public class HttpDaemonProvider extends AbstractHostingProvider {
 
@@ -28,6 +29,11 @@ public class HttpDaemonProvider extends AbstractHostingProvider {
     @Override
     public String generateUrl(final String file) {
         return "http://" + SERVER_IP + ":" + port + "/" + file;
+    }
+
+    @Override
+    public String generateUrl(Path path) {
+        return "http://" + SERVER_IP + ":" + port + "/" + path.getFileName();
     }
 
     public HttpDaemon getDaemon() {

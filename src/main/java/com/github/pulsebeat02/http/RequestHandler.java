@@ -77,7 +77,7 @@ public class RequestHandler implements Runnable, AbstractRequestHandler {
             verbose("I/O error " + e);
         }
         if (flag) {
-            daemon.onResourcepackFailedDownload();
+            daemon.onResourcepackFailedDownload(client);
         }
     }
 
@@ -91,7 +91,7 @@ public class RequestHandler implements Runnable, AbstractRequestHandler {
         }
     }
 
-    public File requestFileCallback(String request) {
+    public File requestFileCallback(final String request) {
         return new File(daemon.getParentDirectory(), request);
     }
 

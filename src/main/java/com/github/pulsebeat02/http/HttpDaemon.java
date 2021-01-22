@@ -68,11 +68,11 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
     }
 
     @Override
-    public void onClientConnect(Socket client) {
+    public void onClientConnect(final Socket client) {
     }
 
     @Override
-    public void onResourcepackFailedDownload() {
+    public void onResourcepackFailedDownload(final Socket client) {
     }
 
     public void setZipHeader(final ZipHeader header) {

@@ -2,6 +2,12 @@ package com.github.pulsebeat02.video.itemframe;
 
 public interface AbstractCallback {
 
-    void send(int[] data);
+    /**
+     *
+     * Sends data for map packets to the players.
+     *
+     * @param data to send
+     */
+    void send(final int[] data);
 
 }

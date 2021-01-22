@@ -12,7 +12,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 
 public class MinecraftMediaLibrary {
@@ -44,9 +43,9 @@ public class MinecraftMediaLibrary {
         Bukkit.getPluginManager().registerEvents(new PlayerJoinLeaveHandler(this), plugin);
     }
 
-    public String getResourcepackUrlYoutube(final String url, final String directory) {
+    public String getResourcepackUrlYoutube(final String youtubeUrl, final String directory, final int port) {
 
-        YoutubeExtraction extraction = new YoutubeExtraction(url, directory);
+        YoutubeExtraction extraction = new YoutubeExtraction(youtubeUrl, directory);
         extraction.downloadVideo();
         extraction.extractAudio();
 
@@ -56,16 +55,12 @@ public class MinecraftMediaLibrary {
                 .setPath(directory)
                 .setPackFormat(6)
                 .createResourcepackHostingProvider(this);
-        try {
-            wrapper.buildResourcePack();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        wrapper.buildResourcePack();
 
-        HttpDaemonProvider hosting = new HttpDaemonProvider(directory, 8080);
+        HttpDaemonProvider hosting = new HttpDaemonProvider(directory, port);
         hosting.startServer();
 
-        return hosting.generateUrl(Paths.get(directory).getFileName().toString());
+        return hosting.generateUrl(Paths.get(directory));
 
     }
 

@@ -6,4 +6,19 @@ public class InvalidYoutubeURLException extends AssertionError {
         super(message);
     }
 
+    @Override
+    public synchronized Throwable getCause() {
+        return this;
+    }
+
+    @Override
+    public synchronized Throwable initCause(Throwable cause) {
+        return this;
+    }
+
+    @Override
+    public synchronized Throwable fillInStackTrace() {
+        return this;
+    }
+
 }

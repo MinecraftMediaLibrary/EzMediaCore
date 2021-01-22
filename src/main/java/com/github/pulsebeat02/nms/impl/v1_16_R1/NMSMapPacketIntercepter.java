@@ -1,12 +1,24 @@
 package com.github.pulsebeat02.nms.impl.v1_16_R1;
 
 import com.github.pulsebeat02.nms.PacketHandler;
+import net.minecraft.server.v1_16_R1.ChatComponentText;
+import net.minecraft.server.v1_16_R1.ChatHexColor;
+import net.minecraft.server.v1_16_R1.DataWatcher;
+import net.minecraft.server.v1_16_R1.DataWatcherObject;
+import net.minecraft.server.v1_16_R1.DataWatcherRegistry;
+import net.minecraft.server.v1_16_R1.IChatBaseComponent;
+import net.minecraft.server.v1_16_R1.MapIcon;
+import net.minecraft.server.v1_16_R1.PacketPlayOutEntityMetadata;
+import net.minecraft.server.v1_16_R1.PacketPlayOutMap;
+import net.minecraft.server.v1_16_R1.PlayerConnection;
+import org.bukkit.craftbukkit.v1_16_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_16_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -14,11 +26,11 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class NMSMapPacketTransfer implements PacketHandler {
+public class NMSMapPacketIntercepter implements PacketHandler {
 
     public static final int PACKET_THRESHOLD_MS = 0;
 
-    private static Field[] MAP_FIELDS = new Field[10];
+    private static final Field[] MAP_FIELDS = new Field[10];
     private static Field METADATA_ID;
     private static Field METADATA_ITEMS;
 
@@ -46,9 +58,9 @@ public class NMSMapPacketTransfer implements PacketHandler {
         }
     }
 
-    private final Map<UUID, PlayerConnection> playerConnections = new ConcurrentHashMap<UUID, PlayerConnection>();
-    private final Map<UUID, Long> lastUpdated = new ConcurrentHashMap<UUID, Long>();
-    private final Set<Integer> maps = new TreeSet<Integer>();
+    private final Map<UUID, PlayerConnection> playerConnections = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> lastUpdated = new ConcurrentHashMap<>();
+    private final Set<Integer> maps = new TreeSet<>();
 
     @Override
     public void display(UUID[] viewers, int map, int width, int height, ByteBuffer rgb, int videoWidth) {
@@ -152,13 +164,13 @@ public class NMSMapPacketTransfer implements PacketHandler {
                 p.setChatModifier(p.getChatModifier().setColor(ChatHexColor.a(c & 0xFFFFFF)));
                 component.addSibling(p);
             }
-            Item<Optional<IChatBaseComponent>> item = new Item<Optional<IChatBaseComponent>>(
-                    new DataWatcherObject<Optional<IChatBaseComponent>>(2, DataWatcherRegistry.f),
+            DataWatcher.Item<Optional<IChatBaseComponent>> item = new DataWatcher.Item<>(
+                    new DataWatcherObject<>(2, DataWatcherRegistry.f),
                     Optional.of(component));
             PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata();
             try {
                 METADATA_ID.set(packet, id);
-                METADATA_ITEMS.set(packet, Arrays.asList(item));
+                METADATA_ITEMS.set(packet, Collections.singletonList(item));
             } catch (IllegalArgumentException | IllegalAccessException e) {
                 e.printStackTrace();
             }
@@ -187,14 +199,6 @@ public class NMSMapPacketTransfer implements PacketHandler {
     public Object onPacketInterceptOut(Player viewer, Object packet) {
         if (packet instanceof PacketPlayOutMinimap) {
             return ((PacketPlayOutMinimap) packet).packet;
-        } else if (packet instanceof PacketPlayOutMap) {
-            if (packet.getClass().equals(PacketPlayOutMap.class)) {
-                try {
-                    int id = MAP_FIELDS[0].getInt(packet);
-                } catch (IllegalArgumentException | IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-            }
         }
         return packet;
     }
@@ -229,7 +233,7 @@ public class NMSMapPacketTransfer implements PacketHandler {
         maps.remove(id);
     }
 
-    private class PacketPlayOutMinimap extends PacketPlayOutMap {
+    private static class PacketPlayOutMinimap extends PacketPlayOutMap {
         protected final PacketPlayOutMap packet;
         protected PacketPlayOutMinimap(PacketPlayOutMap packet) {
             this.packet = packet;

@@ -82,30 +82,34 @@ public class ResourcepackWrapper implements AbstractPackHolder {
     }
 
     @Override
-    public void buildResourcePack() throws IOException {
+    public void buildResourcePack() {
         onResourcepackBuild();
-        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(path));
-        byte[] mcmeta = ("{\r\n" + "	\"pack\": {\r\n" + "    \"pack_format\": " + packFormat + ",\r\n"
-                + "    \"description\": \"" + description + "\"\r\n" + "  }\r\n" + "}")
-                .getBytes();
-        ZipEntry config = new ZipEntry("pack.mcmeta");
-        out.putNextEntry(config);
-        out.write(mcmeta);
-        out.closeEntry();
-        byte[] soundJSON = ("{\r\n" + "   \"" + library.getPlugin().getName() + "\":{\r\n" + "      \"sounds\":[\r\n"
-                + "         \"audio\"\r\n" + "      ]\r\n" + "   }\r\n" + "}").getBytes();
-        ZipEntry sound = new ZipEntry("assets/minecraft/sounds.json");
-        out.putNextEntry(sound);
-        out.write(soundJSON);
-        out.closeEntry();
-        ZipEntry soundFile = new ZipEntry("assets/minecraft/sounds/audio.ogg");
-        out.putNextEntry(soundFile);
-        out.write(Files.readAllBytes(Paths.get(audio.getAbsolutePath())));
-        ZipEntry iconFile = new ZipEntry("pack.png");
-        out.putNextEntry(iconFile);
-        out.write(Files.readAllBytes(Paths.get(icon.getAbsolutePath())));
-        out.closeEntry();
-        out.close();
+        try {
+            ZipOutputStream out = new ZipOutputStream(new FileOutputStream(path));
+            byte[] mcmeta = ("{\r\n" + "	\"pack\": {\r\n" + "    \"pack_format\": " + packFormat + ",\r\n"
+                    + "    \"description\": \"" + description + "\"\r\n" + "  }\r\n" + "}")
+                    .getBytes();
+            ZipEntry config = new ZipEntry("pack.mcmeta");
+            out.putNextEntry(config);
+            out.write(mcmeta);
+            out.closeEntry();
+            byte[] soundJSON = ("{\r\n" + "   \"" + library.getPlugin().getName() + "\":{\r\n" + "      \"sounds\":[\r\n"
+                    + "         \"audio\"\r\n" + "      ]\r\n" + "   }\r\n" + "}").getBytes();
+            ZipEntry sound = new ZipEntry("assets/minecraft/sounds.json");
+            out.putNextEntry(sound);
+            out.write(soundJSON);
+            out.closeEntry();
+            ZipEntry soundFile = new ZipEntry("assets/minecraft/sounds/audio.ogg");
+            out.putNextEntry(soundFile);
+            out.write(Files.readAllBytes(Paths.get(audio.getAbsolutePath())));
+            ZipEntry iconFile = new ZipEntry("pack.png");
+            out.putNextEntry(iconFile);
+            out.write(Files.readAllBytes(Paths.get(icon.getAbsolutePath())));
+            out.closeEntry();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
