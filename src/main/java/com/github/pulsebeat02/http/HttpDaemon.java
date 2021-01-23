@@ -40,6 +40,11 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
     @Override
     public void run() {
         onServerStart();
+        startServer();
+    }
+
+    @Override
+    public void startServer() {
         while (running) {
             try {
                 new Thread(new RequestHandler(this, header, socket.accept())).start();
