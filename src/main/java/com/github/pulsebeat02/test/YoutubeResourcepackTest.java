@@ -1,5 +1,6 @@
-package com.github.pulsebeat02;
+package com.github.pulsebeat02.test;
 
+import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.image.ImageMap;
 import com.github.pulsebeat02.resourcepack.ResourcepackWrapper;

@@ -1,4 +1,4 @@
-package com.github.pulsebeat02;
+package com.github.pulsebeat02.test;
 
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
