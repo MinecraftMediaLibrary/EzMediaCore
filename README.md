@@ -29,7 +29,7 @@ videos). Downloading a video's audio from Youtube and putting it into a modpack 
    class (`ResourcePackWrapper.ResourcepackWrapperBuilder`) has been provided to help create this with ease. Call
    the `ResourcePackWrapper#buildResourcePack()` method to build the resourcepack.
    ```java
-    ResourcepackWrapper wrapper = new ResourcepackWrapper.ResourcepackWrapperBuilder()
+    ResourcepackWrapper wrapper = new ResourcepackWrapper.Builder()
         .setAudio(extraction.getAudio())
         .setDescription("Title of Youtube Video: " + extraction.getVideoTitle())
         .setPath(directory)
@@ -54,7 +54,7 @@ videos). Downloading a video's audio from Youtube and putting it into a modpack 
         extraction.downloadVideo();
         extraction.extractAudio();
 
-        ResourcepackWrapper wrapper = new ResourcepackWrapper.ResourcepackWrapperBuilder()
+        ResourcepackWrapper wrapper = new ResourcepackWrapper.Builder()
                 .setAudio(extraction.getAudio())
                 .setDescription("Title of Youtube Video: " + extraction.getVideoTitle())
                 .setPath(directory)
