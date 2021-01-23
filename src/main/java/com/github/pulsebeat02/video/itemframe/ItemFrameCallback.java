@@ -106,4 +106,16 @@ public class ItemFrameCallback implements AbstractCallback {
         }
     }
 
+    public MinecraftMediaLibrary getLibrary() {
+        return library;
+    }
+
+    public int getVideoWidth() {
+        return videoWidth;
+    }
+
+    public long getLastUpdated() {
+        return lastUpdated;
+    }
+
 }

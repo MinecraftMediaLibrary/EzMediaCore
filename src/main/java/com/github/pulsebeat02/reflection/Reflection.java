@@ -1,4 +1,6 @@
-package com.github.pulsebeat02.tinyprotocol;
+package com.github.pulsebeat02.reflection;
+
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -6,8 +8,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.bukkit.Bukkit;
 
 /**
  * An utility class that simplifies reflection in Bukkit plugins.
@@ -25,7 +25,7 @@ public final class Reflection {
          * @param arguments - the arguments to pass to the constructor.
          * @return The constructed object.
          */
-        public Object invoke(Object... arguments);
+        Object invoke(Object... arguments);
     }
 
     /**
@@ -35,11 +35,11 @@ public final class Reflection {
         /**
          * Invoke a method on a specific target object.
          *
-         * @param target - the target object, or NULL for a static method.
+         * @param target    - the target object, or NULL for a static method.
          * @param arguments - the arguments to pass to the method.
          * @return The return value, or NULL if is void.
          */
-        public Object invoke(Object target, Object... arguments);
+        Object invoke(Object target, Object... arguments);
     }
 
     /**
@@ -54,15 +54,15 @@ public final class Reflection {
          * @param target - the target object, or NULL for a static field.
          * @return The value of the field.
          */
-        public T get(Object target);
+        T get(Object target);
 
         /**
          * Set the content of a field.
          *
          * @param target - the target object, or NULL for a static field.
-         * @param value - the new value of the field.
+         * @param value  - the new value of the field.
          */
-        public void set(Object target, Object value);
+        void set(Object target, Object value);
 
         /**
          * Determine if the given object has this field.
@@ -70,16 +70,16 @@ public final class Reflection {
          * @param target - the object to test.
          * @return TRUE if it does, FALSE otherwise.
          */
-        public boolean hasField(Object target);
+        boolean hasField(Object target);
     }
 
     // Deduce the net.minecraft.server.v* package
-    private static String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
-    private static String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
-    private static String VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
+    private static final String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
+    private static final String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
+    private static final String VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
 
     // Variable replacement
-    private static Pattern MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
+    private static final Pattern MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
 
     private Reflection() {
         // Seal class
@@ -88,8 +88,8 @@ public final class Reflection {
     /**
      * Retrieve a field accessor for a specific field type and name.
      *
-     * @param target - the target type.
-     * @param name - the name of the field, or NULL to ignore.
+     * @param target    - the target type.
+     * @param name      - the name of the field, or NULL to ignore.
      * @param fieldType - a compatible field type.
      * @return The field accessor.
      */
@@ -101,7 +101,7 @@ public final class Reflection {
      * Retrieve a field accessor for a specific field type and name.
      *
      * @param className - lookup name of the class, see {@link #getClass(String)}.
-     * @param name - the name of the field, or NULL to ignore.
+     * @param name      - the name of the field, or NULL to ignore.
      * @param fieldType - a compatible field type.
      * @return The field accessor.
      */
@@ -112,9 +112,9 @@ public final class Reflection {
     /**
      * Retrieve a field accessor for a specific field type and name.
      *
-     * @param target - the target type.
+     * @param target    - the target type.
      * @param fieldType - a compatible field type.
-     * @param index - the number of compatible fields to skip.
+     * @param index     - the number of compatible fields to skip.
      * @return The field accessor.
      */
     public static <T> FieldAccessor<T> getField(Class<?> target, Class<T> fieldType, int index) {
@@ -126,7 +126,7 @@ public final class Reflection {
      *
      * @param className - lookup name of the class, see {@link #getClass(String)}.
      * @param fieldType - a compatible field type.
-     * @param index - the number of compatible fields to skip.
+     * @param index     - the number of compatible fields to skip.
      * @return The field accessor.
      */
     public static <T> FieldAccessor<T> getField(String className, Class<T> fieldType, int index) {
@@ -180,9 +180,9 @@ public final class Reflection {
     /**
      * Search for the first publicly and privately defined method of the given name and parameter count.
      *
-     * @param className - lookup name of the class, see {@link #getClass(String)}.
+     * @param className  - lookup name of the class, see {@link #getClass(String)}.
      * @param methodName - the method name, or NULL to skip.
-     * @param params - the expected parameters.
+     * @param params     - the expected parameters.
      * @return An object that invokes this specific method.
      * @throws IllegalStateException If we cannot find this method.
      */
@@ -193,9 +193,9 @@ public final class Reflection {
     /**
      * Search for the first publicly and privately defined method of the given name and parameter count.
      *
-     * @param clazz - a class to start with.
+     * @param clazz      - a class to start with.
      * @param methodName - the method name, or NULL to skip.
-     * @param params - the expected parameters.
+     * @param params     - the expected parameters.
      * @return An object that invokes this specific method.
      * @throws IllegalStateException If we cannot find this method.
      */
@@ -206,10 +206,10 @@ public final class Reflection {
     /**
      * Search for the first publicly and privately defined method of the given name and parameter count.
      *
-     * @param clazz - a class to start with.
+     * @param clazz      - a class to start with.
      * @param methodName - the method name, or NULL to skip.
      * @param returnType - the expected return type, or NULL to ignore.
-     * @param params - the expected parameters.
+     * @param params     - the expected parameters.
      * @return An object that invokes this specific method.
      * @throws IllegalStateException If we cannot find this method.
      */
@@ -246,7 +246,7 @@ public final class Reflection {
      * Search for the first publically and privately defined constructor of the given name and parameter count.
      *
      * @param className - lookup name of the class, see {@link #getClass(String)}.
-     * @param params - the expected parameters.
+     * @param params    - the expected parameters.
      * @return An object that invokes this constructor.
      * @throws IllegalStateException If we cannot find this method.
      */
@@ -257,7 +257,7 @@ public final class Reflection {
     /**
      * Search for the first publically and privately defined constructor of the given name and parameter count.
      *
-     * @param clazz - a class to start with.
+     * @param clazz  - a class to start with.
      * @param params - the expected parameters.
      * @return An object that invokes this constructor.
      * @throws IllegalStateException If we cannot find this method.
@@ -291,12 +291,12 @@ public final class Reflection {
      * This is useful when looking up fields by a NMS or OBC type.
      * <p>
      *
-     * @see {@link #getClass()} for more information.
      * @param lookupName - the class name with variables.
      * @return The class.
+     * @see {@link #getClass()} for more information.
      */
     public static Class<Object> getUntypedClass(String lookupName) {
-        @SuppressWarnings({ "rawtypes", "unchecked" })
+        @SuppressWarnings({"rawtypes", "unchecked"})
         Class<Object> clazz = (Class) getClass(lookupName);
         return clazz;
     }

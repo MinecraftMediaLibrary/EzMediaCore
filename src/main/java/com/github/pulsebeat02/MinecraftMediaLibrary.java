@@ -1,26 +1,22 @@
 package com.github.pulsebeat02;
 
-import com.github.pulsebeat02.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.listener.PlayerJoinLeaveHandler;
 import com.github.pulsebeat02.nms.PacketHandler;
-import com.github.pulsebeat02.resourcepack.ResourcepackWrapper;
-import com.github.pulsebeat02.resourcepack.hosting.HttpDaemonProvider;
-import com.github.pulsebeat02.tinyprotocol.TinyProtocol;
+import com.github.pulsebeat02.reflection.NMSReflectionManager;
+import com.github.pulsebeat02.reflection.TinyProtocol;
 import io.netty.channel.Channel;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
-import java.nio.file.Paths;
-
 public class MinecraftMediaLibrary {
 
     private final Plugin plugin;
     private final TinyProtocol protocol;
     private final String parent;
-    private PacketHandler handler;
-    private boolean vlcj;
+    private final PacketHandler handler;
+    private final boolean vlcj;
 
     public MinecraftMediaLibrary(final Plugin plugin, final String path, final boolean isUsingVLCJ) {
         this.plugin = plugin;
@@ -35,6 +31,7 @@ public class MinecraftMediaLibrary {
                 return handler.onPacketInterceptIn(player, packet);
             }
         };
+        this.handler = NMSReflectionManager.getNewPacketHandlerInstance();
         this.parent = path;
         this.vlcj = isUsingVLCJ;
         if (isUsingVLCJ) {
@@ -63,4 +60,11 @@ public class MinecraftMediaLibrary {
         return vlcj;
     }
 
+    public String getParent() {
+        return parent;
+    }
+
+    public boolean isVlcj() {
+        return vlcj;
+    }
 }

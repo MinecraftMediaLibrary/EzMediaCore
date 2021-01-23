@@ -1,14 +1,18 @@
-package com.github.pulsebeat02.tinyprotocol;
+package com.github.pulsebeat02.reflection;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-
+import com.github.pulsebeat02.reflection.Reflection.FieldAccessor;
+import com.github.pulsebeat02.reflection.Reflection.MethodInvoker;
+import com.google.common.collect.Lists;
+import com.google.common.collect.MapMaker;
+import com.mojang.authlib.GameProfile;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPromise;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -20,20 +24,14 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import com.github.pulsebeat02.tinyprotocol.Reflection.MethodInvoker;
-import com.github.pulsebeat02.tinyprotocol.Reflection.FieldAccessor;
-import com.google.common.collect.Lists;
-import com.google.common.collect.MapMaker;
-import com.mojang.authlib.GameProfile;
-
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelPromise;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 /**
  * Represents a very tiny alternative to ProtocolLib.
@@ -74,25 +72,25 @@ public abstract class TinyProtocol {
             GameProfile.class, 0);
 
     // Speedup channel lookup
-    private Map<String, Channel> channelLookup = new MapMaker().weakValues().makeMap();
-    private Map<UUID, Channel> uuidChannelLookup = new MapMaker().weakValues().makeMap();
+    private final Map<String, Channel> channelLookup = new MapMaker().weakValues().makeMap();
+    private final Map<UUID, Channel> uuidChannelLookup = new MapMaker().weakValues().makeMap();
     private Listener listener;
 
     // Channels that have already been removed
-    private Set<Channel> uninjectedChannels = Collections
-            .newSetFromMap(new MapMaker().weakKeys().<Channel, Boolean>makeMap());
+    private final Set<Channel> uninjectedChannels = Collections
+            .newSetFromMap(new MapMaker().weakKeys().makeMap());
 
     // List of network markers
     private List<Object> networkManagers;
 
     // Injected channel handlers
-    private List<Channel> serverChannels = Lists.newArrayList();
+    private final List<Channel> serverChannels = Lists.newArrayList();
     private ChannelInboundHandlerAdapter serverChannelHandler;
     private ChannelInitializer<Channel> beginInitProtocol;
     private ChannelInitializer<Channel> endInitProtocol;
 
     // Current handler name
-    private String handlerName;
+    private final String handlerName;
 
     protected volatile boolean closed;
     protected Plugin plugin;
@@ -242,7 +240,7 @@ public abstract class TinyProtocol {
             List<Object> list = Reflection.getField(serverConnection.getClass(), List.class, i).get(serverConnection);
 
             for (Object item : list) {
-                if (!ChannelFuture.class.isInstance(item))
+                if (!(item instanceof ChannelFuture))
                     break;
 
                 // Channel future that contains the server connection

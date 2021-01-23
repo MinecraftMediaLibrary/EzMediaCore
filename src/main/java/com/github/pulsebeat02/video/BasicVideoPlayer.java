@@ -62,5 +62,48 @@ public class BasicVideoPlayer {
         stopped = true;
     }
 
+    public MinecraftMediaLibrary getLibrary() {
+        return library;
+    }
+
+    public FFmpegFrameGrabber getGrabber() {
+        return grabber;
+    }
+
+    public File getVideo() {
+        return video;
+    }
+
+    public UUID[] getViewers() {
+        return viewers;
+    }
+
+    public int getMap() {
+        return map;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public int getVideoWidth() {
+        return videoWidth;
+    }
+
+    public int getDelay() {
+        return delay;
+    }
+
+    public boolean isStopped() {
+        return stopped;
+    }
+
+    public Thread getVideoThread() {
+        return videoThread;
+    }
 
 }

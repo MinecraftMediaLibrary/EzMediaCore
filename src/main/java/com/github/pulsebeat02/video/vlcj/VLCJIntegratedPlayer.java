@@ -54,6 +54,7 @@ public class VLCJIntegratedPlayer {
             public BufferFormat getBufferFormat(int sourceWidth, int sourceHeight) {
                 return new RV32BufferFormat(width, height);
             }
+
             @Override
             public void allocatedBuffers(ByteBuffer[] buffers) {
             }
@@ -80,6 +81,14 @@ public class VLCJIntegratedPlayer {
             callback.accept(buffer);
         }
 
+    }
+
+    public Consumer<int[]> getCallback() {
+        return callback;
+    }
+
+    public EmbeddedMediaPlayer getMediaPlayerComponent() {
+        return mediaPlayerComponent;
     }
 
 }

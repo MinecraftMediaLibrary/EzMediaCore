@@ -99,6 +99,22 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
         return port;
     }
 
+    public boolean isRunning() {
+        return running;
+    }
+
+    public ServerSocket getSocket() {
+        return socket;
+    }
+
+    public File getDirectory() {
+        return directory;
+    }
+
+    public ZipHeader getHeader() {
+        return header;
+    }
+
     public enum ZipHeader {
 
         ZIP("application/zip"), OCTET_STREAM("application/octet-stream");

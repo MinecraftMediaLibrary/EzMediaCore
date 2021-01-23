@@ -4,11 +4,7 @@ import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.utility.VideoUtilities;
 import com.github.pulsebeat02.video.dither.JetpImageDither;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
 import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.UUID;
@@ -83,6 +79,30 @@ public class ImageMap implements AbstractImageMapHolder {
             return new ImageMap(library, viewers, map, image, height, width);
         }
 
+    }
+
+    public MinecraftMediaLibrary getLibrary() {
+        return library;
+    }
+
+    public UUID[] getViewers() {
+        return viewers;
+    }
+
+    public int getMap() {
+        return map;
+    }
+
+    public File getImage() {
+        return image;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public int getWidth() {
+        return width;
     }
 
 }

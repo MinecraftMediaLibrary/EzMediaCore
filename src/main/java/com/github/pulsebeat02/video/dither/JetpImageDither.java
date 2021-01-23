@@ -2,10 +2,8 @@ package com.github.pulsebeat02.video.dither;
 
 import org.bukkit.map.MapPalette;
 
-import java.awt.Color;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.Graphics2D;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;

@@ -105,4 +105,16 @@ public class RequestHandler implements Runnable, AbstractRequestHandler {
                 "User-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n";
     }
 
+    public HttpDaemon getDaemon() {
+        return daemon;
+    }
+
+    public HttpDaemon.ZipHeader getHeader() {
+        return header;
+    }
+
+    public Socket getClient() {
+        return client;
+    }
+
 }

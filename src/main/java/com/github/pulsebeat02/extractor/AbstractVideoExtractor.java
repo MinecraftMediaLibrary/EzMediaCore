@@ -10,7 +10,6 @@ public interface AbstractVideoExtractor {
      * it will throw an InvalidYoutubeURLException.
      *
      * @return File for the downloaded video
-     *
      */
     File downloadVideo();
 
@@ -21,23 +20,18 @@ public interface AbstractVideoExtractor {
      * an ogg file.
      *
      * @return File for the extracted audio
-     *
      */
     File extractAudio();
 
     /**
-     *
      * This method is called at the beginning of video download. Useful
      * for preparation in advance of the video download.
-     *
      */
     void onVideoDownload();
 
     /**
-     *
      * This method is called at the beginning of audio extraction. Useful
      * for prparation in advance of audio extraction.
-     *
      */
     void onAudioExtraction();
 

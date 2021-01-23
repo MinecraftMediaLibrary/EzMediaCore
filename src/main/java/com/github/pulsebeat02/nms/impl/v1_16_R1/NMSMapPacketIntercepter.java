@@ -235,6 +235,7 @@ public class NMSMapPacketIntercepter implements PacketHandler {
 
     private static class PacketPlayOutMinimap extends PacketPlayOutMap {
         protected final PacketPlayOutMap packet;
+
         protected PacketPlayOutMinimap(PacketPlayOutMap packet) {
             this.packet = packet;
         }
