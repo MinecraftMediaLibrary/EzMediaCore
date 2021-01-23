@@ -66,4 +66,5 @@ public class MinecraftMediaLibrary {
     public boolean isVlcj() {
         return vlcj;
     }
+
 }
