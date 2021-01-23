@@ -1,8 +1,10 @@
 package com.github.pulsebeat02.exception;
 
+import org.jetbrains.annotations.NotNull;
+
 public class InvalidYoutubeURLException extends AssertionError {
 
-    public InvalidYoutubeURLException(final String message) {
+    public InvalidYoutubeURLException(@NotNull final String message) {
         super(message);
     }
 

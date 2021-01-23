@@ -3,6 +3,7 @@ package com.github.pulsebeat02.test;
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
@@ -14,7 +15,7 @@ public class JavaCVTest implements Runnable {
         canvas.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
     }
 
-    public void convert(File file) {
+    public void convert(@NotNull final File file) {
         FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber(file.getAbsolutePath());
         Frame frame;
         int delay = (int)(1000 * (frameGrabber.getVideoFrameRate()));

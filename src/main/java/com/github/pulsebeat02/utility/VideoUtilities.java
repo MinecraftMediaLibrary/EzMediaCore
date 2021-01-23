@@ -1,5 +1,7 @@
 package com.github.pulsebeat02.utility;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -8,7 +10,7 @@ import java.io.IOException;
 
 public class VideoUtilities {
 
-    public static int[] getBuffer(final File image) {
+    public static int[] getBuffer(@NotNull final File image) {
         try {
             BufferedImage bi = ImageIO.read(image);
             return ((DataBufferInt) bi.getRaster().getDataBuffer()).getData();
@@ -18,7 +20,7 @@ public class VideoUtilities {
         return null;
     }
 
-    public static int[] getBuffer(final BufferedImage image) {
+    public static int[] getBuffer(@NotNull final BufferedImage image) {
         return ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
     }
 

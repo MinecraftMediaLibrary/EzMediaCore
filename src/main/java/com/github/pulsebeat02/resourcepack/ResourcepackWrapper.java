@@ -4,6 +4,7 @@ import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.exception.InvalidPackFormatException;
 import com.github.pulsebeat02.exception.InvalidPackIconException;
 import com.github.pulsebeat02.utility.ResourcepackUtilities;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -22,9 +23,9 @@ public class ResourcepackWrapper implements AbstractPackHolder {
     private final String description;
     private final int packFormat;
 
-    public ResourcepackWrapper(final MinecraftMediaLibrary library,
-                               final String path,
-                               final File audio,
+    public ResourcepackWrapper(@NotNull final MinecraftMediaLibrary library,
+                               @NotNull final String path,
+                               @NotNull final File audio,
                                final File icon,
                                final String description,
                                final int packFormat) {

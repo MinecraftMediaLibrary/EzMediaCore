@@ -4,10 +4,12 @@ import com.github.pulsebeat02.listener.PlayerJoinLeaveHandler;
 import com.github.pulsebeat02.nms.PacketHandler;
 import com.github.pulsebeat02.reflection.NMSReflectionManager;
 import com.github.pulsebeat02.reflection.TinyProtocol;
+
 import io.netty.channel.Channel;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
 public class MinecraftMediaLibrary {
@@ -18,7 +20,9 @@ public class MinecraftMediaLibrary {
     private final PacketHandler handler;
     private final boolean vlcj;
 
-    public MinecraftMediaLibrary(final Plugin plugin, final String path, final boolean isUsingVLCJ) {
+    public MinecraftMediaLibrary(@NotNull final Plugin plugin,
+                                 @NotNull final String path,
+                                 final boolean isUsingVLCJ) {
         this.plugin = plugin;
         this.protocol = new TinyProtocol(plugin) {
             @Override

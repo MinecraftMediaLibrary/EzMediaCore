@@ -1,5 +1,7 @@
 package com.github.pulsebeat02.http;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,7 +24,7 @@ public class RequestHandler implements Runnable, AbstractRequestHandler {
     private final HttpDaemon.ZipHeader header;
     private final Socket client;
 
-    public RequestHandler(final HttpDaemon daemon, HttpDaemon.ZipHeader header, final Socket client) {
+    public RequestHandler(@NotNull final HttpDaemon daemon, HttpDaemon.ZipHeader header, @NotNull final Socket client) {
         this.daemon = daemon;
         this.header = header;
         this.client = client;

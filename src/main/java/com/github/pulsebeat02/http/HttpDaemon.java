@@ -1,5 +1,7 @@
 package com.github.pulsebeat02.http;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -15,7 +17,7 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
     private ZipHeader header;
     private boolean verbose;
 
-    public HttpDaemon(final int port, final File directory) throws IOException {
+    public HttpDaemon(final int port, @NotNull final File directory) throws IOException {
         this.running = true;
         this.port = port;
         this.socket = new ServerSocket(port);
@@ -25,7 +27,7 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
         this.verbose = true;
     }
 
-    public HttpDaemon(final int port, final String path) throws IOException {
+    public HttpDaemon(final int port, @NotNull final String path) throws IOException {
         this.running = true;
         this.port = port;
         this.socket = new ServerSocket(port);

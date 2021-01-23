@@ -1,6 +1,7 @@
 package com.github.pulsebeat02.utility;
 
 import com.github.pulsebeat02.exception.InvalidYoutubeURLException;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,7 +14,7 @@ import java.util.regex.Pattern;
 
 public class ExtractorUtilities {
 
-    public static String getVideoID(final String url) {
+    public static String getVideoID(@NotNull final String url) {
         Pattern compiledPattern = Pattern.compile("(?<=youtu.be/|watch\\?v=|/videos/|embed)[^#]*");
         Matcher matcher = compiledPattern.matcher(url);
         if (matcher.find()) {
@@ -22,7 +23,7 @@ public class ExtractorUtilities {
         throw new InvalidYoutubeURLException("Cannot extract Video ID (" + url + ")");
     }
 
-    public static byte[] createHashSHA(final File file) throws NoSuchAlgorithmException, IOException {
+    public static byte[] createHashSHA(@NotNull final File file) throws NoSuchAlgorithmException, IOException {
         MessageDigest digest = MessageDigest.getInstance("SHA-1");
         InputStream fis = new FileInputStream(file);
         int n = 0;

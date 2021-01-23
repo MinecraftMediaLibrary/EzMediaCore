@@ -103,6 +103,11 @@
             <artifactId>javacv-platform</artifactId>
             <version>1.5.4</version>
         </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>16.0.1</version>
+        </dependency>
 
         <!-- NMS Dependencies -->
         <dependency>

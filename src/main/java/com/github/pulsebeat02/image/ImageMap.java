@@ -3,6 +3,7 @@ package com.github.pulsebeat02.image;
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.utility.VideoUtilities;
 import com.github.pulsebeat02.video.dither.JetpImageDither;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -18,10 +19,10 @@ public class ImageMap implements AbstractImageMapHolder {
     private final int height;
     private final int width;
 
-    public ImageMap(final MinecraftMediaLibrary library,
-                    final UUID[] viewers,
+    public ImageMap(@NotNull final MinecraftMediaLibrary library,
+                    @NotNull final UUID[] viewers,
                     final int map,
-                    final File image,
+                    @NotNull final File image,
                     final int height,
                     final int width) {
         this.library = library;

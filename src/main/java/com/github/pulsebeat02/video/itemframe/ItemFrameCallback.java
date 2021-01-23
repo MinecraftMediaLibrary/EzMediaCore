@@ -2,6 +2,7 @@ package com.github.pulsebeat02.video.itemframe;
 
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.video.dither.JetpImageDither;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;
@@ -17,8 +18,8 @@ public class ItemFrameCallback implements AbstractCallback {
     private final int delay;
     private long lastUpdated;
 
-    public ItemFrameCallback(final MinecraftMediaLibrary library,
-                             final UUID[] viewers,
+    public ItemFrameCallback(@NotNull final MinecraftMediaLibrary library,
+                             @NotNull final UUID[] viewers,
                              final int map,
                              final int width, final int height, final int videoWidth,
                              final int delay) {

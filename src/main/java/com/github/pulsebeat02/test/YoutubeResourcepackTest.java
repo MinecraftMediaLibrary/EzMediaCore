@@ -8,6 +8,7 @@ import com.github.pulsebeat02.resourcepack.hosting.HttpDaemonProvider;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -27,7 +28,7 @@ public class YoutubeResourcepackTest extends JavaPlugin {
         library = new MinecraftMediaLibrary(this, getDataFolder().getPath(), true);
     }
 
-    public String getResourcepackUrlYoutube(final String youtubeUrl, final String directory, final int port) {
+    public String getResourcepackUrlYoutube(@NotNull final String youtubeUrl, @NotNull final String directory, final int port) {
 
         YoutubeExtraction extraction = new YoutubeExtraction(youtubeUrl, directory);
         extraction.downloadVideo();
@@ -48,7 +49,7 @@ public class YoutubeResourcepackTest extends JavaPlugin {
 
     }
 
-    public void displayImage(final int map, final File image) throws IOException {
+    public void displayImage(final int map, @NotNull final File image) throws IOException {
 
         BufferedImage bi = ImageIO.read(image);
 

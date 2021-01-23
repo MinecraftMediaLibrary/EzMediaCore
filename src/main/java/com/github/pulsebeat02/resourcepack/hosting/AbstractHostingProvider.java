@@ -1,5 +1,7 @@
 package com.github.pulsebeat02.resourcepack.hosting;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.nio.file.Path;
 
 public abstract class AbstractHostingProvider {
@@ -13,7 +15,7 @@ public abstract class AbstractHostingProvider {
      * @return String url for the generated url to
      * access the specific file.
      */
-    public abstract String generateUrl(final String file);
+    public abstract String generateUrl(@NotNull final String file);
 
     /**
      * Generates a url for the specific requested
@@ -24,6 +26,6 @@ public abstract class AbstractHostingProvider {
      * @return String url for the generated url to
      * access the specific file.
      */
-    public abstract String generateUrl(final Path path);
+    public abstract String generateUrl(@NotNull final Path path);
 
 }

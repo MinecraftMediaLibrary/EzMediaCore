@@ -1,5 +1,6 @@
 package com.github.pulsebeat02.video.vlcj;
 
+import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
@@ -22,10 +23,10 @@ public class VLCJIntegratedPlayer {
 
     private EmbeddedMediaPlayer mediaPlayerComponent;
 
-    public VLCJIntegratedPlayer(final String url,
+    public VLCJIntegratedPlayer(@NotNull final String url,
                                 final int width,
                                 final int height,
-                                final Consumer<int[]> callback) {
+                                @NotNull final Consumer<int[]> callback) {
         this.url = url;
         this.width = width;
         this.height = height;

@@ -1,8 +1,10 @@
 package com.github.pulsebeat02.exception;
 
+import org.jetbrains.annotations.NotNull;
+
 public class InvalidPackFormatException extends AssertionError {
 
-    public InvalidPackFormatException(final String message) {
+    public InvalidPackFormatException(@NotNull final String message) {
         super(message);
     }
 

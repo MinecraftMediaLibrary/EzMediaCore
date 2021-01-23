@@ -1,5 +1,7 @@
 package com.github.pulsebeat02.video.itemframe;
 
+import org.jetbrains.annotations.NotNull;
+
 public interface AbstractCallback {
 
     /**
@@ -7,6 +9,6 @@ public interface AbstractCallback {
      *
      * @param data to send
      */
-    void send(final int[] data);
+    void send(@NotNull final int[] data);
 
 }

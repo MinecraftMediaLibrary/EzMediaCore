@@ -1,8 +1,10 @@
 package com.github.pulsebeat02.exception;
 
+import org.jetbrains.annotations.NotNull;
+
 public class InvalidPackIconException extends AssertionError {
 
-    public InvalidPackIconException(final String message) {
+    public InvalidPackIconException(@NotNull final String message) {
         super(message);
     }
 

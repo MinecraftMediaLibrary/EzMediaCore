@@ -5,6 +5,7 @@ import com.github.kiulian.downloader.YoutubeException;
 import com.github.kiulian.downloader.model.VideoDetails;
 import com.github.kiulian.downloader.model.YoutubeVideo;
 import com.github.pulsebeat02.utility.ExtractorUtilities;
+import org.jetbrains.annotations.NotNull;
 import ws.schild.jave.AudioAttributes;
 import ws.schild.jave.Encoder;
 import ws.schild.jave.EncoderException;
@@ -22,7 +23,7 @@ public class YoutubeExtraction implements AbstractVideoExtractor {
     private File video;
     private File audio;
 
-    public YoutubeExtraction(final String url, final String directory) {
+    public YoutubeExtraction(@NotNull final String url, @NotNull final String directory) {
         this.url = url;
         this.directory = directory;
     }

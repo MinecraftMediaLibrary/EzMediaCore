@@ -6,6 +6,7 @@ import com.github.pulsebeat02.video.dither.JetpImageDither;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.UUID;
@@ -25,9 +26,9 @@ public class BasicVideoPlayer {
     private volatile boolean stopped;
     private Thread videoThread;
 
-    public BasicVideoPlayer(final MinecraftMediaLibrary library,
-                            final File video,
-                            final UUID[] viewers,
+    public BasicVideoPlayer(@NotNull final MinecraftMediaLibrary library,
+                            @NotNull final File video,
+                            @NotNull final UUID[] viewers,
                             final int map,
                             final int width, final int height, final int videoWidth,
                             final int delay) {
