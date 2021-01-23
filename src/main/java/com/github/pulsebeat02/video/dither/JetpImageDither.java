@@ -234,7 +234,6 @@ public class JetpImageDither {
                         buf2[bufferIndex - 3] = (int) (0.3125 * delta_r);
                         buf2[bufferIndex - 2] = (int) (0.3125 * delta_g);
                         buf2[bufferIndex - 1] = (int) (0.3125 * delta_b);
-
                         if (hasNextX) {
                             buf2[bufferIndex] = (int) (0.0625 * delta_r);
                             buf2[bufferIndex + 1] = (int) (0.0625 * delta_g);

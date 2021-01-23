@@ -25,7 +25,6 @@ public class MinecraftMediaLibrary {
             public Object onPacketOutAsync(Player player, Channel channel, Object packet) {
                 return handler.onPacketInterceptOut(player, packet);
             }
-
             @Override
             public Object onPacketInAsync(Player player, Channel channel, Object packet) {
                 return handler.onPacketInterceptIn(player, packet);
