@@ -1,7 +1,7 @@
 package com.github.pulsebeat02.video.itemframe;
 
 import com.github.pulsebeat02.MinecraftMediaLibrary;
-import com.github.pulsebeat02.video.JetpImageDither;
+import com.github.pulsebeat02.video.dither.JetpImageDither;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;

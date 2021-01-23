@@ -63,28 +63,9 @@ public class VLCJIntegratedPlayer {
         mediaPlayerComponent.media().play(url);
     }
 
-    public void pause() {
-        if (mediaPlayerComponent != null) {
-            mediaPlayerComponent.controls().pause();
-        }
-    }
-
-    public void resume() {
-        if (mediaPlayerComponent != null) {
-            mediaPlayerComponent.controls().start();
-        }
-    }
-
     public void stop() {
         if (mediaPlayerComponent != null) {
             mediaPlayerComponent.controls().stop();
-        }
-    }
-
-    public void release() {
-        if (mediaPlayerComponent != null) {
-            mediaPlayerComponent.release();
-            mediaPlayerComponent = null;
         }
     }
 

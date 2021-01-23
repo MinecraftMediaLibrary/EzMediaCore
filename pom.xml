@@ -32,8 +32,8 @@
                     <artifactSet>
                         <includes>
                             <include>com.github.sealedtx</include>
-                            <include>com.alibaba</include>
                             <include>ws.schild</include>
+                            <include>org.bytedeco</include>
                         </includes>
                     </artifactSet>
                     <relocations>
@@ -48,6 +48,10 @@
                         <relocation>
                             <pattern>ws.schild</pattern>
                             <shadedPattern>com.github.pulsebeat02.encoding</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.bytedeco</pattern>
+                            <shadedPattern>com.github.pulsebeat02.frame</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>
@@ -93,6 +97,11 @@
             <groupId>com.mojang</groupId>
             <artifactId>authlib</artifactId>
             <version>1.5.25</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv-platform</artifactId>
+            <version>1.5.4</version>
         </dependency>
 
         <!-- NMS Dependencies -->

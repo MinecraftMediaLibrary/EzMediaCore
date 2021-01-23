@@ -1,6 +1,6 @@
-package com.github.pulsebeat02.video;
+package com.github.pulsebeat02.video.dither;
 
-import java.awt.*;
+import java.awt.Color;
 
 public class MapPalette {
 

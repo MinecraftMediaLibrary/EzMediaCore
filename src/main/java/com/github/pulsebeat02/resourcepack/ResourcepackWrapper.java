@@ -42,7 +42,7 @@ public class ResourcepackWrapper implements AbstractPackHolder {
         }
     }
 
-    public static class ResourcepackWrapperBuilder {
+    public static class Builder {
 
         private File audio;
         private File icon;
@@ -50,27 +50,27 @@ public class ResourcepackWrapper implements AbstractPackHolder {
         private int packFormat;
         private String path;
 
-        public ResourcepackWrapperBuilder setAudio(final File audio) {
+        public Builder setAudio(final File audio) {
             this.audio = audio;
             return this;
         }
 
-        public ResourcepackWrapperBuilder setIcon(final File icon) {
+        public Builder setIcon(final File icon) {
             this.icon = icon;
             return this;
         }
 
-        public ResourcepackWrapperBuilder setDescription(final String description) {
+        public Builder setDescription(final String description) {
             this.description = description;
             return this;
         }
 
-        public ResourcepackWrapperBuilder setPackFormat(final int packFormat) {
+        public Builder setPackFormat(final int packFormat) {
             this.packFormat = packFormat;
             return this;
         }
 
-        public ResourcepackWrapperBuilder setPath(final String path) {
+        public Builder setPath(final String path) {
             this.path = path;
             return this;
         }

@@ -43,27 +43,6 @@ public class MinecraftMediaLibrary {
         Bukkit.getPluginManager().registerEvents(new PlayerJoinLeaveHandler(this), plugin);
     }
 
-    public String getResourcepackUrlYoutube(final String youtubeUrl, final String directory, final int port) {
-
-        YoutubeExtraction extraction = new YoutubeExtraction(youtubeUrl, directory);
-        extraction.downloadVideo();
-        extraction.extractAudio();
-
-        ResourcepackWrapper wrapper = new ResourcepackWrapper.ResourcepackWrapperBuilder()
-                .setAudio(extraction.getAudio())
-                .setDescription("Title of Youtube Video: " + extraction.getVideoTitle())
-                .setPath(directory)
-                .setPackFormat(6)
-                .createResourcepackHostingProvider(this);
-        wrapper.buildResourcePack();
-
-        HttpDaemonProvider hosting = new HttpDaemonProvider(directory, port);
-        hosting.startServer();
-
-        return hosting.generateUrl(Paths.get(directory));
-
-    }
-
     public Plugin getPlugin() {
         return plugin;
     }
