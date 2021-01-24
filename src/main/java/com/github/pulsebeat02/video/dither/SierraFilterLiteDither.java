@@ -57,19 +57,11 @@ public class SierraFilterLiteDither {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-
-        System.setOut(new PrintStream("latest.log"));
         int[] buffer = VideoUtilities.getBuffer(new File("/Users/Brandon/Desktop/platform1/6vv2qz15h7e51.png"));
+        long start = System.currentTimeMillis();
         dither(buffer, 3000);
-        System.out.println(Arrays.toString(buffer));
-
-//        BufferedImage image = VideoUtilities.toBufferedImage();
-//        JFrame frame = new JFrame();
-//        frame.getContentPane().setLayout(new FlowLayout());
-//        frame.getContentPane().add(new JLabel(new ImageIcon(image)));
-//        frame.pack();
-//        frame.setVisible(true);
-
+        long after = System.currentTimeMillis();
+        System.out.println(after - start);
     }
 
     public static void dither(int[] buffer, int width) {

@@ -1,9 +1,11 @@
 package com.github.pulsebeat02.video.dither;
 
-import org.bukkit.map.MapPalette;
+import com.github.pulsebeat02.utility.VideoUtilities;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -96,6 +98,14 @@ public class JetpImageDither {
             map[index] = ptr;
         }
         return map;
+    }
+
+    public static void main(String[] args) throws FileNotFoundException {
+        int[] buffer = VideoUtilities.getBuffer(new File("/Users/Brandon/Desktop/platform1/6vv2qz15h7e51.png"));
+        long start = System.currentTimeMillis();
+        dither(buffer, 3000);
+        long after = System.currentTimeMillis();
+        System.out.println(after - start);
     }
 
     public static void dither(int[] buffer, int width) {
