@@ -1,12 +1,14 @@
 package com.github.pulsebeat02.video.dither;
 
 import com.github.pulsebeat02.utility.VideoUtilities;
-import org.bukkit.map.MapPalette;
-import org.opencv.video.Video;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class PulseImageDither {
@@ -53,14 +55,23 @@ public class PulseImageDither {
     }
 
     public static void main(String[] args) {
-        dither(VideoUtilities.getBuffer(new File("C:\\Users\\Brandon Li\\Pictures\\1.PNG")), 500);
+        ByteBuffer buffer = dither(VideoUtilities.getBuffer(new File("/Users/bli24/Desktop/platform1/6vv2qz15h7e51.png")), 3000);
+        byte[] arr = VideoUtilities.byteBufferArrayTranslation(buffer);
+        System.out.println(Arrays.toString(arr));
+        BufferedImage image = VideoUtilities.toBufferedImage(arr);
+        JFrame frame = new JFrame();
+        frame.getContentPane().setLayout(new FlowLayout());
+        frame.getContentPane().add(new JLabel(new ImageIcon(image)));
+        frame.pack();
+        frame.setVisible(true);
     }
 
-    public static void dither(int[] buffer, int width) {
+    public static ByteBuffer dither(int[] buffer, int width) {
         int height = buffer.length / width;
         int widthMinus = width - 1;
         int heightMinus = height - 1;
         int[][] dither_buffer = new int[2][width + width << 1];
+        ByteBuffer data = ByteBuffer.allocate(buffer.length);
         for (int y = 0; y < height; y++) {
             boolean hasNextY = y < heightMinus;
             int yIndex = y * width;
@@ -103,7 +114,7 @@ public class PulseImageDither {
                             buf2[bufferIndex + 2] = (int) (0.0625 * delta_b);
                         }
                     }
-                    buffer[index] = closest;
+                    data.put(index, getBestColor(closest));
                 }
             } else {
                 int bufferIndex = width + (width << 1) - 1;
@@ -144,14 +155,19 @@ public class PulseImageDither {
                             buf2[bufferIndex - 2] = (int) (0.0625 * delta_r);
                         }
                     }
-                    buffer[index] = closest;
+                    data.put(index, getBestColor(closest));
                 }
             }
         }
+        return data;
     }
 
     public static int getBestFullColor(int red, int green, int blue) {
         return FULL_COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
+    }
+
+    public static byte getBestColor(int rgb) {
+        return COLOR_MAP[(rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
     }
 
 }
