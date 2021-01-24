@@ -1,6 +1,7 @@
 package com.github.pulsebeat02.test;
 
 import com.github.pulsebeat02.MinecraftMediaLibrary;
+import com.github.pulsebeat02.concurrent.AsyncVideoExtraction;
 import com.github.pulsebeat02.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.image.ImageMap;
 import com.github.pulsebeat02.resourcepack.ResourcepackWrapper;
@@ -18,6 +19,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class YoutubeResourcepackTest extends JavaPlugin {
 
@@ -30,9 +34,20 @@ public class YoutubeResourcepackTest extends JavaPlugin {
 
     public String getResourcepackUrlYoutube(@NotNull final String youtubeUrl, @NotNull final String directory, final int port) {
 
-        YoutubeExtraction extraction = new YoutubeExtraction(youtubeUrl, directory);
-        extraction.downloadVideo();
-        extraction.extractAudio();
+        YoutubeExtraction extraction = new YoutubeExtraction(youtubeUrl, directory) {
+            @Override
+            public void onVideoDownload() {
+                System.out.println("Video is Downloading!");
+            }
+
+            @Override
+            public void onAudioExtraction() {
+                System.out.println("Audio is being extracted from Video!");
+            }
+        };
+        ExecutorService executor = Executors.newCachedThreadPool();
+        CompletableFuture.runAsync(() -> new AsyncVideoExtraction(extraction).extractAudio(), executor);
+        CompletableFuture.runAsync(() -> new AsyncVideoExtraction(extraction).downloadVideo(), executor);
 
         ResourcepackWrapper wrapper = new ResourcepackWrapper.Builder()
                 .setAudio(extraction.getAudio())

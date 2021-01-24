@@ -10,7 +10,7 @@ public class AsyncVideoExtraction {
 
     private final AbstractVideoExtractor extractor;
 
-    AsyncVideoExtraction(@NotNull final AbstractVideoExtractor extractor) {
+    public AsyncVideoExtraction(@NotNull final AbstractVideoExtractor extractor) {
         this.extractor = extractor;
     }
 
