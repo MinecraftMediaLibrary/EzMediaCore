@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 public class VideoUtilities {
 
@@ -22,14 +23,14 @@ public class VideoUtilities {
     }
 
     public static int[] getBuffer(@NotNull final BufferedImage image) {
-        BufferedImage cast = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
-        return ((DataBufferInt) cast.getRaster().getDataBuffer()).getData();
+        return image.getRGB(0,0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
     }
 
-    public static byte[] byteBufferArrayTranslation(@NotNull final ByteBuffer buffer) {
-        byte[] arr = new byte[buffer.remaining()];
-        buffer.get(arr);
-        return arr;
+    public static byte[] toByteArray(@NotNull final int[] array) {
+        ByteBuffer buffer = ByteBuffer.allocate(array.length * 4);
+        IntBuffer intBuffer = buffer.asIntBuffer();
+        intBuffer.put(array);
+        return buffer.array();
     }
 
     public static BufferedImage toBufferedImage(@NotNull final byte[] array) {
