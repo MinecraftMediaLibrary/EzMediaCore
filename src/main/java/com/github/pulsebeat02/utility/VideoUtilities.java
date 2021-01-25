@@ -26,6 +26,12 @@ public class VideoUtilities {
         return image.getRGB(0,0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
     }
 
+    public static BufferedImage getBufferedImage(@NotNull final int[] rgb, int width, int height) {
+        BufferedImage image = new BufferedImage(width, height, 1);
+        image.setRGB(0, 0, width, height, rgb, 0, width);
+        return image;
+    }
+
     public static byte[] toByteArray(@NotNull final int[] array) {
         ByteBuffer buffer = ByteBuffer.allocate(array.length * 4);
         IntBuffer intBuffer = buffer.asIntBuffer();

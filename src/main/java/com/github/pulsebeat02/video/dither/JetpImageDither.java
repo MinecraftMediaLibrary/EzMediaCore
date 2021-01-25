@@ -2,10 +2,13 @@ package com.github.pulsebeat02.video.dither;
 
 import com.github.pulsebeat02.utility.VideoUtilities;
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -100,12 +103,18 @@ public class JetpImageDither {
         return map;
     }
 
-    public static void main(String[] args) throws FileNotFoundException {
-        int[] buffer = VideoUtilities.getBuffer(new File("/Users/Brandon/Desktop/platform1/6vv2qz15h7e51.png"));
-        long start = System.currentTimeMillis();
+    public static void main(String[] args) throws IOException {
+        //        int[] buffer = VideoUtilities.getBuffer(new File("/Users/Brandon/Desktop/platform1/6vv2qz15h7e51.png"));
+        BufferedImage before = ImageIO.read(new File("C:\\Users\\Brandon Li\\Desktop\\kingmammoth.png"));
+        int[] buffer = VideoUtilities.getBuffer(before);
         dither(buffer, 3000);
-        long after = System.currentTimeMillis();
-        System.out.println(after - start);
+        BufferedImage after = VideoUtilities.getBufferedImage(buffer, before.getWidth(), before.getHeight());
+        JFrame frame = new JFrame();
+        frame.getContentPane().setLayout(new FlowLayout());
+        frame.getContentPane().add(new JLabel(new ImageIcon(before)));
+        frame.getContentPane().add(new JLabel(new ImageIcon(after)));
+        frame.pack();
+        frame.setVisible(true);;
     }
 
     public static void dither(int[] buffer, int width) {

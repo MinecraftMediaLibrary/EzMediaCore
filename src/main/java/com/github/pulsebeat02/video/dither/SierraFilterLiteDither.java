@@ -2,11 +2,13 @@ package com.github.pulsebeat02.video.dither;
 
 import com.github.pulsebeat02.utility.VideoUtilities;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -56,12 +58,18 @@ public class SierraFilterLiteDither {
         System.out.println("Initial lookup table initialized in " + (end - start) / 1_000_000.0 + " ms");
     }
 
-    public static void main(String[] args) throws FileNotFoundException {
-        int[] buffer = VideoUtilities.getBuffer(new File("/Users/Brandon/Desktop/platform1/6vv2qz15h7e51.png"));
-        long start = System.currentTimeMillis();
-        dither(buffer, 3000);
-        long after = System.currentTimeMillis();
-        System.out.println(after - start);
+    public static void main(String[] args) throws IOException {
+        // int[] buffer = VideoUtilities.getBuffer(new File("/Users/Brandon/Desktop/platform1/6vv2qz15h7e51.png"));
+        BufferedImage before = ImageIO.read(new File("C:\\Users\\Brandon Li\\Desktop\\kingmammoth.png"));
+        int[] buffer = VideoUtilities.getBuffer(before);
+        dither(buffer, before.getWidth());
+        BufferedImage after = VideoUtilities.getBufferedImage(buffer, before.getWidth(), before.getHeight());
+        JFrame frame = new JFrame();
+        frame.getContentPane().setLayout(new FlowLayout());
+        frame.getContentPane().add(new JLabel(new ImageIcon(before)));
+        frame.getContentPane().add(new JLabel(new ImageIcon(after)));
+        frame.pack();
+        frame.setVisible(true);
     }
 
     public static void dither(int[] buffer, int width) {
@@ -106,19 +114,19 @@ public class SierraFilterLiteDither {
                     int delta_g = green - (closest >> 8 & 0xFF);
                     int delta_b = blue - (closest & 0xFF);
                     if (x < widthMinus) {
-                        buf1[bufferIndex] = (int) (0.5 * delta_r);
-                        buf1[bufferIndex + 1] = (int) (0.5 * delta_g);
-                        buf1[bufferIndex + 2] = (int) (0.5 * delta_b);
+                        buf1[bufferIndex] = delta_r >> 1;
+                        buf1[bufferIndex + 1] = delta_g >> 1;
+                        buf1[bufferIndex + 2] = delta_b >> 1;
                     }
                     if (hasNextY) {
                         if (x > 0) {
-                            buf2[bufferIndex - 6] = (int) (0.25 * delta_r);
-                            buf2[bufferIndex - 5] = (int) (0.25 * delta_g);
-                            buf2[bufferIndex - 4] = (int) (0.25 * delta_b);
+                            buf2[bufferIndex - 6] = delta_r >> 2;
+                            buf2[bufferIndex - 5] = delta_g >> 2;
+                            buf2[bufferIndex - 4] = delta_b >> 2;
                         }
-                        buf2[bufferIndex - 3] = (int) (0.25 * delta_r);
-                        buf2[bufferIndex - 2] = (int) (0.25 * delta_g);
-                        buf2[bufferIndex - 1] = (int) (0.25 * delta_b);
+                        buf2[bufferIndex - 3] = delta_r >> 2;
+                        buf2[bufferIndex - 2] = delta_g >> 2;
+                        buf2[bufferIndex - 1] = delta_b >> 2;
                     }
                     buffer[index] = closest;
                 }
@@ -140,19 +148,19 @@ public class SierraFilterLiteDither {
                     int delta_g = green - (closest >> 8 & 0xFF);
                     int delta_b = blue - (closest & 0xFF);
                     if (x > 0) {
-                        buf1[bufferIndex] = (int) (0.5 * delta_b);
-                        buf1[bufferIndex - 1] = (int) (0.5 * delta_g);
-                        buf1[bufferIndex - 2] = (int) (0.5 * delta_r);
+                        buf1[bufferIndex] = delta_b >> 1;
+                        buf1[bufferIndex - 1] = delta_g >> 1;
+                        buf1[bufferIndex - 2] = delta_r >> 1;
                     }
                     if (hasNextY) {
                         if (x < widthMinus) {
-                            buf2[bufferIndex + 6] = (int) (0.25 * delta_b);
-                            buf2[bufferIndex + 5] = (int) (0.25 * delta_g);
-                            buf2[bufferIndex + 4] = (int) (0.25 * delta_r);
+                            buf2[bufferIndex + 6] = delta_b >> 2;
+                            buf2[bufferIndex + 5] = delta_g >> 2;
+                            buf2[bufferIndex + 4] = delta_r >> 2;
                         }
-                        buf2[bufferIndex + 3] = (int) (0.25 * delta_b);
-                        buf2[bufferIndex + 2] = (int) (0.25 * delta_g);
-                        buf2[bufferIndex + 1] = (int) (0.25 * delta_r);
+                        buf2[bufferIndex + 3] = delta_b >> 2;
+                        buf2[bufferIndex + 2] = delta_g >> 2;
+                        buf2[bufferIndex + 1] = delta_r >> 2;
                     }
                     buffer[index] = closest;
                 }
