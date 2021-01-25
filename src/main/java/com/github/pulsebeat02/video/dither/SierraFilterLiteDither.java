@@ -17,6 +17,13 @@ import java.util.List;
 
 public class SierraFilterLiteDither {
 
+    /**
+     * What a piece of optimization;
+     * Performs incredibly fast Minecraft color conversion and dithering.
+     * BananaPuncher714 and jetp250 did the hard work :p
+     *
+     * @author jetp250, BananaPuncher714, PulseBeat_02
+     */
     private static final int[] PALETTE;
     private static final int[] FULL_COLOR_MAP = new int[128 * 128 * 128];
     private static final byte[] COLOR_MAP = new byte[128 * 128 * 128];
