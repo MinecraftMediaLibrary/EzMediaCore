@@ -1,0 +1,9 @@
+name: MinecraftMediaLibrarySandbox
+main: com.github.pulsebeat02.MinecraftMediaLibrarySandbox
+version: 1.0.0
+description: Play videos in Minecraft
+author: PulseBeat_02, BananaPuncher714
+api-version: 1.16
+commands:
+  video:
+    description: Play videos

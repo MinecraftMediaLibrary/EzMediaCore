@@ -1,5 +1,3 @@
-// Commented this shit out so ide won't complain
-
 //package com.github.pulsebeat02.nms.impl.v1_16_R1;
 //
 //import com.github.pulsebeat02.nms.PacketHandler;

@@ -12,8 +12,8 @@ public class ItemFrameCallback implements AbstractCallback {
     private final MinecraftMediaLibrary library;
     private final UUID[] viewers;
     private final int map;
-    private final int width;
-    private final int height;
+    private int width;
+    private int height;
     private final int videoWidth;
     private final int delay;
     private long lastUpdated;
@@ -110,6 +110,10 @@ public class ItemFrameCallback implements AbstractCallback {
     public MinecraftMediaLibrary getLibrary() {
         return library;
     }
+
+    public void setWidth(final int width) { this.width = width; }
+
+    public void setHeight(final int height) { this.height = height; }
 
     public int getVideoWidth() {
         return videoWidth;

@@ -34,6 +34,7 @@
                             <include>com.github.sealedtx</include>
                             <include>ws.schild</include>
                             <include>org.bytedeco</include>
+                            <include>uk.co.caprica</include>
                         </includes>
                     </artifactSet>
                     <relocations>
@@ -52,6 +53,10 @@
                         <relocation>
                             <pattern>org.bytedeco</pattern>
                             <shadedPattern>com.github.pulsebeat02.frame</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>uk.co.caprica</pattern>
+                            <shadedPattern>com.github.pulsebeat02.vlcj</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>
@@ -113,20 +118,23 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.16.4-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
+            <version>1.16.1-R0.1-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/spigot-1.16.1.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
             <version>1.16.2-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/spigot-1.16.2.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.16.1-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
+            <version>1.16.4-R0.1-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/spigot-1.16.4.jar</systemPath>
         </dependency>
 
     </dependencies>

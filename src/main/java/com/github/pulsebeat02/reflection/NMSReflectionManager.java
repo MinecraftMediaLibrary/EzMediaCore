@@ -13,7 +13,7 @@ public class NMSReflectionManager {
 
     public static PacketHandler getNewPacketHandlerInstance() {
         try {
-            Class<?> clazz = Class.forName("com.github.pulsebeat02.nms.impl" + VERSION + ".PacketPlayOutMinimap");
+            Class<?> clazz = Class.forName("com.github.pulsebeat02.nms.impl" + VERSION + ".NMSMapPacketIntercepter");
             return (PacketHandler) clazz.newInstance();
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
