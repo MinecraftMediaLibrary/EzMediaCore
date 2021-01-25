@@ -3,14 +3,15 @@ package com.github.pulsebeat02.dependency;
 import com.github.pulsebeat02.utility.DependencyUtilities;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class MavenInstallationDaemon {
+public class DependencyManagement {
 
     private final String path;
 
-    public MavenInstallationDaemon() {
+    public DependencyManagement() {
         this.path = System.getProperty("user.dir");
     }
 
@@ -30,6 +31,17 @@ public class MavenInstallationDaemon {
             files.add(file);
         }
         return files;
+    }
+
+    public void installAndLoad() {
+        install();
+        for (File f : new File(path + "/mml_libs").listFiles()) {
+            try {
+                DependencyUtilities.loadDependency(f);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }
