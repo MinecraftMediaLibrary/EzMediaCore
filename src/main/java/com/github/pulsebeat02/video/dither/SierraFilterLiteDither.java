@@ -5,6 +5,7 @@ import com.github.pulsebeat02.utility.VideoUtilities;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -63,20 +64,6 @@ public class SierraFilterLiteDither {
         }
         long end = System.nanoTime();
         System.out.println("Initial lookup table initialized in " + (end - start) / 1_000_000.0 + " ms");
-    }
-
-    public static void main(String[] args) throws IOException {
-        // int[] buffer = VideoUtilities.getBuffer(new File("/Users/Brandon/Desktop/platform1/6vv2qz15h7e51.png"));
-        BufferedImage before = ImageIO.read(new File("C:\\Users\\Brandon Li\\Desktop\\kingmammoth.png"));
-        int[] buffer = VideoUtilities.getBuffer(before);
-        dither(buffer, before.getWidth());
-        BufferedImage after = VideoUtilities.getBufferedImage(buffer, before.getWidth(), before.getHeight());
-        JFrame frame = new JFrame();
-        frame.getContentPane().setLayout(new FlowLayout());
-        frame.getContentPane().add(new JLabel(new ImageIcon(before)));
-        frame.getContentPane().add(new JLabel(new ImageIcon(after)));
-        frame.pack();
-        frame.setVisible(true);
     }
 
     public static void dither(int[] buffer, int width) {

@@ -103,20 +103,6 @@ public class JetpImageDither {
         return map;
     }
 
-    public static void main(String[] args) throws IOException {
-        //        int[] buffer = VideoUtilities.getBuffer(new File("/Users/Brandon/Desktop/platform1/6vv2qz15h7e51.png"));
-        BufferedImage before = ImageIO.read(new File("C:\\Users\\Brandon Li\\Desktop\\kingmammoth.png"));
-        int[] buffer = VideoUtilities.getBuffer(before);
-        dither(buffer, 3000);
-        BufferedImage after = VideoUtilities.getBufferedImage(buffer, before.getWidth(), before.getHeight());
-        JFrame frame = new JFrame();
-        frame.getContentPane().setLayout(new FlowLayout());
-        frame.getContentPane().add(new JLabel(new ImageIcon(before)));
-        frame.getContentPane().add(new JLabel(new ImageIcon(after)));
-        frame.pack();
-        frame.setVisible(true);;
-    }
-
     public static void dither(int[] buffer, int width) {
         int height = buffer.length / width;
         int widthMinus = width - 1;
