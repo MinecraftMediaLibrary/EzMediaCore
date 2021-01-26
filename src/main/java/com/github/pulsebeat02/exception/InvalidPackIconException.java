@@ -14,7 +14,7 @@ public class InvalidPackIconException extends AssertionError {
     }
 
     @Override
-    public synchronized Throwable initCause(Throwable cause) {
+    public synchronized Throwable initCause(@NotNull final Throwable cause) {
         return this;
     }
 
