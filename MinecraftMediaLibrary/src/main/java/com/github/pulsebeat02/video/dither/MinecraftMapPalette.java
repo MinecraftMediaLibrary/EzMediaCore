@@ -2,7 +2,7 @@ package com.github.pulsebeat02.video.dither;
 
 import java.awt.*;
 
-public class MapPalette {
+public class MinecraftMapPalette {
 
     public static final Color[] colors = new Color[]{c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(89, 125, 39),
             c(109, 153, 48), c(127, 178, 56), c(67, 94, 29), c(174, 164, 115), c(213, 201, 140), c(247, 233, 163),

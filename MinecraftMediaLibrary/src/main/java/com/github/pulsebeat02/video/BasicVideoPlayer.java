@@ -2,7 +2,7 @@ package com.github.pulsebeat02.video;
 
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.utility.VideoUtilities;
-import com.github.pulsebeat02.video.dither.JetpImageDither;
+import com.github.pulsebeat02.video.dither.FloydImageDither;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameUtils;
@@ -49,7 +49,7 @@ public class BasicVideoPlayer {
             for (int i = 0; i < grabber.getLengthInVideoFrames() && !stopped; i++) {
                 try {
                     int[] buffer = VideoUtilities.getBuffer(Java2DFrameUtils.toBufferedImage(grabber.grab()));
-                    library.getHandler().display(viewers, map, width, height, JetpImageDither.ditherIntoMinecraft(buffer, videoWidth), videoWidth);
+                    library.getHandler().display(viewers, map, width, height, FloydImageDither.ditherIntoMinecraft(buffer, videoWidth), videoWidth);
                     Thread.sleep(delay);
                 } catch (FrameGrabber.Exception | InterruptedException e) {
                     e.printStackTrace();

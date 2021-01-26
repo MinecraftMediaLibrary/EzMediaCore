@@ -1,8 +1,8 @@
 package com.github.pulsebeat02.test;
 
-import com.github.pulsebeat02.video.dither.JetpImageDither;
+import com.github.pulsebeat02.video.dither.FloydImageDither;
 import com.github.pulsebeat02.utility.VideoUtilities;
-import com.github.pulsebeat02.video.dither.SierraFilterLiteDither;
+import com.github.pulsebeat02.video.dither.FilterLiteDither;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -60,13 +60,13 @@ public class DitherTests extends JFrame {
 
     private BufferedImage ditherSierra(@NotNull final BufferedImage before) {
         int[] buffer = VideoUtilities.getBuffer(before);
-        SierraFilterLiteDither.dither(buffer, before.getWidth());
+        FilterLiteDither.dither(buffer, before.getWidth());
         return VideoUtilities.getBufferedImage(buffer, before.getWidth(), before.getHeight());
     }
 
     private BufferedImage ditherFloyd(@NotNull final BufferedImage before) {
         int[] buffer = VideoUtilities.getBuffer(before);
-        JetpImageDither.dither(buffer, before.getWidth());
+        FloydImageDither.dither(buffer, before.getWidth());
         return VideoUtilities.getBufferedImage(buffer, before.getWidth(), before.getHeight());
     }
 

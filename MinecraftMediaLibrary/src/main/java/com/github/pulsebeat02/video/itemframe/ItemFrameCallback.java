@@ -1,6 +1,6 @@
 package com.github.pulsebeat02.video.itemframe;
 
-import com.github.pulsebeat02.video.dither.JetpImageDither;
+import com.github.pulsebeat02.video.dither.FloydImageDither;
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import org.jetbrains.annotations.NotNull;
 
@@ -102,7 +102,7 @@ public class ItemFrameCallback implements AbstractCallback {
         long difference = time - lastUpdated;
         if (difference >= delay) {
             lastUpdated = time;
-            ByteBuffer dithered = JetpImageDither.ditherIntoMinecraft(data, videoWidth);
+            ByteBuffer dithered = FloydImageDither.ditherIntoMinecraft(data, videoWidth);
             library.getHandler().display(viewers, map, width, height, dithered, videoWidth);
         }
     }

@@ -6,7 +6,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SierraFilterLiteDither {
+public class FilterLiteDither {
 
     /**
      * What a piece of optimization;
@@ -15,46 +15,9 @@ public class SierraFilterLiteDither {
      *
      * @author jetp250, BananaPuncher714, PulseBeat_02
      */
-    private static final int[] PALETTE;
+    private static final int[] PALETTE = StaticDitherTools.PALETTE;
+    private static final byte[] COLOR_MAP = StaticDitherTools.COLOR_MAP;
     private static final int[] FULL_COLOR_MAP = new int[128 * 128 * 128];
-    private static final byte[] COLOR_MAP = new byte[128 * 128 * 128];
-
-    static {
-        List<Integer> colors = new ArrayList<>();
-        long start = System.nanoTime();
-        for (int i = 0; i < 256; ++i) {
-            try {
-                @SuppressWarnings("deprecation")
-                Color color = MapPalette.getColor((byte) i);
-                colors.add(color.getRGB());
-            } catch (IndexOutOfBoundsException e) {
-                Logger.info("Captured " + (i - 1) + " colors!");
-                break;
-            }
-        }
-        PALETTE = new int[colors.size()];
-        int index = 0;
-        for (int color : colors) {
-            PALETTE[index++] = color;
-        }
-        PALETTE[0] = 0;
-        List<LoadRed> tasks = new ArrayList<>(128);
-        for (int r = 0; r < 256; r += 2) {
-            LoadRed red = new LoadRed(PALETTE, r);
-            tasks.add(red);
-            red.fork();
-        }
-        for (int i = 0; i < 128; i++) {
-            byte[] sub = tasks.get(i).join();
-            int ci = i << 14;
-            for (int si = 0; si < 16384; si++) {
-                COLOR_MAP[ci + si] = sub[si];
-                FULL_COLOR_MAP[ci + si] = PALETTE[Byte.toUnsignedInt(sub[si])];
-            }
-        }
-        long end = System.nanoTime();
-        Logger.info("Initial lookup table initialized in " + (end - start) / 1_000_000.0 + " ms");
-    }
 
     public static void dither(int[] buffer, int width) {
         int height = buffer.length / width;
