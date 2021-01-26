@@ -20,6 +20,12 @@ public enum MavenDependency {
             "ws.schild",
             "jave-all-deps",
             "2.7.3"
+    ),
+
+    JAVACV(
+            "org.bytedeco",
+            "javacv-platform",
+            "1.5.4"
     );
 
     private final String group;
