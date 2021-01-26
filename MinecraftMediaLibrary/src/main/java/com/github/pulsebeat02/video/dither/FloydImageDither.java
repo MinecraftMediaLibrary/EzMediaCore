@@ -19,9 +19,15 @@ public class FloydImageDither {
      */
     private static int largest = 0;
 
-    private static final int[] PALETTE = StaticDitherTools.PALETTE;
-    private static final byte[] COLOR_MAP = StaticDitherTools.COLOR_MAP;
-    private static final int[] FULL_COLOR_MAP = new int[128 * 128 * 128];
+    private static final int[] PALETTE;
+    private static final byte[] COLOR_MAP;
+    private static final int[] FULL_COLOR_MAP;
+
+    static {
+        PALETTE = StaticDitherTools.PALETTE;
+        COLOR_MAP = StaticDitherTools.COLOR_MAP;
+        FULL_COLOR_MAP = new int[128 * 128 * 128];
+    }
 
     public static int getLargestColorVal() {
         return largest;
