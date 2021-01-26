@@ -4,6 +4,7 @@ import com.github.kiulian.downloader.YoutubeDownloader;
 import com.github.kiulian.downloader.YoutubeException;
 import com.github.kiulian.downloader.model.VideoDetails;
 import com.github.kiulian.downloader.model.YoutubeVideo;
+import com.github.pulsebeat02.Logger;
 import com.github.pulsebeat02.utility.ExtractorUtilities;
 import org.jetbrains.annotations.NotNull;
 import ws.schild.jave.AudioAttributes;
@@ -34,6 +35,7 @@ public class YoutubeExtraction implements AbstractVideoExtractor {
         File videoFile = null;
         final YoutubeDownloader downloader = new YoutubeDownloader();
         final String ID = ExtractorUtilities.getVideoID(url);
+        Logger.info("Downloading Video at URL (" + url + ")");
         if (ID != null) {
             try {
                 final YoutubeVideo video = downloader.getVideo(ID);
@@ -41,7 +43,9 @@ public class YoutubeExtraction implements AbstractVideoExtractor {
                 videoFile = video.download(video.videoWithAudioFormats().get(0), new File(directory),
                         "video",
                         true);
+                Logger.info("Successfully Downloaded Video at URL: (" + url + ")");
             } catch (IOException | YoutubeException e) {
+                Logger.info("Could not Download Video at URL!: (" + url + ")");
                 e.printStackTrace();
             }
         }
@@ -54,20 +58,23 @@ public class YoutubeExtraction implements AbstractVideoExtractor {
             downloadVideo();
         }
         onAudioExtraction();
+        Logger.info("Extracting Audio from Video File (" + video.getAbsolutePath() + ")");
         File sound = new File(directory + "/audio.ogg");
-        AudioAttributes audio = new AudioAttributes();
-        audio.setCodec("libvorbis");
-        audio.setBitRate(160000);
-        audio.setChannels(2);
-        audio.setSamplingRate(44100);
-        audio.setVolume(48);
+        AudioAttributes attributes = new AudioAttributes();
+        attributes.setCodec("libvorbis");
+        attributes.setBitRate(160000);
+        attributes.setChannels(2);
+        attributes.setSamplingRate(44100);
+        attributes.setVolume(48);
         EncodingAttributes attrs = new EncodingAttributes();
         attrs.setFormat("ogg");
-        attrs.setAudioAttributes(audio);
+        attrs.setAudioAttributes(attributes);
         Encoder encoder = new Encoder();
         try {
             encoder.encode(new MultimediaObject(video), sound, attrs);
+            Logger.info("Successfully Extracted Audio from Video File! (Target: " + audio.getAbsolutePath() + ")");
         } catch (EncoderException e) {
+            Logger.error("Couldn't Extract Audio from Video File! (Video: " + video.getAbsolutePath() + ")");
             e.printStackTrace();
         }
         return sound;

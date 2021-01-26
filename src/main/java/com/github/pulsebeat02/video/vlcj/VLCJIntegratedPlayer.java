@@ -1,5 +1,6 @@
 package com.github.pulsebeat02.video.vlcj;
 
+import com.github.pulsebeat02.Logger;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
@@ -31,6 +32,7 @@ public class VLCJIntegratedPlayer {
         this.width = width;
         this.height = height;
         this.callback = callback;
+        Logger.info("Created a VLCJ Integrated Video Player (" + url + ")");
     }
 
     public String getUrl() {
@@ -63,11 +65,13 @@ public class VLCJIntegratedPlayer {
         CallbackVideoSurface surface = new CallbackVideoSurface(bufferFormatCallback, new MinecraftRenderCallback(), false, new WindowsVideoSurfaceAdapter());
         mediaPlayerComponent.videoSurface().set(surface);
         mediaPlayerComponent.media().play(url);
+        Logger.info("Started Playing Video! (" + url + ")");
     }
 
     public void stop() {
         if (mediaPlayerComponent != null) {
             mediaPlayerComponent.controls().stop();
+            Logger.info("Stopped Playing Video! (" + url + ")");
         }
     }
 

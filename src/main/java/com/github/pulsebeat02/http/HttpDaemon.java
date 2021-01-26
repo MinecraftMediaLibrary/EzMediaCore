@@ -1,5 +1,7 @@
 package com.github.pulsebeat02.http;
 
+import com.github.pulsebeat02.Logger;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -25,6 +27,12 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
         this.directory = directory;
         this.header = ZipHeader.ZIP;
         this.verbose = true;
+        Logger.info("Started HTTP Server: ");
+        Logger.info("========================================");
+        Logger.info("IP: " + Bukkit.getIp());
+        Logger.info("PORT: " + port);
+        Logger.info("DIRECTORY: " + directory.getAbsolutePath());
+        Logger.info("========================================");
     }
 
     public HttpDaemon(final int port, @NotNull final String path) throws IOException {
@@ -35,6 +43,12 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
         this.directory = new File(path);
         this.header = ZipHeader.ZIP;
         this.verbose = true;
+        Logger.info("Started HTTP Server: ");
+        Logger.info("========================================");
+        Logger.info("IP: " + Bukkit.getIp());
+        Logger.info("PORT: " + port);
+        Logger.info("DIRECTORY: " + path);
+        Logger.info("========================================");
     }
 
     @Override
@@ -56,6 +70,7 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
 
     public void terminate() {
         onServerTerminate();
+        Logger.info("Terminating HTTP Server at " + Bukkit.getIp() + ":" + port);
         running = false;
         if (!socket.isClosed()) {
             try {

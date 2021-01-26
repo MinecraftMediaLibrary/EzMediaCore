@@ -1,5 +1,6 @@
 package com.github.pulsebeat02.resourcepack;
 
+import com.github.pulsebeat02.Logger;
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.exception.InvalidPackFormatException;
 import com.github.pulsebeat02.exception.InvalidPackIconException;
@@ -41,6 +42,7 @@ public class ResourcepackWrapper implements AbstractPackHolder {
         if (icon != null && !ResourcepackUtilities.validateResourcepackIcon(icon)) {
             throw new InvalidPackIconException("Invalid Pack Icon! Must be PNG (" + icon.getName() + ")");
         }
+        Logger.info("New Resourcepack (" + path + ") was Initialized");
     }
 
     public static class Builder {
@@ -85,6 +87,7 @@ public class ResourcepackWrapper implements AbstractPackHolder {
     @Override
     public void buildResourcePack() {
         onResourcepackBuild();
+        Logger.info("Wrapping Resourcepack...");
         try {
             ZipOutputStream out = new ZipOutputStream(new FileOutputStream(path));
             byte[] mcmeta = ("{\r\n" + "	\"pack\": {\r\n" + "    \"pack_format\": " + packFormat + ",\r\n"
@@ -108,7 +111,9 @@ public class ResourcepackWrapper implements AbstractPackHolder {
             out.write(Files.readAllBytes(Paths.get(icon.getAbsolutePath())));
             out.closeEntry();
             out.close();
+            Logger.info("Finished Wrapping Resourcepack!");
         } catch (IOException e) {
+            Logger.error("There was an error while wrapping the resourcepack...");
             e.printStackTrace();
         }
     }

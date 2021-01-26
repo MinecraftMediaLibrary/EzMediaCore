@@ -1,5 +1,6 @@
 package com.github.pulsebeat02.utility;
 
+import com.github.pulsebeat02.Logger;
 import com.github.pulsebeat02.exception.InvalidYoutubeURLException;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,7 +19,9 @@ public class ExtractorUtilities {
         Pattern compiledPattern = Pattern.compile("(?<=youtu.be/|watch\\?v=|/videos/|embed)[^#]*");
         Matcher matcher = compiledPattern.matcher(url);
         if (matcher.find()) {
-            return matcher.group();
+            String id = matcher.group();
+            Logger.info("Found Video ID for " + url + "(" + id + ")");
+            return id;
         }
         throw new InvalidYoutubeURLException("Cannot extract Video ID (" + url + ")");
     }
@@ -34,7 +37,9 @@ public class ExtractorUtilities {
                 digest.update(buffer, 0, n);
             }
         }
-        return digest.digest();
+        byte[] hash = digest.digest();
+        Logger.info("Generated Hash for File " + file.getAbsolutePath() + " (" + new String(hash) + ")");
+        return hash;
     }
 
 }

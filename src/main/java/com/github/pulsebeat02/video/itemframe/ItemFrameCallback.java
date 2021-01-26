@@ -1,5 +1,6 @@
 package com.github.pulsebeat02.video.itemframe;
 
+import com.github.pulsebeat02.Logger;
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.video.dither.JetpImageDither;
 import org.jetbrains.annotations.NotNull;

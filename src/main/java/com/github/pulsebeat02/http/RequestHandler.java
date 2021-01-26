@@ -1,5 +1,6 @@
 package com.github.pulsebeat02.http;
 
+import com.github.pulsebeat02.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
@@ -89,7 +90,7 @@ public class RequestHandler implements Runnable, AbstractRequestHandler {
 
     private void verbose(final String info) {
         if (daemon.isVerbose()) {
-            System.out.println(info);
+            Logger.info(info);
         }
     }
 

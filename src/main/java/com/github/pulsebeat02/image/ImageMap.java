@@ -1,5 +1,6 @@
 package com.github.pulsebeat02.image;
 
+import com.github.pulsebeat02.Logger;
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.utility.VideoUtilities;
 import com.github.pulsebeat02.video.dither.JetpImageDither;
@@ -31,12 +32,14 @@ public class ImageMap implements AbstractImageMapHolder {
         this.image = image;
         this.height = height;
         this.width = width;
+        Logger.info("Initialized Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
     }
 
     @Override
     public void drawImage() {
         ByteBuffer buffer = JetpImageDither.ditherIntoMinecraft(Objects.requireNonNull(VideoUtilities.getBuffer(image)), width);
         library.getHandler().display(viewers, map, width, height, buffer, width);
+        Logger.info("Drew Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
     }
 
     @Override

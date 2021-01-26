@@ -1,5 +1,6 @@
 package com.github.pulsebeat02.video.dither;
 
+import com.github.pulsebeat02.Logger;
 import com.github.pulsebeat02.utility.VideoUtilities;
 
 import javax.imageio.ImageIO;
@@ -38,7 +39,7 @@ public class SierraFilterLiteDither {
                 Color color = MapPalette.getColor((byte) i);
                 colors.add(color.getRGB());
             } catch (IndexOutOfBoundsException e) {
-                System.out.println("Captured " + (i - 1) + " colors!");
+                Logger.info("Captured " + (i - 1) + " colors!");
                 break;
             }
         }
@@ -63,7 +64,7 @@ public class SierraFilterLiteDither {
             }
         }
         long end = System.nanoTime();
-        System.out.println("Initial lookup table initialized in " + (end - start) / 1_000_000.0 + " ms");
+        Logger.info("Initial lookup table initialized in " + (end - start) / 1_000_000.0 + " ms");
     }
 
     public static void dither(int[] buffer, int width) {
