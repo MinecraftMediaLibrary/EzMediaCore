@@ -10,7 +10,7 @@ import java.nio.channels.FileChannel;
 public class Logger {
 
     public static boolean VERBOSE;
-    public static FileChannel WRITER;
+    public static volatile FileChannel WRITER;
 
     static {
         try {

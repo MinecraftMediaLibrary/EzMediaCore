@@ -15,34 +15,42 @@ import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
 public class MinecraftMediaLibrary {
 
-    private final Plugin plugin;
-    private final TinyProtocol protocol;
-    private final String parent;
-    private final PacketHandler handler;
-    private final boolean vlcj;
+    private Plugin plugin;
+    private TinyProtocol protocol;
+    private String parent;
+    private PacketHandler handler;
+    private boolean vlcj;
 
     public MinecraftMediaLibrary(@NotNull final Plugin plugin,
                                  @NotNull final String path,
                                  final boolean isUsingVLCJ) {
-        this.plugin = plugin;
-        this.protocol = new TinyProtocol(plugin) {
-            @Override
-            public Object onPacketOutAsync(Player player, Channel channel, Object packet) {
-                return handler.onPacketInterceptOut(player, packet);
+        new Thread(() -> {
+            this.plugin = plugin;
+            this.protocol = new TinyProtocol(plugin) {
+                @Override
+                public Object onPacketOutAsync(Player player, Channel channel, Object packet) {
+                    return handler.onPacketInterceptOut(player, packet);
+                }
+
+                @Override
+                public Object onPacketInAsync(Player player, Channel channel, Object packet) {
+                    return handler.onPacketInterceptIn(player, packet);
+                }
+            };
+            this.handler = NMSReflectionManager.getNewPacketHandlerInstance();
+            this.parent = path;
+            this.vlcj = isUsingVLCJ;
+            new DependencyManagement().installAndLoad();
+            if (isUsingVLCJ) {
+                new MediaPlayerFactory();
             }
-            @Override
-            public Object onPacketInAsync(Player player, Channel channel, Object packet) {
-                return handler.onPacketInterceptIn(player, packet);
-            }
-        };
-        this.handler = NMSReflectionManager.getNewPacketHandlerInstance();
-        this.parent = path;
-        this.vlcj = isUsingVLCJ;
-        new DependencyManagement().installAndLoad();
-        if (isUsingVLCJ) {
-            new MediaPlayerFactory();
-        }
-        Bukkit.getPluginManager().registerEvents(new PlayerJoinLeaveHandler(this), plugin);
+            Bukkit.getPluginManager().registerEvents(new PlayerJoinLeaveHandler(this), plugin);
+            Logger.info("Plugin " + plugin.getName() + " initialized MinecraftMediaLibrary");
+            Logger.info("=====================================");
+            Logger.info("Path: " + path);
+            Logger.info("Using VLCJ? " + (isUsingVLCJ ? "Yes" : "No"));
+            Logger.info("=====================================");
+        });
     }
 
     public Plugin getPlugin() {
