@@ -12,6 +12,7 @@
         <module>v1_16_R1</module>
         <module>v1_16_R2</module>
         <module>v1_16_R3</module>
+        <module>DeluxeMediaPlugin</module>
     </modules>
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

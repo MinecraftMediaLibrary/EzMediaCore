@@ -1,13 +1,12 @@
-package com.github.pulsebeat02.sandbox;
+package com.github.pulsebeat02;
 
-import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.video.itemframe.ItemFrameCallback;
 import com.github.pulsebeat02.video.vlcj.VLCJIntegratedPlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class MinecraftMediaLibrarySandbox extends JavaPlugin {
+public class DeluxeMediaPlugin extends JavaPlugin {
 
     private MinecraftMediaLibrary library;
 
