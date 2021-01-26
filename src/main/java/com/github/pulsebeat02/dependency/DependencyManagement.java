@@ -1,10 +1,9 @@
 package com.github.pulsebeat02.dependency;
 
-import com.github.pulsebeat02.Logger;
+import com.github.pulsebeat02.logger.Logger;
 import com.github.pulsebeat02.utility.DependencyUtilities;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;

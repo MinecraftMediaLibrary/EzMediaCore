@@ -1,6 +1,6 @@
 package com.github.pulsebeat02.listener;
 
-import com.github.pulsebeat02.Logger;
+import com.github.pulsebeat02.logger.Logger;
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

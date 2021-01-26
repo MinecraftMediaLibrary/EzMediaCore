@@ -1,6 +1,6 @@
 package com.github.pulsebeat02.http;
 
-import com.github.pulsebeat02.Logger;
+import com.github.pulsebeat02.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;

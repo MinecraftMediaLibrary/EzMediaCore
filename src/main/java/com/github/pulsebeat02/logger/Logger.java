@@ -1,4 +1,4 @@
-package com.github.pulsebeat02;
+package com.github.pulsebeat02.logger;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -9,8 +9,8 @@ import java.nio.channels.FileChannel;
 
 public class Logger {
 
-    public static boolean VERBOSE;
     public static volatile FileChannel WRITER;
+    public static boolean VERBOSE;
 
     static {
         try {

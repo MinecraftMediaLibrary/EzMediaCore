@@ -1,6 +1,6 @@
 package com.github.pulsebeat02.utility;
 
-import com.github.pulsebeat02.Logger;
+import com.github.pulsebeat02.logger.Logger;
 import com.github.pulsebeat02.exception.InvalidYoutubeURLException;
 import org.jetbrains.annotations.NotNull;
 

@@ -1,6 +1,6 @@
 package com.github.pulsebeat02.reflection;
 
-import com.github.pulsebeat02.Logger;
+import com.github.pulsebeat02.logger.Logger;
 import com.github.pulsebeat02.nms.PacketHandler;
 import org.bukkit.Bukkit;
 

@@ -1,20 +1,9 @@
 package com.github.pulsebeat02.video.dither;
 
-import com.github.pulsebeat02.Logger;
-import com.github.pulsebeat02.utility.VideoUtilities;
+import com.github.pulsebeat02.logger.Logger;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class SierraFilterLiteDither {

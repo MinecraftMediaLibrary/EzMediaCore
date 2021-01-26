@@ -1,6 +1,6 @@
 package com.github.pulsebeat02.resourcepack;
 
-import com.github.pulsebeat02.Logger;
+import com.github.pulsebeat02.logger.Logger;
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.exception.InvalidPackFormatException;
 import com.github.pulsebeat02.exception.InvalidPackIconException;

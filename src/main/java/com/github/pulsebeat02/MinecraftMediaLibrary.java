@@ -2,6 +2,7 @@ package com.github.pulsebeat02;
 
 import com.github.pulsebeat02.dependency.DependencyManagement;
 import com.github.pulsebeat02.listener.PlayerJoinLeaveHandler;
+import com.github.pulsebeat02.logger.Logger;
 import com.github.pulsebeat02.nms.PacketHandler;
 import com.github.pulsebeat02.reflection.NMSReflectionManager;
 import com.github.pulsebeat02.reflection.TinyProtocol;

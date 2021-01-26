@@ -1,8 +1,7 @@
 package com.github.pulsebeat02.utility;
 
-import com.github.pulsebeat02.Logger;
+import com.github.pulsebeat02.logger.Logger;
 import com.github.pulsebeat02.resourcepack.PackFormatVersioning;
-import com.mojang.datafixers.FamilyOptic;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;

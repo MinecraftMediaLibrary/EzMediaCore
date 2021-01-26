@@ -1,10 +1,10 @@
-package com.github.pulsebeat02;
+package com.github.pulsebeat02.sandbox;
 
+import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.video.itemframe.ItemFrameCallback;
 import com.github.pulsebeat02.video.vlcj.VLCJIntegratedPlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class MinecraftMediaLibrarySandbox extends JavaPlugin {
@@ -13,7 +13,6 @@ public class MinecraftMediaLibrarySandbox extends JavaPlugin {
 
     private VLCJIntegratedPlayer player;
     private ItemFrameCallback callback;
-    private Entity[] stands;
 
     @Override
     public void onEnable() {

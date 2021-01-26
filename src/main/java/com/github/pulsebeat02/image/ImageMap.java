@@ -1,6 +1,6 @@
 package com.github.pulsebeat02.image;
 
-import com.github.pulsebeat02.Logger;
+import com.github.pulsebeat02.logger.Logger;
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.utility.VideoUtilities;
 import com.github.pulsebeat02.video.dither.JetpImageDither;
