@@ -37,7 +37,7 @@ public class ImageMap implements AbstractImageMapHolder {
 
     @Override
     public void drawImage() {
-        ByteBuffer buffer = FloydImageDither.ditherIntoMinecraft(Objects.requireNonNull(VideoUtilities.getBuffer(image)), width);
+        ByteBuffer buffer = new FloydImageDither().ditherIntoMinecraft(Objects.requireNonNull(VideoUtilities.getBuffer(image)), width);
         library.getHandler().display(viewers, map, width, height, buffer, width);
         Logger.info("Drew Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
     }

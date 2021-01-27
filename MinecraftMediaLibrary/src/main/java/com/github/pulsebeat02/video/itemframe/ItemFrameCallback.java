@@ -1,5 +1,6 @@
 package com.github.pulsebeat02.video.itemframe;
 
+import com.github.pulsebeat02.video.dither.AbstractDitherHolder;
 import com.github.pulsebeat02.video.dither.FloydImageDither;
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import org.jetbrains.annotations.NotNull;
@@ -11,6 +12,7 @@ public class ItemFrameCallback implements AbstractCallback {
 
     private final MinecraftMediaLibrary library;
     private final UUID[] viewers;
+    private final AbstractDitherHolder type;
     private final int map;
     private int width;
     private int height;
@@ -22,9 +24,11 @@ public class ItemFrameCallback implements AbstractCallback {
                              @NotNull final UUID[] viewers,
                              final int map,
                              final int width, final int height, final int videoWidth,
-                             final int delay) {
+                             final int delay,
+                             final AbstractDitherHolder type) {
         this.library = library;
         this.viewers = viewers;
+        this.type = type;
         this.map = map;
         this.width = width;
         this.height = height;
@@ -55,6 +59,7 @@ public class ItemFrameCallback implements AbstractCallback {
     public class ItemFrameCallbackBuilder {
 
         private UUID[] viewers;
+        private AbstractDitherHolder type;
         private int map;
         private int width;
         private int height;
@@ -91,8 +96,13 @@ public class ItemFrameCallback implements AbstractCallback {
             return this;
         }
 
+        public ItemFrameCallbackBuilder setDitherHolder(final AbstractDitherHolder holder) {
+            this.type = holder;
+            return this;
+        }
+
         public ItemFrameCallback createItemFrameCallback(final MinecraftMediaLibrary library) {
-            return new ItemFrameCallback(library, viewers, map, width, height, videoWidth, delay);
+            return new ItemFrameCallback(library, viewers, map, width, height, videoWidth, delay, type);
         }
 
     }
@@ -102,7 +112,7 @@ public class ItemFrameCallback implements AbstractCallback {
         long difference = time - lastUpdated;
         if (difference >= delay) {
             lastUpdated = time;
-            ByteBuffer dithered = FloydImageDither.ditherIntoMinecraft(data, videoWidth);
+            ByteBuffer dithered = type.ditherIntoMinecraft(data, videoWidth);
             library.getHandler().display(viewers, map, width, height, dithered, videoWidth);
         }
     }

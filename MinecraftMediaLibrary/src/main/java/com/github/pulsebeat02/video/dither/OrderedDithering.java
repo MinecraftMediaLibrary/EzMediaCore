@@ -2,7 +2,16 @@ package com.github.pulsebeat02.video.dither;
 
 import org.jetbrains.annotations.NotNull;
 
-public class OrderedDithering {
+import java.nio.ByteBuffer;
+
+public class OrderedDithering implements AbstractDitherHolder {
+
+    /**
+     * Performs Ordered Dithering with a selection of
+     * matrices to choose from.
+     *
+     * @author PulseBeat_02
+     */
 
     private static final int[] PALETTE;
     private static final byte[] COLOR_MAP;
@@ -124,6 +133,7 @@ public class OrderedDithering {
         }
     }
 
+    @Override
     public void dither(int[] buffer, int width) {
         int height = buffer.length / width;
         for (int y = 0; y < height; y++) {
@@ -134,6 +144,11 @@ public class OrderedDithering {
                 buffer[index] = getBestColor((int)(color + r * (matrix[x % n][y % n])));
             }
         }
+    }
+
+    @Override
+    public ByteBuffer ditherIntoMinecraft(int[] buffer, int width) {
+        return null;
     }
 
     public enum DitherType {

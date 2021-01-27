@@ -1,5 +1,6 @@
 package com.github.pulsebeat02;
 
+import com.github.pulsebeat02.video.dither.FilterLiteDither;
 import com.github.pulsebeat02.video.itemframe.ItemFrameCallback;
 import com.github.pulsebeat02.video.vlcj.VLCJIntegratedPlayer;
 import org.bukkit.command.Command;
@@ -64,7 +65,8 @@ public class DeluxeMediaPlugin extends JavaPlugin {
                     if (player != null) {
                         callback = null;
                     }
-                    callback = new ItemFrameCallback(library, null, 0, 5, 5, width, 0);
+                    callback = new ItemFrameCallback(library, null, 0, 5, 5, width, 0,
+                            new FilterLiteDither());
                     player = new VLCJIntegratedPlayer(url, width, height, callback::send);
                     player.start();
                 }

@@ -1,32 +1,26 @@
 package com.github.pulsebeat02.video.dither;
 
-import com.github.pulsebeat02.logger.Logger;
-
-import java.awt.*;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
-public class FilterLiteDither {
+public class FilterLiteDither implements AbstractDitherHolder {
 
     /**
-     * What a piece of optimization;
-     * Performs incredibly fast Minecraft color conversion and dithering.
-     * BananaPuncher714 and jetp250 did the hard work :p
+     * Performs Filter Lite Dithering at a more optimized
+     * pace while giving similar results to Floyd Steinberg Dithering.
      *
-     * @author jetp250, BananaPuncher714, PulseBeat_02
+     * @author PulseBeat_02
      */
-    private static final int[] PALETTE;
+
     private static final byte[] COLOR_MAP;
     private static final int[] FULL_COLOR_MAP;
 
     static {
-        PALETTE = StaticDitherInitialization.PALETTE;
         COLOR_MAP = StaticDitherInitialization.COLOR_MAP;
         FULL_COLOR_MAP = StaticDitherInitialization.FULL_COLOR_MAP;
     }
 
-    public static void dither(int[] buffer, int width) {
+    @Override
+    public void dither(int[] buffer, int width) {
         int height = buffer.length / width;
         int widthMinus = width - 1;
         int heightMinus = height - 1;
@@ -122,7 +116,8 @@ public class FilterLiteDither {
         }
     }
 
-    public static ByteBuffer ditherIntoMinecraft(int[] buffer, int width) {
+    @Override
+    public ByteBuffer ditherIntoMinecraft(int[] buffer, int width) {
         int height = buffer.length / width;
         int widthMinus = width - 1;
         int heightMinus = height - 1;
@@ -204,11 +199,11 @@ public class FilterLiteDither {
         return data;
     }
 
-    public static int getBestFullColor(int red, int green, int blue) {
+    public int getBestFullColor(int red, int green, int blue) {
         return FULL_COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
     }
 
-    public static byte getBestColor(int rgb) {
+    public byte getBestColor(int rgb) {
         return COLOR_MAP[(rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
     }
 

@@ -1,21 +1,16 @@
 package com.github.pulsebeat02.video.dither;
 
-import com.github.pulsebeat02.logger.Logger;
-
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.RecursiveTask;
 
-public class FloydImageDither {
+public class FloydImageDither implements AbstractDitherHolder {
 
     /**
      * What a piece of optimization;
      * Performs incredibly fast Minecraft color conversion and dithering.
      *
-     * @author jetp250
+     * @author jetp250, BananaPuncher714
      */
     private static int largest = 0;
 
@@ -29,31 +24,31 @@ public class FloydImageDither {
         FULL_COLOR_MAP = StaticDitherInitialization.FULL_COLOR_MAP;
     }
 
-    public static int getLargestColorVal() {
+    public int getLargestColorVal() {
         return largest;
     }
 
-    public static int getColorFromMinecraftPalette(byte val) {
+    public int getColorFromMinecraftPalette(byte val) {
         return PALETTE[(val + 256) % 256];
     }
 
-    public static byte getBestColorIncludingTransparent(int rgb) {
+    public byte getBestColorIncludingTransparent(int rgb) {
         return (rgb >>> 24 & 0xFF) == 0 ? 0 : getBestColor(rgb);
     }
 
-    public static byte getBestColor(int rgb) {
+    public byte getBestColor(int rgb) {
         return COLOR_MAP[(rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
     }
 
-    public static byte getBestColor(int red, int green, int blue) {
+    public byte getBestColor(int red, int green, int blue) {
         return COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
     }
 
-    public static int getBestFullColor(int red, int green, int blue) {
+    public int getBestFullColor(int red, int green, int blue) {
         return FULL_COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
     }
 
-    public static byte[] simplify(int[] buffer) {
+    public byte[] simplify(int[] buffer) {
         byte[] map = new byte[buffer.length];
         for (int index = 0; index < buffer.length; index++) {
             int rgb = buffer[index];
@@ -66,7 +61,8 @@ public class FloydImageDither {
         return map;
     }
 
-    public static void dither(int[] buffer, int width) {
+    @Override
+    public void dither(int[] buffer, int width) {
         int height = buffer.length / width;
         int widthMinus = width - 1;
         int heightMinus = height - 1;
@@ -160,7 +156,8 @@ public class FloydImageDither {
         }
     }
 
-    public static ByteBuffer ditherIntoMinecraft(int[] buffer, int width) {
+    @Override
+    public ByteBuffer ditherIntoMinecraft(int[] buffer, int width) {
         int height = buffer.length / width;
         int widthMinus = width - 1;
         int heightMinus = height - 1;
@@ -256,7 +253,7 @@ public class FloydImageDither {
         return data;
     }
 
-    public static BufferedImage toBufferedImage(Image img) {
+    public BufferedImage toBufferedImage(Image img) {
         if (img instanceof BufferedImage) {
             return (BufferedImage) img;
         }
@@ -267,7 +264,7 @@ public class FloydImageDither {
         return bimage;
     }
 
-    public static int[] getRGBArray(BufferedImage image) {
+    public int[] getRGBArray(BufferedImage image) {
         return image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
     }
 
