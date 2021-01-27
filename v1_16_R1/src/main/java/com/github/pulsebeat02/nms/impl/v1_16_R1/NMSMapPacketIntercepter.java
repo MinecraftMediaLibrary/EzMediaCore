@@ -11,8 +11,8 @@ import net.minecraft.server.v1_16_R1.MapIcon;
 import net.minecraft.server.v1_16_R1.PacketPlayOutEntityMetadata;
 import net.minecraft.server.v1_16_R1.PacketPlayOutMap;
 import net.minecraft.server.v1_16_R1.PlayerConnection;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_16_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_16_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
