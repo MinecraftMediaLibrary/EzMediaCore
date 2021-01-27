@@ -1,5 +1,6 @@
 package com.github.pulsebeat02.video.dither;
 
+import org.bukkit.map.MapPalette;
 import org.jetbrains.annotations.NotNull;
 
 public class OrderedDithering {
@@ -147,13 +148,20 @@ public class OrderedDithering {
     2^3n = 86
     n ~= 2.14 ~= 2
 
+    Multiply by 0.5
+
      */
     public int performNearestColor(int x, int y, int color) {
-        return getBestColor((int) (color + 2 * (matrix[x % n][y % n] - 0.5)));
+        return getBestFullColor((int) (color + 2 * (matrix[x % n][y % n] * 0.5)));
     }
 
-    public static byte getBestColor(int rgb) {
-        return COLOR_MAP[(rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
+    public int getBestFullColor(int rgb) {
+        return getBestColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF);
     }
+
+    public byte getBestColor(int red, int green, int blue) {
+        return COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
+    }
+
 
 }
