@@ -35,7 +35,7 @@ public class OrderedDitherTesting extends JFrame {
             long end = System.currentTimeMillis();
             BufferedImage after = VideoUtilities.getBufferedImage(buffer, before.getWidth(), before.getHeight());
             JPanel panel = new JPanel();
-            panel.add(new JLabel(new ImageIcon(VideoUtilities.resizeImage(after, 500, 350))));
+            panel.add(new JLabel(new ImageIcon(VideoUtilities.resizeImage(after, 300, 250))));
             panel.add(new JLabel("Bayer Matrix (Ordered) Dithering (" + type.getName() + ")"));
             panel.add(new JLabel("| Time (Milliseconds): " + (end - start)));
             panel.setVisible(true);
@@ -55,12 +55,11 @@ public class OrderedDitherTesting extends JFrame {
 
     }
 
-
     public static void main(String[] args) throws IOException {
         // Windows: C:\\Users\\Brandon Li\\Desktop\\kingmammoth.png
         // Mac: /Users/bli24/Desktop/platform1/6vv2qz15h7e51.png
-        // new FloydFilterLiteDitherTesting(new File("/Users/bli24/Desktop/platform1/6vv2qz15h7e51.png"));
-        new OrderedDitherTesting(new File("C:\\Users\\Brandon Li\\Desktop\\0923e57e357298233d20cb38cccc8e7c.png"));
+        new OrderedDitherTesting(new File("/Users/bli24/Desktop/platform1/6vv2qz15h7e51.png"));
+        // new OrderedDitherTesting(new File("C:\\Users\\Brandon Li\\Desktop\\0923e57e357298233d20cb38cccc8e7c.png"));
     }
 
 }

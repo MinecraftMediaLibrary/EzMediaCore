@@ -1,6 +1,5 @@
 package com.github.pulsebeat02.video.dither;
 
-import org.bukkit.map.MapPalette;
 import org.jetbrains.annotations.NotNull;
 
 public class OrderedDithering {
@@ -17,7 +16,7 @@ public class OrderedDithering {
 
         PALETTE = StaticDitherInitialization.PALETTE;
         COLOR_MAP = StaticDitherInitialization.COLOR_MAP;
-        FULL_COLOR_MAP = new int[128 * 128 * 128];
+        FULL_COLOR_MAP = StaticDitherInitialization.FULL_COLOR_MAP;
 
         /*
 
@@ -80,26 +79,9 @@ public class OrderedDithering {
     }
 
     private float[][] matrix;
-    private int n;
+    private final float r;
     private float multiplicative;
-
-    public enum DitherType {
-
-        ModeTwo("Two Dimensional"),
-        ModeFour("Four Dimensional"),
-        ModeEight("Eight Dimensional");
-
-        private final String name;
-
-        DitherType(@NotNull final String name) {
-            this.name = name;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-    }
+    private int n;
 
     public OrderedDithering(@NotNull final DitherType type) {
         switch (type) {
@@ -119,13 +101,25 @@ public class OrderedDithering {
                 multiplicative = 0.015625f;
                 break;
         }
+        this.r = 255f / (n * n);
         convertToFloat();
+    }
+
+    public int getBestColor(int rgb) {
+        int red = rgb >> 16 & 0xFF;
+        int green = rgb >> 8 & 0xFF;
+        int blue = rgb & 0xFF;
+        return MinecraftMapPalette.getColor(getBestColor(red, green, blue)).getRGB();
+    }
+
+    public byte getBestColor(int red, int green, int blue) {
+        return COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
     }
 
     public void convertToFloat() {
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[i].length; j++) {
-                matrix[i][j] *= multiplicative;
+                matrix[i][j] = matrix[i][j] * multiplicative - 0.5f;
             }
         }
     }
@@ -136,32 +130,28 @@ public class OrderedDithering {
             int yIndex = y * width;
             for (int x = 0; x < width; x++) {
                 int index = yIndex + x;
-                buffer[index] = performNearestColor(x, y, buffer[index]);
+                int color = buffer[index];
+                buffer[index] = getBestColor((int)(color + r * (matrix[x % n][y % n])));
             }
         }
     }
 
-    /*
+    public enum DitherType {
 
-    Approximately 86 Palette Colors in Minecraft
+        ModeTwo("Two Dimensional"),
+        ModeFour("Four Dimensional"),
+        ModeEight("Eight Dimensional");
 
-    2^3n = 86
-    n ~= 2.14 ~= 2
+        private final String name;
 
-    Multiply by 0.5
+        DitherType(@NotNull final String name) {
+            this.name = name;
+        }
 
-     */
-    public int performNearestColor(int x, int y, int color) {
-        return getBestFullColor((int) (color + 2 * (matrix[x % n][y % n] * 0.5)));
+        public String getName() {
+            return name;
+        }
+
     }
-
-    public int getBestFullColor(int rgb) {
-        return getBestColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF);
-    }
-
-    public byte getBestColor(int red, int green, int blue) {
-        return COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
-    }
-
 
 }

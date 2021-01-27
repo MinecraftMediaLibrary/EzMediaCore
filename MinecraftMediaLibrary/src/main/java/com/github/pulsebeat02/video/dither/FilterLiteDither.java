@@ -23,7 +23,7 @@ public class FilterLiteDither {
     static {
         PALETTE = StaticDitherInitialization.PALETTE;
         COLOR_MAP = StaticDitherInitialization.COLOR_MAP;
-        FULL_COLOR_MAP = new int[128 * 128 * 128];
+        FULL_COLOR_MAP = StaticDitherInitialization.FULL_COLOR_MAP;
     }
 
     public static void dither(int[] buffer, int width) {
