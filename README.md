@@ -1,3 +1,5 @@
+[![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/PulseBeat02/MinecraftMediaLibrary)
+
 [![CircleCI](https://img.shields.io/circleci/build/github/PulseBeat02/MinecraftMediaLibrary?style=for-the-badge)](https://app.circleci.com/pipelines/github/PulseBeat02/MinecraftMediaLibrary)
 [![Issues](https://img.shields.io/github/issues/PulseBeat02/MinecraftMediaLibrary?style=for-the-badge)](https://github.com/PulseBeat02/MinecraftMediaLibrary/issues)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)](https://www.gnu.org/licenses/gpl-3.0)
