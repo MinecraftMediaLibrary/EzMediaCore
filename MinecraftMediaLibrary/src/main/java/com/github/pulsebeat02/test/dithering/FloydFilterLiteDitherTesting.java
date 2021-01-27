@@ -1,4 +1,4 @@
-package com.github.pulsebeat02.test;
+package com.github.pulsebeat02.test.dithering;
 
 import com.github.pulsebeat02.video.dither.FloydImageDither;
 import com.github.pulsebeat02.utility.VideoUtilities;
@@ -14,9 +14,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-public class DitherTests extends JFrame {
+public class FloydFilterLiteDitherTesting extends JFrame {
 
-    public DitherTests(@NotNull final File image) throws IOException {
+    public FloydFilterLiteDitherTesting(@NotNull final File image) throws IOException {
 
         final BufferedImage before = ImageIO.read(image);
 
@@ -73,7 +73,7 @@ public class DitherTests extends JFrame {
     public static void main(String[] args) throws IOException {
         // Windows: C:\\Users\\Brandon Li\\Desktop\\kingmammoth.png
         // Mac: /Users/bli24/Desktop/platform1/6vv2qz15h7e51.png
-        new DitherTests(new File("/Users/bli24/Desktop/platform1/6vv2qz15h7e51.png"));
+        new FloydFilterLiteDitherTesting(new File("/Users/bli24/Desktop/platform1/6vv2qz15h7e51.png"));
     }
 
 }

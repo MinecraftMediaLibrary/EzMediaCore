@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RecursiveTask;
 
-public class StaticDitherTools {
+public class StaticDitherInitialization {
 
     public static int largest = 0;
 

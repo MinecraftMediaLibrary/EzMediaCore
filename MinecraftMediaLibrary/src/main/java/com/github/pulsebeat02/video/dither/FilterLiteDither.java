@@ -21,8 +21,8 @@ public class FilterLiteDither {
     private static final int[] FULL_COLOR_MAP;
 
     static {
-        PALETTE = StaticDitherTools.PALETTE;
-        COLOR_MAP = StaticDitherTools.COLOR_MAP;
+        PALETTE = StaticDitherInitialization.PALETTE;
+        COLOR_MAP = StaticDitherInitialization.COLOR_MAP;
         FULL_COLOR_MAP = new int[128 * 128 * 128];
     }
 
