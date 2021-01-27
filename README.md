@@ -5,6 +5,12 @@
 
 ## MinecraftMediaLibrary
 
+[<img src="https://iconape.com/wp-content/png_logo_vector/gitpod-ddd.png" width="200">](https://gitpod.io/#https://github.com/PulseBeat02/MinecraftMediaLibrary)
+
+**You can use Gitpod for an online IDE experience**
+
+---
+
 MinecraftMediaLibrary is a library written along the Spigot API and net.minecraft.server classes to provide helpful and
 useful classes for other plugins to take advantage of. One of the most important features perhaps is its ability to
 play **videos** on a Minecraft Spigot server. It uses
