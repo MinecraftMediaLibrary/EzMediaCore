@@ -1,0 +1,24 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:8-jdk
+    working_directory: ~/repo
+    environment:
+      MAVEN_OPTS: -Xmx3200m -Xms2600m
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            - v1-dependencies-
+      - save_cache:
+          paths:
+            - ~/.m2/
+          key: v1-dependencies-{{ checksum "pom.xml" }}
+      - run: wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.16.1-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.16.1 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.16.2-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.16.2 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.16.4-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.16.4 >> /dev/null 2>&1
+      - run: git clone https://github.com/PulseBeat02/MinecraftMediaLibrary
+      - run: mvn clean install
