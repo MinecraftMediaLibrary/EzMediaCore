@@ -16,11 +16,11 @@ public enum MavenDependency {
             "2.4.6"
     ),
 
-    JAVE(
-            "ws.schild",
-            "jave-all-deps",
-            "2.7.3"
-    ),
+//    JAVE(
+//            "ws.schild",
+//            "jave-all-deps",
+//            "2.7.3"
+//    ),
 
     JAVACV(
             "org.bytedeco",

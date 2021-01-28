@@ -1,6 +1,7 @@
 package com.github.pulsebeat02;
 
 import com.github.pulsebeat02.dependency.DependencyManagement;
+import com.github.pulsebeat02.dependency.JaveDependencyHandler;
 import com.github.pulsebeat02.listener.PlayerJoinLeaveHandler;
 import com.github.pulsebeat02.nms.PacketHandler;
 import com.github.pulsebeat02.logger.Logger;
@@ -42,6 +43,7 @@ public class MinecraftMediaLibrary {
             this.parent = path;
             this.vlcj = isUsingVLCJ;
             new DependencyManagement().installAndLoad();
+            new JaveDependencyHandler().installDependency();
             if (isUsingVLCJ) {
                 new MediaPlayerFactory();
             }

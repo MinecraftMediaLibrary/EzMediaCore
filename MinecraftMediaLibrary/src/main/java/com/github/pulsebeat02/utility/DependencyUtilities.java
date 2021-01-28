@@ -4,10 +4,7 @@ import com.github.pulsebeat02.dependency.MavenDependency;
 import com.github.pulsebeat02.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
@@ -41,19 +38,35 @@ public class DependencyUtilities {
                 dependency.getVersion() + "/";
     }
 
+    public static String getDependencyUrl(@NotNull final String groupId, @NotNull final String artifactId, @NotNull final String version, @NotNull final String base) {
+        return base +
+                groupId.replaceAll("\\.", "/") + "/" +
+                artifactId + "/" +
+                version + "/";
+    }
+
     public static File downloadFile(@NotNull final MavenDependency dependency, @NotNull final String link, @NotNull final String parent) throws IOException {
         String file = dependency.getArtifact() + "-" + dependency.getVersion() + ".jar";
         String url = link + file;
-        Path path = Paths.get(parent + "/" + file);
-        Logger.info("Downloading Dependency at " + url + " into folder " + path);
+        return downloadFile(Paths.get(parent + "/" + file), url);
+    }
+
+    public static File downloadFile(@NotNull final String groupId, @NotNull final String artifactId, @NotNull final String version, @NotNull final String parent) throws IOException {
+        String file = artifactId + "-" + version + ".jar";
+        String url = getDependencyUrl(groupId, artifactId, version, "https://repo1.maven.org/maven2/") + file;
+        return downloadFile(Paths.get(parent + "/" + file), url);
+    }
+
+    public static File downloadFile(@NotNull final Path p, @NotNull final String url) throws IOException {
+        Logger.info("Downloading Dependency at " + url + " into folder " + p);
         BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
-        FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(path));
+        FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p));
         byte[] dataBuffer = new byte[1024];
         int bytesRead;
         while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
             fileOutputStream.write(dataBuffer, 0, bytesRead);
         }
-        return new File(path.toString());
+        return new File(p.toString());
     }
 
     public static void loadDependency(@NotNull final File file) throws IOException {
