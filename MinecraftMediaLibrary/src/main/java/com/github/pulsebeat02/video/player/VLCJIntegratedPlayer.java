@@ -13,13 +13,15 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCall
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.RenderCallbackAdapter;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32BufferFormat;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
 public class VLCJIntegratedPlayer extends AbstractVideoPlayer {
 
-    private EmbeddedMediaPlayer mediaPlayerComponent;
+    private final EmbeddedMediaPlayer mediaPlayerComponent;
 
+    // youtube url
     public VLCJIntegratedPlayer(@NotNull final MinecraftMediaLibrary library,
                                 @NotNull final String url,
                                 final int width,
@@ -40,6 +42,28 @@ public class VLCJIntegratedPlayer extends AbstractVideoPlayer {
         CallbackVideoSurface surface = new CallbackVideoSurface(bufferFormatCallback, new MinecraftRenderCallback(), false, new WindowsVideoSurfaceAdapter());
         mediaPlayerComponent.videoSurface().set(surface);
         Logger.info("Created a VLCJ Integrated Video Player (" + url + ")");
+    }
+
+    public VLCJIntegratedPlayer(@NotNull final MinecraftMediaLibrary library,
+                                @NotNull final File file,
+                                final int width,
+                                final int height,
+                                @NotNull final Consumer<int[]> callback) {
+        super(library, file.getAbsolutePath(), width, height, callback);
+        this.mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
+        BufferFormatCallback bufferFormatCallback = new BufferFormatCallback() {
+            @Override
+            public BufferFormat getBufferFormat(int sourceWidth, int sourceHeight) {
+                return new RV32BufferFormat(getWidth(), getHeight());
+            }
+
+            @Override
+            public void allocatedBuffers(ByteBuffer[] buffers) {
+            }
+        };
+        CallbackVideoSurface surface = new CallbackVideoSurface(bufferFormatCallback, new MinecraftRenderCallback(), false, new WindowsVideoSurfaceAdapter());
+        mediaPlayerComponent.videoSurface().set(surface);
+        Logger.info("Created a VLCJ Integrated Video Player (" + file.getAbsolutePath() + ")");
     }
 
     @Override

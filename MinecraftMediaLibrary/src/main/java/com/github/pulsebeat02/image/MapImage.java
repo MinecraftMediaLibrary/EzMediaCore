@@ -1,6 +1,7 @@
 package com.github.pulsebeat02.image;
 
 import com.github.pulsebeat02.MinecraftMediaLibrary;
+import com.github.pulsebeat02.utility.FileUtilities;
 import com.github.pulsebeat02.video.dither.FloydImageDither;
 import com.github.pulsebeat02.logger.Logger;
 import com.github.pulsebeat02.utility.VideoUtilities;
@@ -30,6 +31,19 @@ public class MapImage implements AbstractImageMapHolder, ConfigurationSerializab
         this.library = library;
         this.map = map;
         this.image = image;
+        this.width = width;
+        this.height = height;
+        Logger.info("Initialized Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
+    }
+
+    public MapImage(@NotNull final MinecraftMediaLibrary library,
+                    final int map,
+                    @NotNull final String url,
+                    final int width,
+                    final int height) {
+        this.library = library;
+        this.map = map;
+        this.image = FileUtilities.downloadImageFile(url, library.getPath());
         this.width = width;
         this.height = height;
         Logger.info("Initialized Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
