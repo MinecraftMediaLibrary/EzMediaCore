@@ -1,7 +1,7 @@
 package com.github.pulsebeat02.config;
 
 import com.github.pulsebeat02.DeluxeMediaPlugin;
-import org.bukkit.Location;
+import com.github.pulsebeat02.image.MapImage;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 
 public class PictureConfiguration {
@@ -20,10 +22,13 @@ public class PictureConfiguration {
     private final File configFile;
     private FileConfiguration fileConfiguration;
 
+    private final Set<MapImage> images;
+
     public PictureConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
         this.plugin = plugin;
         this.fileName = "pictures.yml";
         this.configFile = new File(plugin.getDataFolder(), fileName);
+        this.images = new HashSet<>();
     }
 
     public void reloadConfig() {
@@ -58,7 +63,7 @@ public class PictureConfiguration {
         }
     }
 
-    public void addPhoto(@NotNull final Location loc, @NotNull final File file,
+    public void addPhoto(final int map, @NotNull final File file,
                          final int width, final int height) {
 
     }

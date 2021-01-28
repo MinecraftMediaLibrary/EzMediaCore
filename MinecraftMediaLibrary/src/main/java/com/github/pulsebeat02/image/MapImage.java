@@ -4,13 +4,17 @@ import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.video.dither.FloydImageDither;
 import com.github.pulsebeat02.logger.Logger;
 import com.github.pulsebeat02.utility.VideoUtilities;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
-public class MapImage implements AbstractImageMapHolder {
+public class MapImage implements AbstractImageMapHolder, ConfigurationSerializable {
 
     private final MinecraftMediaLibrary library;
     private final int map;
@@ -21,13 +25,13 @@ public class MapImage implements AbstractImageMapHolder {
     public MapImage(@NotNull final MinecraftMediaLibrary library,
                     final int map,
                     @NotNull final File image,
-                    final int height,
-                    final int width) {
+                    final int width,
+                    final int height) {
         this.library = library;
         this.map = map;
         this.image = image;
-        this.height = height;
         this.width = width;
+        this.height = height;
         Logger.info("Initialized Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
     }
 
@@ -74,6 +78,23 @@ public class MapImage implements AbstractImageMapHolder {
             return new MapImage(library, map, image, height, width);
         }
 
+    }
+
+    @Override
+    public Map<String, Object> serialize() {
+        Map<String, Object> serialized = new HashMap<>();
+        serialized.put("map", map);
+        serialized.put("image", image.getAbsolutePath());
+        serialized.put("width", width);
+        serialized.put("height", height);
+        return serialized;
+    }
+
+    public static MapImage deserialize(@NotNull final MinecraftMediaLibrary library, @NotNull final Map<String, Object> deserialize) {
+        return new MapImage(library,
+                NumberConversions.toInt(deserialize.get("map")),
+                new File(String.valueOf(deserialize.get("image"))),
+                NumberConversions.toInt(deserialize.get("width")), NumberConversions.toInt(deserialize.get("height")));
     }
 
     public MinecraftMediaLibrary getLibrary() {

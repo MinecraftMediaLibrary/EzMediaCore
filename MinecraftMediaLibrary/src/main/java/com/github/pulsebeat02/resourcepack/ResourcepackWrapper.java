@@ -3,8 +3,11 @@ package com.github.pulsebeat02.resourcepack;
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.exception.InvalidPackFormatException;
 import com.github.pulsebeat02.exception.InvalidPackIconException;
+import com.github.pulsebeat02.image.MapImage;
 import com.github.pulsebeat02.utility.ResourcepackUtilities;
 import com.github.pulsebeat02.logger.Logger;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -12,10 +15,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class ResourcepackWrapper implements AbstractPackHolder {
+public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSerializable {
 
     private final MinecraftMediaLibrary library;
     private final String path;
@@ -43,6 +48,26 @@ public class ResourcepackWrapper implements AbstractPackHolder {
             throw new InvalidPackIconException("Invalid Pack Icon! Must be PNG (" + icon.getName() + ")");
         }
         Logger.info("New Resourcepack (" + path + ") was Initialized");
+    }
+
+    @Override
+    public Map<String, Object> serialize() {
+        Map<String, Object> serialized = new HashMap<>();
+        serialized.put("path", path);
+        serialized.put("audio", audio.getAbsolutePath());
+        serialized.put("icon", icon.getAbsolutePath());
+        serialized.put("description", description);
+        serialized.put("pack-format", packFormat);
+        return serialized;
+    }
+
+    public static ResourcepackWrapper deserialize(@NotNull final MinecraftMediaLibrary library, @NotNull final Map<String, Object> deserialize) {
+        return new ResourcepackWrapper(library,
+                                String.valueOf(deserialize.get("path")),
+                                new File(String.valueOf(deserialize.get("audio"))),
+                                new File(String.valueOf(deserialize.get("icon"))),
+                                String.valueOf(deserialize.get(deserialize)),
+                                NumberConversions.toInt(deserialize.get("pack-format")));
     }
 
     public static class Builder {
