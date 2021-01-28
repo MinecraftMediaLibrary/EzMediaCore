@@ -12,10 +12,7 @@ public class OrderedDithering implements AbstractDitherHolder {
      *
      * @author PulseBeat_02
      */
-
-    private static final int[] PALETTE;
     private static final byte[] COLOR_MAP;
-    private static final int[] FULL_COLOR_MAP;
 
     private final static float[][] bayerMatrixTwo;
     private final static float[][] bayerMatrixFour;
@@ -23,9 +20,7 @@ public class OrderedDithering implements AbstractDitherHolder {
 
     static {
 
-        PALETTE = StaticDitherInitialization.PALETTE;
         COLOR_MAP = StaticDitherInitialization.COLOR_MAP;
-        FULL_COLOR_MAP = StaticDitherInitialization.FULL_COLOR_MAP;
 
         /*
 
@@ -114,11 +109,12 @@ public class OrderedDithering implements AbstractDitherHolder {
         convertToFloat();
     }
 
-    public int getBestColor(int rgb) {
-        int red = rgb >> 16 & 0xFF;
-        int green = rgb >> 8 & 0xFF;
-        int blue = rgb & 0xFF;
-        return MinecraftMapPalette.getColor(getBestColor(red, green, blue)).getRGB();
+    public int getBestColorNormal(int rgb) {
+        return MinecraftMapPalette.getColor(getBestColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF)).getRGB();
+    }
+
+    public byte getBestColor(int rgb) {
+        return COLOR_MAP[(rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
     }
 
     public byte getBestColor(int red, int green, int blue) {
@@ -141,14 +137,24 @@ public class OrderedDithering implements AbstractDitherHolder {
             for (int x = 0; x < width; x++) {
                 int index = yIndex + x;
                 int color = buffer[index];
-                buffer[index] = getBestColor((int)(color + r * (matrix[x % n][y % n])));
+                buffer[index] = getBestColorNormal((int)(color + r * (matrix[x % n][y % n])));
             }
         }
     }
 
     @Override
     public ByteBuffer ditherIntoMinecraft(int[] buffer, int width) {
-        return null;
+        int height = buffer.length / width;
+        ByteBuffer data = ByteBuffer.allocate(buffer.length);
+        for (int y = 0; y < height; y++) {
+            int yIndex = y * width;
+            for (int x = 0; x < width; x++) {
+                int index = yIndex + x;
+                int color = buffer[index];
+                data.put(getBestColor((int)(color + r * (matrix[x % n][y % n]))));
+            }
+        }
+        return data;
     }
 
     public enum DitherType {
