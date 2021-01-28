@@ -22,4 +22,5 @@ jobs:
       - run: ls ~/.m2/repository/org/spigotmc/spigot/1.16.4-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.16.4 >> /dev/null 2>&1
       - run: rm -r MinecraftMediaLibrary
       - run: git clone https://github.com/PulseBeat02/MinecraftMediaLibrary
+      - run: cd MinecraftMediaLibrary
       - run: mvn clean install
