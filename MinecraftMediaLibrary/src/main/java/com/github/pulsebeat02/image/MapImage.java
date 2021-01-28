@@ -9,25 +9,21 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Objects;
-import java.util.UUID;
 
-public class ImageMap implements AbstractImageMapHolder {
+public class MapImage implements AbstractImageMapHolder {
 
     private final MinecraftMediaLibrary library;
-    private final UUID[] viewers;
     private final int map;
     private final File image;
     private final int height;
     private final int width;
 
-    public ImageMap(@NotNull final MinecraftMediaLibrary library,
-                    @NotNull final UUID[] viewers,
+    public MapImage(@NotNull final MinecraftMediaLibrary library,
                     final int map,
                     @NotNull final File image,
                     final int height,
                     final int width) {
         this.library = library;
-        this.viewers = viewers;
         this.map = map;
         this.image = image;
         this.height = height;
@@ -37,8 +33,9 @@ public class ImageMap implements AbstractImageMapHolder {
 
     @Override
     public void drawImage() {
+        onDrawImage();
         ByteBuffer buffer = new FloydImageDither().ditherIntoMinecraft(Objects.requireNonNull(VideoUtilities.getBuffer(image)), width);
-        library.getHandler().display(viewers, map, width, height, buffer, width);
+        library.getHandler().display(null, map, width, height, buffer, width);
         Logger.info("Drew Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
     }
 
@@ -48,16 +45,10 @@ public class ImageMap implements AbstractImageMapHolder {
 
     public static class Builder {
 
-        private UUID[] viewers;
         private int map;
         private File image;
         private int height;
         private int width;
-
-        public Builder setViewers(UUID[] viewers) {
-            this.viewers = viewers;
-            return this;
-        }
 
         public Builder setMap(int map) {
             this.map = map;
@@ -79,18 +70,14 @@ public class ImageMap implements AbstractImageMapHolder {
             return this;
         }
 
-        public ImageMap createImageMap(final MinecraftMediaLibrary library) {
-            return new ImageMap(library, viewers, map, image, height, width);
+        public MapImage createImageMap(final MinecraftMediaLibrary library) {
+            return new MapImage(library, map, image, height, width);
         }
 
     }
 
     public MinecraftMediaLibrary getLibrary() {
         return library;
-    }
-
-    public UUID[] getViewers() {
-        return viewers;
     }
 
     public int getMap() {

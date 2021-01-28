@@ -3,11 +3,9 @@ package com.github.pulsebeat02.test;
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.concurrent.AsyncVideoExtraction;
 import com.github.pulsebeat02.extractor.YoutubeExtraction;
-import com.github.pulsebeat02.image.ImageMap;
+import com.github.pulsebeat02.image.MapImage;
 import com.github.pulsebeat02.resourcepack.hosting.HttpDaemonProvider;
 import com.github.pulsebeat02.resourcepack.ResourcepackWrapper;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,9 +14,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -68,24 +63,14 @@ public class YoutubeResourcepackTest extends JavaPlugin {
 
         BufferedImage bi = ImageIO.read(image);
 
-        ImageMap imageMap = new ImageMap.Builder()
+        MapImage imageMap = new MapImage.Builder()
                 .setMap(map)
-                .setViewers(getOnlinePlayerUUIDs())
                 .setWidth(bi.getWidth())
                 .setHeight(bi.getHeight())
                 .createImageMap(library);
 
         imageMap.drawImage();
 
-    }
-
-    public UUID[] getOnlinePlayerUUIDs() {
-        List<? extends Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
-        UUID[] uuids = new UUID[players.size()];
-        for (int i = 0; i < players.size(); i++) {
-            uuids[i] = players.get(i).getUniqueId();
-        }
-        return uuids;
     }
 
 }

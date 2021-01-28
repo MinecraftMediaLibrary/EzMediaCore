@@ -2,26 +2,26 @@ package com.github.pulsebeat02.logger;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.channels.FileChannel;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 public class Logger {
 
-    public static volatile FileChannel WRITER;
+    public static volatile BufferedWriter WRITER;
     public static boolean VERBOSE;
 
     static {
         try {
             File f = new File(System.getProperty("user.dir") + "\\mml.log");
-            System.out.println(f.getAbsolutePath());
             if (f.createNewFile()) {
                 System.out.println("File Created (" + f.getName() + ")");
             } else {
                 System.out.println("Log File Exists Already");
+                FileChannel.open(Paths.get(f.getPath()), StandardOpenOption.WRITE).truncate(0).close();
             }
-            WRITER = new RandomAccessFile(f, "rw").getChannel();
+            WRITER = new BufferedWriter(new FileWriter(f));
         } catch (IOException exception) {
             exception.printStackTrace();
         }
@@ -41,10 +41,8 @@ public class Logger {
 
     public static void directPrint(@NotNull final String line) {
         if (VERBOSE) {
-            byte[] bytes = line.getBytes();
             try {
-                WRITER.map(FileChannel.MapMode.READ_WRITE, 0, bytes.length).put(bytes);
-                WRITER.force(false);
+                WRITER.write(line);
             } catch (IOException exception) {
                 exception.printStackTrace();
             }

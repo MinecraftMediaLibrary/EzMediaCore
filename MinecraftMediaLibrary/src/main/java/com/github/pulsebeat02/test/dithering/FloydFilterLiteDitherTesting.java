@@ -60,13 +60,13 @@ public class FloydFilterLiteDitherTesting extends JFrame {
 
     private BufferedImage ditherSierra(@NotNull final BufferedImage before) {
         int[] buffer = VideoUtilities.getBuffer(before);
-        FilterLiteDither.dither(buffer, before.getWidth());
+        new FilterLiteDither().dither(buffer, before.getWidth());
         return VideoUtilities.getBufferedImage(buffer, before.getWidth(), before.getHeight());
     }
 
     private BufferedImage ditherFloyd(@NotNull final BufferedImage before) {
         int[] buffer = VideoUtilities.getBuffer(before);
-        FloydImageDither.dither(buffer, before.getWidth());
+        new FloydImageDither().dither(buffer, before.getWidth());
         return VideoUtilities.getBufferedImage(buffer, before.getWidth(), before.getHeight());
     }
 
