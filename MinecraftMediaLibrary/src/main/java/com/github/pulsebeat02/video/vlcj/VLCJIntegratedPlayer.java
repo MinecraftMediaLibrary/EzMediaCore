@@ -1,6 +1,8 @@
 package com.github.pulsebeat02.video.vlcj;
 
 import com.github.pulsebeat02.logger.Logger;
+import com.github.pulsebeat02.video.AbstractVideoPlayer;
+import com.github.pulsebeat02.video.dither.AbstractDitherHolder;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
@@ -15,7 +17,7 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32Buffe
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
-public class VLCJIntegratedPlayer {
+public class VLCJIntegratedPlayer implements AbstractVideoPlayer {
 
     private final String url;
     private final int width;
@@ -47,6 +49,7 @@ public class VLCJIntegratedPlayer {
         return height;
     }
 
+    @Override
     public void start() {
         if (mediaPlayerComponent != null) {
             mediaPlayerComponent.release();
@@ -68,6 +71,7 @@ public class VLCJIntegratedPlayer {
         Logger.info("Started Playing Video! (" + url + ")");
     }
 
+    @Override
     public void stop() {
         if (mediaPlayerComponent != null) {
             mediaPlayerComponent.controls().stop();
@@ -84,6 +88,39 @@ public class VLCJIntegratedPlayer {
         @Override
         protected void onDisplay(final MediaPlayer mediaPlayer, final int[] buffer) {
             callback.accept(buffer);
+        }
+
+    }
+
+    public class Builder {
+
+        private String url;
+        private int width;
+        private int height;
+        private Consumer<int[]> callback;
+
+        public Builder setUrl(@NotNull final String url) {
+            this.url = url;
+            return this;
+        }
+
+        public Builder setWidth(final int width) {
+            this.width = width;
+            return this;
+        }
+
+        public Builder setHeight(final int height) {
+            this.height = height;
+            return this;
+        }
+
+        public Builder setCallback(@NotNull final Consumer<int[]> callback) {
+            this.callback = callback;
+            return this;
+        }
+
+        public VLCJIntegratedPlayer createVLCJIntegratedPlayer() {
+            return new VLCJIntegratedPlayer(url, width, height, callback);
         }
 
     }

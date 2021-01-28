@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.UUID;
 
-public class BasicVideoPlayer {
+public class BasicVideoPlayer implements AbstractVideoPlayer {
 
     private final MinecraftMediaLibrary library;
     private final FFmpegFrameGrabber grabber;
@@ -34,7 +34,7 @@ public class BasicVideoPlayer {
                             final int map,
                             final int width, final int height, final int videoWidth,
                             final int delay,
-                            final AbstractDitherHolder holder) {
+                            @NotNull final AbstractDitherHolder holder) {
         this.library = library;
         this.grabber = new FFmpegFrameGrabber(video);
         this.type = holder;
@@ -47,8 +47,13 @@ public class BasicVideoPlayer {
         this.delay = delay;
     }
 
-    public void start() throws FrameGrabber.Exception {
-        grabber.start();
+    @Override
+    public void start() {
+        try {
+            grabber.start();
+        } catch (FrameGrabber.Exception e) {
+            e.printStackTrace();
+        }
         videoThread = new Thread(() -> {
             for (int i = 0; i < grabber.getLengthInVideoFrames() && !stopped; i++) {
                 try {
@@ -63,8 +68,72 @@ public class BasicVideoPlayer {
         videoThread.start();
     }
 
+    @Override
     public void stop() {
         stopped = true;
+    }
+
+    public class Builder {
+
+        private MinecraftMediaLibrary library;
+        private File video;
+        private UUID[] viewers;
+        private int map;
+        private int width;
+        private int height;
+        private int videoWidth;
+        private int delay;
+        private AbstractDitherHolder holder;
+
+        public Builder setLibrary(@NotNull final MinecraftMediaLibrary library) {
+            this.library = library;
+            return this;
+        }
+
+        public Builder setVideo(@NotNull final File video) {
+            this.video = video;
+            return this;
+        }
+
+        public Builder setViewers(@NotNull final UUID[] viewers) {
+            this.viewers = viewers;
+            return this;
+        }
+
+        public Builder setMap(final int map) {
+            this.map = map;
+            return this;
+        }
+
+        public Builder setWidth(final int width) {
+            this.width = width;
+            return this;
+        }
+
+        public Builder setHeight(final int height) {
+            this.height = height;
+            return this;
+        }
+
+        public Builder setVideoWidth(final int videoWidth) {
+            this.videoWidth = videoWidth;
+            return this;
+        }
+
+        public Builder setDelay(final int delay) {
+            this.delay = delay;
+            return this;
+        }
+
+        public Builder setHolder(@NotNull final AbstractDitherHolder holder) {
+            this.holder = holder;
+            return this;
+        }
+
+        public BasicVideoPlayer createBasicVideoPlayer() {
+            return new BasicVideoPlayer(library, video, viewers, map, width, height, videoWidth, delay, holder);
+        }
+
     }
 
     public MinecraftMediaLibrary getLibrary() {
