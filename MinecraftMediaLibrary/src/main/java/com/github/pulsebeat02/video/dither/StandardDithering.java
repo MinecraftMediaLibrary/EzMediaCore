@@ -49,4 +49,9 @@ public class StandardDithering implements AbstractDitherHolder {
         }
         return data;
     }
+
+    public static byte[] getColorMap() {
+        return COLOR_MAP;
+    }
+
 }

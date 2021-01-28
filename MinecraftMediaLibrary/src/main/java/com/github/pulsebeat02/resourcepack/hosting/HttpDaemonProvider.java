@@ -37,6 +37,10 @@ public class HttpDaemonProvider extends AbstractHostingProvider {
         return "http://" + SERVER_IP + ":" + port + "/" + path.getFileName();
     }
 
+    public static String getServerIp() {
+        return SERVER_IP;
+    }
+
     public HttpDaemon getDaemon() {
         return daemon;
     }

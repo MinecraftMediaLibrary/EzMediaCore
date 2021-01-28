@@ -133,4 +133,7 @@ public class ItemFrameCallback implements AbstractCallback {
         return lastUpdated;
     }
 
+    public AbstractDitherHolder getType() {
+        return type;
+    }
 }

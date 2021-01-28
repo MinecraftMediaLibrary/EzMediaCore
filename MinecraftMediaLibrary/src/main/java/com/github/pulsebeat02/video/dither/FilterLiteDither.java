@@ -207,4 +207,12 @@ public class FilterLiteDither implements AbstractDitherHolder {
         return COLOR_MAP[(rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
     }
 
+    public static byte[] getColorMap() {
+        return COLOR_MAP;
+    }
+
+    public static int[] getFullColorMap() {
+        return FULL_COLOR_MAP;
+    }
+
 }

@@ -175,4 +175,36 @@ public class OrderedDithering implements AbstractDitherHolder {
 
     }
 
+    public static byte[] getColorMap() {
+        return COLOR_MAP;
+    }
+
+    public static float[][] getBayerMatrixTwo() {
+        return bayerMatrixTwo;
+    }
+
+    public static float[][] getBayerMatrixFour() {
+        return bayerMatrixFour;
+    }
+
+    public static float[][] getBayerMatrixEight() {
+        return bayerMatrixEight;
+    }
+
+    public float[][] getMatrix() {
+        return matrix;
+    }
+
+    public float getR() {
+        return r;
+    }
+
+    public float getMultiplicative() {
+        return multiplicative;
+    }
+
+    public int getN() {
+        return n;
+    }
+
 }

@@ -53,6 +53,22 @@ public class StaticDitherInitialization {
         Logger.info("Initial lookup table initialized in " + (end - start) / 1_000_000.0 + " ms");
     }
 
+    public static int getLargest() {
+        return largest;
+    }
+
+    public static int[] getPALETTE() {
+        return PALETTE;
+    }
+
+    public static byte[] getColorMap() {
+        return COLOR_MAP;
+    }
+
+    public static int[] getFullColorMap() {
+        return FULL_COLOR_MAP;
+    }
+
 }
 
 class LoadRed extends RecursiveTask<byte[]> {

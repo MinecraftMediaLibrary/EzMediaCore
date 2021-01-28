@@ -268,4 +268,20 @@ public class FloydImageDither implements AbstractDitherHolder {
         return image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
     }
 
+    public static int getLargest() {
+        return largest;
+    }
+
+    public static int[] getPALETTE() {
+        return PALETTE;
+    }
+
+    public static byte[] getColorMap() {
+        return COLOR_MAP;
+    }
+
+    public static int[] getFullColorMap() {
+        return FULL_COLOR_MAP;
+    }
+
 }
