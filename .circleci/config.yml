@@ -23,4 +23,4 @@ jobs:
       - run: rm -r MinecraftMediaLibrary
       - run: git clone https://github.com/PulseBeat02/MinecraftMediaLibrary
       - run: cd MinecraftMediaLibrary
-      - run: mvn clean install
+      - run: mvn compile
