@@ -24,6 +24,10 @@ public abstract class AbstractVideoPlayer {
         this.callback = callback;
     }
 
+    public MinecraftMediaLibrary getLibrary() {
+        return library;
+    }
+
     public String getUrl() {
         return url;
     }

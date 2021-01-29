@@ -25,7 +25,7 @@ public class ItemFrameCallback implements AbstractCallback {
                              final int map,
                              final int width, final int height, final int videoWidth,
                              final int delay,
-                             final AbstractDitherHolder type) {
+                             @NotNull final AbstractDitherHolder type) {
         this.library = library;
         this.viewers = viewers;
         this.type = type;

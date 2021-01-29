@@ -1,12 +1,16 @@
 package com.github.pulsebeat02.command;
 
 import com.github.pulsebeat02.DeluxeMediaPlugin;
+import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.utility.ChatUtilities;
 import com.github.pulsebeat02.utility.ExtractorUtilities;
 import com.github.pulsebeat02.video.dither.AbstractDitherHolder;
 import com.github.pulsebeat02.video.dither.DitherSetting;
+import com.github.pulsebeat02.video.itemframe.ItemFrameCallback;
 import com.github.pulsebeat02.video.player.AbstractVideoPlayer;
+import com.github.pulsebeat02.video.player.BasicVideoPlayer;
+import com.github.pulsebeat02.video.player.VLCJIntegratedPlayer;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -20,9 +24,10 @@ import java.util.List;
 
 public class VideoCommand extends AbstractCommand implements CommandExecutor, TabCompleter {
 
-    private final AbstractDitherHolder dither;
+    private AbstractDitherHolder dither;
     private AbstractVideoPlayer player;
 
+    // check if user is using youtube
     private boolean youtube;
 
     // for youtube extraction
@@ -31,9 +36,9 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor, Ta
     // for normal file
     private File file;
 
-    public VideoCommand(@NotNull final DeluxeMediaPlugin plugin, @NotNull final DitherSetting setting) {
+    public VideoCommand(@NotNull final DeluxeMediaPlugin plugin) {
         super(plugin);
-        this.dither = setting.getHolder();
+        this.dither = DitherSetting.SIERRA_FILTER_LITE_DITHER.getHolder();
     }
 
     @Override
@@ -67,6 +72,37 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor, Ta
                 } else {
                     sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Starting Video on File: " + file.getName()));
                 }
+                MinecraftMediaLibrary library = getPlugin().getLibrary();
+                ItemFrameCallback callback = new ItemFrameCallback(getPlugin().getLibrary(), null, 0, 5, 5, player.getWidth(), 0, dither);
+                if (getPlugin().getLibrary().isUsingVLCJ()) {
+                    if (file == null) {
+                        player = new VLCJIntegratedPlayer(library,
+                                extractor.getUrl(),
+                                player.getWidth(),
+                                player.getHeight(),
+                                callback::send);
+                    } else {
+                        player = new VLCJIntegratedPlayer(library,
+                                file,
+                                player.getWidth(),
+                                player.getHeight(),
+                                callback::send);
+                    }
+                } else {
+                    if (file == null) {
+                        player = new BasicVideoPlayer(library,
+                                extractor.getUrl(),
+                                player.getWidth(),
+                                player.getHeight(),
+                                callback::send);
+                    } else {
+                        player = new BasicVideoPlayer(library,
+                                file,
+                                player.getWidth(),
+                                player.getHeight(),
+                                callback::send);
+                    }
+                }
                 player.start();
             } else if (args[0].equalsIgnoreCase("stop")) {
                 sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Stopped the Video!"));
@@ -75,26 +111,7 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor, Ta
                 sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Param '" + args[0] + "' is not a valid argument!"));
             }
         } else if (args.length == 2) {
-            if (args[0].equalsIgnoreCase("dimension")) {
-                String[] dimensions = args[1].split(":");
-                int width;
-                try {
-                    width = Integer.parseInt(dimensions[0]);
-                } catch (NumberFormatException e) {
-                    sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + dimensions[0] + "' isn't a valid width! (Must be Integer)"));
-                    return true;
-                }
-                int height;
-                try {
-                    height = Integer.parseInt(dimensions[1]);
-                } catch (NumberFormatException e) {
-                    sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + dimensions[0] + "' isn't a valid height! (Must be Integer)"));
-                    return true;
-                }
-                player.setHeight(height);
-                player.setWidth(width);
-                sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Set dimensions to " + width + ":" + height + " (width:height)"));
-            } else if (args[0].equalsIgnoreCase("load")) {
+            if (args[0].equalsIgnoreCase("load")) {
                 String mrl = args[1];
                 String folderPath = getPlugin().getDataFolder().getAbsolutePath();
                 if (ExtractorUtilities.getVideoID(mrl) == null) {
@@ -114,6 +131,44 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor, Ta
                     extractor = new YoutubeExtraction(mrl, folderPath);
                     file = null;
                     sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully loaded video " + mrl));
+                }
+            }
+        } else if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("set")) {
+                if (args[1].equalsIgnoreCase("dimension")) {
+                    String[] dimensions = args[2].split(":");
+                    int width;
+                    try {
+                        width = Integer.parseInt(dimensions[0]);
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + dimensions[0] + "' isn't a valid width! (Must be Integer)"));
+                        return true;
+                    }
+                    int height;
+                    try {
+                        height = Integer.parseInt(dimensions[1]);
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + dimensions[0] + "' isn't a valid height! (Must be Integer)"));
+                        return true;
+                    }
+                    player.setHeight(height);
+                    player.setWidth(width);
+                    sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Set dimensions to " + width + ":" + height + " (width:height)"));
+                } else if (args[1].equalsIgnoreCase("dither")) {
+                    String type = args[2];
+                    boolean found = false;
+                    for (DitherSetting setting : DitherSetting.values()) {
+                        if (setting.name().equalsIgnoreCase(type)) {
+                            dither = setting.getHolder();
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Set dither type to " + type));
+                    } else {
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Could not find dither type " + type));
+                    }
                 }
             }
         }

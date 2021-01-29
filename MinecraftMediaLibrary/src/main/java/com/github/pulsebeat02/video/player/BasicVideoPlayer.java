@@ -1,6 +1,7 @@
 package com.github.pulsebeat02.video.player;
 
 import com.github.pulsebeat02.MinecraftMediaLibrary;
+import com.github.pulsebeat02.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.utility.VideoUtilities;
 import com.github.pulsebeat02.video.dither.AbstractDitherHolder;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
@@ -27,6 +28,16 @@ public class BasicVideoPlayer extends AbstractVideoPlayer {
         super(library, video.getAbsolutePath(), width, height, callback);
         this.grabber = new FFmpegFrameGrabber(video);
         this.video = video;
+    }
+
+    public BasicVideoPlayer(@NotNull final MinecraftMediaLibrary library,
+                            @NotNull final String url,
+                            final int width, final int height,
+                            @NotNull final Consumer<int[]> callback) {
+        super(library, url, width, height, callback);
+        File f = new YoutubeExtraction(url, getLibrary().getPath()).downloadVideo();
+        this.grabber = new FFmpegFrameGrabber(f);
+        this.video = f;
     }
 
     @Override
