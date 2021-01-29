@@ -16,6 +16,8 @@ public class AbstractCommand {
         this.history = new ArrayList<>();
     }
 
-
+    public void addHistoryEntry(@NotNull final String autofill) {
+        history.add(autofill);
+    }
 
 }
