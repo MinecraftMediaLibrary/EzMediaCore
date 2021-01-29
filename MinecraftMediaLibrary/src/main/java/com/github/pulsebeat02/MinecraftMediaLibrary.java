@@ -33,7 +33,6 @@ public class MinecraftMediaLibrary {
                 public Object onPacketOutAsync(Player player, Channel channel, Object packet) {
                     return handler.onPacketInterceptOut(player, packet);
                 }
-
                 @Override
                 public Object onPacketInAsync(Player player, Channel channel, Object packet) {
                     return handler.onPacketInterceptIn(player, packet);
@@ -54,6 +53,19 @@ public class MinecraftMediaLibrary {
             Logger.info("Using VLCJ? " + (isUsingVLCJ ? "Yes" : "No"));
             Logger.info("=====================================");
         });
+        checkJavaVersion();
+    }
+
+    private void checkJavaVersion() {
+        String[] javaVersionElements = System.getProperty("java.version").split("\\.");
+        int major = Integer.parseInt(javaVersionElements[1]);
+        if (major < 11) {
+            Logger.warn("MinecraftMediaPlugin is moving towards a newer Java Version (Java 11) \n" +
+                    "Please switch as soon as possible before the library will be incompatible \n" +
+                    "with your server. If you want to read more information surrounding this, \n" +
+                    "you may want to take a look here at " +
+                    "https://papermc.io/forums/t/java-11-mc-1-17-and-paper/5615");
+        }
     }
 
     public Plugin getPlugin() {
