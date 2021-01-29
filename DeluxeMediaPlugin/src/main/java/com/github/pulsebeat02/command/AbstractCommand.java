@@ -20,4 +20,12 @@ public class AbstractCommand {
         history.add(autofill);
     }
 
+    public DeluxeMediaPlugin getPlugin() {
+        return plugin;
+    }
+
+    public List<String> getHistory() {
+        return history;
+    }
+
 }

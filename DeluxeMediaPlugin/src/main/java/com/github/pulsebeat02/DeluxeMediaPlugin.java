@@ -74,4 +74,8 @@ public class DeluxeMediaPlugin extends JavaPlugin {
         return true;
     }
 
+    public MinecraftMediaLibrary getLibrary() {
+        return library;
+    }
+
 }

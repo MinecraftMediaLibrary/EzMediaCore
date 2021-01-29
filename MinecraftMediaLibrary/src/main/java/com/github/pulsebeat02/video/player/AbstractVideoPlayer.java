@@ -9,8 +9,8 @@ public abstract class AbstractVideoPlayer {
 
     private final MinecraftMediaLibrary library;
     private final String url;
-    private final int width;
-    private final int height;
+    private int width;
+    private int height;
     private final Consumer<int[]> callback;
 
     public AbstractVideoPlayer(@NotNull final MinecraftMediaLibrary library,
@@ -30,6 +30,14 @@ public abstract class AbstractVideoPlayer {
 
     public int getWidth() {
         return width;
+    }
+
+    public void setWidth(final int width) {
+        this.width = width;
+    }
+
+    public void setHeight(final int height) {
+        this.height = height;
     }
 
     public int getHeight() {
