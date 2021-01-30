@@ -39,7 +39,7 @@ public class Logger {
         directPrint(System.currentTimeMillis() + ": [ERROR] " + error + "\n");
     }
 
-    public static void directPrint(@NotNull final String line) {
+    private static void directPrint(@NotNull final String line) {
         if (VERBOSE) {
             try {
                 WRITER.write(line);

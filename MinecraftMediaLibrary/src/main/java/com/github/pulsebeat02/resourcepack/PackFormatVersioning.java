@@ -11,14 +11,14 @@ public enum PackFormatVersioning {
     VER_1_16_4(6),
     VER_1_16_5(6);
 
-    private final int formatID;
+    private final int packFormat;
 
     PackFormatVersioning(final int id) {
-        this.formatID = id;
+        this.packFormat = id;
     }
 
     public int getPackFormatID() {
-        return formatID;
+        return packFormat;
     }
 
 }

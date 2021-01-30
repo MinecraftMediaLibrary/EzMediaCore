@@ -3,6 +3,7 @@ package com.github.pulsebeat02.command;
 import com.github.pulsebeat02.DeluxeMediaPlugin;
 import com.github.pulsebeat02.image.MapImage;
 import com.github.pulsebeat02.utility.ChatUtilities;
+import com.github.pulsebeat02.utility.ExtractorUtilities;
 import com.github.pulsebeat02.utility.FileUtilities;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
@@ -15,18 +16,21 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 public class ImageCommand extends AbstractCommand implements CommandExecutor, Listener {
 
     private final Set<MapImage> images;
     private final Set<UUID> listen;
+    private int width;
+    private int height;
 
     public ImageCommand(@NotNull DeluxeMediaPlugin plugin) {
         super(plugin);
         this.images = new HashSet<>();
         this.listen = new HashSet<>();
+        this.width = 1;
+        this.height = 1;
     }
 
     @Override
@@ -44,7 +48,7 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
         } else if (args.length == 1) {
             if (args[0].equalsIgnoreCase("rickroll")) {
                 File f = FileUtilities.downloadImageFile("https://lh3.googleusercontent.com/proxy/_H3t3D3huCELuETTgKOU5uGrjxSZ4uT2B0Y1wtrvEaA9XByYfg726rzlFh9ppcGHrO-Gv7_nD6Z6DbP5PQWrQ2NGXPns4TUK8xUUkNbJfdJCu2Lwc-31XBa-LDcU", getPlugin().getDataFolder().getAbsolutePath());
-                new MapImage(getPlugin().getLibrary(), 69, f, 1, 1).drawImage();
+                new MapImage(getPlugin().getLibrary(), 69, f, width, height).drawImage();
             }
         }
         else if (args.length == 2) {
@@ -98,7 +102,20 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is too hight! (Must be Integer between 0 - 4,294,967,296)"));
                         return true;
                     }
-                    // TODO: Add the part where you check if the mrl is a file or an actual link, then render the map
+                    String mrl = args[3];
+                    if ((mrl.startsWith("http://")) || mrl.startsWith("https://") && mrl.endsWith(".png")) {
+                        File img = FileUtilities.downloadImageFile(mrl, getPlugin().getDataFolder().getAbsolutePath());
+                        new MapImage(getPlugin().getLibrary(), id, img, width, height).drawImage();
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully drew image on map " + id));
+                    } else {
+                        File f = new File(getPlugin().getDataFolder(), mrl);
+                        if (f.exists()) {
+                            new MapImage(getPlugin().getLibrary(), id, f, width, height).drawImage();
+                            sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully drew image on map " + id));
+                        } else {
+                            sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "File " + f.getName() + " cannot be found!"));
+                        }
+                    }
                 }
             }
         }

@@ -37,7 +37,7 @@ public class MapImage implements AbstractImageMapHolder, ConfigurationSerializab
     }
 
     public MapImage(@NotNull final MinecraftMediaLibrary library,
-                    final int map,
+                    final long map,
                     @NotNull final String url,
                     final int width,
                     final int height) {
