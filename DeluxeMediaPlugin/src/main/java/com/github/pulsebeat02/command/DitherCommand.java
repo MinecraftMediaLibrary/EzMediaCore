@@ -2,6 +2,7 @@ package com.github.pulsebeat02.command;
 
 import com.github.pulsebeat02.DeluxeMediaPlugin;
 import com.github.pulsebeat02.utility.ChatUtilities;
+import com.github.pulsebeat02.video.dither.DitherSetting;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -9,16 +10,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
+public class DitherCommand extends AbstractCommand implements CommandExecutor {
 
-public class ImageCommand extends AbstractCommand implements CommandExecutor {
-
-    private final Map<Integer, String> images;
-
-    public ImageCommand(@NotNull DeluxeMediaPlugin plugin) {
+    public DitherCommand(@NotNull final DeluxeMediaPlugin plugin) {
         super(plugin);
-        this.images = new HashMap<>();
     }
 
     @Override
@@ -28,7 +23,15 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor {
             return true;
         }
         if (args.length == 0) {
-
+            sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Valid Arguments: /dither list"));
+        } else if (args.length == 1) {
+            if (args[0].equalsIgnoreCase("list")) {
+                sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "List of Possible Options:"));
+                for (DitherSetting setting : DitherSetting.values()) {
+                    sender.sendMessage(ChatUtilities.formatMessage(ChatColor.AQUA + setting.name()));
+                }
+                addHistoryEntry(args[0]);
+            }
         }
         return true;
     }

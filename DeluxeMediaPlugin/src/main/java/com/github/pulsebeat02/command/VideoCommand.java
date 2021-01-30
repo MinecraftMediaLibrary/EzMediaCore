@@ -15,14 +15,12 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.List;
 
-public class VideoCommand extends AbstractCommand implements CommandExecutor, TabCompleter {
+public class VideoCommand extends AbstractCommand implements CommandExecutor {
 
     private AbstractDitherHolder dither;
     private AbstractVideoPlayer player;
@@ -132,6 +130,7 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor, Ta
                     file = null;
                     sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully loaded video " + mrl));
                 }
+                addHistoryEntry(mrl);
             }
         } else if (args.length == 3) {
             if (args[0].equalsIgnoreCase("set")) {
@@ -173,11 +172,6 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor, Ta
             }
         }
         return true;
-    }
-
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String s, String[] args) {
-        return getHistory();
     }
 
 }
