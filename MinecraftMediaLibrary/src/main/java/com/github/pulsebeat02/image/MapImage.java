@@ -18,13 +18,13 @@ import java.util.Objects;
 public class MapImage implements AbstractImageMapHolder, ConfigurationSerializable {
 
     private final MinecraftMediaLibrary library;
-    private final int map;
+    private final long map;
     private final File image;
     private final int height;
     private final int width;
 
     public MapImage(@NotNull final MinecraftMediaLibrary library,
-                    final int map,
+                    final long map,
                     @NotNull final File image,
                     final int width,
                     final int height) {
@@ -63,27 +63,27 @@ public class MapImage implements AbstractImageMapHolder, ConfigurationSerializab
 
     public static class Builder {
 
-        private int map;
+        private long map;
         private File image;
         private int height;
         private int width;
 
-        public Builder setMap(int map) {
+        public Builder setMap(final int map) {
             this.map = map;
             return this;
         }
 
-        public Builder setImage(File image) {
+        public Builder setImage(final File image) {
             this.image = image;
             return this;
         }
 
-        public Builder setHeight(int height) {
+        public Builder setHeight(final int height) {
             this.height = height;
             return this;
         }
 
-        public Builder setWidth(int width) {
+        public Builder setWidth(final int width) {
             this.width = width;
             return this;
         }
@@ -111,11 +111,15 @@ public class MapImage implements AbstractImageMapHolder, ConfigurationSerializab
                 NumberConversions.toInt(deserialize.get("width")), NumberConversions.toInt(deserialize.get("height")));
     }
 
+    public static void resetMap(@NotNull final MinecraftMediaLibrary library, final long id) {
+        library.getHandler().unregisterMap(id);
+    }
+
     public MinecraftMediaLibrary getLibrary() {
         return library;
     }
 
-    public int getMap() {
+    public long getMap() {
         return map;
     }
 

@@ -26,9 +26,9 @@ public class DitherCommand extends AbstractCommand implements CommandExecutor {
             sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Valid Arguments: /dither list"));
         } else if (args.length == 1) {
             if (args[0].equalsIgnoreCase("list")) {
-                sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "List of Possible Options:"));
+                sender.sendMessage(ChatColor.GOLD + "List of Possible Options:");
                 for (DitherSetting setting : DitherSetting.values()) {
-                    sender.sendMessage(ChatUtilities.formatMessage(ChatColor.AQUA + setting.name()));
+                    sender.sendMessage(ChatColor.AQUA + setting.name());
                 }
                 addHistoryEntry(args[0]);
             }

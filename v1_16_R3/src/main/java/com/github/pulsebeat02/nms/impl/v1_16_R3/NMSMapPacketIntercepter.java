@@ -60,10 +60,10 @@ public class NMSMapPacketIntercepter implements PacketHandler {
 
     private final Map<UUID, PlayerConnection> playerConnections = new ConcurrentHashMap<>();
     private final Map<UUID, Long> lastUpdated = new ConcurrentHashMap<>();
-    private final Set<Integer> maps = new TreeSet<>();
+    private final Set<Long> maps = new TreeSet<>();
 
     @Override
-    public void display(UUID[] viewers, int map, int width, int height, ByteBuffer rgb, int videoWidth) {
+    public void display(UUID[] viewers, long map, int width, int height, ByteBuffer rgb, int videoWidth) {
         int vidHeight = rgb.capacity() / videoWidth;
         int pixW = width << 7;
         int pixH = height << 7;
@@ -73,7 +73,7 @@ public class NMSMapPacketIntercepter implements PacketHandler {
     }
 
     @Override
-    public void display(UUID[] viewers, int map, int width, int height, ByteBuffer rgb, int videoWidth, int xOff,
+    public void display(UUID[] viewers, long map, int width, int height, ByteBuffer rgb, int videoWidth, int xOff,
                         int yOff) {
         int vidHeight = rgb.capacity() / videoWidth;
         int negXOff = xOff + videoWidth;
@@ -103,7 +103,7 @@ public class NMSMapPacketIntercepter implements PacketHandler {
                         mapData[val] = rgb.get(indexY + relX + ix - xOff);
                     }
                 }
-                int mapId = map + width * y + x;
+                long mapId = map + width * y + x;
                 PacketPlayOutMap packet = new PacketPlayOutMap();
                 try {
                     MAP_FIELDS[0].set(packet, mapId);
@@ -224,12 +224,12 @@ public class NMSMapPacketIntercepter implements PacketHandler {
     }
 
     @Override
-    public void registerMap(int id) {
+    public void registerMap(long id) {
         maps.add(id);
     }
 
     @Override
-    public void unregisterMap(int id) {
+    public void unregisterMap(long id) {
         maps.remove(id);
     }
 

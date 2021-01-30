@@ -3,11 +3,16 @@ main: ccom.github.pulsebeat02.DeluxeMediaPlugin
 version: 1.0.0
 description: Play Media in Minecraft
 commands:
-  deluxemediaplugin:
+  video:
     description: Play a specific video
     aliases: [dmp]
     permission: deluxemediaplugin.video
     usage: "/video, /video [start | stop], /video load [Youtube Link | File], /video set dimension [Width:Height], /video set dither [Dither Type]"
+  image:
+    description: Display an image
+    aliases: [img]
+    permission: deluxemediaplugin.image
+    usage: "/image, /image reset all, /image reset map [Map ID], /image rickroll"
   dither:
     description: Dither information
     aliases: [dithering]
