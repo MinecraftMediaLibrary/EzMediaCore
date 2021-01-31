@@ -6,7 +6,7 @@ import com.github.pulsebeat02.resourcepack.hosting.HttpDaemonProvider;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-public class HttpConfiguration extends AbstractCommand {
+public class HttpConfiguration extends AbstractConfiguration {
 
     private HttpDaemonProvider daemon;
     private boolean enabled;

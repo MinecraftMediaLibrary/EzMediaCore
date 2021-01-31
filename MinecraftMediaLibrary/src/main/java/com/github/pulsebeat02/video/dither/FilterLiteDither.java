@@ -199,6 +199,11 @@ public class FilterLiteDither implements AbstractDitherHolder {
         return data;
     }
 
+    @Override
+    public DitherSetting getSetting() {
+        return DitherSetting.SIERRA_FILTER_LITE_DITHER;
+    }
+
     public int getBestFullColor(int red, int green, int blue) {
         return FULL_COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
     }

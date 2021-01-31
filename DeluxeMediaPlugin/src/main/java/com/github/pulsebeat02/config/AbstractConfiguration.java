@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.logging.Level;
 
-public abstract class AbstractCommand {
+public abstract class AbstractConfiguration {
 
     private final DeluxeMediaPlugin plugin;
     private final String fileName;
@@ -19,7 +19,7 @@ public abstract class AbstractCommand {
     private final File configFile;
     private FileConfiguration fileConfiguration;
 
-    public AbstractCommand(@NotNull final DeluxeMediaPlugin plugin, @NotNull final String name) {
+    public AbstractConfiguration(@NotNull final DeluxeMediaPlugin plugin, @NotNull final String name) {
         this.plugin = plugin;
         this.fileName = name;
         this.configFile = new File(plugin.getDataFolder(), fileName);

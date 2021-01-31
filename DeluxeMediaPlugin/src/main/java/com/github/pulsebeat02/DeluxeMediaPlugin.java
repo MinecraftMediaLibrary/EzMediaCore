@@ -9,7 +9,6 @@ public class DeluxeMediaPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         library = new MinecraftMediaLibrary(this, getDataFolder().getPath(), true);
-
     }
 
     public MinecraftMediaLibrary getLibrary() {

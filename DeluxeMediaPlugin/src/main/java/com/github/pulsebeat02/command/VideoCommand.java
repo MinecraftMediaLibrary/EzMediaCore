@@ -19,6 +19,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 public class VideoCommand extends AbstractCommand implements CommandExecutor {
 
@@ -138,6 +140,8 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                     sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully loaded video " + mrl));
                 }
                 addHistoryEntry(mrl);
+            } else {
+                sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Param '" + args[0] + "' is not a valid argument!"));
             }
         } else if (args.length == 3) {
             if (args[0].equalsIgnoreCase("set")) {
@@ -211,10 +215,22 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                     } else {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Could not find dither type " + type));
                     }
+                } else {
+                    sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Param '" + args[0] + "' is not a valid argument!"));
                 }
             }
         }
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String s, String[] args) {
+//        if (args.length == 0) {
+//            return Arrays.asList("start", "stop");
+//        } else if (args.length == 1) {
+//            return Arrays.asList("load");
+//        }
+        // have to work out this big ass tab complete statement soon
     }
 
 }

@@ -253,6 +253,11 @@ public class FloydImageDither implements AbstractDitherHolder {
         return data;
     }
 
+    @Override
+    public DitherSetting getSetting() {
+        return DitherSetting.FLOYD_STEINBERG_DITHER;
+    }
+
     public BufferedImage toBufferedImage(Image img) {
         if (img instanceof BufferedImage) {
             return (BufferedImage) img;

@@ -50,6 +50,11 @@ public class StandardDithering implements AbstractDitherHolder {
         return data;
     }
 
+    @Override
+    public DitherSetting getSetting() {
+        return DitherSetting.STANDARD_MINECRAFT_DITHER;
+    }
+
     public static byte[] getColorMap() {
         return COLOR_MAP;
     }

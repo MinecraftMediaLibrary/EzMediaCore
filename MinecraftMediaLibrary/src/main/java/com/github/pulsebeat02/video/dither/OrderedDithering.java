@@ -157,6 +157,19 @@ public class OrderedDithering implements AbstractDitherHolder {
         return data;
     }
 
+    @Override
+    public DitherSetting getSetting() {
+        switch (n) {
+            case 2:
+                return DitherSetting.BAYER_ORDERED_2_DIMENSIONAL;
+            case 4:
+                return DitherSetting.BAYER_ORDERED_4_DIMENSIONAL;
+            case 8:
+                return DitherSetting.BAYER_ORDERED_8_DIMENSIONAL;
+        }
+        return null;
+    }
+
     public enum DitherType {
 
         ModeTwo("Two Dimensional"),

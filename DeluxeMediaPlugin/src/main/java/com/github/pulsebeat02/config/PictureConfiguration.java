@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public class PictureConfiguration extends AbstractCommand {
+public class PictureConfiguration extends AbstractConfiguration {
 
     private final Set<MapImage> images;
 

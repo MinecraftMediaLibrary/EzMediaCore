@@ -15,7 +15,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-public class VideoConfiguration extends AbstractCommand implements CommandExecutor {
+public class VideoConfiguration extends AbstractConfiguration {
 
     private AbstractVideoPlayer player;
     private ItemFrameCallback callback;
@@ -34,7 +34,7 @@ public class VideoConfiguration extends AbstractCommand implements CommandExecut
         configuration.set("itemframe-width", callback.getWidth());
         configuration.set("itemframe-height", callback.getHeight());
         configuration.set("starting-map-id", callback.getMap());
-        configuration.set("dither-setting", callback.getType().)
+        configuration.set("dither-setting", callback.getType().getSetting().name());
     }
 
     @Override
@@ -69,11 +69,6 @@ public class VideoConfiguration extends AbstractCommand implements CommandExecut
             }
             this.callback = callback;
         }
-    }
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
-        return false;
     }
 
 }
