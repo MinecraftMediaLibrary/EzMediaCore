@@ -7,7 +7,9 @@ commands:
     description: Play a specific video
     aliases: [dmp]
     permission: deluxemediaplugin.video
-    usage: "/video, /video [start | stop], /video load [Youtube Link | File], /video set dimension [Width:Height], /video set dither [Dither Type]"
+    usage: "/video, /video [Start | Stop], /video load [Youtube Link | File],
+            /video set screen-dimension [Width:Height], /video set dither [Dither Type]
+            /video set itemframe-dimension [Width:Height], /video set starting-map [Starting Map ID]"
   image:
     description: Display an image
     aliases: [img]

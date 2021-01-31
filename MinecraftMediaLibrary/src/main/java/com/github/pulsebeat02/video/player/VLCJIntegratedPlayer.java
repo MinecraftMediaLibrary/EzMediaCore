@@ -2,6 +2,7 @@ package com.github.pulsebeat02.video.player;
 
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.logger.Logger;
+import com.github.pulsebeat02.video.itemframe.ItemFrameCallback;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;

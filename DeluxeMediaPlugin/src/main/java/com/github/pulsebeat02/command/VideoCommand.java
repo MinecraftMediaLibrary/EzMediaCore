@@ -34,6 +34,13 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
     // for normal file
     private File file;
 
+    // frame dimensions
+    private int frameWidth;
+    private int frameHeight;
+
+    // int starting map
+    private long startingMap;
+
     public VideoCommand(@NotNull final DeluxeMediaPlugin plugin) {
         super(plugin);
         this.dither = DitherSetting.SIERRA_FILTER_LITE_DITHER.getHolder();
@@ -71,7 +78,7 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                     sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Starting Video on File: " + file.getName()));
                 }
                 MinecraftMediaLibrary library = getPlugin().getLibrary();
-                ItemFrameCallback callback = new ItemFrameCallback(getPlugin().getLibrary(), null, 0, 5, 5, player.getWidth(), 0, dither);
+                ItemFrameCallback callback = new ItemFrameCallback(getPlugin().getLibrary(), null, startingMap, frameWidth, frameHeight, player.getWidth(), 0, dither);
                 if (getPlugin().getLibrary().isUsingVLCJ()) {
                     if (file == null) {
                         player = new VLCJIntegratedPlayer(library,
@@ -134,7 +141,7 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
             }
         } else if (args.length == 3) {
             if (args[0].equalsIgnoreCase("set")) {
-                if (args[1].equalsIgnoreCase("dimension")) {
+                if (args[1].equalsIgnoreCase("screen-dimension")) {
                     String[] dimensions = args[2].split(":");
                     int width;
                     try {
@@ -153,6 +160,42 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                     player.setHeight(height);
                     player.setWidth(width);
                     sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Set dimensions to " + width + ":" + height + " (width:height)"));
+                } else if (args[1].equalsIgnoreCase("itemframe-dimension")) {
+                    String[] dimensions = args[2].split(":");
+                    int width;
+                    try {
+                        width = Integer.parseInt(dimensions[0]);
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + dimensions[0] + "' isn't a valid width! (Must be Integer)"));
+                        return true;
+                    }
+                    int height;
+                    try {
+                        height = Integer.parseInt(dimensions[1]);
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + dimensions[0] + "' isn't a valid height! (Must be Integer)"));
+                        return true;
+                    }
+                    frameWidth = width;
+                    frameHeight = height;
+                    sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Set itemframe map dimensions to " + frameWidth + ":" + frameHeight + " (width:height)"));
+                } else if (args[1].equalsIgnoreCase("starting-map")) {
+                    long id = 0;
+                    try {
+                        id = Long.parseLong(args[2]);
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is not a valid argument! (Must be Integer between 0 - 4,294,967,296)"));
+                        return true;
+                    }
+                    if (id < 0L) {
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is too low! (Must be Integer between 0 - 4,294,967,296)"));
+                        return true;
+                    } else if (id > 4294967296L) {
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is too hight! (Must be Integer between 0 - 4,294,967,296)"));
+                        return true;
+                    }
+                    startingMap = id;
+                    sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Set starting-map on id " + startingMap));
                 } else if (args[1].equalsIgnoreCase("dither")) {
                     String type = args[2];
                     boolean found = false;

@@ -8,4 +8,6 @@ public interface AbstractDitherHolder {
 
     ByteBuffer ditherIntoMinecraft(int[] buffer, int width);
 
+    DitherSetting getSetting();
+
 }
