@@ -15,8 +15,8 @@ MinecraftMediaLibrary is a library written along the Spigot API and net.minecraf
 useful classes for other plugins to take advantage of. One of the most important features perhaps is its ability to
 play **videos** on a Minecraft Spigot server. It uses
 a [very optimized dithering method](https://github.com/PulseBeat02/MinecraftMediaLibrary/blob/master/src/main/java/com/github/pulsebeat02/video/JetpImageDither.java) (
-credits to **BananaPuncher714** and **Jetp250** for helping out with the Floyd Steinberg Dithering) along side with **
-VLCJ Integration** if necessary to parse the video even quicker. As a result, frames can reach up to **35** times per
+credits to **BananaPuncher714** and **Jetp250** for helping out with the Floyd Steinberg Dithering) along side with 
+**VLCJ Integration** if necessary to parse the video even quicker. As a result, frames can reach up to **35** times per
 second at times with very good quality on maps if necessary. As a reference, a *smooth* animation is one which is 24
 frames only.
 
