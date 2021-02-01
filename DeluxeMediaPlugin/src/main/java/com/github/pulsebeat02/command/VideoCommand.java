@@ -20,7 +20,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class VideoCommand extends AbstractCommand implements CommandExecutor {
 
@@ -49,7 +51,7 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, String[] args) {
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "You must be a player to use this command!"));
             return true;
@@ -184,7 +186,7 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                     frameHeight = height;
                     sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Set itemframe map dimensions to " + frameWidth + ":" + frameHeight + " (width:height)"));
                 } else if (args[1].equalsIgnoreCase("starting-map")) {
-                    long id = 0;
+                    long id;
                     try {
                         id = Long.parseLong(args[2]);
                     } catch (NumberFormatException e) {
@@ -224,13 +226,27 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String s, String[] args) {
-//        if (args.length == 0) {
-//            return Arrays.asList("start", "stop");
-//        } else if (args.length == 1) {
-//            return Arrays.asList("load");
-//        }
-        // have to work out this big ass tab complete statement soon
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, String[] args) {
+        if (args.length == 0) {
+            return Arrays.asList("start", "stop", "load", "set");
+        } else if (args.length == 1) {
+            if (args[0].equalsIgnoreCase("set")) {
+                return Arrays.asList("screen-dimension", "itemframe-dimension", "starting-map", "dither");
+            } else if (args[0].equalsIgnoreCase("load")) {
+                return Collections.singletonList("[Youtube Link or Video File Here]");
+            }
+        } else if (args.length == 2) {
+            if (args[1].equalsIgnoreCase("screen-dimension")) {
+                return Collections.singletonList("[Width:Height]");
+            } else if (args[1].equalsIgnoreCase("itemframe-dimension")) {
+                return Collections.singletonList("[Width:Height]");
+            } else if (args[1].equalsIgnoreCase("starting-map")) {
+                return Collections.singletonList("[Map ID]");
+            } else if (args[1].equalsIgnoreCase("dither")) {
+                return Arrays.stream(DitherSetting.values()).map(DitherSetting::name).collect(Collectors.toList());
+            }
+        }
+        return null;
     }
 
 }

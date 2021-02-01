@@ -3,8 +3,8 @@ package com.github.pulsebeat02.command;
 import com.github.pulsebeat02.DeluxeMediaPlugin;
 import com.github.pulsebeat02.image.MapImage;
 import com.github.pulsebeat02.utility.ChatUtilities;
-import com.github.pulsebeat02.utility.ExtractorUtilities;
 import com.github.pulsebeat02.utility.FileUtilities;
+import com.github.pulsebeat02.video.dither.DitherSetting;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -16,7 +16,13 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class ImageCommand extends AbstractCommand implements CommandExecutor, Listener {
 
@@ -34,7 +40,7 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, String[] args) {
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "You must be a player to use this command!"));
             return true;
@@ -99,7 +105,7 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is too low! (Must be Integer between 0 - 4,294,967,296)"));
                         return true;
                     } else if (id > 4294967296L) {
-                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is too hight! (Must be Integer between 0 - 4,294,967,296)"));
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is too high! (Must be Integer between 0 - 4,294,967,296)"));
                         return true;
                     }
                     String mrl = args[3];
@@ -116,6 +122,24 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
                             sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "File " + f.getName() + " cannot be found!"));
                         }
                     }
+                } else if (args[1].equalsIgnoreCase("dimensions")) {
+                    int w;
+                    try {
+                        w = Integer.parseInt(args[2]);
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is not a valid argument! (Must be Integer)"));
+                        return true;
+                    }
+                    int h;
+                    try {
+                        h = Integer.parseInt(args[2]);
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is not a valid argument! (Must be Integer)"));
+                        return true;
+                    }
+                    width = w;
+                    height = h;
+                    sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Changed item frame dimensions to " + width + ":" + height + " (width:height"));
                 }
             }
         }
@@ -126,12 +150,44 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
     public void onPlayerChat(final AsyncPlayerChatEvent event) {
         Player p = event.getPlayer();
         if (listen.contains(p.getUniqueId())) {
-            for (MapImage image : images) {
-                MapImage.resetMap(getPlugin().getLibrary(), image.getMap());
+            if (event.getMessage().equalsIgnoreCase("YES")) {
+                for (MapImage image : images) {
+                    MapImage.resetMap(getPlugin().getLibrary(), image.getMap());
+                }
+                images.clear();
+                p.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully purged all image maps"));
+            } else {
+                p.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Cancelled purge of all image maps"));
             }
-            images.clear();
-            p.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully purged all image maps"));
         }
+    }
+
+    @Override
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, String[] args) {
+        if (args.length == 0) {
+            return Arrays.asList("rickroll", "reset", "set");
+        } else if (args.length == 1) {
+            if (args[0].equalsIgnoreCase("reset")) {
+                return Arrays.asList("all", "map");
+            } else if (args[0].equalsIgnoreCase("set")) {
+                return Arrays.asList("map", "dimensions");
+            }
+        } else if (args.length == 2) {
+            if (args[1].equalsIgnoreCase("map")) {
+                if (args[0].equalsIgnoreCase("reset") || args[0].equalsIgnoreCase("set")) {
+                    return Collections.singletonList("[Map ID]");
+                }
+            } else if (args[1].equalsIgnoreCase("dimensions")) {
+                return Collections.singletonList("[Width:Height]");
+            }
+        } else if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("set")) {
+                if (args[1].equalsIgnoreCase("map")) {
+                    return Collections.singletonList("[PNG URL Image or File]");
+                }
+            }
+        }
+        return null;
     }
 
 }

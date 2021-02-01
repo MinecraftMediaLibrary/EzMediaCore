@@ -10,6 +10,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+import java.util.List;
+
 public class DitherCommand extends AbstractCommand implements CommandExecutor {
 
     public DitherCommand(@NotNull final DeluxeMediaPlugin plugin) {
@@ -17,7 +20,7 @@ public class DitherCommand extends AbstractCommand implements CommandExecutor {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, String[] args) {
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "You must be a player to use this command!"));
             return true;
@@ -36,4 +39,11 @@ public class DitherCommand extends AbstractCommand implements CommandExecutor {
         return true;
     }
 
+    @Override
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, String[] args) {
+       if (args.length == 0) {
+           return Collections.singletonList("list");
+       }
+       return null;
+    }
 }

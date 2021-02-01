@@ -11,6 +11,7 @@ import com.github.pulsebeat02.reflection.TinyProtocol;
 import io.netty.channel.Channel;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
@@ -22,6 +23,8 @@ public class MinecraftMediaLibrary {
     private String parent;
     private PacketHandler handler;
     private boolean vlcj;
+
+    private PlayerJoinLeaveHandler listener;
 
     public MinecraftMediaLibrary(@NotNull final Plugin plugin,
                                  @NotNull final String path,
@@ -46,7 +49,8 @@ public class MinecraftMediaLibrary {
             if (isUsingVLCJ) {
                 new MediaPlayerFactory();
             }
-            Bukkit.getPluginManager().registerEvents(new PlayerJoinLeaveHandler(this), plugin);
+            listener = new PlayerJoinLeaveHandler(this);
+            Bukkit.getPluginManager().registerEvents(listener, plugin);
             Logger.info("Plugin " + plugin.getName() + " initialized MinecraftMediaLibrary");
             Logger.info("=====================================");
             Logger.info("Path: " + path);
@@ -66,6 +70,12 @@ public class MinecraftMediaLibrary {
                     "you may want to take a look here at " +
                     "https://papermc.io/forums/t/java-11-mc-1-17-and-paper/5615");
         }
+    }
+
+    public void shutdown() {
+        Logger.info("Shutting Down!");
+        HandlerList.unregisterAll(listener);
+        Logger.info("Good Bye");
     }
 
     public Plugin getPlugin() {
