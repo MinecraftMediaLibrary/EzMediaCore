@@ -16,9 +16,12 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
 public class MinecraftMediaLibrary {
 
-    private Plugin plugin;
+    private final Plugin plugin;
     private TinyProtocol protocol;
     private String parent;
     private PacketHandler handler;
@@ -28,36 +31,38 @@ public class MinecraftMediaLibrary {
 
     public MinecraftMediaLibrary(@NotNull final Plugin plugin,
                                  @NotNull final String path,
-                                 final boolean isUsingVLCJ) {
-        new Thread(() -> {
-            this.plugin = plugin;
-            this.protocol = new TinyProtocol(plugin) {
-                @Override
-                public Object onPacketOutAsync(Player player, Channel channel, Object packet) {
-                    return handler.onPacketInterceptOut(player, packet);
-                }
-                @Override
-                public Object onPacketInAsync(Player player, Channel channel, Object packet) {
-                    return handler.onPacketInterceptIn(player, packet);
-                }
-            };
-            this.handler = NMSReflectionManager.getNewPacketHandlerInstance();
-            this.parent = path;
-            this.vlcj = isUsingVLCJ;
-            new DependencyManagement().installAndLoad();
-            new JaveDependencyHandler().installDependency();
-            if (isUsingVLCJ) {
-                new MediaPlayerFactory();
+                                 final boolean isUsingVLCJ) throws ExecutionException, InterruptedException {
+        this.plugin = plugin;
+        this.protocol = new TinyProtocol(plugin) {
+            @Override
+            public Object onPacketOutAsync(Player player, Channel channel, Object packet) {
+                return handler.onPacketInterceptOut(player, packet);
             }
-            listener = new PlayerJoinLeaveHandler(this);
-            Bukkit.getPluginManager().registerEvents(listener, plugin);
-            Logger.info("Plugin " + plugin.getName() + " initialized MinecraftMediaLibrary");
-            Logger.info("=====================================");
-            Logger.info("Path: " + path);
-            Logger.info("Using VLCJ? " + (isUsingVLCJ ? "Yes" : "No"));
-            Logger.info("=====================================");
-        });
+            @Override
+            public Object onPacketInAsync(Player player, Channel channel, Object packet) {
+                return handler.onPacketInterceptIn(player, packet);
+            }
+        };
+        this.handler = NMSReflectionManager.getNewPacketHandlerInstance();
+        this.parent = path;
+        this.vlcj = isUsingVLCJ;
+        this.listener = new PlayerJoinLeaveHandler(this);
+        CompletableFuture.runAsync(this::asyncTasks);
+        Bukkit.getPluginManager().registerEvents(listener, plugin);
+        Logger.info("Plugin " + plugin.getName() + " initialized MinecraftMediaLibrary");
+        Logger.info("=====================================");
+        Logger.info("Path: " + path);
+        Logger.info("Using VLCJ? " + (isUsingVLCJ ? "Yes" : "No"));
+        Logger.info("=====================================");
         checkJavaVersion();
+    }
+
+    private void asyncTasks() {
+        new DependencyManagement().installAndLoad();
+        new JaveDependencyHandler().installDependency();
+        if (vlcj) {
+            new MediaPlayerFactory();
+        }
     }
 
     private void checkJavaVersion() {
