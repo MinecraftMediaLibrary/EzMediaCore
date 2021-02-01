@@ -1,7 +1,7 @@
 package com.github.pulsebeat02.listener;
 
-import com.github.pulsebeat02.logger.Logger;
 import com.github.pulsebeat02.MinecraftMediaLibrary;
+import com.github.pulsebeat02.logger.Logger;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,14 +18,14 @@ public class PlayerJoinLeaveHandler implements Listener {
 
     @EventHandler
     private void onEvent(final PlayerJoinEvent event) {
-        Player p = event.getPlayer();
+        final Player p = event.getPlayer();
         library.getHandler().registerPlayer(p);
         Logger.info("Registered Player " + p.getUniqueId());
     }
 
     @EventHandler
     private void onEvent(final PlayerQuitEvent event) {
-        Player p = event.getPlayer();
+        final Player p = event.getPlayer();
         library.getHandler().unregisterPlayer(p);
         Logger.info("Unregistered Player " + p.getUniqueId());
     }

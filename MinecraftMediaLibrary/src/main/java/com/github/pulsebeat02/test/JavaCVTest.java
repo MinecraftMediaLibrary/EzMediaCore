@@ -15,10 +15,16 @@ public class JavaCVTest implements Runnable {
         canvas.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
     }
 
+    public static void main(final String[] args) {
+        final JavaCVTest gs = new JavaCVTest();
+        final Thread th = new Thread(gs);
+        th.start();
+    }
+
     public void convert(@NotNull final File file) {
-        FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber(file.getAbsolutePath());
+        final FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber(file.getAbsolutePath());
         Frame frame;
-        int delay = (int)(1000 * (frameGrabber.getVideoFrameRate()));
+        final int delay = (int) (1000 * (frameGrabber.getVideoFrameRate()));
         try {
             frameGrabber.start();
             while (true) {
@@ -29,10 +35,10 @@ public class JavaCVTest implements Runnable {
                     }
                     canvas.showImage(frame);
                     wait(delay);
-                } catch (Exception ignored) {
+                } catch (final Exception ignored) {
                 }
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
     }
@@ -40,12 +46,6 @@ public class JavaCVTest implements Runnable {
     @Override
     public void run() {
         convert(new File("C:\\Users\\Brandon Li\\Videos\\2021-01-18 22-09-42.mkv"));
-    }
-
-    public static void main(String[] args) {
-        JavaCVTest gs = new JavaCVTest();
-        Thread th = new Thread(gs);
-        th.start();
     }
 
 }

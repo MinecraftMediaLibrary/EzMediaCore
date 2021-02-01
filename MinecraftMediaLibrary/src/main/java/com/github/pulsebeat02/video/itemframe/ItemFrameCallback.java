@@ -1,8 +1,7 @@
 package com.github.pulsebeat02.video.itemframe;
 
-import com.github.pulsebeat02.video.dither.AbstractDitherHolder;
-import com.github.pulsebeat02.video.dither.FloydImageDither;
 import com.github.pulsebeat02.MinecraftMediaLibrary;
+import com.github.pulsebeat02.video.dither.AbstractDitherHolder;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
@@ -14,10 +13,10 @@ public class ItemFrameCallback implements AbstractCallback {
     private final UUID[] viewers;
     private final AbstractDitherHolder type;
     private final long map;
-    private int width;
-    private int height;
     private final int videoWidth;
     private final int delay;
+    private int width;
+    private int height;
     private long lastUpdated;
 
     public ItemFrameCallback(@NotNull final MinecraftMediaLibrary library,
@@ -48,12 +47,46 @@ public class ItemFrameCallback implements AbstractCallback {
         return width;
     }
 
+    public void setWidth(final int width) {
+        this.width = width;
+    }
+
     public int getHeight() {
         return height;
     }
 
+    public void setHeight(final int height) {
+        this.height = height;
+    }
+
     public int getDelay() {
         return delay;
+    }
+
+    public void send(final int[] data) {
+        final long time = System.currentTimeMillis();
+        final long difference = time - lastUpdated;
+        if (difference >= delay) {
+            lastUpdated = time;
+            final ByteBuffer dithered = type.ditherIntoMinecraft(data, videoWidth);
+            library.getHandler().display(viewers, map, width, height, dithered, videoWidth);
+        }
+    }
+
+    public MinecraftMediaLibrary getLibrary() {
+        return library;
+    }
+
+    public int getVideoWidth() {
+        return videoWidth;
+    }
+
+    public long getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public AbstractDitherHolder getType() {
+        return type;
     }
 
     public class ItemFrameCallbackBuilder {
@@ -105,35 +138,5 @@ public class ItemFrameCallback implements AbstractCallback {
             return new ItemFrameCallback(library, viewers, map, width, height, videoWidth, delay, type);
         }
 
-    }
-
-    public void send(final int[] data) {
-        long time = System.currentTimeMillis();
-        long difference = time - lastUpdated;
-        if (difference >= delay) {
-            lastUpdated = time;
-            ByteBuffer dithered = type.ditherIntoMinecraft(data, videoWidth);
-            library.getHandler().display(viewers, map, width, height, dithered, videoWidth);
-        }
-    }
-
-    public MinecraftMediaLibrary getLibrary() {
-        return library;
-    }
-
-    public void setWidth(final int width) { this.width = width; }
-
-    public void setHeight(final int height) { this.height = height; }
-
-    public int getVideoWidth() {
-        return videoWidth;
-    }
-
-    public long getLastUpdated() {
-        return lastUpdated;
-    }
-
-    public AbstractDitherHolder getType() {
-        return type;
     }
 }

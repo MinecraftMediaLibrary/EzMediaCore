@@ -1,7 +1,7 @@
 package com.github.pulsebeat02.utility;
 
-import com.github.pulsebeat02.resourcepack.PackFormatVersioning;
 import com.github.pulsebeat02.logger.Logger;
+import com.github.pulsebeat02.resourcepack.PackFormatVersioning;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -9,7 +9,7 @@ import java.io.File;
 public class ResourcepackUtilities {
 
     public static boolean validatePackFormat(final int format) {
-        for (PackFormatVersioning version : PackFormatVersioning.values()) {
+        for (final PackFormatVersioning version : PackFormatVersioning.values()) {
             if (format == version.getPackFormatID()) {
                 Logger.info("Pack Format Supported! (" + format + ")");
                 return true;
@@ -20,7 +20,7 @@ public class ResourcepackUtilities {
     }
 
     public static boolean validateResourcepackIcon(@NotNull final File icon) {
-        boolean valid = icon.getName().endsWith(".png");
+        final boolean valid = icon.getName().endsWith(".png");
         if (valid) {
             Logger.info("Resourcepack Icon Accepted! (" + icon.getAbsolutePath() + ")");
         } else {

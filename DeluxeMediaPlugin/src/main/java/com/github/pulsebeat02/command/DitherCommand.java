@@ -20,7 +20,7 @@ public class DitherCommand extends AbstractCommand implements CommandExecutor {
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, String[] args) {
+    public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "You must be a player to use this command!"));
             return true;
@@ -30,7 +30,7 @@ public class DitherCommand extends AbstractCommand implements CommandExecutor {
         } else if (args.length == 1) {
             if (args[0].equalsIgnoreCase("list")) {
                 sender.sendMessage(ChatColor.GOLD + "List of Possible Options:");
-                for (DitherSetting setting : DitherSetting.values()) {
+                for (final DitherSetting setting : DitherSetting.values()) {
                     sender.sendMessage(ChatColor.AQUA + setting.name());
                 }
                 addHistoryEntry(args[0]);
@@ -40,10 +40,10 @@ public class DitherCommand extends AbstractCommand implements CommandExecutor {
     }
 
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, String[] args) {
-       if (args.length == 0) {
-           return Collections.singletonList("list");
-       }
-       return null;
+    public List<String> onTabComplete(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
+        if (args.length == 0) {
+            return Collections.singletonList("list");
+        }
+        return null;
     }
 }

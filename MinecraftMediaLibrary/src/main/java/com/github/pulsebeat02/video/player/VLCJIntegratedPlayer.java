@@ -2,7 +2,6 @@ package com.github.pulsebeat02.video.player;
 
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.logger.Logger;
-import com.github.pulsebeat02.video.itemframe.ItemFrameCallback;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
@@ -85,6 +84,10 @@ public class VLCJIntegratedPlayer extends AbstractVideoPlayer {
         }
     }
 
+    public EmbeddedMediaPlayer getMediaPlayerComponent() {
+        return mediaPlayerComponent;
+    }
+
     private class MinecraftRenderCallback extends RenderCallbackAdapter {
 
         private MinecraftRenderCallback() {
@@ -129,10 +132,6 @@ public class VLCJIntegratedPlayer extends AbstractVideoPlayer {
             return new VLCJIntegratedPlayer(library, url, width, height, callback);
         }
 
-    }
-
-    public EmbeddedMediaPlayer getMediaPlayerComponent() {
-        return mediaPlayerComponent;
     }
 
 }

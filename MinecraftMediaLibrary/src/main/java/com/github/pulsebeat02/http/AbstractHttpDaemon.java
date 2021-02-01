@@ -5,9 +5,7 @@ import java.net.Socket;
 public interface AbstractHttpDaemon {
 
     /**
-     *
      * Method used to start the HTTP Daemon.
-     *
      */
     void startServer();
 

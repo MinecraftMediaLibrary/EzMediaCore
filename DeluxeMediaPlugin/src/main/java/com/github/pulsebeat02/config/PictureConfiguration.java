@@ -27,9 +27,9 @@ public class PictureConfiguration extends AbstractConfiguration {
 
     @Override
     public void deserialize() {
-        FileConfiguration configuration = getFileConfiguration();
-        for (MapImage image : images) {
-            long key = image.getMap();
+        final FileConfiguration configuration = getFileConfiguration();
+        for (final MapImage image : images) {
+            final long key = image.getMap();
             configuration.set(key + ".location", image.getImage().getAbsolutePath());
             configuration.set(key + ".width", image.getWidth());
             configuration.set(key + ".height", image.getHeight());
@@ -39,16 +39,16 @@ public class PictureConfiguration extends AbstractConfiguration {
 
     @Override
     public void serialize() {
-        FileConfiguration configuration = getFileConfiguration();
-        for (String key :  configuration.getKeys(false)) {
-            long id = Long.parseLong(key);
-            File file = new File(Objects.requireNonNull(configuration.getString(id + ".location")));
+        final FileConfiguration configuration = getFileConfiguration();
+        for (final String key : configuration.getKeys(false)) {
+            final long id = Long.parseLong(key);
+            final File file = new File(Objects.requireNonNull(configuration.getString(id + ".location")));
             if (!file.exists()) {
                 Logger.error("Could not read " + file.getAbsolutePath() + " at id " + id + "!");
                 continue;
             }
-            int width = configuration.getInt(id + "width");
-            int height = configuration.getInt(id + "height");
+            final int width = configuration.getInt(id + "width");
+            final int height = configuration.getInt(id + "height");
             images.add(new MapImage(getPlugin().getLibrary(), id, file, width, height));
         }
     }

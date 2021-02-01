@@ -25,7 +25,7 @@ public class RequestHandler implements Runnable, AbstractRequestHandler {
     private final HttpDaemon.ZipHeader header;
     private final Socket client;
 
-    public RequestHandler(@NotNull final HttpDaemon daemon, HttpDaemon.ZipHeader header, @NotNull final Socket client) {
+    public RequestHandler(@NotNull final HttpDaemon daemon, final HttpDaemon.ZipHeader header, @NotNull final Socket client) {
         this.daemon = daemon;
         this.header = header;
         this.client = client;
@@ -41,15 +41,15 @@ public class RequestHandler implements Runnable, AbstractRequestHandler {
         daemon.onClientConnect(client);
         boolean flag = false;
         try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream(), "8859_1"));
-            OutputStream out = client.getOutputStream();
-            PrintWriter pout = new PrintWriter(new OutputStreamWriter(out, "8859_1"), true);
+            final BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream(), "8859_1"));
+            final OutputStream out = client.getOutputStream();
+            final PrintWriter pout = new PrintWriter(new OutputStreamWriter(out, "8859_1"), true);
             String request = in.readLine();
             verbose("Received request '" + request + "' from " + client.getInetAddress().toString());
-            Matcher get = requestPattern(request);
+            final Matcher get = requestPattern(request);
             if (get.matches()) {
                 request = get.group(1);
-                File result = requestFileCallback(request);
+                final File result = requestFileCallback(request);
                 if (result == null) {
                     flag = true;
                     pout.println("HTTP/1.0 400 Bad Request");
@@ -57,15 +57,15 @@ public class RequestHandler implements Runnable, AbstractRequestHandler {
                     verbose("Request '" + request + "' is being served to " + client.getInetAddress());
                     try {
                         out.write(buildHeader(result).getBytes(StandardCharsets.UTF_8));
-                        FileInputStream fis = new FileInputStream(result);
-                        byte[] data = new byte[64 * 1024];
+                        final FileInputStream fis = new FileInputStream(result);
+                        final byte[] data = new byte[64 * 1024];
                         for (int read; (read = fis.read(data)) > -1; ) {
                             out.write(data, 0, read);
                         }
                         out.flush();
                         fis.close();
                         verbose("Successfully served '" + request + "' to " + client.getInetAddress());
-                    } catch (FileNotFoundException e) {
+                    } catch (final FileNotFoundException e) {
                         flag = true;
                         pout.println("HTTP/1.0 404 Object Not Found");
                     }
@@ -75,7 +75,7 @@ public class RequestHandler implements Runnable, AbstractRequestHandler {
                 pout.println("HTTP/1.0 400 Bad Request");
             }
             client.close();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             flag = true;
             verbose("I/O error " + e);
         }

@@ -17,10 +17,10 @@ public class HttpConfiguration extends AbstractConfiguration {
 
     @Override
     public void deserialize() {
-        FileConfiguration configuration = getFileConfiguration();
+        final FileConfiguration configuration = getFileConfiguration();
         configuration.set("enabled", enabled);
         configuration.set("port", daemon.getPort());
-        HttpDaemon http = daemon.getDaemon();
+        final HttpDaemon http = daemon.getDaemon();
         configuration.set("directory", http.getDirectory().getAbsolutePath());
         configuration.set("header", http.getHeader() == HttpDaemon.ZipHeader.ZIP ? "ZIP" : "OCTET_STREAM");
         configuration.set("verbose", http.isVerbose());
@@ -29,16 +29,16 @@ public class HttpConfiguration extends AbstractConfiguration {
 
     @Override
     public void serialize() {
-        FileConfiguration configuration = getFileConfiguration();
-        boolean enabled = configuration.getBoolean("enabled");
-        int port = configuration.getInt("port");
-        String directory = configuration.getString("directory");
-        String header = configuration.getString("header");
-        boolean verbose = configuration.getBoolean("verbose");
+        final FileConfiguration configuration = getFileConfiguration();
+        final boolean enabled = configuration.getBoolean("enabled");
+        final int port = configuration.getInt("port");
+        final String directory = configuration.getString("directory");
+        final String header = configuration.getString("header");
+        final boolean verbose = configuration.getBoolean("verbose");
         if (enabled) {
             assert directory != null;
             daemon = new HttpDaemonProvider(directory, port);
-            HttpDaemon http = daemon.getDaemon();
+            final HttpDaemon http = daemon.getDaemon();
             assert header != null;
             http.setZipHeader(header.equals("ZIP") ? HttpDaemon.ZipHeader.ZIP : HttpDaemon.ZipHeader.OCTET_STREAM);
             http.setVerbose(verbose);

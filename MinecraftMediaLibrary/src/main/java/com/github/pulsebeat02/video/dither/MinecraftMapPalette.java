@@ -29,11 +29,11 @@ public class MinecraftMapPalette {
             c(0, 187, 50), c(0, 217, 58), c(0, 114, 30), c(91, 60, 34), c(111, 74, 42), c(129, 86, 49), c(68, 45, 25),
             c(79, 1, 0), c(96, 1, 0), c(112, 2, 0), c(59, 1, 0)};
 
-    private static Color c(int r, int g, int b) {
+    private static Color c(final int r, final int g, final int b) {
         return new Color(r, g, b);
     }
 
-    public static Color getColor(byte val) {
+    public static Color getColor(final byte val) {
         return colors[val];
     }
 

@@ -27,9 +27,9 @@ public abstract class AbstractConfiguration {
 
     public void reloadConfig() {
         fileConfiguration = YamlConfiguration.loadConfiguration(configFile);
-        InputStream defConfigStream = plugin.getResource(fileName);
+        final InputStream defConfigStream = plugin.getResource(fileName);
         if (defConfigStream != null) {
-            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
+            final YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
             fileConfiguration.setDefaults(defConfig);
         }
     }
@@ -45,7 +45,7 @@ public abstract class AbstractConfiguration {
         if (fileConfiguration != null && configFile != null) {
             try {
                 getConfig().save(configFile);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 plugin.getLogger().log(Level.SEVERE, "Could not save config to " + configFile, e);
             }
         }

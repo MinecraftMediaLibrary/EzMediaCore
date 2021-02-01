@@ -4,8 +4,8 @@ import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.concurrent.AsyncVideoExtraction;
 import com.github.pulsebeat02.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.image.MapImage;
-import com.github.pulsebeat02.resourcepack.hosting.HttpDaemonProvider;
 import com.github.pulsebeat02.resourcepack.ResourcepackWrapper;
+import com.github.pulsebeat02.resourcepack.hosting.HttpDaemonProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +29,7 @@ public class YoutubeResourcepackTest extends JavaPlugin {
 
     public String getResourcepackUrlYoutube(@NotNull final String youtubeUrl, @NotNull final String directory, final int port) {
 
-        YoutubeExtraction extraction = new YoutubeExtraction(youtubeUrl, directory) {
+        final YoutubeExtraction extraction = new YoutubeExtraction(youtubeUrl, directory) {
             @Override
             public void onVideoDownload() {
                 System.out.println("Video is Downloading!");
@@ -40,11 +40,11 @@ public class YoutubeResourcepackTest extends JavaPlugin {
                 System.out.println("Audio is being extracted from Video!");
             }
         };
-        ExecutorService executor = Executors.newCachedThreadPool();
+        final ExecutorService executor = Executors.newCachedThreadPool();
         CompletableFuture.runAsync(() -> new AsyncVideoExtraction(extraction).extractAudio(), executor);
         CompletableFuture.runAsync(() -> new AsyncVideoExtraction(extraction).downloadVideo(), executor);
 
-        ResourcepackWrapper wrapper = new ResourcepackWrapper.Builder()
+        final ResourcepackWrapper wrapper = new ResourcepackWrapper.Builder()
                 .setAudio(extraction.getAudio())
                 .setDescription("Youtube Video: " + extraction.getVideoTitle())
                 .setPath(directory)
@@ -52,7 +52,7 @@ public class YoutubeResourcepackTest extends JavaPlugin {
                 .createResourcepackHostingProvider(library);
         wrapper.buildResourcePack();
 
-        HttpDaemonProvider hosting = new HttpDaemonProvider(directory, port);
+        final HttpDaemonProvider hosting = new HttpDaemonProvider(directory, port);
         hosting.startServer();
 
         return hosting.generateUrl(Paths.get(directory));
@@ -61,9 +61,9 @@ public class YoutubeResourcepackTest extends JavaPlugin {
 
     public void displayImage(final int map, @NotNull final File image) throws IOException {
 
-        BufferedImage bi = ImageIO.read(image);
+        final BufferedImage bi = ImageIO.read(image);
 
-        MapImage imageMap = new MapImage.Builder()
+        final MapImage imageMap = new MapImage.Builder()
                 .setMap(map)
                 .setWidth(bi.getWidth())
                 .setHeight(bi.getHeight())

@@ -10,40 +10,44 @@ public class StandardDithering implements AbstractDitherHolder {
         COLOR_MAP = StaticDitherInitialization.COLOR_MAP;
     }
 
-    public int getBestColorNormal(int rgb) {
+    public static byte[] getColorMap() {
+        return COLOR_MAP;
+    }
+
+    public int getBestColorNormal(final int rgb) {
         return MinecraftMapPalette.getColor(getBestColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF)).getRGB();
     }
 
-    public byte getBestColor(int red, int green, int blue) {
+    public byte getBestColor(final int red, final int green, final int blue) {
         return COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
     }
 
-    public byte getBestColor(int rgb) {
+    public byte getBestColor(final int rgb) {
         return COLOR_MAP[(rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
     }
 
     @Override
-    public void dither(int[] buffer, int width) {
-        int height = buffer.length / width;
+    public void dither(final int[] buffer, final int width) {
+        final int height = buffer.length / width;
         for (int y = 0; y < height; y++) {
-            int yIndex = y * width;
+            final int yIndex = y * width;
             for (int x = 0; x < width; x++) {
-                int index = yIndex + x;
-                int color = buffer[index];
+                final int index = yIndex + x;
+                final int color = buffer[index];
                 buffer[index] = getBestColorNormal(color);
             }
         }
     }
 
     @Override
-    public ByteBuffer ditherIntoMinecraft(int[] buffer, int width) {
-        int height = buffer.length / width;
-        ByteBuffer data = ByteBuffer.allocate(buffer.length);
+    public ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width) {
+        final int height = buffer.length / width;
+        final ByteBuffer data = ByteBuffer.allocate(buffer.length);
         for (int y = 0; y < height; y++) {
-            int yIndex = y * width;
+            final int yIndex = y * width;
             for (int x = 0; x < width; x++) {
-                int index = yIndex + x;
-                int color = buffer[index];
+                final int index = yIndex + x;
+                final int color = buffer[index];
                 data.put(getBestColor(color));
             }
         }
@@ -53,10 +57,6 @@ public class StandardDithering implements AbstractDitherHolder {
     @Override
     public DitherSetting getSetting() {
         return DitherSetting.STANDARD_MINECRAFT_DITHER;
-    }
-
-    public static byte[] getColorMap() {
-        return COLOR_MAP;
     }
 
 }

@@ -3,9 +3,8 @@ package com.github.pulsebeat02.resourcepack;
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.exception.InvalidPackFormatException;
 import com.github.pulsebeat02.exception.InvalidPackIconException;
-import com.github.pulsebeat02.image.MapImage;
-import com.github.pulsebeat02.utility.ResourcepackUtilities;
 import com.github.pulsebeat02.logger.Logger;
+import com.github.pulsebeat02.utility.ResourcepackUtilities;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
@@ -50,6 +49,15 @@ public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSer
         Logger.info("New Resourcepack (" + path + ") was Initialized");
     }
 
+    public static ResourcepackWrapper deserialize(@NotNull final MinecraftMediaLibrary library, @NotNull final Map<String, Object> deserialize) {
+        return new ResourcepackWrapper(library,
+                String.valueOf(deserialize.get("path")),
+                new File(String.valueOf(deserialize.get("audio"))),
+                new File(String.valueOf(deserialize.get("icon"))),
+                String.valueOf(deserialize.get(deserialize)),
+                NumberConversions.toInt(deserialize.get("pack-format")));
+    }
+
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> serialized = new HashMap<>();
@@ -59,54 +67,6 @@ public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSer
         serialized.put("description", description);
         serialized.put("pack-format", packFormat);
         return serialized;
-    }
-
-    public static ResourcepackWrapper deserialize(@NotNull final MinecraftMediaLibrary library, @NotNull final Map<String, Object> deserialize) {
-        return new ResourcepackWrapper(library,
-                                String.valueOf(deserialize.get("path")),
-                                new File(String.valueOf(deserialize.get("audio"))),
-                                new File(String.valueOf(deserialize.get("icon"))),
-                                String.valueOf(deserialize.get(deserialize)),
-                                NumberConversions.toInt(deserialize.get("pack-format")));
-    }
-
-    public static class Builder {
-
-        private File audio;
-        private File icon;
-        private String description;
-        private int packFormat;
-        private String path;
-
-        public Builder setAudio(final File audio) {
-            this.audio = audio;
-            return this;
-        }
-
-        public Builder setIcon(final File icon) {
-            this.icon = icon;
-            return this;
-        }
-
-        public Builder setDescription(final String description) {
-            this.description = description;
-            return this;
-        }
-
-        public Builder setPackFormat(final int packFormat) {
-            this.packFormat = packFormat;
-            return this;
-        }
-
-        public Builder setPath(final String path) {
-            this.path = path;
-            return this;
-        }
-
-        public ResourcepackWrapper createResourcepackHostingProvider(final MinecraftMediaLibrary library) {
-            return new ResourcepackWrapper(library, path, audio, icon, description, packFormat);
-        }
-
     }
 
     @Override
@@ -169,6 +129,45 @@ public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSer
 
     public int getPackFormat() {
         return packFormat;
+    }
+
+    public static class Builder {
+
+        private File audio;
+        private File icon;
+        private String description;
+        private int packFormat;
+        private String path;
+
+        public Builder setAudio(final File audio) {
+            this.audio = audio;
+            return this;
+        }
+
+        public Builder setIcon(final File icon) {
+            this.icon = icon;
+            return this;
+        }
+
+        public Builder setDescription(final String description) {
+            this.description = description;
+            return this;
+        }
+
+        public Builder setPackFormat(final int packFormat) {
+            this.packFormat = packFormat;
+            return this;
+        }
+
+        public Builder setPath(final String path) {
+            this.path = path;
+            return this;
+        }
+
+        public ResourcepackWrapper createResourcepackHostingProvider(final MinecraftMediaLibrary library) {
+            return new ResourcepackWrapper(library, path, audio, icon, description, packFormat);
+        }
+
     }
 
 }

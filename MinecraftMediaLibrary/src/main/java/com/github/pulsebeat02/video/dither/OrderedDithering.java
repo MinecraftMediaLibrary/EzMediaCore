@@ -82,8 +82,8 @@ public class OrderedDithering implements AbstractDitherHolder {
 
     }
 
-    private float[][] matrix;
     private final float r;
+    private float[][] matrix;
     private float multiplicative;
     private int n;
 
@@ -109,15 +109,31 @@ public class OrderedDithering implements AbstractDitherHolder {
         convertToFloat();
     }
 
-    public int getBestColorNormal(int rgb) {
+    public static byte[] getColorMap() {
+        return COLOR_MAP;
+    }
+
+    public static float[][] getBayerMatrixTwo() {
+        return bayerMatrixTwo;
+    }
+
+    public static float[][] getBayerMatrixFour() {
+        return bayerMatrixFour;
+    }
+
+    public static float[][] getBayerMatrixEight() {
+        return bayerMatrixEight;
+    }
+
+    public int getBestColorNormal(final int rgb) {
         return MinecraftMapPalette.getColor(getBestColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF)).getRGB();
     }
 
-    public byte getBestColor(int rgb) {
+    public byte getBestColor(final int rgb) {
         return COLOR_MAP[(rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
     }
 
-    public byte getBestColor(int red, int green, int blue) {
+    public byte getBestColor(final int red, final int green, final int blue) {
         return COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
     }
 
@@ -130,28 +146,28 @@ public class OrderedDithering implements AbstractDitherHolder {
     }
 
     @Override
-    public void dither(int[] buffer, int width) {
-        int height = buffer.length / width;
+    public void dither(final int[] buffer, final int width) {
+        final int height = buffer.length / width;
         for (int y = 0; y < height; y++) {
-            int yIndex = y * width;
+            final int yIndex = y * width;
             for (int x = 0; x < width; x++) {
-                int index = yIndex + x;
-                int color = buffer[index];
-                buffer[index] = getBestColorNormal((int)(color + r * (matrix[x % n][y % n])));
+                final int index = yIndex + x;
+                final int color = buffer[index];
+                buffer[index] = getBestColorNormal((int) (color + r * (matrix[x % n][y % n])));
             }
         }
     }
 
     @Override
-    public ByteBuffer ditherIntoMinecraft(int[] buffer, int width) {
-        int height = buffer.length / width;
-        ByteBuffer data = ByteBuffer.allocate(buffer.length);
+    public ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width) {
+        final int height = buffer.length / width;
+        final ByteBuffer data = ByteBuffer.allocate(buffer.length);
         for (int y = 0; y < height; y++) {
-            int yIndex = y * width;
+            final int yIndex = y * width;
             for (int x = 0; x < width; x++) {
-                int index = yIndex + x;
-                int color = buffer[index];
-                data.put(getBestColor((int)(color + r * (matrix[x % n][y % n]))));
+                final int index = yIndex + x;
+                final int color = buffer[index];
+                data.put(getBestColor((int) (color + r * (matrix[x % n][y % n]))));
             }
         }
         return data;
@@ -170,6 +186,22 @@ public class OrderedDithering implements AbstractDitherHolder {
         return null;
     }
 
+    public float[][] getMatrix() {
+        return matrix;
+    }
+
+    public float getR() {
+        return r;
+    }
+
+    public float getMultiplicative() {
+        return multiplicative;
+    }
+
+    public int getN() {
+        return n;
+    }
+
     public enum DitherType {
 
         ModeTwo("Two Dimensional"),
@@ -186,38 +218,6 @@ public class OrderedDithering implements AbstractDitherHolder {
             return name;
         }
 
-    }
-
-    public static byte[] getColorMap() {
-        return COLOR_MAP;
-    }
-
-    public static float[][] getBayerMatrixTwo() {
-        return bayerMatrixTwo;
-    }
-
-    public static float[][] getBayerMatrixFour() {
-        return bayerMatrixFour;
-    }
-
-    public static float[][] getBayerMatrixEight() {
-        return bayerMatrixEight;
-    }
-
-    public float[][] getMatrix() {
-        return matrix;
-    }
-
-    public float getR() {
-        return r;
-    }
-
-    public float getMultiplicative() {
-        return multiplicative;
-    }
-
-    public int getN() {
-        return n;
     }
 
 }

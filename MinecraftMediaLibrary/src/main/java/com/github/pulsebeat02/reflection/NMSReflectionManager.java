@@ -1,7 +1,7 @@
 package com.github.pulsebeat02.reflection;
 
-import com.github.pulsebeat02.nms.PacketHandler;
 import com.github.pulsebeat02.logger.Logger;
+import com.github.pulsebeat02.nms.PacketHandler;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.InvocationTargetException;
@@ -17,9 +17,9 @@ public class NMSReflectionManager {
     public static PacketHandler getNewPacketHandlerInstance() {
         try {
             Logger.info("Loading NMS Class for Version " + VERSION);
-            Class<?> clazz = Class.forName("com.github.pulsebeat02.nms.impl" + VERSION + ".NMSMapPacketIntercepter");
+            final Class<?> clazz = Class.forName("com.github.pulsebeat02.nms.impl" + VERSION + ".NMSMapPacketIntercepter");
             return (PacketHandler) clazz.getDeclaredConstructor().newInstance();
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+        } catch (final ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             Logger.error("The Server Version you are using (" + VERSION + ") is not yet supported by MinecraftMediaLibrary!");
             e.printStackTrace();
             return null;

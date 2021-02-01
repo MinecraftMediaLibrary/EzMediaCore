@@ -17,24 +17,24 @@ public class OrderedDitherTesting extends JFrame {
 
     public OrderedDitherTesting(@NotNull final File image) throws IOException {
 
-        BufferedImage before = ImageIO.read(image);
-        Container c = getContentPane();
+        final BufferedImage before = ImageIO.read(image);
+        final Container c = getContentPane();
         c.setLayout(new BoxLayout(c, BoxLayout.Y_AXIS));
 
-        JPanel beforeDither = new JPanel();
+        final JPanel beforeDither = new JPanel();
         beforeDither.add(new JLabel(new ImageIcon(VideoUtilities.resizeImage(before, 500, 250))));
         beforeDither.add(new JLabel("Before Dithering"));
         beforeDither.add(new JLabel("| Width (before resize): " + before.getWidth()));
         beforeDither.add(new JLabel("| Height (before resize): " + before.getHeight()));
         c.add(beforeDither);
 
-        for (OrderedDithering.DitherType type : OrderedDithering.DitherType.values()) {
-            int[] buffer = VideoUtilities.getBuffer(before);
-            long start = System.currentTimeMillis();
+        for (final OrderedDithering.DitherType type : OrderedDithering.DitherType.values()) {
+            final int[] buffer = VideoUtilities.getBuffer(before);
+            final long start = System.currentTimeMillis();
             new OrderedDithering(OrderedDithering.DitherType.ModeTwo).dither(buffer, before.getWidth());
-            long end = System.currentTimeMillis();
-            BufferedImage after = VideoUtilities.getBufferedImage(buffer, before.getWidth(), before.getHeight());
-            JPanel panel = new JPanel();
+            final long end = System.currentTimeMillis();
+            final BufferedImage after = VideoUtilities.getBufferedImage(buffer, before.getWidth(), before.getHeight());
+            final JPanel panel = new JPanel();
             panel.add(new JLabel(new ImageIcon(VideoUtilities.resizeImage(after, 300, 250))));
             panel.add(new JLabel("Bayer Matrix (Ordered) Dithering (" + type.getName() + ")"));
             panel.add(new JLabel("| Time (Milliseconds): " + (end - start)));
@@ -55,7 +55,7 @@ public class OrderedDitherTesting extends JFrame {
 
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(final String[] args) throws IOException {
         // Windows: C:\\Users\\Brandon Li\\Desktop\\kingmammoth.png
         // Mac: /Users/bli24/Desktop/platform1/6vv2qz15h7e51.png
         new OrderedDitherTesting(new File("/Users/bli24/Desktop/platform1/6vv2qz15h7e51.png"));

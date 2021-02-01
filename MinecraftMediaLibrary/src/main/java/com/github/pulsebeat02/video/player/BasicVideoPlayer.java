@@ -3,14 +3,12 @@ package com.github.pulsebeat02.video.player;
 import com.github.pulsebeat02.MinecraftMediaLibrary;
 import com.github.pulsebeat02.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.utility.VideoUtilities;
-import com.github.pulsebeat02.video.dither.AbstractDitherHolder;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 public class BasicVideoPlayer extends AbstractVideoPlayer {
@@ -35,7 +33,7 @@ public class BasicVideoPlayer extends AbstractVideoPlayer {
                             final int width, final int height,
                             @NotNull final Consumer<int[]> callback) {
         super(library, url, width, height, callback);
-        File f = new YoutubeExtraction(url, getLibrary().getPath()).downloadVideo();
+        final File f = new YoutubeExtraction(url, getLibrary().getPath()).downloadVideo();
         this.grabber = new FFmpegFrameGrabber(f);
         this.video = f;
     }
@@ -44,14 +42,14 @@ public class BasicVideoPlayer extends AbstractVideoPlayer {
     public void start() {
         try {
             grabber.start();
-        } catch (FrameGrabber.Exception e) {
+        } catch (final FrameGrabber.Exception e) {
             e.printStackTrace();
         }
         videoThread = new Thread(() -> {
             for (int i = 0; i < grabber.getLengthInVideoFrames() && !stopped; i++) {
                 try {
                     getCallback().accept(VideoUtilities.getBuffer(Java2DFrameUtils.toBufferedImage(grabber.grab())));
-                } catch (FrameGrabber.Exception e) {
+                } catch (final FrameGrabber.Exception e) {
                     e.printStackTrace();
                 }
 //                try {
@@ -71,21 +69,31 @@ public class BasicVideoPlayer extends AbstractVideoPlayer {
         stopped = true;
     }
 
+    public FFmpegFrameGrabber getGrabber() {
+        return grabber;
+    }
+
+    public boolean isStopped() {
+        return stopped;
+    }
+
+    public Thread getVideoThread() {
+        return videoThread;
+    }
+
+    public File getVideo() {
+        return video;
+    }
+
     public class Builder {
 
         private File video;
-        private int map;
         private int width;
         private int height;
         private Consumer<int[]> callback;
 
         public Builder setVideo(@NotNull final File video) {
             this.video = video;
-            return this;
-        }
-
-        public Builder setMap(final int map) {
-            this.map = map;
             return this;
         }
 
@@ -108,22 +116,6 @@ public class BasicVideoPlayer extends AbstractVideoPlayer {
             return new BasicVideoPlayer(library, video, width, height, callback);
         }
 
-    }
-
-    public FFmpegFrameGrabber getGrabber() {
-        return grabber;
-    }
-
-    public boolean isStopped() {
-        return stopped;
-    }
-
-    public Thread getVideoThread() {
-        return videoThread;
-    }
-
-    public File getVideo() {
-        return video;
     }
 
 }

@@ -1,10 +1,10 @@
 package com.github.pulsebeat02.image;
 
 import com.github.pulsebeat02.MinecraftMediaLibrary;
-import com.github.pulsebeat02.utility.FileUtilities;
-import com.github.pulsebeat02.video.dither.FloydImageDither;
 import com.github.pulsebeat02.logger.Logger;
+import com.github.pulsebeat02.utility.FileUtilities;
 import com.github.pulsebeat02.utility.VideoUtilities;
+import com.github.pulsebeat02.video.dither.FloydImageDither;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
@@ -49,16 +49,57 @@ public class MapImage implements AbstractImageMapHolder, ConfigurationSerializab
         Logger.info("Initialized Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
     }
 
+    public static MapImage deserialize(@NotNull final MinecraftMediaLibrary library, @NotNull final Map<String, Object> deserialize) {
+        return new MapImage(library,
+                NumberConversions.toInt(deserialize.get("map")),
+                new File(String.valueOf(deserialize.get("image"))),
+                NumberConversions.toInt(deserialize.get("width")), NumberConversions.toInt(deserialize.get("height")));
+    }
+
+    public static void resetMap(@NotNull final MinecraftMediaLibrary library, final long id) {
+        library.getHandler().unregisterMap(id);
+    }
+
     @Override
     public void drawImage() {
         onDrawImage();
-        ByteBuffer buffer = new FloydImageDither().ditherIntoMinecraft(Objects.requireNonNull(VideoUtilities.getBuffer(image)), width);
+        final ByteBuffer buffer = new FloydImageDither().ditherIntoMinecraft(Objects.requireNonNull(VideoUtilities.getBuffer(image)), width);
         library.getHandler().display(null, map, width, height, buffer, width);
         Logger.info("Drew Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
     }
 
     @Override
     public void onDrawImage() {
+    }
+
+    @Override
+    public Map<String, Object> serialize() {
+        final Map<String, Object> serialized = new HashMap<>();
+        serialized.put("map", map);
+        serialized.put("image", image.getAbsolutePath());
+        serialized.put("width", width);
+        serialized.put("height", height);
+        return serialized;
+    }
+
+    public MinecraftMediaLibrary getLibrary() {
+        return library;
+    }
+
+    public long getMap() {
+        return map;
+    }
+
+    public File getImage() {
+        return image;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public int getWidth() {
+        return width;
     }
 
     public static class Builder {
@@ -89,50 +130,9 @@ public class MapImage implements AbstractImageMapHolder, ConfigurationSerializab
         }
 
         public MapImage createImageMap(final MinecraftMediaLibrary library) {
-            return new MapImage(library, map, image, height, width);
+            return new MapImage(library, map, image, width, height);
         }
 
-    }
-
-    @Override
-    public Map<String, Object> serialize() {
-        Map<String, Object> serialized = new HashMap<>();
-        serialized.put("map", map);
-        serialized.put("image", image.getAbsolutePath());
-        serialized.put("width", width);
-        serialized.put("height", height);
-        return serialized;
-    }
-
-    public static MapImage deserialize(@NotNull final MinecraftMediaLibrary library, @NotNull final Map<String, Object> deserialize) {
-        return new MapImage(library,
-                NumberConversions.toInt(deserialize.get("map")),
-                new File(String.valueOf(deserialize.get("image"))),
-                NumberConversions.toInt(deserialize.get("width")), NumberConversions.toInt(deserialize.get("height")));
-    }
-
-    public static void resetMap(@NotNull final MinecraftMediaLibrary library, final long id) {
-        library.getHandler().unregisterMap(id);
-    }
-
-    public MinecraftMediaLibrary getLibrary() {
-        return library;
-    }
-
-    public long getMap() {
-        return map;
-    }
-
-    public File getImage() {
-        return image;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public int getWidth() {
-        return width;
     }
 
 }

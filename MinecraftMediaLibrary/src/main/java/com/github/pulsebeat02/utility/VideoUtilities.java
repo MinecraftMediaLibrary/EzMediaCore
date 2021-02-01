@@ -16,7 +16,7 @@ public class VideoUtilities {
     public static int[] getBuffer(@NotNull final File image) {
         try {
             return getBuffer(ImageIO.read(image));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
         }
         return null;
@@ -26,24 +26,24 @@ public class VideoUtilities {
         return image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
     }
 
-    public static BufferedImage getBufferedImage(@NotNull final int[] rgb, int width, int height) {
-        BufferedImage image = new BufferedImage(width, height, 1);
+    public static BufferedImage getBufferedImage(@NotNull final int[] rgb, final int width, final int height) {
+        final BufferedImage image = new BufferedImage(width, height, 1);
         image.setRGB(0, 0, width, height, rgb, 0, width);
         return image;
     }
 
     public static byte[] toByteArray(@NotNull final int[] array) {
-        ByteBuffer buffer = ByteBuffer.allocate(array.length * 4);
-        IntBuffer intBuffer = buffer.asIntBuffer();
+        final ByteBuffer buffer = ByteBuffer.allocate(array.length * 4);
+        final IntBuffer intBuffer = buffer.asIntBuffer();
         intBuffer.put(array);
         return buffer.array();
     }
 
     public static BufferedImage toBufferedImage(@NotNull final byte[] array) {
-        ByteArrayInputStream bis = new ByteArrayInputStream(array);
+        final ByteArrayInputStream bis = new ByteArrayInputStream(array);
         try {
             return ImageIO.read(bis);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
         }
         return null;
@@ -51,9 +51,9 @@ public class VideoUtilities {
 
     private static BufferedImage resizeBufferedImage(@NotNull final BufferedImage originalImage,
                                                      final Dimension dim) {
-        int type = BufferedImage.TYPE_INT_ARGB;
-        BufferedImage resizedImage = new BufferedImage(dim.width, dim.height, type);
-        Graphics2D g = resizedImage.createGraphics();
+        final int type = BufferedImage.TYPE_INT_ARGB;
+        final BufferedImage resizedImage = new BufferedImage(dim.width, dim.height, type);
+        final Graphics2D g = resizedImage.createGraphics();
         g.setComposite(AlphaComposite.Src);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
@@ -65,10 +65,10 @@ public class VideoUtilities {
 
     public static Dimension getScaledDimension(@NotNull final Dimension imgSize,
                                                @NotNull final Dimension boundary) {
-        int original_width = imgSize.width;
-        int original_height = imgSize.height;
-        int bound_width = boundary.width;
-        int bound_height = boundary.height;
+        final int original_width = imgSize.width;
+        final int original_height = imgSize.height;
+        final int bound_width = boundary.width;
+        final int bound_height = boundary.height;
         int new_width = original_width;
         int new_height = original_height;
         if (original_width > bound_width) {
@@ -86,7 +86,6 @@ public class VideoUtilities {
                                             final int width, final int height) {
         return resizeBufferedImage(image, getScaledDimension(new Dimension(image.getWidth(), image.getHeight()), new Dimension(width, height)));
     }
-
 
 
 }

@@ -44,7 +44,7 @@ public class YoutubeExtraction implements AbstractVideoExtractor {
                         "video",
                         true);
                 Logger.info("Successfully Downloaded Video at URL: (" + url + ")");
-            } catch (IOException | YoutubeException e) {
+            } catch (final IOException | YoutubeException e) {
                 Logger.info("Could not Download Video at URL!: (" + url + ")");
                 e.printStackTrace();
             }
@@ -59,21 +59,21 @@ public class YoutubeExtraction implements AbstractVideoExtractor {
         }
         onAudioExtraction();
         Logger.info("Extracting Audio from Video File (" + video.getAbsolutePath() + ")");
-        File sound = new File(directory + "/audio.ogg");
-        AudioAttributes attributes = new AudioAttributes();
+        final File sound = new File(directory + "/audio.ogg");
+        final AudioAttributes attributes = new AudioAttributes();
         attributes.setCodec("libvorbis");
         attributes.setBitRate(160000);
         attributes.setChannels(2);
         attributes.setSamplingRate(44100);
         attributes.setVolume(48);
-        EncodingAttributes attrs = new EncodingAttributes();
+        final EncodingAttributes attrs = new EncodingAttributes();
         attrs.setFormat("ogg");
         attrs.setAudioAttributes(attributes);
-        Encoder encoder = new Encoder();
+        final Encoder encoder = new Encoder();
         try {
             encoder.encode(new MultimediaObject(video), sound, attrs);
             Logger.info("Successfully Extracted Audio from Video File! (Target: " + audio.getAbsolutePath() + ")");
-        } catch (EncoderException e) {
+        } catch (final EncoderException e) {
             Logger.error("Couldn't Extract Audio from Video File! (Video: " + video.getAbsolutePath() + ")");
             e.printStackTrace();
         }

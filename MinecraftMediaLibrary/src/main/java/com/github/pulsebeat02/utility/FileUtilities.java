@@ -13,10 +13,10 @@ import java.util.UUID;
 public class FileUtilities {
 
     public static File downloadImageFile(@NotNull final String url, @NotNull final String path) {
-        String filePath = path + "/" + UUID.randomUUID() + ".png";
-        try (InputStream in = new URL(url).openStream()) {
+        final String filePath = path + "/" + UUID.randomUUID() + ".png";
+        try (final InputStream in = new URL(url).openStream()) {
             Files.copy(in, Paths.get(filePath));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
         }
         return new File(filePath);

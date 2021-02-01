@@ -4,7 +4,6 @@ import com.github.pulsebeat02.DeluxeMediaPlugin;
 import com.github.pulsebeat02.image.MapImage;
 import com.github.pulsebeat02.utility.ChatUtilities;
 import com.github.pulsebeat02.utility.FileUtilities;
-import com.github.pulsebeat02.video.dither.DitherSetting;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -22,7 +21,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class ImageCommand extends AbstractCommand implements CommandExecutor, Listener {
 
@@ -31,7 +29,7 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
     private int width;
     private int height;
 
-    public ImageCommand(@NotNull DeluxeMediaPlugin plugin) {
+    public ImageCommand(@NotNull final DeluxeMediaPlugin plugin) {
         super(plugin);
         this.images = new HashSet<>();
         this.listen = new HashSet<>();
@@ -40,7 +38,7 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, String[] args) {
+    public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "You must be a player to use this command!"));
             return true;
@@ -48,16 +46,15 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
         if (args.length == 0) {
             sender.sendMessage(ChatColor.GOLD + "Current Images Loaded");
             sender.sendMessage(ChatColor.GREEN + "[Map ID] " + ChatColor.GOLD + ":" + ChatColor.AQUA + " [MRL]");
-            for (MapImage image : images) {
+            for (final MapImage image : images) {
                 sender.sendMessage(ChatColor.GREEN + "" + image.getMap() + ChatColor.GOLD + " : " + ChatColor.AQUA + image.getImage().getName());
             }
         } else if (args.length == 1) {
             if (args[0].equalsIgnoreCase("rickroll")) {
-                File f = FileUtilities.downloadImageFile("https://lh3.googleusercontent.com/proxy/_H3t3D3huCELuETTgKOU5uGrjxSZ4uT2B0Y1wtrvEaA9XByYfg726rzlFh9ppcGHrO-Gv7_nD6Z6DbP5PQWrQ2NGXPns4TUK8xUUkNbJfdJCu2Lwc-31XBa-LDcU", getPlugin().getDataFolder().getAbsolutePath());
+                final File f = FileUtilities.downloadImageFile("https://lh3.googleusercontent.com/proxy/_H3t3D3huCELuETTgKOU5uGrjxSZ4uT2B0Y1wtrvEaA9XByYfg726rzlFh9ppcGHrO-Gv7_nD6Z6DbP5PQWrQ2NGXPns4TUK8xUUkNbJfdJCu2Lwc-31XBa-LDcU", getPlugin().getDataFolder().getAbsolutePath());
                 new MapImage(getPlugin().getLibrary(), 69, f, width, height).drawImage();
             }
-        }
-        else if (args.length == 2) {
+        } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("reset")) {
                 if (args[1].equalsIgnoreCase("all")) {
                     listen.add(((Player) sender).getUniqueId());
@@ -67,10 +64,10 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
         } else if (args.length == 3) {
             if (args[0].equalsIgnoreCase("reset")) {
                 if (args[1].equalsIgnoreCase("map")) {
-                    long id;
+                    final long id;
                     try {
                         id = Long.parseLong(args[2]);
-                    } catch (NumberFormatException e) {
+                    } catch (final NumberFormatException e) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is not a valid argument! (Must be Integer between 0 - 4,294,967,296)"));
                         return true;
                     }
@@ -81,7 +78,7 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is too hight! (Must be Integer between 0 - 4,294,967,296)"));
                         return true;
                     }
-                    for (MapImage image : images) {
+                    for (final MapImage image : images) {
                         if (image.getMap() == id) {
                             images.remove(image);
                             break;
@@ -94,10 +91,10 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
         } else if (args.length == 4) {
             if (args[0].equalsIgnoreCase("set")) {
                 if (args[1].equalsIgnoreCase("map")) {
-                    long id;
+                    final long id;
                     try {
                         id = Long.parseLong(args[2]);
-                    } catch (NumberFormatException e) {
+                    } catch (final NumberFormatException e) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is not a valid argument! (Must be Integer between 0 - 4,294,967,296)"));
                         return true;
                     }
@@ -108,13 +105,13 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is too high! (Must be Integer between 0 - 4,294,967,296)"));
                         return true;
                     }
-                    String mrl = args[3];
+                    final String mrl = args[3];
                     if ((mrl.startsWith("http://")) || mrl.startsWith("https://") && mrl.endsWith(".png")) {
-                        File img = FileUtilities.downloadImageFile(mrl, getPlugin().getDataFolder().getAbsolutePath());
+                        final File img = FileUtilities.downloadImageFile(mrl, getPlugin().getDataFolder().getAbsolutePath());
                         new MapImage(getPlugin().getLibrary(), id, img, width, height).drawImage();
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully drew image on map " + id));
                     } else {
-                        File f = new File(getPlugin().getDataFolder(), mrl);
+                        final File f = new File(getPlugin().getDataFolder(), mrl);
                         if (f.exists()) {
                             new MapImage(getPlugin().getLibrary(), id, f, width, height).drawImage();
                             sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully drew image on map " + id));
@@ -123,17 +120,17 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
                         }
                     }
                 } else if (args[1].equalsIgnoreCase("dimensions")) {
-                    int w;
+                    final int w;
                     try {
                         w = Integer.parseInt(args[2]);
-                    } catch (NumberFormatException e) {
+                    } catch (final NumberFormatException e) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is not a valid argument! (Must be Integer)"));
                         return true;
                     }
-                    int h;
+                    final int h;
                     try {
                         h = Integer.parseInt(args[2]);
-                    } catch (NumberFormatException e) {
+                    } catch (final NumberFormatException e) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is not a valid argument! (Must be Integer)"));
                         return true;
                     }
@@ -148,10 +145,10 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
 
     @EventHandler
     public void onPlayerChat(final AsyncPlayerChatEvent event) {
-        Player p = event.getPlayer();
+        final Player p = event.getPlayer();
         if (listen.contains(p.getUniqueId())) {
             if (event.getMessage().equalsIgnoreCase("YES")) {
-                for (MapImage image : images) {
+                for (final MapImage image : images) {
                     MapImage.resetMap(getPlugin().getLibrary(), image.getMap());
                 }
                 images.clear();
@@ -163,7 +160,7 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
     }
 
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, String[] args) {
+    public List<String> onTabComplete(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
         if (args.length == 0) {
             return Arrays.asList("rickroll", "reset", "set");
         } else if (args.length == 1) {

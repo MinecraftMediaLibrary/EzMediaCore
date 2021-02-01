@@ -9,9 +9,6 @@ import com.github.pulsebeat02.video.itemframe.ItemFrameCallback;
 import com.github.pulsebeat02.video.player.AbstractVideoPlayer;
 import com.github.pulsebeat02.video.player.BasicVideoPlayer;
 import com.github.pulsebeat02.video.player.VLCJIntegratedPlayer;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +23,7 @@ public class VideoConfiguration extends AbstractConfiguration {
 
     @Override
     public void deserialize() {
-        FileConfiguration configuration = getFileConfiguration();
+        final FileConfiguration configuration = getFileConfiguration();
         configuration.set("enabled", player != null);
         configuration.set("url", player.getUrl());
         configuration.set("video-width", player.getWidth());
@@ -39,17 +36,17 @@ public class VideoConfiguration extends AbstractConfiguration {
 
     @Override
     public void serialize() {
-        FileConfiguration configuration = getFileConfiguration();
-        boolean enabled = configuration.getBoolean("enabled");
-        String url = configuration.getString("url");
-        int width = configuration.getInt("video-width");
-        int height = configuration.getInt("video-height");
-        int frameWidth = configuration.getInt("itemframe-width");
-        int frameHeight = configuration.getInt("itemframe-height");
-        int startingMapID = configuration.getInt("starting-map-id");
-        String ditherSetting = configuration.getString("dither-setting");
+        final FileConfiguration configuration = getFileConfiguration();
+        final boolean enabled = configuration.getBoolean("enabled");
+        final String url = configuration.getString("url");
+        final int width = configuration.getInt("video-width");
+        final int height = configuration.getInt("video-height");
+        final int frameWidth = configuration.getInt("itemframe-width");
+        final int frameHeight = configuration.getInt("itemframe-height");
+        final int startingMapID = configuration.getInt("starting-map-id");
+        final String ditherSetting = configuration.getString("dither-setting");
         AbstractDitherHolder holder = null;
-        for (DitherSetting setting : DitherSetting.values()) {
+        for (final DitherSetting setting : DitherSetting.values()) {
             if (setting.name().equalsIgnoreCase(ditherSetting)) {
                 holder = setting.getHolder();
                 break;
@@ -58,11 +55,12 @@ public class VideoConfiguration extends AbstractConfiguration {
         if (holder == null) {
             Logger.error("Setting " + ditherSetting + " is NOT a valid setting!");
         }
-        boolean vlcj = configuration.getBoolean("using-vlcj");
+        final boolean vlcj = configuration.getBoolean("using-vlcj");
         if (enabled) {
-            MinecraftMediaLibrary library = player.getLibrary();
-            ItemFrameCallback callback = new ItemFrameCallback(getPlugin().getLibrary(), null, startingMapID, frameWidth, frameHeight, width, 0, holder);
+            final MinecraftMediaLibrary library = player.getLibrary();
+            final ItemFrameCallback callback = new ItemFrameCallback(getPlugin().getLibrary(), null, startingMapID, frameWidth, frameHeight, width, 0, holder);
             if (vlcj) {
+                assert url != null;
                 player = new VLCJIntegratedPlayer(library, url, width, height, callback::send);
             } else {
                 player = new BasicVideoPlayer(library, url, width, height, callback::send);

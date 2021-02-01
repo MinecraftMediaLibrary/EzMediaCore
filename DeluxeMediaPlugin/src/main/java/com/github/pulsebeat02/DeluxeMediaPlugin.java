@@ -14,6 +14,9 @@ public class DeluxeMediaPlugin extends JavaPlugin {
 
     private MinecraftMediaLibrary library;
     private Logger logger;
+    private PluginCommand dither;
+    private PluginCommand video;
+    private PluginCommand image;
 
     @Override
     public void onEnable() {
@@ -24,10 +27,6 @@ public class DeluxeMediaPlugin extends JavaPlugin {
         registerCommands();
         logger.info(ChatColor.GOLD + "Finished Loading Instance and Plugin");
     }
-
-    private PluginCommand dither;
-    private PluginCommand video;
-    private PluginCommand image;
 
     @Override
     public void onDisable() {
@@ -46,9 +45,9 @@ public class DeluxeMediaPlugin extends JavaPlugin {
         video = getCommand("video");
         image = getCommand("image");
 
-        DitherCommand ditherCommand = new DitherCommand(this);
-        ImageCommand imageCommand = new ImageCommand(this);
-        VideoCommand videoCommand = new VideoCommand(this);
+        final DitherCommand ditherCommand = new DitherCommand(this);
+        final ImageCommand imageCommand = new ImageCommand(this);
+        final VideoCommand videoCommand = new VideoCommand(this);
 
         if (dither != null) {
             dither.setExecutor(ditherCommand);

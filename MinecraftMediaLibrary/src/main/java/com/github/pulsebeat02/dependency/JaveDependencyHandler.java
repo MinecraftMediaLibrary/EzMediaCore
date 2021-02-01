@@ -19,7 +19,7 @@ public class JaveDependencyHandler {
         File file = null;
         try {
             file = DependencyUtilities.downloadFile("ws.schild", getArtifactId(), "2.7.3", path + "/mml_libs");
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
         }
         return file;
@@ -27,9 +27,9 @@ public class JaveDependencyHandler {
 
     public String getArtifactId() {
         Logger.info("Detecting Operating System...");
-        String os = System.getProperty("os.name").toLowerCase();
+        final String os = System.getProperty("os.name").toLowerCase();
         String artifactId = "INVALID_OPERATING_SYSTEM";
-        boolean linux = os.contains("nix") || os.contains("nux") || os.contains("aix");
+        final boolean linux = os.contains("nix") || os.contains("nux") || os.contains("aix");
         if (is64Architecture(os)) {
             if (os.contains("win")) {
                 Logger.info("Detected Windows 64 Bit!");

@@ -4,7 +4,10 @@ import com.github.pulsebeat02.dependency.MavenDependency;
 import com.github.pulsebeat02.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
@@ -46,22 +49,22 @@ public class DependencyUtilities {
     }
 
     public static File downloadFile(@NotNull final MavenDependency dependency, @NotNull final String link, @NotNull final String parent) throws IOException {
-        String file = dependency.getArtifact() + "-" + dependency.getVersion() + ".jar";
-        String url = link + file;
+        final String file = dependency.getArtifact() + "-" + dependency.getVersion() + ".jar";
+        final String url = link + file;
         return downloadFile(Paths.get(parent + "/" + file), url);
     }
 
     public static File downloadFile(@NotNull final String groupId, @NotNull final String artifactId, @NotNull final String version, @NotNull final String parent) throws IOException {
-        String file = artifactId + "-" + version + ".jar";
-        String url = getDependencyUrl(groupId, artifactId, version, "https://repo1.maven.org/maven2/") + file;
+        final String file = artifactId + "-" + version + ".jar";
+        final String url = getDependencyUrl(groupId, artifactId, version, "https://repo1.maven.org/maven2/") + file;
         return downloadFile(Paths.get(parent + "/" + file), url);
     }
 
     public static File downloadFile(@NotNull final Path p, @NotNull final String url) throws IOException {
         Logger.info("Downloading Dependency at " + url + " into folder " + p);
-        BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
-        FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p));
-        byte[] dataBuffer = new byte[1024];
+        final BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
+        final FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p));
+        final byte[] dataBuffer = new byte[1024];
         int bytesRead;
         while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
             fileOutputStream.write(dataBuffer, 0, bytesRead);
@@ -70,14 +73,14 @@ public class DependencyUtilities {
     }
 
     public static void loadDependency(@NotNull final File file) throws IOException {
-        String jarPath = file.getAbsolutePath();
-        JarFile jarFile = new JarFile(jarPath);
+        final String jarPath = file.getAbsolutePath();
+        final JarFile jarFile = new JarFile(jarPath);
         Logger.info("Loading JAR Dependency at: " + jarPath);
-        Enumeration<JarEntry> e = jarFile.entries();
-        URL[] urls = {new URL("jar:file:" + jarPath + "!/")};
-        URLClassLoader cl = URLClassLoader.newInstance(urls);
+        final Enumeration<JarEntry> e = jarFile.entries();
+        final URL[] urls = {new URL("jar:file:" + jarPath + "!/")};
+        final URLClassLoader cl = URLClassLoader.newInstance(urls);
         while (e.hasMoreElements()) {
-            JarEntry je = e.nextElement();
+            final JarEntry je = e.nextElement();
             if (je.isDirectory() || !je.getName().endsWith(".class")) {
                 continue;
             }
@@ -86,7 +89,7 @@ public class DependencyUtilities {
             try {
                 Logger.info("Loaded " + className);
                 cl.loadClass(className);
-            } catch (ClassNotFoundException | NoClassDefFoundError ignored) {
+            } catch (final ClassNotFoundException | NoClassDefFoundError ignored) {
                 Logger.error("Could NOT Load " + className);
             }
         }

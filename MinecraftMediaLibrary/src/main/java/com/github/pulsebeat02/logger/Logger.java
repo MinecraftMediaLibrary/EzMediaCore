@@ -2,7 +2,10 @@ package com.github.pulsebeat02.logger;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -14,7 +17,7 @@ public class Logger {
 
     static {
         try {
-            File f = new File(System.getProperty("user.dir") + "\\mml.log");
+            final File f = new File(System.getProperty("user.dir") + "\\mml.log");
             if (f.createNewFile()) {
                 System.out.println("File Created (" + f.getName() + ")");
             } else {
@@ -22,7 +25,7 @@ public class Logger {
                 FileChannel.open(Paths.get(f.getPath()), StandardOpenOption.WRITE).truncate(0).close();
             }
             WRITER = new BufferedWriter(new FileWriter(f));
-        } catch (IOException exception) {
+        } catch (final IOException exception) {
             exception.printStackTrace();
         }
     }
@@ -43,7 +46,7 @@ public class Logger {
         if (VERBOSE) {
             try {
                 WRITER.write(line);
-            } catch (IOException exception) {
+            } catch (final IOException exception) {
                 exception.printStackTrace();
             }
         }

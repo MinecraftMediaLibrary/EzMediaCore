@@ -4,18 +4,17 @@ import com.github.kiulian.downloader.cipher.Cipher;
 import com.github.pulsebeat02.dependency.DependencyManagement;
 import com.github.pulsebeat02.dependency.JaveDependencyHandler;
 import com.github.pulsebeat02.logger.Logger;
-import uk.co.caprica.vlcj.factory.MediaApi;
 
 public class MavenDependencyTest {
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         Logger.setVerbose(true);
         new DependencyManagement().installAndLoad();
         new JaveDependencyHandler().installDependency();
         // example class loaded into runtime
         new Cipher() {
             @Override
-            public String getSignature(String s) {
+            public String getSignature(final String s) {
                 return null;
             }
         };

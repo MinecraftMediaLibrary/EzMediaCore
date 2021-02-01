@@ -3,11 +3,10 @@ package com.github.pulsebeat02;
 import com.github.pulsebeat02.dependency.DependencyManagement;
 import com.github.pulsebeat02.dependency.JaveDependencyHandler;
 import com.github.pulsebeat02.listener.PlayerJoinLeaveHandler;
-import com.github.pulsebeat02.nms.PacketHandler;
 import com.github.pulsebeat02.logger.Logger;
+import com.github.pulsebeat02.nms.PacketHandler;
 import com.github.pulsebeat02.reflection.NMSReflectionManager;
 import com.github.pulsebeat02.reflection.TinyProtocol;
-
 import io.netty.channel.Channel;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -17,29 +16,29 @@ import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 public class MinecraftMediaLibrary {
 
     private final Plugin plugin;
-    private TinyProtocol protocol;
-    private String parent;
-    private PacketHandler handler;
-    private boolean vlcj;
+    private final TinyProtocol protocol;
+    private final String parent;
+    private final PacketHandler handler;
+    private final boolean vlcj;
 
-    private PlayerJoinLeaveHandler listener;
+    private final PlayerJoinLeaveHandler listener;
 
     public MinecraftMediaLibrary(@NotNull final Plugin plugin,
                                  @NotNull final String path,
-                                 final boolean isUsingVLCJ) throws ExecutionException, InterruptedException {
+                                 final boolean isUsingVLCJ) {
         this.plugin = plugin;
         this.protocol = new TinyProtocol(plugin) {
             @Override
-            public Object onPacketOutAsync(Player player, Channel channel, Object packet) {
+            public Object onPacketOutAsync(final Player player, final Channel channel, final Object packet) {
                 return handler.onPacketInterceptOut(player, packet);
             }
+
             @Override
-            public Object onPacketInAsync(Player player, Channel channel, Object packet) {
+            public Object onPacketInAsync(final Player player, final Channel channel, final Object packet) {
                 return handler.onPacketInterceptIn(player, packet);
             }
         };
@@ -66,8 +65,8 @@ public class MinecraftMediaLibrary {
     }
 
     private void checkJavaVersion() {
-        String[] javaVersionElements = System.getProperty("java.version").split("\\.");
-        int major = Integer.parseInt(javaVersionElements[1]);
+        final String[] verison = System.getProperty("java.version").split("\\.");
+        final int major = Integer.parseInt(verison[1]);
         if (major < 11) {
             Logger.warn("MinecraftMediaPlugin is moving towards a newer Java Version (Java 11) \n" +
                     "Please switch as soon as possible before the library will be incompatible \n" +

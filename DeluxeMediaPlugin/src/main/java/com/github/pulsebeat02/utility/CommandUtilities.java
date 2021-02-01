@@ -1,6 +1,7 @@
 package com.github.pulsebeat02.utility;
 
 import com.github.pulsebeat02.DeluxeMediaPlugin;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.SimpleCommandMap;
@@ -11,30 +12,39 @@ import java.util.HashMap;
 
 public class CommandUtilities {
 
-    public static void unRegisterBukkitCommand(@NotNull final DeluxeMediaPlugin plugin, @NotNull final PluginCommand cmd) {
+    private static HashMap<String, Command> knownCommands;
+
+    static {
         try {
-            Object result = getPrivateField(plugin.getServer().getPluginManager(), "commandMap");
-            SimpleCommandMap commandMap = (SimpleCommandMap) result;
-            Object map = getPrivateField(commandMap, "knownCommands");
-            @SuppressWarnings("unchecked")
-            HashMap<String, Command> knownCommands = (HashMap<String, Command>) map;
-            knownCommands.remove(cmd.getName());
-            for (String alias : cmd.getAliases()) {
-                if (knownCommands.containsKey(alias) && knownCommands.get(alias).toString().contains(plugin.getName())) {
-                    knownCommands.remove(alias);
-                }
-            }
-        } catch (Exception e) {
+            final Object result = getPrivateField(Bukkit.getServer().getPluginManager(), "commandMap");
+            final SimpleCommandMap commandMap = (SimpleCommandMap) result;
+            final Object map = getPrivateField(commandMap, "knownCommands");
+            knownCommands = (HashMap<String, Command>) map;
+        } catch (final NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
     }
 
+    public static void unRegisterBukkitCommand(@NotNull final DeluxeMediaPlugin plugin, @NotNull final PluginCommand cmd) {
+        try {
+            knownCommands.remove(cmd.getName());
+            for (final String alias : cmd.getAliases()) {
+                if (knownCommands.containsKey(alias) && knownCommands.get(alias).toString().contains(plugin.getName())) {
+                    knownCommands.remove(alias);
+                }
+            }
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
     private static Object getPrivateField(@NotNull final Object object, @NotNull final String field) throws SecurityException,
             NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
-        Class<?> clazz = object.getClass();
-        Field objectField = clazz.getDeclaredField(field);
+        final Class<?> clazz = object.getClass();
+        final Field objectField = clazz.getDeclaredField(field);
         objectField.setAccessible(true);
-        Object result = objectField.get(object);
+        final Object result = objectField.get(object);
         objectField.setAccessible(false);
         return result;
     }

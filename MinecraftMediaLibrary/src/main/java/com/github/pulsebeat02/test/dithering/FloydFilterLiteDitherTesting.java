@@ -1,8 +1,8 @@
 package com.github.pulsebeat02.test.dithering;
 
-import com.github.pulsebeat02.video.dither.FloydImageDither;
 import com.github.pulsebeat02.utility.VideoUtilities;
 import com.github.pulsebeat02.video.dither.FilterLiteDither;
+import com.github.pulsebeat02.video.dither.FloydImageDither;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -27,16 +27,16 @@ public class FloydFilterLiteDitherTesting extends JFrame {
         beforeDither.add(new JLabel("| Height (before resize): " + before.getHeight()));
 
         final JPanel floydDithering = new JPanel();
-        long floydStart = System.currentTimeMillis();
+        final long floydStart = System.currentTimeMillis();
         floydDithering.add(new JLabel(new ImageIcon(VideoUtilities.resizeImage(ditherFloyd(before), 500, 250))));
-        long floydEnd = System.currentTimeMillis();
+        final long floydEnd = System.currentTimeMillis();
         floydDithering.add(new JLabel("Floyd Steinberg Dithering"));
         floydDithering.add(new JLabel("| Time (Milliseconds): " + (floydEnd - floydStart)));
 
         final JPanel sierraDithering = new JPanel();
-        long sierraStart = System.currentTimeMillis();
+        final long sierraStart = System.currentTimeMillis();
         sierraDithering.add(new JLabel(new ImageIcon(VideoUtilities.resizeImage(ditherSierra(before), 500, 250))));
-        long sierraEnd = System.currentTimeMillis();
+        final long sierraEnd = System.currentTimeMillis();
         sierraDithering.add(new JLabel("Sierra 2-4A Dithering"));
         sierraDithering.add(new JLabel("| Time (Milliseconds): " + (sierraEnd - sierraStart)));
 
@@ -58,22 +58,22 @@ public class FloydFilterLiteDitherTesting extends JFrame {
 
     }
 
+    public static void main(final String[] args) throws IOException {
+        // Windows: C:\\Users\\Brandon Li\\Desktop\\kingmammoth.png
+        // Mac: /Users/bli24/Desktop/platform1/6vv2qz15h7e51.png
+        new FloydFilterLiteDitherTesting(new File("/Users/bli24/Desktop/platform1/6vv2qz15h7e51.png"));
+    }
+
     private BufferedImage ditherSierra(@NotNull final BufferedImage before) {
-        int[] buffer = VideoUtilities.getBuffer(before);
+        final int[] buffer = VideoUtilities.getBuffer(before);
         new FilterLiteDither().dither(buffer, before.getWidth());
         return VideoUtilities.getBufferedImage(buffer, before.getWidth(), before.getHeight());
     }
 
     private BufferedImage ditherFloyd(@NotNull final BufferedImage before) {
-        int[] buffer = VideoUtilities.getBuffer(before);
+        final int[] buffer = VideoUtilities.getBuffer(before);
         new FloydImageDither().dither(buffer, before.getWidth());
         return VideoUtilities.getBufferedImage(buffer, before.getWidth(), before.getHeight());
-    }
-
-    public static void main(String[] args) throws IOException {
-        // Windows: C:\\Users\\Brandon Li\\Desktop\\kingmammoth.png
-        // Mac: /Users/bli24/Desktop/platform1/6vv2qz15h7e51.png
-        new FloydFilterLiteDitherTesting(new File("/Users/bli24/Desktop/platform1/6vv2qz15h7e51.png"));
     }
 
 }

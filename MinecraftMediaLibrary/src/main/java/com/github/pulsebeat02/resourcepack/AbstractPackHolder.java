@@ -5,7 +5,6 @@ public interface AbstractPackHolder {
     /**
      * Builds the resourcepack with all the files
      * and specified pack.mcmeta values.
-     *
      */
     void buildResourcePack();
 

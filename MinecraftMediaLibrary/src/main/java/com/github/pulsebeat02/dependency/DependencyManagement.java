@@ -17,8 +17,8 @@ public class DependencyManagement {
     }
 
     public Set<File> install() {
-        Set<File> files = new HashSet<>();
-        File dir = new File(path + "/mml_libs");
+        final Set<File> files = new HashSet<>();
+        final File dir = new File(path + "/mml_libs");
         if (!dir.exists()) {
             if (dir.mkdir()) {
                 Logger.info("Dependency Directory (" + dir.getAbsolutePath() + ") does not exist... Creating a folder");
@@ -26,17 +26,17 @@ public class DependencyManagement {
                 Logger.info("Dependency Directory (" + dir.getAbsolutePath() + ") exists!");
             }
         }
-        for (MavenDependency dependency : MavenDependency.values()) {
+        for (final MavenDependency dependency : MavenDependency.values()) {
             File file = null;
-            String artifact = dependency.getArtifact();
+            final String artifact = dependency.getArtifact();
             try {
                 Logger.info("Checking Maven Central Repository for " + artifact);
                 file = DependencyUtilities.downloadMavenDependency(dependency, path + "/mml_libs");
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 try {
                     Logger.info("Could not find in the Maven Central Repository... Checking Jitpack Central Repository for " + artifact);
                     file = DependencyUtilities.downloadJitpackDependency(dependency, path + "/mml_libs");
-                } catch (IOException exception) {
+                } catch (final IOException exception) {
                     Logger.error("Could not find " + artifact + " in the Maven Central Repository or Jitpack");
                     exception.printStackTrace();
                 }
@@ -48,10 +48,10 @@ public class DependencyManagement {
 
     public void installAndLoad() {
         install();
-        for (File f : new File(path + "/mml_libs").listFiles()) {
+        for (final File f : new File(path + "/mml_libs").listFiles()) {
             try {
                 DependencyUtilities.loadDependency(f);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 e.printStackTrace();
             }
         }

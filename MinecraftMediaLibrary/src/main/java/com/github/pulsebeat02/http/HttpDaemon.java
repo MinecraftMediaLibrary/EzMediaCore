@@ -11,11 +11,10 @@ import java.net.Socket;
 
 public class HttpDaemon extends Thread implements AbstractHttpDaemon {
 
-    private boolean running;
-
     private final int port;
     private final ServerSocket socket;
     private final File directory;
+    private boolean running;
     private ZipHeader header;
     private boolean verbose;
 
@@ -62,7 +61,7 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
         while (running) {
             try {
                 new Thread(new RequestHandler(this, header, socket.accept())).start();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 e.printStackTrace();
             }
         }
@@ -75,7 +74,7 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
         if (!socket.isClosed()) {
             try {
                 socket.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 e.printStackTrace();
             }
         }
@@ -97,20 +96,20 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
     public void onResourcepackFailedDownload(final Socket client) {
     }
 
-    public void setZipHeader(final ZipHeader header) {
-        this.header = header;
-    }
-
-    public void setVerbose(final boolean verbose) {
-        this.verbose = verbose;
-    }
-
     public ZipHeader getZipHeader() {
         return header;
     }
 
+    public void setZipHeader(final ZipHeader header) {
+        this.header = header;
+    }
+
     public boolean isVerbose() {
         return verbose;
+    }
+
+    public void setVerbose(final boolean verbose) {
+        this.verbose = verbose;
     }
 
     public File getParentDirectory() {
