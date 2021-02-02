@@ -1,5 +1,6 @@
 [![CircleCI](https://img.shields.io/circleci/build/github/PulseBeat02/MinecraftMediaLibrary?style=for-the-badge)](https://app.circleci.com/pipelines/github/PulseBeat02/MinecraftMediaLibrary)
 [![Issues](https://img.shields.io/github/issues/PulseBeat02/MinecraftMediaLibrary?style=for-the-badge)](https://github.com/PulseBeat02/MinecraftMediaLibrary/issues)
+[![Discord](https://img.shields.io/discord/775376080546693120.svg?style=for-the-badge)](https://discord.gg/d7qfcUwhex)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)](https://www.gnu.org/licenses/gpl-3.0)
 [![Repository Size](https://img.shields.io/github/languages/code-size/PulseBeat02/MinecraftMediaLibrary?style=for-the-badge)](https://github.com/PulseBeat02/MinecraftMediaLibrary)
 
@@ -11,10 +12,10 @@
 
 ---
 
-MinecraftMediaLibrary is a library written along the Spigot API and net.minecraft.server classes to provide helpful and
+**MinecraftMediaLibrary** is a library written along the Spigot API and net.minecraft.server classes to provide helpful and
 useful classes for other plugins to take advantage of. One of the most important features perhaps is its ability to
 play **videos** on a Minecraft Spigot server. It uses
-a [very optimized dithering method](https://github.com/PulseBeat02/MinecraftMediaLibrary/blob/master/src/main/java/com/github/pulsebeat02/video/JetpImageDither.java) (
+a [very optimized dithering method](https://github.com/PulseBeat02/MinecraftMediaLibrary/blob/b47e10869cbcea03889670765aa3ef66d6ba171a/MinecraftMediaLibrary/src/main/java/com/github/pulsebeat02/minecraftmedialibrary/video/dither/FloydImageDither.java#L177) (
 credits to **BananaPuncher714** and **Jetp250** for helping out with the Floyd Steinberg Dithering) along side with 
 **VLCJ Integration** if necessary to parse the video even quicker. As a result, frames can reach up to **35** times per
 second at times with very good quality on maps if necessary. As a reference, a *smooth* animation is one which is 24
