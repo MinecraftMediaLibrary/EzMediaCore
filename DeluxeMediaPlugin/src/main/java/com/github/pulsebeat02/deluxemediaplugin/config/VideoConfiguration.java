@@ -1,14 +1,14 @@
-package com.github.pulsebeat02.config;
+package com.github.pulsebeat02.deluxemediaplugin.config;
 
-import com.github.pulsebeat02.DeluxeMediaPlugin;
-import com.github.pulsebeat02.MinecraftMediaLibrary;
-import com.github.pulsebeat02.logger.Logger;
-import com.github.pulsebeat02.video.dither.AbstractDitherHolder;
-import com.github.pulsebeat02.video.dither.DitherSetting;
-import com.github.pulsebeat02.video.itemframe.ItemFrameCallback;
-import com.github.pulsebeat02.video.player.AbstractVideoPlayer;
-import com.github.pulsebeat02.video.player.BasicVideoPlayer;
-import com.github.pulsebeat02.video.player.VLCJIntegratedPlayer;
+import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.AbstractDitherHolder;
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
+import com.github.pulsebeat02.minecraftmedialibrary.video.itemframe.ItemFrameCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.video.player.AbstractVideoPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.video.player.BasicVideoPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.video.player.VLCJIntegratedPlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 

@@ -7,53 +7,11 @@
     <parent>
         <artifactId>MinecraftMediaLibrary-Parent</artifactId>
         <groupId>com.github.pulsebeat02</groupId>
-        <version>RELEASE-1.0.0</version>
+        <version>RELEASE-1.4.0</version>
     </parent>
     <artifactId>MinecraftMediaLibrary</artifactId>
     <build>
         <plugins>
-            <!--            <plugin>-->
-            <!--                <groupId>org.apache.maven.plugins</groupId>-->
-            <!--                <artifactId>maven-shade-plugin</artifactId>-->
-            <!--                <version>3.2.4</version>-->
-            <!--                <executions>-->
-            <!--                    <execution>-->
-            <!--                        <phase>package</phase>-->
-            <!--                        <goals>-->
-            <!--                            <goal>shade</goal>-->
-            <!--                        </goals>-->
-            <!--                    </execution>-->
-            <!--                </executions>-->
-            <!--                <configuration>-->
-            <!--                    <minimizeJar>true</minimizeJar>-->
-            <!--                    <artifactSet>-->
-            <!--                        <includes>-->
-            <!--                            <include>com.github.sealedtx</include>-->
-            <!--                            <include>ws.schild</include>-->
-            <!--                            <include>org.bytedeco</include>-->
-            <!--                            <include>uk.co.caprica</include>-->
-            <!--                        </includes>-->
-            <!--                    </artifactSet>-->
-            <!--                    <relocations>-->
-            <!--                        <relocation>-->
-            <!--                            <pattern>com.github.sealedtx</pattern>-->
-            <!--                            <shadedPattern>com.github.pulsebeat02.youtube</shadedPattern>-->
-            <!--                        </relocation>-->
-            <!--                        <relocation>-->
-            <!--                            <pattern>ws.schild</pattern>-->
-            <!--                            <shadedPattern>com.github.pulsebeat02.encoding</shadedPattern>-->
-            <!--                        </relocation>-->
-            <!--                        <relocation>-->
-            <!--                            <pattern>org.bytedeco</pattern>-->
-            <!--                            <shadedPattern>com.github.pulsebeat02.frame</shadedPattern>-->
-            <!--                        </relocation>-->
-            <!--                        <relocation>-->
-            <!--                            <pattern>uk.co.caprica</pattern>-->
-            <!--                            <shadedPattern>com.github.pulsebeat02.vlcj</shadedPattern>-->
-            <!--                        </relocation>-->
-            <!--                    </relocations>-->
-            <!--                </configuration>-->
-            <!--            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -107,29 +65,6 @@
             <version>16.0.1</version>
         </dependency>
     </dependencies>
-    <!--    <dependencyManagement>-->
-    <!--        <dependencies>-->
-    <!--            <dependency>-->
-    <!--                <groupId>ws.schild</groupId>-->
-    <!--                <artifactId>jave-all-deps</artifactId>-->
-    <!--                <version>2.7.3</version>-->
-    <!--                <exclusions>-->
-    <!--                    <exclusion>-->
-    <!--                        <groupId>ws.schild</groupId>-->
-    <!--                        <artifactId>jave-nativebin-win32</artifactId>-->
-    <!--                    </exclusion>-->
-    <!--                    <exclusion>-->
-    <!--                        <groupId>ws.schild</groupId>-->
-    <!--                        <artifactId>jave-nativebin-linux32</artifactId>-->
-    <!--                    </exclusion>-->
-    <!--                    <exclusion>-->
-    <!--                        <groupId>ws.schild</groupId>-->
-    <!--                        <artifactId>jave-nativebin-osx64</artifactId>-->
-    <!--                    </exclusion>-->
-    <!--                </exclusions>-->
-    <!--            </dependency>-->
-    <!--        </dependencies>-->
-    <!--    </dependencyManagement>-->
     <repositories>
         <repository>
             <id>spigot-repo</id>
