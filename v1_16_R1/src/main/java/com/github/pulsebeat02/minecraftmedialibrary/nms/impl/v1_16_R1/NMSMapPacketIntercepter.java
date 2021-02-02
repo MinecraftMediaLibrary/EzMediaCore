@@ -219,7 +219,7 @@ public class NMSMapPacketIntercepter implements PacketHandler {
     }
 
     @Override
-    public boolean isMapRegistered(final int id) {
+    public boolean isMapRegistered(final long id) {
         return maps.contains(id);
     }
 

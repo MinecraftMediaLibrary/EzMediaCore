@@ -1,26 +1,18 @@
-package com.github.pulsebeat02.minecraftmedialibrary.nms.impl.v1_16_R3;
+package com.github.pulsebeat02.minecraftmedialibrary.nms.impl.v1_13_R1;
 
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
-import net.minecraft.server.v1_16_R3.ChatComponentText;
-import net.minecraft.server.v1_16_R3.ChatHexColor;
-import net.minecraft.server.v1_16_R3.DataWatcher;
-import net.minecraft.server.v1_16_R3.DataWatcherObject;
-import net.minecraft.server.v1_16_R3.DataWatcherRegistry;
-import net.minecraft.server.v1_16_R3.IChatBaseComponent;
-import net.minecraft.server.v1_16_R3.MapIcon;
-import net.minecraft.server.v1_16_R3.PacketPlayOutEntityMetadata;
-import net.minecraft.server.v1_16_R3.PacketPlayOutMap;
-import net.minecraft.server.v1_16_R3.PlayerConnection;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import net.minecraft.server.v1_13_R1.MapIcon;
+import net.minecraft.server.v1_13_R1.PacketPlayOutEntityMetadata;
+import net.minecraft.server.v1_13_R1.PacketPlayOutMap;
+import net.minecraft.server.v1_13_R1.PlayerConnection;
+import org.bukkit.craftbukkit.v1_13_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_13_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
-import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -32,7 +24,6 @@ public class NMSMapPacketIntercepter implements PacketHandler {
 
     private static final Field[] MAP_FIELDS = new Field[10];
     private static Field METADATA_ID;
-    private static Field METADATA_ITEMS;
 
     static {
         try {
@@ -51,7 +42,7 @@ public class NMSMapPacketIntercepter implements PacketHandler {
             }
             METADATA_ID = PacketPlayOutEntityMetadata.class.getDeclaredField("a");
             METADATA_ID.setAccessible(true);
-            METADATA_ITEMS = PacketPlayOutEntityMetadata.class.getDeclaredField("b");
+            final Field METADATA_ITEMS = PacketPlayOutEntityMetadata.class.getDeclaredField("b");
             METADATA_ITEMS.setAccessible(true);
         } catch (final Exception exception) {
             exception.printStackTrace();
@@ -154,23 +145,11 @@ public class NMSMapPacketIntercepter implements PacketHandler {
         final int height = data.length / width;
         final int maxHeight = Math.min(height, entities.length);
         final PacketPlayOutEntityMetadata[] packets = new PacketPlayOutEntityMetadata[maxHeight];
-        int index = 0;
         for (int i = 0; i < maxHeight; i++) {
             final int id = ((CraftEntity) entities[i]).getHandle().getId();
-            final ChatComponentText component = new ChatComponentText("");
-            for (int x = 0; x < width; x++) {
-                final int c = data[index++];
-                final ChatComponentText p = new ChatComponentText("█");
-                p.setChatModifier(p.getChatModifier().setColor(ChatHexColor.a(c & 0xFFFFFF)));
-                component.addSibling(p);
-            }
-            final DataWatcher.Item<Optional<IChatBaseComponent>> item = new DataWatcher.Item<>(
-                    new DataWatcherObject<>(2, DataWatcherRegistry.f),
-                    Optional.of(component));
             final PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata();
             try {
                 METADATA_ID.set(packet, id);
-                METADATA_ITEMS.set(packet, Collections.singletonList(item));
             } catch (final IllegalArgumentException | IllegalAccessException e) {
                 e.printStackTrace();
             }

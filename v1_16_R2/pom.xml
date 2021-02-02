@@ -16,12 +16,14 @@
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
             <version>1.16.2-R0.1-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/../spigot-1_16_r2.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>com.github.pulsebeat02</groupId>
             <artifactId>MinecraftMediaLibrary</artifactId>
             <version>${project.parent.version}</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

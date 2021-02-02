@@ -18,7 +18,7 @@ public interface PacketHandler {
 
     void unregisterPlayer(Player player);
 
-    boolean isMapRegistered(int id);
+    boolean isMapRegistered(long id);
 
     void unregisterMap(long id);
 
