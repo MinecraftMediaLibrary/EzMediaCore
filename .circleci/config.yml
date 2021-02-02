@@ -17,6 +17,6 @@ jobs:
           paths:
             - ~/.m2/
           key: v1-dependencies-{{ checksum "pom.xml" }}
-      - run: [ ! -f libs.7z ] && wget https://cdn.piggypiglet.me/ezrankspro/libs.7z
+      - run: wget https://cdn.piggypiglet.me/ezrankspro/libs.7z
       - run: gunzip libs.7z
       - run: mvn clean package
