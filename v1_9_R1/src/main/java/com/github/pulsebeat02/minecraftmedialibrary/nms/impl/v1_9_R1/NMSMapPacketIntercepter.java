@@ -1,12 +1,12 @@
-package com.github.pulsebeat02.minecraftmedialibrary.nms.impl.v1_13_R2;
+package com.github.pulsebeat02.minecraftmedialibrary.nms.impl.v1_9_R1;
 
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
-import net.minecraft.server.v1_13_R2.MapIcon;
-import net.minecraft.server.v1_13_R2.PacketPlayOutEntityMetadata;
-import net.minecraft.server.v1_13_R2.PacketPlayOutMap;
-import net.minecraft.server.v1_13_R2.PlayerConnection;
-import org.bukkit.craftbukkit.v1_13_R2.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_13_R2.entity.CraftPlayer;
+import net.minecraft.server.v1_9_R1.MapIcon;
+import net.minecraft.server.v1_9_R1.PacketPlayOutEntityMetadata;
+import net.minecraft.server.v1_9_R1.PacketPlayOutMap;
+import net.minecraft.server.v1_9_R1.PlayerConnection;
+import org.bukkit.craftbukkit.v1_9_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_9_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -220,3 +220,4 @@ public class NMSMapPacketIntercepter implements PacketHandler {
     }
 
 }
+

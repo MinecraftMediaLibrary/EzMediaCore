@@ -36,7 +36,6 @@ public class NMSMapPacketIntercepter implements PacketHandler {
             MAP_FIELDS[6] = PacketPlayOutMap.class.getDeclaredField("g");
             MAP_FIELDS[7] = PacketPlayOutMap.class.getDeclaredField("h");
             MAP_FIELDS[8] = PacketPlayOutMap.class.getDeclaredField("i");
-            MAP_FIELDS[9] = PacketPlayOutMap.class.getDeclaredField("j");
             for (final Field field : MAP_FIELDS) {
                 field.setAccessible(true);
             }

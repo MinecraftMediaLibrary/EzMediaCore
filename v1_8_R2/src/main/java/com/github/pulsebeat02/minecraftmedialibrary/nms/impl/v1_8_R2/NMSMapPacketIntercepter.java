@@ -1,12 +1,12 @@
-package com.github.pulsebeat02.minecraftmedialibrary.nms.impl.v1_13_R2;
+package com.github.pulsebeat02.minecraftmedialibrary.nms.impl.v1_8_R2;
 
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
-import net.minecraft.server.v1_13_R2.MapIcon;
-import net.minecraft.server.v1_13_R2.PacketPlayOutEntityMetadata;
-import net.minecraft.server.v1_13_R2.PacketPlayOutMap;
-import net.minecraft.server.v1_13_R2.PlayerConnection;
-import org.bukkit.craftbukkit.v1_13_R2.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_13_R2.entity.CraftPlayer;
+import net.minecraft.server.v1_8_R2.MapIcon;
+import net.minecraft.server.v1_8_R2.PacketPlayOutEntityMetadata;
+import net.minecraft.server.v1_8_R2.PacketPlayOutMap;
+import net.minecraft.server.v1_8_R2.PlayerConnection;
+import org.bukkit.craftbukkit.v1_8_R2.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_8_R2.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -35,7 +35,6 @@ public class NMSMapPacketIntercepter implements PacketHandler {
             MAP_FIELDS[5] = PacketPlayOutMap.class.getDeclaredField("f");
             MAP_FIELDS[6] = PacketPlayOutMap.class.getDeclaredField("g");
             MAP_FIELDS[7] = PacketPlayOutMap.class.getDeclaredField("h");
-            MAP_FIELDS[8] = PacketPlayOutMap.class.getDeclaredField("i");
             for (final Field field : MAP_FIELDS) {
                 field.setAccessible(true);
             }
@@ -220,3 +219,5 @@ public class NMSMapPacketIntercepter implements PacketHandler {
     }
 
 }
+
+
