@@ -18,6 +18,7 @@ jobs:
             - ~/.m2/
           key: v1-dependencies-{{ checksum "pom.xml" }}
       - run: wget https://cdn.piggypiglet.me/ezrankspro/libs.7z
+      - run: sudo apt update
       - run: sudo apt-get install p7zip-full
       - run: 7za x libs.7z
       - run: mvn clean package
