@@ -16,6 +16,18 @@ public enum MavenDependency {
             "2.4.6"
     ),
 
+    HTTPCLIENT(
+            "org.apache.httpcomponents",
+            "httpclient",
+            "4.5.13"
+    ),
+
+    HTTPMINE(
+            "org.apache.httpcomponents",
+            "httpmime",
+            "4.5.13"
+    ),
+
 //    JAVE(
 //            "ws.schild",
 //            "jave-all-deps",
