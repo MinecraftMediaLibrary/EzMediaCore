@@ -6,6 +6,7 @@ import com.github.pulsebeat02.deluxemediaplugin.command.VideoCommand;
 import com.github.pulsebeat02.deluxemediaplugin.utility.CommandUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import net.md_5.bungee.api.ChatColor;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -26,6 +27,7 @@ public class DeluxeMediaPlugin extends JavaPlugin {
         logger.info(ChatColor.GOLD + "Loading MinecraftMediaLibrary Instance...");
         library = new MinecraftMediaLibrary(this, getDataFolder().getPath(), true);
         registerCommands();
+        Metrics metrics = new Metrics(this, 10229);
         logger.info(ChatColor.GOLD + "Finished Loading Instance and Plugin");
     }
 

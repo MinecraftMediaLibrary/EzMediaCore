@@ -28,8 +28,8 @@
             </plugin>
         </plugins>
     </build>
-
     <dependencies>
+
         <dependency>
             <groupId>com.github.pulsebeat02</groupId>
             <artifactId>v1_16_R3</artifactId>
