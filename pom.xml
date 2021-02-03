@@ -7,6 +7,19 @@
     <artifactId>MinecraftMediaLibrary-Parent</artifactId>
     <packaging>pom</packaging>
     <version>RELEASE-1.4.0</version>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <modules>
         <module>MinecraftMediaLibrary</module>
         <module>v1_16_R3</module>
@@ -25,9 +38,11 @@
         <module>v1_8_R2</module>
         <module>v1_8_R1</module>
         <module>v1_7_R4</module>
+        <module>MinecraftMediaLibrary-NMS</module>
         <module>DeluxeMediaPlugin</module>
     </modules>
     <properties>
+        <parent.version>RELEASE-1.4.0</parent.version>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
