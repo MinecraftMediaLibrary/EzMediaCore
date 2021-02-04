@@ -8,17 +8,13 @@
         <version>RELEASE-1.4.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>v1_15_R1</artifactId>
-
     <dependencies>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
             <version>1.15.2-R0.1-SNAPSHOT</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/../spigot-1_15_r1.jar</systemPath>
-            <type>jar</type>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.github.pulsebeat02</groupId>
@@ -27,5 +23,10 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
+    <repositories>
+        <repository>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
 </project>

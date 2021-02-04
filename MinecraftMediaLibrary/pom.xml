@@ -35,6 +35,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.github.pulsebeat02</groupId>
+            <artifactId>MinecraftMediaLibrary-NMS</artifactId>
+            <version>RELEASE-1.4.0</version>
+        </dependency>
+        <dependency>
             <groupId>uk.co.caprica</groupId>
             <artifactId>vlcj</artifactId>
             <version>4.6.0</version>
