@@ -18,6 +18,10 @@
                 <configuration>
                     <relocations>
                         <relocation>
+                            <pattern>org.bstats</pattern>
+                            <shadedPattern>com.github.pulsebeat02.bstats</shadedPattern>
+                        </relocation>
+                        <relocation>
                             <pattern>com.github.pulsebeat02.minecraftmedialibrary</pattern>
                             <shadedPattern>com.github.pulsebeat02.library</shadedPattern>
                         </relocation>
