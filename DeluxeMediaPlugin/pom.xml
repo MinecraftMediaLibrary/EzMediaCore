@@ -55,6 +55,7 @@
             <groupId>com.github.pulsebeat02</groupId>
             <artifactId>MinecraftMediaLibrary</artifactId>
             <version>${project.parent.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.bstats</groupId>
