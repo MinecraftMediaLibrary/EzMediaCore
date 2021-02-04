@@ -9,35 +9,14 @@
         <groupId>com.github.pulsebeat02</groupId>
         <version>RELEASE-1.4.0</version>
     </parent>
+    <!-- This module stores all the library code -->
     <artifactId>MinecraftMediaLibrary</artifactId>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
     <dependencies>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
             <version>1.16.5-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.pulsebeat02</groupId>
-            <artifactId>MinecraftMediaLibrary-NMS</artifactId>
-            <version>RELEASE-1.4.0</version>
         </dependency>
         <dependency>
             <groupId>uk.co.caprica</groupId>

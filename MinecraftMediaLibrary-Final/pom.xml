@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>MinecraftMediaLibrary-Parent</artifactId>
+        <groupId>com.github.pulsebeat02</groupId>
+        <version>RELEASE-1.4.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <!-- This module stores the code for the NMS Modules and API to avoid Circular Dependencies -->
+    <artifactId>MinecraftMediaLibrary-Final</artifactId>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>com.github.pulsebeat02</groupId>
+            <artifactId>MinecraftMediaLibrary</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.pulsebeat02</groupId>
+            <artifactId>MinecraftMediaLibrary-NMS</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+</project>
