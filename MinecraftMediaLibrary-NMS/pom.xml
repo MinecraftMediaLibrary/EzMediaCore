@@ -104,10 +104,5 @@
             <artifactId>v1_8_R1</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.pulsebeat02</groupId>
-            <artifactId>v1_7_R4</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
     </dependencies>
 </project>
