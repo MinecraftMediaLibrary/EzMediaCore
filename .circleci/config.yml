@@ -18,19 +18,19 @@ jobs:
             - ~/.m2/
           key: v1-dependencies-{{ checksum "pom.xml" }}
       - run: wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
-      - run: java -jar BuildTools.jar --rev 1.8
-      - run: java -jar BuildTools.jar --rev 1.8.3
-      - run: java -jar BuildTools.jar --rev 1.8.8
-      - run: java -jar BuildTools.jar --rev 1.9.2
-      - run: java -jar BuildTools.jar --rev 1.9.4
-      - run: java -jar BuildTools.jar --rev 1.10.2
-      - run: java -jar BuildTools.jar --rev 1.11.2
-      - run: java -jar BuildTools.jar --rev 1.12.2
-      - run: java -jar BuildTools.jar --rev 1.13
-      - run: java -jar BuildTools.jar --rev 1.13.2
-      - run: java -jar BuildTools.jar --rev 1.14.4
-      - run: java -jar BuildTools.jar --rev 1.15.2
-      - run: java -jar BuildTools.jar --rev 1.16.1
-      - run: java -jar BuildTools.jar --rev 1.16.3
-      - run: java -jar BuildTools.jar --rev 1.16.4
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.8-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.8 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.8.3-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.8.3 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.8.8-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.8.8 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.9.2-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.9.2 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.9.4-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.9.4 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.10.2-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.10.2 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.11.2-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.11.2 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.12.2-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.12.2 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.13-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.13 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.13.2-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.13.2 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.14.4-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.14.4 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.15.2-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.15.2 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.16.1-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.16.1 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.16.3-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.16.3 >> /dev/null 2>&1
+      - run: ls ~/.m2/repository/org/spigotmc/spigot/1.16.4-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.16.4 >> /dev/null 2>&1
       - run: mvn clean package
