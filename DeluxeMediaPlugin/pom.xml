@@ -9,6 +9,10 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>DeluxeMediaPlugin</artifactId>
+    <!--
+    You may ask, why a obfuscator? Well it's so people who use decompilers look more of a dumbass.
+    Yes, it's a mood, but it's effective.
+    -->
     <build>
         <plugins>
             <plugin>
