@@ -1,7 +1,4 @@
 [![CircleCI](https://img.shields.io/circleci/build/github/PulseBeat02/MinecraftMediaLibrary?style=for-the-badge)](https://app.circleci.com/pipelines/github/PulseBeat02/MinecraftMediaLibrary)
-[![Discord](https://img.shields.io/discord/775376080546693120.svg?style=for-the-badge)](https://discord.gg/d7qfcUwhex)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)](https://www.gnu.org/licenses/gpl-3.0)
-## MinecraftMediaLibrary
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/PulseBeat02/MinecraftMediaLibrary)
 
