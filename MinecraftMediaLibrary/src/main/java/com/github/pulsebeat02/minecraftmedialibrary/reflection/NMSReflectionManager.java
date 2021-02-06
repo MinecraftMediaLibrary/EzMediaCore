@@ -17,7 +17,7 @@ public class NMSReflectionManager {
     public static PacketHandler getNewPacketHandlerInstance() {
         try {
             Logger.info("Loading NMS Class for Version " + VERSION);
-            final Class<?> clazz = Class.forName("com.github.pulsebeat02.minecraftmedialibrary.nms.impl" + VERSION + ".NMSMapPacketIntercepter");
+            final Class<?> clazz = Class.forName("com.github.pulsebeat02.minecraftmedialibrary.nms.impl." + VERSION + ".NMSMapPacketIntercepter");
             return (PacketHandler) clazz.getDeclaredConstructor().newInstance();
         } catch (final ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             Logger.error("The Server Version you are using (" + VERSION + ") is not yet supported by MinecraftMediaLibrary!");
