@@ -46,6 +46,7 @@ public class Logger {
         if (VERBOSE) {
             try {
                 WRITER.write(line);
+                WRITER.flush();
             } catch (final IOException exception) {
                 exception.printStackTrace();
             }
