@@ -14,6 +14,8 @@ import java.util.logging.Logger;
 
 public class DeluxeMediaPlugin extends JavaPlugin {
 
+    public static boolean OUTDATED = false;
+
     private MinecraftMediaLibrary library;
     private Logger logger;
     private PluginCommand dither;
@@ -22,13 +24,17 @@ public class DeluxeMediaPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        logger = getLogger();
-        logger.info(ChatColor.GOLD + "DeluxeMediaPlugin is Initializing");
-        logger.info(ChatColor.GOLD + "Loading MinecraftMediaLibrary Instance...");
-        library = new MinecraftMediaLibrary(this, getDataFolder().getPath(), true);
-        registerCommands();
-        final Metrics metrics = new Metrics(this, 10229);
-        logger.info(ChatColor.GOLD + "Finished Loading Instance and Plugin");
+        if (!OUTDATED) {
+            logger = getLogger();
+            logger.info(ChatColor.GOLD + "DeluxeMediaPlugin is Initializing");
+            logger.info(ChatColor.GOLD + "Loading MinecraftMediaLibrary Instance...");
+            library = new MinecraftMediaLibrary(this, getDataFolder().getPath(), true);
+            registerCommands();
+            final Metrics metrics = new Metrics(this, 10229);
+            logger.info(ChatColor.GOLD + "Finished Loading Instance and Plugin");
+        } else {
+            logger.severe("Plugin cannot load until server version is at least 1.8");
+        }
     }
 
     @Override

@@ -20,12 +20,12 @@ import java.util.concurrent.CompletableFuture;
 public class MinecraftMediaLibrary {
 
     private final Plugin plugin;
-    private final TinyProtocol protocol;
     private final String parent;
-    private final PacketHandler handler;
-    private final boolean vlcj;
+    private boolean vlcj;
 
     private final PlayerJoinLeaveHandler listener;
+    private final PacketHandler handler;
+    private final TinyProtocol protocol;
 
     public MinecraftMediaLibrary(@NotNull final Plugin plugin,
                                  @NotNull final String path,
@@ -42,7 +42,7 @@ public class MinecraftMediaLibrary {
                 return handler.onPacketInterceptIn(player, packet);
             }
         };
-        this.handler = NMSReflectionManager.getNewPacketHandlerInstance();
+        this.handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
         this.parent = path;
         this.vlcj = isUsingVLCJ;
         this.listener = new PlayerJoinLeaveHandler(this);
@@ -57,10 +57,18 @@ public class MinecraftMediaLibrary {
     }
 
     private void asyncTasks() {
-        new DependencyManagement().installAndLoad();
-        new JaveDependencyHandler().installDependency();
+        DependencyManagement dependencyManagement = new DependencyManagement();
+        dependencyManagement.installAndLoad();
+        JaveDependencyHandler javeDependencyHandler = new JaveDependencyHandler();
+        javeDependencyHandler.installDependency();
         if (vlcj) {
-            new MediaPlayerFactory();
+            try {
+                new MediaPlayerFactory();
+            } catch (final Exception e) {
+                Logger.error("The user does not have VLCJ installed! This is a very fatal error. Switching" +
+                        "to basic Video Player instead.");
+                vlcj = false;
+            }
         }
     }
 

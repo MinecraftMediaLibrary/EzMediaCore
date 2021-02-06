@@ -1,6 +1,7 @@
 package com.github.pulsebeat02.deluxemediaplugin.utility;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.google.common.collect.ImmutableSet;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -12,31 +13,30 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 public class CommandUtilities {
 
-    private static final HashMap<String, Command> knownCommands;
+    private static HashMap<String, Command> knownCommands = null;
 
     static {
-        boolean usingLegacy = false;
         final String ver = Bukkit.getVersion();
-        final Set<String> legacyVersions = ImmutableSet.of("1.8", "1.9", "1.10", "1.11", "1.12");
-        for (final String str : legacyVersions) {
-            if (ver.contains(str)) {
-                usingLegacy = true;
-                break;
-            }
-        }
-        if (usingLegacy) {
+        if (Pattern.compile("1\\.(?:8|9|10|11|12)").matcher(ver).matches()) {
             final Object result = getPrivateFieldLegacy(Bukkit.getServer().getPluginManager(), "commandMap");
             final SimpleCommandMap commandMap = (SimpleCommandMap) result;
             final Object map = getPrivateFieldLegacy(Objects.requireNonNull(commandMap), "knownCommands");
             knownCommands = (HashMap<String, Command>) map;
-        } else {
+        } else if (Pattern.compile("1\\.(?:13|14|15|16|17)").matcher(ver).matches()) {
             final Object result = getPrivateField(Bukkit.getServer().getPluginManager(), "commandMap");
             final SimpleCommandMap commandMap = (SimpleCommandMap) result;
             final Object map = getPrivateField(Objects.requireNonNull(commandMap), "knownCommands");
             knownCommands = (HashMap<String, Command>) map;
+        } else {
+            Bukkit.getLogger().log(Level.SEVERE, "[DeluxeMediaPlugin] You are using a severely" +
+                    "outdated version of Minecraft. Please update as versions below 1.8 are not" +
+                    "supported. We are sorry of the inconvenience.");
+            DeluxeMediaPlugin.OUTDATED = true;
         }
     }
 

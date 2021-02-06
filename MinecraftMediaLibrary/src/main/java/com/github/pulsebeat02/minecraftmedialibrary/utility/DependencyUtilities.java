@@ -91,6 +91,8 @@ public class DependencyUtilities {
                 cl.loadClass(className);
             } catch (final ClassNotFoundException | NoClassDefFoundError ignored) {
                 Logger.error("Could NOT Load " + className);
+                Logger.info("If the class which couldn't be loaded is in in a META-INF folder or an OS" +
+                        "specific class, it is completely fine to leave this error alone.");
             }
         }
         Logger.info("Finished Loading Dependency " + file.getName());
