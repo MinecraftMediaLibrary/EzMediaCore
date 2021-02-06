@@ -41,7 +41,7 @@ public class DitherCommand extends AbstractCommand implements CommandExecutor {
 
     @Override
     public List<String> onTabComplete(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
-        if (args.length == 0) {
+        if (args.length == 1) {
             return Collections.singletonList("list");
         }
         return null;

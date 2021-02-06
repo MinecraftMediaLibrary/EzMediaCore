@@ -227,15 +227,15 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
 
     @Override
     public List<String> onTabComplete(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
-        if (args.length == 0) {
+        if (args.length == 1) {
             return Arrays.asList("start", "stop", "load", "set");
-        } else if (args.length == 1) {
+        } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("set")) {
                 return Arrays.asList("screen-dimension", "itemframe-dimension", "starting-map", "dither");
             } else if (args[0].equalsIgnoreCase("load")) {
                 return Collections.singletonList("[Youtube Link or Video File Here]");
             }
-        } else if (args.length == 2) {
+        } else if (args.length == 3) {
             if (args[1].equalsIgnoreCase("screen-dimension")) {
                 return Collections.singletonList("[Width:Height]");
             } else if (args[1].equalsIgnoreCase("itemframe-dimension")) {

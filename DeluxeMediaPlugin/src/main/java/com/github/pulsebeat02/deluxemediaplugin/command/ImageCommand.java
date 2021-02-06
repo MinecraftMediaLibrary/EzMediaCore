@@ -161,15 +161,15 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
 
     @Override
     public List<String> onTabComplete(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
-        if (args.length == 0) {
+        if (args.length == 1) {
             return Arrays.asList("rickroll", "reset", "set");
-        } else if (args.length == 1) {
+        } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("reset")) {
                 return Arrays.asList("all", "map");
             } else if (args[0].equalsIgnoreCase("set")) {
                 return Arrays.asList("map", "dimensions");
             }
-        } else if (args.length == 2) {
+        } else if (args.length == 3) {
             if (args[1].equalsIgnoreCase("map")) {
                 if (args[0].equalsIgnoreCase("reset") || args[0].equalsIgnoreCase("set")) {
                     return Collections.singletonList("[Map ID]");
@@ -177,7 +177,7 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
             } else if (args[1].equalsIgnoreCase("dimensions")) {
                 return Collections.singletonList("[Width:Height]");
             }
-        } else if (args.length == 3) {
+        } else if (args.length == 4) {
             if (args[0].equalsIgnoreCase("set")) {
                 if (args[1].equalsIgnoreCase("map")) {
                     return Collections.singletonList("[PNG URL Image or File]");
