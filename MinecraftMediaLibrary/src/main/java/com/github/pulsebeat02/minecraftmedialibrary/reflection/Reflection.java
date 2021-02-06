@@ -1,7 +1,5 @@
 package com.github.pulsebeat02.minecraftmedialibrary.reflection;
 
-import org.bukkit.Bukkit;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -9,18 +7,83 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.bukkit.Bukkit;
+
 /**
  * An utility class that simplifies reflection in Bukkit plugins.
  *
  * @author Kristian
  */
 public final class Reflection {
+    /**
+     * An interface for invoking a specific constructor.
+     */
+    public interface ConstructorInvoker {
+        /**
+         * Invoke a constructor for a specific class.
+         *
+         * @param arguments - the arguments to pass to the constructor.
+         * @return The constructed object.
+         */
+        public Object invoke(Object... arguments);
+    }
+
+    /**
+     * An interface for invoking a specific method.
+     */
+    public interface MethodInvoker {
+        /**
+         * Invoke a method on a specific target object.
+         *
+         * @param target    - the target object, or NULL for a static method.
+         * @param arguments - the arguments to pass to the method.
+         * @return The return value, or NULL if is void.
+         */
+        public Object invoke(Object target, Object... arguments);
+    }
+
+    /**
+     * An interface for retrieving the field content.
+     *
+     * @param <T> - field type.
+     */
+    public interface FieldAccessor<T> {
+        /**
+         * Retrieve the content of a field.
+         *
+         * @param target - the target object, or NULL for a static field.
+         * @return The value of the field.
+         */
+        public T get(Object target);
+
+        /**
+         * Set the content of a field.
+         *
+         * @param target - the target object, or NULL for a static field.
+         * @param value  - the new value of the field.
+         */
+        public void set(Object target, Object value);
+
+        /**
+         * Determine if the given object has this field.
+         *
+         * @param target - the object to test.
+         * @return TRUE if it does, FALSE otherwise.
+         */
+        public boolean hasField(Object target);
+    }
+
     // Deduce the net.minecraft.server.v* package
     private static final String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
     private static final String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
     private static final String VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
+
     // Variable replacement
     private static final Pattern MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
+
+    private Reflection() {
+        // Seal class
+    }
 
     /**
      * Retrieve a field accessor for a specific field type and name.
@@ -97,7 +160,7 @@ public final class Reflection {
                             throw new RuntimeException("Cannot access reflection.", e);
                         }
                     }
-                    
+
                     @Override
                     public boolean hasField(final Object target) {
                         // target instanceof DeclaringClass
@@ -108,9 +171,8 @@ public final class Reflection {
         }
 
         // Search in parent classes
-        if (target.getSuperclass() != null) {
+        if (target.getSuperclass() != null)
             return getField(target.getSuperclass(), name, fieldType, index);
-        }
 
         throw new IllegalArgumentException("Cannot find field with type " + fieldType);
     }
@@ -157,6 +219,7 @@ public final class Reflection {
                     && (returnType == null || method.getReturnType().equals(returnType))
                     && Arrays.equals(method.getParameterTypes(), params)) {
                 method.setAccessible(true);
+
                 return (target, arguments) -> {
                     try {
                         return method.invoke(target, arguments);
@@ -168,9 +231,8 @@ public final class Reflection {
         }
 
         // Search in every superclass
-        if (clazz.getSuperclass() != null) {
+        if (clazz.getSuperclass() != null)
             return getMethod(clazz.getSuperclass(), methodName, params);
-        }
 
         throw new IllegalStateException(String.format("Unable to find method %s (%s).", methodName, Arrays.asList(params)));
     }
@@ -199,6 +261,7 @@ public final class Reflection {
         for (final Constructor<?> constructor : clazz.getDeclaredConstructors()) {
             if (Arrays.equals(constructor.getParameterTypes(), params)) {
                 constructor.setAccessible(true);
+
                 return arguments -> {
                     try {
                         return constructor.newInstance(arguments);
@@ -308,82 +371,22 @@ public final class Reflection {
             String replacement;
 
             // Expand all detected variables
-            if ("nms".equalsIgnoreCase(variable)) {
+            if ("nms".equalsIgnoreCase(variable))
                 replacement = NMS_PREFIX;
-            } else if ("obc".equalsIgnoreCase(variable)) {
+            else if ("obc".equalsIgnoreCase(variable))
                 replacement = OBC_PREFIX;
-            } else if ("version".equalsIgnoreCase(variable)) {
+            else if ("version".equalsIgnoreCase(variable))
                 replacement = VERSION;
-            } else {
+            else
                 throw new IllegalArgumentException("Unknown variable: " + variable);
-            }
 
             // Assume the expanded variables are all packages, and append a dot
-            if (replacement.length() > 0 && matcher.end() < name.length() && name.charAt(matcher.end()) != '.') {
+            if (replacement.length() > 0 && matcher.end() < name.length() && name.charAt(matcher.end()) != '.')
                 replacement += ".";
-            }
             matcher.appendReplacement(output, Matcher.quoteReplacement(replacement));
         }
 
         matcher.appendTail(output);
         return output.toString();
-    }
-
-    /**
-     * An interface for invoking a specific constructor.
-     */
-    public interface ConstructorInvoker {
-        /**
-         * Invoke a constructor for a specific class.
-         *
-         * @param arguments - the arguments to pass to the constructor.
-         * @return The constructed object.
-         */
-        Object invoke(Object... arguments);
-    }
-
-    /**
-     * An interface for invoking a specific method.
-     */
-    public interface MethodInvoker {
-        /**
-         * Invoke a method on a specific target object.
-         *
-         * @param target    - the target object, or NULL for a static method.
-         * @param arguments - the arguments to pass to the method.
-         * @return The return value, or NULL if is void.
-         */
-        Object invoke(Object target, Object... arguments);
-    }
-
-    /**
-     * An interface for retrieving the field content.
-     *
-     * @param <T> - field type.
-     */
-    public interface FieldAccessor<T> {
-        /**
-         * Retrieve the content of a field.
-         *
-         * @param target - the target object, or NULL for a static field.
-         * @return The value of the field.
-         */
-        T get(Object target);
-
-        /**
-         * Set the content of a field.
-         *
-         * @param target - the target object, or NULL for a static field.
-         * @param value  - the new value of the field.
-         */
-        void set(Object target, Object value);
-
-        /**
-         * Determine if the given object has this field.
-         *
-         * @param target - the object to test.
-         * @return TRUE if it does, FALSE otherwise.
-         */
-        boolean hasField(Object target);
     }
 }

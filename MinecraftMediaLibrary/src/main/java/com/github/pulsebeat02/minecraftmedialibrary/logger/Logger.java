@@ -22,9 +22,8 @@ public class Logger {
                 System.out.println("File Created (" + f.getName() + ")");
             } else {
                 System.out.println("Log File Exists Already");
-                FileChannel.open(Paths.get(f.getPath()), StandardOpenOption.WRITE).truncate(0).close();
             }
-            WRITER = new BufferedWriter(new FileWriter(f));
+            WRITER = new BufferedWriter(new FileWriter(f, true));
         } catch (final IOException exception) {
             exception.printStackTrace();
         }

@@ -1,19 +1,11 @@
 package com.github.pulsebeat02.minecraftmedialibrary.reflection;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelPromise;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
@@ -28,11 +20,19 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import com.github.pulsebeat02.minecraftmedialibrary.reflection.Reflection.MethodInvoker;
-import com.github.pulsebeat02.minecraftmedialibrary.reflection.Reflection.FieldAccessor;
+import com.github.pulsebeat02.minecraftmedialibrary.reflection.Reflection.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
 import com.mojang.authlib.GameProfile;
+
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPromise;
 
 /**
  * Represents a very tiny alternative to ProtocolLib.
@@ -55,7 +55,10 @@ public abstract class TinyProtocol {
     private static final Class<Object> serverConnectionClass = Reflection.getUntypedClass("{nms}.ServerConnection");
     private static final FieldAccessor<Object> getMinecraftServer = Reflection.getField("{obc}.CraftServer", minecraftServerClass, 0);
     private static final FieldAccessor<Object> getServerConnection = Reflection.getField(minecraftServerClass, serverConnectionClass, 0);
-    //private static final MethodInvoker getNetworkMarkers = Reflection.getTypedMethod(serverConnectionClass, null, List.class, serverConnectionClass);
+
+    // Stop accessing synthetic methods if possible?
+    private static FieldAccessor<List> networkMarkersB;
+    private static MethodInvoker getNetworkMarkers;
 
     // Packets we have to intercept
     private static final Class<?> PACKET_LOGIN_IN_START = Reflection.getMinecraftClass("PacketLoginInStart");
@@ -63,6 +66,7 @@ public abstract class TinyProtocol {
 
     // Speedup channel lookup
     private final Map<String, Channel> channelLookup = new MapMaker().weakValues().makeMap();
+    private final Map<UUID, Channel> uuidChannelLookup = new MapMaker().weakValues().makeMap();
     private Listener listener;
 
     // Channels that have already been removed
@@ -82,6 +86,20 @@ public abstract class TinyProtocol {
 
     protected volatile boolean closed;
     protected Plugin plugin;
+
+    static {
+        try {
+            networkMarkersB = Reflection.getField(serverConnectionClass, "connectedChannels", List.class);
+        } catch (final Exception exception) {
+            // Not sure what I'm supposed to be catching here...
+        }
+
+        try {
+            getNetworkMarkers = Reflection.getTypedMethod(serverConnectionClass, null, List.class, serverConnectionClass);
+        } catch (final Exception exception) {
+            // ???
+        }
+    }
 
     /**
      * Construct a new instance of TinyProtocol, and start intercepting packets for all connected clients and future clients.
@@ -122,7 +140,7 @@ public abstract class TinyProtocol {
         endInitProtocol = new ChannelInitializer<Channel>() {
 
             @Override
-            protected void initChannel(final Channel channel) throws Exception {
+            protected void initChannel(final Channel channel) {
                 try {
                     // This can take a while, so we need to stop the main thread from interfering
                     synchronized (networkManagers) {
@@ -142,7 +160,7 @@ public abstract class TinyProtocol {
         beginInitProtocol = new ChannelInitializer<Channel>() {
 
             @Override
-            protected void initChannel(final Channel channel) throws Exception {
+            protected void initChannel(final Channel channel) {
                 channel.pipeline().addLast(endInitProtocol);
             }
 
@@ -151,7 +169,7 @@ public abstract class TinyProtocol {
         serverChannelHandler = new ChannelInboundHandlerAdapter() {
 
             @Override
-            public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
+            public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
                 final Channel channel = (Channel) msg;
 
                 // Prepare to initialize ths channel
@@ -200,7 +218,11 @@ public abstract class TinyProtocol {
         boolean looking = true;
 
         // We need to synchronize against this list
-        //networkManagers = (List<Object>) getNetworkMarkers.invoke(null, serverConnection);
+        if (getNetworkMarkers == null) {
+            networkManagers = (List<Object>) networkMarkersB.get(serverConnection);
+        } else {
+            networkManagers = (List<Object>) getNetworkMarkers.invoke(null, serverConnection);
+        }
         createServerChannelHandler();
 
         // Find the correct list, or implicitly throw an exception
@@ -208,7 +230,7 @@ public abstract class TinyProtocol {
             final List<Object> list = Reflection.getField(serverConnection.getClass(), List.class, i).get(serverConnection);
 
             for (final Object item : list) {
-                if (!ChannelFuture.class.isInstance(item))
+                if (!(item instanceof ChannelFuture))
                     break;
 
                 // Channel future that contains the server connection
@@ -229,17 +251,12 @@ public abstract class TinyProtocol {
             final ChannelPipeline pipeline = serverChannel.pipeline();
 
             // Remove channel handler
-            serverChannel.eventLoop().execute(new Runnable() {
-
-                @Override
-                public void run() {
-                    try {
-                        pipeline.remove(serverChannelHandler);
-                    } catch (final NoSuchElementException e) {
-                        // That's fine
-                    }
+            serverChannel.eventLoop().execute(() -> {
+                try {
+                    pipeline.remove(serverChannelHandler);
+                } catch (final NoSuchElementException e) {
+                    // That's fine
                 }
-
             });
         }
     }
@@ -398,8 +415,32 @@ public abstract class TinyProtocol {
 
             channelLookup.put(player.getName(), channel = getChannel.get(manager));
         }
+        if (!uuidChannelLookup.containsKey(player.getUniqueId())) {
+            uuidChannelLookup.put(player.getUniqueId(), channel);
+        }
 
         return channel;
+    }
+
+    /**
+     * Retrieve the netty channel for async purposes
+     *
+     * @param uuid             The uuid of the player
+     * @param playerConnection PlayerConnection object
+     * @return The Netty channel
+     */
+    public Channel getChannel(final UUID uuid, final Object playerConnection) {
+        Channel channel = uuidChannelLookup.get(uuid);
+
+        if (channel == null && playerConnection != null) {
+            uuidChannelLookup.put(uuid, channel = getChannel.get(getManager.get(playerConnection)));
+        }
+
+        return channel;
+    }
+
+    public void removeChannel(final Player player) {
+        uuidChannelLookup.remove(player.getUniqueId());
     }
 
     /**
@@ -425,14 +466,7 @@ public abstract class TinyProtocol {
         }
 
         // See ChannelInjector in ProtocolLib, line 590
-        channel.eventLoop().execute(new Runnable() {
-
-            @Override
-            public void run() {
-                channel.pipeline().remove(handlerName);
-            }
-
-        });
+        channel.eventLoop().execute(() -> channel.pipeline().remove(handlerName));
     }
 
     /**

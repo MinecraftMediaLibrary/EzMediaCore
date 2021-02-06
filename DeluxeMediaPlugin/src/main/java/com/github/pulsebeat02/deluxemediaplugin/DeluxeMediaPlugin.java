@@ -27,7 +27,7 @@ public class DeluxeMediaPlugin extends JavaPlugin {
         logger.info(ChatColor.GOLD + "Loading MinecraftMediaLibrary Instance...");
         library = new MinecraftMediaLibrary(this, getDataFolder().getPath(), true);
         registerCommands();
-        Metrics metrics = new Metrics(this, 10229);
+        final Metrics metrics = new Metrics(this, 10229);
         logger.info(ChatColor.GOLD + "Finished Loading Instance and Plugin");
     }
 
@@ -35,7 +35,11 @@ public class DeluxeMediaPlugin extends JavaPlugin {
     public void onDisable() {
         logger.info(ChatColor.GOLD + "DeluxeMediaPlugin is Shutting Down");
         logger.info(ChatColor.GOLD + "Shutting Down MinecraftMediaLibrary Instance...");
-        library.shutdown();
+        if (library != null) {
+            library.shutdown();
+        } else {
+            logger.severe("WARNING: MinecraftMediaLibrary instance is null... something is fishy going on.");
+        }
         CommandUtilities.unRegisterBukkitCommand(this, dither);
         CommandUtilities.unRegisterBukkitCommand(this, video);
         CommandUtilities.unRegisterBukkitCommand(this, image);
