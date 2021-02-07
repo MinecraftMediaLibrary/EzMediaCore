@@ -22,7 +22,7 @@ public class NMSReflectionManager {
             final Class<?> clazz = Class.forName("com.github.pulsebeat02.minecraftmedialibrary.nms.impl." + VERSION + ".NMSMapPacketIntercepter");
             return (PacketHandler) clazz.getDeclaredConstructor().newInstance();
         } catch (final ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            Logger.error("The Server Version you are using (" + VERSION + ") is not yet supported by MinecraftMediaLibrary!" +
+            Logger.error("The Server Version you are using (" + VERSION + ") is not yet supported by MinecraftMediaLibrary! " +
                     "Shutting down due to the Fatal Error");
             library.shutdown();
             return null;

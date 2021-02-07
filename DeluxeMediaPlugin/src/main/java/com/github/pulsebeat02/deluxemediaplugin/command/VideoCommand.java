@@ -213,7 +213,7 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                         }
                     }
                     if (found) {
-                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Set dither type to " + type));
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Set dither type to " + ChatColor.AQUA + type));
                     } else {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Could not find dither type " + type));
                     }

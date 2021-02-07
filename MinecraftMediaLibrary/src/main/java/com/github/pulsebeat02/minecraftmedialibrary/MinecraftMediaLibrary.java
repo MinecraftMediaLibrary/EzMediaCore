@@ -57,15 +57,15 @@ public class MinecraftMediaLibrary {
     }
 
     private void asyncTasks() {
-        DependencyManagement dependencyManagement = new DependencyManagement();
+        final DependencyManagement dependencyManagement = new DependencyManagement();
         dependencyManagement.installAndLoad();
-        JaveDependencyHandler javeDependencyHandler = new JaveDependencyHandler();
+        final JaveDependencyHandler javeDependencyHandler = new JaveDependencyHandler();
         javeDependencyHandler.installDependency();
         if (vlcj) {
             try {
                 new MediaPlayerFactory();
             } catch (final Exception e) {
-                Logger.error("The user does not have VLCJ installed! This is a very fatal error. Switching" +
+                Logger.error("The user does not have VLCJ installed! This is a very fatal error. Switching " +
                         "to basic Video Player instead.");
                 vlcj = false;
             }

@@ -51,7 +51,7 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
             }
         } else if (args.length == 1) {
             if (args[0].equalsIgnoreCase("rickroll")) {
-                final File f = FileUtilities.downloadImageFile("https://lh3.googleusercontent.com/proxy/_H3t3D3huCELuETTgKOU5uGrjxSZ4uT2B0Y1wtrvEaA9XByYfg726rzlFh9ppcGHrO-Gv7_nD6Z6DbP5PQWrQ2NGXPns4TUK8xUUkNbJfdJCu2Lwc-31XBa-LDcU", getPlugin().getDataFolder().getAbsolutePath());
+                final File f = FileUtilities.downloadImageFile("https://images.news18.com/ibnlive/uploads/2020/12/1607660925_untitled-design-2020-12-11t095722.206.png", getPlugin().getDataFolder().getAbsolutePath());
                 new MapImage(getPlugin().getLibrary(), 69, f, width, height).drawImage();
             }
         } else if (args.length == 2) {

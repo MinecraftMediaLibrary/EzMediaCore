@@ -33,8 +33,8 @@ public class CommandUtilities {
             final Object map = getPrivateField(Objects.requireNonNull(commandMap), "knownCommands");
             knownCommands = (HashMap<String, Command>) map;
         } else {
-            Bukkit.getLogger().log(Level.SEVERE, "[DeluxeMediaPlugin] You are using a severely" +
-                    "outdated version of Minecraft. Please update as versions below 1.8 are not" +
+            Bukkit.getLogger().log(Level.SEVERE, "[DeluxeMediaPlugin] You are using a severely " +
+                    "outdated version of Minecraft. Please update as versions below 1.8 are not " +
                     "supported. We are sorry of the inconvenience.");
             DeluxeMediaPlugin.OUTDATED = true;
         }
