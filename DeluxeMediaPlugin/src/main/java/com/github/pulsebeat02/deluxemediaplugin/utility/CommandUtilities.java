@@ -22,12 +22,12 @@ public class CommandUtilities {
 
     static {
         final String ver = Bukkit.getVersion();
-        if (Pattern.compile("1\\.(?:8|9|10|11|12)").matcher(ver).matches()) {
+        if (Pattern.compile("1\\.(?:8|9|10|11|12)").matcher(ver).find()) {
             final Object result = getPrivateFieldLegacy(Bukkit.getServer().getPluginManager(), "commandMap");
             final SimpleCommandMap commandMap = (SimpleCommandMap) result;
             final Object map = getPrivateFieldLegacy(Objects.requireNonNull(commandMap), "knownCommands");
             knownCommands = (HashMap<String, Command>) map;
-        } else if (Pattern.compile("1\\.(?:13|14|15|16|17)").matcher(ver).matches()) {
+        } else if (Pattern.compile("1\\.(?:13|14|15|16|17)").matcher(ver).find()) {
             final Object result = getPrivateField(Bukkit.getServer().getPluginManager(), "commandMap");
             final SimpleCommandMap commandMap = (SimpleCommandMap) result;
             final Object map = getPrivateField(Objects.requireNonNull(commandMap), "knownCommands");
