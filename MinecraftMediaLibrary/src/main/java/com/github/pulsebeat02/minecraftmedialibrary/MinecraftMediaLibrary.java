@@ -21,11 +21,10 @@ public class MinecraftMediaLibrary {
 
     private final Plugin plugin;
     private final String parent;
-    private boolean vlcj;
-
     private final PlayerJoinLeaveHandler listener;
     private final PacketHandler handler;
     private final TinyProtocol protocol;
+    private boolean vlcj;
 
     public MinecraftMediaLibrary(@NotNull final Plugin plugin,
                                  @NotNull final String path,
@@ -33,12 +32,12 @@ public class MinecraftMediaLibrary {
         this.plugin = plugin;
         this.protocol = new TinyProtocol(plugin) {
             @Override
-            public Object onPacketOutAsync(final Player player, final Channel channel, final Object packet) {
+            public Object onPacketOutAsync(@NotNull final Player player, @NotNull final Channel channel, @NotNull final Object packet) {
                 return handler.onPacketInterceptOut(player, packet);
             }
 
             @Override
-            public Object onPacketInAsync(final Player player, final Channel channel, final Object packet) {
+            public Object onPacketInAsync(@NotNull final Player player, @NotNull final Channel channel, @NotNull final Object packet) {
                 return handler.onPacketInterceptIn(player, packet);
             }
         };

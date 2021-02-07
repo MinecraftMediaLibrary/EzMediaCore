@@ -1,8 +1,6 @@
 package com.github.pulsebeat02.deluxemediaplugin.utility;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import com.google.common.collect.ImmutableSet;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.PluginCommand;
@@ -12,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Objects;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
@@ -54,7 +51,7 @@ public class CommandUtilities {
 
     }
 
-    private static Object getPrivateField(final Object object, final String field) {
+    private static Object getPrivateField(@NotNull final Object object, @NotNull final String field) {
         try {
             final Class<?> clazz = object.getClass();
             final Field objectField = field.equals("commandMap") ? clazz.getDeclaredField(field)
@@ -69,7 +66,7 @@ public class CommandUtilities {
         return null;
     }
 
-    private static Object getPrivateFieldLegacy(final Object object, final String field) {
+    private static Object getPrivateFieldLegacy(@NotNull final Object object, @NotNull final String field) {
         try {
             final Class<?> clazz = object.getClass();
             final Field objectField = clazz.getDeclaredField(field);

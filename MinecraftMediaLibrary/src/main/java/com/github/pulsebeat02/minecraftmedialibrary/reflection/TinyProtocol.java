@@ -1,14 +1,18 @@
 package com.github.pulsebeat02.minecraftmedialibrary.reflection;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-
+import com.github.pulsebeat02.minecraftmedialibrary.reflection.Reflection.FieldAccessor;
+import com.github.pulsebeat02.minecraftmedialibrary.reflection.Reflection.MethodInvoker;
+import com.google.common.collect.Lists;
+import com.google.common.collect.MapMaker;
+import com.mojang.authlib.GameProfile;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPromise;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -20,19 +24,14 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import com.github.pulsebeat02.minecraftmedialibrary.reflection.Reflection.*;
-import com.google.common.collect.Lists;
-import com.google.common.collect.MapMaker;
-import com.mojang.authlib.GameProfile;
-
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelPromise;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 /**
  * Represents a very tiny alternative to ProtocolLib.
@@ -55,37 +54,12 @@ public abstract class TinyProtocol {
     private static final Class<Object> serverConnectionClass = Reflection.getUntypedClass("{nms}.ServerConnection");
     private static final FieldAccessor<Object> getMinecraftServer = Reflection.getField("{obc}.CraftServer", minecraftServerClass, 0);
     private static final FieldAccessor<Object> getServerConnection = Reflection.getField(minecraftServerClass, serverConnectionClass, 0);
-
-    // Stop accessing synthetic methods if possible?
-    private static FieldAccessor<List> networkMarkersB;
-    private static MethodInvoker getNetworkMarkers;
-
     // Packets we have to intercept
     private static final Class<?> PACKET_LOGIN_IN_START = Reflection.getMinecraftClass("PacketLoginInStart");
     private static final FieldAccessor<GameProfile> getGameProfile = Reflection.getField(PACKET_LOGIN_IN_START, GameProfile.class, 0);
-
-    // Speedup channel lookup
-    private final Map<String, Channel> channelLookup = new MapMaker().weakValues().makeMap();
-    private final Map<UUID, Channel> uuidChannelLookup = new MapMaker().weakValues().makeMap();
-    private Listener listener;
-
-    // Channels that have already been removed
-    private final Set<Channel> uninjectedChannels = Collections.newSetFromMap(new MapMaker().weakKeys().<Channel, Boolean>makeMap());
-
-    // List of network markers
-    private List<Object> networkManagers;
-
-    // Injected channel handlers
-    private final List<Channel> serverChannels = Lists.newArrayList();
-    private ChannelInboundHandlerAdapter serverChannelHandler;
-    private ChannelInitializer<Channel> beginInitProtocol;
-    private ChannelInitializer<Channel> endInitProtocol;
-
-    // Current handler name
-    private final String handlerName;
-
-    protected volatile boolean closed;
-    protected Plugin plugin;
+    // Stop accessing synthetic methods if possible?
+    private static FieldAccessor<List> networkMarkersB;
+    private static MethodInvoker getNetworkMarkers;
 
     static {
         try {
@@ -100,6 +74,24 @@ public abstract class TinyProtocol {
             // ???
         }
     }
+
+    // Speedup channel lookup
+    private final Map<String, Channel> channelLookup = new MapMaker().weakValues().makeMap();
+    private final Map<UUID, Channel> uuidChannelLookup = new MapMaker().weakValues().makeMap();
+    // Channels that have already been removed
+    private final Set<Channel> uninjectedChannels = Collections.newSetFromMap(new MapMaker().weakKeys().<Channel, Boolean>makeMap());
+    // Injected channel handlers
+    private final List<Channel> serverChannels = Lists.newArrayList();
+    // Current handler name
+    private final String handlerName;
+    protected volatile boolean closed;
+    protected Plugin plugin;
+    private Listener listener;
+    // List of network markers
+    private List<Object> networkManagers;
+    private ChannelInboundHandlerAdapter serverChannelHandler;
+    private ChannelInitializer<Channel> beginInitProtocol;
+    private ChannelInitializer<Channel> endInitProtocol;
 
     /**
      * Construct a new instance of TinyProtocol, and start intercepting packets for all connected clients and future clients.

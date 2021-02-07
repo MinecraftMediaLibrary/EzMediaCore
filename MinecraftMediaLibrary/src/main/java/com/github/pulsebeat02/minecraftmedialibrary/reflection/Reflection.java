@@ -1,5 +1,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.reflection;
 
+import org.bukkit.Bukkit;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -7,77 +9,16 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.bukkit.Bukkit;
-
 /**
  * An utility class that simplifies reflection in Bukkit plugins.
  *
  * @author Kristian
  */
 public final class Reflection {
-    /**
-     * An interface for invoking a specific constructor.
-     */
-    public interface ConstructorInvoker {
-        /**
-         * Invoke a constructor for a specific class.
-         *
-         * @param arguments - the arguments to pass to the constructor.
-         * @return The constructed object.
-         */
-        public Object invoke(Object... arguments);
-    }
-
-    /**
-     * An interface for invoking a specific method.
-     */
-    public interface MethodInvoker {
-        /**
-         * Invoke a method on a specific target object.
-         *
-         * @param target    - the target object, or NULL for a static method.
-         * @param arguments - the arguments to pass to the method.
-         * @return The return value, or NULL if is void.
-         */
-        public Object invoke(Object target, Object... arguments);
-    }
-
-    /**
-     * An interface for retrieving the field content.
-     *
-     * @param <T> - field type.
-     */
-    public interface FieldAccessor<T> {
-        /**
-         * Retrieve the content of a field.
-         *
-         * @param target - the target object, or NULL for a static field.
-         * @return The value of the field.
-         */
-        public T get(Object target);
-
-        /**
-         * Set the content of a field.
-         *
-         * @param target - the target object, or NULL for a static field.
-         * @param value  - the new value of the field.
-         */
-        public void set(Object target, Object value);
-
-        /**
-         * Determine if the given object has this field.
-         *
-         * @param target - the object to test.
-         * @return TRUE if it does, FALSE otherwise.
-         */
-        public boolean hasField(Object target);
-    }
-
     // Deduce the net.minecraft.server.v* package
     private static final String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
     private static final String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
     private static final String VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
-
     // Variable replacement
     private static final Pattern MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
 
@@ -388,5 +329,63 @@ public final class Reflection {
 
         matcher.appendTail(output);
         return output.toString();
+    }
+
+    /**
+     * An interface for invoking a specific constructor.
+     */
+    public interface ConstructorInvoker {
+        /**
+         * Invoke a constructor for a specific class.
+         *
+         * @param arguments - the arguments to pass to the constructor.
+         * @return The constructed object.
+         */
+        public Object invoke(Object... arguments);
+    }
+
+    /**
+     * An interface for invoking a specific method.
+     */
+    public interface MethodInvoker {
+        /**
+         * Invoke a method on a specific target object.
+         *
+         * @param target    - the target object, or NULL for a static method.
+         * @param arguments - the arguments to pass to the method.
+         * @return The return value, or NULL if is void.
+         */
+        public Object invoke(Object target, Object... arguments);
+    }
+
+    /**
+     * An interface for retrieving the field content.
+     *
+     * @param <T> - field type.
+     */
+    public interface FieldAccessor<T> {
+        /**
+         * Retrieve the content of a field.
+         *
+         * @param target - the target object, or NULL for a static field.
+         * @return The value of the field.
+         */
+        public T get(Object target);
+
+        /**
+         * Set the content of a field.
+         *
+         * @param target - the target object, or NULL for a static field.
+         * @param value  - the new value of the field.
+         */
+        public void set(Object target, Object value);
+
+        /**
+         * Determine if the given object has this field.
+         *
+         * @param target - the object to test.
+         * @return TRUE if it does, FALSE otherwise.
+         */
+        public boolean hasField(Object target);
     }
 }
