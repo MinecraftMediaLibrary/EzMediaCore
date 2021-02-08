@@ -30,7 +30,7 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
     private int height;
 
     public ImageCommand(@NotNull final DeluxeMediaPlugin plugin) {
-        super(plugin);
+        super(plugin, "image", "");
         this.images = new HashSet<>();
         this.listen = new HashSet<>();
         this.width = 1;
@@ -38,16 +38,7 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
     }
 
     @Override
-    public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
-        if (dependenciesLoaded()) {
-            sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Please wait some time to allow dependencies to be downloaded. We will " +
-                    "notify you once they are done."));
-            return true;
-        }
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "You must be a player to use this command!"));
-            return true;
-        }
+    public void performCommandTask(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
         if (args.length == 0) {
             sender.sendMessage(ChatColor.GOLD + "Current Images Loaded");
             sender.sendMessage(ChatColor.GREEN + "[Map ID] " + ChatColor.GOLD + ":" + ChatColor.AQUA + " [MRL]");
@@ -74,14 +65,14 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
                         id = Long.parseLong(args[2]);
                     } catch (final NumberFormatException e) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is not a valid argument! (Must be Integer between 0 - 4,294,967,296)"));
-                        return true;
+                        return;
                     }
                     if (id < 0L) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is too low! (Must be Integer between 0 - 4,294,967,296)"));
-                        return true;
+                        return;
                     } else if (id > 4294967296L) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is too hight! (Must be Integer between 0 - 4,294,967,296)"));
-                        return true;
+                        return;
                     }
                     for (final MapImage image : images) {
                         if (image.getMap() == id) {
@@ -101,14 +92,14 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
                         id = Long.parseLong(args[2]);
                     } catch (final NumberFormatException e) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is not a valid argument! (Must be Integer between 0 - 4,294,967,296)"));
-                        return true;
+                        return;
                     }
                     if (id < 0L) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is too low! (Must be Integer between 0 - 4,294,967,296)"));
-                        return true;
+                        return;
                     } else if (id > 4294967296L) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is too high! (Must be Integer between 0 - 4,294,967,296)"));
-                        return true;
+                        return;
                     }
                     final String mrl = args[3];
                     if ((mrl.startsWith("http://")) || mrl.startsWith("https://") && mrl.endsWith(".png")) {
@@ -130,14 +121,14 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
                         w = Integer.parseInt(args[2]);
                     } catch (final NumberFormatException e) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is not a valid argument! (Must be Integer)"));
-                        return true;
+                        return;
                     }
                     final int h;
                     try {
                         h = Integer.parseInt(args[2]);
                     } catch (final NumberFormatException e) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is not a valid argument! (Must be Integer)"));
-                        return true;
+                        return;
                     }
                     width = w;
                     height = h;
@@ -145,7 +136,6 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
                 }
             }
         }
-        return true;
     }
 
     @EventHandler

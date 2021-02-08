@@ -50,21 +50,12 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
     private long startingMap;
 
     public VideoCommand(@NotNull final DeluxeMediaPlugin plugin) {
-        super(plugin);
+        super(plugin, "video", "");
         this.dither = DitherSetting.SIERRA_FILTER_LITE_DITHER.getHolder();
     }
 
     @Override
-    public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
-        if (dependenciesLoaded()) {
-            sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Please wait some time to allow dependencies to be downloaded. We will " +
-                    "notify you once they are done."));
-            return true;
-        }
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "You must be a player to use this command!"));
-            return true;
-        }
+    public void performCommandTask(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
         if (args.length == 0) {
             if (player == null) {
                 sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "There isn't a video currently playing!"));
@@ -172,7 +163,6 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                     } else {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "You have HTTP set false by default. You cannot " +
                                 "play Youtube videos without a daemon"));
-                        return true;
                     }
                     sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully loaded video " + mrl));
                 }
@@ -189,14 +179,14 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                         width = Integer.parseInt(dimensions[0]);
                     } catch (final NumberFormatException e) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + dimensions[0] + "' isn't a valid width! (Must be Integer)"));
-                        return true;
+                        return;
                     }
                     final int height;
                     try {
                         height = Integer.parseInt(dimensions[1]);
                     } catch (final NumberFormatException e) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + dimensions[0] + "' isn't a valid height! (Must be Integer)"));
-                        return true;
+                        return;
                     }
                     player.setHeight(height);
                     player.setWidth(width);
@@ -208,14 +198,14 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                         width = Integer.parseInt(dimensions[0]);
                     } catch (final NumberFormatException e) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + dimensions[0] + "' isn't a valid width! (Must be Integer)"));
-                        return true;
+                        return;
                     }
                     final int height;
                     try {
                         height = Integer.parseInt(dimensions[1]);
                     } catch (final NumberFormatException e) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + dimensions[0] + "' isn't a valid height! (Must be Integer)"));
-                        return true;
+                        return;
                     }
                     frameWidth = width;
                     frameHeight = height;
@@ -226,14 +216,14 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                         id = Long.parseLong(args[2]);
                     } catch (final NumberFormatException e) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is not a valid argument! (Must be Integer between 0 - 4,294,967,296)"));
-                        return true;
+                        return;
                     }
                     if (id < 0L) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is too low! (Must be Integer between 0 - 4,294,967,296)"));
-                        return true;
+                        return;
                     } else if (id > 4294967296L) {
                         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Argument '" + args[2] + "' is too hight! (Must be Integer between 0 - 4,294,967,296)"));
-                        return true;
+                        return;
                     }
                     startingMap = id;
                     sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Set starting-map on id " + startingMap));
@@ -257,7 +247,6 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                 }
             }
         }
-        return true;
     }
 
     @Override

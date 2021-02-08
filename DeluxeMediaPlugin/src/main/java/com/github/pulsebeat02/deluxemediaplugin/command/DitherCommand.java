@@ -16,20 +16,11 @@ import java.util.List;
 public class DitherCommand extends AbstractCommand implements CommandExecutor {
 
     public DitherCommand(@NotNull final DeluxeMediaPlugin plugin) {
-        super(plugin);
+        super(plugin, "dither", "");
     }
 
     @Override
-    public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
-        if (dependenciesLoaded()) {
-            sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Please wait some time to allow dependencies to be downloaded. We will " +
-                    "notify you once they are done."));
-            return true;
-        }
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "You must be a player to use this command!"));
-            return true;
-        }
+    public void performCommandTask(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
         if (args.length == 0) {
             sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Valid Arguments: /dither list"));
         } else if (args.length == 1) {
@@ -41,7 +32,6 @@ public class DitherCommand extends AbstractCommand implements CommandExecutor {
                 addHistoryEntry(args[0]);
             }
         }
-        return true;
     }
 
     @Override
