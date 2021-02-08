@@ -1,9 +1,12 @@
 package com.github.pulsebeat02.deluxemediaplugin.command;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import com.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
+import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
+import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ExtractorUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.AbstractDitherHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
@@ -12,6 +15,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.video.player.AbstractVideoPl
 import com.github.pulsebeat02.minecraftmedialibrary.video.player.BasicVideoPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.video.player.VLCJIntegratedPlayer;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -144,6 +148,32 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                     youtube = true;
                     extractor = new YoutubeExtraction(mrl, folderPath);
                     file = null;
+                    final HttpConfiguration configuration = getPlugin().getHttpConfiguration();
+                    HttpDaemonProvider provider = null;
+                    if (configuration.isEnabled()) {
+                        provider = configuration.getDaemon();
+                        if (!provider.getDaemon().isRunning()) {
+                            provider.startServer();
+                        }
+                    }
+                    final ResourcepackWrapper wrapper = new ResourcepackWrapper.Builder()
+                            .setAudio(extractor.getAudio())
+                            .setDescription("Youtube Video: " + extractor.getVideoTitle())
+                            .setPath(configuration.getFileName())
+                            .setPackFormat(6)
+                            .createResourcepackHostingProvider(getPlugin().getLibrary());
+                    wrapper.buildResourcePack();
+                    if (provider != null) {
+                        String url = provider.generateUrl(wrapper.getPath());
+                        for (final Player p : Bukkit.getOnlinePlayers()) {
+                            p.setResourcePack(url);
+                        }
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Sending Resourcepack..."));
+                    } else {
+                        sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "You have HTTP set false by default. You cannot " +
+                                "play Youtube videos without a daemon"));
+                        return true;
+                    }
                     sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully loaded video " + mrl));
                 }
                 addHistoryEntry(mrl);

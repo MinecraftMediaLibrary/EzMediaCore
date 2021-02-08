@@ -17,8 +17,8 @@ public class VideoConfiguration extends AbstractConfiguration {
     private AbstractVideoPlayer player;
     private ItemFrameCallback callback;
 
-    public VideoConfiguration(@NotNull final DeluxeMediaPlugin plugin, final @NotNull String name) {
-        super(plugin, name);
+    public VideoConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
+        super(plugin, "video.yml");
     }
 
     @Override
@@ -67,6 +67,14 @@ public class VideoConfiguration extends AbstractConfiguration {
             }
             this.callback = callback;
         }
+    }
+
+    public AbstractVideoPlayer getPlayer() {
+        return player;
+    }
+
+    public ItemFrameCallback getCallback() {
+        return callback;
     }
 
 }

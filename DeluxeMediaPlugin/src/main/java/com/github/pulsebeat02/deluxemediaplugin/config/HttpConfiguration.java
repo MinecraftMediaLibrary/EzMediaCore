@@ -46,4 +46,12 @@ public class HttpConfiguration extends AbstractConfiguration {
         this.enabled = enabled;
     }
 
+    public HttpDaemonProvider getDaemon() {
+        return daemon;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
 }

@@ -53,4 +53,8 @@ public class PictureConfiguration extends AbstractConfiguration {
         }
     }
 
+    public Set<MapImage> getImages() {
+        return images;
+    }
+
 }

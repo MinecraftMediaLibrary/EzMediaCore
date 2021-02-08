@@ -3,12 +3,16 @@ package com.github.pulsebeat02.deluxemediaplugin;
 import com.github.pulsebeat02.deluxemediaplugin.command.DitherCommand;
 import com.github.pulsebeat02.deluxemediaplugin.command.ImageCommand;
 import com.github.pulsebeat02.deluxemediaplugin.command.VideoCommand;
+import com.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
+import com.github.pulsebeat02.deluxemediaplugin.config.PictureConfiguration;
+import com.github.pulsebeat02.deluxemediaplugin.config.VideoConfiguration;
 import com.github.pulsebeat02.deluxemediaplugin.utility.CommandUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import net.md_5.bungee.api.ChatColor;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Logger;
 
@@ -18,9 +22,14 @@ public class DeluxeMediaPlugin extends JavaPlugin {
 
     private MinecraftMediaLibrary library;
     private Logger logger;
+
     private PluginCommand dither;
     private PluginCommand video;
     private PluginCommand image;
+
+    private HttpConfiguration httpConfiguration;
+    private PictureConfiguration pictureConfiguration;
+    private VideoConfiguration videoConfiguration;
 
     @Override
     public void onEnable() {
@@ -31,6 +40,7 @@ public class DeluxeMediaPlugin extends JavaPlugin {
             logger.info(ChatColor.GOLD + "Loading MinecraftMediaLibrary Instance...");
             library = new MinecraftMediaLibrary(this, getDataFolder().getPath(), true);
             registerCommands();
+            registerConfigurations();
             final Metrics metrics = new Metrics(this, 10229);
             logger.info(ChatColor.GOLD + "Finished Loading Instance and Plugin");
         } else {
@@ -53,7 +63,19 @@ public class DeluxeMediaPlugin extends JavaPlugin {
         logger.info(ChatColor.GOLD + "Enclosing MinecraftMediaLibrary and Plugin Successfully Shutdown");
     }
 
-    public void registerCommands() {
+    private void registerConfigurations() {
+
+        httpConfiguration = new HttpConfiguration(this);
+        pictureConfiguration = new PictureConfiguration(this);
+        videoConfiguration = new VideoConfiguration(this);
+
+        httpConfiguration.serialize();
+        pictureConfiguration.serialize();
+        videoConfiguration.serialize();
+
+    }
+
+    private void registerCommands() {
 
         dither = getCommand("dither");
         video = getCommand("video");
@@ -82,6 +104,30 @@ public class DeluxeMediaPlugin extends JavaPlugin {
 
     public MinecraftMediaLibrary getLibrary() {
         return library;
+    }
+
+    public PluginCommand getDither() {
+        return dither;
+    }
+
+    public PluginCommand getVideo() {
+        return video;
+    }
+
+    public PluginCommand getImage() {
+        return image;
+    }
+
+    public HttpConfiguration getHttpConfiguration() {
+        return httpConfiguration;
+    }
+
+    public PictureConfiguration getPictureConfiguration() {
+        return pictureConfiguration;
+    }
+
+    public VideoConfiguration getVideoConfiguration() {
+        return videoConfiguration;
     }
 
 }
