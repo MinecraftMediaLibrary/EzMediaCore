@@ -15,7 +15,7 @@ public class JaveDependencyHandler {
         this.path = System.getProperty("user.dir");
     }
 
-    public File installDependency() {
+    public File installAndLoad() {
         for (final File f : new File(path + "/mml_libs").listFiles()) {
             if (f.getName().contains("jave")) {
                 try {

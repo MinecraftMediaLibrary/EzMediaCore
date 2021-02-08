@@ -12,7 +12,7 @@ public class MavenDependencyTest {
     public static void main(final String[] args) {
         Logger.setVerbose(true);
         new DependencyManagement().installAndLoad();
-        new JaveDependencyHandler().installDependency();
+        new JaveDependencyHandler().installAndLoad();
         // to test for whether the class loaded
         new CipherFactory() {
             @Override

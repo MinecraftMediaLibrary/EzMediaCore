@@ -61,7 +61,7 @@ public class MinecraftMediaLibrary {
         final DependencyManagement dependencyManagement = new DependencyManagement();
         dependencyManagement.installAndLoad();
         final JaveDependencyHandler javeDependencyHandler = new JaveDependencyHandler();
-        javeDependencyHandler.installDependency();
+        javeDependencyHandler.installAndLoad();
         if (vlcj) {
             try {
                 new MediaPlayerFactory();

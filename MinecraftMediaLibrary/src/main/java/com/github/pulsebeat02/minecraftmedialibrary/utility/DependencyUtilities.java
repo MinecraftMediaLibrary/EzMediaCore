@@ -77,8 +77,7 @@ public class DependencyUtilities {
         final JarFile jarFile = new JarFile(jarPath);
         Logger.info("Loading JAR Dependency at: " + jarPath);
         final Enumeration<JarEntry> e = jarFile.entries();
-        final URL[] urls = {new URL("jar:file:" + jarPath + "!/")};
-        final URLClassLoader cl = URLClassLoader.newInstance(urls);
+        final URLClassLoader cl = new DynamicClassLoader();
         while (e.hasMoreElements()) {
             final JarEntry je = e.nextElement();
             if (je.isDirectory() || !je.getName().endsWith(".class")) {
