@@ -87,8 +87,8 @@ public class DependencyUtilities {
             String className = je.getName().substring(0, je.getName().length() - 6);
             className = className.replace('/', '.');
             try {
-                Logger.info("Loaded " + className);
                 final Class<?> c = cl.loadClass(className);
+                Logger.info("Loaded " + className);
             } catch (final ClassNotFoundException | NoClassDefFoundError ignored) {
                 Logger.error("Could NOT Load " + className);
                 Logger.info("If the class which couldn't be loaded is in in a META-INF folder or an OS" +

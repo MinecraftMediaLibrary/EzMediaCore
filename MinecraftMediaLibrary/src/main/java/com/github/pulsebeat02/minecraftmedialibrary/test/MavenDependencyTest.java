@@ -1,6 +1,5 @@
 package com.github.pulsebeat02.minecraftmedialibrary.test;
 
-import com.github.kiulian.downloader.YoutubeException;
 import com.github.kiulian.downloader.cipher.Cipher;
 import com.github.kiulian.downloader.cipher.CipherFactory;
 import com.github.kiulian.downloader.cipher.CipherFunction;
