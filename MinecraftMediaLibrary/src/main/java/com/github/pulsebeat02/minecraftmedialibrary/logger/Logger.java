@@ -20,7 +20,7 @@ public class Logger {
             } else {
                 System.out.println("Log File Exists Already");
             }
-            WRITER = new BufferedWriter(new FileWriter(f, true));
+            WRITER = new BufferedWriter(new FileWriter(f, false));
         } catch (final IOException exception) {
             exception.printStackTrace();
         }

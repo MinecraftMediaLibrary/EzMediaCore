@@ -16,9 +16,26 @@ public class JaveDependencyHandler {
     }
 
     public File installDependency() {
+        for (final File f : new File(path + "/mml_libs").listFiles()) {
+            if (f.getName().contains("jave")) {
+                try {
+                    DependencyUtilities.loadDependency(f);
+                } catch (final IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }
         File file = null;
         try {
             file = DependencyUtilities.downloadFile("ws.schild", getArtifactId(), "2.7.3", path + "/mml_libs");
+        } catch (final IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            if (file != null) {
+                DependencyUtilities.loadDependency(file);
+            }
         } catch (final IOException e) {
             e.printStackTrace();
         }

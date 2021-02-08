@@ -52,6 +52,11 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
+        if (dependenciesLoaded()) {
+            sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Please wait some time to allow dependencies to be downloaded. We will " +
+                    "notify you once they are done."));
+            return true;
+        }
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "You must be a player to use this command!"));
             return true;

@@ -2,6 +2,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency;
 
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,21 +28,23 @@ public class DependencyManagement {
             }
         }
         for (final MavenDependency dependency : MavenDependency.values()) {
-            File file = null;
-            final String artifact = dependency.getArtifact();
-            try {
-                Logger.info("Checking Maven Central Repository for " + artifact);
-                file = DependencyUtilities.downloadMavenDependency(dependency, path + "/mml_libs");
-            } catch (final IOException e) {
+            if (!checkExists(dir, dependency)) {
+                File file = null;
+                final String artifact = dependency.getArtifact();
                 try {
-                    Logger.info("Could not find in the Maven Central Repository... Checking Jitpack Central Repository for " + artifact);
-                    file = DependencyUtilities.downloadJitpackDependency(dependency, path + "/mml_libs");
-                } catch (final IOException exception) {
-                    Logger.error("Could not find " + artifact + " in the Maven Central Repository or Jitpack");
-                    exception.printStackTrace();
+                    Logger.info("Checking Maven Central Repository for " + artifact);
+                    file = DependencyUtilities.downloadMavenDependency(dependency, path + "/mml_libs");
+                } catch (final IOException e) {
+                    try {
+                        Logger.info("Could not find in the Maven Central Repository... Checking Jitpack Central Repository for " + artifact);
+                        file = DependencyUtilities.downloadJitpackDependency(dependency, path + "/mml_libs");
+                    } catch (final IOException exception) {
+                        Logger.error("Could not find " + artifact + " in the Maven Central Repository or Jitpack");
+                        exception.printStackTrace();
+                    }
                 }
+                files.add(file);
             }
-            files.add(file);
         }
         return files;
     }
@@ -55,6 +58,15 @@ public class DependencyManagement {
                 e.printStackTrace();
             }
         }
+    }
+
+    public boolean checkExists(@NotNull final File dir, @NotNull final MavenDependency dependency) {
+        for (final File f : dir.listFiles()) {
+            if (f.getName().contains(dependency.getArtifact())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

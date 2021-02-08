@@ -31,6 +31,10 @@ public class AbstractCommand implements TabCompleter {
         return history;
     }
 
+    public boolean dependenciesLoaded() {
+        return plugin.getLibrary().isLoadingDependencies();
+    }
+
     @Override
     public List<String> onTabComplete(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
         return history;

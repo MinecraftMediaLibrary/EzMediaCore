@@ -64,7 +64,7 @@ public class DependencyUtilities {
         Logger.info("Downloading Dependency at " + url + " into folder " + p);
         final BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
         final FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p));
-        final byte[] dataBuffer = new byte[1024];
+        final byte[] dataBuffer = new byte[256000];
         int bytesRead;
         while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
             fileOutputStream.write(dataBuffer, 0, bytesRead);
@@ -88,7 +88,7 @@ public class DependencyUtilities {
             className = className.replace('/', '.');
             try {
                 Logger.info("Loaded " + className);
-                cl.loadClass(className);
+                final Class<?> c = cl.loadClass(className);
             } catch (final ClassNotFoundException | NoClassDefFoundError ignored) {
                 Logger.error("Could NOT Load " + className);
                 Logger.info("If the class which couldn't be loaded is in in a META-INF folder or an OS" +

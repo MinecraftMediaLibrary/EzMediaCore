@@ -25,6 +25,7 @@ public class MinecraftMediaLibrary {
     private final PacketHandler handler;
     private final TinyProtocol protocol;
     private boolean vlcj;
+    private boolean dependencies;
 
     public MinecraftMediaLibrary(@NotNull final Plugin plugin,
                                  @NotNull final String path,
@@ -56,6 +57,7 @@ public class MinecraftMediaLibrary {
     }
 
     private void asyncTasks() {
+        dependencies = true;
         final DependencyManagement dependencyManagement = new DependencyManagement();
         dependencyManagement.installAndLoad();
         final JaveDependencyHandler javeDependencyHandler = new JaveDependencyHandler();
@@ -69,6 +71,7 @@ public class MinecraftMediaLibrary {
                 vlcj = false;
             }
         }
+        dependencies = false;
     }
 
     private void checkJavaVersion() {
@@ -115,6 +118,10 @@ public class MinecraftMediaLibrary {
 
     public boolean isVlcj() {
         return vlcj;
+    }
+
+    public boolean isLoadingDependencies() {
+        return dependencies;
     }
 
 }

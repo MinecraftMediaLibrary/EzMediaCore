@@ -1,5 +1,6 @@
 name: DeluxeMediaPlugin
 main: com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin
+api-version: 1.16
 version: 1.0.0
 description: Play Media in Minecraft
 commands:
