@@ -14,7 +14,8 @@ public class Logger {
 
     static {
         try {
-            final File f = new File(System.getProperty("user.dir") + "\\mml.log");
+            final File f = new File("mml.log");
+            System.out.println(f.getAbsolutePath());
             if (f.createNewFile()) {
                 System.out.println("File Created (" + f.getName() + ")");
             } else {

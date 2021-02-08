@@ -22,12 +22,10 @@ public class MavenDependencyTest {
 
             @Override
             public void addInitialFunctionPattern(final int i, final String s) {
-
             }
 
             @Override
             public void addFunctionEquivalent(final String s, final CipherFunction cipherFunction) {
-
             }
         };
     }

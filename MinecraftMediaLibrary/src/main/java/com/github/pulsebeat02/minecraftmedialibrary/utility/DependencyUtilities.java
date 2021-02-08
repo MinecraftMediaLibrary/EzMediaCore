@@ -77,10 +77,14 @@ public class DependencyUtilities {
         final JarFile jarFile = new JarFile(jarPath);
         Logger.info("Loading JAR Dependency at: " + jarPath);
         final Enumeration<JarEntry> e = jarFile.entries();
-        final URLClassLoader cl = new DynamicClassLoader();
+        final URL[] urls = {new URL("jar:file:" + jarPath + "!/")};
+        final URLClassLoader cl = new URLClassLoader(urls);
         while (e.hasMoreElements()) {
             final JarEntry je = e.nextElement();
             if (je.isDirectory() || !je.getName().endsWith(".class")) {
+                continue;
+            }
+            if (je.getName().contains("module-info")) {
                 continue;
             }
             String className = je.getName().substring(0, je.getName().length() - 6);
@@ -90,7 +94,7 @@ public class DependencyUtilities {
                 Logger.info("Loaded " + className);
             } catch (final ClassNotFoundException | NoClassDefFoundError ignored) {
                 Logger.error("Could NOT Load " + className);
-                Logger.info("If the class which couldn't be loaded is in in a META-INF folder or an OS" +
+                Logger.info("If the class which couldn't be loaded is in in a META-INF folder or an OS " +
                         "specific class, it is completely fine to leave this error alone.");
             }
         }
