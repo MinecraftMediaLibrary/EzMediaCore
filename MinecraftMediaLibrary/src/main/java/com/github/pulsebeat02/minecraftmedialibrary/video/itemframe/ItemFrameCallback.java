@@ -90,7 +90,7 @@ public class ItemFrameCallback implements AbstractCallback {
         return type;
     }
 
-    public class ItemFrameCallbackBuilder {
+    public class Builder {
 
         private UUID[] viewers;
         private AbstractDitherHolder type;
@@ -100,37 +100,37 @@ public class ItemFrameCallback implements AbstractCallback {
         private int videoWidth;
         private int delay;
 
-        public ItemFrameCallbackBuilder setViewers(final UUID[] viewers) {
+        public Builder setViewers(final UUID[] viewers) {
             this.viewers = viewers;
             return this;
         }
 
-        public ItemFrameCallbackBuilder setMap(final int map) {
+        public Builder setMap(final int map) {
             this.map = map;
             return this;
         }
 
-        public ItemFrameCallbackBuilder setWidth(final int width) {
+        public Builder setWidth(final int width) {
             this.width = width;
             return this;
         }
 
-        public ItemFrameCallbackBuilder setHeight(final int height) {
+        public Builder setHeight(final int height) {
             this.height = height;
             return this;
         }
 
-        public ItemFrameCallbackBuilder setVideoWidth(final int videoWidth) {
+        public Builder setVideoWidth(final int videoWidth) {
             this.videoWidth = videoWidth;
             return this;
         }
 
-        public ItemFrameCallbackBuilder setDelay(final int delay) {
+        public Builder setDelay(final int delay) {
             this.delay = delay;
             return this;
         }
 
-        public ItemFrameCallbackBuilder setDitherHolder(final AbstractDitherHolder holder) {
+        public Builder setDitherHolder(final AbstractDitherHolder holder) {
             this.type = holder;
             return this;
         }

@@ -4,9 +4,9 @@ import java.nio.ByteBuffer;
 
 public interface AbstractDitherHolder {
 
-    void dither(int[] buffer, int width);
+    void dither(final int[] buffer, final int width);
 
-    ByteBuffer ditherIntoMinecraft(int[] buffer, int width);
+    ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width);
 
     DitherSetting getSetting();
 

@@ -73,6 +73,7 @@ public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSer
     public void buildResourcePack() {
         onResourcepackBuild();
         Logger.info("Wrapping Resourcepack...");
+        // TODO: Fix this mess and use GSON to make the JSON file
         try {
             final ZipOutputStream out = new ZipOutputStream(new FileOutputStream(path));
             final byte[] mcmeta = ("{\r\n" + "	\"pack\": {\r\n" + "    \"pack_format\": " + packFormat + ",\r\n"

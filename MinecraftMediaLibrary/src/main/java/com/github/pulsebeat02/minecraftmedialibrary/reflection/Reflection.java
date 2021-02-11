@@ -15,12 +15,20 @@ import java.util.regex.Pattern;
  * @author Kristian
  */
 public final class Reflection {
-    // Deduce the net.minecraft.server.v* package
-    private static final String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
-    private static final String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
-    private static final String VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
-    // Variable replacement
-    private static final Pattern MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
+
+    private static final String OBC_PREFIX;
+    private static final String NMS_PREFIX;
+    private static final String VERSION;
+    private static final Pattern MATCH_VARIABLE;
+
+    static {
+        // Deduce the net.minecraft.server.v* package
+        OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
+        NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
+        VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
+        // Variable replacement
+        MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
+    }
 
     private Reflection() {
         // Seal class

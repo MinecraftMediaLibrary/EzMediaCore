@@ -84,20 +84,14 @@ public class DeluxeMediaPlugin extends JavaPlugin {
         final ImageCommand imageCommand = new ImageCommand(this);
         final VideoCommand videoCommand = new VideoCommand(this);
 
-        if (dither != null) {
-            dither.setExecutor(ditherCommand);
-            dither.setTabCompleter(ditherCommand);
-        }
+        dither.setExecutor(ditherCommand);
+        dither.setTabCompleter(ditherCommand);
 
-        if (video != null) {
-            video.setExecutor(videoCommand);
-            video.setTabCompleter(videoCommand);
-        }
+        video.setExecutor(videoCommand);
+        video.setTabCompleter(videoCommand);
 
-        if (image != null) {
-            image.setExecutor(imageCommand);
-            image.setTabCompleter(imageCommand);
-        }
+        image.setExecutor(imageCommand);
+        image.setTabCompleter(imageCommand);
 
     }
 
