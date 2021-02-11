@@ -1,3 +1,16 @@
+/*
+ * ============================================================================
+ * Copyright (C) PulseBeat_02 - All Rights Reserved
+ *
+ * This file is part of MinecraftMediaLibrary
+ *
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ *
+ * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/11/2021
+ * ============================================================================
+ */
+
 package com.github.pulsebeat02.minecraftmedialibrary.http;
 
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
@@ -21,103 +34,113 @@ import java.util.regex.Pattern;
 
 public class RequestHandler implements Runnable, AbstractRequestHandler {
 
-    private final HttpDaemon daemon;
-    private final HttpDaemon.ZipHeader header;
-    private final Socket client;
+  private final HttpDaemon daemon;
+  private final HttpDaemon.ZipHeader header;
+  private final Socket client;
 
-    public RequestHandler(@NotNull final HttpDaemon daemon, final HttpDaemon.ZipHeader header, @NotNull final Socket client) {
-        this.daemon = daemon;
-        this.header = header;
-        this.client = client;
-    }
+  public RequestHandler(
+      @NotNull final HttpDaemon daemon,
+      final HttpDaemon.ZipHeader header,
+      @NotNull final Socket client) {
+    this.daemon = daemon;
+    this.header = header;
+    this.client = client;
+  }
 
-    @Override
-    public void run() {
-        handleRequest();
-    }
+  @Override
+  public void run() {
+    handleRequest();
+  }
 
-    @Override
-    public void handleRequest() {
-        daemon.onClientConnect(client);
-        boolean flag = false;
-        try {
-            final BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream(), "8859_1"));
-            final OutputStream out = client.getOutputStream();
-            final PrintWriter pout = new PrintWriter(new OutputStreamWriter(out, "8859_1"), true);
-            String request = in.readLine();
-            verbose("Received request '" + request + "' from " + client.getInetAddress().toString());
-            final Matcher get = requestPattern(request);
-            if (get.matches()) {
-                request = get.group(1);
-                final File result = requestFileCallback(request);
-                if (result == null) {
-                    flag = true;
-                    pout.println("HTTP/1.0 400 Bad Request");
-                } else {
-                    verbose("Request '" + request + "' is being served to " + client.getInetAddress());
-                    try {
-                        out.write(buildHeader(result).getBytes(StandardCharsets.UTF_8));
-                        final FileInputStream fis = new FileInputStream(result);
-                        final byte[] data = new byte[64 * 1024];
-                        for (int read; (read = fis.read(data)) > -1; ) {
-                            out.write(data, 0, read);
-                        }
-                        out.flush();
-                        fis.close();
-                        verbose("Successfully served '" + request + "' to " + client.getInetAddress());
-                    } catch (final FileNotFoundException e) {
-                        flag = true;
-                        pout.println("HTTP/1.0 404 Object Not Found");
-                    }
-                }
-            } else {
-                flag = true;
-                pout.println("HTTP/1.0 400 Bad Request");
+  @Override
+  public void handleRequest() {
+    daemon.onClientConnect(client);
+    boolean flag = false;
+    try {
+      final BufferedReader in =
+          new BufferedReader(new InputStreamReader(client.getInputStream(), "8859_1"));
+      final OutputStream out = client.getOutputStream();
+      final PrintWriter pout = new PrintWriter(new OutputStreamWriter(out, "8859_1"), true);
+      String request = in.readLine();
+      verbose("Received request '" + request + "' from " + client.getInetAddress().toString());
+      final Matcher get = requestPattern(request);
+      if (get.matches()) {
+        request = get.group(1);
+        final File result = requestFileCallback(request);
+        if (result == null) {
+          flag = true;
+          pout.println("HTTP/1.0 400 Bad Request");
+        } else {
+          verbose("Request '" + request + "' is being served to " + client.getInetAddress());
+          try {
+            out.write(buildHeader(result).getBytes(StandardCharsets.UTF_8));
+            final FileInputStream fis = new FileInputStream(result);
+            final byte[] data = new byte[64 * 1024];
+            for (int read; (read = fis.read(data)) > -1; ) {
+              out.write(data, 0, read);
             }
-            client.close();
-        } catch (final IOException e) {
+            out.flush();
+            fis.close();
+            verbose("Successfully served '" + request + "' to " + client.getInetAddress());
+          } catch (final FileNotFoundException e) {
             flag = true;
-            verbose("I/O error " + e);
+            pout.println("HTTP/1.0 404 Object Not Found");
+          }
         }
-        if (flag) {
-            daemon.onResourcepackFailedDownload(client);
-        }
+      } else {
+        flag = true;
+        pout.println("HTTP/1.0 400 Bad Request");
+      }
+      client.close();
+    } catch (final IOException e) {
+      flag = true;
+      verbose("I/O error " + e);
     }
-
-    private Matcher requestPattern(final String req) {
-        return Pattern.compile("GET /?(\\S*).*").matcher(req);
+    if (flag) {
+      daemon.onResourcepackFailedDownload(client);
     }
+  }
 
-    private void verbose(final String info) {
-        if (daemon.isVerbose()) {
-            Logger.info(info);
-        }
+  private Matcher requestPattern(final String req) {
+    return Pattern.compile("GET /?(\\S*).*").matcher(req);
+  }
+
+  private void verbose(final String info) {
+    if (daemon.isVerbose()) {
+      Logger.info(info);
     }
+  }
 
-    public File requestFileCallback(final String request) {
-        return new File(daemon.getParentDirectory(), request);
-    }
+  public File requestFileCallback(final String request) {
+    return new File(daemon.getParentDirectory(), request);
+  }
 
-    @Override
-    public String buildHeader(final @NotNull File f) {
-        return "HTTP/1.0 200 OK\r\n" +
-                "Content-Type: " + header.getHeader() + "\r\n" +
-                "Content-Length: " + f.length() + "\r\n" +
-                "Date: " + new SimpleDateFormat("dd MMM yyyy HH:mm:ss").format(Calendar.getInstance().getTime()) + " GMT" + "\r\n" +
-                "Server: HttpDaemon\r\n" +
-                "User-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n";
-    }
+  @Override
+  public String buildHeader(final @NotNull File f) {
+    return "HTTP/1.0 200 OK\r\n"
+        + "Content-Type: "
+        + header.getHeader()
+        + "\r\n"
+        + "Content-Length: "
+        + f.length()
+        + "\r\n"
+        + "Date: "
+        + new SimpleDateFormat("dd MMM yyyy HH:mm:ss").format(Calendar.getInstance().getTime())
+        + " GMT"
+        + "\r\n"
+        + "Server: HttpDaemon\r\n"
+        + "User-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n";
+  }
 
-    public HttpDaemon getDaemon() {
-        return daemon;
-    }
+  public HttpDaemon getDaemon() {
+    return daemon;
+  }
 
-    public HttpDaemon.ZipHeader getHeader() {
-        return header;
-    }
+  public HttpDaemon.ZipHeader getHeader() {
+    return header;
+  }
 
-    public Socket getClient() {
-        return client;
-    }
-
+  public Socket getClient() {
+    return client;
+  }
 }

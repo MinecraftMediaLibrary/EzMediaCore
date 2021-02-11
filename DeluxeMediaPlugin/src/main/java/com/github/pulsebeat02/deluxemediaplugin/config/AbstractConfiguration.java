@@ -1,3 +1,16 @@
+/*
+ * ============================================================================
+ * Copyright (C) PulseBeat_02 - All Rights Reserved
+ *
+ * This file is part of MinecraftMediaLibrary
+ *
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ *
+ * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/11/2021
+ * ============================================================================
+ */
+
 package com.github.pulsebeat02.deluxemediaplugin.config;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
@@ -13,68 +26,69 @@ import java.util.logging.Level;
 
 public abstract class AbstractConfiguration {
 
-    private final DeluxeMediaPlugin plugin;
-    private final String fileName;
+  private final DeluxeMediaPlugin plugin;
+  private final String fileName;
 
-    private final File configFile;
-    private FileConfiguration fileConfiguration;
+  private final File configFile;
+  private FileConfiguration fileConfiguration;
 
-    public AbstractConfiguration(@NotNull final DeluxeMediaPlugin plugin, @NotNull final String name) {
-        this.plugin = plugin;
-        this.fileName = name;
-        this.configFile = new File(plugin.getDataFolder(), fileName);
+  public AbstractConfiguration(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final String name) {
+    this.plugin = plugin;
+    this.fileName = name;
+    this.configFile = new File(plugin.getDataFolder(), fileName);
+  }
+
+  public void reloadConfig() {
+    fileConfiguration = YamlConfiguration.loadConfiguration(configFile);
+    final InputStream defConfigStream = plugin.getResource(fileName);
+    if (defConfigStream != null) {
+      final YamlConfiguration defConfig =
+          YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
+      fileConfiguration.setDefaults(defConfig);
     }
+  }
 
-    public void reloadConfig() {
-        fileConfiguration = YamlConfiguration.loadConfiguration(configFile);
-        final InputStream defConfigStream = plugin.getResource(fileName);
-        if (defConfigStream != null) {
-            final YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
-            fileConfiguration.setDefaults(defConfig);
-        }
+  public FileConfiguration getConfig() {
+    if (fileConfiguration == null) {
+      this.reloadConfig();
     }
+    return fileConfiguration;
+  }
 
-    public FileConfiguration getConfig() {
-        if (fileConfiguration == null) {
-            this.reloadConfig();
-        }
-        return fileConfiguration;
+  public void saveConfig() {
+    if (fileConfiguration != null && configFile != null) {
+      try {
+        getConfig().save(configFile);
+      } catch (final IOException e) {
+        plugin.getLogger().log(Level.SEVERE, "Could not save config to " + configFile, e);
+      }
     }
+  }
 
-    public void saveConfig() {
-        if (fileConfiguration != null && configFile != null) {
-            try {
-                getConfig().save(configFile);
-            } catch (final IOException e) {
-                plugin.getLogger().log(Level.SEVERE, "Could not save config to " + configFile, e);
-            }
-        }
+  public void saveDefaultConfig() {
+    if (!configFile.exists()) {
+      plugin.saveResource(fileName, false);
     }
+  }
 
-    public void saveDefaultConfig() {
-        if (!configFile.exists()) {
-            plugin.saveResource(fileName, false);
-        }
-    }
+  abstract void deserialize();
 
-    abstract void deserialize();
+  abstract void serialize();
 
-    abstract void serialize();
+  public DeluxeMediaPlugin getPlugin() {
+    return plugin;
+  }
 
-    public DeluxeMediaPlugin getPlugin() {
-        return plugin;
-    }
+  public String getFileName() {
+    return fileName;
+  }
 
-    public String getFileName() {
-        return fileName;
-    }
+  public File getConfigFile() {
+    return configFile;
+  }
 
-    public File getConfigFile() {
-        return configFile;
-    }
-
-    public FileConfiguration getFileConfiguration() {
-        return fileConfiguration;
-    }
-
+  public FileConfiguration getFileConfiguration() {
+    return fileConfiguration;
+  }
 }

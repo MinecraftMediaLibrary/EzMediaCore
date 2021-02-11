@@ -1,3 +1,16 @@
+/*
+ * ============================================================================
+ * Copyright (C) PulseBeat_02 - All Rights Reserved
+ *
+ * This file is part of MinecraftMediaLibrary
+ *
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ *
+ * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/11/2021
+ * ============================================================================
+ */
+
 package com.github.pulsebeat02.deluxemediaplugin;
 
 import com.github.pulsebeat02.deluxemediaplugin.command.DitherCommand;
@@ -17,110 +30,109 @@ import java.util.logging.Logger;
 
 public class DeluxeMediaPlugin extends JavaPlugin {
 
-    public static boolean OUTDATED = false;
+  public static boolean OUTDATED = false;
 
-    private MinecraftMediaLibrary library;
-    private Logger logger;
+  private MinecraftMediaLibrary library;
+  private Logger logger;
 
-    private PluginCommand dither;
-    private PluginCommand video;
-    private PluginCommand image;
+  private PluginCommand dither;
+  private PluginCommand video;
+  private PluginCommand image;
 
-    private HttpConfiguration httpConfiguration;
-    private PictureConfiguration pictureConfiguration;
-    private VideoConfiguration videoConfiguration;
+  private HttpConfiguration httpConfiguration;
+  private PictureConfiguration pictureConfiguration;
+  private VideoConfiguration videoConfiguration;
 
-    @Override
-    public void onEnable() {
-        logger = getLogger();
-        if (!OUTDATED) {
-            com.github.pulsebeat02.minecraftmedialibrary.logger.Logger.setVerbose(true);
-            logger.info(ChatColor.GOLD + "DeluxeMediaPlugin is Initializing");
-            logger.info(ChatColor.GOLD + "Loading MinecraftMediaLibrary Instance...");
-            library = new MinecraftMediaLibrary(this, getDataFolder().getPath(), true);
-            registerCommands();
-            registerConfigurations();
-            final Metrics metrics = new Metrics(this, 10229);
-            logger.info(ChatColor.GOLD + "Finished Loading Instance and Plugin");
-        } else {
-            logger.severe("Plugin cannot load until server version is at least 1.8");
-        }
+  @Override
+  public void onEnable() {
+    logger = getLogger();
+    if (!OUTDATED) {
+      com.github.pulsebeat02.minecraftmedialibrary.logger.Logger.setVerbose(true);
+      logger.info(ChatColor.GOLD + "DeluxeMediaPlugin is Initializing");
+      logger.info(ChatColor.GOLD + "Loading MinecraftMediaLibrary Instance...");
+      library = new MinecraftMediaLibrary(this, getDataFolder().getPath(), true);
+      registerCommands();
+      registerConfigurations();
+      final Metrics metrics = new Metrics(this, 10229);
+      logger.info(ChatColor.GOLD + "Finished Loading Instance and Plugin");
+    } else {
+      logger.severe("Plugin cannot load until server version is at least 1.8");
     }
+  }
 
-    @Override
-    public void onDisable() {
-        logger.info(ChatColor.GOLD + "DeluxeMediaPlugin is Shutting Down");
-        logger.info(ChatColor.GOLD + "Shutting Down MinecraftMediaLibrary Instance...");
-        if (library != null) {
-            library.shutdown();
-        } else {
-            logger.severe("WARNING: MinecraftMediaLibrary instance is null... something is fishy going on.");
-        }
-        CommandUtilities.unRegisterBukkitCommand(this, dither);
-        CommandUtilities.unRegisterBukkitCommand(this, video);
-        CommandUtilities.unRegisterBukkitCommand(this, image);
-        logger.info(ChatColor.GOLD + "Enclosing MinecraftMediaLibrary and Plugin Successfully Shutdown");
+  @Override
+  public void onDisable() {
+    logger.info(ChatColor.GOLD + "DeluxeMediaPlugin is Shutting Down");
+    logger.info(ChatColor.GOLD + "Shutting Down MinecraftMediaLibrary Instance...");
+    if (library != null) {
+      library.shutdown();
+    } else {
+      logger.severe(
+          "WARNING: MinecraftMediaLibrary instance is null... something is fishy going on.");
     }
+    CommandUtilities.unRegisterBukkitCommand(this, dither);
+    CommandUtilities.unRegisterBukkitCommand(this, video);
+    CommandUtilities.unRegisterBukkitCommand(this, image);
+    logger.info(
+        ChatColor.GOLD + "Enclosing MinecraftMediaLibrary and Plugin Successfully Shutdown");
+  }
 
-    private void registerConfigurations() {
+  private void registerConfigurations() {
 
-        httpConfiguration = new HttpConfiguration(this);
-        pictureConfiguration = new PictureConfiguration(this);
-        videoConfiguration = new VideoConfiguration(this);
+    httpConfiguration = new HttpConfiguration(this);
+    pictureConfiguration = new PictureConfiguration(this);
+    videoConfiguration = new VideoConfiguration(this);
 
-        httpConfiguration.serialize();
-        pictureConfiguration.serialize();
-        videoConfiguration.serialize();
+    httpConfiguration.serialize();
+    pictureConfiguration.serialize();
+    videoConfiguration.serialize();
+  }
 
-    }
+  private void registerCommands() {
 
-    private void registerCommands() {
+    dither = getCommand("dither");
+    video = getCommand("video");
+    image = getCommand("image");
 
-        dither = getCommand("dither");
-        video = getCommand("video");
-        image = getCommand("image");
+    final DitherCommand ditherCommand = new DitherCommand(this);
+    final ImageCommand imageCommand = new ImageCommand(this);
+    final VideoCommand videoCommand = new VideoCommand(this);
 
-        final DitherCommand ditherCommand = new DitherCommand(this);
-        final ImageCommand imageCommand = new ImageCommand(this);
-        final VideoCommand videoCommand = new VideoCommand(this);
+    dither.setExecutor(ditherCommand);
+    dither.setTabCompleter(ditherCommand);
 
-        dither.setExecutor(ditherCommand);
-        dither.setTabCompleter(ditherCommand);
+    video.setExecutor(videoCommand);
+    video.setTabCompleter(videoCommand);
 
-        video.setExecutor(videoCommand);
-        video.setTabCompleter(videoCommand);
+    image.setExecutor(imageCommand);
+    image.setTabCompleter(imageCommand);
+  }
 
-        image.setExecutor(imageCommand);
-        image.setTabCompleter(imageCommand);
+  public MinecraftMediaLibrary getLibrary() {
+    return library;
+  }
 
-    }
+  public PluginCommand getDither() {
+    return dither;
+  }
 
-    public MinecraftMediaLibrary getLibrary() {
-        return library;
-    }
+  public PluginCommand getVideo() {
+    return video;
+  }
 
-    public PluginCommand getDither() {
-        return dither;
-    }
+  public PluginCommand getImage() {
+    return image;
+  }
 
-    public PluginCommand getVideo() {
-        return video;
-    }
+  public HttpConfiguration getHttpConfiguration() {
+    return httpConfiguration;
+  }
 
-    public PluginCommand getImage() {
-        return image;
-    }
+  public PictureConfiguration getPictureConfiguration() {
+    return pictureConfiguration;
+  }
 
-    public HttpConfiguration getHttpConfiguration() {
-        return httpConfiguration;
-    }
-
-    public PictureConfiguration getPictureConfiguration() {
-        return pictureConfiguration;
-    }
-
-    public VideoConfiguration getVideoConfiguration() {
-        return videoConfiguration;
-    }
-
+  public VideoConfiguration getVideoConfiguration() {
+    return videoConfiguration;
+  }
 }

@@ -1,3 +1,16 @@
+/*
+ * ============================================================================
+ * Copyright (C) PulseBeat_02 - All Rights Reserved
+ *
+ * This file is part of MinecraftMediaLibrary
+ *
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ *
+ * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/11/2021
+ * ============================================================================
+ */
+
 package com.github.pulsebeat02.deluxemediaplugin.command;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
@@ -14,30 +27,39 @@ import java.util.List;
 
 public class DitherCommand extends AbstractCommand implements CommandExecutor {
 
-    public DitherCommand(@NotNull final DeluxeMediaPlugin plugin) {
-        super(plugin, null, "dither", "");
-    }
+  public DitherCommand(@NotNull final DeluxeMediaPlugin plugin) {
+    super(plugin, null, "dither", "");
+  }
 
-    @Override
-    public void performCommandTask(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
-        if (args.length == 0) {
-            sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "Valid Arguments: /dither list"));
-        } else if (args.length == 1) {
-            if (args[0].equalsIgnoreCase("list")) {
-                sender.sendMessage(ChatColor.GOLD + "List of Possible Options:");
-                for (final DitherSetting setting : DitherSetting.values()) {
-                    sender.sendMessage(ChatColor.AQUA + setting.name());
-                }
-                addHistoryEntry(args[0]);
-            }
+  @Override
+  public void performCommandTask(
+      @NotNull final CommandSender sender,
+      @NotNull final Command command,
+      @NotNull final String s,
+      final String[] args) {
+    if (args.length == 0) {
+      sender.sendMessage(
+          ChatUtilities.formatMessage(ChatColor.RED + "Valid Arguments: /dither list"));
+    } else if (args.length == 1) {
+      if (args[0].equalsIgnoreCase("list")) {
+        sender.sendMessage(ChatColor.GOLD + "List of Possible Options:");
+        for (final DitherSetting setting : DitherSetting.values()) {
+          sender.sendMessage(ChatColor.AQUA + setting.name());
         }
+        addHistoryEntry(args[0]);
+      }
     }
+  }
 
-    @Override
-    public List<String> onTabComplete(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String s, final String[] args) {
-        if (args.length == 1) {
-            return Collections.singletonList("list");
-        }
-        return null;
+  @Override
+  public List<String> onTabComplete(
+      @NotNull final CommandSender sender,
+      @NotNull final Command command,
+      @NotNull final String s,
+      final String[] args) {
+    if (args.length == 1) {
+      return Collections.singletonList("list");
     }
+    return null;
+  }
 }

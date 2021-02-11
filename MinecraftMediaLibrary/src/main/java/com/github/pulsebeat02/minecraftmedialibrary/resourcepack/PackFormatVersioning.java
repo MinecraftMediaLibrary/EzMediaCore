@@ -1,24 +1,35 @@
+/*
+ * ============================================================================
+ * Copyright (C) PulseBeat_02 - All Rights Reserved
+ *
+ * This file is part of MinecraftMediaLibrary
+ *
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ *
+ * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/11/2021
+ * ============================================================================
+ */
+
 package com.github.pulsebeat02.minecraftmedialibrary.resourcepack;
 
 public enum PackFormatVersioning {
+  VER_1_15(5),
+  VER_1_15_1(5),
+  VER_1_15_2(5),
+  VER_1_16_1(5),
+  VER_1_16_2(6),
+  VER_1_16_3(6),
+  VER_1_16_4(6),
+  VER_1_16_5(6);
 
-    VER_1_15(5),
-    VER_1_15_1(5),
-    VER_1_15_2(5),
-    VER_1_16_1(5),
-    VER_1_16_2(6),
-    VER_1_16_3(6),
-    VER_1_16_4(6),
-    VER_1_16_5(6);
+  private final int packFormat;
 
-    private final int packFormat;
+  PackFormatVersioning(final int id) {
+    this.packFormat = id;
+  }
 
-    PackFormatVersioning(final int id) {
-        this.packFormat = id;
-    }
-
-    public int getPackFormatID() {
-        return packFormat;
-    }
-
+  public int getPackFormatID() {
+    return packFormat;
+  }
 }

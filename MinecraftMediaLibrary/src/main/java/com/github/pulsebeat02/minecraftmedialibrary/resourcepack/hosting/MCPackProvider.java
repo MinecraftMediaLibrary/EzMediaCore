@@ -1,3 +1,16 @@
+/*
+ * ============================================================================
+ * Copyright (C) PulseBeat_02 - All Rights Reserved
+ *
+ * This file is part of MinecraftMediaLibrary
+ *
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ *
+ * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/11/2021
+ * ============================================================================
+ */
+
 package com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting;
 
 import org.apache.http.HttpEntity;
@@ -16,35 +29,30 @@ import java.nio.file.Path;
 
 public class MCPackProvider extends AbstractHostingProvider {
 
-    public void uploadFile(@NotNull final File file) {
-        try {
-            final CloseableHttpClient httpClient = HttpClients.createDefault();
-            final HttpPost uploadFile = new HttpPost("...");
-            final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-            builder.addTextBody("field1", "yes", ContentType.TEXT_PLAIN);
-            builder.addBinaryBody(
-                    "file",
-                    new FileInputStream(file),
-                    ContentType.APPLICATION_OCTET_STREAM,
-                    file.getName()
-            );
-            final HttpEntity multipart = builder.build();
-            uploadFile.setEntity(multipart);
-            final CloseableHttpResponse response = httpClient.execute(uploadFile);
-            final HttpEntity responseEntity = response.getEntity();
-        } catch (final IOException e) {
-            e.printStackTrace();
-        }
+  public void uploadFile(@NotNull final File file) {
+    try {
+      final CloseableHttpClient httpClient = HttpClients.createDefault();
+      final HttpPost uploadFile = new HttpPost("...");
+      final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+      builder.addTextBody("field1", "yes", ContentType.TEXT_PLAIN);
+      builder.addBinaryBody(
+          "file", new FileInputStream(file), ContentType.APPLICATION_OCTET_STREAM, file.getName());
+      final HttpEntity multipart = builder.build();
+      uploadFile.setEntity(multipart);
+      final CloseableHttpResponse response = httpClient.execute(uploadFile);
+      final HttpEntity responseEntity = response.getEntity();
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
+  }
 
-    @Override
-    public String generateUrl(@NotNull final String file) {
-        return null;
-    }
+  @Override
+  public String generateUrl(@NotNull final String file) {
+    return null;
+  }
 
-    @Override
-    public String generateUrl(@NotNull final Path path) {
-        return null;
-    }
-
+  @Override
+  public String generateUrl(@NotNull final Path path) {
+    return null;
+  }
 }

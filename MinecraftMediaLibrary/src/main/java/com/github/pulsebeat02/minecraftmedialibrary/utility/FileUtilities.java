@@ -1,3 +1,16 @@
+/*
+ * ============================================================================
+ * Copyright (C) PulseBeat_02 - All Rights Reserved
+ *
+ * This file is part of MinecraftMediaLibrary
+ *
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ *
+ * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/11/2021
+ * ============================================================================
+ */
+
 package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
 import org.jetbrains.annotations.NotNull;
@@ -12,14 +25,13 @@ import java.util.UUID;
 
 public class FileUtilities {
 
-    public static File downloadImageFile(@NotNull final String url, @NotNull final String path) {
-        final String filePath = path + "/" + UUID.randomUUID() + ".png";
-        try (final InputStream in = new URL(url).openStream()) {
-            Files.copy(in, Paths.get(filePath));
-        } catch (final IOException e) {
-            e.printStackTrace();
-        }
-        return new File(filePath);
+  public static File downloadImageFile(@NotNull final String url, @NotNull final String path) {
+    final String filePath = path + "/" + UUID.randomUUID() + ".png";
+    try (final InputStream in = new URL(url).openStream()) {
+      Files.copy(in, Paths.get(filePath));
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
-
+    return new File(filePath);
+  }
 }
