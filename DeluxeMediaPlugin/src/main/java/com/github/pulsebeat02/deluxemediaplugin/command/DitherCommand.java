@@ -15,7 +15,7 @@ import java.util.List;
 public class DitherCommand extends AbstractCommand implements CommandExecutor {
 
     public DitherCommand(@NotNull final DeluxeMediaPlugin plugin) {
-        super(plugin, "dither", "");
+        super(plugin, null, "dither", "");
     }
 
     @Override

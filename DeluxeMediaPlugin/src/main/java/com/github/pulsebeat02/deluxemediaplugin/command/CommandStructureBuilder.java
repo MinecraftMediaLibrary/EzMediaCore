@@ -18,13 +18,13 @@ public class CommandStructureBuilder {
     // TODO: Create all the command trees
 
     public void initializeVideoCommand() {
-        AbstractCommand dither = new AbstractCommand(plugin, "video", "");
+        AbstractCommand dither = new AbstractCommand(plugin, null, "video", "");
         AbstractCommand youtube;
     }
 
     public void initializeDitherCommand() {
-        AbstractCommand dither = new AbstractCommand(plugin, "dither", "");
-        AbstractCommand settings = new AbstractCommand(plugin, "list", "[Dither Setting]") {
+        AbstractCommand dither = new AbstractCommand(plugin, null, "dither", "");
+        AbstractCommand settings = new AbstractCommand(plugin, null, "list", "[Dither Setting]") {
             @Override
             public void performCommandTask(final @NotNull CommandSender sender, final @NotNull Command command, final @NotNull String s, final @NotNull String[] args) {
                 sender.sendMessage(ChatColor.GOLD + "List of Possible Options:");

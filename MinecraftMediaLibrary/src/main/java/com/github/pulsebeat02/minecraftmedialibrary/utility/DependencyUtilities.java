@@ -8,15 +8,44 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Enumeration;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 public class DependencyUtilities {
+
+    private static final String MAVEN_CENTRAL_URL;
+    private static final String JITPACK_CENTRAL_URL;
+    private static URLClassLoader CLASSLOADER;
+    private static Method ADD_URL_METHOD;
+
+    static {
+        Logger.info("Attempting to Open Reflection Module...");
+        try {
+            Class<?> moduleClass = Class.forName("java.lang.Module");
+            Method getModuleMethod = Class.class.getMethod("getModule");
+            Method addOpensMethod = moduleClass.getMethod("addOpens", String.class, moduleClass);
+            Object urlClassLoaderModule = getModuleMethod.invoke(URLClassLoader.class);
+            Object thisModule = getModuleMethod.invoke(DependencyUtilities.class);
+            addOpensMethod.invoke(urlClassLoaderModule, URLClassLoader.class.getPackage().getName(), thisModule);
+            Logger.info("User is using Java 8+, meaning Reflection Module does have to be opened. You may safely ignore this error.");
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
+            Logger.info("User is using Java 8, meaning Reflection Module does NOT have to be opened. You may safely ignore this error.");
+            // Java 8 doesn't have module class -- you can ignore the error.
+        }
+        MAVEN_CENTRAL_URL = "https://repo1.maven.org/maven2/";
+        JITPACK_CENTRAL_URL = "https://jitpack.io/";
+        try {
+            CLASSLOADER = (URLClassLoader)ClassLoader.getSystemClassLoader();
+            ADD_URL_METHOD = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+            ADD_URL_METHOD.setAccessible(true);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static File downloadMavenDependency(@NotNull final MavenDependency dependency, @NotNull final String parent) throws IOException {
         return downloadFile(dependency, getMavenCentralUrl(dependency), parent);
@@ -27,11 +56,11 @@ public class DependencyUtilities {
     }
 
     public static String getMavenCentralUrl(@NotNull final MavenDependency dependency) {
-        return getDependencyUrl(dependency, "https://repo1.maven.org/maven2/");
+        return getDependencyUrl(dependency, MAVEN_CENTRAL_URL);
     }
 
     public static String getJitpackUrl(@NotNull final MavenDependency dependency) {
-        return getDependencyUrl(dependency, "https://jitpack.io/");
+        return getDependencyUrl(dependency, JITPACK_CENTRAL_URL);
     }
 
     public static String getDependencyUrl(@NotNull final MavenDependency dependency, @NotNull final String base) {
@@ -56,7 +85,7 @@ public class DependencyUtilities {
 
     public static File downloadFile(@NotNull final String groupId, @NotNull final String artifactId, @NotNull final String version, @NotNull final String parent) throws IOException {
         final String file = artifactId + "-" + version + ".jar";
-        final String url = getDependencyUrl(groupId, artifactId, version, "https://repo1.maven.org/maven2/") + file;
+        final String url = getDependencyUrl(groupId, artifactId, version, MAVEN_CENTRAL_URL) + file;
         return downloadFile(Paths.get(parent + "/" + file), url);
     }
 
@@ -73,30 +102,11 @@ public class DependencyUtilities {
     }
 
     public static void loadDependency(@NotNull final File file) throws IOException {
-        final String jarPath = file.getAbsolutePath();
-        final JarFile jarFile = new JarFile(jarPath);
-        Logger.info("Loading JAR Dependency at: " + jarPath);
-        final Enumeration<JarEntry> e = jarFile.entries();
-        final URL[] urls = {new URL("jar:file:" + jarPath + "!/")};
-        final URLClassLoader cl = new URLClassLoader(urls);
-        while (e.hasMoreElements()) {
-            final JarEntry je = e.nextElement();
-            if (je.isDirectory() || !je.getName().endsWith(".class")) {
-                continue;
-            }
-            if (je.getName().contains("module-info")) {
-                continue;
-            }
-            String className = je.getName().substring(0, je.getName().length() - 6);
-            className = className.replace('/', '.');
-            try {
-                final Class<?> c = cl.loadClass(className);
-                Logger.info("Loaded " + className);
-            } catch (final ClassNotFoundException | NoClassDefFoundError ignored) {
-                Logger.error("Could NOT Load " + className);
-                Logger.info("If the class which couldn't be loaded is in in a META-INF folder or an OS " +
-                        "specific class, it is completely fine to leave this error alone.");
-            }
+        Logger.info("Loading JAR Dependency at: " + file.getAbsolutePath());
+        try {
+            ADD_URL_METHOD.invoke(CLASSLOADER, file.toURI().toURL());
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
         }
         Logger.info("Finished Loading Dependency " + file.getName());
     }

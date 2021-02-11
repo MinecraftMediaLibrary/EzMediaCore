@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,13 +21,16 @@ public class AbstractCommand implements CommandExecutor, TabCompleter {
 
     private final DeluxeMediaPlugin plugin;
     private final String name;
+    private final AbstractCommand parent;
     private final Map<String, AbstractCommand> children;
     private final List<String> history;
 
     public AbstractCommand(@NotNull final DeluxeMediaPlugin plugin,
+                           @Nullable final AbstractCommand parent,
                            @NotNull final String name,
                            @NotNull final String suggestion) {
         this.plugin = plugin;
+        this.parent = parent;
         this.history = new ArrayList<>();
         this.children = new HashMap<>();
         this.name = name;

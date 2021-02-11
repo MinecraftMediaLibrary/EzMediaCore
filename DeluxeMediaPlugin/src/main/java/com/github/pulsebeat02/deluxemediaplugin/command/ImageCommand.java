@@ -30,7 +30,7 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
     private int height;
 
     public ImageCommand(@NotNull final DeluxeMediaPlugin plugin) {
-        super(plugin, "image", "");
+        super(plugin, null, "image", "");
         this.images = new HashSet<>();
         this.listen = new HashSet<>();
         this.width = 1;

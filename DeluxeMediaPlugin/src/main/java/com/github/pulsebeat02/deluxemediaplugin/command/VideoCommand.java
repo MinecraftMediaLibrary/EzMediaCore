@@ -50,7 +50,7 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
     private long startingMap;
 
     public VideoCommand(@NotNull final DeluxeMediaPlugin plugin) {
-        super(plugin, "video", "");
+        super(plugin, null, "video", "");
         this.dither = DitherSetting.SIERRA_FILTER_LITE_DITHER.getHolder();
     }
 
