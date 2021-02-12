@@ -1,0 +1,16 @@
+1613101290052: [INFO] Attempting to Open Reflection Module...
+1613101290053: [INFO] User is using Java 8, meaning Reflection Module does NOT have to be opened. You may safely ignore this error.
+1613101290053: [INFO] Loading JAR Dependency at: C:\Users\Brandon Li\IdeaProjects\MinecraftMediaLibrary\mml_libs\httpclient-4.5.13.jar
+1613101290053: [INFO] Finished Loading Dependency httpclient-4.5.13.jar
+1613101290053: [INFO] Loading JAR Dependency at: C:\Users\Brandon Li\IdeaProjects\MinecraftMediaLibrary\mml_libs\httpmime-4.5.13.jar
+1613101290054: [INFO] Finished Loading Dependency httpmime-4.5.13.jar
+1613101290054: [INFO] Loading JAR Dependency at: C:\Users\Brandon Li\IdeaProjects\MinecraftMediaLibrary\mml_libs\java-youtube-downloader-2.4.6.jar
+1613101290054: [INFO] Finished Loading Dependency java-youtube-downloader-2.4.6.jar
+1613101290054: [INFO] Loading JAR Dependency at: C:\Users\Brandon Li\IdeaProjects\MinecraftMediaLibrary\mml_libs\javacv-platform-1.5.4.jar
+1613101290054: [INFO] Finished Loading Dependency javacv-platform-1.5.4.jar
+1613101290054: [INFO] Loading JAR Dependency at: C:\Users\Brandon Li\IdeaProjects\MinecraftMediaLibrary\mml_libs\jave-nativebin-win64-2.7.3.jar
+1613101290054: [INFO] Finished Loading Dependency jave-nativebin-win64-2.7.3.jar
+1613101290054: [INFO] Loading JAR Dependency at: C:\Users\Brandon Li\IdeaProjects\MinecraftMediaLibrary\mml_libs\vlcj-4.6.0.jar
+1613101290055: [INFO] Finished Loading Dependency vlcj-4.6.0.jar
+1613101290056: [INFO] Loading JAR Dependency at: C:\Users\Brandon Li\IdeaProjects\MinecraftMediaLibrary\mml_libs\jave-nativebin-win64-2.7.3.jar
+1613101290056: [INFO] Finished Loading Dependency jave-nativebin-win64-2.7.3.jar
