@@ -46,7 +46,7 @@ public class DependencyUtilities {
             addOpensMethod.invoke(
                     urlClassLoaderModule, URLClassLoader.class.getPackage().getName(), thisModule);
             Logger.info(
-                    "User is using Java 8+, meaning Reflection Module does have to be opened. You may safely ignore this error.");
+                    "User is using Java 9+, meaning Reflection Module does have to be opened. You may safely ignore this error.");
         } catch (final ClassNotFoundException
                 | NoSuchMethodException
                 | IllegalAccessException
