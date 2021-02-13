@@ -1,8 +1,3 @@
-
-plugins {
-    id("com.github.pulsebeat02.java-conventions")
-}
-
 dependencies {
     implementation(project(":v1_16_R3"))
     implementation(project(":v1_16_R2"))

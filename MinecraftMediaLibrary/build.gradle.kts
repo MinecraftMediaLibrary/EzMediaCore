@@ -1,8 +1,3 @@
-
-plugins {
-    id("com.github.pulsebeat02.java-conventions")
-}
-
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
     compileOnly("uk.co.caprica:vlcj:4.6.0")

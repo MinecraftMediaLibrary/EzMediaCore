@@ -1,8 +1,3 @@
-
-plugins {
-    id("com.github.pulsebeat02.java-conventions")
-}
-
 dependencies {
     implementation(project(":MinecraftMediaLibrary-Final"))
     implementation("org.bstats:bstats-bukkit:1.8")
