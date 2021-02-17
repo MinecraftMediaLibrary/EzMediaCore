@@ -42,16 +42,16 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.github.pulsebeat02</groupId>
+            <artifactId>MinecraftMediaLibrary</artifactId>
+            <version>RELEASE-1.4.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
             <version>16.0.1</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.pulsebeat02</groupId>
-            <artifactId>MinecraftMediaLibrary-Final</artifactId>
-            <version>${project.parent.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.bstats</groupId>
