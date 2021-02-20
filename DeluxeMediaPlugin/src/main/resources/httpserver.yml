@@ -1,0 +1,21 @@
+# Set to Enable the HTTP Server for Hosting Resourcepacks
+enabled: true
+
+# You must port forward this specific port in order to have the server running.
+# You can also change it to something different if the port is used.
+port: 1234
+
+# This is the directory for which the HTTP Server is located in. It is also where
+# resourcepacks will be made and hosted. Make sure this folder DOES NOT have any
+# PRIVATE SERVER FILES. Anyone on the internet has access to this directory, but
+# cannot access parent directories. It is set by default to be under the
+# /plugins/DeluxeMediaPlugin/ directory (for whatever folder this is)
+directory: "/http"
+
+# Currently, two options are supported. ZIP and OCTET_STREAM. You can research
+# more about what each of these stands for online.
+header: "ZIP"
+
+# This sets whether the HTTP Server should log connections of the resourcepack.
+# Recommended to be set on as it is useful information.
+verbose: true

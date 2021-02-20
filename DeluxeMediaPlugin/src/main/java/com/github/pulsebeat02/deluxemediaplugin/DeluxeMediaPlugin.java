@@ -83,9 +83,9 @@ public class DeluxeMediaPlugin extends JavaPlugin {
     pictureConfiguration = new PictureConfiguration(this);
     videoConfiguration = new VideoConfiguration(this);
 
-    httpConfiguration.serialize();
-    pictureConfiguration.serialize();
-    videoConfiguration.serialize();
+    httpConfiguration.read();
+    pictureConfiguration.read();
+    videoConfiguration.read();
   }
 
   private void registerCommands() {

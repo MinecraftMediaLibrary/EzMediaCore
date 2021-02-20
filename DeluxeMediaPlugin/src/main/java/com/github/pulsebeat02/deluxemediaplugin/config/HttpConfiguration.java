@@ -46,7 +46,8 @@ public class HttpConfiguration extends AbstractConfiguration {
     final FileConfiguration configuration = getFileConfiguration();
     final boolean enabled = configuration.getBoolean("enabled");
     final int port = configuration.getInt("port");
-    final String directory = configuration.getString("directory");
+    final String directory =
+        getPlugin().getDataFolder().getAbsolutePath() + "/" + configuration.getString("directory");
     final String header = configuration.getString("header");
     final boolean verbose = configuration.getBoolean("verbose");
     if (enabled) {

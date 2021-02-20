@@ -72,6 +72,13 @@ public abstract class AbstractConfiguration {
     }
   }
 
+  public void read() {
+    if (!configFile.exists()) {
+      saveDefaultConfig();
+    }
+    serialize();
+  }
+
   abstract void deserialize();
 
   abstract void serialize();
