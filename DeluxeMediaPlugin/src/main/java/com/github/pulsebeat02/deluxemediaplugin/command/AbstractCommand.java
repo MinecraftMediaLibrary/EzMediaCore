@@ -57,7 +57,7 @@ public class AbstractCommand implements CommandExecutor, TabCompleter {
       @NotNull final Command command,
       @NotNull final String s,
       final @NotNull String[] args) {
-    if (dependenciesLoaded()) {
+    if (!dependenciesLoaded()) {
       sender.sendMessage(
           ChatUtilities.formatMessage(
               ChatColor.RED
