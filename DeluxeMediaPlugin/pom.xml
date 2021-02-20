@@ -43,7 +43,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.pulsebeat02</groupId>
-            <artifactId>MinecraftMediaLibrary</artifactId>
+            <artifactId>MinecraftMediaLibrary-Final</artifactId>
             <version>RELEASE-1.4.0</version>
             <scope>compile</scope>
         </dependency>

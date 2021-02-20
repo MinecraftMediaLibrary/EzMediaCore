@@ -63,6 +63,7 @@ public class AbstractCommand implements CommandExecutor, TabCompleter {
               ChatColor.RED
                   + "Please wait some time to allow dependencies to be downloaded. We will "
                   + "notify you once they are done."));
+      return true;
     }
     if (!(sender instanceof Player)) {
       sender.sendMessage(

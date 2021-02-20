@@ -76,6 +76,7 @@ public abstract class AbstractConfiguration {
     if (!configFile.exists()) {
       saveDefaultConfig();
     }
+    getConfig();
     serialize();
   }
 

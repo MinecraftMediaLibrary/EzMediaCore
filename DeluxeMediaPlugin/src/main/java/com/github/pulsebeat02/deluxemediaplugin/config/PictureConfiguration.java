@@ -29,7 +29,7 @@ public class PictureConfiguration extends AbstractConfiguration {
   private final Set<MapImage> images;
 
   public PictureConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
-    super(plugin, "pictures.yml");
+    super(plugin, "picture.yml");
     this.images = new HashSet<>();
   }
 
