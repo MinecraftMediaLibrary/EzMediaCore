@@ -55,7 +55,10 @@ public class CommandUtilities {
   }
 
   public static void unRegisterBukkitCommand(
-      @NotNull final DeluxeMediaPlugin plugin, @NotNull final PluginCommand cmd) {
+      @NotNull final DeluxeMediaPlugin plugin, final PluginCommand cmd) {
+    if (cmd == null) {
+      return;
+    }
     try {
       knownCommands.remove(cmd.getName());
       for (final String alias : cmd.getAliases()) {

@@ -28,6 +28,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.net.URLClassLoader;
 import java.util.concurrent.CompletableFuture;
@@ -40,7 +41,6 @@ public class MinecraftMediaLibrary {
   private final PacketHandler handler;
   private final TinyProtocol protocol;
   private boolean vlcj;
-  private boolean dependencies;
 
   public MinecraftMediaLibrary(
       @NotNull final Plugin plugin, @NotNull final String path, final boolean isUsingVLCJ) {
@@ -67,39 +67,46 @@ public class MinecraftMediaLibrary {
     this.parent = path;
     this.vlcj = isUsingVLCJ;
     this.listener = new PlayerJoinLeaveHandler(this);
-    DependencyUtilities.CLASSLOADER = (URLClassLoader) plugin.getClass().getClassLoader();
-    CompletableFuture.runAsync(this::asyncTasks);
-    Bukkit.getPluginManager().registerEvents(listener, plugin);
-    Logger.info("Plugin " + plugin.getName() + " initialized MinecraftMediaLibrary");
-    Logger.info("=====================================");
-    Logger.info("Path: " + path);
-    Logger.info("Using VLCJ? " + (isUsingVLCJ ? "Yes" : "No"));
-    Logger.info("=====================================");
+    dependencyTasks();
+    registrationTasks();
+    debugInformation();
     checkJavaVersion();
   }
 
-  private void asyncTasks() {
-    dependencies = true;
+  private void dependencyTasks() {
+    DependencyUtilities.CLASSLOADER = (URLClassLoader) plugin.getClass().getClassLoader();
     final DependencyManagement dependencyManagement = new DependencyManagement();
     dependencyManagement.installAndLoad();
     final JaveDependencyHandler javeDependencyHandler = new JaveDependencyHandler();
     javeDependencyHandler.installAndLoad();
+    new NativeDiscovery().discover();
     if (vlcj) {
       try {
         new MediaPlayerFactory();
       } catch (final Exception e) {
         Logger.error(
-            "The user does not have VLCJ installed! This is a very fatal error. Switching "
-                + "to basic Video Player instead.");
+                "The user does not have VLCJ installed! This is a very fatal error. Switching "
+                        + "to basic Video Player instead.");
         vlcj = false;
       }
     }
-    dependencies = true;
+  }
+
+  private void registrationTasks() {
+    Bukkit.getPluginManager().registerEvents(listener, plugin);
+  }
+
+  private void debugInformation() {
+    Logger.info("Plugin " + plugin.getName() + " initialized MinecraftMediaLibrary");
+    Logger.info("==================================================================");
+    Logger.info("Path: " + parent);
+    Logger.info("Using VLCJ? " + (vlcj ? "Yes" : "No"));
+    Logger.info("==================================================================");
   }
 
   private void checkJavaVersion() {
-    final String[] verison = System.getProperty("java.version").split("\\.");
-    final int major = Integer.parseInt(verison[1]);
+    final String[] version = System.getProperty("java.version").split("\\.");
+    final int major = Integer.parseInt(version[1]);
     if (major < 11) {
       Logger.warn(
           "MinecraftMediaPlugin is moving towards a newer Java Version (Java 11) \n"
@@ -144,7 +151,4 @@ public class MinecraftMediaLibrary {
     return vlcj;
   }
 
-  public boolean isLoadingDependencies() {
-    return dependencies;
-  }
 }

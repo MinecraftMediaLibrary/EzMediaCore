@@ -19,14 +19,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class HttpDaemon extends Thread implements AbstractHttpDaemon {
 
   private final int port;
-  private final ServerSocket socket;
-  private final File directory;
+  private ServerSocket socket;
+  private File directory;
   private boolean running;
   private ZipHeader header;
   private boolean verbose;
@@ -50,8 +51,14 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
   public HttpDaemon(final int port, @NotNull final String path) throws IOException {
     this.running = true;
     this.port = port;
-    this.socket = new ServerSocket(port);
-    this.socket.setReuseAddress(true);
+    try {
+      this.socket = new ServerSocket(port);
+      this.socket.setReuseAddress(true);
+    } catch (final BindException e) {
+      Logger.error("The port specified is being used by another process. Please make sure to port-forward the port first and make sure it is open.");
+      Logger.error(e.getMessage());
+      return;
+    }
     this.directory = new File(path);
     this.header = ZipHeader.ZIP;
     this.verbose = true;

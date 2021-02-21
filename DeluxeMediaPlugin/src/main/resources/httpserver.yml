@@ -10,7 +10,7 @@ port: 1234
 # PRIVATE SERVER FILES. Anyone on the internet has access to this directory, but
 # cannot access parent directories. It is set by default to be under the
 # /plugins/DeluxeMediaPlugin/ directory (for whatever folder this is)
-directory: "/http"
+directory: "http"
 
 # Currently, two options are supported. ZIP and OCTET_STREAM. You can research
 # more about what each of these stands for online.

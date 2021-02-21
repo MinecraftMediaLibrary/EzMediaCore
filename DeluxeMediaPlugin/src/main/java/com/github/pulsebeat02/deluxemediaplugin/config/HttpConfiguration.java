@@ -16,8 +16,12 @@ package com.github.pulsebeat02.deluxemediaplugin.config;
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.minecraftmedialibrary.http.HttpDaemon;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+
+import java.net.BindException;
 
 public class HttpConfiguration extends AbstractConfiguration {
 
@@ -51,7 +55,6 @@ public class HttpConfiguration extends AbstractConfiguration {
     final String header = configuration.getString("header");
     final boolean verbose = configuration.getBoolean("verbose");
     if (enabled) {
-      assert directory != null;
       daemon = new HttpDaemonProvider(directory, port);
       final HttpDaemon http = daemon.getDaemon();
       assert header != null;

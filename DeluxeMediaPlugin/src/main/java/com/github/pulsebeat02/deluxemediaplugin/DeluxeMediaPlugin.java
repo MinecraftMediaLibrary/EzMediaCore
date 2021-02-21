@@ -23,6 +23,7 @@ import com.github.pulsebeat02.deluxemediaplugin.utility.CommandUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import net.md_5.bungee.api.ChatColor;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -57,6 +58,7 @@ public class DeluxeMediaPlugin extends JavaPlugin {
       logger.info(ChatColor.GOLD + "Finished Loading Instance and Plugin");
     } else {
       logger.severe("Plugin cannot load until server version is at least 1.8");
+      Bukkit.getPluginManager().disablePlugin(this);
     }
   }
 

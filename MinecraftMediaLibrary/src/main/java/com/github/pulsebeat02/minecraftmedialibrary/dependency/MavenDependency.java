@@ -16,19 +16,14 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency;
 import org.jetbrains.annotations.NotNull;
 
 public enum MavenDependency {
+
   VLCJ("uk.co.caprica", "vlcj", "4.6.0"),
+
+  VLCJ_NATIVES("uk.co.caprica", "vlcj-natives", "4.5.0"),
 
   YOUTUBE_DOWNLOADER("com.github.sealedtx", "java-youtube-downloader", "2.4.6"),
 
-  HTTPCLIENT("org.apache.httpcomponents", "httpclient", "4.5.13"),
-
-  HTTPMINE("org.apache.httpcomponents", "httpmime", "4.5.13"),
-
-  //    JAVE(
-  //            "ws.schild",
-  //            "jave-all-deps",
-  //            "2.7.3"
-  //    ),
+  JAVE_CORE("ws.schild", "jave-core", "3.0.1"),
 
   JAVACV("org.bytedeco", "javacv-platform", "1.5.4");
 
