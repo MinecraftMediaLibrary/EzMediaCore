@@ -25,7 +25,7 @@ public class ItemFrameCallback implements AbstractCallback {
   private final MinecraftMediaLibrary library;
   private final UUID[] viewers;
   private final AbstractDitherHolder type;
-  private final long map;
+  private final int map;
   private final int videoWidth;
   private final int delay;
   private int width;
@@ -35,7 +35,7 @@ public class ItemFrameCallback implements AbstractCallback {
   public ItemFrameCallback(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final UUID[] viewers,
-      final long map,
+      final int map,
       final int width,
       final int height,
       final int videoWidth,

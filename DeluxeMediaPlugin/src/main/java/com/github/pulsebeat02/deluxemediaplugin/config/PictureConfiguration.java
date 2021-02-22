@@ -53,7 +53,7 @@ public class PictureConfiguration extends AbstractConfiguration {
   public void serialize() {
     final FileConfiguration configuration = getFileConfiguration();
     for (final String key : configuration.getKeys(false)) {
-      final long id = Long.parseLong(key);
+      final int id = Integer.parseInt(key);
       final File file = new File(Objects.requireNonNull(configuration.getString(id + ".location")));
       if (!file.exists()) {
         Logger.error("Could not read " + file.getAbsolutePath() + " at id " + id + "!");

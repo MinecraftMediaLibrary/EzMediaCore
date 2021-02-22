@@ -61,7 +61,7 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
   private int frameHeight;
 
   // int starting map
-  private long startingMap;
+  private int startingMap;
 
   // CompletableFuture
   private CompletableFuture<Void> future;
@@ -349,7 +349,7 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                         + "' is too high! (Must be Integer between -2,147,483,647 - 2,147,483,647)"));
             return;
           }
-          startingMap = id;
+          startingMap = (int)id;
           sender.sendMessage(
               ChatUtilities.formatMessage(
                   ChatColor.GOLD + "Set starting-map on id " + startingMap));

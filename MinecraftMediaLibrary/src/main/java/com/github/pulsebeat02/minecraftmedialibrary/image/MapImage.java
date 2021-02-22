@@ -31,14 +31,14 @@ import java.util.Objects;
 public class MapImage implements AbstractImageMapHolder, ConfigurationSerializable {
 
   private final MinecraftMediaLibrary library;
-  private final long map;
+  private final int map;
   private final File image;
   private final int height;
   private final int width;
 
   public MapImage(
       @NotNull final MinecraftMediaLibrary library,
-      final long map,
+      final int map,
       @NotNull final File image,
       final int width,
       final int height) {
@@ -53,7 +53,7 @@ public class MapImage implements AbstractImageMapHolder, ConfigurationSerializab
 
   public MapImage(
       @NotNull final MinecraftMediaLibrary library,
-      final long map,
+      final int map,
       @NotNull final String url,
       final int width,
       final int height) {
@@ -77,7 +77,7 @@ public class MapImage implements AbstractImageMapHolder, ConfigurationSerializab
         NumberConversions.toInt(deserialize.get("height")));
   }
 
-  public static void resetMap(@NotNull final MinecraftMediaLibrary library, final long id) {
+  public static void resetMap(@NotNull final MinecraftMediaLibrary library, final int id) {
     library.getHandler().unregisterMap(id);
   }
 
@@ -108,7 +108,7 @@ public class MapImage implements AbstractImageMapHolder, ConfigurationSerializab
     return library;
   }
 
-  public long getMap() {
+  public int getMap() {
     return map;
   }
 
@@ -126,7 +126,7 @@ public class MapImage implements AbstractImageMapHolder, ConfigurationSerializab
 
   public static class Builder {
 
-    private long map;
+    private int map;
     private File image;
     private int height;
     private int width;
