@@ -19,6 +19,7 @@ import com.github.pulsebeat02.deluxemediaplugin.command.VideoCommand;
 import com.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
 import com.github.pulsebeat02.deluxemediaplugin.config.PictureConfiguration;
 import com.github.pulsebeat02.deluxemediaplugin.config.VideoConfiguration;
+import com.github.pulsebeat02.deluxemediaplugin.update.PluginUpdateChecker;
 import com.github.pulsebeat02.deluxemediaplugin.utility.CommandUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import net.md_5.bungee.api.ChatColor;
@@ -55,7 +56,7 @@ public class DeluxeMediaPlugin extends JavaPlugin {
       library = new MinecraftMediaLibrary(this, getDataFolder().getPath(), true);
       registerCommands();
       registerConfigurations();
-      final Metrics metrics = new Metrics(this, 10229);
+      checkUpdates();
       logger.info(ChatColor.GOLD + "Finished Loading Instance and Plugin");
     } else {
       logger.severe("Plugin cannot load until server version is at least 1.8");
@@ -109,6 +110,11 @@ public class DeluxeMediaPlugin extends JavaPlugin {
 
     image.setExecutor(imageCommand);
     image.setTabCompleter(imageCommand);
+  }
+
+  private void checkUpdates() {
+    final Metrics metrics = new Metrics(this, 10229);
+    new PluginUpdateChecker(this).checkForUpdates();
   }
 
   public MinecraftMediaLibrary getLibrary() {
