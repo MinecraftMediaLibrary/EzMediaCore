@@ -47,6 +47,7 @@ public class DeluxeMediaPlugin extends JavaPlugin {
   @Override
   public void onEnable() {
     logger = getLogger();
+    CommandUtilities.ensureInit();
     if (!OUTDATED) {
       com.github.pulsebeat02.minecraftmedialibrary.logger.Logger.setVerbose(true);
       logger.info(ChatColor.GOLD + "DeluxeMediaPlugin is Initializing");

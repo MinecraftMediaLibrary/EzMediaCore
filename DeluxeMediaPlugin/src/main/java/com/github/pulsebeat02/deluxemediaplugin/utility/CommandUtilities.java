@@ -54,6 +54,8 @@ public class CommandUtilities {
     }
   }
 
+  public static void ensureInit() {}
+
   public static void unRegisterBukkitCommand(
       @NotNull final DeluxeMediaPlugin plugin, final PluginCommand cmd) {
     if (cmd == null) {
