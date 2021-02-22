@@ -33,13 +33,15 @@ public class YoutubeExtraction implements AbstractVideoExtractor {
 
   private final String url;
   private final String directory;
+  private final ExtractionSetting settings;
   private VideoDetails details;
   private File video;
   private File audio;
 
-  public YoutubeExtraction(@NotNull final String url, @NotNull final String directory) {
+  public YoutubeExtraction(@NotNull final String url, @NotNull final String directory, @NotNull final ExtractionSetting settings) {
     this.url = url;
     this.directory = directory;
+    this.settings = settings;
   }
 
   @Override
@@ -74,13 +76,13 @@ public class YoutubeExtraction implements AbstractVideoExtractor {
     Logger.info("Extracting Audio from Video File (" + video.getAbsolutePath() + ")");
     final File sound = new File(directory + "/audio.ogg");
     final AudioAttributes attributes = new AudioAttributes();
-    attributes.setCodec("libvorbis");
-    attributes.setBitRate(160000);
-    attributes.setChannels(2);
-    attributes.setSamplingRate(44100);
-    attributes.setVolume(48);
+    attributes.setCodec(settings.getCodec());
+    attributes.setBitRate(settings.getBitrate());
+    attributes.setChannels(settings.getChannels());
+    attributes.setSamplingRate(settings.getSamplingRate());
+    attributes.setVolume(settings.getVolume());
     final EncodingAttributes attrs = new EncodingAttributes();
-    attrs.setFormat("ogg");
+    attrs.setFormat(settings.getFormat());
     attrs.setAudioAttributes(attributes);
     final Encoder encoder = new Encoder();
     try {

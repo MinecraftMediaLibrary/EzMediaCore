@@ -22,7 +22,9 @@ public enum MavenDependency {
 
   YOUTUBE_DOWNLOADER("com.github.sealedtx", "java-youtube-downloader", "2.4.6"),
 
-  JAVE_CORE("ws.schild", "jave-core", "3.0.1"),
+  // JAVE_CORE("ws.schild", "jave-core", "3.0.1"),
+
+  FFMPEG("net.bramp.ffmpeg", "ffmpeg", "0.6.2"),
 
   JAVACV("org.bytedeco", "javacv-platform", "1.5.4");
 

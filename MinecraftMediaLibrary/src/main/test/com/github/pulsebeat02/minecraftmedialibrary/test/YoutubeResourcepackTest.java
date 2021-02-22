@@ -15,6 +15,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.test;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.concurrent.AsyncVideoExtraction;
+import com.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.minecraftmedialibrary.image.MapImage;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
@@ -44,7 +45,7 @@ public class YoutubeResourcepackTest extends JavaPlugin {
       @NotNull final String youtubeUrl, @NotNull final String directory, final int port) {
 
     final YoutubeExtraction extraction =
-        new YoutubeExtraction(youtubeUrl, directory) {
+        new YoutubeExtraction(youtubeUrl, directory, new ExtractionSetting.Builder().createExtractionSetting()) {
           @Override
           public void onVideoDownload() {
             System.out.println("Video is Downloading!");

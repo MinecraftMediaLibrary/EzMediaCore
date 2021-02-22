@@ -16,6 +16,7 @@ package com.github.pulsebeat02.deluxemediaplugin;
 import com.github.pulsebeat02.deluxemediaplugin.command.DitherCommand;
 import com.github.pulsebeat02.deluxemediaplugin.command.ImageCommand;
 import com.github.pulsebeat02.deluxemediaplugin.command.VideoCommand;
+import com.github.pulsebeat02.deluxemediaplugin.config.EncoderConfiguration;
 import com.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
 import com.github.pulsebeat02.deluxemediaplugin.config.PictureConfiguration;
 import com.github.pulsebeat02.deluxemediaplugin.config.VideoConfiguration;
@@ -44,6 +45,7 @@ public class DeluxeMediaPlugin extends JavaPlugin {
   private HttpConfiguration httpConfiguration;
   private PictureConfiguration pictureConfiguration;
   private VideoConfiguration videoConfiguration;
+  private EncoderConfiguration encoderConfiguration;
 
   @Override
   public void onEnable() {
@@ -86,10 +88,12 @@ public class DeluxeMediaPlugin extends JavaPlugin {
     httpConfiguration = new HttpConfiguration(this);
     pictureConfiguration = new PictureConfiguration(this);
     videoConfiguration = new VideoConfiguration(this);
+    encoderConfiguration = new EncoderConfiguration(this);
 
     httpConfiguration.read();
     pictureConfiguration.read();
     videoConfiguration.read();
+    encoderConfiguration.read();
   }
 
   private void registerCommands() {
@@ -143,5 +147,9 @@ public class DeluxeMediaPlugin extends JavaPlugin {
 
   public VideoConfiguration getVideoConfiguration() {
     return videoConfiguration;
+  }
+
+  public EncoderConfiguration getEncoderConfiguration() {
+    return encoderConfiguration;
   }
 }

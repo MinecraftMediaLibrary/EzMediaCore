@@ -194,7 +194,7 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
             future.cancel(true);
             extractor = null;
           }
-          extractor = new YoutubeExtraction(mrl, folderPath);
+          extractor = new YoutubeExtraction(mrl, folderPath, getPlugin().getEncoderConfiguration().getSettings());
           file = null;
           final HttpConfiguration configuration = getPlugin().getHttpConfiguration();
           HttpDaemonProvider provider = null;
@@ -235,11 +235,9 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                         }
                       })
                   .thenRunAsync(
-                      () -> {
-                        sender.sendMessage(
-                            ChatUtilities.formatMessage(
-                                ChatColor.GOLD + "Successfully loaded video " + mrl));
-                      });
+                      () -> sender.sendMessage(
+                          ChatUtilities.formatMessage(
+                              ChatColor.GOLD + "Successfully loaded video " + mrl)));
         }
         addHistoryEntry(mrl);
       } else {
