@@ -91,8 +91,6 @@ public class YoutubeExtraction implements AbstractVideoExtractor {
               + ")");
     } catch (final EncoderException e) {
       Logger.error(
-              
-              
           "Couldn't Extract Audio from Video File! (Video: " + video.getAbsolutePath() + ")");
       e.printStackTrace();
     }

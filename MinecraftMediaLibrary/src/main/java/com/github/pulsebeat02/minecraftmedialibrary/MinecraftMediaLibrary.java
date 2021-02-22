@@ -31,7 +31,6 @@ import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.net.URLClassLoader;
-import java.util.concurrent.CompletableFuture;
 
 public class MinecraftMediaLibrary {
 
@@ -85,8 +84,8 @@ public class MinecraftMediaLibrary {
         new MediaPlayerFactory();
       } catch (final Exception e) {
         Logger.error(
-                "The user does not have VLCJ installed! This is a very fatal error. Switching "
-                        + "to basic Video Player instead.");
+            "The user does not have VLCJ installed! This is a very fatal error. Switching "
+                + "to basic Video Player instead.");
         vlcj = false;
       }
     }
@@ -150,5 +149,4 @@ public class MinecraftMediaLibrary {
   public boolean isVlcj() {
     return vlcj;
   }
-
 }

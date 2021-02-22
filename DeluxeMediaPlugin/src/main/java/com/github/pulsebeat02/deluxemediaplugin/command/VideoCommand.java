@@ -205,34 +205,41 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
             }
           }
           HttpDaemonProvider finalProvider = provider;
-          future = CompletableFuture.runAsync(() -> extractor.downloadVideo()).thenRunAsync(() -> {
-            final ResourcepackWrapper wrapper =
-                    new ResourcepackWrapper.Builder()
-                            .setAudio(extractor.getAudio())
-                            .setDescription("Youtube Video: " + extractor.getVideoTitle())
-                            .setPath(configuration.getFileName())
-                            .setPackFormat(6)
-                            .createResourcepackHostingProvider(getPlugin().getLibrary());
-            wrapper.buildResourcePack();
-            if (finalProvider != null) {
-              String url = finalProvider.generateUrl(wrapper.getPath());
-              for (final Player p : Bukkit.getOnlinePlayers()) {
-                p.setResourcePack(url);
-              }
-              sender.sendMessage(
-                      ChatUtilities.formatMessage(ChatColor.GOLD + "Sending Resourcepack..."));
-            } else {
-              sender.sendMessage(
-                      ChatUtilities.formatMessage(
-                              ChatColor.RED
+          future =
+              CompletableFuture.runAsync(() -> extractor.downloadVideo())
+                  .thenRunAsync(
+                      () -> {
+                        final ResourcepackWrapper wrapper =
+                            new ResourcepackWrapper.Builder()
+                                .setAudio(extractor.getAudio())
+                                .setDescription("Youtube Video: " + extractor.getVideoTitle())
+                                .setPath(configuration.getFileName())
+                                .setPackFormat(6)
+                                .createResourcepackHostingProvider(getPlugin().getLibrary());
+                        wrapper.buildResourcePack();
+                        if (finalProvider != null) {
+                          String url = finalProvider.generateUrl(wrapper.getPath());
+                          for (final Player p : Bukkit.getOnlinePlayers()) {
+                            p.setResourcePack(url);
+                          }
+                          sender.sendMessage(
+                              ChatUtilities.formatMessage(
+                                  ChatColor.GOLD + "Sending Resourcepack..."));
+                        } else {
+                          sender.sendMessage(
+                              ChatUtilities.formatMessage(
+                                  ChatColor.RED
                                       + "You have HTTP set false by default. You cannot "
                                       + "play Youtube videos without a daemon"));
-              future.cancel(true);
-            }
-          }).thenRunAsync(() -> {
-            sender.sendMessage(
-                    ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully loaded video " + mrl));
-          });
+                          future.cancel(true);
+                        }
+                      })
+                  .thenRunAsync(
+                      () -> {
+                        sender.sendMessage(
+                            ChatUtilities.formatMessage(
+                                ChatColor.GOLD + "Successfully loaded video " + mrl));
+                      });
         }
         addHistoryEntry(mrl);
       } else {
@@ -327,21 +334,21 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                         + "' is not a valid argument! (Must be Integer between 0 - 4,294,967,296)"));
             return;
           }
-          if (id < 0L) {
+          if (id < -2_147_483_647L) {
             sender.sendMessage(
                 ChatUtilities.formatMessage(
                     ChatColor.RED
                         + "Argument '"
                         + args[2]
-                        + "' is too low! (Must be Integer between 0 - 4,294,967,296)"));
+                        + "' is too low! (Must be Integer between -2,147,483,647 - 2,147,483,647)"));
             return;
-          } else if (id > 4294967296L) {
+          } else if (id > 2_147_483_647L) {
             sender.sendMessage(
                 ChatUtilities.formatMessage(
                     ChatColor.RED
                         + "Argument '"
                         + args[2]
-                        + "' is too hight! (Must be Integer between 0 - 4,294,967,296)"));
+                        + "' is too high! (Must be Integer between -2,147,483,647 - 2,147,483,647)"));
             return;
           }
           startingMap = id;

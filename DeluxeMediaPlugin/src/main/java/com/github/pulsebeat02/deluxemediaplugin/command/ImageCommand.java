@@ -147,21 +147,21 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
                         + "' is not a valid argument! (Must be Integer between 0 - 4,294,967,296)"));
             return;
           }
-          if (id < 0L) {
+          if (id < -2_147_483_647L) {
             sender.sendMessage(
                 ChatUtilities.formatMessage(
                     ChatColor.RED
                         + "Argument '"
                         + args[2]
-                        + "' is too low! (Must be Integer between 0 - 4,294,967,296)"));
+                        + "' is too low! (Must be Integer between -2,147,483,647 - 2,147,483,647)"));
             return;
-          } else if (id > 4294967296L) {
+          } else if (id > 2_147_483_647L) {
             sender.sendMessage(
                 ChatUtilities.formatMessage(
                     ChatColor.RED
                         + "Argument '"
                         + args[2]
-                        + "' is too high! (Must be Integer between 0 - 4,294,967,296)"));
+                        + "' is too high! (Must be Integer between -2,147,483,647 - 2,147,483,647)"));
             return;
           }
           final String mrl = args[3];

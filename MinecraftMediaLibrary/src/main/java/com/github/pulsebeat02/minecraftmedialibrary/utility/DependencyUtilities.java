@@ -30,119 +30,119 @@ import java.nio.file.Paths;
 
 public class DependencyUtilities {
 
-    private static final String MAVEN_CENTRAL_URL;
-    private static final String JITPACK_CENTRAL_URL;
-    public static URLClassLoader CLASSLOADER;
-    private static Method ADD_URL_METHOD;
+  private static final String MAVEN_CENTRAL_URL;
+  private static final String JITPACK_CENTRAL_URL;
+  public static URLClassLoader CLASSLOADER;
+  private static Method ADD_URL_METHOD;
 
-    static {
-        Logger.info("Attempting to Open Reflection Module...");
-        try {
-            final Class<?> moduleClass = Class.forName("java.lang.Module");
-            final Method getModuleMethod = Class.class.getMethod("getModule");
-            final Method addOpensMethod = moduleClass.getMethod("addOpens", String.class, moduleClass);
-            final Object urlClassLoaderModule = getModuleMethod.invoke(URLClassLoader.class);
-            final Object thisModule = getModuleMethod.invoke(DependencyUtilities.class);
-            addOpensMethod.invoke(
-                    urlClassLoaderModule, URLClassLoader.class.getPackage().getName(), thisModule);
-            Logger.info(
-                    "User is using Java 9+, meaning Reflection Module does have to be opened. You may safely ignore this error.");
-        } catch (final ClassNotFoundException
-                | NoSuchMethodException
-                | IllegalAccessException
-                | InvocationTargetException ignored) {
-            Logger.info(
-                    "User is using Java 8, meaning Reflection Module does NOT have to be opened. You may safely ignore this error.");
-            // Java 8 doesn't have module class -- you can ignore the error.
-        }
-        MAVEN_CENTRAL_URL = "https://repo1.maven.org/maven2/";
-        JITPACK_CENTRAL_URL = "https://jitpack.io/";
-        try {
-            ADD_URL_METHOD = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-            ADD_URL_METHOD.setAccessible(true);
-        } catch (final NoSuchMethodException e) {
-            e.printStackTrace();
-        }
+  static {
+    Logger.info("Attempting to Open Reflection Module...");
+    try {
+      final Class<?> moduleClass = Class.forName("java.lang.Module");
+      final Method getModuleMethod = Class.class.getMethod("getModule");
+      final Method addOpensMethod = moduleClass.getMethod("addOpens", String.class, moduleClass);
+      final Object urlClassLoaderModule = getModuleMethod.invoke(URLClassLoader.class);
+      final Object thisModule = getModuleMethod.invoke(DependencyUtilities.class);
+      addOpensMethod.invoke(
+          urlClassLoaderModule, URLClassLoader.class.getPackage().getName(), thisModule);
+      Logger.info(
+          "User is using Java 9+, meaning Reflection Module does have to be opened. You may safely ignore this error.");
+    } catch (final ClassNotFoundException
+        | NoSuchMethodException
+        | IllegalAccessException
+        | InvocationTargetException ignored) {
+      Logger.info(
+          "User is using Java 8, meaning Reflection Module does NOT have to be opened. You may safely ignore this error.");
+      // Java 8 doesn't have module class -- you can ignore the error.
     }
+    MAVEN_CENTRAL_URL = "https://repo1.maven.org/maven2/";
+    JITPACK_CENTRAL_URL = "https://jitpack.io/";
+    try {
+      ADD_URL_METHOD = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+      ADD_URL_METHOD.setAccessible(true);
+    } catch (final NoSuchMethodException e) {
+      e.printStackTrace();
+    }
+  }
 
-    public static File downloadMavenDependency(
-            @NotNull final MavenDependency dependency, @NotNull final String parent) throws IOException {
-        return downloadFile(dependency, getMavenCentralUrl(dependency), parent);
-    }
+  public static File downloadMavenDependency(
+      @NotNull final MavenDependency dependency, @NotNull final String parent) throws IOException {
+    return downloadFile(dependency, getMavenCentralUrl(dependency), parent);
+  }
 
-    public static File downloadJitpackDependency(
-            @NotNull final MavenDependency dependency, @NotNull final String parent) throws IOException {
-        return downloadFile(dependency, getJitpackUrl(dependency), parent);
-    }
+  public static File downloadJitpackDependency(
+      @NotNull final MavenDependency dependency, @NotNull final String parent) throws IOException {
+    return downloadFile(dependency, getJitpackUrl(dependency), parent);
+  }
 
-    public static String getMavenCentralUrl(@NotNull final MavenDependency dependency) {
-        return getDependencyUrl(dependency, MAVEN_CENTRAL_URL);
-    }
+  public static String getMavenCentralUrl(@NotNull final MavenDependency dependency) {
+    return getDependencyUrl(dependency, MAVEN_CENTRAL_URL);
+  }
 
-    public static String getJitpackUrl(@NotNull final MavenDependency dependency) {
-        return getDependencyUrl(dependency, JITPACK_CENTRAL_URL);
-    }
+  public static String getJitpackUrl(@NotNull final MavenDependency dependency) {
+    return getDependencyUrl(dependency, JITPACK_CENTRAL_URL);
+  }
 
-    public static String getDependencyUrl(
-            @NotNull final MavenDependency dependency, @NotNull final String base) {
-        return base
-                + dependency.getGroup().replaceAll("\\.", "/")
-                + "/"
-                + dependency.getArtifact()
-                + "/"
-                + dependency.getVersion()
-                + "/";
-    }
+  public static String getDependencyUrl(
+      @NotNull final MavenDependency dependency, @NotNull final String base) {
+    return base
+        + dependency.getGroup().replaceAll("\\.", "/")
+        + "/"
+        + dependency.getArtifact()
+        + "/"
+        + dependency.getVersion()
+        + "/";
+  }
 
-    public static String getDependencyUrl(
-            @NotNull final String groupId,
-            @NotNull final String artifactId,
-            @NotNull final String version,
-            @NotNull final String base) {
-        return base + groupId.replaceAll("\\.", "/") + "/" + artifactId + "/" + version + "/";
-    }
+  public static String getDependencyUrl(
+      @NotNull final String groupId,
+      @NotNull final String artifactId,
+      @NotNull final String version,
+      @NotNull final String base) {
+    return base + groupId.replaceAll("\\.", "/") + "/" + artifactId + "/" + version + "/";
+  }
 
-    public static File downloadFile(
-            @NotNull final MavenDependency dependency,
-            @NotNull final String link,
-            @NotNull final String parent)
-            throws IOException {
-        final String file = dependency.getArtifact() + "-" + dependency.getVersion() + ".jar";
-        final String url = link + file;
-        return downloadFile(Paths.get(parent + "/" + file), url);
-    }
+  public static File downloadFile(
+      @NotNull final MavenDependency dependency,
+      @NotNull final String link,
+      @NotNull final String parent)
+      throws IOException {
+    final String file = dependency.getArtifact() + "-" + dependency.getVersion() + ".jar";
+    final String url = link + file;
+    return downloadFile(Paths.get(parent + "/" + file), url);
+  }
 
-    public static File downloadFile(
-            @NotNull final String groupId,
-            @NotNull final String artifactId,
-            @NotNull final String version,
-            @NotNull final String parent)
-            throws IOException {
-        final String file = artifactId + "-" + version + ".jar";
-        final String url = getDependencyUrl(groupId, artifactId, version, MAVEN_CENTRAL_URL) + file;
-        return downloadFile(Paths.get(parent + "/" + file), url);
-    }
+  public static File downloadFile(
+      @NotNull final String groupId,
+      @NotNull final String artifactId,
+      @NotNull final String version,
+      @NotNull final String parent)
+      throws IOException {
+    final String file = artifactId + "-" + version + ".jar";
+    final String url = getDependencyUrl(groupId, artifactId, version, MAVEN_CENTRAL_URL) + file;
+    return downloadFile(Paths.get(parent + "/" + file), url);
+  }
 
-    public static File downloadFile(@NotNull final Path p, @NotNull final String url)
-            throws IOException {
-        Logger.info("Downloading Dependency at " + url + " into folder " + p);
-        final BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
-        final FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p));
-        final byte[] dataBuffer = new byte[256000];
-        int bytesRead;
-        while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-            fileOutputStream.write(dataBuffer, 0, bytesRead);
-        }
-        return new File(p.toString());
+  public static File downloadFile(@NotNull final Path p, @NotNull final String url)
+      throws IOException {
+    Logger.info("Downloading Dependency at " + url + " into folder " + p);
+    final BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
+    final FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p));
+    final byte[] dataBuffer = new byte[256000];
+    int bytesRead;
+    while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+      fileOutputStream.write(dataBuffer, 0, bytesRead);
     }
+    return new File(p.toString());
+  }
 
-    public static void loadDependency(@NotNull final File file) throws IOException {
-        Logger.info("Loading JAR Dependency at: " + file.getAbsolutePath());
-        try {
-            ADD_URL_METHOD.invoke(CLASSLOADER, file.toURI().toURL());
-        } catch (final IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-        }
-        Logger.info("Finished Loading Dependency " + file.getName());
+  public static void loadDependency(@NotNull final File file) throws IOException {
+    Logger.info("Loading JAR Dependency at: " + file.getAbsolutePath());
+    try {
+      ADD_URL_METHOD.invoke(CLASSLOADER, file.toURI().toURL());
+    } catch (final IllegalAccessException | InvocationTargetException e) {
+      e.printStackTrace();
     }
+    Logger.info("Finished Loading Dependency " + file.getName());
+  }
 }

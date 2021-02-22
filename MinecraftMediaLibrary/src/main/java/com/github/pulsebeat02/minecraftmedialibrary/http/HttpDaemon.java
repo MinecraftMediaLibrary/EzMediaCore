@@ -55,7 +55,8 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
       this.socket = new ServerSocket(port);
       this.socket.setReuseAddress(true);
     } catch (final BindException e) {
-      Logger.error("The port specified is being used by another process. Please make sure to port-forward the port first and make sure it is open.");
+      Logger.error(
+          "The port specified is being used by another process. Please make sure to port-forward the port first and make sure it is open.");
       Logger.error(e.getMessage());
       return;
     }
