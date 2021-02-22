@@ -39,6 +39,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class VideoCommand extends AbstractCommand implements CommandExecutor {
@@ -61,6 +62,9 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
 
   // int starting map
   private long startingMap;
+
+  // CompletableFuture
+  private CompletableFuture<Void> future;
 
   public VideoCommand(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, null, "video", "");
@@ -186,6 +190,10 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
           }
         } else {
           youtube = true;
+          if (future != null && !future.isDone()) {
+            future.cancel(true);
+            extractor = null;
+          }
           extractor = new YoutubeExtraction(mrl, folderPath);
           file = null;
           final HttpConfiguration configuration = getPlugin().getHttpConfiguration();
@@ -196,30 +204,35 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
               provider.startServer();
             }
           }
-          final ResourcepackWrapper wrapper =
-              new ResourcepackWrapper.Builder()
-                  .setAudio(extractor.getAudio())
-                  .setDescription("Youtube Video: " + extractor.getVideoTitle())
-                  .setPath(configuration.getFileName())
-                  .setPackFormat(6)
-                  .createResourcepackHostingProvider(getPlugin().getLibrary());
-          wrapper.buildResourcePack();
-          if (provider != null) {
-            String url = provider.generateUrl(wrapper.getPath());
-            for (final Player p : Bukkit.getOnlinePlayers()) {
-              p.setResourcePack(url);
+          HttpDaemonProvider finalProvider = provider;
+          future = CompletableFuture.runAsync(() -> extractor.downloadVideo()).thenRunAsync(() -> {
+            final ResourcepackWrapper wrapper =
+                    new ResourcepackWrapper.Builder()
+                            .setAudio(extractor.getAudio())
+                            .setDescription("Youtube Video: " + extractor.getVideoTitle())
+                            .setPath(configuration.getFileName())
+                            .setPackFormat(6)
+                            .createResourcepackHostingProvider(getPlugin().getLibrary());
+            wrapper.buildResourcePack();
+            if (finalProvider != null) {
+              String url = finalProvider.generateUrl(wrapper.getPath());
+              for (final Player p : Bukkit.getOnlinePlayers()) {
+                p.setResourcePack(url);
+              }
+              sender.sendMessage(
+                      ChatUtilities.formatMessage(ChatColor.GOLD + "Sending Resourcepack..."));
+            } else {
+              sender.sendMessage(
+                      ChatUtilities.formatMessage(
+                              ChatColor.RED
+                                      + "You have HTTP set false by default. You cannot "
+                                      + "play Youtube videos without a daemon"));
+              future.cancel(true);
             }
+          }).thenRunAsync(() -> {
             sender.sendMessage(
-                ChatUtilities.formatMessage(ChatColor.GOLD + "Sending Resourcepack..."));
-          } else {
-            sender.sendMessage(
-                ChatUtilities.formatMessage(
-                    ChatColor.RED
-                        + "You have HTTP set false by default. You cannot "
-                        + "play Youtube videos without a daemon"));
-          }
-          sender.sendMessage(
-              ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully loaded video " + mrl));
+                    ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully loaded video " + mrl));
+          });
         }
         addHistoryEntry(mrl);
       } else {

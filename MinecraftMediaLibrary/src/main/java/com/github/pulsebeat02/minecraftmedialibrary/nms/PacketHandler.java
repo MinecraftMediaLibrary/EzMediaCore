@@ -23,7 +23,7 @@ public interface PacketHandler {
 
   void display(
       UUID[] viewers,
-      long map,
+      int map,
       int mapWidth,
       int mapHeight,
       ByteBuffer rgb,
@@ -32,7 +32,7 @@ public interface PacketHandler {
       int yOffset);
 
   void display(
-      UUID[] viewers, long map, int mapWidth, int mapHeight, ByteBuffer rgb, int videoWidth);
+      UUID[] viewers, int map, int mapWidth, int mapHeight, ByteBuffer rgb, int videoWidth);
 
   void display(UUID[] viewers, Entity[] entities, int[] data, int width);
 
@@ -40,11 +40,11 @@ public interface PacketHandler {
 
   void unregisterPlayer(Player player);
 
-  boolean isMapRegistered(long id);
+  boolean isMapRegistered(int id);
 
-  void unregisterMap(long id);
+  void unregisterMap(int id);
 
-  void registerMap(long id);
+  void registerMap(int id);
 
   Object onPacketInterceptOut(Player viewer, Object packet);
 

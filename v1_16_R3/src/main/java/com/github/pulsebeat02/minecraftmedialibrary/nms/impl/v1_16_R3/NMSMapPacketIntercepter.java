@@ -73,12 +73,12 @@ public class NMSMapPacketIntercepter implements PacketHandler {
 
   private final Map<UUID, PlayerConnection> playerConnections = new ConcurrentHashMap<>();
   private final Map<UUID, Long> lastUpdated = new ConcurrentHashMap<>();
-  private final Set<Long> maps = new TreeSet<>();
+  private final Set<Integer> maps = new TreeSet<>();
 
   @Override
   public void display(
       final UUID[] viewers,
-      final long map,
+      final int map,
       final int width,
       final int height,
       final ByteBuffer rgb,
@@ -94,7 +94,7 @@ public class NMSMapPacketIntercepter implements PacketHandler {
   @Override
   public void display(
       final UUID[] viewers,
-      final long map,
+      final int map,
       final int width,
       final int height,
       final ByteBuffer rgb,
@@ -130,7 +130,7 @@ public class NMSMapPacketIntercepter implements PacketHandler {
             mapData[val] = rgb.get(indexY + relX + ix - xOff);
           }
         }
-        final long mapId = map + width * y + x;
+        final int mapId = map + width * y + x;
         final PacketPlayOutMap packet = new PacketPlayOutMap();
         try {
           MAP_FIELDS[0].set(packet, mapId);
@@ -248,17 +248,17 @@ public class NMSMapPacketIntercepter implements PacketHandler {
   }
 
   @Override
-  public boolean isMapRegistered(final long id) {
+  public boolean isMapRegistered(final int id) {
     return maps.contains(id);
   }
 
   @Override
-  public void registerMap(final long id) {
+  public void registerMap(final int id) {
     maps.add(id);
   }
 
   @Override
-  public void unregisterMap(final long id) {
+  public void unregisterMap(final int id) {
     maps.remove(id);
   }
 
