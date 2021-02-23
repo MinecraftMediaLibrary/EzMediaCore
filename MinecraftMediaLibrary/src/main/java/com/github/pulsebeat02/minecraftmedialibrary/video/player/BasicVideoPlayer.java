@@ -51,7 +51,12 @@ public class BasicVideoPlayer extends AbstractVideoPlayer {
       final int height,
       @NotNull final Consumer<int[]> callback) {
     super(library, url, width, height, callback);
-    final File f = new YoutubeExtraction(url, getLibrary().getPath(), new ExtractionSetting.Builder().createExtractionSetting()).downloadVideo();
+    final File f =
+        new YoutubeExtraction(
+                url,
+                getLibrary().getPath(),
+                new ExtractionSetting.Builder().createExtractionSetting())
+            .downloadVideo();
     this.grabber = new FFmpegFrameGrabber(f);
     this.video = f;
   }

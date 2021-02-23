@@ -38,7 +38,10 @@ public class YoutubeExtraction implements AbstractVideoExtractor {
   private File video;
   private File audio;
 
-  public YoutubeExtraction(@NotNull final String url, @NotNull final String directory, @NotNull final ExtractionSetting settings) {
+  public YoutubeExtraction(
+      @NotNull final String url,
+      @NotNull final String directory,
+      @NotNull final ExtractionSetting settings) {
     this.url = url;
     this.directory = directory;
     this.settings = settings;

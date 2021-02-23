@@ -22,57 +22,55 @@ import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Remaps class names and types using defined {@link Relocation} rules.
- */
+/** Remaps class names and types using defined {@link Relocation} rules. */
 final class RelocatingRemapper extends Remapper {
-    private static final Pattern CLASS_PATTERN = Pattern.compile("(\\[*)?L(.+);");
+  private static final Pattern CLASS_PATTERN = Pattern.compile("(\\[*)?L(.+);");
 
-    private final Collection<Relocation> rules;
+  private final Collection<Relocation> rules;
 
-    RelocatingRemapper(Collection<Relocation> rules) {
-        this.rules = rules;
+  RelocatingRemapper(Collection<Relocation> rules) {
+    this.rules = rules;
+  }
+
+  @Override
+  public Object mapValue(Object object) {
+    if (object instanceof String) {
+      String relocatedName = relocate((String) object, true);
+      if (relocatedName != null) {
+        return relocatedName;
+      }
+    }
+    return super.mapValue(object);
+  }
+
+  @Override
+  public String map(String name) {
+    String relocatedName = relocate(name, false);
+    if (relocatedName != null) {
+      return relocatedName;
+    }
+    return super.map(name);
+  }
+
+  private String relocate(String name, boolean isClass) {
+    String prefix = "";
+    String suffix = "";
+
+    Matcher m = CLASS_PATTERN.matcher(name);
+    if (m.matches()) {
+      prefix = m.group(1) + "L";
+      suffix = ";";
+      name = m.group(2);
     }
 
-    @Override
-    public Object mapValue(Object object) {
-        if (object instanceof String) {
-            String relocatedName = relocate((String) object, true);
-            if (relocatedName != null) {
-                return relocatedName;
-            }
-        }
-        return super.mapValue(object);
+    for (Relocation r : this.rules) {
+      if (isClass && r.canRelocateClass(name)) {
+        return prefix + r.relocateClass(name) + suffix;
+      } else if (r.canRelocatePath(name)) {
+        return prefix + r.relocatePath(name) + suffix;
+      }
     }
 
-    @Override
-    public String map(String name) {
-        String relocatedName = relocate(name, false);
-        if (relocatedName != null) {
-            return relocatedName;
-        }
-        return super.map(name);
-    }
-
-    private String relocate(String name, boolean isClass) {
-        String prefix = "";
-        String suffix = "";
-
-        Matcher m = CLASS_PATTERN.matcher(name);
-        if (m.matches()) {
-            prefix = m.group(1) + "L";
-            suffix = ";";
-            name = m.group(2);
-        }
-
-        for (Relocation r : this.rules) {
-            if (isClass && r.canRelocateClass(name)) {
-                return prefix + r.relocateClass(name) + suffix;
-            } else if (r.canRelocatePath(name)) {
-                return prefix + r.relocatePath(name) + suffix;
-            }
-        }
-
-        return null;
-    }
+    return null;
+  }
 }

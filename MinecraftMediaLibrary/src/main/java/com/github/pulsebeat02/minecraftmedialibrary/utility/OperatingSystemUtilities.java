@@ -28,27 +28,30 @@ public class OperatingSystemUtilities {
     if (is64Architecture(os)) {
       if (windows) {
         Logger.info("Detected Windows 64 Bit!");
-        DOWNLOAD_OPTION = "http://download.videolan.org/pub/videolan/vlc/last/win64/vlc-3.0.12-win64.zip";
+        DOWNLOAD_OPTION =
+            "http://download.videolan.org/pub/videolan/vlc/last/win64/vlc-3.0.12-win64.zip";
       } else if (linux) {
         if (os.contains("arm")) {
           Logger.info("Detected Linux ARM 64 Bit!");
-          DOWNLOAD_OPTION = "COMPILE";
         } else {
           Logger.info("Detected Linux AMD/Intel 64 Bit!");
-          DOWNLOAD_OPTION = "COMPILE";
         }
+        DOWNLOAD_OPTION = "COMPILE";
       } else if (os.contains("mac")) {
         if (!getCpuArchitecture().contains("amd")) {
           Logger.info("Detected MACOS 64 Bit! (Silicon)");
-          DOWNLOAD_OPTION = "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-intel64/VLC.zip";
+          DOWNLOAD_OPTION =
+              "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-intel64/VLC.zip";
         } else {
           Logger.info("Detected MACOS 64 Bit! (AMD)");
-          DOWNLOAD_OPTION = " https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-arm64/VLC.zip";
+          DOWNLOAD_OPTION =
+              " https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-arm64/VLC.zip";
         }
       }
     } else {
       if (windows) {
-        DOWNLOAD_OPTION = "http://download.videolan.org/pub/videolan/vlc/last/win32/vlc-3.0.12-win32.zip";
+        DOWNLOAD_OPTION =
+            "http://download.videolan.org/pub/videolan/vlc/last/win32/vlc-3.0.12-win32.zip";
       } else if (linux) {
         if (os.contains("arm")) {
           Logger.info("Detected ARM 32 Bit!");
@@ -58,12 +61,16 @@ public class OperatingSystemUtilities {
     }
   }
 
-  private static String getCpuArchitecture() {
+  public static String getOperatingSystem() {
+    return System.getProperty("os.name");
+  }
+
+  public static String getCpuArchitecture() {
     String arch = System.getenv("PROCESSOR_ARCHITECTURE");
     String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
-    return arch != null && arch.endsWith("64")
-            || wow64Arch != null && wow64Arch.endsWith("64")
-            ? "64" : "32";
+    return arch != null && arch.endsWith("64") || wow64Arch != null && wow64Arch.endsWith("64")
+        ? "64"
+        : "32";
   }
 
   private static boolean is64Architecture(@NotNull final String os) {

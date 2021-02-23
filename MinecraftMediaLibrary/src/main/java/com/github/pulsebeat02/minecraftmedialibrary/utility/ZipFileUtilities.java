@@ -25,7 +25,11 @@ import java.util.zip.ZipInputStream;
 
 public class ZipFileUtilities {
 
-  public static void unzip(final @NotNull String zipFilePath, final @NotNull String destDirectory) {
+  /*
+  TODO: Implement unzipping for rpm, deb, txz, zst, tgz, eopkg
+   */
+
+  public static void unzip(@NotNull final String zipFilePath, @NotNull final String destDirectory) {
     final File destDir = new File(destDirectory);
     if (!destDir.exists()) {
       destDir.mkdir();
@@ -50,8 +54,8 @@ public class ZipFileUtilities {
     }
   }
 
-  private static void extractFile(@NotNull ZipInputStream zipIn, @NotNull String filePath)
-      throws IOException {
+  private static void extractFile(
+      @NotNull final ZipInputStream zipIn, final @NotNull String filePath) throws IOException {
     final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
     final byte[] bytesIn = new byte[4096];
     int read;

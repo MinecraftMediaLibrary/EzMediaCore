@@ -35,16 +35,18 @@ public class PluginUpdateChecker {
   }
 
   public void checkForUpdates() {
-      Logger logger = plugin.getLogger();
-      logger.info("Checking for Updates...");
-      getLatestVersion(version -> {
+    Logger logger = plugin.getLogger();
+    logger.info("Checking for Updates...");
+    getLatestVersion(
+        version -> {
           if (plugin.getDescription().getVersion().equalsIgnoreCase(version)) {
-              logger.info("You are running the latest version of DeluxeMediaPlugin. Good job!");
+            logger.info("You are running the latest version of DeluxeMediaPlugin. Good job!");
           } else {
-              logger.info("There is a new update available. Please update as soon as possible for bug fixes.");
+            logger.info(
+                "There is a new update available. Please update as soon as possible for bug fixes.");
           }
-      });
-      logger.info("Finished Checking for Updates...");
+        });
+    logger.info("Finished Checking for Updates...");
   }
 
   private void getLatestVersion(final Consumer<String> consumer) {

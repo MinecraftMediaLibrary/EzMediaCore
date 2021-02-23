@@ -13,54 +13,50 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.OperatingSystemUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ZipFileUtilities;
+import org.apache.commons.io.FileUtils;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 
 public class VLCNativeDependencyFetcher {
 
-    public Plugin plugin;
+  public Plugin plugin;
 
-    public VLCNativeDependencyFetcher(@NotNull final Plugin plugin) {
-        this.plugin = plugin;
-    }
+  public VLCNativeDependencyFetcher(@NotNull final Plugin plugin) {
+    this.plugin = plugin;
+  }
 
-    public void downloadLibraries() {
-        boolean installed = new NativeDiscovery().discover();
-        if (!installed) {
-            String option = OperatingSystemUtilities.DOWNLOAD_OPTION;
-            /*
-            Must compile C libraries manually by using a library because they are using Linux
-             */
-            if (option.equalsIgnoreCase("COMPILE")) {
+  public void downloadLibraries() {
+    boolean installed = new NativeDiscovery().discover();
+    if (!installed) {
+      String option = OperatingSystemUtilities.DOWNLOAD_OPTION;
+      if (option.equalsIgnoreCase("COMPILE")) {
 
-            } else {
-                // Download Zip from hosted Github repo
-                try (BufferedInputStream in = new BufferedInputStream(new URL(option).openStream());
-                     FileOutputStream fileOutputStream = new FileOutputStream("VLC.zip")) {
-                    byte[] buffer = new byte[1024];
-                    int bytesRead;
-                    while ((bytesRead = in.read(buffer, 0, 1024)) != -1) {
-                        fileOutputStream.write(buffer, 0, bytesRead);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                File zip = new File("VLC.zip");
-                String path = zip.getAbsolutePath();
-                String dest = zip.getParent() + "/libs";
-                // Extract to libs folder
-                ZipFileUtilities.unzip(path, dest);
-            }
+      } else {
+        // Download Zip from hosted repo
+        try {
+          File zip = new File("VLC.zip");
+          FileUtils.copyURLToFile(new URL(option), zip);
+          String path = zip.getAbsolutePath();
+          String dest = zip.getParent() + "/libs/vlcj";
+          // Extract to libs folder
+          ZipFileUtilities.unzip(path, dest);
+          if (zip.delete()) {
+            Logger.info("VLC zip deleted after installation.");
+          } else {
+            Logger.error("VLC zip could NOT be deleted after installation!");
+          }
+        } catch (IOException e) {
+          e.printStackTrace();
         }
+      }
     }
-
+  }
 }

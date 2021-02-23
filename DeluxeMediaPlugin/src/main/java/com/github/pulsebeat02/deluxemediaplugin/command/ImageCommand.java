@@ -126,7 +126,7 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
               break;
             }
           }
-          MapImage.resetMap(getPlugin().getLibrary(), (int)id);
+          MapImage.resetMap(getPlugin().getLibrary(), (int) id);
           sender.sendMessage(
               ChatUtilities.formatMessage(
                   ChatColor.GOLD + "Successfully purged the map with ID " + id));
@@ -170,14 +170,14 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
           if ((mrl.startsWith("http://")) || mrl.startsWith("https://") && mrl.endsWith(".png")) {
             final File img =
                 FileUtilities.downloadImageFile(mrl, getPlugin().getDataFolder().getAbsolutePath());
-            new MapImage(getPlugin().getLibrary(), (int)id, img, width, height).drawImage();
+            new MapImage(getPlugin().getLibrary(), (int) id, img, width, height).drawImage();
             sender.sendMessage(
                 ChatUtilities.formatMessage(
                     ChatColor.GOLD + "Successfully drew image on map " + id));
           } else {
             final File f = new File(getPlugin().getDataFolder(), mrl);
             if (f.exists()) {
-              new MapImage(getPlugin().getLibrary(), (int)id, f, width, height).drawImage();
+              new MapImage(getPlugin().getLibrary(), (int) id, f, width, height).drawImage();
               sender.sendMessage(
                   ChatUtilities.formatMessage(
                       ChatColor.GOLD + "Successfully drew image on map " + id));

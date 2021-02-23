@@ -45,7 +45,8 @@ public class YoutubeResourcepackTest extends JavaPlugin {
       @NotNull final String youtubeUrl, @NotNull final String directory, final int port) {
 
     final YoutubeExtraction extraction =
-        new YoutubeExtraction(youtubeUrl, directory, new ExtractionSetting.Builder().createExtractionSetting()) {
+        new YoutubeExtraction(
+            youtubeUrl, directory, new ExtractionSetting.Builder().createExtractionSetting()) {
           @Override
           public void onVideoDownload() {
             System.out.println("Video is Downloading!");

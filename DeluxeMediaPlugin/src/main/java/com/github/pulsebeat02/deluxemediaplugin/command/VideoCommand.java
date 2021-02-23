@@ -194,7 +194,9 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
             future.cancel(true);
             extractor = null;
           }
-          extractor = new YoutubeExtraction(mrl, folderPath, getPlugin().getEncoderConfiguration().getSettings());
+          extractor =
+              new YoutubeExtraction(
+                  mrl, folderPath, getPlugin().getEncoderConfiguration().getSettings());
           file = null;
           final HttpConfiguration configuration = getPlugin().getHttpConfiguration();
           HttpDaemonProvider provider = null;
@@ -235,9 +237,10 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                         }
                       })
                   .thenRunAsync(
-                      () -> sender.sendMessage(
-                          ChatUtilities.formatMessage(
-                              ChatColor.GOLD + "Successfully loaded video " + mrl)));
+                      () ->
+                          sender.sendMessage(
+                              ChatUtilities.formatMessage(
+                                  ChatColor.GOLD + "Successfully loaded video " + mrl)));
         }
         addHistoryEntry(mrl);
       } else {
@@ -349,7 +352,7 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                         + "' is too high! (Must be Integer between -2,147,483,647 - 2,147,483,647)"));
             return;
           }
-          startingMap = (int)id;
+          startingMap = (int) id;
           sender.sendMessage(
               ChatUtilities.formatMessage(
                   ChatColor.GOLD + "Set starting-map on id " + startingMap));
