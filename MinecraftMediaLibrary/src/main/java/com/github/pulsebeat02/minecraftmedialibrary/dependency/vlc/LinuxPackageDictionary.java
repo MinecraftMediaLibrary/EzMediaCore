@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
-import sun.jvm.hotspot.utilities.UnsupportedPlatformException;
 
 import java.io.File;
 import java.io.IOException;
@@ -99,20 +98,20 @@ public enum LinuxPackageDictionary {
           "Rawhide",
               ImmutableSet.of(
                   "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/aarch64/os/Packages/v/vlc-3.0.12.1-6.fc35.aarch64.rpm", // AARCH64
-                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/armv7hl/os/Packages/v/vlc-3.0.12.1-6.fc35.armv7hl.rpm", // ARMHFP
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/armhfp/os/Packages/v/vlc-3.0.12.1-6.fc35.armv7hl.rpm", // ARMHFP
                   "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/x86_64/os/Packages/v/vlc-3.0.12.1-6.fc35.x86_64.rpm" // x86_64
                   ),
           "33",
               ImmutableSet.of(
-                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/aarch64/os/Packages/v/vlc-3.0.11.1-4.fc33.aarch64.rpm", // AARCH64
-                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/armv7hl/os/Packages/v/vlc-3.0.11.1-4.fc33.armv7hl.rpm", // ARMHFP
-                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/x86_64/os/Packages/v/vlc-3.0.11.1-4.fc33.x86_64.rpm" // x86_64
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/aarch64/os/Packages/v/vlc-3.0.12.1-6.fc35.aarch64.rpm", // AARCH64
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/armhfp/os/Packages/v/vlc-3.0.12.1-6.fc35.armv7hl.rpm", // ARMHFP
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/x86_64/os/Packages/v/vlc-3.0.12.1-6.fc35.x86_64.rpm" // x86_64
                   ),
           "32",
               ImmutableSet.of(
-                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/aarch64/os/Packages/v/vlc-3.0.9.2-3.fc32.aarch64.rpm", // AARCH64
-                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/armv7hl/os/Packages/v/vlc-3.0.9.2-3.fc32.armv7hl.rpm", // ARMHFP
-                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/x86_64/os/Packages/v/vlc-3.0.9.2-3.fc32.x86_64.rpm" // x86_64
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/aarch64/os/Packages/v/vlc-3.0.12.1-6.fc35.aarch64.rpm", // AARCH64
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/armhfp/os/Packages/v/vlc-3.0.12.1-6.fc35.armv7hl.rpm", // ARMHFP
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/x86_64/os/Packages/v/vlc-3.0.12.1-6.fc35.x86_64.rpm" // x86_64
                   ))),
 
   // http://ftp.freebsd.org/pub/FreeBSD/releases/
@@ -290,7 +289,7 @@ public enum LinuxPackageDictionary {
     return null;
   }
 
-  public static Set<File> getPackages() {
+  public static Set<File> getPackages() throws Exception {
     String os = OperatingSystemUtilities.getOperatingSystem().toLowerCase();
     Set<String> set = null;
     LinuxPackageDictionary dir = null;
@@ -313,7 +312,7 @@ public enum LinuxPackageDictionary {
     }
     CPUArchitecture arch = CPUArchitecture.fromName(OperatingSystemUtilities.getCpuArchitecture());
     if (set == null || arch == null) {
-      throw new UnsupportedPlatformException("Unsupported Operating System Platform!");
+      throw new Exception("Unsupported Operating System Platform!");
     }
     Set<File> files = new HashSet<>();
     for (String link : set) {
