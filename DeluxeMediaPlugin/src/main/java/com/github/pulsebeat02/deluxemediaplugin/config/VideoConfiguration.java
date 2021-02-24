@@ -20,7 +20,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.video.dither.AbstractDitherH
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.video.itemframe.ItemFrameCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.video.player.AbstractVideoPlayer;
-import com.github.pulsebeat02.minecraftmedialibrary.video.player.BasicVideoPlayer;
+// import com.github.pulsebeat02.minecraftmedialibrary.video.player.BasicVideoPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.video.player.VLCJIntegratedPlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -85,7 +85,7 @@ public class VideoConfiguration extends AbstractConfiguration {
         assert url != null;
         player = new VLCJIntegratedPlayer(library, url, width, height, callback::send);
       } else {
-        player = new BasicVideoPlayer(library, url, width, height, callback::send);
+        // player = new BasicVideoPlayer(library, url, width, height, callback::send);
       }
       this.callback = callback;
     }
