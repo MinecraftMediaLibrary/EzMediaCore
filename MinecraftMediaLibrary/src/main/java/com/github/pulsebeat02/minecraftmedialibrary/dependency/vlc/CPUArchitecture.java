@@ -19,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 
 public enum CPUArchitecture {
-
   AMD64,
   AARCH64,
   ARMV7H,
@@ -38,7 +37,7 @@ public enum CPUArchitecture {
   }
 
   public static CPUArchitecture fromName(@NotNull final String name) {
-    for (CPUArchitecture val : values()) {
+    for (final CPUArchitecture val : values()) {
       if (val.name().equalsIgnoreCase(name.toUpperCase())) {
         return val;
       }

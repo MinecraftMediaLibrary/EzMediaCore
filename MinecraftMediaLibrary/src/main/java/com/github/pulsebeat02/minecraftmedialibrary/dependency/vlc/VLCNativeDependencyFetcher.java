@@ -27,7 +27,7 @@ import java.net.URL;
 
 public class VLCNativeDependencyFetcher {
 
-  public Plugin plugin;
+  public final Plugin plugin;
 
   public VLCNativeDependencyFetcher(@NotNull final Plugin plugin) {
     this.plugin = plugin;
@@ -35,24 +35,24 @@ public class VLCNativeDependencyFetcher {
 
   public void downloadLibraries() {
     Logger.info("Trying to find Native VLC Installation...");
-    boolean installed = new NativeDiscovery().discover();
+    final boolean installed = new NativeDiscovery().discover();
     if (!installed) {
       Logger.info("No VLC Installation found on this system. Proceeding to install.");
-      String option = OperatingSystemUtilities.URL;
+      final String option = OperatingSystemUtilities.URL;
       if (option.equalsIgnoreCase("LINUX")) {
         try {
           LinuxPackageDictionary.getPackage();
           LinuxPackageDictionary.extractContents();
-        } catch (IOException e) {
+        } catch (final IOException e) {
           e.printStackTrace();
         }
       } else {
         Logger.info("User is not using Linux. Proceeding to download Zip off Github.");
         try {
-          File zip = new File("VLC.zip");
+          final File zip = new File("VLC.zip");
           FileUtils.copyURLToFile(new URL(option), zip);
-          String path = zip.getAbsolutePath();
-          String dest = zip.getParent() + "/libs/vlc";
+          final String path = zip.getAbsolutePath();
+          final String dest = zip.getParent() + "/libs/vlc";
           Logger.info("Zip File Path: " + path);
           Logger.info("Extracting File...");
           ZipFileUtilities.decompressArchive(new File(path), new File(dest));
@@ -63,7 +63,7 @@ public class VLCNativeDependencyFetcher {
           } else {
             Logger.error("Archive could NOT be deleted after installation!");
           }
-        } catch (IOException e) {
+        } catch (final IOException e) {
           e.printStackTrace();
         }
       }

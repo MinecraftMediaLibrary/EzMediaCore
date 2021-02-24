@@ -67,7 +67,7 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
 
   public VideoCommand(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, null, "video", "");
-    this.dither = DitherSetting.SIERRA_FILTER_LITE_DITHER.getHolder();
+    dither = DitherSetting.SIERRA_FILTER_LITE_DITHER.getHolder();
   }
 
   @Override
@@ -143,20 +143,20 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
           }
         }
         /* else {
-          if (file == null) {
-            player =
-                new BasicVideoPlayer(
-                    library,
-                    extractor.getUrl(),
-                    player.getWidth(),
-                    player.getHeight(),
-                    callback::send);
-          } else {
-            player =
-                new BasicVideoPlayer(
-                    library, file, player.getWidth(), player.getHeight(), callback::send);
-            }
-          }*/
+        if (file == null) {
+          player =
+              new BasicVideoPlayer(
+                  library,
+                  extractor.getUrl(),
+                  player.getWidth(),
+                  player.getHeight(),
+                  callback::send);
+        } else {
+          player =
+              new BasicVideoPlayer(
+                  library, file, player.getWidth(), player.getHeight(), callback::send);
+          }
+        }*/
         player.start();
       } else if (args[0].equalsIgnoreCase("stop")) {
         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Stopped the Video!"));
@@ -206,7 +206,7 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
               provider.startServer();
             }
           }
-          HttpDaemonProvider finalProvider = provider;
+          final HttpDaemonProvider finalProvider = provider;
           future =
               CompletableFuture.runAsync(() -> extractor.downloadVideo())
                   .thenRunAsync(
@@ -220,7 +220,7 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                                 .createResourcepackHostingProvider(getPlugin().getLibrary());
                         wrapper.buildResourcePack();
                         if (finalProvider != null) {
-                          String url = finalProvider.generateUrl(wrapper.getPath());
+                          final String url = finalProvider.generateUrl(wrapper.getPath());
                           for (final Player p : Bukkit.getOnlinePlayers()) {
                             p.setResourcePack(url);
                           }

@@ -18,9 +18,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class OperatingSystemUtilities {
 
-  public static String URL;
   public static final String CPU_ARCH;
   public static final String OPERATING_SYSTEM;
+  public static String URL;
 
   static {
     Logger.info("Detecting Operating System...");
@@ -76,8 +76,8 @@ public class OperatingSystemUtilities {
   }
 
   public static String getCpuArchitecture() {
-    String arch = System.getenv("PROCESSOR_ARCHITECTURE");
-    String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
+    final String arch = System.getenv("PROCESSOR_ARCHITECTURE");
+    final String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
     return arch != null && arch.endsWith("64") || wow64Arch != null && wow64Arch.endsWith("64")
         ? "64"
         : "32";

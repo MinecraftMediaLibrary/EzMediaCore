@@ -24,21 +24,24 @@ import java.io.IOException;
 public class ZipFileUtilities {
 
   public static void decompressArchive(@NotNull final File file, @NotNull final File result) {
-    String extension = FilenameUtils.getExtension(file.getName());
-    Archiver archiver = ArchiverFactory.createArchiver(extension);
+    final String extension = FilenameUtils.getExtension(file.getName());
+    final Archiver archiver = ArchiverFactory.createArchiver(extension);
     try {
       archiver.extract(file, result);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       e.printStackTrace();
     }
   }
 
   public static void decompressArchive(
-      @NotNull final File file, @NotNull final File result, @NotNull final String type, @NotNull final String compression) {
-    Archiver archiver = ArchiverFactory.createArchiver(type, compression);
+      @NotNull final File file,
+      @NotNull final File result,
+      @NotNull final String type,
+      @NotNull final String compression) {
+    final Archiver archiver = ArchiverFactory.createArchiver(type, compression);
     try {
       archiver.extract(file, result);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       e.printStackTrace();
     }
   }

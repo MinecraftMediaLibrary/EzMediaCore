@@ -253,6 +253,20 @@ public enum LinuxPackageDictionary {
                   "http://archive.ubuntu.com/ubuntu/pool/universe/v/vlc/vlc_2.1.2-2build2_i386.deb" // i386
                   )));
 
+  static {
+    Logger.info("Printing All Package Links: ");
+    for (final LinuxPackageDictionary dict : values()) {
+      Logger.info("Operating System:" + dict.name());
+      final Map<String, Set<String>> links = dict.getLinks();
+      for (final String key : links.keySet()) {
+        Logger.info("Version: " + key);
+        for (final String url : links.get(key)) {
+          Logger.info("URL: " + url);
+        }
+      }
+    }
+  }
+
   private final Map<String, Set<String>> links;
 
   LinuxPackageDictionary(@NotNull final Map<String, Set<String>> links) {
@@ -261,8 +275,9 @@ public enum LinuxPackageDictionary {
 
   public static Set<CPUArchitecture> getCpuArchitectures(
       @NotNull final LinuxPackageDictionary dir, @NotNull final String link) {
-    for (CPUArchitecture architecture : CPUArchitecture.values()) {
-      String name = architecture.name().toLowerCase();
+    Logger.info("Attempting to Find CPU Architectures for URL: " + link);
+    for (final CPUArchitecture architecture : CPUArchitecture.values()) {
+      final String name = architecture.name().toLowerCase();
       if (link.contains(name)) {
         return ImmutableSet.of(architecture);
       }
@@ -270,6 +285,7 @@ public enum LinuxPackageDictionary {
     /*
     FreeBSD and NetBSD sucks ass. They don't have the architecture in the file name.
      */
+    Logger.info("User is using FreeBSD/NetBSD. Proceeding for more detailed search.");
     if (dir == FREEBSD) {
       if (link.equalsIgnoreCase("vlc-3.0.11_9,4.txz")) {
         return ImmutableSet.of(
@@ -293,31 +309,38 @@ public enum LinuxPackageDictionary {
   }
 
   public static File getPackage() throws IOException {
-    String os = OperatingSystemUtilities.OPERATING_SYSTEM;
+    Logger.info("Attempting to Find VLC Package for Machine.");
+    final String os = OperatingSystemUtilities.OPERATING_SYSTEM;
     Set<String> set = null;
     LinuxPackageDictionary dir = null;
     outer:
-    for (LinuxPackageDictionary dict : values()) {
-      String name = dict.name().toLowerCase();
+    for (final LinuxPackageDictionary dict : values()) {
+      final String name = dict.name().toLowerCase();
+      Logger.info("Attempting Operating System" + name);
       if (os.contains(name)) {
-        Map<String, Set<String>> links = dict.getLinks();
-        for (String version : links.keySet()) {
+        Logger.info("Found Operating System: " + name);
+        final Map<String, Set<String>> links = dict.getLinks();
+        for (final String version : links.keySet()) {
+          Logger.info("Attempting Version: " + version);
           if (os.contains(version.toLowerCase())) {
+            Logger.info("Found Version: " + version);
             set = links.get(version);
             dir = dict;
             break outer;
           }
         }
+        Logger.warn("Could not find version, resorting to LATEST.");
         dir = dict;
         set = links.get("LATEST");
         break;
       }
     }
-    CPUArchitecture arch = CPUArchitecture.fromName(OperatingSystemUtilities.CPU_ARCH);
+    final CPUArchitecture arch = CPUArchitecture.fromName(OperatingSystemUtilities.CPU_ARCH);
     if (set == null || arch == null) {
+      Logger.error("Could not find architecture... throwing an error!");
       throw new UnsupportedPlatformException("Unsupported Operating System Platform!");
     }
-    File vlc = new File("/vlc");
+    final File vlc = new File("/vlc");
     if (!vlc.exists()) {
       if (vlc.mkdir()) {
         Logger.info("Made VLC Directory");
@@ -325,22 +348,23 @@ public enum LinuxPackageDictionary {
         Logger.error("Failed to Make VLC Directory");
       }
     }
-    for (String link : set) {
-      Set<CPUArchitecture> options = getCpuArchitectures(dir, link);
+    for (final String link : set) {
+      Logger.info("Trying Out Link: " + link);
+      final Set<CPUArchitecture> options = getCpuArchitectures(dir, link);
       if (options.contains(arch)) {
-        String fileName = link.substring(link.lastIndexOf("/") + 1);
-        File file = new File("/vlc/" + fileName);
+        final String fileName = link.substring(link.lastIndexOf("/") + 1);
+        final File file = new File("/vlc/" + fileName);
         URL url = new URL("");
         try {
           url = new URL(link);
-        } catch (MalformedURLException e) {
-          Logger.info("Main Site is Down! Using Mirror!");
+        } catch (final MalformedURLException e) {
+          Logger.info("Main Site is Down! Using Mirror! (" + url + ")");
           try {
             url =
                 new URL(
                     "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/linux/"
                         + fileName);
-          } catch (MalformedURLException e1) {
+          } catch (final MalformedURLException e1) {
             Logger.error("Github Mirror is Down. You living in 2140 or something?");
             e1.printStackTrace();
           }
@@ -350,25 +374,31 @@ public enum LinuxPackageDictionary {
         return file;
       }
     }
+    Logger.error("Could not find architecture... throwing an error!");
     throw new UnsupportedPlatformException("Unsupported Operating System Platform!");
   }
 
   public static void extractContents() {
-    File vlc = new File("/vlc");
-    File f = new File("/vlc").listFiles()[0];
-    String name = f.getName();
+    final File vlc = new File("/vlc");
+    final File f = new File("/vlc").listFiles()[0];
+    final String name = f.getName();
+    Logger.info("Trying to find extension for file: " + name);
     if (name.endsWith("deb") || name.endsWith("rpm") || name.endsWith("eopkg")) {
+      Logger.info("Found .deb, .rpm, or .eopkg File!");
       ZipFileUtilities.decompressArchive(f, vlc);
     } else if (name.endsWith("txz") || name.endsWith(".tar.xz")) {
+      Logger.info("Found .txz or .tar.xz File!");
       ZipFileUtilities.decompressArchive(f, vlc, "tar", "xz");
     } else if (name.endsWith("tgz")) {
+      Logger.info("Found .tgz File!");
       ZipFileUtilities.decompressArchive(f, vlc, "tar", "gz");
     } else if (name.endsWith(".tar.zst")) {
-      Logger.warn("Hello user, please read this error carefully: Your computer seems to be using " +
-              "KAOS Linux. The extract for KAOS Linux is a .tar.zst file, which is yet not supported by " +
-              "the plugin yet. The archive has been downloaded in the /vlcj folder, and it is required by " +
-              "you to extract the file in order to get the VLC libraries. This is a required step, and VLCJ " +
-              "will not run if you do not perform this step.");
+      Logger.warn(
+          "Hello user, please read this error carefully: Your computer seems to be using "
+              + "KAOS Linux. The extract for KAOS Linux is a .tar.zst file, which is yet not supported by "
+              + "the plugin yet. The archive has been downloaded in the /vlcj folder, and it is required by "
+              + "you to extract the file in order to get the VLC libraries. This is a required step, and VLCJ "
+              + "will not run if you do not perform this step.");
     }
   }
 

@@ -17,8 +17,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackageD
 
 public class OperatingSystemTest {
 
-    public static void main(String[] args) throws Exception {
-        LinuxPackageDictionary.getPackage();
-    }
-
+  public static void main(final String[] args) throws Exception {
+    LinuxPackageDictionary.getPackage();
+  }
 }
