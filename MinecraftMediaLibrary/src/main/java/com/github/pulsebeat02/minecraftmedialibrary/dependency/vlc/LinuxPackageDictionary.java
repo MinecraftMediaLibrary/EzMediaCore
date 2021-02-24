@@ -39,8 +39,8 @@ public enum LinuxPackageDictionary {
       ImmutableMap.of(
           "LATEST",
           ImmutableSet.of(
-              "vlc-3.0.12-1-aarch64.pkg.tar.xz", // AARCH64
-              "vlc-3.0.12-1-armv7h.pkg.tar.xz" // ARMV7H
+              "http://ftp.tku.edu.tw/Linux/ArchLinux-arm/aarch64/extra/vlc-3.0.12-1-aarch64.pkg.tar.xz", // AARCH64
+              "http://ftp.tku.edu.tw/Linux/ArchLinux-arm/armv7h/extra/vlc-3.0.12-1-armv7h.pkg.tar.xz" // ARMV7H
               ))),
 
   // http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/aarch64/os/Packages/v/
@@ -50,13 +50,13 @@ public enum LinuxPackageDictionary {
       ImmutableMap.of(
           "8",
               ImmutableSet.of(
-                  "vlc-3.0.12-1.el8.aarch64.rpm", // AARCH64
-                  "vlc-3.0.12-1.el8.x86_64.rpm"), // x86_64
-          "7", ImmutableSet.of("vlc-3.0.12-1.el7.x86_64.rpm"), // x86_64
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/aarch64/os/Packages/v/vlc-3.0.12.1-6.fc35.aarch64.rpm", // AARCH64
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/x86_64/os/Packages/v/vlc-3.0.12-1.el8.x86_64.rpm"), // x86_64
+          "7", ImmutableSet.of("http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/x86_64/os/Packages/v/vlc-3.0.12-1.el7.x86_64.rpm"), // x86_64
           "6",
               ImmutableSet.of(
-                  "vlc-2.0.10-3.el6.x86_64.rpm", // x86_64
-                  "vlc-2.0.10-3.el6.i686.rpm" // i386
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/x86_64/os/Packages/v/vlc-2.0.10-3.el6.x86_64.rpm", // x86_64
+                  "http://ftp.riken.jp/Linux/rpmfusion/free/el/updates/6/x86_64/vlc-core-2.0.10-3.el6.i686.rpm" // i386
                   ))),
 
   // http://ftp.debian.org/debian/pool/main/v/vlc/
@@ -64,31 +64,31 @@ public enum LinuxPackageDictionary {
       ImmutableMap.of(
           "Sid",
               ImmutableSet.of(
-                  "vlc_3.0.12-2_amd64.deb", // AMD64
-                  "vlc_3.0.12-2_arm64.deb", // ARM64
-                  "vlc_3.0.12-2_armhf.deb", // ARMHF
-                  "vlc_3.0.12-2_i386.deb" // i386
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.12-2_amd64.deb", // AMD64
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.12-2_arm64.deb", // ARM64
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.12-2_armhf.deb", // ARMHF
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.12-2_i386.deb" // i386
                   ),
           "11",
               ImmutableSet.of(
-                  "vlc_3.0.12-2_amd64.deb", // AMD64
-                  "vlc_3.0.12-2_arm64.deb", // ARM64
-                  "vlc_3.0.12-2_armhf.deb", // ARMHF
-                  "vlc_3.0.12-2_i386.deb" // i386
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.12-2_amd64.deb", // AMD64
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.12-2_arm64.deb", // ARM64
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.12-2_armhf.deb", // ARMHF
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.12-2_i386.deb" // i386
                   ),
           "10",
               ImmutableSet.of(
-                  "vlc_3.0.12-0+deb10u1_amd64.deb", // AMD64
-                  "vlc_3.0.12-0+deb10u1_arm64.deb", // ARM64
-                  "vlc_3.0.12-0+deb10u1_armhf.deb", // ARMHF
-                  "vlc_3.0.12-0+deb10u1_i386.deb" // i386
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.12-0+deb10u1_amd64.deb", // AMD64
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.12-0+deb10u1_arm64.deb", // ARM64
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.12-0+deb10u1_armhf.deb", // ARMHF
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.12-0+deb10u1_i386.deb" // i386
                   ),
           "9",
               ImmutableSet.of(
-                  "vlc_3.0.11-0+deb9u1_amd64.deb", // AMD64
-                  "vlc_3.0.11-0+deb9u1_arm64.deb", // ARM64
-                  "vlc_3.0.11-0+deb9u1_armhf.deb", // ARMHF
-                  "vlc_3.0.11-0+deb9u1_i386.deb" // i386
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.11-0+deb9u1_amd64.deb", // AMD64
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.11-0+deb9u1_arm64.deb", // ARM64
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.11-0+deb9u1_armhf.deb", // ARMHF
+                  "http://ftp.debian.org/debian/pool/main/v/vlc/vlc_3.0.11-0+deb9u1_i386.deb" // i386
                   ))),
 
   // http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/aarch64/os/Packages/v/
@@ -98,44 +98,45 @@ public enum LinuxPackageDictionary {
       ImmutableMap.of(
           "Rawhide",
               ImmutableSet.of(
-                  "vlc-3.0.12.1-6.fc35.aarch64.rpm", // AARCH64
-                  "vlc-3.0.12.1-6.fc35.armv7hl.rpm", // ARMHFP
-                  "vlc-3.0.12.1-6.fc35.x86_64.rpm" // x86_64
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/aarch64/os/Packages/v/vlc-3.0.12.1-6.fc35.aarch64.rpm", // AARCH64
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/armv7hl/os/Packages/v/vlc-3.0.12.1-6.fc35.armv7hl.rpm", // ARMHFP
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/x86_64/os/Packages/v/vlc-3.0.12.1-6.fc35.x86_64.rpm" // x86_64
                   ),
           "33",
               ImmutableSet.of(
-                  "vlc-3.0.11.1-4.fc33.aarch64.rpm", // AARCH64
-                  "vlc-3.0.11.1-4.fc33.armv7hl.rpm", // ARMHFP
-                  "vlc-3.0.11.1-4.fc33.x86_64.rpm" // x86_64
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/aarch64/os/Packages/v/vlc-3.0.11.1-4.fc33.aarch64.rpm", // AARCH64
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/armv7hl/os/Packages/v/vlc-3.0.11.1-4.fc33.armv7hl.rpm", // ARMHFP
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/x86_64/os/Packages/v/vlc-3.0.11.1-4.fc33.x86_64.rpm" // x86_64
                   ),
           "32",
               ImmutableSet.of(
-                  "vlc-3.0.9.2-3.fc32.aarch64.rpm", // AARCH64
-                  "vlc-3.0.9.2-3.fc32.armv7hl.rpm", // ARMHFP
-                  "vlc-3.0.9.2-3.fc32.x86_64.rpm" // x86_64
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/aarch64/os/Packages/v/vlc-3.0.9.2-3.fc32.aarch64.rpm", // AARCH64
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/armv7hl/os/Packages/v/vlc-3.0.9.2-3.fc32.armv7hl.rpm", // ARMHFP
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/x86_64/os/Packages/v/vlc-3.0.9.2-3.fc32.x86_64.rpm" // x86_64
                   ))),
 
   // http://ftp.freebsd.org/pub/FreeBSD/releases/
+  // https://club.bisd.ro/package/freebsd/13/x86/64/annex/uvlist
   FREEBSD(
       ImmutableMap.of(
           "13",
               ImmutableSet.of(
-                  "vlc-3.0.11_9,4.txz", // AARCH64
-                  "vlc-3.0.12,4.txz", // AMD64
-                  "vlc-3.0.12,4.txz" // i386
+                  "https://club.bisd.ro/package/freebsd/13/x86/64/annex/uv/All/vlc-3.0.11_9%2C4.txz", // AARCH64
+                  "https://club.bisd.ro/package/freebsd/13/x86/64/annex/uv/All/vlc-3.0.11_9%2C4.txz", // AMD64
+                  "https://club.bisd.ro/package/freebsd/13/x86/64/annex/uv/All/vlc-3.0.11_9%2C4.txz" // i386
                   ),
           "12",
               ImmutableSet.of(
-                  "vlc-3.0.11_9,4.txz", // AARCH64
-                  "vlc-3.0.11_9,4.txz", // AMD64
-                  "vlc-3.0.11_6,4.txz", // ARMV7
-                  "vlc-3.0.11_9,4.txz" // i386
+                  "https://club.bisd.ro/package/freebsd/13/x86/64/annex/uv/All/vlc-3.0.11_9%2C4.txz", // AARCH64
+                  "https://club.bisd.ro/package/freebsd/13/x86/64/annex/uv/All/vlc-3.0.11_9%2C4.txz", // AMD64
+                  "https://club.bisd.ro/package/freebsd/13/x86/64/annex/uv/All/vlc-3.0.11_9%2C4.txz", // ARMV7
+                  "https://club.bisd.ro/package/freebsd/13/x86/64/annex/uv/All/vlc-3.0.11_9%2C4.txz" // i386
                   ),
           "11",
               ImmutableSet.of(
-                  "vlc-3.0.11_1,4.txz", // AARCH64
-                  "vlc-3.0.11_9,4.txz", // AMD64
-                  "vlc-3.0.11_9,4.txz" // i386
+                  "https://club.bisd.ro/package/freebsd/13/x86/64/annex/uv/All/vlc-3.0.11_9%2C4.txz", // AARCH64
+                  "https://club.bisd.ro/package/freebsd/13/x86/64/annex/uv/All/vlc-3.0.11_9%2C4.txz", // AMD64
+                  "https://club.bisd.ro/package/freebsd/13/x86/64/annex/uv/All/vlc-3.0.11_9%2C4.txz" // i386
                   ))),
 
   // https://mirror.math.princeton.edu/pub/kaoslinux/build/
@@ -143,7 +144,7 @@ public enum LinuxPackageDictionary {
       ImmutableMap.of(
           "LATEST",
           ImmutableSet.of(
-              "vlc-1:3.0.12.1-1-x86_64.pkg.tar.zst" // x86_64
+              "https://mirror.math.princeton.edu/pub/kaoslinux/build/vlc-1:3.0.12.1-2-x86_64.pkg.tar.zst" // x86_64
               ))),
 
   // http://ftp.netbsd.org/pub/pkgsrc/current/pkgsrc/multimedia/vlc/README.html
@@ -151,101 +152,103 @@ public enum LinuxPackageDictionary {
       ImmutableMap.of(
           "9.1",
               ImmutableSet.of(
-                  "vlc-3.0.11.1.tgz", // AMD64
-                  "vlc-3.0.11.1.tgz", // EARMV7HF
-                  "vlc-3.0.11.1.tgz" // i386
+                  "ftp://ftp.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/.9.0-current-2021-02-02-15.06/All/vlc-3.0.12.tgz", // x86_64
+                  "ftp://ftp.netbsd.org/pub/pkgsrc/packages/NetBSD/earmv7hf/9.0/All/vlc-3.0.11.1.tgz", // EARMV7HF
+                  "ftp://ftp.netbsd.org/pub/pkgsrc/packages/NetBSD/i386/9.0_2020Q2/All/vlc-3.0.11.tgz" // i386
                   ),
           "8.2",
               ImmutableSet.of(
-                  "vlc-3.0.11nb3.tgz", // AMD64
-                  "vlc-3.0.11.1.tgz", // EARNMV7HF
-                  "vlc-3.0.11.1.tgz" // i386
+                  "ftp://ftp.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/8.0_2020Q2/All/vlc-3.0.11.tgz", // x86_64
+                  "ftp://ftp.netbsd.org/pub/pkgsrc/packages/NetBSD/earmv7hf/8.0/All/vlc-3.0.11.1.tgz", // EARNMV7HF
+                  "ftp://ftp.netbsd.org/pub/pkgsrc/packages/NetBSD/i386/8.0_2020Q4/All/vlc-3.0.11.1.tgz" // i386
                   ))),
 
   // http://ftp.us2.freshrpms.net/linux/opensuse/tumbleweed/repo/oss/i586/
   // http://ftp.us2.freshrpms.net/linux/opensuse/tumbleweed/repo/oss/x86_64/
   // http://fr2.rpmfind.net/linux/opensuse/ports/aarch64/tumbleweed/repo/oss/aarch64/
   // http://fr2.rpmfind.net/linux/opensuse/ports/armv7hl/tumbleweed/repo/oss/armv7hl/
+  // http://download.videolan.org/pub/videolan/vlc//SuSE/
   OPENSUSE(
       ImmutableMap.of(
           "Tumbleweed",
               ImmutableSet.of(
-                  "vlc-3.0.12-1.3.i586.rpm", // i586
-                  "vlc-3.0.12-1.3.x86_64.rpm", // x86_64
-                  "vlc-3.0.12-1.3.aarch64.rpm", // AARCH64
-                  "vlc-3.0.12-1.3.armv7hl.rpm" // ARMC7HL
+                  "http://ftp.us2.freshrpms.net/linux/opensuse/tumbleweed/repo/oss/i586/vlc-3.0.12-1.3.i586.rpm", // i586
+                  "http://ftp.us2.freshrpms.net/linux/opensuse/tumbleweed/repo/oss/x86_64/vlc-3.0.12-1.3.x86_64.rpm", // x86_64
+                  "http://fr2.rpmfind.net/linux/opensuse/ports/aarch64/tumbleweed/repo/oss/aarch64/vlc-3.0.12-1.3.aarch64.rpm", // AARCH64
+                  "http://fr2.rpmfind.net/linux/opensuse/ports/armv7hl/tumbleweed/repo/oss/armv7hl/vlc-3.0.12-1.3.armv7hl.rpm" // ARMC7HL
                   ),
           "Leap 15.2",
               ImmutableSet.of(
-                  "vlc-3.0.12-lp152.342.1.x86_64.rpm", // x86_64
-                  "vlc-3.0.10-lp152.1.1.aarch64.rpm", // AARCH64
-                  "vlc-3.0.10-lp152.1.1.armv7hl.rpm" // ARMV7HL
+                  "http://download.videolan.org/pub/videolan/vlc//SuSE/Leap_15.2/x86_64/vlc-3.0.12-lp152.342.1.x86_64.rpm", // x86_64
+                  "http://fr2.rpmfind.net/linux/opensuse/ports/aarch64/distribution/leap/15.2/repo/oss/aarch64/vlc-3.0.10-lp152.1.1.aarch64.rpm", // AARCH64
+                  "http://fr2.rpmfind.net/linux/opensuse/ports/armv7hl/distribution/leap/15.2/repo/oss/armv7hl/vlc-3.0.10-lp152.1.1.armv7hl.rpm" // ARMV7HL
                   ))),
 
   // http://www.slackware.com/~alien/slackbuilds/vlc/pkg64/
   SLACKWARE(
       ImmutableMap.of(
-          "Current",
+          "current",
               ImmutableSet.of(
-                  "vlc-3.0.12-i586-1alien.txz", // i586
-                  "vlc-3.0.12-x86_64-1alien.txz" // x86_64
+                  "http://www.slackware.com/~alien/slackbuilds/vlc/pkg/current/vlc-3.0.12-i586-1alien.txz", // i586
+                  "http://www.slackware.com/~alien/slackbuilds/vlc/pkg64/current/vlc-3.0.12-x86_64-1alien.txz" // x86_64
                   ),
           "14.2",
               ImmutableSet.of(
-                  "vlc-3.0.12-i586-1alien.txz", // i586
-                  "vlc-3.0.12-x86_64-1alien.txz" // x86_64
+                  "http://www.slackware.com/~alien/slackbuilds/vlc/pkg/14.2/vlc-3.0.12-i586-1alien.txz", // i586
+                  "http://www.slackware.com/~alien/slackbuilds/vlc/pkg64/14.2/vlc-3.0.12-x86_64-1alien.txz" // x86_64
                   ),
           "14.1",
               ImmutableSet.of(
-                  "vlc-2.2.6-i486-1alien.txz", // i486
-                  "vlc-2.2.6-x86_64-1alien.txz" // x86_64
+                  "http://www.slackware.com/~alien/slackbuilds/vlc/pkg/14.1/vlc-2.2.6-i486-1alien.txz", // i486
+                  "http://www.slackware.com/~alien/slackbuilds/vlc/pkg64/14.1/vlc-2.2.6-x86_64-1alien.txz" // x86_64
                   ))),
 
-  // https://mirrors.rit.edu/solus/packages/shannon/v/vlc/
+  // X86_64: https://mirrors.rit.edu/solus/packages/shannon/v/vlc/
   SOLUS(
       ImmutableMap.of(
           "LATEST",
           ImmutableSet.of(
-              "vlc-3.0.12-123-1-x86_64.eopkg" // x86_64
+              "https://mirrors.rit.edu/solus/packages/shannon/v/vlc/vlc-3.0.12-123-1-x86_64.eopkg" // x86_64
               ))),
 
-  // http://archive.ubuntu.com/ubuntu/pool/universe/v/vlc/
+  // AMD64 and i386: http://archive.ubuntu.com/ubuntu/pool/universe/v/vlc/
+  // ARMHF and ARM64: http://ports.ubuntu.com/ubuntu-ports/pool/universe/v/vlc/
   UBUNTU(
       ImmutableMap.of(
           "20.10",
               ImmutableSet.of(
-                  "vlc_3.0.11.1-2_amd64.deb", // AMD64
-                  "vlc_3.0.11.1-2_arm64.deb", // ARM64
-                  "vlc_3.0.11.1-2_armhf.deb", // ARMHF
-                  "vlc_3.0.11.1-2_i386.deb" // i386
+                  "http://archive.ubuntu.com/ubuntu/pool/universe/v/vlc/vlc_3.0.11.1-2_amd64.deb", // AMD64
+                  "http://ports.ubuntu.com/ubuntu-ports/pool/universe/v/vlc/vlc_3.0.11.1-2_arm64.deb", // ARM64
+                  "http://ports.ubuntu.com/ubuntu-ports/pool/universe/v/vlc/vlc_3.0.11.1-2_armhf.deb", // ARMHF
+                  "http://archive.ubuntu.com/ubuntu/pool/universe/v/vlc/vlc_3.0.11.1-2_i386.deb" // i386
                   ),
           "20.04",
               ImmutableSet.of(
-                  "vlc_3.0.9.2-1_amd64.deb", // AMD64
-                  "vlc_3.0.9.2-1_arm64.deb", // ARM64
-                  "vlc_3.0.9.2-1_armhf.deb", // ARMHF
-                  "vlc_3.0.9.2-1_i386.deb" // i386
+                  "http://archive.ubuntu.com/ubuntu/pool/universe/v/vlc/vlc_3.0.9.2-1_amd64.deb", // AMD64
+                  "http://ports.ubuntu.com/ubuntu-ports/pool/universe/v/vlc/vlc_3.0.9.2-1_arm64.deb", // ARM64
+                  "http://ports.ubuntu.com/ubuntu-ports/pool/universe/v/vlc/vlc_3.0.9.2-1_armhf.deb", // ARMHF
+                  "http://archive.ubuntu.com/ubuntu/pool/universe/v/vlc/vlc_3.0.9.2-1_i386.deb" // i386
                   ),
           "18.04",
               ImmutableSet.of(
-                  "vlc_3.0.1-3build1_amd64.deb", // AMD64
-                  "vlc_3.0.1-3build1_arm64.deb", // ARM64
-                  "vlc_3.0.1-3build1_armhf.deb", // ARMHF
-                  "vlc_3.0.1-3build1_i386.deb" // i386
+                  "http://archive.ubuntu.com/ubuntu/pool/universe/v/vlc/vlc_3.0.1-3build1_amd64.deb", // AMD64
+                  "http://ports.ubuntu.com/ubuntu-ports/pool/universe/v/vlc/vlc_3.0.1-3build1_arm64.deb", // ARM64
+                  "http://ports.ubuntu.com/ubuntu-ports/pool/universe/v/vlc/vlc_3.0.1-3build1_armhf.deb", // ARMHF
+                  "http://archive.ubuntu.com/ubuntu/pool/universe/v/vlc/vlc_3.0.1-3build1_i386.deb" // i386
                   ),
           "16.04",
               ImmutableSet.of(
-                  "vlc_2.2.2-5_amd64.deb", // AMD64
-                  "vlc_2.2.2-5_arm64.deb", // ARM64
-                  "vlc_2.2.2-5_armhf.deb", // ARMHF
-                  "vlc_2.2.2-5_i386.deb" // i386
+                  "http://archive.ubuntu.com/ubuntu/pool/universe/v/vlc/vlc_2.2.2-5_amd64.deb", // AMD64
+                  "http://ports.ubuntu.com/ubuntu-ports/pool/universe/v/vlc/vlc_2.2.2-5_arm64.deb", // ARM64
+                  "http://ports.ubuntu.com/ubuntu-ports/pool/universe/v/vlc/vlc_2.2.2-5_armhf.deb", // ARMHF
+                  "http://archive.ubuntu.com/ubuntu/pool/universe/v/vlc/vlc_2.2.2-5_i386.deb" // i386
                   ),
           "14.04",
               ImmutableSet.of(
-                  "vlc_2.1.2-2build2_amd64.deb", // AMD64
-                  "vlc_2.1.2-2build2_arm64.deb", // ARM64
-                  "vlc_2.1.2-2build2_armhf.deb", // ARMHF
-                  "vlc_2.1.2-2build2_i386.deb" // i386
+                  "http://archive.ubuntu.com/ubuntu/pool/universe/v/vlc/vlc_2.1.2-2build2_amd64.deb", // AMD64
+                  "http://ports.ubuntu.com/ubuntu-ports/pool/universe/v/vlc/vlc_2.1.2-2build2_arm64.deb", // ARM64
+                  "http://ports.ubuntu.com/ubuntu-ports/pool/universe/v/vlc/vlc_2.1.2-2build2_armhf.deb", // ARMHF
+                  "http://archive.ubuntu.com/ubuntu/pool/universe/v/vlc/vlc_2.1.2-2build2_i386.deb" // i386
                   )));
 
   private final Map<String, Set<String>> links;
