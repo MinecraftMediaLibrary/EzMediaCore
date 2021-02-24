@@ -13,6 +13,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
+import com.github.pulsebeat02.minecraftmedialibrary.exception.UnsupportedOperatingSystemException;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.OperatingSystemUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ZipFileUtilities;
@@ -20,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
-import sun.jvm.hotspot.utilities.UnsupportedPlatformException;
 
 import java.io.File;
 import java.io.IOException;
@@ -338,7 +338,7 @@ public enum LinuxPackageDictionary {
     final CPUArchitecture arch = CPUArchitecture.fromName(OperatingSystemUtilities.CPU_ARCH);
     if (set == null || arch == null) {
       Logger.error("Could not find architecture... throwing an error!");
-      throw new UnsupportedPlatformException("Unsupported Operating System Platform!");
+      throw new UnsupportedOperatingSystemException("Unsupported Operating System Platform!");
     }
     final File vlc = new File("/vlc");
     if (!vlc.exists()) {
@@ -375,7 +375,7 @@ public enum LinuxPackageDictionary {
       }
     }
     Logger.error("Could not find architecture... throwing an error!");
-    throw new UnsupportedPlatformException("Unsupported Operating System Platform!");
+    throw new UnsupportedOperatingSystemException("Unsupported Operating System Platform!");
   }
 
   public static void extractContents() {
