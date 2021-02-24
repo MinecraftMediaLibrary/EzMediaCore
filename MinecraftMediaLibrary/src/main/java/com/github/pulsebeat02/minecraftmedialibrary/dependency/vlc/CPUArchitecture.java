@@ -13,9 +13,13 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+
 public enum CPUArchitecture {
+
   AMD64,
   AARCH64,
   ARMV7H,
@@ -27,6 +31,11 @@ public enum CPUArchitecture {
   I386,
   I586,
   I486;
+
+  static {
+    Logger.info("Listing All Possible CPU Architectures...");
+    Arrays.stream(values()).forEach(x -> Logger.info(x.name()));
+  }
 
   public static CPUArchitecture fromName(@NotNull final String name) {
     for (CPUArchitecture val : values()) {

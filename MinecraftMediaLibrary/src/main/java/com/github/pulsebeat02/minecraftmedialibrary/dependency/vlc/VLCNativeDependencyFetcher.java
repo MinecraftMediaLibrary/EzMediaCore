@@ -34,29 +34,41 @@ public class VLCNativeDependencyFetcher {
   }
 
   public void downloadLibraries() {
+    Logger.info("Trying to find Native VLC Installation...");
     boolean installed = new NativeDiscovery().discover();
     if (!installed) {
-      String option = OperatingSystemUtilities.DOWNLOAD_OPTION;
-      if (option.equalsIgnoreCase("COMPILE")) {
-
+      Logger.info("No VLC Installation found on this system. Proceeding to install.");
+      String option = OperatingSystemUtilities.URL;
+      if (option.equalsIgnoreCase("LINUX")) {
+        try {
+          LinuxPackageDictionary.getPackage();
+          LinuxPackageDictionary.extractContents();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       } else {
-        // Download Zip from hosted repo
+        Logger.info("User is not using Linux. Proceeding to download Zip off Github.");
         try {
           File zip = new File("VLC.zip");
           FileUtils.copyURLToFile(new URL(option), zip);
           String path = zip.getAbsolutePath();
-          String dest = zip.getParent() + "/libs/vlcj";
-          // Extract to libs folder
-          ZipFileUtilities.unzip(path, dest);
+          String dest = zip.getParent() + "/libs/vlc";
+          Logger.info("Zip File Path: " + path);
+          Logger.info("Extracting File...");
+          ZipFileUtilities.decompressArchive(new File(path), new File(dest));
+          Logger.info("Successfully Extracted File");
+          Logger.info("Deleting Archive...");
           if (zip.delete()) {
-            Logger.info("VLC zip deleted after installation.");
+            Logger.info("Archive deleted after installation.");
           } else {
-            Logger.error("VLC zip could NOT be deleted after installation!");
+            Logger.error("Archive could NOT be deleted after installation!");
           }
         } catch (IOException e) {
           e.printStackTrace();
         }
       }
+    } else {
+      Logger.info("Found VLC Installation! No need to install VLC beforehand.");
     }
   }
 }

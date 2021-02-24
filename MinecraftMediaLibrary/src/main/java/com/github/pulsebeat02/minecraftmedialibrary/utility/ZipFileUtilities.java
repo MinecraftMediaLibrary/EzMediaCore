@@ -13,55 +13,33 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
+import org.rauschig.jarchivelib.Archiver;
+import org.rauschig.jarchivelib.ArchiverFactory;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class ZipFileUtilities {
 
-  /*
-  TODO: Implement unzipping for rpm, deb, txz, zst, tgz, eopkg
-   */
-
-  public static void unzip(@NotNull final String zipFilePath, @NotNull final String destDirectory) {
-    final File destDir = new File(destDirectory);
-    if (!destDir.exists()) {
-      destDir.mkdir();
-    }
+  public static void decompressArchive(@NotNull final File file, @NotNull final File result) {
+    String extension = FilenameUtils.getExtension(file.getName());
+    Archiver archiver = ArchiverFactory.createArchiver(extension);
     try {
-      final ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFilePath));
-      ZipEntry entry = zipIn.getNextEntry();
-      while (entry != null) {
-        final String filePath = destDirectory + File.separator + entry.getName();
-        if (!entry.isDirectory()) {
-          extractFile(zipIn, filePath);
-        } else {
-          File dir = new File(filePath);
-          dir.mkdirs();
-        }
-        zipIn.closeEntry();
-        entry = zipIn.getNextEntry();
-      }
-      zipIn.close();
-    } catch (final IOException e) {
+      archiver.extract(file, result);
+    } catch (IOException e) {
       e.printStackTrace();
     }
   }
 
-  private static void extractFile(
-      @NotNull final ZipInputStream zipIn, final @NotNull String filePath) throws IOException {
-    final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
-    final byte[] bytesIn = new byte[4096];
-    int read;
-    while ((read = zipIn.read(bytesIn)) != -1) {
-      bos.write(bytesIn, 0, read);
+  public static void decompressArchive(
+      @NotNull final File file, @NotNull final File result, @NotNull final String type, @NotNull final String compression) {
+    Archiver archiver = ArchiverFactory.createArchiver(type, compression);
+    try {
+      archiver.extract(file, result);
+    } catch (IOException e) {
+      e.printStackTrace();
     }
-    bos.close();
   }
 }

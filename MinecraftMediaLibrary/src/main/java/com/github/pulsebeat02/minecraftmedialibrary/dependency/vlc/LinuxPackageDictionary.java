@@ -13,20 +13,21 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.OperatingSystemUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.ZipFileUtilities;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
+import sun.jvm.hotspot.utilities.UnsupportedPlatformException;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 public enum LinuxPackageDictionary {
 
@@ -51,7 +52,9 @@ public enum LinuxPackageDictionary {
               ImmutableSet.of(
                   "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/aarch64/os/Packages/v/vlc-3.0.12.1-6.fc35.aarch64.rpm", // AARCH64
                   "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/x86_64/os/Packages/v/vlc-3.0.12.1-6.fc35.x86_64.rpm"), // x86_64
-          "7", ImmutableSet.of("http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/x86_64/os/Packages/v/vlc-3.0.12.1-6.fc35.x86_64.rpm"), // x86_64
+          "7",
+              ImmutableSet.of(
+                  "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/x86_64/os/Packages/v/vlc-3.0.12.1-6.fc35.x86_64.rpm"), // x86_64
           "6",
               ImmutableSet.of(
                   "http://rpmfind.net/linux/rpmfusion/free/fedora/development/rawhide/Everything/x86_64/os/Packages/v/vlc-3.0.12.1-6.fc35.x86_64.rpm", // x86_64
@@ -143,7 +146,7 @@ public enum LinuxPackageDictionary {
       ImmutableMap.of(
           "LATEST",
           ImmutableSet.of(
-              "https://mirror.math.princeton.edu/pub/kaoslinux/build/vlc-1:3.0.12.1-2-x86_64.pkg.tar.zst" // x86_64
+              "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/linux/vlc-1_3.0.12.1-2-x86_64.pkg.tar.zst" // x86_64
               ))),
 
   // http://ftp.netbsd.org/pub/pkgsrc/current/pkgsrc/multimedia/vlc/README.html
@@ -202,7 +205,7 @@ public enum LinuxPackageDictionary {
                   "http://www.slackware.com/~alien/slackbuilds/vlc/pkg64/14.1/vlc-2.2.6-x86_64-1alien.txz" // x86_64
                   ))),
 
-  // X86_64: https://mirrors.rit.edu/solus/packages/shannon/v/vlc/
+  // https://mirrors.rit.edu/solus/packages/shannon/v/vlc/
   SOLUS(
       ImmutableMap.of(
           "LATEST",
@@ -210,8 +213,8 @@ public enum LinuxPackageDictionary {
               "https://mirrors.rit.edu/solus/packages/shannon/v/vlc/vlc-3.0.12-123-1-x86_64.eopkg" // x86_64
               ))),
 
-  // AMD64 and i386: http://archive.ubuntu.com/ubuntu/pool/universe/v/vlc/
-  // ARMHF and ARM64: http://ports.ubuntu.com/ubuntu-ports/pool/universe/v/vlc/
+  // http://archive.ubuntu.com/ubuntu/pool/universe/v/vlc/
+  // http://ports.ubuntu.com/ubuntu-ports/pool/universe/v/vlc/
   UBUNTU(
       ImmutableMap.of(
           "20.10",
@@ -286,11 +289,11 @@ public enum LinuxPackageDictionary {
         return ImmutableSet.of(CPUArchitecture.AMD64);
       }
     }
-    return null;
+    return ImmutableSet.of();
   }
 
-  public static Set<File> getPackages() throws Exception {
-    String os = OperatingSystemUtilities.getOperatingSystem().toLowerCase();
+  public static File getPackage() throws IOException {
+    String os = OperatingSystemUtilities.OPERATING_SYSTEM;
     Set<String> set = null;
     LinuxPackageDictionary dir = null;
     outer:
@@ -310,25 +313,63 @@ public enum LinuxPackageDictionary {
         break;
       }
     }
-    CPUArchitecture arch = CPUArchitecture.fromName(OperatingSystemUtilities.getCpuArchitecture());
+    CPUArchitecture arch = CPUArchitecture.fromName(OperatingSystemUtilities.CPU_ARCH);
     if (set == null || arch == null) {
-      throw new Exception("Unsupported Operating System Platform!");
+      throw new UnsupportedPlatformException("Unsupported Operating System Platform!");
     }
-    Set<File> files = new HashSet<>();
+    File vlc = new File("/vlc");
+    if (!vlc.exists()) {
+      if (vlc.mkdir()) {
+        Logger.info("Made VLC Directory");
+      } else {
+        Logger.error("Failed to Make VLC Directory");
+      }
+    }
     for (String link : set) {
       Set<CPUArchitecture> options = getCpuArchitectures(dir, link);
       if (options.contains(arch)) {
-        String extension = FilenameUtils.getExtension(link);
-        File file = new File("/libs/" + UUID.randomUUID() + "." + extension);
+        String fileName = link.substring(link.lastIndexOf("/") + 1);
+        File file = new File("/vlc/" + fileName);
+        URL url = new URL("");
         try {
-          FileUtils.copyURLToFile(new URL(link), file);
-          files.add(file);
-        } catch (IOException e) {
+          url = new URL(link);
+        } catch (MalformedURLException e) {
+          Logger.info("Main Site is Down! Using Mirror!");
+          try {
+            url =
+                new URL(
+                    "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/linux/"
+                        + fileName);
+          } catch (MalformedURLException e1) {
+            Logger.error("Github Mirror is Down. You living in 2140 or something?");
+            e1.printStackTrace();
+          }
           e.printStackTrace();
         }
+        FileUtils.copyURLToFile(url, file);
+        return file;
       }
     }
-    return files;
+    throw new UnsupportedPlatformException("Unsupported Operating System Platform!");
+  }
+
+  public static void extractContents() {
+    File vlc = new File("/vlc");
+    File f = new File("/vlc").listFiles()[0];
+    String name = f.getName();
+    if (name.endsWith("deb") || name.endsWith("rpm") || name.endsWith("eopkg")) {
+      ZipFileUtilities.decompressArchive(f, vlc);
+    } else if (name.endsWith("txz") || name.endsWith(".tar.xz")) {
+      ZipFileUtilities.decompressArchive(f, vlc, "tar", "xz");
+    } else if (name.endsWith("tgz")) {
+      ZipFileUtilities.decompressArchive(f, vlc, "tar", "gz");
+    } else if (name.endsWith(".tar.zst")) {
+      Logger.warn("Hello user, please read this error carefully: Your computer seems to be using " +
+              "KAOS Linux. The extract for KAOS Linux is a .tar.zst file, which is yet not supported by " +
+              "the plugin yet. The archive has been downloaded in the /vlcj folder, and it is required by " +
+              "you to extract the file in order to get the VLC libraries. This is a required step, and VLCJ " +
+              "will not run if you do not perform this step.");
+    }
   }
 
   public Map<String, Set<String>> getLinks() {

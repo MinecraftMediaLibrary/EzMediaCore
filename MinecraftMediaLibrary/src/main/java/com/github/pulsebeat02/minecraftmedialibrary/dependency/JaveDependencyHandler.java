@@ -20,9 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
-// Not used anymore
-
-@Deprecated
 public class JaveDependencyHandler {
 
   private final String path;

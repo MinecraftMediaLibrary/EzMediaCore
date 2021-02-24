@@ -25,7 +25,6 @@ import com.github.pulsebeat02.minecraftmedialibrary.video.dither.AbstractDitherH
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.video.itemframe.ItemFrameCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.video.player.AbstractVideoPlayer;
-import com.github.pulsebeat02.minecraftmedialibrary.video.player.BasicVideoPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.video.player.VLCJIntegratedPlayer;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
@@ -142,7 +141,8 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
                 new VLCJIntegratedPlayer(
                     library, file, player.getWidth(), player.getHeight(), callback::send);
           }
-        } else {
+        }
+        /* else {
           if (file == null) {
             player =
                 new BasicVideoPlayer(
@@ -155,8 +155,8 @@ public class VideoCommand extends AbstractCommand implements CommandExecutor {
             player =
                 new BasicVideoPlayer(
                     library, file, player.getWidth(), player.getHeight(), callback::send);
-          }
-        }
+            }
+          }*/
         player.start();
       } else if (args[0].equalsIgnoreCase("stop")) {
         sender.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Stopped the Video!"));

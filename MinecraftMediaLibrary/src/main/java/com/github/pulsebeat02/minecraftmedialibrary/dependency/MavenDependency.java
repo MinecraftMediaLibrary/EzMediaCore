@@ -16,17 +16,22 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency;
 import org.jetbrains.annotations.NotNull;
 
 public enum MavenDependency {
+
   VLCJ("uk.co.caprica", "vlcj", "4.6.0"),
 
   VLCJ_NATIVES("uk.co.caprica", "vlcj-natives", "4.5.0"),
 
   YOUTUBE_DOWNLOADER("com.github.sealedtx", "java-youtube-downloader", "2.4.6"),
 
-  // JAVE_CORE("ws.schild", "jave-core", "3.0.1"),
+  JAVE_CORE("ws.schild", "jave-core", "3.0.1"),
 
-  FFMPEG("net.bramp.ffmpeg", "ffmpeg", "0.6.2"),
+  COMPRESSION("org.rauschig", "jarchivelib", "0.7.1"),
 
-  JAVACV("org.bytedeco", "javacv-platform", "1.5.4");
+  ASM("org.ow2.asm", "asm", "9.1"),
+
+  ASM_COMMONS("org.ow2.asm", "asm-commons", "9.1");
+
+//  JAVACV("org.bytedeco", "javacv-platform", "1.5.4");
 
   private final String group;
   private final String artifact;
