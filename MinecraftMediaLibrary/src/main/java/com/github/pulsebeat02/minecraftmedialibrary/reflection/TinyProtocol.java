@@ -108,9 +108,7 @@ public abstract class TinyProtocol {
 
   // Current handler name
   private final String handlerName;
-  /**
-   * The Closed.
-   */
+  /** The Closed. */
   protected volatile boolean closed;
   /** The Plugin. */
   protected Plugin plugin;

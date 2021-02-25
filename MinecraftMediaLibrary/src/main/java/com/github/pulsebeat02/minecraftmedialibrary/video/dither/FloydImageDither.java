@@ -98,15 +98,15 @@ public class FloydImageDither implements AbstractDitherHolder {
    */
   public byte getBestColor(final int rgb) {
     return COLOR_MAP[
-            (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
+        (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
   }
 
   /**
    * Gets best color.
    *
-   * @param red   the red
+   * @param red the red
    * @param green the green
-   * @param blue  the blue
+   * @param blue the blue
    * @return the best color
    */
   public byte getBestColor(final int red, final int green, final int blue) {
@@ -116,9 +116,9 @@ public class FloydImageDither implements AbstractDitherHolder {
   /**
    * Gets best full color.
    *
-   * @param red   the red
+   * @param red the red
    * @param green the green
-   * @param blue  the blue
+   * @param blue the blue
    * @return the best full color
    */
   public int getBestFullColor(final int red, final int green, final int blue) {
@@ -352,7 +352,7 @@ public class FloydImageDither implements AbstractDitherHolder {
       return (BufferedImage) img;
     }
     final BufferedImage bimage =
-            new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+        new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
     final Graphics2D bGr = bimage.createGraphics();
     bGr.drawImage(img, 0, 0, null);
     bGr.dispose();

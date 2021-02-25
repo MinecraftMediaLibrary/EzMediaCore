@@ -21,36 +21,36 @@ import java.io.File;
 
 public class ResourcepackUtilities {
 
-    /**
-     * Validate pack format boolean.
-     *
-     * @param format the format
-     * @return the boolean
-     */
-    public static boolean validatePackFormat(final int format) {
-        for (final PackFormatVersioning version : PackFormatVersioning.values()) {
-            if (format == version.getPackFormatID()) {
-                Logger.info("Pack Format Supported! (" + format + ")");
-                return true;
-            }
-        }
-        Logger.warn("Pack Format Not Supported! (" + format + ")");
-        return false;
+  /**
+   * Validate pack format.
+   *
+   * @param format the format
+   * @return pack format validation
+   */
+  public static boolean validatePackFormat(final int format) {
+    for (final PackFormatVersioning version : PackFormatVersioning.values()) {
+      if (format == version.getPackFormatID()) {
+        Logger.info("Pack Format Supported! (" + format + ")");
+        return true;
+      }
     }
+    Logger.warn("Pack Format Not Supported! (" + format + ")");
+    return false;
+  }
 
-    /**
-     * Validate resourcepack icon boolean.
-     *
-     * @param icon the icon
-     * @return the boolean
-     */
-    public static boolean validateResourcepackIcon(@NotNull final File icon) {
-        final boolean valid = icon.getName().endsWith(".png");
-        if (valid) {
-            Logger.info("Resourcepack Icon Accepted! (" + icon.getAbsolutePath() + ")");
-        } else {
-            Logger.warn("Resourcepack Icon Not Supported! (" + icon.getAbsolutePath() + ")");
-        }
-        return icon.getName().endsWith(".png");
+  /**
+   * Validate resourcepack icon.
+   *
+   * @param icon the icon
+   * @return resourcepack icon validation
+   */
+  public static boolean validateResourcepackIcon(@NotNull final File icon) {
+    final boolean valid = icon.getName().endsWith(".png");
+    if (valid) {
+      Logger.info("Resourcepack Icon Accepted! (" + icon.getAbsolutePath() + ")");
+    } else {
+      Logger.warn("Resourcepack Icon Not Supported! (" + icon.getAbsolutePath() + ")");
     }
+    return icon.getName().endsWith(".png");
+  }
 }

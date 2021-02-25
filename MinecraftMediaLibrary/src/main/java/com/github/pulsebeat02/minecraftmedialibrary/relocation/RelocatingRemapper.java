@@ -22,29 +22,27 @@ import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Remaps class names and types using defined {@link Relocation} rules.
- */
+/** Remaps class names and types using defined {@link Relocation} rules. */
 final class RelocatingRemapper extends Remapper {
-    private static final Pattern CLASS_PATTERN = Pattern.compile("(\\[*)?L(.+);");
+  private static final Pattern CLASS_PATTERN = Pattern.compile("(\\[*)?L(.+);");
 
-    private final Collection<Relocation> rules;
+  private final Collection<Relocation> rules;
 
-    /**
-     * Instantiates a new Relocating remapper.
-     *
-     * @param rules the rules
-     */
-    RelocatingRemapper(final Collection<Relocation> rules) {
-        this.rules = rules;
-    }
+  /**
+   * Instantiates a new Relocating remapper.
+   *
+   * @param rules the rules
+   */
+  RelocatingRemapper(final Collection<Relocation> rules) {
+    this.rules = rules;
+  }
 
-    @Override
-    public Object mapValue(final Object object) {
-        if (object instanceof String) {
-            final String relocatedName = relocate((String) object, true);
-            if (relocatedName != null) {
-                return relocatedName;
+  @Override
+  public Object mapValue(final Object object) {
+    if (object instanceof String) {
+      final String relocatedName = relocate((String) object, true);
+      if (relocatedName != null) {
+        return relocatedName;
       }
     }
     return super.mapValue(object);

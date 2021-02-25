@@ -79,34 +79,35 @@ final class SelectorUtils {
   private static boolean isAntPrefixedPattern(final String pattern) {
     return pattern.length() > (ANT_HANDLER_PREFIX.length() + PATTERN_HANDLER_SUFFIX.length() + 1)
         && pattern.startsWith(ANT_HANDLER_PREFIX)
-            && pattern.endsWith(PATTERN_HANDLER_SUFFIX);
+        && pattern.endsWith(PATTERN_HANDLER_SUFFIX);
   }
 
-    // When str starts with a File.separator, pattern has to start with a File.separator.
-    // When pattern starts with a File.separator, str has to start with a File.separator.
-    private static boolean separatorPatternStartSlashMismatch(
-            final String pattern, final String str, final String separator) {
-        return str.startsWith(separator) != pattern.startsWith(separator);
-    }
+  // When str starts with a File.separator, pattern has to start with a File.separator.
+  // When pattern starts with a File.separator, str has to start with a File.separator.
+  private static boolean separatorPatternStartSlashMismatch(
+      final String pattern, final String str, final String separator) {
+    return str.startsWith(separator) != pattern.startsWith(separator);
+  }
 
-    /**
-     * Match path boolean.
-     *
-     * @param pattern         the pattern
-     * @param str             the str
-     * @param isCaseSensitive the is case sensitive
-     * @return the boolean
-     */
-    public static boolean matchPath(final String pattern, final String str, final boolean isCaseSensitive) {
-        return matchPath(pattern, str, File.separator, isCaseSensitive);
-    }
+  /**
+   * Match path boolean.
+   *
+   * @param pattern the pattern
+   * @param str the str
+   * @param isCaseSensitive the is case sensitive
+   * @return the boolean
+   */
+  public static boolean matchPath(
+      final String pattern, final String str, final boolean isCaseSensitive) {
+    return matchPath(pattern, str, File.separator, isCaseSensitive);
+  }
 
-    private static boolean matchPath(
-            String pattern, final String str, final String separator, final boolean isCaseSensitive) {
-        if (isRegexPrefixedPattern(pattern)) {
-            pattern =
-                    pattern.substring(
-                            REGEX_HANDLER_PREFIX.length(), pattern.length() - PATTERN_HANDLER_SUFFIX.length());
+  private static boolean matchPath(
+      String pattern, final String str, final String separator, final boolean isCaseSensitive) {
+    if (isRegexPrefixedPattern(pattern)) {
+      pattern =
+          pattern.substring(
+              REGEX_HANDLER_PREFIX.length(), pattern.length() - PATTERN_HANDLER_SUFFIX.length());
       return str.matches(pattern);
     } else {
       if (isAntPrefixedPattern(pattern)) {
@@ -125,7 +126,10 @@ final class SelectorUtils {
   }
 
   private static boolean matchAntPathPattern(
-          final String pattern, final String str, final String separator, final boolean isCaseSensitive) {
+      final String pattern,
+      final String str,
+      final String separator,
+      final boolean isCaseSensitive) {
     if (separatorPatternStartSlashMismatch(pattern, str, separator)) {
       return false;
     }
@@ -135,7 +139,7 @@ final class SelectorUtils {
   }
 
   private static boolean matchAntPathPattern(
-          final String[] patDirs, final String[] strDirs, final boolean isCaseSensitive) {
+      final String[] patDirs, final String[] strDirs, final boolean isCaseSensitive) {
     int patIdxStart = 0;
     int patIdxEnd = patDirs.length - 1;
     int strIdxStart = 0;
@@ -239,13 +243,15 @@ final class SelectorUtils {
     return true;
   }
 
-  private static boolean match(final String pattern, final String str, final boolean isCaseSensitive) {
+  private static boolean match(
+      final String pattern, final String str, final boolean isCaseSensitive) {
     final char[] patArr = pattern.toCharArray();
     final char[] strArr = str.toCharArray();
     return match(patArr, strArr, isCaseSensitive);
   }
 
-  private static boolean match(final char[] patArr, final char[] strArr, final boolean isCaseSensitive) {
+  private static boolean match(
+      final char[] patArr, final char[] strArr, final boolean isCaseSensitive) {
     int patIdxStart = 0;
     int patIdxEnd = patArr.length - 1;
     int strIdxStart = 0;

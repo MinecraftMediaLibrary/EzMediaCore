@@ -23,26 +23,36 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 public class PlayerJoinLeaveHandler implements Listener {
 
-    private final MinecraftMediaLibrary library;
+  private final MinecraftMediaLibrary library;
 
-    /**
-     * Instantiates a new Player join leave handler.
-     *
-     * @param library the library
-     */
-    public PlayerJoinLeaveHandler(final MinecraftMediaLibrary library) {
-        this.library = library;
-    }
+  /**
+   * Instantiates a new PlayerJoinLeaveHandler.
+   *
+   * @param library the library
+   */
+  public PlayerJoinLeaveHandler(final MinecraftMediaLibrary library) {
+    this.library = library;
+  }
 
-    @EventHandler
-    private void onEvent(final PlayerJoinEvent event) {
-        final Player p = event.getPlayer();
-        library.getHandler().registerPlayer(p);
-        Logger.info("Registered Player " + p.getUniqueId());
-    }
-
+  /**
+   * Registers the player on join.
+   *
+   * @param event PlayerJoinEvent event
+   */
   @EventHandler
-  private void onEvent(final PlayerQuitEvent event) {
+  private void onPlayerJoin(final PlayerJoinEvent event) {
+    final Player p = event.getPlayer();
+    library.getHandler().registerPlayer(p);
+    Logger.info("Registered Player " + p.getUniqueId());
+  }
+
+  /**
+   * Unregisters the player on leave.
+   *
+   * @param event PlayerQuitEvent event
+   */
+  @EventHandler
+  private void onPlayerLeave(final PlayerQuitEvent event) {
     final Player p = event.getPlayer();
     library.getHandler().unregisterPlayer(p);
     Logger.info("Unregistered Player " + p.getUniqueId());

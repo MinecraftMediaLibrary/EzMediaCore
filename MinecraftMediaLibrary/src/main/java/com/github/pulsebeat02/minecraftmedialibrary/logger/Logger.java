@@ -22,11 +22,10 @@ import java.io.IOException;
 
 public class Logger {
 
-  /**
-   * The constant WRITER.
-   */
+  /** Log writer */
   public static volatile BufferedWriter WRITER;
-  /** The constant VERBOSE. */
+
+  /** Tracks whether log should be verbose */
   public static boolean VERBOSE;
 
   static {
@@ -45,7 +44,7 @@ public class Logger {
   }
 
   /**
-   * Info.
+   * Prints the text as an [INFO]
    *
    * @param info the info
    */
@@ -54,7 +53,7 @@ public class Logger {
   }
 
   /**
-   * Warn.
+   * Prints the text as a [WARN]
    *
    * @param warning the warning
    */
@@ -63,7 +62,7 @@ public class Logger {
   }
 
   /**
-   * Error.
+   * Prints the text as a [ERROR]
    *
    * @param error the error
    */
@@ -71,6 +70,11 @@ public class Logger {
     directPrint(System.currentTimeMillis() + ": [ERROR] " + error + "\n");
   }
 
+  /**
+   * Directly prints the following line.
+   *
+   * @param line to print
+   */
   private static void directPrint(@NotNull final String line) {
     if (VERBOSE) {
       try {
@@ -83,9 +87,9 @@ public class Logger {
   }
 
   /**
-   * Sets verbose.
+   * Sets verbosity of logger.
    *
-   * @param verbose the verbose
+   * @param verbose verbosity
    */
   public static void setVerbose(final boolean verbose) {
     VERBOSE = verbose;

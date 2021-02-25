@@ -22,66 +22,76 @@ import java.nio.file.Path;
 
 public class HttpDaemonProvider extends AbstractHostingProvider {
 
-    private static final String SERVER_IP = Bukkit.getIp();
-    private final int port;
-    private HttpDaemon daemon;
+  private static final String SERVER_IP = Bukkit.getIp();
+  private final int port;
+  private HttpDaemon daemon;
 
-    /**
-     * Instantiates a new Http daemon provider.
-     *
-     * @param path the path
-     * @param port the port
-     */
-    public HttpDaemonProvider(@NotNull final String path, final int port) {
-        this.port = port;
-        try {
-            this.daemon = new HttpDaemon(port, path);
-        } catch (final IOException e) {
-            e.printStackTrace();
-        }
+  /**
+   * Instantiates a new Http daemon provider.
+   *
+   * @param path the path
+   * @param port the port
+   */
+  public HttpDaemonProvider(@NotNull final String path, final int port) {
+    this.port = port;
+    try {
+      this.daemon = new HttpDaemon(port, path);
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
+  }
 
-    /**
-     * Gets server ip.
-     *
-     * @return the server ip
-     */
-    public static String getServerIp() {
-        return SERVER_IP;
-    }
+  /**
+   * Gets server ip.
+   *
+   * @return the server ip
+   */
+  public static String getServerIp() {
+    return SERVER_IP;
+  }
 
-    /**
-     * Start server.
-     */
-    public void startServer() {
-        daemon.start();
-    }
+  /** Start server. */
+  public void startServer() {
+    daemon.start();
+  }
 
-    @Override
-    public String generateUrl(@NotNull final String file) {
-        return "http://" + SERVER_IP + ":" + port + "/" + file;
-    }
+  /**
+   * Generates the URL based on file (String)
+   *
+   * @param file to generate parent directory of the HTTP Server for.
+   * @return file url
+   */
+  @Override
+  public String generateUrl(@NotNull final String file) {
+    return "http://" + SERVER_IP + ":" + port + "/" + file;
+  }
 
-    @Override
-    public String generateUrl(@NotNull final Path path) {
-        return "http://" + SERVER_IP + ":" + port + "/" + path.getFileName();
-    }
+  /**
+   * Generates the URL based on file (Path)
+   *
+   * @param path to gnerate parent directory of the HTTP Server for.
+   * @return file url
+   */
+  @Override
+  public String generateUrl(@NotNull final Path path) {
+    return "http://" + SERVER_IP + ":" + port + "/" + path.getFileName();
+  }
 
-    /**
-     * Gets daemon.
-     *
-     * @return the daemon
-     */
-    public HttpDaemon getDaemon() {
-        return daemon;
-    }
+  /**
+   * Gets daemon.
+   *
+   * @return the daemon
+   */
+  public HttpDaemon getDaemon() {
+    return daemon;
+  }
 
-    /**
-     * Gets port.
-     *
-     * @return the port
-     */
-    public int getPort() {
-        return port;
-    }
+  /**
+   * Gets port.
+   *
+   * @return the port
+   */
+  public int getPort() {
+    return port;
+  }
 }

@@ -27,13 +27,10 @@ import java.net.URL;
 
 public class VLCNativeDependencyFetcher {
 
-  /**
-   * The Plugin.
-   */
   public final Plugin plugin;
 
   /**
-   * Instantiates a new Vlc native dependency fetcher.
+   * Instantiates a new VLCNativeDependencyFetcher.
    *
    * @param plugin the plugin
    */
@@ -41,15 +38,13 @@ public class VLCNativeDependencyFetcher {
     this.plugin = plugin;
   }
 
-  /**
-   * Download libraries.
-   */
+  /** Download libraries. */
   public void downloadLibraries() {
     Logger.info("Trying to find Native VLC Installation...");
     final NativeDiscovery nativeDiscovery = new NativeDiscovery();
     final EnchancedNativeDiscovery enchancedNativeDiscovery = new EnchancedNativeDiscovery();
     final boolean installed =
-            nativeDiscovery.discover() || enchancedNativeDiscovery.discover() != null;
+        nativeDiscovery.discover() || enchancedNativeDiscovery.discover() != null;
     if (!installed) {
       Logger.info("No VLC Installation found on this system. Proceeding to install.");
       final String option = OperatingSystemUtilities.URL;

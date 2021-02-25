@@ -21,32 +21,32 @@ import java.util.concurrent.CompletableFuture;
 
 public class AsyncVideoExtraction {
 
-    private final AbstractVideoExtractor extractor;
+  private final AbstractVideoExtractor extractor;
 
-    /**
-     * Instantiates a new Async video extraction.
-     *
-     * @param extractor the extractor
-     */
-    public AsyncVideoExtraction(@NotNull final AbstractVideoExtractor extractor) {
-        this.extractor = extractor;
-    }
+  /**
+   * Instantiates a new AsyncVideoExtraction.
+   *
+   * @param extractor the extractor
+   */
+  public AsyncVideoExtraction(@NotNull final AbstractVideoExtractor extractor) {
+    this.extractor = extractor;
+  }
 
-    /**
-     * Download video completable future.
-     *
-     * @return the completable future
-     */
-    public CompletableFuture<File> downloadVideo() {
-        return CompletableFuture.supplyAsync(extractor::downloadVideo);
-    }
+  /**
+   * Download a video using CompletableFuture.
+   *
+   * @return the completable future
+   */
+  public CompletableFuture<File> downloadVideo() {
+    return CompletableFuture.supplyAsync(extractor::downloadVideo);
+  }
 
-    /**
-     * Extract audio completable future.
-     *
-     * @return the completable future
-     */
-    public CompletableFuture<File> extractAudio() {
-        return CompletableFuture.supplyAsync(extractor::extractAudio);
-    }
+  /**
+   * Extract audio using CompletableFuture.
+   *
+   * @return the completable future
+   */
+  public CompletableFuture<File> extractAudio() {
+    return CompletableFuture.supplyAsync(extractor::extractAudio);
+  }
 }

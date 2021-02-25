@@ -16,21 +16,23 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 import org.jetbrains.annotations.NotNull;
 
 public enum DitherSetting {
-  /**
-   * The Standard minecraft dither.
-   */
+
+  /** Standard Minecraft Dithering */
   STANDARD_MINECRAFT_DITHER(new StandardDithering()),
-  /** The Sierra filter lite dither. */
+
+  /** Sierra Filter Lite Dithering */
   SIERRA_FILTER_LITE_DITHER(new FilterLiteDither()),
-  /** The Bayer ordered 2 dimensional. */
+
+  /** Bayer Ordered 2 Dimensional Dithering */
   BAYER_ORDERED_2_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.ModeTwo)),
-  /** The Bayer ordered 4 dimensional. */
+
+  /** Bayer Ordered 4 Dimensional Dithering */
   BAYER_ORDERED_4_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.ModeFour)),
-  /** The Bayer ordered 8 dimensional. */
+
+  /** Bayer Ordered 8 Dimensional Dithering */
   BAYER_ORDERED_8_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.ModeEight)),
-  /**
-   * The Floyd steinberg dither.
-   */
+
+  /** Floyd Steinberg Dithering */
   FLOYD_STEINBERG_DITHER(new FloydImageDither());
 
   private final AbstractDitherHolder holder;

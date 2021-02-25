@@ -40,15 +40,15 @@ public class StandardDithering implements AbstractDitherHolder {
    */
   public int getBestColorNormal(final int rgb) {
     return MinecraftMapPalette.getColor(getBestColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF))
-            .getRGB();
+        .getRGB();
   }
 
   /**
    * Gets best color.
    *
-   * @param red   the red
+   * @param red the red
    * @param green the green
-   * @param blue  the blue
+   * @param blue the blue
    * @return the best color
    */
   public byte getBestColor(final int red, final int green, final int blue) {
@@ -63,7 +63,7 @@ public class StandardDithering implements AbstractDitherHolder {
    */
   public byte getBestColor(final int rgb) {
     return COLOR_MAP[
-            (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
+        (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
   }
 
   @Override

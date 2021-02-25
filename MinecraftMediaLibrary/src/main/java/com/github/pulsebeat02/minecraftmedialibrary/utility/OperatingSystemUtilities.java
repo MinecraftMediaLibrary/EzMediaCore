@@ -18,105 +18,98 @@ import org.jetbrains.annotations.NotNull;
 
 public class OperatingSystemUtilities {
 
-    /**
-     * The constant CPU_ARCH.
-     */
-    public static final String CPU_ARCH;
-    /**
-     * The constant OPERATING_SYSTEM.
-     */
-    public static final String OPERATING_SYSTEM;
-    /**
-     * The constant MAC.
-     */
-    public static final boolean MAC;
-    /**
-     * The constant WINDOWS.
-     */
-    public static final boolean WINDOWS;
-    /**
-     * The constant LINUX.
-     */
-    public static final boolean LINUX;
-    /**
-     * The constant URL.
-     */
-    public static String URL;
+  /** CPU Architecture */
+  public static final String CPU_ARCH;
 
-    static {
-        Logger.info("Detecting Operating System...");
-        OPERATING_SYSTEM = getOperatingSystem().toLowerCase();
-        CPU_ARCH = getCpuArchitecture();
-        LINUX =
-                OPERATING_SYSTEM.contains("nix")
-                        || OPERATING_SYSTEM.contains("nux")
-                        || OPERATING_SYSTEM.contains("aix");
-        WINDOWS = OPERATING_SYSTEM.contains("win");
-        MAC = OPERATING_SYSTEM.contains("mac");
-        if (is64Architecture(OPERATING_SYSTEM)) {
-            if (WINDOWS) {
-                Logger.info("Detected Windows 64 Bit!");
-                URL = "http://download.videolan.org/pub/videolan/vlc/last/win64/vlc-3.0.12-win64.zip";
-            } else if (LINUX) {
-                if (CPU_ARCH.contains("arm")) {
-                    Logger.info("Detected Linux ARM 64 Bit!");
-                } else {
-                    Logger.info("Detected Linux AMD/Intel 64 Bit!");
-                }
-                URL = "LINUX";
-            } else if (MAC) {
-                if (!CPU_ARCH.contains("amd")) {
-                    Logger.info("Detected MACOS 64 Bit! (Silicon)");
-                    URL =
-                            "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-intel64/VLC.zip";
-                } else {
-                    Logger.info("Detected MACOS 64 Bit! (AMD)");
-                    URL = " https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-arm64/VLC.zip";
-                }
-            }
+  /** Operating System */
+  public static final String OPERATING_SYSTEM;
+
+  /** Using MAC */
+  public static final boolean MAC;
+
+  /** Using WINDOWS */
+  public static final boolean WINDOWS;
+
+  /** Using LINUX */
+  public static final boolean LINUX;
+
+  /** URL used to download or "LINUX" if Linux */
+  public static String URL;
+
+  static {
+    Logger.info("Detecting Operating System...");
+    OPERATING_SYSTEM = getOperatingSystem().toLowerCase();
+    CPU_ARCH = getCpuArchitecture();
+    LINUX =
+        OPERATING_SYSTEM.contains("nix")
+            || OPERATING_SYSTEM.contains("nux")
+            || OPERATING_SYSTEM.contains("aix");
+    WINDOWS = OPERATING_SYSTEM.contains("win");
+    MAC = OPERATING_SYSTEM.contains("mac");
+    if (is64Architecture(OPERATING_SYSTEM)) {
+      if (WINDOWS) {
+        Logger.info("Detected Windows 64 Bit!");
+        URL = "http://download.videolan.org/pub/videolan/vlc/last/win64/vlc-3.0.12-win64.zip";
+      } else if (LINUX) {
+        if (CPU_ARCH.contains("arm")) {
+          Logger.info("Detected Linux ARM 64 Bit!");
         } else {
-            if (WINDOWS) {
-                URL = "http://download.videolan.org/pub/videolan/vlc/last/win32/vlc-3.0.12-win32.zip";
-            } else if (LINUX) {
-                if (CPU_ARCH.contains("arm")) {
-                    Logger.info("Detected ARM 32 Bit!");
-                    URL = "LINUX";
-                }
-            }
+          Logger.info("Detected Linux AMD/Intel 64 Bit!");
         }
-        Logger.info("=========================================");
-        Logger.info(" Final Results After Runtime Scanning... ");
-        Logger.info("=========================================");
-        Logger.info("Operating System: " + OPERATING_SYSTEM);
-        Logger.info("CPU Architecture: " + CPU_ARCH);
-        Logger.info("Link Used: " + URL);
-        Logger.info("=========================================");
+        URL = "LINUX";
+      } else if (MAC) {
+        if (!CPU_ARCH.contains("amd")) {
+          Logger.info("Detected MACOS 64 Bit! (Silicon)");
+          URL =
+              "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-intel64/VLC.zip";
+        } else {
+          Logger.info("Detected MACOS 64 Bit! (AMD)");
+          URL = " https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-arm64/VLC.zip";
+        }
+      }
+    } else {
+      if (WINDOWS) {
+        URL = "http://download.videolan.org/pub/videolan/vlc/last/win32/vlc-3.0.12-win32.zip";
+      } else if (LINUX) {
+        if (CPU_ARCH.contains("arm")) {
+          Logger.info("Detected ARM 32 Bit!");
+          URL = "LINUX";
+        }
+      }
     }
+    Logger.info("=========================================");
+    Logger.info(" Final Results After Runtime Scanning... ");
+    Logger.info("=========================================");
+    Logger.info("Operating System: " + OPERATING_SYSTEM);
+    Logger.info("CPU Architecture: " + CPU_ARCH);
+    Logger.info("Link Used: " + URL);
+    Logger.info("=========================================");
+  }
 
-    /**
-     * Gets operating system.
-     *
-     * @return the operating system
-     */
-    public static String getOperatingSystem() {
-        return System.getProperty("os.name");
-    }
+  /**
+   * Gets Operating System String.
+   *
+   * @return the operating system
+   */
+  public static String getOperatingSystem() {
+    return System.getProperty("os.name");
+  }
 
-    /**
-     * Gets cpu architecture.
-     *
-     * @return the cpu architecture
-     */
-    public static String getCpuArchitecture() {
-        final String arch = System.getenv("PROCESSOR_ARCHITECTURE");
-        final String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
-        return arch != null && arch.endsWith("64") || wow64Arch != null && wow64Arch.endsWith("64")
-                ? "64"
-                : "32";
-    }
+  /**
+   * Gets CPU Architecture.
+   *
+   * @return the cpu architecture
+   */
+  public static String getCpuArchitecture() {
+    final String arch = System.getenv("PROCESSOR_ARCHITECTURE");
+    final String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
+    return arch != null && arch.endsWith("64") || wow64Arch != null && wow64Arch.endsWith("64")
+        ? "64"
+        : "32";
+  }
 
-    private static boolean is64Architecture(@NotNull final String os) {
-        if (os.contains("Windows")) {
+  public static boolean is64Architecture(@NotNull final String os) {
+    if (os.contains("Windows")) {
       return System.getenv("ProgramFiles(x86)") != null;
     } else {
       return System.getProperty("os.arch").contains("64");

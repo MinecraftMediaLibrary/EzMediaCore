@@ -17,48 +17,48 @@ import org.jetbrains.annotations.NotNull;
 
 public class LinuxPackage {
 
-    private final CPUArchitecture arch;
-    private final String url;
-    private final String mirror;
+  private final CPUArchitecture arch;
+  private final String url;
+  private final String mirror;
 
-    /**
-     * Instantiates a new Linux package.
-     *
-     * @param url  the url
-     * @param arch the arch
-     */
-    public LinuxPackage(@NotNull final String url, @NotNull final CPUArchitecture arch) {
-        this.arch = arch;
-        this.url = url;
-        mirror =
-                "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/linux/"
-                        + url.substring(url.lastIndexOf("/") + 1);
-    }
+  /**
+   * Instantiates a new LinuxPackage.
+   *
+   * @param url the url
+   * @param arch the arch
+   */
+  public LinuxPackage(@NotNull final String url, @NotNull final CPUArchitecture arch) {
+    this.arch = arch;
+    this.url = url;
+    mirror =
+        "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/linux/"
+            + url.substring(url.lastIndexOf("/") + 1);
+  }
 
-    /**
-     * Gets arch.
-     *
-     * @return the arch
-     */
-    public CPUArchitecture getArch() {
-        return arch;
-    }
+  /**
+   * Gets CPU Architecture.
+   *
+   * @return CPU Architecture of package
+   */
+  public CPUArchitecture getArch() {
+    return arch;
+  }
 
-    /**
-     * Gets url.
-     *
-     * @return the url
-     */
-    public String getUrl() {
-        return url;
-    }
+  /**
+   * Gets the package URL.
+   *
+   * @return the package URL
+   */
+  public String getUrl() {
+    return url;
+  }
 
-    /**
-     * Gets mirror.
-     *
-     * @return the mirror
-     */
-    public String getMirror() {
-        return mirror;
-    }
+  /**
+   * Gets the mirror URL.
+   *
+   * @return the mirror URL
+   */
+  public String getMirror() {
+    return mirror;
+  }
 }

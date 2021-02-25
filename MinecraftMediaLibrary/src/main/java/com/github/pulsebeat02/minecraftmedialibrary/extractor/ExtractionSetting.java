@@ -23,14 +23,15 @@ public class ExtractionSetting {
   private int volume;
 
   /**
-   * Instantiates a new Extraction setting.
+   * Instantiates a new ExtractionSetting.
    *
-   * @param bitrate      the bitrate
-   * @param channels     the channels
+   * @param bitrate the bitrate
+   * @param channels the channels
    * @param samplingRate the sampling rate
-   * @param volume       the volume
+   * @param volume the volume
    */
-  public ExtractionSetting(final int bitrate, final int channels, final int samplingRate, final int volume) {
+  public ExtractionSetting(
+      final int bitrate, final int channels, final int samplingRate, final int volume) {
     this.codec = "libvorbis";
     this.format = "ogg";
     this.bitrate = bitrate;
@@ -180,7 +181,7 @@ public class ExtractionSetting {
     }
 
     /**
-     * Create extraction setting extraction setting.
+     * Creates ExtractionSetting from Builder
      *
      * @return the extraction setting
      */

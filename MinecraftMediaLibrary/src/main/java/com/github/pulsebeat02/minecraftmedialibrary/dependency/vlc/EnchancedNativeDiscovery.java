@@ -21,22 +21,26 @@ import java.io.File;
 
 public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
 
-  /**
-   * The constant PLUGIN_ENV_NAME.
-   */
+  /** PLUGIN_ENV_NAME stores the System Enviornment Variable */
   protected static final String PLUGIN_ENV_NAME = "VLC_PLUGIN_PATH";
 
   private static final String[] PLUGIN_PATH_FORMATS = {
-          "\\plugins", "\\vlc\\plugins", "/../plugins", "/plugins", "/vlc/plugins",
+    "\\plugins", "\\vlc\\plugins", "/../plugins", "/plugins", "/vlc/plugins",
   };
 
   private static String path;
 
+  /** Returns whether the strategy is supported */
   @Override
   public boolean supported() {
     return true;
   }
 
+  /**
+   * Attempts to discover VLC installation downloaded from pre-compiled binaries.
+   *
+   * @return String discovered path, null if not found.
+   */
   @Override
   public String discover() {
     final String folder = OperatingSystemUtilities.MAC ? "\\vlc" : "/vlc";
@@ -50,11 +54,23 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
     return null;
   }
 
+  /**
+   * Ran once path is found.
+   *
+   * @param s path
+   * @return found
+   */
   @Override
   public boolean onFound(final String s) {
     return true;
   }
 
+  /**
+   * Ran once plugin path is set.
+   *
+   * @param s path
+   * @return found
+   */
   @Override
   public boolean onSetPluginPath(final String s) {
     return LibC.INSTANCE.setenv(PLUGIN_ENV_NAME, path, 1) == 0;

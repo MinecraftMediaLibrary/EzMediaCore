@@ -19,37 +19,44 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 
 public enum CPUArchitecture {
-  /**
-   * Amd 64 cpu architecture.
-   */
+
+  /** AMD64 CPU Architecture. */
   AMD64,
-  /** Aarch 64 cpu architecture. */
+
+  /** AARCH64 CPU Architecture. */
   AARCH64,
-  /** Armhf cpu architecture. */
+
+  /** ARMHF CPU Architecture. */
   ARMHF,
-  /** Armv 7 h cpu architecture. */
+
+  /** ARMV7H CPU Architecture. */
   ARMV7H,
-  /** Armhfp cpu architecture. */
+
+  /** ARMHFP CPU Architecture. */
   ARMHFP,
-  /** Armv 7 hl cpu architecture. */
+
+  /** ARMV7HL CPU Architecture. */
   ARMV7HL,
-  /** Armv 7 cpu architecture. */
+
+  /** ARMV7 CPU Architecture. */
   ARMV7,
-  /** Arm 64 cpu architecture. */
+
+  /** ARM64 CPU Architecture. */
   ARM64,
-  /** Earnmv 7 hf cpu architecture. */
+
+  /** EARNMV7HF CPU Architecture. */
   EARNMV7HF,
-  /** X 86 64 cpu architecture. */
+
+  /** X86_64 CPU Architecture. */
   X86_64,
-  /** 386 cpu architecture. */
+
+  /** I386 CPU Architecture. */
   I386,
-  /**
-   * 586 cpu architecture.
-   */
+
+  /** I586 CPU Architecture. */
   I586,
-  /**
-   * 486 cpu architecture.
-   */
+
+  /** I486 CPU Architecture. */
   I486;
 
   static {

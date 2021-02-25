@@ -20,23 +20,23 @@ import java.util.concurrent.CompletableFuture;
 
 public class AsyncHttpDaemonBooter {
 
-    private final AbstractHttpDaemon daemon;
+  private final AbstractHttpDaemon daemon;
 
-    /**
-     * Instantiates a new Async http daemon booter.
-     *
-     * @param daemon the daemon
-     */
-    public AsyncHttpDaemonBooter(@NotNull final AbstractHttpDaemon daemon) {
-        this.daemon = daemon;
-    }
+  /**
+   * Instantiates a new AsyncHttpDaemonBooter.
+   *
+   * @param daemon the daemon
+   */
+  public AsyncHttpDaemonBooter(@NotNull final AbstractHttpDaemon daemon) {
+    this.daemon = daemon;
+  }
 
-    /**
-     * Start server completable future.
-     *
-     * @return the completable future
-     */
-    public CompletableFuture<Void> startServer() {
-        return CompletableFuture.runAsync(daemon::startServer);
-    }
+  /**
+   * Start the server in a CompletableFuture
+   *
+   * @return the CompletableFuture
+   */
+  public CompletableFuture<Void> startServer() {
+    return CompletableFuture.runAsync(daemon::startServer);
+  }
 }

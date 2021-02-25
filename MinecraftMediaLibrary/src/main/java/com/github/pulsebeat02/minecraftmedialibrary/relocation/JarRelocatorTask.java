@@ -34,60 +34,61 @@ import java.util.jar.JarOutputStream;
  * JarOutputStream jar output}, applying the relocations defined by a {@link RelocatingRemapper}.
  */
 final class JarRelocatorTask {
-    private final RelocatingRemapper remapper;
-    private final JarOutputStream jarOut;
-    private final JarFile jarIn;
+  private final RelocatingRemapper remapper;
+  private final JarOutputStream jarOut;
+  private final JarFile jarIn;
 
-    private final Set<String> resources = new HashSet<>();
+  private final Set<String> resources = new HashSet<>();
 
-    /**
-     * Instantiates a new Jar relocator task.
-     *
-     * @param remapper the remapper
-     * @param jarOut   the jar out
-     * @param jarIn    the jar in
-     */
-    JarRelocatorTask(final RelocatingRemapper remapper, final JarOutputStream jarOut, final JarFile jarIn) {
-        this.remapper = remapper;
-        this.jarOut = jarOut;
-        this.jarIn = jarIn;
+  /**
+   * Instantiates a new Jar relocator task.
+   *
+   * @param remapper the remapper
+   * @param jarOut the jar out
+   * @param jarIn the jar in
+   */
+  JarRelocatorTask(
+      final RelocatingRemapper remapper, final JarOutputStream jarOut, final JarFile jarIn) {
+    this.remapper = remapper;
+    this.jarOut = jarOut;
+    this.jarIn = jarIn;
+  }
+
+  private static void copy(final InputStream from, final OutputStream to) throws IOException {
+    final byte[] buf = new byte[8192];
+    while (true) {
+      final int n = from.read(buf);
+      if (n == -1) {
+        break;
+      }
+      to.write(buf, 0, n);
     }
+  }
 
-    private static void copy(final InputStream from, final OutputStream to) throws IOException {
-        final byte[] buf = new byte[8192];
-        while (true) {
-            final int n = from.read(buf);
-            if (n == -1) {
-                break;
-            }
-            to.write(buf, 0, n);
-        }
+  /**
+   * Process entries.
+   *
+   * @throws IOException the io exception
+   */
+  void processEntries() throws IOException {
+    for (final Enumeration<JarEntry> entries = this.jarIn.entries(); entries.hasMoreElements(); ) {
+      final JarEntry entry = entries.nextElement();
+
+      // The 'INDEX.LIST' file is an optional file, containing information about the packages
+      // defined in a jar. Instead of relocating the entries in it, we delete it, since it is
+      // optional anyway.
+      //
+      // We don't process directory entries, and instead opt to recreate them when adding
+      // classes/resources.
+      if (entry.getName().equals("META-INF/INDEX.LIST") || entry.isDirectory()) {
+        continue;
+      }
+
+      try (final InputStream entryIn = this.jarIn.getInputStream(entry)) {
+        processEntry(entry, entryIn);
+      }
     }
-
-    /**
-     * Process entries.
-     *
-     * @throws IOException the io exception
-     */
-    void processEntries() throws IOException {
-        for (final Enumeration<JarEntry> entries = this.jarIn.entries(); entries.hasMoreElements(); ) {
-            final JarEntry entry = entries.nextElement();
-
-            // The 'INDEX.LIST' file is an optional file, containing information about the packages
-            // defined in a jar. Instead of relocating the entries in it, we delete it, since it is
-            // optional anyway.
-            //
-            // We don't process directory entries, and instead opt to recreate them when adding
-            // classes/resources.
-            if (entry.getName().equals("META-INF/INDEX.LIST") || entry.isDirectory()) {
-                continue;
-            }
-
-            try (final InputStream entryIn = this.jarIn.getInputStream(entry)) {
-                processEntry(entry, entryIn);
-            }
-        }
-    }
+  }
 
   private void processEntry(final JarEntry entry, final InputStream entryIn) throws IOException {
     final String name = entry.getName();
@@ -122,8 +123,8 @@ final class JarRelocatorTask {
     this.resources.add(name);
   }
 
-  private void processResource(final String name, final InputStream entryIn, final long lastModified)
-      throws IOException {
+  private void processResource(
+      final String name, final InputStream entryIn, final long lastModified) throws IOException {
     final JarEntry jarEntry = new JarEntry(name);
     jarEntry.setTime(lastModified);
 

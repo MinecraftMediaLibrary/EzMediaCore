@@ -25,74 +25,76 @@ import java.net.Socket;
 
 public class HttpDaemon extends Thread implements AbstractHttpDaemon {
 
-    private final int port;
-    private ServerSocket socket;
-    private File directory;
-    private boolean running;
-    private ZipHeader header;
-    private boolean verbose;
+  private final int port;
+  private ServerSocket socket;
+  private File directory;
+  private boolean running;
+  private ZipHeader header;
+  private boolean verbose;
 
-    /**
-     * Instantiates a new Http daemon.
-     *
-     * @param port      the port
-     * @param directory the directory
-     * @throws IOException the io exception
-     */
-    public HttpDaemon(final int port, @NotNull final File directory) throws IOException {
-        this.running = true;
-        this.port = port;
-        this.socket = new ServerSocket(port);
-        this.socket.setReuseAddress(true);
-        this.directory = directory;
-        this.header = ZipHeader.ZIP;
-        this.verbose = true;
-        Logger.info("Started HTTP Server: ");
-        Logger.info("========================================");
-        Logger.info("IP: " + Bukkit.getIp());
-        Logger.info("PORT: " + port);
-        Logger.info("DIRECTORY: " + directory.getAbsolutePath());
-        Logger.info("========================================");
+  /**
+   * Instantiates a new Http daemon.
+   *
+   * @param port the port
+   * @param directory the directory
+   * @throws IOException the io exception
+   */
+  public HttpDaemon(final int port, @NotNull final File directory) throws IOException {
+    this.running = true;
+    this.port = port;
+    this.socket = new ServerSocket(port);
+    this.socket.setReuseAddress(true);
+    this.directory = directory;
+    this.header = ZipHeader.ZIP;
+    this.verbose = true;
+    Logger.info("Started HTTP Server: ");
+    Logger.info("========================================");
+    Logger.info("IP: " + Bukkit.getIp());
+    Logger.info("PORT: " + port);
+    Logger.info("DIRECTORY: " + directory.getAbsolutePath());
+    Logger.info("========================================");
+  }
+
+  /**
+   * Instantiates a new HttpDaemon.
+   *
+   * @param port the port
+   * @param path the path
+   * @throws IOException the io exception
+   */
+  public HttpDaemon(final int port, @NotNull final String path) throws IOException {
+    this.running = true;
+    this.port = port;
+    try {
+      this.socket = new ServerSocket(port);
+      this.socket.setReuseAddress(true);
+    } catch (final BindException e) {
+      Logger.error(
+          "The port specified is being used by another process. Please make sure to port-forward the port first and make sure it is open.");
+      Logger.error(e.getMessage());
+      return;
     }
+    this.directory = new File(path);
+    this.header = ZipHeader.ZIP;
+    this.verbose = true;
+    Logger.info("Started HTTP Server: ");
+    Logger.info("========================================");
+    Logger.info("IP: " + Bukkit.getIp());
+    Logger.info("PORT: " + port);
+    Logger.info("DIRECTORY: " + path);
+    Logger.info("========================================");
+  }
 
-    /**
-     * Instantiates a new Http daemon.
-     *
-     * @param port the port
-     * @param path the path
-     * @throws IOException the io exception
-     */
-    public HttpDaemon(final int port, @NotNull final String path) throws IOException {
-        this.running = true;
-        this.port = port;
-        try {
-            this.socket = new ServerSocket(port);
-            this.socket.setReuseAddress(true);
-        } catch (final BindException e) {
-            Logger.error(
-                    "The port specified is being used by another process. Please make sure to port-forward the port first and make sure it is open.");
-            Logger.error(e.getMessage());
-            return;
-        }
-        this.directory = new File(path);
-        this.header = ZipHeader.ZIP;
-        this.verbose = true;
-        Logger.info("Started HTTP Server: ");
-        Logger.info("========================================");
-        Logger.info("IP: " + Bukkit.getIp());
-        Logger.info("PORT: " + port);
-        Logger.info("DIRECTORY: " + path);
-        Logger.info("========================================");
-    }
-
+  /** Runs the HTTP Server. */
   @Override
   public void run() {
-    onServerStart();
     startServer();
   }
 
+  /** Server start method (called after event is called). */
   @Override
   public void startServer() {
+    onServerStart();
     while (running) {
       try {
         new Thread(new RequestHandler(this, header, socket.accept())).start();
@@ -102,7 +104,7 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
     }
   }
 
-  /** Terminate. */
+  /** Terminate the Server. */
   public void terminate() {
     onServerTerminate();
     Logger.info("Terminating HTTP Server at " + Bukkit.getIp() + ":" + port);
@@ -116,101 +118,132 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
     }
   }
 
+  /** Called right when the server starts. */
   @Override
-  public void onServerStart() {
+  public void onServerStart() {}
+
+  /** Called when the server is being terminated. */
+  @Override
+  public void onServerTerminate() {}
+
+  /**
+   * Called if an incoming client is connecting
+   *
+   * @param client for the incoming connection.
+   */
+  @Override
+  public void onClientConnect(final Socket client) {}
+
+  /**
+   * Called if a resourcepack failed to download for a user.
+   *
+   * @param client
+   */
+  @Override
+  public void onResourcepackFailedDownload(final Socket client) {}
+
+  /**
+   * Gets zip header.
+   *
+   * @return the zip header
+   */
+  public ZipHeader getZipHeader() {
+    return header;
   }
 
-    @Override
-    public void onServerTerminate() {
-    }
+  /**
+   * Sets zip header.
+   *
+   * @param header the header
+   */
+  public void setZipHeader(final ZipHeader header) {
+    this.header = header;
+  }
 
-    @Override
-    public void onClientConnect(final Socket client) {
-    }
+  /**
+   * Is verbose boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isVerbose() {
+    return verbose;
+  }
 
-    @Override
-    public void onResourcepackFailedDownload(final Socket client) {
-    }
+  /**
+   * Sets verbose.
+   *
+   * @param verbose the verbose
+   */
+  public void setVerbose(final boolean verbose) {
+    this.verbose = verbose;
+  }
 
-    /**
-     * Gets zip header.
-     *
-     * @return the zip header
-     */
-    public ZipHeader getZipHeader() {
-        return header;
-    }
+  /**
+   * Gets parent directory.
+   *
+   * @return the parent directory
+   */
+  public File getParentDirectory() {
+    return directory;
+  }
 
-    /**
-     * Sets zip header.
-     *
-     * @param header the header
-     */
-    public void setZipHeader(final ZipHeader header) {
-        this.header = header;
-    }
+  /**
+   * Gets port.
+   *
+   * @return the port
+   */
+  public int getPort() {
+    return port;
+  }
 
-    /**
-     * Is verbose boolean.
-     *
-     * @return the boolean
-     */
-    public boolean isVerbose() {
-        return verbose;
-    }
+  /**
+   * Is running boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isRunning() {
+    return running;
+  }
 
-    /**
-     * Sets verbose.
-     *
-     * @param verbose the verbose
-     */
-    public void setVerbose(final boolean verbose) {
-        this.verbose = verbose;
-    }
+  /**
+   * Gets socket.
+   *
+   * @return the socket
+   */
+  public ServerSocket getSocket() {
+    return socket;
+  }
 
-    /**
-     * Gets parent directory.
-     *
-     * @return the parent directory
-     */
-    public File getParentDirectory() {
-        return directory;
-    }
+  /**
+   * Gets directory.
+   *
+   * @return the directory
+   */
+  public File getDirectory() {
+    return directory;
+  }
 
-    /**
-     * Gets port.
-     *
-     * @return the port
-     */
-    public int getPort() {
-        return port;
-    }
+  /**
+   * Gets header.
+   *
+   * @return the header
+   */
+  public ZipHeader getHeader() {
+    return header;
+  }
 
-    /**
-     * Is running boolean.
-     *
-     * @return the boolean
-     */
-    public boolean isRunning() {
-        return running;
-    }
+  public enum ZipHeader {
 
-    /**
-     * Gets socket.
-     *
-     * @return the socket
-     */
-    public ServerSocket getSocket() {
-        return socket;
-    }
+    /** ZIP Header */
+    ZIP("application/zip"),
 
-    /**
-     * Gets directory.
-     *
-     * @return the directory
-     */
-    public File getDirectory() {
-        return directory;
+    /** Octet Stream Header */
+    OCTET_STREAM("application/octet-stream");
+
+    private final String header;
+
+    ZipHeader(final String header) {
+      this.header = header;
     }
 
     /**
@@ -218,33 +251,8 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
      *
      * @return the header
      */
-    public ZipHeader getHeader() {
-        return header;
+    public String getHeader() {
+      return header;
     }
-
-    public enum ZipHeader {
-        /**
-         * Zip zip header.
-         */
-        ZIP("application/zip"),
-        /**
-         * Octet stream zip header.
-         */
-        OCTET_STREAM("application/octet-stream");
-
-        private final String header;
-
-        ZipHeader(final String header) {
-            this.header = header;
-        }
-
-        /**
-         * Gets header.
-         *
-         * @return the header
-         */
-        public String getHeader() {
-            return header;
-        }
   }
 }

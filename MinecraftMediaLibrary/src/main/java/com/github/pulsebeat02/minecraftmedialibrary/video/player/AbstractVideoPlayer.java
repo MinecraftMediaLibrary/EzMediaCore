@@ -29,18 +29,18 @@ public abstract class AbstractVideoPlayer {
   /**
    * Instantiates a new Abstract video player.
    *
-   * @param library  the library
-   * @param url      the url
-   * @param width    the width
-   * @param height   the height
+   * @param library the library
+   * @param url the url
+   * @param width the width
+   * @param height the height
    * @param callback the callback
    */
   public AbstractVideoPlayer(
-          @NotNull final MinecraftMediaLibrary library,
-          @NotNull final String url,
-          final int width,
-          final int height,
-          @NotNull final Consumer<int[]> callback) {
+      @NotNull final MinecraftMediaLibrary library,
+      @NotNull final String url,
+      final int width,
+      final int height,
+      @NotNull final Consumer<int[]> callback) {
     this.library = library;
     this.url = url;
     this.width = width;
@@ -111,13 +111,9 @@ public abstract class AbstractVideoPlayer {
     return callback;
   }
 
-  /**
-   * Start.
-   */
+  /** Starts player. */
   public abstract void start();
 
-  /**
-   * Stop.
-   */
+  /** Stops player. */
   public abstract void stop();
 }

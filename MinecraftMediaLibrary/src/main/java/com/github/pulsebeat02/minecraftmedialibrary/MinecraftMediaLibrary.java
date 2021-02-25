@@ -44,31 +44,31 @@ public class MinecraftMediaLibrary {
   /**
    * Instantiates a new Minecraft media library.
    *
-   * @param plugin      the plugin
-   * @param path        the path
+   * @param plugin the plugin
+   * @param path the path
    * @param isUsingVLCJ the is using vlcj
    */
   public MinecraftMediaLibrary(
-          @NotNull final Plugin plugin, @NotNull final String path, final boolean isUsingVLCJ) {
+      @NotNull final Plugin plugin, @NotNull final String path, final boolean isUsingVLCJ) {
     this.plugin = plugin;
     this.protocol =
-            new TinyProtocol(plugin) {
-              @Override
-              public Object onPacketOutAsync(
-                      @NotNull final Player player,
-                      @NotNull final Channel channel,
-                      @NotNull final Object packet) {
-                return handler.onPacketInterceptOut(player, packet);
-              }
+        new TinyProtocol(plugin) {
+          @Override
+          public Object onPacketOutAsync(
+              @NotNull final Player player,
+              @NotNull final Channel channel,
+              @NotNull final Object packet) {
+            return handler.onPacketInterceptOut(player, packet);
+          }
 
-              @Override
-              public Object onPacketInAsync(
-                      @NotNull final Player player,
-                      @NotNull final Channel channel,
-                      @NotNull final Object packet) {
-                return handler.onPacketInterceptIn(player, packet);
-              }
-            };
+          @Override
+          public Object onPacketInAsync(
+              @NotNull final Player player,
+              @NotNull final Channel channel,
+              @NotNull final Object packet) {
+            return handler.onPacketInterceptIn(player, packet);
+          }
+        };
     this.handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
     this.parent = path;
     this.vlcj = isUsingVLCJ;
@@ -79,6 +79,7 @@ public class MinecraftMediaLibrary {
     checkJavaVersion();
   }
 
+  /** Runs dependency tasks required. */
   private void dependencyTasks() {
     DependencyUtilities.CLASSLOADER = (URLClassLoader) plugin.getClass().getClassLoader();
     final DependencyManagement dependencyManagement = new DependencyManagement();
@@ -98,10 +99,12 @@ public class MinecraftMediaLibrary {
     }
   }
 
+  /** Runs event registration tasks. */
   private void registrationTasks() {
     Bukkit.getPluginManager().registerEvents(listener, plugin);
   }
 
+  /** Runs debug information. */
   private void debugInformation() {
     Logger.info("Plugin " + plugin.getName() + " initialized MinecraftMediaLibrary");
     Logger.info("==================================================================");
@@ -110,22 +113,21 @@ public class MinecraftMediaLibrary {
     Logger.info("==================================================================");
   }
 
+  /** Prompts warning based on Java Version */
   private void checkJavaVersion() {
     final String[] version = System.getProperty("java.version").split("\\.");
     final int major = Integer.parseInt(version[1]);
     if (major < 11) {
       Logger.warn(
-              "MinecraftMediaPlugin is moving towards a newer Java Version (Java 11) \n"
-                      + "Please switch as soon as possible before the library will be incompatible \n"
-                      + "with your server. If you want to read more information surrounding this, \n"
-                      + "you may want to take a look here at "
-                      + "https://papermc.io/forums/t/java-11-mc-1-17-and-paper/5615");
+          "MinecraftMediaPlugin is moving towards a newer Java Version (Java 11) \n"
+              + "Please switch as soon as possible before the library will be incompatible \n"
+              + "with your server. If you want to read more information surrounding this, \n"
+              + "you may want to take a look here at "
+              + "https://papermc.io/forums/t/java-11-mc-1-17-and-paper/5615");
     }
   }
 
-  /**
-   * Shutdown.
-   */
+  /** Shutdown Instance */
   public void shutdown() {
     Logger.info("Shutting Down!");
     HandlerList.unregisterAll(listener);

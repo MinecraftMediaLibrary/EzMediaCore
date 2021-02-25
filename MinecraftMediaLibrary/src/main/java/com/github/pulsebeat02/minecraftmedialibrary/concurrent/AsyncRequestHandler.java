@@ -23,7 +23,7 @@ public class AsyncRequestHandler {
   private final AbstractRequestHandler request;
 
   /**
-   * Instantiates a new Async request handler.
+   * Instantiates a new AsyncRequestHandler.
    *
    * @param request the request
    */
@@ -32,9 +32,9 @@ public class AsyncRequestHandler {
   }
 
   /**
-   * Handle request completable future.
+   * Handles the request in a CompletableFuture.
    *
-   * @return the completable future
+   * @return the CompletableFuture
    */
   public CompletableFuture<Void> handleRequest() {
     return CompletableFuture.runAsync(request::handleRequest);

@@ -37,9 +37,9 @@ public final class Reflection {
   /**
    * Retrieve a field accessor for a specific field type and name.
    *
-   * @param <T>       the type parameter
-   * @param target    - the target type.
-   * @param name      - the name of the field, or NULL to ignore.
+   * @param <T> the type parameter
+   * @param target - the target type.
+   * @param name - the name of the field, or NULL to ignore.
    * @param fieldType - a compatible field type.
    * @return The field accessor.
    */
@@ -48,42 +48,42 @@ public final class Reflection {
     return getField(target, name, fieldType, 0);
   }
 
-    /**
-     * Retrieve a field accessor for a specific field type and name.
-     *
-     * @param <T> the type parameter
-     * @param className - lookup name of the class, see {@link #getClass(String)}.
-     * @param name - the name of the field, or NULL to ignore.
-     * @param fieldType - a compatible field type.
-     * @return The field accessor.
+  /**
+   * Retrieve a field accessor for a specific field type and name.
+   *
+   * @param <T> the type parameter
+   * @param className - lookup name of the class, see {@link #getClass(String)}.
+   * @param name - the name of the field, or NULL to ignore.
+   * @param fieldType - a compatible field type.
+   * @return The field accessor.
    */
   public static <T> FieldAccessor<T> getField(
       final String className, final String name, final Class<T> fieldType) {
     return getField(getClass(className), name, fieldType, 0);
   }
 
-    /**
-     * Retrieve a field accessor for a specific field type and name.
-     *
-     * @param <T> the type parameter
-     * @param target - the target type.
-     * @param fieldType - a compatible field type.
-     * @param index - the number of compatible fields to skip.
-     * @return The field accessor.
+  /**
+   * Retrieve a field accessor for a specific field type and name.
+   *
+   * @param <T> the type parameter
+   * @param target - the target type.
+   * @param fieldType - a compatible field type.
+   * @param index - the number of compatible fields to skip.
+   * @return The field accessor.
    */
   public static <T> FieldAccessor<T> getField(
       final Class<?> target, final Class<T> fieldType, final int index) {
     return getField(target, null, fieldType, index);
   }
 
-    /**
-     * Retrieve a field accessor for a specific field type and name.
-     *
-     * @param <T> the type parameter
-     * @param className - lookup name of the class, see {@link #getClass(String)}.
-     * @param fieldType - a compatible field type.
-     * @param index - the number of compatible fields to skip.
-     * @return The field accessor.
+  /**
+   * Retrieve a field accessor for a specific field type and name.
+   *
+   * @param <T> the type parameter
+   * @param className - lookup name of the class, see {@link #getClass(String)}.
+   * @param fieldType - a compatible field type.
+   * @param index - the number of compatible fields to skip.
+   * @return The field accessor.
    */
   public static <T> FieldAccessor<T> getField(
       final String className, final Class<T> fieldType, final int index) {
@@ -132,7 +132,7 @@ public final class Reflection {
 
     // Search in parent classes
     if (target.getSuperclass() != null) {
-        return getField(target.getSuperclass(), name, fieldType, index);
+      return getField(target.getSuperclass(), name, fieldType, index);
     }
 
     throw new IllegalArgumentException("Cannot find field with type " + fieldType);
@@ -202,7 +202,7 @@ public final class Reflection {
 
     // Search in every superclass
     if (clazz.getSuperclass() != null) {
-        return getMethod(clazz.getSuperclass(), methodName, params);
+      return getMethod(clazz.getSuperclass(), methodName, params);
     }
 
     throw new IllegalStateException(
@@ -303,23 +303,23 @@ public final class Reflection {
     return getCanonicalClass(expandVariables(lookupName));
   }
 
-    /**
-     * Retrieve a class in the net.minecraft.server.VERSION.* package.
-     *
-     * @param name - the name of the class, excluding the package.
-     * @return the minecraft class
-     * @throws IllegalArgumentException If the class doesn't exist.
+  /**
+   * Retrieve a class in the net.minecraft.server.VERSION.* package.
+   *
+   * @param name - the name of the class, excluding the package.
+   * @return the minecraft class
+   * @throws IllegalArgumentException If the class doesn't exist.
    */
   public static Class<?> getMinecraftClass(final String name) {
     return getCanonicalClass(NMS_PREFIX + "." + name);
   }
 
-    /**
-     * Retrieve a class in the org.bukkit.craftbukkit.VERSION.* package.
-     *
-     * @param name - the name of the class, excluding the package.
-     * @return the craft bukkit class
-     * @throws IllegalArgumentException If the class doesn't exist.
+  /**
+   * Retrieve a class in the org.bukkit.craftbukkit.VERSION.* package.
+   *
+   * @param name - the name of the class, excluding the package.
+   * @return the craft bukkit class
+   * @throws IllegalArgumentException If the class doesn't exist.
    */
   public static Class<?> getCraftBukkitClass(final String name) {
     return getCanonicalClass(OBC_PREFIX + "." + name);
@@ -355,20 +355,20 @@ public final class Reflection {
 
       // Expand all detected variables
       if ("nms".equalsIgnoreCase(variable)) {
-          replacement = NMS_PREFIX;
+        replacement = NMS_PREFIX;
       } else if ("obc".equalsIgnoreCase(variable)) {
-          replacement = OBC_PREFIX;
+        replacement = OBC_PREFIX;
       } else if ("version".equalsIgnoreCase(variable)) {
-          replacement = VERSION;
+        replacement = VERSION;
       } else {
-          throw new IllegalArgumentException("Unknown variable: " + variable);
+        throw new IllegalArgumentException("Unknown variable: " + variable);
       }
 
       // Assume the expanded variables are all packages, and append a dot
       if (replacement.length() > 0
           && matcher.end() < name.length()
           && name.charAt(matcher.end()) != '.') {
-          replacement += ".";
+        replacement += ".";
       }
       matcher.appendReplacement(output, Matcher.quoteReplacement(replacement));
     }

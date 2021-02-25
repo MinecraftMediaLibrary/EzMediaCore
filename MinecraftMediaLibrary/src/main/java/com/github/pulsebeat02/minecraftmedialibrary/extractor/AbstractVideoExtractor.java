@@ -21,7 +21,7 @@ public interface AbstractVideoExtractor {
    * Downloads the specified video given the url. If the video is a Youtube URL and the video id
    * could not be extracted, it will throw an InvalidYoutubeURLException.
    *
-   * @return File for the downloaded video
+   * @return the downloaded video
    */
   File downloadVideo();
 
@@ -30,7 +30,7 @@ public interface AbstractVideoExtractor {
    * to call the downloadVideo() method first and then extract it. By default, this will return an
    * ogg file.
    *
-   * @return File for the extracted audio
+   * @return the extracted audio
    */
   File extractAudio();
 
@@ -41,8 +41,8 @@ public interface AbstractVideoExtractor {
   void onVideoDownload();
 
   /**
-   * This method is called at the beginning of audio extraction. Useful for prparation in advance of
-   * audio extraction.
+   * This method is called at the beginning of audio extraction. Useful for preparation in advance
+   * of audio extraction.
    */
   void onAudioExtraction();
 }

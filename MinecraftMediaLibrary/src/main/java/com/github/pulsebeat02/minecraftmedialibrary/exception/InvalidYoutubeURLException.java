@@ -17,23 +17,23 @@ import org.jetbrains.annotations.NotNull;
 
 public class InvalidYoutubeURLException extends AssertionError {
 
-    private static final long serialVersionUID = -6428433369003844013L;
+  private static final long serialVersionUID = -6428433369003844013L;
 
-    /**
-     * Instantiates a new Invalid youtube url exception.
-     *
-     * @param message the message
-     */
-    public InvalidYoutubeURLException(@NotNull final String message) {
-        super(message);
-    }
+  /**
+   * Instantiates a new InvalidYoutubeURLException.
+   *
+   * @param message the exception message
+   */
+  public InvalidYoutubeURLException(@NotNull final String message) {
+    super(message);
+  }
 
-    @Override
-    public synchronized Throwable getCause() {
-        return this;
-    }
+  @Override
+  public synchronized Throwable getCause() {
+    return this;
+  }
 
-    @Override
+  @Override
   public synchronized Throwable initCause(@NotNull final Throwable cause) {
     return this;
   }
