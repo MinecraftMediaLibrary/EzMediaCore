@@ -20,7 +20,6 @@ import com.github.pulsebeat02.minecraftmedialibrary.video.dither.AbstractDitherH
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.video.itemframe.ItemFrameCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.video.player.AbstractVideoPlayer;
-// import com.github.pulsebeat02.minecraftmedialibrary.video.player.BasicVideoPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.video.player.VLCJIntegratedPlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;

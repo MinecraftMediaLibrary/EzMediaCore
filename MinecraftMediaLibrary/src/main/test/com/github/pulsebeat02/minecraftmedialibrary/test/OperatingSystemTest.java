@@ -13,11 +13,11 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.test;
 
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackageDictionary;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackageDistribution;
 
 public class OperatingSystemTest {
 
   public static void main(final String[] args) throws Exception {
-    LinuxPackageDictionary.getPackage();
+    LinuxPackageDistribution.getPackage();
   }
 }

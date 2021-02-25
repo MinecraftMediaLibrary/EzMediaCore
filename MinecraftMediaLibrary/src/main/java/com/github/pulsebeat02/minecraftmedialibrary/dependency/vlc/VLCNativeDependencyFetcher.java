@@ -35,14 +35,17 @@ public class VLCNativeDependencyFetcher {
 
   public void downloadLibraries() {
     Logger.info("Trying to find Native VLC Installation...");
-    final boolean installed = new NativeDiscovery().discover();
+    final NativeDiscovery nativeDiscovery = new NativeDiscovery();
+    final EnchancedNativeDiscovery enchancedNativeDiscovery = new EnchancedNativeDiscovery();
+    final boolean installed =
+            nativeDiscovery.discover() || enchancedNativeDiscovery.discover() != null;
     if (!installed) {
       Logger.info("No VLC Installation found on this system. Proceeding to install.");
       final String option = OperatingSystemUtilities.URL;
       if (option.equalsIgnoreCase("LINUX")) {
         try {
-          LinuxPackageDictionary.getPackage();
-          LinuxPackageDictionary.extractContents();
+          LinuxPackageDistribution.getPackage();
+          LinuxPackageDistribution.extractContents();
         } catch (final IOException e) {
           e.printStackTrace();
         }

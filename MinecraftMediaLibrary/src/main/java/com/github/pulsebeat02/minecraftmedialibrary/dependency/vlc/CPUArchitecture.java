@@ -21,10 +21,12 @@ import java.util.Arrays;
 public enum CPUArchitecture {
   AMD64,
   AARCH64,
+  ARMHF,
   ARMV7H,
   ARMHFP,
   ARMV7HL,
   ARMV7,
+  ARM64,
   EARNMV7HF,
   X86_64,
   I386,
