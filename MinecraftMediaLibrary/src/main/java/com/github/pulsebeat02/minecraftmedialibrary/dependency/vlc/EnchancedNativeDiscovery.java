@@ -14,7 +14,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.utility.OperatingSystemUtilities;
-import uk.co.caprica.vlcj.binding.LibC;
+// import uk.co.caprica.vlcj.binding.LibC;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 
 import java.io.File;
