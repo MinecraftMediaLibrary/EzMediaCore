@@ -22,9 +22,15 @@ import java.util.concurrent.RecursiveTask;
 
 public class StaticDitherInitialization {
 
+  /**
+   * The constant PALETTE.
+   */
   public static final int[] PALETTE;
+  /** The constant COLOR_MAP. */
   public static final byte[] COLOR_MAP = new byte[128 * 128 * 128];
+  /** The constant FULL_COLOR_MAP. */
   public static final int[] FULL_COLOR_MAP = new int[128 * 128 * 128];
+  /** The constant largest. */
   public static int largest = 0;
 
   static {
@@ -32,8 +38,7 @@ public class StaticDitherInitialization {
     final long start = System.nanoTime();
     for (int i = 0; i < 256; ++i) {
       try {
-        @SuppressWarnings("deprecation")
-        final Color color = MinecraftMapPalette.getColor((byte) i);
+        @SuppressWarnings("deprecation") final Color color = MinecraftMapPalette.getColor((byte) i);
         colors.add(color.getRGB());
       } catch (final IndexOutOfBoundsException e) {
         Logger.info("Captured " + (i - 1) + " colors!");
@@ -65,18 +70,38 @@ public class StaticDitherInitialization {
     Logger.info("Initial lookup table initialized in " + (end - start) / 1_000_000.0 + " ms");
   }
 
+  /**
+   * Gets largest.
+   *
+   * @return the largest
+   */
   public static int getLargest() {
     return largest;
   }
 
+  /**
+   * Get palette int [ ].
+   *
+   * @return the int [ ]
+   */
   public static int[] getPALETTE() {
     return PALETTE;
   }
 
+  /**
+   * Get color map byte [ ].
+   *
+   * @return the byte [ ]
+   */
   public static byte[] getColorMap() {
     return COLOR_MAP;
   }
 
+  /**
+   * Get full color map int [ ].
+   *
+   * @return the int [ ]
+   */
   public static int[] getFullColorMap() {
     return FULL_COLOR_MAP;
   }
@@ -85,9 +110,21 @@ public class StaticDitherInitialization {
 class LoadRed extends RecursiveTask<byte[]> {
 
   private static final long serialVersionUID = -6408377810782246185L;
+  /**
+   * The R.
+   */
   protected final int r;
+  /**
+   * The Palette.
+   */
   protected final int[] palette;
 
+  /**
+   * Instantiates a new Load red.
+   *
+   * @param palette the palette
+   * @param r       the r
+   */
   protected LoadRed(final int[] palette, final int r) {
     this.r = r;
     this.palette = palette;
@@ -114,10 +151,26 @@ class LoadRed extends RecursiveTask<byte[]> {
 class LoadGreen extends RecursiveTask<byte[]> {
 
   private static final long serialVersionUID = -1221290051151782146L;
+  /**
+   * The R.
+   */
   protected final int r;
+  /**
+   * The G.
+   */
   protected final int g;
+  /**
+   * The Palette.
+   */
   protected final int[] palette;
 
+  /**
+   * Instantiates a new Load green.
+   *
+   * @param palette the palette
+   * @param r       the r
+   * @param g       the g
+   */
   protected LoadGreen(final int[] palette, final int r, final int g) {
     this.r = r;
     this.g = g;
@@ -143,9 +196,31 @@ class LoadGreen extends RecursiveTask<byte[]> {
 class LoadBlue extends RecursiveTask<Byte> {
 
   private static final long serialVersionUID = 5331764784578439634L;
-  protected final int r, g, b;
+  /**
+   * The R.
+   */
+  protected final int r,
+  /**
+   * The G.
+   */
+  g,
+  /**
+   * The B.
+   */
+  b;
+  /**
+   * The Palette.
+   */
   protected final int[] palette;
 
+  /**
+   * Instantiates a new Load blue.
+   *
+   * @param palette the palette
+   * @param r       the r
+   * @param g       the g
+   * @param b       the b
+   */
   protected LoadBlue(final int[] palette, final int r, final int g, final int b) {
     this.r = r;
     this.g = g;

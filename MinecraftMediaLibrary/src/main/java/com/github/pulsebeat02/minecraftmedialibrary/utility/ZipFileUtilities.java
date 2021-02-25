@@ -23,26 +23,40 @@ import java.io.IOException;
 
 public class ZipFileUtilities {
 
-  public static void decompressArchive(@NotNull final File file, @NotNull final File result) {
-    final String extension = FilenameUtils.getExtension(file.getName());
-    final Archiver archiver = ArchiverFactory.createArchiver(extension);
-    try {
-      archiver.extract(file, result);
-    } catch (final IOException e) {
-      e.printStackTrace();
+    /**
+     * Decompress archive.
+     *
+     * @param file   the file
+     * @param result the result
+     */
+    public static void decompressArchive(@NotNull final File file, @NotNull final File result) {
+        final String extension = FilenameUtils.getExtension(file.getName());
+        final Archiver archiver = ArchiverFactory.createArchiver(extension);
+        try {
+            archiver.extract(file, result);
+        } catch (final IOException e) {
+            e.printStackTrace();
+        }
     }
-  }
 
-  public static void decompressArchive(
-      @NotNull final File file,
-      @NotNull final File result,
-      @NotNull final String type,
-      @NotNull final String compression) {
-    final Archiver archiver = ArchiverFactory.createArchiver(type, compression);
-    try {
-      archiver.extract(file, result);
-    } catch (final IOException e) {
-      e.printStackTrace();
+    /**
+     * Decompress archive.
+     *
+     * @param file        the file
+     * @param result      the result
+     * @param type        the type
+     * @param compression the compression
+     */
+    public static void decompressArchive(
+            @NotNull final File file,
+            @NotNull final File result,
+            @NotNull final String type,
+            @NotNull final String compression) {
+        final Archiver archiver = ArchiverFactory.createArchiver(type, compression);
+        try {
+            archiver.extract(file, result);
+        } catch (final IOException e) {
+            e.printStackTrace();
+        }
     }
-  }
 }

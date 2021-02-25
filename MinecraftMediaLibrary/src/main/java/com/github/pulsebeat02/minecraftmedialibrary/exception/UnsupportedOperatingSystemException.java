@@ -17,18 +17,23 @@ import org.jetbrains.annotations.NotNull;
 
 public class UnsupportedOperatingSystemException extends AssertionError {
 
-  private static final long serialVersionUID = 1682368011870345698L;
+    private static final long serialVersionUID = 1682368011870345698L;
 
-  public UnsupportedOperatingSystemException(@NotNull final String message) {
-    super(message);
-  }
+    /**
+     * Instantiates a new Unsupported operating system exception.
+     *
+     * @param message the message
+     */
+    public UnsupportedOperatingSystemException(@NotNull final String message) {
+        super(message);
+    }
 
-  @Override
-  public synchronized Throwable getCause() {
-    return this;
-  }
+    @Override
+    public synchronized Throwable getCause() {
+        return this;
+    }
 
-  @Override
+    @Override
   public synchronized Throwable initCause(@NotNull final Throwable cause) {
     return this;
   }

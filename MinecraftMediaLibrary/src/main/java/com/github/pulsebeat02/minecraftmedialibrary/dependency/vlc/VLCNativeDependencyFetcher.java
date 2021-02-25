@@ -27,12 +27,23 @@ import java.net.URL;
 
 public class VLCNativeDependencyFetcher {
 
+  /**
+   * The Plugin.
+   */
   public final Plugin plugin;
 
+  /**
+   * Instantiates a new Vlc native dependency fetcher.
+   *
+   * @param plugin the plugin
+   */
   public VLCNativeDependencyFetcher(@NotNull final Plugin plugin) {
     this.plugin = plugin;
   }
 
+  /**
+   * Download libraries.
+   */
   public void downloadLibraries() {
     Logger.info("Trying to find Native VLC Installation...");
     final NativeDiscovery nativeDiscovery = new NativeDiscovery();

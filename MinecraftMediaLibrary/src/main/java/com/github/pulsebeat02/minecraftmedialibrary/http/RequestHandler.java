@@ -34,20 +34,27 @@ import java.util.regex.Pattern;
 
 public class RequestHandler implements Runnable, AbstractRequestHandler {
 
-  private final HttpDaemon daemon;
-  private final HttpDaemon.ZipHeader header;
-  private final Socket client;
+    private final HttpDaemon daemon;
+    private final HttpDaemon.ZipHeader header;
+    private final Socket client;
 
-  public RequestHandler(
-      @NotNull final HttpDaemon daemon,
-      final HttpDaemon.ZipHeader header,
-      @NotNull final Socket client) {
-    this.daemon = daemon;
-    this.header = header;
-    this.client = client;
-  }
+    /**
+     * Instantiates a new Request handler.
+     *
+     * @param daemon the daemon
+     * @param header the header
+     * @param client the client
+     */
+    public RequestHandler(
+            @NotNull final HttpDaemon daemon,
+            final HttpDaemon.ZipHeader header,
+            @NotNull final Socket client) {
+        this.daemon = daemon;
+        this.header = header;
+        this.client = client;
+    }
 
-  @Override
+    @Override
   public void run() {
     handleRequest();
   }
@@ -101,46 +108,67 @@ public class RequestHandler implements Runnable, AbstractRequestHandler {
     }
   }
 
-  private Matcher requestPattern(final String req) {
-    return Pattern.compile("GET /?(\\S*).*").matcher(req);
-  }
-
-  private void verbose(final String info) {
-    if (daemon.isVerbose()) {
-      Logger.info(info);
+    private Matcher requestPattern(final String req) {
+        return Pattern.compile("GET /?(\\S*).*").matcher(req);
     }
-  }
 
-  public File requestFileCallback(final String request) {
-    return new File(daemon.getParentDirectory(), request);
-  }
+    private void verbose(final String info) {
+        if (daemon.isVerbose()) {
+            Logger.info(info);
+        }
+    }
 
-  @Override
-  public String buildHeader(final @NotNull File f) {
-    return "HTTP/1.0 200 OK\r\n"
-        + "Content-Type: "
-        + header.getHeader()
-        + "\r\n"
-        + "Content-Length: "
-        + f.length()
-        + "\r\n"
-        + "Date: "
-        + new SimpleDateFormat("dd MMM yyyy HH:mm:ss").format(Calendar.getInstance().getTime())
-        + " GMT"
-        + "\r\n"
-        + "Server: HttpDaemon\r\n"
-        + "User-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n";
-  }
+    /**
+     * Request file callback file.
+     *
+     * @param request the request
+     * @return the file
+     */
+    public File requestFileCallback(final String request) {
+        return new File(daemon.getParentDirectory(), request);
+    }
 
-  public HttpDaemon getDaemon() {
-    return daemon;
-  }
+    @Override
+    public String buildHeader(final @NotNull File f) {
+        return "HTTP/1.0 200 OK\r\n"
+                + "Content-Type: "
+                + header.getHeader()
+                + "\r\n"
+                + "Content-Length: "
+                + f.length()
+                + "\r\n"
+                + "Date: "
+                + new SimpleDateFormat("dd MMM yyyy HH:mm:ss").format(Calendar.getInstance().getTime())
+                + " GMT"
+                + "\r\n"
+                + "Server: HttpDaemon\r\n"
+                + "User-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n";
+    }
 
-  public HttpDaemon.ZipHeader getHeader() {
-    return header;
-  }
+    /**
+     * Gets daemon.
+     *
+     * @return the daemon
+     */
+    public HttpDaemon getDaemon() {
+        return daemon;
+    }
 
-  public Socket getClient() {
-    return client;
-  }
+    /**
+     * Gets header.
+     *
+     * @return the header
+     */
+    public HttpDaemon.ZipHeader getHeader() {
+        return header;
+    }
+
+    /**
+     * Gets client.
+     *
+     * @return the client
+     */
+    public Socket getClient() {
+        return client;
+    }
 }

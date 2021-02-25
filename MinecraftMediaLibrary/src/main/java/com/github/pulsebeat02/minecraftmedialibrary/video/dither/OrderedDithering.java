@@ -90,8 +90,8 @@ public class OrderedDithering implements AbstractDitherHolder {
           {41f, 25f, 37f, 21f, 44f, 28f, 40f, 24f},
           {3f, 51f, 15f, 63f, 2f, 50f, 14f, 62f},
           {35f, 19f, 47f, 31f, 34f, 18f, 46f, 30f},
-          {11f, 59f, 7f, 55f, 10f, 58f, 6f, 54f},
-          {43f, 27f, 39f, 23f, 42f, 26f, 38f, 22f}
+                {11f, 59f, 7f, 55f, 10f, 58f, 6f, 54f},
+                {43f, 27f, 39f, 23f, 42f, 26f, 38f, 22f}
         };
   }
 
@@ -100,6 +100,11 @@ public class OrderedDithering implements AbstractDitherHolder {
   private float multiplicative;
   private int n;
 
+  /**
+   * Instantiates a new Ordered dithering.
+   *
+   * @param type the type
+   */
   public OrderedDithering(@NotNull final DitherType type) {
     switch (type) {
       case ModeTwo:
@@ -122,36 +127,79 @@ public class OrderedDithering implements AbstractDitherHolder {
     convertToFloat();
   }
 
+  /**
+   * Get color map byte [ ].
+   *
+   * @return the byte [ ]
+   */
   public static byte[] getColorMap() {
     return COLOR_MAP;
   }
 
+  /**
+   * Get bayer matrix two float [ ] [ ].
+   *
+   * @return the float [ ] [ ]
+   */
   public static float[][] getBayerMatrixTwo() {
     return bayerMatrixTwo;
   }
 
+  /**
+   * Get bayer matrix four float [ ] [ ].
+   *
+   * @return the float [ ] [ ]
+   */
   public static float[][] getBayerMatrixFour() {
     return bayerMatrixFour;
   }
 
+  /**
+   * Get bayer matrix eight float [ ] [ ].
+   *
+   * @return the float [ ] [ ]
+   */
   public static float[][] getBayerMatrixEight() {
     return bayerMatrixEight;
   }
 
+  /**
+   * Gets best color normal.
+   *
+   * @param rgb the rgb
+   * @return the best color normal
+   */
   public int getBestColorNormal(final int rgb) {
     return MinecraftMapPalette.getColor(getBestColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF))
-        .getRGB();
+            .getRGB();
   }
 
+  /**
+   * Gets best color.
+   *
+   * @param rgb the rgb
+   * @return the best color
+   */
   public byte getBestColor(final int rgb) {
     return COLOR_MAP[
-        (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
+            (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
   }
 
+  /**
+   * Gets best color.
+   *
+   * @param red   the red
+   * @param green the green
+   * @param blue  the blue
+   * @return the best color
+   */
   public byte getBestColor(final int red, final int green, final int blue) {
     return COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
   }
 
+  /**
+   * Convert to float.
+   */
   public void convertToFloat() {
     for (int i = 0; i < matrix.length; i++) {
       for (int j = 0; j < matrix[i].length; j++) {
@@ -201,25 +249,54 @@ public class OrderedDithering implements AbstractDitherHolder {
     return null;
   }
 
+  /**
+   * Get matrix float [ ] [ ].
+   *
+   * @return the float [ ] [ ]
+   */
   public float[][] getMatrix() {
     return matrix;
   }
 
+  /**
+   * Gets r.
+   *
+   * @return the r
+   */
   public float getR() {
     return r;
   }
 
+  /**
+   * Gets multiplicative.
+   *
+   * @return the multiplicative
+   */
   public float getMultiplicative() {
     return multiplicative;
   }
 
+  /**
+   * Gets n.
+   *
+   * @return the n
+   */
   public int getN() {
     return n;
   }
 
   public enum DitherType {
+    /**
+     * The Mode two.
+     */
     ModeTwo("Two Dimensional"),
+    /**
+     * The Mode four.
+     */
     ModeFour("Four Dimensional"),
+    /**
+     * The Mode eight.
+     */
     ModeEight("Eight Dimensional");
 
     private final String name;
@@ -228,6 +305,11 @@ public class OrderedDithering implements AbstractDitherHolder {
       this.name = name;
     }
 
+    /**
+     * Gets name.
+     *
+     * @return the name
+     */
     public String getName() {
       return name;
     }

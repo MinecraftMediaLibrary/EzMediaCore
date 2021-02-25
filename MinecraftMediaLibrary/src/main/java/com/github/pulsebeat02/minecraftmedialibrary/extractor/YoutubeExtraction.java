@@ -31,23 +31,30 @@ import java.io.IOException;
 
 public class YoutubeExtraction implements AbstractVideoExtractor {
 
-  private final String url;
-  private final String directory;
-  private final ExtractionSetting settings;
-  private VideoDetails details;
-  private File video;
-  private File audio;
+    private final String url;
+    private final String directory;
+    private final ExtractionSetting settings;
+    private VideoDetails details;
+    private File video;
+    private File audio;
 
-  public YoutubeExtraction(
-      @NotNull final String url,
-      @NotNull final String directory,
-      @NotNull final ExtractionSetting settings) {
-    this.url = url;
-    this.directory = directory;
-    this.settings = settings;
-  }
+    /**
+     * Instantiates a new Youtube extraction.
+     *
+     * @param url       the url
+     * @param directory the directory
+     * @param settings  the settings
+     */
+    public YoutubeExtraction(
+            @NotNull final String url,
+            @NotNull final String directory,
+            @NotNull final ExtractionSetting settings) {
+        this.url = url;
+        this.directory = directory;
+        this.settings = settings;
+    }
 
-  @Override
+    @Override
   public File downloadVideo() {
     onVideoDownload();
     File videoFile = null;
@@ -99,64 +106,131 @@ public class YoutubeExtraction implements AbstractVideoExtractor {
           "Couldn't Extract Audio from Video File! (Video: " + video.getAbsolutePath() + ")");
       e.printStackTrace();
     }
-    return sound;
+      return sound;
   }
 
-  @Override
-  public void onVideoDownload() {}
+    @Override
+    public void onVideoDownload() {
+    }
 
-  @Override
-  public void onAudioExtraction() {}
+    @Override
+    public void onAudioExtraction() {
+    }
 
-  public String getDirectory() {
-    return directory;
-  }
+    /**
+     * Gets directory.
+     *
+     * @return the directory
+     */
+    public String getDirectory() {
+        return directory;
+    }
 
-  public VideoDetails getDetails() {
-    return details;
-  }
+    /**
+     * Gets details.
+     *
+     * @return the details
+     */
+    public VideoDetails getDetails() {
+        return details;
+    }
 
-  public File getVideo() {
-    return video;
-  }
+    /**
+     * Gets video.
+     *
+     * @return the video
+     */
+    public File getVideo() {
+        return video;
+    }
 
-  public File getAudio() {
-    return audio;
-  }
+    /**
+     * Gets audio.
+     *
+     * @return the audio
+     */
+    public File getAudio() {
+        return audio;
+    }
 
-  public String getUrl() {
-    return url;
-  }
+    /**
+     * Gets url.
+     *
+     * @return the url
+     */
+    public String getUrl() {
+        return url;
+    }
 
-  public String getAuthor() {
-    return details.author();
-  }
+    /**
+     * Gets author.
+     *
+     * @return the author
+     */
+    public String getAuthor() {
+        return details.author();
+    }
 
-  public String getVideoTitle() {
-    return details.title();
-  }
+    /**
+     * Gets video title.
+     *
+     * @return the video title
+     */
+    public String getVideoTitle() {
+        return details.title();
+    }
 
-  public String getVideoDescription() {
-    return details.description();
-  }
+    /**
+     * Gets video description.
+     *
+     * @return the video description
+     */
+    public String getVideoDescription() {
+        return details.description();
+    }
 
-  public String getVideoId() {
-    return details.videoId();
-  }
+    /**
+     * Gets video id.
+     *
+     * @return the video id
+     */
+    public String getVideoId() {
+        return details.videoId();
+    }
 
-  public int getVideoRating() {
-    return details.averageRating();
-  }
+    /**
+     * Gets video rating.
+     *
+     * @return the video rating
+     */
+    public int getVideoRating() {
+        return details.averageRating();
+    }
 
-  public long getViewerCount() {
-    return details.viewCount();
-  }
+    /**
+     * Gets viewer count.
+     *
+     * @return the viewer count
+     */
+    public long getViewerCount() {
+        return details.viewCount();
+    }
 
-  public boolean isLive() {
-    return details.isLive();
-  }
+    /**
+     * Is live boolean.
+     *
+     * @return the boolean
+     */
+    public boolean isLive() {
+        return details.isLive();
+    }
 
-  public boolean isLiveContent() {
-    return details.isLiveContent();
-  }
+    /**
+     * Is live content boolean.
+     *
+     * @return the boolean
+     */
+    public boolean isLiveContent() {
+        return details.isLiveContent();
+    }
 }

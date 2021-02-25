@@ -20,13 +20,23 @@ import java.util.concurrent.CompletableFuture;
 
 public class AsyncImageMapDrawer {
 
-  private final AbstractImageMapHolder imageMapHolder;
+    private final AbstractImageMapHolder imageMapHolder;
 
-  public AsyncImageMapDrawer(@NotNull final AbstractImageMapHolder imageMapHolder) {
-    this.imageMapHolder = imageMapHolder;
-  }
+    /**
+     * Instantiates a new Async image map drawer.
+     *
+     * @param imageMapHolder the image map holder
+     */
+    public AsyncImageMapDrawer(@NotNull final AbstractImageMapHolder imageMapHolder) {
+        this.imageMapHolder = imageMapHolder;
+    }
 
-  public CompletableFuture<Void> drawImage() {
-    return CompletableFuture.runAsync(imageMapHolder::drawImage);
-  }
+    /**
+     * Draw image completable future.
+     *
+     * @return the completable future
+     */
+    public CompletableFuture<Void> drawImage() {
+        return CompletableFuture.runAsync(imageMapHolder::drawImage);
+    }
 }

@@ -21,39 +21,42 @@ import java.io.File;
 
 public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
 
-    protected static final String PLUGIN_ENV_NAME = "VLC_PLUGIN_PATH";
+  /**
+   * The constant PLUGIN_ENV_NAME.
+   */
+  protected static final String PLUGIN_ENV_NAME = "VLC_PLUGIN_PATH";
 
-    private static final String[] PLUGIN_PATH_FORMATS = {
-            "\\plugins", "\\vlc\\plugins", "/../plugins", "/plugins", "/vlc/plugins",
-    };
+  private static final String[] PLUGIN_PATH_FORMATS = {
+          "\\plugins", "\\vlc\\plugins", "/../plugins", "/plugins", "/vlc/plugins",
+  };
 
-    private static String path;
+  private static String path;
 
-    @Override
-    public boolean supported() {
-        return true;
+  @Override
+  public boolean supported() {
+    return true;
+  }
+
+  @Override
+  public String discover() {
+    final String folder = OperatingSystemUtilities.MAC ? "\\vlc" : "/vlc";
+    for (final String str : PLUGIN_PATH_FORMATS) {
+      final File f = new File(folder, str);
+      if (f.exists()) {
+        path = f.getAbsolutePath();
+        return path;
+      }
     }
+    return null;
+  }
 
-    @Override
-    public String discover() {
-        final String folder = OperatingSystemUtilities.MAC ? "\\vlc" : "/vlc";
-        for (final String str : PLUGIN_PATH_FORMATS) {
-            final File f = new File(folder, str);
-            if (f.exists()) {
-                path = f.getAbsolutePath();
-                return path;
-            }
-        }
-        return null;
-    }
+  @Override
+  public boolean onFound(final String s) {
+    return true;
+  }
 
-    @Override
-    public boolean onFound(final String s) {
-        return true;
-    }
-
-    @Override
-    public boolean onSetPluginPath(final String s) {
-        return LibC.INSTANCE.setenv(PLUGIN_ENV_NAME, path, 1) == 0;
-    }
+  @Override
+  public boolean onSetPluginPath(final String s) {
+    return LibC.INSTANCE.setenv(PLUGIN_ENV_NAME, path, 1) == 0;
+  }
 }

@@ -22,7 +22,11 @@ import java.io.IOException;
 
 public class Logger {
 
+  /**
+   * The constant WRITER.
+   */
   public static volatile BufferedWriter WRITER;
+  /** The constant VERBOSE. */
   public static boolean VERBOSE;
 
   static {
@@ -40,14 +44,29 @@ public class Logger {
     }
   }
 
+  /**
+   * Info.
+   *
+   * @param info the info
+   */
   public static void info(@NotNull final String info) {
     directPrint(System.currentTimeMillis() + ": [INFO] " + info + "\n");
   }
 
+  /**
+   * Warn.
+   *
+   * @param warning the warning
+   */
   public static void warn(@NotNull final String warning) {
     directPrint(System.currentTimeMillis() + ": [WARN] " + warning + "\n");
   }
 
+  /**
+   * Error.
+   *
+   * @param error the error
+   */
   public static void error(@NotNull final String error) {
     directPrint(System.currentTimeMillis() + ": [ERROR] " + error + "\n");
   }
@@ -63,6 +82,11 @@ public class Logger {
     }
   }
 
+  /**
+   * Sets verbose.
+   *
+   * @param verbose the verbose
+   */
   public static void setVerbose(final boolean verbose) {
     VERBOSE = verbose;
   }

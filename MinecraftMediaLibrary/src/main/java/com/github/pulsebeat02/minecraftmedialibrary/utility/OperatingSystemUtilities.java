@@ -18,11 +18,29 @@ import org.jetbrains.annotations.NotNull;
 
 public class OperatingSystemUtilities {
 
+    /**
+     * The constant CPU_ARCH.
+     */
     public static final String CPU_ARCH;
+    /**
+     * The constant OPERATING_SYSTEM.
+     */
     public static final String OPERATING_SYSTEM;
+    /**
+     * The constant MAC.
+     */
     public static final boolean MAC;
+    /**
+     * The constant WINDOWS.
+     */
     public static final boolean WINDOWS;
+    /**
+     * The constant LINUX.
+     */
     public static final boolean LINUX;
+    /**
+     * The constant URL.
+     */
     public static String URL;
 
     static {
@@ -56,7 +74,7 @@ public class OperatingSystemUtilities {
                     URL = " https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-arm64/VLC.zip";
                 }
             }
-    } else {
+        } else {
             if (WINDOWS) {
                 URL = "http://download.videolan.org/pub/videolan/vlc/last/win32/vlc-3.0.12-win32.zip";
             } else if (LINUX) {
@@ -65,30 +83,40 @@ public class OperatingSystemUtilities {
                     URL = "LINUX";
                 }
             }
+        }
+        Logger.info("=========================================");
+        Logger.info(" Final Results After Runtime Scanning... ");
+        Logger.info("=========================================");
+        Logger.info("Operating System: " + OPERATING_SYSTEM);
+        Logger.info("CPU Architecture: " + CPU_ARCH);
+        Logger.info("Link Used: " + URL);
+        Logger.info("=========================================");
     }
-    Logger.info("=========================================");
-    Logger.info(" Final Results After Runtime Scanning... ");
-    Logger.info("=========================================");
-    Logger.info("Operating System: " + OPERATING_SYSTEM);
-    Logger.info("CPU Architecture: " + CPU_ARCH);
-    Logger.info("Link Used: " + URL);
-    Logger.info("=========================================");
-  }
 
-  public static String getOperatingSystem() {
-    return System.getProperty("os.name");
-  }
+    /**
+     * Gets operating system.
+     *
+     * @return the operating system
+     */
+    public static String getOperatingSystem() {
+        return System.getProperty("os.name");
+    }
 
-  public static String getCpuArchitecture() {
-    final String arch = System.getenv("PROCESSOR_ARCHITECTURE");
-    final String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
-    return arch != null && arch.endsWith("64") || wow64Arch != null && wow64Arch.endsWith("64")
-        ? "64"
-        : "32";
-  }
+    /**
+     * Gets cpu architecture.
+     *
+     * @return the cpu architecture
+     */
+    public static String getCpuArchitecture() {
+        final String arch = System.getenv("PROCESSOR_ARCHITECTURE");
+        final String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
+        return arch != null && arch.endsWith("64") || wow64Arch != null && wow64Arch.endsWith("64")
+                ? "64"
+                : "32";
+    }
 
-  private static boolean is64Architecture(@NotNull final String os) {
-    if (os.contains("Windows")) {
+    private static boolean is64Architecture(@NotNull final String os) {
+        if (os.contains("Windows")) {
       return System.getenv("ProgramFiles(x86)") != null;
     } else {
       return System.getProperty("os.arch").contains("64");

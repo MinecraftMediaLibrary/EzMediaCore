@@ -30,129 +30,216 @@ import java.util.Objects;
 
 public class MapImage implements AbstractImageMapHolder, ConfigurationSerializable {
 
-  private final MinecraftMediaLibrary library;
-  private final int map;
-  private final File image;
-  private final int height;
-  private final int width;
+    private final MinecraftMediaLibrary library;
+    private final int map;
+    private final File image;
+    private final int height;
+    private final int width;
 
-  public MapImage(
-      @NotNull final MinecraftMediaLibrary library,
-      final int map,
-      @NotNull final File image,
-      final int width,
-      final int height) {
-    this.library = library;
-    this.map = map;
-    this.image = image;
-    this.width = width;
-    this.height = height;
-    Logger.info(
-        "Initialized Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
-  }
+    /**
+     * Instantiates a new Map image.
+     *
+     * @param library the library
+     * @param map     the map
+     * @param image   the image
+     * @param width   the width
+     * @param height  the height
+     */
+    public MapImage(
+            @NotNull final MinecraftMediaLibrary library,
+            final int map,
+            @NotNull final File image,
+            final int width,
+            final int height) {
+        this.library = library;
+        this.map = map;
+        this.image = image;
+        this.width = width;
+        this.height = height;
+        Logger.info(
+                "Initialized Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
+    }
 
-  public MapImage(
-      @NotNull final MinecraftMediaLibrary library,
-      final int map,
-      @NotNull final String url,
-      final int width,
-      final int height) {
-    this.library = library;
-    this.map = map;
-    this.image = FileUtilities.downloadImageFile(url, library.getPath());
-    this.width = width;
-    this.height = height;
-    Logger.info(
-        "Initialized Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
-  }
+    /**
+     * Instantiates a new Map image.
+     *
+     * @param library the library
+     * @param map     the map
+     * @param url     the url
+     * @param width   the width
+     * @param height  the height
+     */
+    public MapImage(
+            @NotNull final MinecraftMediaLibrary library,
+            final int map,
+            @NotNull final String url,
+            final int width,
+            final int height) {
+        this.library = library;
+        this.map = map;
+        this.image = FileUtilities.downloadImageFile(url, library.getPath());
+        this.width = width;
+        this.height = height;
+        Logger.info(
+                "Initialized Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
+    }
 
-  public static MapImage deserialize(
-      @NotNull final MinecraftMediaLibrary library,
-      @NotNull final Map<String, Object> deserialize) {
-    return new MapImage(
-        library,
-        NumberConversions.toInt(deserialize.get("map")),
-        new File(String.valueOf(deserialize.get("image"))),
-        NumberConversions.toInt(deserialize.get("width")),
-        NumberConversions.toInt(deserialize.get("height")));
-  }
+    /**
+     * Deserialize map image.
+     *
+     * @param library     the library
+     * @param deserialize the deserialize
+     * @return the map image
+     */
+    public static MapImage deserialize(
+            @NotNull final MinecraftMediaLibrary library,
+            @NotNull final Map<String, Object> deserialize) {
+        return new MapImage(
+                library,
+                NumberConversions.toInt(deserialize.get("map")),
+                new File(String.valueOf(deserialize.get("image"))),
+                NumberConversions.toInt(deserialize.get("width")),
+                NumberConversions.toInt(deserialize.get("height")));
+    }
 
-  public static void resetMap(@NotNull final MinecraftMediaLibrary library, final int id) {
-    library.getHandler().unregisterMap(id);
-  }
+    /**
+     * Reset map.
+     *
+     * @param library the library
+     * @param id      the id
+     */
+    public static void resetMap(@NotNull final MinecraftMediaLibrary library, final int id) {
+        library.getHandler().unregisterMap(id);
+    }
 
-  @Override
-  public void drawImage() {
-    onDrawImage();
-    final ByteBuffer buffer =
-        new FloydImageDither()
-            .ditherIntoMinecraft(Objects.requireNonNull(VideoUtilities.getBuffer(image)), width);
+    @Override
+    public void drawImage() {
+        onDrawImage();
+        final ByteBuffer buffer =
+                new FloydImageDither()
+                        .ditherIntoMinecraft(Objects.requireNonNull(VideoUtilities.getBuffer(image)), width);
     library.getHandler().display(null, map, width, height, buffer, width);
     Logger.info("Drew Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
-  }
-
-  @Override
-  public void onDrawImage() {}
-
-  @Override
-  public Map<String, Object> serialize() {
-    final Map<String, Object> serialized = new HashMap<>();
-    serialized.put("map", map);
-    serialized.put("image", image.getAbsolutePath());
-    serialized.put("width", width);
-    serialized.put("height", height);
-    return serialized;
-  }
-
-  public MinecraftMediaLibrary getLibrary() {
-    return library;
-  }
-
-  public int getMap() {
-    return map;
-  }
-
-  public File getImage() {
-    return image;
-  }
-
-  public int getHeight() {
-    return height;
-  }
-
-  public int getWidth() {
-    return width;
-  }
-
-  public static class Builder {
-
-    private int map;
-    private File image;
-    private int height;
-    private int width;
-
-    public Builder setMap(final int map) {
-      this.map = map;
-      return this;
     }
 
-    public Builder setImage(final File image) {
-      this.image = image;
-      return this;
+    @Override
+    public void onDrawImage() {
     }
 
-    public Builder setHeight(final int height) {
-      this.height = height;
-      return this;
+    @Override
+    public Map<String, Object> serialize() {
+        final Map<String, Object> serialized = new HashMap<>();
+        serialized.put("map", map);
+        serialized.put("image", image.getAbsolutePath());
+        serialized.put("width", width);
+        serialized.put("height", height);
+        return serialized;
     }
 
-    public Builder setWidth(final int width) {
-      this.width = width;
-      return this;
+    /**
+     * Gets library.
+     *
+     * @return the library
+     */
+    public MinecraftMediaLibrary getLibrary() {
+        return library;
     }
 
-    public MapImage createImageMap(final MinecraftMediaLibrary library) {
-      return new MapImage(library, map, image, width, height);
+    /**
+     * Gets map.
+     *
+     * @return the map
+     */
+    public int getMap() {
+        return map;
     }
+
+    /**
+     * Gets image.
+     *
+     * @return the image
+     */
+    public File getImage() {
+        return image;
+    }
+
+    /**
+     * Gets height.
+     *
+     * @return the height
+     */
+    public int getHeight() {
+        return height;
+    }
+
+    /**
+     * Gets width.
+     *
+     * @return the width
+     */
+    public int getWidth() {
+        return width;
+    }
+
+    public static class Builder {
+
+        private int map;
+        private File image;
+        private int height;
+        private int width;
+
+        /**
+         * Sets map.
+         *
+         * @param map the map
+         * @return the map
+         */
+        public Builder setMap(final int map) {
+            this.map = map;
+            return this;
+        }
+
+        /**
+         * Sets image.
+         *
+         * @param image the image
+         * @return the image
+         */
+        public Builder setImage(final File image) {
+            this.image = image;
+            return this;
+        }
+
+        /**
+         * Sets height.
+         *
+         * @param height the height
+         * @return the height
+         */
+        public Builder setHeight(final int height) {
+            this.height = height;
+            return this;
+        }
+
+        /**
+         * Sets width.
+         *
+         * @param width the width
+         * @return the width
+         */
+        public Builder setWidth(final int width) {
+            this.width = width;
+            return this;
+        }
+
+        /**
+         * Create image map map image.
+         *
+         * @param library the library
+         * @return the map image
+         */
+        public MapImage createImageMap(final MinecraftMediaLibrary library) {
+            return new MapImage(library, map, image, width, height);
+        }
   }
 }

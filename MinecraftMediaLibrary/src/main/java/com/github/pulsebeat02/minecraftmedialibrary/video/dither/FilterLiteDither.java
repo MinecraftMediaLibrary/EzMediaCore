@@ -19,10 +19,20 @@ public class FilterLiteDither implements AbstractDitherHolder {
     FULL_COLOR_MAP = StaticDitherInitialization.FULL_COLOR_MAP;
   }
 
+  /**
+   * Get color map byte [ ].
+   *
+   * @return the byte [ ]
+   */
   public static byte[] getColorMap() {
     return COLOR_MAP;
   }
 
+  /**
+   * Get full color map int [ ].
+   *
+   * @return the int [ ]
+   */
   public static int[] getFullColorMap() {
     return FULL_COLOR_MAP;
   }
@@ -212,12 +222,26 @@ public class FilterLiteDither implements AbstractDitherHolder {
     return DitherSetting.SIERRA_FILTER_LITE_DITHER;
   }
 
+  /**
+   * Gets best full color.
+   *
+   * @param red   the red
+   * @param green the green
+   * @param blue  the blue
+   * @return the best full color
+   */
   public int getBestFullColor(final int red, final int green, final int blue) {
     return FULL_COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
   }
 
+  /**
+   * Gets best color.
+   *
+   * @param rgb the rgb
+   * @return the best color
+   */
   public byte getBestColor(final int rgb) {
     return COLOR_MAP[
-        (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
+            (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
   }
 }

@@ -21,6 +21,12 @@ public class LinuxPackage {
     private final String url;
     private final String mirror;
 
+    /**
+     * Instantiates a new Linux package.
+     *
+     * @param url  the url
+     * @param arch the arch
+     */
     public LinuxPackage(@NotNull final String url, @NotNull final CPUArchitecture arch) {
         this.arch = arch;
         this.url = url;
@@ -29,14 +35,29 @@ public class LinuxPackage {
                         + url.substring(url.lastIndexOf("/") + 1);
     }
 
+    /**
+     * Gets arch.
+     *
+     * @return the arch
+     */
     public CPUArchitecture getArch() {
         return arch;
     }
 
+    /**
+     * Gets url.
+     *
+     * @return the url
+     */
     public String getUrl() {
         return url;
     }
 
+    /**
+     * Gets mirror.
+     *
+     * @return the mirror
+     */
     public String getMirror() {
         return mirror;
     }

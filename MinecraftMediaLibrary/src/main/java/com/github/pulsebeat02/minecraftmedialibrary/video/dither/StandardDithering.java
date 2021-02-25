@@ -23,22 +23,47 @@ public class StandardDithering implements AbstractDitherHolder {
     COLOR_MAP = StaticDitherInitialization.COLOR_MAP;
   }
 
+  /**
+   * Get color map byte [ ].
+   *
+   * @return the byte [ ]
+   */
   public static byte[] getColorMap() {
     return COLOR_MAP;
   }
 
+  /**
+   * Gets best color normal.
+   *
+   * @param rgb the rgb
+   * @return the best color normal
+   */
   public int getBestColorNormal(final int rgb) {
     return MinecraftMapPalette.getColor(getBestColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF))
-        .getRGB();
+            .getRGB();
   }
 
+  /**
+   * Gets best color.
+   *
+   * @param red   the red
+   * @param green the green
+   * @param blue  the blue
+   * @return the best color
+   */
   public byte getBestColor(final int red, final int green, final int blue) {
     return COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
   }
 
+  /**
+   * Gets best color.
+   *
+   * @param rgb the rgb
+   * @return the best color
+   */
   public byte getBestColor(final int rgb) {
     return COLOR_MAP[
-        (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
+            (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
   }
 
   @Override

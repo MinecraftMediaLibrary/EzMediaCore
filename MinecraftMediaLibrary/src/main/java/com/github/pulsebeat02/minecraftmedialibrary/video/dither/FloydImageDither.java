@@ -25,47 +25,112 @@ public class FloydImageDither implements AbstractDitherHolder {
     FULL_COLOR_MAP = StaticDitherInitialization.FULL_COLOR_MAP;
   }
 
+  /**
+   * Gets largest.
+   *
+   * @return the largest
+   */
   public static int getLargest() {
     return largest;
   }
 
+  /**
+   * Get palette int [ ].
+   *
+   * @return the int [ ]
+   */
   public static int[] getPALETTE() {
     return PALETTE;
   }
 
+  /**
+   * Get color map byte [ ].
+   *
+   * @return the byte [ ]
+   */
   public static byte[] getColorMap() {
     return COLOR_MAP;
   }
 
+  /**
+   * Get full color map int [ ].
+   *
+   * @return the int [ ]
+   */
   public static int[] getFullColorMap() {
     return FULL_COLOR_MAP;
   }
 
+  /**
+   * Gets largest color val.
+   *
+   * @return the largest color val
+   */
   public int getLargestColorVal() {
     return largest;
   }
 
+  /**
+   * Gets color from minecraft palette.
+   *
+   * @param val the val
+   * @return the color from minecraft palette
+   */
   public int getColorFromMinecraftPalette(final byte val) {
     return PALETTE[(val + 256) % 256];
   }
 
+  /**
+   * Gets best color including transparent.
+   *
+   * @param rgb the rgb
+   * @return the best color including transparent
+   */
   public byte getBestColorIncludingTransparent(final int rgb) {
     return (rgb >>> 24 & 0xFF) == 0 ? 0 : getBestColor(rgb);
   }
 
+  /**
+   * Gets best color.
+   *
+   * @param rgb the rgb
+   * @return the best color
+   */
   public byte getBestColor(final int rgb) {
     return COLOR_MAP[
-        (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
+            (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
   }
 
+  /**
+   * Gets best color.
+   *
+   * @param red   the red
+   * @param green the green
+   * @param blue  the blue
+   * @return the best color
+   */
   public byte getBestColor(final int red, final int green, final int blue) {
     return COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
   }
 
+  /**
+   * Gets best full color.
+   *
+   * @param red   the red
+   * @param green the green
+   * @param blue  the blue
+   * @return the best full color
+   */
   public int getBestFullColor(final int red, final int green, final int blue) {
     return FULL_COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
   }
 
+  /**
+   * Simplify byte [ ].
+   *
+   * @param buffer the buffer
+   * @return the byte [ ]
+   */
   public byte[] simplify(final @NotNull int[] buffer) {
     final byte[] map = new byte[buffer.length];
     for (int index = 0; index < buffer.length; index++) {
@@ -276,18 +341,30 @@ public class FloydImageDither implements AbstractDitherHolder {
     return DitherSetting.FLOYD_STEINBERG_DITHER;
   }
 
+  /**
+   * To buffered image buffered image.
+   *
+   * @param img the img
+   * @return the buffered image
+   */
   public BufferedImage toBufferedImage(final @NotNull Image img) {
     if (img instanceof BufferedImage) {
       return (BufferedImage) img;
     }
     final BufferedImage bimage =
-        new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+            new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
     final Graphics2D bGr = bimage.createGraphics();
     bGr.drawImage(img, 0, 0, null);
     bGr.dispose();
     return bimage;
   }
 
+  /**
+   * Get rgb array int [ ].
+   *
+   * @param image the image
+   * @return the int [ ]
+   */
   public int[] getRGBArray(final @NotNull BufferedImage image) {
     return image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
   }

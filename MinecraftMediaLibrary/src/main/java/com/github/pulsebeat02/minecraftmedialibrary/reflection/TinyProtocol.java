@@ -108,8 +108,13 @@ public abstract class TinyProtocol {
 
   // Current handler name
   private final String handlerName;
+  /**
+   * The Closed.
+   */
   protected volatile boolean closed;
+  /** The Plugin. */
   protected Plugin plugin;
+
   private Listener listener;
 
   // List of network markers
@@ -205,7 +210,9 @@ public abstract class TinyProtocol {
 
           @EventHandler(priority = EventPriority.LOWEST)
           public final void onPlayerLogin(final PlayerLoginEvent e) {
-            if (closed) return;
+            if (closed) {
+              return;
+            }
 
             final Channel channel = getChannel(e.getPlayer());
 
@@ -246,7 +253,9 @@ public abstract class TinyProtocol {
           Reflection.getField(serverConnection.getClass(), List.class, i).get(serverConnection);
 
       for (final Object item : list) {
-        if (!(item instanceof ChannelFuture)) break;
+        if (!(item instanceof ChannelFuture)) {
+          break;
+        }
 
         // Channel future that contains the server connection
         final Channel serverChannel = ((ChannelFuture) item).channel();
@@ -259,7 +268,9 @@ public abstract class TinyProtocol {
   }
 
   private void unregisterChannelHandler() {
-    if (serverChannelHandler == null) return;
+    if (serverChannelHandler == null) {
+      return;
+    }
 
     for (final Channel serverChannel : serverChannels) {
       final ChannelPipeline pipeline = serverChannel.pipeline();
@@ -464,6 +475,11 @@ public abstract class TinyProtocol {
     return channel;
   }
 
+  /**
+   * Remove channel.
+   *
+   * @param player the player
+   */
   public void removeChannel(final Player player) {
     uuidChannelLookup.remove(player.getUniqueId());
   }
@@ -538,6 +554,7 @@ public abstract class TinyProtocol {
    * @author Kristian
    */
   private final class PacketInterceptor extends ChannelDuplexHandler {
+    /** The Player. */
     // Updated by the login event
     public volatile Player player;
 

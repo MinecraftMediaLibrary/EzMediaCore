@@ -34,46 +34,63 @@ import java.util.zip.ZipOutputStream;
 
 public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSerializable {
 
-  private final MinecraftMediaLibrary library;
-  private final String path;
-  private final File audio;
-  private final File icon;
-  private final String description;
-  private final int packFormat;
+    private final MinecraftMediaLibrary library;
+    private final String path;
+    private final File audio;
+    private final File icon;
+    private final String description;
+    private final int packFormat;
 
-  public ResourcepackWrapper(
-      @NotNull final MinecraftMediaLibrary library,
-      @NotNull final String path,
-      @NotNull final File audio,
-      final File icon,
-      final String description,
-      final int packFormat) {
-    this.library = library;
-    this.path = path;
-    this.audio = audio;
-    this.icon = icon;
-    this.description = description;
-    this.packFormat = packFormat;
-    if (!ResourcepackUtilities.validatePackFormat(packFormat)) {
-      throw new InvalidPackFormatException("Invalid Pack Format Exception (" + packFormat + ")");
+    /**
+     * Instantiates a new Resourcepack wrapper.
+     *
+     * @param library     the library
+     * @param path        the path
+     * @param audio       the audio
+     * @param icon        the icon
+     * @param description the description
+     * @param packFormat  the pack format
+     */
+    public ResourcepackWrapper(
+            @NotNull final MinecraftMediaLibrary library,
+            @NotNull final String path,
+            @NotNull final File audio,
+            final File icon,
+            final String description,
+            final int packFormat) {
+        this.library = library;
+        this.path = path;
+        this.audio = audio;
+        this.icon = icon;
+        this.description = description;
+        this.packFormat = packFormat;
+        if (!ResourcepackUtilities.validatePackFormat(packFormat)) {
+            throw new InvalidPackFormatException("Invalid Pack Format Exception (" + packFormat + ")");
+        }
+        if (icon != null && !ResourcepackUtilities.validateResourcepackIcon(icon)) {
+            throw new InvalidPackIconException("Invalid Pack Icon! Must be PNG (" + icon.getName() + ")");
+        }
+        Logger.info("New Resourcepack (" + path + ") was Initialized");
     }
-    if (icon != null && !ResourcepackUtilities.validateResourcepackIcon(icon)) {
-      throw new InvalidPackIconException("Invalid Pack Icon! Must be PNG (" + icon.getName() + ")");
-    }
-    Logger.info("New Resourcepack (" + path + ") was Initialized");
-  }
 
-  public static ResourcepackWrapper deserialize(
-      @NotNull final MinecraftMediaLibrary library,
-      @NotNull final Map<String, Object> deserialize) {
-    return new ResourcepackWrapper(
-        library,
-        String.valueOf(deserialize.get("path")),
-        new File(String.valueOf(deserialize.get("audio"))),
-        new File(String.valueOf(deserialize.get("icon"))),
-        String.valueOf(deserialize.get(deserialize)),
-        NumberConversions.toInt(deserialize.get("pack-format")));
-  }
+    /**
+     * Deserialize resourcepack wrapper.
+     *
+     * @param library     the library
+     * @param deserialize the deserialize
+     * @return the resourcepack wrapper
+     */
+    public static ResourcepackWrapper deserialize(
+            @NotNull final MinecraftMediaLibrary library,
+            @NotNull final Map<String, Object> deserialize) {
+        return new ResourcepackWrapper(
+                library,
+                String.valueOf(deserialize.get("path")),
+                new File(String.valueOf(deserialize.get("audio"))),
+                new File(String.valueOf(deserialize.get("icon"))),
+                String.valueOf(deserialize.get(deserialize)),
+                NumberConversions.toInt(deserialize.get("pack-format")));
+    }
 
   @Override
   public Map<String, Object> serialize() {
@@ -130,78 +147,145 @@ public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSer
       final ZipEntry iconFile = new ZipEntry("pack.png");
       out.putNextEntry(iconFile);
       out.write(Files.readAllBytes(Paths.get(icon.getAbsolutePath())));
-      out.closeEntry();
-      out.close();
-      Logger.info("Finished Wrapping Resourcepack!");
+        out.closeEntry();
+        out.close();
+        Logger.info("Finished Wrapping Resourcepack!");
     } catch (final IOException e) {
-      Logger.error("There was an error while wrapping the resourcepack...");
-      e.printStackTrace();
+        Logger.error("There was an error while wrapping the resourcepack...");
+        e.printStackTrace();
     }
   }
 
-  @Override
-  public void onResourcepackBuild() {}
-
-  public MinecraftMediaLibrary getLibrary() {
-    return library;
-  }
-
-  public String getPath() {
-    return path;
-  }
-
-  public File getAudio() {
-    return audio;
-  }
-
-  public File getIcon() {
-    return icon;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public int getPackFormat() {
-    return packFormat;
-  }
-
-  public static class Builder {
-
-    private File audio;
-    private File icon;
-    private String description;
-    private int packFormat;
-    private String path;
-
-    public Builder setAudio(final File audio) {
-      this.audio = audio;
-      return this;
+    @Override
+    public void onResourcepackBuild() {
     }
 
-    public Builder setIcon(final File icon) {
-      this.icon = icon;
-      return this;
+    /**
+     * Gets library.
+     *
+     * @return the library
+     */
+    public MinecraftMediaLibrary getLibrary() {
+        return library;
     }
 
-    public Builder setDescription(final String description) {
-      this.description = description;
-      return this;
+    /**
+     * Gets path.
+     *
+     * @return the path
+     */
+    public String getPath() {
+        return path;
     }
 
-    public Builder setPackFormat(final int packFormat) {
-      this.packFormat = packFormat;
-      return this;
+    /**
+     * Gets audio.
+     *
+     * @return the audio
+     */
+    public File getAudio() {
+        return audio;
     }
 
-    public Builder setPath(final String path) {
-      this.path = path;
-      return this;
+    /**
+     * Gets icon.
+     *
+     * @return the icon
+     */
+    public File getIcon() {
+        return icon;
     }
 
-    public ResourcepackWrapper createResourcepackHostingProvider(
-        final MinecraftMediaLibrary library) {
-      return new ResourcepackWrapper(library, path, audio, icon, description, packFormat);
+    /**
+     * Gets description.
+     *
+     * @return the description
+     */
+    public String getDescription() {
+        return description;
     }
+
+    /**
+     * Gets pack format.
+     *
+     * @return the pack format
+     */
+    public int getPackFormat() {
+        return packFormat;
+    }
+
+    public static class Builder {
+
+        private File audio;
+        private File icon;
+        private String description;
+        private int packFormat;
+        private String path;
+
+        /**
+         * Sets audio.
+         *
+         * @param audio the audio
+         * @return the audio
+         */
+        public Builder setAudio(final File audio) {
+            this.audio = audio;
+            return this;
+        }
+
+        /**
+         * Sets icon.
+         *
+         * @param icon the icon
+         * @return the icon
+         */
+        public Builder setIcon(final File icon) {
+            this.icon = icon;
+            return this;
+        }
+
+        /**
+         * Sets description.
+         *
+         * @param description the description
+         * @return the description
+         */
+        public Builder setDescription(final String description) {
+            this.description = description;
+            return this;
+        }
+
+        /**
+         * Sets pack format.
+         *
+         * @param packFormat the pack format
+         * @return the pack format
+         */
+        public Builder setPackFormat(final int packFormat) {
+            this.packFormat = packFormat;
+            return this;
+        }
+
+        /**
+         * Sets path.
+         *
+         * @param path the path
+         * @return the path
+         */
+        public Builder setPath(final String path) {
+            this.path = path;
+            return this;
+        }
+
+        /**
+         * Create resourcepack hosting provider resourcepack wrapper.
+         *
+         * @param library the library
+         * @return the resourcepack wrapper
+         */
+        public ResourcepackWrapper createResourcepackHostingProvider(
+                final MinecraftMediaLibrary library) {
+            return new ResourcepackWrapper(library, path, audio, icon, description, packFormat);
+        }
   }
 }

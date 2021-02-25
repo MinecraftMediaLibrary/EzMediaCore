@@ -34,52 +34,64 @@ import java.util.jar.JarOutputStream;
  * JarOutputStream jar output}, applying the relocations defined by a {@link RelocatingRemapper}.
  */
 final class JarRelocatorTask {
-  private final RelocatingRemapper remapper;
-  private final JarOutputStream jarOut;
-  private final JarFile jarIn;
+    private final RelocatingRemapper remapper;
+    private final JarOutputStream jarOut;
+    private final JarFile jarIn;
 
-  private final Set<String> resources = new HashSet<>();
+    private final Set<String> resources = new HashSet<>();
 
-  JarRelocatorTask(RelocatingRemapper remapper, JarOutputStream jarOut, JarFile jarIn) {
-    this.remapper = remapper;
-    this.jarOut = jarOut;
-    this.jarIn = jarIn;
-  }
-
-  private static void copy(InputStream from, OutputStream to) throws IOException {
-    byte[] buf = new byte[8192];
-    while (true) {
-      int n = from.read(buf);
-      if (n == -1) {
-        break;
-      }
-      to.write(buf, 0, n);
+    /**
+     * Instantiates a new Jar relocator task.
+     *
+     * @param remapper the remapper
+     * @param jarOut   the jar out
+     * @param jarIn    the jar in
+     */
+    JarRelocatorTask(final RelocatingRemapper remapper, final JarOutputStream jarOut, final JarFile jarIn) {
+        this.remapper = remapper;
+        this.jarOut = jarOut;
+        this.jarIn = jarIn;
     }
-  }
 
-  void processEntries() throws IOException {
-    for (Enumeration<JarEntry> entries = this.jarIn.entries(); entries.hasMoreElements(); ) {
-      JarEntry entry = entries.nextElement();
-
-      // The 'INDEX.LIST' file is an optional file, containing information about the packages
-      // defined in a jar. Instead of relocating the entries in it, we delete it, since it is
-      // optional anyway.
-      //
-      // We don't process directory entries, and instead opt to recreate them when adding
-      // classes/resources.
-      if (entry.getName().equals("META-INF/INDEX.LIST") || entry.isDirectory()) {
-        continue;
-      }
-
-      try (InputStream entryIn = this.jarIn.getInputStream(entry)) {
-        processEntry(entry, entryIn);
-      }
+    private static void copy(final InputStream from, final OutputStream to) throws IOException {
+        final byte[] buf = new byte[8192];
+        while (true) {
+            final int n = from.read(buf);
+            if (n == -1) {
+                break;
+            }
+            to.write(buf, 0, n);
+        }
     }
-  }
 
-  private void processEntry(JarEntry entry, InputStream entryIn) throws IOException {
-    String name = entry.getName();
-    String mappedName = this.remapper.map(name);
+    /**
+     * Process entries.
+     *
+     * @throws IOException the io exception
+     */
+    void processEntries() throws IOException {
+        for (final Enumeration<JarEntry> entries = this.jarIn.entries(); entries.hasMoreElements(); ) {
+            final JarEntry entry = entries.nextElement();
+
+            // The 'INDEX.LIST' file is an optional file, containing information about the packages
+            // defined in a jar. Instead of relocating the entries in it, we delete it, since it is
+            // optional anyway.
+            //
+            // We don't process directory entries, and instead opt to recreate them when adding
+            // classes/resources.
+            if (entry.getName().equals("META-INF/INDEX.LIST") || entry.isDirectory()) {
+                continue;
+            }
+
+            try (final InputStream entryIn = this.jarIn.getInputStream(entry)) {
+                processEntry(entry, entryIn);
+            }
+        }
+    }
+
+  private void processEntry(final JarEntry entry, final InputStream entryIn) throws IOException {
+    final String name = entry.getName();
+    final String mappedName = this.remapper.map(name);
 
     // ensure the parent directory structure exists for the entry.
     processDirectory(mappedName, true);
@@ -91,10 +103,10 @@ final class JarRelocatorTask {
     }
   }
 
-  private void processDirectory(String name, boolean parentsOnly) throws IOException {
-    int index = name.lastIndexOf('/');
+  private void processDirectory(final String name, final boolean parentsOnly) throws IOException {
+    final int index = name.lastIndexOf('/');
     if (index != -1) {
-      String parentDirectory = name.substring(0, index);
+      final String parentDirectory = name.substring(0, index);
       if (!this.resources.contains(parentDirectory)) {
         processDirectory(parentDirectory, false);
       }
@@ -105,14 +117,14 @@ final class JarRelocatorTask {
     }
 
     // directory entries must end in "/"
-    JarEntry entry = new JarEntry(name + "/");
+    final JarEntry entry = new JarEntry(name + "/");
     this.jarOut.putNextEntry(entry);
     this.resources.add(name);
   }
 
-  private void processResource(String name, InputStream entryIn, long lastModified)
+  private void processResource(final String name, final InputStream entryIn, final long lastModified)
       throws IOException {
-    JarEntry jarEntry = new JarEntry(name);
+    final JarEntry jarEntry = new JarEntry(name);
     jarEntry.setTime(lastModified);
 
     this.jarOut.putNextEntry(jarEntry);
@@ -121,22 +133,22 @@ final class JarRelocatorTask {
     this.resources.add(name);
   }
 
-  private void processClass(String name, InputStream entryIn) throws IOException {
-    ClassReader classReader = new ClassReader(entryIn);
-    ClassWriter classWriter = new ClassWriter(0);
-    RelocatingClassVisitor classVisitor =
+  private void processClass(final String name, final InputStream entryIn) throws IOException {
+    final ClassReader classReader = new ClassReader(entryIn);
+    final ClassWriter classWriter = new ClassWriter(0);
+    final RelocatingClassVisitor classVisitor =
         new RelocatingClassVisitor(classWriter, this.remapper, name);
 
     try {
       classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
-    } catch (Throwable e) {
+    } catch (final Throwable e) {
       throw new RuntimeException("Error processing class " + name, e);
     }
 
-    byte[] renamedClass = classWriter.toByteArray();
+    final byte[] renamedClass = classWriter.toByteArray();
 
     // Need to take the .class off for remapping evaluation
-    String mappedName = this.remapper.map(name.substring(0, name.indexOf('.')));
+    final String mappedName = this.remapper.map(name.substring(0, name.indexOf('.')));
 
     // Now we put it back on so the class file is written out with the right extension.
     this.jarOut.putNextEntry(new JarEntry(mappedName + ".class"));

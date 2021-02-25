@@ -19,18 +19,37 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 
 public enum CPUArchitecture {
+  /**
+   * Amd 64 cpu architecture.
+   */
   AMD64,
+  /** Aarch 64 cpu architecture. */
   AARCH64,
+  /** Armhf cpu architecture. */
   ARMHF,
+  /** Armv 7 h cpu architecture. */
   ARMV7H,
+  /** Armhfp cpu architecture. */
   ARMHFP,
+  /** Armv 7 hl cpu architecture. */
   ARMV7HL,
+  /** Armv 7 cpu architecture. */
   ARMV7,
+  /** Arm 64 cpu architecture. */
   ARM64,
+  /** Earnmv 7 hf cpu architecture. */
   EARNMV7HF,
+  /** X 86 64 cpu architecture. */
   X86_64,
+  /** 386 cpu architecture. */
   I386,
+  /**
+   * 586 cpu architecture.
+   */
   I586,
+  /**
+   * 486 cpu architecture.
+   */
   I486;
 
   static {
@@ -38,6 +57,12 @@ public enum CPUArchitecture {
     Arrays.stream(values()).forEach(x -> Logger.info(x.name()));
   }
 
+  /**
+   * From name cpu architecture.
+   *
+   * @param name the name
+   * @return the cpu architecture
+   */
   public static CPUArchitecture fromName(@NotNull final String name) {
     for (final CPUArchitecture val : values()) {
       if (val.name().equalsIgnoreCase(name.toUpperCase())) {

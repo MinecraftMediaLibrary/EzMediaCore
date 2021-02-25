@@ -14,22 +14,39 @@
 package com.github.pulsebeat02.minecraftmedialibrary.resourcepack;
 
 public enum PackFormatVersioning {
-  VER_1_15(5),
-  VER_1_15_1(5),
-  VER_1_15_2(5),
-  VER_1_16_1(5),
-  VER_1_16_2(6),
-  VER_1_16_3(6),
-  VER_1_16_4(6),
-  VER_1_16_5(6);
+    /**
+     * Ver 1 15 pack format versioning.
+     */
+    VER_1_15(5),
+    /** Ver 1 15 1 pack format versioning. */
+    VER_1_15_1(5),
+    /** Ver 1 15 2 pack format versioning. */
+    VER_1_15_2(5),
+    /** Ver 1 16 1 pack format versioning. */
+    VER_1_16_1(5),
+    /** Ver 1 16 2 pack format versioning. */
+    VER_1_16_2(6),
+    /** Ver 1 16 3 pack format versioning. */
+    VER_1_16_3(6),
+    /** Ver 1 16 4 pack format versioning. */
+    VER_1_16_4(6),
+    /**
+     * Ver 1 16 5 pack format versioning.
+     */
+    VER_1_16_5(6);
 
-  private final int packFormat;
+    private final int packFormat;
 
-  PackFormatVersioning(final int id) {
-    this.packFormat = id;
-  }
+    PackFormatVersioning(final int id) {
+        this.packFormat = id;
+    }
 
-  public int getPackFormatID() {
-    return packFormat;
-  }
+    /**
+     * Gets pack format id.
+     *
+     * @return the pack format id
+     */
+    public int getPackFormatID() {
+        return packFormat;
+    }
 }

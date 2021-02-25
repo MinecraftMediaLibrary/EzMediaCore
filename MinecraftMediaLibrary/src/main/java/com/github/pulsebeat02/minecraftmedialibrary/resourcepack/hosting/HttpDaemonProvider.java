@@ -22,42 +22,66 @@ import java.nio.file.Path;
 
 public class HttpDaemonProvider extends AbstractHostingProvider {
 
-  private static final String SERVER_IP = Bukkit.getIp();
-  private final int port;
-  private HttpDaemon daemon;
+    private static final String SERVER_IP = Bukkit.getIp();
+    private final int port;
+    private HttpDaemon daemon;
 
-  public HttpDaemonProvider(@NotNull final String path, final int port) {
-    this.port = port;
-    try {
-      this.daemon = new HttpDaemon(port, path);
-    } catch (final IOException e) {
-      e.printStackTrace();
+    /**
+     * Instantiates a new Http daemon provider.
+     *
+     * @param path the path
+     * @param port the port
+     */
+    public HttpDaemonProvider(@NotNull final String path, final int port) {
+        this.port = port;
+        try {
+            this.daemon = new HttpDaemon(port, path);
+        } catch (final IOException e) {
+            e.printStackTrace();
+        }
     }
-  }
 
-  public static String getServerIp() {
-    return SERVER_IP;
-  }
+    /**
+     * Gets server ip.
+     *
+     * @return the server ip
+     */
+    public static String getServerIp() {
+        return SERVER_IP;
+    }
 
-  public void startServer() {
-    daemon.start();
-  }
+    /**
+     * Start server.
+     */
+    public void startServer() {
+        daemon.start();
+    }
 
-  @Override
-  public String generateUrl(@NotNull final String file) {
-    return "http://" + SERVER_IP + ":" + port + "/" + file;
-  }
+    @Override
+    public String generateUrl(@NotNull final String file) {
+        return "http://" + SERVER_IP + ":" + port + "/" + file;
+    }
 
-  @Override
-  public String generateUrl(@NotNull final Path path) {
-    return "http://" + SERVER_IP + ":" + port + "/" + path.getFileName();
-  }
+    @Override
+    public String generateUrl(@NotNull final Path path) {
+        return "http://" + SERVER_IP + ":" + port + "/" + path.getFileName();
+    }
 
-  public HttpDaemon getDaemon() {
-    return daemon;
-  }
+    /**
+     * Gets daemon.
+     *
+     * @return the daemon
+     */
+    public HttpDaemon getDaemon() {
+        return daemon;
+    }
 
-  public int getPort() {
-    return port;
-  }
+    /**
+     * Gets port.
+     *
+     * @return the port
+     */
+    public int getPort() {
+        return port;
+    }
 }

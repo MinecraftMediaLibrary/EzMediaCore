@@ -20,13 +20,23 @@ import java.util.concurrent.CompletableFuture;
 
 public class AsyncResourcepackBuilder {
 
-  private final AbstractPackHolder packHolder;
+    private final AbstractPackHolder packHolder;
 
-  public AsyncResourcepackBuilder(@NotNull final AbstractPackHolder packHolder) {
-    this.packHolder = packHolder;
-  }
+    /**
+     * Instantiates a new Async resourcepack builder.
+     *
+     * @param packHolder the pack holder
+     */
+    public AsyncResourcepackBuilder(@NotNull final AbstractPackHolder packHolder) {
+        this.packHolder = packHolder;
+    }
 
-  public CompletableFuture<Void> buildResourcePack() {
-    return CompletableFuture.runAsync(packHolder::buildResourcePack);
-  }
+    /**
+     * Build resource pack completable future.
+     *
+     * @return the completable future
+     */
+    public CompletableFuture<Void> buildResourcePack() {
+        return CompletableFuture.runAsync(packHolder::buildResourcePack);
+    }
 }

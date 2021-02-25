@@ -40,10 +40,10 @@ public final class Relocation {
    * @param excludes a collection of patterns which this rule should specifically exclude
    */
   public Relocation(
-      String pattern,
-      String relocatedPattern,
-      Collection<String> includes,
-      Collection<String> excludes) {
+          final String pattern,
+          final String relocatedPattern,
+          final Collection<String> includes,
+          final Collection<String> excludes) {
     this.pattern = pattern.replace('/', '.');
     this.pathPattern = pattern.replace('.', '/');
     this.relocatedPattern = relocatedPattern.replace('/', '.');
@@ -70,29 +70,29 @@ public final class Relocation {
    * @param pattern the pattern to match
    * @param relocatedPattern the pattern to relocate to
    */
-  public Relocation(String pattern, String relocatedPattern) {
+  public Relocation(final String pattern, final String relocatedPattern) {
     this(pattern, relocatedPattern, Collections.emptyList(), Collections.emptyList());
   }
 
-  private static Set<String> normalizePatterns(Collection<String> patterns) {
-    Set<String> normalized = new LinkedHashSet<>();
-    for (String pattern : patterns) {
-      String classPattern = pattern.replace('.', '/');
+  private static Set<String> normalizePatterns(final Collection<String> patterns) {
+    final Set<String> normalized = new LinkedHashSet<>();
+    for (final String pattern : patterns) {
+      final String classPattern = pattern.replace('.', '/');
       normalized.add(classPattern);
       if (classPattern.endsWith("/*")) {
-        String packagePattern = classPattern.substring(0, classPattern.lastIndexOf('/'));
+        final String packagePattern = classPattern.substring(0, classPattern.lastIndexOf('/'));
         normalized.add(packagePattern);
       }
     }
     return normalized;
   }
 
-  private boolean isIncluded(String path) {
+  private boolean isIncluded(final String path) {
     if (this.includes == null) {
       return true;
     }
 
-    for (String include : this.includes) {
+    for (final String include : this.includes) {
       if (SelectorUtils.matchPath(include, path, true)) {
         return true;
       }
@@ -100,40 +100,64 @@ public final class Relocation {
     return false;
   }
 
-  private boolean isExcluded(String path) {
+  private boolean isExcluded(final String path) {
     if (this.excludes == null) {
       return false;
     }
 
-    for (String exclude : this.excludes) {
-      if (SelectorUtils.matchPath(exclude, path, true)) {
-        return true;
+      for (final String exclude : this.excludes) {
+          if (SelectorUtils.matchPath(exclude, path, true)) {
+              return true;
+          }
       }
-    }
-    return false;
-  }
-
-  boolean canRelocatePath(String path) {
-    if (path.endsWith(".class")) {
-      path = path.substring(0, path.length() - 6);
-    }
-
-    if (!isIncluded(path) || isExcluded(path)) {
       return false;
+  }
+
+    /**
+     * Can relocate path boolean.
+     *
+     * @param path the path
+     * @return the boolean
+     */
+    boolean canRelocatePath(String path) {
+        if (path.endsWith(".class")) {
+            path = path.substring(0, path.length() - 6);
+        }
+
+        if (!isIncluded(path) || isExcluded(path)) {
+            return false;
+        }
+
+        return path.startsWith(this.pathPattern) || path.startsWith("/" + this.pathPattern);
     }
 
-    return path.startsWith(this.pathPattern) || path.startsWith("/" + this.pathPattern);
-  }
+    /**
+     * Can relocate class boolean.
+     *
+     * @param clazz the clazz
+     * @return the boolean
+     */
+    boolean canRelocateClass(final String clazz) {
+        return clazz.indexOf('/') == -1 && canRelocatePath(clazz.replace('.', '/'));
+    }
 
-  boolean canRelocateClass(String clazz) {
-    return clazz.indexOf('/') == -1 && canRelocatePath(clazz.replace('.', '/'));
-  }
+    /**
+     * Relocate path string.
+     *
+     * @param path the path
+     * @return the string
+     */
+    String relocatePath(final String path) {
+        return path.replaceFirst(this.pathPattern, this.relocatedPathPattern);
+    }
 
-  String relocatePath(String path) {
-    return path.replaceFirst(this.pathPattern, this.relocatedPathPattern);
-  }
-
-  String relocateClass(String clazz) {
-    return clazz.replaceFirst(this.pattern, this.relocatedPattern);
-  }
+    /**
+     * Relocate class string.
+     *
+     * @param clazz the clazz
+     * @return the string
+     */
+    String relocateClass(final String clazz) {
+        return clazz.replaceFirst(this.pattern, this.relocatedPattern);
+    }
 }

@@ -16,11 +16,21 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 import org.jetbrains.annotations.NotNull;
 
 public enum DitherSetting {
+  /**
+   * The Standard minecraft dither.
+   */
   STANDARD_MINECRAFT_DITHER(new StandardDithering()),
+  /** The Sierra filter lite dither. */
   SIERRA_FILTER_LITE_DITHER(new FilterLiteDither()),
+  /** The Bayer ordered 2 dimensional. */
   BAYER_ORDERED_2_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.ModeTwo)),
+  /** The Bayer ordered 4 dimensional. */
   BAYER_ORDERED_4_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.ModeFour)),
+  /** The Bayer ordered 8 dimensional. */
   BAYER_ORDERED_8_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.ModeEight)),
+  /**
+   * The Floyd steinberg dither.
+   */
   FLOYD_STEINBERG_DITHER(new FloydImageDither());
 
   private final AbstractDitherHolder holder;
@@ -29,6 +39,11 @@ public enum DitherSetting {
     this.holder = holder;
   }
 
+  /**
+   * Gets holder.
+   *
+   * @return the holder
+   */
   public AbstractDitherHolder getHolder() {
     return holder;
   }
