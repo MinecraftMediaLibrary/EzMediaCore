@@ -137,7 +137,7 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
   /**
    * Called if a resourcepack failed to download for a user.
    *
-   * @param client
+   * @param client client
    */
   @Override
   public void onResourcepackFailedDownload(final Socket client) {}

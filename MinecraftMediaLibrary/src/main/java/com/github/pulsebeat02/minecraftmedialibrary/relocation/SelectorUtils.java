@@ -373,17 +373,22 @@ final class SelectorUtils {
     return true;
   }
 
-  /** Tests whether two characters are equal. */
+  /**
+   * Test if two characters are equal.
+   *
+   * @param c1 first char
+   * @param c2 second char
+   * @param isCaseSensitive sensitive
+   * @return result
+   */
   private static boolean equals(final char c1, final char c2, final boolean isCaseSensitive) {
     if (c1 == c2) {
       return true;
     }
     if (!isCaseSensitive) {
       // NOTE: Try both upper case and lower case as done by String.equalsIgnoreCase()
-      if (Character.toUpperCase(c1) == Character.toUpperCase(c2)
-          || Character.toLowerCase(c1) == Character.toLowerCase(c2)) {
-        return true;
-      }
+      return Character.toUpperCase(c1) == Character.toUpperCase(c2)
+              || Character.toLowerCase(c1) == Character.toLowerCase(c2);
     }
     return false;
   }

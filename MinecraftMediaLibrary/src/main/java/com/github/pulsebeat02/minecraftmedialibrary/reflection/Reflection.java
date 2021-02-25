@@ -260,7 +260,7 @@ public final class Reflection {
    *
    * @param lookupName - the class name with variables.
    * @return The class.
-   * @see {@link #getClass()} for more information.
+   * @see for more information.
    */
   public static Class<Object> getUntypedClass(final String lookupName) {
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -274,7 +274,6 @@ public final class Reflection {
    * <p>Strings enclosed with curly brackets - such as {TEXT} - will be replaced according to the
    * following table:
    *
-   * <p>
    *
    * <table border="1">
    * <tr>

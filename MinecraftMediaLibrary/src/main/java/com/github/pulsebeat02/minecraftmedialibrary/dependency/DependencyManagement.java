@@ -34,7 +34,7 @@ public class DependencyManagement {
   /**
    * Installs all libraries from links.
    *
-   * @return Set<File> set of downloaded files.
+   * @return set of downloaded files.
    */
   public Set<File> install() {
     final Set<File> files = new HashSet<>();

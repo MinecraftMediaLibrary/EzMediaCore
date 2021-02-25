@@ -439,7 +439,11 @@ public enum LinuxPackageDistribution {
 
   private final Map<String, Set<LinuxPackage>> links;
 
-  /** Instantiates a new LinuxPackageDistribution */
+  /**
+   * Creates new distribution per operating system.
+   *
+   * @param links URLs
+   */
   LinuxPackageDistribution(@NotNull final Map<String, Set<LinuxPackage>> links) {
     this.links = links;
   }
