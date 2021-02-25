@@ -73,6 +73,8 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
    */
   @Override
   public boolean onSetPluginPath(final String s) {
-    return LibC.INSTANCE.setenv(PLUGIN_ENV_NAME, path, 1) == 0;
+    // TODO: Fix this and set library path correctly. Currently, class is compiled later on than its supposed to be
+    // return LibC.INSTANCE.setenv(PLUGIN_ENV_NAME, path, 1) == 0;
+    return false;
   }
 }
