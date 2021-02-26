@@ -13,7 +13,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.MavenDependency;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.RepositoryDependency;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -75,7 +75,7 @@ public class DependencyUtilities {
    * @throws IOException the io exception
    */
   public static File downloadMavenDependency(
-      @NotNull final MavenDependency dependency, @NotNull final String parent) throws IOException {
+          @NotNull final RepositoryDependency dependency, @NotNull final String parent) throws IOException {
     return downloadFile(dependency, getMavenCentralUrl(dependency), parent);
   }
 
@@ -88,7 +88,7 @@ public class DependencyUtilities {
    * @throws IOException the io exception
    */
   public static File downloadJitpackDependency(
-      @NotNull final MavenDependency dependency, @NotNull final String parent) throws IOException {
+          @NotNull final RepositoryDependency dependency, @NotNull final String parent) throws IOException {
     return downloadFile(dependency, getJitpackUrl(dependency), parent);
   }
 
@@ -98,7 +98,7 @@ public class DependencyUtilities {
    * @param dependency the dependency
    * @return the maven central url
    */
-  public static String getMavenCentralUrl(@NotNull final MavenDependency dependency) {
+  public static String getMavenCentralUrl(@NotNull final RepositoryDependency dependency) {
     return getDependencyUrl(dependency, MAVEN_CENTRAL_URL);
   }
 
@@ -108,7 +108,7 @@ public class DependencyUtilities {
    * @param dependency the dependency
    * @return the jitpack url
    */
-  public static String getJitpackUrl(@NotNull final MavenDependency dependency) {
+  public static String getJitpackUrl(@NotNull final RepositoryDependency dependency) {
     return getDependencyUrl(dependency, JITPACK_CENTRAL_URL);
   }
 
@@ -120,7 +120,7 @@ public class DependencyUtilities {
    * @return the dependency url
    */
   public static String getDependencyUrl(
-      @NotNull final MavenDependency dependency, @NotNull final String base) {
+          @NotNull final RepositoryDependency dependency, @NotNull final String base) {
     return base
         + dependency.getGroup().replaceAll("\\.", "/")
         + "/"
@@ -157,7 +157,7 @@ public class DependencyUtilities {
    * @throws IOException the io exception
    */
   public static File downloadFile(
-      @NotNull final MavenDependency dependency,
+      @NotNull final RepositoryDependency dependency,
       @NotNull final String link,
       @NotNull final String parent)
       throws IOException {

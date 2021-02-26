@@ -17,15 +17,15 @@ import com.github.kiulian.downloader.cipher.Cipher;
 import com.github.kiulian.downloader.cipher.CipherFactory;
 import com.github.kiulian.downloader.cipher.CipherFunction;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyManagement;
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.JaveDependencyHandler;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.JaveDependencyInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 
 public class MavenDependencyTest {
 
   public static void main(final String[] args) {
     Logger.setVerbose(true);
-    new DependencyManagement().installAndLoad();
-    new JaveDependencyHandler().installAndLoad();
+    new DependencyManagement().initialize();
+    new JaveDependencyInstallation().initialize();
     // to test for whether the class loaded
     new CipherFactory() {
       @Override

@@ -49,7 +49,7 @@ public class DependencyManagement {
         Logger.info("Dependency Directory (" + dir.getAbsolutePath() + ") exists!");
       }
     }
-    for (final MavenDependency dependency : MavenDependency.values()) {
+    for (final RepositoryDependency dependency : RepositoryDependency.values()) {
       if (!checkExists(dir, dependency)) {
         File file = null;
         final String artifact = dependency.getArtifact();
@@ -75,7 +75,7 @@ public class DependencyManagement {
   }
 
   /** Install and load. */
-  public void installAndLoad() {
+  public void initialize() {
     install();
     for (final File f : new File(path + "/mml_libs").listFiles()) {
       try {
@@ -93,7 +93,7 @@ public class DependencyManagement {
    * @param dependency the dependency
    * @return the boolean
    */
-  public boolean checkExists(@NotNull final File dir, @NotNull final MavenDependency dependency) {
+  public boolean checkExists(@NotNull final File dir, @NotNull final RepositoryDependency dependency) {
     for (final File f : dir.listFiles()) {
       if (f.getName().contains(dependency.getArtifact())) {
         return true;

@@ -15,13 +15,13 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency;
 
 import org.jetbrains.annotations.NotNull;
 
-public enum MavenDependency {
+public enum RepositoryDependency {
 
   /** VLCJ Maven Dependency */
   VLCJ("uk.co.caprica", "vlcj", "4.6.0"),
 
   /** VLCJ Natives Maven Dependency */
-  VLCJ_NATIVES("uk.co.caprica", "vlcj-natives", "4.5.0"),
+  VLCJ_NATIVES("uk.co.caprica", "vlcj-natives", "4.1.0"),
 
   /** Youtube Downloader Maven Dependency */
   YOUTUBE_DOWNLOADER("com.github.sealedtx", "java-youtube-downloader", "2.4.6"),
@@ -44,7 +44,7 @@ public enum MavenDependency {
   private final String artifact;
   private final String version;
 
-  MavenDependency(
+  RepositoryDependency(
       @NotNull final String group, @NotNull final String artifact, @NotNull final String version) {
     this.group = group;
     this.artifact = artifact;

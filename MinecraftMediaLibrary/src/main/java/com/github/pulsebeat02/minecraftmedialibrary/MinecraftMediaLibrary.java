@@ -14,7 +14,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary;
 
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyManagement;
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.JaveDependencyHandler;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.JaveDependencyInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.listener.PlayerJoinLeaveHandler;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
@@ -83,9 +83,9 @@ public class MinecraftMediaLibrary {
   private void dependencyTasks() {
     DependencyUtilities.CLASSLOADER = (URLClassLoader) plugin.getClass().getClassLoader();
     final DependencyManagement dependencyManagement = new DependencyManagement();
-    dependencyManagement.installAndLoad();
-    final JaveDependencyHandler javeDependencyHandler = new JaveDependencyHandler();
-    javeDependencyHandler.installAndLoad();
+    dependencyManagement.initialize();
+    final JaveDependencyInstallation javeDependencyInstallation = new JaveDependencyInstallation();
+    javeDependencyInstallation.initialize();
     new NativeDiscovery().discover();
     if (vlcj) {
       try {

@@ -14,7 +14,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.utility.OperatingSystemUtilities;
-// import uk.co.caprica.vlcj.binding.LibC;
+import uk.co.caprica.vlcj.binding.LibC;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 
 import java.io.File;
@@ -73,8 +73,6 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
    */
   @Override
   public boolean onSetPluginPath(final String s) {
-    // TODO: Fix this and set library path correctly. Currently, class is compiled later on than its supposed to be
-    // return LibC.INSTANCE.setenv(PLUGIN_ENV_NAME, path, 1) == 0;
-    return false;
+     return LibC.INSTANCE.setenv(PLUGIN_ENV_NAME, path, 1) == 0;
   }
 }

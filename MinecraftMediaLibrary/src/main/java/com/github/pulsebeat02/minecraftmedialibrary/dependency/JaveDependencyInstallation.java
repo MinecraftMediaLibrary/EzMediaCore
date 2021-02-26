@@ -20,12 +20,12 @@ import com.github.pulsebeat02.minecraftmedialibrary.utility.OperatingSystemUtili
 import java.io.File;
 import java.io.IOException;
 
-public class JaveDependencyHandler {
+public class JaveDependencyInstallation {
 
   private final String path;
 
   /** Instantiates a new JaveDependencyHandler. */
-  public JaveDependencyHandler() {
+  public JaveDependencyInstallation() {
     this.path = System.getProperty("user.dir");
   }
 
@@ -34,7 +34,7 @@ public class JaveDependencyHandler {
    *
    * @return Jave binary file
    */
-  public File installAndLoad() {
+  public File initialize() {
     for (final File f : new File(path + "/mml_libs").listFiles()) {
       if (f.getName().contains("jave")) {
         try {
