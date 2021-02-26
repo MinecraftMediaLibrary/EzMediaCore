@@ -26,7 +26,7 @@ public class JaveDependencyInstallation {
 
   /** Instantiates a new JaveDependencyHandler. */
   public JaveDependencyInstallation() {
-    this.path = System.getProperty("user.dir");
+    path = System.getProperty("user.dir");
   }
 
   /**
@@ -42,7 +42,7 @@ public class JaveDependencyInstallation {
         } catch (final IOException e) {
           e.printStackTrace();
         }
-        return null;
+        return f;
       }
     }
     File file = null;

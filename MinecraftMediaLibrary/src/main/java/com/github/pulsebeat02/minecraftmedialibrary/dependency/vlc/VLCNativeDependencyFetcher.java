@@ -17,8 +17,6 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.OperatingSystemUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ZipFileUtilities;
 import org.apache.commons.io.FileUtils;
-import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.File;
@@ -27,15 +25,10 @@ import java.net.URL;
 
 public class VLCNativeDependencyFetcher {
 
-  public final Plugin plugin;
-
   /**
    * Instantiates a new VLCNativeDependencyFetcher.
-   *
-   * @param plugin the plugin
    */
-  public VLCNativeDependencyFetcher(@NotNull final Plugin plugin) {
-    this.plugin = plugin;
+  public VLCNativeDependencyFetcher() {
   }
 
   /** Download libraries. */

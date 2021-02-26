@@ -1,54 +1,59 @@
 package com.github.pulsebeat02.minecraftmedialibrary.dependency;
 
+import com.github.pulsebeat02.minecraftmedialibrary.relocation.Relocation;
 import org.jetbrains.annotations.NotNull;
 
 public enum JarRelocationConvention {
 
-  /** VLCJ Jar Relocation Convention */
-  VLCJ(RepositoryDependency.VLCJ, "com.github.pulsebeat02.vlcj"),
+  /**
+   * VLCJ Jar Relocation Convention
+   */
+  VLCJ("uk.co.caprica.vlcj", "com.github.pulsebeat02.vlcj"),
 
-  /** VLCJ Natives Jar Relocation Convention */
-  VLCJ_NATIVES(RepositoryDependency.VLCJ_NATIVES, "com.github.pulsebeat02.vlcj.bindings"),
+  /**
+   * VLCJ Natives Jar Relocation Convention
+   */
+  VLCJ_NATIVES("uk.co.caprica.vlcj.binding", "com.github.pulsebeat02.vlcj.binding"),
 
-  /** Youtube Downloader Jar Relocation Convention */
-  YOUTUBE_DOWNLOADER(RepositoryDependency.YOUTUBE_DOWNLOADER, "com.github.pulsebeat02.youtube"),
+  /**
+   * Youtube Downloader Jar Relocation Convention
+   */
+  YOUTUBE_DOWNLOADER("com.github.sealedtx.downloader", "com.github.pulsebeat02.youtube"),
 
-  /** Jave Core Jar Relocation Convention */
-  JAVE_CORE(RepositoryDependency.JAVE_CORE, "com.github.pulsebeat02.jave"),
+  /**
+   * Jave Core Jar Relocation Convention
+   */
+  JAVE_CORE("ws.schild.jave", "com.github.pulsebeat02.jave"),
 
-  /** Compression Jar Relocation Convention */
-  COMPRESSION(RepositoryDependency.COMPRESSION, "com.github.pulsebeat02.jarchivelib"),
+  /**
+   * Compression Jar Relocation Convention
+   */
+  COMPRESSION("org.rauschig.jarchivelib", "com.github.pulsebeat02.jarchivelib"),
 
-  /** ASM Jar Relocation Convention */
-  ASM(RepositoryDependency.ASM, "com.github.pulsebeat02.asm"),
+  /**
+   * ASM Jar Relocation Convention
+   */
+  ASM("org.ow2.asm", "com.github.pulsebeat02.asm"),
 
-  /** ASM Commons Jar Relocation Convention */
-  ASM_COMMONS(RepositoryDependency.ASM_COMMONS, "com.github.pulsebeat02.asm.commons");
+  /**
+   * ASM Commons Jar Relocation Convention
+   */
+  ASM_COMMONS("org.ow2.asm.commons", "com.github.pulsebeat02.asm.commons");
 
-  private final RepositoryDependency dependency;
-  private final String name;
+  private final Relocation relocation;
 
   JarRelocationConvention(
-      @NotNull final RepositoryDependency dependency, @NotNull final String name) {
-    this.dependency = dependency;
-    this.name = name;
+          @NotNull final String before, @NotNull final String after) {
+    relocation = new Relocation(before, after);
   }
 
   /**
-   * Gets dependency.
+   * Gets relocation.
    *
-   * @return the dependency
+   * @return the relocation
    */
-  public RepositoryDependency getDependency() {
-    return dependency;
+  public Relocation getRelocation() {
+    return relocation;
   }
 
-  /**
-   * Gets name.
-   *
-   * @return the name
-   */
-  public String getName() {
-    return name;
-  }
 }

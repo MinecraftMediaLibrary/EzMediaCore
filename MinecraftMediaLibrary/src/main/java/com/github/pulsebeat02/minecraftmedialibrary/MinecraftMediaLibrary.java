@@ -15,6 +15,7 @@ package com.github.pulsebeat02.minecraftmedialibrary;
 
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyManagement;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.JaveDependencyInstallation;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.VLCNativeDependencyFetcher;
 import com.github.pulsebeat02.minecraftmedialibrary.listener.PlayerJoinLeaveHandler;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
@@ -28,7 +29,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
-import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.net.URLClassLoader;
 
@@ -51,28 +51,28 @@ public class MinecraftMediaLibrary {
   public MinecraftMediaLibrary(
       @NotNull final Plugin plugin, @NotNull final String path, final boolean isUsingVLCJ) {
     this.plugin = plugin;
-    this.protocol =
-        new TinyProtocol(plugin) {
-          @Override
-          public Object onPacketOutAsync(
-              @NotNull final Player player,
-              @NotNull final Channel channel,
-              @NotNull final Object packet) {
-            return handler.onPacketInterceptOut(player, packet);
-          }
+    protocol =
+            new TinyProtocol(plugin) {
+              @Override
+              public Object onPacketOutAsync(
+                      @NotNull final Player player,
+                      @NotNull final Channel channel,
+                      @NotNull final Object packet) {
+                return handler.onPacketInterceptOut(player, packet);
+              }
 
-          @Override
-          public Object onPacketInAsync(
-              @NotNull final Player player,
-              @NotNull final Channel channel,
-              @NotNull final Object packet) {
-            return handler.onPacketInterceptIn(player, packet);
-          }
-        };
-    this.handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
-    this.parent = path;
-    this.vlcj = isUsingVLCJ;
-    this.listener = new PlayerJoinLeaveHandler(this);
+              @Override
+              public Object onPacketInAsync(
+                      @NotNull final Player player,
+                      @NotNull final Channel channel,
+                      @NotNull final Object packet) {
+                return handler.onPacketInterceptIn(player, packet);
+              }
+            };
+    handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
+    parent = path;
+    vlcj = isUsingVLCJ;
+    listener = new PlayerJoinLeaveHandler(this);
     dependencyTasks();
     registrationTasks();
     debugInformation();
@@ -82,18 +82,19 @@ public class MinecraftMediaLibrary {
   /** Runs dependency tasks required. */
   private void dependencyTasks() {
     DependencyUtilities.CLASSLOADER = (URLClassLoader) plugin.getClass().getClassLoader();
-    final DependencyManagement dependencyManagement = new DependencyManagement();
-    dependencyManagement.initialize();
     final JaveDependencyInstallation javeDependencyInstallation = new JaveDependencyInstallation();
     javeDependencyInstallation.initialize();
-    new NativeDiscovery().discover();
+    final DependencyManagement dependencyManagement = new DependencyManagement();
+    dependencyManagement.initialize();
+    dependencyManagement.relocate();
+    new VLCNativeDependencyFetcher().downloadLibraries();
     if (vlcj) {
       try {
         new MediaPlayerFactory();
       } catch (final Exception e) {
         Logger.error(
-            "The user does not have VLCJ installed! This is a very fatal error. Switching "
-                + "to basic Video Player instead.");
+                "The user does not have VLCJ installed! This is a very fatal error. Switching "
+                        + "to basic Video Player instead.");
         vlcj = false;
       }
     }
