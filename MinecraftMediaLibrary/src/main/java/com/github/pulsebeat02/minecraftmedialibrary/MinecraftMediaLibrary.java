@@ -51,25 +51,25 @@ public class MinecraftMediaLibrary {
   public MinecraftMediaLibrary(
       @NotNull final Plugin plugin, @NotNull final String path, final boolean isUsingVLCJ) {
     this.plugin = plugin;
-    protocol =
-            new TinyProtocol(plugin) {
-              @Override
-              public Object onPacketOutAsync(
-                      @NotNull final Player player,
-                      @NotNull final Channel channel,
-                      @NotNull final Object packet) {
-                return handler.onPacketInterceptOut(player, packet);
-              }
+      protocol =
+              new TinyProtocol(plugin) {
+                  @Override
+                  public Object onPacketOutAsync(
+                          @NotNull final Player player,
+                          @NotNull final Channel channel,
+                          @NotNull final Object packet) {
+                      return handler.onPacketInterceptOut(player, packet);
+                  }
 
-              @Override
-              public Object onPacketInAsync(
-                      @NotNull final Player player,
-                      @NotNull final Channel channel,
-                      @NotNull final Object packet) {
-                return handler.onPacketInterceptIn(player, packet);
-              }
-            };
-    handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
+                  @Override
+                  public Object onPacketInAsync(
+                          @NotNull final Player player,
+                          @NotNull final Channel channel,
+                          @NotNull final Object packet) {
+                      return handler.onPacketInterceptIn(player, packet);
+                  }
+              };
+      handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
     parent = path;
     vlcj = isUsingVLCJ;
     listener = new PlayerJoinLeaveHandler(this);
@@ -92,10 +92,10 @@ public class MinecraftMediaLibrary {
       try {
         new MediaPlayerFactory();
       } catch (final Exception e) {
-        Logger.error(
-                "The user does not have VLCJ installed! This is a very fatal error. Switching "
-                        + "to basic Video Player instead.");
-        vlcj = false;
+          Logger.error(
+                  "The user does not have VLCJ installed! This is a very fatal error. Switching "
+                          + "to basic Video Player instead.");
+          vlcj = false;
       }
     }
   }

@@ -70,26 +70,28 @@ public class DependencyUtilities {
    * Download Maven Dependency.
    *
    * @param dependency the dependency
-   * @param parent the parent
+   * @param parent     the parent
    * @return the file
    * @throws IOException the io exception
    */
   public static File downloadMavenDependency(
-          @NotNull final RepositoryDependency dependency, @NotNull final String parent) throws IOException {
-    return downloadFile(dependency, getMavenCentralUrl(dependency), parent);
+          @NotNull final RepositoryDependency dependency, @NotNull final String parent)
+          throws IOException {
+      return downloadFile(dependency, getMavenCentralUrl(dependency), parent);
   }
 
-  /**
-   * Download Jitpack Dependency.
-   *
-   * @param dependency the dependency
-   * @param parent the parent
-   * @return the file
-   * @throws IOException the io exception
-   */
-  public static File downloadJitpackDependency(
-          @NotNull final RepositoryDependency dependency, @NotNull final String parent) throws IOException {
-    return downloadFile(dependency, getJitpackUrl(dependency), parent);
+    /**
+     * Download Jitpack Dependency.
+     *
+     * @param dependency the dependency
+     * @param parent     the parent
+     * @return the file
+     * @throws IOException the io exception
+     */
+    public static File downloadJitpackDependency(
+            @NotNull final RepositoryDependency dependency, @NotNull final String parent)
+            throws IOException {
+        return downloadFile(dependency, getJitpackUrl(dependency), parent);
   }
 
   /**
@@ -112,21 +114,21 @@ public class DependencyUtilities {
     return getDependencyUrl(dependency, JITPACK_CENTRAL_URL);
   }
 
-  /**
-   * Constructs dependency URL of MavenDependency.
-   *
-   * @param dependency the dependency
-   * @param base the base
-   * @return the dependency url
-   */
-  public static String getDependencyUrl(
-          @NotNull final RepositoryDependency dependency, @NotNull final String base) {
-    return base
-        + dependency.getGroup().replaceAll("\\.", "/")
-        + "/"
-        + dependency.getArtifact()
-        + "/"
-        + dependency.getVersion()
+    /**
+     * Constructs dependency URL of MavenDependency.
+     *
+     * @param dependency the dependency
+     * @param base       the base
+     * @return the dependency url
+     */
+    public static String getDependencyUrl(
+            @NotNull final RepositoryDependency dependency, @NotNull final String base) {
+        return base
+                + dependency.getGroup().replaceAll("\\.", "/")
+                + "/"
+                + dependency.getArtifact()
+                + "/"
+                + dependency.getVersion()
         + "/";
   }
 
