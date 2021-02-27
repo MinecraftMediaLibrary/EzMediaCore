@@ -23,6 +23,7 @@ import java.io.IOException;
 public class JaveDependencyInstallation {
 
   private final String path;
+  private File file;
 
   /** Instantiates a new JaveDependencyHandler. */
   public JaveDependencyInstallation() {
@@ -34,18 +35,21 @@ public class JaveDependencyInstallation {
    *
    * @return Jave binary file
    */
-  public File initialize() {
-    for (final File f : new File(path + "/mml_libs").listFiles()) {
-      if (f.getName().contains("jave")) {
-        try {
-          DependencyUtilities.loadDependency(f);
-        } catch (final IOException e) {
-          e.printStackTrace();
-        }
-        return f;
+  public File install() {
+    final File folder = new File(path + "/mml_libs");
+    if (!folder.exists()) {
+      if (folder.mkdir()) {
+        Logger.info("Library folder created successfully");
+      } else {
+        Logger.error("Library folder couldn't created successfully");
       }
     }
-    File file = null;
+    for (final File f : new File(path + "/mml_libs").listFiles()) {
+      if (f.getName().contains("jave")) {
+        file = f;
+        return file;
+      }
+    }
     try {
       file =
           DependencyUtilities.downloadFile(
@@ -53,6 +57,10 @@ public class JaveDependencyInstallation {
     } catch (final IOException e) {
       e.printStackTrace();
     }
+    return file;
+  }
+
+  public void load() {
     try {
       if (file != null) {
         DependencyUtilities.loadDependency(file);
@@ -60,7 +68,6 @@ public class JaveDependencyInstallation {
     } catch (final IOException e) {
       e.printStackTrace();
     }
-    return file;
   }
 
   /**

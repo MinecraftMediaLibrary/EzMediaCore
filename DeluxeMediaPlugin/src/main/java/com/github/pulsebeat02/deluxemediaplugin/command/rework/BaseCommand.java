@@ -5,39 +5,65 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
-public abstract class BaseCommand extends Command
-    implements LiteralCommandSegment<CommandSender> {
+public abstract class BaseCommand extends Command implements LiteralCommandSegment<CommandSender> {
 
   protected final TabExecutor executor;
 
+  /**
+   * Instantiates a new BaseCommand.
+   *
+   * @param name command name
+   * @param executor tab complete executor
+   * @param permission permission for command
+   * @param aliases aliases for command
+   */
   public BaseCommand(
       @NotNull final String name,
       @NotNull final TabExecutor executor,
       @NotNull final String permission,
       @NotNull final String... aliases) {
     super(name);
-    this.setPermission(permission);
-    this.setAliases(Arrays.asList(aliases));
+    setPermission(permission);
+    setAliases(Arrays.asList(aliases));
     this.executor = executor;
   }
 
-  // subclasses must implement getCommandNode
-
+  /**
+   * Returns the correct usage of the command.
+   *
+   * @return usage
+   */
   public abstract String usage();
 
+  /**
+   * Executes a specific command from a player.
+   *
+   * @param sender who requested to send the command
+   * @param label label of command
+   * @param args arguments of command
+   * @return whether command should show usage or not
+   */
   @Override
-  public boolean execute(@NotNull final CommandSender sender, @NotNull final String label, final String... args) {
+  public boolean execute(
+      @NotNull final CommandSender sender, @NotNull final String label, final String... args) {
     return executor.onCommand(sender, this, label, args);
   }
 
+  /**
+   * Gets the tab complete for a player. (Uses Object#requireNonNull to get rid of the dumb error)
+   *
+   * @param sender who requested the tab complete
+   * @param label label of command
+   * @param args arguments of tab complete
+   * @return tab completed options
+   */
   @Override
   public List<String> tabComplete(
-          @NotNull final CommandSender sender, @NotNull final String label, final String... args) {
-    final List<String> list = executor.onTabComplete(sender, this, label, args);
-    return list == null ? new ArrayList<>() : list;
+      @NotNull final CommandSender sender, @NotNull final String label, final String... args) {
+    return Objects.requireNonNull(executor.onTabComplete(sender, this, label, args));
   }
 }

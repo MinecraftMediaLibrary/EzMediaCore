@@ -31,7 +31,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Logger;
 
-public class DeluxeMediaPlugin extends JavaPlugin {
+public final class DeluxeMediaPlugin extends JavaPlugin {
 
   public static boolean OUTDATED = false;
 

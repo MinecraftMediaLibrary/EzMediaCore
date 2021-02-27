@@ -32,23 +32,21 @@ public class DependencyManagement {
   private final String path;
   private final Set<File> files;
 
-  /**
-   * Instantiates a new DependencyManagement.
-   */
+  /** Instantiates a new DependencyManagement. */
   public DependencyManagement() {
     path = System.getProperty("user.dir");
     files = new HashSet<>();
   }
 
-    /** Installs all libraries from links. */
+  /** Installs all libraries from links. */
   public void install() {
     final File dir = new File(path + "/mml_libs");
     if (!dir.exists()) {
       if (dir.mkdir()) {
-          Logger.info(
-                  "Dependency Directory ("
-                          + dir.getAbsolutePath()
-                          + ") does not exist... Creating a folder");
+        Logger.info(
+            "Dependency Directory ("
+                + dir.getAbsolutePath()
+                + ") does not exist... Creating a folder");
       } else {
         Logger.info("Dependency Directory (" + dir.getAbsolutePath() + ") exists!");
       }
@@ -62,14 +60,14 @@ public class DependencyManagement {
           file = DependencyUtilities.downloadMavenDependency(dependency, path + "/mml_libs");
         } catch (final IOException e) {
           try {
-              Logger.info(
-                      "Could not find in the Maven Central Repository... Checking Jitpack Central Repository for "
-                              + artifact);
-              file = DependencyUtilities.downloadJitpackDependency(dependency, path + "/mml_libs");
+            Logger.info(
+                "Could not find in the Maven Central Repository... Checking Jitpack Central Repository for "
+                    + artifact);
+            file = DependencyUtilities.downloadJitpackDependency(dependency, path + "/mml_libs");
           } catch (final IOException exception) {
-              Logger.error(
-                      "Could not find " + artifact + " in the Maven Central Repository or Jitpack");
-              exception.printStackTrace();
+            Logger.error(
+                "Could not find " + artifact + " in the Maven Central Repository or Jitpack");
+            exception.printStackTrace();
           }
         }
         files.add(file);
@@ -77,25 +75,24 @@ public class DependencyManagement {
     }
   }
 
-    /** Relocates Dependencies. */
+  /** Relocates Dependencies. */
   public void relocate() {
-      final List<Relocation> relocations =
-              Arrays.stream(JarRelocationConvention.values())
-                      .map(JarRelocationConvention::getRelocation)
-                      .collect(Collectors.toList());
-      for (final File f : files) {
-          final JarRelocator relocator = new JarRelocator(f, f, relocations);
-          try {
-              relocator.run();
-          } catch (final IOException e) {
-              e.printStackTrace();
-          }
+    final List<Relocation> relocations =
+        Arrays.stream(JarRelocationConvention.values())
+            .map(JarRelocationConvention::getRelocation)
+            .collect(Collectors.toList());
+    for (final File f : files) {
+      final JarRelocator relocator = new JarRelocator(f, f, relocations);
+      try {
+        relocator.run();
+      } catch (final IOException e) {
+        e.printStackTrace();
       }
+    }
   }
 
-    /** Install and load. */
-  public void initialize() {
-    install();
+  /** Install and load. */
+  public void load() {
     for (final File f : new File(path + "/mml_libs").listFiles()) {
       try {
         DependencyUtilities.loadDependency(f);
@@ -105,20 +102,20 @@ public class DependencyManagement {
     }
   }
 
-    /**
-     * Check if dependency exists in the directory beforehand.
-     *
-     * @param dir        the directory
-     * @param dependency the dependency
-     * @return the boolean
-     */
-    public boolean checkExists(
-            @NotNull final File dir, @NotNull final RepositoryDependency dependency) {
-        for (final File f : dir.listFiles()) {
-            if (f.getName().contains(dependency.getArtifact())) {
-                return true;
-            }
-        }
-        return false;
+  /**
+   * Check if dependency exists in the directory beforehand.
+   *
+   * @param dir the directory
+   * @param dependency the dependency
+   * @return the boolean
+   */
+  public boolean checkExists(
+      @NotNull final File dir, @NotNull final RepositoryDependency dependency) {
+    for (final File f : dir.listFiles()) {
+      if (f.getName().contains(dependency.getArtifact())) {
+        return true;
+      }
+    }
+    return false;
   }
 }

@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
-public class ResourcepackUtilities {
+public final class ResourcepackUtilities {
 
   /**
    * Validate pack format.

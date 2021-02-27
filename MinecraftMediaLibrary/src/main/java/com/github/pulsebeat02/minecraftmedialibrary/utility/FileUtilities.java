@@ -23,7 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.UUID;
 
-public class FileUtilities {
+public final class FileUtilities {
 
   /**
    * Download image file from URL.

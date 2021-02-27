@@ -28,7 +28,7 @@ import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class DependencyUtilities {
+public final class DependencyUtilities {
 
   private static final String MAVEN_CENTRAL_URL;
   private static final String JITPACK_CENTRAL_URL;

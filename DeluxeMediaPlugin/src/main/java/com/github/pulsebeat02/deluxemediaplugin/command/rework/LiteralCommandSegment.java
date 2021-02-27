@@ -1,8 +1,14 @@
 package com.github.pulsebeat02.deluxemediaplugin.command.rework;
 
-public interface LiteralCommandSegment<S> extends CommandSegment<S,T> {
+import com.mojang.brigadier.tree.LiteralCommandNode;
 
-    @Override
-    T getCommandNode();
+public interface LiteralCommandSegment<S> extends CommandSegment<S, LiteralCommandNode<S>> {
+
+  /**
+   * Gets the command node.
+   *
+   * @return literal command node.
+   */
+  @Override
+  LiteralCommandNode<S> getCommandNode();
 }
-

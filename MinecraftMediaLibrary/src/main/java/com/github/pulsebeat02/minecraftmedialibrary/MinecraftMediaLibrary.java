@@ -32,7 +32,7 @@ import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
 import java.net.URLClassLoader;
 
-public class MinecraftMediaLibrary {
+public final class MinecraftMediaLibrary {
 
   private final Plugin plugin;
   private final String parent;
@@ -83,9 +83,11 @@ public class MinecraftMediaLibrary {
   private void dependencyTasks() {
     DependencyUtilities.CLASSLOADER = (URLClassLoader) plugin.getClass().getClassLoader();
     final JaveDependencyInstallation javeDependencyInstallation = new JaveDependencyInstallation();
-    javeDependencyInstallation.initialize();
+    javeDependencyInstallation.install();
+    javeDependencyInstallation.load();
     final DependencyManagement dependencyManagement = new DependencyManagement();
-    dependencyManagement.initialize();
+    dependencyManagement.install();
+    dependencyManagement.relocate();
     dependencyManagement.relocate();
     new VLCNativeDependencyFetcher().downloadLibraries();
     if (vlcj) {

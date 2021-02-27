@@ -26,7 +26,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
-public class CommandUtilities {
+public final class CommandUtilities {
 
   private static HashMap<String, Command> knownCommands = null;
 

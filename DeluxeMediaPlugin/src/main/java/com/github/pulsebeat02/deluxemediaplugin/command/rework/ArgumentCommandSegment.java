@@ -4,7 +4,11 @@ import com.mojang.brigadier.tree.ArgumentCommandNode;
 
 public interface ArgumentCommandSegment<S, T> extends CommandSegment<S, ArgumentCommandNode<S, T>> {
 
-    @Override
-    ArgumentCommandNode<S, T> getCommandNode();
+  /**
+   * Gets the command node.
+   *
+   * @return command node
+   */
+  @Override
+  ArgumentCommandNode<S, T> getCommandNode();
 }
-

@@ -24,9 +24,13 @@ public class MavenDependencyTest {
 
   public static void main(final String[] args) {
     Logger.setVerbose(true);
-    new DependencyManagement().initialize();
-    new JaveDependencyInstallation().initialize();
-    // to test for whether the class loaded
+    final JaveDependencyInstallation jave = new JaveDependencyInstallation();
+    jave.install();
+    jave.load();
+    final DependencyManagement management = new DependencyManagement();
+    management.install();
+    management.relocate();
+    management.load();
     new CipherFactory() {
       @Override
       public Cipher createCipher(final String s) {

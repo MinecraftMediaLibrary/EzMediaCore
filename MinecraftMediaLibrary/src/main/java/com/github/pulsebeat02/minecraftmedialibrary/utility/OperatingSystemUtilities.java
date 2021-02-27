@@ -16,7 +16,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.utility;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
-public class OperatingSystemUtilities {
+public final class OperatingSystemUtilities {
 
   /** CPU Architecture */
   public static final String CPU_ARCH;

@@ -15,7 +15,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.exception;
 
 import org.jetbrains.annotations.NotNull;
 
-public class InvalidPackFormatException extends AssertionError {
+public final class InvalidPackFormatException extends AssertionError {
 
   private static final long serialVersionUID = -4686809703553076358L;
 

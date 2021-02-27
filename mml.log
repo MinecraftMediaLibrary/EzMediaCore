@@ -1,0 +1,3 @@
+1614439807896: [INFO] Attempting to Open Reflection Module...
+1614439807898: [INFO] User is using Java 8, meaning Reflection Module does NOT have to be opened. You may safely ignore this error.
+1614439807898: [INFO] Loading JAR Dependency at: /Users/bli24/IdeaProjects/MinecraftMediaLibrary/mml_libs/jave-nativebin-osx64-2.7.3.jar

@@ -21,7 +21,7 @@ import org.rauschig.jarchivelib.ArchiverFactory;
 import java.io.File;
 import java.io.IOException;
 
-public class ZipFileUtilities {
+public final class ZipFileUtilities {
 
   /**
    * Decompress archive.

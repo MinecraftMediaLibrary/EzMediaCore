@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-public class VideoUtilities {
+public final class VideoUtilities {
 
   /**
    * Get buffer from an image.

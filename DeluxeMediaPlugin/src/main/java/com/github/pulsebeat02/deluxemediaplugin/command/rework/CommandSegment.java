@@ -8,14 +8,32 @@ import org.jetbrains.annotations.NotNull;
 
 public interface CommandSegment<S, T extends CommandNode<S>> {
 
-    T getCommandNode();
+  /**
+   * Gets the command node.
+   *
+   * @return command node.
+   */
+  T getCommandNode();
 
-    default LiteralArgumentBuilder<S> literal(@NotNull final String name) {
-        return LiteralArgumentBuilder.literal(name);
-    }
+  /**
+   * Constructs a LiteralArgumentBuilder from the given String name.
+   *
+   * @param name name
+   * @return literal argument builder with specified name.
+   */
+  default LiteralArgumentBuilder<S> literal(@NotNull final String name) {
+    return LiteralArgumentBuilder.literal(name);
+  }
 
-    default <K> RequiredArgumentBuilder<S, T> argument(@NotNull final String name, @NotNull final ArgumentType<T> type) {
-        return RequiredArgumentBuilder.argument(name, type);
-    }
-
+  /**
+   * Constructs a RequiredArgumentBuilder from the given String name and ArgumentType.
+   *
+   * @param name name
+   * @param type argument type
+   * @return required argument builder from name and type.
+   */
+  default RequiredArgumentBuilder<S, T> argument(
+      @NotNull final String name, @NotNull final ArgumentType<T> type) {
+    return RequiredArgumentBuilder.argument(name, type);
+  }
 }
