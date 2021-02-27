@@ -70,22 +70,23 @@ public class VideoConfiguration extends AbstractConfiguration {
     final boolean vlcj = configuration.getBoolean("using-vlcj");
     if (enabled) {
       final MinecraftMediaLibrary library = player.getLibrary();
+      assert holder != null;
       final ItemFrameCallback callback =
           new ItemFrameCallback(
               getPlugin().getLibrary(),
-              null,
-              startingMapID,
-              frameWidth,
-              frameHeight,
-              width,
-              0,
-              holder);
+                  null,
+                  startingMapID,
+                  frameWidth,
+                  frameHeight,
+                  width,
+                  0,
+                  holder);
       if (vlcj) {
         assert url != null;
         player = new VLCJIntegratedPlayer(library, url, width, height, callback::send);
-      } else {
-        // player = new BasicVideoPlayer(library, url, width, height, callback::send);
       }
+      // player = new BasicVideoPlayer(library, url, width, height, callback::send);
+
       this.callback = callback;
     }
   }

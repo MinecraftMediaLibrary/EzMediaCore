@@ -77,7 +77,7 @@ public class MapImage implements AbstractImageMapHolder, ConfigurationSerializab
       final int height) {
     this.library = library;
     this.map = map;
-    this.image = FileUtilities.downloadImageFile(url, library.getPath());
+    image = FileUtilities.downloadImageFile(url, library.getPath());
     this.width = width;
     this.height = height;
     Logger.info(
@@ -133,7 +133,7 @@ public class MapImage implements AbstractImageMapHolder, ConfigurationSerializab
    * @return map of serialized values
    */
   @Override
-  public Map<String, Object> serialize() {
+  public @NotNull Map<String, Object> serialize() {
     final Map<String, Object> serialized = new HashMap<>();
     serialized.put("map", map);
     serialized.put("image", image.getAbsolutePath());

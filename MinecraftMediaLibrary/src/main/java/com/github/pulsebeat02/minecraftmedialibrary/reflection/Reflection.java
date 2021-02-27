@@ -383,7 +383,7 @@ public final class Reflection {
      * @param arguments - the arguments to pass to the constructor.
      * @return The constructed object.
      */
-    public Object invoke(Object... arguments);
+    Object invoke(Object... arguments);
   }
 
   /** An interface for invoking a specific method. */
@@ -391,11 +391,11 @@ public final class Reflection {
     /**
      * Invoke a method on a specific target object.
      *
-     * @param target - the target object, or NULL for a static method.
+     * @param target    - the target object, or NULL for a static method.
      * @param arguments - the arguments to pass to the method.
      * @return The return value, or NULL if is void.
      */
-    public Object invoke(Object target, Object... arguments);
+    Object invoke(Object target, Object... arguments);
   }
 
   /**
@@ -410,7 +410,7 @@ public final class Reflection {
      * @param target - the target object, or NULL for a static field.
      * @return The value of the field.
      */
-    public T get(Object target);
+    T get(Object target);
 
     /**
      * Set the content of a field.
@@ -418,7 +418,7 @@ public final class Reflection {
      * @param target - the target object, or NULL for a static field.
      * @param value - the new value of the field.
      */
-    public void set(Object target, Object value);
+    void set(Object target, Object value);
 
     /**
      * Determine if the given object has this field.
@@ -426,6 +426,6 @@ public final class Reflection {
      * @param target - the object to test.
      * @return TRUE if it does, FALSE otherwise.
      */
-    public boolean hasField(Object target);
+    boolean hasField(Object target);
   }
 }

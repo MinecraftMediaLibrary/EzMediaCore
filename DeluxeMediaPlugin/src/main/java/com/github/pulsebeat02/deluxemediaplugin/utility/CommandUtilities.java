@@ -39,17 +39,17 @@ public class CommandUtilities {
       knownCommands = (HashMap<String, Command>) map;
     } else if (Pattern.compile("1\\.(?:8|9|10|11|12)").matcher(ver).find()) {
       final Object result =
-          getPrivateFieldLegacy(Bukkit.getServer().getPluginManager(), "commandMap");
+              getPrivateFieldLegacy(Bukkit.getServer().getPluginManager(), "commandMap");
       final SimpleCommandMap commandMap = (SimpleCommandMap) result;
       final Object map = getPrivateFieldLegacy(Objects.requireNonNull(commandMap), "knownCommands");
       knownCommands = (HashMap<String, Command>) map;
     } else {
       Bukkit.getLogger()
-          .log(
-              Level.SEVERE,
-              "[DeluxeMediaPlugin] You are using a severely "
-                  + "outdated version of Minecraft. Please update as versions below 1.8 are not "
-                  + "supported. We are sorry of the inconvenience.");
+              .log(
+                      Level.SEVERE,
+                      "[DeluxeMediaPlugin] You are using a severely "
+                              + "outdated version of Minecraft. Please update as versions below 1.8 are not "
+                              + "supported. We are sorry of the inconvenience.");
       DeluxeMediaPlugin.OUTDATED = true;
     }
   }
@@ -57,7 +57,7 @@ public class CommandUtilities {
   public static void ensureInit() {}
 
   public static void unRegisterBukkitCommand(
-      @NotNull final DeluxeMediaPlugin plugin, final PluginCommand cmd) {
+          @NotNull final DeluxeMediaPlugin plugin, final PluginCommand cmd) {
     if (cmd == null) {
       return;
     }
@@ -65,7 +65,7 @@ public class CommandUtilities {
       knownCommands.remove(cmd.getName());
       for (final String alias : cmd.getAliases()) {
         if (knownCommands.containsKey(alias)
-            && knownCommands.get(alias).toString().contains(plugin.getName())) {
+                && knownCommands.get(alias).toString().contains(plugin.getName())) {
           knownCommands.remove(alias);
         }
       }
@@ -78,11 +78,11 @@ public class CommandUtilities {
     try {
       final Class<?> clazz = object.getClass();
       final Field objectField =
-          field.equals("commandMap")
-              ? clazz.getDeclaredField(field)
-              : field.equals("knownCommands")
-                  ? clazz.getSuperclass().getDeclaredField(field)
-                  : clazz.getDeclaredField(field);
+              field.equals("commandMap")
+                      ? clazz.getDeclaredField(field)
+                      : field.equals("knownCommands")
+                      ? clazz.getSuperclass().getDeclaredField(field)
+                      : clazz.getDeclaredField(field);
       objectField.setAccessible(true);
       final Object result = objectField.get(object);
       objectField.setAccessible(false);
@@ -94,7 +94,7 @@ public class CommandUtilities {
   }
 
   private static Object getPrivateFieldLegacy(
-      @NotNull final Object object, @NotNull final String field) {
+          @NotNull final Object object, @NotNull final String field) {
     try {
       final Class<?> clazz = object.getClass();
       final Field objectField = clazz.getDeclaredField(field);

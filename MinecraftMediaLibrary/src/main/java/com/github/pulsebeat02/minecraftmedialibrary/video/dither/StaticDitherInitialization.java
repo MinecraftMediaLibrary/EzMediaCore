@@ -36,7 +36,6 @@ public class StaticDitherInitialization {
     final long start = System.nanoTime();
     for (int i = 0; i < 256; ++i) {
       try {
-        @SuppressWarnings("deprecation")
         final Color color = MinecraftMapPalette.getColor((byte) i);
         colors.add(color.getRGB());
       } catch (final IndexOutOfBoundsException e) {

@@ -126,21 +126,21 @@ public class VideoUtilities {
    */
   public static Dimension getScaledDimension(
       @NotNull final Dimension imgSize, @NotNull final Dimension boundary) {
-    final int original_width = imgSize.width;
-    final int original_height = imgSize.height;
-    final int bound_width = boundary.width;
-    final int bound_height = boundary.height;
-    int new_width = original_width;
-    int new_height = original_height;
-    if (original_width > bound_width) {
-      new_width = bound_width;
-      new_height = (new_width * original_height) / original_width;
+    final int origWidth = imgSize.width;
+    final int origHeight = imgSize.height;
+    final int boundWidth = boundary.width;
+    final int boundHeight = boundary.height;
+    int newWidth = origWidth;
+    int newHeight = origHeight;
+    if (origWidth > boundWidth) {
+      newWidth = boundWidth;
+      newHeight = (newWidth * origHeight) / origWidth;
     }
-    if (new_height > bound_height) {
-      new_height = bound_height;
-      new_width = (new_height * original_width) / original_height;
+    if (newHeight > boundHeight) {
+      newHeight = boundHeight;
+      newWidth = (newHeight * origWidth) / origHeight;
     }
-    return new Dimension(new_width, new_height);
+    return new Dimension(newWidth, newHeight);
   }
 
   /**
