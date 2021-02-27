@@ -1,8 +1,3 @@
-com.github.pulsebeat02.deluxemediaplugin
-com.github.pulsebeat02.deluxemediaplugin.command
-com.github.pulsebeat02.deluxemediaplugin.config
-com.github.pulsebeat02.deluxemediaplugin.update
-com.github.pulsebeat02.deluxemediaplugin.utility
 com.github.pulsebeat02.minecraftmedialibrary
 com.github.pulsebeat02.minecraftmedialibrary.concurrent
 com.github.pulsebeat02.minecraftmedialibrary.dependency
@@ -33,10 +28,6 @@ com.github.pulsebeat02.minecraftmedialibrary.reflection
 com.github.pulsebeat02.minecraftmedialibrary.relocation
 com.github.pulsebeat02.minecraftmedialibrary.resourcepack
 com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting
-com.github.pulsebeat02.minecraftmedialibrary.test.dependency
-com.github.pulsebeat02.minecraftmedialibrary.test.dithering
-com.github.pulsebeat02.minecraftmedialibrary.test.lab
-com.github.pulsebeat02.minecraftmedialibrary.test.video
 com.github.pulsebeat02.minecraftmedialibrary.utility
 com.github.pulsebeat02.minecraftmedialibrary.video.dither
 com.github.pulsebeat02.minecraftmedialibrary.video.itemframe
