@@ -1,6 +1,11 @@
 package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.awt.*;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PulseDithering implements AbstractDitherHolder {
 
@@ -13,6 +18,7 @@ public class PulseDithering implements AbstractDitherHolder {
   private static final byte[][][] table;
 
   private static final byte[] COLOR_MAP;
+  private static final int[] values;
 
   private static final int[] FULL_COLOR_MAP;
 
@@ -20,19 +26,45 @@ public class PulseDithering implements AbstractDitherHolder {
     COLOR_MAP = StaticDitherInitialization.COLOR_MAP;
     FULL_COLOR_MAP = StaticDitherInitialization.FULL_COLOR_MAP;
     table = new byte[256][256][256];
+    final Map<Integer, Byte> mappings = new HashMap<>();
+    final Color[] colors = MinecraftMapPalette.colors;
+    values = new int[colors.length];
+    for (int i = 0; i < colors.length; i++) {
+      final int rgb = colors[i].getRGB();
+      values[i] = rgb;
+      mappings.put(rgb, (byte) i);
+    }
     for (int r = 0; r < 256; r++) {
       for (int g = 0; g < 256; g++) {
         for (int b = 0; b < 256; b++) {
-          table[r][g][b] = getBestColor(((r & 0x0ff) << 16) | ((g & 0x0ff) << 8) | (b & 0x0ff));
+          table[r][g][b] = mappings.get(getBestFullColor(r, g, b));
         }
       }
     }
   }
 
-  public static byte getBestColor(final int rgb) {
-    return COLOR_MAP[
-        (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
+  public static int getBestFullColor(final int red, final int green, final int blue) {
+    return FULL_COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
   }
+
+  public static int getColor(final int r, final int g, final int b) {
+    return values[table[r][g][b]];
+  }
+
+  public static int[] simplify(final @NotNull int[] buffer) {
+    final int[] map = new int[buffer.length];
+    for (int index = 0; index < buffer.length; index++) {
+      final int rgb = buffer[index];
+      final int red = rgb >> 16 & 0xFF;
+      final int green = rgb >> 8 & 0xFF;
+      final int blue = rgb & 0xFF;
+      final int ptr = table[red][green][blue];
+      map[index] = ptr;
+    }
+    return map;
+  }
+
+  public static void init() {}
 
   @Override
   public void dither(final int[] buffer, final int width) {
@@ -56,7 +88,7 @@ public class PulseDithering implements AbstractDitherHolder {
           red = (red += buf1[bufferIndex++]) > 255 ? 255 : red < 0 ? 0 : red;
           green = (green += buf1[bufferIndex++]) > 255 ? 255 : green < 0 ? 0 : green;
           blue = (blue += buf1[bufferIndex++]) > 255 ? 255 : blue < 0 ? 0 : blue;
-          final int closest = table[red][green][blue];
+          final int closest = getColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
@@ -90,7 +122,7 @@ public class PulseDithering implements AbstractDitherHolder {
           blue = (blue += buf1[bufferIndex--]) > 255 ? 255 : blue < 0 ? 0 : blue;
           green = (green += buf1[bufferIndex--]) > 255 ? 255 : green < 0 ? 0 : green;
           red = (red += buf1[bufferIndex--]) > 255 ? 255 : red < 0 ? 0 : red;
-          final int closest = table[red][green][blue];
+          final int closest = getColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);

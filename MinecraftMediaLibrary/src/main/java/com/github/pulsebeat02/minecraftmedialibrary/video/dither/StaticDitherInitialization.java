@@ -103,6 +103,9 @@ public class StaticDitherInitialization {
   public static int[] getFullColorMap() {
     return FULL_COLOR_MAP;
   }
+
+  public static void init() {}
+
 }
 
 class LoadRed extends RecursiveTask<byte[]> {

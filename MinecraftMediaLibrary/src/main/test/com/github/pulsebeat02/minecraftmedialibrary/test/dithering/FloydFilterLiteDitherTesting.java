@@ -16,6 +16,8 @@ package com.github.pulsebeat02.minecraftmedialibrary.test.dithering;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.FilterLiteDither;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.FloydImageDither;
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.PulseDithering;
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.StaticDitherInitialization;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -78,6 +80,7 @@ public class FloydFilterLiteDitherTesting extends JFrame {
   public static void main(final String[] args) throws IOException {
     // Windows: C:\\Users\\Brandon Li\\Desktop\\kingmammoth.png
     // Mac: /Users/bli24/Desktop/platform1/6vv2qz15h7e51.png
+    StaticDitherInitialization.init();
     new FloydFilterLiteDitherTesting(new File("/Users/bli24/Desktop/platform1/6vv2qz15h7e51.png"));
   }
 
