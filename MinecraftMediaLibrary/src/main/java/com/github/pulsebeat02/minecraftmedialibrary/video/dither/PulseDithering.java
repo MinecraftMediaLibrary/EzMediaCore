@@ -15,7 +15,7 @@ public class PulseDithering implements AbstractDitherHolder {
    *
    * @author PulseBeat_02
    */
-  private static final byte[][][] table;
+  private static final byte[] table;
 
   private static final byte[] COLOR_MAP;
   private static final int[] values;
@@ -25,7 +25,7 @@ public class PulseDithering implements AbstractDitherHolder {
   static {
     COLOR_MAP = StaticDitherInitialization.COLOR_MAP;
     FULL_COLOR_MAP = StaticDitherInitialization.FULL_COLOR_MAP;
-    table = new byte[256][256][256];
+    table = new byte[256 * 256 * 256];
     final Map<Integer, Byte> mappings = new HashMap<>();
     final Color[] colors = MinecraftMapPalette.colors;
     values = new int[colors.length];
@@ -37,7 +37,7 @@ public class PulseDithering implements AbstractDitherHolder {
     for (int r = 0; r < 256; r++) {
       for (int g = 0; g < 256; g++) {
         for (int b = 0; b < 256; b++) {
-          table[r][g][b] = mappings.get(getBestFullColor(r, g, b));
+          table[(r << 16) + (g << 8) + (b)] = mappings.get(getBestFullColor(r, g, b));
         }
       }
     }
@@ -48,20 +48,7 @@ public class PulseDithering implements AbstractDitherHolder {
   }
 
   public static int getColor(final int r, final int g, final int b) {
-    return values[table[r][g][b]];
-  }
-
-  public static int[] simplify(final @NotNull int[] buffer) {
-    final int[] map = new int[buffer.length];
-    for (int index = 0; index < buffer.length; index++) {
-      final int rgb = buffer[index];
-      final int red = rgb >> 16 & 0xFF;
-      final int green = rgb >> 8 & 0xFF;
-      final int blue = rgb & 0xFF;
-      final int ptr = table[red][green][blue];
-      map[index] = ptr;
-    }
-    return map;
+    return values[table[(r << 16) + (g << 8) + (b)]];
   }
 
   public static void init() {}
