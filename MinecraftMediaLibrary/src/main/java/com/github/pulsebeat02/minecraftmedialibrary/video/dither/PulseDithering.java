@@ -28,6 +28,10 @@ public class PulseDithering implements AbstractDitherHolder {
     }
   }
 
+  public PulseDithering(final int width) {
+
+  }
+
     @Override
     public void dither(final int[] buffer, final int width) {
         final int height = buffer.length / width;
@@ -38,13 +42,38 @@ public class PulseDithering implements AbstractDitherHolder {
             final boolean hasNextY = y < heightMinus;
             final int yIndex = y * width;
             if ((y & 0x1) == 0) {
+                int bufferIndex = 0;
+                final int[] buf1 = dither_buffer[0];
+                final int[] buf2 = dither_buffer[1];
                 for (int x = 0; x < width; ++x) {
                     final int index = yIndex + x;
                     final int rgb = buffer[index];
-                    final int red = rgb >> 16 & 0xFF;
-                    final int green = rgb >> 8 & 0xFF;
-                    final int blue = rgb & 0xFF;
-                    buffer[index] = table[red][green][blue];
+                    int red = rgb >> 16 & 0xFF;
+                    int green = rgb >> 8 & 0xFF;
+                    int blue = rgb & 0xFF;
+                    blue = (blue += buf1[bufferIndex--]) > 255 ? 255 : blue < 0 ? 0 : blue;
+                    green = (green += buf1[bufferIndex--]) > 255 ? 255 : green < 0 ? 0 : green;
+                    red = (red += buf1[bufferIndex--]) > 255 ? 255 : red < 0 ? 0 : red;
+                    final int closest = table[red][blue][green];
+                    final int delta_r = red - (closest >> 16 & 0xFF);
+                    final int delta_g = green - (closest >> 8 & 0xFF);
+                    final int delta_b = blue - (closest & 0xFF);
+                    if (x < widthMinus) {
+                        buf1[bufferIndex] = delta_r >> 1;
+                        buf1[bufferIndex + 1] = delta_g >> 1;
+                        buf1[bufferIndex + 2] = delta_b >> 1;
+                    }
+                    if (hasNextY) {
+                        if (x > 0) {
+                            buf2[bufferIndex - 6] = delta_r >> 2;
+                            buf2[bufferIndex - 5] = delta_g >> 2;
+                            buf2[bufferIndex - 4] = delta_b >> 2;
+                        }
+                        buf2[bufferIndex - 3] = delta_r >> 2;
+                        buf2[bufferIndex - 2] = delta_g >> 2;
+                        buf2[bufferIndex - 1] = delta_b >> 2;
+                    }
+                    buffer[index] = closest;
                 }
             } else {
                 int bufferIndex = width + (width << 1) - 1;
@@ -59,7 +88,26 @@ public class PulseDithering implements AbstractDitherHolder {
                     blue = (blue += buf1[bufferIndex--]) > 255 ? 255 : blue < 0 ? 0 : blue;
                     green = (green += buf1[bufferIndex--]) > 255 ? 255 : green < 0 ? 0 : green;
                     red = (red += buf1[bufferIndex--]) > 255 ? 255 : red < 0 ? 0 : red;
-                    buffer[index] = table[red][green][blue];
+                    final int closest = table[red][green][blue];
+                    final int delta_r = red - (closest >> 16 & 0xFF);
+                    final int delta_g = green - (closest >> 8 & 0xFF);
+                    final int delta_b = blue - (closest & 0xFF);
+                    if (x > 0) {
+                        buf1[bufferIndex] = delta_b >> 1;
+                        buf1[bufferIndex - 1] = delta_g >> 1;
+                        buf1[bufferIndex - 2] = delta_r >> 1;
+                    }
+                    if (hasNextY) {
+                        if (x < widthMinus) {
+                            buf2[bufferIndex + 6] = delta_b >> 2;
+                            buf2[bufferIndex + 5] = delta_g >> 2;
+                            buf2[bufferIndex + 4] = delta_r >> 2;
+                        }
+                        buf2[bufferIndex + 3] = delta_b >> 2;
+                        buf2[bufferIndex + 2] = delta_g >> 2;
+                        buf2[bufferIndex + 1] = delta_r >> 2;
+                    }
+                    buffer[index] = closest;
                 }
             }
         }
