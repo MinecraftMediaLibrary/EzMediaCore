@@ -2,8 +2,8 @@ package com.github.pulsebeat02.minecraftmedialibrary.test.dithering;
 
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.FilterLiteDither;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.PulseDithering;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.StaticDitherInitialization;
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.development.IntPulseDithering;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -67,7 +67,8 @@ public class PulseDitherTest extends JFrame {
     // Windows: C:\\Users\\Brandon Li\\Desktop\\kingmammoth.png
     // Mac: /Users/bli24/Desktop/platform1/6vv2qz15h7e51.png
     StaticDitherInitialization.init();
-    PulseDithering.init();
+    IntPulseDithering.init();
+    FilterLiteDither.init();
     new PulseDitherTest(new File("/Users/bli24/Desktop/platform1/6vv2qz15h7e51.png"));
   }
 
@@ -79,7 +80,7 @@ public class PulseDitherTest extends JFrame {
 
   private BufferedImage ditherPulse(@NotNull final BufferedImage before) {
     final int[] buffer = VideoUtilities.getBuffer(before);
-    new PulseDithering().dither(buffer, before.getWidth());
+    new IntPulseDithering().dither(buffer, before.getWidth());
     return VideoUtilities.getBufferedImage(buffer, before.getWidth(), before.getHeight());
   }
 }

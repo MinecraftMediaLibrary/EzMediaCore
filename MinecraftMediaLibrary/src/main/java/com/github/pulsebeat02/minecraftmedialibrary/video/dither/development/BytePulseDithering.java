@@ -1,17 +1,33 @@
-package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
+/*
+ * ============================================================================
+ * Copyright (C) PulseBeat_02 - All Rights Reserved
+ *
+ * This file is part of MinecraftMediaLibrary
+ *
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ *
+ * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/28/2021
+ * ============================================================================
+ */
 
-import org.jetbrains.annotations.NotNull;
+package com.github.pulsebeat02.minecraftmedialibrary.video.dither.development;
+
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.AbstractDitherHolder;
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.MinecraftMapPalette;
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.StaticDitherInitialization;
 
 import java.awt.*;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PulseDithering implements AbstractDitherHolder {
+@Deprecated
+public class BytePulseDithering implements AbstractDitherHolder {
 
   /**
-   * Performs Filter Lite Dithering at a more optimized pace while sacrificing more memory as a
-   * result.
+   * Performs Filter Lite Dithering custom implementation.
    *
    * @author PulseBeat_02
    */
