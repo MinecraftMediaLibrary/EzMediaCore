@@ -1,6 +1,6 @@
 package com.github.pulsebeat02.deluxemediaplugin.command.rework;
 
-import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.tree.CommandNode;
@@ -32,8 +32,8 @@ public interface CommandSegment<S, T extends CommandNode<S>> {
    * @param type argument type
    * @return required argument builder from name and type.
    */
-  default RequiredArgumentBuilder<S, T> argument(
-      @NotNull final String name, @NotNull final ArgumentType<T> type) {
+  default RequiredArgumentBuilder<S, String> argument(
+      @NotNull final String name, final StringArgumentType type) {
     return RequiredArgumentBuilder.argument(name, type);
   }
 }
