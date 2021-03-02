@@ -34,6 +34,7 @@ public class ImageCommand extends BaseCommand {
                 .requires(super::testPermission)
                 .then(argument("resetMap", StringArgumentType.word())
                         .executes(this::resetMap));
+
         literalNode = builder.build();
     }
 

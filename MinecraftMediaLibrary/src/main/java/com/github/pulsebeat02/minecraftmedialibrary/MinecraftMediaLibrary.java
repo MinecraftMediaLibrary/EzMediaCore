@@ -88,7 +88,7 @@ public final class MinecraftMediaLibrary {
     final DependencyManagement dependencyManagement = new DependencyManagement();
     dependencyManagement.install();
     dependencyManagement.relocate();
-    dependencyManagement.relocate();
+    dependencyManagement.load();
     new VLCNativeDependencyFetcher().downloadLibraries();
     if (vlcj) {
       try {
