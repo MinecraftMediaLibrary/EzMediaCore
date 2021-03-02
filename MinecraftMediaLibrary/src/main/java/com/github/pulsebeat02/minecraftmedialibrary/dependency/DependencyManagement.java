@@ -31,16 +31,17 @@ public class DependencyManagement {
 
   private final String path;
   private final Set<File> files;
+  private final File dir;
 
   /** Instantiates a new DependencyManagement. */
   public DependencyManagement() {
     path = System.getProperty("user.dir");
     files = new HashSet<>();
+    dir = new File(path + "/mml_libs");
   }
 
   /** Installs all libraries from links. */
   public void install() {
-    final File dir = new File(path + "/mml_libs");
     if (!dir.exists()) {
       if (dir.mkdir()) {
         Logger.info(
@@ -77,6 +78,16 @@ public class DependencyManagement {
 
   /** Relocates Dependencies. */
   public void relocate() {
+    for (final File f : dir.listFiles()) {
+      if (f.getName().contains("asm")) {
+        try {
+          DependencyUtilities.loadDependency(f);
+          files.remove(f);
+        } catch (final IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
     final List<Relocation> relocations =
         Arrays.stream(JarRelocationConvention.values())
             .map(JarRelocationConvention::getRelocation)
@@ -93,7 +104,7 @@ public class DependencyManagement {
 
   /** Install and load. */
   public void load() {
-    for (final File f : new File(path + "/mml_libs").listFiles()) {
+    for (final File f : files) {
       try {
         DependencyUtilities.loadDependency(f);
       } catch (final IOException e) {
