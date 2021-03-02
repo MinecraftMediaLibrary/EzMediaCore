@@ -79,18 +79,18 @@ public class LinuxPackageManager {
    */
   public File getPackage() throws IOException {
     Logger.info("Attempting to Find VLC Package for Machine.");
-    final String os = OperatingSystemUtilities.OPERATING_SYSTEM;
+    final String distro = OperatingSystemUtilities.LINUX_DISTRIBUTION;
     List<LinuxPackage> set = null;
     outer:
     for (final Map.Entry<String, LinuxOSPackages> entry : packages.entrySet()) {
       final String name = entry.getKey().toLowerCase();
-      Logger.info("Attempting Operating System" + name);
-      if (os.contains(name)) {
+      Logger.info("Attempting Operating System " + name);
+      if (distro.contains(name)) {
         Logger.info("Found Operating System: " + name);
         final ListMultimap<String, LinuxPackage> links = entry.getValue().getLinks();
         for (final String version : links.keySet()) {
           Logger.info("Attempting Version: " + version);
-          if (os.contains(version.toLowerCase())) {
+          if (distro.contains(version.toLowerCase())) {
             Logger.info("Found Version: " + version);
             set = links.get(version);
             break outer;

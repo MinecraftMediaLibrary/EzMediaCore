@@ -142,6 +142,7 @@ public final class MinecraftMediaLibrary {
     Logger.info("Windows/Mac/Linux: " + OperatingSystemUtilities.WINDOWS
             + "/" + OperatingSystemUtilities.MAC
             + "/" + OperatingSystemUtilities.LINUX);
+    Logger.info("Linux Distribution (If Linux): " + OperatingSystemUtilities.LINUX_DISTRIBUTION);
   }
 
   /** Shutdown Instance */

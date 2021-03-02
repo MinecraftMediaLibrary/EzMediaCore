@@ -71,8 +71,9 @@ public enum CPUArchitecture {
    * @return the cpu architecture
    */
   public static CPUArchitecture fromName(@NotNull final String name) {
+    final String upper = name.toUpperCase();
     for (final CPUArchitecture val : values()) {
-      if (val.name().equalsIgnoreCase(name.toUpperCase())) {
+      if (val.name().equalsIgnoreCase(upper)) {
         return val;
       }
     }

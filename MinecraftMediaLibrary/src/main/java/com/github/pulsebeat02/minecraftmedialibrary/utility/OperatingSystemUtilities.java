@@ -16,6 +16,10 @@ package com.github.pulsebeat02.minecraftmedialibrary.utility;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 public final class OperatingSystemUtilities {
 
   /** CPU Architecture */
@@ -23,6 +27,9 @@ public final class OperatingSystemUtilities {
 
   /** Operating System */
   public static final String OPERATING_SYSTEM;
+
+  /** Linux Distribution (If using linux) */
+  public static final String LINUX_DISTRIBUTION;
 
   /** Using MAC */
   public static final boolean MAC;
@@ -46,6 +53,7 @@ public final class OperatingSystemUtilities {
             || OPERATING_SYSTEM.contains("aix");
     WINDOWS = OPERATING_SYSTEM.contains("win");
     MAC = OPERATING_SYSTEM.contains("mac");
+    LINUX_DISTRIBUTION = LINUX ? getLinuxDistribution() : "";
     if (is64Architecture(OPERATING_SYSTEM)) {
       if (WINDOWS) {
         Logger.info("Detected Windows 64 Bit!");
@@ -101,11 +109,25 @@ public final class OperatingSystemUtilities {
    * @return the cpu architecture
    */
   public static String getCpuArchitecture() {
-    final String arch = System.getenv("PROCESSOR_ARCHITECTURE");
-    final String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
-    return arch != null && arch.endsWith("64") || wow64Arch != null && wow64Arch.endsWith("64")
-        ? "64"
-        : "32";
+    return System.getProperty("os.arch");
+  }
+
+  public static String getLinuxDistribution() {
+    final String[] cmd = {
+            "/bin/sh", "-c", "cat /etc/*-release" };
+    final StringBuilder concat = new StringBuilder();
+    try {
+      final Process p = Runtime.getRuntime().exec(cmd);
+      final BufferedReader bri = new BufferedReader(new InputStreamReader(
+              p.getInputStream()));
+      String line;
+      while ((line = bri.readLine()) != null) {
+        concat.append(line);
+      }
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+    return concat.toString();
   }
 
   public static boolean is64Architecture(@NotNull final String os) {
