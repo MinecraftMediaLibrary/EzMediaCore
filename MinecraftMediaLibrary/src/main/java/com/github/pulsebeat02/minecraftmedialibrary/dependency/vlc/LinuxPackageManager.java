@@ -118,12 +118,12 @@ public class LinuxPackageManager {
       throw new UnsupportedOperatingSystemException("Unsupported Operating System Platform!");
     }
     for (final LinuxPackage link : set) {
-      Logger.info("Trying Out Link: " + link);
+      Logger.info("Trying Out Link: " + link.getUrl());
       if (link.getArch() == arch) {
         final String url = link.getUrl();
         final String fileName = url.substring(url.lastIndexOf("/") + 1);
         final File file = new File("/vlc/" + fileName);
-        URL uri = new URL("");
+        URL uri = null;
         try {
           uri = new URL(link.getUrl());
         } catch (final MalformedURLException e) {
@@ -136,6 +136,7 @@ public class LinuxPackageManager {
           }
           e.printStackTrace();
         }
+        assert uri != null;
         FileUtils.copyURLToFile(uri, file);
         return file;
       }

@@ -97,8 +97,7 @@ public final class MinecraftMediaLibrary {
         new MediaPlayerFactory();
       } catch (final Exception e) {
           Logger.error(
-                  "The user does not have VLCJ installed! This is a very fatal error. Switching "
-                          + "to basic Video Player instead.");
+                  "The user does not have VLCJ installed! This is a very fatal error.");
           vlcj = false;
       }
     }
