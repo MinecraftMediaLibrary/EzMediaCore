@@ -22,9 +22,11 @@ import com.google.common.io.Resources;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -153,8 +155,14 @@ public class LinuxPackageManager {
    * @throws IOException if file couldn't be found
    */
   private String getFileContents() throws IOException {
-    return Resources.toString(
-            Resources.getResource("linux-package-installation.json"), StandardCharsets.UTF_8);
+    final String name = "linux-package-installation.json";
+    final ClassLoader loader = getClass().getClassLoader();
+    final InputStream input = loader.getResourceAsStream(name);
+    if (input == null) {
+      throw new IllegalArgumentException("file not found! " + name);
+    } else {
+      return IOUtils.toString(input, StandardCharsets.UTF_8.name());
+    }
   }
 
   /**
