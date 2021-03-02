@@ -32,12 +32,14 @@ public class DependencyManagement {
   private final String path;
   private final Set<File> files;
   private final File dir;
+  private final File relocatedDir;
 
   /** Instantiates a new DependencyManagement. */
   public DependencyManagement() {
     path = System.getProperty("user.dir");
     files = new HashSet<>();
-    dir = new File(path + "/mml_libs");
+    dir = new File(path + File.separator + "mml_libs");
+    relocatedDir = new File(dir + File.separator + "/relocated");
   }
 
   /** Installs all libraries from links. */
@@ -56,15 +58,16 @@ public class DependencyManagement {
       if (!checkExists(dir, dependency)) {
         File file = null;
         final String artifact = dependency.getArtifact();
+        final String p = path + File.separator + "mml_libs";
         try {
           Logger.info("Checking Maven Central Repository for " + artifact);
-          file = DependencyUtilities.downloadMavenDependency(dependency, path + "/mml_libs");
+          file = DependencyUtilities.downloadMavenDependency(dependency, p);
         } catch (final IOException e) {
           try {
             Logger.info(
                 "Could not find in the Maven Central Repository... Checking Jitpack Central Repository for "
                     + artifact);
-            file = DependencyUtilities.downloadJitpackDependency(dependency, path + "/mml_libs");
+            file = DependencyUtilities.downloadJitpackDependency(dependency, p);
           } catch (final IOException exception) {
             Logger.error(
                 "Could not find " + artifact + " in the Maven Central Repository or Jitpack");
@@ -93,7 +96,7 @@ public class DependencyManagement {
             .map(JarRelocationConvention::getRelocation)
             .collect(Collectors.toList());
     for (final File f : files) {
-      final JarRelocator relocator = new JarRelocator(f, f, relocations);
+      final JarRelocator relocator = new JarRelocator(f, new File(relocatedDir, f.getName()), relocations);
       try {
         relocator.run();
       } catch (final IOException e) {
@@ -104,7 +107,7 @@ public class DependencyManagement {
 
   /** Install and load. */
   public void load() {
-    for (final File f : files) {
+    for (final File f : relocatedDir.listFiles()) {
       try {
         DependencyUtilities.loadDependency(f);
       } catch (final IOException e) {
