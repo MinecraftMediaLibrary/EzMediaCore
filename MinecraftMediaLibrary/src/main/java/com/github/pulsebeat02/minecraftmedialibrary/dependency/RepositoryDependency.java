@@ -18,27 +18,27 @@ import org.jetbrains.annotations.NotNull;
 public enum RepositoryDependency {
 
   /** VLCJ Maven Dependency */
-  VLCJ("uk.co.caprica", "vlcj", "4.6.0"),
+  VLCJ("uk{}co{}caprica", "vlcj", "4{}6{}0"),
 
   /** VLCJ Natives Maven Dependency */
-  VLCJ_NATIVES("uk.co.caprica", "vlcj-natives", "4.1.0"),
+  VLCJ_NATIVES("uk{}co{}caprica", "vlcj-natives", "4{}1{}0"),
 
   /** Youtube Downloader Maven Dependency */
-  YOUTUBE_DOWNLOADER("com.github.sealedtx", "java-youtube-downloader", "2.4.6"),
+  YOUTUBE_DOWNLOADER("com{}github{}sealedtx", "java-youtube-downloader", "2{}4{}6"),
 
   /** Jave Core Maven Dependency */
-  JAVE_CORE("ws.schild", "jave-core", "3.0.1"),
+  JAVE_CORE("ws{}schild", "jave-core", "3{}0{}1"),
 
   /** Compression Maven Dependency */
-  COMPRESSION("org.rauschig", "jarchivelib", "0.7.1"),
+  COMPRESSION("org{}rauschig", "jarchivelib", "0{}7{}1"),
 
   /** ASM Maven Dependency */
-  ASM("org.ow2.asm", "asm", "9.1"),
+  ASM("org{}ow2{}asm", "asm", "9{}1"),
 
   /** ASM Commons Maven Dependency */
-  ASM_COMMONS("org.ow2.asm", "asm-commons", "9.1");
+  ASM_COMMONS("org{}ow2{}asm", "asm-commons", "9{}1");
 
-  //  JAVACV("org.bytedeco", "javacv-platform", "1.5.4");
+  //  JAVACV("org{}bytedeco", "javacv-platform", "1{}5{}4");
 
   private final String group;
   private final String artifact;
@@ -46,9 +46,9 @@ public enum RepositoryDependency {
 
   RepositoryDependency(
       @NotNull final String group, @NotNull final String artifact, @NotNull final String version) {
-    this.group = group;
-    this.artifact = artifact;
-    this.version = version;
+    this.group = group.replaceAll("\\{}", ".");
+    this.artifact = artifact.replaceAll("\\{}", ".");
+    this.version = version.replaceAll("\\{}", ".");
   }
 
   /**

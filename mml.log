@@ -1,0 +1,16 @@
+1614654899927: [INFO] Library folder created successfully
+1614654899927: [INFO] Detecting Operating System...
+1614654899930: [INFO] Detecting Operating System...
+1614654899935: [INFO] Detected MACOS 64 Bit! (Silicon)
+1614654899935: [INFO] =========================================
+1614654899935: [INFO]  Final Results After Runtime Scanning... 
+1614654899935: [INFO] =========================================
+1614654899935: [INFO] Operating System: mac os x
+1614654899935: [INFO] CPU Architecture: 32
+1614654899935: [INFO] Link Used: https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-intel64/VLC.zip
+1614654899935: [INFO] =========================================
+1614654899935: [INFO] Detected MACOS 64 Bit!
+1614654899938: [INFO] Attempting to Open Reflection Module...
+1614654899939: [INFO] User is using Java 8, meaning Reflection Module does NOT have to be opened. You may safely ignore this error.
+1614654899948: [INFO] Downloading Dependency at https://repo1.maven.org/maven2/ws/schild/jave-nativebin-osx64/2.7.3/jave-nativebin-osx64-2.7.3.jar into folder /Users/bli24/IdeaProjects/MinecraftMediaLibrary/mml_libs/jave-nativebin-osx64-2.7.3.jar
+1614654908221: [INFO] Loading JAR Dependency at: /Users/bli24/IdeaProjects/MinecraftMediaLibrary/mml_libs/jave-nativebin-osx64-2.7.3.jar
