@@ -54,6 +54,10 @@
                             <pattern>org.ow2.asm.commons</pattern>
                             <shadedPattern>com.github.pulsebeat02.asm.commons</shadedPattern>
                         </relocation>
+                        <relocation>
+                            <pattern>org.apache.commons.io</pattern>
+                            <shadedPattern>org.bukkit.craftbukkit.libs.org.apache.commons.io</shadedPattern>
+                        </relocation>
                     </relocations>
                 </configuration>
             </plugin>
