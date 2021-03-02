@@ -13,9 +13,10 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.test.dependency;
 
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.CPUArchitecture;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxOSPackages;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackage;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -23,28 +24,36 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
+@SuppressWarnings("UnstableApiUsage")
 public class LinuxPackageJSONTest {
 
-  public static void main(final String[] args) {
-    try {
-      final TypeToken<ArrayListMultimap<String, LinuxPackage>> type = new TypeToken<ArrayListMultimap<String, LinuxPackage>>() { };
-      final Gson gson =
-          new GsonBuilder()
-              .registerTypeHierarchyAdapter(
-                  type.getRawType(), new ArrayListMultimapLinuxAdapter())
-              .setPrettyPrinting()
-              .create();
-      gson.fromJson(getFileContents(), type.getType());
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
+  private static final TypeToken<Map<String, List<LinuxPackage>>>
+      MAP_STRING_LIST_LINUX_PACKAGE_TYPE_TOKEN;
+  private static final TypeToken<Map<String, LinuxOSPackages>>
+      MAP_STRING_LINUX_OS_PACKAGE_TYPE_TOKEN;
+  private static final Gson GSON;
+
+  static {
+    MAP_STRING_LIST_LINUX_PACKAGE_TYPE_TOKEN = new TypeToken<Map<String, List<LinuxPackage>>>() {};
+    MAP_STRING_LINUX_OS_PACKAGE_TYPE_TOKEN = new TypeToken<Map<String, LinuxOSPackages>>() {};
+    GSON =
+        new GsonBuilder()
+            .registerTypeAdapter(LinuxOSPackages.class, new LinuxOSPackagesAdapter())
+            .setPrettyPrinting()
+            .create();
+  }
+
+  public static void main(final String[] args) throws IOException {
+    final Map<String, List<LinuxPackage>> packages =
+        GSON.fromJson(getFileContents(), MAP_STRING_LINUX_OS_PACKAGE_TYPE_TOKEN.getType());
   }
 
   private static String getFileContents() throws IOException {
@@ -58,52 +67,23 @@ public class LinuxPackageJSONTest {
     }
   }
 
-  private static final class ArrayListMultimapLinuxAdapter
-      extends TypeAdapter<ArrayListMultimap<String, LinuxPackage>> {
+  private static final class LinuxOSPackagesAdapter extends TypeAdapter<LinuxOSPackages> {
 
     @Override
-    public void write(@NotNull final JsonWriter out, @NotNull final ArrayListMultimap<String, LinuxPackage> map)
-        throws IOException {
-      out.beginObject();
-      for (final String key : map.keySet()) {
-        final List<LinuxPackage> values = map.get(key);
-        out.name(key);
-        out.beginArray();
-        for (final LinuxPackage entry : values) {
-          out.beginObject();
-          out.value(entry.getArch().toString());
-          out.value(entry.getUrl());
-          out.value(entry.getMirror());
-          out.endObject();
-        }
-        out.endArray();
-      }
-      out.endObject();
+    public void write(final JsonWriter out, final LinuxOSPackages linuxOSPackages) {
+      GSON.toJson(
+          linuxOSPackages.getLinks().asMap(),
+          MAP_STRING_LIST_LINUX_PACKAGE_TYPE_TOKEN.getType(),
+          out);
     }
 
     @Override
-    public ArrayListMultimap<String, LinuxPackage> read(@NotNull final JsonReader in) throws IOException {
-      in.beginObject();
-      final ArrayListMultimap<String, LinuxPackage> map = ArrayListMultimap.create();
-      while (in.hasNext()) {
-        final String key = in.nextName();
-        in.beginArray();
-        while (in.hasNext()) {
-          in.beginObject();
-          final String archName = in.nextString();
-          final CPUArchitecture arch = CPUArchitecture.fromName(archName);
-          if (arch == null) {
-            throw new IllegalArgumentException("Argument: " + archName + " is not a valid argument!");
-          }
-          final String url = in.nextString();
-          final String mirror = in.nextString();
-          in.endObject();
-          map.put(key, new LinuxPackage(url, mirror, arch));
-        }
-        in.endArray();
-      }
-      in.endObject();
-      return map;
+    public LinuxOSPackages read(final JsonReader in) {
+      final Map<String, Collection<LinuxPackage>> map =
+          GSON.fromJson(in, MAP_STRING_LIST_LINUX_PACKAGE_TYPE_TOKEN.getType());
+      final ListMultimap<String, LinuxPackage> multimap = ArrayListMultimap.create();
+      map.forEach(multimap::putAll);
+      return new LinuxOSPackages(multimap);
     }
   }
 }

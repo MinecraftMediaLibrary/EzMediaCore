@@ -18,34 +18,55 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.OperatingSystemUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ZipFileUtilities;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("UnstableApiUsage")
 public class LinuxPackageManager {
+
+  private static final TypeToken<Map<String, List<LinuxPackage>>>
+      MAP_STRING_LIST_LINUX_PACKAGE_TYPE_TOKEN;
+  private static final TypeToken<Map<String, LinuxOSPackages>>
+      MAP_STRING_LINUX_OS_PACKAGE_TYPE_TOKEN;
+  private static final Gson GSON;
+
+  static {
+    MAP_STRING_LIST_LINUX_PACKAGE_TYPE_TOKEN = new TypeToken<Map<String, List<LinuxPackage>>>() {};
+    MAP_STRING_LINUX_OS_PACKAGE_TYPE_TOKEN = new TypeToken<Map<String, LinuxOSPackages>>() {};
+    GSON =
+        new GsonBuilder()
+            .registerTypeAdapter(LinuxOSPackages.class, new LinuxOSPackagesAdapter())
+            .setPrettyPrinting()
+            .create();
+  }
 
   private Map<String, LinuxOSPackages> packages;
 
-  /**
-   * Instantiates a new Linux package manager.
-   */
+  /** Instantiates a new Linux package manager. */
   public LinuxPackageManager() {
+    Logger.info("Reading System OS JSON file...");
     try {
-      final Type token = new TypeToken<ArrayListMultimap<String, LinuxPackage>>() {
-      }.getType();
-      packages = new Gson().fromJson(getFileContents(), token);
+      packages = GSON.fromJson(getFileContents(), MAP_STRING_LINUX_OS_PACKAGE_TYPE_TOKEN.getType());
+      Logger.info("Successfully read System OS JSON file");
     } catch (final IOException e) {
+      Logger.info("Could not read System OS JSON file");
       e.printStackTrace();
     }
   }
@@ -66,7 +87,7 @@ public class LinuxPackageManager {
       Logger.info("Attempting Operating System" + name);
       if (os.contains(name)) {
         Logger.info("Found Operating System: " + name);
-        final ArrayListMultimap<String, LinuxPackage> links = entry.getValue().getLinks();
+        final ListMultimap<String, LinuxPackage> links = entry.getValue().getLinks();
         for (final String version : links.keySet()) {
           Logger.info("Attempting Version: " + version);
           if (os.contains(version.toLowerCase())) {
@@ -120,9 +141,7 @@ public class LinuxPackageManager {
     throw new UnsupportedOperatingSystemException("Unsupported Operating System Platform!");
   }
 
-  /**
-   * Extract contents.
-   */
+  /** Extract contents. */
   public void extractContents() {
     final File vlc = new File("/vlc");
     final File f = new File("/vlc").listFiles()[0];
@@ -139,11 +158,11 @@ public class LinuxPackageManager {
       ZipFileUtilities.decompressArchive(f, vlc, "tar", "gz");
     } else if (name.endsWith(".tar.zst")) {
       Logger.warn(
-              "Hello user, please read this error carefully: Your computer seems to be using "
-                      + "KAOS Linux. The extract for KAOS Linux is a .tar.zst file, which is yet not supported by "
-                      + "the plugin yet. The archive has been downloaded in the /vlcj folder, and it is required by "
-                      + "you to extract the file in order to get the VLC libraries. This is a required step, and VLCJ "
-                      + "will not run if you do not perform this step.");
+          "Hello user, please read this error carefully: Your computer seems to be using "
+              + "KAOS Linux. The extract for KAOS Linux is a .tar.zst file, which is yet not supported by "
+              + "the plugin yet. The archive has been downloaded in the /vlcj folder, and it is required by "
+              + "you to extract the file in order to get the VLC libraries. This is a required step, and VLCJ "
+              + "will not run if you do not perform this step.");
     }
   }
 
@@ -171,5 +190,25 @@ public class LinuxPackageManager {
    */
   public Map<String, LinuxOSPackages> getAllPackages() {
     return packages;
+  }
+
+  private static final class LinuxOSPackagesAdapter extends TypeAdapter<LinuxOSPackages> {
+
+    @Override
+    public void write(final JsonWriter out, final LinuxOSPackages linuxOSPackages) {
+      GSON.toJson(
+          linuxOSPackages.getLinks().asMap(),
+          MAP_STRING_LIST_LINUX_PACKAGE_TYPE_TOKEN.getType(),
+          out);
+    }
+
+    @Override
+    public LinuxOSPackages read(final JsonReader in) {
+      final Map<String, Collection<LinuxPackage>> map =
+          GSON.fromJson(in, MAP_STRING_LIST_LINUX_PACKAGE_TYPE_TOKEN.getType());
+      final ListMultimap<String, LinuxPackage> multimap = ArrayListMultimap.create();
+      map.forEach(multimap::putAll);
+      return new LinuxOSPackages(multimap);
+    }
   }
 }

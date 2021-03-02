@@ -13,8 +13,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 public class LinuxOSPackages {
@@ -388,14 +387,14 @@ public class LinuxOSPackages {
                 )));
   */
 
-  private final ArrayListMultimap<String, LinuxPackage> links;
+  private final ListMultimap<String, LinuxPackage> links;
 
   /**
    * Creates new distribution per operating system.
    *
    * @param links URLs
    */
-  LinuxOSPackages(@NotNull final ArrayListMultimap<String, LinuxPackage> links) {
+  public LinuxOSPackages(@NotNull final ListMultimap<String, LinuxPackage> links) {
     this.links = links;
   }
 
@@ -404,7 +403,7 @@ public class LinuxOSPackages {
    *
    * @return links for each system
    */
-  public ArrayListMultimap<String, LinuxPackage> getLinks() {
+  public ListMultimap<String, LinuxPackage> getLinks() {
     return links;
   }
 }

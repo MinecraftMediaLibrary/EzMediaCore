@@ -22,6 +22,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import com.github.pulsebeat02.minecraftmedialibrary.reflection.NMSReflectionManager;
 import com.github.pulsebeat02.minecraftmedialibrary.reflection.TinyProtocol;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.OperatingSystemUtilities;
 import io.netty.channel.Channel;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -73,6 +74,7 @@ public final class MinecraftMediaLibrary {
     parent = path;
     vlcj = isUsingVLCJ;
     listener = new PlayerJoinLeaveHandler(this);
+    printSystemInformation();
     dependencyTasks();
     registrationTasks();
     debugInformation();
@@ -128,6 +130,18 @@ public final class MinecraftMediaLibrary {
               + "you may want to take a look here at "
               + "https://papermc.io/forums/t/java-11-mc-1-17-and-paper/5615");
     }
+  }
+
+  public void printSystemInformation() {
+    Logger.info("===========================================");
+    Logger.info("            SYSTEM INFORMATION             ");
+    Logger.info("===========================================");
+    Logger.info("System Operating System: " + OperatingSystemUtilities.OPERATING_SYSTEM);
+    Logger.info("CPU Architecture: " + OperatingSystemUtilities.CPU_ARCH);
+    Logger.info("System Operating System Version: " + System.getProperty("os.version"));
+    Logger.info("Windows/Mac/Linux: " + OperatingSystemUtilities.WINDOWS
+            + "/" + OperatingSystemUtilities.MAC
+            + "/" + OperatingSystemUtilities.LINUX);
   }
 
   /** Shutdown Instance */
