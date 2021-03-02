@@ -36,6 +36,22 @@ public class LinuxPackage {
   }
 
   /**
+   * Instantiates a new LinuxPackage.
+   *
+   * @param url the url
+   * @param mirror the mirror url
+   * @param arch the arch
+   */
+  public LinuxPackage(
+      @NotNull final String url,
+      @NotNull final String mirror,
+      @NotNull final CPUArchitecture arch) {
+    this.arch = arch;
+    this.url = url;
+    this.mirror = mirror;
+  }
+
+  /**
    * Gets CPU Architecture.
    *
    * @return CPU Architecture of package

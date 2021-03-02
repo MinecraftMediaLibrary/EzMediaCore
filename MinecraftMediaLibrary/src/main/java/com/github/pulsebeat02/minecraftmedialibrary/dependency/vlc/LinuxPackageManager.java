@@ -17,8 +17,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.exception.UnsupportedOperati
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.OperatingSystemUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ZipFileUtilities;
-import com.google.common.collect.HashMultimap;
-import com.google.common.io.Resources;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.io.FileUtils;
@@ -31,8 +30,8 @@ import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class LinuxPackageManager {
 
@@ -43,7 +42,7 @@ public class LinuxPackageManager {
    */
   public LinuxPackageManager() {
     try {
-      final Type token = new TypeToken<HashMultimap<String, LinuxPackage>>() {
+      final Type token = new TypeToken<ArrayListMultimap<String, LinuxPackage>>() {
       }.getType();
       packages = new Gson().fromJson(getFileContents(), token);
     } catch (final IOException e) {
@@ -60,14 +59,14 @@ public class LinuxPackageManager {
   public File getPackage() throws IOException {
     Logger.info("Attempting to Find VLC Package for Machine.");
     final String os = OperatingSystemUtilities.OPERATING_SYSTEM;
-    Set<LinuxPackage> set = null;
+    List<LinuxPackage> set = null;
     outer:
     for (final Map.Entry<String, LinuxOSPackages> entry : packages.entrySet()) {
       final String name = entry.getKey().toLowerCase();
       Logger.info("Attempting Operating System" + name);
       if (os.contains(name)) {
         Logger.info("Found Operating System: " + name);
-        final HashMultimap<String, LinuxPackage> links = entry.getValue().getLinks();
+        final ArrayListMultimap<String, LinuxPackage> links = entry.getValue().getLinks();
         for (final String version : links.keySet()) {
           Logger.info("Attempting Version: " + version);
           if (os.contains(version.toLowerCase())) {
