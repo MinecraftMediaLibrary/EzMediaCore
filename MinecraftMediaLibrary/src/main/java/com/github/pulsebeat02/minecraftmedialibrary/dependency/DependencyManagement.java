@@ -39,21 +39,31 @@ public class DependencyManagement {
     path = System.getProperty("user.dir");
     files = new HashSet<>();
     dir = new File(path + File.separator + "mml_libs");
-    relocatedDir = new File(dir + File.separator + "/relocated");
-  }
-
-  /** Installs all libraries from links. */
-  public void install() {
     if (!dir.exists()) {
       if (dir.mkdir()) {
         Logger.info(
-            "Dependency Directory ("
-                + dir.getAbsolutePath()
-                + ") does not exist... Creating a folder");
+                "Dependency Directory ("
+                        + dir.getAbsolutePath()
+                        + ") does not exist... Creating a folder");
       } else {
         Logger.info("Dependency Directory (" + dir.getAbsolutePath() + ") exists!");
       }
     }
+    relocatedDir = new File(dir + File.separator + "/relocated");
+    if (!relocatedDir.exists()) {
+      if (relocatedDir.mkdir()) {
+        Logger.info(
+                "Relocated Directory ("
+                        + relocatedDir.getAbsolutePath()
+                        + ") does not exist... Creating a folder");
+      } else {
+        Logger.info("Relocated Directory (" + relocatedDir.getAbsolutePath() + ") exists!");
+      }
+    }
+  }
+
+  /** Installs all libraries from links. */
+  public void install() {
     for (final RepositoryDependency dependency : RepositoryDependency.values()) {
       if (!checkExists(dir, dependency)) {
         File file = null;
