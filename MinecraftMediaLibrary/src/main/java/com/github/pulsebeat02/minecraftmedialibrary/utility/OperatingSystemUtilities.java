@@ -138,4 +138,26 @@ public final class OperatingSystemUtilities {
       return System.getProperty("os.arch").contains("64");
     }
   }
+
+  public static String getDistributionName(@NotNull final String distro) {
+    final String[] arr = distro.split(" ");
+    for (final String str : arr) {
+      if (str.startsWith("NAME")) {
+        return str.substring(6, str.length() - 1);
+      }
+    }
+    return "";
+  }
+
+  public static String getDistributionVersion(@NotNull final String distro) {
+    final String[] arr = distro.split(" ");
+    for (final String str : arr) {
+      if (str.startsWith("VERSION")) {
+        return str.substring(8, str.length() - 1);
+      }
+    }
+    return "";
+  }
+
+
 }

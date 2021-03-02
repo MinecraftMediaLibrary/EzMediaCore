@@ -57,8 +57,8 @@ public class LinuxPackageManager {
             .create();
   }
 
-  private Map<String, LinuxOSPackages> packages;
   private final File vlc;
+  private Map<String, LinuxOSPackages> packages;
 
   /** Instantiates a new Linux package manager. */
   public LinuxPackageManager() {
@@ -88,7 +88,9 @@ public class LinuxPackageManager {
    */
   public File getPackage() throws IOException {
     Logger.info("Attempting to Find VLC Package for Machine.");
-    final String distro = OperatingSystemUtilities.LINUX_DISTRIBUTION.toLowerCase();
+    final String fullInfo = OperatingSystemUtilities.LINUX_DISTRIBUTION;
+    final String distro = OperatingSystemUtilities.getDistributionName(fullInfo).toLowerCase();
+    final String ver = OperatingSystemUtilities.getDistributionVersion(fullInfo).toLowerCase();
     List<LinuxPackage> set = null;
     outer:
     for (final Map.Entry<String, LinuxOSPackages> entry : packages.entrySet()) {
@@ -99,7 +101,7 @@ public class LinuxPackageManager {
         final ListMultimap<String, LinuxPackage> links = entry.getValue().getLinks();
         for (final String version : links.keySet()) {
           Logger.info("Attempting Version: " + version);
-          if (distro.contains(version.toLowerCase())) {
+          if (ver.contains(version.toLowerCase())) {
             Logger.info("Found Version: " + version);
             set = links.get(version);
             break outer;
