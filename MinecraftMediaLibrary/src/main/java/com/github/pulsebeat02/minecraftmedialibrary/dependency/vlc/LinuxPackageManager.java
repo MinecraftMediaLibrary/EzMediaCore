@@ -15,7 +15,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.exception.UnsupportedOperatingSystemException;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import com.github.pulsebeat02.minecraftmedialibrary.utility.OperatingSystemUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ZipFileUtilities;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -88,9 +88,9 @@ public class LinuxPackageManager {
    */
   public File getPackage() throws IOException {
     Logger.info("Attempting to Find VLC Package for Machine.");
-    final String fullInfo = OperatingSystemUtilities.LINUX_DISTRIBUTION;
-    final String distro = OperatingSystemUtilities.getDistributionName(fullInfo).toLowerCase();
-    final String ver = OperatingSystemUtilities.getDistributionVersion(fullInfo).toLowerCase();
+    final String fullInfo = RuntimeUtilities.LINUX_DISTRIBUTION;
+    final String distro = RuntimeUtilities.getDistributionName(fullInfo).toLowerCase();
+    final String ver = RuntimeUtilities.getDistributionVersion(fullInfo).toLowerCase();
     List<LinuxPackage> set = null;
     outer:
     for (final Map.Entry<String, LinuxOSPackages> entry : packages.entrySet()) {
@@ -112,7 +112,7 @@ public class LinuxPackageManager {
         break;
       }
     }
-    final CPUArchitecture arch = CPUArchitecture.fromName(OperatingSystemUtilities.CPU_ARCH);
+    final CPUArchitecture arch = CPUArchitecture.fromName(RuntimeUtilities.CPU_ARCH.toUpperCase());
     if (set == null || arch == null) {
       Logger.error("Could not find architecture... throwing an error!");
       throw new UnsupportedOperatingSystemException("Unsupported Operating System Platform!");
@@ -122,7 +122,7 @@ public class LinuxPackageManager {
       if (link.getArch() == arch) {
         final String url = link.getUrl();
         final String fileName = url.substring(url.lastIndexOf("/") + 1);
-        final File file = new File("/vlc/" + fileName);
+        final File file = new File(vlc.getAbsolutePath() + "/" + fileName);
         URL uri = null;
         try {
           uri = new URL(link.getUrl());

@@ -14,7 +14,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import com.github.pulsebeat02.minecraftmedialibrary.utility.OperatingSystemUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ZipFileUtilities;
 import org.apache.commons.io.FileUtils;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
@@ -42,7 +42,7 @@ public class VLCNativeDependencyFetcher {
             nativeDiscovery.discover() || enchancedNativeDiscovery.discover() != null;
     if (!installed) {
       Logger.info("No VLC Installation found on this system. Proceeding to install.");
-      final String option = OperatingSystemUtilities.URL;
+      final String option = RuntimeUtilities.URL;
       if (option.equalsIgnoreCase("LINUX")) {
         try {
           final LinuxPackageManager manager = new LinuxPackageManager();

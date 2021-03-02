@@ -22,7 +22,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import com.github.pulsebeat02.minecraftmedialibrary.reflection.NMSReflectionManager;
 import com.github.pulsebeat02.minecraftmedialibrary.reflection.TinyProtocol;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.utility.OperatingSystemUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import io.netty.channel.Channel;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -135,13 +135,13 @@ public final class MinecraftMediaLibrary {
     Logger.info("===========================================");
     Logger.info("            SYSTEM INFORMATION             ");
     Logger.info("===========================================");
-    Logger.info("System Operating System: " + OperatingSystemUtilities.OPERATING_SYSTEM);
-    Logger.info("CPU Architecture: " + OperatingSystemUtilities.CPU_ARCH);
+    Logger.info("System Operating System: " + RuntimeUtilities.OPERATING_SYSTEM);
+    Logger.info("CPU Architecture: " + RuntimeUtilities.CPU_ARCH);
     Logger.info("System Operating System Version: " + System.getProperty("os.version"));
-    Logger.info("Windows/Mac/Linux: " + OperatingSystemUtilities.WINDOWS
-            + "/" + OperatingSystemUtilities.MAC
-            + "/" + OperatingSystemUtilities.LINUX);
-    Logger.info("Linux Distribution (If Linux): " + OperatingSystemUtilities.LINUX_DISTRIBUTION);
+    Logger.info("Windows/Mac/Linux: " + RuntimeUtilities.WINDOWS
+            + "/" + RuntimeUtilities.MAC
+            + "/" + RuntimeUtilities.LINUX);
+    Logger.info("Linux Distribution (If Linux): " + RuntimeUtilities.LINUX_DISTRIBUTION);
   }
 
   /** Shutdown Instance */

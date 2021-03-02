@@ -13,7 +13,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
-import com.github.pulsebeat02.minecraftmedialibrary.utility.OperatingSystemUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import uk.co.caprica.vlcj.binding.LibC;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 
@@ -43,7 +43,7 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
    */
   @Override
   public String discover() {
-    final String folder = OperatingSystemUtilities.MAC ? "\\vlc" : "/vlc";
+    final String folder = RuntimeUtilities.MAC ? "\\vlc" : "/vlc";
     for (final String str : PLUGIN_PATH_FORMATS) {
       final File f = new File(folder, str);
       if (f.exists()) {

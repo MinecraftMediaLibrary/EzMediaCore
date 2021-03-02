@@ -20,7 +20,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public final class OperatingSystemUtilities {
+public final class RuntimeUtilities {
 
   /** CPU Architecture */
   public static final String CPU_ARCH;
@@ -158,6 +158,5 @@ public final class OperatingSystemUtilities {
     }
     return "";
   }
-
 
 }

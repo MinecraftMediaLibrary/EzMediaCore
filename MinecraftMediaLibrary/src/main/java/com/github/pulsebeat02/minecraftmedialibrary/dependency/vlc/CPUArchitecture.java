@@ -72,7 +72,7 @@ public enum CPUArchitecture {
    */
   public static CPUArchitecture fromName(@NotNull final String name) {
     for (final CPUArchitecture val : values()) {
-      if (val.name().equalsIgnoreCase(name)) {
+      if (val.name().equals(name)) {
         return val;
       }
     }

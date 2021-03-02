@@ -15,7 +15,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency;
 
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.utility.OperatingSystemUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 
 import java.io.File;
 import java.io.IOException;
@@ -80,7 +80,7 @@ public class JaveDependencyInstallation {
     final String os = System.getProperty("os.name").toLowerCase();
     String artifactId = "INVALID_OPERATING_SYSTEM";
     final boolean linux = os.contains("nix") || os.contains("nux") || os.contains("aix");
-    if (OperatingSystemUtilities.is64Architecture(os)) {
+    if (RuntimeUtilities.is64Architecture(os)) {
       if (os.contains("win")) {
         Logger.info("Detected Windows 64 Bit!");
         artifactId = "jave-nativebin-win64";
