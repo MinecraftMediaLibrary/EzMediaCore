@@ -59,4 +59,23 @@ public final class ZipFileUtilities {
       e.printStackTrace();
     }
   }
+
+  /**
+   * Decompress archive.
+   *
+   * @param file the file
+   * @param result the result
+   * @param type the type
+   */
+  public static void decompressArchive(
+          @NotNull final File file,
+          @NotNull final File result,
+          @NotNull final String type) {
+    final Archiver archiver = ArchiverFactory.createArchiver(type);
+    try {
+      archiver.extract(file, result);
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+  }
 }
