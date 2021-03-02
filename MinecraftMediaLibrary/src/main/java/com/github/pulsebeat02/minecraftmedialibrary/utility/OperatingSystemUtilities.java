@@ -123,6 +123,7 @@ public final class OperatingSystemUtilities {
       String line;
       while ((line = bri.readLine()) != null) {
         concat.append(line);
+        concat.append(" ");
       }
     } catch (final IOException e) {
       e.printStackTrace();

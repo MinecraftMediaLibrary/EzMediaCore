@@ -58,6 +58,7 @@ public class LinuxPackageManager {
   }
 
   private Map<String, LinuxOSPackages> packages;
+  private final File vlc;
 
   /** Instantiates a new Linux package manager. */
   public LinuxPackageManager() {
@@ -69,6 +70,14 @@ public class LinuxPackageManager {
       Logger.info("Could not read System OS JSON file");
       e.printStackTrace();
     }
+    vlc = new File(System.getProperty("user.dir") + "/vlc");
+    if (!vlc.exists()) {
+      if (vlc.mkdir()) {
+        Logger.info("Made VLC Directory");
+      } else {
+        Logger.error("Failed to Make VLC Directory");
+      }
+    }
   }
 
   /**
@@ -79,7 +88,7 @@ public class LinuxPackageManager {
    */
   public File getPackage() throws IOException {
     Logger.info("Attempting to Find VLC Package for Machine.");
-    final String distro = OperatingSystemUtilities.LINUX_DISTRIBUTION;
+    final String distro = OperatingSystemUtilities.LINUX_DISTRIBUTION.toLowerCase();
     List<LinuxPackage> set = null;
     outer:
     for (final Map.Entry<String, LinuxOSPackages> entry : packages.entrySet()) {
@@ -105,14 +114,6 @@ public class LinuxPackageManager {
     if (set == null || arch == null) {
       Logger.error("Could not find architecture... throwing an error!");
       throw new UnsupportedOperatingSystemException("Unsupported Operating System Platform!");
-    }
-    final File vlc = new File("/vlc");
-    if (!vlc.exists()) {
-      if (vlc.mkdir()) {
-        Logger.info("Made VLC Directory");
-      } else {
-        Logger.error("Failed to Make VLC Directory");
-      }
     }
     for (final LinuxPackage link : set) {
       Logger.info("Trying Out Link: " + link);
@@ -143,8 +144,7 @@ public class LinuxPackageManager {
 
   /** Extract contents. */
   public void extractContents() {
-    final File vlc = new File("/vlc");
-    final File f = new File("/vlc").listFiles()[0];
+    final File f = vlc.listFiles()[0];
     final String name = f.getName();
     Logger.info("Trying to find extension for file: " + name);
     if (name.endsWith("deb") || name.endsWith("rpm") || name.endsWith("eopkg")) {
