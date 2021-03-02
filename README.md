@@ -2,14 +2,14 @@
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/PulseBeat02/MinecraftMediaLibrary)
 
-**You can use Gitpod for an online IDE experience**
+<img src="https://i.imgur.com/48CJD9j.png" alt="drawing" width="1000"/>
 
 ---
 
+## Introduction
 **MinecraftMediaLibrary** is a library written along the Spigot API and net.minecraft.server classes to provide helpful
 and useful classes for other plugins to take advantage of. One of the most important features perhaps is its ability to
-play **videos** on a Minecraft Spigot server. It uses
-a [very optimized dithering method](https://github.com/PulseBeat02/MinecraftMediaLibrary/blob/b47e10869cbcea03889670765aa3ef66d6ba171a/MinecraftMediaLibrary/src/main/java/com/github/pulsebeat02/minecraftmedialibrary/video/dither/FloydImageDither.java#L177) (
+play **videos** on a Minecraft Spigot server. It uses a [very optimized dithering method](https://github.com/PulseBeat02/MinecraftMediaLibrary/blob/b47e10869cbcea03889670765aa3ef66d6ba171a/MinecraftMediaLibrary/src/main/java/com/github/pulsebeat02/minecraftmedialibrary/video/dither/FloydImageDither.java#L177) (
 credits to **BananaPuncher714** and **Jetp250** for helping out with the Floyd Steinberg Dithering) along side with
 **VLCJ Integration** if necessary to parse the video even quicker. As a result, frames can reach up to **35** times per
 second at times with very good quality on maps if necessary. As a reference, a *smooth* animation is one which is 24
@@ -19,65 +19,33 @@ The plugin takes advantages of maps to handle its video playback. Currently, it 
 display the video. However, it is likely in the near future I will add an implementation which allows you to change
 this.
 
-Using the library is very easy. In fact, it allows for easy serving of resourcepacks as well (if you are going to play
-videos). Downloading a video's audio from Youtube and putting it into a modpack is as simple as the following steps:
+## Start Guide
+Due to financial concerns, I am unable to provide a Maven central repository to host my artifacts. However, the library
+is usable if you use Jitpack.
 
-1) Create a `MinecraftMediaLibrary` instance to use.
-2) Create a `YoutubeExtraction` given a url and directory to download the audio/video files at. Call the
-   methods `YoutubeExtraction#downloadVideo()` and `YoutubeExtraction#extractAudio()` to extract the media.
-   ```java
-    YoutubeExtraction extraction = new YoutubeExtraction(youtubeUrl, directory);
-    extraction.downloadVideo();
-    extraction.extractAudio();
-   ```
-3) Create a `ResourcepackWrapper` to specify specific details you want to use in your resourcepack. This could include
-   the audio file, description, pack format, pack icon, etc. A build
-   class (`ResourcePackWrapper.ResourcepackWrapperBuilder`) has been provided to help create this with ease. Call
-   the `ResourcePackWrapper#buildResourcePack()` method to build the resourcepack.
-   ```java
-    ResourcepackWrapper wrapper = new ResourcepackWrapper.Builder()
-        .setAudio(extraction.getAudio())
-        .setDescription("Title of Youtube Video: " + extraction.getVideoTitle())
-        .setPath(directory)
-        .setPackFormat(6)
-        .createResourcepackHostingProvider(this);
-   wrapper.buildResourcePack();
-   ```
-4) Create a `HttpDaemonProvider` for hosting or another provider class to host your resourcepack. Give it a directory (
-   for the parent directory of the HTTP Server), and a port for the server to run at. Then
-   call `HttpDaemonProvider#startServer()` to start the HTTP daemon.
-   ```java
-    HttpDaemonProvider hosting = new HttpDaemonProvider(directory, port);
-    hosting.startServer();
-   ```
-5) That's it! If you want to get the url of the file, you should call the
-   `HttpDaemonProvider#generateUrl(Path path)` to generate a link for the specific file. You can use this link to send
-   to players or just for general hosting. A full method can be found here:
-   ```java
-   public String getResourcepackUrlYoutube(final String youtubeUrl, final String directory, final int port) {
+Repository:
+```xml
+	<repositories>
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+```
 
-        YoutubeExtraction extraction = new YoutubeExtraction(youtubeUrl, directory);
-        extraction.downloadVideo();
-        extraction.extractAudio();
+Dependency:
+```xml
+	<dependency>
+	    <groupId>com.github.PulseBeat02</groupId>
+	    <artifactId>MinecraftMediaLibrary</artifactId>
+	    <version>-SNAPSHOT</version>
+	</dependency>
+```
 
-        ResourcepackWrapper wrapper = new ResourcepackWrapper.Builder()
-                .setAudio(extraction.getAudio())
-                .setDescription("Title of Youtube Video: " + extraction.getVideoTitle())
-                .setPath(directory)
-                .setPackFormat(6)
-                .createResourcepackHostingProvider(this);
-        wrapper.buildResourcePack();
+## Terms of Usage
+Although MinecraftMediaLibrary is open source, I do provide some restrictions. You are to not:
 
-        HttpDaemonProvider hosting = new HttpDaemonProvider(directory, port);
-        hosting.startServer();
+1) Use the code for comerical purposes. Or to use the library to develop a plugin being sold to others. Requires permission by the author (PulseBeat_02) first.
+2) Rename the project to something else, obfuscate the code, and sell it. Similar to rule one, but this one is more focused around not copying someone else's work.
 
-        return hosting.generateUrl(Paths.get(directory));
-
-    }
-   ```
-
-Note: It is **very** recommended you put all these methods in async. By default, these methods are not wrapped with
-async for better user end design, so use a class such as `Thread`, `Runnable`,
-`ExecutorService`, etc if you want to run it with async.
-
-More features are coming soon. I am working on Java Docs and I hope it will be more useful as time goes on!
+However, you are welcome to fork the project, use it for your free libraries. I know that these restrictions may seem super limiting and stupid, but they are put into place because I spent a lot of time on this project, and I don't want others to copy work without crediting.
