@@ -7,7 +7,7 @@
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
  *
- * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/11/2021
+ * Written by Brandon Li <brandonli2006ma@gmail.com>, 3/2/2021
  * ============================================================================
  */
 
@@ -256,7 +256,7 @@ public class ItemFrameCallback implements AbstractCallback {
      * @return the dither holder
      */
     public Builder setDitherHolder(final AbstractDitherHolder holder) {
-      this.type = holder;
+        type = holder;
       return this;
     }
 

@@ -7,7 +7,7 @@
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
  *
- * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/11/2021
+ * Written by Brandon Li <brandonli2006ma@gmail.com>, 3/2/2021
  * ============================================================================
  */
 
@@ -40,13 +40,13 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
    * @throws IOException the io exception
    */
   public HttpDaemon(final int port, @NotNull final File directory) throws IOException {
-    this.running = true;
+      running = true;
     this.port = port;
-    this.socket = new ServerSocket(port);
-    this.socket.setReuseAddress(true);
+      socket = new ServerSocket(port);
+      socket.setReuseAddress(true);
     this.directory = directory;
-    this.header = ZipHeader.ZIP;
-    this.verbose = true;
+      header = ZipHeader.ZIP;
+      verbose = true;
     Logger.info("Started HTTP Server: ");
     Logger.info("========================================");
     Logger.info("IP: " + Bukkit.getIp());
@@ -63,20 +63,20 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
    * @throws IOException the io exception
    */
   public HttpDaemon(final int port, @NotNull final String path) throws IOException {
-    this.running = true;
+      running = true;
     this.port = port;
     try {
-      this.socket = new ServerSocket(port);
-      this.socket.setReuseAddress(true);
+        socket = new ServerSocket(port);
+        socket.setReuseAddress(true);
     } catch (final BindException e) {
       Logger.error(
           "The port specified is being used by another process. Please make sure to port-forward the port first and make sure it is open.");
       Logger.error(e.getMessage());
       return;
     }
-    this.directory = new File(path);
-    this.header = ZipHeader.ZIP;
-    this.verbose = true;
+      directory = new File(path);
+      header = ZipHeader.ZIP;
+      verbose = true;
     Logger.info("Started HTTP Server: ");
     Logger.info("========================================");
     Logger.info("IP: " + Bukkit.getIp());

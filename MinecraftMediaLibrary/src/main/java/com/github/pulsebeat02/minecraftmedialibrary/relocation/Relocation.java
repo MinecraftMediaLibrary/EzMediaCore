@@ -1,17 +1,14 @@
 /*
- * Copyright Apache Software Foundation
+ * ============================================================================
+ * Copyright (C) PulseBeat_02 - All Rights Reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of MinecraftMediaLibrary
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Written by Brandon Li <brandonli2006ma@gmail.com>, 3/2/2021
+ * ============================================================================
  */
 
 package com.github.pulsebeat02.minecraftmedialibrary.relocation;

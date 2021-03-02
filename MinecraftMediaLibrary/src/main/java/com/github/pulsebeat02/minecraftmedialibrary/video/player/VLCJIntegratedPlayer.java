@@ -7,7 +7,7 @@
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
  *
- * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/11/2021
+ * Written by Brandon Li <brandonli2006ma@gmail.com>, 3/2/2021
  * ============================================================================
  */
 
@@ -50,7 +50,7 @@ public class VLCJIntegratedPlayer extends AbstractVideoPlayer {
       final int height,
       @NotNull final Consumer<int[]> callback) {
     super(library, url, width, height, callback);
-    this.mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
+      mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
     final BufferFormatCallback bufferFormatCallback =
         new BufferFormatCallback() {
           @Override
@@ -87,7 +87,7 @@ public class VLCJIntegratedPlayer extends AbstractVideoPlayer {
       final int height,
       @NotNull final Consumer<int[]> callback) {
     super(library, file.getAbsolutePath(), width, height, callback);
-    this.mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
+      mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
     final BufferFormatCallback bufferFormatCallback =
         new BufferFormatCallback() {
           @Override
