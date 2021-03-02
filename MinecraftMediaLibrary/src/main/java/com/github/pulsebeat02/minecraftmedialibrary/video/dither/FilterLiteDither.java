@@ -2,6 +2,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
 import java.nio.ByteBuffer;
 
+/** The type Filter lite dither. */
 public class FilterLiteDither implements AbstractDitherHolder {
 
   /**
@@ -36,6 +37,9 @@ public class FilterLiteDither implements AbstractDitherHolder {
   public static int[] getFullColorMap() {
     return FULL_COLOR_MAP;
   }
+
+  /** Init. */
+  public static void init() {}
 
   @Override
   public void dither(final int[] buffer, final int width) {
@@ -244,7 +248,4 @@ public class FilterLiteDither implements AbstractDitherHolder {
     return COLOR_MAP[
         (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
   }
-
-  public static void init() {}
-
 }

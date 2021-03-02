@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 
+/** The type Ordered dithering. */
 public class OrderedDithering implements AbstractDitherHolder {
 
   /**
@@ -123,7 +124,7 @@ public class OrderedDithering implements AbstractDitherHolder {
         multiplicative = 0.015625f;
         break;
     }
-    this.r = 255f / (n * n);
+    r = 255f / (n * n);
     convertToFloat();
   }
 
@@ -283,6 +284,7 @@ public class OrderedDithering implements AbstractDitherHolder {
     return n;
   }
 
+  /** The enum Dither type. */
   public enum DitherType {
     /** The Mode two. */
     ModeTwo("Two Dimensional"),

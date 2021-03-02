@@ -15,6 +15,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
 import java.awt.*;
 
+/** The type Minecraft map palette. */
 public class MinecraftMapPalette {
 
   /** NMS Map Palette */

@@ -7,14 +7,14 @@
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
  *
- * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/27/2021
+ * Written by Brandon Li <brandonli2006ma@gmail.com>, 3/2/2021
  * ============================================================================
  */
 
 /**
- * Perhaps some of the greatest dithering algorithms which are very performant.
+ * Algorithms currently in development. (Deprecated)
  *
  * @since 1.0
- * @author PulseBeat_02, Jetp250, BananaPuncher714.
+ * @author PulseBeat_02
  */
-package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
+package com.github.pulsebeat02.minecraftmedialibrary.video.dither.development;

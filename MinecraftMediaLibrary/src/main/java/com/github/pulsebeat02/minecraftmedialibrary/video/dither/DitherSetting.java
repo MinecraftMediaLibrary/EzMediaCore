@@ -15,6 +15,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
 import org.jetbrains.annotations.NotNull;
 
+/** The enum Dither setting. */
 public enum DitherSetting {
 
   /** Standard Minecraft Dithering */

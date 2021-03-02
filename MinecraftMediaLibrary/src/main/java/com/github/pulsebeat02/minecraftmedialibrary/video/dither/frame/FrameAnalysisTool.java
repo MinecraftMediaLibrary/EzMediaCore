@@ -13,10 +13,15 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.video.dither.frame;
 
+/** The type Frame analysis tool. */
 public class FrameAnalysisTool {
 
-    public static int[] frameAnalysisTool() {
-        return null;
-    }
-
+  /**
+   * Frame analysis tool int [ ].
+   *
+   * @return the int [ ]
+   */
+  public static int[] frameAnalysisTool() {
+    return null;
+  }
 }

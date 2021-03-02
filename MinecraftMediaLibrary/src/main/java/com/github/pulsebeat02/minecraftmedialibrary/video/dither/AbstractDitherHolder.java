@@ -15,6 +15,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
 import java.nio.ByteBuffer;
 
+/** The interface Abstract dither holder. */
 public interface AbstractDitherHolder {
 
   /**

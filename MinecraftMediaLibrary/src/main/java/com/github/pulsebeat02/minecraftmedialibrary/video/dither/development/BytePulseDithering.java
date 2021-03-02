@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+/** The type Byte pulse dithering. */
 @Deprecated
 public class BytePulseDithering implements AbstractDitherHolder {
 
@@ -59,14 +60,31 @@ public class BytePulseDithering implements AbstractDitherHolder {
     }
   }
 
+  /**
+   * Gets best full color.
+   *
+   * @param red the red
+   * @param green the green
+   * @param blue the blue
+   * @return the best full color
+   */
   public static int getBestFullColor(final int red, final int green, final int blue) {
     return FULL_COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
   }
 
+  /**
+   * Gets color.
+   *
+   * @param r the r
+   * @param g the g
+   * @param b the b
+   * @return the color
+   */
   public static int getColor(final int r, final int g, final int b) {
     return values[table[(r << 16) + (g << 8) + (b)]];
   }
 
+  /** Init. */
   public static void init() {}
 
   @Override
