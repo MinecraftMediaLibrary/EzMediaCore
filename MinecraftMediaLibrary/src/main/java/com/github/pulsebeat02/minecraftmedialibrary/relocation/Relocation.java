@@ -42,9 +42,9 @@ public final class Relocation {
       final Collection<String> includes,
       final Collection<String> excludes) {
     this.pattern = pattern.replace('/', '.');
-    this.pathPattern = pattern.replace('.', '/');
+      pathPattern = pattern.replace('.', '/');
     this.relocatedPattern = relocatedPattern.replace('/', '.');
-    this.relocatedPathPattern = relocatedPattern.replace('.', '/');
+      relocatedPathPattern = relocatedPattern.replace('.', '/');
 
     if (includes != null && !includes.isEmpty()) {
       this.includes = normalizePatterns(includes);
@@ -85,11 +85,11 @@ public final class Relocation {
   }
 
   private boolean isIncluded(final String path) {
-    if (this.includes == null) {
+    if (includes == null) {
       return true;
     }
 
-    for (final String include : this.includes) {
+    for (final String include : includes) {
       if (SelectorUtils.matchPath(include, path, true)) {
         return true;
       }
@@ -98,11 +98,11 @@ public final class Relocation {
   }
 
   private boolean isExcluded(final String path) {
-    if (this.excludes == null) {
+    if (excludes == null) {
       return false;
     }
 
-    for (final String exclude : this.excludes) {
+    for (final String exclude : excludes) {
       if (SelectorUtils.matchPath(exclude, path, true)) {
         return true;
       }
@@ -125,7 +125,7 @@ public final class Relocation {
       return false;
     }
 
-    return path.startsWith(this.pathPattern) || path.startsWith("/" + this.pathPattern);
+    return path.startsWith(pathPattern) || path.startsWith("/" + pathPattern);
   }
 
   /**
@@ -145,7 +145,7 @@ public final class Relocation {
    * @return the string
    */
   String relocatePath(final String path) {
-    return path.replaceFirst(this.pathPattern, this.relocatedPathPattern);
+    return path.replaceFirst(pathPattern, relocatedPathPattern);
   }
 
   /**
@@ -155,6 +155,6 @@ public final class Relocation {
    * @return the string
    */
   String relocateClass(final String clazz) {
-    return clazz.replaceFirst(this.pattern, this.relocatedPattern);
+    return clazz.replaceFirst(pattern, relocatedPattern);
   }
 }

@@ -20,7 +20,7 @@ import java.util.StringTokenizer;
 
 /**
  * This is a stripped down version of org.codehaus.plexus.util.SelectorUtils for use in {@link
- * Relocation}.
+ * Relocation}*.
  *
  * @author Arnout J. Kuiper <a href="mailto:ajkuiper@wxs.nl">ajkuiper@wxs.nl</a>
  * @author Magesh Umasankar
@@ -347,7 +347,7 @@ final class SelectorUtils {
     if (!isCaseSensitive) {
       // NOTE: Try both upper case and lower case as done by String.equalsIgnoreCase()
       return Character.toUpperCase(c1) == Character.toUpperCase(c2)
-              || Character.toLowerCase(c1) == Character.toLowerCase(c2);
+          || Character.toLowerCase(c1) == Character.toLowerCase(c2);
     }
     return false;
   }

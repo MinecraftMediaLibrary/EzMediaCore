@@ -112,14 +112,17 @@ public final class RuntimeUtilities {
     return System.getProperty("os.arch");
   }
 
+  /**
+   * Gets linux distribution.
+   *
+   * @return the linux distribution
+   */
   public static String getLinuxDistribution() {
-    final String[] cmd = {
-            "/bin/sh", "-c", "cat /etc/*-release" };
+    final String[] cmd = {"/bin/sh", "-c", "cat /etc/*-release"};
     final StringBuilder concat = new StringBuilder();
     try {
       final Process p = Runtime.getRuntime().exec(cmd);
-      final BufferedReader bri = new BufferedReader(new InputStreamReader(
-              p.getInputStream()));
+      final BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
       String line;
       while ((line = bri.readLine()) != null) {
         concat.append(line);
@@ -131,6 +134,12 @@ public final class RuntimeUtilities {
     return concat.toString();
   }
 
+  /**
+   * Is 64 architecture boolean.
+   *
+   * @param os the os
+   * @return the boolean
+   */
   public static boolean is64Architecture(@NotNull final String os) {
     if (os.contains("Windows")) {
       return System.getenv("ProgramFiles(x86)") != null;
@@ -139,6 +148,12 @@ public final class RuntimeUtilities {
     }
   }
 
+  /**
+   * Gets distribution name.
+   *
+   * @param distro the distro
+   * @return the distribution name
+   */
   public static String getDistributionName(@NotNull final String distro) {
     final String[] arr = distro.split(" ");
     for (final String str : arr) {
@@ -149,6 +164,12 @@ public final class RuntimeUtilities {
     return "";
   }
 
+  /**
+   * Gets distribution version.
+   *
+   * @param distro the distro
+   * @return the distribution version
+   */
   public static String getDistributionVersion(@NotNull final String distro) {
     final String[] arr = distro.split(" ");
     for (final String str : arr) {
@@ -158,5 +179,4 @@ public final class RuntimeUtilities {
     }
     return "";
   }
-
 }

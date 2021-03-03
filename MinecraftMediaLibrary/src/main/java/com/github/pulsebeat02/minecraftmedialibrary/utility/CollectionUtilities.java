@@ -20,15 +20,19 @@ import java.util.Map;
 
 public class CollectionUtilities {
 
-    /**
-     * Creates a Guava multimap using the input map.
-     */
-    public static <K, V> Multimap<K, V> createMultiMap(final Map<K, ? extends Iterable<V>> input) {
-        final Multimap<K, V> multimap = ArrayListMultimap.create();
-        for (final Map.Entry<K, ? extends Iterable<V>> entry : input.entrySet()) {
-            multimap.putAll(entry.getKey(), entry.getValue());
-        }
-        return multimap;
+  /**
+   * Creates a Guava multimap using the input map.
+   *
+   * @param <K> the type parameter
+   * @param <V> the type parameter
+   * @param input the input
+   * @return the multimap
+   */
+  public static <K, V> Multimap<K, V> createMultiMap(final Map<K, ? extends Iterable<V>> input) {
+    final Multimap<K, V> multimap = ArrayListMultimap.create();
+    for (final Map.Entry<K, ? extends Iterable<V>> entry : input.entrySet()) {
+      multimap.putAll(entry.getKey(), entry.getValue());
     }
-
+    return multimap;
+  }
 }

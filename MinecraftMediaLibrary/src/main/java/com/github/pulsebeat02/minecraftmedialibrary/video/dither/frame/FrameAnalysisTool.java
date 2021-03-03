@@ -13,7 +13,6 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.video.dither.frame;
 
-/** The type Frame analysis tool. */
 public class FrameAnalysisTool {
 
   /**

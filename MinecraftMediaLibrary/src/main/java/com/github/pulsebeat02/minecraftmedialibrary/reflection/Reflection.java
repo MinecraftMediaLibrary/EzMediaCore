@@ -273,7 +273,7 @@ public final class Reflection {
    *
    * @param lookupName - the class name with variables.
    * @return The class.
-   * @see for more information.
+   * @see formore information.
    */
   public static Class<Object> getUntypedClass(final String lookupName) {
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -404,7 +404,7 @@ public final class Reflection {
     /**
      * Invoke a method on a specific target object.
      *
-     * @param target    - the target object, or NULL for a static method.
+     * @param target - the target object, or NULL for a static method.
      * @param arguments - the arguments to pass to the method.
      * @return The return value, or NULL if is void.
      */

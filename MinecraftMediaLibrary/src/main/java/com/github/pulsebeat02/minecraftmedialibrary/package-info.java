@@ -18,4 +18,3 @@
  * @author PulseBeat_02
  */
 package com.github.pulsebeat02.minecraftmedialibrary;
-

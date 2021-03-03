@@ -19,7 +19,6 @@ import com.github.pulsebeat02.minecraftmedialibrary.video.dither.StaticDitherIni
 
 import java.nio.ByteBuffer;
 
-/** The type Int pulse dithering. */
 @Deprecated
 public class IntPulseDithering implements AbstractDitherHolder {
 

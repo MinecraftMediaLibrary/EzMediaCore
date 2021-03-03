@@ -50,7 +50,7 @@ public class VLCJIntegratedPlayer extends AbstractVideoPlayer {
       final int height,
       @NotNull final Consumer<int[]> callback) {
     super(library, url, width, height, callback);
-      mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
+    mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
     final BufferFormatCallback bufferFormatCallback =
         new BufferFormatCallback() {
           @Override
@@ -87,7 +87,7 @@ public class VLCJIntegratedPlayer extends AbstractVideoPlayer {
       final int height,
       @NotNull final Consumer<int[]> callback) {
     super(library, file.getAbsolutePath(), width, height, callback);
-      mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
+    mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
     final BufferFormatCallback bufferFormatCallback =
         new BufferFormatCallback() {
           @Override
@@ -149,6 +149,7 @@ public class VLCJIntegratedPlayer extends AbstractVideoPlayer {
     }
   }
 
+  /** The type Builder. */
   public class Builder {
 
     private String url;

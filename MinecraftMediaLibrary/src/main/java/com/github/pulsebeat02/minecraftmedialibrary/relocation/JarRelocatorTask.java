@@ -28,7 +28,7 @@ import java.util.jar.JarOutputStream;
 
 /**
  * A task that copies {@link JarEntry jar entries} from a {@link JarFile jar input} to a {@link
- * JarOutputStream jar output}, applying the relocations defined by a {@link RelocatingRemapper}.
+ * JarOutputStream jar output}*, applying the relocations defined by a {@link RelocatingRemapper}.
  */
 final class JarRelocatorTask {
   private final RelocatingRemapper remapper;
@@ -68,7 +68,7 @@ final class JarRelocatorTask {
    * @throws IOException the io exception
    */
   void processEntries() throws IOException {
-    for (final Enumeration<JarEntry> entries = this.jarIn.entries(); entries.hasMoreElements(); ) {
+    for (final Enumeration<JarEntry> entries = jarIn.entries(); entries.hasMoreElements(); ) {
       final JarEntry entry = entries.nextElement();
 
       // The 'INDEX.LIST' file is an optional file, containing information about the packages
@@ -81,7 +81,7 @@ final class JarRelocatorTask {
         continue;
       }
 
-      try (final InputStream entryIn = this.jarIn.getInputStream(entry)) {
+      try (final InputStream entryIn = jarIn.getInputStream(entry)) {
         processEntry(entry, entryIn);
       }
     }
@@ -89,14 +89,14 @@ final class JarRelocatorTask {
 
   private void processEntry(final JarEntry entry, final InputStream entryIn) throws IOException {
     final String name = entry.getName();
-    final String mappedName = this.remapper.map(name);
+    final String mappedName = remapper.map(name);
 
     // ensure the parent directory structure exists for the entry.
     processDirectory(mappedName, true);
 
     if (name.endsWith(".class")) {
       processClass(name, entryIn);
-    } else if (!this.resources.contains(mappedName)) {
+    } else if (!resources.contains(mappedName)) {
       processResource(mappedName, entryIn, entry.getTime());
     }
   }
@@ -105,7 +105,7 @@ final class JarRelocatorTask {
     final int index = name.lastIndexOf('/');
     if (index != -1) {
       final String parentDirectory = name.substring(0, index);
-      if (!this.resources.contains(parentDirectory)) {
+      if (!resources.contains(parentDirectory)) {
         processDirectory(parentDirectory, false);
       }
     }
@@ -116,8 +116,8 @@ final class JarRelocatorTask {
 
     // directory entries must end in "/"
     final JarEntry entry = new JarEntry(name + "/");
-    this.jarOut.putNextEntry(entry);
-    this.resources.add(name);
+    jarOut.putNextEntry(entry);
+    resources.add(name);
   }
 
   private void processResource(
@@ -125,17 +125,17 @@ final class JarRelocatorTask {
     final JarEntry jarEntry = new JarEntry(name);
     jarEntry.setTime(lastModified);
 
-    this.jarOut.putNextEntry(jarEntry);
-    copy(entryIn, this.jarOut);
+    jarOut.putNextEntry(jarEntry);
+    copy(entryIn, jarOut);
 
-    this.resources.add(name);
+    resources.add(name);
   }
 
   private void processClass(final String name, final InputStream entryIn) throws IOException {
     final ClassReader classReader = new ClassReader(entryIn);
     final ClassWriter classWriter = new ClassWriter(0);
     final RelocatingClassVisitor classVisitor =
-        new RelocatingClassVisitor(classWriter, this.remapper, name);
+        new RelocatingClassVisitor(classWriter, remapper, name);
 
     try {
       classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
@@ -146,10 +146,10 @@ final class JarRelocatorTask {
     final byte[] renamedClass = classWriter.toByteArray();
 
     // Need to take the .class off for remapping evaluation
-    final String mappedName = this.remapper.map(name.substring(0, name.indexOf('.')));
+    final String mappedName = remapper.map(name.substring(0, name.indexOf('.')));
 
     // Now we put it back on so the class file is written out with the right extension.
-    this.jarOut.putNextEntry(new JarEntry(mappedName + ".class"));
-    this.jarOut.write(renamedClass);
+    jarOut.putNextEntry(new JarEntry(mappedName + ".class"));
+    jarOut.write(renamedClass);
   }
 }

@@ -30,5 +30,7 @@ com.github.pulsebeat02.minecraftmedialibrary.resourcepack
 com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting
 com.github.pulsebeat02.minecraftmedialibrary.utility
 com.github.pulsebeat02.minecraftmedialibrary.video.dither
+com.github.pulsebeat02.minecraftmedialibrary.video.dither.development
+com.github.pulsebeat02.minecraftmedialibrary.video.dither.frame
 com.github.pulsebeat02.minecraftmedialibrary.video.itemframe
 com.github.pulsebeat02.minecraftmedialibrary.video.player

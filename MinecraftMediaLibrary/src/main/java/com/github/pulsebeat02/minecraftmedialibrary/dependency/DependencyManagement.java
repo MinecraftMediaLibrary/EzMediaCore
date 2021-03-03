@@ -42,9 +42,9 @@ public class DependencyManagement {
     if (!dir.exists()) {
       if (dir.mkdir()) {
         Logger.info(
-                "Dependency Directory ("
-                        + dir.getAbsolutePath()
-                        + ") does not exist... Creating a folder");
+            "Dependency Directory ("
+                + dir.getAbsolutePath()
+                + ") does not exist... Creating a folder");
       } else {
         Logger.info("Dependency Directory (" + dir.getAbsolutePath() + ") exists!");
       }
@@ -53,9 +53,9 @@ public class DependencyManagement {
     if (!relocatedDir.exists()) {
       if (relocatedDir.mkdir()) {
         Logger.info(
-                "Relocated Directory ("
-                        + relocatedDir.getAbsolutePath()
-                        + ") does not exist... Creating a folder");
+            "Relocated Directory ("
+                + relocatedDir.getAbsolutePath()
+                + ") does not exist... Creating a folder");
       } else {
         Logger.info("Relocated Directory (" + relocatedDir.getAbsolutePath() + ") exists!");
       }
@@ -106,7 +106,8 @@ public class DependencyManagement {
             .map(JarRelocationConvention::getRelocation)
             .collect(Collectors.toList());
     for (final File f : files) {
-      final JarRelocator relocator = new JarRelocator(f, new File(relocatedDir, f.getName()), relocations);
+      final JarRelocator relocator =
+          new JarRelocator(f, new File(relocatedDir, f.getName()), relocations);
       try {
         relocator.run();
       } catch (final IOException e) {

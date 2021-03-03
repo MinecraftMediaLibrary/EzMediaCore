@@ -15,7 +15,6 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
 import java.nio.ByteBuffer;
 
-/** The type Standard dithering. */
 public class StandardDithering implements AbstractDitherHolder {
 
   private static final byte[] COLOR_MAP;

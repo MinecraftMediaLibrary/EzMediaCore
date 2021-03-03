@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RecursiveTask;
 
-/** The type Static dither initialization. */
 public class StaticDitherInitialization {
 
   /** The constant PALETTE. */
@@ -109,7 +108,6 @@ public class StaticDitherInitialization {
   public static void init() {}
 }
 
-/** The type Load red. */
 class LoadRed extends RecursiveTask<byte[]> {
 
   private static final long serialVersionUID = -6408377810782246185L;
@@ -147,7 +145,6 @@ class LoadRed extends RecursiveTask<byte[]> {
   }
 }
 
-/** The type Load green. */
 class LoadGreen extends RecursiveTask<byte[]> {
 
   private static final long serialVersionUID = -1221290051151782146L;
@@ -187,7 +184,6 @@ class LoadGreen extends RecursiveTask<byte[]> {
   }
 }
 
-/** The type Load blue. */
 class LoadBlue extends RecursiveTask<Byte> {
 
   private static final long serialVersionUID = 5331764784578439634L;

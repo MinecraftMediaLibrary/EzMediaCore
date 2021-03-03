@@ -32,6 +32,7 @@ public final class DependencyUtilities {
 
   private static final String MAVEN_CENTRAL_URL;
   private static final String JITPACK_CENTRAL_URL;
+  /** The constant CLASSLOADER. */
   public static URLClassLoader CLASSLOADER;
 
   private static Method ADD_URL_METHOD;
@@ -45,15 +46,15 @@ public final class DependencyUtilities {
       final Object urlClassLoaderModule = getModuleMethod.invoke(URLClassLoader.class);
       final Object thisModule = getModuleMethod.invoke(DependencyUtilities.class);
       addOpensMethod.invoke(
-              urlClassLoaderModule, URLClassLoader.class.getPackage().getName(), thisModule);
+          urlClassLoaderModule, URLClassLoader.class.getPackage().getName(), thisModule);
       Logger.info(
-              "User is using Java 9+, meaning Reflection Module does have to be opened. You may safely ignore this error.");
+          "User is using Java 9+, meaning Reflection Module does have to be opened. You may safely ignore this error.");
     } catch (final ClassNotFoundException
-            | NoSuchMethodException
-            | IllegalAccessException
-            | InvocationTargetException ignored) {
+        | NoSuchMethodException
+        | IllegalAccessException
+        | InvocationTargetException ignored) {
       Logger.info(
-              "User is using Java 8, meaning Reflection Module does NOT have to be opened. You may safely ignore this error.");
+          "User is using Java 8, meaning Reflection Module does NOT have to be opened. You may safely ignore this error.");
       // Java 8 doesn't have module class -- you can ignore the error.
     }
     MAVEN_CENTRAL_URL = "https://repo1.maven.org/maven2/";
@@ -70,13 +71,13 @@ public final class DependencyUtilities {
    * Download Maven Dependency.
    *
    * @param dependency the dependency
-   * @param parent     the parent
+   * @param parent the parent
    * @return the file
    * @throws IOException the io exception
    */
   public static File downloadMavenDependency(
-          @NotNull final RepositoryDependency dependency, @NotNull final String parent)
-          throws IOException {
+      @NotNull final RepositoryDependency dependency, @NotNull final String parent)
+      throws IOException {
     return downloadFile(dependency, getMavenCentralUrl(dependency), parent);
   }
 
@@ -84,13 +85,13 @@ public final class DependencyUtilities {
    * Download Jitpack Dependency.
    *
    * @param dependency the dependency
-   * @param parent     the parent
+   * @param parent the parent
    * @return the file
    * @throws IOException the io exception
    */
   public static File downloadJitpackDependency(
-          @NotNull final RepositoryDependency dependency, @NotNull final String parent)
-          throws IOException {
+      @NotNull final RepositoryDependency dependency, @NotNull final String parent)
+      throws IOException {
     return downloadFile(dependency, getJitpackUrl(dependency), parent);
   }
 
@@ -118,34 +119,34 @@ public final class DependencyUtilities {
    * Constructs dependency URL of MavenDependency.
    *
    * @param dependency the dependency
-   * @param base       the base
+   * @param base the base
    * @return the dependency url
    */
   public static String getDependencyUrl(
-          @NotNull final RepositoryDependency dependency, @NotNull final String base) {
+      @NotNull final RepositoryDependency dependency, @NotNull final String base) {
     return base
-            + dependency.getGroup().replaceAll("\\.", "/")
-            + "/"
-            + dependency.getArtifact()
-            + "/"
-            + dependency.getVersion()
-            + "/";
+        + dependency.getGroup().replaceAll("\\.", "/")
+        + "/"
+        + dependency.getArtifact()
+        + "/"
+        + dependency.getVersion()
+        + "/";
   }
 
   /**
    * Constructs dependency URL directly based on parameters.
    *
-   * @param groupId    the group id
+   * @param groupId the group id
    * @param artifactId the artifact id
-   * @param version    the version
-   * @param base       the base
+   * @param version the version
+   * @param base the base
    * @return the dependency url
    */
   public static String getDependencyUrl(
-          @NotNull final String groupId,
-          @NotNull final String artifactId,
-          @NotNull final String version,
-          @NotNull final String base) {
+      @NotNull final String groupId,
+      @NotNull final String artifactId,
+      @NotNull final String version,
+      @NotNull final String base) {
     return base + groupId.replaceAll("\\.", "/") + "/" + artifactId + "/" + version + "/";
   }
 
@@ -153,16 +154,16 @@ public final class DependencyUtilities {
    * Download dependency file.
    *
    * @param dependency the dependency
-   * @param link       the link
-   * @param parent     the parent
+   * @param link the link
+   * @param parent the parent
    * @return the file
    * @throws IOException the io exception
    */
   public static File downloadFile(
-          @NotNull final RepositoryDependency dependency,
-          @NotNull final String link,
-          @NotNull final String parent)
-          throws IOException {
+      @NotNull final RepositoryDependency dependency,
+      @NotNull final String link,
+      @NotNull final String parent)
+      throws IOException {
     final String file = dependency.getArtifact() + "-" + dependency.getVersion() + ".jar";
     final String url = link + file;
     return downloadFile(Paths.get(parent + "/" + file), url);
@@ -171,19 +172,19 @@ public final class DependencyUtilities {
   /**
    * Download dependency file.
    *
-   * @param groupId    the group id
+   * @param groupId the group id
    * @param artifactId the artifact id
-   * @param version    the version
-   * @param parent     the parent
+   * @param version the version
+   * @param parent the parent
    * @return the file
    * @throws IOException the io exception
    */
   public static File downloadFile(
-          @NotNull final String groupId,
-          @NotNull final String artifactId,
-          @NotNull final String version,
-          @NotNull final String parent)
-          throws IOException {
+      @NotNull final String groupId,
+      @NotNull final String artifactId,
+      @NotNull final String version,
+      @NotNull final String parent)
+      throws IOException {
     final String file = artifactId + "-" + version + ".jar";
     final String url = getDependencyUrl(groupId, artifactId, version, MAVEN_CENTRAL_URL) + file;
     return downloadFile(Paths.get(parent + "/" + file), url);
@@ -192,13 +193,13 @@ public final class DependencyUtilities {
   /**
    * Download dependency file.
    *
-   * @param p   the p
+   * @param p the p
    * @param url the url
    * @return the file
    * @throws IOException the io exception
    */
   public static File downloadFile(@NotNull final Path p, @NotNull final String url)
-          throws IOException {
+      throws IOException {
     Logger.info("Downloading Dependency at " + url + " into folder " + p);
     final BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
     final FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p));

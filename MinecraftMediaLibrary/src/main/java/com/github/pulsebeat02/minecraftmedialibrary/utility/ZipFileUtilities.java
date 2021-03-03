@@ -15,7 +15,6 @@ package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.rauschig.jarchivelib.Archiver;
@@ -29,6 +28,12 @@ import java.util.Queue;
 import java.util.Set;
 
 public final class ZipFileUtilities {
+
+  private static final Set<String> ARCHIVE_EXTENSIONS;
+
+  static {
+    ARCHIVE_EXTENSIONS = ImmutableSet.of("deb", "rpm", "txz", "xz", "tgz", "gz", "ar", "cpio");
+  }
 
   /**
    * Decompress archive.
@@ -80,9 +85,7 @@ public final class ZipFileUtilities {
    * @param type the type
    */
   public static void decompressArchive(
-          @NotNull final File file,
-          @NotNull final File result,
-          @NotNull final String type) {
+      @NotNull final File file, @NotNull final File result, @NotNull final String type) {
     final Archiver archiver = ArchiverFactory.createArchiver(type);
     try {
       archiver.extract(file, result);
@@ -91,20 +94,20 @@ public final class ZipFileUtilities {
     }
   }
 
-  private static final Set<String> ARCHIVE_EXTENSIONS;
-
-  static {
-    ARCHIVE_EXTENSIONS = ImmutableSet.of("deb", "rpm", "txz", "xz", "tgz", "gz", "ar", "cpio");
-  }
-
+  /**
+   * Recursively decompresses an archive.
+   *
+   * @param file archive
+   * @param folder where to extract to
+   */
   public static void recursiveExtraction(@NotNull final File file, @NotNull final File folder) {
     decompressArchive(file, folder);
     File currentFolder = folder;
     final Queue<File> queue = new LinkedList<>(containsArchiveExtension(currentFolder));
     while (!queue.isEmpty()) {
       final File current = queue.remove();
-      currentFolder = new File(currentFolder.getAbsolutePath()
-              + "/" + getFileName(current.getName()));
+      currentFolder =
+          new File(currentFolder.getAbsolutePath() + "/" + getFileName(current.getName()));
       decompressArchive(current, currentFolder);
       if (current.delete()) {
         Logger.info("Deleted Zip: " + current.getName() + " successfully");
@@ -115,6 +118,12 @@ public final class ZipFileUtilities {
     }
   }
 
+  /**
+   * Checks if files in folders are archive or not.
+   *
+   * @param f file to check
+   * @return set of arhcives in folder
+   */
   public static Set<File> containsArchiveExtension(@NotNull final File f) {
     final Set<File> files = new HashSet<>();
     for (final File child : f.listFiles()) {
@@ -127,6 +136,12 @@ public final class ZipFileUtilities {
     return files;
   }
 
+  /**
+   * Gets the compressed type format from file name.
+   *
+   * @param name file name
+   * @return archive format
+   */
   public static String getCompressedType(@NotNull final String name) {
     if (name.endsWith("deb") || name.endsWith("ar")) {
       return "ar";
@@ -138,15 +153,21 @@ public final class ZipFileUtilities {
       return "tar gz";
     } else if (name.endsWith(".tar.zst") || name.endsWith("eopkg")) {
       Logger.warn(
-              "Hello user, please read this error carefully: Your computer seems to be using "
-                      + "KAOS Linux or Solus Linux. The extract for these Linuxes is either a .tar.zst file or an "
-                      + ".eopkg file, which is yet not supported by the plugin yet. The archive has been downloaded "
-                      + "in the /vlc folder, and it is required by you to extract the file in order to get the VLC "
-                      + "libraries. This is a required step, and VLCJ will not run if you do not perform this step.");
+          "Hello user, please read this error carefully: Your computer seems to be using "
+              + "KAOS Linux or Solus Linux. The extract for these Linuxes is either a .tar.zst file or an "
+              + ".eopkg file, which is yet not supported by the plugin yet. The archive has been downloaded "
+              + "in the /vlc folder, and it is required by you to extract the file in order to get the VLC "
+              + "libraries. This is a required step, and VLCJ will not run if you do not perform this step.");
     }
     return "";
   }
 
+  /**
+   * Gets the file name without any compression headers/extensions
+   *
+   * @param full file name
+   * @return trimmed name
+   */
   public static String getFileName(@NotNull final String full) {
     if (full.endsWith(".tar.gz") || full.endsWith(".tar.xz")) {
       return full.substring(0, full.length() - 7);
@@ -154,5 +175,4 @@ public final class ZipFileUtilities {
       return FilenameUtils.removeExtension(full);
     }
   }
-
 }

@@ -187,6 +187,7 @@ public class MapImage implements AbstractImageMapHolder, ConfigurationSerializab
     return width;
   }
 
+  /** The type Builder. */
   public static class Builder {
 
     private int map;

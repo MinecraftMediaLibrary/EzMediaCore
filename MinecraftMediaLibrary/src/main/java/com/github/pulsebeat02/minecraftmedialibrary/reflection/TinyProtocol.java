@@ -146,7 +146,7 @@ public abstract class TinyProtocol {
     this.plugin = plugin;
 
     // Compute handler name
-      handlerName = getHandlerName();
+    handlerName = getHandlerName();
 
     // Prepare existing players
     registerBukkitEvents();

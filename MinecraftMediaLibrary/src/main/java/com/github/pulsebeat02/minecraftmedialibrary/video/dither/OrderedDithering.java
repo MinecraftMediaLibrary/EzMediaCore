@@ -17,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 
-/** The type Ordered dithering. */
 public class OrderedDithering implements AbstractDitherHolder {
 
   /**

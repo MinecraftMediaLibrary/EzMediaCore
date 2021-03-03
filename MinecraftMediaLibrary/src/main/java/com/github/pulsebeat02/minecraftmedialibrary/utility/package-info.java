@@ -12,8 +12,8 @@
  */
 
 /**
- * A set of utility classes used throughout the MinecraftMediaLibrary framework. Feel free
- * to use any of these classes.
+ * A set of utility classes used throughout the MinecraftMediaLibrary framework. Feel free to use
+ * any of these classes.
  *
  * @since 1.0
  * @author PulseBeat_02

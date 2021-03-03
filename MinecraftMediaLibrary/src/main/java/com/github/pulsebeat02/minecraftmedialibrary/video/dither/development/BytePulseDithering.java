@@ -23,7 +23,6 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-/** The type Byte pulse dithering. */
 @Deprecated
 public class BytePulseDithering implements AbstractDitherHolder {
 

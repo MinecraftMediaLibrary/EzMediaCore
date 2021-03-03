@@ -12,8 +12,8 @@
  */
 
 /**
- * A list of exceptions which can be thrown throughout the library. Used to provide more
- * information about the error which was thrown.
+ * A list of exceptions which can be thrown throughout the library. Used to provide more information
+ * about the error which was thrown.
  *
  * @since 1.0
  * @author PulseBeat_02

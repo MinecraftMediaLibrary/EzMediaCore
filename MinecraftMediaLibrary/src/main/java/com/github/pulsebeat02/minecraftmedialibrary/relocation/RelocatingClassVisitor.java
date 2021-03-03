@@ -31,7 +31,7 @@ final class RelocatingClassVisitor extends ClassRemapper {
   RelocatingClassVisitor(
       final ClassWriter writer, final RelocatingRemapper remapper, final String name) {
     super(writer, remapper);
-    this.packageName = name.substring(0, name.lastIndexOf('/') + 1);
+    packageName = name.substring(0, name.lastIndexOf('/') + 1);
   }
 
   @Override
@@ -42,7 +42,7 @@ final class RelocatingClassVisitor extends ClassRemapper {
     }
 
     // visit source file name
-    final String name = this.packageName + source;
+    final String name = packageName + source;
     final String mappedName = super.remapper.map(name);
     final String mappedFileName = mappedName.substring(mappedName.lastIndexOf('/') + 1);
     super.visitSource(mappedFileName, debug);

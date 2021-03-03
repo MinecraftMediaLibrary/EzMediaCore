@@ -84,12 +84,12 @@ public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSer
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final Map<String, Object> deserialize) {
     return new ResourcepackWrapper(
-            library,
-            String.valueOf(deserialize.get("path")),
-            new File(String.valueOf(deserialize.get("audio"))),
-            new File(String.valueOf(deserialize.get("icon"))),
-            String.valueOf(deserialize.get("description")),
-            NumberConversions.toInt(deserialize.get("pack-format")));
+        library,
+        String.valueOf(deserialize.get("path")),
+        new File(String.valueOf(deserialize.get("audio"))),
+        new File(String.valueOf(deserialize.get("icon"))),
+        String.valueOf(deserialize.get("description")),
+        NumberConversions.toInt(deserialize.get("pack-format")));
   }
 
   /**
@@ -220,6 +220,7 @@ public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSer
     return packFormat;
   }
 
+  /** The type Builder. */
   public static class Builder {
 
     private File audio;

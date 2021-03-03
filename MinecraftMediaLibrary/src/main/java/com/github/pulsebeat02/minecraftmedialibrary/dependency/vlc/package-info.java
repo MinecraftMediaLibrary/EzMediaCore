@@ -12,8 +12,8 @@
  */
 
 /**
- * VLC specific dependency handling can be found here. This includes detecting System OS,
- * grabbing version, and selecting the correct package for the specific operating system.
+ * VLC specific dependency handling can be found here. This includes detecting System OS, grabbing
+ * version, and selecting the correct package for the specific operating system.
  *
  * @since 1.0
  * @author PulseBeat_02

@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 
 public class NMSReflectionManager {
 
+  /** The constant VERSION. */
   public static final String VERSION;
 
   static {

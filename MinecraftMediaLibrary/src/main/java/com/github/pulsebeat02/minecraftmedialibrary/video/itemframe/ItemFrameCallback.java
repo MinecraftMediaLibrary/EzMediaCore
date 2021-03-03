@@ -173,6 +173,7 @@ public class ItemFrameCallback implements AbstractCallback {
     return type;
   }
 
+  /** The type Builder. */
   public class Builder {
 
     private UUID[] viewers;
@@ -256,7 +257,7 @@ public class ItemFrameCallback implements AbstractCallback {
      * @return the dither holder
      */
     public Builder setDitherHolder(final AbstractDitherHolder holder) {
-        type = holder;
+      type = holder;
       return this;
     }
 

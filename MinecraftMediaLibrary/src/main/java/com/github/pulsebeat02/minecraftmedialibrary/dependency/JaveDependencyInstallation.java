@@ -60,6 +60,7 @@ public class JaveDependencyInstallation {
     return file;
   }
 
+  /** Load. */
   public void load() {
     try {
       if (file != null) {

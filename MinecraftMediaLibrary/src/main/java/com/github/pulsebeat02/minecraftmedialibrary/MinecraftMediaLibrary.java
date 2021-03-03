@@ -52,25 +52,25 @@ public final class MinecraftMediaLibrary {
   public MinecraftMediaLibrary(
       @NotNull final Plugin plugin, @NotNull final String path, final boolean isUsingVLCJ) {
     this.plugin = plugin;
-      protocol =
-              new TinyProtocol(plugin) {
-                  @Override
-                  public Object onPacketOutAsync(
-                          @NotNull final Player player,
-                          @NotNull final Channel channel,
-                          @NotNull final Object packet) {
-                      return handler.onPacketInterceptOut(player, packet);
-                  }
+    protocol =
+        new TinyProtocol(plugin) {
+          @Override
+          public Object onPacketOutAsync(
+              @NotNull final Player player,
+              @NotNull final Channel channel,
+              @NotNull final Object packet) {
+            return handler.onPacketInterceptOut(player, packet);
+          }
 
-                  @Override
-                  public Object onPacketInAsync(
-                          @NotNull final Player player,
-                          @NotNull final Channel channel,
-                          @NotNull final Object packet) {
-                      return handler.onPacketInterceptIn(player, packet);
-                  }
-              };
-      handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
+          @Override
+          public Object onPacketInAsync(
+              @NotNull final Player player,
+              @NotNull final Channel channel,
+              @NotNull final Object packet) {
+            return handler.onPacketInterceptIn(player, packet);
+          }
+        };
+    handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
     parent = path;
     vlcj = isUsingVLCJ;
     listener = new PlayerJoinLeaveHandler(this);
@@ -96,9 +96,8 @@ public final class MinecraftMediaLibrary {
       try {
         new MediaPlayerFactory();
       } catch (final Exception e) {
-          Logger.error(
-                  "The user does not have VLCJ installed! This is a very fatal error.");
-          vlcj = false;
+        Logger.error("The user does not have VLCJ installed! This is a very fatal error.");
+        vlcj = false;
       }
     }
   }
@@ -131,6 +130,7 @@ public final class MinecraftMediaLibrary {
     }
   }
 
+  /** Print system information. */
   public void printSystemInformation() {
     Logger.info("===========================================");
     Logger.info("            SYSTEM INFORMATION             ");
@@ -138,9 +138,13 @@ public final class MinecraftMediaLibrary {
     Logger.info("System Operating System: " + RuntimeUtilities.OPERATING_SYSTEM);
     Logger.info("CPU Architecture: " + RuntimeUtilities.CPU_ARCH);
     Logger.info("System Operating System Version: " + System.getProperty("os.version"));
-    Logger.info("Windows/Mac/Linux: " + RuntimeUtilities.WINDOWS
-            + "/" + RuntimeUtilities.MAC
-            + "/" + RuntimeUtilities.LINUX);
+    Logger.info(
+        "Windows/Mac/Linux: "
+            + RuntimeUtilities.WINDOWS
+            + "/"
+            + RuntimeUtilities.MAC
+            + "/"
+            + RuntimeUtilities.LINUX);
     Logger.info("Linux Distribution (If Linux): " + RuntimeUtilities.LINUX_DISTRIBUTION);
   }
 

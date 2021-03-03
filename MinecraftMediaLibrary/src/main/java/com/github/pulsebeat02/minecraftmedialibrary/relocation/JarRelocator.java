@@ -44,10 +44,10 @@ public final class JarRelocator {
    * @param output the output jar file
    * @param relocations the relocations
    */
-  public JarRelocator(File input, File output, Collection<Relocation> relocations) {
+  public JarRelocator(final File input, final File output, final Collection<Relocation> relocations) {
     this.input = input;
     this.output = output;
-    this.remapper = new RelocatingRemapper(relocations);
+      remapper = new RelocatingRemapper(relocations);
   }
 
   /**
@@ -57,14 +57,14 @@ public final class JarRelocator {
    * @param output the output jar file
    * @param relocations the relocations
    */
-  public JarRelocator(File input, File output, Map<String, String> relocations) {
+  public JarRelocator(final File input, final File output, final Map<String, String> relocations) {
     this.input = input;
     this.output = output;
-    Collection<Relocation> c = new ArrayList<>(relocations.size());
-    for (Map.Entry<String, String> entry : relocations.entrySet()) {
+    final Collection<Relocation> c = new ArrayList<>(relocations.size());
+    for (final Map.Entry<String, String> entry : relocations.entrySet()) {
       c.add(new Relocation(entry.getKey(), entry.getValue()));
     }
-    this.remapper = new RelocatingRemapper(c);
+      remapper = new RelocatingRemapper(c);
   }
 
   /**
@@ -74,14 +74,14 @@ public final class JarRelocator {
    *     output file
    */
   public void run() throws IOException {
-    if (this.used.getAndSet(true)) {
+    if (used.getAndSet(true)) {
       throw new IllegalStateException("#run has already been called on this instance");
     }
 
-    try (JarOutputStream out =
-        new JarOutputStream(new BufferedOutputStream(new FileOutputStream(this.output)))) {
-      try (JarFile in = new JarFile(this.input)) {
-        JarRelocatorTask task = new JarRelocatorTask(this.remapper, out, in);
+    try (final JarOutputStream out =
+        new JarOutputStream(new BufferedOutputStream(new FileOutputStream(output)))) {
+      try (final JarFile in = new JarFile(input)) {
+        final JarRelocatorTask task = new JarRelocatorTask(remapper, out, in);
         task.processEntries();
       }
     }

@@ -42,7 +42,7 @@ public enum PackFormatVersioning {
   private final int packFormat;
 
   PackFormatVersioning(final int id) {
-    this.packFormat = id;
+    packFormat = id;
   }
 
   /**

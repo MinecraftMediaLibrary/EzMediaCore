@@ -40,13 +40,13 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
    * @throws IOException the io exception
    */
   public HttpDaemon(final int port, @NotNull final File directory) throws IOException {
-      running = true;
+    running = true;
     this.port = port;
-      socket = new ServerSocket(port);
-      socket.setReuseAddress(true);
+    socket = new ServerSocket(port);
+    socket.setReuseAddress(true);
     this.directory = directory;
-      header = ZipHeader.ZIP;
-      verbose = true;
+    header = ZipHeader.ZIP;
+    verbose = true;
     Logger.info("Started HTTP Server: ");
     Logger.info("========================================");
     Logger.info("IP: " + Bukkit.getIp());
@@ -63,20 +63,20 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
    * @throws IOException the io exception
    */
   public HttpDaemon(final int port, @NotNull final String path) throws IOException {
-      running = true;
+    running = true;
     this.port = port;
     try {
-        socket = new ServerSocket(port);
-        socket.setReuseAddress(true);
+      socket = new ServerSocket(port);
+      socket.setReuseAddress(true);
     } catch (final BindException e) {
       Logger.error(
           "The port specified is being used by another process. Please make sure to port-forward the port first and make sure it is open.");
       Logger.error(e.getMessage());
       return;
     }
-      directory = new File(path);
-      header = ZipHeader.ZIP;
-      verbose = true;
+    directory = new File(path);
+    header = ZipHeader.ZIP;
+    verbose = true;
     Logger.info("Started HTTP Server: ");
     Logger.info("========================================");
     Logger.info("IP: " + Bukkit.getIp());
@@ -232,6 +232,7 @@ public class HttpDaemon extends Thread implements AbstractHttpDaemon {
     return header;
   }
 
+  /** The enum Zip header. */
   public enum ZipHeader {
 
     /** ZIP Header */

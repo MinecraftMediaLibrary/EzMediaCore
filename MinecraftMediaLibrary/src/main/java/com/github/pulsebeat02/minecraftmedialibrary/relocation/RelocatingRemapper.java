@@ -65,7 +65,7 @@ final class RelocatingRemapper extends Remapper {
       name = m.group(2);
     }
 
-    for (final Relocation r : this.rules) {
+    for (final Relocation r : rules) {
       if (isClass && r.canRelocateClass(name)) {
         return prefix + r.relocateClass(name) + suffix;
       } else if (r.canRelocatePath(name)) {

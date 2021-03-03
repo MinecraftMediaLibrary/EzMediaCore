@@ -12,8 +12,8 @@
  */
 
 /**
- * Package which contains useful Reflection utilities as well as a mini packet listener to substitute
- * for ProtocolLib.
+ * Package which contains useful Reflection utilities as well as a mini packet listener to
+ * substitute for ProtocolLib.
  *
  * @since 1.0
  * @author PulseBeat_02

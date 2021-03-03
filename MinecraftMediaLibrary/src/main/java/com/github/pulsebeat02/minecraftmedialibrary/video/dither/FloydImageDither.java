@@ -19,7 +19,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 
-/** The type Floyd image dither. */
 public class FloydImageDither implements AbstractDitherHolder {
 
   private static final int[] PALETTE;
