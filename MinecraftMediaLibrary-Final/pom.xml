@@ -62,6 +62,10 @@
                             <shadedPattern>com.github.pulsebeat02.jarchivelib</shadedPattern>
                         </relocation>
                         <relocation>
+                            <pattern>org.tukaani.xz</pattern>
+                            <shadedPattern>com.github.pulsebeat02.xz</shadedPattern>
+                        </relocation>
+                        <relocation>
                             <pattern>org.ow2.asm</pattern>
                             <shadedPattern>com.github.pulsebeat02.asm</shadedPattern>
                         </relocation>
