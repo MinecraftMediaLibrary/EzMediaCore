@@ -1,8 +1,6 @@
 [![Build Status](https://img.shields.io/circleci/build/github/PulseBeat02/MinecraftMediaLibrary?style=for-the-badge)](https://app.circleci.com/pipelines/github/PulseBeat02/MinecraftMediaLibrary)
 [![Language](https://img.shields.io/badge/Made%20with-Java-1f425f.svg?style=for-the-badge)](https://www.java.com/en/)
 
-[![Sparkline](https://stars.medv.io/PulseBeat02/badges.svg)](https://stars.medv.io/PulseBeat02/badges)
-
 [![Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/PulseBeat02/MinecraftMediaLibrary)
 
 <img src="https://i.imgur.com/48CJD9j.png" alt="drawing" width="1000"/>
