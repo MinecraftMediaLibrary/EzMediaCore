@@ -73,9 +73,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.rauschig</groupId>
+            <groupId>com.github.PulseBeat02</groupId>
             <artifactId>jarchivelib</artifactId>
-            <version>0.7.1</version>
+            <version>v1.2.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

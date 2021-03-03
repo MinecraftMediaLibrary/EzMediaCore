@@ -30,7 +30,7 @@ public enum RepositoryDependency {
   JAVE_CORE("ws{}schild", "jave-core", "3{}0{}1"),
 
   /** Compression Maven Dependency */
-  COMPRESSION("org{}rauschig", "jarchivelib", "0{}7{}1"),
+  COMPRESSION("com{}github{}PulseBeat02", "jarchivelib", "v1{}2{}0"),
 
   /** ASM Maven Dependency */
   ASM("org{}ow2{}asm", "asm", "9{}1"),
