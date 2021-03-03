@@ -32,6 +32,9 @@ public enum RepositoryDependency {
   /** Compression Maven Dependency */
   COMPRESSION("com{}github{}PulseBeat02", "jarchivelib", "master-SNAPSHOT"),
 
+  /** Compression XZ Maven Dependency */
+  XZ("org{}tukaani", "xz", "1{}0"),
+
   /** ASM Maven Dependency */
   ASM("org{}ow2{}asm", "asm", "9{}1"),
 

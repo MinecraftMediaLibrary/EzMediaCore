@@ -145,27 +145,9 @@ public class LinuxPackageManager {
     throw new UnsupportedOperatingSystemException("Unsupported Operating System Platform!");
   }
 
-  /** Extract contents. */
+  /** Extract contents. Should only be one package located in folder */
   public void extractContents() {
-    final File f = vlc.listFiles()[0];
-    final String name = f.getName();
-    Logger.info("Trying to find extension for file: " + name);
-    if (name.endsWith("deb") || name.endsWith("rpm")) {
-      Logger.info("Found .deb, or .rpm File!");
-    } else if (name.endsWith("txz") || name.endsWith(".tar.xz")) {
-      Logger.info("Found .txz or .tar.xz File!");
-    } else if (name.endsWith("tgz") || name.endsWith(".tar.gz")) {
-      Logger.info("Found .tgz File!");
-    } else if (name.endsWith(".tar.zst") || name.endsWith("eopkg")) {
-      Logger.warn(
-          "Hello user, please read this error carefully: Your computer seems to be using "
-              + "KAOS Linux or Solus Linux. The extract for these Linuxes is either a .tar.zst file or an "
-              + ".eopkg file, which is yet not supported by the plugin yet. The archive has been downloaded "
-              + "in the /vlc folder, and it is required by you to extract the file in order to get the VLC "
-              + "libraries. This is a required step, and VLCJ will not run if you do not perform this step.");
-      return;
-    }
-    ZipFileUtilities.decompressArchive(f, vlc);
+    ZipFileUtilities.recursiveExtraction(vlc.listFiles()[0], vlc);
   }
 
   /**
