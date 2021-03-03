@@ -43,6 +43,7 @@ public class VLCNativeDependencyFetcher {
           final LinuxPackageManager manager = new LinuxPackageManager();
           manager.getPackage();
           manager.extractContents();
+          enchancedNativeDiscovery.discover();
         } catch (final IOException e) {
           e.printStackTrace();
         }

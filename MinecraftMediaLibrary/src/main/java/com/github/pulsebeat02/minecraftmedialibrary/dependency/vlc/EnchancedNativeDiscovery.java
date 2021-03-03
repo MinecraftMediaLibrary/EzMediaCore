@@ -13,11 +13,13 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
-import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import uk.co.caprica.vlcj.binding.LibC;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 
 import java.io.File;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Queue;
 
 public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
 
@@ -43,12 +45,18 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
    */
   @Override
   public String discover() {
-    final String folder = RuntimeUtilities.MAC ? "\\vlc" : "/vlc";
-    for (final String str : PLUGIN_PATH_FORMATS) {
-      final File f = new File(folder, str);
-      if (f.exists()) {
-        path = f.getAbsolutePath();
-        return path;
+    final String folder = System.getProperty("user.dir") + File.separator + "vlc";
+    final File fold = new File(folder);
+    final Queue<File> folders = new ArrayDeque<>(Arrays.asList(fold.listFiles()));
+    while (!folders.isEmpty()) {
+      final File f = folders.remove();
+      if (f.isDirectory()) {
+        if (f.getName().equals("plugins")) {
+          path = f.getAbsolutePath();
+          onSetPluginPath(path);
+          return path;
+        }
+        folders.addAll(Arrays.asList(f.listFiles()));
       }
     }
     return null;

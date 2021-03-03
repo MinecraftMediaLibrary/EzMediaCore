@@ -11,7 +11,7 @@
  * ============================================================================
  */
 
-package com.github.pulsebeat02.minecraftmedialibrary.test.dependency;
+package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ZipFileUtilities;
 

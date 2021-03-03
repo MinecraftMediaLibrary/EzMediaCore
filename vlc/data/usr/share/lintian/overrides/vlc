@@ -1,0 +1,8 @@
+# The vlc executable is in vlc-nox but the .desktop file is only relevant to vlc(-with-x)
+vlc binary: desktop-command-not-in-package usr/share/applications/vlc.desktop usr/bin/vlc
+# The icon is in vlc-data (the arch=all package)
+vlc binary: menu-icon-missing usr/share/icons/hicolor/32x32/apps/vlc.xpm
+# Lintian fails to detect UTF-8 names (bug #588661)
+vlc binary: spelling-error-in-binary usr/lib/vlc/plugins/gui/libqt4_plugin.so ment meant
+# Hardening compiler flags are correctly passed (bug #695319)
+vlc binary: hardening-no-fortify-functions usr/lib/vlc/plugins/video_output/libxcb_window_plugin.so

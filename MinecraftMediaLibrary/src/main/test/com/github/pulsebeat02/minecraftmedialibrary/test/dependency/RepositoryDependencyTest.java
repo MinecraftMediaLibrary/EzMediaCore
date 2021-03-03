@@ -20,7 +20,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyManagem
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.JaveDependencyInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 
-public class MavenDependencyTest {
+public class RepositoryDependencyTest {
 
   public static void main(final String[] args) {
     Logger.setVerbose(true);

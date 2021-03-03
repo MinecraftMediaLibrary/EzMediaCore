@@ -7,17 +7,14 @@
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
  *
- * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/26/2021
+ * Written by Brandon Li <brandonli2006ma@gmail.com>, 3/3/2021
  * ============================================================================
  */
 
-package com.github.pulsebeat02.minecraftmedialibrary.test.dependency;
-
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackageManager;
-
-public class OperatingSystemTest {
-
-  public static void main(final String[] args) throws Exception {
-    new LinuxPackageManager().getPackage();
-  }
-}
+/**
+ * Linux Dependency solutions can be found here.
+ *
+ * @since 1.0
+ * @author PulseBeat_02
+ */
+package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc;

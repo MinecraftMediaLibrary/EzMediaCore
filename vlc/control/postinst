@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+# Replace documentation directory with symlink
+docdir="/usr/share/doc/vlc"
+if [ -d $docdir ] && [ ! -L $docdir ]; then
+    if rmdir $docdir 2>/dev/null; then
+        ln -sf vlc-nox $docdir
+    fi
+fi
+
+# Automatically added by dh_installmenu
+if [ "$1" = "configure" ] && [ -x "`which update-menus 2>/dev/null`" ]; then
+	update-menus
+fi
+# End automatically added section
+
