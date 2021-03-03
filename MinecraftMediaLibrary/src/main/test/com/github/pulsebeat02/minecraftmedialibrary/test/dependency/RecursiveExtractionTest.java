@@ -21,7 +21,7 @@ public class RecursiveExtractionTest {
 
   public static void main(final String[] args) {
     final String prop = System.getProperty("user.dir");
-    final File f = new File(prop + "/test.deb");
+    final File f = new File(prop + "/extraction/test.deb");
     ZipFileUtilities.recursiveExtraction(
         f, new File(prop + "/extraction"));
   }

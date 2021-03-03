@@ -104,6 +104,7 @@ public final class ZipFileUtilities {
     decompressArchive(file, folder);
     File currentFolder = folder;
     final Queue<File> queue = new LinkedList<>(containsArchiveExtension(currentFolder));
+    queue.remove(file);
     while (!queue.isEmpty()) {
       final File current = queue.remove();
       currentFolder =
@@ -114,7 +115,11 @@ public final class ZipFileUtilities {
       } else {
         Logger.error("Could not delete Zip: " + current.getName() + "!");
       }
+      final int before = queue.size();
       queue.addAll(containsArchiveExtension(currentFolder));
+      if (queue.size() == before) {
+        currentFolder = folder;
+      }
     }
   }
 
