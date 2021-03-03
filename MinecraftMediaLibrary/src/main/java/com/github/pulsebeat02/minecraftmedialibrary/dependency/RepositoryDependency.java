@@ -29,6 +29,9 @@ public enum RepositoryDependency {
   /** Jave Core Maven Dependency */
   JAVE_CORE("ws{}schild", "jave-core", "3{}0{}1"),
 
+  /** Apache Commons Compression Maven Dependency */
+  COMMONS_COMPRESSION("org{}apache{}commons", "commons-compress", "1{}20"),
+
   /** Compression Maven Dependency */
   COMPRESSION("com{}github{}PulseBeat02", "jarchivelib", "master-SNAPSHOT"),
 

@@ -58,6 +58,10 @@
                             <shadedPattern>com.github.pulsebeat02.jave</shadedPattern>
                         </relocation>
                         <relocation>
+                            <pattern>org.apache.commons.compress</pattern>
+                            <shadedPattern>com.github.pulsebeat02.compress</shadedPattern>
+                        </relocation>
+                        <relocation>
                             <pattern>org.rauschig.jarchivelib</pattern>
                             <shadedPattern>com.github.pulsebeat02.jarchivelib</shadedPattern>
                         </relocation>

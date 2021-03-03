@@ -30,6 +30,9 @@ public enum JarRelocationConvention {
   /** Jave Core Jar Relocation Convention */
   JAVE_CORE("ws{}schild{}jave", "com{}github{}pulsebeat02{}jave"),
 
+  /** Apache Commons Compression Jar Relocation Convention */
+  COMMONS_COMPRESSION("org{}apache{}commons{}compress", "com{}github{}pulsebeat02{}compress"),
+
   /** Compression Jar Relocation Convention */
   COMPRESSION("org{}rauschig{}jarchivelib", "com{}github{}pulsebeat02{}jarchivelib"),
 
