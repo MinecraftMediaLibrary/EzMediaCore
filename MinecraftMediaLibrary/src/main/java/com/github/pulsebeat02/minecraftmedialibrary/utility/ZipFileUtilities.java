@@ -30,7 +30,7 @@ public final class ZipFileUtilities {
    * @param result the result
    */
   public static void decompressArchive(@NotNull final File file, @NotNull final File result) {
-    final String extension = FilenameUtils.getExtension(file.getName());
+    final String extension = "." + FilenameUtils.getExtension(file.getName());
     final Archiver archiver = ArchiverFactory.createArchiver(extension);
     try {
       archiver.extract(file, result);
