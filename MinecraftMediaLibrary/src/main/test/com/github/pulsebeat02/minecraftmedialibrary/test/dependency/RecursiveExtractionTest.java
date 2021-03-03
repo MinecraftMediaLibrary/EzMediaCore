@@ -20,8 +20,9 @@ import java.io.File;
 public class RecursiveExtractionTest {
 
   public static void main(final String[] args) {
-    final File f = new File("test.deb");
+    final String prop = System.getProperty("user.dir");
+    final File f = new File(prop + "/test.deb");
     ZipFileUtilities.recursiveExtraction(
-        f, new File(System.getProperty("user.dir") + "/extraction"));
+        f, new File(prop + "/extraction"));
   }
 }

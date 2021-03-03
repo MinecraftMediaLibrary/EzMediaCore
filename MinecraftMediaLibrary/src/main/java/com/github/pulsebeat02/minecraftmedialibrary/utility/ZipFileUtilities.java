@@ -109,7 +109,7 @@ public final class ZipFileUtilities {
       currentFolder =
           new File(currentFolder.getAbsolutePath() + "/" + getFileName(current.getName()));
       decompressArchive(current, currentFolder);
-      if (current.delete()) {
+      if (!current.getAbsolutePath().equals(file.getAbsolutePath()) && current.delete()) {
         Logger.info("Deleted Zip: " + current.getName() + " successfully");
       } else {
         Logger.error("Could not delete Zip: " + current.getName() + "!");
