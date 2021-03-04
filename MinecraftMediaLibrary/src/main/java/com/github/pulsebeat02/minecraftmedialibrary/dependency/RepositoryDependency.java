@@ -42,7 +42,10 @@ public enum RepositoryDependency {
   ASM("org{}ow2{}asm", "asm", "9{}1"),
 
   /** ASM Commons Maven Dependency */
-  ASM_COMMONS("org{}ow2{}asm", "asm-commons", "9{}1");
+  ASM_COMMONS("org{}ow2{}asm", "asm-commons", "9{}1"),
+
+  /** JNA Maven Dependency */
+  JNA("net{}java{}dev{}jna", "jna", "5{}7{}0");
 
   //  JAVACV("org{}bytedeco", "javacv-platform", "1{}5{}4");
 
