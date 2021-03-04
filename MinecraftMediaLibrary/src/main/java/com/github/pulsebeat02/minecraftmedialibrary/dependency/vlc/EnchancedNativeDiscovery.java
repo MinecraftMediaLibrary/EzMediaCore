@@ -13,6 +13,8 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
+import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.binding.LibC;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 
@@ -23,14 +25,18 @@ import java.util.Queue;
 
 public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
 
-  /** PLUGIN_ENV_NAME stores the System Enviornment Variable */
-  protected static final String PLUGIN_ENV_NAME = "VLC_PLUGIN_PATH";
+  private final String dir;
+  private String path;
 
-  private static final String[] PLUGIN_PATH_FORMATS = {
-    "\\plugins", "\\vlc\\plugins", "/../plugins", "/plugins", "/vlc/plugins",
-  };
+  /** Instantiates a new EnchancedNativeDiscovery */
+  public EnchancedNativeDiscovery(@NotNull final MinecraftMediaLibrary library) {
+    this.dir = library.getVlcFolder();
+  }
 
-  private static String path;
+  /** Instantiates a new EnchancedNativeDiscovery */
+  public EnchancedNativeDiscovery(@NotNull final String dir) {
+    this.dir = dir;
+  }
 
   /** Returns whether the strategy is supported */
   @Override
@@ -45,8 +51,7 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
    */
   @Override
   public String discover() {
-    final String folder = System.getProperty("user.dir") + File.separator + "vlc";
-    final File fold = new File(folder);
+    final File fold = new File(dir);
     final Queue<File> folders = new ArrayDeque<>(Arrays.asList(fold.listFiles()));
     while (!folders.isEmpty()) {
       final File f = folders.remove();
@@ -81,6 +86,6 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
    */
   @Override
   public boolean onSetPluginPath(final String s) {
-    return LibC.INSTANCE.setenv(PLUGIN_ENV_NAME, path, 1) == 0;
+    return LibC.INSTANCE.setenv("VLC_PLUGIN_PATH", path, 1) == 0;
   }
 }

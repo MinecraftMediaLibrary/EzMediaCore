@@ -13,10 +13,12 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
+import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ZipFileUtilities;
 import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.File;
@@ -26,13 +28,21 @@ import java.net.URL;
 public class VLCNativeDependencyFetcher {
 
   /** Instantiates a new VLCNativeDependencyFetcher. */
-  public VLCNativeDependencyFetcher() {}
+
+  private final String dir;
+
+  public VLCNativeDependencyFetcher(@NotNull final MinecraftMediaLibrary library) {
+    this.dir = library.getVlcFolder();
+  }
+  public VLCNativeDependencyFetcher(@NotNull final String dir) {
+    this.dir = dir;
+  }
 
   /** Download libraries. */
   public void downloadLibraries() {
     Logger.info("Trying to find Native VLC Installation...");
     final NativeDiscovery nativeDiscovery = new NativeDiscovery();
-    final EnchancedNativeDiscovery enchancedNativeDiscovery = new EnchancedNativeDiscovery();
+    final EnchancedNativeDiscovery enchancedNativeDiscovery = new EnchancedNativeDiscovery(dir);
     final boolean installed =
         nativeDiscovery.discover() || enchancedNativeDiscovery.discover() != null;
     if (!installed) {
@@ -40,7 +50,7 @@ public class VLCNativeDependencyFetcher {
       final String option = RuntimeUtilities.URL;
       if (option.equalsIgnoreCase("LINUX")) {
         try {
-          final LinuxPackageManager manager = new LinuxPackageManager();
+          final LinuxPackageManager manager = new LinuxPackageManager(dir);
           manager.getPackage();
           manager.extractContents();
           enchancedNativeDiscovery.discover();
@@ -50,13 +60,12 @@ public class VLCNativeDependencyFetcher {
       } else {
         Logger.info("User is not using Linux. Proceeding to download Zip off Github.");
         try {
-          final File zip = new File("VLC.zip");
+          final File zip = new File(dir + File.separator + "VLC.zip");
           FileUtils.copyURLToFile(new URL(option), zip);
           final String path = zip.getAbsolutePath();
-          final String dest = zip.getParent() + "/libs/vlc";
           Logger.info("Zip File Path: " + path);
           Logger.info("Extracting File...");
-          ZipFileUtilities.decompressArchive(new File(path), new File(dest));
+          ZipFileUtilities.decompressArchive(new File(path), new File(dir));
           Logger.info("Successfully Extracted File");
           Logger.info("Deleting Archive...");
           if (zip.delete()) {

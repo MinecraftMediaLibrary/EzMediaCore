@@ -13,6 +13,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
+import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.exception.UnsupportedOperatingSystemException;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
@@ -27,6 +28,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,7 +63,7 @@ public class LinuxPackageManager {
   private Map<String, LinuxOSPackages> packages;
 
   /** Instantiates a new Linux package manager. */
-  public LinuxPackageManager() {
+  public LinuxPackageManager(@NotNull final MinecraftMediaLibrary library) {
     Logger.info("Reading System OS JSON file...");
     try {
       packages = GSON.fromJson(getFileContents(), MAP_STRING_LINUX_OS_PACKAGE_TYPE_TOKEN.getType());
@@ -70,7 +72,27 @@ public class LinuxPackageManager {
       Logger.info("Could not read System OS JSON file");
       e.printStackTrace();
     }
-    vlc = new File(System.getProperty("user.dir") + "/vlc");
+    vlc = new File(library.getVlcFolder());
+    if (!vlc.exists()) {
+      if (vlc.mkdir()) {
+        Logger.info("Made VLC Directory");
+      } else {
+        Logger.error("Failed to Make VLC Directory");
+      }
+    }
+  }
+
+  /** Instantiates a new Linux package manager. */
+  public LinuxPackageManager(@NotNull final String dir) {
+    Logger.info("Reading System OS JSON file...");
+    try {
+      packages = GSON.fromJson(getFileContents(), MAP_STRING_LINUX_OS_PACKAGE_TYPE_TOKEN.getType());
+      Logger.info("Successfully read System OS JSON file");
+    } catch (final IOException e) {
+      Logger.info("Could not read System OS JSON file");
+      e.printStackTrace();
+    }
+    vlc = new File(dir);
     if (!vlc.exists()) {
       if (vlc.mkdir()) {
         Logger.info("Made VLC Directory");

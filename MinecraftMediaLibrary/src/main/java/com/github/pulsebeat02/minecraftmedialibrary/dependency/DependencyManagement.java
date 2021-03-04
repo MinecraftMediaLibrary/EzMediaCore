@@ -13,6 +13,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency;
 
+import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.relocation.JarRelocator;
 import com.github.pulsebeat02.minecraftmedialibrary.relocation.Relocation;
@@ -29,16 +30,14 @@ import java.util.stream.Collectors;
 
 public class DependencyManagement {
 
-  private final String path;
   private final Set<File> files;
   private final File dir;
   private final File relocatedDir;
 
   /** Instantiates a new DependencyManagement. */
-  public DependencyManagement() {
-    path = System.getProperty("user.dir");
+  public DependencyManagement(@NotNull final MinecraftMediaLibrary library) {
     files = new HashSet<>();
-    dir = new File(path + File.separator + "mml_libs");
+    dir = new File(library.getDependenciesFolder());
     if (!dir.exists()) {
       if (dir.mkdir()) {
         Logger.info(
@@ -62,22 +61,48 @@ public class DependencyManagement {
     }
   }
 
+  /** Instantiates a new DependencyManagement. */
+  public DependencyManagement(@NotNull final String dirPath) {
+    files = new HashSet<>();
+    dir = new File(dirPath);
+    if (!dir.exists()) {
+      if (dir.mkdir()) {
+        Logger.info(
+                "Dependency Directory ("
+                        + dir.getAbsolutePath()
+                        + ") does not exist... Creating a folder");
+      } else {
+        Logger.info("Dependency Directory (" + dir.getAbsolutePath() + ") exists!");
+      }
+    }
+    relocatedDir = new File(dir + File.separator + "/relocated");
+    if (!relocatedDir.exists()) {
+      if (relocatedDir.mkdir()) {
+        Logger.info(
+                "Relocated Directory ("
+                        + relocatedDir.getAbsolutePath()
+                        + ") does not exist... Creating a folder");
+      } else {
+        Logger.info("Relocated Directory (" + relocatedDir.getAbsolutePath() + ") exists!");
+      }
+    }
+  }
+
   /** Installs all libraries from links. */
   public void install() {
     for (final RepositoryDependency dependency : RepositoryDependency.values()) {
       if (!checkExists(dir, dependency)) {
         File file = null;
         final String artifact = dependency.getArtifact();
-        final String p = path + File.separator + "mml_libs";
         try {
           Logger.info("Checking Maven Central Repository for " + artifact);
-          file = DependencyUtilities.downloadMavenDependency(dependency, p);
+          file = DependencyUtilities.downloadMavenDependency(dependency, dir.getAbsolutePath());
         } catch (final IOException e) {
           try {
             Logger.info(
                 "Could not find in the Maven Central Repository... Checking Jitpack Central Repository for "
                     + artifact);
-            file = DependencyUtilities.downloadJitpackDependency(dependency, p);
+            file = DependencyUtilities.downloadJitpackDependency(dependency, dir.getAbsolutePath());
           } catch (final IOException exception) {
             Logger.error(
                 "Could not find " + artifact + " in the Maven Central Repository or Jitpack");

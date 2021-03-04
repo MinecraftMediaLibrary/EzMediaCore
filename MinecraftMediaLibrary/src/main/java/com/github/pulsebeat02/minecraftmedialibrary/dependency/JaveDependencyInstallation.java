@@ -13,21 +13,34 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency;
 
+import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 
 public class JaveDependencyInstallation {
 
-  private final String path;
+  private final String dependencyFolder;
   private File file;
 
-  /** Instantiates a new JaveDependencyHandler. */
-  public JaveDependencyInstallation() {
-    path = System.getProperty("user.dir");
+  /**
+   * Instantiates a new JaveDependencyInstallation
+   * @param library library
+   */
+  public JaveDependencyInstallation(@NotNull final MinecraftMediaLibrary library) {
+    this.dependencyFolder = library.getDependenciesFolder();
+  }
+
+  /**
+   * Instantiates a new JaveDependencyInstallation
+   * @param dependency directory path
+   */
+  public JaveDependencyInstallation(@NotNull final String dependency) {
+    this.dependencyFolder = dependency;
   }
 
   /**
@@ -36,7 +49,7 @@ public class JaveDependencyInstallation {
    * @return Jave binary file
    */
   public File install() {
-    final File folder = new File(path + "/mml_libs");
+    final File folder = new File(dependencyFolder);
     if (!folder.exists()) {
       if (folder.mkdir()) {
         Logger.info("Library folder created successfully");
@@ -44,7 +57,7 @@ public class JaveDependencyInstallation {
         Logger.error("Library folder couldn't created successfully");
       }
     }
-    for (final File f : new File(path + "/mml_libs").listFiles()) {
+    for (final File f : folder.listFiles()) {
       if (f.getName().contains("jave")) {
         file = f;
         return file;
@@ -53,7 +66,7 @@ public class JaveDependencyInstallation {
     try {
       file =
           DependencyUtilities.downloadFile(
-              "ws.schild", getArtifactId(), "2.7.3", path + "/mml_libs");
+              "ws.schild", getArtifactId(), "2.7.3", dependencyFolder);
     } catch (final IOException e) {
       e.printStackTrace();
     }

@@ -18,7 +18,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.EnchancedNati
 public class VLCNativeIdentificationTest {
 
     public static void main(final String[] args) {
-        final EnchancedNativeDiscovery enchancedNativeDiscovery = new EnchancedNativeDiscovery();
+        final EnchancedNativeDiscovery enchancedNativeDiscovery = new EnchancedNativeDiscovery("");
         System.out.println(enchancedNativeDiscovery.discover());
     }
 

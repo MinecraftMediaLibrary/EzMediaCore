@@ -31,16 +31,21 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
+import java.io.File;
 import java.net.URLClassLoader;
 
 public final class MinecraftMediaLibrary {
 
   private final Plugin plugin;
-  private final String parent;
   private final PlayerJoinLeaveHandler listener;
   private final PacketHandler handler;
   private final TinyProtocol protocol;
   private boolean vlcj;
+
+  /** Folder Paths to Use */
+  private final String parent;
+  private final String dependenciesFolder;
+  private final String vlcFolder;
 
   /**
    * Instantiates a new Minecraft media library.
@@ -56,22 +61,56 @@ public final class MinecraftMediaLibrary {
         new TinyProtocol(plugin) {
           @Override
           public Object onPacketOutAsync(
-              @NotNull final Player player,
-              @NotNull final Channel channel,
-              @NotNull final Object packet) {
+              final Player player, final Channel channel, final Object packet) {
             return handler.onPacketInterceptOut(player, packet);
           }
 
           @Override
           public Object onPacketInAsync(
-              @NotNull final Player player,
-              @NotNull final Channel channel,
-              @NotNull final Object packet) {
+              final Player player, final Channel channel, final Object packet) {
             return handler.onPacketInterceptIn(player, packet);
           }
         };
     handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
     parent = path;
+    final String prop = System.getProperty("user.dir");
+    dependenciesFolder = prop + File.separator + "mml_libs";
+    vlcFolder = prop + File.separator + "vlc";
+    vlcj = isUsingVLCJ;
+    listener = new PlayerJoinLeaveHandler(this);
+    printSystemInformation();
+    dependencyTasks();
+    registrationTasks();
+    debugInformation();
+    checkJavaVersion();
+  }
+
+  public MinecraftMediaLibrary(
+          @NotNull final Plugin plugin,
+          @NotNull final String path,
+          @NotNull final String libraryPath,
+          @NotNull final String vlcPath,
+          final boolean isUsingVLCJ) {
+    this.plugin = plugin;
+    protocol =
+            new TinyProtocol(plugin) {
+              @Override
+              public Object onPacketOutAsync(
+                      final Player player, final Channel channel, final Object packet) {
+                return handler.onPacketInterceptOut(player, packet);
+              }
+
+              @Override
+              public Object onPacketInAsync(
+                      final Player player, final Channel channel, final Object packet) {
+                return handler.onPacketInterceptIn(player, packet);
+              }
+            };
+    handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
+    parent = path;
+    final String prop = System.getProperty("user.dir");
+    dependenciesFolder = libraryPath;
+    vlcFolder = vlcPath;
     vlcj = isUsingVLCJ;
     listener = new PlayerJoinLeaveHandler(this);
     printSystemInformation();
@@ -84,14 +123,14 @@ public final class MinecraftMediaLibrary {
   /** Runs dependency tasks required. */
   private void dependencyTasks() {
     DependencyUtilities.CLASSLOADER = (URLClassLoader) plugin.getClass().getClassLoader();
-    final JaveDependencyInstallation javeDependencyInstallation = new JaveDependencyInstallation();
+    final JaveDependencyInstallation javeDependencyInstallation = new JaveDependencyInstallation(this);
     javeDependencyInstallation.install();
     javeDependencyInstallation.load();
-    final DependencyManagement dependencyManagement = new DependencyManagement();
+    final DependencyManagement dependencyManagement = new DependencyManagement(this);
     dependencyManagement.install();
     dependencyManagement.relocate();
     dependencyManagement.load();
-    new VLCNativeDependencyFetcher().downloadLibraries();
+    new VLCNativeDependencyFetcher(this).downloadLibraries();
     if (vlcj) {
       try {
         new MediaPlayerFactory();
@@ -216,5 +255,32 @@ public final class MinecraftMediaLibrary {
    */
   public boolean isVlcj() {
     return vlcj;
+  }
+
+  /**
+   * Gets listener.
+   *
+   * @return the listener
+   */
+  public PlayerJoinLeaveHandler getListener() {
+    return listener;
+  }
+
+  /**
+   * Gets dependencies.
+   *
+   * @return the dependencies
+   */
+  public String getDependenciesFolder() {
+    return dependenciesFolder;
+  }
+
+  /**
+   * Gets vlc.
+   *
+   * @return the vlc
+   */
+  public String getVlcFolder() {
+    return vlcFolder;
   }
 }

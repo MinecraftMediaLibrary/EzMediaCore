@@ -25,7 +25,7 @@ import java.net.URL;
 public class FileRepositoryDownloading {
 
     public static void main(final String[] args) {
-        final LinuxPackageManager manager = new LinuxPackageManager();
+        final LinuxPackageManager manager = new LinuxPackageManager("");
         for (final LinuxOSPackages dict : manager.getAllPackages().values()) {
             for (final LinuxPackage pkg : dict.getLinks().values()) {
                 final String link = pkg.getUrl();

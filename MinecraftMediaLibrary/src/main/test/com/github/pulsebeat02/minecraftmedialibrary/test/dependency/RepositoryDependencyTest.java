@@ -24,10 +24,10 @@ public class RepositoryDependencyTest {
 
   public static void main(final String[] args) {
     Logger.setVerbose(true);
-    final JaveDependencyInstallation jave = new JaveDependencyInstallation();
+    final JaveDependencyInstallation jave = new JaveDependencyInstallation("");
     jave.install();
     jave.load();
-    final DependencyManagement management = new DependencyManagement();
+    final DependencyManagement management = new DependencyManagement("");
     management.install();
     management.relocate();
     management.load();
