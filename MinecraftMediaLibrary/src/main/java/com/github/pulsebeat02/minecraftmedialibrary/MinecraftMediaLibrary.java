@@ -108,7 +108,6 @@ public final class MinecraftMediaLibrary {
             };
     handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
     parent = path;
-    final String prop = System.getProperty("user.dir");
     dependenciesFolder = libraryPath;
     vlcFolder = vlcPath;
     vlcj = isUsingVLCJ;

@@ -30,7 +30,7 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
 
   /** Instantiates a new EnchancedNativeDiscovery */
   public EnchancedNativeDiscovery(@NotNull final MinecraftMediaLibrary library) {
-    this.dir = library.getVlcFolder();
+    dir = library.getVlcFolder();
   }
 
   /** Instantiates a new EnchancedNativeDiscovery */
@@ -52,6 +52,9 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
   @Override
   public String discover() {
     final File fold = new File(dir);
+    if (!fold.exists()) {
+      return null;
+    }
     final Queue<File> folders = new ArrayDeque<>(Arrays.asList(fold.listFiles()));
     while (!folders.isEmpty()) {
       final File f = folders.remove();
