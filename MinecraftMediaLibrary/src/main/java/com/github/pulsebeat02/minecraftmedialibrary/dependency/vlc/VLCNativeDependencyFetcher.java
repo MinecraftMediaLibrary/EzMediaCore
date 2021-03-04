@@ -32,7 +32,7 @@ public class VLCNativeDependencyFetcher {
   private final String dir;
 
   public VLCNativeDependencyFetcher(@NotNull final MinecraftMediaLibrary library) {
-    this.dir = library.getVlcFolder();
+    dir = library.getVlcFolder();
   }
   public VLCNativeDependencyFetcher(@NotNull final String dir) {
     this.dir = dir;
@@ -58,7 +58,7 @@ public class VLCNativeDependencyFetcher {
           e.printStackTrace();
         }
       } else {
-        Logger.info("User is not using Linux. Proceeding to download Zip off Github.");
+        Logger.info("User is not using Linux. Proceeding to download archive from Github.");
         try {
           final File zip = new File(dir + File.separator + "VLC.zip");
           FileUtils.copyURLToFile(new URL(option), zip);
