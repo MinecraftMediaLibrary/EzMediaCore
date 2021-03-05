@@ -91,4 +91,12 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
   public boolean onSetPluginPath(final String s) {
     return LibC.INSTANCE.setenv("VLC_PLUGIN_PATH", path, 1) == 0;
   }
+
+  public String getDir() {
+    return dir;
+  }
+
+  public String getPath() {
+    return path;
+  }
 }

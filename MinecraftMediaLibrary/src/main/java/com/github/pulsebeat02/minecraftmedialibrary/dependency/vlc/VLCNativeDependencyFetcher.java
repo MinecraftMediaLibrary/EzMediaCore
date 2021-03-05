@@ -43,8 +43,9 @@ public class VLCNativeDependencyFetcher {
     Logger.info("Trying to find Native VLC Installation...");
     final NativeDiscovery nativeDiscovery = new NativeDiscovery();
     final EnchancedNativeDiscovery enchancedNativeDiscovery = new EnchancedNativeDiscovery(dir);
+    enchancedNativeDiscovery.discover();
     final boolean installed =
-        nativeDiscovery.discover() || enchancedNativeDiscovery.discover() != null;
+        nativeDiscovery.discover() || enchancedNativeDiscovery.getPath() != null;
     if (!installed) {
       Logger.info("No VLC Installation found on this system. Proceeding to install.");
       final String option = RuntimeUtilities.URL;
