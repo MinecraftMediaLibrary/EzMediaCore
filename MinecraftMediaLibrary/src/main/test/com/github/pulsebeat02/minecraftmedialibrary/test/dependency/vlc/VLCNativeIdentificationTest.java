@@ -14,12 +14,18 @@
 package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.EnchancedNativeDiscovery;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.VLCNativeDependencyFetcher;
+
+import java.io.File;
 
 public class VLCNativeIdentificationTest {
 
-    public static void main(final String[] args) {
-        final EnchancedNativeDiscovery enchancedNativeDiscovery = new EnchancedNativeDiscovery("");
-        System.out.println(enchancedNativeDiscovery.discover());
-    }
-
+  public static void main(final String[] args) {
+    final String path = new File(System.getProperty("user.dir") + "/vlc").getAbsolutePath();
+    final VLCNativeDependencyFetcher fetcher = new VLCNativeDependencyFetcher(path);
+    fetcher.downloadLibraries();
+    final EnchancedNativeDiscovery enchancedNativeDiscovery =
+        new EnchancedNativeDiscovery(path);
+    System.out.println(enchancedNativeDiscovery.discover());
+  }
 }

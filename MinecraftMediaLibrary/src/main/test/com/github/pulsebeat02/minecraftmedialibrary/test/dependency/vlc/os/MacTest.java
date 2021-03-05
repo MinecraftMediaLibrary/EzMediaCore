@@ -14,6 +14,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc.os;
 
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.VLCNativeDependencyFetcher;
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.glytching.junit.extension.system.SystemProperty;
 import org.junit.jupiter.api.Test;
 
@@ -21,20 +22,20 @@ import java.io.File;
 
 public class MacTest {
 
-    @Test
-    @SystemProperty(name = "os.name", value = "Mac")
-    public void windowsTest() {
-        final File folder = new File(new File(System.getProperty("user.dir")).getParent() + "/vlc");
-        if (!folder.exists()) {
-            if (folder.mkdir()) {
-                System.out.println("Made Folder");
-            } else {
-                System.out.println("Could NOY Make Folder");
-            }
-
-        }
-        final VLCNativeDependencyFetcher fetcher = new VLCNativeDependencyFetcher(folder.getAbsolutePath());
-        fetcher.downloadLibraries();
+  @Test
+  @SystemProperty(name = "os.name", value = "Linux")
+  public void linuxTest() {
+    Logger.setVerbose(true);
+    final File folder = new File(new File(System.getProperty("user.dir")).getParent() + "/vlc");
+    if (!folder.exists()) {
+      if (folder.mkdir()) {
+        System.out.println("Made Folder");
+      } else {
+        System.out.println("Could NOY Make Folder");
+      }
     }
-
+    final VLCNativeDependencyFetcher fetcher =
+        new VLCNativeDependencyFetcher(folder.getAbsolutePath());
+    fetcher.downloadLibraries();
+  }
 }
