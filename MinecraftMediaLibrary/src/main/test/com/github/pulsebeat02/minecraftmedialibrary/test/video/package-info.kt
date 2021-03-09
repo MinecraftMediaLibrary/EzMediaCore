@@ -10,12 +10,11 @@
  * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/27/2021
  * ============================================================================
  */
-
 /**
- * A lot of testing classes to help allow library development be quicker. Feel free to use
- * any of the solutions for testing.
+ * Video related classes and hosting solution tests can be found here.
  *
  * @since 1.0
  * @author PulseBeat_02
  */
-package com.github.pulsebeat02.minecraftmedialibrary.test;
+package com.github.pulsebeat02.minecraftmedialibrary.test.video
+

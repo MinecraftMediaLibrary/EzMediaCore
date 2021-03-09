@@ -10,12 +10,11 @@
  * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/27/2021
  * ============================================================================
  */
-
 /**
- * Dependency solutions can be found here. They are severely tested to make sure they work
- * for a lot of platforms.
+ * Certain labs, "tryityourself" issues, or ensurity is determined in this package.
  *
  * @since 1.0
  * @author PulseBeat_02
  */
-package com.github.pulsebeat02.minecraftmedialibrary.test.dependency;
+package com.github.pulsebeat02.minecraftmedialibrary.test.lab
+

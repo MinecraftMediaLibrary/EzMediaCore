@@ -10,19 +10,16 @@
  * Written by Brandon Li <brandonli2006ma@gmail.com>, 3/3/2021
  * ============================================================================
  */
+package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc
 
-package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.ZipFileUtilities
+import java.io.File
 
-import com.github.pulsebeat02.minecraftmedialibrary.utility.ZipFileUtilities;
-
-import java.io.File;
-
-public class RecursiveExtractionTest {
-
-  public static void main(final String[] args) {
-    final String prop = System.getProperty("user.dir");
-    final File f = new File(prop + "/extraction/test.deb");
+fun main(args: Array<String>) {
+    val prop = System.getProperty("user.dir")
+    val f = File("$prop/extraction/test.deb")
     ZipFileUtilities.recursiveExtraction(
-        f, new File(prop + "/extraction"));
-  }
+        f, f.parentFile
+    )
+
 }
