@@ -35,7 +35,7 @@ public class HttpDaemonProvider extends AbstractHostingProvider {
   public HttpDaemonProvider(@NotNull final String path, final int port) {
     this.port = port;
     try {
-        daemon = new HttpDaemon(port, path);
+      daemon = new HttpDaemon(port, path);
     } catch (final IOException e) {
       e.printStackTrace();
     }

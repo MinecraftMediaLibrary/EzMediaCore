@@ -25,6 +25,7 @@ import javax.swing.*
 class OrderedDitherTesting(image: File) : JFrame() {
     companion object {
         private const val serialVersionUID = -47246908626887986L
+
         @Throws(IOException::class)
         @JvmStatic
         fun main(args: Array<String>) {
@@ -60,11 +61,11 @@ class OrderedDitherTesting(image: File) : JFrame() {
             c.add(panel)
         }
         addWindowListener(
-                object : WindowAdapter() {
-                    override fun windowClosing(e: WindowEvent) {
-                        System.exit(0)
-                    }
-                })
+            object : WindowAdapter() {
+                override fun windowClosing(e: WindowEvent) {
+                    System.exit(0)
+                }
+            })
         pack()
         isVisible = true
     }

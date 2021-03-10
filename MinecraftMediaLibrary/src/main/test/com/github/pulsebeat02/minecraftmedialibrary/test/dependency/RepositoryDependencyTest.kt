@@ -32,6 +32,7 @@ fun main(args: Array<String>) {
         override fun createCipher(s: String): Cipher? {
             return null
         }
+
         override fun addInitialFunctionPattern(i: Int, s: String) {}
         override fun addFunctionEquivalent(s: String, cipherFunction: CipherFunction) {}
     }

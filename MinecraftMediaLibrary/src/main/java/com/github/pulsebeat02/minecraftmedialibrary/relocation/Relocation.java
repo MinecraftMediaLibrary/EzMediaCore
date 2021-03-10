@@ -42,9 +42,9 @@ public final class Relocation {
       final Collection<String> includes,
       final Collection<String> excludes) {
     this.pattern = pattern.replace('/', '.');
-      pathPattern = pattern.replace('.', '/');
+    pathPattern = pattern.replace('.', '/');
     this.relocatedPattern = relocatedPattern.replace('/', '.');
-      relocatedPathPattern = relocatedPattern.replace('.', '/');
+    relocatedPathPattern = relocatedPattern.replace('.', '/');
 
     if (includes != null && !includes.isEmpty()) {
       this.includes = normalizePatterns(includes);

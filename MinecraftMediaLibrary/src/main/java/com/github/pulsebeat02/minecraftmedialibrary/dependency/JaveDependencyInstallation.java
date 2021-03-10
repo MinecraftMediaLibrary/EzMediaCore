@@ -29,18 +29,20 @@ public class JaveDependencyInstallation {
 
   /**
    * Instantiates a new JaveDependencyInstallation
+   *
    * @param library library
    */
   public JaveDependencyInstallation(@NotNull final MinecraftMediaLibrary library) {
-    this.dependencyFolder = library.getDependenciesFolder();
+      dependencyFolder = library.getDependenciesFolder();
   }
 
   /**
    * Instantiates a new JaveDependencyInstallation
+   *
    * @param dependency directory path
    */
   public JaveDependencyInstallation(@NotNull final String dependency) {
-    this.dependencyFolder = dependency;
+      dependencyFolder = dependency;
   }
 
   /**
@@ -65,8 +67,7 @@ public class JaveDependencyInstallation {
     }
     try {
       file =
-          DependencyUtilities.downloadFile(
-              "ws.schild", getArtifactId(), "2.7.3", dependencyFolder);
+          DependencyUtilities.downloadFile("ws.schild", getArtifactId(), "2.7.3", dependencyFolder);
     } catch (final IOException e) {
       e.printStackTrace();
     }

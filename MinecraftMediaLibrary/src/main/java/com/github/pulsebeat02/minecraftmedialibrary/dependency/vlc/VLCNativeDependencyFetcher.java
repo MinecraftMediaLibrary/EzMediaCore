@@ -28,12 +28,12 @@ import java.net.URL;
 public class VLCNativeDependencyFetcher {
 
   /** Instantiates a new VLCNativeDependencyFetcher. */
-
   private final String dir;
 
   public VLCNativeDependencyFetcher(@NotNull final MinecraftMediaLibrary library) {
     dir = library.getVlcFolder();
   }
+
   public VLCNativeDependencyFetcher(@NotNull final String dir) {
     this.dir = dir;
   }

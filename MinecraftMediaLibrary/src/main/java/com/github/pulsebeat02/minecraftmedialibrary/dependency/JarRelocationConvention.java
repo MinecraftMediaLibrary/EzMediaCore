@@ -45,8 +45,8 @@ public enum JarRelocationConvention {
   /** ASM Commons Jar Relocation Convention */
   ASM_COMMONS("org{}ow2{}asm{}commons", "com{}github{}pulsebeat02{}asm{}commons");
 
-//  /** JNA Jar Relocation Convention */
-//  JNA("com{}sun{}jna", "com{}github{}pulsebeat02{}jna");
+  //  /** JNA Jar Relocation Convention */
+  //  JNA("com{}sun{}jna", "com{}github{}pulsebeat02{}jna");
 
   private final Relocation relocation;
 

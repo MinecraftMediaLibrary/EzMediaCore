@@ -31,6 +31,7 @@ class PulseDitherTest(image: File) : JFrame() {
 
     companion object {
         private const val serialVersionUID = 3726338370660165985L
+
         @Throws(IOException::class)
         @JvmStatic
         fun main(args: Array<String>) {
@@ -53,14 +54,16 @@ class PulseDitherTest(image: File) : JFrame() {
         val pulseDithering = JPanel()
         val floydStart = System.currentTimeMillis()
         pulseDithering.add(
-                JLabel(ImageIcon(VideoUtilities.resizeImage(ditherPulse(before), 500, 250))))
+            JLabel(ImageIcon(VideoUtilities.resizeImage(ditherPulse(before), 500, 250)))
+        )
         val floydEnd = System.currentTimeMillis()
         pulseDithering.add(JLabel("PulseBeat_02's Dithering"))
         pulseDithering.add(JLabel("| Time (Milliseconds): " + (floydEnd - floydStart)))
         val sierraDithering = JPanel()
         val sierraStart = System.currentTimeMillis()
         sierraDithering.add(
-                JLabel(ImageIcon(VideoUtilities.resizeImage(ditherSierra(before), 500, 250))))
+            JLabel(ImageIcon(VideoUtilities.resizeImage(ditherSierra(before), 500, 250)))
+        )
         val sierraEnd = System.currentTimeMillis()
         sierraDithering.add(JLabel("Sierra 2-4A Dithering"))
         sierraDithering.add(JLabel("| Time (Milliseconds): " + (sierraEnd - sierraStart)))
@@ -70,11 +73,11 @@ class PulseDitherTest(image: File) : JFrame() {
         container.add(pulseDithering)
         container.add(sierraDithering)
         addWindowListener(
-                object : WindowAdapter() {
-                    override fun windowClosing(e: WindowEvent) {
-                        System.exit(0)
-                    }
-                })
+            object : WindowAdapter() {
+                override fun windowClosing(e: WindowEvent) {
+                    System.exit(0)
+                }
+            })
         pack()
         isVisible = true
     }

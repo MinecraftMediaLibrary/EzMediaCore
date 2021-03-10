@@ -18,6 +18,11 @@ import com.github.pulsebeat02.minecraftmedialibrary.exception.InvalidPackFormatE
 import com.github.pulsebeat02.minecraftmedialibrary.exception.InvalidPackIconException;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ResourcepackUtilities;
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
@@ -27,12 +32,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSerializable {
+
+  private static final Gson GSON;
+
+  static {
+    GSON = new GsonBuilder().setPrettyPrinting().create();
+  }
 
   private final MinecraftMediaLibrary library;
   private final String path;
@@ -99,13 +109,12 @@ public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSer
    */
   @Override
   public @NotNull Map<String, Object> serialize() {
-    final Map<String, Object> serialized = new HashMap<>();
-    serialized.put("path", path);
-    serialized.put("audio", audio.getAbsolutePath());
-    serialized.put("icon", icon.getAbsolutePath());
-    serialized.put("description", description);
-    serialized.put("pack-format", packFormat);
-    return serialized;
+    return ImmutableMap.of(
+        "path", path,
+        "audio", audio.getAbsolutePath(),
+        "icon", icon.getAbsolutePath(),
+        "description", description,
+        "pack-format", packFormat);
   }
 
   /** Builds the resourcepack based on values. */
@@ -113,47 +122,28 @@ public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSer
   public void buildResourcePack() {
     onResourcepackBuild();
     Logger.info("Wrapping Resourcepack...");
-    // TODO: Fix this mess and use GSON to make the JSON file
     try {
       final ZipOutputStream out = new ZipOutputStream(new FileOutputStream(path));
-      final byte[] mcmeta =
-          ("{\r\n"
-                  + "	\"pack\": {\r\n"
-                  + "    \"pack_format\": "
-                  + packFormat
-                  + ",\r\n"
-                  + "    \"description\": \""
-                  + description
-                  + "\"\r\n"
-                  + "  }\r\n"
-                  + "}")
-              .getBytes();
       final ZipEntry config = new ZipEntry("pack.mcmeta");
       out.putNextEntry(config);
-      out.write(mcmeta);
+      out.write(getPackJson().getBytes());
       out.closeEntry();
-      final byte[] soundJSON =
-          ("{\r\n"
-                  + "   \""
-                  + library.getPlugin().getName()
-                  + "\":{\r\n"
-                  + "      \"sounds\":[\r\n"
-                  + "         \"audio\"\r\n"
-                  + "      ]\r\n"
-                  + "   }\r\n"
-                  + "}")
-              .getBytes();
+
       final ZipEntry sound = new ZipEntry("assets/minecraft/sounds.json");
       out.putNextEntry(sound);
-      out.write(soundJSON);
+      out.write(getSoundJson().getBytes());
       out.closeEntry();
+
       final ZipEntry soundFile = new ZipEntry("assets/minecraft/sounds/audio.ogg");
       out.putNextEntry(soundFile);
       out.write(Files.readAllBytes(Paths.get(audio.getAbsolutePath())));
+      out.closeEntry();
+
       final ZipEntry iconFile = new ZipEntry("pack.png");
       out.putNextEntry(iconFile);
       out.write(Files.readAllBytes(Paths.get(icon.getAbsolutePath())));
       out.closeEntry();
+
       out.close();
       Logger.info("Finished Wrapping Resourcepack!");
     } catch (final IOException e) {
@@ -165,6 +155,27 @@ public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSer
   /** Called when the resourcepack is being built. */
   @Override
   public void onResourcepackBuild() {}
+
+  /** Creates the pack JSON file */
+  public String getPackJson() {
+    final JsonObject mcmeta = new JsonObject();
+    final JsonObject pack = new JsonObject();
+    pack.addProperty("pack-format", packFormat);
+    pack.addProperty("description", description);
+    mcmeta.add("pack", pack);
+    return GSON.toJson(mcmeta);
+  }
+
+  /** Creates the pack sound file */
+  public String getSoundJson() {
+    final JsonObject category = new JsonObject();
+    final JsonObject type = new JsonObject();
+    final JsonArray sounds = new JsonArray();
+    sounds.add("audio");
+    category.add("sounds", sounds);
+    type.add(library.getPlugin().getName(), category);
+    return GSON.toJson(type);
+  }
 
   /**
    * Gets library.

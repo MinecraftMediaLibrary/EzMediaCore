@@ -43,6 +43,7 @@ class FloydFilterLiteDitherTesting(image: File) : JFrame() {
 
     companion object {
         private const val serialVersionUID = 2515798191284509909L
+
         @Throws(IOException::class)
         @JvmStatic
         fun main(args: Array<String>) {
@@ -63,14 +64,16 @@ class FloydFilterLiteDitherTesting(image: File) : JFrame() {
         val floydDithering = JPanel()
         val floydStart = System.currentTimeMillis()
         floydDithering.add(
-                JLabel(ImageIcon(VideoUtilities.resizeImage(ditherFloyd(before), 500, 250))))
+            JLabel(ImageIcon(VideoUtilities.resizeImage(ditherFloyd(before), 500, 250)))
+        )
         val floydEnd = System.currentTimeMillis()
         floydDithering.add(JLabel("Floyd Steinberg Dithering"))
         floydDithering.add(JLabel("| Time (Milliseconds): " + (floydEnd - floydStart)))
         val sierraDithering = JPanel()
         val sierraStart = System.currentTimeMillis()
         sierraDithering.add(
-                JLabel(ImageIcon(VideoUtilities.resizeImage(ditherSierra(before), 500, 250))))
+            JLabel(ImageIcon(VideoUtilities.resizeImage(ditherSierra(before), 500, 250)))
+        )
         val sierraEnd = System.currentTimeMillis()
         sierraDithering.add(JLabel("Sierra 2-4A Dithering"))
         sierraDithering.add(JLabel("| Time (Milliseconds): " + (sierraEnd - sierraStart)))
@@ -80,11 +83,11 @@ class FloydFilterLiteDitherTesting(image: File) : JFrame() {
         container.add(floydDithering)
         container.add(sierraDithering)
         addWindowListener(
-                object : WindowAdapter() {
-                    override fun windowClosing(e: WindowEvent) {
-                        System.exit(0)
-                    }
-                })
+            object : WindowAdapter() {
+                override fun windowClosing(e: WindowEvent) {
+                    System.exit(0)
+                }
+            })
         pack()
         isVisible = true
     }

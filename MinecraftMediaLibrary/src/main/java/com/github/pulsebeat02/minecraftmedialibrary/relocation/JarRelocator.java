@@ -44,10 +44,11 @@ public final class JarRelocator {
    * @param output the output jar file
    * @param relocations the relocations
    */
-  public JarRelocator(final File input, final File output, final Collection<Relocation> relocations) {
+  public JarRelocator(
+      final File input, final File output, final Collection<Relocation> relocations) {
     this.input = input;
     this.output = output;
-      remapper = new RelocatingRemapper(relocations);
+    remapper = new RelocatingRemapper(relocations);
   }
 
   /**
@@ -64,7 +65,7 @@ public final class JarRelocator {
     for (final Map.Entry<String, String> entry : relocations.entrySet()) {
       c.add(new Relocation(entry.getKey(), entry.getValue()));
     }
-      remapper = new RelocatingRemapper(c);
+    remapper = new RelocatingRemapper(c);
   }
 
   /**

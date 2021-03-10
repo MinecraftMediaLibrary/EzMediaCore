@@ -40,12 +40,12 @@ public final class MinecraftMediaLibrary {
   private final PlayerJoinLeaveHandler listener;
   private final PacketHandler handler;
   private final TinyProtocol protocol;
-  private boolean vlcj;
-
   /** Folder Paths to Use */
   private final String parent;
+
   private final String dependenciesFolder;
   private final String vlcFolder;
+  private boolean vlcj;
 
   /**
    * Instantiates a new Minecraft media library.
@@ -86,26 +86,26 @@ public final class MinecraftMediaLibrary {
   }
 
   public MinecraftMediaLibrary(
-          @NotNull final Plugin plugin,
-          @NotNull final String path,
-          @NotNull final String libraryPath,
-          @NotNull final String vlcPath,
-          final boolean isUsingVLCJ) {
+      @NotNull final Plugin plugin,
+      @NotNull final String path,
+      @NotNull final String libraryPath,
+      @NotNull final String vlcPath,
+      final boolean isUsingVLCJ) {
     this.plugin = plugin;
     protocol =
-            new TinyProtocol(plugin) {
-              @Override
-              public Object onPacketOutAsync(
-                      final Player player, final Channel channel, final Object packet) {
-                return handler.onPacketInterceptOut(player, packet);
-              }
+        new TinyProtocol(plugin) {
+          @Override
+          public Object onPacketOutAsync(
+              final Player player, final Channel channel, final Object packet) {
+            return handler.onPacketInterceptOut(player, packet);
+          }
 
-              @Override
-              public Object onPacketInAsync(
-                      final Player player, final Channel channel, final Object packet) {
-                return handler.onPacketInterceptIn(player, packet);
-              }
-            };
+          @Override
+          public Object onPacketInAsync(
+              final Player player, final Channel channel, final Object packet) {
+            return handler.onPacketInterceptIn(player, packet);
+          }
+        };
     handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
     parent = path;
     dependenciesFolder = libraryPath;
@@ -122,7 +122,8 @@ public final class MinecraftMediaLibrary {
   /** Runs dependency tasks required. */
   private void dependencyTasks() {
     DependencyUtilities.CLASSLOADER = (URLClassLoader) plugin.getClass().getClassLoader();
-    final JaveDependencyInstallation javeDependencyInstallation = new JaveDependencyInstallation(this);
+    final JaveDependencyInstallation javeDependencyInstallation =
+        new JaveDependencyInstallation(this);
     javeDependencyInstallation.install();
     javeDependencyInstallation.load();
     final DependencyManagement dependencyManagement = new DependencyManagement(this);
