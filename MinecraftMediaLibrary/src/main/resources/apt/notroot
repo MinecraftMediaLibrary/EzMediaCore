@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# Go to this directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+MARKER='\033[1m[NOTROOT]\033[0m'
+cd $DIR
+which apt-get 2> /dev/null >&2
+if [ $? -eq 0 ]; then
+    MODE="apt"
+else
+    which yum 2> /dev/null >&2
+    if [ $? -eq 0 ]; then
+        MODE="yum"
+    else
+        echo -e "$MARKER I can't found apt or yum"
+        exit 1
+    fi
+fi
+
+if [ $# -lt 2 ]; then
+    echo "Usage: "
+    echo "  notroot [search|install] package"
+    echo ""
+    echo "  search package:"
+    echo "		Display the search result for a package"
+    echo ""
+    echo "  install packages:"
+    echo "		Installs a given package"
+    echo ""
+    echo "Note: don't forget to source notroot/bashrc"
+    exit 1
+fi
+
+case $1 in
+    search)
+        if [ "$MODE" = "apt" ]; then
+            apt-cache search $2
+        fi
+        if [ "$MODE" = "yum" ]; then
+            yum search $2
+        fi
+        ;;
+    install)
+        shift
+        for package in $*; do
+        echo -e "$MARKER Installing $package from $MODE..."
+            if [ "$MODE" = "apt" ]; then
+                rm -rf deb
+                mkdir deb &&
+                cd deb &&
+                which apt-rdepends > /dev/null
+                if [ $? -eq 0 ]; then
+                    echo -e "$MARKER Scanning dependencies with apt-rdepends..."
+                    for dep in `apt-rdepends $package|grep -v "^ "`; do
+                        dpkg -l $dep > /dev/null 2>&1
+                        if [ $? -eq 1 ]; then
+                            echo -e "$MARKER $dep is not present on the system, installing it locally"
+                            apt-get download $dep
+                        fi
+                    done
+                else
+                    echo -e "$MARKER WARNING:"
+                    echo "apt-rdepends is not installed, if you want recursive"
+                    echo "         installation run the following command:"
+                    echo ""
+                    echo "notroot install apt-rdepends"
+                    echo ""
+                fi
+                apt-get download $package
+                cd .. &&
+                for deb in deb/*.deb; do
+                    dpkg -x $deb . 
+                done
+            fi
+            if [ "$MODE" = "yum" ]; then
+                rm -rf rpm
+                mkdir rpm &&
+                cd rpm &&
+                yumdownloader $package &&
+                cd .. &&
+                rpm2cpio rpm/*.rpm | cpio -idmvu
+            fi
+        done
+        ;;
+    *)
+        echo -e "$MARKER Unknown instruction $1"
+        ;;
+esac
