@@ -29,8 +29,68 @@ public final class ChatUtilities {
         + message;
   }
 
-  public static String highMapIDMessage(@NotNull final CommandSender sender, final long id) {
-
+  public static long checkMapBoundaries(@NotNull final CommandSender sender, final String str) {
+    final String message;
+    final long id = checkLongValidity(str);
+    if (id == Long.MIN_VALUE) {
+      message = "is not a valid argument!";
+    } else if (id < -2_147_483_647L) {
+      message = "is too low!";
+    } else if (id > 2_147_483_647L) {
+      message = "is too high!";
+    } else {
+      return id;
+    }
+    sender.sendMessage(
+        ChatUtilities.formatMessage(
+            String.join(
+                " ",
+                ChatColor.RED + "",
+                "Argument",
+                "'" + str + "'",
+                message,
+                "(Must be Integer between -2,147,483,647 - 2,147,483,647)")));
+    return Long.MIN_VALUE;
   }
 
+  public static int[] checkDimensionBoundaries(
+      @NotNull final CommandSender sender, final String str) {
+    final String[] dims = str.split(":");
+    String message = "";
+    final int width = ChatUtilities.checkIntegerValidity(dims[0]);
+    final int height = ChatUtilities.checkIntegerValidity(dims[1]);
+    if (width == Integer.MIN_VALUE) {
+      message = dims[0];
+    } else if (height == Integer.MIN_VALUE) {
+      message = dims[1];
+    } else {
+      return new int[] {width, height};
+    }
+    sender.sendMessage(
+        ChatUtilities.formatMessage(
+            String.join(
+                " ",
+                ChatColor.RED + "",
+                "Argument",
+                "'" + message + "'",
+                "is not a valid argument!",
+                "(Must be Integer)")));
+    return new int[] {-1, -1};
+  }
+
+  public static long checkLongValidity(final String num) {
+    try {
+      return Long.parseLong(num);
+    } catch (final NumberFormatException e) {
+      return Long.MIN_VALUE;
+    }
+  }
+
+  public static int checkIntegerValidity(final String num) {
+    try {
+      return Integer.parseInt(num);
+    } catch (final NumberFormatException e) {
+      return Integer.MIN_VALUE;
+    }
+  }
 }

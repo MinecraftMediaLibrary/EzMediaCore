@@ -86,7 +86,6 @@ public class VideoConfiguration extends AbstractConfiguration {
         player = new VLCJIntegratedPlayer(library, url, width, height, callback::send);
       }
       // player = new BasicVideoPlayer(library, url, width, height, callback::send);
-
       this.callback = callback;
     }
   }
