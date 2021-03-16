@@ -166,7 +166,7 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
           }
           final String mrl = args[3];
           // if it's between the bounds, it is safe to cast to integer because the original value is
-          // still being stored, and there is no integer overflow/
+          // still being stored, and there is no integer overflow
           if ((mrl.startsWith("http://")) || mrl.startsWith("https://") && mrl.endsWith(".png")) {
             final File img =
                 FileUtilities.downloadImageFile(mrl, getPlugin().getDataFolder().getAbsolutePath());

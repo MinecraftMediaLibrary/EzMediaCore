@@ -14,6 +14,7 @@
 package com.github.pulsebeat02.deluxemediaplugin.utility;
 
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 public final class ChatUtilities {
@@ -27,4 +28,9 @@ public final class ChatUtilities {
         + "] "
         + message;
   }
+
+  public static String highMapIDMessage(@NotNull final CommandSender sender, final long id) {
+
+  }
+
 }
