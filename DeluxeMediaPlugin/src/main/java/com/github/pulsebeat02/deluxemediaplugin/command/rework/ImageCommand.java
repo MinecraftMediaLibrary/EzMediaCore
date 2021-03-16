@@ -57,22 +57,22 @@ public class ImageCommand extends BaseCommand implements Listener {
         final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
         builder
                 .requires(super::testPermission)
-                .then(literal("reset"))
-                        .then(literal("map"))
-                            .then(argument("id", StringArgumentType.word()))
-                                .executes(this::resetMap)
+                .then(literal("reset")
+                        .then(literal("map")
+                            .then(argument("id", StringArgumentType.word())
+                                .executes(this::resetMap)))
                         .then(literal("all")
-                            .executes(this::resetAllMaps))
-                .then(literal("set"))
-                        .then(literal("map"))
-                            .then(argument("id", LongArgumentType.longArg()))
-                                .then(argument("mrl", StringArgumentType.word()))
-                                    .executes(this::setImage)
-                        .then(literal("dimensions"))
-                                .then(argument("dim", StringArgumentType.string()))
-                                    .executes(this::setDimensions)
-                .then(literal("rickroll"))
-                    .executes(this::setRickRoll);
+                            .executes(this::resetAllMaps)))
+                .then(literal("set")
+                        .then(literal("map")
+                            .then(argument("id", LongArgumentType.longArg())
+                                .then(argument("mrl", StringArgumentType.word())
+                                    .executes(this::setImage))))
+                        .then(literal("dimensions")
+                                .then(argument("dim", StringArgumentType.string())
+                                    .executes(this::setDimensions))))
+                .then(literal("rickroll")
+                    .executes(this::setRickRoll));
         literalNode = builder.build();
     }
 
