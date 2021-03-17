@@ -13,6 +13,7 @@
 
 package com.github.pulsebeat02.deluxemediaplugin.command.rework;
 
+import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -25,35 +26,34 @@ import org.jetbrains.annotations.NotNull;
 
 public class DitherCommand extends BaseCommand {
 
-    private final LiteralCommandNode<CommandSender> literalNode;
+  private final LiteralCommandNode<CommandSender> literalNode;
 
-    public DitherCommand(@NotNull final TabExecutor executor) {
-        super("dither", executor, "deluxemediaplugin.command.dither", "");
-        final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
-        builder
-                .requires(super::testPermission)
-                .then(argument("list", StringArgumentType.word())
-                        .executes(this::listDitherSettings));
-        literalNode = builder.build();
+  public DitherCommand(
+      @NotNull final MinecraftMediaLibrary library, @NotNull final TabExecutor executor) {
+    super(library, "dither", executor, "deluxemediaplugin.command.dither", "");
+    final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
+    builder
+        .requires(super::testPermission)
+        .then(argument("list", StringArgumentType.word()).executes(this::listSettings));
+    literalNode = builder.build();
+  }
+
+  @Override
+  public LiteralCommandNode<CommandSender> getCommandNode() {
+    return literalNode;
+  }
+
+  @Override
+  public String usage() {
+    return "/dither list";
+  }
+
+  private int listSettings(@NotNull final CommandContext<CommandSender> context) {
+    final CommandSender sender = context.getSource();
+    sender.sendMessage(ChatColor.GOLD + "List of Possible Options:");
+    for (final DitherSetting setting : DitherSetting.values()) {
+      sender.sendMessage(ChatColor.AQUA + setting.name());
     }
-
-    @Override
-    public LiteralCommandNode<CommandSender> getCommandNode() {
-        return literalNode;
-    }
-
-    @Override
-    public String usage() {
-        return "/dither list";
-    }
-
-    private int listDitherSettings(@NotNull final CommandContext<CommandSender> context) {
-        final CommandSender sender = context.getSource();
-        sender.sendMessage(ChatColor.GOLD + "List of Possible Options:");
-        for (final DitherSetting setting : DitherSetting.values()) {
-            sender.sendMessage(ChatColor.AQUA + setting.name());
-        }
-        return 1;
-    }
-
+    return 1;
+  }
 }

@@ -11,9 +11,10 @@
  * ============================================================================
  */
 
-package com.github.pulsebeat02.deluxemediaplugin.command;
+package com.github.pulsebeat02.deluxemediaplugin.command.old;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import com.github.pulsebeat02.deluxemediaplugin.command.old.AbstractCommand;
 import com.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;

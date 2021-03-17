@@ -13,9 +13,9 @@
 
 package com.github.pulsebeat02.deluxemediaplugin;
 
-import com.github.pulsebeat02.deluxemediaplugin.command.DitherCommand;
-import com.github.pulsebeat02.deluxemediaplugin.command.ImageCommand;
-import com.github.pulsebeat02.deluxemediaplugin.command.VideoCommand;
+import com.github.pulsebeat02.deluxemediaplugin.command.old.DitherCommand;
+import com.github.pulsebeat02.deluxemediaplugin.command.old.ImageCommand;
+import com.github.pulsebeat02.deluxemediaplugin.command.old.VideoCommand;
 import com.github.pulsebeat02.deluxemediaplugin.config.EncoderConfiguration;
 import com.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
 import com.github.pulsebeat02.deluxemediaplugin.config.PictureConfiguration;

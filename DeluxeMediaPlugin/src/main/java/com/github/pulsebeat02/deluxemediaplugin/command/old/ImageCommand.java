@@ -11,7 +11,7 @@
  * ============================================================================
  */
 
-package com.github.pulsebeat02.deluxemediaplugin.command;
+package com.github.pulsebeat02.deluxemediaplugin.command.old;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
@@ -44,10 +44,10 @@ public class ImageCommand extends AbstractCommand implements CommandExecutor, Li
 
   public ImageCommand(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, null, "image", "");
-    this.images = new HashSet<>();
-    this.listen = new HashSet<>();
-    this.width = 1;
-    this.height = 1;
+    images = new HashSet<>();
+    listen = new HashSet<>();
+    width = 1;
+    height = 1;
   }
 
   @Override

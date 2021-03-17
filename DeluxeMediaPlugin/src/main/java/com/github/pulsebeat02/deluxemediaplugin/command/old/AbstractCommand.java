@@ -11,7 +11,7 @@
  * ============================================================================
  */
 
-package com.github.pulsebeat02.deluxemediaplugin.command;
+package com.github.pulsebeat02.deluxemediaplugin.command.old;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
@@ -45,8 +45,8 @@ public class AbstractCommand implements CommandExecutor, TabCompleter {
       @NotNull final String suggestion) {
     this.plugin = plugin;
     this.parent = parent;
-    this.history = new ArrayList<>();
-    this.children = new HashMap<>();
+    history = new ArrayList<>();
+    children = new HashMap<>();
     this.name = name;
     history.add(suggestion);
   }
