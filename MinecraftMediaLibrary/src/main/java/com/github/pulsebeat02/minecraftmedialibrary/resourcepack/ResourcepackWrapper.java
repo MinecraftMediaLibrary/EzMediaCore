@@ -156,7 +156,11 @@ public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSer
   @Override
   public void onResourcepackBuild() {}
 
-  /** Creates the pack JSON file */
+  /**
+   * Gets pack JSON.
+   *
+   * @return pack json
+   */
   public String getPackJson() {
     final JsonObject mcmeta = new JsonObject();
     final JsonObject pack = new JsonObject();
@@ -166,7 +170,11 @@ public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSer
     return GSON.toJson(mcmeta);
   }
 
-  /** Creates the pack sound file */
+  /**
+   * Gets pack sound JSON.
+   *
+   * @return sound json
+   */
   public String getSoundJson() {
     final JsonObject category = new JsonObject();
     final JsonObject type = new JsonObject();

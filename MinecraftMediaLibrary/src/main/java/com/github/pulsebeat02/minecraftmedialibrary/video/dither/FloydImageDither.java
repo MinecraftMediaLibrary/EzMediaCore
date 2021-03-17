@@ -263,7 +263,7 @@ public class FloydImageDither implements AbstractDitherHolder {
    * Dithers buffer data into Minecraft.
    * @param buffer data for the image
    * @param width units for the image
-   * @return
+   * @return dithered buffer data
    */
   @Override
   public ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width) {

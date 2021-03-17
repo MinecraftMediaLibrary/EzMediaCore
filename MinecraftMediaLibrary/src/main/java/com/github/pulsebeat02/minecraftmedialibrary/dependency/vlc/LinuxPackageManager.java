@@ -62,7 +62,11 @@ public class LinuxPackageManager {
   private final File vlc;
   private Map<String, LinuxOSPackages> packages;
 
-  /** Instantiates a new Linux package manager. */
+  /**
+   * Instantiates a LinuxPackageManager.
+   *
+   * @param library instance
+   */
   public LinuxPackageManager(@NotNull final MinecraftMediaLibrary library) {
     Logger.info("Reading System OS JSON file...");
     try {
@@ -82,7 +86,11 @@ public class LinuxPackageManager {
     }
   }
 
-  /** Instantiates a new Linux package manager. */
+  /**
+   * Instantiates a LinuxPackageManager.
+   *
+   * @param dir directory
+   */
   public LinuxPackageManager(@NotNull final String dir) {
     Logger.info("Reading System OS JSON file...");
     try {

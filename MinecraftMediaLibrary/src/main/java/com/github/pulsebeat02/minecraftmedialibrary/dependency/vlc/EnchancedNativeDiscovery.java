@@ -28,12 +28,18 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
   private final String dir;
   private String path;
 
-  /** Instantiates a new EnchancedNativeDiscovery */
+  /**
+   * Instantiates an EnchancedNativeDiscovery.
+   * @param library instance
+   */
   public EnchancedNativeDiscovery(@NotNull final MinecraftMediaLibrary library) {
     dir = library.getVlcFolder();
   }
 
-  /** Instantiates a new EnchancedNativeDiscovery */
+  /**
+   * Instantiates an EnchancedNativeDiscovery.
+   * @param dir directory
+   */
   public EnchancedNativeDiscovery(@NotNull final String dir) {
     this.dir = dir;
   }

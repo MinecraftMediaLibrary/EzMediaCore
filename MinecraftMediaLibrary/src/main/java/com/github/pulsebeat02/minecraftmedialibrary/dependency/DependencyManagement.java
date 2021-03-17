@@ -34,7 +34,11 @@ public class DependencyManagement {
   private final File dir;
   private final File relocatedDir;
 
-  /** Instantiates a new DependencyManagement. */
+  /**
+   * Instantiates a new DependencyManagement.
+   *
+   * @param library instance
+   */
   public DependencyManagement(@NotNull final MinecraftMediaLibrary library) {
     files = new HashSet<>();
     dir = new File(library.getDependenciesFolder());
@@ -61,7 +65,11 @@ public class DependencyManagement {
     }
   }
 
-  /** Instantiates a new DependencyManagement. */
+  /**
+   * Instantiates a new DependencyManagement.
+   *
+   * @param dirPath directory
+   */
   public DependencyManagement(@NotNull final String dirPath) {
     files = new HashSet<>();
     dir = new File(dirPath);
