@@ -31,12 +31,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.UUID;
 
@@ -111,11 +112,12 @@ public class ImageCommand extends BaseCommand implements Listener {
 
   private int setDimensions(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
-    final int[] dims =
+    final Optional<int[]> opt =
         ChatUtilities.checkDimensionBoundaries(sender, context.getArgument("dims", String.class));
-    if (dims[0] == -1 && dims[1] == -1) {
+    if (!opt.isPresent()) {
       return 1;
     }
+    final int[] dims = opt.get();
     width = dims[0];
     height = dims[1];
     sender.sendMessage(
@@ -131,11 +133,12 @@ public class ImageCommand extends BaseCommand implements Listener {
 
   private int setImage(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
-    final long id =
+    final OptionalLong opt =
         ChatUtilities.checkMapBoundaries(sender, context.getArgument("id", String.class));
-    if (id == Long.MIN_VALUE) {
+    if (!opt.isPresent()) {
       return 1;
     }
+    final int id = (int) opt.getAsLong();
     final String mrl = context.getArgument("mrl", String.class);
     final String successful =
         ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully drew image on map " + id);
@@ -144,12 +147,12 @@ public class ImageCommand extends BaseCommand implements Listener {
     if (isUrl(mrl)) {
       final File img =
           FileUtilities.downloadImageFile(mrl, plugin.getDataFolder().getAbsolutePath());
-      new MapImage(library, (int) id, img, width, height).drawImage();
+      new MapImage(library, id, img, width, height).drawImage();
       sender.sendMessage(successful);
     } else {
       final File img = new File(plugin.getDataFolder(), mrl);
       if (img.exists()) {
-        new MapImage(library, (int) id, img, width, height).drawImage();
+        new MapImage(library, id, img, width, height).drawImage();
         sender.sendMessage(successful);
       } else {
         sender.sendMessage(
@@ -162,11 +165,12 @@ public class ImageCommand extends BaseCommand implements Listener {
 
   private int resetMap(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
-    final long id =
+    final OptionalLong opt =
         ChatUtilities.checkMapBoundaries(sender, context.getArgument("id", String.class));
-    if (id == Long.MIN_VALUE) {
+    if (!opt.isPresent()) {
       return 1;
     }
+    final int id = (int) opt.getAsLong();
     final Iterator<MapImage> itr = images.iterator();
     while (itr.hasNext()) {
       if (itr.next().getMap() == id) {
@@ -174,7 +178,7 @@ public class ImageCommand extends BaseCommand implements Listener {
         break;
       }
     }
-    MapImage.resetMap(getPlugin().getLibrary(), (int) id);
+    MapImage.resetMap(getPlugin().getLibrary(), id);
     sender.sendMessage(
         ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully purged the map with ID " + id));
     return 1;

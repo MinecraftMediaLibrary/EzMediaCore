@@ -25,6 +25,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.concurrent.CompletableFuture;
 
 public class VideoCommand extends BaseCommand {
@@ -97,12 +99,12 @@ public class VideoCommand extends BaseCommand {
 
   private int setStartingMap(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
-    final long id =
+    final OptionalLong id =
             ChatUtilities.checkMapBoundaries(sender, context.getArgument("id", String.class));
-    if (id == Long.MIN_VALUE) {
+    if (!id.isPresent()) {
       return 1;
     }
-    startingMap = (int) id;
+    startingMap = (int) id.getAsLong();
     sender.sendMessage(
             ChatUtilities.formatMessage(
                     ChatColor.GOLD + "Set starting-map on id " + startingMap));
@@ -111,10 +113,11 @@ public class VideoCommand extends BaseCommand {
 
   private int setItemFrameDimension(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
-    final int[] dims = ChatUtilities.checkDimensionBoundaries(sender, context.getArgument("itemframe-dimensions", String.class));
-    if (dims[0] == -1 && dims[1] == -1) {
+    final Optional<int[]> opt = ChatUtilities.checkDimensionBoundaries(sender, context.getArgument("itemframe-dimensions", String.class));
+    if (!opt.isPresent()) {
       return 1;
     }
+    final int[] dims = opt.get();
     frameWidth = dims[0];
     frameHeight = dims[1];
     sender.sendMessage(
@@ -130,10 +133,11 @@ public class VideoCommand extends BaseCommand {
 
   private int setScreenDimension(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
-    final int[] dims = ChatUtilities.checkDimensionBoundaries(sender, context.getArgument("screen-dimensions", String.class));
-    if (dims[0] == -1 && dims[1] == -1) {
+    final Optional<int[]> opt = ChatUtilities.checkDimensionBoundaries(sender, context.getArgument("screen-dimensions", String.class));
+    if (!opt.isPresent()) {
       return 1;
     }
+    final int[] dims = opt.get();
     player.setHeight(dims[0]);
     player.setWidth(dims[1]);
     sender.sendMessage(

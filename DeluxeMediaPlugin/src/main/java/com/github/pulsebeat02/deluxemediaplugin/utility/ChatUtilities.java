@@ -17,6 +17,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+import java.util.OptionalLong;
+
 public final class ChatUtilities {
 
   public static String formatMessage(@NotNull final String message) {
@@ -29,7 +32,7 @@ public final class ChatUtilities {
         + message;
   }
 
-  public static long checkMapBoundaries(@NotNull final CommandSender sender, final String str) {
+  public static OptionalLong checkMapBoundaries(@NotNull final CommandSender sender, final String str) {
     final String message;
     final long id = checkLongValidity(str);
     if (id == Long.MIN_VALUE) {
@@ -39,7 +42,7 @@ public final class ChatUtilities {
     } else if (id > 2_147_483_647L) {
       message = "is too high!";
     } else {
-      return id;
+      return OptionalLong.of(id);
     }
     sender.sendMessage(
         ChatUtilities.formatMessage(
@@ -50,10 +53,10 @@ public final class ChatUtilities {
                 "'" + str + "'",
                 message,
                 "(Must be Integer between -2,147,483,647 - 2,147,483,647)")));
-    return Long.MIN_VALUE;
+    return OptionalLong.empty();
   }
 
-  public static int[] checkDimensionBoundaries(
+  public static Optional<int[]> checkDimensionBoundaries(
       @NotNull final CommandSender sender, final String str) {
     final String[] dims = str.split(":");
     String message = "";
@@ -64,7 +67,7 @@ public final class ChatUtilities {
     } else if (height == Integer.MIN_VALUE) {
       message = dims[1];
     } else {
-      return new int[] {width, height};
+      return Optional.of(new int[] {width, height});
     }
     sender.sendMessage(
         ChatUtilities.formatMessage(
@@ -75,7 +78,7 @@ public final class ChatUtilities {
                 "'" + message + "'",
                 "is not a valid argument!",
                 "(Must be Integer)")));
-    return new int[] {-1, -1};
+    return Optional.empty();
   }
 
   public static long checkLongValidity(final String num) {
