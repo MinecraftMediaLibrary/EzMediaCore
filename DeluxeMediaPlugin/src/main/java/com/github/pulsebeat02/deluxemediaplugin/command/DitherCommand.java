@@ -11,9 +11,9 @@
  * ============================================================================
  */
 
-package com.github.pulsebeat02.deluxemediaplugin.command.rework;
+package com.github.pulsebeat02.deluxemediaplugin.command;
 
-import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -29,8 +29,8 @@ public class DitherCommand extends BaseCommand {
   private final LiteralCommandNode<CommandSender> literalNode;
 
   public DitherCommand(
-      @NotNull final MinecraftMediaLibrary library, @NotNull final TabExecutor executor) {
-    super(library, "dither", executor, "deluxemediaplugin.command.dither", "");
+          @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
+    super(plugin, "dither", executor, "deluxemediaplugin.command.dither", "");
     final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
     builder
         .requires(super::testPermission)

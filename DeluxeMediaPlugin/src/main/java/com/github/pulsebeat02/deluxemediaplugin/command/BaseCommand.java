@@ -1,5 +1,6 @@
-package com.github.pulsebeat02.deluxemediaplugin.command.rework;
+package com.github.pulsebeat02.deluxemediaplugin.command;
 
+import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -13,18 +14,19 @@ import java.util.Objects;
 public abstract class BaseCommand extends Command implements LiteralCommandSegment<CommandSender> {
 
   protected final TabExecutor executor;
-  private final MinecraftMediaLibrary library;
+  private final DeluxeMediaPlugin plugin;
 
   /**
    * Instantiates a new BaseCommand.
    *
+   * @param plugin instance
    * @param name command name
    * @param executor tab complete executor
    * @param permission permission for command
    * @param aliases aliases for command
    */
   public BaseCommand(
-      @NotNull final MinecraftMediaLibrary library,
+      @NotNull final DeluxeMediaPlugin plugin,
       @NotNull final String name,
       @NotNull final TabExecutor executor,
       @NotNull final String permission,
@@ -32,7 +34,7 @@ public abstract class BaseCommand extends Command implements LiteralCommandSegme
     super(name);
     setPermission(permission);
     setAliases(Arrays.asList(aliases));
-    this.library = library;
+    this.plugin = plugin;
     this.executor = executor;
   }
 
@@ -71,7 +73,7 @@ public abstract class BaseCommand extends Command implements LiteralCommandSegme
     return Objects.requireNonNull(executor.onTabComplete(sender, this, label, args));
   }
 
-  public MinecraftMediaLibrary getLibrary() {
-    return library;
+  public DeluxeMediaPlugin getPlugin() {
+    return plugin;
   }
 }

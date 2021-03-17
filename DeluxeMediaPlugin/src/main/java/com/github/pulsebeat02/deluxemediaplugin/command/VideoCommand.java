@@ -1,4 +1,4 @@
-package com.github.pulsebeat02.deluxemediaplugin.command.rework;
+package com.github.pulsebeat02.deluxemediaplugin.command;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
@@ -30,8 +30,7 @@ import java.util.concurrent.CompletableFuture;
 public class VideoCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> literalNode;
-  private final DeluxeMediaPlugin plugin;
-  private final AbstractDitherHolder dither;
+  private AbstractDitherHolder dither;
   private AbstractVideoPlayer player;
   private boolean youtube;
   private YoutubeExtraction extractor;
@@ -42,12 +41,10 @@ public class VideoCommand extends BaseCommand {
   private CompletableFuture<Void> future;
 
   public VideoCommand(
-      @NotNull final MinecraftMediaLibrary library,
-      @NotNull final DeluxeMediaPlugin pl,
+      @NotNull final DeluxeMediaPlugin plugin,
       @NotNull final TabExecutor executor) {
-    super(library, "video", executor, "deluxemediaplugin.command.video", "");
+    super(plugin, "video", executor, "deluxemediaplugin.command.video", "");
     dither = DitherSetting.SIERRA_FILTER_LITE_DITHER.getHolder();
-    plugin = pl;
     final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
     builder
         .requires(super::testPermission)
@@ -58,7 +55,19 @@ public class VideoCommand extends BaseCommand {
         .then(literal("load")
                 .then(argument("mrl", StringArgumentType.word())
                         .executes(this::loadVideo)))
-        .then(literal("set"))
+        .then(literal("set")
+          .then(literal("screen-dimension")
+            .then(argument("screen-dimensions", StringArgumentType.string())
+              .executes(this::setScreenDimension)))
+          .then(literal("itemframe-dimension")
+            .then(argument("itemframe-dimensions", StringArgumentType.string())
+              .executes(this::setItemFrameDimension)))
+          .then(literal("starting-map")
+            .then(argument("starting-map-id", StringArgumentType.string())
+              .executes(this::setStartingMap)))
+          .then(literal("dither")
+            .then(argument("dithering-algorithm", StringArgumentType.string())
+              .executes(this::setDitherAlgorithm))))
         .executes(this::displayInformation);
     literalNode = builder.build();
   }
@@ -68,6 +77,74 @@ public class VideoCommand extends BaseCommand {
     return "/video, /video [Start | Stop], /video load [Youtube Link | File], "
         + "/video set screen-dimension [Width:Height], /video set dither [Dither Type] "
         + "/video set itemframe-dimension [Width:Height], /video set starting-map [Starting Map ID]";
+  }
+
+  private int setDitherAlgorithm(@NotNull final CommandContext<CommandSender> context) {
+    final CommandSender sender = context.getSource();
+    final String algorithm =  context.getArgument("dithering-algorithm", String.class);
+    final DitherSetting setting = DitherSetting.fromString(algorithm);
+    if (setting == null) {
+      sender.sendMessage(
+              ChatUtilities.formatMessage(ChatColor.RED + "Could not find dither type " + algorithm));
+    } else {
+      sender.sendMessage(
+              ChatUtilities.formatMessage(
+                      ChatColor.GOLD + "Set dither type to " + ChatColor.AQUA + algorithm));
+      dither = setting.getHolder();
+    }
+    return 1;
+  }
+
+  private int setStartingMap(@NotNull final CommandContext<CommandSender> context) {
+    final CommandSender sender = context.getSource();
+    final long id =
+            ChatUtilities.checkMapBoundaries(sender, context.getArgument("id", String.class));
+    if (id == Long.MIN_VALUE) {
+      return 1;
+    }
+    startingMap = (int) id;
+    sender.sendMessage(
+            ChatUtilities.formatMessage(
+                    ChatColor.GOLD + "Set starting-map on id " + startingMap));
+    return 1;
+  }
+
+  private int setItemFrameDimension(@NotNull final CommandContext<CommandSender> context) {
+    final CommandSender sender = context.getSource();
+    final int[] dims = ChatUtilities.checkDimensionBoundaries(sender, context.getArgument("itemframe-dimensions", String.class));
+    if (dims[0] == -1 && dims[1] == -1) {
+      return 1;
+    }
+    frameWidth = dims[0];
+    frameHeight = dims[1];
+    sender.sendMessage(
+            ChatUtilities.formatMessage(
+                    ChatColor.GOLD
+                            + "Set itemframe map dimensions to "
+                            + frameWidth
+                            + ":"
+                            + frameHeight
+                            + " (width:height)"));
+    return 1;
+  }
+
+  private int setScreenDimension(@NotNull final CommandContext<CommandSender> context) {
+    final CommandSender sender = context.getSource();
+    final int[] dims = ChatUtilities.checkDimensionBoundaries(sender, context.getArgument("screen-dimensions", String.class));
+    if (dims[0] == -1 && dims[1] == -1) {
+      return 1;
+    }
+    player.setHeight(dims[0]);
+    player.setWidth(dims[1]);
+    sender.sendMessage(
+            ChatUtilities.formatMessage(
+                    ChatColor.GOLD
+                            + "Set screen dimensions to "
+                            + dims[0]
+                            + ":"
+                            + dims[1]
+                            + " (width:height)"));
+    return 1;
   }
 
   private int displayInformation(@NotNull final CommandContext<CommandSender> context) {
@@ -117,7 +194,7 @@ public class VideoCommand extends BaseCommand {
           ChatUtilities.formatMessage(
               ChatColor.GOLD + "Starting Video on File: " + file.getName()));
     }
-    final MinecraftMediaLibrary library = getLibrary();
+    final MinecraftMediaLibrary library = getPlugin().getLibrary();
     final ItemFrameCallback callback =
         new ItemFrameCallback(
             library, null, startingMap, frameWidth, frameHeight, player.getWidth(), 0, dither);
@@ -137,9 +214,10 @@ public class VideoCommand extends BaseCommand {
   }
 
   private int loadVideo(@NotNull final CommandContext<CommandSender> context) {
+    final DeluxeMediaPlugin plugin = getPlugin();
     final CommandSender sender = context.getSource();
     final String mrl = context.getArgument("mrl", String.class);
-    final String folderPath = getLibrary().getPlugin().getDataFolder().getAbsolutePath();
+    final String folderPath = plugin.getDataFolder().getAbsolutePath();
     if (ExtractorUtilities.getVideoID(mrl) == null) {
       final File f = new File(folderPath, mrl);
       if (f.exists()) {
@@ -205,7 +283,7 @@ public class VideoCommand extends BaseCommand {
                     }
                     sender.sendMessage(
                             ChatUtilities.formatMessage(
-                                    ChatColor.GOLD + "Successfully loaded video " + mrl)))
+                                    ChatColor.GOLD + "Successfully loaded video " + mrl));
                   });
     }
     return 1;

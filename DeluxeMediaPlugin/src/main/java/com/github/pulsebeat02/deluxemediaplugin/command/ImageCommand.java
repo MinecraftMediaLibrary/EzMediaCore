@@ -11,8 +11,9 @@
  * ============================================================================
  */
 
-package com.github.pulsebeat02.deluxemediaplugin.command.rework;
+package com.github.pulsebeat02.deluxemediaplugin.command;
 
+import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.image.MapImage;
@@ -48,9 +49,9 @@ public class ImageCommand extends BaseCommand implements Listener {
   private int height;
 
   public ImageCommand(
-      @NotNull final MinecraftMediaLibrary library, @NotNull final TabExecutor executor) {
-    super(library, "dither", executor, "deluxemediaplugin.command.image", "");
-    Bukkit.getPluginManager().registerEvents(this, library.getPlugin());
+          @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
+    super(plugin, "dither", executor, "deluxemediaplugin.command.image", "");
+    Bukkit.getPluginManager().registerEvents(this, plugin);
     listen = new HashSet<>();
     images = new HashSet<>();
     width = 1;
@@ -98,7 +99,7 @@ public class ImageCommand extends BaseCommand implements Listener {
 
   private int setRickRoll(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
-    final MinecraftMediaLibrary library = getLibrary();
+    final MinecraftMediaLibrary library = getPlugin().getLibrary();
     final File f =
         FileUtilities.downloadImageFile(
             "https://images.news18.com/ibnlive/uploads/2020/12/1607660925_untitled-design-2020-12-11t095722.206.png",
@@ -138,16 +139,17 @@ public class ImageCommand extends BaseCommand implements Listener {
     final String mrl = context.getArgument("mrl", String.class);
     final String successful =
         ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully drew image on map " + id);
-    final Plugin plugin = getLibrary().getPlugin();
+    final DeluxeMediaPlugin plugin = getPlugin();
+    final MinecraftMediaLibrary library = plugin.getLibrary();
     if (isUrl(mrl)) {
       final File img =
           FileUtilities.downloadImageFile(mrl, plugin.getDataFolder().getAbsolutePath());
-      new MapImage(getLibrary(), (int) id, img, width, height).drawImage();
+      new MapImage(library, (int) id, img, width, height).drawImage();
       sender.sendMessage(successful);
     } else {
       final File img = new File(plugin.getDataFolder(), mrl);
       if (img.exists()) {
-        new MapImage(getLibrary(), (int) id, img, width, height).drawImage();
+        new MapImage(library, (int) id, img, width, height).drawImage();
         sender.sendMessage(successful);
       } else {
         sender.sendMessage(
@@ -172,7 +174,7 @@ public class ImageCommand extends BaseCommand implements Listener {
         break;
       }
     }
-    MapImage.resetMap(getLibrary(), (int) id);
+    MapImage.resetMap(getPlugin().getLibrary(), (int) id);
     sender.sendMessage(
         ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully purged the map with ID " + id));
     return 1;
@@ -194,7 +196,7 @@ public class ImageCommand extends BaseCommand implements Listener {
     if (listen.contains(p.getUniqueId())) {
       if (event.getMessage().equalsIgnoreCase("YES")) {
         for (final MapImage image : images) {
-          MapImage.resetMap(getLibrary(), image.getMap());
+          MapImage.resetMap(getPlugin().getLibrary(), image.getMap());
         }
         images.clear();
         p.sendMessage(

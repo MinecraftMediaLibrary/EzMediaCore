@@ -50,4 +50,15 @@ public enum DitherSetting {
   public AbstractDitherHolder getHolder() {
     return holder;
   }
+
+  public static DitherSetting fromString(@NotNull final String str) {
+    final String search = str.toUpperCase();
+    for (final DitherSetting setting : DitherSetting.values()) {
+      if (setting.name().equals(search)) {
+        return setting;
+      }
+    }
+    return null;
+  }
+
 }

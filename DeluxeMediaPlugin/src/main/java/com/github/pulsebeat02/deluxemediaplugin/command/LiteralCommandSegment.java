@@ -1,4 +1,4 @@
-package com.github.pulsebeat02.deluxemediaplugin.command.rework;
+package com.github.pulsebeat02.deluxemediaplugin.command;
 
 import com.mojang.brigadier.tree.LiteralCommandNode;
 
