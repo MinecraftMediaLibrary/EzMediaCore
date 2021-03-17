@@ -54,6 +54,12 @@ public class FilterLiteDither implements AbstractDitherHolder {
   /** Init. */
   public static void init() {}
 
+  /**
+   * Dithers buffer data.
+   *
+   * @param buffer data for the image
+   * @param width units for the image
+   */
   @Override
   public void dither(final int[] buffer, final int width) {
     final int height = buffer.length / width;
@@ -151,6 +157,13 @@ public class FilterLiteDither implements AbstractDitherHolder {
     }
   }
 
+  /**
+   * Dithers buffer data into Minecraft.
+   *
+   * @param buffer data for the image
+   * @param width units for the image
+   * @return
+   */
   @Override
   public ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width) {
     final int height = buffer.length / width;
@@ -234,6 +247,11 @@ public class FilterLiteDither implements AbstractDitherHolder {
     return data;
   }
 
+  /**
+   * Gets current DitherSetting.
+   *
+   * @return setting
+   */
   @Override
   public DitherSetting getSetting() {
     return DitherSetting.SIERRA_FILTER_LITE_DITHER;

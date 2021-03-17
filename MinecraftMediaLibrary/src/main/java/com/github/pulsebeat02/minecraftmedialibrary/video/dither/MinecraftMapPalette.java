@@ -166,6 +166,14 @@ public class MinecraftMapPalette {
         c(59, 1, 0)
       };
 
+  /**
+   * Instantiates new Color based off rgb values.
+   *
+   * @param r red
+   * @param g green
+   * @param b blue
+   * @return color
+   */
   private static Color c(final int r, final int g, final int b) {
     return new Color(r, g, b);
   }

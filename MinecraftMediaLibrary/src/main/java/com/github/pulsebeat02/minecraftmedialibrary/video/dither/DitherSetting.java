@@ -43,14 +43,11 @@ public enum DitherSetting {
   }
 
   /**
-   * Gets holder.
+   * Returns DitherSetting from String.
    *
-   * @return the holder
+   * @param str input
+   * @return setting
    */
-  public AbstractDitherHolder getHolder() {
-    return holder;
-  }
-
   public static DitherSetting fromString(@NotNull final String str) {
     final String search = str.toUpperCase();
     for (final DitherSetting setting : DitherSetting.values()) {
@@ -61,4 +58,12 @@ public enum DitherSetting {
     return null;
   }
 
+  /**
+   * Gets holder.
+   *
+   * @return the holder
+   */
+  public AbstractDitherHolder getHolder() {
+    return holder;
+  }
 }

@@ -28,16 +28,32 @@ public final class InvalidPackFormatException extends AssertionError {
     super(message);
   }
 
+  /**
+   * Gets the cause of the exception.
+   *
+   * @return this
+   */
   @Override
   public synchronized Throwable getCause() {
     return this;
   }
 
+  /**
+   * Initializes the cause of the exception.
+   *
+   * @param cause cause
+   * @return this
+   */
   @Override
   public synchronized Throwable initCause(@NotNull final Throwable cause) {
     return this;
   }
 
+  /**
+   * Fills in stack trace for exception.
+   *
+   * @return throwable stack trace
+   */
   @Override
   public synchronized Throwable fillInStackTrace() {
     return this;

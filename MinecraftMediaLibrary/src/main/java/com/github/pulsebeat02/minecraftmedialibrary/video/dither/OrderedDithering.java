@@ -206,6 +206,12 @@ public class OrderedDithering implements AbstractDitherHolder {
     }
   }
 
+  /**
+   * Dithers buffer data.
+   *
+   * @param buffer data for the image
+   * @param width units for the image
+   */
   @Override
   public void dither(final int[] buffer, final int width) {
     final int height = buffer.length / width;
@@ -219,6 +225,13 @@ public class OrderedDithering implements AbstractDitherHolder {
     }
   }
 
+  /**
+   * Dithers buffer data into Minecraft.
+   *
+   * @param buffer data for the image
+   * @param width units for the image
+   * @return dithered buffer.
+   */
   @Override
   public ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width) {
     final int height = buffer.length / width;
@@ -234,6 +247,11 @@ public class OrderedDithering implements AbstractDitherHolder {
     return data;
   }
 
+  /**
+   * Gets the current DitherSetting.
+   *
+   * @return setting
+   */
   @Override
   public DitherSetting getSetting() {
     switch (n) {
@@ -283,13 +301,13 @@ public class OrderedDithering implements AbstractDitherHolder {
     return n;
   }
 
-  /** The enum Dither type. */
   public enum DitherType {
-    /** The Mode two. */
+
+    /** Two Dimensional */
     ModeTwo("Two Dimensional"),
-    /** The Mode four. */
+    /** Four Dimensional */
     ModeFour("Four Dimensional"),
-    /** The Mode eight. */
+    /** Eight Dimensional */
     ModeEight("Eight Dimensional");
 
     private final String name;

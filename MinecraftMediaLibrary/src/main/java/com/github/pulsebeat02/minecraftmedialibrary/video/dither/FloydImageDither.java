@@ -157,6 +157,13 @@ public class FloydImageDither implements AbstractDitherHolder {
     return map;
   }
 
+  /**
+   *
+   * Dithers buffer data.
+   *
+   * @param buffer data for the image
+   * @param width units for the image
+   */
   @Override
   public void dither(final int[] buffer, final int width) {
     final int height = buffer.length / width;
@@ -252,6 +259,12 @@ public class FloydImageDither implements AbstractDitherHolder {
     }
   }
 
+  /**
+   * Dithers buffer data into Minecraft.
+   * @param buffer data for the image
+   * @param width units for the image
+   * @return
+   */
   @Override
   public ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width) {
     final int height = buffer.length / width;
@@ -349,6 +362,10 @@ public class FloydImageDither implements AbstractDitherHolder {
     return data;
   }
 
+  /**
+   * Gets current DitherSetting.
+   * @return setting
+   */
   @Override
   public DitherSetting getSetting() {
     return DitherSetting.FLOYD_STEINBERG_DITHER;

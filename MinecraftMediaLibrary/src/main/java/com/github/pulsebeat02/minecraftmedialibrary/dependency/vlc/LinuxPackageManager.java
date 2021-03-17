@@ -192,7 +192,7 @@ public class LinuxPackageManager {
   /**
    * Gets packages.
    *
-   * @return the packages
+   * @return all packages
    */
   public Map<String, LinuxOSPackages> getAllPackages() {
     return packages;
@@ -200,6 +200,12 @@ public class LinuxPackageManager {
 
   private static final class LinuxOSPackagesAdapter extends TypeAdapter<LinuxOSPackages> {
 
+    /**
+     * Write method for JSON.
+     *
+     * @param out writer
+     * @param linuxOSPackages packages
+     */
     @Override
     public void write(final JsonWriter out, final LinuxOSPackages linuxOSPackages) {
       GSON.toJson(
@@ -208,6 +214,12 @@ public class LinuxPackageManager {
           out);
     }
 
+    /**
+     * Read method for JSON.
+     *
+     * @param in reader
+     * @return result
+     */
     @Override
     public LinuxOSPackages read(final JsonReader in) {
       final Map<String, Collection<LinuxPackage>> map =

@@ -127,6 +127,11 @@ class LoadRed extends RecursiveTask<byte[]> {
     this.palette = palette;
   }
 
+  /**
+   * Computes RedPalette.
+   *
+   * @return arr
+   */
   @Override
   protected byte[] compute() {
     final List<LoadGreen> greenSub = new ArrayList<>(128);
@@ -156,7 +161,7 @@ class LoadGreen extends RecursiveTask<byte[]> {
   protected final int[] palette;
 
   /**
-   * Instantiates a new Load green.
+   * Instantiates a new LoadGreen.
    *
    * @param palette the palette
    * @param r the r
@@ -168,6 +173,11 @@ class LoadGreen extends RecursiveTask<byte[]> {
     this.palette = palette;
   }
 
+  /**
+   * Computes green palette.
+   *
+   * @return arr
+   */
   @Override
   protected byte[] compute() {
     final List<LoadBlue> blueSub = new ArrayList<>(128);
@@ -187,17 +197,11 @@ class LoadGreen extends RecursiveTask<byte[]> {
 class LoadBlue extends RecursiveTask<Byte> {
 
   private static final long serialVersionUID = 5331764784578439634L;
-  /** The R. */
-  protected final int r,
-      /** The G. */
-      g,
-      /** The B. */
-      b;
-  /** The Palette. */
+  protected final int r, g, b;
   protected final int[] palette;
 
   /**
-   * Instantiates a new Load blue.
+   * Instantiates a new LoadBlue.
    *
    * @param palette the palette
    * @param r the r
@@ -211,6 +215,11 @@ class LoadBlue extends RecursiveTask<Byte> {
     this.palette = palette;
   }
 
+  /**
+   * Computes blue palette.
+   *
+   * @return arr
+   */
   @Override
   protected Byte compute() {
     int val = 0;

@@ -66,6 +66,12 @@ public class StandardDithering implements AbstractDitherHolder {
         (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
   }
 
+  /**
+   * Dithers buffer data.
+   *
+   * @param buffer data for the image
+   * @param width units for the image
+   */
   @Override
   public void dither(final int[] buffer, final int width) {
     final int height = buffer.length / width;
@@ -79,6 +85,13 @@ public class StandardDithering implements AbstractDitherHolder {
     }
   }
 
+  /**
+   * Dithers buffer data into Minecraft.
+   *
+   * @param buffer data for the image
+   * @param width units for the image
+   * @return dithered buffer
+   */
   @Override
   public ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width) {
     final int height = buffer.length / width;

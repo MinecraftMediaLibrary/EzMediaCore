@@ -65,7 +65,7 @@ public enum CPUArchitecture {
   }
 
   /**
-   * From name cpu architecture.
+   * Gets CPUArchitecture from name.
    *
    * @param name the name
    * @return the cpu architecture
