@@ -83,7 +83,7 @@ public class VLCNativeDependencyFetcher {
       } else {
         Logger.error("Archive could NOT be deleted after installation!");
       }
-      final String path = FilenameUtils.removeExtension(zip.getName());
+      final String path = zip.getParent() + "/" + FilenameUtils.removeExtension(zip.getName());
       System.setProperty("java.library.path", path);
       enhancedNativeDiscovery.discover();
       Logger.info("VLC JNA Lookup Path: " + path);
