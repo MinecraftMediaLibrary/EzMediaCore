@@ -20,8 +20,8 @@ import java.io.File
 
 class MacTest {
 
-    @Test
-    @SystemProperty(name = "os.name", value = "Linux")
+//    @Test
+//    @SystemProperty(name = "os.name", value = "Linux")
     fun linuxTest() {
         Logger.setVerbose(true)
         val folder = File(File(System.getProperty("user.dir")).parent + "/vlc")
