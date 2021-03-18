@@ -112,8 +112,7 @@ public class VLCNativeDependencyFetcher {
     final Enumeration<Object> keys = p.keys();
     while (keys.hasMoreElements()) {
       final String key = (String) keys.nextElement();
-      final String value = (String) p.get(key);
-      System.out.println(key + ": " + value);
+      Logger.info("Key: " + key + "| Entry: " + p.get(key));
     }
     Logger.info("===============================================");
   }
