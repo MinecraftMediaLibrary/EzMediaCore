@@ -15,15 +15,17 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Map;
 
 public class VLCNativeDependencyFetcher {
 
@@ -49,36 +51,47 @@ public class VLCNativeDependencyFetcher {
     if (!installed) {
       Logger.info("No VLC Installation found on this system. Proceeding to install.");
       final String option = RuntimeUtilities.URL;
+      File zip = null;
       if (option.equalsIgnoreCase("LINUX")) {
         try {
           final LinuxPackageManager manager = new LinuxPackageManager(dir);
-          manager.getPackage();
+          zip = manager.getPackage();
+          Logger.info("Extracting File...");
           manager.extractContents();
+          Logger.info("Successfully Extracted File");
         } catch (final IOException e) {
           e.printStackTrace();
         }
       } else {
         Logger.info("User is not using Linux. Proceeding to download archive from Github.");
         try {
-          final File zip = new File(dir + File.separator + "VLC.zip");
+          zip = new File(dir, "VLC.zip");
           FileUtils.copyURLToFile(new URL(option), zip);
           final String path = zip.getAbsolutePath();
           Logger.info("Zip File Path: " + path);
           Logger.info("Extracting File...");
           ArchiveUtilities.decompressArchive(new File(path), new File(dir));
           Logger.info("Successfully Extracted File");
-          Logger.info("Deleting Archive...");
-          if (zip.delete()) {
-            Logger.info("Archive deleted after installation.");
-          } else {
-            Logger.error("Archive could NOT be deleted after installation!");
-          }
         } catch (final IOException e) {
           e.printStackTrace();
         }
       }
-      System.setProperty("java.library.path", new File(dir).listFiles()[0].getAbsolutePath());
+      assert zip != null;
+      Logger.info("Deleting Archive...");
+      if (zip.delete()) {
+        Logger.info("Archive deleted after installation.");
+      } else {
+        Logger.error("Archive could NOT be deleted after installation!");
+      }
+      final String path = FilenameUtils.removeExtension(zip.getName());
+      System.setProperty("java.library.path", path);
       enhancedNativeDiscovery.discover();
+      Logger.info("VLC JNA Lookup Path: " + path);
+      Logger.info("======== SYSTEM ENVIRONMENT VARIABLES ========");
+      for (final Map.Entry<String, String> entry : System.getenv().entrySet()) {
+        Logger.info("Key: " + entry.getKey() + "| Entry: " +  entry.getValue());
+      }
+      Logger.info("==============================================");
     } else {
       Logger.info("Found VLC Installation! No need to install VLC beforehand.");
     }
