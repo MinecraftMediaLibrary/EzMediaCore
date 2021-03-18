@@ -160,7 +160,7 @@ public final class MinecraftMediaLibrary {
   /** Prompts warning based on Java Version */
   private void checkJavaVersion() {
     final String[] version = System.getProperty("java.version").split("\\.");
-    final int major = Ints.tryParse(version[1]);
+    final int major = Integer.parseInt(version[1]);
     if (major < 11) {
       Logger.warn(
           "MinecraftMediaPlugin is moving towards a newer Java Version (Java 11) \n"

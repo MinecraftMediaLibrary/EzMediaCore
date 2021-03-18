@@ -50,7 +50,7 @@ public class ImageCommand extends BaseCommand implements Listener {
   private int height;
 
   public ImageCommand(
-          @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "dither", executor, "deluxemediaplugin.command.image", "");
     Bukkit.getPluginManager().registerEvents(this, plugin);
     listen = new HashSet<>();

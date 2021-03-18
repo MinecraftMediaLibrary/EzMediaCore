@@ -29,7 +29,7 @@ public class DitherCommand extends BaseCommand {
   private final LiteralCommandNode<CommandSender> literalNode;
 
   public DitherCommand(
-          @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "dither", executor, "deluxemediaplugin.command.dither", "");
     final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
     builder
