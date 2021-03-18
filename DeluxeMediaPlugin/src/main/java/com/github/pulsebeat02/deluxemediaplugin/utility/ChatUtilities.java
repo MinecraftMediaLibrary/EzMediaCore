@@ -13,8 +13,11 @@
 
 package com.github.pulsebeat02.deluxemediaplugin.utility;
 
-import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -22,78 +25,84 @@ import java.util.OptionalLong;
 
 public final class ChatUtilities {
 
-  public static String formatMessage(@NotNull final String message) {
-    return ChatColor.AQUA
-        + "["
-        + ChatColor.GOLD
-        + "DeluxeMediaPlugin"
-        + ChatColor.AQUA
-        + "] "
-        + message;
-  }
+    private static final ComponentLike PREFIX;
 
-  public static OptionalLong checkMapBoundaries(@NotNull final CommandSender sender, final String str) {
-    final String message;
-    final long id = checkLongValidity(str);
-    if (id == Long.MIN_VALUE) {
-      message = "is not a valid argument!";
-    } else if (id < -2_147_483_647L) {
-      message = "is too low!";
-    } else if (id > 2_147_483_647L) {
-      message = "is too high!";
-    } else {
-      return OptionalLong.of(id);
+    static {
+        PREFIX = Component.text()
+                .color(NamedTextColor.AQUA)
+                .append(Component.text('['),
+                        Component.text("DeluxeMediaPlugin", NamedTextColor.GOLD),
+                        Component.text(']'));
     }
-    sender.sendMessage(
-        ChatUtilities.formatMessage(
-            String.join(
-                " ",
-                ChatColor.RED + "",
-                "Argument",
-                "'" + str + "'",
-                message,
-                "(Must be Integer between -2,147,483,647 - 2,147,483,647)")));
-    return OptionalLong.empty();
-  }
 
-  public static Optional<int[]> checkDimensionBoundaries(
-      @NotNull final CommandSender sender, final String str) {
-    final String[] dims = str.split(":");
-    String message = "";
-    final int width = ChatUtilities.checkIntegerValidity(dims[0]);
-    final int height = ChatUtilities.checkIntegerValidity(dims[1]);
-    if (width == Integer.MIN_VALUE) {
-      message = dims[0];
-    } else if (height == Integer.MIN_VALUE) {
-      message = dims[1];
-    } else {
-      return Optional.of(new int[] {width, height});
+    @Deprecated
+    public static Component formatMessage(@NotNull final String message) {
+        return TextComponent.ofChildren(PREFIX, Component.space(), Component.text(message));
     }
-    sender.sendMessage(
-        ChatUtilities.formatMessage(
-            String.join(
-                " ",
-                ChatColor.RED + "",
-                "Argument",
-                "'" + message + "'",
-                "is not a valid argument!",
-                "(Must be Integer)")));
-    return Optional.empty();
-  }
 
-  public static long checkLongValidity(final String num) {
-    try {
-      return Long.parseLong(num);
-    } catch (final NumberFormatException e) {
-      return Long.MIN_VALUE;
+    public static Component formatMessage(@NotNull final TextComponent message) {
+        return TextComponent.ofChildren(PREFIX, Component.space(), message);
     }
-  }
 
-  public static int checkIntegerValidity(final String num) {
-    try {
-      return Integer.parseInt(num);
-    } catch (final NumberFormatException e) {
-      return Integer.MIN_VALUE;
+    public static OptionalLong checkMapBoundaries(@NotNull final Audience sender, final String str) {
+        final String message;
+        final long id = checkLongValidity(str);
+        if (id == Long.MIN_VALUE) {
+            message = "is not a valid argument!";
+        } else if (id < -2_147_483_647L) {
+            message = "is too low!";
+        } else if (id > 2_147_483_647L) {
+            message = "is too high!";
+        } else {
+            return OptionalLong.of(id);
+        }
+        sender.sendMessage(Component.text()
+                .color(NamedTextColor.RED)
+                .append(Component.text("Argument '"),
+                        Component.text(str, NamedTextColor.GOLD),
+                        Component.text("' "),
+                        Component.text(message),
+                        Component.text(" (Must be Integer between -2,147,483,647 - 2,147,483,647)")));
+        return OptionalLong.empty();
     }
-  }
+
+    public static Optional<int[]> checkDimensionBoundaries(
+            @NotNull final Audience sender, final String str) {
+        final String[] dims = str.split(":");
+        String message = "";
+        final int width = ChatUtilities.checkIntegerValidity(dims[0]);
+        final int height = ChatUtilities.checkIntegerValidity(dims[1]);
+        if (width == Integer.MIN_VALUE) {
+            message = dims[0];
+        } else if (height == Integer.MIN_VALUE) {
+            message = dims[1];
+        } else {
+            return Optional.of(new int[]{width, height});
+        }
+        sender.sendMessage(Component.text()
+                    .color(NamedTextColor.RED)
+                    .append(Component.text("Argument '"))
+                    .append(Component.text(str, NamedTextColor.GOLD))
+                    .append(Component.text("' "))
+                    .append(Component.text(message))
+                    .append(Component.text(" is not a valid argument!"))
+                    .append(Component.text(" (Must be Integer)")));
+        return Optional.empty();
+    }
+
+    public static long checkLongValidity(final String num) {
+        try {
+            return Long.parseLong(num);
+        } catch (final NumberFormatException e) {
+            return Long.MIN_VALUE;
+        }
+    }
+
+    public static int checkIntegerValidity(final String num) {
+        try {
+            return Integer.parseInt(num);
+        } catch (final NumberFormatException e) {
+            return Integer.MIN_VALUE;
+        }
+    }
 }

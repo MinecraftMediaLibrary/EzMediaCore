@@ -19,69 +19,96 @@ import java.util.stream.Collectors;
 
 public final class CommandHandler implements TabExecutor {
 
-  private final CommandDispatcher<CommandSender> dispatcher;
-  private final RootCommandNode<CommandSender> rootNode;
-  private final Set<BaseCommand> commands;
+    private final CommandDispatcher<CommandSender> dispatcher;
+    private final RootCommandNode<CommandSender> rootNode;
+    private final Set<BaseCommand> commands;
 
-  public CommandHandler(@NotNull final DeluxeMediaPlugin plugin) {
-    dispatcher = new CommandDispatcher<>();
-    rootNode = dispatcher.getRoot();
-    commands =
-        ImmutableSet.of(
-            new ImageCommand(plugin, this),
-            new DitherCommand(plugin, this),
-            new VideoCommand(plugin, this));
-    final CommandMap commandMap = CommandMapHelper.getCommandMap();
-    for (final BaseCommand command : commands) {
-      rootNode.addChild(command.getCommandNode());
-      commandMap.register(plugin.getName(), command);
+    public CommandHandler(@NotNull final DeluxeMediaPlugin plugin) {
+        dispatcher = new CommandDispatcher<>();
+        rootNode = dispatcher.getRoot();
+        commands =
+                ImmutableSet.of(
+                        new ImageCommand(plugin, this),
+                        new DitherCommand(plugin, this),
+                        new VideoCommand(plugin, this));
+        final CommandMap commandMap = CommandMapHelper.getCommandMap();
+        for (final BaseCommand command : commands) {
+            rootNode.addChild(command.getCommandNode());
+            commandMap.register(plugin.getName(), command);
+        }
     }
-  }
 
-  /**
-   * CommandHandler to read input and execute other commands.
-   *
-   * @param sender command sender
-   * @param command command sent
-   * @param label label of command
-   * @param args arguments for command
-   * @return whether the command usage should be showed up.
-   */
-  @Override
-  public boolean onCommand(
-      @NotNull final CommandSender sender,
-      @NotNull final Command command,
-      @NotNull final String label,
-      @NotNull final String[] args) {
-    final String joined = command.getName() + ' ' + String.join(" ", args);
-    final ParseResults<CommandSender> results = dispatcher.parse(joined, sender);
-    try {
-      dispatcher.execute(results);
-    } catch (final CommandSyntaxException exception) {
-      sender.sendMessage(((BaseCommand) command).usage());
+    /**
+     * CommandHandler to read input and execute other commands.
+     *
+     * @param sender  command sender
+     * @param command command sent
+     * @param label   label of command
+     * @param args    arguments for command
+     * @return whether the command usage should be showed up.
+     */
+    @Override
+    public boolean onCommand(
+            @NotNull final CommandSender sender,
+            @NotNull final Command command,
+            @NotNull final String label,
+            @NotNull final String[] args) {
+        final String joined = command.getName() + ' ' + String.join(" ", args);
+        final ParseResults<CommandSender> results = dispatcher.parse(joined, sender);
+        try {
+            dispatcher.execute(results);
+        } catch (final CommandSyntaxException exception) {
+            sender.sendMessage(((BaseCommand) command).usage());
+        }
+        return true;
     }
-    return true;
-  }
 
-  /**
-   * Tab handler to handle tab completer.
-   *
-   * @param sender command sender
-   * @param command current command
-   * @param alias aliases of command
-   * @param args arguments of the command
-   * @return list of options.
-   */
-  @Override
-  public List<String> onTabComplete(
-      @NotNull final CommandSender sender,
-      @NotNull final Command command,
-      @NotNull final String alias,
-      @NotNull final String[] args) {
-    final String joined = command.getName() + ' ' + String.join(" ", args);
-    final ParseResults<CommandSender> results = dispatcher.parse(joined, sender);
-    return dispatcher.getCompletionSuggestions(results).join().getList().stream()
-        .map(Suggestion::getText)
-        .collect(Collectors.toList());
-  }
+    /**
+     * Tab handler to handle tab completer.
+     *
+     * @param sender  command sender
+     * @param command current command
+     * @param alias   aliases of command
+     * @param args    arguments of the command
+     * @return list of options.
+     */
+    @Override
+    public List<String> onTabComplete(
+            @NotNull final CommandSender sender,
+            @NotNull final Command command,
+            @NotNull final String alias,
+            @NotNull final String[] args) {
+        final String joined = command.getName() + ' ' + String.join(" ", args);
+        final ParseResults<CommandSender> results = dispatcher.parse(joined, sender);
+        return dispatcher.getCompletionSuggestions(results).join().getList().stream()
+                .map(Suggestion::getText)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Gets dispatcher.
+     *
+     * @return dispatcher
+     */
+    public CommandDispatcher<CommandSender> getDispatcher() {
+        return dispatcher;
+    }
+
+    /**
+     * Gets root node.
+     *
+     * @return root node
+     */
+    public RootCommandNode<CommandSender> getRootNode() {
+        return rootNode;
+    }
+
+    /**
+     * Gets commands.
+     *
+     * @return commands
+     */
+    public Set<BaseCommand> getCommands() {
+        return commands;
+    }
 }

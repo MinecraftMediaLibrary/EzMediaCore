@@ -19,6 +19,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import net.kyori.adventure.audience.Audience;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -98,14 +99,14 @@ public class VideoCommand extends BaseCommand {
   }
 
   private int setDitherAlgorithm(@NotNull final CommandContext<CommandSender> context) {
-    final CommandSender sender = context.getSource();
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final String algorithm = context.getArgument("dithering-algorithm", String.class);
     final DitherSetting setting = DitherSetting.fromString(algorithm);
     if (setting == null) {
-      sender.sendMessage(
+      audience.sendMessage(
           ChatUtilities.formatMessage(ChatColor.RED + "Could not find dither type " + algorithm));
     } else {
-      sender.sendMessage(
+      audience.sendMessage(
           ChatUtilities.formatMessage(
               ChatColor.GOLD + "Set dither type to " + ChatColor.AQUA + algorithm));
       dither = setting.getHolder();
@@ -114,30 +115,30 @@ public class VideoCommand extends BaseCommand {
   }
 
   private int setStartingMap(@NotNull final CommandContext<CommandSender> context) {
-    final CommandSender sender = context.getSource();
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final OptionalLong id =
-        ChatUtilities.checkMapBoundaries(sender, context.getArgument("id", String.class));
+        ChatUtilities.checkMapBoundaries(audience, context.getArgument("id", String.class));
     if (!id.isPresent()) {
       return 1;
     }
     startingMap = (int) id.getAsLong();
-    sender.sendMessage(
+    audience.sendMessage(
         ChatUtilities.formatMessage(ChatColor.GOLD + "Set starting-map on id " + startingMap));
     return 1;
   }
 
   private int setItemFrameDimension(@NotNull final CommandContext<CommandSender> context) {
-    final CommandSender sender = context.getSource();
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final Optional<int[]> opt =
         ChatUtilities.checkDimensionBoundaries(
-            sender, context.getArgument("itemframe-dimensions", String.class));
+            audience, context.getArgument("itemframe-dimensions", String.class));
     if (!opt.isPresent()) {
       return 1;
     }
     final int[] dims = opt.get();
     frameWidth = dims[0];
     frameHeight = dims[1];
-    sender.sendMessage(
+    audience.sendMessage(
         ChatUtilities.formatMessage(
             ChatColor.GOLD
                 + "Set itemframe map dimensions to "
@@ -149,17 +150,17 @@ public class VideoCommand extends BaseCommand {
   }
 
   private int setScreenDimension(@NotNull final CommandContext<CommandSender> context) {
-    final CommandSender sender = context.getSource();
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final Optional<int[]> opt =
         ChatUtilities.checkDimensionBoundaries(
-            sender, context.getArgument("screen-dimensions", String.class));
+            audience, context.getArgument("screen-dimensions", String.class));
     if (!opt.isPresent()) {
       return 1;
     }
     final int[] dims = opt.get();
     player.setHeight(dims[0]);
     player.setWidth(dims[1]);
-    sender.sendMessage(
+    audience.sendMessage(
         ChatUtilities.formatMessage(
             ChatColor.GOLD
                 + "Set screen dimensions to "
@@ -171,49 +172,49 @@ public class VideoCommand extends BaseCommand {
   }
 
   private int displayInformation(@NotNull final CommandContext<CommandSender> context) {
-    final CommandSender sender = context.getSource();
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     if (player == null) {
-      sender.sendMessage(
+      audience.sendMessage(
           ChatUtilities.formatMessage(ChatColor.RED + "There isn't a video currently playing!"));
     } else {
-      sender.sendMessage(
+      audience.sendMessage(
           ChatUtilities.formatMessage(ChatColor.AQUA + "====================================="));
       if (youtube) {
-        sender.sendMessage(ChatColor.GOLD + "Title: " + extractor.getVideoTitle());
-        sender.sendMessage(ChatColor.GOLD + "Author: " + extractor.getAuthor());
-        sender.sendMessage(ChatColor.GOLD + "Rating: " + extractor.getVideoRating());
-        sender.sendMessage(
-            ChatColor.GOLD + "Video Identifier: " + ChatColor.RED + extractor.getVideoId());
+        audience.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Title: " + extractor.getVideoTitle()));
+        audience.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Author: " + extractor.getAuthor()));
+        audience.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Rating: " + extractor.getVideoRating()));
+        audience.sendMessage(ChatUtilities.formatMessage(
+            ChatColor.GOLD + "Video Identifier: " + ChatColor.RED + extractor.getVideoId()));
       } else {
-        sender.sendMessage(ChatColor.GOLD + "Video Name: " + file.getName());
-        sender.sendMessage(ChatColor.GOLD + "Size: " + file.getTotalSpace() / 1024 + " Kilobytes");
+        audience.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Video Name: " + file.getName()));
+        audience.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Size: " + file.getTotalSpace() / 1024 + " Kilobytes"));
       }
-      sender.sendMessage(
+      audience.sendMessage(
           ChatUtilities.formatMessage(ChatColor.AQUA + "====================================="));
     }
     return 1;
   }
 
   private int stopVideo(@NotNull final CommandContext<CommandSender> context) {
-    context
-        .getSource()
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    audience
         .sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Stopped the Video!"));
     player.stop();
     return 1;
   }
 
   private int startVideo(@NotNull final CommandContext<CommandSender> context) {
-    final CommandSender sender = context.getSource();
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     if (file == null) {
-      sender.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "File or URL not Specified!"));
+      audience.sendMessage(ChatUtilities.formatMessage(ChatColor.RED + "File or URL not Specified!"));
       return 1;
     }
     if (youtube) {
-      sender.sendMessage(
+      audience.sendMessage(
           ChatUtilities.formatMessage(
               ChatColor.GOLD + "Starting Video on URL: " + extractor.getUrl()));
     } else {
-      sender.sendMessage(
+      audience.sendMessage(
           ChatUtilities.formatMessage(
               ChatColor.GOLD + "Starting Video on File: " + file.getName()));
     }
@@ -238,7 +239,7 @@ public class VideoCommand extends BaseCommand {
 
   private int loadVideo(@NotNull final CommandContext<CommandSender> context) {
     final DeluxeMediaPlugin plugin = getPlugin();
-    final CommandSender sender = context.getSource();
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
     final String folderPath = plugin.getDataFolder().getAbsolutePath();
     if (ExtractorUtilities.getVideoID(mrl) == null) {
@@ -247,15 +248,15 @@ public class VideoCommand extends BaseCommand {
         youtube = false;
         extractor = null;
         file = f;
-        sender.sendMessage(
+        audience.sendMessage(
             ChatUtilities.formatMessage(
                 ChatColor.GOLD + "Successfully loaded video " + f.getName()));
       } else if (mrl.startsWith("http://") || mrl.startsWith("https://")) {
-        sender.sendMessage(
+        audience.sendMessage(
             ChatUtilities.formatMessage(
                 ChatColor.RED + "Link " + mrl + " is not a valid Youtube video link!"));
       } else {
-        sender.sendMessage(
+        audience.sendMessage(
             ChatUtilities.formatMessage(
                 ChatColor.RED + "File " + f.getName() + " cannot be found!"));
       }
@@ -294,17 +295,17 @@ public class VideoCommand extends BaseCommand {
                       for (final Player p : Bukkit.getOnlinePlayers()) {
                         p.setResourcePack(url);
                       }
-                      sender.sendMessage(
+                      audience.sendMessage(
                           ChatUtilities.formatMessage(ChatColor.GOLD + "Sending Resourcepack..."));
                     } else {
-                      sender.sendMessage(
+                      audience.sendMessage(
                           ChatUtilities.formatMessage(
                               ChatColor.RED
                                   + "You have HTTP set false by default. You cannot "
-                                  + "play Youtube videos without a daemon"));
+                         C         + "play Youtube videos without a daemon"));
                       future.cancel(true);
                     }
-                    sender.sendMessage(
+                    audience.sendMessage(
                         ChatUtilities.formatMessage(
                             ChatColor.GOLD + "Successfully loaded video " + mrl));
                   });

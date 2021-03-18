@@ -14,6 +14,7 @@
 package com.github.pulsebeat02.deluxemediaplugin.utility;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import com.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.PluginCommand;
@@ -57,7 +58,7 @@ public final class CommandUtilities {
   public static void ensureInit() {}
 
   public static void unRegisterBukkitCommand(
-          @NotNull final DeluxeMediaPlugin plugin, final PluginCommand cmd) {
+          @NotNull final DeluxeMediaPlugin plugin, final BaseCommand cmd) {
     if (cmd == null) {
       return;
     }
