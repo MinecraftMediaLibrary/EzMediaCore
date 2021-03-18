@@ -148,7 +148,9 @@ public final class ZipFileUtilities {
    * @return archive format
    */
   public static String getCompressedType(@NotNull final String name) {
-    if (name.endsWith("deb") || name.endsWith("ar")) {
+    if (name.endsWith("zip")) {
+      return "zip";
+    } else if (name.endsWith("deb") || name.endsWith("ar")) {
       return "ar";
     } else if (name.endsWith("rpm") || name.endsWith("cpio")) {
       return "cpio";
