@@ -14,6 +14,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.binding.LibC;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
@@ -24,6 +25,12 @@ import java.util.Arrays;
 import java.util.Queue;
 
 public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
+
+  private static final String VLC_PLUGIN_PATH;
+
+  static {
+    VLC_PLUGIN_PATH = "VLC_PLUGIN_PATH";
+  }
 
   private final String dir;
   private String path;
@@ -95,7 +102,10 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
    */
   @Override
   public boolean onSetPluginPath(final String s) {
-    return LibC.INSTANCE.setenv("VLC_PLUGIN_PATH", path, 1) == 0;
+    if (RuntimeUtilities.WINDOWS) {
+      return LibC.INSTANCE._putenv(String.format("%s=%s", VLC_PLUGIN_PATH, path)) == 0;
+    }
+    return LibC.INSTANCE.setenv(VLC_PLUGIN_PATH, path, 1) == 0;
   }
 
   /**
