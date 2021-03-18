@@ -15,14 +15,21 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
+import com.sun.jna.StringArray;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.binding.LibC;
+import uk.co.caprica.vlcj.binding.internal.libvlc_instance_t;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
+import uk.co.caprica.vlcj.support.version.LibVlcVersion;
+
+import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_release;
 
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Queue;
+
+import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_new;
 
 public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
 
@@ -37,6 +44,7 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
 
   /**
    * Instantiates an EnchancedNativeDiscovery.
+   *
    * @param library instance
    */
   public EnchancedNativeDiscovery(@NotNull final MinecraftMediaLibrary library) {
@@ -45,6 +53,7 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
 
   /**
    * Instantiates an EnchancedNativeDiscovery.
+   *
    * @param dir directory
    */
   public EnchancedNativeDiscovery(@NotNull final String dir) {
@@ -75,6 +84,7 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
         if (f.getName().equals("plugins")) {
           path = f.getAbsolutePath();
           onSetPluginPath(path);
+          loadLibrary();
           return path;
         }
         folders.addAll(Arrays.asList(f.listFiles()));
@@ -106,6 +116,22 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
       return LibC.INSTANCE._putenv(String.format("%s=%s", VLC_PLUGIN_PATH, path)) == 0;
     }
     return LibC.INSTANCE.setenv(VLC_PLUGIN_PATH, path, 1) == 0;
+  }
+
+  public boolean loadLibrary() {
+    try {
+      final libvlc_instance_t instance = libvlc_new(0, new StringArray(new String[0]));
+      if (instance != null) {
+        libvlc_release(instance);
+        final LibVlcVersion version = new LibVlcVersion();
+        if (version.isSupported()) {
+          return true;
+        }
+      }
+    } catch (final UnsatisfiedLinkError e) {
+      System.err.println(e.getMessage());
+    }
+    return false;
   }
 
   /**
