@@ -23,7 +23,6 @@ import com.github.pulsebeat02.minecraftmedialibrary.reflection.NMSReflectionMana
 import com.github.pulsebeat02.minecraftmedialibrary.reflection.TinyProtocol;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
-import com.google.common.primitives.Ints;
 import io.netty.channel.Channel;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -34,6 +33,7 @@ import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
 import java.io.File;
 import java.net.URLClassLoader;
+import java.util.concurrent.CompletableFuture;
 
 public final class MinecraftMediaLibrary {
 
@@ -122,25 +122,29 @@ public final class MinecraftMediaLibrary {
 
   /** Runs dependency tasks required. */
   private void dependencyTasks() {
-    DependencyUtilities.CLASSLOADER = (URLClassLoader) plugin.getClass().getClassLoader();
-    final JaveDependencyInstallation javeDependencyInstallation =
-        new JaveDependencyInstallation(this);
-    javeDependencyInstallation.install();
-    javeDependencyInstallation.load();
-    final DependencyManagement dependencyManagement = new DependencyManagement(this);
-    dependencyManagement.install();
-    dependencyManagement.relocate();
-    dependencyManagement.load();
-    new VLCNativeDependencyFetcher(this).downloadLibraries();
-    if (vlcj) {
-      try {
-        new MediaPlayerFactory();
-      } catch (final Exception e) {
-        Logger.error("The user does not have VLCJ installed! This is a very fatal error.");
-        vlcj = false;
-        e.printStackTrace();
-      }
-    }
+    CompletableFuture.runAsync(
+            () -> {
+              DependencyUtilities.CLASSLOADER = (URLClassLoader) plugin.getClass().getClassLoader();
+              final JaveDependencyInstallation javeDependencyInstallation =
+                  new JaveDependencyInstallation(this);
+              javeDependencyInstallation.install();
+              javeDependencyInstallation.load();
+              final DependencyManagement dependencyManagement = new DependencyManagement(this);
+              dependencyManagement.install();
+              dependencyManagement.relocate();
+              dependencyManagement.load();
+              new VLCNativeDependencyFetcher(this).downloadLibraries();
+              if (vlcj) {
+                try {
+                  new MediaPlayerFactory();
+                } catch (final Exception e) {
+                  Logger.error(
+                      "The user does not have VLCJ installed! This is a very fatal error.");
+                  vlcj = false;
+                  e.printStackTrace();
+                }
+              }
+            });
   }
 
   /** Runs event registration tasks. */
