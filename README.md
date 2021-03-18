@@ -45,11 +45,3 @@ Dependency:
 ```
 
 Most of the code is documented which can be found [here](https://pulsebeat02.github.io/MinecraftMediaLibrary/).
-
-## Terms of Usage
-Although MinecraftMediaLibrary is open source, I do provide some restrictions. You are to not:
-
-1) Use the code for comerical purposes. Or to use the library to develop a plugin being sold to others. Requires permission by the author (PulseBeat_02) first.
-2) Rename the project to something else, obfuscate the code, and sell it. Similar to rule one, but this one is more focused around not copying someone else's work.
-
-However, you are welcome to fork the project, use it for your free libraries. I know that these restrictions may seem super limiting, but they are put into place because I spent a lot of time on this project, and I don't want others to copy work without crediting.
