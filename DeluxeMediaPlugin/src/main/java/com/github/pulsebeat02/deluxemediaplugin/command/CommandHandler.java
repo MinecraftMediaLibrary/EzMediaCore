@@ -1,6 +1,7 @@
 package com.github.pulsebeat02.deluxemediaplugin.command;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import com.google.common.collect.ImmutableSet;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -12,7 +13,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,7 +26,11 @@ public final class CommandHandler implements TabExecutor {
   public CommandHandler(@NotNull final DeluxeMediaPlugin plugin) {
     dispatcher = new CommandDispatcher<>();
     rootNode = dispatcher.getRoot();
-    commands = new HashSet<>();
+    commands =
+        ImmutableSet.of(
+            new ImageCommand(plugin, this),
+            new DitherCommand(plugin, this),
+            new VideoCommand(plugin, this));
     final CommandMap commandMap = CommandMapHelper.getCommandMap();
     for (final BaseCommand command : commands) {
       rootNode.addChild(command.getCommandNode());
@@ -76,13 +80,8 @@ public final class CommandHandler implements TabExecutor {
       @NotNull final String[] args) {
     final String joined = command.getName() + ' ' + String.join(" ", args);
     final ParseResults<CommandSender> results = dispatcher.parse(joined, sender);
-    return dispatcher
-        .getCompletionSuggestions(results)
-        .join()
-        .getList()
-        .stream()
+    return dispatcher.getCompletionSuggestions(results).join().getList().stream()
         .map(Suggestion::getText)
         .collect(Collectors.toList());
   }
-
 }

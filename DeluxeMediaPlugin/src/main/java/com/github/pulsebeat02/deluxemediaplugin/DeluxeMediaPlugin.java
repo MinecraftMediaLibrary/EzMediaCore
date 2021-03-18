@@ -13,9 +13,7 @@
 
 package com.github.pulsebeat02.deluxemediaplugin;
 
-import com.github.pulsebeat02.deluxemediaplugin.command.old.DitherCommand;
-import com.github.pulsebeat02.deluxemediaplugin.command.old.ImageCommand;
-import com.github.pulsebeat02.deluxemediaplugin.command.old.VideoCommand;
+import com.github.pulsebeat02.deluxemediaplugin.command.CommandHandler;
 import com.github.pulsebeat02.deluxemediaplugin.config.EncoderConfiguration;
 import com.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
 import com.github.pulsebeat02.deluxemediaplugin.config.PictureConfiguration;
@@ -97,23 +95,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
   }
 
   private void registerCommands() {
-
-    dither = getCommand("dither");
-    video = getCommand("video");
-    image = getCommand("image");
-
-    final DitherCommand ditherCommand = new DitherCommand(this);
-    final ImageCommand imageCommand = new ImageCommand(this);
-    final VideoCommand videoCommand = new VideoCommand(this);
-
-    dither.setExecutor(ditherCommand);
-    dither.setTabCompleter(ditherCommand);
-
-    video.setExecutor(videoCommand);
-    video.setTabCompleter(videoCommand);
-
-    image.setExecutor(imageCommand);
-    image.setTabCompleter(imageCommand);
+    new CommandHandler(this);
   }
 
   private void checkUpdates() {
