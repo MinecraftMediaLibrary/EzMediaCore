@@ -31,7 +31,7 @@ import java.util.Queue;
 
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_new;
 
-public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
+public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
 
   private static final String VLC_PLUGIN_PATH;
 
@@ -47,7 +47,7 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
    *
    * @param library instance
    */
-  public EnchancedNativeDiscovery(@NotNull final MinecraftMediaLibrary library) {
+  public EnhancedNativeDiscovery(@NotNull final MinecraftMediaLibrary library) {
     dir = library.getVlcFolder();
   }
 
@@ -56,7 +56,7 @@ public class EnchancedNativeDiscovery implements NativeDiscoveryStrategy {
    *
    * @param dir directory
    */
-  public EnchancedNativeDiscovery(@NotNull final String dir) {
+  public EnhancedNativeDiscovery(@NotNull final String dir) {
     this.dir = dir;
   }
 

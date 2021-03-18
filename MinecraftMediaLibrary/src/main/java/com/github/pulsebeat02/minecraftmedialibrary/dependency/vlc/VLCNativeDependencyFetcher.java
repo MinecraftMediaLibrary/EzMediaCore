@@ -42,10 +42,10 @@ public class VLCNativeDependencyFetcher {
   public void downloadLibraries() {
     Logger.info("Trying to find Native VLC Installation...");
     final NativeDiscovery nativeDiscovery = new NativeDiscovery();
-    final EnchancedNativeDiscovery enchancedNativeDiscovery = new EnchancedNativeDiscovery(dir);
-    enchancedNativeDiscovery.discover();
+    final EnhancedNativeDiscovery enhancedNativeDiscovery = new EnhancedNativeDiscovery(dir);
+    enhancedNativeDiscovery.discover();
     final boolean installed =
-        nativeDiscovery.discover() || enchancedNativeDiscovery.getPath() != null;
+        nativeDiscovery.discover() || enhancedNativeDiscovery.getPath() != null;
     if (!installed) {
       Logger.info("No VLC Installation found on this system. Proceeding to install.");
       final String option = RuntimeUtilities.URL;
@@ -78,7 +78,7 @@ public class VLCNativeDependencyFetcher {
         }
       }
       System.setProperty("java.library.path", new File(dir).listFiles()[0].getAbsolutePath());
-      enchancedNativeDiscovery.discover();
+      enhancedNativeDiscovery.discover();
     } else {
       Logger.info("Found VLC Installation! No need to install VLC beforehand.");
     }
