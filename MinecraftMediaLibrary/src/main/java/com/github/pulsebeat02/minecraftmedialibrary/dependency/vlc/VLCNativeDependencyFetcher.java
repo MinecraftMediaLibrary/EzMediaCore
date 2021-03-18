@@ -25,7 +25,9 @@ import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.Map;
+import java.util.Properties;
 
 public class VLCNativeDependencyFetcher {
 
@@ -87,13 +89,32 @@ public class VLCNativeDependencyFetcher {
       System.setProperty("java.library.path", path);
       enhancedNativeDiscovery.discover();
       Logger.info("VLC JNA Lookup Path: " + path);
-      Logger.info("======== SYSTEM ENVIRONMENT VARIABLES ========");
-      for (final Map.Entry<String, String> entry : System.getenv().entrySet()) {
-        Logger.info("Key: " + entry.getKey() + "| Entry: " +  entry.getValue());
-      }
-      Logger.info("==============================================");
+      printSystemEnvironmentVariables();
+      printSystemProperties();
     } else {
       Logger.info("Found VLC Installation! No need to install VLC beforehand.");
     }
+  }
+
+  /** Prints all System environment variables. */
+  public void printSystemEnvironmentVariables() {
+    Logger.info("======== SYSTEM ENVIRONMENT VARIABLES ========");
+    for (final Map.Entry<String, String> entry : System.getenv().entrySet()) {
+      Logger.info("Key: " + entry.getKey() + "| Entry: " + entry.getValue());
+    }
+    Logger.info("==============================================");
+  }
+
+  /** Prints all System properties. */
+  public void printSystemProperties() {
+    Logger.info("============== SYSTEM PROPERTIES ==============");
+    final Properties p = System.getProperties();
+    final Enumeration<Object> keys = p.keys();
+    while (keys.hasMoreElements()) {
+      final String key = (String) keys.nextElement();
+      final String value = (String) p.get(key);
+      System.out.println(key + ": " + value);
+    }
+    Logger.info("===============================================");
   }
 }

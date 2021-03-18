@@ -14,6 +14,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import com.sun.jna.StringArray;
 import org.jetbrains.annotations.NotNull;
@@ -83,6 +84,7 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
       if (f.isDirectory()) {
         if (f.getName().equals("plugins")) {
           path = f.getAbsolutePath();
+          Logger.info("Found VLC plugins folder (" + path + ")");
           onSetPluginPath(path);
           loadLibrary();
           return path;
@@ -90,6 +92,7 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
         folders.addAll(Arrays.asList(f.listFiles()));
       }
     }
+    Logger.error("Could NOT find VLC plugins folder. This is a fatal error!");
     return null;
   }
 
