@@ -27,12 +27,12 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 
-public final class ZipFileUtilities {
+public final class ArchiveUtilities {
 
   private static final Set<String> ARCHIVE_EXTENSIONS;
 
   static {
-    ARCHIVE_EXTENSIONS = ImmutableSet.of("deb", "rpm", "txz", "xz", "tgz", "gz", "ar", "cpio");
+    ARCHIVE_EXTENSIONS = ImmutableSet.of("zip", "deb", "rpm", "txz", "xz", "tgz", "gz", "ar", "cpio");
   }
 
   /**

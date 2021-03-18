@@ -16,7 +16,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.utility.ZipFileUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
@@ -54,7 +54,6 @@ public class VLCNativeDependencyFetcher {
           final LinuxPackageManager manager = new LinuxPackageManager(dir);
           manager.getPackage();
           manager.extractContents();
-          enchancedNativeDiscovery.discover();
         } catch (final IOException e) {
           e.printStackTrace();
         }
@@ -66,7 +65,7 @@ public class VLCNativeDependencyFetcher {
           final String path = zip.getAbsolutePath();
           Logger.info("Zip File Path: " + path);
           Logger.info("Extracting File...");
-          ZipFileUtilities.decompressArchive(new File(path), new File(dir));
+          ArchiveUtilities.decompressArchive(new File(path), new File(dir));
           Logger.info("Successfully Extracted File");
           Logger.info("Deleting Archive...");
           if (zip.delete()) {
@@ -78,6 +77,8 @@ public class VLCNativeDependencyFetcher {
           e.printStackTrace();
         }
       }
+      System.setProperty("java.library.path", new File(dir).listFiles()[0].getAbsolutePath());
+      enchancedNativeDiscovery.discover();
     } else {
       Logger.info("Found VLC Installation! No need to install VLC beforehand.");
     }

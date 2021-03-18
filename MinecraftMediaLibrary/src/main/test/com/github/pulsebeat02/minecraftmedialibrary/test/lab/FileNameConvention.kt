@@ -12,11 +12,11 @@
  */
 package com.github.pulsebeat02.minecraftmedialibrary.test.lab
 
-import com.github.pulsebeat02.minecraftmedialibrary.utility.ZipFileUtilities
+import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities
 import org.apache.commons.io.FilenameUtils
 
 fun main(args: Array<String>) {
     println(FilenameUtils.getExtension("gradlew.bat"))
     println(FilenameUtils.getExtension("test.tar.gz"))
-    println(ZipFileUtilities.getFileName("x.tar"))
+    println(ArchiveUtilities.getFileName("x.tar"))
 }

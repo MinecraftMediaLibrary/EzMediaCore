@@ -16,8 +16,8 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.exception.UnsupportedOperatingSystemException;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.utility.ZipFileUtilities;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.reflect.TypeToken;
@@ -177,7 +177,7 @@ public class LinuxPackageManager {
 
   /** Extract contents. Should only be one package located in folder */
   public void extractContents() {
-    ZipFileUtilities.recursiveExtraction(vlc.listFiles()[0], vlc);
+    ArchiveUtilities.recursiveExtraction(vlc.listFiles()[0], vlc);
   }
 
   /**
