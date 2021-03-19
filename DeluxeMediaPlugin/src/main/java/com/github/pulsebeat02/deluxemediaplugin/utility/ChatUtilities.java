@@ -25,84 +25,89 @@ import java.util.OptionalLong;
 
 public final class ChatUtilities {
 
-    private static final ComponentLike PREFIX;
+  private static final ComponentLike PREFIX;
 
-    static {
-        PREFIX = Component.text()
-                .color(NamedTextColor.AQUA)
-                .append(Component.text('['),
-                        Component.text("DeluxeMediaPlugin", NamedTextColor.GOLD),
-                        Component.text(']'));
-    }
+  static {
+    PREFIX =
+        Component.text()
+            .color(NamedTextColor.AQUA)
+            .append(
+                Component.text('['),
+                Component.text("DeluxeMediaPlugin", NamedTextColor.GOLD),
+                Component.text(']'));
+  }
 
-    @Deprecated
-    public static Component formatMessage(@NotNull final String message) {
-        return TextComponent.ofChildren(PREFIX, Component.space(), Component.text(message));
-    }
+  @Deprecated
+  public static Component formatMessage(@NotNull final String message) {
+    return TextComponent.ofChildren(PREFIX, Component.space(), Component.text(message));
+  }
 
-    public static Component formatMessage(@NotNull final TextComponent message) {
-        return TextComponent.ofChildren(PREFIX, Component.space(), message);
-    }
+  public static Component formatMessage(@NotNull final TextComponent message) {
+    return TextComponent.ofChildren(PREFIX, Component.space(), message);
+  }
 
-    public static OptionalLong checkMapBoundaries(@NotNull final Audience sender, final String str) {
-        final String message;
-        final long id = checkLongValidity(str);
-        if (id == Long.MIN_VALUE) {
-            message = "is not a valid argument!";
-        } else if (id < -2_147_483_647L) {
-            message = "is too low!";
-        } else if (id > 2_147_483_647L) {
-            message = "is too high!";
-        } else {
-            return OptionalLong.of(id);
-        }
-        sender.sendMessage(Component.text()
-                .color(NamedTextColor.RED)
-                .append(Component.text("Argument '"),
-                        Component.text(str, NamedTextColor.GOLD),
-                        Component.text("' "),
-                        Component.text(message),
-                        Component.text(" (Must be Integer between -2,147,483,647 - 2,147,483,647)")));
-        return OptionalLong.empty();
+  public static OptionalLong checkMapBoundaries(@NotNull final Audience sender, final String str) {
+    final String message;
+    final long id = checkLongValidity(str);
+    if (id == Long.MIN_VALUE) {
+      message = "is not a valid argument!";
+    } else if (id < -2_147_483_647L) {
+      message = "is too low!";
+    } else if (id > 2_147_483_647L) {
+      message = "is too high!";
+    } else {
+      return OptionalLong.of(id);
     }
+    sender.sendMessage(
+        Component.text()
+            .color(NamedTextColor.RED)
+            .append(
+                Component.text("Argument '"),
+                Component.text(str, NamedTextColor.GOLD),
+                Component.text("' "),
+                Component.text(message),
+                Component.text(" (Must be Integer between -2,147,483,647 - 2,147,483,647)")));
+    return OptionalLong.empty();
+  }
 
-    public static Optional<int[]> checkDimensionBoundaries(
-            @NotNull final Audience sender, final String str) {
-        final String[] dims = str.split(":");
-        String message = "";
-        final int width = ChatUtilities.checkIntegerValidity(dims[0]);
-        final int height = ChatUtilities.checkIntegerValidity(dims[1]);
-        if (width == Integer.MIN_VALUE) {
-            message = dims[0];
-        } else if (height == Integer.MIN_VALUE) {
-            message = dims[1];
-        } else {
-            return Optional.of(new int[]{width, height});
-        }
-        sender.sendMessage(Component.text()
-                    .color(NamedTextColor.RED)
-                    .append(Component.text("Argument '"))
-                    .append(Component.text(str, NamedTextColor.GOLD))
-                    .append(Component.text("' "))
-                    .append(Component.text(message))
-                    .append(Component.text(" is not a valid argument!"))
-                    .append(Component.text(" (Must be Integer)")));
-        return Optional.empty();
+  public static Optional<int[]> checkDimensionBoundaries(
+      @NotNull final Audience sender, final String str) {
+    final String[] dims = str.split(":");
+    String message;
+    final int width = ChatUtilities.checkIntegerValidity(dims[0]);
+    final int height = ChatUtilities.checkIntegerValidity(dims[1]);
+    if (width == Integer.MIN_VALUE) {
+      message = dims[0];
+    } else if (height == Integer.MIN_VALUE) {
+      message = dims[1];
+    } else {
+      return Optional.of(new int[] {width, height});
     }
+    sender.sendMessage(
+        Component.text()
+            .color(NamedTextColor.RED)
+            .append(Component.text("Argument '"))
+            .append(Component.text(str, NamedTextColor.GOLD))
+            .append(Component.text("' "))
+            .append(Component.text(message))
+            .append(Component.text(" is not a valid argument!"))
+            .append(Component.text(" (Must be Integer)")));
+    return Optional.empty();
+  }
 
-    public static long checkLongValidity(final String num) {
-        try {
-            return Long.parseLong(num);
-        } catch (final NumberFormatException e) {
-            return Long.MIN_VALUE;
-        }
+  public static long checkLongValidity(final String num) {
+    try {
+      return Long.parseLong(num);
+    } catch (final NumberFormatException e) {
+      return Long.MIN_VALUE;
     }
+  }
 
-    public static int checkIntegerValidity(final String num) {
-        try {
-            return Integer.parseInt(num);
-        } catch (final NumberFormatException e) {
-            return Integer.MIN_VALUE;
-        }
+  public static int checkIntegerValidity(final String num) {
+    try {
+      return Integer.parseInt(num);
+    } catch (final NumberFormatException e) {
+      return Integer.MIN_VALUE;
     }
+  }
 }

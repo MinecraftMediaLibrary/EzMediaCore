@@ -31,102 +31,101 @@ import java.util.logging.Logger;
 
 public final class DeluxeMediaPlugin extends JavaPlugin {
 
-    public static boolean OUTDATED = false;
+  public static boolean OUTDATED = false;
 
-    private MinecraftMediaLibrary library;
-    private BukkitAudiences audiences;
-    private CommandHandler handler;
-    private Logger logger;
-    private HttpConfiguration httpConfiguration;
-    private PictureConfiguration pictureConfiguration;
-    private VideoConfiguration videoConfiguration;
-    private EncoderConfiguration encoderConfiguration;
+  private MinecraftMediaLibrary library;
+  private BukkitAudiences audiences;
+  private CommandHandler handler;
+  private Logger logger;
+  private HttpConfiguration httpConfiguration;
+  private PictureConfiguration pictureConfiguration;
+  private VideoConfiguration videoConfiguration;
+  private EncoderConfiguration encoderConfiguration;
 
-    @Override
-    public void onEnable() {
-        logger = getLogger();
-        if (!OUTDATED) {
-            CommandUtilities.ensureInit();
-            com.github.pulsebeat02.minecraftmedialibrary.logger.Logger.setVerbose(true);
-            logger.info("DeluxeMediaPlugin is Initializing");
-            logger.info("Loading MinecraftMediaLibrary Instance...");
-            library = new MinecraftMediaLibrary(this, getDataFolder().getPath(), true);
-            registerCommands();
-            registerConfigurations();
-            checkUpdates();
-            audiences = BukkitAudiences.create(this);
-            logger.info("Finished Loading Instance and Plugin");
-        } else {
-            logger.severe("Plugin cannot load until server version is at least 1.8");
-            Bukkit.getPluginManager().disablePlugin(this);
-        }
+  @Override
+  public void onEnable() {
+    logger = getLogger();
+    if (!OUTDATED) {
+      CommandUtilities.ensureInit();
+      com.github.pulsebeat02.minecraftmedialibrary.logger.Logger.setVerbose(true);
+      logger.info("DeluxeMediaPlugin is Initializing");
+      logger.info("Loading MinecraftMediaLibrary Instance...");
+      library = new MinecraftMediaLibrary(this, getDataFolder().getPath(), true);
+      registerCommands();
+      registerConfigurations();
+      checkUpdates();
+      audiences = BukkitAudiences.create(this);
+      logger.info("Finished Loading Instance and Plugin");
+    } else {
+      logger.severe("Plugin cannot load until server version is at least 1.8");
+      Bukkit.getPluginManager().disablePlugin(this);
+    }
+  }
+
+  @Override
+  public void onDisable() {
+    logger.info("DeluxeMediaPlugin is Shutting Down");
+    logger.info("Shutting Down MinecraftMediaLibrary Instance...");
+    if (library != null) {
+      library.shutdown();
+    } else {
+      logger.severe(
+          "WARNING: MinecraftMediaLibrary instance is null... something is fishy going on.");
+    }
+    for (BaseCommand cmd : handler.getCommands()) {
+      CommandUtilities.unRegisterBukkitCommand(this, cmd);
     }
 
-    @Override
-    public void onDisable() {
-        logger.info("DeluxeMediaPlugin is Shutting Down");
-        logger.info("Shutting Down MinecraftMediaLibrary Instance...");
-        if (library != null) {
-            library.shutdown();
-        } else {
-            logger.severe(
-                    "WARNING: MinecraftMediaLibrary instance is null... something is fishy going on.");
-        }
-        for (BaseCommand cmd : handler.getCommands()) {
-            CommandUtilities.unRegisterBukkitCommand(this, cmd);
-        }
+    logger.info("Enclosing MinecraftMediaLibrary and Plugin Successfully Shutdown");
+  }
 
-        logger.info(
-                "Enclosing MinecraftMediaLibrary and Plugin Successfully Shutdown");
-    }
+  private void registerConfigurations() {
 
-    private void registerConfigurations() {
+    httpConfiguration = new HttpConfiguration(this);
+    pictureConfiguration = new PictureConfiguration(this);
+    videoConfiguration = new VideoConfiguration(this);
+    encoderConfiguration = new EncoderConfiguration(this);
 
-        httpConfiguration = new HttpConfiguration(this);
-        pictureConfiguration = new PictureConfiguration(this);
-        videoConfiguration = new VideoConfiguration(this);
-        encoderConfiguration = new EncoderConfiguration(this);
+    httpConfiguration.read();
+    pictureConfiguration.read();
+    videoConfiguration.read();
+    encoderConfiguration.read();
+  }
 
-        httpConfiguration.read();
-        pictureConfiguration.read();
-        videoConfiguration.read();
-        encoderConfiguration.read();
-    }
+  private void registerCommands() {
+    handler = new CommandHandler(this);
+  }
 
-    private void registerCommands() {
-        handler = new CommandHandler(this);
-    }
+  private void checkUpdates() {
+    final Metrics metrics = new Metrics(this, 10229);
+    new PluginUpdateChecker(this).checkForUpdates();
+  }
 
-    private void checkUpdates() {
-        final Metrics metrics = new Metrics(this, 10229);
-        new PluginUpdateChecker(this).checkForUpdates();
-    }
+  public MinecraftMediaLibrary getLibrary() {
+    return library;
+  }
 
-    public MinecraftMediaLibrary getLibrary() {
-        return library;
-    }
+  public HttpConfiguration getHttpConfiguration() {
+    return httpConfiguration;
+  }
 
-    public HttpConfiguration getHttpConfiguration() {
-        return httpConfiguration;
-    }
+  public PictureConfiguration getPictureConfiguration() {
+    return pictureConfiguration;
+  }
 
-    public PictureConfiguration getPictureConfiguration() {
-        return pictureConfiguration;
-    }
+  public VideoConfiguration getVideoConfiguration() {
+    return videoConfiguration;
+  }
 
-    public VideoConfiguration getVideoConfiguration() {
-        return videoConfiguration;
-    }
+  public EncoderConfiguration getEncoderConfiguration() {
+    return encoderConfiguration;
+  }
 
-    public EncoderConfiguration getEncoderConfiguration() {
-        return encoderConfiguration;
-    }
+  public BukkitAudiences getAudiences() {
+    return audiences;
+  }
 
-    public BukkitAudiences getAudiences() {
-        return audiences;
-    }
-
-    public CommandHandler getHandler() {
-        return handler;
-    }
+  public CommandHandler getHandler() {
+    return handler;
+  }
 }

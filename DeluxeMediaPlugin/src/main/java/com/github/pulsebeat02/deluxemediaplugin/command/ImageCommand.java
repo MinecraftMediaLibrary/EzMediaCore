@@ -47,174 +47,177 @@ import java.util.UUID;
 
 public class ImageCommand extends BaseCommand implements Listener {
 
-    private final Set<MapImage> images;
-    private final Set<UUID> listen;
-    private final LiteralCommandNode<CommandSender> literalNode;
-    private int width;
-    private int height;
+  private final Set<MapImage> images;
+  private final Set<UUID> listen;
+  private final LiteralCommandNode<CommandSender> literalNode;
+  private int width;
+  private int height;
 
-    public ImageCommand(
-            @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
-        super(plugin, "dither", executor, "deluxemediaplugin.command.image", "");
-        Bukkit.getPluginManager().registerEvents(this, plugin);
-        listen = new HashSet<>();
-        images = new HashSet<>();
-        width = 1;
-        height = 1;
-        final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
-        builder
-                .requires(super::testPermission)
+  public ImageCommand(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
+    super(plugin, "dither", executor, "deluxemediaplugin.command.image", "");
+    Bukkit.getPluginManager().registerEvents(this, plugin);
+    listen = new HashSet<>();
+    images = new HashSet<>();
+    width = 1;
+    height = 1;
+    final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
+    builder
+        .requires(super::testPermission)
+        .then(
+            literal("reset")
                 .then(
-                        literal("reset")
-                                .then(
-                                        literal("map")
-                                                .then(argument("id", StringArgumentType.word()).executes(this::resetMap)))
-                                .then(literal("all").executes(this::resetAllMaps)))
+                    literal("map")
+                        .then(argument("id", StringArgumentType.word()).executes(this::resetMap)))
+                .then(literal("all").executes(this::resetAllMaps)))
+        .then(
+            literal("set")
                 .then(
-                        literal("set")
+                    literal("map")
+                        .then(
+                            argument("id", LongArgumentType.longArg())
                                 .then(
-                                        literal("map")
-                                                .then(
-                                                        argument("id", LongArgumentType.longArg())
-                                                                .then(
-                                                                        argument("mrl", StringArgumentType.word())
-                                                                                .executes(this::setImage))))
-                                .then(
-                                        literal("dimensions")
-                                                .then(
-                                                        argument("dim", StringArgumentType.string())
-                                                                .executes(this::setDimensions))))
-                .then(literal("rickroll").executes(this::setRickRoll));
-        literalNode = builder.build();
-    }
+                                    argument("mrl", StringArgumentType.word())
+                                        .executes(this::setImage))))
+                .then(
+                    literal("dimensions")
+                        .then(
+                            argument("dim", StringArgumentType.string())
+                                .executes(this::setDimensions))))
+        .then(literal("rickroll").executes(this::setRickRoll));
+    literalNode = builder.build();
+  }
 
-    private boolean isUrl(@NotNull final String mrl) {
-        return (mrl.startsWith("http://")) || mrl.startsWith("https://") && mrl.endsWith(".png");
-    }
+  private boolean isUrl(@NotNull final String mrl) {
+    return (mrl.startsWith("http://")) || mrl.startsWith("https://") && mrl.endsWith(".png");
+  }
 
-    @Override
-    public LiteralCommandNode<CommandSender> getCommandNode() {
-        return literalNode;
-    }
+  @Override
+  public LiteralCommandNode<CommandSender> getCommandNode() {
+    return literalNode;
+  }
 
-    @Override
-    public String usage() {
-        return ChatColor.RED + "/image, /image reset all, /image reset map [Map ID], /image rickroll";
-    }
+  @Override
+  public String usage() {
+    return ChatColor.RED + "/image, /image reset all, /image reset map [Map ID], /image rickroll";
+  }
 
-    private int setRickRoll(@NotNull final CommandContext<CommandSender> context) {
-        final Audience audience = getPlugin().getAudiences().sender(context.getSource());
-        final MinecraftMediaLibrary library = getPlugin().getLibrary();
-        final File f =
-                FileUtilities.downloadImageFile(
-                        "https://images.news18.com/ibnlive/uploads/2020/12/1607660925_untitled-design-2020-12-11t095722.206.png",
-                        library.getPlugin().getDataFolder().getAbsolutePath());
-        new MapImage(library, 69, f, width, height).drawImage();
-        audience.sendMessage(ChatUtilities.formatMessage(Component.text("Gottem", NamedTextColor.GOLD)));
-        return 1;
-    }
+  private int setRickRoll(@NotNull final CommandContext<CommandSender> context) {
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    final MinecraftMediaLibrary library = getPlugin().getLibrary();
+    final File f =
+        FileUtilities.downloadImageFile(
+            "https://images.news18.com/ibnlive/uploads/2020/12/1607660925_untitled-design-2020-12-11t095722.206.png",
+            library.getPlugin().getDataFolder().getAbsolutePath());
+    new MapImage(library, 69, f, width, height).drawImage();
+    audience.sendMessage(
+        ChatUtilities.formatMessage(Component.text("Gottem", NamedTextColor.GOLD)));
+    return 1;
+  }
 
-    private int setDimensions(@NotNull final CommandContext<CommandSender> context) {
-        final Audience audience = getPlugin().getAudiences().sender(context.getSource());
-        final Optional<int[]> opt =
-                ChatUtilities.checkDimensionBoundaries(audience, context.getArgument("dims", String.class));
-        if (!opt.isPresent()) {
-            return 1;
-        }
-        final int[] dims = opt.get();
-        width = dims[0];
-        height = dims[1];
+  private int setDimensions(@NotNull final CommandContext<CommandSender> context) {
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    final Optional<int[]> opt =
+        ChatUtilities.checkDimensionBoundaries(audience, context.getArgument("dims", String.class));
+    if (!opt.isPresent()) {
+      return 1;
+    }
+    final int[] dims = opt.get();
+    width = dims[0];
+    height = dims[1];
+    audience.sendMessage(
+        ChatUtilities.formatMessage(
+            Component.text(
+                "Changed item frame dimensions to " + width + ":" + height + " (width:height)",
+                NamedTextColor.GOLD)));
+    return 1;
+  }
+
+  private int setImage(@NotNull final CommandContext<CommandSender> context) {
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    final OptionalLong opt =
+        ChatUtilities.checkMapBoundaries(audience, context.getArgument("id", String.class));
+    if (!opt.isPresent()) {
+      return 1;
+    }
+    final int id = (int) opt.getAsLong();
+    final String mrl = context.getArgument("mrl", String.class);
+    final ComponentLike successful =
+        ChatUtilities.formatMessage(
+            Component.text("Successfully drew image on map " + id, NamedTextColor.GOLD));
+    final DeluxeMediaPlugin plugin = getPlugin();
+    final MinecraftMediaLibrary library = plugin.getLibrary();
+    if (isUrl(mrl)) {
+      final File img =
+          FileUtilities.downloadImageFile(mrl, plugin.getDataFolder().getAbsolutePath());
+      new MapImage(library, id, img, width, height).drawImage();
+      audience.sendMessage(successful);
+    } else {
+      final File img = new File(plugin.getDataFolder(), mrl);
+      if (img.exists()) {
+        new MapImage(library, id, img, width, height).drawImage();
+        audience.sendMessage(successful);
+      } else {
         audience.sendMessage(
-                ChatUtilities.formatMessage(
-                        Component.text(
-                                "Changed item frame dimensions to "
-                                        + width
-                                        + ":"
-                                        + height
-                                        + " (width:height)",
-                                NamedTextColor.GOLD
-                        )));
-        return 1;
+            ChatUtilities.formatMessage(
+                Component.text("File " + img.getName() + " cannot be found!", NamedTextColor.RED)));
+      }
     }
+    return 1;
+  }
 
-    private int setImage(@NotNull final CommandContext<CommandSender> context) {
-        final Audience audience = getPlugin().getAudiences().sender(context.getSource());
-        final OptionalLong opt =
-                ChatUtilities.checkMapBoundaries(audience, context.getArgument("id", String.class));
-        if (!opt.isPresent()) {
-            return 1;
-        }
-        final int id = (int) opt.getAsLong();
-        final String mrl = context.getArgument("mrl", String.class);
-        final ComponentLike successful =
-                ChatUtilities.formatMessage(Component.text("Successfully drew image on map " + id, NamedTextColor.GOLD));
-        final DeluxeMediaPlugin plugin = getPlugin();
-        final MinecraftMediaLibrary library = plugin.getLibrary();
-        if (isUrl(mrl)) {
-            final File img =
-                    FileUtilities.downloadImageFile(mrl, plugin.getDataFolder().getAbsolutePath());
-            new MapImage(library, id, img, width, height).drawImage();
-            audience.sendMessage(successful);
-        } else {
-            final File img = new File(plugin.getDataFolder(), mrl);
-            if (img.exists()) {
-                new MapImage(library, id, img, width, height).drawImage();
-                audience.sendMessage(successful);
-            } else {
-                audience.sendMessage(
-                        ChatUtilities.formatMessage(Component.text(
-                                "File " + img.getName() + " cannot be found!", NamedTextColor.RED)));
-            }
-        }
-        return 1;
+  private int resetMap(@NotNull final CommandContext<CommandSender> context) {
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    final OptionalLong opt =
+        ChatUtilities.checkMapBoundaries(audience, context.getArgument("id", String.class));
+    if (!opt.isPresent()) {
+      return 1;
     }
+    final int id = (int) opt.getAsLong();
+    final Iterator<MapImage> itr = images.iterator();
+    while (itr.hasNext()) {
+      if (itr.next().getMap() == id) {
+        itr.remove();
+        break;
+      }
+    }
+    MapImage.resetMap(getPlugin().getLibrary(), id);
+    audience.sendMessage(
+        ChatUtilities.formatMessage(
+            Component.text("Successfully purged the map with ID " + id, NamedTextColor.GOLD)));
+    return 1;
+  }
 
-    private int resetMap(@NotNull final CommandContext<CommandSender> context) {
-        final Audience audience = getPlugin().getAudiences().sender(context.getSource());
-        final OptionalLong opt =
-                ChatUtilities.checkMapBoundaries(audience, context.getArgument("id", String.class));
-        if (!opt.isPresent()) {
-            return 1;
+  private int resetAllMaps(@NotNull final CommandContext<CommandSender> context) {
+    final CommandSender sender = context.getSource();
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    listen.add(((Player) sender).getUniqueId());
+    audience.sendMessage(
+        ChatUtilities.formatMessage(
+            Component.text(
+                "Are you sure you want to purge and delete all maps? Type YES if you would like to continue.",
+                NamedTextColor.RED)));
+    return 1;
+  }
+
+  @EventHandler
+  public void onPlayerChat(final AsyncPlayerChatEvent event) {
+    final Player p = event.getPlayer();
+    if (listen.contains(p.getUniqueId())) {
+      final Audience audience = getPlugin().getAudiences().player(p);
+      if (event.getMessage().equalsIgnoreCase("YES")) {
+        for (final MapImage image : images) {
+          MapImage.resetMap(getPlugin().getLibrary(), image.getMap());
         }
-        final int id = (int) opt.getAsLong();
-        final Iterator<MapImage> itr = images.iterator();
-        while (itr.hasNext()) {
-            if (itr.next().getMap() == id) {
-                itr.remove();
-                break;
-            }
-        }
-        MapImage.resetMap(getPlugin().getLibrary(), id);
+        images.clear();
         audience.sendMessage(
-                ChatUtilities.formatMessage(Component.text("Successfully purged the map with ID " + id, NamedTextColor.GOLD)));
-        return 1;
-    }
-
-    private int resetAllMaps(@NotNull final CommandContext<CommandSender> context) {
-        final CommandSender sender = context.getSource();
-        final Audience audience = getPlugin().getAudiences().sender(context.getSource());
-        listen.add(((Player) sender).getUniqueId());
+            ChatUtilities.formatMessage(
+                Component.text("Successfully purged all image maps", NamedTextColor.GOLD)));
+      } else {
         audience.sendMessage(
-                ChatUtilities.formatMessage(Component.text("Are you sure you want to purge and delete all maps? Type YES if you would like to continue.", NamedTextColor.RED)));
-        return 1;
+            ChatUtilities.formatMessage(
+                Component.text("Cancelled purge of all image maps", NamedTextColor.RED)));
+      }
     }
-
-    @EventHandler
-    public void onPlayerChat(final AsyncPlayerChatEvent event) {
-        final Player p = event.getPlayer();
-        if (listen.contains(p.getUniqueId())) {
-            final Audience audience = getPlugin().getAudiences().player(p);
-            if (event.getMessage().equalsIgnoreCase("YES")) {
-                for (final MapImage image : images) {
-                    MapImage.resetMap(getPlugin().getLibrary(), image.getMap());
-                }
-                images.clear();
-                audience.sendMessage(
-                        ChatUtilities.formatMessage(Component.text("Successfully purged all image maps", NamedTextColor.GOLD)));
-            } else {
-                audience.sendMessage(
-                        ChatUtilities.formatMessage(Component.text("Cancelled purge of all image maps", NamedTextColor.RED)));
-            }
-        }
-    }
+  }
 }
