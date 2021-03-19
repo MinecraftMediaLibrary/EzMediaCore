@@ -23,7 +23,6 @@ import com.github.pulsebeat02.deluxemediaplugin.update.PluginUpdateChecker;
 import com.github.pulsebeat02.deluxemediaplugin.utility.CommandUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
-import net.md_5.bungee.api.ChatColor;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -49,14 +48,14 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
         if (!OUTDATED) {
             CommandUtilities.ensureInit();
             com.github.pulsebeat02.minecraftmedialibrary.logger.Logger.setVerbose(true);
-            logger.info(ChatColor.GOLD + "DeluxeMediaPlugin is Initializing");
-            logger.info(ChatColor.GOLD + "Loading MinecraftMediaLibrary Instance...");
+            logger.info("DeluxeMediaPlugin is Initializing");
+            logger.info("Loading MinecraftMediaLibrary Instance...");
             library = new MinecraftMediaLibrary(this, getDataFolder().getPath(), true);
             registerCommands();
             registerConfigurations();
             checkUpdates();
             audiences = BukkitAudiences.create(this);
-            logger.info(ChatColor.GOLD + "Finished Loading Instance and Plugin");
+            logger.info("Finished Loading Instance and Plugin");
         } else {
             logger.severe("Plugin cannot load until server version is at least 1.8");
             Bukkit.getPluginManager().disablePlugin(this);
@@ -65,8 +64,8 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        logger.info(ChatColor.GOLD + "DeluxeMediaPlugin is Shutting Down");
-        logger.info(ChatColor.GOLD + "Shutting Down MinecraftMediaLibrary Instance...");
+        logger.info("DeluxeMediaPlugin is Shutting Down");
+        logger.info("Shutting Down MinecraftMediaLibrary Instance...");
         if (library != null) {
             library.shutdown();
         } else {
@@ -78,7 +77,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
         }
 
         logger.info(
-                ChatColor.GOLD + "Enclosing MinecraftMediaLibrary and Plugin Successfully Shutdown");
+                "Enclosing MinecraftMediaLibrary and Plugin Successfully Shutdown");
     }
 
     private void registerConfigurations() {

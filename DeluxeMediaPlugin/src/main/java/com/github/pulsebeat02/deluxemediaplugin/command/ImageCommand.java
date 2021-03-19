@@ -24,7 +24,9 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -108,7 +110,7 @@ public class ImageCommand extends BaseCommand implements Listener {
                         "https://images.news18.com/ibnlive/uploads/2020/12/1607660925_untitled-design-2020-12-11t095722.206.png",
                         library.getPlugin().getDataFolder().getAbsolutePath());
         new MapImage(library, 69, f, width, height).drawImage();
-        audience.sendMessage(ChatUtilities.formatMessage(ChatColor.GOLD + "Gottem"));
+        audience.sendMessage(ChatUtilities.formatMessage(Component.text("Gottem", NamedTextColor.GOLD)));
         return 1;
     }
 
@@ -124,12 +126,14 @@ public class ImageCommand extends BaseCommand implements Listener {
         height = dims[1];
         audience.sendMessage(
                 ChatUtilities.formatMessage(
-                        ChatColor.GOLD
-                                + "Changed item frame dimensions to "
-                                + width
-                                + ":"
-                                + height
-                                + " (width:height"));
+                        Component.text(
+                                "Changed item frame dimensions to "
+                                        + width
+                                        + ":"
+                                        + height
+                                        + " (width:height)",
+                                NamedTextColor.GOLD
+                        )));
         return 1;
     }
 
@@ -143,7 +147,7 @@ public class ImageCommand extends BaseCommand implements Listener {
         final int id = (int) opt.getAsLong();
         final String mrl = context.getArgument("mrl", String.class);
         final ComponentLike successful =
-                ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully drew image on map " + id);
+                ChatUtilities.formatMessage(Component.text("Successfully drew image on map " + id, NamedTextColor.GOLD));
         final DeluxeMediaPlugin plugin = getPlugin();
         final MinecraftMediaLibrary library = plugin.getLibrary();
         if (isUrl(mrl)) {
@@ -158,8 +162,8 @@ public class ImageCommand extends BaseCommand implements Listener {
                 audience.sendMessage(successful);
             } else {
                 audience.sendMessage(
-                        ChatUtilities.formatMessage(
-                                ChatColor.RED + "File " + img.getName() + " cannot be found!"));
+                        ChatUtilities.formatMessage(Component.text(
+                                "File " + img.getName() + " cannot be found!", NamedTextColor.RED)));
             }
         }
         return 1;
@@ -182,7 +186,7 @@ public class ImageCommand extends BaseCommand implements Listener {
         }
         MapImage.resetMap(getPlugin().getLibrary(), id);
         audience.sendMessage(
-                ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully purged the map with ID " + id));
+                ChatUtilities.formatMessage(Component.text("Successfully purged the map with ID " + id, NamedTextColor.GOLD)));
         return 1;
     }
 
@@ -191,9 +195,7 @@ public class ImageCommand extends BaseCommand implements Listener {
         final Audience audience = getPlugin().getAudiences().sender(context.getSource());
         listen.add(((Player) sender).getUniqueId());
         audience.sendMessage(
-                ChatUtilities.formatMessage(
-                        ChatColor.RED
-                                + "Are you sure you want to purge and delete all maps? Type YES if you would like to continue."));
+                ChatUtilities.formatMessage(Component.text("Are you sure you want to purge and delete all maps? Type YES if you would like to continue.", NamedTextColor.RED)));
         return 1;
     }
 
@@ -208,10 +210,10 @@ public class ImageCommand extends BaseCommand implements Listener {
                 }
                 images.clear();
                 audience.sendMessage(
-                        ChatUtilities.formatMessage(ChatColor.GOLD + "Successfully purged all image maps"));
+                        ChatUtilities.formatMessage(Component.text("Successfully purged all image maps", NamedTextColor.GOLD)));
             } else {
                 audience.sendMessage(
-                        ChatUtilities.formatMessage(ChatColor.GOLD + "Cancelled purge of all image maps"));
+                        ChatUtilities.formatMessage(Component.text("Cancelled purge of all image maps", NamedTextColor.RED)));
             }
         }
     }
