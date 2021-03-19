@@ -14,12 +14,14 @@
 package com.github.pulsebeat02.deluxemediaplugin.command;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
@@ -32,9 +34,7 @@ public class DitherCommand extends BaseCommand {
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "dither", executor, "deluxemediaplugin.command.dither", "");
     final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
-    builder
-        .requires(super::testPermission)
-        .then(argument("list", StringArgumentType.word()).executes(this::listSettings));
+    builder.requires(super::testPermission).then(literal("list").executes(this::listSettings));
     literalNode = builder.build();
   }
 
@@ -49,10 +49,11 @@ public class DitherCommand extends BaseCommand {
   }
 
   private int listSettings(@NotNull final CommandContext<CommandSender> context) {
-    final CommandSender sender = context.getSource();
-    sender.sendMessage(ChatColor.GOLD + "List of Possible Options:");
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    audience.sendMessage(
+        ChatUtilities.formatMessage(Component.text("Possible Settings: ", NamedTextColor.GOLD)));
     for (final DitherSetting setting : DitherSetting.values()) {
-      sender.sendMessage(ChatColor.AQUA + setting.name());
+      audience.sendMessage(Component.text(setting.name(), NamedTextColor.AQUA));
     }
     return 1;
   }

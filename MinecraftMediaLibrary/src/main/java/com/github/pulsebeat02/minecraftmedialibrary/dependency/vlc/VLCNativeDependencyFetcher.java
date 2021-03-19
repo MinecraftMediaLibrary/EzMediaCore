@@ -18,14 +18,12 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
@@ -48,7 +46,11 @@ public class VLCNativeDependencyFetcher {
     Logger.info("Trying to find Native VLC Installation...");
     final NativeDiscovery nativeDiscovery = new NativeDiscovery();
     final EnhancedNativeDiscovery enhancedNativeDiscovery = new EnhancedNativeDiscovery(dir);
-    enhancedNativeDiscovery.discover();
+    final File before = findVLCFolder(new File(dir));
+    if (before != null) {
+      System.setProperty("jna.library.path", before.getAbsolutePath());
+      enhancedNativeDiscovery.discover();
+    }
     final boolean installed =
         nativeDiscovery.discover() || enhancedNativeDiscovery.getPath() != null;
     if (!installed) {
@@ -121,7 +123,7 @@ public class VLCNativeDependencyFetcher {
   /**
    * Gets VLC folder in folder.
    *
-   * @param folder
+   * @param folder search folder
    * @return file
    */
   public File findVLCFolder(@NotNull final File folder) {

@@ -54,7 +54,7 @@ public final class CommandHandler implements TabExecutor {
       @NotNull final String label,
       @NotNull final String[] args) {
     final String joined = command.getName() + ' ' + String.join(" ", args);
-    final ParseResults<CommandSender> results = dispatcher.parse(joined, sender);
+    final ParseResults<CommandSender> results = dispatcher.parse(joined.trim(), sender);
     try {
       dispatcher.execute(results);
     } catch (final CommandSyntaxException exception) {
