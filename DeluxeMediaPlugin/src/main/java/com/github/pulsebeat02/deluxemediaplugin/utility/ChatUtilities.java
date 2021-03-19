@@ -21,6 +21,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.OptionalLong;
 
 public final class ChatUtilities {
@@ -48,15 +49,18 @@ public final class ChatUtilities {
 
   public static OptionalLong checkMapBoundaries(@NotNull final Audience sender, final String str) {
     final String message;
-    final long id = checkLongValidity(str);
-    if (id == Long.MIN_VALUE) {
+    final OptionalLong opt = checkLongValidity(str);
+    if (!opt.isPresent()) {
       message = "is not a valid argument!";
-    } else if (id < -2_147_483_647L) {
-      message = "is too low!";
-    } else if (id > 2_147_483_647L) {
-      message = "is too high!";
     } else {
-      return OptionalLong.of(id);
+      long id = opt.getAsLong();
+      if (id < -2_147_483_647L) {
+        message = "is too low!";
+      } else if (id > 2_147_483_647L) {
+        message = "is too high!";
+      } else {
+        return OptionalLong.of(id);
+      }
     }
     sender.sendMessage(
         Component.text()
@@ -74,16 +78,16 @@ public final class ChatUtilities {
       @NotNull final Audience sender, final String str) {
     final String[] dims = str.split(":");
     String message;
-    final int width = ChatUtilities.checkIntegerValidity(dims[0]);
-    final int height = ChatUtilities.checkIntegerValidity(dims[1]);
-    if (width == Integer.MIN_VALUE) {
+    final OptionalInt width = ChatUtilities.checkIntegerValidity(dims[0]);
+    final OptionalInt height = ChatUtilities.checkIntegerValidity(dims[1]);
+    if (!width.isPresent()) {
       message = dims[0];
-    } else if (height == Integer.MIN_VALUE) {
+    } else if (!height.isPresent()) {
       message = dims[1];
     } else {
-      return Optional.of(new int[] {width, height});
-    }
-    sender.sendMessage(
+        return Optional.of(new int[] {width.getAsInt(), height.getAsInt()});
+      }
+      sender.sendMessage(
         Component.text()
             .color(NamedTextColor.RED)
             .append(Component.text("Argument '"))
@@ -95,19 +99,19 @@ public final class ChatUtilities {
     return Optional.empty();
   }
 
-  public static long checkLongValidity(final String num) {
+  public static OptionalLong checkLongValidity(final String num) {
     try {
-      return Long.parseLong(num);
+      return OptionalLong.of(Long.parseLong(num));
     } catch (final NumberFormatException e) {
-      return Long.MIN_VALUE;
+      return OptionalLong.empty();
     }
   }
 
-  public static int checkIntegerValidity(final String num) {
+  public static OptionalInt checkIntegerValidity(final String num) {
     try {
-      return Integer.parseInt(num);
+      return OptionalInt.of(Integer.parseInt(num));
     } catch (final NumberFormatException e) {
-      return Integer.MIN_VALUE;
+      return OptionalInt.empty();
     }
   }
 }
