@@ -46,16 +46,10 @@ public class VLCNativeDependencyFetcher {
     Logger.info("Trying to find Native VLC Installation...");
     final NativeDiscovery nativeDiscovery = new NativeDiscovery();
     final EnhancedNativeDiscovery enhancedNativeDiscovery = new EnhancedNativeDiscovery(dir);
-    final File before = findVLCFolder(new File(dir));
-    if (before != null) {
-      System.setProperty("jna.library.path", before.getAbsolutePath());
-      enhancedNativeDiscovery.discover();
-    }
-    final boolean installed =
-        nativeDiscovery.discover() || enhancedNativeDiscovery.getPath() != null;
-    if (!installed) {
+    checkVLCExistance(dir, enhancedNativeDiscovery);
+    if (!(nativeDiscovery.discover() || enhancedNativeDiscovery.getPath() != null)) {
       Logger.info("No VLC Installation found on this system. Proceeding to install.");
-      final String option = RuntimeUtilities.URL;
+      final String option = RuntimeUtilities.getURL();
       File zip = null;
       if (option.equalsIgnoreCase("LINUX")) {
         try {
@@ -81,17 +75,13 @@ public class VLCNativeDependencyFetcher {
           e.printStackTrace();
         }
       }
-      assert zip != null;
-      Logger.info("Deleting Archive...");
-      if (zip.delete()) {
-        Logger.info("Archive deleted after installation.");
+      if (zip != null) {
+        deleteArchive(zip);
+        System.setProperty("jna.library.path", findVLCFolder(zip.getParentFile()).getAbsolutePath());
       } else {
-        Logger.error("Archive could NOT be deleted after installation!");
+        Logger.warn("Zip is null, meaning it could not be found!");
       }
-      final String folder = findVLCFolder(zip.getParentFile()).getAbsolutePath();
-      System.setProperty("jna.library.path", folder);
       enhancedNativeDiscovery.discover();
-      Logger.info("VLC JNA Lookup Path: " + folder);
       printSystemEnvironmentVariables();
       printSystemProperties();
     } else {
@@ -132,6 +122,36 @@ public class VLCNativeDependencyFetcher {
         return f;
       }
     }
-    return null;
+    return new File("vlc-3.0.12");
+  }
+
+  /**
+   * Checks existence of VLC folder.
+   *
+   * @param dir directory
+   * @param enhancedNativeDiscovery discovery
+   */
+  public void checkVLCExistance(
+      @NotNull final String dir, @NotNull final EnhancedNativeDiscovery enhancedNativeDiscovery) {
+    final File before = findVLCFolder(new File(dir));
+    if (before != null) {
+      System.setProperty("jna.library.path", before.getAbsolutePath());
+      enhancedNativeDiscovery.discover();
+    }
+  }
+
+  /**
+   *
+   * Deletes file (archive).
+   *
+   * @param zip archive
+   */
+  public void deleteArchive(@NotNull final File zip) {
+    Logger.info("Deleting Archive...");
+    if (zip.delete()) {
+      Logger.info("Archive deleted after installation.");
+    } else {
+      Logger.error("Archive could NOT be deleted after installation!");
+    }
   }
 }

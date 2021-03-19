@@ -34,7 +34,6 @@ import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import java.io.File;
 import java.net.URLClassLoader;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 public final class MinecraftMediaLibrary {
 
@@ -123,29 +122,60 @@ public final class MinecraftMediaLibrary {
 
   /** Runs dependency tasks required. */
   private void dependencyTasks() {
-    CompletableFuture.runAsync(
-            () -> {
-              DependencyUtilities.CLASSLOADER = (URLClassLoader) plugin.getClass().getClassLoader();
-              final JaveDependencyInstallation javeDependencyInstallation =
-                  new JaveDependencyInstallation(this);
-              javeDependencyInstallation.install();
-              javeDependencyInstallation.load();
-              final DependencyManagement dependencyManagement = new DependencyManagement(this);
-              dependencyManagement.install();
-              dependencyManagement.relocate();
-              dependencyManagement.load();
-              new VLCNativeDependencyFetcher(this).downloadLibraries();
-              if (vlcj) {
-                try {
-                  new MediaPlayerFactory();
-                } catch (final Exception e) {
-                  Logger.error(
-                      "The user does not have VLCJ installed! This is a very fatal error.");
-                  vlcj = false;
-                  e.printStackTrace();
-                }
-              }
-            });
+
+    class DependencyLoader {
+
+      private final MinecraftMediaLibrary instance;
+
+      public DependencyLoader() {
+        instance = MinecraftMediaLibrary.this;
+      }
+
+      public void startTasks() {
+        CompletableFuture.runAsync(this::assignClassLoader)
+            .thenRunAsync(this::loadJave)
+            .thenRunAsync(this::loadDependencies)
+            .thenRunAsync(this::loadVLC);
+      }
+
+      /** Assigns ClassLoader for classpath loading. */
+      public void assignClassLoader() {
+        DependencyUtilities.CLASSLOADER = (URLClassLoader) plugin.getClass().getClassLoader();
+      }
+
+      /** Downloads/Loads Jave dependency. */
+      public void loadJave() {
+        final JaveDependencyInstallation javeDependencyInstallation =
+            new JaveDependencyInstallation(instance);
+        javeDependencyInstallation.install();
+        javeDependencyInstallation.load();
+      }
+
+      /** Downloads/Loads Jitpack/Maven dependencies. */
+      public void loadDependencies() {
+        final DependencyManagement dependencyManagement = new DependencyManagement(instance);
+        dependencyManagement.install();
+        dependencyManagement.relocate();
+        dependencyManagement.load();
+      }
+
+      /** Downloads/Loads VLC dependency. */
+      public void loadVLC() {
+        new VLCNativeDependencyFetcher(instance).downloadLibraries();
+        if (vlcj) {
+          try {
+            new MediaPlayerFactory();
+          } catch (final Exception e) {
+            Logger.error("The user does not have VLCJ installed! This is a very fatal error.");
+            vlcj = false;
+            e.printStackTrace();
+          }
+        }
+      }
+    }
+
+    final DependencyLoader loader = new DependencyLoader();
+    loader.startTasks();
   }
 
   /** Runs event registration tasks. */
@@ -181,17 +211,17 @@ public final class MinecraftMediaLibrary {
     Logger.info("===========================================");
     Logger.info("            SYSTEM INFORMATION             ");
     Logger.info("===========================================");
-    Logger.info("System Operating System: " + RuntimeUtilities.OPERATING_SYSTEM);
-    Logger.info("CPU Architecture: " + RuntimeUtilities.CPU_ARCH);
+    Logger.info("System Operating System: " + RuntimeUtilities.getOperatingSystem());
+    Logger.info("CPU Architecture: " + RuntimeUtilities.getCpuArch());
     Logger.info("System Operating System Version: " + System.getProperty("os.version"));
     Logger.info(
         "Windows/Mac/Linux: "
-            + RuntimeUtilities.WINDOWS
+            + RuntimeUtilities.isWINDOWS()
             + "/"
-            + RuntimeUtilities.MAC
+            + RuntimeUtilities.isMAC()
             + "/"
-            + RuntimeUtilities.LINUX);
-    Logger.info("Linux Distribution (If Linux): " + RuntimeUtilities.LINUX_DISTRIBUTION);
+            + RuntimeUtilities.isLINUX());
+    Logger.info("Linux Distribution (If Linux): " + RuntimeUtilities.getLinuxDistribution());
   }
 
   /** Shutdown Instance */

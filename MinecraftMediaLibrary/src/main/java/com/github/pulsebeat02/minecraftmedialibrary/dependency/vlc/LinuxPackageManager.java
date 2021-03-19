@@ -118,7 +118,7 @@ public class LinuxPackageManager {
    */
   public File getPackage() throws IOException {
     Logger.info("Attempting to Find VLC Package for Machine.");
-    final String fullInfo = RuntimeUtilities.LINUX_DISTRIBUTION;
+    final String fullInfo = RuntimeUtilities.getLinuxDistribution();
     final String distro = RuntimeUtilities.getDistributionName(fullInfo).toLowerCase();
     final String ver = RuntimeUtilities.getDistributionVersion(fullInfo).toLowerCase();
     List<LinuxPackage> set = null;
@@ -142,7 +142,7 @@ public class LinuxPackageManager {
         break;
       }
     }
-    final CPUArchitecture arch = CPUArchitecture.fromName(RuntimeUtilities.CPU_ARCH.toUpperCase());
+    final CPUArchitecture arch = CPUArchitecture.fromName(RuntimeUtilities.getCpuArch().toUpperCase());
     if (set == null || arch == null) {
       Logger.error("Could not find architecture... throwing an error!");
       throw new UnsupportedOperatingSystemException("Unsupported Operating System Platform!");

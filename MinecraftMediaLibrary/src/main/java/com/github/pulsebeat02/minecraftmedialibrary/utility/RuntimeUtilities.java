@@ -179,4 +179,49 @@ public final class RuntimeUtilities {
     }
     return "";
   }
+
+  /**
+   * Gets CPU Architecture.
+   *
+   * @return the cpu arch
+   */
+  public static String getCpuArch() {
+    return CPU_ARCH;
+  }
+
+  /**
+   * Checks if OS is Mac.
+   *
+   * @return Mac OS
+   */
+  public static boolean isMAC() {
+    return MAC;
+  }
+
+  /**
+   * Checks if OS is Windows.
+   *
+   * @return Windows OS
+   */
+  public static boolean isWINDOWS() {
+    return WINDOWS;
+  }
+
+  /**
+   * Checks if OS is Linux.
+   *
+   * @return Linux OS
+   */
+  public static boolean isLINUX() {
+    return LINUX;
+  }
+
+  /**
+   * Gets VLC url.
+   *
+   * @return vlc installation url
+   */
+  public static String getURL() {
+    return URL;
+  }
 }
