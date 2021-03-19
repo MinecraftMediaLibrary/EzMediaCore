@@ -25,6 +25,7 @@ import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
@@ -85,10 +86,10 @@ public class VLCNativeDependencyFetcher {
       } else {
         Logger.error("Archive could NOT be deleted after installation!");
       }
-      final String path = zip.getParent() + "/" + FilenameUtils.removeExtension(zip.getName());
-      System.setProperty("java.library.path", path);
+      final String folder = findVLCFolder(zip.getParentFile()).getAbsolutePath();
+      System.setProperty("jna.library.path", folder);
       enhancedNativeDiscovery.discover();
-      Logger.info("VLC JNA Lookup Path: " + path);
+      Logger.info("VLC JNA Lookup Path: " + folder);
       printSystemEnvironmentVariables();
       printSystemProperties();
     } else {
@@ -115,5 +116,20 @@ public class VLCNativeDependencyFetcher {
       Logger.info("Key: " + key + "| Entry: " + p.get(key));
     }
     Logger.info("===============================================");
+  }
+
+  /**
+   * Gets VLC folder in folder.
+   *
+   * @param folder
+   * @return file
+   */
+  public File findVLCFolder(@NotNull final File folder) {
+    for (final File f : folder.listFiles()) {
+      if (f.getName().contains("vlc")) {
+        return f;
+      }
+    }
+    return null;
   }
 }
