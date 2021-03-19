@@ -167,7 +167,7 @@ public class DependencyManagement {
    * @param dependency the dependency
    * @return the boolean
    */
-  public boolean checkExists(
+  private boolean checkExists(
       @NotNull final File dir, @NotNull final RepositoryDependency dependency) {
     for (final File f : dir.listFiles()) {
       if (f.getName().contains(dependency.getArtifact())) {

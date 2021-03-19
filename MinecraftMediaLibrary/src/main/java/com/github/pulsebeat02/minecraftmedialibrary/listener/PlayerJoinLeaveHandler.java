@@ -40,7 +40,7 @@ public class PlayerJoinLeaveHandler implements Listener {
    * @param event PlayerJoinEvent event
    */
   @EventHandler
-  private void onPlayerJoin(final PlayerJoinEvent event) {
+  protected void onPlayerJoin(final PlayerJoinEvent event) {
     final Player p = event.getPlayer();
     library.getHandler().registerPlayer(p);
     Logger.info("Registered Player " + p.getUniqueId());
@@ -52,7 +52,7 @@ public class PlayerJoinLeaveHandler implements Listener {
    * @param event PlayerQuitEvent event
    */
   @EventHandler
-  private void onPlayerLeave(final PlayerQuitEvent event) {
+  protected void onPlayerLeave(final PlayerQuitEvent event) {
     final Player p = event.getPlayer();
     library.getHandler().unregisterPlayer(p);
     Logger.info("Unregistered Player " + p.getUniqueId());

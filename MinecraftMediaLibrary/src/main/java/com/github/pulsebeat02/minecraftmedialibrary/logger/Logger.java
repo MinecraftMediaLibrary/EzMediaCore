@@ -23,7 +23,7 @@ import java.io.IOException;
 public class Logger {
 
   /** Log writer */
-  public static volatile BufferedWriter WRITER;
+  protected static volatile BufferedWriter WRITER;
 
   /** Tracks whether log should be verbose */
   public static boolean VERBOSE;
@@ -75,7 +75,7 @@ public class Logger {
    *
    * @param line to print
    */
-  private static void directPrint(@NotNull final String line) {
+  protected static void directPrint(@NotNull final String line) {
     if (VERBOSE) {
       try {
         WRITER.write(line);

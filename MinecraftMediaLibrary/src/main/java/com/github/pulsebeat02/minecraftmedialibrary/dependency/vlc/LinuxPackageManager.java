@@ -176,7 +176,7 @@ public class LinuxPackageManager {
   }
 
   /** Extract contents. Should only be one package located in folder */
-  public void extractContents() {
+  protected void extractContents() {
     ArchiveUtilities.recursiveExtraction(vlc.listFiles()[0], vlc);
   }
 

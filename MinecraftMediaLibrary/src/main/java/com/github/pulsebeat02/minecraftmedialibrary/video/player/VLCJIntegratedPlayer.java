@@ -115,7 +115,9 @@ public class VLCJIntegratedPlayer extends AbstractVideoPlayer {
       mediaPlayerComponent.release();
     }
     final String url = getUrl();
-    mediaPlayerComponent.media().play(url);
+    if (mediaPlayerComponent != null) {
+      mediaPlayerComponent.media().play(url);
+    }
     Logger.info("Started Playing Video! (" + url + ")");
   }
 
@@ -137,20 +139,8 @@ public class VLCJIntegratedPlayer extends AbstractVideoPlayer {
     return mediaPlayerComponent;
   }
 
-  private class MinecraftRenderCallback extends RenderCallbackAdapter {
-
-    private MinecraftRenderCallback() {
-      super(new int[getWidth() * getHeight()]);
-    }
-
-    @Override
-    protected void onDisplay(final MediaPlayer mediaPlayer, final int[] buffer) {
-      getCallback().accept(buffer);
-    }
-  }
-
   /** The type Builder. */
-  public class Builder {
+  public static class Builder {
 
     private String url;
     private int width;
@@ -210,6 +200,18 @@ public class VLCJIntegratedPlayer extends AbstractVideoPlayer {
     public VLCJIntegratedPlayer createVLCJIntegratedPlayer(
         @NotNull final MinecraftMediaLibrary library) {
       return new VLCJIntegratedPlayer(library, url, width, height, callback);
+    }
+  }
+
+  private class MinecraftRenderCallback extends RenderCallbackAdapter {
+
+    private MinecraftRenderCallback() {
+      super(new int[getWidth() * getHeight()]);
+    }
+
+    @Override
+    protected void onDisplay(final MediaPlayer mediaPlayer, final int[] buffer) {
+      getCallback().accept(buffer);
     }
   }
 }

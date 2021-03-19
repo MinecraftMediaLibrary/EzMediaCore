@@ -90,7 +90,7 @@ public class JaveDependencyInstallation {
    *
    * @return the artifact id
    */
-  public String getArtifactId() {
+  private String getArtifactId() {
     Logger.info("Detecting Operating System...");
     final String os = System.getProperty("os.name").toLowerCase();
     String artifactId = "INVALID_OPERATING_SYSTEM";

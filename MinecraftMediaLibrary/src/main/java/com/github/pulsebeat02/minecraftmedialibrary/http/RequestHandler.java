@@ -34,6 +34,12 @@ import java.util.regex.Pattern;
 
 public class RequestHandler implements Runnable, AbstractRequestHandler {
 
+  private static final Pattern MATCHER;
+
+  static {
+    MATCHER = Pattern.compile("GET /?(\\S*).*");
+  }
+
   private final HttpDaemon daemon;
   private final HttpDaemon.ZipHeader header;
   private final Socket client;
@@ -117,7 +123,7 @@ public class RequestHandler implements Runnable, AbstractRequestHandler {
    * @return request Matcher
    */
   private Matcher requestPattern(final String req) {
-    return Pattern.compile("GET /?(\\S*).*").matcher(req);
+    return MATCHER.matcher(req);
   }
 
   private void verbose(final String info) {
@@ -138,19 +144,11 @@ public class RequestHandler implements Runnable, AbstractRequestHandler {
 
   @Override
   public String buildHeader(final @NotNull File f) {
-    return "HTTP/1.0 200 OK\r\n"
-        + "Content-Type: "
-        + header.getHeader()
-        + "\r\n"
-        + "Content-Length: "
-        + f.length()
-        + "\r\n"
-        + "Date: "
-        + new SimpleDateFormat("dd MMM yyyy HH:mm:ss").format(Calendar.getInstance().getTime())
-        + " GMT"
-        + "\r\n"
-        + "Server: HttpDaemon\r\n"
-        + "User-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n";
+    return String.format(
+        "HTTP/1.0 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nDate: %s GMT\r\nServer: HttpDaemon\r\nUser-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n",
+        header.getHeader(),
+        f.length(),
+        new SimpleDateFormat("dd MMM yyyy HH:mm:ss").format(Calendar.getInstance().getTime()));
   }
 
   /**

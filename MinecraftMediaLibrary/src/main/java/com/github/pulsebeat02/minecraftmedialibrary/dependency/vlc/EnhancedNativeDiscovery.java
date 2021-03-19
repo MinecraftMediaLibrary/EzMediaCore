@@ -121,7 +121,7 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
     return LibC.INSTANCE.setenv(VLC_PLUGIN_PATH, path, 1) == 0;
   }
 
-  public boolean loadLibrary() {
+  protected boolean loadLibrary() {
     try {
       final libvlc_instance_t instance = libvlc_new(0, new StringArray(new String[0]));
       if (instance != null) {
