@@ -100,24 +100,28 @@ public class DependencyManagement {
   public void install() {
     for (final RepositoryDependency dependency : RepositoryDependency.values()) {
       if (!checkExists(dir, dependency)) {
-        File file = null;
         final String artifact = dependency.getArtifact();
-        try {
+        File file = null;
+        if (dependency.getResolution() == DependencyResolution.MAVEN_DEPENDENCY) {
           Logger.info("Checking Maven Central Repository for " + artifact);
-          file = DependencyUtilities.downloadMavenDependency(dependency, dir.getAbsolutePath());
-        } catch (final IOException e) {
           try {
-            Logger.info(
-                "Could not find in the Maven Central Repository... Checking Jitpack Central Repository for "
-                    + artifact);
+            file = DependencyUtilities.downloadMavenDependency(dependency, dir.getAbsolutePath());
+          } catch (final IOException e) {
+            Logger.info("Could NOT find " + artifact + " in Maven Central Repository!");
+            e.printStackTrace();
+          }
+        } else if (dependency.getResolution() == DependencyResolution.JITPACK_DEPENDENCY) {
+          Logger.info("Checking Jitpack Central Repository for " + artifact);
+          try {
             file = DependencyUtilities.downloadJitpackDependency(dependency, dir.getAbsolutePath());
-          } catch (final IOException exception) {
-            Logger.error(
-                "Could not find " + artifact + " in the Maven Central Repository or Jitpack");
-            exception.printStackTrace();
+          } catch (final IOException e) {
+            Logger.info("Could NOT find " + artifact + " in Jitpack Central Repository!");
+            e.printStackTrace();
           }
         }
-        files.add(file);
+        if (file != null) {
+          files.add(file);
+        }
       }
     }
   }

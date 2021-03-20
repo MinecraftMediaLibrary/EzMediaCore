@@ -13,6 +13,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyResolution;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.RepositoryDependency;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -23,18 +24,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.function.LongConsumer;
 
 public final class DependencyUtilities {
 
-  private static final String MAVEN_CENTRAL_URL;
-  private static final String JITPACK_CENTRAL_URL;
-  /** The constant CLASSLOADER. */
   public static URLClassLoader CLASSLOADER;
-
   private static Method ADD_URL_METHOD;
 
   static {
@@ -55,10 +54,7 @@ public final class DependencyUtilities {
         | InvocationTargetException ignored) {
       Logger.info(
           "User is using Java 8, meaning Reflection Module does NOT have to be opened. You may safely ignore this error.");
-      // Java 8 doesn't have module class -- you can ignore the error.
     }
-    MAVEN_CENTRAL_URL = "https://repo1.maven.org/maven2/";
-    JITPACK_CENTRAL_URL = "https://jitpack.io/";
     try {
       ADD_URL_METHOD = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
       ADD_URL_METHOD.setAccessible(true);
@@ -78,7 +74,7 @@ public final class DependencyUtilities {
   public static File downloadMavenDependency(
       @NotNull final RepositoryDependency dependency, @NotNull final String parent)
       throws IOException {
-    return downloadFile(dependency, getMavenCentralUrl(dependency), parent);
+    return downloadFile(dependency, getRepoUrl(dependency), parent);
   }
 
   /**
@@ -92,45 +88,101 @@ public final class DependencyUtilities {
   public static File downloadJitpackDependency(
       @NotNull final RepositoryDependency dependency, @NotNull final String parent)
       throws IOException {
-    return downloadFile(dependency, getJitpackUrl(dependency), parent);
+    return downloadFile(dependency, getRepoUrl(dependency), parent);
   }
 
   /**
-   * Gets Maven Central URL of MavenDependency.
+   * Loads and downloads a dependency based from arguments.
+   *
+   * @param groupId group id
+   * @param artifactId artifact id
+   * @param version version
+   * @param directory directory
+   * @param resolution resolution
+   * @return jar file
+   * @throws IOException if the url constructed cannot be found
+   */
+  public static File downloadAndLoadDependency(
+      @NotNull final String groupId,
+      @NotNull final String artifactId,
+      @NotNull final String version,
+      @NotNull final String directory,
+      @NotNull final DependencyResolution resolution)
+      throws IOException {
+    final File f = downloadFile(groupId, artifactId, version, directory, resolution);
+    loadDependency(f);
+    return f;
+  }
+
+  /**
+   * Loads and downloads a dependency based from arguments with consumer.
+   *
+   * @param groupId group id
+   * @param artifactId artifact id
+   * @param version version
+   * @param directory directory
+   * @param resolution resolution
+   * @return jar file
+   * @throws IOException if the url constructed cannot be found
+   */
+  public static File downloadAndLoadDependency(
+      @NotNull final String groupId,
+      @NotNull final String artifactId,
+      @NotNull final String version,
+      @NotNull final String directory,
+      @NotNull final DependencyResolution resolution,
+      @NotNull final LongConsumer consumer)
+      throws IOException {
+    final File f = downloadFile(groupId, artifactId, version, directory, resolution, consumer);
+    loadDependency(f);
+    return f;
+  }
+
+  /**
+   * Gets Maven Central URL of Maven Dependency.
    *
    * @param dependency the dependency
    * @return the maven central url
    */
+  @Deprecated
   public static String getMavenCentralUrl(@NotNull final RepositoryDependency dependency) {
-    return getDependencyUrl(dependency, MAVEN_CENTRAL_URL);
+    return getDependencyUrl(dependency);
   }
 
   /**
-   * Gets Jitpack URL of MavenDependency.
+   * Gets Jitpack URL of Jitpack Dependency.
    *
    * @param dependency the dependency
    * @return the jitpack url
    */
+  @Deprecated
   public static String getJitpackUrl(@NotNull final RepositoryDependency dependency) {
-    return getDependencyUrl(dependency, JITPACK_CENTRAL_URL);
+    return getDependencyUrl(dependency);
+  }
+
+  /**
+   * Gets Dependency Repository URL of Maven/Jitpack Dependency.
+   *
+   * @param dependency the dependency
+   * @return the jitpack url
+   */
+  public static String getRepoUrl(@NotNull final RepositoryDependency dependency) {
+    return getDependencyUrl(dependency);
   }
 
   /**
    * Constructs dependency URL of MavenDependency.
    *
    * @param dependency the dependency
-   * @param base the base
    * @return the dependency url
    */
-  public static String getDependencyUrl(
-      @NotNull final RepositoryDependency dependency, @NotNull final String base) {
-    return base
-        + dependency.getGroup().replaceAll("\\.", "/")
-        + "/"
-        + dependency.getArtifact()
-        + "/"
-        + dependency.getVersion()
-        + "/";
+  public static String getDependencyUrl(@NotNull final RepositoryDependency dependency) {
+    return String.format(
+        "%s%s/%s/%s/",
+        dependency.getResolution().getBaseUrl(),
+        dependency.getGroup().replaceAll("\\.", "/"),
+        dependency.getArtifact(),
+        dependency.getVersion());
   }
 
   /**
@@ -147,7 +199,7 @@ public final class DependencyUtilities {
       @NotNull final String artifactId,
       @NotNull final String version,
       @NotNull final String base) {
-    return base + groupId.replaceAll("\\.", "/") + "/" + artifactId + "/" + version + "/";
+    return String.format("%s%s/%s/%s/", base, groupId.replaceAll("\\.", "/"), artifactId, version);
   }
 
   /**
@@ -170,6 +222,27 @@ public final class DependencyUtilities {
   }
 
   /**
+   * Download dependency file with consumer.
+   *
+   * @param dependency the dependency
+   * @param link the link
+   * @param parent the parent
+   * @param consumer the consumer
+   * @return the file
+   * @throws IOException the io exception
+   */
+  public static File downloadFile(
+      @NotNull final RepositoryDependency dependency,
+      @NotNull final String link,
+      @NotNull final String parent,
+      @NotNull final LongConsumer consumer)
+      throws IOException {
+    final String file = dependency.getArtifact() + "-" + dependency.getVersion() + ".jar";
+    final String url = link + file;
+    return downloadFile(Paths.get(parent + "/" + file), url, consumer);
+  }
+
+  /**
    * Download dependency file.
    *
    * @param groupId the group id
@@ -183,11 +256,38 @@ public final class DependencyUtilities {
       @NotNull final String groupId,
       @NotNull final String artifactId,
       @NotNull final String version,
-      @NotNull final String parent)
+      @NotNull final String parent,
+      @NotNull final DependencyResolution resolution)
       throws IOException {
     final String file = artifactId + "-" + version + ".jar";
-    final String url = getDependencyUrl(groupId, artifactId, version, MAVEN_CENTRAL_URL) + file;
+    final String url =
+        getDependencyUrl(groupId, artifactId, version, resolution.getBaseUrl()) + file;
     return downloadFile(Paths.get(parent + "/" + file), url);
+  }
+
+  /**
+   * Download dependency file with consumer.
+   *
+   * @param groupId the group id
+   * @param artifactId the artifact id
+   * @param version the version
+   * @param parent the parent
+   * @param consumer the consumer
+   * @return the file
+   * @throws IOException the io exception
+   */
+  public static File downloadFile(
+      @NotNull final String groupId,
+      @NotNull final String artifactId,
+      @NotNull final String version,
+      @NotNull final String parent,
+      @NotNull final DependencyResolution resolution,
+      @NotNull final LongConsumer consumer)
+      throws IOException {
+    final String file = artifactId + "-" + version + ".jar";
+    final String url =
+        getDependencyUrl(groupId, artifactId, version, resolution.getBaseUrl()) + file;
+    return downloadFile(Paths.get(parent + "/" + file), url, consumer);
   }
 
   /**
@@ -203,12 +303,57 @@ public final class DependencyUtilities {
     Logger.info("Downloading Dependency at " + url + " into folder " + p);
     final BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
     final FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p));
-    final byte[] dataBuffer = new byte[256000];
+    final byte[] dataBuffer = new byte[131072];
     int bytesRead;
     while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
       fileOutputStream.write(dataBuffer, 0, bytesRead);
     }
     return new File(p.toString());
+  }
+
+  /**
+   * Download dependency file with hook included.
+   *
+   * @param p the p
+   * @param url the url
+   * @param progress the consumer
+   * @return the file
+   * @throws IOException the io exception
+   */
+  public static File downloadFile(
+      @NotNull final Path p, @NotNull final String url, @NotNull final LongConsumer progress)
+      throws IOException {
+    Logger.info("Downloading Dependency at " + url + " into folder " + p);
+    final BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
+    final FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p));
+    final byte[] dataBuffer = new byte[131072];
+    int bytesRead;
+    while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+      progress.accept(bytesRead);
+      fileOutputStream.write(dataBuffer, 0, bytesRead);
+    }
+    return new File(p.toString());
+  }
+
+  /**
+   * Gets file size from link.
+   *
+   * @param url the link
+   * @return long size
+   * @throws IOException if url is invalid
+   */
+  public static long getFileSize(@NotNull final String url) throws IOException {
+    final URL download = new URL(url);
+    HttpURLConnection conn = null;
+    try {
+      conn = (HttpURLConnection) download.openConnection();
+      conn.setRequestMethod("HEAD");
+      return conn.getContentLengthLong();
+    } finally {
+      if (conn != null) {
+        conn.disconnect();
+      }
+    }
   }
 
   /**

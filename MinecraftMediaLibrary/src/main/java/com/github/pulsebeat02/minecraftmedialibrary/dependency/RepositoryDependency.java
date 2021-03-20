@@ -18,46 +18,58 @@ import org.jetbrains.annotations.NotNull;
 public enum RepositoryDependency {
 
   /** VLCJ Maven Dependency */
-  VLCJ("uk{}co{}caprica", "vlcj", "4{}6{}0"),
+  VLCJ("uk{}co{}caprica", "vlcj", "4{}6{}0", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** VLCJ Natives Maven Dependency */
-  VLCJ_NATIVES("uk{}co{}caprica", "vlcj-natives", "4{}1{}0"),
+  VLCJ_NATIVES("uk{}co{}caprica", "vlcj-natives", "4{}1{}0", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** Youtube Downloader Maven Dependency */
-  YOUTUBE_DOWNLOADER("com{}github{}sealedtx", "java-youtube-downloader", "2{}4{}6"),
+  YOUTUBE_DOWNLOADER(
+      "com{}github{}sealedtx",
+      "java-youtube-downloader",
+      "2{}4{}6",
+      DependencyResolution.JITPACK_DEPENDENCY),
 
   /** Jave Core Maven Dependency */
-  JAVE_CORE("ws{}schild", "jave-core", "3{}0{}1"),
+  JAVE_CORE("ws{}schild", "jave-core", "3{}0{}1", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** Apache Commons Compression Maven Dependency */
-  COMMONS_COMPRESSION("org{}apache{}commons", "commons-compress", "1{}20"),
+  COMMONS_COMPRESSION(
+      "org{}apache{}commons", "commons-compress", "1{}20", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** Compression Maven Dependency */
-  COMPRESSION("com{}github{}PulseBeat02", "jarchivelib", "master-SNAPSHOT"),
+  COMPRESSION(
+      "com{}github{}PulseBeat02",
+      "jarchivelib",
+      "master-SNAPSHOT",
+      DependencyResolution.JITPACK_DEPENDENCY),
 
   /** Compression XZ Maven Dependency */
-  XZ("org{}tukaani", "xz", "1{}0"),
+  XZ("org{}tukaani", "xz", "1{}0", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** ASM Maven Dependency */
-  ASM("org{}ow2{}asm", "asm", "9{}1"),
+  ASM("org{}ow2{}asm", "asm", "9{}1", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** ASM Commons Maven Dependency */
-  ASM_COMMONS("org{}ow2{}asm", "asm-commons", "9{}1"),
+  ASM_COMMONS("org{}ow2{}asm", "asm-commons", "9{}1", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** JNA Maven Dependency */
-  JNA("net{}java{}dev{}jna", "jna", "5{}7{}0");
-
-  //  JAVACV("org{}bytedeco", "javacv-platform", "1{}5{}4");
+  JNA("net{}java{}dev{}jna", "jna", "5{}7{}0", DependencyResolution.MAVEN_DEPENDENCY);
 
   private final String group;
   private final String artifact;
   private final String version;
+  private final DependencyResolution resolution;
 
   RepositoryDependency(
-      @NotNull final String group, @NotNull final String artifact, @NotNull final String version) {
+      @NotNull final String group,
+      @NotNull final String artifact,
+      @NotNull final String version,
+      @NotNull final DependencyResolution resolution) {
     this.group = group.replaceAll("\\{}", ".");
     this.artifact = artifact.replaceAll("\\{}", ".");
     this.version = version.replaceAll("\\{}", ".");
+    this.resolution = resolution;
   }
 
   /**
@@ -85,5 +97,14 @@ public enum RepositoryDependency {
    */
   public String getVersion() {
     return version;
+  }
+
+  /**
+   * Gets dependency resolution.
+   *
+   * @return the resolution
+   */
+  public DependencyResolution getResolution() {
+    return resolution;
   }
 }

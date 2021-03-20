@@ -33,7 +33,7 @@ public class JaveDependencyInstallation {
    * @param library library
    */
   public JaveDependencyInstallation(@NotNull final MinecraftMediaLibrary library) {
-      dependencyFolder = library.getDependenciesFolder();
+    dependencyFolder = library.getDependenciesFolder();
   }
 
   /**
@@ -42,7 +42,7 @@ public class JaveDependencyInstallation {
    * @param dependency directory path
    */
   public JaveDependencyInstallation(@NotNull final String dependency) {
-      dependencyFolder = dependency;
+    dependencyFolder = dependency;
   }
 
   /**
@@ -52,6 +52,47 @@ public class JaveDependencyInstallation {
    */
   public File install() {
     final File folder = new File(dependencyFolder);
+    mkdir(folder);
+    File file = searchJaveDependency(folder);
+    if (file != null) {
+      return file;
+    }
+    try {
+      file =
+          DependencyUtilities.downloadFile(
+              "ws.schild",
+              getArtifactId(),
+              "2.7.3",
+              dependencyFolder,
+              DependencyResolution.MAVEN_DEPENDENCY);
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+    return file;
+  }
+
+  /**
+   * Searches for existing Jave dependency file.
+   *
+   * @param folder the folder file
+   * @return file
+   */
+  public File searchJaveDependency(@NotNull final File folder) {
+    for (final File f : folder.listFiles()) {
+      if (f.getName().contains("jave")) {
+        file = f;
+        return file;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Creates directory if not existent.
+   *
+   * @param folder the folder file
+   */
+  public void mkdir(@NotNull final File folder) {
     if (!folder.exists()) {
       if (folder.mkdir()) {
         Logger.info("Library folder created successfully");
@@ -59,19 +100,6 @@ public class JaveDependencyInstallation {
         Logger.error("Library folder couldn't created successfully");
       }
     }
-    for (final File f : folder.listFiles()) {
-      if (f.getName().contains("jave")) {
-        file = f;
-        return file;
-      }
-    }
-    try {
-      file =
-          DependencyUtilities.downloadFile("ws.schild", getArtifactId(), "2.7.3", dependencyFolder);
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
-    return file;
   }
 
   /** Load. */
