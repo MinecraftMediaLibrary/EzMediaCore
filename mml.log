@@ -1,0 +1,11 @@
+1616258589959: [INFO] Trying to find Native VLC Installation...
+1616258590172: [INFO] Detecting Operating System...
+1616258665374: [INFO] Detected MACOS 64 Bit! (Silicon)
+1616258666644: [INFO] =========================================
+1616258666885: [INFO]  Final Results After Runtime Scanning... 
+1616258668413: [INFO] =========================================
+1616258668413: [INFO] Operating System: mac os x
+1616258668413: [INFO] CPU Architecture: x86_64
+1616258668413: [INFO] Link Used: https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-intel64/VLC.app.zip
+1616258668413: [INFO] =========================================
+1616258668432: [INFO] Found VLC plugins folder (/Users/bli24/IdeaProjects/MinecraftMediaLibrary/vlc/VLC.app/Contents/MacOS/plugins)

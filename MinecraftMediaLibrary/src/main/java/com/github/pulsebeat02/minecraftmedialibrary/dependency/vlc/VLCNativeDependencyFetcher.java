@@ -18,6 +18,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
@@ -118,7 +119,7 @@ public class VLCNativeDependencyFetcher {
    */
   public File findVLCFolder(@NotNull final File folder) {
     for (final File f : folder.listFiles()) {
-      if (f.getName().contains("vlc")) {
+      if (StringUtils.containsIgnoreCase(f.getName(), "vlc")) {
         return f;
       }
     }
@@ -135,7 +136,13 @@ public class VLCNativeDependencyFetcher {
       @NotNull final String dir, @NotNull final EnhancedNativeDiscovery enhancedNativeDiscovery) {
     final File before = findVLCFolder(new File(dir));
     if (before != null) {
-      System.setProperty("jna.library.path", before.getAbsolutePath());
+      if (RuntimeUtilities.isWINDOWS()) {
+        System.setProperty("jna.library.path", before.getAbsolutePath());
+      } else if (RuntimeUtilities.isMAC()) {
+        System.setProperty("jna.library.path", before.getAbsolutePath() + "/Contents/MacOS/lib");
+      } else if (RuntimeUtilities.isLINUX()) {
+
+      }
       enhancedNativeDiscovery.discover();
     }
   }

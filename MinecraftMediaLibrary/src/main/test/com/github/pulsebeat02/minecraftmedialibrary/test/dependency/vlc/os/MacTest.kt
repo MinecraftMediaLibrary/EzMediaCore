@@ -18,20 +18,23 @@ import io.github.glytching.junit.extension.system.SystemProperty
 import org.junit.jupiter.api.Test
 import java.io.File
 
+fun main(args: Array<String>) {
+    MacTest().linuxTest();
+}
+
 class MacTest {
 
-//    @Test
-//    @SystemProperty(name = "os.name", value = "Linux")
     fun linuxTest() {
         Logger.setVerbose(true)
-        val folder = File(File(System.getProperty("user.dir")).parent + "/vlc")
+        val folder = File(File(System.getProperty("user.dir")).absolutePath + "/vlc")
         if (!folder.exists()) {
             if (folder.mkdir()) {
                 println("Made Folder")
             } else {
-                println("Could NOY Make Folder")
+                println("Could NOT Make Folder")
             }
         }
+        println(folder.absolutePath)
         val fetcher = VLCNativeDependencyFetcher(folder.absolutePath)
         fetcher.downloadLibraries()
     }
