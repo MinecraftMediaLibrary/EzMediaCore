@@ -129,7 +129,7 @@ public final class RuntimeUtilities {
         concat.append(" ");
       }
     } catch (final IOException e) {
-      e.printStackTrace();
+      return "";
     }
     return concat.toString();
   }
