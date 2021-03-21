@@ -17,13 +17,12 @@ import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import com.sun.jna.StringArray;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.binding.LibC;
 import uk.co.caprica.vlcj.binding.internal.libvlc_instance_t;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 import uk.co.caprica.vlcj.support.version.LibVlcVersion;
-
-import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_release;
 
 import java.io.File;
 import java.util.ArrayDeque;
@@ -31,6 +30,7 @@ import java.util.Arrays;
 import java.util.Queue;
 
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_new;
+import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_release;
 
 public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
 
@@ -78,7 +78,12 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
     if (!fold.exists()) {
       return null;
     }
-    final Queue<File> folders = new ArrayDeque<>(Arrays.asList(fold.listFiles()));
+    final File dependency = getVLCFile(fold);
+    if (dependency == null) {
+      return null;
+    }
+    final Queue<File> folders = new ArrayDeque<>();
+    folders.add(dependency);
     while (!folders.isEmpty()) {
       final File f = folders.remove();
       if (f.isDirectory()) {
@@ -93,6 +98,21 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
       }
     }
     Logger.error("Could NOT find VLC plugins folder. This is a fatal error!");
+    return null;
+  }
+
+  /**
+   * Tries to find VLC app/dependency within directory.
+   *
+   * @param dir directory
+   * @return file
+   */
+  private File getVLCFile(@NotNull final File dir) {
+    for (final File f : dir.listFiles()) {
+      if (StringUtils.containsIgnoreCase(f.getName(), "VLC")) {
+        return f;
+      }
+    }
     return null;
   }
 

@@ -26,7 +26,7 @@ class MacTest {
 
     fun linuxTest() {
         Logger.setVerbose(true)
-        val folder = File(File(System.getProperty("user.dir")).absolutePath + "/vlc")
+        val folder = File("/Applications/")
         if (!folder.exists()) {
             if (folder.mkdir()) {
                 println("Made Folder")

@@ -1,12 +1,10 @@
-1616341103781: [INFO] Trying to find Native VLC Installation...
-1616341103800: [INFO] Detecting Operating System...
-1616341103800: [INFO] Detected MACOS 64 Bit! (Silicon)
-1616341103800: [INFO] =========================================
-1616341103800: [INFO]  Final Results After Runtime Scanning... 
-1616341103800: [INFO] =========================================
-1616341103800: [INFO] Operating System: mac os x
-1616341103800: [INFO] CPU Architecture: x86_64
-1616341103800: [INFO] Link Used: https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-intel64/VLC.app.zip
-1616341103800: [INFO] =========================================
-1616341104007: [INFO] Found VLC plugins folder (/Users/Brandon/IdeaProjects/MinecraftMediaLibrary/vlc/VLC.app/Contents/MacOS/plugins)
-1616341104088: [INFO] Found VLC Installation! No need to install VLC beforehand.
+1616371115924: [INFO] Trying to find Native VLC Installation...
+1616371124265: [INFO] Detecting Operating System...
+1616371124266: [INFO] Detected MACOS 64 Bit! (Silicon)
+1616371124266: [INFO] =========================================
+1616371124266: [INFO]  Final Results After Runtime Scanning... 
+1616371124267: [INFO] =========================================
+1616371124267: [INFO] Operating System: mac os x
+1616371124268: [INFO] CPU Architecture: x86_64
+1616371124268: [INFO] Link Used: https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-intel64/VLC.app.zip
+1616371124269: [INFO] =========================================

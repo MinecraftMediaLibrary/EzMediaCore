@@ -51,8 +51,10 @@ public class VLCNativeDependencyFetcher {
     Logger.info("Trying to find Native VLC Installation...");
     final NativeDiscovery nativeDiscovery = new NativeDiscovery();
     final EnhancedNativeDiscovery enhancedNativeDiscovery = new EnhancedNativeDiscovery(dir);
-    checkVLCExistance(dir, enhancedNativeDiscovery);
-    if (!(nativeDiscovery.discover() || enhancedNativeDiscovery.getPath() != null)) {
+    if (checkVLCExistance(dir, enhancedNativeDiscovery, nativeDiscovery)) {
+      return;
+    }
+    if (!(/*nativeDiscovery.discover() || */enhancedNativeDiscovery.getPath() != null)) {
       Logger.info("No VLC Installation found on this system. Proceeding to install.");
       final String option = RuntimeUtilities.getURL();
       File zip = null;
@@ -82,11 +84,11 @@ public class VLCNativeDependencyFetcher {
       }
       if (zip != null) {
         deleteArchive(zip);
-        System.setProperty("jna.library.path", findVLCFolder(zip.getParentFile()).getAbsolutePath());
+        NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), findVLCFolder(zip.getParentFile()).getAbsolutePath());
       } else {
         Logger.warn("Zip is null, meaning it could not be found!");
       }
-      enhancedNativeDiscovery.discover();
+      // enhancedNativeDiscovery.discover();
       printSystemEnvironmentVariables();
       printSystemProperties();
     } else {
@@ -127,7 +129,7 @@ public class VLCNativeDependencyFetcher {
         return f;
       }
     }
-    return new File("vlc-3.0.12");
+    return null;
   }
 
   /**
@@ -136,21 +138,24 @@ public class VLCNativeDependencyFetcher {
    * @param dir directory
    * @param enhancedNativeDiscovery discovery
    */
-  public void checkVLCExistance(
-      @NotNull final String dir, @NotNull final EnhancedNativeDiscovery enhancedNativeDiscovery) {
+  public boolean checkVLCExistance(
+      @NotNull final String dir,
+      @NotNull final EnhancedNativeDiscovery enhancedNativeDiscovery,
+      @NotNull final NativeDiscovery nativeDiscovery) {
     final File before = findVLCFolder(new File(dir));
     if (before != null) {
       if (RuntimeUtilities.isWINDOWS()) {
 //        System.setProperty("jna.library.path", before.getAbsolutePath());
         NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), before.getAbsolutePath());
+        enhancedNativeDiscovery.discover();
       } else if (RuntimeUtilities.isMAC()) {
-//        System.setProperty("jna.library.path", before.getAbsolutePath() + "/Contents/MacOS/lib");
-        NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), before.getAbsolutePath() + "/Contents/MacOS/lib");
+        nativeDiscovery.discover();
       } else if (RuntimeUtilities.isLINUX()) {
-
+        enhancedNativeDiscovery.discover();
       }
-      enhancedNativeDiscovery.discover();
+      return true;
     }
+    return false;
   }
 
   /**
