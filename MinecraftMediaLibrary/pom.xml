@@ -15,6 +15,7 @@
     </parent>
     <artifactId>MinecraftMediaLibrary</artifactId>
     <build>
+        <testSourceDirectory>src/main/test</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

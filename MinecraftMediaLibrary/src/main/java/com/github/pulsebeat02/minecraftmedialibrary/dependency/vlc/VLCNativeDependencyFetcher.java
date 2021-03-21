@@ -17,9 +17,13 @@ import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
+import com.sun.jna.Native;
+import com.sun.jna.NativeLibrary;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import uk.co.caprica.vlcj.binding.LibVlc;
+import uk.co.caprica.vlcj.binding.RuntimeUtil;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.File;
@@ -137,9 +141,11 @@ public class VLCNativeDependencyFetcher {
     final File before = findVLCFolder(new File(dir));
     if (before != null) {
       if (RuntimeUtilities.isWINDOWS()) {
-        System.setProperty("jna.library.path", before.getAbsolutePath());
+//        System.setProperty("jna.library.path", before.getAbsolutePath());
+        NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), before.getAbsolutePath());
       } else if (RuntimeUtilities.isMAC()) {
-        System.setProperty("jna.library.path", before.getAbsolutePath() + "/Contents/MacOS/lib");
+//        System.setProperty("jna.library.path", before.getAbsolutePath() + "/Contents/MacOS/lib");
+        NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), before.getAbsolutePath() + "/Contents/MacOS/lib");
       } else if (RuntimeUtilities.isLINUX()) {
 
       }
