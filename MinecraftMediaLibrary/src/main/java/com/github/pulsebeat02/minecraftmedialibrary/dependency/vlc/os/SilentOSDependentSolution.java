@@ -90,7 +90,8 @@ public abstract class SilentOSDependentSolution {
    */
   public File findVLCFolder(@NotNull final File folder) {
     for (final File f : folder.listFiles()) {
-      if (StringUtils.containsIgnoreCase(f.getName(), "vlc")) {
+      final String name = f.getName();
+      if (StringUtils.containsIgnoreCase(name, "vlc") && !name.endsWith(".dmg")) {
         return f;
       }
     }

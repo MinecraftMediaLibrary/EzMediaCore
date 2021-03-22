@@ -48,7 +48,7 @@ public class Logger {
    *
    * @param info the info
    */
-  public static void info(@NotNull final String info) {
+  public static void info(@NotNull final Object info) {
     directPrint(System.currentTimeMillis() + ": [INFO] " + info + "\n");
   }
 
@@ -57,7 +57,7 @@ public class Logger {
    *
    * @param warning the warning
    */
-  public static void warn(@NotNull final String warning) {
+  public static void warn(@NotNull final Object warning) {
     directPrint(System.currentTimeMillis() + ": [WARN] " + warning + "\n");
   }
 
@@ -66,7 +66,7 @@ public class Logger {
    *
    * @param error the error
    */
-  public static void error(@NotNull final String error) {
+  public static void error(@NotNull final Object error) {
     directPrint(System.currentTimeMillis() + ": [ERROR] " + error + "\n");
   }
 
