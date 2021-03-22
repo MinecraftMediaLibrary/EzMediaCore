@@ -35,7 +35,12 @@ public class VLCNativeDependencyFetcher {
     this.dir = dir;
   }
 
-  /** Download libraries. */
+  /**
+   * Download libraries.
+   *
+   * Currently in progress! Not finished as I am trying to support other operating systems.
+   *
+   */
   public void downloadLibraries() {
     Logger.info("Trying to find Native VLC Installation...");
     try {

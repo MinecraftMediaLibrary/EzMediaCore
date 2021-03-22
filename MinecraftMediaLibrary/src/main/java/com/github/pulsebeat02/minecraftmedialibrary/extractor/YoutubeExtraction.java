@@ -18,7 +18,7 @@ import com.github.kiulian.downloader.YoutubeException;
 import com.github.kiulian.downloader.model.VideoDetails;
 import com.github.kiulian.downloader.model.YoutubeVideo;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import com.github.pulsebeat02.minecraftmedialibrary.utility.ExtractorUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import org.jetbrains.annotations.NotNull;
 import ws.schild.jave.AudioAttributes;
 import ws.schild.jave.Encoder;
@@ -64,7 +64,7 @@ public class YoutubeExtraction implements AbstractVideoExtractor {
     onVideoDownload();
     File videoFile = null;
     final YoutubeDownloader downloader = new YoutubeDownloader();
-    final String ID = ExtractorUtilities.getVideoID(url);
+    final String ID = VideoExtractionUtilities.getVideoID(url);
     Logger.info("Downloading Video at URL (" + url + ")");
     if (ID != null) {
       try {
