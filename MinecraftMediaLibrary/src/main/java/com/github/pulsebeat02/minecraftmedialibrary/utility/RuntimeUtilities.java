@@ -113,11 +113,14 @@ public final class RuntimeUtilities {
   }
 
   /**
-   * Gets linux distribution.
+   * Gets linux distribution. Returns an empty string if the operating system is not windows.
    *
    * @return the linux distribution
    */
   public static String getLinuxDistribution() {
+    if (!LINUX) {
+      return "";
+    }
     final String[] cmd = {"/bin/sh", "-c", "cat /etc/*-release"};
     final StringBuilder concat = new StringBuilder();
     try {
@@ -129,7 +132,7 @@ public final class RuntimeUtilities {
         concat.append(" ");
       }
     } catch (final IOException e) {
-      return "";
+      e.printStackTrace();
     }
     return concat.toString();
   }

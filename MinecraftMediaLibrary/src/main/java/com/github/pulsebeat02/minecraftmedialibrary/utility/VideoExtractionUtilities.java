@@ -26,7 +26,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class ExtractorUtilities {
+public final class VideoExtractionUtilities {
 
   /**
    * Extracts vidoe id from Youtube URL.

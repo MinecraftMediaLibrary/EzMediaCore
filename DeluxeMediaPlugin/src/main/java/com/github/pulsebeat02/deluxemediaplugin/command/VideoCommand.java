@@ -7,7 +7,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
-import com.github.pulsebeat02.minecraftmedialibrary.utility.ExtractorUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.AbstractDitherHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.video.itemframe.ItemFrameCallback;
@@ -265,7 +265,7 @@ public class VideoCommand extends BaseCommand {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
     final String folderPath = plugin.getDataFolder().getAbsolutePath();
-    if (ExtractorUtilities.getVideoID(mrl) == null) {
+    if (VideoExtractionUtilities.getVideoID(mrl) == null) {
       final File f = new File(folderPath, mrl);
       if (f.exists()) {
         youtube = false;
