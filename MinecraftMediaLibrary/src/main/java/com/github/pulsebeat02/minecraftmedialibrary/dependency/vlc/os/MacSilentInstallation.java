@@ -18,16 +18,21 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 public class MacSilentInstallation extends SilentOSDependentSolution {
+
+  private static final Runtime RUNTIME;
+
+  static {
+    RUNTIME = Runtime.getRuntime();
+  }
 
   public MacSilentInstallation(@NotNull final MinecraftMediaLibrary library) {
     super(library);
@@ -63,7 +68,13 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
       } catch (final InterruptedException e) {
         e.printStackTrace();
       }
-      FileUtils.copyDirectory(new File(diskPath, "VLC.app"), new File(diskPath, "/Applications/VLC.app"));
+      final File app = new File(diskPath, "/Applications/VLC.app");
+      FileUtils.copyDirectory(new File(diskPath, "VLC.app"), app);
+      try {
+        changePermissions(app.getAbsolutePath());
+      } catch (final InterruptedException e) {
+        e.printStackTrace();
+      }
       Logger.info("Moved File!");
       try {
         if (unmountDiskImage(diskPath.getAbsolutePath()) != 0) {
@@ -76,6 +87,7 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
       deleteArchive(dmg);
       Logger.info("Deleted DMG File");
     }
+    loadNativeDependency(null);
   }
 
   /**
@@ -88,16 +100,16 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
    */
   public int mountDiskImage(@NotNull final File dmg) throws IOException, InterruptedException {
     final String[] command = {"/usr/bin/hdiutil", "attach", dmg.getAbsolutePath()};
-    final StringBuilder sendback = new StringBuilder();
-    final Process proc = Runtime.getRuntime().exec(command);
+    final StringBuilder output = new StringBuilder();
+    final Process proc = RUNTIME.exec(command);
     final BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
     String str;
     while ((str = br.readLine()) != null) {
-      sendback.append(str);
+      output.append(str);
     }
     br.close();
     Logger.info("============= DMG INFORMATION =============");
-    Logger.info(sendback.toString());
+    Logger.info(output.toString());
     Logger.info("===========================================");
     return proc.waitFor();
   }
@@ -112,22 +124,36 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
    */
   public int unmountDiskImage(@NotNull final String path) throws IOException, InterruptedException {
     final String[] command = {"diskutil", "unmount", path};
-    final StringBuilder sendback = new StringBuilder();
-    final Process proc = Runtime.getRuntime().exec(command);
+    final StringBuilder output = new StringBuilder();
+    final Process proc = RUNTIME.exec(command);
     final BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
     String str;
     while ((str = br.readLine()) != null) {
-      sendback.append(str);
+      output.append(str);
     }
     br.close();
     Logger.info("=========== UNMOUNT INFORMATION ===========");
-    Logger.info(sendback.toString());
+    Logger.info(output.toString());
     Logger.info("===========================================");
     return proc.waitFor();
   }
 
+  /**
+   * Changes permission of app file.
+   *
+   * @param path path
+   * @return status code
+   * @throws IOException if path couldn't be found
+   * @throws InterruptedException waiting for process
+   */
+  public int changePermissions(@NotNull final String path) throws IOException, InterruptedException {
+    final String[] command = {"chmod", "-R", "755", path};
+    final Process proc = RUNTIME.exec(command);
+    return proc.waitFor();
+  }
+
   @Override
-  public void loadNativeDependency(@NotNull final File folder) {
+  public void loadNativeDependency(@Nullable final File folder) {
     getNativeDiscovery().discover();
   }
 }

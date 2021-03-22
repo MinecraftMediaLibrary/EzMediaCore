@@ -18,6 +18,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.EnhancedNativ
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.File;
@@ -59,7 +60,7 @@ public abstract class SilentOSDependentSolution {
    *
    * @param folder directory
    */
-  public abstract void loadNativeDependency(@NotNull final File folder);
+  public abstract void loadNativeDependency(@Nullable final File folder);
 
   /** Prints all System environment variables. */
   public void printSystemEnvironmentVariables() {
