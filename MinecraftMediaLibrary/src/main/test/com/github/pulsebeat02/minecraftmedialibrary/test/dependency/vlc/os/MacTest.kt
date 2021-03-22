@@ -14,18 +14,15 @@ package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc.os
 
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.VLCNativeDependencyFetcher
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger
-import io.github.glytching.junit.extension.system.SystemProperty
-import org.junit.jupiter.api.Test
-import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery
 import java.io.File
 
 fun main(args: Array<String>) {
-    MacTest().linuxTest();
+    MacTest().macTest();
 }
 
 class MacTest {
 
-    fun linuxTest() {
+    fun macTest() {
         Logger.setVerbose(true)
         val folder = File("/Applications/")
         if (!folder.exists()) {
@@ -36,8 +33,6 @@ class MacTest {
             }
         }
         println(folder.absolutePath)
-        val fetcher = VLCNativeDependencyFetcher(folder.absolutePath)
-        fetcher.downloadLibraries()
-        println(NativeDiscovery().discover())
+        VLCNativeDependencyFetcher("/Applications/").downloadLibraries()
     }
 }
