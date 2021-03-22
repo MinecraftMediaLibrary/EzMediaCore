@@ -69,10 +69,10 @@ public final class RuntimeUtilities {
         if (!CPU_ARCH.contains("amd")) {
           Logger.info("Detected MACOS 64 Bit! (Silicon)");
           URL =
-              "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-intel64/VLC.app.zip";
+              "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-intel64/VLC.zip";
         } else {
           Logger.info("Detected MACOS 64 Bit! (AMD)");
-          URL = "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-arm64/VLC.app.zip";
+          URL = "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-arm64/VLC.zip";
         }
       }
     } else {

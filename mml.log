@@ -1,10 +1,10 @@
-1616371115924: [INFO] Trying to find Native VLC Installation...
-1616371124265: [INFO] Detecting Operating System...
-1616371124266: [INFO] Detected MACOS 64 Bit! (Silicon)
-1616371124266: [INFO] =========================================
-1616371124266: [INFO]  Final Results After Runtime Scanning... 
-1616371124267: [INFO] =========================================
-1616371124267: [INFO] Operating System: mac os x
-1616371124268: [INFO] CPU Architecture: x86_64
-1616371124268: [INFO] Link Used: https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-intel64/VLC.app.zip
-1616371124269: [INFO] =========================================
+1616372486131: [INFO] Trying to find Native VLC Installation...
+1616372486177: [INFO] Detecting Operating System...
+1616372486178: [INFO] Detected MACOS 64 Bit! (Silicon)
+1616372486178: [INFO] =========================================
+1616372486178: [INFO]  Final Results After Runtime Scanning... 
+1616372486178: [INFO] =========================================
+1616372486178: [INFO] Operating System: mac os x
+1616372486178: [INFO] CPU Architecture: x86_64
+1616372486178: [INFO] Link Used: https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-intel64/VLC.zip
+1616372486178: [INFO] =========================================

@@ -16,6 +16,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.VLCNativeDepe
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger
 import io.github.glytching.junit.extension.system.SystemProperty
 import org.junit.jupiter.api.Test
+import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery
 import java.io.File
 
 fun main(args: Array<String>) {
@@ -37,5 +38,6 @@ class MacTest {
         println(folder.absolutePath)
         val fetcher = VLCNativeDependencyFetcher(folder.absolutePath)
         fetcher.downloadLibraries()
+        println(NativeDiscovery().discover())
     }
 }
