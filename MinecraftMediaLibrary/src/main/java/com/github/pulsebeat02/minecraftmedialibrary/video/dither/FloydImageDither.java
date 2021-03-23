@@ -144,7 +144,7 @@ public class FloydImageDither implements AbstractDitherHolder {
    * @param buffer the buffer
    * @return the byte [ ]
    */
-  public byte[] simplify(final @NotNull int[] buffer) {
+  public byte[] simplify(final int[] buffer) {
     final byte[] map = new byte[buffer.length];
     for (int index = 0; index < buffer.length; index++) {
       final int rgb = buffer[index];
@@ -158,7 +158,6 @@ public class FloydImageDither implements AbstractDitherHolder {
   }
 
   /**
-   *
    * Dithers buffer data.
    *
    * @param buffer data for the image
@@ -261,6 +260,7 @@ public class FloydImageDither implements AbstractDitherHolder {
 
   /**
    * Dithers buffer data into Minecraft.
+   *
    * @param buffer data for the image
    * @param width units for the image
    * @return dithered buffer data
@@ -364,6 +364,7 @@ public class FloydImageDither implements AbstractDitherHolder {
 
   /**
    * Gets current DitherSetting.
+   *
    * @return setting
    */
   @Override

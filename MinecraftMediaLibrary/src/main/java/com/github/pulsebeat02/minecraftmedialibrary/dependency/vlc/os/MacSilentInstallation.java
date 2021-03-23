@@ -14,16 +14,15 @@
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.os;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTask;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
 
 public class MacSilentInstallation extends SilentOSDependentSolution {
@@ -98,20 +97,13 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
    * @throws IOException if dmg cannot be found
    * @throws InterruptedException waiting for process
    */
-  public int mountDiskImage(@NotNull final File dmg) throws IOException, InterruptedException {
+  private int mountDiskImage(@NotNull final File dmg) throws IOException, InterruptedException {
     final String[] command = {"/usr/bin/hdiutil", "attach", dmg.getAbsolutePath()};
-    final StringBuilder output = new StringBuilder();
-    final Process proc = RUNTIME.exec(command);
-    final BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-    String str;
-    while ((str = br.readLine()) != null) {
-      output.append(str);
-    }
-    br.close();
+    final CommandTask t = new CommandTask(command, true);
     Logger.info("============= DMG INFORMATION =============");
-    Logger.info(output.toString());
+    Logger.info(t.getResult());
     Logger.info("===========================================");
-    return proc.waitFor();
+    return t.getProcess().waitFor();
   }
 
   /**
@@ -122,20 +114,14 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
    * @throws IOException if path cannot be found
    * @throws InterruptedException waiting for process
    */
-  public int unmountDiskImage(@NotNull final String path) throws IOException, InterruptedException {
+  private int unmountDiskImage(@NotNull final String path)
+      throws IOException, InterruptedException {
     final String[] command = {"diskutil", "unmount", path};
-    final StringBuilder output = new StringBuilder();
-    final Process proc = RUNTIME.exec(command);
-    final BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-    String str;
-    while ((str = br.readLine()) != null) {
-      output.append(str);
-    }
-    br.close();
+    final CommandTask t = new CommandTask(command, true);
     Logger.info("=========== UNMOUNT INFORMATION ===========");
-    Logger.info(output.toString());
+    Logger.info(t.getResult());
     Logger.info("===========================================");
-    return proc.waitFor();
+    return t.getProcess().waitFor();
   }
 
   /**
@@ -146,10 +132,10 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
    * @throws IOException if path couldn't be found
    * @throws InterruptedException waiting for process
    */
-  public int changePermissions(@NotNull final String path) throws IOException, InterruptedException {
+  private int changePermissions(@NotNull final String path)
+      throws IOException, InterruptedException {
     final String[] command = {"chmod", "-R", "755", path};
-    final Process proc = RUNTIME.exec(command);
-    return proc.waitFor();
+    return new CommandTask(command, true).getProcess().waitFor();
   }
 
   @Override

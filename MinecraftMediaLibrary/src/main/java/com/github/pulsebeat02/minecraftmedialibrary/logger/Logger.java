@@ -22,11 +22,10 @@ import java.io.IOException;
 
 public class Logger {
 
-  /** Log writer */
-  protected static volatile BufferedWriter WRITER;
-
   /** Tracks whether log should be verbose */
   public static boolean VERBOSE;
+  /** Log writer */
+  protected static volatile BufferedWriter WRITER;
 
   static {
     try {

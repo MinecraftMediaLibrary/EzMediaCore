@@ -15,11 +15,11 @@ package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities
 import java.io.File
 
-fun main(args: Array<String>) {
+fun main() {
     val prop = System.getProperty("user.dir")
     val f = File("$prop/extraction/test.deb")
     ArchiveUtilities.recursiveExtraction(
-        f, f.parentFile
+            f, f.parentFile
     )
 
 }

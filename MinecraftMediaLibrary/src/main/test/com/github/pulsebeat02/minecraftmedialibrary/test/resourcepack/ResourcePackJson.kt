@@ -17,11 +17,11 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
-fun main(args: Array<String>) {
+fun main() {
     println("===============================")
     val gson = GsonBuilder()
-        .setPrettyPrinting()
-        .create()
+            .setPrettyPrinting()
+            .create()
     val full = JsonObject()
     val pack = JsonObject()
     pack.addProperty("pack-format", 8)
@@ -30,7 +30,7 @@ fun main(args: Array<String>) {
     System.out.println(gson.toJson(full))
     println("===============================")
     val category = JsonObject()
-    val type = JsonObject();
+    val type = JsonObject()
     val sounds = JsonArray()
     sounds.add("audio")
     category.add("sounds", sounds)

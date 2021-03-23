@@ -16,18 +16,16 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency;
 import org.jetbrains.annotations.NotNull;
 
 public enum DependencyResolution {
+  MAVEN_DEPENDENCY("https://repo1.maven.org/maven2/"),
+  JITPACK_DEPENDENCY("https://jitpack.io/");
 
-    MAVEN_DEPENDENCY("https://repo1.maven.org/maven2/"),
-    JITPACK_DEPENDENCY("https://jitpack.io/");
+  private final String baseUrl;
 
-    private final String baseUrl;
+  DependencyResolution(@NotNull final String url) {
+    baseUrl = url;
+  }
 
-    DependencyResolution(@NotNull final String url) {
-        baseUrl = url;
-    }
-
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-
+  public String getBaseUrl() {
+    return baseUrl;
+  }
 }

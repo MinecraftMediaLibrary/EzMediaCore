@@ -38,8 +38,7 @@ public class VLCNativeDependencyFetcher {
   /**
    * Download libraries.
    *
-   * Currently in progress! Not finished as I am trying to support other operating systems.
-   *
+   * <p>Currently in progress! Not finished as I am trying to support other operating systems.
    */
   public void downloadLibraries() {
     Logger.info("Trying to find Native VLC Installation...");

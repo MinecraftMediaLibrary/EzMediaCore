@@ -25,17 +25,6 @@ public class JavaVersionUtilities {
     MAJOR_VERSION = Integer.parseInt(JAVA_VERSION.split("\\.")[1]);
   }
 
-  public void sendWarningMessage() {
-    if (MAJOR_VERSION < 11) {
-      Logger.warn(
-              "MinecraftMediaPlugin is moving towards a newer Java Version (Java 11) \n"
-                      + "Please switch as soon as possible before the library will be incompatible \n"
-                      + "with your server. If you want to read more information surrounding this, \n"
-                      + "you may want to take a look here at "
-                      + "https://papermc.io/forums/t/java-11-mc-1-17-and-paper/5615");
-    }
-  }
-
   /**
    * Gets Java Version.
    *
@@ -52,5 +41,16 @@ public class JavaVersionUtilities {
    */
   public static int getMajorVersion() {
     return MAJOR_VERSION;
+  }
+
+  public void sendWarningMessage() {
+    if (MAJOR_VERSION < 11) {
+      Logger.warn(
+          "MinecraftMediaPlugin is moving towards a newer Java Version (Java 11) \n"
+              + "Please switch as soon as possible before the library will be incompatible \n"
+              + "with your server. If you want to read more information surrounding this, \n"
+              + "you may want to take a look here at "
+              + "https://papermc.io/forums/t/java-11-mc-1-17-and-paper/5615");
+    }
   }
 }

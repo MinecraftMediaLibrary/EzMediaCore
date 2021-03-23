@@ -142,7 +142,8 @@ public class LinuxPackageManager {
         break;
       }
     }
-    final CPUArchitecture arch = CPUArchitecture.fromName(RuntimeUtilities.getCpuArch().toUpperCase());
+    final CPUArchitecture arch =
+        CPUArchitecture.fromName(RuntimeUtilities.getCpuArch().toUpperCase());
     if (set == null || arch == null) {
       Logger.error("Could not find architecture... throwing an error!");
       throw new UnsupportedOperatingSystemException("Unsupported Operating System Platform!");

@@ -32,7 +32,8 @@ public final class ArchiveUtilities {
   private static final Set<String> ARCHIVE_EXTENSIONS;
 
   static {
-    ARCHIVE_EXTENSIONS = ImmutableSet.of("zip", "deb", "rpm", "txz", "xz", "tgz", "gz", "ar", "cpio");
+    ARCHIVE_EXTENSIONS =
+        ImmutableSet.of("zip", "deb", "rpm", "txz", "xz", "tgz", "gz", "ar", "cpio");
   }
 
   /**

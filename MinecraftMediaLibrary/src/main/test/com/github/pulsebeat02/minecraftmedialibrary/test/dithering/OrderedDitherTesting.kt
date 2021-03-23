@@ -61,11 +61,11 @@ class OrderedDitherTesting(image: File) : JFrame() {
             c.add(panel)
         }
         addWindowListener(
-            object : WindowAdapter() {
-                override fun windowClosing(e: WindowEvent) {
-                    System.exit(0)
-                }
-            })
+                object : WindowAdapter() {
+                    override fun windowClosing(e: WindowEvent) {
+                        System.exit(0)
+                    }
+                })
         pack()
         isVisible = true
     }
