@@ -174,7 +174,7 @@ public class ItemFrameCallback implements AbstractCallback {
   }
 
   /** The type Builder. */
-  public class Builder {
+  public static class Builder {
 
     private UUID[] viewers;
     private AbstractDitherHolder type;

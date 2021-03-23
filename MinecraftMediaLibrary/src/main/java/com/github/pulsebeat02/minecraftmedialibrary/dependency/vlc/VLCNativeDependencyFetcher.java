@@ -14,6 +14,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.os.LinuxSilentInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.os.MacSilentInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.os.WindowsSilentInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
@@ -44,7 +45,7 @@ public class VLCNativeDependencyFetcher {
     Logger.info("Trying to find Native VLC Installation...");
     try {
       if (RuntimeUtilities.isLinux()) {
-
+        new LinuxSilentInstallation(dir).downloadVLCLibrary();
       } else if (RuntimeUtilities.isWindows()) {
         new WindowsSilentInstallation(dir).downloadVLCLibrary();
       } else if (RuntimeUtilities.isMac()) {

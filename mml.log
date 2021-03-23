@@ -1,21 +1,21 @@
-1616422690305: [INFO] Trying to find Native VLC Installation...
-1616422690308: [INFO] Detecting Operating System...
-1616422690308: [INFO] Detected MACOS 64 Bit! (Silicon)
-1616422690308: [INFO] =========================================
-1616422690308: [INFO]  Final Results After Runtime Scanning... 
-1616422690308: [INFO] =========================================
-1616422690308: [INFO] Operating System: mac os x
-1616422690308: [INFO] CPU Architecture: x86_64
-1616422690308: [INFO] Link Used: https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-intel64/VLC.dmg
-1616422690308: [INFO] =========================================
-1616422718291: [INFO] ============= DMG INFORMATION =============
-1616422718292: [INFO] Checksumming Protective Master Boot Record (MBR : 0)…Protective Master Boot Record (MBR :: verified   CRC32 $626DC999Checksumming GPT Header (Primary GPT Header : 1)… GPT Header (Primary GPT Header : 1): verified   CRC32 $7D569672Checksumming GPT Partition Data (Primary GPT Table : 2)…GPT Partition Data (Primary GPT Tabl: verified   CRC32 $2274A427Checksumming  (Apple_Free : 3)…                    (Apple_Free : 3): verified   CRC32 $00000000Checksumming disk image (Apple_HFS : 4)…          disk image (Apple_HFS : 4): verified   CRC32 $E3D488FDChecksumming  (Apple_Free : 5)…                    (Apple_Free : 5): verified   CRC32 $00000000Checksumming GPT Partition Data (Backup GPT Table : 6)…GPT Partition Data (Backup GPT Table: verified   CRC32 $2274A427Checksumming GPT Header (Backup GPT Header : 7)…  GPT Header (Backup GPT Header : 7): verified   CRC32 $44BE0F5Everified   CRC32 $8C72CC0E/dev/disk7          	GUID_partition_scheme          	/dev/disk7s1        	Apple_HFS                      	/Volumes/VLC media player
-1616422718292: [INFO] ===========================================
-1616422808047: [INFO] Moved File!
-1616422808437: [INFO] =========== UNMOUNT INFORMATION ===========
-1616422808437: [INFO] Volume VLC media player on disk7s1 unmounted
-1616422808437: [INFO] ===========================================
-1616422808437: [INFO] Unmounting Disk Successfully
-1616422808437: [INFO] Deleting Archive...
-1616422808438: [INFO] Archive deleted after installation.
-1616422808438: [INFO] Deleted DMG File
+1616513232171: [INFO] Trying to find Native VLC Installation...
+1616513232178: [INFO] Detecting Operating System...
+1616513232178: [INFO] Detected MACOS 64 Bit! (Silicon)
+1616513232178: [INFO] =========================================
+1616513232178: [INFO]  Final Results After Runtime Scanning... 
+1616513232178: [INFO] =========================================
+1616513232179: [INFO] Operating System: mac os x
+1616513232179: [INFO] CPU Architecture: x86_64
+1616513232179: [INFO] Link Used: https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-intel64/VLC.dmg
+1616513232179: [INFO] =========================================
+1616513266292: [INFO] ============= DMG INFORMATION =============
+1616513266292: [INFO] Checksumming Protective Master Boot Record (MBR : 0)…Protective Master Boot Record (MBR :: verified   CRC32 $626DC999Checksumming GPT Header (Primary GPT Header : 1)… GPT Header (Primary GPT Header : 1): verified   CRC32 $7D569672Checksumming GPT Partition Data (Primary GPT Table : 2)…GPT Partition Data (Primary GPT Tabl: verified   CRC32 $2274A427Checksumming  (Apple_Free : 3)…                    (Apple_Free : 3): verified   CRC32 $00000000Checksumming disk image (Apple_HFS : 4)…          disk image (Apple_HFS : 4): verified   CRC32 $E3D488FDChecksumming  (Apple_Free : 5)…                    (Apple_Free : 5): verified   CRC32 $00000000Checksumming GPT Partition Data (Backup GPT Table : 6)…GPT Partition Data (Backup GPT Table: verified   CRC32 $2274A427Checksumming GPT Header (Backup GPT Header : 7)…  GPT Header (Backup GPT Header : 7): verified   CRC32 $44BE0F5Everified   CRC32 $8C72CC0E/dev/disk6          	GUID_partition_scheme          	/dev/disk6s1        	Apple_HFS                      	/Volumes/VLC media player
+1616513266292: [INFO] ===========================================
+1616513360230: [INFO] Moved File!
+1616513360413: [INFO] =========== UNMOUNT INFORMATION ===========
+1616513360413: [INFO] Volume VLC media player on disk6s1 unmounted
+1616513360413: [INFO] ===========================================
+1616513360413: [INFO] Unmounting Disk Successfully
+1616513360413: [INFO] Deleting Archive...
+1616513360414: [INFO] Archive deleted after installation.
+1616513360414: [INFO] Deleted DMG File

@@ -13,6 +13,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
+import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyResolution;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.RepositoryDependency;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
@@ -144,6 +145,7 @@ public final class DependencyUtilities {
    * @param dependency the dependency
    * @return the maven central url
    */
+  @LegacyApi(since = "1.3.0")
   @Deprecated
   public static String getMavenCentralUrl(@NotNull final RepositoryDependency dependency) {
     return getDependencyUrl(dependency);
@@ -155,6 +157,7 @@ public final class DependencyUtilities {
    * @param dependency the dependency
    * @return the jitpack url
    */
+  @LegacyApi(since = "1.3.0")
   @Deprecated
   public static String getJitpackUrl(@NotNull final RepositoryDependency dependency) {
     return getDependencyUrl(dependency);

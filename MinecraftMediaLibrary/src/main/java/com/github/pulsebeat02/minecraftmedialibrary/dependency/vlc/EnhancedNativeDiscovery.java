@@ -14,6 +14,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import com.sun.jna.StringArray;
@@ -32,6 +33,8 @@ import java.util.Queue;
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_new;
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_release;
 
+@LegacyApi(since = "1.2.0")
+@Deprecated
 public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
 
   private static final String VLC_PLUGIN_PATH;
@@ -90,7 +93,6 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
         if (f.getName().equals("plugins")) {
           path = f.getAbsolutePath();
           Logger.info("Found VLC plugins folder (" + path + ")");
-          onSetPluginPath(path);
           loadLibrary();
           return path;
         }

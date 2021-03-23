@@ -16,7 +16,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.VLCNativeDepe
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger
 import java.io.File
 
-fun main(args: Array<String>) {
+fun main() {
     MacTest().macTest();
 }
 
@@ -24,7 +24,7 @@ class MacTest {
 
     fun macTest() {
         Logger.setVerbose(true)
-        val folder = File("/Applications/")
+        val folder = File(System.getProperty("user.dir"), "/vlc")
         if (!folder.exists()) {
             if (folder.mkdir()) {
                 println("Made Folder")
@@ -33,6 +33,6 @@ class MacTest {
             }
         }
         println(folder.absolutePath)
-        VLCNativeDependencyFetcher("/Applications/").downloadLibraries()
+        VLCNativeDependencyFetcher(folder.absolutePath).downloadLibraries()
     }
 }

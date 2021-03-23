@@ -13,12 +13,14 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.video.dither.development;
 
+import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.AbstractDitherHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.StaticDitherInitialization;
 
 import java.nio.ByteBuffer;
 
+@LegacyApi(since = "1.2.0")
 @Deprecated
 public class IntPulseDithering implements AbstractDitherHolder {
 

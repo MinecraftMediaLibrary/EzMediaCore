@@ -13,12 +13,15 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
+import com.github.pulsebeat02.minecraftmedialibrary.annotation.Author;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 
+@Author(authors = {"PulseBeat_02", "BananaPuncher714", "jetp250"},
+        emails = {"brandonli2006ma@gmail.com", "banana@aaaaahhhhhhh.com", "github.com/jetp250"})
 public class FloydImageDither implements AbstractDitherHolder {
 
   private static final int[] PALETTE;

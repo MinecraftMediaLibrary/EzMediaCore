@@ -13,6 +13,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.video.dither.development;
 
+import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.AbstractDitherHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.MinecraftMapPalette;
@@ -23,6 +24,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+@LegacyApi(since = "1.2.0")
 @Deprecated
 public class BytePulseDithering implements AbstractDitherHolder {
 

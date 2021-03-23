@@ -14,11 +14,11 @@
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.os;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.EnhancedNativeDiscovery;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.sun.jna.NativeLibrary;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import uk.co.caprica.vlcj.binding.RuntimeUtil;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.File;
@@ -31,36 +31,43 @@ public abstract class SilentOSDependentSolution {
 
   private final String dir;
   private final NativeDiscovery nativeDiscovery;
-  private final EnhancedNativeDiscovery enhancedNativeDiscovery;
 
   public SilentOSDependentSolution(@NotNull final MinecraftMediaLibrary library) {
     dir = library.getVlcFolder();
     nativeDiscovery = new NativeDiscovery();
-    enhancedNativeDiscovery = new EnhancedNativeDiscovery(dir);
   }
 
   public SilentOSDependentSolution(@NotNull final String dir) {
     this.dir = dir;
     nativeDiscovery = new NativeDiscovery();
-    enhancedNativeDiscovery = new EnhancedNativeDiscovery(dir);
   }
+
+  /** Download VLC libraries. */
+  public abstract void downloadVLCLibrary() throws IOException;
 
   /**
    * Checks existence of VLC folder.
    *
    * @param dir directory
    */
-  public abstract boolean checkVLCExistance(@NotNull final String dir);
-
-  /** Download VLC libraries. */
-  public abstract void downloadVLCLibrary() throws IOException;
+  public boolean checkVLCExistance(@NotNull final String dir) {
+    final File folder = findVLCFolder(new File(dir));
+    if (folder == null || !folder.exists()) {
+      return false;
+    }
+    loadNativeDependency(folder);
+    return getNativeDiscovery().discover();
+  }
 
   /**
    * Loads native dependency from file.
    *
    * @param folder directory
    */
-  public abstract void loadNativeDependency(@Nullable final File folder);
+  public void loadNativeDependency(@NotNull final File folder) {
+    NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), folder.getAbsolutePath());
+    nativeDiscovery.discover();
+  }
 
   /** Prints all System environment variables. */
   public void printSystemEnvironmentVariables() {
@@ -129,14 +136,5 @@ public abstract class SilentOSDependentSolution {
    */
   public NativeDiscovery getNativeDiscovery() {
     return nativeDiscovery;
-  }
-
-  /**
-   * Gets EnhancedNativeDiscovery.
-   *
-   * @return custom discovery
-   */
-  public EnhancedNativeDiscovery getEnhancedNativeDiscovery() {
-    return enhancedNativeDiscovery;
   }
 }

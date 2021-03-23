@@ -19,7 +19,6 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,16 +32,6 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
 
   public MacSilentInstallation(@NotNull final String dir) {
     super(dir);
-  }
-
-  @Override
-  public boolean checkVLCExistance(@NotNull final String dir) {
-    final File folder = findVLCFolder(new File(dir));
-    if (folder == null || !folder.exists()) {
-      return false;
-    }
-    loadNativeDependency(folder);
-    return getNativeDiscovery().discover();
   }
 
   @Override
@@ -61,7 +50,7 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
       } catch (final InterruptedException e) {
         e.printStackTrace();
       }
-      final File app = new File(diskPath, "/Applications/VLC.app");
+      final File app = new File(dir, "VLC.app");
       FileUtils.copyDirectory(new File(diskPath, "VLC.app"), app);
       try {
         changePermissions(app.getAbsolutePath());
@@ -80,7 +69,7 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
       deleteArchive(dmg);
       Logger.info("Deleted DMG File");
     }
-    loadNativeDependency(null);
+    loadNativeDependency(new File(dir));
   }
 
   /**
@@ -129,10 +118,5 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
       throws IOException, InterruptedException {
     final String[] command = {"chmod", "-R", "755", path};
     new CommandTask(command, true).getProcess().waitFor();
-  }
-
-  @Override
-  public void loadNativeDependency(@Nullable final File folder) {
-    getNativeDiscovery().discover();
   }
 }
