@@ -147,11 +147,11 @@ public final class MinecraftMediaLibrary {
     Logger.info("System Operating System Version: " + System.getProperty("os.version"));
     Logger.info(
         "Windows/Mac/Linux: "
-            + RuntimeUtilities.isWINDOWS()
+            + RuntimeUtilities.isWindows()
             + "/"
-            + RuntimeUtilities.isMAC()
+            + RuntimeUtilities.isMac()
             + "/"
-            + RuntimeUtilities.isLINUX());
+            + RuntimeUtilities.isLinux());
     Logger.info("Linux Distribution (If Linux): " + RuntimeUtilities.getLinuxDistribution());
   }
 

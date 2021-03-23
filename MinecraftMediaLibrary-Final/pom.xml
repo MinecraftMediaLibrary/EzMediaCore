@@ -81,11 +81,8 @@
                             <pattern>org.apache.commons.io</pattern>
                             <shadedPattern>org.bukkit.craftbukkit.libs.org.apache.commons.io</shadedPattern>
                         </relocation>
-<!--                        <relocation>-->
-<!--                            <pattern>com.sun.jna</pattern>-->
-<!--                            <shadedPattern>com.github.pulsebeat02.jna</shadedPattern>-->
-<!--                        </relocation>-->
                     </relocations>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
                 </configuration>
             </plugin>
         </plugins>

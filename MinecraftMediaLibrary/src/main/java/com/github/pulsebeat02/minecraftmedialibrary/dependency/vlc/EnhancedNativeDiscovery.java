@@ -135,7 +135,7 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
    */
   @Override
   public boolean onSetPluginPath(final String s) {
-    if (RuntimeUtilities.isWINDOWS()) {
+    if (RuntimeUtilities.isWindows()) {
       return LibC.INSTANCE._putenv(String.format("%s=%s", VLC_PLUGIN_PATH, path)) == 0;
     }
     return LibC.INSTANCE.setenv(VLC_PLUGIN_PATH, path, 1) == 0;

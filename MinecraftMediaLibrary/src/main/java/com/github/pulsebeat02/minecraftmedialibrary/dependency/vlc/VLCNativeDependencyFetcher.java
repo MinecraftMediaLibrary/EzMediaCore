@@ -43,11 +43,11 @@ public class VLCNativeDependencyFetcher {
   public void downloadLibraries() {
     Logger.info("Trying to find Native VLC Installation...");
     try {
-      if (RuntimeUtilities.isLINUX()) {
+      if (RuntimeUtilities.isLinux()) {
 
-      } else if (RuntimeUtilities.isWINDOWS()) {
+      } else if (RuntimeUtilities.isWindows()) {
         new WindowsSilentInstallation(dir).downloadVLCLibrary();
-      } else if (RuntimeUtilities.isMAC()) {
+      } else if (RuntimeUtilities.isMac()) {
         new MacSilentInstallation(dir).downloadVLCLibrary();
       }
     } catch (final IOException e) {

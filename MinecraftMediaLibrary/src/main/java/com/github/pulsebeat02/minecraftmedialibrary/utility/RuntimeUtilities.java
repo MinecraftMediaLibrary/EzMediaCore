@@ -197,7 +197,7 @@ public final class RuntimeUtilities {
    *
    * @return Mac OS
    */
-  public static boolean isMAC() {
+  public static boolean isMac() {
     return MAC;
   }
 
@@ -206,7 +206,7 @@ public final class RuntimeUtilities {
    *
    * @return Windows OS
    */
-  public static boolean isWINDOWS() {
+  public static boolean isWindows() {
     return WINDOWS;
   }
 
@@ -215,7 +215,7 @@ public final class RuntimeUtilities {
    *
    * @return Linux OS
    */
-  public static boolean isLINUX() {
+  public static boolean isLinux() {
     return LINUX;
   }
 

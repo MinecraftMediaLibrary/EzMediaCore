@@ -27,12 +27,6 @@ import java.net.URL;
 
 public class MacSilentInstallation extends SilentOSDependentSolution {
 
-  private static final Runtime RUNTIME;
-
-  static {
-    RUNTIME = Runtime.getRuntime();
-  }
-
   public MacSilentInstallation(@NotNull final MinecraftMediaLibrary library) {
     super(library);
   }
@@ -128,14 +122,13 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
    * Changes permission of app file.
    *
    * @param path path
-   * @return status code
    * @throws IOException if path couldn't be found
    * @throws InterruptedException waiting for process
    */
-  private int changePermissions(@NotNull final String path)
+  private void changePermissions(@NotNull final String path)
       throws IOException, InterruptedException {
     final String[] command = {"chmod", "-R", "755", path};
-    return new CommandTask(command, true).getProcess().waitFor();
+    new CommandTask(command, true).getProcess().waitFor();
   }
 
   @Override
