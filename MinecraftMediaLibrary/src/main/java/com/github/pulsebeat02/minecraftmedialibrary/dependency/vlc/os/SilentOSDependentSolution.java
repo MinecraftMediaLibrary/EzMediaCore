@@ -57,13 +57,18 @@ public abstract class SilentOSDependentSolution {
     nativeDiscovery = new NativeDiscovery();
   }
 
-  /** Download VLC libraries. */
+  /**
+   * Downloads VLC dependencies.
+   *
+   * @throws IOException if an issue occured during installation
+   */
   public abstract void downloadVLCLibrary() throws IOException;
 
   /**
    * Checks existence of VLC folder.
    *
-   * @param dir directory
+   * @param dir the directory
+   * @return whether it can be found
    */
   public boolean checkVLCExistance(@NotNull final String dir) {
     final File folder = findVLCFolder(new File(dir));
