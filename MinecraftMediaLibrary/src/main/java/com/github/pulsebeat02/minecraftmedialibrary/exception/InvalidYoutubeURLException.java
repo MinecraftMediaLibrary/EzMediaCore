@@ -15,7 +15,10 @@ package com.github.pulsebeat02.minecraftmedialibrary.exception;
 
 import org.jetbrains.annotations.NotNull;
 
-public final class InvalidYoutubeURLException extends AssertionError {
+/**
+ * Thrown if the specified url is invalid.
+ */
+public class InvalidYoutubeURLException extends AssertionError {
 
   private static final long serialVersionUID = -6428433369003844013L;
 

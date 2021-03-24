@@ -20,10 +20,16 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+/**
+ * The custom logger implementation that is used throughout the library. The log file can be found
+ * in the base server folder called "mml.log", and contains very useful information about the
+ * execution of the library.
+ */
 public class Logger {
 
   /** Tracks whether log should be verbose */
   public static boolean VERBOSE;
+
   protected static volatile BufferedWriter WRITER;
 
   static {

@@ -15,7 +15,10 @@ package com.github.pulsebeat02.minecraftmedialibrary.exception;
 
 import org.jetbrains.annotations.NotNull;
 
-public final class UnsupportedOperatingSystemException extends AssertionError {
+/**
+ * Thrown if the operating system the current environment is using is unsupported by the library.
+ */
+public class UnsupportedOperatingSystemException extends AssertionError {
 
   private static final long serialVersionUID = 1682368011870345698L;
 

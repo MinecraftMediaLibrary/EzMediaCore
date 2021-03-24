@@ -13,7 +13,12 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.image;
 
-public interface AbstractImageMapHolder {
+/**
+ * Holds the map image and functions which call the necessary draw functions and events when
+ * necessary. Also can be used to create custom map image classes. Used within the
+ * MinecraftMediaLibrary to draw/display images to players.
+ */
+public interface ImageMapHolder {
 
   /** Draws a specified image onto a Map. */
   void drawImage();

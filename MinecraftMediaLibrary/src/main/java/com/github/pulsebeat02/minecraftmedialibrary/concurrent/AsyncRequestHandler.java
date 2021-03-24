@@ -13,7 +13,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.concurrent;
 
-import com.github.pulsebeat02.minecraftmedialibrary.http.AbstractRequestHandler;
+import com.github.pulsebeat02.minecraftmedialibrary.http.RequestHandlerBase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -23,14 +23,14 @@ import java.util.concurrent.CompletableFuture;
  */
 public class AsyncRequestHandler {
 
-  private final AbstractRequestHandler request;
+  private final RequestHandlerBase request;
 
   /**
    * Instantiates a new AsyncRequestHandler.
    *
    * @param request the request
    */
-  public AsyncRequestHandler(@NotNull final AbstractRequestHandler request) {
+  public AsyncRequestHandler(@NotNull final RequestHandlerBase request) {
     this.request = request;
   }
 

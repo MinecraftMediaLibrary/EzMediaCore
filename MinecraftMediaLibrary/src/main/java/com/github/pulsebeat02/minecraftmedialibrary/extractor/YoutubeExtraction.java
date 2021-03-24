@@ -29,7 +29,11 @@ import ws.schild.jave.MultimediaObject;
 import java.io.File;
 import java.io.IOException;
 
-public class YoutubeExtraction implements AbstractVideoExtractor {
+/**
+ * Youtube extraction class used to extract audio from video files. Very useful for extraction media
+ * from a specific link.
+ */
+public class YoutubeExtraction implements VideoExtractorBase {
 
   private final String url;
   private final String directory;

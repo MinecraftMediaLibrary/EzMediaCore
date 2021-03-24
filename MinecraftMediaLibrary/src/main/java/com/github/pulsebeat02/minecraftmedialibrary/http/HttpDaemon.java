@@ -23,7 +23,13 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class HttpDaemon extends Thread implements AbstractHttpDaemon {
+/**
+ * The main daemon used for hosting resourcepack files. Other files may be hosted as well, however,
+ * the purpose is mainly to host the packs to serve sound to users. A port that is port-forwarded
+ * must be specified as well as a base directory. It then runs on an async thread while logging out
+ * connections (if set to enabled).
+ */
+public class HttpDaemon extends Thread implements HttpDaemonBase {
 
   private final int port;
   private ServerSocket socket;

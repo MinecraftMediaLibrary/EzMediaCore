@@ -15,7 +15,11 @@ package com.github.pulsebeat02.minecraftmedialibrary.http;
 
 import java.net.Socket;
 
-public interface AbstractHttpDaemon {
+/**
+ * An interface to specify custom Http Daemon classes. Used within the MinecraftMediaLibrary as
+ * well.
+ */
+public interface HttpDaemonBase {
 
   /** Method used to start the HTTP Daemon. */
   void startServer();

@@ -21,6 +21,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+/**
+ * The specified PlayerJoinHandler listener that is used under the library. It is used
+ * to register the correct listener. The listener is registered under the Plugin that was
+ * passed into the library on initialization.
+ */
 public class PlayerJoinLeaveHandler implements Listener {
 
   private final MinecraftMediaLibrary library;

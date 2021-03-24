@@ -17,7 +17,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
-public interface AbstractRequestHandler {
+/**
+ * The base handler of requests. Used for creating custom request managers. Used within the
+ * MinecraftMediaLibrary to handle requests to an HTTP daemon.
+ */
+public interface RequestHandlerBase {
 
   /**
    * Creates a header for the HTTP request. Useful for certain connections.

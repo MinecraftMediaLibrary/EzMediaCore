@@ -32,7 +32,11 @@ import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class RequestHandler implements Runnable, AbstractRequestHandler {
+/**
+ * A class used to handle incoming requests. It checks if the current request being recieved is a
+ * GET request and sends the correct response back to the client.
+ */
+public class RequestHandler implements Runnable, RequestHandlerBase {
 
   private static final Pattern MATCHER;
 

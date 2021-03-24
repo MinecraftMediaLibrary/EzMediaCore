@@ -15,7 +15,10 @@ package com.github.pulsebeat02.minecraftmedialibrary.exception;
 
 import org.jetbrains.annotations.NotNull;
 
-public final class InvalidPackIconException extends AssertionError {
+/**
+ * Thrown if the pack icon specified is invalid.
+ */
+public class InvalidPackIconException extends AssertionError {
 
   private static final long serialVersionUID = 1682368011870345638L;
 

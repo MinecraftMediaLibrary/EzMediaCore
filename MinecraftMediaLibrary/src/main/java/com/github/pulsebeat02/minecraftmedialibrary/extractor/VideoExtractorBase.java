@@ -15,7 +15,11 @@ package com.github.pulsebeat02.minecraftmedialibrary.extractor;
 
 import java.io.File;
 
-public interface AbstractVideoExtractor {
+/**
+ * A useful interface that is used to specify custom video extraction classes. Used within the
+ * library as well.
+ */
+public interface VideoExtractorBase {
 
   /**
    * Downloads the specified video given the url. If the video is a Youtube URL and the video id

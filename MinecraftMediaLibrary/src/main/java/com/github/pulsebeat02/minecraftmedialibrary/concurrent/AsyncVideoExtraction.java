@@ -13,7 +13,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.concurrent;
 
-import com.github.pulsebeat02.minecraftmedialibrary.extractor.AbstractVideoExtractor;
+import com.github.pulsebeat02.minecraftmedialibrary.extractor.VideoExtractorBase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -24,14 +24,14 @@ import java.util.concurrent.CompletableFuture;
  */
 public class AsyncVideoExtraction {
 
-  private final AbstractVideoExtractor extractor;
+  private final VideoExtractorBase extractor;
 
   /**
    * Instantiates a new AsyncVideoExtraction.
    *
    * @param extractor the extractor
    */
-  public AsyncVideoExtraction(@NotNull final AbstractVideoExtractor extractor) {
+  public AsyncVideoExtraction(@NotNull final VideoExtractorBase extractor) {
     this.extractor = extractor;
   }
 

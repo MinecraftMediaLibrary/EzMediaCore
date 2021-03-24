@@ -19,6 +19,10 @@ import org.bukkit.entity.Player;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
+/**
+ * The interface used for NMS modules for custom implementations of each server version. It is
+ * useful for sending map packets to certain players when displaying map pixels.
+ */
 public interface PacketHandler {
 
   /**

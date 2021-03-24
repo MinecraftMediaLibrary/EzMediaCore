@@ -13,6 +13,11 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.extractor;
 
+/**
+ * A class full of audio properties to specify the properties of an audio file. It is used
+ * eventually in JAVE2 while audio conversion is taking place. Strongly recommended to research each
+ * of these properties first or else you might make someone deaf!
+ */
 public class ExtractionSetting {
 
   private final String codec;
