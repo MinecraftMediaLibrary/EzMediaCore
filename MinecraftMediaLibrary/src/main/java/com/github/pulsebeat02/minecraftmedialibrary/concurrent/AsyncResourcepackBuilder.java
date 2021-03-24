@@ -13,7 +13,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.concurrent;
 
-import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.AbstractPackHolder;
+import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackHolder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -23,14 +23,14 @@ import java.util.concurrent.CompletableFuture;
  */
 public class AsyncResourcepackBuilder {
 
-  private final AbstractPackHolder packHolder;
+  private final PackHolder packHolder;
 
   /**
    * Instantiates a new AsyncResourcepackBuilder.
    *
    * @param packHolder the pack holder
    */
-  public AsyncResourcepackBuilder(@NotNull final AbstractPackHolder packHolder) {
+  public AsyncResourcepackBuilder(@NotNull final PackHolder packHolder) {
     this.packHolder = packHolder;
   }
 

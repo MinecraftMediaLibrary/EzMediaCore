@@ -24,6 +24,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
+/**
+ * Special video utilities used throughout the library and also open to users. Used for easier video
+ * management.
+ */
 public final class VideoUtilities {
 
   /**

@@ -21,6 +21,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
 
+/**
+ * The special reflection class used to fetch the correct reflection class for each server version.
+ * It is possible to use a big switch statement, however, I used reflection for conciseness and not
+ * having to deal with classes that are the same name.
+ */
 public class NMSReflectionManager {
 
   /** The constant VERSION. */

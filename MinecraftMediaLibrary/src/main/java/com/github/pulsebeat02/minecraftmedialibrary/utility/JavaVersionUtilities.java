@@ -15,6 +15,10 @@ package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 
+/**
+ * Class used for determining the version of the Java Runtime Environment and throwing a warning if
+ * necessary. A warning is printed into the log file if the major Java version is not 11 or greater.
+ */
 public class JavaVersionUtilities {
 
   public static final String JAVA_VERSION;

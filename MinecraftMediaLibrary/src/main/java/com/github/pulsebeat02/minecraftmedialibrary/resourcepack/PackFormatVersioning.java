@@ -13,6 +13,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.resourcepack;
 
+/** The specific pack format version for each resourcepacks. Varies per Minecraft version. */
 public enum PackFormatVersioning {
 
   /** 1.15 pack format versioning. */
@@ -43,6 +44,7 @@ public enum PackFormatVersioning {
 
   /**
    * Instantiates a pack format.
+   *
    * @param id format id
    */
   PackFormatVersioning(final int id) {

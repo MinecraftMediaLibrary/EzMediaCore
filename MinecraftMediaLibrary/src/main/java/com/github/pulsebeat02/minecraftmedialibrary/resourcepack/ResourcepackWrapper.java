@@ -36,7 +36,12 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class ResourcepackWrapper implements AbstractPackHolder, ConfigurationSerializable {
+/**
+ * The resourcepack wrapper which can be used to wrap sound files and be hosted as a file. It has
+ * the ability to modify the base resourcepack file as well as the sounds.json file. You may also
+ * specify other attributes such as the icon, description, and format.
+ */
+public class ResourcepackWrapper implements PackHolder, ConfigurationSerializable {
 
   private static final Gson GSON;
 

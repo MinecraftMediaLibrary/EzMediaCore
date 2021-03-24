@@ -20,6 +20,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+/**
+ * Special runtime utilities used throughout the library and also open to users. Used for easier
+ * runtime management.
+ */
 public final class RuntimeUtilities {
 
   /** CPU Architecture */

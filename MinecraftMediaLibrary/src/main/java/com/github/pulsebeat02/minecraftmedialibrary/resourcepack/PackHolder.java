@@ -13,7 +13,11 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.resourcepack;
 
-public interface AbstractPackHolder {
+/**
+ * The main pack holder base which can be used to create other types of pack holders.
+ * MinecraftMediaLibrary uses this interface for pack holders.
+ */
+public interface PackHolder {
 
   /** Builds the resourcepack with all the files and specified pack.mcmeta values. */
   void buildResourcePack();

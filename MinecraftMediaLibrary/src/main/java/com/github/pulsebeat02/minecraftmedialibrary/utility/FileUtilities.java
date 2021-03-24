@@ -23,6 +23,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.UUID;
 
+/**
+ * Special file utilities used throughout the library and also open to users. Used for easier file
+ * management.
+ */
 public final class FileUtilities {
 
   /**

@@ -32,6 +32,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.LongConsumer;
 
+/**
+ * Special dependency utilities used throughout the library and also open to users. Used for easier
+ * dependency management.
+ */
 public final class DependencyUtilities {
 
   public static URLClassLoader CLASSLOADER;

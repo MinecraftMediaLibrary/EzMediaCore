@@ -20,7 +20,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.file.Path;
 
-public class HttpDaemonProvider extends AbstractHostingProvider {
+/**
+ * The wrapper class and provider for the Http daemon. Useful for creating http daemons and easier
+ * handling.
+ */
+public class HttpDaemonProvider implements HostingProvider {
 
   private static final String SERVER_IP = Bukkit.getIp();
   private final int port;

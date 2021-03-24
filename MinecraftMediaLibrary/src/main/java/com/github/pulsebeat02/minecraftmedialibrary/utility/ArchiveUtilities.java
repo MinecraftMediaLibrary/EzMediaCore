@@ -27,6 +27,10 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 
+/**
+ * Special archive utilities used throughout the library and also open to users. Used for easier
+ * archive management.
+ */
 public final class ArchiveUtilities {
 
   private static final Set<String> ARCHIVE_EXTENSIONS;

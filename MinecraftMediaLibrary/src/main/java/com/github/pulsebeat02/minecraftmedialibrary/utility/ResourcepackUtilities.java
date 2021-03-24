@@ -19,6 +19,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
+/**
+ * Special resourcepack utilities used throughout the library and also open to users. Used for
+ * easier resourcepack management.
+ */
 public final class ResourcepackUtilities {
 
   /**

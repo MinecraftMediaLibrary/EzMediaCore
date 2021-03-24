@@ -18,6 +18,10 @@ import com.google.common.collect.Multimap;
 
 import java.util.Map;
 
+/**
+ * Special collection utilities used throughout the library and also open to users. Used for easier
+ * collection management.
+ */
 public class CollectionUtilities {
 
   /**

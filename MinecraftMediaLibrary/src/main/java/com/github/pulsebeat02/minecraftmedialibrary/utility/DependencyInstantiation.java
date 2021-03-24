@@ -24,6 +24,7 @@ import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import java.net.URLClassLoader;
 import java.util.concurrent.CompletableFuture;
 
+/** A special dependency instantiation class used to run dependency tasks asynchronously. */
 public class DependencyInstantiation {
 
   private final MinecraftMediaLibrary instance;

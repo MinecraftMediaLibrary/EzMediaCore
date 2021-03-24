@@ -17,7 +17,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
 
-public abstract class AbstractHostingProvider {
+/**
+ * The hosting provider used for generating urls to download a specific file. Useful for creating
+ * custom providers and needing to generate links for them.
+ */
+public interface HostingProvider {
 
   /**
    * Generates a url for the specific requested file.
@@ -25,7 +29,7 @@ public abstract class AbstractHostingProvider {
    * @param file to generate parent directory of the HTTP Server for.
    * @return String url for the generated url to access the specific file.
    */
-  public abstract String generateUrl(@NotNull final String file);
+  String generateUrl(@NotNull final String file);
 
   /**
    * Generates a url for the specific requested file.
@@ -33,5 +37,5 @@ public abstract class AbstractHostingProvider {
    * @param path to gnerate parent directory of the HTTP Server for.
    * @return String url for the generated url to access the specific file.
    */
-  public abstract String generateUrl(@NotNull final Path path);
+  String generateUrl(@NotNull final Path path);
 }

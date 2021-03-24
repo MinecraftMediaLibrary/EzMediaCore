@@ -26,6 +26,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Special video extraction utilities used throughout the library and also open to users. Used for
+ * easier video extraction management.
+ */
 public final class VideoExtractionUtilities {
 
   /**
