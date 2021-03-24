@@ -21,8 +21,8 @@ import com.mojang.authlib.GameProfile;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelPromise;
@@ -130,7 +130,7 @@ public abstract class TinyProtocol {
 
   // List of network markers
   private List<Object> networkManagers;
-  private ChannelInboundHandlerAdapter serverChannelHandler;
+  private ChannelHandlerAdapter serverChannelHandler;
   private ChannelInitializer<Channel> beginInitProtocol;
   private ChannelInitializer<Channel> endInitProtocol;
 
@@ -193,7 +193,6 @@ public abstract class TinyProtocol {
     // This is executed before Minecraft's channel handler
     beginInitProtocol =
         new ChannelInitializer<Channel>() {
-
           @Override
           protected void initChannel(final Channel channel) {
             channel.pipeline().addLast(endInitProtocol);
@@ -201,8 +200,7 @@ public abstract class TinyProtocol {
         };
 
     serverChannelHandler =
-        new ChannelInboundHandlerAdapter() {
-
+        new ChannelHandlerAdapter() {
           @Override
           public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
             final Channel channel = (Channel) msg;
@@ -563,7 +561,7 @@ public abstract class TinyProtocol {
    *
    * @author Kristian
    */
-  private final class PacketInterceptor extends ChannelDuplexHandler {
+  private final class PacketInterceptor extends ChannelHandlerAdapter {
     /** The Player. */
     // Updated by the login event
     public volatile Player player;

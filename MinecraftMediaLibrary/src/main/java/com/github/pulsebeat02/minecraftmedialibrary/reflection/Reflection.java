@@ -40,7 +40,7 @@ public final class Reflection {
     NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
     VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
     // Variable replacement
-    MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
+    MATCH_VARIABLE = Pattern.compile("\\{([^}]+)}");
   }
 
   private Reflection() {
