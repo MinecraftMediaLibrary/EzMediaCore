@@ -137,6 +137,7 @@ public class ExtractionSetting {
 
   /** The type Builder. */
   public static class Builder {
+
     private int bitrate = 160000;
     private int channels = 2;
     private int samplingRate = 44100;

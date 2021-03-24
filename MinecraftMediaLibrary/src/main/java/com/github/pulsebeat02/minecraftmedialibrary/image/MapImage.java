@@ -217,7 +217,7 @@ public class MapImage implements ImageMapHolder, ConfigurationSerializable {
      * @param image the image
      * @return the image
      */
-    public Builder setImage(final File image) {
+    public Builder setImage(@NotNull final File image) {
       this.image = image;
       return this;
     }

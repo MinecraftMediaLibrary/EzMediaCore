@@ -191,7 +191,7 @@ public class ItemFrameCallback implements CallbackBase {
      * @param viewers the viewers
      * @return the viewers
      */
-    public Builder setViewers(final UUID[] viewers) {
+    public Builder setViewers(@NotNull final UUID[] viewers) {
       this.viewers = viewers;
       return this;
     }

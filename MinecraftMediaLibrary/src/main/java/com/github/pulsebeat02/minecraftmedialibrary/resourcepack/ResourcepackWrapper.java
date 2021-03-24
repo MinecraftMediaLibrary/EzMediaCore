@@ -259,7 +259,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
      * @param audio the audio
      * @return the audio
      */
-    public Builder setAudio(final File audio) {
+    public Builder setAudio(@NotNull final File audio) {
       this.audio = audio;
       return this;
     }
@@ -270,7 +270,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
      * @param icon the icon
      * @return the icon
      */
-    public Builder setIcon(final File icon) {
+    public Builder setIcon(@NotNull final File icon) {
       this.icon = icon;
       return this;
     }
@@ -281,7 +281,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
      * @param description the description
      * @return the description
      */
-    public Builder setDescription(final String description) {
+    public Builder setDescription(@NotNull final String description) {
       this.description = description;
       return this;
     }
@@ -303,7 +303,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
      * @param path the path
      * @return the path
      */
-    public Builder setPath(final String path) {
+    public Builder setPath(@NotNull final String path) {
       this.path = path;
       return this;
     }
