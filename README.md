@@ -1,5 +1,6 @@
 [![Build Status](https://img.shields.io/circleci/build/github/PulseBeat02/MinecraftMediaLibrary?style=for-the-badge)](https://app.circleci.com/pipelines/github/PulseBeat02/MinecraftMediaLibrary)
 [![Language](https://img.shields.io/badge/Made%20with-Java-1f425f.svg?style=for-the-badge)](https://www.java.com/en/)
+[![Lines of Code](https://img.shields.io/tokei/lines/github/PulseBeat02/MinecraftMediaLibrary?style=for-the-badge)](https://github.com/PulseBeat02/MinecraftMediaLibrary)
 
 [![Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/PulseBeat02/MinecraftMediaLibrary)
 
