@@ -52,7 +52,7 @@ public final class CommandHandler implements TabExecutor {
       @NotNull final CommandSender sender,
       @NotNull final Command command,
       @NotNull final String label,
-      @NotNull final String[] args) {
+      final String @NotNull [] args) {
     final String joined = command.getName() + ' ' + String.join(" ", args);
     final ParseResults<CommandSender> results = dispatcher.parse(joined.trim(), sender);
     try {
@@ -77,7 +77,7 @@ public final class CommandHandler implements TabExecutor {
       @NotNull final CommandSender sender,
       @NotNull final Command command,
       @NotNull final String alias,
-      @NotNull final String[] args) {
+      final String @NotNull [] args) {
     final String joined = command.getName() + ' ' + String.join(" ", args);
     final ParseResults<CommandSender> results = dispatcher.parse(joined, sender);
     return dispatcher.getCompletionSuggestions(results).join().getList().stream()

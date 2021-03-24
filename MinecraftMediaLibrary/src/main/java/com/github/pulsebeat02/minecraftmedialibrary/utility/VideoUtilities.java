@@ -76,7 +76,7 @@ public final class VideoUtilities {
    * @param array the array
    * @return resulting byte[]
    */
-  public static byte[] toByteArray(@NotNull final int[] array) {
+  public static byte[] toByteArray(final int @NotNull [] array) {
     final ByteBuffer buffer = ByteBuffer.allocate(array.length * 4);
     final IntBuffer intBuffer = buffer.asIntBuffer();
     intBuffer.put(array);
