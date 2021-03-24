@@ -20,9 +20,37 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 
-@Author(authors = {"PulseBeat_02", "BananaPuncher714", "jetp250"},
-        emails = {"brandonli2006ma@gmail.com", "banana@aaaaahhhhhhh.com", "github.com/jetp250"})
-public class FloydImageDither implements AbstractDitherHolder {
+/**
+ * Floyd–Steinberg dithering is an image dithering algorithm first published in 1976 by Robert W.
+ * Floyd and Louis Steinberg. It is commonly used by image manipulation software, for example when
+ * an image is converted into GIF format that is restricted to a maximum of 256 colors.
+ *
+ * <p>The algorithm achieves dithering using error diffusion, meaning it pushes (adds) the residual
+ * quantization error of a pixel onto its neighboring pixels, to be dealt with later. It spreads the
+ * debt out according to the distribution (shown as a map of the neighboring pixels):
+ *
+ * <p>The pixel indicated with a star (*) indicates the pixel currently being scanned, and the blank
+ * pixels are the previously-scanned pixels. The algorithm scans the image from left to right, top
+ * to bottom, quantizing pixel values one by one. Each time the quantization error is transferred to
+ * the neighboring pixels, while not affecting the pixels that already have been quantized. Hence,
+ * if a number of pixels have been rounded downwards, it becomes more likely that the next pixel is
+ * rounded upwards, such that on average, the quantization error is close to zero.
+ *
+ * <p>The diffusion coefficients have the property that if the original pixel values are exactly
+ * halfway in between the nearest available colors, the dithered result is a checkerboard pattern.
+ * For example, 50% grey data could be dithered as a black-and-white checkerboard pattern. For
+ * optimal dithering, the counting of quantization errors should be in sufficient accuracy to
+ * prevent rounding errors from affecting the result.
+ *
+ * <p>In some implementations, the horizontal direction of scan alternates between lines; this is
+ * called "serpentine scanning" or boustrophedon transform dithering.
+ *
+ * <p>See https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering
+ */
+@Author(
+    authors = {"PulseBeat_02", "BananaPuncher714", "jetp250"},
+    emails = {"brandonli2006ma@gmail.com", "banana@aaaaahhhhhhh.com", "github.com/jetp250"})
+public class FloydImageDither implements DitherHolder {
 
   private static final int[] PALETTE;
   private static final byte[] COLOR_MAP;

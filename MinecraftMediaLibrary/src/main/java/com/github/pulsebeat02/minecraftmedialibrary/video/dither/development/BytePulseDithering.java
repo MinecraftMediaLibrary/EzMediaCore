@@ -14,7 +14,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.video.dither.development;
 
 import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.AbstractDitherHolder;
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.MinecraftMapPalette;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.StaticDitherInitialization;
@@ -24,9 +24,13 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A custom approach which uses FilterLite along a memory cached lookup table full of already
+ * dithered values. Uses bytes to save memory, but it is slower this way. (Dynamic Programming)
+ */
 @LegacyApi(since = "1.2.0")
 @Deprecated
-public class BytePulseDithering implements AbstractDitherHolder {
+public class BytePulseDithering implements DitherHolder {
 
   /**
    * Performs Filter Lite Dithering custom implementation.

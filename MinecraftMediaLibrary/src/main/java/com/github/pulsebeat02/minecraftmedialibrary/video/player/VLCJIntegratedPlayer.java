@@ -30,7 +30,11 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
-public class VLCJIntegratedPlayer extends AbstractVideoPlayer {
+/**
+ * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
+ * specific function from native libraries.
+ */
+public class VLCJIntegratedPlayer extends VideoPlayerBase {
 
   private final EmbeddedMediaPlayer mediaPlayerComponent;
 

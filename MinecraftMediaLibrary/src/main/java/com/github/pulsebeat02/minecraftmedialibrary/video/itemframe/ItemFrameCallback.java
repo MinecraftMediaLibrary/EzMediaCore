@@ -14,17 +14,18 @@
 package com.github.pulsebeat02.minecraftmedialibrary.video.itemframe;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.AbstractDitherHolder;
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherHolder;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
-public class ItemFrameCallback implements AbstractCallback {
+/** The callback used for itemframes to update maps for each frame when necessary. */
+public class ItemFrameCallback implements CallbackBase {
 
   private final MinecraftMediaLibrary library;
   private final UUID[] viewers;
-  private final AbstractDitherHolder type;
+  private final DitherHolder type;
   private final int map;
   private final int videoWidth;
   private final int delay;
@@ -52,7 +53,7 @@ public class ItemFrameCallback implements AbstractCallback {
       final int height,
       final int videoWidth,
       final int delay,
-      @NotNull final AbstractDitherHolder type) {
+      @NotNull final DitherHolder type) {
     this.library = library;
     this.viewers = viewers;
     this.type = type;
@@ -169,7 +170,7 @@ public class ItemFrameCallback implements AbstractCallback {
    *
    * @return the type
    */
-  public AbstractDitherHolder getType() {
+  public DitherHolder getType() {
     return type;
   }
 
@@ -177,7 +178,7 @@ public class ItemFrameCallback implements AbstractCallback {
   public static class Builder {
 
     private UUID[] viewers;
-    private AbstractDitherHolder type;
+    private DitherHolder type;
     private int map;
     private int width;
     private int height;
@@ -256,7 +257,7 @@ public class ItemFrameCallback implements AbstractCallback {
      * @param holder the holder
      * @return the dither holder
      */
-    public Builder setDitherHolder(final AbstractDitherHolder holder) {
+    public Builder setDitherHolder(final DitherHolder holder) {
       type = holder;
       return this;
     }

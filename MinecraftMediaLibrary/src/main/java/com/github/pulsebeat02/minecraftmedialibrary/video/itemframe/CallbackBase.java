@@ -15,7 +15,11 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.itemframe;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface AbstractCallback {
+/**
+ * A callback interface for map data. Useful for creating custom callbacks. MinecraftMediaLibrary
+ * uses this for itemframe callbacks to achieve quick changes.
+ */
+public interface CallbackBase {
 
   /**
    * Sends data for map packets to the players.

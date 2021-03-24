@@ -17,7 +17,34 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 
-public class OrderedDithering implements AbstractDitherHolder {
+/**
+ * Ordered dithering is an image dithering algorithm. It is commonly used to display a continuous
+ * image on a display of smaller color depth. For example, Microsoft Windows uses it in 16-color
+ * graphics modes. The algorithm is characterized by noticeable crosshatch patterns in the result.
+ *
+ * <p>The algorithm reduces the number of colors by applying a threshold map M to the pixels
+ * displayed, causing some pixels to change color, depending on the distance of the original color
+ * from the available color entries in the reduced palette.
+ *
+ * <p>The ordered dithering algorithm renders the image normally, but for each pixel, it offsets its
+ * color value with a corresponding value from the threshold map according to its location, causing
+ * the pixel's value to be quantized to a different color if it exceeds the threshold.
+ *
+ * <p>For most dithering purposes, it is sufficient to simply add the threshold value to every
+ * pixel, or equivalently, to compare that pixel's value to the threshold: if the value of a pixel
+ * is less than the number in the corresponding cell of the matrix, plot that pixel black,
+ * otherwise, plot it white.
+ *
+ * <p>This slightly increases the average brightness of the image, and causes almost-white pixels to
+ * not be dithered. This is not a problem when using a gray scale palette (or any palette where the
+ * relative color distances are (nearly) constant), and it is often even desired, since the human
+ * eye perceives differences in darker colors more accurately than lighter ones, however, it
+ * produces incorrect results especially when using a small or arbitrary palette, so proper
+ * offsetting should be preferred...
+ *
+ * <p>See https://en.wikipedia.org/wiki/Ordered_dithering
+ */
+public class OrderedDithering implements DitherHolder {
 
   /**
    * Performs Ordered Dithering with a selection of matrices to choose from.

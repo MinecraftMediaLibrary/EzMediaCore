@@ -8,10 +8,10 @@ import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.AbstractDitherHolder;
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.video.itemframe.ItemFrameCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.video.player.AbstractVideoPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.video.player.VideoPlayerBase;
 import com.github.pulsebeat02.minecraftmedialibrary.video.player.VLCJIntegratedPlayer;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -39,8 +39,8 @@ import java.util.concurrent.CompletableFuture;
 public class VideoCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> literalNode;
-  private AbstractDitherHolder dither;
-  private AbstractVideoPlayer player;
+  private DitherHolder dither;
+  private VideoPlayerBase player;
   private boolean youtube;
   private YoutubeExtraction extractor;
   private File file;

@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
-public abstract class AbstractVideoPlayer {
+public abstract class VideoPlayerBase {
 
   private final MinecraftMediaLibrary library;
   private final String url;
@@ -35,7 +35,7 @@ public abstract class AbstractVideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public AbstractVideoPlayer(
+  public VideoPlayerBase(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final String url,
       final int width,

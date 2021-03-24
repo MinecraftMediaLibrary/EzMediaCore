@@ -15,8 +15,11 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
 import java.nio.ByteBuffer;
 
-/** The interface Abstract dither holder. */
-public interface AbstractDitherHolder {
+/**
+ * An interface that is useful for handling custom dithering algorithms. Used in
+ * MinecraftMediaLibrary for many algorithms.
+ */
+public interface DitherHolder {
 
   /**
    * Dithers the buffer using the given width.

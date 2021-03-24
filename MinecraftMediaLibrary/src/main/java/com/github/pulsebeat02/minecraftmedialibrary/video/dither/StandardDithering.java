@@ -15,7 +15,11 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
 import java.nio.ByteBuffer;
 
-public class StandardDithering implements AbstractDitherHolder {
+/**
+ * A class dither implementation which uses a normal get nearest color function. Fast but bad
+ * quality.
+ */
+public class StandardDithering implements DitherHolder {
 
   private static final byte[] COLOR_MAP;
 

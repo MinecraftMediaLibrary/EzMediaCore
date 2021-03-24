@@ -15,8 +15,29 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
 import java.nio.ByteBuffer;
 
-/** The type Filter lite dither. */
-public class FilterLiteDither implements AbstractDitherHolder {
+/**
+ * The Sierra filters
+ *
+ * <p>In 1989, Frankie Sierra came out with his three-line filter:
+ *
+ * <p>* 5 3 The Sierra3 filter 2 4 5 4 2 2 3 2 (1/32)
+ *
+ * <p>A year later, Sierra followed up with a two-line modification:
+ *
+ * <p>* 4 3 The Sierra2 filter 1 2 3 2 1 (1/16)
+ *
+ * <p>and a very simple "Filter Lite," as he calls it:
+ *
+ * <p>* 2 The Sierra-2-4A filter 1 1 (1/4)
+ *
+ * <p>Even this very simple filter, according to Sierra, produces better results than the original
+ * Floyd-Steinberg filter.
+ *
+ * <p>See
+ * https://web.archive.org/web/20190316064436/http://www.efg2.com/Lab/Library/ImageProcessing/DHALF.TXT
+ * for more information about the studies
+ */
+public class FilterLiteDither implements DitherHolder {
 
   /**
    * Performs Filter Lite Dithering at a more optimized pace while giving similar results to Floyd

@@ -16,17 +16,17 @@ package com.github.pulsebeat02.deluxemediaplugin.config;
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.AbstractDitherHolder;
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.video.itemframe.ItemFrameCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.video.player.AbstractVideoPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.video.player.VideoPlayerBase;
 import com.github.pulsebeat02.minecraftmedialibrary.video.player.VLCJIntegratedPlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 public class VideoConfiguration extends AbstractConfiguration {
 
-  private AbstractVideoPlayer player;
+  private VideoPlayerBase player;
   private ItemFrameCallback callback;
 
   public VideoConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
@@ -57,7 +57,7 @@ public class VideoConfiguration extends AbstractConfiguration {
     final int frameHeight = configuration.getInt("itemframe-height");
     final int startingMapID = configuration.getInt("starting-map-id");
     final String ditherSetting = configuration.getString("dither-setting");
-    AbstractDitherHolder holder = null;
+    DitherHolder holder = null;
     for (final DitherSetting setting : DitherSetting.values()) {
       if (setting.name().equalsIgnoreCase(ditherSetting)) {
         holder = setting.getHolder();
@@ -90,7 +90,7 @@ public class VideoConfiguration extends AbstractConfiguration {
     }
   }
 
-  public AbstractVideoPlayer getPlayer() {
+  public VideoPlayerBase getPlayer() {
     return player;
   }
 

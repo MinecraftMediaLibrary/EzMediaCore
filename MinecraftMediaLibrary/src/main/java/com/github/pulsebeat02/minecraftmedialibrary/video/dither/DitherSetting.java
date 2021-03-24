@@ -15,7 +15,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
 import org.jetbrains.annotations.NotNull;
 
-/** The enum Dither setting. */
+/** An enum to store the possible dithering modes the user can take. */
 public enum DitherSetting {
 
   /** Standard Minecraft Dithering */
@@ -36,9 +36,9 @@ public enum DitherSetting {
   /** Floyd Steinberg Dithering */
   FLOYD_STEINBERG_DITHER(new FloydImageDither());
 
-  private final AbstractDitherHolder holder;
+  private final DitherHolder holder;
 
-  DitherSetting(@NotNull final AbstractDitherHolder holder) {
+  DitherSetting(@NotNull final DitherHolder holder) {
     this.holder = holder;
   }
 
@@ -63,7 +63,7 @@ public enum DitherSetting {
    *
    * @return the holder
    */
-  public AbstractDitherHolder getHolder() {
+  public DitherHolder getHolder() {
     return holder;
   }
 }
