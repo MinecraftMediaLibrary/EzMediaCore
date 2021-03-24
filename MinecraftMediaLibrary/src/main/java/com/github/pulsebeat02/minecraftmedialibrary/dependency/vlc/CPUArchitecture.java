@@ -18,6 +18,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
+/**
+ * An enum containing all the supported CPU Architectures for each of the Linux packages. Useful
+ * for easier management.
+ */
 public enum CPUArchitecture {
 
   /** AMD64 CPU Architecture. */

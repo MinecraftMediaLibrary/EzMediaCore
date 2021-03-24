@@ -19,6 +19,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * An async helper class used for extracting videos.F
+ */
 public class AsyncVideoExtraction {
 
   private final AbstractVideoExtractor extractor;

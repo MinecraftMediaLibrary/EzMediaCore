@@ -30,6 +30,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
+/**
+ * <p> This is the starting class of MinecraftMediaLibrary which describes the starting class for all
+ * modules. It passes in a Plugin as an argument with a path to the http daemon. Optional arguments
+ * include passing in a dependency path and a vlc dependency path. The boolean for vlcj is used to
+ * determine whether the plugin should support vlc or not. MinecraftMediaLibrary will hook into the
+ * Plugin, make a listener to register players, and many other extra necessities that are registered
+ * under the specific plugin.
+ */
 public final class MinecraftMediaLibrary {
 
   private final Plugin plugin;
@@ -42,11 +50,11 @@ public final class MinecraftMediaLibrary {
   private boolean vlcj;
 
   /**
-   * Instantiates a new Minecraft media library.
+   * Instantiates a new MinecraftMediaLibrary.
    *
    * @param plugin the plugin
    * @param path the path
-   * @param isUsingVLCJ the is using vlcj
+   * @param isUsingVLCJ whether using vlcj
    */
   public MinecraftMediaLibrary(
       @NotNull final Plugin plugin, @NotNull final String path, final boolean isUsingVLCJ) {
@@ -79,6 +87,15 @@ public final class MinecraftMediaLibrary {
     checkJavaVersion();
   }
 
+  /**
+   * Instantiates a new MinecraftMediaLibrary
+   *
+   * @param plugin the plugin
+   * @param path the path
+   * @param libraryPath dependency path
+   * @param vlcPath vlc installation path
+   * @param isUsingVLCJ whether using vlcj
+   */
   public MinecraftMediaLibrary(
       @NotNull final Plugin plugin,
       @NotNull final String path,

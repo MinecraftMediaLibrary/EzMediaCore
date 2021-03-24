@@ -15,6 +15,12 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This is an enum used to store the dependencies MinecraftMediaLibrary will use during the runtime.
+ * Dependencies are specified using a group id, an artifact id, a version, and a specific resolution
+ * to be chosen. Such a resolution would include examples such as Maven or Jitpack and other
+ * solutions.
+ */
 public enum RepositoryDependency {
 
   /** VLCJ Maven Dependency */
@@ -61,6 +67,14 @@ public enum RepositoryDependency {
   private final String version;
   private final DependencyResolution resolution;
 
+  /**
+   * Instantiates a RepositoryDependency
+   *
+   * @param group dependency group
+   * @param artifact dependency artifact
+   * @param version dependency version
+   * @param resolution dependency resolution
+   */
   RepositoryDependency(
       @NotNull final String group,
       @NotNull final String artifact,

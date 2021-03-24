@@ -18,6 +18,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * An async helper class used for image map drawing.
+ */
 public class AsyncImageMapDrawer {
 
   private final AbstractImageMapHolder imageMapHolder;

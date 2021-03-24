@@ -18,6 +18,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * An async helper class used for booting HttpDaemons.
+ */
 public class AsyncHttpDaemonBooter {
 
   private final AbstractHttpDaemon daemon;

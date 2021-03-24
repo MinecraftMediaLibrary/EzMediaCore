@@ -23,15 +23,31 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+/**
+ * The main class of the VLC native dependency fetcher. It calls the correct classes and dependency
+ * solution based on the working operating system of the environment. It should be noted that VLC
+ * uses operating system dependent binaries, meaning that each operating system must be carefully
+ * handled correctly in order to load the binaries properly.
+ */
 public class VLCNativeDependencyFetcher {
 
   /** Instantiates a new VLCNativeDependencyFetcher. */
   private final String dir;
 
+  /**
+   * Instantiates a new VLC Native Dependency Fetcher process.
+   *
+   * @param library the library
+   */
   public VLCNativeDependencyFetcher(@NotNull final MinecraftMediaLibrary library) {
     dir = library.getVlcFolder();
   }
 
+  /**
+   * Instantiates a new VLC Native Dependency Fetcher process.
+   *
+   * @param dir the directory
+   */
   public VLCNativeDependencyFetcher(@NotNull final String dir) {
     this.dir = dir;
   }

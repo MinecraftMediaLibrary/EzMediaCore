@@ -28,6 +28,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * This is the full dependency management class, which handles the dependencies of the project by
+ * managing them. It first creates a folder if it cannot be found. Then, it creates a relocation
+ * folder for the relocated jars. After that, the methods are up to the user to decide when to
+ * install, load, or relocate the binaries.
+ */
 public class DependencyManagement {
 
   private final Set<File> files;

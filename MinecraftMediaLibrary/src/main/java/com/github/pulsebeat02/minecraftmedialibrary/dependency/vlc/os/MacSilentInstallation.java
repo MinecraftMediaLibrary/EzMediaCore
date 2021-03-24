@@ -24,12 +24,33 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
+/**
+ * The Mac specific silent installation for VLC. Mac is significantly harder to accomplish compared
+ * to Windows and possibly just as hard for Linux. Due to permission and security measures the
+ * operating system has, we must install the file from a dmg. The current implementation installs
+ * the proper dmg to the computer, then mounts it by using a command. After that, it moves the .APP
+ * file that is inside the mounted drive into the specified folder. Because .APP is actually a
+ * folder, we must call the move folder method instead of the move file method. Next, we have to
+ * call a command to change the permissions of the file we are able to access the binaries and use
+ * them. We call the chmod command to do this and set the permissions to 755. Finally, we unmount
+ * the disk by using another command and load the native .so libraries into VLCJ.
+ */
 public class MacSilentInstallation extends SilentOSDependentSolution {
 
+  /**
+   * Instantiates a new MacSilentInstallation.
+   *
+   * @param library the library
+   */
   public MacSilentInstallation(@NotNull final MinecraftMediaLibrary library) {
     super(library);
   }
 
+  /**
+   * Instantiates a new MacSilentInstallation.
+   *
+   * @param dir the directory
+   */
   public MacSilentInstallation(@NotNull final String dir) {
     super(dir);
   }

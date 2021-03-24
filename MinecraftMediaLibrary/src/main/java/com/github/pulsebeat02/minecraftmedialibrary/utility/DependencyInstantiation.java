@@ -28,10 +28,16 @@ public class DependencyInstantiation {
 
   private final MinecraftMediaLibrary instance;
 
+  /**
+   * Instantiates a new DependencyInstantiation for loading dependencies.
+   *
+   * @param library the library
+   */
   public DependencyInstantiation(@NotNull final MinecraftMediaLibrary library) {
     instance = library;
   }
 
+  /** Starts dependency tasks. */
   public void startTasks() {
     CompletableFuture.runAsync(this::assignClassLoader)
         .thenRunAsync(this::loadJave)

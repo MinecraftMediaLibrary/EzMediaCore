@@ -24,12 +24,26 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
+/**
+ * The Windows specific silent installation. It uses a zip file hosted on Github to install the VLC
+ * binaries, extracts the file, and loads them properly onto VLC.
+ */
 public class WindowsSilentInstallation extends SilentOSDependentSolution {
 
+  /**
+   * Instantiates a new WindowsSilentInstallation.
+   *
+   * @param library the library
+   */
   public WindowsSilentInstallation(@NotNull final MinecraftMediaLibrary library) {
     super(library);
   }
 
+  /**
+   * Instantiates a new WindowsSilentInstallation.
+   *
+   * @param dir the directory
+   */
   public WindowsSilentInstallation(@NotNull final String dir) {
     super(dir);
   }
@@ -52,5 +66,4 @@ public class WindowsSilentInstallation extends SilentOSDependentSolution {
       printSystemProperties();
     }
   }
-
 }

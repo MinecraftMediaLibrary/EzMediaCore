@@ -16,6 +16,11 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A class for handling the packages for each distribution. It specifies the correct packages for
+ * the version of the distribution, and each CPU architecture of it. Used for better organization
+ * for the packages.
+ */
 public class LinuxOSPackages {
 
   /* Here for all URLs just in case

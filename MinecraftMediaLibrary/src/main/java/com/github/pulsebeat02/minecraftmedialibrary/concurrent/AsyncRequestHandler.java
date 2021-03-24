@@ -18,6 +18,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * An async helper class used for request handling.
+ */
 public class AsyncRequestHandler {
 
   private final AbstractRequestHandler request;

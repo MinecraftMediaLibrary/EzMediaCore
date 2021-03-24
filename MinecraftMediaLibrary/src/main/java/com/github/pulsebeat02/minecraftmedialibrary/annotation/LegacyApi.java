@@ -29,7 +29,8 @@ import static java.lang.annotation.ElementType.TYPE;
 /**
  * Initiates the deprecation, and date at which since the component is classified as legacy api and
  * should not be used. Specifies the date at which it was marked as legacy api and the time of when
- * it will be removed.
+ * it will be removed. The annotation from JetBrain Annotations doesn't exist therefore making this
+ * a temporary replacement.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

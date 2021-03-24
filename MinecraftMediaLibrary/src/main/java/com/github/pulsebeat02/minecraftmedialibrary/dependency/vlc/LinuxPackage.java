@@ -15,6 +15,11 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This instantiates a new LinuxPackage which is used for easy installation. It will specify the
+ * correct CPU Architecture the package is for, the url asociated with such a package, and the
+ * mirror Github url if the main mirror is down.
+ */
 public class LinuxPackage {
 
   private final CPUArchitecture arch;

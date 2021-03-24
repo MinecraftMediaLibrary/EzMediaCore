@@ -19,6 +19,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+/**
+ * A specialized CommandTask which executes native commands from the Runtime. The class is used for
+ * easier command execution as well as an easier way to "hold" onto commands and wait before
+ * execution.
+ */
 public class CommandTask {
 
   private static final Runtime RUNTIME;

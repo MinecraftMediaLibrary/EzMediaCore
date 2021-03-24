@@ -27,16 +27,31 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * An abstract class used to install and load VLC silently into the user. It depends for each
+ * operating system, however, this class is used to handle certain broilerplate code in an easier
+ * fashion.
+ */
 public abstract class SilentOSDependentSolution {
 
   private final String dir;
   private final NativeDiscovery nativeDiscovery;
 
+  /**
+   * Instantiates a new SilentOSDependentSolution.
+   *
+   * @param library the library
+   */
   public SilentOSDependentSolution(@NotNull final MinecraftMediaLibrary library) {
     dir = library.getVlcFolder();
     nativeDiscovery = new NativeDiscovery();
   }
 
+  /**
+   * Instantiates a new SilentOSDependentSolution.
+   *
+   * @param dir the directory
+   */
   public SilentOSDependentSolution(@NotNull final String dir) {
     this.dir = dir;
     nativeDiscovery = new NativeDiscovery();

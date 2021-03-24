@@ -41,6 +41,10 @@ public enum PackFormatVersioning {
 
   private final int packFormat;
 
+  /**
+   * Instantiates a pack format.
+   * @param id format id
+   */
   PackFormatVersioning(final int id) {
     packFormat = id;
   }

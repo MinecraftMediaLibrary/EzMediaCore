@@ -22,6 +22,15 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * A special handling class specific to the JAVE2 library. JAVE2 is an extension to * "JAVE", an
+ * audio transcribing framework which is useful for converting to OGG Vorbis files * and adjusting
+ * audio quality to necessary settings. Because JAVE2 uses modules which are * operating system
+ * dependent, this special class will handle the correct installation based on * the environemnt of
+ * the library.
+ *
+ * @see <a href="https://github.com/a-schild/jave2">JAVE2 Github</a>.
+ */
 public class JaveDependencyInstallation {
 
   private final String dependencyFolder;

@@ -33,6 +33,13 @@ import java.util.Queue;
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_new;
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_release;
 
+/**
+ * A specialized NativeDiscoveryStrategy used to discover the VLC plugins folder (binaries) in the
+ * VLC installation. Currently deprecated as NativeDiscovery is a better option to discover, and is
+ * subject to removal soon as it is not being used anywhere at the moment. The class uses a
+ * recursive search by using a stack and searching each of the folders, trying to find a result.
+ * This isn't as reliable as NativeDiscovery's method, where it compares a matcher.
+ */
 @LegacyApi(since = "1.2.0")
 @Deprecated
 public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {

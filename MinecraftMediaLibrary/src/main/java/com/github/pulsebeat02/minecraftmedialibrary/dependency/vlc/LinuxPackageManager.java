@@ -40,6 +40,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The main package fetcher for Linux Distributions. It parses a JSON file of all the packaged
+ * binaries from mirror sites called "linux-package-installation.json", which can be found directly
+ * in the root folder of the JAR (or the resources folder). After parsing, it properly tries to
+ * track the right package for the current distribution. If the package mirror is down, it will
+ * automatically resort to a Github hosted repository of binaries (hosted by me) which contains all
+ * the binaries instead.
+ */
 @SuppressWarnings("UnstableApiUsage")
 public class LinuxPackageManager {
 
