@@ -1,27 +1,28 @@
 /*............................................................................................
- . Copyright © 2021 Brandon Li                                                               .
- .                                                                                           .
- . Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
- . software and associated documentation files (the “Software”), to deal in the Software     .
- . without restriction, including without limitation the rights to use, copy, modify, merge, .
- . publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
- . persons to whom the Software is furnished to do so, subject to the following conditions:  .
- .                                                                                           .
- . The above copyright notice and this permission notice shall be included in all copies     .
- . or substantial portions of the Software.                                                  .
- .                                                                                           .
- . THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
- .  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
- .   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
- .   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
- .   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
- .   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
- .   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
- .   SOFTWARE.                                                                               .
- ............................................................................................*/
+. Copyright © 2021 Brandon Li                                                               .
+.                                                                                           .
+. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
+. software and associated documentation files (the “Software”), to deal in the Software     .
+. without restriction, including without limitation the rights to use, copy, modify, merge, .
+. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
+. persons to whom the Software is furnished to do so, subject to the following conditions:  .
+.                                                                                           .
+. The above copyright notice and this permission notice shall be included in all copies     .
+. or substantial portions of the Software.                                                  .
+.                                                                                           .
+. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
+.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
+.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
+.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
+.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
+.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
+.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
+.   SOFTWARE.                                                                               .
+............................................................................................*/
 
 package com.github.pulsebeat02.minecraftmedialibrary;
 
+import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import com.github.pulsebeat02.minecraftmedialibrary.listener.PlayerJoinLeaveHandler;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
@@ -37,10 +38,8 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-
 /**
- * <p> This is the starting class of MinecraftMediaLibrary which describes the starting class for all
+ * This is the starting class of MinecraftMediaLibrary which describes the starting class for all
  * modules. It passes in a Plugin as an argument with a path to the http daemon. Optional arguments
  * include passing in a dependency path and a vlc dependency path. The boolean for vlcj is used to
  * determine whether the plugin should support vlc or not. MinecraftMediaLibrary will hook into the
@@ -52,91 +51,101 @@ public final class MinecraftMediaLibrary {
   private final Plugin plugin;
   private final PlayerJoinLeaveHandler listener;
   private final PacketHandler handler;
-  private final TinyProtocol protocol;
-  private final String parent;
-  private final String dependenciesFolder;
-  private final String vlcFolder;
+  private TinyProtocol protocol;
+  private String parent;
+  private String dependenciesFolder;
+  private String vlcFolder;
   private boolean vlcj;
+  private boolean disabled;
+
+  {
+    printSystemInformation();
+    dependencyTasks();
+    listener = new PlayerJoinLeaveHandler(this);
+    registerEvents();
+    checkJavaVersion();
+    handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
+  }
 
   /**
    * Instantiates a new MinecraftMediaLibrary.
    *
    * @param plugin the plugin
-   * @param path the path
+   * @param http the path
    * @param isUsingVLCJ whether using vlcj
    */
   public MinecraftMediaLibrary(
-      @NotNull final Plugin plugin, @NotNull final String path, final boolean isUsingVLCJ) {
+      @NotNull final Plugin plugin, @NotNull final String http, final boolean isUsingVLCJ) {
     this.plugin = plugin;
-    protocol =
-        new TinyProtocol(plugin) {
-          @Override
-          public Object onPacketOutAsync(
-              final Player player, final Channel channel, final Object packet) {
-            return handler.onPacketInterceptOut(player, packet);
-          }
+    if (handler == null) {
+      shutdown();
+    } else {
+      protocol =
+          new TinyProtocol(plugin) {
+            @Override
+            public Object onPacketOutAsync(
+                final Player player, final Channel channel, final Object packet) {
+              return handler.onPacketInterceptOut(player, packet);
+            }
 
-          @Override
-          public Object onPacketInAsync(
-              final Player player, final Channel channel, final Object packet) {
-            return handler.onPacketInterceptIn(player, packet);
-          }
-        };
-    handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
-    parent = path;
-    final String prop = System.getProperty("user.dir");
-    dependenciesFolder = prop + File.separator + "mml_libs";
-    vlcFolder = prop + File.separator + "vlc";
-    vlcj = isUsingVLCJ;
-    listener = new PlayerJoinLeaveHandler(this);
-    printSystemInformation();
-    dependencyTasks();
-    registerEvents();
-    debugInformation();
-    checkJavaVersion();
+            @Override
+            public Object onPacketInAsync(
+                final Player player, final Channel channel, final Object packet) {
+              return handler.onPacketInterceptIn(player, packet);
+            }
+          };
+      parent = http;
+      final String path = plugin.getDataFolder().getAbsolutePath();
+      dependenciesFolder = path + "/mml_libs";
+      vlcFolder = path + "/vlc";
+      vlcj = isUsingVLCJ;
+      debugInformation();
+    }
   }
 
   /**
    * Instantiates a new MinecraftMediaLibrary
    *
    * @param plugin the plugin
-   * @param path the path
+   * @param http the path
    * @param libraryPath dependency path
    * @param vlcPath vlc installation path
    * @param isUsingVLCJ whether using vlcj
+   * @deprecated See {@link #MinecraftMediaLibrary(Plugin, String, boolean)}. Current constructor
+   *     could have unwanted side effects such as file conflicts.
    */
+  @Deprecated
+  @LegacyApi(since = "1.4.0")
   public MinecraftMediaLibrary(
       @NotNull final Plugin plugin,
-      @NotNull final String path,
+      @NotNull final String http,
       @NotNull final String libraryPath,
       @NotNull final String vlcPath,
       final boolean isUsingVLCJ) {
     this.plugin = plugin;
-    protocol =
-        new TinyProtocol(plugin) {
-          @Override
-          public Object onPacketOutAsync(
-              final Player player, final Channel channel, final Object packet) {
-            return handler.onPacketInterceptOut(player, packet);
-          }
+    if (handler == null) {
+      shutdown();
+    } else {
+      protocol =
+          new TinyProtocol(plugin) {
+            @Override
+            public Object onPacketOutAsync(
+                final Player player, final Channel channel, final Object packet) {
+              return handler.onPacketInterceptOut(player, packet);
+            }
 
-          @Override
-          public Object onPacketInAsync(
-              final Player player, final Channel channel, final Object packet) {
-            return handler.onPacketInterceptIn(player, packet);
-          }
-        };
-    handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
-    parent = path;
-    dependenciesFolder = libraryPath;
-    vlcFolder = vlcPath;
-    vlcj = isUsingVLCJ;
-    listener = new PlayerJoinLeaveHandler(this);
-    printSystemInformation();
-    dependencyTasks();
-    registerEvents();
-    debugInformation();
-    checkJavaVersion();
+            @Override
+            public Object onPacketInAsync(
+                final Player player, final Channel channel, final Object packet) {
+              return handler.onPacketInterceptIn(player, packet);
+            }
+          };
+      parent = http;
+      dependenciesFolder = libraryPath;
+      vlcFolder = vlcPath;
+      vlcj = isUsingVLCJ;
+      debugInformation();
+    }
   }
 
   /** Runs dependency tasks required. */
@@ -184,6 +193,7 @@ public final class MinecraftMediaLibrary {
   /** Shutdown Instance */
   public void shutdown() {
     Logger.info("Shutting Down!");
+    disabled = true;
     HandlerList.unregisterAll(listener);
     Logger.info("Good Bye");
   }
@@ -285,5 +295,14 @@ public final class MinecraftMediaLibrary {
    */
   public String getVlcFolder() {
     return vlcFolder;
+  }
+
+  /**
+   * Gets whether the library is disabled or not.
+   *
+   * @return the state
+   */
+  public boolean isDisabled() {
+    return disabled;
   }
 }

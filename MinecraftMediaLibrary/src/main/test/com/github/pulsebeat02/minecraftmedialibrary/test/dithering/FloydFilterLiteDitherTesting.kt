@@ -27,6 +27,7 @@ import javax.swing.ImageIcon
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlin.system.exitProcess
 
 class FloydFilterLiteDitherTesting(image: File) : JFrame() {
     private fun ditherSierra(before: BufferedImage): BufferedImage {
@@ -64,7 +65,7 @@ class FloydFilterLiteDitherTesting(image: File) : JFrame() {
         val floydDithering = JPanel()
         val floydStart = System.currentTimeMillis()
         floydDithering.add(
-                JLabel(ImageIcon(VideoUtilities.resizeImage(ditherFloyd(before), 500, 250)))
+            JLabel(ImageIcon(VideoUtilities.resizeImage(ditherFloyd(before), 500, 250)))
         )
         val floydEnd = System.currentTimeMillis()
         floydDithering.add(JLabel("Floyd Steinberg Dithering"))
@@ -72,7 +73,7 @@ class FloydFilterLiteDitherTesting(image: File) : JFrame() {
         val sierraDithering = JPanel()
         val sierraStart = System.currentTimeMillis()
         sierraDithering.add(
-                JLabel(ImageIcon(VideoUtilities.resizeImage(ditherSierra(before), 500, 250)))
+            JLabel(ImageIcon(VideoUtilities.resizeImage(ditherSierra(before), 500, 250)))
         )
         val sierraEnd = System.currentTimeMillis()
         sierraDithering.add(JLabel("Sierra 2-4A Dithering"))
@@ -83,11 +84,11 @@ class FloydFilterLiteDitherTesting(image: File) : JFrame() {
         container.add(floydDithering)
         container.add(sierraDithering)
         addWindowListener(
-                object : WindowAdapter() {
-                    override fun windowClosing(e: WindowEvent) {
-                        System.exit(0)
-                    }
-                })
+            object : WindowAdapter() {
+                override fun windowClosing(e: WindowEvent) {
+                    exitProcess(0)
+                }
+            })
         pack()
         isVisible = true
     }

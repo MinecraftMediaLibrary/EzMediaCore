@@ -18,9 +18,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Some weird/bad/curiosity tests I wanted to try out.
- */
+/** Some weird/bad/curiosity tests I wanted to try out. */
 public class VoidTest {
 
   private static Void ELEMENT;

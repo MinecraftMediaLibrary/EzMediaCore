@@ -21,6 +21,6 @@ fun main() {
     val fetcher = VLCNativeDependencyFetcher(path)
     fetcher.downloadLibraries()
     val enchancedNativeDiscovery =
-            EnhancedNativeDiscovery(path)
+        EnhancedNativeDiscovery(path)
     println(enchancedNativeDiscovery.discover())
 }

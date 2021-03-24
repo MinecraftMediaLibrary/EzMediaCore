@@ -21,6 +21,7 @@ import java.io.File
 import java.io.IOException
 import javax.imageio.ImageIO
 import javax.swing.*
+import kotlin.system.exitProcess
 
 class OrderedDitherTesting(image: File) : JFrame() {
     companion object {
@@ -61,11 +62,11 @@ class OrderedDitherTesting(image: File) : JFrame() {
             c.add(panel)
         }
         addWindowListener(
-                object : WindowAdapter() {
-                    override fun windowClosing(e: WindowEvent) {
-                        System.exit(0)
-                    }
-                })
+            object : WindowAdapter() {
+                override fun windowClosing(e: WindowEvent) {
+                    exitProcess(0)
+                }
+            })
         pack()
         isVisible = true
     }

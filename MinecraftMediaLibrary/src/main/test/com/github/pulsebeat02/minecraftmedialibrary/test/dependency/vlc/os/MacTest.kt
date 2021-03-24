@@ -17,7 +17,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger
 import java.io.File
 
 fun main() {
-    MacTest().macTest();
+    MacTest().macTest()
 }
 
 class MacTest {

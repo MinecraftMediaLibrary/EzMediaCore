@@ -16,4 +16,4 @@
  * @since 1.0
  * @author PulseBeat_02
  */
-package com.github.pulsebeat02.minecraftmedialibrary.test.coolstuff;
+package com.github.pulsebeat02.minecraftmedialibrary.test.coolstuff
