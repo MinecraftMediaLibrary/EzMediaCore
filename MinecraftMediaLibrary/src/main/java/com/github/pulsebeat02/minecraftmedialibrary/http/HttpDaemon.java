@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * The main daemon used for hosting resourcepack files. Other files may be hosted as well, however,
@@ -39,6 +41,12 @@ import java.net.Socket;
  * connections (if set to enabled).
  */
 public class HttpDaemon extends Thread implements HttpDaemonBase {
+
+  private static final ExecutorService EXECUTOR_SERVICE;
+
+  static {
+    EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+  }
 
   private final int port;
   private ServerSocket socket;
@@ -112,8 +120,8 @@ public class HttpDaemon extends Thread implements HttpDaemonBase {
     onServerStart();
     while (running) {
       try {
-        new Thread(new RequestHandler(this, header, socket.accept())).start();
-      } catch (final IOException e) {
+        EXECUTOR_SERVICE.submit(new Thread(new RequestHandler(this, header, socket.accept())));
+      } catch (IOException e) {
         e.printStackTrace();
       }
     }

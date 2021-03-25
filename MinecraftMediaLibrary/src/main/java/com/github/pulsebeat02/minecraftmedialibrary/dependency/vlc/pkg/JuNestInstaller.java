@@ -20,52 +20,70 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.dependency.task;
+package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
 
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTask;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTaskChain;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackage;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
-/** Constructs a chain of commands to be executed accordingly. */
-public class CommandTaskChain {
+/** Installs a package that can be Debian or RPM based on the JuNest distribution. */
+public class JuNestInstaller extends PackageInstaller {
 
-  private final List<CommandTask> chain;
+  private final boolean isDebian;
 
-  /** Instantiates a new CommandTaskChain */
-  public CommandTaskChain() {
-    chain = new ArrayList<>();
+  /**
+   * Instantiates a new PackageInstaller.
+   *
+   * @param pkg the package
+   */
+  public JuNestInstaller(
+      @NotNull final LinuxPackage pkg, @NotNull final File file, final boolean isDebian) {
+    super(pkg, file);
+    this.isDebian = isDebian;
   }
 
   /**
-   * Gets the command chain.
+   * Installs the packages accordingly.
    *
-   * @return the chain
+   * @throws IOException if an io issue has occurred during the process
    */
-  public List<CommandTask> getChain() {
-    return chain;
-  }
-
-  /**
-   * Adds a task to the chain.
-   *
-   * @param task to be added
-   * @return the CommandTaskChain
-   */
-  public CommandTaskChain addTask(@NotNull final CommandTask task) {
-    chain.add(task);
-    return this;
-  }
-
-  /** Builds and runs the task chain. */
-  public void run() {
-    for (final CommandTask task : chain) {
-      try {
-        task.run();
-      } catch (final IOException e) {
-        e.printStackTrace();
-      }
+  @Override
+  public void installPackage() throws IOException {
+    final String path = getFile().getAbsolutePath();
+    if (isDebian) {
+      new CommandTask(args("junest", "-f", "&&", "apt", "install", path), true);
+    } else {
+      new CommandTask(args("junest", "-f", "&&", "rpm", "-i", path), true);
     }
+  }
+
+  /**
+   * Uses any steps to setup a package.
+   *
+   * @throws IOException if an io issue has occurred during the process
+   */
+  @Override
+  public void setupPackage() throws IOException {
+    new CommandTaskChain()
+        .addTask(
+            new CommandTask(
+                args(
+                    "git", "clone", "git://github.com/fsquillace/junest", "~/.local/share/junest")))
+        .addTask(new CommandTask(args("export", "PATH=~/.local/share/junest/bin:$PATH")))
+        .addTask(new CommandTask(args("export", "PATH=\"$PATH:~/.junest/usr/bin_wrappers\"")))
+        .run();
+  }
+
+  /**
+   * Checks if the package is Debian or not.
+   *
+   * @return if the package is Debian. Otherwise it must be RPG
+   */
+  public boolean isDebian() {
+    return isDebian;
   }
 }
