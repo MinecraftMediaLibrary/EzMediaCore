@@ -129,9 +129,7 @@ public abstract class TinyProtocol {
 
   // Current handler name
   private final String handlerName;
-  /** The Closed. */
   protected volatile boolean closed;
-  /** The Plugin. */
   protected Plugin plugin;
 
   private Listener listener;
@@ -181,7 +179,6 @@ public abstract class TinyProtocol {
     // Handle connected channels
     endInitProtocol =
         new ChannelInitializer<Channel>() {
-
           @Override
           protected void initChannel(final Channel channel) {
             try {
@@ -212,7 +209,6 @@ public abstract class TinyProtocol {
           @Override
           public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
             final Channel channel = (Channel) msg;
-
             // Prepare to initialize ths channel
             channel.pipeline().addFirst(beginInitProtocol);
             ctx.fireChannelRead(msg);
