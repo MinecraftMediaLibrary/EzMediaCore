@@ -25,6 +25,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.os.LinuxSilentInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.os.MacSilentInstallation;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.os.SilentOSDependentSolution;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.os.WindowsSilentInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
@@ -68,14 +69,17 @@ public class VLCNativeDependencyFetcher {
    */
   public void downloadLibraries() {
     Logger.info("Trying to find Native VLC Installation...");
+    SilentOSDependentSolution solution = null;
+    if (RuntimeUtilities.isLinux()) {
+      solution = new LinuxSilentInstallation(dir);
+    } else if (RuntimeUtilities.isWindows()) {
+      solution = new WindowsSilentInstallation(dir);
+    } else if (RuntimeUtilities.isMac()) {
+      solution = new MacSilentInstallation(dir);
+    }
     try {
-      if (RuntimeUtilities.isLinux()) {
-        new LinuxSilentInstallation(dir).downloadVLCLibrary();
-      } else if (RuntimeUtilities.isWindows()) {
-        new WindowsSilentInstallation(dir).downloadVLCLibrary();
-      } else if (RuntimeUtilities.isMac()) {
-        new MacSilentInstallation(dir).downloadVLCLibrary();
-      }
+      assert solution != null;
+      solution.downloadVLCLibrary();
     } catch (final IOException e) {
       e.printStackTrace();
     }

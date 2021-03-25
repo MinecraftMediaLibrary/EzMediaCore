@@ -1,6 +1,5 @@
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
 
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackage;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
 import org.jetbrains.annotations.NotNull;
 
@@ -8,16 +7,15 @@ import java.io.File;
 import java.io.IOException;
 
 /** Extracts the package binaries instead of other methods. */
-public class ExtractionInstaller extends PackageInstaller {
+public class ExtractionInstaller extends PackageBase {
 
   /**
-   * Instantiates a new PackageInstaller.
+   * Instantiates a new ExtractionInstaller.
    *
-   * @param pkg the package
    * @param file the file
    */
-  public ExtractionInstaller(@NotNull LinuxPackage pkg, @NotNull File file) {
-    super(pkg, file);
+  public ExtractionInstaller(@NotNull final File file) {
+    super(file);
   }
 
   /**

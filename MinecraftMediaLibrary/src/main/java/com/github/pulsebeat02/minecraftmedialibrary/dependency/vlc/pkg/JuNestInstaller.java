@@ -31,18 +31,18 @@ import java.io.File;
 import java.io.IOException;
 
 /** Installs a package that can be Debian or RPM based on the JuNest distribution. */
-public class JuNestInstaller extends PackageInstaller {
+public class JuNestInstaller extends PackageBase {
 
   private final boolean isDebian;
 
   /**
-   * Instantiates a new PackageInstaller.
+   * Instantiates a new JuNestInstaller.
    *
-   * @param pkg the package
+   * @param file the file
+   * @param isDebian whether package is Debian or not
    */
-  public JuNestInstaller(
-      @NotNull final LinuxPackage pkg, @NotNull final File file, final boolean isDebian) {
-    super(pkg, file);
+  public JuNestInstaller(@NotNull final File file, final boolean isDebian) {
+    super(file);
     this.isDebian = isDebian;
   }
 

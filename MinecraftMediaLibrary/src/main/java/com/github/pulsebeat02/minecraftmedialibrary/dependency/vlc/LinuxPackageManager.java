@@ -65,6 +65,7 @@ public class LinuxPackageManager {
   private static final TypeToken<Map<String, LinuxOSPackages>>
       MAP_STRING_LINUX_OS_PACKAGE_TYPE_TOKEN;
   private static final Gson GSON;
+  private static LinuxPackage PACKAGE;
 
   static {
     MAP_STRING_LIST_LINUX_PACKAGE_TYPE_TOKEN = new TypeToken<Map<String, List<LinuxPackage>>>() {};
@@ -133,7 +134,7 @@ public class LinuxPackageManager {
    * @return package stored in archive
    * @throws IOException exception if file can't be downloaded
    */
-  public File getPackage() throws IOException {
+  public File getDesignatedPackage() throws IOException {
     Logger.info("Attempting to Find VLC Package for Machine.");
     final String fullInfo = RuntimeUtilities.getLinuxDistribution();
     final String distro = RuntimeUtilities.getDistributionName(fullInfo).toLowerCase();
@@ -186,6 +187,7 @@ public class LinuxPackageManager {
         }
         assert uri != null;
         FileUtils.copyURLToFile(uri, file);
+        PACKAGE = link;
         return file;
       }
     }
@@ -254,5 +256,9 @@ public class LinuxPackageManager {
       map.forEach(multimap::putAll);
       return new LinuxOSPackages(multimap);
     }
+  }
+
+  public static LinuxPackage getPackage() {
+    return PACKAGE;
   }
 }

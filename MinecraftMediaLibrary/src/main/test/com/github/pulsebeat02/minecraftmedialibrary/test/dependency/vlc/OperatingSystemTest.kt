@@ -15,5 +15,5 @@ package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackageManager
 
 fun main(args: Array<String>) {
-    LinuxPackageManager("").getPackage()
+    LinuxPackageManager("").getDesignatedPackage()
 }

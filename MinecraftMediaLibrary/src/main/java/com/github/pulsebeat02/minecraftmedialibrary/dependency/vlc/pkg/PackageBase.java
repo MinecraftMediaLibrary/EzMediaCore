@@ -23,10 +23,13 @@
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
 
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackage;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackageManager;
+import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 /**
  * @author Brandon Li
@@ -135,7 +138,7 @@ import java.io.IOException;
  *
  * </pre>
  */
-public abstract class PackageInstaller {
+public abstract class PackageBase {
 
   private final LinuxPackage pkg;
   private final File file;
@@ -143,11 +146,10 @@ public abstract class PackageInstaller {
   /**
    * Instantiates a new PackageInstaller.
    *
-   * @param pkg the package
    * @param file the file
    */
-  public PackageInstaller(@NotNull final LinuxPackage pkg, @NotNull final File file) {
-    this.pkg = pkg;
+  public PackageBase(@NotNull final File file) {
+    this.pkg = LinuxPackageManager.getPackage();
     this.file = file;
     try {
       setupPackage();
@@ -196,5 +198,31 @@ public abstract class PackageInstaller {
    */
   public String[] args(final String... array) {
     return array;
+  }
+
+  private static final Set<String> ALGORITHM_A =
+      ImmutableSet.of(".txz", ".tar.xz", ".tgz", ".tar.gz", ".zst");
+
+  private static final Set<String> ALGORITHM_B = ImmutableSet.of(".deb", ".rpm");
+
+  /**
+   * Gets the package base from the file.
+   *
+   * @param file the file
+   * @return the package base
+   */
+  public static PackageBase getFromFile(@NotNull final File file) {
+    final String extension = file.getName();
+    for (final String str : ALGORITHM_A) {
+      if (extension.endsWith(str)) {
+        return new ExtractionInstaller(file);
+      }
+    }
+    for (final String str : ALGORITHM_B) {
+      if (extension.endsWith(str)) {
+        return new JuNestInstaller(file, str.equals(".deb"));
+      }
+    }
+    return new ManualInstaller(file);
   }
 }
