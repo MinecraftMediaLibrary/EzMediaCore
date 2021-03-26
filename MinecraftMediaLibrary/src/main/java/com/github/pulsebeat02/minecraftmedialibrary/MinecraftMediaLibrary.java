@@ -22,7 +22,6 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary;
 
-import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import com.github.pulsebeat02.minecraftmedialibrary.listener.PlayerJoinLeaveHandler;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
@@ -51,24 +50,17 @@ public final class MinecraftMediaLibrary {
   private final Plugin plugin;
   private final PlayerJoinLeaveHandler listener;
   private final PacketHandler handler;
-  private TinyProtocol protocol;
-  private String parent;
-  private String dependenciesFolder;
-  private String vlcFolder;
+  private final TinyProtocol protocol;
+  private final String parent;
+  private final String dependenciesFolder;
+  private final String vlcFolder;
   private boolean vlcj;
   private boolean disabled;
 
-  {
-    printSystemInformation();
-    dependencyTasks();
-    listener = new PlayerJoinLeaveHandler(this);
-    registerEvents();
-    checkJavaVersion();
-    handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
-  }
-
   /**
-   * Instantiates a new MinecraftMediaLibrary.
+   * Instantiates a new MinecraftMediaLibrary. On note, I cannot make an extra variable here because
+   * the constructor call must be the first statement. If I defined another variable for
+   * plugin.getDataFolder().getAbsolutePath() it would not be valid.
    *
    * @param plugin the plugin
    * @param http the path
@@ -76,31 +68,12 @@ public final class MinecraftMediaLibrary {
    */
   public MinecraftMediaLibrary(
       @NotNull final Plugin plugin, @NotNull final String http, final boolean isUsingVLCJ) {
-    this.plugin = plugin;
-    if (handler == null) {
-      shutdown();
-    } else {
-      protocol =
-          new TinyProtocol(plugin) {
-            @Override
-            public Object onPacketOutAsync(
-                final Player player, final Channel channel, final Object packet) {
-              return handler.onPacketInterceptOut(player, packet);
-            }
-
-            @Override
-            public Object onPacketInAsync(
-                final Player player, final Channel channel, final Object packet) {
-              return handler.onPacketInterceptIn(player, packet);
-            }
-          };
-      parent = http;
-      final String path = plugin.getDataFolder().getAbsolutePath();
-      dependenciesFolder = path + "/mml_libs";
-      vlcFolder = path + "/vlc";
-      vlcj = isUsingVLCJ;
-      debugInformation();
-    }
+    this(
+        plugin,
+        http,
+        plugin.getDataFolder().getAbsolutePath() + "/mml_libs",
+        plugin.getDataFolder().getAbsolutePath() + "/vlc",
+        isUsingVLCJ);
   }
 
   /**
@@ -111,11 +84,7 @@ public final class MinecraftMediaLibrary {
    * @param libraryPath dependency path
    * @param vlcPath vlc installation path
    * @param isUsingVLCJ whether using vlcj
-   * @deprecated See {@link #MinecraftMediaLibrary(Plugin, String, boolean)}. Current constructor
-   *     could have unwanted side effects such as file conflicts.
    */
-  @Deprecated
-  @LegacyApi(since = "1.4.0")
   public MinecraftMediaLibrary(
       @NotNull final Plugin plugin,
       @NotNull final String http,
@@ -123,29 +92,31 @@ public final class MinecraftMediaLibrary {
       @NotNull final String vlcPath,
       final boolean isUsingVLCJ) {
     this.plugin = plugin;
-    if (handler == null) {
-      shutdown();
-    } else {
-      protocol =
-          new TinyProtocol(plugin) {
-            @Override
-            public Object onPacketOutAsync(
-                final Player player, final Channel channel, final Object packet) {
-              return handler.onPacketInterceptOut(player, packet);
-            }
+    protocol =
+        new TinyProtocol(plugin) {
+          @Override
+          public Object onPacketOutAsync(
+              final Player player, final Channel channel, final Object packet) {
+            return handler.onPacketInterceptOut(player, packet);
+          }
 
-            @Override
-            public Object onPacketInAsync(
-                final Player player, final Channel channel, final Object packet) {
-              return handler.onPacketInterceptIn(player, packet);
-            }
-          };
-      parent = http;
-      dependenciesFolder = libraryPath;
-      vlcFolder = vlcPath;
-      vlcj = isUsingVLCJ;
-      debugInformation();
-    }
+          @Override
+          public Object onPacketInAsync(
+              final Player player, final Channel channel, final Object packet) {
+            return handler.onPacketInterceptIn(player, packet);
+          }
+        };
+    parent = http;
+    dependenciesFolder = libraryPath;
+    vlcFolder = vlcPath;
+    vlcj = isUsingVLCJ;
+    handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
+    listener = new PlayerJoinLeaveHandler(this);
+    registerEvents();
+    debugInformation();
+    printSystemInformation();
+    dependencyTasks();
+    checkJavaVersion();
   }
 
   /** Runs dependency tasks required. */
