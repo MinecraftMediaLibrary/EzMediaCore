@@ -65,7 +65,6 @@ public class CommandTask {
    * Instantiates a CommandTask.
    *
    * @param command command
-   * @throws IOException if the command isn't valid (when ran instantly)
    */
   public CommandTask(@NotNull final String[] command)
           throws IOException {

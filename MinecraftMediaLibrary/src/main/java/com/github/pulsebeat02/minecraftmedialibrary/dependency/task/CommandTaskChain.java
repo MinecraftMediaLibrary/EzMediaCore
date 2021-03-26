@@ -25,17 +25,18 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.task;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /** Constructs a chain of commands to be executed accordingly. */
 public class CommandTaskChain {
 
-  private final List<CommandTask> chain;
+  private final Map<CommandTask, Boolean> chain;
 
   /** Instantiates a new CommandTaskChain */
   public CommandTaskChain() {
-    chain = new ArrayList<>();
+    chain = new LinkedHashMap<>();
   }
 
   /**
@@ -43,28 +44,47 @@ public class CommandTaskChain {
    *
    * @return the chain
    */
-  public List<CommandTask> getChain() {
+  public Map<CommandTask, Boolean> getChain() {
     return chain;
   }
 
   /**
-   * Adds a task to the chain.
+   * Runs a task to the chain (synchronously).
    *
    * @param task to be added
    * @return the CommandTaskChain
    */
-  public CommandTaskChain addTask(@NotNull final CommandTask task) {
-    chain.add(task);
+  public CommandTaskChain thenRun(@NotNull final CommandTask task) {
+    chain.put(task, false);
+    return this;
+  }
+
+  /**
+   * Runs a task to the chain (asynchronously).
+   *
+   * @param task to be added
+   * @return the CommandTaskChain
+   */
+  public CommandTaskChain thenRunAsync(@NotNull final CommandTask task) {
+    chain.put(task, true);
     return this;
   }
 
   /** Builds and runs the task chain. */
-  public void run() {
-    for (final CommandTask task : chain) {
-      try {
+  public void run() throws IOException {
+    for (final Map.Entry<CommandTask, Boolean> entry : chain.entrySet()) {
+      final CommandTask task = entry.getKey();
+      if (entry.getValue()) {
+        CompletableFuture.runAsync(
+            () -> {
+              try {
+                task.run();
+              } catch (final IOException e) {
+                e.printStackTrace();
+              }
+            });
+      } else {
         task.run();
-      } catch (final IOException e) {
-        e.printStackTrace();
       }
     }
   }

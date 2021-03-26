@@ -24,7 +24,6 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
 
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTask;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTaskChain;
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackage;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -69,12 +68,12 @@ public class JuNestInstaller extends PackageBase {
   @Override
   public void setupPackage() throws IOException {
     new CommandTaskChain()
-        .addTask(
+        .thenRun(
             new CommandTask(
                 args(
                     "git", "clone", "git://github.com/fsquillace/junest", "~/.local/share/junest")))
-        .addTask(new CommandTask(args("export", "PATH=~/.local/share/junest/bin:$PATH")))
-        .addTask(new CommandTask(args("export", "PATH=\"$PATH:~/.junest/usr/bin_wrappers\"")))
+        .thenRun(new CommandTask(args("export", "PATH=~/.local/share/junest/bin:$PATH")))
+        .thenRun(new CommandTask(args("export", "PATH=\"$PATH:~/.junest/usr/bin_wrappers\"")))
         .run();
   }
 
