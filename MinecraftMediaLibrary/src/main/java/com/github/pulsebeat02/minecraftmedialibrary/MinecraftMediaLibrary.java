@@ -62,12 +62,19 @@ public final class MinecraftMediaLibrary {
    * Instantiates a new MinecraftMediaLibrary.
    *
    * @param plugin the plugin
-   * @param http the path
    * @param isUsingVLCJ whether using vlcj
    */
-  public MinecraftMediaLibrary(
-      @NotNull final Plugin plugin, @NotNull final String http, final boolean isUsingVLCJ) {
-    this(plugin, http, null, null, isUsingVLCJ);
+  public MinecraftMediaLibrary(@NotNull final Plugin plugin, final boolean isUsingVLCJ) {
+    this(plugin, null, null, null, isUsingVLCJ);
+  }
+
+  /**
+   * Instantiates a new MinecraftMediaLibrary.
+   *
+   * @param plugin the plugin
+   */
+  public MinecraftMediaLibrary(@NotNull final Plugin plugin) {
+    this(plugin, null, null, null, true);
   }
 
   /**
@@ -81,7 +88,7 @@ public final class MinecraftMediaLibrary {
    */
   public MinecraftMediaLibrary(
       @NotNull final Plugin plugin,
-      @NotNull final String http,
+      @Nullable final String http,
       @Nullable final String libraryPath,
       @Nullable final String vlcPath,
       final boolean isUsingVLCJ) {
@@ -100,8 +107,8 @@ public final class MinecraftMediaLibrary {
             return handler.onPacketInterceptIn(player, packet);
           }
         };
-    parent = http;
     final String path = plugin.getDataFolder().getAbsolutePath();
+    parent = http == null ? path + "/http" : http;
     dependenciesFolder = libraryPath == null ? path + "/mml_libs" : libraryPath;
     vlcFolder = vlcPath == null ? path + "/vlc" : vlcPath;
     vlcj = isUsingVLCJ;
