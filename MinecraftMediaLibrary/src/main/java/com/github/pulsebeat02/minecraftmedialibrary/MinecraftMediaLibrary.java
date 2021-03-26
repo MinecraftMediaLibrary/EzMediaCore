@@ -36,6 +36,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This is the starting class of MinecraftMediaLibrary which describes the starting class for all
@@ -58,9 +59,7 @@ public final class MinecraftMediaLibrary {
   private boolean disabled;
 
   /**
-   * Instantiates a new MinecraftMediaLibrary. On note, I cannot make an extra variable here because
-   * the constructor call must be the first statement. If I defined another variable for
-   * plugin.getDataFolder().getAbsolutePath() it would not be valid.
+   * Instantiates a new MinecraftMediaLibrary.
    *
    * @param plugin the plugin
    * @param http the path
@@ -68,12 +67,7 @@ public final class MinecraftMediaLibrary {
    */
   public MinecraftMediaLibrary(
       @NotNull final Plugin plugin, @NotNull final String http, final boolean isUsingVLCJ) {
-    this(
-        plugin,
-        http,
-        plugin.getDataFolder().getAbsolutePath() + "/mml_libs",
-        plugin.getDataFolder().getAbsolutePath() + "/vlc",
-        isUsingVLCJ);
+    this(plugin, http, null, null, isUsingVLCJ);
   }
 
   /**
@@ -88,8 +82,8 @@ public final class MinecraftMediaLibrary {
   public MinecraftMediaLibrary(
       @NotNull final Plugin plugin,
       @NotNull final String http,
-      @NotNull final String libraryPath,
-      @NotNull final String vlcPath,
+      @Nullable final String libraryPath,
+      @Nullable final String vlcPath,
       final boolean isUsingVLCJ) {
     this.plugin = plugin;
     protocol =
@@ -107,8 +101,9 @@ public final class MinecraftMediaLibrary {
           }
         };
     parent = http;
-    dependenciesFolder = libraryPath;
-    vlcFolder = vlcPath;
+    final String path = plugin.getDataFolder().getAbsolutePath();
+    dependenciesFolder = libraryPath == null ? path + "/mml_libs" : libraryPath;
+    vlcFolder = vlcPath == null ? path + "/vlc" : vlcPath;
     vlcj = isUsingVLCJ;
     handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
     listener = new PlayerJoinLeaveHandler(this);
