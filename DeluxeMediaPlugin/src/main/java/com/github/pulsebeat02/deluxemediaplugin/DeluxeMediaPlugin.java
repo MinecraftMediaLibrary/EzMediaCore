@@ -50,7 +50,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       com.github.pulsebeat02.minecraftmedialibrary.logger.Logger.setVerbose(true);
       logger.info("DeluxeMediaPlugin is Initializing");
       logger.info("Loading MinecraftMediaLibrary Instance...");
-      library = new MinecraftMediaLibrary(this, getDataFolder().getPath(), true);
+      library = new MinecraftMediaLibrary(this);
       registerCommands();
       registerConfigurations();
       checkUpdates();
@@ -72,7 +72,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       logger.severe(
           "WARNING: MinecraftMediaLibrary instance is null... something is fishy going on.");
     }
-    for (BaseCommand cmd : handler.getCommands()) {
+    for (final BaseCommand cmd : handler.getCommands()) {
       CommandUtilities.unRegisterBukkitCommand(this, cmd);
     }
 

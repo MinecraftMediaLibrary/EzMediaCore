@@ -38,6 +38,8 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+
 /**
  * This is the starting class of MinecraftMediaLibrary which describes the starting class for all
  * modules. It passes in a Plugin as an argument with a path to the http daemon. Optional arguments
@@ -115,10 +117,33 @@ public final class MinecraftMediaLibrary {
     handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
     listener = new PlayerJoinLeaveHandler(this);
     registerEvents();
+    createNecessaryFolders();
     debugInformation();
     printSystemInformation();
     dependencyTasks();
     checkJavaVersion();
+  }
+
+  /** Creates the necessary folders required. */
+  private void createNecessaryFolders() {
+    final File parentHttpFile = new File(parent);
+    final File dependenciesFile = new File(dependenciesFolder);
+    final File vlcjFile = new File(vlcFolder);
+    if (!parentHttpFile.exists()) {
+      if (parentHttpFile.mkdir()) {
+        Logger.info("Successfully created directory: " + parentHttpFile.getAbsolutePath());
+      }
+    }
+    if (!dependenciesFile.exists()) {
+      if (dependenciesFile.mkdir()) {
+        Logger.info("Successfully created directory: " + dependenciesFile.getAbsolutePath());
+      }
+    }
+    if (!vlcjFile.exists()) {
+      if (vlcjFile.mkdir()) {
+        Logger.info("Successfully created directory: " + vlcjFile.getAbsolutePath());
+      }
+    }
   }
 
   /** Runs dependency tasks required. */
