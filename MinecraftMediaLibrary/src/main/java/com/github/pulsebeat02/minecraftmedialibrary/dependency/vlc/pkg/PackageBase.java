@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
 
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackage;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackageManager;
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -140,6 +141,9 @@ import java.util.Set;
  */
 public abstract class PackageBase {
 
+  private static final Set<String> ALGORITHM_A =
+      ImmutableSet.of(".txz", ".tar.xz", ".tgz", ".tar.gz", ".zst");
+  private static final Set<String> ALGORITHM_B = ImmutableSet.of(".deb", ".rpm");
   private final LinuxPackage pkg;
   private final File file;
 
@@ -149,13 +153,37 @@ public abstract class PackageBase {
    * @param file the file
    */
   public PackageBase(@NotNull final File file) {
-    this.pkg = LinuxPackageManager.getPackage();
+    pkg = LinuxPackageManager.getPackage();
     this.file = file;
     try {
       setupPackage();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       e.printStackTrace();
     }
+  }
+
+  /**
+   * Gets the package base from the file.
+   *
+   * @param file the file
+   * @return the package base
+   */
+  public static PackageBase getFromFile(@NotNull final File file) {
+    final String extension = file.getName();
+    for (final String str : ALGORITHM_A) {
+      if (extension.endsWith(str)) {
+        Logger.info("Found Algorithm (A): " + str);
+        return new ExtractionInstaller(file);
+      }
+    }
+    for (final String str : ALGORITHM_B) {
+      if (extension.endsWith(str)) {
+        Logger.info("Found Algorithm (B): " + str);
+        return new JuNestInstaller(file, str.equals(".deb"));
+      }
+    }
+    Logger.info("Found Algorithm (C): Manual Installation");
+    return new ManualInstaller(file);
   }
 
   /**
@@ -198,31 +226,5 @@ public abstract class PackageBase {
    */
   public String[] args(final String... array) {
     return array;
-  }
-
-  private static final Set<String> ALGORITHM_A =
-      ImmutableSet.of(".txz", ".tar.xz", ".tgz", ".tar.gz", ".zst");
-
-  private static final Set<String> ALGORITHM_B = ImmutableSet.of(".deb", ".rpm");
-
-  /**
-   * Gets the package base from the file.
-   *
-   * @param file the file
-   * @return the package base
-   */
-  public static PackageBase getFromFile(@NotNull final File file) {
-    final String extension = file.getName();
-    for (final String str : ALGORITHM_A) {
-      if (extension.endsWith(str)) {
-        return new ExtractionInstaller(file);
-      }
-    }
-    for (final String str : ALGORITHM_B) {
-      if (extension.endsWith(str)) {
-        return new JuNestInstaller(file, str.equals(".deb"));
-      }
-    }
-    return new ManualInstaller(file);
   }
 }

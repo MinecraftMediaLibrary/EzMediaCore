@@ -22,6 +22,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.task;
 
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -79,13 +80,16 @@ public class CommandTaskChain {
             () -> {
               try {
                 task.run();
+                Logger.info("Task Command: " + String.join(" ", task.getCommand()) + " Result: " + task.getResult());
               } catch (final IOException e) {
                 e.printStackTrace();
               }
             });
       } else {
         task.run();
+        Logger.info("Task Command: " + String.join(" ", task.getCommand()) + " Result: " + task.getResult());
       }
+
     }
   }
 }

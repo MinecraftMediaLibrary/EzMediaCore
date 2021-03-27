@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
 
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTask;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTaskChain;
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -54,8 +55,10 @@ public class JuNestInstaller extends PackageBase {
   public void installPackage() throws IOException {
     final String path = getFile().getAbsolutePath();
     if (isDebian) {
+      Logger.info("Executing Command (junet -f && apt install " + path);
       new CommandTask(args("junest", "-f", "&&", "apt", "install", path), true);
     } else {
+      Logger.info("Executing Command (junet -f && rpm -i " + path);
       new CommandTask(args("junest", "-f", "&&", "rpm", "-i", path), true);
     }
   }
@@ -67,6 +70,7 @@ public class JuNestInstaller extends PackageBase {
    */
   @Override
   public void setupPackage() throws IOException {
+    Logger.info("Running Command Chain! (Setup)");
     new CommandTaskChain()
         .thenRun(
             new CommandTask(
@@ -75,6 +79,7 @@ public class JuNestInstaller extends PackageBase {
         .thenRun(new CommandTask(args("export", "PATH=~/.local/share/junest/bin:$PATH")))
         .thenRun(new CommandTask(args("export", "PATH=\"$PATH:~/.junest/usr/bin_wrappers\"")))
         .run();
+    Logger.info("Finished Package Initialization");
   }
 
   /**
