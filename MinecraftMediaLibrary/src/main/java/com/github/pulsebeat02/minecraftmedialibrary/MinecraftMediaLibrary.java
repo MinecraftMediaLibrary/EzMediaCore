@@ -113,11 +113,11 @@ public final class MinecraftMediaLibrary {
     parent = http == null ? path + "/http" : http;
     dependenciesFolder = libraryPath == null ? path + "/mml_libs" : libraryPath;
     vlcFolder = vlcPath == null ? path + "/vlc" : vlcPath;
+    createNecessaryFolders();
     vlcj = isUsingVLCJ;
     handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
     listener = new PlayerJoinLeaveHandler(this);
     registerEvents();
-    createNecessaryFolders();
     debugInformation();
     printSystemInformation();
     dependencyTasks();
@@ -129,17 +129,17 @@ public final class MinecraftMediaLibrary {
     final File parentHttpFile = new File(parent);
     final File dependenciesFile = new File(dependenciesFolder);
     final File vlcjFile = new File(vlcFolder);
-    if (!parentHttpFile.exists()) {
+    if (!parentHttpFile.isDirectory()) {
       if (parentHttpFile.mkdir()) {
         Logger.info("Successfully created directory: " + parentHttpFile.getAbsolutePath());
       }
     }
-    if (!dependenciesFile.exists()) {
+    if (!dependenciesFile.isDirectory()) {
       if (dependenciesFile.mkdir()) {
         Logger.info("Successfully created directory: " + dependenciesFile.getAbsolutePath());
       }
     }
-    if (!vlcjFile.exists()) {
+    if (!vlcjFile.isDirectory()) {
       if (vlcjFile.mkdir()) {
         Logger.info("Successfully created directory: " + vlcjFile.getAbsolutePath());
       }
