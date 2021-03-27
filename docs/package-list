@@ -5,6 +5,7 @@ com.github.pulsebeat02.minecraftmedialibrary.dependency
 com.github.pulsebeat02.minecraftmedialibrary.dependency.task
 com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc
 com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.os
+com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg
 com.github.pulsebeat02.minecraftmedialibrary.exception
 com.github.pulsebeat02.minecraftmedialibrary.extractor
 com.github.pulsebeat02.minecraftmedialibrary.http

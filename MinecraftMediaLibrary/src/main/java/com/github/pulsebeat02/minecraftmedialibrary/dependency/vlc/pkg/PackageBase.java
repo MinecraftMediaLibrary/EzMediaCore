@@ -68,14 +68,14 @@ import java.util.Set;
  * ALGORITHMS
  * ===================================================================
  *
- * (A) -> Extraction Algorithm
+ * (A) -{@literal >} Extraction Algorithm
  *          - Due to the package already containing pre-compiled binaries of VLC,
  *            it is not necessary to perform any previous steps such as installing
  *            dependencies, other plugins, etc.
  *          - A simple extraction will do. Add it to a search path in NativeDiscovery
  *            for easy configuration.
  *
- * (B) -> Package Repository Hack Algorithm
+ * (B) -{@literal >} Package Repository Hack Algorithm
  *          - Most famous packages today for Debian distributions use .deb file (also
  *            known as debian package). For CentOS and other Redhat distributions, .rpm
  *            packages are the common convention. Unfortunately, the packages do not
@@ -101,12 +101,12 @@ import java.util.Set;
  *            this process could include:
  *              - Build a CommandTaskChain.
  *                  (1) Execute the command to install JuNest:
- *                          > git clone git://github.com/fsquillace/junest ~/.local/share/junest
- *                          > export PATH=~/.local/share/junest/bin:$PATH
+ *                          {@literal >} git clone git://github.com/fsquillace/junest ~/.local/share/junest
+ *                          {@literal >} export PATH=~/.local/share/junest/bin:$PATH
  *                  (2) Enter into the JuNest console:
- *                          > junest -f
+ *                          {@literal >} junest -f
  *                  (3) Install the Package:
- *                          > apt install ./vlc.deb
+ *                          {@literal >} apt install ./vlc.deb
  *                  (4) Add NativeDiscovery onto the JuNest Directory:
  *                          NativeDiscovery.addSearchpath("$HOME/.junest/...");
  *                  (5) Load and done!
@@ -125,7 +125,7 @@ import java.util.Set;
  *             kernels. However, it would be interesting to see what other people's opinions
  *             are to solving this issue.
  *
- * (C) -> User Based Algorithm
+ * (C) -{@literal >} User Based Algorithm
  *          - In terms of availability, .eopkg packages will not be supported due to the
  *            tough nature of giving support to Solus systems. Solus is also very outdated
  *            as other Linux's have taken over. If the user would like to continue to run

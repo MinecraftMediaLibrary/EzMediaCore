@@ -71,7 +71,11 @@ public class CommandTaskChain {
     return this;
   }
 
-  /** Builds and runs the task chain. */
+  /**
+   * Builds and runs the task chain.
+   *
+   * @throws IOException if an error occurred while receiving output
+   */
   public void run() throws IOException {
     for (final Map.Entry<CommandTask, Boolean> entry : chain.entrySet()) {
       final CommandTask task = entry.getKey();
@@ -80,16 +84,23 @@ public class CommandTaskChain {
             () -> {
               try {
                 task.run();
-                Logger.info("Task Command: " + String.join(" ", task.getCommand()) + " Result: " + task.getResult());
+                Logger.info(
+                    "Task Command: "
+                        + String.join(" ", task.getCommand())
+                        + " Result: "
+                        + task.getResult());
               } catch (final IOException e) {
                 e.printStackTrace();
               }
             });
       } else {
         task.run();
-        Logger.info("Task Command: " + String.join(" ", task.getCommand()) + " Result: " + task.getResult());
+        Logger.info(
+            "Task Command: "
+                + String.join(" ", task.getCommand())
+                + " Result: "
+                + task.getResult());
       }
-
     }
   }
 }

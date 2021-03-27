@@ -136,6 +136,7 @@ public final class DependencyUtilities {
    * @param version version
    * @param directory directory
    * @param resolution resolution
+   * @param consumer consumer
    * @return jar file
    * @throws IOException if the url constructed cannot be found
    */
@@ -267,6 +268,7 @@ public final class DependencyUtilities {
    * @param artifactId the artifact id
    * @param version the version
    * @param parent the parent
+   * @param resolution the resolution
    * @return the file
    * @throws IOException the io exception
    */
@@ -291,6 +293,7 @@ public final class DependencyUtilities {
    * @param version the version
    * @param parent the parent
    * @param consumer the consumer
+   * @param resolution the resolution
    * @return the file
    * @throws IOException the io exception
    */
