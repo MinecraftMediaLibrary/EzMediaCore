@@ -59,7 +59,7 @@ import java.nio.ByteBuffer;
 @Author(
     authors = {"PulseBeat_02", "BananaPuncher714", "jetp250"},
     emails = {"brandonli2006ma@gmail.com", "banana@aaaaahhhhhhh.com", "github.com/jetp250"})
-public class FloydImageDither implements DitherHolder {
+public final class FloydImageDither implements DitherHolder {
 
   private static final int[] PALETTE;
   private static final byte[] COLOR_MAP;

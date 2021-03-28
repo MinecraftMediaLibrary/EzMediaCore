@@ -34,7 +34,7 @@ import java.net.URLClassLoader;
 import java.util.concurrent.CompletableFuture;
 
 /** A special dependency instantiation class used to run dependency tasks asynchronously. */
-public class DependencyInstantiation {
+public final class DependencyInstantiation {
 
   private final MinecraftMediaLibrary instance;
 
@@ -49,10 +49,10 @@ public class DependencyInstantiation {
 
   /** Starts dependency tasks. */
   public void startTasks() {
-    CompletableFuture.runAsync(this::assignClassLoader)
-        .thenRunAsync(this::loadJave)
-        .thenRunAsync(this::loadDependencies)
-        .thenRunAsync(this::loadVLC);
+    assignClassLoader();
+    loadJave();
+    loadDependencies();
+    loadVLC();
   }
 
   /** Assigns ClassLoader for classpath loading. */

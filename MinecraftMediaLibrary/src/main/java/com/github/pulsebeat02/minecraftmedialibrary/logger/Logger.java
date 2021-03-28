@@ -22,6 +22,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.logger;
 
+import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedWriter;
@@ -34,17 +35,20 @@ import java.io.IOException;
  * in the base server folder called "mml.log", and contains very useful information about the
  * execution of the library.
  */
-public class Logger {
+public final class Logger {
 
   /** Tracks whether log should be verbose */
   public static boolean VERBOSE;
 
   protected static volatile BufferedWriter WRITER;
 
-  static {
+  public static void initializeLogger(@NotNull final MinecraftMediaLibrary library) {
     try {
-      final File f = new File("mml.log");
-      System.out.println(f.getAbsolutePath());
+      final File folder = library.getPlugin().getDataFolder();
+      if (!folder.mkdir()) {
+        System.out.println("An IO Error has Occurred");
+      }
+      final File f = new File(folder, "mml.log");
       if (f.createNewFile()) {
         System.out.println("File Created (" + f.getName() + ")");
       } else {

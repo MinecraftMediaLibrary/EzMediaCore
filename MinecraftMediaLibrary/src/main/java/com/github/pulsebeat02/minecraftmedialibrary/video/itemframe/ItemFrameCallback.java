@@ -30,7 +30,7 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 /** The callback used for itemframes to update maps for each frame when necessary. */
-public class ItemFrameCallback implements CallbackBase {
+public final class ItemFrameCallback implements CallbackBase {
 
   private final MinecraftMediaLibrary library;
   private final UUID[] viewers;

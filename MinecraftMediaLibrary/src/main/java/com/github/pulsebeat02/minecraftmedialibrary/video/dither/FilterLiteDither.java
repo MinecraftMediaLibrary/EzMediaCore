@@ -46,7 +46,7 @@ import java.nio.ByteBuffer;
  * https://web.archive.org/web/20190316064436/http://www.efg2.com/Lab/Library/ImageProcessing/DHALF.TXT
  * for more information about the studies
  */
-public class FilterLiteDither implements DitherHolder {
+public final class FilterLiteDither implements DitherHolder {
 
   /**
    * Performs Filter Lite Dithering at a more optimized pace while giving similar results to Floyd

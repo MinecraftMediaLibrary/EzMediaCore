@@ -42,7 +42,7 @@ import java.util.Objects;
  * to draw the specific image onto the map. MapImage also supports serialization/deserialization, so
  * it can be stored in configuration files if necessary.
  */
-public class MapImage implements ImageMapHolder, ConfigurationSerializable {
+public final class MapImage implements ImageMapHolder, ConfigurationSerializable {
 
   private final MinecraftMediaLibrary library;
   private final int map;

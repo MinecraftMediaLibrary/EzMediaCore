@@ -25,7 +25,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 import java.awt.*;
 
 /** The net.minecraft.server palette of all possible colors. */
-public class MinecraftMapPalette {
+public final class MinecraftMapPalette {
 
   /** NMS Map Palette */
   public static final Color[] colors =

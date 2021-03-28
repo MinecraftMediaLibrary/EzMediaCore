@@ -38,7 +38,7 @@ import java.lang.reflect.InvocationTargetException;
  * MinecraftMediaLibrary instance will not be set to null (due to restrictions of constructors), and
  * it is up to the users to check if the library is disabled or not.
  */
-public class NMSReflectionManager {
+public final class NMSReflectionManager {
 
   /** The constant VERSION. */
   public static final String VERSION;

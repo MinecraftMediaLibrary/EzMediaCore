@@ -26,8 +26,10 @@ import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
+import com.sun.jna.NativeLibrary;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
+import uk.co.caprica.vlcj.binding.RuntimeUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,5 +76,12 @@ public class WindowsSilentInstallation extends SilentOSDependentSolution {
       printSystemEnvironmentVariables();
       printSystemProperties();
     }
+  }
+
+  @Override
+  public void loadNativeDependency(@NotNull final File folder) {
+    NativeLibrary.addSearchPath(
+        RuntimeUtil.getLibVlcLibraryName(), folder.getAbsolutePath() + "/vlc-3.0.12");
+    getNativeDiscovery().discover();
   }
 }

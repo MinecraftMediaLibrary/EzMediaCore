@@ -31,7 +31,7 @@ import java.util.Map;
  * Special collection utilities used throughout the library and also open to users. Used for easier
  * collection management.
  */
-public class CollectionUtilities {
+public final class CollectionUtilities {
 
   /**
    * Creates a Guava multimap using the input map.

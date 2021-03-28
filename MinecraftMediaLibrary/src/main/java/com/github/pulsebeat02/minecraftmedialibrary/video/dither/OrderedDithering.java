@@ -53,7 +53,7 @@ import java.nio.ByteBuffer;
  *
  * <p>See https://en.wikipedia.org/wiki/Ordered_dithering
  */
-public class OrderedDithering implements DitherHolder {
+public final class OrderedDithering implements DitherHolder {
 
   /**
    * Performs Ordered Dithering with a selection of matrices to choose from.

@@ -28,7 +28,7 @@ import java.nio.ByteBuffer;
  * A class dither implementation which uses a normal get nearest color function. Fast but bad
  * quality.
  */
-public class StandardDithering implements DitherHolder {
+public final class StandardDithering implements DitherHolder {
 
   private static final byte[] COLOR_MAP;
 

@@ -34,7 +34,7 @@ import java.util.concurrent.RecursiveTask;
 @Author(
     authors = {"PulseBeat_02", "BananaPuncher714", "jetp250"},
     emails = {"brandonli2006ma@gmail.com", "banana@aaaaahhhhhhh.com", "github.com/jetp250"})
-public class StaticDitherInitialization {
+public final class StaticDitherInitialization {
 
   /** The constant PALETTE. */
   public static final int[] PALETTE;
@@ -123,7 +123,7 @@ public class StaticDitherInitialization {
 }
 
 /** Loads Red colors. */
-class LoadRed extends RecursiveTask<byte[]> {
+final class LoadRed extends RecursiveTask<byte[]> {
 
   private static final long serialVersionUID = -6408377810782246185L;
   /** The R. */
@@ -166,7 +166,7 @@ class LoadRed extends RecursiveTask<byte[]> {
 }
 
 /** Loads Green colors. */
-class LoadGreen extends RecursiveTask<byte[]> {
+final class LoadGreen extends RecursiveTask<byte[]> {
 
   private static final long serialVersionUID = -1221290051151782146L;
   /** The R. */
@@ -211,7 +211,7 @@ class LoadGreen extends RecursiveTask<byte[]> {
 }
 
 /** Loads Blue colors. */
-class LoadBlue extends RecursiveTask<Byte> {
+final class LoadBlue extends RecursiveTask<Byte> {
 
   private static final long serialVersionUID = 5331764784578439634L;
   protected final int r, g, b;

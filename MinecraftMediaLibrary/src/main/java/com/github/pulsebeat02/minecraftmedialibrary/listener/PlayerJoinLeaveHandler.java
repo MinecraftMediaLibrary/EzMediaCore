@@ -35,7 +35,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
  * the correct listener. The listener is registered under the Plugin that was passed into the
  * library on initialization.
  */
-public class PlayerJoinLeaveHandler implements Listener {
+public final class PlayerJoinLeaveHandler implements Listener {
 
   private final MinecraftMediaLibrary library;
 

@@ -94,7 +94,10 @@ public final class MinecraftMediaLibrary {
       @Nullable final String libraryPath,
       @Nullable final String vlcPath,
       final boolean isUsingVLCJ) {
+    final java.util.logging.Logger logger = plugin.getLogger();
+    final String path = plugin.getDataFolder().getAbsolutePath();
     this.plugin = plugin;
+    Logger.initializeLogger(this);
     protocol =
         new TinyProtocol(plugin) {
           @Override
@@ -109,7 +112,6 @@ public final class MinecraftMediaLibrary {
             return handler.onPacketInterceptIn(player, packet);
           }
         };
-    final String path = plugin.getDataFolder().getAbsolutePath();
     parent = http == null ? path + "/http" : http;
     dependenciesFolder = libraryPath == null ? path + "/mml_libs" : libraryPath;
     vlcFolder = vlcPath == null ? path + "/vlc" : vlcPath;
@@ -120,6 +122,7 @@ public final class MinecraftMediaLibrary {
     registerEvents();
     debugInformation();
     printSystemInformation();
+    logger.info("Starting Dependency Tasks... this may take a while!");
     dependencyTasks();
     checkJavaVersion();
   }
@@ -130,17 +133,17 @@ public final class MinecraftMediaLibrary {
     final File dependenciesFile = new File(dependenciesFolder);
     final File vlcjFile = new File(vlcFolder);
     if (!parentHttpFile.isDirectory()) {
-      if (parentHttpFile.mkdir()) {
+      if (parentHttpFile.mkdirs()) {
         Logger.info("Successfully created directory: " + parentHttpFile.getAbsolutePath());
       }
     }
     if (!dependenciesFile.isDirectory()) {
-      if (dependenciesFile.mkdir()) {
+      if (dependenciesFile.mkdirs()) {
         Logger.info("Successfully created directory: " + dependenciesFile.getAbsolutePath());
       }
     }
     if (!vlcjFile.isDirectory()) {
-      if (vlcjFile.mkdir()) {
+      if (vlcjFile.mkdirs()) {
         Logger.info("Successfully created directory: " + vlcjFile.getAbsolutePath());
       }
     }
