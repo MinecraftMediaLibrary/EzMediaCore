@@ -28,6 +28,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import com.sun.jna.NativeLibrary;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 
@@ -71,7 +72,8 @@ public class WindowsSilentInstallation extends SilentOSDependentSolution {
       final File zip = new File(dir, "VLC.zip");
       FileUtils.copyURLToFile(new URL(RuntimeUtilities.getURL()), zip);
       final String path = zip.getAbsolutePath();
-      vlcPath = ArchiveUtilities.decompressArchive(new File(path), new File(dir)).getAbsolutePath();
+      ArchiveUtilities.decompressArchive(new File(path), new File(dir));
+      vlcPath = new File(zip.getParentFile(), "vlc-3.0.12").getAbsolutePath();
       Logger.info("Successfully Extracted File (" + path + ")");
       deleteArchive(zip);
       loadNativeDependency(new File(dir));
