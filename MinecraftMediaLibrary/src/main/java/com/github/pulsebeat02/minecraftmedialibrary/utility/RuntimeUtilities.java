@@ -36,25 +36,25 @@ import java.io.InputStreamReader;
 public final class RuntimeUtilities {
 
   /** CPU Architecture */
-  public static final String CPU_ARCH;
+  private static final String CPU_ARCH;
 
   /** Operating System */
-  public static final String OPERATING_SYSTEM;
+  private static final String OPERATING_SYSTEM;
 
   /** Linux Distribution (If using linux) */
-  public static final String LINUX_DISTRIBUTION;
+  private static final String LINUX_DISTRIBUTION;
 
   /** Using MAC */
-  public static final boolean MAC;
+  private static final boolean MAC;
 
   /** Using WINDOWS */
-  public static final boolean WINDOWS;
+  private static final boolean WINDOWS;
 
   /** Using LINUX */
-  public static final boolean LINUX;
+  private static final boolean LINUX;
 
   /** URL used to download or "LINUX" if Linux */
-  public static String URL;
+  private static String URL;
 
   static {
     Logger.info("Detecting Operating System...");

@@ -41,6 +41,8 @@ import java.net.URL;
  */
 public class WindowsSilentInstallation extends SilentOSDependentSolution {
 
+  private String vlcPath;
+
   /**
    * Instantiates a new WindowsSilentInstallation.
    *
@@ -69,7 +71,7 @@ public class WindowsSilentInstallation extends SilentOSDependentSolution {
       final File zip = new File(dir, "VLC.zip");
       FileUtils.copyURLToFile(new URL(RuntimeUtilities.getURL()), zip);
       final String path = zip.getAbsolutePath();
-      ArchiveUtilities.decompressArchive(new File(path), new File(dir));
+      vlcPath = ArchiveUtilities.decompressArchive(new File(path), new File(dir)).getAbsolutePath();
       Logger.info("Successfully Extracted File (" + path + ")");
       deleteArchive(zip);
       loadNativeDependency(new File(dir));
@@ -80,8 +82,16 @@ public class WindowsSilentInstallation extends SilentOSDependentSolution {
 
   @Override
   public void loadNativeDependency(@NotNull final File folder) {
-    NativeLibrary.addSearchPath(
-        RuntimeUtil.getLibVlcLibraryName(), folder.getAbsolutePath() + "/vlc-3.0.12");
+    NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), vlcPath);
     getNativeDiscovery().discover();
+  }
+
+  /**
+   * Gets the VLC path.
+   *
+   * @return the vlc path
+   */
+  public String getVlcPath() {
+    return vlcPath;
   }
 }

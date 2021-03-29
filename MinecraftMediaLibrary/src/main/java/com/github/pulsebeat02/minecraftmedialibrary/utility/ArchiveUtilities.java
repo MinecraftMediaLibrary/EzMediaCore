@@ -53,10 +53,12 @@ public final class ArchiveUtilities {
    * Decompress archive.
    *
    * @param file the file
-   * @param result the result
+   * @param result the folder
+   * @return the file directory
    */
-  public static void decompressArchive(@NotNull final File file, @NotNull final File result) {
-    final String[] types = getCompressedType(file.getName()).split(" ");
+  public static File decompressArchive(@NotNull final File file, @NotNull final File result) {
+    final String name = file.getName();
+    final String[] types = getCompressedType(name).split(" ");
     final Archiver archiver;
     if (types.length == 1) {
       archiver = ArchiverFactory.createArchiver(types[0]);
@@ -68,17 +70,19 @@ public final class ArchiveUtilities {
     } catch (final IOException e) {
       e.printStackTrace();
     }
+    return new File(result, FilenameUtils.removeExtension(name));
   }
 
   /**
    * Decompress archive.
    *
    * @param file the file
-   * @param result the result
+   * @param result the folder
    * @param type the type
    * @param compression the compression
+   * @return the file directory
    */
-  public static void decompressArchive(
+  public static File decompressArchive(
       @NotNull final File file,
       @NotNull final File result,
       @NotNull final String type,
@@ -89,16 +93,19 @@ public final class ArchiveUtilities {
     } catch (final IOException e) {
       e.printStackTrace();
     }
+    return new File(result, FilenameUtils.removeExtension(file.getName()));
   }
 
   /**
    * Decompress archive.
    *
    * @param file the file
-   * @param result the result
+   * @param result the folder
    * @param type the type
+   *
+   * @return the file directory
    */
-  public static void decompressArchive(
+  public static File decompressArchive(
       @NotNull final File file, @NotNull final File result, @NotNull final String type) {
     final Archiver archiver = ArchiverFactory.createArchiver(type);
     try {
@@ -106,6 +113,7 @@ public final class ArchiveUtilities {
     } catch (final IOException e) {
       e.printStackTrace();
     }
+    return new File(result, FilenameUtils.removeExtension(file.getName()));
   }
 
   /**

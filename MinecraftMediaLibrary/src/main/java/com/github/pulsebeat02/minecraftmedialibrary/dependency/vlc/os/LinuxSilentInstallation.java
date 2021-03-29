@@ -26,6 +26,8 @@ import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackageManager;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg.PackageBase;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
