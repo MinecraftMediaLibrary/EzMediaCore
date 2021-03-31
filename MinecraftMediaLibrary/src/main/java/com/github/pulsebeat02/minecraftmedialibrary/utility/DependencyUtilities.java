@@ -22,10 +22,12 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
+import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyResolution;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.RepositoryDependency;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedInputStream;
@@ -391,5 +393,20 @@ public final class DependencyUtilities {
       e.printStackTrace();
     }
     Logger.info("Finished Loading Dependency " + file.getName());
+  }
+
+  /**
+   * Checks if VLC installation exists or not.
+   *
+   * @param library the library
+   * @return whether vlc can be found or not
+   */
+  public static boolean vlcExists(@NotNull final MinecraftMediaLibrary library) {
+    for (final File f : library.getPlugin().getDataFolder().listFiles()) {
+      if (StringUtils.containsIgnoreCase(f.getName(), "vlc")) {
+        return true;
+      }
+    }
+    return false;
   }
 }

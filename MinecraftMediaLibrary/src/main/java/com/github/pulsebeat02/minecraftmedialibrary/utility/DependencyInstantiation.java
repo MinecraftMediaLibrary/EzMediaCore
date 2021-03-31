@@ -52,7 +52,9 @@ public final class DependencyInstantiation {
     assignClassLoader();
     loadJave();
     loadDependencies();
-    loadVLC();
+    if (!DependencyUtilities.vlcExists(instance)) {
+      loadVLC();
+    }
   }
 
   /** Assigns ClassLoader for classpath loading. */
