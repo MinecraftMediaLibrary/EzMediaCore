@@ -77,6 +77,11 @@ public class CommandTaskChain {
    * @throws IOException if an error occurred while receiving output
    */
   public void run() throws IOException {
+    Logger.info("Command Chain Information (Thread: " + Thread.currentThread().getId() + ")");
+    for (final Map.Entry<CommandTask, Boolean> entry : chain.entrySet()) {
+      Logger.info(String.join(" ", entry.getKey().getCommand()));
+    }
+    Logger.info("Running Command Chain... ");
     for (final Map.Entry<CommandTask, Boolean> entry : chain.entrySet()) {
       final CommandTask task = entry.getKey();
       if (entry.getValue()) {
@@ -95,11 +100,19 @@ public class CommandTaskChain {
             });
       } else {
         task.run();
-        Logger.info(
-            "Task Command: "
-                + String.join(" ", task.getCommand())
-                + " Result: "
-                + task.getResult());
+        try {
+          if (task.getProcess().waitFor() == 0) {
+            Logger.info(
+                "Task Command: "
+                    + String.join(" ", task.getCommand())
+                    + " Result: "
+                    + task.getResult());
+          } else {
+            Logger.info("An exception has occurred!");
+          }
+        } catch (final InterruptedException e) {
+          e.printStackTrace();
+        }
       }
     }
   }

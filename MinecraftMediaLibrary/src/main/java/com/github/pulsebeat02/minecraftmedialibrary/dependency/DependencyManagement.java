@@ -55,29 +55,7 @@ public class DependencyManagement {
    * @param library instance
    */
   public DependencyManagement(@NotNull final MinecraftMediaLibrary library) {
-    files = new HashSet<>();
-    dir = new File(library.getDependenciesFolder());
-    if (!dir.exists()) {
-      if (dir.mkdir()) {
-        Logger.info(
-            "Dependency Directory ("
-                + dir.getAbsolutePath()
-                + ") does not exist... Creating a folder");
-      } else {
-        Logger.info("Dependency Directory (" + dir.getAbsolutePath() + ") exists!");
-      }
-    }
-    relocatedDir = new File(dir + File.separator + "/relocated");
-    if (!relocatedDir.exists()) {
-      if (relocatedDir.mkdir()) {
-        Logger.info(
-            "Relocated Directory ("
-                + relocatedDir.getAbsolutePath()
-                + ") does not exist... Creating a folder");
-      } else {
-        Logger.info("Relocated Directory (" + relocatedDir.getAbsolutePath() + ") exists!");
-      }
-    }
+    this(library.getDependenciesFolder());
   }
 
   /**

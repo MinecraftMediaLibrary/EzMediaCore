@@ -68,7 +68,7 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
    * @param library instance
    */
   public EnhancedNativeDiscovery(@NotNull final MinecraftMediaLibrary library) {
-    dir = library.getVlcFolder();
+    this(library.getVlcFolder());
   }
 
   /**

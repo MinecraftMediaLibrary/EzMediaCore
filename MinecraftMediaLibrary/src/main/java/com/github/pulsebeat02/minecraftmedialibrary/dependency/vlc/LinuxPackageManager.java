@@ -26,6 +26,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.exception.UnsupportedOperatingSystemException;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.ResourceUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -36,15 +37,12 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -86,22 +84,7 @@ public class LinuxPackageManager {
    * @param library instance
    */
   public LinuxPackageManager(@NotNull final MinecraftMediaLibrary library) {
-    Logger.info("Reading System OS JSON file...");
-    try {
-      packages = GSON.fromJson(getFileContents(), MAP_STRING_LINUX_OS_PACKAGE_TYPE_TOKEN.getType());
-      Logger.info("Successfully read System OS JSON file");
-    } catch (final IOException e) {
-      Logger.info("Could not read System OS JSON file");
-      e.printStackTrace();
-    }
-    vlc = new File(library.getVlcFolder());
-    if (!vlc.exists()) {
-      if (vlc.mkdir()) {
-        Logger.info("Made VLC Directory");
-      } else {
-        Logger.error("Failed to Make VLC Directory");
-      }
-    }
+    this(library.getVlcFolder());
   }
 
   /**
@@ -112,7 +95,10 @@ public class LinuxPackageManager {
   public LinuxPackageManager(@NotNull final String dir) {
     Logger.info("Reading System OS JSON file...");
     try {
-      packages = GSON.fromJson(getFileContents(), MAP_STRING_LINUX_OS_PACKAGE_TYPE_TOKEN.getType());
+      packages =
+          GSON.fromJson(
+              ResourceUtilities.getFileContents("linux-package-installation.json"),
+              MAP_STRING_LINUX_OS_PACKAGE_TYPE_TOKEN.getType());
       Logger.info("Successfully read System OS JSON file");
     } catch (final IOException e) {
       Logger.info("Could not read System OS JSON file");
@@ -126,6 +112,10 @@ public class LinuxPackageManager {
         Logger.error("Failed to Make VLC Directory");
       }
     }
+  }
+
+  public static LinuxPackage getPackage() {
+    return PACKAGE;
   }
 
   /**
@@ -200,22 +190,22 @@ public class LinuxPackageManager {
     ArchiveUtilities.recursiveExtraction(vlc.listFiles()[0], vlc);
   }
 
-  /**
-   * Gets resource from JSON file in resources folder.
-   *
-   * @return contents in String format
-   * @throws IOException if file couldn't be found
-   */
-  private String getFileContents() throws IOException {
-    final String name = "linux-package-installation.json";
-    final ClassLoader loader = getClass().getClassLoader();
-    final InputStream input = loader.getResourceAsStream(name);
-    if (input == null) {
-      throw new IllegalArgumentException("file not found! " + name);
-    } else {
-      return IOUtils.toString(input, StandardCharsets.UTF_8.name());
-    }
-  }
+  //  /**
+  //   * Gets resource from JSON file in resources folder.
+  //   *
+  //   * @return contents in String format
+  //   * @throws IOException if file couldn't be found
+  //   */
+  //  private String getFileContents() throws IOException {
+  //    final String name = "linux-package-installation.json";
+  //    final ClassLoader loader = getClass().getClassLoader();
+  //    final InputStream input = loader.getResourceAsStream(name);
+  //    if (input == null) {
+  //      throw new IllegalArgumentException("file not found! " + name);
+  //    } else {
+  //      return IOUtils.toString(input, StandardCharsets.UTF_8.name());
+  //    }
+  //  }
 
   /**
    * Gets packages.
@@ -256,9 +246,5 @@ public class LinuxPackageManager {
       map.forEach(multimap::putAll);
       return new LinuxOSPackages(multimap);
     }
-  }
-
-  public static LinuxPackage getPackage() {
-    return PACKAGE;
   }
 }

@@ -52,8 +52,7 @@ public abstract class SilentOSDependentSolution {
    * @param library the library
    */
   public SilentOSDependentSolution(@NotNull final MinecraftMediaLibrary library) {
-    dir = library.getVlcFolder();
-    nativeDiscovery = new NativeDiscovery();
+    this(library.getVlcFolder());
   }
 
   /**

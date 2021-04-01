@@ -13,13 +13,17 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc
 
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities
+import org.apache.commons.io.FileUtils
 import java.io.File
+import java.net.URL
 
-fun main(args: Array<String>) {
-    val f = File("/Users/bli24/Desktop/VLC")
-    if (!f.isDirectory) {
-        f.mkdir()
-    }
-    ArchiveUtilities.decompressArchive(File("/Users/bli24/Desktop/VLC.zip"), f)
+fun main() {
+    Logger.info("Running Command Chain! (Setup)")
+    val junest = File("/Users/bli24/Desktop/junest-7.3.7.zip")
+    FileUtils.copyURLToFile(
+        URL("https://github.com/PulseBeat02/JuNest-Mirror/raw/main/junest-7.3.7.zip"), junest
+    )
+    ArchiveUtilities.decompressArchive(junest, junest.parentFile)
 }

@@ -38,6 +38,9 @@ import java.io.IOException;
  * solution based on the working operating system of the environment. It should be noted that VLC
  * uses operating system dependent binaries, meaning that each operating system must be carefully
  * handled correctly in order to load the binaries properly.
+ *
+ * <p>Currently Supported Operating Systems: SLACKWARE OPENSUSE LEAP DEBIAN UBUNTU ARCH_LINUX FEDORA
+ * SOLUS KAOS FREEBSD CENTOS NETBSD
  */
 public class VLCNativeDependencyFetcher {
 
@@ -50,7 +53,7 @@ public class VLCNativeDependencyFetcher {
    * @param library the library
    */
   public VLCNativeDependencyFetcher(@NotNull final MinecraftMediaLibrary library) {
-    dir = library.getVlcFolder();
+    this(library.getVlcFolder());
   }
 
   /**

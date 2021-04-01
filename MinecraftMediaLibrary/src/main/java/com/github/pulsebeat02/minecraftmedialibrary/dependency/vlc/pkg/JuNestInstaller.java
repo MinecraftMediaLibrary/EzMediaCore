@@ -23,12 +23,16 @@
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
 
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTask;
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTaskChain;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.ResourceUtilities;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.util.Objects;
 
 /** Installs a package that can be Debian or RPM based on the JuNest distribution. */
 public class JuNestInstaller extends PackageBase {
@@ -71,15 +75,23 @@ public class JuNestInstaller extends PackageBase {
   @Override
   public void setupPackage() throws IOException {
     Logger.info("Running Command Chain! (Setup)");
-    new CommandTaskChain()
-        .thenRun(
-            new CommandTask(
-                args(
-                    "git", "clone", "git://github.com/fsquillace/junest", "~/.local/share/junest")))
-        .thenRun(new CommandTask(args("export", "PATH=~/.local/share/junest/bin:$PATH")))
-        .thenRun(new CommandTask(args("export", "PATH=\"$PATH:~/.junest/usr/bin_wrappers\"")))
-        .run();
-    Logger.info("Finished Package Initialization");
+    final File junest = new File("~/.local/share/junest.zip");
+    FileUtils.copyURLToFile(
+        new URL("https://github.com/PulseBeat02/JuNest-Mirror/raw/main/junest-7.3.7.zip"), junest);
+    ArchiveUtilities.decompressArchive(junest, junest.getParentFile());
+    final Process p =
+        new ProcessBuilder(
+                "bash",
+                Objects.requireNonNull(ResourceUtilities.getResourceAsFile("junest.sh"))
+                    .getAbsolutePath())
+            .start();
+    try {
+      if (p.waitFor() == 0) {
+        Logger.info("Successfully installed JuNest");
+      }
+    } catch (final InterruptedException e) {
+      e.printStackTrace();
+    }
   }
 
   /**

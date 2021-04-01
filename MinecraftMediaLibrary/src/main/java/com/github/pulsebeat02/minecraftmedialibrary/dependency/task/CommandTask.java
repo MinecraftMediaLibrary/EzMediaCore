@@ -58,19 +58,15 @@ public class CommandTask {
     if (runOnCreation) {
       run();
     }
-    getOutput();
   }
 
   /**
    * Instantiates a CommandTask.
    *
    * @param command command
-   * @throws IOException if an error occurred while receiving output
    */
-  public CommandTask(@NotNull final String[] command)
-          throws IOException {
+  public CommandTask(@NotNull final String[] command) {
     this.command = command;
-    getOutput();
   }
 
   /**
@@ -80,6 +76,7 @@ public class CommandTask {
    */
   public void run() throws IOException {
     process = RUNTIME.exec(command);
+    getOutput();
   }
 
   /**

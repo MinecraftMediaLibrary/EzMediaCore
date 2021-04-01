@@ -51,7 +51,7 @@ public class JaveDependencyInstallation {
    * @param library library
    */
   public JaveDependencyInstallation(@NotNull final MinecraftMediaLibrary library) {
-    dependencyFolder = library.getDependenciesFolder();
+    this(library.getDependenciesFolder());
   }
 
   /**
