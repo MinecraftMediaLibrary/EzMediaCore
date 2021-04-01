@@ -11,8 +11,8 @@ import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtili
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.video.itemframe.ItemFrameCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.video.player.VideoPlayerBase;
 import com.github.pulsebeat02.minecraftmedialibrary.video.player.VLCJIntegratedPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.video.player.VideoPlayerBase;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -123,7 +123,8 @@ public class VideoCommand extends BaseCommand {
   private int setStartingMap(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final OptionalLong id =
-        ChatUtilities.checkMapBoundaries(audience, context.getArgument("id", String.class));
+        ChatUtilities.checkMapBoundaries(
+            audience, context.getArgument("starting-map-id", String.class));
     if (!id.isPresent()) {
       return 1;
     }
@@ -166,13 +167,17 @@ public class VideoCommand extends BaseCommand {
       return 1;
     }
     final int[] dims = opt.get();
-    player.setHeight(dims[0]);
-    player.setWidth(dims[1]);
-    audience.sendMessage(
-        ChatUtilities.formatMessage(
-            Component.text(
-                "Set screen dimensions to " + dims[0] + ":" + dims[1] + " (width:height)",
-                NamedTextColor.GOLD)));
+    if (player != null) {
+      player.setHeight(dims[0]);
+      player.setWidth(dims[1]);
+      audience.sendMessage(
+          ChatUtilities.formatMessage(
+              Component.text(
+                  "Set screen dimensions to " + dims[0] + ":" + dims[1] + " (width:height)",
+                  NamedTextColor.GOLD)));
+    } else {
+      audience.sendMessage(nullCheckVideo());
+    }
     return 1;
   }
 
@@ -339,6 +344,12 @@ public class VideoCommand extends BaseCommand {
                   });
     }
     return 1;
+  }
+
+  public Component nullCheckVideo() {
+    return ChatUtilities.formatMessage(
+        Component.text(
+            "Please load a video first before executing this command!", NamedTextColor.RED));
   }
 
   @Override
