@@ -22,7 +22,6 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
 
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTask;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ResourceUtilities;
@@ -32,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Objects;
+import java.nio.file.Files;
 
 /** Installs a package that can be Debian or RPM based on the JuNest distribution. */
 public class JuNestInstaller extends PackageBase {
@@ -57,14 +56,19 @@ public class JuNestInstaller extends PackageBase {
    */
   @Override
   public void installPackage() throws IOException {
-    final String path = getFile().getAbsolutePath();
+    final File script = new File("~/.local/share/install.sh");
+    Files.write(script.toPath(), getBashScript(getFile().getAbsolutePath()).getBytes());
+    executeBashScript(script, "Successfully installed VLC Package");
+  }
+
+  private String getBashScript(@NotNull final String path) {
+    final StringBuilder sb = new StringBuilder("junest -f \n");
     if (isDebian) {
-      Logger.info("Executing Command (junet -f && apt install " + path);
-      new CommandTask(args("junest", "-f", "&&", "apt", "install", path), true);
+      sb.append("apt install ").append(path);
     } else {
-      Logger.info("Executing Command (junet -f && rpm -i " + path);
-      new CommandTask(args("junest", "-f", "&&", "rpm", "-i", path), true);
+      sb.append("rpm -i ").append(path);
     }
+    return sb.toString();
   }
 
   /**
@@ -74,22 +78,47 @@ public class JuNestInstaller extends PackageBase {
    */
   @Override
   public void setupPackage() throws IOException {
-    Logger.info("Running Command Chain! (Setup)");
+    Logger.info("Setting up JuNest!");
+    downloadJuNest();
+    Logger.info("Setting up Paths!");
+    setPaths();
+  }
+
+  /**
+   * Installs and extracts JuNest into the proper directory.
+   *
+   * @throws IOException if an exception occurred while fetching the url or file
+   */
+  private void downloadJuNest() throws IOException {
     final File junest = new File("~/.local/share/junest.zip");
     FileUtils.copyURLToFile(
         new URL("https://github.com/PulseBeat02/JuNest-Mirror/raw/main/junest-7.3.7.zip"), junest);
     ArchiveUtilities.decompressArchive(junest, junest.getParentFile());
-    final Process p =
-        new ProcessBuilder(
-                "bash",
-                Objects.requireNonNull(ResourceUtilities.getResourceAsFile("junest.sh"))
-                    .getAbsolutePath())
-            .start();
+  }
+
+  /**
+   * Sets the proper paths for JuNest bash commands to function.
+   *
+   * @throws IOException if an exception occurred while fetching the url or file
+   */
+  private void setPaths() throws IOException {
+    final File script = new File("~/.local/share/junest.sh");
+    Files.write(script.toPath(), ResourceUtilities.getFileContents("script/junest.sh").getBytes());
+    executeBashScript(script, "Successfully installed JuNest");
+  }
+
+  /**
+   * Executes a script in Linux.
+   *
+   * @param file the script
+   * @param message the success message
+   */
+  private void executeBashScript(@NotNull final File file, @NotNull final String message) {
     try {
-      if (p.waitFor() == 0) {
-        Logger.info("Successfully installed JuNest");
+      if (new ProcessBuilder("bash", file.getAbsolutePath()).start().waitFor() == 0) {
+        Logger.info(message);
       }
-    } catch (final InterruptedException e) {
+    } catch (final InterruptedException | IOException e) {
       e.printStackTrace();
     }
   }
