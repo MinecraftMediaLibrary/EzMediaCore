@@ -5,24 +5,6 @@ load: STARTUP
 authors: [ PulseBeat_02, BananaPuncher714, Jetp250 ]
 version: 1.0.0
 description: Play Media in Minecraft
-commands:
-  video:
-    description: Play a specific video
-    aliases: [ dmp ]
-    permission: deluxemediaplugin.video
-    usage: "/video, /video [Start | Stop], /video load [Youtube Link | File],
-            /video set screen-dimension [Width:Height], /video set dither [Dither Type]
-            /video set itemframe-dimension [Width:Height], /video set starting-map [Starting Map ID]"
-  image:
-    description: Display an image
-    aliases: [ img ]
-    permission: deluxemediaplugin.image
-    usage: "/image, /image reset all, /image reset map [Map ID], /image rickroll"
-  dither:
-    description: Dither information
-    aliases: [ dithering ]
-    permission: deluxemediaplugin.dither
-    usage: "/dither list"
 permissions:
   deluxemediaplugin.video:
     description: Allows you use the video command

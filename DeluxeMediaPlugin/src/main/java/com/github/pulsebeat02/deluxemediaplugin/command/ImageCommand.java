@@ -77,12 +77,12 @@ public class ImageCommand extends BaseCommand implements Listener {
                         .then(
                             argument("id", LongArgumentType.longArg())
                                 .then(
-                                    argument("mrl", StringArgumentType.word())
+                                    argument("mrl", StringArgumentType.greedyString())
                                         .executes(this::setImage))))
                 .then(
                     literal("dimensions")
                         .then(
-                            argument("dim", StringArgumentType.string())
+                            argument("dim", StringArgumentType.greedyString())
                                 .executes(this::setDimensions))))
         .then(literal("rickroll").executes(this::setRickRoll));
     literalNode = builder.build();

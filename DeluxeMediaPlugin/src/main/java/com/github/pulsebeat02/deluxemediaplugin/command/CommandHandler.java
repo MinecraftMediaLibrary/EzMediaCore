@@ -58,6 +58,8 @@ public final class CommandHandler implements TabExecutor {
     try {
       dispatcher.execute(results);
     } catch (final CommandSyntaxException exception) {
+      exception.printStackTrace();
+      System.out.println(exception.getMessage());
       sender.sendMessage(((BaseCommand) command).usage());
     }
     return true;

@@ -60,28 +60,28 @@ public class VideoCommand extends BaseCommand {
         .then(literal("stop").executes(this::stopVideo))
         .then(
             literal("load")
-                .then(argument("mrl", StringArgumentType.word()).executes(this::loadVideo)))
+                .then(argument("mrl", StringArgumentType.greedyString()).executes(this::loadVideo)))
         .then(
             literal("set")
                 .then(
                     literal("screen-dimension")
                         .then(
-                            argument("screen-dimensions", StringArgumentType.string())
+                            argument("screen-dimensions", StringArgumentType.greedyString())
                                 .executes(this::setScreenDimension)))
                 .then(
                     literal("itemframe-dimension")
                         .then(
-                            argument("itemframe-dimensions", StringArgumentType.string())
+                            argument("itemframe-dimensions", StringArgumentType.greedyString())
                                 .executes(this::setItemFrameDimension)))
                 .then(
                     literal("starting-map")
                         .then(
-                            argument("starting-map-id", StringArgumentType.string())
+                            argument("starting-map-id", StringArgumentType.greedyString())
                                 .executes(this::setStartingMap)))
                 .then(
                     literal("dither")
                         .then(
-                            argument("dithering-algorithm", StringArgumentType.string())
+                            argument("dithering-algorithm", StringArgumentType.greedyString())
                                 .suggests(this::suggestDitherAlgorithm)
                                 .executes(this::setDitherAlgorithm))))
         .executes(this::displayInformation);

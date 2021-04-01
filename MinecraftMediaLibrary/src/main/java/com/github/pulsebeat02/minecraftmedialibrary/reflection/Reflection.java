@@ -37,20 +37,69 @@ import java.util.regex.Pattern;
  * @author Kristian
  */
 public final class Reflection {
-
-  private static final String OBC_PREFIX;
-  private static final String NMS_PREFIX;
-  private static final String VERSION;
-  private static final Pattern MATCH_VARIABLE;
-
-  static {
-    // Deduce the net.minecraft.server.v* package
-    OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
-    NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
-    VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
-    // Variable replacement
-    MATCH_VARIABLE = Pattern.compile("\\{([^}]+)}");
+  /** An interface for invoking a specific constructor. */
+  public interface ConstructorInvoker {
+    /**
+     * Invoke a constructor for a specific class.
+     *
+     * @param arguments - the arguments to pass to the constructor.
+     * @return The constructed object.
+     */
+    public Object invoke(Object... arguments);
   }
+
+  /** An interface for invoking a specific method. */
+  public interface MethodInvoker {
+    /**
+     * Invoke a method on a specific target object.
+     *
+     * @param target - the target object, or NULL for a static method.
+     * @param arguments - the arguments to pass to the method.
+     * @return The return value, or NULL if is void.
+     */
+    public Object invoke(Object target, Object... arguments);
+  }
+
+  /**
+   * An interface for retrieving the field content.
+   *
+   * @param <T> - field type.
+   */
+  public interface FieldAccessor<T> {
+    /**
+     * Retrieve the content of a field.
+     *
+     * @param target - the target object, or NULL for a static field.
+     * @return The value of the field.
+     */
+    public T get(Object target);
+
+    /**
+     * Set the content of a field.
+     *
+     * @param target - the target object, or NULL for a static field.
+     * @param value - the new value of the field.
+     */
+    public void set(Object target, Object value);
+
+    /**
+     * Determine if the given object has this field.
+     *
+     * @param target - the object to test.
+     * @return TRUE if it does, FALSE otherwise.
+     */
+    public boolean hasField(Object target);
+  }
+
+  // Deduce the net.minecraft.server.v* package
+  private static final String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
+  private static final String NMS_PREFIX =
+      OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
+  private static final String VERSION =
+      OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
+
+  // Variable replacement
+  private static final Pattern MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
 
   private Reflection() {
     // Seal class
@@ -59,7 +108,6 @@ public final class Reflection {
   /**
    * Retrieve a field accessor for a specific field type and name.
    *
-   * @param <T> the type parameter
    * @param target - the target type.
    * @param name - the name of the field, or NULL to ignore.
    * @param fieldType - a compatible field type.
@@ -73,7 +121,6 @@ public final class Reflection {
   /**
    * Retrieve a field accessor for a specific field type and name.
    *
-   * @param <T> the type parameter
    * @param className - lookup name of the class, see {@link #getClass(String)}.
    * @param name - the name of the field, or NULL to ignore.
    * @param fieldType - a compatible field type.
@@ -87,7 +134,6 @@ public final class Reflection {
   /**
    * Retrieve a field accessor for a specific field type and name.
    *
-   * @param <T> the type parameter
    * @param target - the target type.
    * @param fieldType - a compatible field type.
    * @param index - the number of compatible fields to skip.
@@ -101,7 +147,6 @@ public final class Reflection {
   /**
    * Retrieve a field accessor for a specific field type and name.
    *
-   * @param <T> the type parameter
    * @param className - lookup name of the class, see {@link #getClass(String)}.
    * @param fieldType - a compatible field type.
    * @param index - the number of compatible fields to skip.
@@ -212,11 +257,15 @@ public final class Reflection {
           && Arrays.equals(method.getParameterTypes(), params)) {
         method.setAccessible(true);
 
-        return (target, arguments) -> {
-          try {
-            return method.invoke(target, arguments);
-          } catch (final Exception e) {
-            throw new RuntimeException("Cannot invoke method " + method, e);
+        return new MethodInvoker() {
+
+          @Override
+          public Object invoke(final Object target, final Object... arguments) {
+            try {
+              return method.invoke(target, arguments);
+            } catch (final Exception e) {
+              throw new RuntimeException("Cannot invoke method " + method, e);
+            }
           }
         };
       }
@@ -259,11 +308,15 @@ public final class Reflection {
       if (Arrays.equals(constructor.getParameterTypes(), params)) {
         constructor.setAccessible(true);
 
-        return arguments -> {
-          try {
-            return constructor.newInstance(arguments);
-          } catch (final Exception e) {
-            throw new RuntimeException("Cannot invoke constructor " + constructor, e);
+        return new ConstructorInvoker() {
+
+          @Override
+          public Object invoke(final Object... arguments) {
+            try {
+              return constructor.newInstance(arguments);
+            } catch (final Exception e) {
+              throw new RuntimeException("Cannot invoke constructor " + constructor, e);
+            }
           }
         };
       }
@@ -280,9 +333,9 @@ public final class Reflection {
    *
    * <p>
    *
+   * @see {@link #getClass()} for more information.
    * @param lookupName - the class name with variables.
    * @return The class.
-   * @see for more information.
    */
   public static Class<Object> getUntypedClass(final String lookupName) {
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -295,6 +348,8 @@ public final class Reflection {
    *
    * <p>Strings enclosed with curly brackets - such as {TEXT} - will be replaced according to the
    * following table:
+   *
+   * <p>
    *
    * <table border="1">
    * <tr>
@@ -327,7 +382,6 @@ public final class Reflection {
    * Retrieve a class in the net.minecraft.server.VERSION.* package.
    *
    * @param name - the name of the class, excluding the package.
-   * @return the minecraft class
    * @throws IllegalArgumentException If the class doesn't exist.
    */
   public static Class<?> getMinecraftClass(final String name) {
@@ -338,7 +392,6 @@ public final class Reflection {
    * Retrieve a class in the org.bukkit.craftbukkit.VERSION.* package.
    *
    * @param name - the name of the class, excluding the package.
-   * @return the craft bukkit class
    * @throws IllegalArgumentException If the class doesn't exist.
    */
   public static Class<?> getCraftBukkitClass(final String name) {
@@ -371,7 +424,7 @@ public final class Reflection {
 
     while (matcher.find()) {
       final String variable = matcher.group(1);
-      String replacement;
+      String replacement = "";
 
       // Expand all detected variables
       if ("nms".equalsIgnoreCase(variable)) {
@@ -395,59 +448,5 @@ public final class Reflection {
 
     matcher.appendTail(output);
     return output.toString();
-  }
-
-  /** An interface for invoking a specific constructor. */
-  public interface ConstructorInvoker {
-    /**
-     * Invoke a constructor for a specific class.
-     *
-     * @param arguments - the arguments to pass to the constructor.
-     * @return The constructed object.
-     */
-    Object invoke(Object... arguments);
-  }
-
-  /** An interface for invoking a specific method. */
-  public interface MethodInvoker {
-    /**
-     * Invoke a method on a specific target object.
-     *
-     * @param target - the target object, or NULL for a static method.
-     * @param arguments - the arguments to pass to the method.
-     * @return The return value, or NULL if is void.
-     */
-    Object invoke(Object target, Object... arguments);
-  }
-
-  /**
-   * An interface for retrieving the field content.
-   *
-   * @param <T> - field type.
-   */
-  public interface FieldAccessor<T> {
-    /**
-     * Retrieve the content of a field.
-     *
-     * @param target - the target object, or NULL for a static field.
-     * @return The value of the field.
-     */
-    T get(Object target);
-
-    /**
-     * Set the content of a field.
-     *
-     * @param target - the target object, or NULL for a static field.
-     * @param value - the new value of the field.
-     */
-    void set(Object target, Object value);
-
-    /**
-     * Determine if the given object has this field.
-     *
-     * @param target - the object to test.
-     * @return TRUE if it does, FALSE otherwise.
-     */
-    boolean hasField(Object target);
   }
 }

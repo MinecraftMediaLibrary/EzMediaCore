@@ -28,9 +28,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelPromise;
@@ -62,46 +63,63 @@ import java.util.logging.Level;
  * @author Kristian
  */
 public abstract class TinyProtocol {
-
-  private static final AtomicInteger ID;
+  private static final AtomicInteger ID = new AtomicInteger(0);
 
   // Used in order to lookup a channel
-  private static final MethodInvoker getPlayerHandle;
-  private static final FieldAccessor<Object> getConnection;
-  private static final FieldAccessor<Object> getManager;
-  private static final FieldAccessor<Channel> getChannel;
+  private static final MethodInvoker getPlayerHandle =
+      Reflection.getMethod("{obc}.entity.CraftPlayer", "getHandle");
+  private static final FieldAccessor<Object> getConnection =
+      Reflection.getField("{nms}.EntityPlayer", "playerConnection", Object.class);
+  private static final FieldAccessor<Object> getManager =
+      Reflection.getField("{nms}.PlayerConnection", "networkManager", Object.class);
+  private static final FieldAccessor<Channel> getChannel =
+      Reflection.getField("{nms}.NetworkManager", Channel.class, 0);
 
-  private static final Class<Object> minecraftServerClass;
-  private static final Class<Object> serverConnectionClass;
-  private static final FieldAccessor<Object> getMinecraftServer;
-  private static final FieldAccessor<Object> getServerConnection;
+  // Looking up ServerConnection
+  private static final Class<Object> minecraftServerClass =
+      Reflection.getUntypedClass("{nms}.MinecraftServer");
+  private static final Class<Object> serverConnectionClass =
+      Reflection.getUntypedClass("{nms}.ServerConnection");
+  private static final FieldAccessor<Object> getMinecraftServer =
+      Reflection.getField("{obc}.CraftServer", minecraftServerClass, 0);
+  private static final FieldAccessor<Object> getServerConnection =
+      Reflection.getField(minecraftServerClass, serverConnectionClass, 0);
 
-  private static final Class<?> PACKET_LOGIN_IN_START;
-  private static final FieldAccessor<GameProfile> getGameProfile;
-
+  // Stop accessing synthetic methods if possible?
   private static FieldAccessor<List> networkMarkersB;
   private static MethodInvoker getNetworkMarkers;
 
+  // Packets we have to intercept
+  private static final Class<?> PACKET_LOGIN_IN_START =
+      Reflection.getMinecraftClass("PacketLoginInStart");
+  private static final FieldAccessor<GameProfile> getGameProfile =
+      Reflection.getField(PACKET_LOGIN_IN_START, GameProfile.class, 0);
+
+  // Speedup channel lookup
+  private final Map<String, Channel> channelLookup = new MapMaker().weakValues().makeMap();
+  private final Map<UUID, Channel> uuidChannelLookup = new MapMaker().weakValues().makeMap();
+  private Listener listener;
+
+  // Channels that have already been removed
+  private final Set<Channel> uninjectedChannels =
+      Collections.newSetFromMap(new MapMaker().weakKeys().makeMap());
+
+  // List of network markers
+  private List<Object> networkManagers;
+
+  // Injected channel handlers
+  private final List<Channel> serverChannels = Lists.newArrayList();
+  private ChannelInboundHandlerAdapter serverChannelHandler;
+  private ChannelInitializer<Channel> beginInitProtocol;
+  private ChannelInitializer<Channel> endInitProtocol;
+
+  // Current handler name
+  private final String handlerName;
+
+  protected volatile boolean closed;
+  protected Plugin plugin;
+
   static {
-    ID = new AtomicInteger(0);
-
-    // Used in order to lookup a channel
-    getPlayerHandle = Reflection.getMethod("{obc}.entity.CraftPlayer", "getHandle");
-    getConnection = Reflection.getField("{nms}.EntityPlayer", "playerConnection", Object.class);
-    getManager = Reflection.getField("{nms}.PlayerConnection", "networkManager", Object.class);
-    getChannel = Reflection.getField("{nms}.NetworkManager", Channel.class, 0);
-
-    // Looking up ServerConnection
-    minecraftServerClass = Reflection.getUntypedClass("{nms}.MinecraftServer");
-    serverConnectionClass = Reflection.getUntypedClass("{nms}.ServerConnection");
-    getMinecraftServer = Reflection.getField("{obc}.CraftServer", minecraftServerClass, 0);
-    getServerConnection = Reflection.getField(minecraftServerClass, serverConnectionClass, 0);
-
-    // Packets we have to intercept
-    PACKET_LOGIN_IN_START = Reflection.getMinecraftClass("PacketLoginInStart");
-    getGameProfile = Reflection.getField(PACKET_LOGIN_IN_START, GameProfile.class, 0);
-
-    // Stop accessing synthetic methods if possible?
     try {
       networkMarkersB = Reflection.getField(serverConnectionClass, "connectedChannels", List.class);
     } catch (final Exception exception) {
@@ -115,30 +133,6 @@ public abstract class TinyProtocol {
       // ???
     }
   }
-
-  // Speedup channel lookup
-  private final Map<String, Channel> channelLookup = new MapMaker().weakValues().makeMap();
-  private final Map<UUID, Channel> uuidChannelLookup = new MapMaker().weakValues().makeMap();
-
-  // Channels that have already been removed
-  private final Set<Channel> uninjectedChannels =
-      Collections.newSetFromMap(new MapMaker().weakKeys().makeMap());
-
-  // Injected channel handlers
-  private final List<Channel> serverChannels = Lists.newArrayList();
-
-  // Current handler name
-  private final String handlerName;
-  protected volatile boolean closed;
-  protected Plugin plugin;
-
-  private Listener listener;
-
-  // List of network markers
-  private List<Object> networkManagers;
-  private ChannelHandlerAdapter serverChannelHandler;
-  private ChannelInitializer<Channel> beginInitProtocol;
-  private ChannelInitializer<Channel> endInitProtocol;
 
   /**
    * Construct a new instance of TinyProtocol, and start intercepting packets for all connected
@@ -179,6 +173,7 @@ public abstract class TinyProtocol {
     // Handle connected channels
     endInitProtocol =
         new ChannelInitializer<Channel>() {
+
           @Override
           protected void initChannel(final Channel channel) {
             try {
@@ -198,6 +193,7 @@ public abstract class TinyProtocol {
     // This is executed before Minecraft's channel handler
     beginInitProtocol =
         new ChannelInitializer<Channel>() {
+
           @Override
           protected void initChannel(final Channel channel) {
             channel.pipeline().addLast(endInitProtocol);
@@ -205,10 +201,12 @@ public abstract class TinyProtocol {
         };
 
     serverChannelHandler =
-        new ChannelHandlerAdapter() {
+        new ChannelInboundHandlerAdapter() {
+
           @Override
           public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
             final Channel channel = (Channel) msg;
+
             // Prepare to initialize ths channel
             channel.pipeline().addFirst(beginInitProtocol);
             ctx.fireChannelRead(msg);
@@ -487,11 +485,6 @@ public abstract class TinyProtocol {
     return channel;
   }
 
-  /**
-   * Remove channel.
-   *
-   * @param player the player
-   */
   public void removeChannel(final Player player) {
     uuidChannelLookup.remove(player.getUniqueId());
   }
@@ -565,8 +558,7 @@ public abstract class TinyProtocol {
    *
    * @author Kristian
    */
-  private final class PacketInterceptor extends ChannelHandlerAdapter {
-    /** The Player. */
+  private final class PacketInterceptor extends ChannelDuplexHandler {
     // Updated by the login event
     public volatile Player player;
 
