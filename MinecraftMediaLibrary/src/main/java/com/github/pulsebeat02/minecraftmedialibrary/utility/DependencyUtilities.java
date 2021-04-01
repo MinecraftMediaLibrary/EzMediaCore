@@ -402,7 +402,8 @@ public final class DependencyUtilities {
    * @return whether vlc can be found or not
    */
   public static boolean vlcExists(@NotNull final MinecraftMediaLibrary library) {
-    for (final File f : library.getPlugin().getDataFolder().listFiles()) {
+    final File path = new File(library.getPlugin().getDataFolder(), "vlc");
+    for (final File f : path.listFiles()) {
       if (StringUtils.containsIgnoreCase(f.getName(), "vlc")) {
         return true;
       }
