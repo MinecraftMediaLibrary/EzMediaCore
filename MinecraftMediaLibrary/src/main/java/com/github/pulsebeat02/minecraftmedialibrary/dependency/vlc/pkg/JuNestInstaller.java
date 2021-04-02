@@ -40,7 +40,6 @@ import java.nio.file.StandardOpenOption;
 public class JuNestInstaller extends PackageBase {
 
   private final boolean isDebian;
-  private final File scripts;
 
   /**
    * Instantiates a new JuNestInstaller.
@@ -51,8 +50,7 @@ public class JuNestInstaller extends PackageBase {
   public JuNestInstaller(@NotNull final File file, final boolean isDebian) {
     super(file);
     this.isDebian = isDebian;
-    scripts = new File("~/.local/share");
-    if (scripts.mkdir()) {
+    if (new File("~/.local/share/scripts").mkdir()) {
       Logger.info("Made Scripts Directory");
     }
   }
@@ -64,7 +62,7 @@ public class JuNestInstaller extends PackageBase {
    */
   @Override
   public void installPackage() throws IOException {
-    final File script = new File(scripts, "installation.sh");
+    final File script = new File("~/.local/share/scripts/vlc-installation.sh");
     Files.write(
         script.toPath(),
         getBashScript(getFile().getAbsolutePath()).getBytes(),
@@ -115,7 +113,7 @@ public class JuNestInstaller extends PackageBase {
    * @throws IOException if an exception occurred while fetching the url or file
    */
   private void setPaths() throws IOException {
-    final File script = new File(scripts, "junest.sh");
+    final File script = new File( "~/.local/share/scripts/junest-installation.sh");
     Files.write(
         script.toPath(),
         ResourceUtilities.getFileContents("script/junest.sh").getBytes(),
