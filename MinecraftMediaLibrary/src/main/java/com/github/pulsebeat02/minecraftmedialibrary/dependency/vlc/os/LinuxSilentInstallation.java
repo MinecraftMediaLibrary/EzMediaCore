@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.os;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackageManager;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg.JuNestInstaller;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg.PackageBase;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
@@ -75,7 +76,6 @@ public class LinuxSilentInstallation extends SilentOSDependentSolution {
       final File f = manager.getDesignatedPackage();
       PackageBase.getFromFile(f).installPackage();
       Logger.info("Downloaded and Loaded Package (" + f.getAbsolutePath() + ")");
-      deleteArchive(f);
       loadNativeDependency(new File(dir));
       printSystemEnvironmentVariables();
       printSystemProperties();

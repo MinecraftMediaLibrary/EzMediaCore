@@ -28,15 +28,19 @@ import com.github.pulsebeat02.minecraftmedialibrary.utility.ResourceUtilities;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 
 /** Installs a package that can be Debian or RPM based on the JuNest distribution. */
 public class JuNestInstaller extends PackageBase {
 
   private final boolean isDebian;
+  private final File scripts;
 
   /**
    * Instantiates a new JuNestInstaller.
@@ -47,6 +51,10 @@ public class JuNestInstaller extends PackageBase {
   public JuNestInstaller(@NotNull final File file, final boolean isDebian) {
     super(file);
     this.isDebian = isDebian;
+    scripts = new File("~/.local/share");
+    if (scripts.mkdir()) {
+      Logger.info("Made Scripts Directory");
+    }
   }
 
   /**
@@ -56,13 +64,18 @@ public class JuNestInstaller extends PackageBase {
    */
   @Override
   public void installPackage() throws IOException {
-    final File script = new File("~/.local/share/install.sh");
-    Files.write(script.toPath(), getBashScript(getFile().getAbsolutePath()).getBytes());
+    final File script = new File(scripts, "installation.sh");
+    Files.write(
+        script.toPath(),
+        getBashScript(getFile().getAbsolutePath()).getBytes(),
+        StandardOpenOption.CREATE);
     executeBashScript(script, "Successfully installed VLC Package");
   }
 
   private String getBashScript(@NotNull final String path) {
-    final StringBuilder sb = new StringBuilder("junest -f \n");
+    final StringBuilder sb =
+        new StringBuilder(
+            new File("~/.local/share/junest-7.3.7/bin/junest").getAbsolutePath() + " -f \n");
     if (isDebian) {
       sb.append("apt install ").append(path);
     } else {
@@ -102,8 +115,11 @@ public class JuNestInstaller extends PackageBase {
    * @throws IOException if an exception occurred while fetching the url or file
    */
   private void setPaths() throws IOException {
-    final File script = new File("~/.local/share/junest.sh");
-    Files.write(script.toPath(), ResourceUtilities.getFileContents("script/junest.sh").getBytes());
+    final File script = new File(scripts, "junest.sh");
+    Files.write(
+        script.toPath(),
+        ResourceUtilities.getFileContents("script/junest.sh").getBytes(),
+        StandardOpenOption.CREATE);
     executeBashScript(script, "Successfully installed JuNest");
   }
 
@@ -115,8 +131,20 @@ public class JuNestInstaller extends PackageBase {
    */
   private void executeBashScript(@NotNull final File file, @NotNull final String message) {
     try {
-      if (new ProcessBuilder("bash", file.getAbsolutePath()).start().waitFor() == 0) {
+      final Process p = new ProcessBuilder("bash", file.getAbsolutePath()).start();
+      if (p.waitFor() == 0) {
         Logger.info(message);
+      } else {
+        Logger.info("An issue occurred while running script! (" + file.getAbsolutePath() + ")");
+        try (final BufferedReader b =
+            new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+          final String line;
+          if ((line = b.readLine()) != null) {
+            Logger.info(line);
+          }
+        } catch (final IOException e) {
+          e.printStackTrace();
+        }
       }
     } catch (final InterruptedException | IOException e) {
       e.printStackTrace();
