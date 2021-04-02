@@ -63,6 +63,7 @@ public class JuNestInstaller extends PackageBase {
   @Override
   public void installPackage() throws IOException {
     final File script = new File("~/.local/share/scripts/vlc-installation.sh");
+    createFile(script, "Made VLC Installation Script");
     Files.write(
         script.toPath(),
         getBashScript(getFile().getAbsolutePath()).getBytes(),
@@ -113,12 +114,32 @@ public class JuNestInstaller extends PackageBase {
    * @throws IOException if an exception occurred while fetching the url or file
    */
   private void setPaths() throws IOException {
-    final File script = new File( "~/.local/share/scripts/junest-installation.sh");
+    final File script = new File("~/.local/share/scripts/junest-installation.sh");
+    createFile(script, "Made JuNest Script");
     Files.write(
         script.toPath(),
         ResourceUtilities.getFileContents("script/junest.sh").getBytes(),
         StandardOpenOption.CREATE);
     executeBashScript(script, "Successfully installed JuNest");
+  }
+
+  /**
+   * Creates new file with specified message when successful.
+   *
+   * @param file the file
+   * @param successful the successful message
+   */
+  private void createFile(@NotNull final File file, @NotNull final String successful) {
+    try {
+      if (file.getParentFile().mkdirs()) {
+        Logger.info("Created Directories for File (" + file.getAbsolutePath() + ")");
+      }
+      if (file.createNewFile()) {
+        Logger.info(successful);
+      }
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
   }
 
   /**
