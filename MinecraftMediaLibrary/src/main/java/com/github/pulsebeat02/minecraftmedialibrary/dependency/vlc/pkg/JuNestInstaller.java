@@ -50,7 +50,7 @@ public class JuNestInstaller extends PackageBase {
   public JuNestInstaller(@NotNull final File file, final boolean isDebian) {
     super(file);
     this.isDebian = isDebian;
-    if (new File("~/.local/share/scripts").mkdir()) {
+    if (new File("linux-image/.local/share/scripts").mkdir()) {
       Logger.info("Made Scripts Directory");
     }
   }
@@ -62,7 +62,7 @@ public class JuNestInstaller extends PackageBase {
    */
   @Override
   public void installPackage() throws IOException {
-    final File script = new File("~/.local/share/scripts/vlc-installation.sh");
+    final File script = new File("linux-image/.local/share/scripts/vlc-installation.sh");
     createFile(script, "Made VLC Installation Script");
     Files.write(
         script.toPath(),
@@ -72,9 +72,11 @@ public class JuNestInstaller extends PackageBase {
   }
 
   private String getBashScript(@NotNull final String path) {
+    // final StringBuilder sb = new StringBuilder("../../junest-7.3.7/bin/junest setup");
     final StringBuilder sb =
-        new StringBuilder(
-            new File("~/.local/share/junest-7.3.7/bin/junest").getAbsolutePath() + " -f \n");
+        new StringBuilder("linux-image/.local/share/junest-7.3.7/bin/junest setup \n");
+    sb.append(new File("linux-image/.local/share/junest-7.3.7/bin/junest").getAbsolutePath())
+        .append(" -f \n");
     if (isDebian) {
       sb.append("apt install ").append(path);
     } else {
@@ -102,7 +104,7 @@ public class JuNestInstaller extends PackageBase {
    * @throws IOException if an exception occurred while fetching the url or file
    */
   private void downloadJuNest() throws IOException {
-    final File junest = new File("~/.local/share/junest.zip");
+    final File junest = new File("linux-image/.local/share/junest.zip");
     FileUtils.copyURLToFile(
         new URL("https://github.com/PulseBeat02/JuNest-Mirror/raw/main/junest-7.3.7.zip"), junest);
     ArchiveUtilities.decompressArchive(junest, junest.getParentFile());
@@ -114,7 +116,7 @@ public class JuNestInstaller extends PackageBase {
    * @throws IOException if an exception occurred while fetching the url or file
    */
   private void setPaths() throws IOException {
-    final File script = new File("~/.local/share/scripts/junest-installation.sh");
+    final File script = new File("linux-image/.local/share/scripts/junest-installation.sh");
     createFile(script, "Made JuNest Script");
     Files.write(
         script.toPath(),
