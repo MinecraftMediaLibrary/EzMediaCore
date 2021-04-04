@@ -25,6 +25,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ResourceUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -68,11 +69,10 @@ public class JuNestInstaller extends PackageBase {
         script.toPath(),
         getBashScript(getFile().getAbsolutePath()).getBytes(),
         StandardOpenOption.CREATE);
-    executeBashScript(script, "Successfully installed VLC Package");
+    executeBashScript(script, new String[] {}, "Successfully installed VLC Package");
   }
 
   private String getBashScript(@NotNull final String path) {
-    // final StringBuilder sb = new StringBuilder("../../junest-7.3.7/bin/junest setup");
     final StringBuilder sb =
         new StringBuilder("linux-image/.local/share/junest-master/bin/junest setup \n");
     sb.append(new File("linux-image/.local/share/junest-master/bin/junest").getAbsolutePath())
@@ -92,10 +92,31 @@ public class JuNestInstaller extends PackageBase {
    */
   @Override
   public void setupPackage() throws IOException {
+    downloadConda();
     Logger.info("Setting up JuNest!");
     downloadJuNest();
     Logger.info("Setting up Paths!");
     setPaths();
+  }
+
+  /**
+   * Installs RPM package manager.
+   *
+   * @throws IOException if an exception occurred while fetching the url or file
+   */
+  private void downloadConda() throws IOException {
+    final File conda = new File("linux-image/.local/share/scripts/conda.sh");
+    FileUtils.copyURLToFile(
+        new URL(
+            "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+                + RuntimeUtilities.getCpuArch()),
+        conda);
+    executeBashScript(
+        conda, new String[] {"-b -p linux-image/conda"}, "Successfully Installed Conda");
+    executeBashScript(
+        conda,
+        new String[] {"install", "-c", "conda-forge", "curl"},
+        "Successfully Installed cURL");
   }
 
   /**
@@ -122,7 +143,7 @@ public class JuNestInstaller extends PackageBase {
         script.toPath(),
         ResourceUtilities.getFileContents("script/junest.sh").getBytes(),
         StandardOpenOption.CREATE);
-    executeBashScript(script, "Successfully installed JuNest");
+    executeBashScript(script, new String[] {}, "Successfully installed JuNest");
   }
 
   /**
@@ -150,9 +171,11 @@ public class JuNestInstaller extends PackageBase {
    * @param file the script
    * @param message the success message
    */
-  private void executeBashScript(@NotNull final File file, @NotNull final String message) {
+  private void executeBashScript(
+      @NotNull final File file, @NotNull final String[] arguments, @NotNull final String message) {
     try {
-      final Process p = new ProcessBuilder("bash", file.getAbsolutePath()).start();
+      final Process p =
+          new ProcessBuilder("bash", file.getAbsolutePath(), String.join(" ", arguments)).start();
       if (p.waitFor() == 0) {
         Logger.info(message);
       } else {
