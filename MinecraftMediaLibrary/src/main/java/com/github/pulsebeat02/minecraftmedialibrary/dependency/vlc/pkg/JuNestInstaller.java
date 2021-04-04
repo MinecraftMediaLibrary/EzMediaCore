@@ -74,8 +74,8 @@ public class JuNestInstaller extends PackageBase {
   private String getBashScript(@NotNull final String path) {
     // final StringBuilder sb = new StringBuilder("../../junest-7.3.7/bin/junest setup");
     final StringBuilder sb =
-        new StringBuilder("linux-image/.local/share/junest-7.3.7/bin/junest setup \n");
-    sb.append(new File("linux-image/.local/share/junest-7.3.7/bin/junest").getAbsolutePath())
+        new StringBuilder("linux-image/.local/share/junest-master/bin/junest setup \n");
+    sb.append(new File("linux-image/.local/share/junest-master/bin/junest").getAbsolutePath())
         .append(" -f \n");
     if (isDebian) {
       sb.append("apt install ").append(path);
@@ -106,7 +106,7 @@ public class JuNestInstaller extends PackageBase {
   private void downloadJuNest() throws IOException {
     final File junest = new File("linux-image/.local/share/junest.zip");
     FileUtils.copyURLToFile(
-        new URL("https://github.com/PulseBeat02/JuNest-Mirror/raw/main/junest-7.3.7.zip"), junest);
+        new URL("https://github.com/PulseBeat02/junest/archive/refs/heads/master.zip"), junest);
     ArchiveUtilities.decompressArchive(junest, junest.getParentFile());
   }
 

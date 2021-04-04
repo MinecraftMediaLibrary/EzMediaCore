@@ -1,4 +1,4 @@
 #!/bin/bash
 
-export PATH=~/.local/share/junest/bin:$PATH
-export PATH="$PATH:~/.junest/usr/bin_wrappers"
+export PATH=linux-image/.local/share/junest-master/bin:$PATH
+export PATH="$PATH:linux-image/.junest/usr/bin_wrappers"
