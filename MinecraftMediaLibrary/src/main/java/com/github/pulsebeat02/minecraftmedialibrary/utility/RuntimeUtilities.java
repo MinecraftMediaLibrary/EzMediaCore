@@ -26,6 +26,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
@@ -239,5 +240,35 @@ public final class RuntimeUtilities {
    */
   public static String getURL() {
     return URL;
+  }
+
+  /**
+   * Executes a script in Linux.
+   *
+   * @param file the script
+   * @param message the success message
+   */
+  public static void executeBashScript(
+      @NotNull final File file, @NotNull final String[] arguments, @NotNull final String message) {
+    try {
+      final Process p =
+          new ProcessBuilder("bash", file.getAbsolutePath(), String.join(" ", arguments)).start();
+      if (p.waitFor() == 0) {
+        Logger.info(message);
+      } else {
+        Logger.info("An issue occurred while running script! (" + file.getAbsolutePath() + ")");
+        try (final BufferedReader b =
+            new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+          final String line;
+          if ((line = b.readLine()) != null) {
+            Logger.info(line);
+          }
+        } catch (final IOException e) {
+          e.printStackTrace();
+        }
+      }
+    } catch (final InterruptedException | IOException e) {
+      e.printStackTrace();
+    }
   }
 }

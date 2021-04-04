@@ -29,10 +29,8 @@ import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
@@ -41,6 +39,7 @@ import java.nio.file.StandardOpenOption;
 public class JuNestInstaller extends PackageBase {
 
   private final boolean isDebian;
+  private final String baseDirectory;
 
   /**
    * Instantiates a new JuNestInstaller.
@@ -48,10 +47,12 @@ public class JuNestInstaller extends PackageBase {
    * @param file the file
    * @param isDebian whether package is Debian or not
    */
-  public JuNestInstaller(@NotNull final File file, final boolean isDebian) {
+  public JuNestInstaller(
+      @NotNull final String baseDirectory, @NotNull final File file, final boolean isDebian) {
     super(file);
     this.isDebian = isDebian;
-    if (new File("linux-image/.local/share/scripts").mkdir()) {
+    this.baseDirectory = baseDirectory;
+    if (new File(baseDirectory, "scripts").mkdir()) {
       Logger.info("Made Scripts Directory");
     }
   }
@@ -63,19 +64,18 @@ public class JuNestInstaller extends PackageBase {
    */
   @Override
   public void installPackage() throws IOException {
-    final File script = new File("linux-image/.local/share/scripts/vlc-installation.sh");
+    final File script = new File(baseDirectory + "scripts/vlc-installation.sh");
     createFile(script, "Made VLC Installation Script");
     Files.write(
         script.toPath(),
         getBashScript(getFile().getAbsolutePath()).getBytes(),
         StandardOpenOption.CREATE);
-    executeBashScript(script, new String[] {}, "Successfully installed VLC Package");
+    RuntimeUtilities.executeBashScript(script, new String[] {}, "Successfully installed VLC Package");
   }
 
   private String getBashScript(@NotNull final String path) {
-    final StringBuilder sb =
-        new StringBuilder("linux-image/.local/share/junest-master/bin/junest setup \n");
-    sb.append(new File("linux-image/.local/share/junest-master/bin/junest").getAbsolutePath())
+    final StringBuilder sb = new StringBuilder(baseDirectory + "junest-master/bin/junest setup \n");
+    sb.append(new File(baseDirectory + "junest-master/bin/junest").getAbsolutePath())
         .append(" -f \n");
     if (isDebian) {
       sb.append("apt install ").append(path);
@@ -105,15 +105,15 @@ public class JuNestInstaller extends PackageBase {
    * @throws IOException if an exception occurred while fetching the url or file
    */
   private void downloadConda() throws IOException {
-    final File conda = new File("linux-image/.local/share/scripts/conda.sh");
+    final File conda = new File(baseDirectory + "scripts/conda.sh");
     FileUtils.copyURLToFile(
         new URL(
             "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
                 + RuntimeUtilities.getCpuArch()),
         conda);
-    executeBashScript(
+    RuntimeUtilities.executeBashScript(
         conda, new String[] {"-b -p linux-image/conda"}, "Successfully Installed Conda");
-    executeBashScript(
+    RuntimeUtilities.executeBashScript(
         conda,
         new String[] {"install", "-c", "conda-forge", "curl"},
         "Successfully Installed cURL");
@@ -125,7 +125,7 @@ public class JuNestInstaller extends PackageBase {
    * @throws IOException if an exception occurred while fetching the url or file
    */
   private void downloadJuNest() throws IOException {
-    final File junest = new File("linux-image/.local/share/junest.zip");
+    final File junest = new File(baseDirectory + "junest.zip");
     FileUtils.copyURLToFile(
         new URL("https://github.com/PulseBeat02/junest/archive/refs/heads/master.zip"), junest);
     ArchiveUtilities.decompressArchive(junest, junest.getParentFile());
@@ -137,13 +137,13 @@ public class JuNestInstaller extends PackageBase {
    * @throws IOException if an exception occurred while fetching the url or file
    */
   private void setPaths() throws IOException {
-    final File script = new File("linux-image/.local/share/scripts/junest-installation.sh");
+    final File script = new File(baseDirectory + "scripts/junest-installation.sh");
     createFile(script, "Made JuNest Script");
     Files.write(
         script.toPath(),
         ResourceUtilities.getFileContents("script/junest.sh").getBytes(),
         StandardOpenOption.CREATE);
-    executeBashScript(script, new String[] {}, "Successfully installed JuNest");
+    RuntimeUtilities.executeBashScript(script, new String[] {}, "Successfully installed JuNest");
   }
 
   /**
@@ -161,36 +161,6 @@ public class JuNestInstaller extends PackageBase {
         Logger.info(successful);
       }
     } catch (final IOException e) {
-      e.printStackTrace();
-    }
-  }
-
-  /**
-   * Executes a script in Linux.
-   *
-   * @param file the script
-   * @param message the success message
-   */
-  private void executeBashScript(
-      @NotNull final File file, @NotNull final String[] arguments, @NotNull final String message) {
-    try {
-      final Process p =
-          new ProcessBuilder("bash", file.getAbsolutePath(), String.join(" ", arguments)).start();
-      if (p.waitFor() == 0) {
-        Logger.info(message);
-      } else {
-        Logger.info("An issue occurred while running script! (" + file.getAbsolutePath() + ")");
-        try (final BufferedReader b =
-            new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
-          final String line;
-          if ((line = b.readLine()) != null) {
-            Logger.info(line);
-          }
-        } catch (final IOException e) {
-          e.printStackTrace();
-        }
-      }
-    } catch (final InterruptedException | IOException e) {
       e.printStackTrace();
     }
   }

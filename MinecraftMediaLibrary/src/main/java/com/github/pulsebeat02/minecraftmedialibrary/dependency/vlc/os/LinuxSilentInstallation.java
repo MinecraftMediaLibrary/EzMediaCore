@@ -24,11 +24,8 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.os;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackageManager;
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg.JuNestInstaller;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg.PackageBase;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
-import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -42,6 +39,8 @@ import java.io.IOException;
  */
 public class LinuxSilentInstallation extends SilentOSDependentSolution {
 
+  private final MinecraftMediaLibrary library;
+
   /**
    * Instantiates a new LinuxSilentInstallation.
    *
@@ -49,15 +48,7 @@ public class LinuxSilentInstallation extends SilentOSDependentSolution {
    */
   public LinuxSilentInstallation(@NotNull final MinecraftMediaLibrary library) {
     super(library);
-  }
-
-  /**
-   * Instantiates a new LinuxSilentInstallation.
-   *
-   * @param dir the directory.
-   */
-  public LinuxSilentInstallation(@NotNull final String dir) {
-    super(dir);
+    this.library = library;
   }
 
   /**
@@ -74,7 +65,7 @@ public class LinuxSilentInstallation extends SilentOSDependentSolution {
       Logger.info("No VLC Installation found on this Computer. Proceeding to a manual install.");
       final LinuxPackageManager manager = new LinuxPackageManager(dir);
       final File f = manager.getDesignatedPackage();
-      PackageBase.getFromFile(f).installPackage();
+      PackageBase.getFromFile(library, f).installPackage();
       Logger.info("Downloaded and Loaded Package (" + f.getAbsolutePath() + ")");
       loadNativeDependency(new File(dir));
       printSystemEnvironmentVariables();

@@ -22,6 +22,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
 
+import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackage;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackageManager;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
@@ -168,7 +169,8 @@ public abstract class PackageBase {
    * @param file the file
    * @return the package base
    */
-  public static PackageBase getFromFile(@NotNull final File file) {
+  public static PackageBase getFromFile(
+      @NotNull final MinecraftMediaLibrary library, @NotNull final File file) {
     final String extension = file.getName();
     for (final String str : ALGORITHM_A) {
       if (extension.endsWith(str)) {
@@ -179,7 +181,10 @@ public abstract class PackageBase {
     for (final String str : ALGORITHM_B) {
       if (extension.endsWith(str)) {
         Logger.info("Found Algorithm (B): " + str);
-        return new JuNestInstaller(file, str.equals(".deb"));
+        return new JuNestInstaller(
+            library.getPlugin().getDataFolder().getAbsolutePath() + "/linux-image/",
+            file,
+            str.equals(".deb"));
       }
     }
     Logger.info("Found Algorithm (C): Manual Installation");

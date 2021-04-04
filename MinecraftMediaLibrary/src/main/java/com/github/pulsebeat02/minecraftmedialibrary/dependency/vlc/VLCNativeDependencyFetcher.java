@@ -47,22 +47,16 @@ public class VLCNativeDependencyFetcher {
   /** Instantiates a new VLCNativeDependencyFetcher. */
   private final String dir;
 
+  private final MinecraftMediaLibrary library;
+
   /**
    * Instantiates a new VLC Native Dependency Fetcher process.
    *
    * @param library the library
    */
   public VLCNativeDependencyFetcher(@NotNull final MinecraftMediaLibrary library) {
-    this(library.getVlcFolder());
-  }
-
-  /**
-   * Instantiates a new VLC Native Dependency Fetcher process.
-   *
-   * @param dir the directory
-   */
-  public VLCNativeDependencyFetcher(@NotNull final String dir) {
-    this.dir = dir;
+    dir = library.getVlcFolder();
+    this.library = library;
   }
 
   /**
@@ -74,7 +68,7 @@ public class VLCNativeDependencyFetcher {
     Logger.info("Trying to find Native VLC Installation...");
     SilentOSDependentSolution solution = null;
     if (RuntimeUtilities.isLinux()) {
-      solution = new LinuxSilentInstallation(dir);
+      solution = new LinuxSilentInstallation(library);
     } else if (RuntimeUtilities.isWindows()) {
       solution = new WindowsSilentInstallation(dir);
     } else if (RuntimeUtilities.isMac()) {
