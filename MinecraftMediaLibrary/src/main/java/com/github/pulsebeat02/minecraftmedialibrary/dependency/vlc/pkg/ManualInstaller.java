@@ -14,7 +14,7 @@ public class ManualInstaller extends PackageBase {
    * @param file the file
    */
   public ManualInstaller(@NotNull final File file) {
-    super(file);
+    super(file, true);
   }
 
   /**

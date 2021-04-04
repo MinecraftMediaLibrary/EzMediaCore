@@ -152,14 +152,17 @@ public abstract class PackageBase {
    * Instantiates a new PackageInstaller.
    *
    * @param file the file
+   * @param setup whether setup should be automatic
    */
-  public PackageBase(@NotNull final File file) {
+  public PackageBase(@NotNull final File file, final boolean setup) {
     pkg = LinuxPackageManager.getPackage();
     this.file = file;
-    try {
-      setupPackage();
-    } catch (final IOException e) {
-      e.printStackTrace();
+    if (setup) {
+      try {
+        setupPackage();
+      } catch (final IOException e) {
+        e.printStackTrace();
+      }
     }
   }
 

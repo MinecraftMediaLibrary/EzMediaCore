@@ -22,6 +22,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
 
+import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +45,7 @@ public class CondaInstallation {
    * @param baseDirectory the base directory
    */
   public CondaInstallation(@NotNull final String baseDirectory) {
-    conda = new File(baseDirectory + "scripts/conda.sh");
+    conda = new File(baseDirectory, "scripts/conda.sh");
     try {
       setup();
     } catch (final IOException e) {
@@ -58,10 +59,12 @@ public class CondaInstallation {
    * @throws IOException if an exception occurred while fetching the url or file
    */
   public void setup() throws IOException {
+    FileUtilities.createFile(conda, "Created Conda.sh File");
     FileUtils.copyURLToFile(
         new URL(
-            "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-                + RuntimeUtilities.getCpuArch()),
+            "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-"
+                + RuntimeUtilities.getCpuArch().toLowerCase()
+                + ".sh"),
         conda);
     RuntimeUtilities.executeBashScript(
         conda, new String[] {"-b -p linux-image/conda"}, "Successfully Installed Conda");

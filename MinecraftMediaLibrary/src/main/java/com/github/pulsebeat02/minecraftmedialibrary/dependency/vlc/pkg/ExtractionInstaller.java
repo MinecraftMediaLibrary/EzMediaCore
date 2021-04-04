@@ -15,7 +15,7 @@ public class ExtractionInstaller extends PackageBase {
    * @param file the file
    */
   public ExtractionInstaller(@NotNull final File file) {
-    super(file);
+    super(file, true);
   }
 
   /**

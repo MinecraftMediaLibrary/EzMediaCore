@@ -41,7 +41,6 @@ public class JuNestInstaller extends PackageBase {
 
   private final boolean isDebian;
   private final String baseDirectory;
-  private final CondaInstallation installation;
 
   /**
    * Instantiates a new JuNestInstaller.
@@ -51,13 +50,17 @@ public class JuNestInstaller extends PackageBase {
    */
   public JuNestInstaller(
       @NotNull final String baseDirectory, @NotNull final File file, final boolean isDebian) {
-    super(file);
+    super(file, false);
     this.isDebian = isDebian;
     this.baseDirectory = baseDirectory;
-    if (new File(baseDirectory, "scripts").mkdir()) {
+    if (new File(baseDirectory, "scripts").mkdirs()) {
       Logger.info("Made Scripts Directory");
     }
-    installation = new CondaInstallation(baseDirectory);
+    try {
+      setupPackage();
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
   }
 
   /**
@@ -67,6 +70,8 @@ public class JuNestInstaller extends PackageBase {
    */
   @Override
   public void installPackage() throws IOException {
+    Logger.info("Installing cURL Package...");
+    new CondaInstallation(baseDirectory).installPackage("curl");
     Logger.info("Setting Up VLC Installation");
     final File script = new File(baseDirectory + "scripts/vlc-installation.sh");
     FileUtilities.createFile(script, "Made VLC Installation Script");
@@ -97,8 +102,6 @@ public class JuNestInstaller extends PackageBase {
    */
   @Override
   public void setupPackage() throws IOException {
-    Logger.info("Installing cURL Package...");
-    installation.installPackage("curl");
     Logger.info("Setting up JuNest...");
     downloadJuNest();
     Logger.info("Setting up Paths...");
@@ -149,14 +152,5 @@ public class JuNestInstaller extends PackageBase {
    */
   public String getBaseDirectory() {
     return baseDirectory;
-  }
-
-  /**
-   * Gets the instance of the Conda installation.
-   *
-   * @return the Conda installation
-   */
-  public CondaInstallation getInstallation() {
-    return installation;
   }
 }
