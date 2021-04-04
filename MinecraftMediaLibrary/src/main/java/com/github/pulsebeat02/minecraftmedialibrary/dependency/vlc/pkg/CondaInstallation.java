@@ -20,58 +20,71 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.utility;
+package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
 
-import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.UUID;
 
 /**
- * Special file utilities used throughout the library and also open to users. Used for easier file
- * management.
+ * Installs packages from the Conda package manager. Used for the JuNestInstaller as a helper class
+ * to install the proper dependencies needed for JuNest.
  */
-public final class FileUtilities {
+public class CondaInstallation {
+
+  private final File conda;
 
   /**
-   * Download image file from URL.
+   * Instantiates a new CondaInstallation.
    *
-   * @param url the url
-   * @param path the path
-   * @return the file
+   * @param baseDirectory the base directory
    */
-  public static File downloadImageFile(@NotNull final String url, @NotNull final String path) {
-    final String filePath = path + "/" + UUID.randomUUID() + ".png";
-    try (final InputStream in = new URL(url).openStream()) {
-      Files.copy(in, Paths.get(filePath));
+  public CondaInstallation(@NotNull final String baseDirectory) {
+    conda = new File(baseDirectory + "scripts/conda.sh");
+    try {
+      setup();
     } catch (final IOException e) {
       e.printStackTrace();
     }
-    return new File(filePath);
   }
 
   /**
-   * Creates new file with specified message when successful.
+   * Installs the package manager.
    *
-   * @param file the file
-   * @param successful the successful message
+   * @throws IOException if an exception occurred while fetching the url or file
    */
-  public static void createFile(@NotNull final File file, @NotNull final String successful) {
-    try {
-      if (file.getParentFile().mkdirs()) {
-        Logger.info("Created Directories for File (" + file.getAbsolutePath() + ")");
-      }
-      if (file.createNewFile()) {
-        Logger.info(successful);
-      }
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
+  public void setup() throws IOException {
+    FileUtils.copyURLToFile(
+        new URL(
+            "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+                + RuntimeUtilities.getCpuArch()),
+        conda);
+    RuntimeUtilities.executeBashScript(
+        conda, new String[] {"-b -p linux-image/conda"}, "Successfully Installed Conda");
+  }
+
+  /**
+   * Installs a specific package from the name.
+   *
+   * @param pkgName the package name
+   */
+  public void installPackage(@NotNull final String pkgName) {
+    RuntimeUtilities.executeBashScript(
+        conda,
+        new String[] {"install", "-c", "conda-forge", pkgName},
+        "Successfully Installed cURL");
+  }
+
+  /**
+   * Gets the Conda script associated with the instance.
+   *
+   * @return the file script
+   */
+  public File getCondaScript() {
+    return conda;
   }
 }

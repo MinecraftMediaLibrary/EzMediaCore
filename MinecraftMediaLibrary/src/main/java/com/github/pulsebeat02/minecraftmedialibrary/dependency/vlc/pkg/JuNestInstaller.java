@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
 
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ResourceUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
@@ -40,6 +41,7 @@ public class JuNestInstaller extends PackageBase {
 
   private final boolean isDebian;
   private final String baseDirectory;
+  private final CondaInstallation installation;
 
   /**
    * Instantiates a new JuNestInstaller.
@@ -55,6 +57,7 @@ public class JuNestInstaller extends PackageBase {
     if (new File(baseDirectory, "scripts").mkdir()) {
       Logger.info("Made Scripts Directory");
     }
+    installation = new CondaInstallation(baseDirectory);
   }
 
   /**
@@ -64,13 +67,15 @@ public class JuNestInstaller extends PackageBase {
    */
   @Override
   public void installPackage() throws IOException {
+    Logger.info("Setting Up VLC Installation");
     final File script = new File(baseDirectory + "scripts/vlc-installation.sh");
-    createFile(script, "Made VLC Installation Script");
+    FileUtilities.createFile(script, "Made VLC Installation Script");
     Files.write(
         script.toPath(),
         getBashScript(getFile().getAbsolutePath()).getBytes(),
         StandardOpenOption.CREATE);
-    RuntimeUtilities.executeBashScript(script, new String[] {}, "Successfully installed VLC Package");
+    RuntimeUtilities.executeBashScript(
+        script, new String[] {}, "Successfully installed VLC Package");
   }
 
   private String getBashScript(@NotNull final String path) {
@@ -92,31 +97,13 @@ public class JuNestInstaller extends PackageBase {
    */
   @Override
   public void setupPackage() throws IOException {
-    downloadConda();
-    Logger.info("Setting up JuNest!");
+    Logger.info("Installing cURL Package...");
+    installation.installPackage("curl");
+    Logger.info("Setting up JuNest...");
     downloadJuNest();
-    Logger.info("Setting up Paths!");
-    setPaths();
-  }
-
-  /**
-   * Installs RPM package manager.
-   *
-   * @throws IOException if an exception occurred while fetching the url or file
-   */
-  private void downloadConda() throws IOException {
-    final File conda = new File(baseDirectory + "scripts/conda.sh");
-    FileUtils.copyURLToFile(
-        new URL(
-            "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-                + RuntimeUtilities.getCpuArch()),
-        conda);
-    RuntimeUtilities.executeBashScript(
-        conda, new String[] {"-b -p linux-image/conda"}, "Successfully Installed Conda");
-    RuntimeUtilities.executeBashScript(
-        conda,
-        new String[] {"install", "-c", "conda-forge", "curl"},
-        "Successfully Installed cURL");
+    Logger.info("Setting up Paths...");
+    setJuNestPaths();
+    Logger.info("JuNest Setup Completion");
   }
 
   /**
@@ -136,33 +123,14 @@ public class JuNestInstaller extends PackageBase {
    *
    * @throws IOException if an exception occurred while fetching the url or file
    */
-  private void setPaths() throws IOException {
+  private void setJuNestPaths() throws IOException {
     final File script = new File(baseDirectory + "scripts/junest-installation.sh");
-    createFile(script, "Made JuNest Script");
+    FileUtilities.createFile(script, "Made JuNest Script");
     Files.write(
         script.toPath(),
         ResourceUtilities.getFileContents("script/junest.sh").getBytes(),
         StandardOpenOption.CREATE);
     RuntimeUtilities.executeBashScript(script, new String[] {}, "Successfully installed JuNest");
-  }
-
-  /**
-   * Creates new file with specified message when successful.
-   *
-   * @param file the file
-   * @param successful the successful message
-   */
-  private void createFile(@NotNull final File file, @NotNull final String successful) {
-    try {
-      if (file.getParentFile().mkdirs()) {
-        Logger.info("Created Directories for File (" + file.getAbsolutePath() + ")");
-      }
-      if (file.createNewFile()) {
-        Logger.info(successful);
-      }
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
   }
 
   /**
@@ -172,5 +140,23 @@ public class JuNestInstaller extends PackageBase {
    */
   public boolean isDebian() {
     return isDebian;
+  }
+
+  /**
+   * Gets the base directory of the installation.
+   *
+   * @return the base directory
+   */
+  public String getBaseDirectory() {
+    return baseDirectory;
+  }
+
+  /**
+   * Gets the instance of the Conda installation.
+   *
+   * @return the Conda installation
+   */
+  public CondaInstallation getInstallation() {
+    return installation;
   }
 }
