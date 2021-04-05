@@ -35,7 +35,7 @@ import java.util.UUID;
 public interface PacketHandler {
 
   /**
-   * Display.
+   * Display map to UUIDs.
    *
    * @param viewers the viewers
    * @param map the map
@@ -57,7 +57,7 @@ public interface PacketHandler {
       int yOffset);
 
   /**
-   * Display.
+   * Display map to UUIDs.
    *
    * @param viewers the viewers
    * @param map the map
@@ -70,7 +70,7 @@ public interface PacketHandler {
       UUID[] viewers, int map, int mapWidth, int mapHeight, ByteBuffer rgb, int videoWidth);
 
   /**
-   * Display.
+   * Display map to UUIDs.
    *
    * @param viewers the viewers
    * @param entities the entities
