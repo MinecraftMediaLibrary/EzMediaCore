@@ -27,7 +27,6 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import com.github.pulsebeat02.minecraftmedialibrary.reflection.NMSReflectionManager;
 import com.github.pulsebeat02.minecraftmedialibrary.reflection.TinyProtocol;
-import com.github.pulsebeat02.minecraftmedialibrary.utility.DependencyInstantiation;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.JavaVersionUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import io.netty.channel.Channel;

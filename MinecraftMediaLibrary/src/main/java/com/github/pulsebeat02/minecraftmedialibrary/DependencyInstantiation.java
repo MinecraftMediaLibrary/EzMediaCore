@@ -20,17 +20,19 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.utility;
+package com.github.pulsebeat02.minecraftmedialibrary;
 
-import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyManagement;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.VLCNativeDependencyFetcher;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
+import java.io.File;
 import java.net.URLClassLoader;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /** A special dependency instantiation class used to run dependency tasks asynchronously. */
@@ -80,6 +82,7 @@ public final class DependencyInstantiation {
     dependencyManagement.install();
     dependencyManagement.relocate();
     dependencyManagement.load();
+    deleteDependencies(dependencyManagement);
   }
 
   /** Downloads/Loads VLC dependency. */
@@ -94,5 +97,20 @@ public final class DependencyInstantiation {
         e.printStackTrace();
       }
     }
+  }
+
+  /**
+   * Deletes the dependencies after finished loading.
+   *
+   * @param management the dependency management
+   */
+  public void deleteDependencies(@NotNull final DependencyManagement management) {
+    final Set<File> files = management.getFiles();
+    for (final File file : files) {
+      if (file.delete()) {
+        Logger.info("Finished Initializing Dependency (" + file.getAbsolutePath() + ")");
+      }
+    }
+    files.clear();
   }
 }

@@ -92,7 +92,7 @@ public class DependencyManagement {
   /** Installs all libraries from links. */
   public void install() {
     for (final RepositoryDependency dependency : RepositoryDependency.values()) {
-      if (!checkExists(dir, dependency)) {
+      if (!checkExists(relocatedDir, dependency)) {
         final String artifact = dependency.getArtifact();
         File file = null;
         if (dependency.getResolution() == DependencyResolution.MAVEN_DEPENDENCY) {
@@ -166,11 +166,23 @@ public class DependencyManagement {
    */
   private boolean checkExists(
       @NotNull final File dir, @NotNull final RepositoryDependency dependency) {
+    if (!dir.exists()) {
+      return false;
+    }
     for (final File f : dir.listFiles()) {
       if (f.getName().contains(dependency.getArtifact())) {
         return true;
       }
     }
     return false;
+  }
+
+  /**
+   * Get the files that were downloaded.
+   *
+   * @return the set of files downloaded
+   */
+  public Set<File> getFiles() {
+    return files;
   }
 }
