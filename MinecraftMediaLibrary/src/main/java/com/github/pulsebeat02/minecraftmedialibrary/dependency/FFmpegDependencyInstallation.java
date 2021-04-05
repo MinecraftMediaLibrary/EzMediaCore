@@ -24,7 +24,6 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import com.github.pulsebeat02.minecraftmedialibrary.utility.ResourceUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import com.oracle.tools.packager.IOUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -40,12 +39,14 @@ import java.net.URL;
  * audio quality to necessary settings. Because JAVE2 uses modules which are * operating system
  * dependent, this special class will handle the correct installation based on * the environment of
  * the library. We use these separate modules instead of using one whole combined one to save some
- * space for the user. We then end up injecting this file into the JAVE jar file resources path so
- * it can use it for download.
+ * space for the user. We then end up overriding the get path method to point it to the correct
+ * ffmpeg location.
  *
  * @see <a href="https://github.com/a-schild/jave2">JAVE2 Github</a>.
  */
-public class FfmpegDependencyInstallation {
+public class FFmpegDependencyInstallation {
+
+  private static String FFMPEG_PATH;
 
   private final String dependencyFolder;
   private File file;
@@ -55,7 +56,7 @@ public class FfmpegDependencyInstallation {
    *
    * @param library library
    */
-  public FfmpegDependencyInstallation(@NotNull final MinecraftMediaLibrary library) {
+  public FFmpegDependencyInstallation(@NotNull final MinecraftMediaLibrary library) {
     this(library.getDependenciesFolder());
   }
 
@@ -64,17 +65,27 @@ public class FfmpegDependencyInstallation {
    *
    * @param dependency directory path
    */
-  public FfmpegDependencyInstallation(@NotNull final String dependency) {
+  public FFmpegDependencyInstallation(@NotNull final String dependency) {
     dependencyFolder = dependency;
   }
 
-  /** Injects FFMPEG resource dependency */
-  public void injectResource() {
+  /**
+   * Gets the path of the executable ffmpeg binary.
+   *
+   * @return the path of the ffmpeg library
+   */
+  public static String getFFmpegPath() {
+    return FFMPEG_PATH;
+  }
+
+  /** Installs FFMPEG Resource */
+  public void install() {
     try {
-      ResourceUtilities.injectJaveFile(downloadFFMPEG());
+      file = downloadFFmpeg();
     } catch (final IOException e) {
       e.printStackTrace();
     }
+    FFMPEG_PATH = file.getAbsolutePath();
   }
 
   /**
@@ -83,17 +94,17 @@ public class FfmpegDependencyInstallation {
    * @return the FFMPEG file
    * @throws IOException if an issue occurred during downloading
    */
-  public File downloadFFMPEG() throws IOException {
+  public File downloadFFmpeg() throws IOException {
     final File folder = new File(dependencyFolder);
     mkdir(folder);
     File file = searchFFMPEG(folder);
     if (file != null) {
       return file;
     }
-    final String fileUrl = getNativeBinUrl();
+    final String fileUrl = getFFmpegUrl();
     final URL url = new URL(fileUrl);
     file = new File(dependencyFolder, FilenameUtils.getName(url.getPath()));
-    IOUtils.copyFromURL(new URL(getNativeBinUrl()), file);
+    IOUtils.copyFromURL(url, file);
     return file;
   }
 
@@ -129,22 +140,21 @@ public class FfmpegDependencyInstallation {
   }
 
   /**
-   * Gets artifact id of Jave dependency.
+   * Gets artifact id of FFMPEG dependency.
    *
    * @return the artifact id
    */
-  private String getNativeBinUrl() {
+  private String getFFmpegUrl() {
     Logger.info("Detecting Operating System...");
-    final String os = System.getProperty("os.name").toLowerCase();
+    final String arch = System.getProperty("os.name").toLowerCase();
     String artifactId = "INVALID_OPERATING_SYSTEM";
-    final boolean linux = os.contains("nix") || os.contains("nux") || os.contains("aix");
-    if (RuntimeUtilities.is64Architecture(os)) {
-      if (os.contains("win")) {
+    if (RuntimeUtilities.is64bit()) {
+      if (RuntimeUtilities.isWindows()) {
         Logger.info("Detected Windows 64 Bit!");
         artifactId =
             "https://github.com/a-schild/jave2/raw/master/jave-nativebin-win64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-amd64.exe";
-      } else if (linux) {
-        if (os.contains("arm")) {
+      } else if (RuntimeUtilities.isLinux()) {
+        if (arch.contains("arm")) {
           Logger.info("Detected Linux ARM 64 Bit!");
           artifactId =
               "https://github.com/a-schild/jave2/raw/master/jave-nativebin-arm64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-aarch64";
@@ -153,14 +163,14 @@ public class FfmpegDependencyInstallation {
           artifactId =
               "https://github.com/a-schild/jave2/raw/master/jave-nativebin-linux64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-amd64";
         }
-      } else if (os.contains("mac")) {
+      } else if (RuntimeUtilities.isMac()) {
         Logger.info("Detected MACOS 64 Bit!");
         artifactId =
             "https://github.com/a-schild/jave2/raw/master/jave-nativebin-osx64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-x86_64-osx";
       }
     } else {
-      if (linux) {
-        if (os.contains("arm")) {
+      if (RuntimeUtilities.isLinux()) {
+        if (arch.contains("arm")) {
           Logger.info("Detected ARM 32 Bit!");
           artifactId =
               "https://github.com/a-schild/jave2/raw/master/jave-nativebin-arm32/src/main/resources/ws/schild/jave/nativebin/ffmpeg-arm";

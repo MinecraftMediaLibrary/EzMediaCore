@@ -22,8 +22,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.test.dependency
 
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyManagement
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.FfmpegDependencyInstallation
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation
 import java.io.File
 
 fun main() {
@@ -37,7 +36,8 @@ fun main() {
 //    management.install()
 //    management.relocate()
 //    management.load()
-    val ffmpeg = FfmpegDependencyInstallation(folder.absolutePath)
+    val ffmpeg =
+        FFmpegDependencyInstallation(folder.absolutePath)
     ffmpeg.downloadFFMPEG()
-    ffmpeg.injectResource()
+    ffmpeg.install()
 }

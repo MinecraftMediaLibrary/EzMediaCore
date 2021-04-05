@@ -24,13 +24,14 @@ package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyManagement;
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.FfmpegDependencyInstallation;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.VLCNativeDependencyFetcher;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
 import java.net.URLClassLoader;
+import java.util.concurrent.CompletableFuture;
 
 /** A special dependency instantiation class used to run dependency tasks asynchronously. */
 public final class DependencyInstantiation {
@@ -49,11 +50,15 @@ public final class DependencyInstantiation {
   /** Starts dependency tasks. */
   public void startTasks() {
     assignClassLoader();
-    loadDependencies();
-    loadFfmpeg();
-    if (!DependencyUtilities.vlcExists(instance)) {
-      loadVLC();
-    }
+    CompletableFuture.allOf(
+        CompletableFuture.runAsync(this::loadDependencies),
+        CompletableFuture.runAsync(this::loadFfmpeg),
+        CompletableFuture.runAsync(
+            () -> {
+              if (!DependencyUtilities.vlcExists(instance)) {
+                loadVLC();
+              }
+            }));
   }
 
   /** Assigns ClassLoader for classpath loading. */
@@ -64,9 +69,9 @@ public final class DependencyInstantiation {
 
   /** Downloads/Loads Jave dependency. */
   public void loadFfmpeg() {
-    final FfmpegDependencyInstallation javeDependencyInstallation =
-        new FfmpegDependencyInstallation(instance);
-    javeDependencyInstallation.injectResource();
+    final FFmpegDependencyInstallation javeDependencyInstallation =
+        new FFmpegDependencyInstallation(instance);
+    javeDependencyInstallation.install();
   }
 
   /** Downloads/Loads Jitpack/Maven dependencies. */

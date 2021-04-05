@@ -16,7 +16,7 @@ import com.github.kiulian.downloader.cipher.Cipher
 import com.github.kiulian.downloader.cipher.CipherFactory
 import com.github.kiulian.downloader.cipher.CipherFunction
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyManagement
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.FfmpegDependencyInstallation
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger
 
 fun main(args: Array<String>) {
@@ -26,8 +26,8 @@ fun main(args: Array<String>) {
     management.relocate()
     management.load()
     val ffmpeg =
-        FfmpegDependencyInstallation("")
-    ffmpeg.injectResource()
+        FFmpegDependencyInstallation("")
+    ffmpeg.install()
     object : CipherFactory {
         override fun createCipher(s: String): Cipher? {
             return null

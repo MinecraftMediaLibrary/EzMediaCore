@@ -39,6 +39,9 @@ public final class RuntimeUtilities {
   /** CPU Architecture */
   private static final String CPU_ARCH;
 
+  /** 64 Bit Architecture */
+  private static final boolean is64bit;
+
   /** Operating System */
   private static final String OPERATING_SYSTEM;
 
@@ -69,6 +72,7 @@ public final class RuntimeUtilities {
     MAC = OPERATING_SYSTEM.contains("mac");
     LINUX_DISTRIBUTION = LINUX ? getLinuxDistribution() : "";
     if (is64Architecture(OPERATING_SYSTEM)) {
+      is64bit = true;
       if (WINDOWS) {
         Logger.info("Detected Windows 64 Bit!");
         URL = "http://download.videolan.org/pub/videolan/vlc/last/win64/vlc-3.0.12-win64.zip";
@@ -90,6 +94,7 @@ public final class RuntimeUtilities {
         }
       }
     } else {
+      is64bit = false;
       if (WINDOWS) {
         URL = "http://download.videolan.org/pub/videolan/vlc/last/win32/vlc-3.0.12-win32.zip";
       } else if (LINUX) {
@@ -240,6 +245,15 @@ public final class RuntimeUtilities {
    */
   public static String getURL() {
     return URL;
+  }
+
+  /**
+   * Returns whether the operating system is 64 bit or not.
+   *
+   * @return if the operating system is 64 bit
+   */
+  public static boolean is64bit() {
+    return is64bit;
   }
 
   /**

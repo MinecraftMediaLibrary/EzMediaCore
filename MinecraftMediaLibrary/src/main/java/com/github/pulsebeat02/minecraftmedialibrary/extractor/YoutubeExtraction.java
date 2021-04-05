@@ -26,10 +26,12 @@ import com.github.kiulian.downloader.YoutubeDownloader;
 import com.github.kiulian.downloader.YoutubeException;
 import com.github.kiulian.downloader.model.VideoDetails;
 import com.github.kiulian.downloader.model.YoutubeVideo;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import org.jetbrains.annotations.NotNull;
 import ws.schild.jave.AudioAttributes;
+import ws.schild.jave.DefaultFFMPEGLocator;
 import ws.schild.jave.Encoder;
 import ws.schild.jave.EncoderException;
 import ws.schild.jave.EncodingAttributes;
@@ -117,7 +119,14 @@ public class YoutubeExtraction implements VideoExtractorBase {
     final EncodingAttributes attrs = new EncodingAttributes();
     attrs.setFormat(settings.getFormat());
     attrs.setAudioAttributes(attributes);
-    final Encoder encoder = new Encoder();
+    final Encoder encoder =
+        new Encoder(
+            new DefaultFFMPEGLocator() {
+              @Override
+              public String getFFMPEGExecutablePath() {
+                return FFmpegDependencyInstallation.getFFmpegPath();
+              }
+            });
     try {
       encoder.encode(new MultimediaObject(video), sound, attrs);
       Logger.info(
