@@ -46,9 +46,11 @@ import java.io.IOException;
  */
 public class YoutubeExtraction implements VideoExtractorBase {
 
+  private final Encoder encoder;
+  private final EncodingAttributes attrs;
+
   private final String url;
   private final String directory;
-  private final ExtractionSetting settings;
   private VideoDetails details;
   private File video;
   private File audio;
@@ -66,7 +68,23 @@ public class YoutubeExtraction implements VideoExtractorBase {
       @NotNull final ExtractionSetting settings) {
     this.url = url;
     this.directory = directory;
-    this.settings = settings;
+    encoder =
+        new Encoder(
+            new DefaultFFMPEGLocator() {
+              @Override
+              public String getFFMPEGExecutablePath() {
+                return FFmpegDependencyInstallation.getFFmpegPath();
+              }
+            });
+    final AudioAttributes attributes = new AudioAttributes();
+    attributes.setCodec(settings.getCodec());
+    attributes.setBitRate(settings.getBitrate());
+    attributes.setChannels(settings.getChannels());
+    attributes.setSamplingRate(settings.getSamplingRate());
+    attributes.setVolume(settings.getVolume());
+    attrs = new EncodingAttributes();
+    attrs.setFormat(settings.getFormat());
+    attrs.setAudioAttributes(attributes);
   }
 
   /**
@@ -77,24 +95,23 @@ public class YoutubeExtraction implements VideoExtractorBase {
   @Override
   public File downloadVideo() {
     onVideoDownload();
-    File videoFile = null;
-    final YoutubeDownloader downloader = new YoutubeDownloader();
     final String ID = VideoExtractionUtilities.getVideoID(url);
     Logger.info("Downloading Video at URL (" + url + ")");
     if (ID != null) {
       try {
-        final YoutubeVideo video = downloader.getVideo(ID);
+        final YoutubeVideo video = new YoutubeDownloader().getVideo(ID);
         details = video.details();
-        videoFile =
+        final File videoFile =
             video.download(
                 video.videoWithAudioFormats().get(0), new File(directory), "video", true);
         Logger.info("Successfully Downloaded Video at URL: (" + url + ")");
+        return videoFile;
       } catch (final IOException | YoutubeException e) {
         Logger.info("Could not Download Video at URL!: (" + url + ")");
         e.printStackTrace();
       }
     }
-    return videoFile;
+    return null;
   }
 
   /**
@@ -110,23 +127,6 @@ public class YoutubeExtraction implements VideoExtractorBase {
     onAudioExtraction();
     Logger.info("Extracting Audio from Video File (" + video.getAbsolutePath() + ")");
     final File sound = new File(directory + "/audio.ogg");
-    final AudioAttributes attributes = new AudioAttributes();
-    attributes.setCodec(settings.getCodec());
-    attributes.setBitRate(settings.getBitrate());
-    attributes.setChannels(settings.getChannels());
-    attributes.setSamplingRate(settings.getSamplingRate());
-    attributes.setVolume(settings.getVolume());
-    final EncodingAttributes attrs = new EncodingAttributes();
-    attrs.setFormat(settings.getFormat());
-    attrs.setAudioAttributes(attributes);
-    final Encoder encoder =
-        new Encoder(
-            new DefaultFFMPEGLocator() {
-              @Override
-              public String getFFMPEGExecutablePath() {
-                return FFmpegDependencyInstallation.getFFmpegPath();
-              }
-            });
     try {
       encoder.encode(new MultimediaObject(video), sound, attrs);
       Logger.info(
