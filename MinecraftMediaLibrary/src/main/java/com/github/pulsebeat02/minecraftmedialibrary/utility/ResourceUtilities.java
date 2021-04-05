@@ -103,8 +103,8 @@ public class ResourceUtilities {
    * @throws IOException if an issue occurred during injection
    */
   public static void injectJaveFile(@NotNull final File file) throws IOException {
-    final Path folder = Paths.get(AudioAttributes.class.getResource("/nativebin").getPath());
-    Files.createDirectory(folder);
+    final Path folder = Paths.get(AudioAttributes.class.getResource("/").getPath());
+    Files.createDirectory(folder.resolve("nativebin"));
     Files.copy(file.toPath(), folder.resolve(file.getName()), StandardCopyOption.REPLACE_EXISTING);
   }
 }
