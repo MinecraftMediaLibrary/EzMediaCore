@@ -103,7 +103,7 @@ public class YoutubeExtraction implements VideoExtractorBase {
   @Override
   public File extractAudio() {
     if (video == null) {
-      downloadVideo();
+      video = downloadVideo();
     }
     onAudioExtraction();
     Logger.info("Extracting Audio from Video File (" + video.getAbsolutePath() + ")");

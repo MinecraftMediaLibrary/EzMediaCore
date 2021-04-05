@@ -298,6 +298,7 @@ public class VideoCommand extends BaseCommand {
       }
       extractor =
           new YoutubeExtraction(mrl, folderPath, plugin.getEncoderConfiguration().getSettings());
+      extractor.extractAudio();
       file = null;
       final HttpConfiguration configuration = plugin.getHttpConfiguration();
       HttpDaemonProvider provider = null;
@@ -308,10 +309,10 @@ public class VideoCommand extends BaseCommand {
         }
       }
       final HttpDaemonProvider finalProvider = provider;
-      future =
-          CompletableFuture.runAsync(() -> extractor.downloadVideo())
-              .thenRunAsync(
-                  () -> {
+//      future =
+//          CompletableFuture.runAsync(() -> extractor.downloadVideo())
+//              .thenRunAsync(
+//                  () -> {
                     final ResourcepackWrapper wrapper =
                         new ResourcepackWrapper.Builder()
                             .setAudio(extractor.getAudio())
@@ -341,7 +342,7 @@ public class VideoCommand extends BaseCommand {
                         ChatUtilities.formatMessage(
                             Component.text(
                                 "Successfully loaded video " + mrl, NamedTextColor.GOLD)));
-                  });
+//                  });
     }
     return 1;
   }

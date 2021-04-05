@@ -76,7 +76,7 @@ public class DependencyManagement {
         Logger.info("Dependency Directory (" + dir.getAbsolutePath() + ") exists!");
       }
     }
-    relocatedDir = new File(dir + File.separator + "/relocated");
+    relocatedDir = new File(dir, "relocated");
     if (!relocatedDir.exists()) {
       if (relocatedDir.mkdir()) {
         Logger.info(

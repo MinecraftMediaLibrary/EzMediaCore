@@ -40,6 +40,7 @@ import java.io.IOException;
  *
  * @see <a href="https://github.com/a-schild/jave2">JAVE2 Github</a>.
  */
+@Deprecated
 public class JaveDependencyInstallation {
 
   private final String dependencyFolder;

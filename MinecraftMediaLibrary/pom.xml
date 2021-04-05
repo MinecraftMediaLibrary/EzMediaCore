@@ -46,7 +46,7 @@
         <dependency>
             <groupId>com.github.sealedtx</groupId>
             <artifactId>java-youtube-downloader</artifactId>
-            <version>2.4.6</version>
+            <version>2.5.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -95,6 +95,12 @@
             <groupId>org.tukaani</groupId>
             <artifactId>xz</artifactId>
             <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.73</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

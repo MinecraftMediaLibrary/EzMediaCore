@@ -46,7 +46,7 @@ public enum RepositoryDependency {
       DependencyResolution.JITPACK_DEPENDENCY),
 
   /** Jave Core Maven Dependency */
-  JAVE_CORE("ws{}schild", "jave-core", "3{}0{}1", DependencyResolution.MAVEN_DEPENDENCY),
+  JAVE_CORE("ws{}schild", "jave-all-deps", "2{}7{}3", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** Apache Commons Compression Maven Dependency */
   COMMONS_COMPRESSION(
@@ -69,7 +69,10 @@ public enum RepositoryDependency {
   ASM_COMMONS("org{}ow2{}asm", "asm-commons", "9{}1", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** JNA Maven Dependency */
-  JNA("net{}java{}dev{}jna", "jna", "5{}7{}0", DependencyResolution.MAVEN_DEPENDENCY);
+  JNA("net{}java{}dev{}jna", "jna", "5{}7{}0", DependencyResolution.MAVEN_DEPENDENCY),
+
+  /** Fast JSON Maven Dependency */
+  FAST_JSON("com{}alibaba", "fastjson", "1{}2{}73", DependencyResolution.MAVEN_DEPENDENCY);
 
   private final String group;
   private final String artifact;

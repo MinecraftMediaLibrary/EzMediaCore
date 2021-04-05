@@ -50,7 +50,7 @@ public final class DependencyInstantiation {
   /** Starts dependency tasks. */
   public void startTasks() {
     assignClassLoader();
-    loadJave();
+    // loadJave();
     loadDependencies();
     if (!DependencyUtilities.vlcExists(instance)) {
       loadVLC();

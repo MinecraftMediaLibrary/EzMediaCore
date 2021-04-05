@@ -58,7 +58,10 @@ public enum JarRelocationConvention {
   ASM("org{}ow2{}asm", "com{}github{}pulsebeat02{}asm"),
 
   /** ASM Commons Jar Relocation Convention */
-  ASM_COMMONS("org{}ow2{}asm{}commons", "com{}github{}pulsebeat02{}asm{}commons");
+  ASM_COMMONS("org{}ow2{}asm{}commons", "com{}github{}pulsebeat02{}asm{}commons"),
+
+  /** Fast JSON Jar Relocation Convention */
+  FAST_JSON("com{}alibaba{}fastjson", "com{}github{}pulsebeat02{}fastjson");
 
   private final Relocation relocation;
 
