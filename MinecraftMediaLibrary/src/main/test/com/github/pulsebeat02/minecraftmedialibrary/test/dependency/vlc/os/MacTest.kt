@@ -33,6 +33,6 @@ class MacTest {
             }
         }
         println(folder.absolutePath)
-        VLCNativeDependencyFetcher(folder.absolutePath).downloadLibraries()
+//        VLCNativeDependencyFetcher(folder.absolutePath).downloadLibraries()
     }
 }

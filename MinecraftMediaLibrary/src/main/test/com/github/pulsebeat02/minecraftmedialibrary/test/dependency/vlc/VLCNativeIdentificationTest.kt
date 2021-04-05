@@ -17,10 +17,10 @@ import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.VLCNativeDepe
 import java.io.File
 
 fun main() {
-    val path = File(System.getProperty("user.dir") + "/vlc").absolutePath
-    val fetcher = VLCNativeDependencyFetcher(path)
-    fetcher.downloadLibraries()
-    val enchancedNativeDiscovery =
-        EnhancedNativeDiscovery(path)
-    println(enchancedNativeDiscovery.discover())
+//    val path = File(System.getProperty("user.dir") + "/vlc").absolutePath
+//    val fetcher = VLCNativeDependencyFetcher(path)
+//    fetcher.downloadLibraries()
+//    val enchancedNativeDiscovery =
+//        EnhancedNativeDiscovery(path)
+//    println(enchancedNativeDiscovery.discover())
 }

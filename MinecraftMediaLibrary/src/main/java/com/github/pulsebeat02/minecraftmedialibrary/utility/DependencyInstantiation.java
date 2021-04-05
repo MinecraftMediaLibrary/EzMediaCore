@@ -24,14 +24,13 @@ package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyManagement;
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.JaveDependencyInstallation;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.FfmpegDependencyInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.VLCNativeDependencyFetcher;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
 import java.net.URLClassLoader;
-import java.util.concurrent.CompletableFuture;
 
 /** A special dependency instantiation class used to run dependency tasks asynchronously. */
 public final class DependencyInstantiation {
@@ -50,8 +49,8 @@ public final class DependencyInstantiation {
   /** Starts dependency tasks. */
   public void startTasks() {
     assignClassLoader();
-    // loadJave();
     loadDependencies();
+    loadFfmpeg();
     if (!DependencyUtilities.vlcExists(instance)) {
       loadVLC();
     }
@@ -64,11 +63,10 @@ public final class DependencyInstantiation {
   }
 
   /** Downloads/Loads Jave dependency. */
-  public void loadJave() {
-    final JaveDependencyInstallation javeDependencyInstallation =
-        new JaveDependencyInstallation(instance);
-    javeDependencyInstallation.install();
-    javeDependencyInstallation.load();
+  public void loadFfmpeg() {
+    final FfmpegDependencyInstallation javeDependencyInstallation =
+        new FfmpegDependencyInstallation(instance);
+    javeDependencyInstallation.injectResource();
   }
 
   /** Downloads/Loads Jitpack/Maven dependencies. */
