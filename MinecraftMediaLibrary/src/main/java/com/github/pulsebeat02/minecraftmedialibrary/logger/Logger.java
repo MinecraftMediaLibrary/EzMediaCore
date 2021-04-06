@@ -45,8 +45,8 @@ public final class Logger {
   public static void initializeLogger(@NotNull final MinecraftMediaLibrary library) {
     try {
       final File folder = library.getPlugin().getDataFolder();
-      if (!folder.mkdir()) {
-        System.out.println("An IO Error has Occurred");
+      if (folder.mkdir()) {
+        System.out.println("Created Directory");
       }
       final File f = new File(folder, "mml.log");
       if (f.createNewFile()) {

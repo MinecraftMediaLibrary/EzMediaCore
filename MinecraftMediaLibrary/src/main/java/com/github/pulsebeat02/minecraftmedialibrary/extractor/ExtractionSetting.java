@@ -46,7 +46,7 @@ public class ExtractionSetting {
    */
   public ExtractionSetting(
       final int bitrate, final int channels, final int samplingRate, final int volume) {
-    codec = "libvorbis";
+    codec = "vorbis";
     format = "ogg";
     this.bitrate = bitrate;
     this.channels = channels;

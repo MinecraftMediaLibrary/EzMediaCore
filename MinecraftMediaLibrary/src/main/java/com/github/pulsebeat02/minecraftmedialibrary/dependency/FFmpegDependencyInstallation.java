@@ -25,7 +25,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
-import com.oracle.tools.packager.IOUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -108,7 +108,7 @@ public class FFmpegDependencyInstallation {
     final String fileUrl = getFFmpegUrl();
     final URL url = new URL(fileUrl);
     file = new File(dependencyFolder, FilenameUtils.getName(url.getPath()));
-    IOUtils.copyFromURL(url, file);
+    FileUtils.copyURLToFile(url, file);
     return file;
   }
 

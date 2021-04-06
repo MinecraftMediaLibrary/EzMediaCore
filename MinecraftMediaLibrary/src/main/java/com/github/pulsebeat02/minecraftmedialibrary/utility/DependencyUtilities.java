@@ -27,9 +27,8 @@ import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyResolution;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.RepositoryDependency;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import com.sun.jna.NativeLibrary;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import uk.co.caprica.vlcj.binding.RuntimeUtil;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.BufferedInputStream;
@@ -405,7 +404,9 @@ public final class DependencyUtilities {
    */
   public static boolean vlcExists(@NotNull final MinecraftMediaLibrary library) {
     for (final File f : new File(library.getPlugin().getDataFolder(), "vlc").listFiles()) {
-      NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), f.getAbsolutePath());
+      if (StringUtils.containsIgnoreCase(f.getName(), "vlc")) {
+        return true;
+      }
     }
     return new NativeDiscovery().discover();
   }

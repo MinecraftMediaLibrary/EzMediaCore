@@ -48,6 +48,7 @@ public class YoutubeExtraction implements VideoExtractorBase {
 
   private final Encoder encoder;
   private final EncodingAttributes attrs;
+  private final DefaultFFMPEGLocator ffmpegLocator;
 
   private final String url;
   private final String directory;
@@ -68,14 +69,14 @@ public class YoutubeExtraction implements VideoExtractorBase {
       @NotNull final ExtractionSetting settings) {
     this.url = url;
     this.directory = directory;
-    encoder =
-        new Encoder(
-            new DefaultFFMPEGLocator() {
-              @Override
-              public String getFFMPEGExecutablePath() {
-                return FFmpegDependencyInstallation.getFFmpegPath();
-              }
-            });
+    ffmpegLocator =
+        new DefaultFFMPEGLocator() {
+          @Override
+          public String getFFMPEGExecutablePath() {
+            return FFmpegDependencyInstallation.getFFmpegPath();
+          }
+        };
+    encoder = new Encoder(ffmpegLocator);
     final AudioAttributes attributes = new AudioAttributes();
     attributes.setCodec(settings.getCodec());
     attributes.setBitRate(settings.getBitrate());
@@ -128,7 +129,7 @@ public class YoutubeExtraction implements VideoExtractorBase {
     Logger.info("Extracting Audio from Video File (" + video.getAbsolutePath() + ")");
     final File sound = new File(directory + "/audio.ogg");
     try {
-      encoder.encode(new MultimediaObject(video), sound, attrs);
+      encoder.encode(new MultimediaObject(video, ffmpegLocator), sound, attrs);
       Logger.info(
           "Successfully Extracted Audio from Video File! (Target: "
               + audio.getAbsolutePath()
@@ -264,5 +265,32 @@ public class YoutubeExtraction implements VideoExtractorBase {
    */
   public boolean isLiveContent() {
     return details.isLiveContent();
+  }
+
+  /**
+   * Gets the audio/video encoder.
+   *
+   * @return the encoder
+   */
+  public Encoder getEncoder() {
+    return encoder;
+  }
+
+  /**
+   * Gets the encoding attributes.
+   *
+   * @return the encoding attributes
+   */
+  public EncodingAttributes getAttrs() {
+    return attrs;
+  }
+
+  /**
+   * Gets the FfmpegLocator.
+   *
+   * @return the ffmpeg locator
+   */
+  public DefaultFFMPEGLocator getFfmpegLocator() {
+    return ffmpegLocator;
   }
 }

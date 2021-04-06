@@ -34,6 +34,7 @@ import java.io.File;
 import java.net.URLClassLoader;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /** A special dependency instantiation class used to run dependency tasks asynchronously. */
 public final class DependencyInstantiation {
@@ -52,15 +53,20 @@ public final class DependencyInstantiation {
   /** Starts dependency tasks. */
   public void startTasks() {
     assignClassLoader();
-    CompletableFuture.allOf(
-        CompletableFuture.runAsync(this::loadDependencies),
-        CompletableFuture.runAsync(this::loadFfmpeg),
-        CompletableFuture.runAsync(
-            () -> {
-              if (!DependencyUtilities.vlcExists(instance)) {
-                loadVLC();
-              }
-            }));
+    try {
+      CompletableFuture.allOf(
+              CompletableFuture.runAsync(this::loadDependencies)
+                  .thenRunAsync(
+                      () -> {
+                        if (!DependencyUtilities.vlcExists(instance)) {
+                          loadVLC();
+                        }
+                      }),
+              CompletableFuture.runAsync(this::loadFfmpeg))
+          .get();
+    } catch (final InterruptedException | ExecutionException e) {
+      e.printStackTrace();
+    }
   }
 
   /** Assigns ClassLoader for classpath loading. */
