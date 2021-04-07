@@ -84,40 +84,14 @@ public abstract class TinyProtocol {
       Reflection.getField("{obc}.CraftServer", minecraftServerClass, 0);
   private static final FieldAccessor<Object> getServerConnection =
       Reflection.getField(minecraftServerClass, serverConnectionClass, 0);
-
-  // Stop accessing synthetic methods if possible?
-  private static FieldAccessor<List> networkMarkersB;
-  private static MethodInvoker getNetworkMarkers;
-
   // Packets we have to intercept
   private static final Class<?> PACKET_LOGIN_IN_START =
       Reflection.getMinecraftClass("PacketLoginInStart");
   private static final FieldAccessor<GameProfile> getGameProfile =
       Reflection.getField(PACKET_LOGIN_IN_START, GameProfile.class, 0);
-
-  // Speedup channel lookup
-  private final Map<String, Channel> channelLookup = new MapMaker().weakValues().makeMap();
-  private final Map<UUID, Channel> uuidChannelLookup = new MapMaker().weakValues().makeMap();
-  private Listener listener;
-
-  // Channels that have already been removed
-  private final Set<Channel> uninjectedChannels =
-      Collections.newSetFromMap(new MapMaker().weakKeys().makeMap());
-
-  // List of network markers
-  private List<Object> networkManagers;
-
-  // Injected channel handlers
-  private final List<Channel> serverChannels = Lists.newArrayList();
-  private ChannelInboundHandlerAdapter serverChannelHandler;
-  private ChannelInitializer<Channel> beginInitProtocol;
-  private ChannelInitializer<Channel> endInitProtocol;
-
-  // Current handler name
-  private final String handlerName;
-
-  protected volatile boolean closed;
-  protected Plugin plugin;
+  // Stop accessing synthetic methods if possible?
+  private static FieldAccessor<List> networkMarkersB;
+  private static MethodInvoker getNetworkMarkers;
 
   static {
     try {
@@ -133,6 +107,25 @@ public abstract class TinyProtocol {
       // ???
     }
   }
+
+  // Speedup channel lookup
+  private final Map<String, Channel> channelLookup = new MapMaker().weakValues().makeMap();
+  private final Map<UUID, Channel> uuidChannelLookup = new MapMaker().weakValues().makeMap();
+  // Channels that have already been removed
+  private final Set<Channel> uninjectedChannels =
+      Collections.newSetFromMap(new MapMaker().weakKeys().makeMap());
+  // Injected channel handlers
+  private final List<Channel> serverChannels = Lists.newArrayList();
+  // Current handler name
+  private final String handlerName;
+  protected volatile boolean closed;
+  protected Plugin plugin;
+  private Listener listener;
+  // List of network markers
+  private List<Object> networkManagers;
+  private ChannelInboundHandlerAdapter serverChannelHandler;
+  private ChannelInitializer<Channel> beginInitProtocol;
+  private ChannelInitializer<Channel> endInitProtocol;
 
   /**
    * Construct a new instance of TinyProtocol, and start intercepting packets for all connected

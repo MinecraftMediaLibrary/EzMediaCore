@@ -146,20 +146,6 @@ public class YoutubeExtraction implements VideoExtractorBase {
   @Override
   public void onAudioExtraction() {}
 
-  /** Private utility class used to override the current ffmpeg location strategy. */
-  private static class FFmpegLocation implements ProcessLocator {
-
-    /**
-     * Returns the ffmpeg binary path.
-     *
-     * @return ffmpeg binary path
-     */
-    @Override
-    public String getExecutablePath() {
-      return FFmpegDependencyInstallation.getFFmpegPath();
-    }
-  }
-
   /**
    * Gets directory.
    *
@@ -302,5 +288,19 @@ public class YoutubeExtraction implements VideoExtractorBase {
    */
   public ProcessLocator getFfmpegLocator() {
     return ffmpegLocator;
+  }
+
+  /** Private utility class used to override the current ffmpeg location strategy. */
+  private static class FFmpegLocation implements ProcessLocator {
+
+    /**
+     * Returns the ffmpeg binary path.
+     *
+     * @return ffmpeg binary path
+     */
+    @Override
+    public String getExecutablePath() {
+      return FFmpegDependencyInstallation.getFFmpegPath();
+    }
   }
 }

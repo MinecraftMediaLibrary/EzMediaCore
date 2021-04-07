@@ -53,7 +53,7 @@ public final class ChatUtilities {
     if (!opt.isPresent()) {
       message = "is not a valid argument!";
     } else {
-      long id = opt.getAsLong();
+      final long id = opt.getAsLong();
       if (id < -2_147_483_647L) {
         message = "is too low!";
       } else if (id > 2_147_483_647L) {
@@ -77,7 +77,7 @@ public final class ChatUtilities {
   public static Optional<int[]> checkDimensionBoundaries(
       @NotNull final Audience sender, final String str) {
     final String[] dims = str.split(":");
-    String message;
+    final String message;
     final OptionalInt width = ChatUtilities.checkIntegerValidity(dims[0]);
     final OptionalInt height = ChatUtilities.checkIntegerValidity(dims[1]);
     if (!width.isPresent()) {
@@ -85,9 +85,9 @@ public final class ChatUtilities {
     } else if (!height.isPresent()) {
       message = dims[1];
     } else {
-        return Optional.of(new int[] {width.getAsInt(), height.getAsInt()});
-      }
-      sender.sendMessage(
+      return Optional.of(new int[] {width.getAsInt(), height.getAsInt()});
+    }
+    sender.sendMessage(
         Component.text()
             .color(NamedTextColor.RED)
             .append(Component.text("Argument '"))

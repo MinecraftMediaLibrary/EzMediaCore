@@ -309,40 +309,39 @@ public class VideoCommand extends BaseCommand {
         }
       }
       final HttpDaemonProvider finalProvider = provider;
-//      future =
-//          CompletableFuture.runAsync(() -> extractor.downloadVideo())
-//              .thenRunAsync(
-//                  () -> {
-                    final ResourcepackWrapper wrapper =
-                        new ResourcepackWrapper.Builder()
-                            .setAudio(extractor.getAudio())
-                            .setDescription("Youtube Video: " + extractor.getVideoTitle())
-                            .setPath(configuration.getFileName())
-                            .setPackFormat(6)
-                            .createResourcepackHostingProvider(plugin.getLibrary());
-                    wrapper.buildResourcePack();
-                    if (finalProvider != null) {
-                      final String url = finalProvider.generateUrl(wrapper.getPath());
-                      for (final Player p : Bukkit.getOnlinePlayers()) {
-                        p.setResourcePack(url);
-                      }
-                      audience.sendMessage(
-                          ChatUtilities.formatMessage(
-                              Component.text("Sending Resourcepack...", NamedTextColor.GOLD)));
-                    } else {
-                      audience.sendMessage(
-                          ChatUtilities.formatMessage(
-                              Component.text(
-                                  "You have HTTP set false by default. You cannot "
-                                      + "play Youtube videos without a daemon",
-                                  NamedTextColor.RED)));
-                      future.cancel(true);
-                    }
-                    audience.sendMessage(
-                        ChatUtilities.formatMessage(
-                            Component.text(
-                                "Successfully loaded video " + mrl, NamedTextColor.GOLD)));
-//                  });
+      //      future =
+      //          CompletableFuture.runAsync(() -> extractor.downloadVideo())
+      //              .thenRunAsync(
+      //                  () -> {
+      final ResourcepackWrapper wrapper =
+          new ResourcepackWrapper.Builder()
+              .setAudio(extractor.getAudio())
+              .setDescription("Youtube Video: " + extractor.getVideoTitle())
+              .setPath(configuration.getFileName())
+              .setPackFormat(6)
+              .createResourcepackHostingProvider(plugin.getLibrary());
+      wrapper.buildResourcePack();
+      if (finalProvider != null) {
+        final String url = finalProvider.generateUrl(wrapper.getPath());
+        for (final Player p : Bukkit.getOnlinePlayers()) {
+          p.setResourcePack(url);
+        }
+        audience.sendMessage(
+            ChatUtilities.formatMessage(
+                Component.text("Sending Resourcepack...", NamedTextColor.GOLD)));
+      } else {
+        audience.sendMessage(
+            ChatUtilities.formatMessage(
+                Component.text(
+                    "You have HTTP set false by default. You cannot "
+                        + "play Youtube videos without a daemon",
+                    NamedTextColor.RED)));
+        future.cancel(true);
+      }
+      audience.sendMessage(
+          ChatUtilities.formatMessage(
+              Component.text("Successfully loaded video " + mrl, NamedTextColor.GOLD)));
+      //                  });
     }
     return 1;
   }

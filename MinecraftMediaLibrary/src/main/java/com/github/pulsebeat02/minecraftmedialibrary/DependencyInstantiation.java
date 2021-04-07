@@ -77,9 +77,9 @@ public final class DependencyInstantiation {
 
   /** Downloads/Loads Jave dependency. */
   public void loadFfmpeg() {
-    final FFmpegDependencyInstallation javeDependencyInstallation =
+    final FFmpegDependencyInstallation ffmpegDependencyInstallation =
         new FFmpegDependencyInstallation(instance);
-    javeDependencyInstallation.install();
+    ffmpegDependencyInstallation.install();
   }
 
   /** Downloads/Loads Jitpack/Maven dependencies. */

@@ -20,8 +20,8 @@ import com.google.gson.JsonObject
 fun main() {
     println("===============================")
     val gson = GsonBuilder()
-        .setPrettyPrinting()
-        .create()
+            .setPrettyPrinting()
+            .create()
     val full = JsonObject()
     val pack = JsonObject()
     pack.addProperty("pack-format", 8)

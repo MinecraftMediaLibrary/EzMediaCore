@@ -25,8 +25,8 @@ public class ExtractionInstaller extends PackageBase {
    */
   @Override
   public void installPackage() throws IOException {
-      final File f = getFile();
-      ArchiveUtilities.recursiveExtraction(f, f.getParentFile());
+    final File f = getFile();
+    ArchiveUtilities.recursiveExtraction(f, f.getParentFile());
   }
 
   /**

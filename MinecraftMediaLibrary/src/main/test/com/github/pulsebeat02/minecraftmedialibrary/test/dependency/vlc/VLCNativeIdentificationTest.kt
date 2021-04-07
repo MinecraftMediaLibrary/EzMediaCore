@@ -12,10 +12,6 @@
  */
 package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc
 
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.EnhancedNativeDiscovery
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.VLCNativeDependencyFetcher
-import java.io.File
-
 fun main() {
 //    val path = File(System.getProperty("user.dir") + "/vlc").absolutePath
 //    val fetcher = VLCNativeDependencyFetcher(path)
