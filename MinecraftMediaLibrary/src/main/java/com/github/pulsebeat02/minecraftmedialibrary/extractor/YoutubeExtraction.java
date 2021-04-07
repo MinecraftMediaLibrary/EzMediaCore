@@ -30,12 +30,12 @@ import com.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyI
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import org.jetbrains.annotations.NotNull;
-import ws.schild.jave.AudioAttributes;
-import ws.schild.jave.DefaultFFMPEGLocator;
 import ws.schild.jave.Encoder;
 import ws.schild.jave.EncoderException;
-import ws.schild.jave.EncodingAttributes;
 import ws.schild.jave.MultimediaObject;
+import ws.schild.jave.encode.AudioAttributes;
+import ws.schild.jave.encode.EncodingAttributes;
+import ws.schild.jave.process.ProcessLocator;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +48,7 @@ public class YoutubeExtraction implements VideoExtractorBase {
 
   private final Encoder encoder;
   private final EncodingAttributes attrs;
-  private final DefaultFFMPEGLocator ffmpegLocator;
+  private final ProcessLocator ffmpegLocator;
 
   private final String url;
   private final String directory;
@@ -69,13 +69,7 @@ public class YoutubeExtraction implements VideoExtractorBase {
       @NotNull final ExtractionSetting settings) {
     this.url = url;
     this.directory = directory;
-    ffmpegLocator =
-        new DefaultFFMPEGLocator() {
-          @Override
-          public String getFFMPEGExecutablePath() {
-            return FFmpegDependencyInstallation.getFFmpegPath();
-          }
-        };
+    ffmpegLocator = new FFmpegLocation();
     encoder = new Encoder(ffmpegLocator);
     final AudioAttributes attributes = new AudioAttributes();
     attributes.setCodec(settings.getCodec());
@@ -84,7 +78,8 @@ public class YoutubeExtraction implements VideoExtractorBase {
     attributes.setSamplingRate(settings.getSamplingRate());
     attributes.setVolume(settings.getVolume());
     attrs = new EncodingAttributes();
-    attrs.setFormat(settings.getFormat());
+    attrs.setInputFormat(settings.getInputFormat());
+    attrs.setOutputFormat(settings.getOutputFormat());
     attrs.setAudioAttributes(attributes);
   }
 
@@ -149,6 +144,20 @@ public class YoutubeExtraction implements VideoExtractorBase {
   /** Called when the audio is being extracted from the video. */
   @Override
   public void onAudioExtraction() {}
+
+  /** Private utility class used to override the current ffmpeg location strategy. */
+  private static class FFmpegLocation implements ProcessLocator {
+
+    /**
+     * Returns the ffmpeg binary path.
+     *
+     * @return ffmpeg binary path
+     */
+    @Override
+    public String getExecutablePath() {
+      return FFmpegDependencyInstallation.getFFmpegPath();
+    }
+  }
 
   /**
    * Gets directory.
@@ -286,11 +295,11 @@ public class YoutubeExtraction implements VideoExtractorBase {
   }
 
   /**
-   * Gets the FfmpegLocator.
+   * Gets the process locator.
    *
    * @return the ffmpeg locator
    */
-  public DefaultFFMPEGLocator getFfmpegLocator() {
+  public ProcessLocator getFfmpegLocator() {
     return ffmpegLocator;
   }
 }

@@ -8,7 +8,7 @@ channels: 2
 
 # The sampling rate at which the sound should use. This is the number of samples that can be taken
 # in the sound per second.
-sampling-rate: 44100;
+sampling-rate: 44100
 
 # The volume at which the sound should be played at. Increase or decrease this if you have trouble
 # trying to hear the sound the video produces.

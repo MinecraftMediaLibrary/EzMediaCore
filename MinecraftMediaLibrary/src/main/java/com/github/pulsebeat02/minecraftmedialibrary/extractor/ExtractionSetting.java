@@ -30,7 +30,8 @@ package com.github.pulsebeat02.minecraftmedialibrary.extractor;
 public class ExtractionSetting {
 
   private final String codec;
-  private final String format;
+  private final String outputFormat;
+  private final String inputFormat;
   private int bitrate;
   private int channels;
   private int samplingRate;
@@ -46,8 +47,9 @@ public class ExtractionSetting {
    */
   public ExtractionSetting(
       final int bitrate, final int channels, final int samplingRate, final int volume) {
-    codec = "vorbis";
-    format = "ogg";
+    codec = "libvorbis";
+    outputFormat = "ogg";
+    inputFormat = "mp4";
     this.bitrate = bitrate;
     this.channels = channels;
     this.samplingRate = samplingRate;
@@ -64,12 +66,21 @@ public class ExtractionSetting {
   }
 
   /**
-   * Gets format.
+   * Gets output format.
    *
-   * @return the format
+   * @return the output format
    */
-  public String getFormat() {
-    return format;
+  public String getOutputFormat() {
+    return outputFormat;
+  }
+
+  /**
+   * Gets input format.
+   *
+   * @return the input format
+   */
+  public String getInputFormat() {
+    return inputFormat;
   }
 
   /**

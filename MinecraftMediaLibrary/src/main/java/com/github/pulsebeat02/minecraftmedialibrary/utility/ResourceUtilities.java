@@ -24,17 +24,12 @@ package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
-import ws.schild.jave.AudioAttributes;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 
 public class ResourceUtilities {
 
@@ -94,17 +89,5 @@ public class ResourceUtilities {
       input = ResourceUtilities.class.getClassLoader().getResourceAsStream(resource);
     }
     return input;
-  }
-
-  /**
-   * Injects the file into the JAVE resourcepath jar.
-   *
-   * @param file the file
-   * @throws IOException if an issue occurred during injection
-   */
-  public static void injectJaveFile(@NotNull final File file) throws IOException {
-    final Path folder = Paths.get(AudioAttributes.class.getResource("/").getPath());
-    Files.createDirectory(folder.resolve("nativebin"));
-    Files.copy(file.toPath(), folder.resolve(file.getName()), StandardCopyOption.REPLACE_EXISTING);
   }
 }
