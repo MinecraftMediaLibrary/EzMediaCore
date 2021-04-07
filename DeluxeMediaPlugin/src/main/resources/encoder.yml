@@ -1,6 +1,6 @@
 # The bitrate at which the sound should be extracted at. Higher bitrates mean higher quality,
 # however also slower processing speeds.
-bitrate: 16000
+bitrate: 160000
 
 # The channels at which the sound should use. 1 channel is for mono-audio, while 2 channels is
 # for natural hearing (or audio coming from both sides).

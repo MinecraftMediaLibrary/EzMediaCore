@@ -125,6 +125,7 @@ public class YoutubeExtraction implements VideoExtractorBase {
     final File sound = new File(directory + "/audio.ogg");
     try {
       encoder.encode(new MultimediaObject(video, ffmpegLocator), sound, attrs);
+      audio = sound;
       Logger.info(
           "Successfully Extracted Audio from Video File! (Target: "
               + audio.getAbsolutePath()
