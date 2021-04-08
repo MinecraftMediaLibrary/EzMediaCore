@@ -22,7 +22,6 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
 
-import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
@@ -67,14 +66,10 @@ public class CondaInstallation {
         new URL(
             "https://github.com/PulseBeat02/Conda-Mirror/raw/main/Miniconda3-latest-Linux-x86_64.sh"),
         conda);
-    final File condaFolder = new File(baseDirectory, "conda");
-    if (!condaFolder.exists()) {
-      if (condaFolder.mkdir()) {
-        Logger.info("Made Conda Folder");
-      }
-    }
     RuntimeUtilities.executeBashScript(
-        conda, new String[] {"-b -p linux-image/conda"}, "Successfully Installed Conda");
+        conda,
+        new String[] {"-b", "-p", new File(baseDirectory, "conda").getAbsolutePath()},
+        "Successfully Installed Conda");
   }
 
   /**
@@ -85,7 +80,7 @@ public class CondaInstallation {
   public void installPackage(@NotNull final String pkgName) {
     RuntimeUtilities.executeBashScript(
         conda,
-        new String[] {"install", "-c", "conda-forge", pkgName},
+        new String[] {"install", "-c", "-b", "conda-forge", pkgName},
         "Successfully Installed cURL");
   }
 

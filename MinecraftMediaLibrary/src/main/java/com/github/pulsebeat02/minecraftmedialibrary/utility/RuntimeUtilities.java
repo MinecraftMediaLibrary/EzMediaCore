@@ -265,22 +265,15 @@ public final class RuntimeUtilities {
   public static void executeBashScript(
       @NotNull final File file, @NotNull final String[] arguments, @NotNull final String message) {
     try {
-      final Process p =
-          new ProcessBuilder("bash", file.getAbsolutePath(), String.join(" ", arguments)).start();
-      if (p.waitFor() == 0) {
-        Logger.info(message);
-      } else {
-        Logger.info("An issue occurred while running script! (" + file.getAbsolutePath() + ")");
-        try (final BufferedReader b =
-            new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
-          final String line;
-          if ((line = b.readLine()) != null) {
-            Logger.info(line);
-          }
-        } catch (final IOException e) {
-          e.printStackTrace();
-        }
-      }
+      final ProcessBuilder pb =
+          new ProcessBuilder("bash", file.getAbsolutePath(), String.join(" ", arguments));
+      final ProcessBuilder.Redirect redirect = ProcessBuilder.Redirect.appendTo(Logger.getLogFile());
+      pb.redirectOutput(redirect);
+      pb.redirectError(redirect);
+      Logger.info(
+          pb.start().waitFor() == 0
+              ? message
+              : "An issue occurred while running script! (" + file.getAbsolutePath() + ")");
     } catch (final InterruptedException | IOException e) {
       e.printStackTrace();
     }

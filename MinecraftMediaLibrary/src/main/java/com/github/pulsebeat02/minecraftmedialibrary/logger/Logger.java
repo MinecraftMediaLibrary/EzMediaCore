@@ -41,6 +41,7 @@ public final class Logger {
   public static boolean VERBOSE;
 
   protected static volatile BufferedWriter WRITER;
+  protected static File LOGGER;
 
   public static void initializeLogger(@NotNull final MinecraftMediaLibrary library) {
     try {
@@ -48,13 +49,13 @@ public final class Logger {
       if (folder.mkdir()) {
         System.out.println("Created Directory");
       }
-      final File f = new File(folder, "mml.log");
-      if (f.createNewFile()) {
-        System.out.println("File Created (" + f.getName() + ")");
+      LOGGER = new File(folder, "mml.log");
+      if (LOGGER.createNewFile()) {
+        System.out.println("File Created (" + LOGGER.getName() + ")");
       } else {
         System.out.println("Log File Exists Already");
       }
-      WRITER = new BufferedWriter(new FileWriter(f, false));
+      WRITER = new BufferedWriter(new FileWriter(LOGGER, false));
     } catch (final IOException exception) {
       exception.printStackTrace();
     }
@@ -104,11 +105,38 @@ public final class Logger {
   }
 
   /**
+   * Gets whether the Logger is verbose or not.
+   *
+   * @return whether the logger is verbose
+   */
+  public static boolean isVerbose() {
+    return VERBOSE;
+  }
+
+  /**
    * Sets verbosity of logger.
    *
    * @param verbose verbosity
    */
   public static void setVerbose(final boolean verbose) {
     VERBOSE = verbose;
+  }
+
+  /**
+   * Gets the BufferedWriter associated with the Logger.
+   *
+   * @return the BufferedWriter
+   */
+  public static BufferedWriter getWriter() {
+    return WRITER;
+  }
+
+  /**
+   * Gets the File associated with the Logger file.
+   *
+   * @return the log file
+   */
+  public static File getLogFile() {
+    return LOGGER;
   }
 }
