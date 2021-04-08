@@ -23,6 +23,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.http;
 
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
@@ -117,11 +118,12 @@ public class HttpDaemon extends Thread implements HttpDaemonBase {
   /** Server start method (called after event is called). */
   @Override
   public void startServer() {
+    Preconditions.checkState(!Bukkit.isPrimaryThread());
     onServerStart();
     while (running) {
       try {
         EXECUTOR_SERVICE.submit(new Thread(new RequestHandler(this, header, socket.accept())));
-      } catch (IOException e) {
+      } catch (final IOException e) {
         e.printStackTrace();
       }
     }

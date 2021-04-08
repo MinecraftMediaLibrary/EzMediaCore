@@ -23,11 +23,14 @@
 package com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting;
 
 import com.github.pulsebeat02.minecraftmedialibrary.http.HttpDaemon;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * The wrapper class and provider for the Http daemon. Useful for creating http daemons and easier
@@ -35,7 +38,7 @@ import java.nio.file.Path;
  */
 public class HttpDaemonProvider implements HostingProvider {
 
-  private static final String SERVER_IP = Bukkit.getIp();
+  private final String serverIP;
   private final int port;
   private HttpDaemon daemon;
 
@@ -47,6 +50,24 @@ public class HttpDaemonProvider implements HostingProvider {
    */
   public HttpDaemonProvider(@NotNull final String path, final int port) {
     this.port = port;
+    serverIP = getPublicIP();
+    try {
+      daemon = new HttpDaemon(port, path);
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * Instantiates a new Http daemon provider.
+   *
+   * @param path the path
+   * @param port the port
+   * @param ip the ip address
+   */
+  public HttpDaemonProvider(@NotNull final String path, final int port, @NotNull final String ip) {
+    this.port = port;
+    serverIP = ip;
     try {
       daemon = new HttpDaemon(port, path);
     } catch (final IOException e) {
@@ -59,8 +80,8 @@ public class HttpDaemonProvider implements HostingProvider {
    *
    * @return the server ip
    */
-  public static String getServerIp() {
-    return SERVER_IP;
+  public String getServerIp() {
+    return serverIP;
   }
 
   /** Start server. */
@@ -76,7 +97,7 @@ public class HttpDaemonProvider implements HostingProvider {
    */
   @Override
   public String generateUrl(@NotNull final String file) {
-    return "http://" + SERVER_IP + ":" + port + "/" + file;
+    return "http://" + serverIP + ":" + port + "/" + getRelativePath(file);
   }
 
   /**
@@ -87,7 +108,38 @@ public class HttpDaemonProvider implements HostingProvider {
    */
   @Override
   public String generateUrl(@NotNull final Path path) {
-    return "http://" + SERVER_IP + ":" + port + "/" + path.getFileName();
+    return "http://" + serverIP + ":" + port + "/" + getRelativePath(path.toString());
+  }
+
+  /**
+   * Gets the external IP associated with the server. May be overridden with custom ip if necessary.
+   *
+   * @return the public ip
+   */
+  public String getPublicIP() {
+    try (final BufferedReader in =
+        new BufferedReader(
+            new InputStreamReader(new URL("http://checkip.amazonaws.com").openStream()))) {
+      final String line = in.readLine();
+      in.close();
+      return line;
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+    return "";
+  }
+
+  /**
+   * Gets relative path for file based off of HTTP server folder.
+   *
+   * @param absolutePath the absolute file path
+   * @return the relative path when comparing to the HTTP server folder
+   */
+  public String getRelativePath(@NotNull final String absolutePath) {
+    return Paths.get(absolutePath)
+        .normalize()
+        .relativize(Paths.get(daemon.getParentDirectory().getAbsolutePath()))
+        .toString();
   }
 
   /**

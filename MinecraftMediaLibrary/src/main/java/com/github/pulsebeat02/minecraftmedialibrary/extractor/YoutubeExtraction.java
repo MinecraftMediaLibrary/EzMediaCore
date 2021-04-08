@@ -29,6 +29,8 @@ import com.github.kiulian.downloader.model.YoutubeVideo;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
+import com.google.common.base.Preconditions;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import ws.schild.jave.Encoder;
 import ws.schild.jave.EncoderException;
@@ -95,19 +97,18 @@ public class YoutubeExtraction implements VideoExtractorBase {
     Logger.info("Downloading Video at URL (" + url + ")");
     if (ID != null) {
       try {
-        final YoutubeVideo video = new YoutubeDownloader().getVideo(ID);
-        details = video.details();
-        final File videoFile =
-            video.download(
-                video.videoWithAudioFormats().get(0), new File(directory), "video", true);
+        final YoutubeVideo ytVideo = new YoutubeDownloader().getVideo(ID);
+        details = ytVideo.details();
+        video =
+            ytVideo.download(
+                ytVideo.videoWithAudioFormats().get(0), new File(directory), "video", true);
         Logger.info("Successfully Downloaded Video at URL: (" + url + ")");
-        return videoFile;
       } catch (final IOException | YoutubeException e) {
         Logger.info("Could not Download Video at URL!: (" + url + ")");
         e.printStackTrace();
       }
     }
-    return null;
+    return video;
   }
 
   /**
@@ -118,14 +119,13 @@ public class YoutubeExtraction implements VideoExtractorBase {
   @Override
   public File extractAudio() {
     if (video == null) {
-      video = downloadVideo();
+      downloadVideo();
     }
     onAudioExtraction();
     Logger.info("Extracting Audio from Video File (" + video.getAbsolutePath() + ")");
-    final File sound = new File(directory + "/audio.ogg");
+    audio = new File(directory + "/audio.ogg");
     try {
-      encoder.encode(new MultimediaObject(video, ffmpegLocator), sound, attrs);
-      audio = sound;
+      encoder.encode(new MultimediaObject(video, ffmpegLocator), audio, attrs);
       Logger.info(
           "Successfully Extracted Audio from Video File! (Target: "
               + audio.getAbsolutePath()
@@ -135,7 +135,7 @@ public class YoutubeExtraction implements VideoExtractorBase {
           "Couldn't Extract Audio from Video File! (Video: " + video.getAbsolutePath() + ")");
       e.printStackTrace();
     }
-    return sound;
+    return audio;
   }
 
   /** Called when the video has started to downloaded. */

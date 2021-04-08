@@ -35,6 +35,7 @@ import com.google.gson.JsonObject;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -79,7 +80,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final String path,
       @NotNull final File audio,
-      final File icon,
+      @Nullable final File icon,
       final String description,
       final int packFormat) {
     this.library = library;
@@ -137,7 +138,15 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
     onResourcepackBuild();
     Logger.info("Wrapping Resourcepack...");
     try {
-      final ZipOutputStream out = new ZipOutputStream(new FileOutputStream(path));
+
+      final File zipFile = new File(path);
+      if (!zipFile.exists()) {
+        if (zipFile.createNewFile()) {
+          Logger.info("Created Zip File");
+        }
+      }
+
+      final ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipFile));
       final ZipEntry config = new ZipEntry("pack.mcmeta");
       out.putNextEntry(config);
       out.write(getPackJson().getBytes());
@@ -153,10 +162,12 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
       out.write(Files.readAllBytes(Paths.get(audio.getAbsolutePath())));
       out.closeEntry();
 
-      final ZipEntry iconFile = new ZipEntry("pack.png");
-      out.putNextEntry(iconFile);
-      out.write(Files.readAllBytes(Paths.get(icon.getAbsolutePath())));
-      out.closeEntry();
+      if (icon != null && icon.exists()) {
+        final ZipEntry iconFile = new ZipEntry("pack.png");
+        out.putNextEntry(iconFile);
+        out.write(Files.readAllBytes(Paths.get(icon.getAbsolutePath())));
+        out.closeEntry();
+      }
 
       out.close();
       Logger.info("Finished Wrapping Resourcepack!");
