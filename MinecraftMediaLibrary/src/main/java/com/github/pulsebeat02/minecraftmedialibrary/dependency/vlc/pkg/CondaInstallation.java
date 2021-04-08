@@ -22,6 +22,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
 
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
@@ -38,6 +39,7 @@ import java.net.URL;
 public class CondaInstallation {
 
   private final File conda;
+  private final String baseDirectory;
 
   /**
    * Instantiates a new CondaInstallation.
@@ -45,6 +47,7 @@ public class CondaInstallation {
    * @param baseDirectory the base directory
    */
   public CondaInstallation(@NotNull final String baseDirectory) {
+    this.baseDirectory = baseDirectory;
     conda = new File(baseDirectory, "scripts/conda.sh");
     try {
       setup();
@@ -59,13 +62,17 @@ public class CondaInstallation {
    * @throws IOException if an exception occurred while fetching the url or file
    */
   public void setup() throws IOException {
-    FileUtilities.createFile(conda, "Created Conda.sh File");
+    FileUtilities.createFile(conda, "Created conda.sh File");
     FileUtils.copyURLToFile(
         new URL(
-            "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-"
-                + RuntimeUtilities.getCpuArch().toLowerCase()
-                + ".sh"),
+            "https://github.com/PulseBeat02/Conda-Mirror/raw/main/Miniconda3-latest-Linux-x86_64.sh"),
         conda);
+    final File condaFolder = new File(baseDirectory, "conda");
+    if (!condaFolder.exists()) {
+      if (condaFolder.mkdir()) {
+        Logger.info("Made Conda Folder");
+      }
+    }
     RuntimeUtilities.executeBashScript(
         conda, new String[] {"-b -p linux-image/conda"}, "Successfully Installed Conda");
   }
