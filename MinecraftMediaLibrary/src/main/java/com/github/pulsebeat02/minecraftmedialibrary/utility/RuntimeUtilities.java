@@ -264,10 +264,12 @@ public final class RuntimeUtilities {
    */
   public static void executeBashScript(
       @NotNull final File file, @NotNull final String[] arguments, @NotNull final String message) {
+    Logger.info("Script: " + file.getAbsolutePath() + " " + String.join(" ", arguments));
     try {
       final ProcessBuilder pb =
           new ProcessBuilder("bash", file.getAbsolutePath(), String.join(" ", arguments));
-      final ProcessBuilder.Redirect redirect = ProcessBuilder.Redirect.appendTo(Logger.getLogFile());
+      final ProcessBuilder.Redirect redirect =
+          ProcessBuilder.Redirect.appendTo(Logger.getLogFile());
       pb.redirectOutput(redirect);
       pb.redirectError(redirect);
       Logger.info(
