@@ -57,6 +57,7 @@ public class HttpConfiguration extends AbstractConfiguration {
       http.setZipHeader(
           header.equals("ZIP") ? HttpDaemon.ZipHeader.ZIP : HttpDaemon.ZipHeader.OCTET_STREAM);
       http.setVerbose(verbose);
+      daemon.startServer();
     }
     this.enabled = enabled;
   }
