@@ -97,7 +97,7 @@ public class HttpDaemonProvider implements HostingProvider {
    */
   @Override
   public String generateUrl(@NotNull final String file) {
-    return "http://" + serverIP + ":" + port + "/" + getRelativePath(file);
+    return "https://" + serverIP + ":" + port + "/" + getRelativePath(file);
   }
 
   /**
@@ -108,7 +108,7 @@ public class HttpDaemonProvider implements HostingProvider {
    */
   @Override
   public String generateUrl(@NotNull final Path path) {
-    return "http://" + serverIP + ":" + port + "/" + getRelativePath(path.toString());
+    return "https://" + serverIP + ":" + port + "/" + getRelativePath(path.toString());
   }
 
   /**
@@ -119,7 +119,7 @@ public class HttpDaemonProvider implements HostingProvider {
   public String getPublicIP() {
     try (final BufferedReader in =
         new BufferedReader(
-            new InputStreamReader(new URL("http://checkip.amazonaws.com").openStream()))) {
+            new InputStreamReader(new URL("https://checkip.amazonaws.com").openStream()))) {
       final String line = in.readLine();
       in.close();
       return line;
@@ -136,9 +136,8 @@ public class HttpDaemonProvider implements HostingProvider {
    * @return the relative path when comparing to the HTTP server folder
    */
   public String getRelativePath(@NotNull final String absolutePath) {
-    return Paths.get(absolutePath)
-        .normalize()
-        .relativize(Paths.get(daemon.getParentDirectory().getAbsolutePath()))
+    return Paths.get(daemon.getParentDirectory().getAbsolutePath())
+        .relativize(Paths.get(absolutePath))
         .toString();
   }
 

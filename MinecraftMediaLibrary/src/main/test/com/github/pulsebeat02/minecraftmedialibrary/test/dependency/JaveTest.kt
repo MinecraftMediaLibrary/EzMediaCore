@@ -38,6 +38,5 @@ fun main() {
 //    management.load()
     val ffmpeg =
             FFmpegDependencyInstallation(folder.absolutePath)
-    ffmpeg.downloadFFMPEG()
     ffmpeg.install()
 }
