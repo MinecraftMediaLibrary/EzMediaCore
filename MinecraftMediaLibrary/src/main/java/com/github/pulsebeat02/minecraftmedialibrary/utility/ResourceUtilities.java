@@ -33,6 +33,8 @@ import java.nio.charset.StandardCharsets;
 
 public class ResourceUtilities {
 
+  private ResourceUtilities() {}
+
   /**
    * Gets resource from file in resources folder.
    *

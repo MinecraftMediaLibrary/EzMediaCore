@@ -38,6 +38,8 @@ public final class JavaVersionUtilities {
     MAJOR_VERSION = Integer.parseInt(JAVA_VERSION.split("\\.")[1]);
   }
 
+  private JavaVersionUtilities() {}
+
   /**
    * Gets Java Version.
    *

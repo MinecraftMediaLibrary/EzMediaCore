@@ -39,6 +39,8 @@ import java.util.UUID;
  */
 public final class FileUtilities {
 
+  private FileUtilities() {}
+
   /**
    * Download image file from URL.
    *

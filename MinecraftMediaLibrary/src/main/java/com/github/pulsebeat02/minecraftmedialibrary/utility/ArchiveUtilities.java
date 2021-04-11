@@ -49,6 +49,8 @@ public final class ArchiveUtilities {
         ImmutableSet.of("zip", "deb", "rpm", "txz", "xz", "tgz", "gz", "ar", "cpio");
   }
 
+  private ArchiveUtilities() {}
+
   /**
    * Decompress archive.
    *

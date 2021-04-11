@@ -41,6 +41,8 @@ import java.util.regex.Pattern;
  */
 public final class VideoExtractionUtilities {
 
+  private VideoExtractionUtilities() {}
+
   /**
    * Extracts video id from Youtube URL.
    *

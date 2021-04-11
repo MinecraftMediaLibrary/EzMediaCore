@@ -33,6 +33,8 @@ import java.util.Map;
  */
 public final class CollectionUtilities {
 
+  private CollectionUtilities() {}
+
   /**
    * Creates a Guava multimap using the input map.
    *

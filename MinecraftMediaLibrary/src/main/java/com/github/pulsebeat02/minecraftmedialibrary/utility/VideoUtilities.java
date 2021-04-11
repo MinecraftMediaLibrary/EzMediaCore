@@ -39,6 +39,8 @@ import java.nio.IntBuffer;
  */
 public final class VideoUtilities {
 
+  private VideoUtilities() {}
+
   /**
    * Get buffer from an image.
    *

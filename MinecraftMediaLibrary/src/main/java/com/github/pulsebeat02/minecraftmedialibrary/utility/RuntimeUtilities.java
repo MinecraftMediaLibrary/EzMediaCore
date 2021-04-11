@@ -113,6 +113,8 @@ public final class RuntimeUtilities {
     Logger.info("=========================================");
   }
 
+  private RuntimeUtilities() {}
+
   /**
    * Gets Operating System String.
    *

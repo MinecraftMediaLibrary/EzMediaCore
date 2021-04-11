@@ -34,6 +34,8 @@ import java.io.File;
  */
 public final class ResourcepackUtilities {
 
+  private ResourcepackUtilities() {}
+
   /**
    * Validate pack format.
    *

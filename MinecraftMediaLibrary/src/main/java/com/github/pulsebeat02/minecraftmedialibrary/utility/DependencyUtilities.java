@@ -80,6 +80,8 @@ public final class DependencyUtilities {
     }
   }
 
+  private DependencyUtilities() {}
+
   /**
    * Download Maven Dependency.
    *
