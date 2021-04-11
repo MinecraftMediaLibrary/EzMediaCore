@@ -30,11 +30,12 @@ import com.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyI
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import org.jetbrains.annotations.NotNull;
-import ws.schild.jave.AudioAttributes;
 import ws.schild.jave.Encoder;
 import ws.schild.jave.EncoderException;
-import ws.schild.jave.EncodingAttributes;
 import ws.schild.jave.MultimediaObject;
+import ws.schild.jave.encode.AudioAttributes;
+import ws.schild.jave.encode.EncodingAttributes;
+import ws.schild.jave.process.ProcessLocator;
 
 import java.io.File;
 import java.io.IOException;

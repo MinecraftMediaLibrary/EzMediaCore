@@ -169,6 +169,7 @@ public abstract class PackageBase {
   /**
    * Gets the package base from the file.
    *
+   * @param library the library
    * @param file the file
    * @return the package base
    */

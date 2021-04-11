@@ -38,6 +38,7 @@ public class ResourceUtilities {
   /**
    * Gets resource from file in resources folder.
    *
+   * @param name the name of the file
    * @return contents in String format
    * @throws IOException if file couldn't be found
    */

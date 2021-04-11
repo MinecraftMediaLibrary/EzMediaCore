@@ -262,6 +262,7 @@ public final class RuntimeUtilities {
    * Executes a script in Linux.
    *
    * @param file the script
+   * @param arguments the arguments with the script
    * @param message the success message
    */
   public static void executeBashScript(

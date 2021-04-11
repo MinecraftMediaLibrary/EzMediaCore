@@ -45,6 +45,7 @@ public class JuNestInstaller extends PackageBase {
   /**
    * Instantiates a new JuNestInstaller.
    *
+   * @param baseDirectory the base directory
    * @param file the file
    * @param isDebian whether package is Debian or not
    */

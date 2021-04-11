@@ -47,7 +47,7 @@ public final class VideoExtractionUtilities {
    * Extracts video id from Youtube URL.
    *
    * @param url the url
-   * @return an Optional<String> containing the url if existing
+   * @return an Optional containing the String url if existing
    */
   public static Optional<String> getVideoID(@NotNull final String url) {
     final Pattern compiledPattern =
