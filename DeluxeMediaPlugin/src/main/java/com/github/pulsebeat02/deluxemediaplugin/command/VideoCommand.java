@@ -176,7 +176,10 @@ public class VideoCommand extends BaseCommand {
                   "Set screen dimensions to " + dims[0] + ":" + dims[1] + " (width:height)",
                   NamedTextColor.GOLD)));
     } else {
-      audience.sendMessage(nullCheckVideo());
+      audience.sendMessage(
+          ChatUtilities.formatMessage(
+              Component.text(
+                  "Please load a video first before executing this command!", NamedTextColor.RED)));
     }
     return 1;
   }
@@ -270,7 +273,7 @@ public class VideoCommand extends BaseCommand {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
     final String folderPath = plugin.getDataFolder().getAbsolutePath();
-    if (VideoExtractionUtilities.getVideoID(mrl) == null) {
+    if (!VideoExtractionUtilities.getVideoID(mrl).isPresent()) {
       final File f = new File(folderPath, mrl);
       if (f.exists()) {
         youtube = false;
@@ -318,11 +321,7 @@ public class VideoCommand extends BaseCommand {
                             .setAudio(extractor.getAudio())
                             .setDescription("Youtube Video: " + extractor.getVideoTitle())
                             .setPath(
-                                plugin.getDataFolder().getAbsolutePath()
-                                    + File.separator
-                                    + "http"
-                                    + File.separator
-                                    + "resourcepack.zip")
+                                plugin.getDataFolder().getAbsolutePath() + "/http/resourcepack.zip")
                             .setPackFormat(6)
                             .createResourcepackHostingProvider(plugin.getLibrary());
                     wrapper.buildResourcePack();
@@ -350,12 +349,6 @@ public class VideoCommand extends BaseCommand {
                   });
     }
     return 1;
-  }
-
-  public Component nullCheckVideo() {
-    return ChatUtilities.formatMessage(
-        Component.text(
-            "Please load a video first before executing this command!", NamedTextColor.RED));
   }
 
   @Override

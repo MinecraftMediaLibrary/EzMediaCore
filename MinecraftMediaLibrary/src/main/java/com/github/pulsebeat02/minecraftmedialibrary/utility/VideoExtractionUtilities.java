@@ -22,7 +22,6 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
-import com.github.pulsebeat02.minecraftmedialibrary.exception.InvalidYoutubeURLException;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,21 +42,21 @@ import java.util.regex.Pattern;
 public final class VideoExtractionUtilities {
 
   /**
-   * Extracts vidoe id from Youtube URL.
+   * Extracts video id from Youtube URL.
    *
    * @param url the url
-   * @return the video id
+   * @return an Optional<String> containing the url if existing
    */
-  public static String getVideoID(@NotNull final String url) {
+  public static Optional<String> getVideoID(@NotNull final String url) {
     final Pattern compiledPattern =
         Pattern.compile("(?<=youtu.be/|watch\\?v=|/videos/|embed)[^#]*");
     final Matcher matcher = compiledPattern.matcher(url);
     if (matcher.find()) {
       final String id = matcher.group();
       Logger.info("Found Video ID for " + url + "(" + id + ")");
-      return id;
+      return Optional.of(id);
     }
-    throw new InvalidYoutubeURLException("Cannot extract Video ID (" + url + ")");
+    return Optional.empty();
   }
 
   /**

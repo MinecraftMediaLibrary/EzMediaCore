@@ -29,18 +29,16 @@ import com.github.kiulian.downloader.model.YoutubeVideo;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
-import com.google.common.base.Preconditions;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
+import ws.schild.jave.AudioAttributes;
 import ws.schild.jave.Encoder;
 import ws.schild.jave.EncoderException;
+import ws.schild.jave.EncodingAttributes;
 import ws.schild.jave.MultimediaObject;
-import ws.schild.jave.encode.AudioAttributes;
-import ws.schild.jave.encode.EncodingAttributes;
-import ws.schild.jave.process.ProcessLocator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Youtube extraction class used to extract audio from video files. Very useful for extraction media
@@ -93,11 +91,11 @@ public class YoutubeExtraction implements VideoExtractorBase {
   @Override
   public File downloadVideo() {
     onVideoDownload();
-    final String ID = VideoExtractionUtilities.getVideoID(url);
+    final Optional<String> videoID = VideoExtractionUtilities.getVideoID(url);
     Logger.info("Downloading Video at URL (" + url + ")");
-    if (ID != null) {
+    if (videoID.isPresent()) {
       try {
-        final YoutubeVideo ytVideo = new YoutubeDownloader().getVideo(ID);
+        final YoutubeVideo ytVideo = new YoutubeDownloader().getVideo(videoID.get());
         details = ytVideo.details();
         video =
             ytVideo.download(
