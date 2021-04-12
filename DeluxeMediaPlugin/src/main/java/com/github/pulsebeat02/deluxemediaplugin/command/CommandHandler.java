@@ -7,6 +7,7 @@ import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.tree.RootCommandNode;
+import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
@@ -22,8 +23,10 @@ public final class CommandHandler implements TabExecutor {
   private final CommandDispatcher<CommandSender> dispatcher;
   private final RootCommandNode<CommandSender> rootNode;
   private final Set<BaseCommand> commands;
+  private final DeluxeMediaPlugin plugin;
 
   public CommandHandler(@NotNull final DeluxeMediaPlugin plugin) {
+    this.plugin = plugin;
     dispatcher = new CommandDispatcher<>();
     rootNode = dispatcher.getRoot();
     commands =
@@ -59,8 +62,8 @@ public final class CommandHandler implements TabExecutor {
       dispatcher.execute(results);
     } catch (final CommandSyntaxException exception) {
       exception.printStackTrace();
-      System.out.println(exception.getMessage());
-      sender.sendMessage(((BaseCommand) command).usage());
+      final Audience audience = plugin.getAudiences().sender(sender);
+      audience.sendMessage(((BaseCommand) command).usage());
     }
     return true;
   }

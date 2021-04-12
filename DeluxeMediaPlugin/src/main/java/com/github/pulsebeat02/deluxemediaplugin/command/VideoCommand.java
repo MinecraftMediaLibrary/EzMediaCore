@@ -13,6 +13,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.video.itemframe.ItemFrameCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.video.player.VLCJIntegratedPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.video.player.VideoPlayerBase;
+import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -91,10 +92,23 @@ public class VideoCommand extends BaseCommand {
   }
 
   @Override
-  public String usage() {
-    return "/video, /video [Start | Stop], /video load [Youtube Link | File], "
-        + "/video set screen-dimension [Width:Height], /video set dither [Dither Type] "
-        + "/video set itemframe-dimension [Width:Height], /video set starting-map [Starting Map ID]";
+  public TextComponent usage() {
+    return ChatUtilities.getCommandUsage(
+        ImmutableMap.<String, String>builder()
+            .put("/video", "Lists the command usage for the video command")
+            .put("/video start", "Starts the video")
+            .put("/video stop", "Stops the video")
+            .put("/video load [url]", "Loads a Youtube link")
+            .put("/video load [file]", "Loads a specific video file")
+            .put("/video set screen-dimension [width:height]", "Sets the resolution of the screen")
+            .put(
+                "/video set itemframe-dimension [width:height]",
+                "Sets the proper itemframe dimension of the screen")
+            .put("/video set dither [algorithm]", "Sets the specific algorithm for dithering")
+            .put(
+                "/video set starting-map [id]",
+                "Sets the starting map id from id to id + 25. (For example 0 - 24)")
+            .build());
   }
 
   private CompletableFuture<Suggestions> suggestDitherAlgorithm(

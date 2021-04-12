@@ -1,6 +1,7 @@
 package com.github.pulsebeat02.deluxemediaplugin.command;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -42,7 +43,7 @@ public abstract class BaseCommand extends Command implements LiteralCommandSegme
    *
    * @return usage
    */
-  public abstract String usage();
+  public abstract Component usage();
 
   /**
    * Executes a specific command from a player.

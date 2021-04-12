@@ -16,6 +16,7 @@ package com.github.pulsebeat02.deluxemediaplugin.command;
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
+import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -44,8 +45,9 @@ public class DitherCommand extends BaseCommand {
   }
 
   @Override
-  public String usage() {
-    return "/dither list";
+  public Component usage() {
+    return ChatUtilities.getCommandUsage(
+        ImmutableMap.of("/dither list", "Lists all possible dithering algorithms to choose"));
   }
 
   private int listSettings(@NotNull final CommandContext<CommandSender> context) {

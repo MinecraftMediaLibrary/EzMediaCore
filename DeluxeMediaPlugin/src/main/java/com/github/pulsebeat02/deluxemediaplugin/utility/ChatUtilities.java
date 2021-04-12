@@ -20,6 +20,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
@@ -47,7 +48,8 @@ public final class ChatUtilities {
     return TextComponent.ofChildren(PREFIX, Component.space(), message);
   }
 
-  public static OptionalLong checkMapBoundaries(@NotNull final Audience sender, final String str) {
+  public static OptionalLong checkMapBoundaries(
+      @NotNull final Audience sender, @NotNull final String str) {
     final String message;
     final OptionalLong opt = checkLongValidity(str);
     if (!opt.isPresent()) {
@@ -75,7 +77,7 @@ public final class ChatUtilities {
   }
 
   public static Optional<int[]> checkDimensionBoundaries(
-      @NotNull final Audience sender, final String str) {
+      @NotNull final Audience sender, @NotNull final String str) {
     final String[] dims = str.split(":");
     final String message;
     final OptionalInt width = ChatUtilities.checkIntegerValidity(dims[0]);
@@ -99,7 +101,7 @@ public final class ChatUtilities {
     return Optional.empty();
   }
 
-  public static OptionalLong checkLongValidity(final String num) {
+  public static OptionalLong checkLongValidity(@NotNull final String num) {
     try {
       return OptionalLong.of(Long.parseLong(num));
     } catch (final NumberFormatException e) {
@@ -107,11 +109,26 @@ public final class ChatUtilities {
     }
   }
 
-  public static OptionalInt checkIntegerValidity(final String num) {
+  public static OptionalInt checkIntegerValidity(@NotNull final String num) {
     try {
       return OptionalInt.of(Integer.parseInt(num));
     } catch (final NumberFormatException e) {
       return OptionalInt.empty();
     }
+  }
+
+  public static TextComponent getCommandUsage(@NotNull final Map<String, String> usages) {
+    final TextComponent.Builder builder =
+        Component.text().append(Component.text("------------------", NamedTextColor.AQUA));
+    for (final Map.Entry<String, String> entry : usages.entrySet()) {
+      builder.append(
+          Component.join(
+              Component.newline(),
+              Component.text(entry.getKey(), NamedTextColor.LIGHT_PURPLE),
+              Component.text(" - ", NamedTextColor.GOLD),
+              Component.text(entry.getValue(), NamedTextColor.AQUA)));
+    }
+    builder.append(Component.text("------------------", NamedTextColor.AQUA));
+    return builder.build();
   }
 }

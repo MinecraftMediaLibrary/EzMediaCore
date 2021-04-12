@@ -18,6 +18,7 @@ import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.image.MapImage;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
+import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -27,7 +28,6 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -98,8 +98,13 @@ public class ImageCommand extends BaseCommand implements Listener {
   }
 
   @Override
-  public String usage() {
-    return ChatColor.RED + "/image, /image reset all, /image reset map [Map ID], /image rickroll";
+  public Component usage() {
+    return ChatUtilities.getCommandUsage(
+        ImmutableMap.of(
+            "/image", "Lists the proper usage of the command",
+            "/image reset all", "Purges all loaded images onto maps",
+            "/image reset map [id]", "Purges a specific map on an id",
+            "/image rickroll", "Posts a Rick Roll image on map id 69"));
   }
 
   private int setRickRoll(@NotNull final CommandContext<CommandSender> context) {
