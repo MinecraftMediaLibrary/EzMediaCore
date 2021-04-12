@@ -53,6 +53,8 @@ public class VideoCommand extends BaseCommand {
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "video", executor, "deluxemediaplugin.command.video", "");
     dither = DitherSetting.SIERRA_FILTER_LITE_DITHER.getHolder();
+    frameWidth = 5;
+    frameHeight = 5;
     final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
     builder
         .requires(super::testPermission)
@@ -186,7 +188,7 @@ public class VideoCommand extends BaseCommand {
 
   private int displayInformation(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
-    if (player == null) {
+    if (file == null && !youtube) {
       audience.sendMessage(
           ChatUtilities.formatMessage(
               Component.text("There isn't a video currently playing!", NamedTextColor.RED)));
@@ -251,18 +253,12 @@ public class VideoCommand extends BaseCommand {
     }
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
     final ItemFrameCallback callback =
-        new ItemFrameCallback(
-            library, null, startingMap, frameWidth, frameHeight, player.getWidth(), 0, dither);
+        new ItemFrameCallback(library, null, startingMap, frameWidth, frameHeight, 640, 0, dither);
     if (library.isUsingVLCJ()) {
-      if (file == null) {
-        player =
-            new VLCJIntegratedPlayer(
-                library, extractor.getUrl(), player.getWidth(), player.getHeight(), callback::send);
-      } else {
-        player =
-            new VLCJIntegratedPlayer(
-                library, file, player.getWidth(), player.getHeight(), callback::send);
-      }
+      final boolean initiated = player != null;
+      final int width = initiated ? player.getWidth() : 640;
+      final int height = initiated ? player.getHeight() : 360;
+      player = new VLCJIntegratedPlayer(library, extractor.getUrl(), width, height, callback::send);
     }
     player.start();
     return 1;

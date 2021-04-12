@@ -24,6 +24,8 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.player;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
@@ -130,6 +132,9 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
     final String url = getUrl();
     if (mediaPlayerComponent != null) {
       mediaPlayerComponent.media().play(url);
+    }
+    for (final Player p : Bukkit.getOnlinePlayers()) {
+      p.playSound(p.getLocation(), getLibrary().getPlugin().getName().toLowerCase(), 1.0F, 1.0F);
     }
     Logger.info("Started Playing Video! (" + url + ")");
   }

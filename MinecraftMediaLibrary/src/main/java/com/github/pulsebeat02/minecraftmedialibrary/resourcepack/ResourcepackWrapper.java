@@ -42,6 +42,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Locale;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -189,7 +190,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
   public String getPackJson() {
     final JsonObject mcmeta = new JsonObject();
     final JsonObject pack = new JsonObject();
-    pack.addProperty("pack-format", packFormat);
+    pack.addProperty("pack_format", packFormat);
     pack.addProperty("description", description);
     mcmeta.add("pack", pack);
     return GSON.toJson(mcmeta);
@@ -206,7 +207,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
     final JsonArray sounds = new JsonArray();
     sounds.add("audio");
     category.add("sounds", sounds);
-    type.add(library.getPlugin().getName(), category);
+    type.add(library.getPlugin().getName().toLowerCase(), category);
     return GSON.toJson(type);
   }
 

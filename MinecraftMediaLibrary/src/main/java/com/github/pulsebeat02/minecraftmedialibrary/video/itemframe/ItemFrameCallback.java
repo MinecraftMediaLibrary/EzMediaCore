@@ -56,7 +56,7 @@ public final class ItemFrameCallback implements CallbackBase {
    */
   public ItemFrameCallback(
       @NotNull final MinecraftMediaLibrary library,
-      @NotNull final UUID[] viewers,
+      final UUID[] viewers,
       final int map,
       final int width,
       final int height,
