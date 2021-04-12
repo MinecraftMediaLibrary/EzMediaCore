@@ -75,7 +75,7 @@ public final class RuntimeUtilities {
       is64bit = true;
       if (WINDOWS) {
         Logger.info("Detected Windows 64 Bit!");
-        URL = "http://download.videolan.org/pub/videolan/vlc/last/win64/vlc-3.0.12-win64.zip";
+        URL = "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/win64/VLC.zip";
       } else if (LINUX) {
         if (CPU_ARCH.contains("arm")) {
           Logger.info("Detected Linux ARM 64 Bit!");
@@ -96,7 +96,7 @@ public final class RuntimeUtilities {
     } else {
       is64bit = false;
       if (WINDOWS) {
-        URL = "http://download.videolan.org/pub/videolan/vlc/last/win32/vlc-3.0.12-win32.zip";
+        URL = "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/win32/VLC.zip";
       } else if (LINUX) {
         if (CPU_ARCH.contains("arm")) {
           Logger.info("Detected ARM 32 Bit!");

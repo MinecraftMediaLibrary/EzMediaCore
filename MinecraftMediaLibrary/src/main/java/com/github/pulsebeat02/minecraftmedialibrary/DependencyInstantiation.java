@@ -57,11 +57,7 @@ public final class DependencyInstantiation {
       CompletableFuture.allOf(
               CompletableFuture.runAsync(this::loadDependencies)
                   .thenRunAsync(
-                      () -> {
-                        if (!DependencyUtilities.vlcExists(instance)) {
-                          loadVLC();
-                        }
-                      }),
+                      () -> loadVLC(!DependencyUtilities.vlcExists(instance))),
               CompletableFuture.runAsync(this::loadFfmpeg))
           .get();
     } catch (final InterruptedException | ExecutionException e) {
@@ -92,8 +88,13 @@ public final class DependencyInstantiation {
   }
 
   /** Downloads/Loads VLC dependency. */
-  public void loadVLC() {
-    new VLCNativeDependencyFetcher(instance).downloadLibraries();
+  public void loadVLC(final boolean download) {
+    final VLCNativeDependencyFetcher fetcher = new VLCNativeDependencyFetcher(instance);
+    if (download) {
+      fetcher.downloadLibraries();
+    } else {
+      fetcher.loadNatively();
+    }
     if (instance.isUsingVLCJ()) {
       try {
         new MediaPlayerFactory();

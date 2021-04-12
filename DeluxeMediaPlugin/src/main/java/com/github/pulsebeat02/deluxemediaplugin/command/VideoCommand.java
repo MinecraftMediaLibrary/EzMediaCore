@@ -254,6 +254,7 @@ public class VideoCommand extends BaseCommand {
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
     final ItemFrameCallback callback =
         new ItemFrameCallback(library, null, startingMap, frameWidth, frameHeight, 640, 0, dither);
+    // TODO: Configure the video command to work with custom dimensions
     if (library.isUsingVLCJ()) {
       final boolean initiated = player != null;
       final int width = initiated ? player.getWidth() : 640;
