@@ -175,10 +175,11 @@ public class LinuxPackageManager {
           }
           e.printStackTrace();
         }
-        assert uri != null;
-        FileUtils.copyURLToFile(uri, file);
-        PACKAGE = link;
-        return file;
+        if (uri != null) {
+          FileUtils.copyURLToFile(uri, file);
+          PACKAGE = link;
+          return file;
+        }
       }
     }
     Logger.error("Could not find architecture... throwing an error!");
@@ -189,23 +190,6 @@ public class LinuxPackageManager {
   public void extractContents() {
     ArchiveUtilities.recursiveExtraction(vlc.listFiles()[0], vlc);
   }
-
-  //  /**
-  //   * Gets resource from JSON file in resources folder.
-  //   *
-  //   * @return contents in String format
-  //   * @throws IOException if file couldn't be found
-  //   */
-  //  private String getFileContents() throws IOException {
-  //    final String name = "linux-package-installation.json";
-  //    final ClassLoader loader = getClass().getClassLoader();
-  //    final InputStream input = loader.getResourceAsStream(name);
-  //    if (input == null) {
-  //      throw new IllegalArgumentException("file not found! " + name);
-  //    } else {
-  //      return IOUtils.toString(input, StandardCharsets.UTF_8.name());
-  //    }
-  //  }
 
   /**
    * Gets packages.

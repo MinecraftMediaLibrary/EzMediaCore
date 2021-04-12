@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class LinuxOSPackages {
 
-  /* Here for all URLs just in case
+  /* Here for all URLs just in case I lose any (in comments due to not being used anymore)
 
   // https://pkgs.org/download/vlc
 

@@ -31,7 +31,6 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -45,10 +44,6 @@ import java.io.IOException;
  */
 public class VLCNativeDependencyFetcher {
 
-  /** Instantiates a new VLCNativeDependencyFetcher. */
-  private final String dir;
-
-  private final MinecraftMediaLibrary library;
   private final SilentOSDependentSolution solution;
 
   /**
@@ -57,8 +52,7 @@ public class VLCNativeDependencyFetcher {
    * @param library the library
    */
   public VLCNativeDependencyFetcher(@NotNull final MinecraftMediaLibrary library) {
-    dir = library.getVlcFolder();
-    this.library = library;
+    final String dir = library.getVlcFolder();
     if (RuntimeUtilities.isLinux()) {
       solution = new LinuxSilentInstallation(library);
     } else if (RuntimeUtilities.isWindows()) {
@@ -77,19 +71,10 @@ public class VLCNativeDependencyFetcher {
    */
   public void downloadLibraries() {
     Logger.info("Trying to find Native VLC Installation...");
-    final SilentOSDependentSolution solution = null;
     try {
-      if (solution != null) {
-        solution.downloadVLCLibrary();
-      }
+      solution.downloadVLCLibrary();
     } catch (final IOException e) {
       e.printStackTrace();
     }
-  }
-
-  /** Loads vlc libraries. */
-  public void loadNatively() {
-    solution.loadNativeDependency(
-        new File(library.getPlugin().getDataFolder().getAbsolutePath() + "/vlc/vlc-3.0.12/"));
   }
 }

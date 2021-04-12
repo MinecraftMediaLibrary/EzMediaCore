@@ -15,6 +15,7 @@ package com.github.pulsebeat02.deluxemediaplugin.config;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.minecraftmedialibrary.http.HttpDaemon;
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -53,9 +54,14 @@ public class HttpConfiguration extends AbstractConfiguration {
     if (enabled) {
       daemon = new HttpDaemonProvider(directory, port);
       final HttpDaemon http = daemon.getDaemon();
-      assert header != null;
+      if (header == null) {
+        Logger.info(
+            "Invalid Header in httpserver.yml! Can only be ZIP or OCTET-STREAM. Resorting to ZIP.");
+      }
       http.setZipHeader(
-          header.equals("ZIP") ? HttpDaemon.ZipHeader.ZIP : HttpDaemon.ZipHeader.OCTET_STREAM);
+          header == null || header.equals("ZIP")
+              ? HttpDaemon.ZipHeader.ZIP
+              : HttpDaemon.ZipHeader.OCTET_STREAM);
       http.setVerbose(verbose);
       daemon.startServer();
     }

@@ -56,8 +56,7 @@ public final class DependencyInstantiation {
     try {
       CompletableFuture.allOf(
               CompletableFuture.runAsync(this::loadDependencies)
-                  .thenRunAsync(
-                      () -> loadVLC(!DependencyUtilities.vlcExists(instance))),
+                  .thenRunAsync(() -> loadVLC(!DependencyUtilities.checkVLCExistance(instance))),
               CompletableFuture.runAsync(this::loadFfmpeg))
           .get();
     } catch (final InterruptedException | ExecutionException e) {
@@ -67,8 +66,8 @@ public final class DependencyInstantiation {
 
   /** Assigns ClassLoader for classpath loading. */
   public void assignClassLoader() {
-    DependencyUtilities.CLASSLOADER =
-        (URLClassLoader) instance.getPlugin().getClass().getClassLoader();
+    DependencyUtilities.setClassloader(
+        (URLClassLoader) instance.getPlugin().getClass().getClassLoader());
   }
 
   /** Downloads/Loads Jave dependency. */
@@ -89,11 +88,8 @@ public final class DependencyInstantiation {
 
   /** Downloads/Loads VLC dependency. */
   public void loadVLC(final boolean download) {
-    final VLCNativeDependencyFetcher fetcher = new VLCNativeDependencyFetcher(instance);
-    if (download) {
-      fetcher.downloadLibraries();
-    } else {
-      fetcher.loadNatively();
+    if (!DependencyUtilities.checkVLCExistance(instance)) {
+      new VLCNativeDependencyFetcher(instance).downloadLibraries();
     }
     if (instance.isUsingVLCJ()) {
       try {

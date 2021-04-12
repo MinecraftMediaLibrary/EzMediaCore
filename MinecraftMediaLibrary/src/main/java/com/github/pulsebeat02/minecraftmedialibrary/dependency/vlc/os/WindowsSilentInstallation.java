@@ -64,21 +64,17 @@ public class WindowsSilentInstallation extends SilentOSDependentSolution {
   @Override
   public void downloadVLCLibrary() throws IOException {
     final String dir = getDir();
-    if (checkVLCExistance(getDir())) {
-      Logger.info("Found VLC Library in Windows! No need to install into path.");
-    } else {
-      Logger.info("No VLC Installation found on this Computer. Proceeding to a manual install.");
-      final File zip = new File(dir, "VLC.zip");
-      FileUtils.copyURLToFile(new URL(RuntimeUtilities.getURL()), zip);
-      final String path = zip.getAbsolutePath();
-      ArchiveUtilities.decompressArchive(new File(path), new File(dir));
-      vlcPath = new File(zip.getParentFile(), "vlc-3.0.12").getAbsolutePath();
-      Logger.info("Successfully Extracted File (" + path + ")");
-      deleteArchive(zip);
-      loadNativeDependency(new File(dir));
-      printSystemEnvironmentVariables();
-      printSystemProperties();
-    }
+    Logger.info("No VLC Installation found on this Computer. Proceeding to a manual install.");
+    final File zip = new File(dir, "VLC.zip");
+    FileUtils.copyURLToFile(new URL(RuntimeUtilities.getURL()), zip);
+    final String path = zip.getAbsolutePath();
+    ArchiveUtilities.decompressArchive(new File(path), new File(dir));
+    vlcPath = new File(zip.getParentFile(), "vlc-3.0.12").getAbsolutePath();
+    Logger.info("Successfully Extracted File (" + path + ")");
+    deleteArchive(zip);
+    loadNativeDependency(new File(dir));
+    printSystemEnvironmentVariables();
+    printSystemProperties();
   }
 
   @Override

@@ -59,17 +59,13 @@ public class LinuxSilentInstallation extends SilentOSDependentSolution {
   @Override
   public void downloadVLCLibrary() throws IOException {
     final String dir = getDir();
-    if (checkVLCExistance(dir)) {
-      Logger.info("Found VLC Library in Linux! No need to install into path.");
-    } else {
-      Logger.info("No VLC Installation found on this Computer. Proceeding to a manual install.");
-      final LinuxPackageManager manager = new LinuxPackageManager(dir);
-      final File f = manager.getDesignatedPackage();
-      PackageBase.getFromFile(library, f).installPackage();
-      Logger.info("Downloaded and Loaded Package (" + f.getAbsolutePath() + ")");
-      loadNativeDependency(new File(dir));
-      printSystemEnvironmentVariables();
-      printSystemProperties();
-    }
+    Logger.info("No VLC Installation found on this Computer. Proceeding to a manual install.");
+    final LinuxPackageManager manager = new LinuxPackageManager(dir);
+    final File f = manager.getDesignatedPackage();
+    PackageBase.getFromFile(library, f).installPackage();
+    Logger.info("Downloaded and Loaded Package (" + f.getAbsolutePath() + ")");
+    loadNativeDependency(new File(dir));
+    printSystemEnvironmentVariables();
+    printSystemProperties();
   }
 }

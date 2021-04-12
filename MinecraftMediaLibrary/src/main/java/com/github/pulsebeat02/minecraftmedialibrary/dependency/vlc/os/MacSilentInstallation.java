@@ -67,38 +67,34 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
   @Override
   public void downloadVLCLibrary() throws IOException {
     final String dir = getDir();
-    if (checkVLCExistance(dir)) {
-      Logger.info("Found VLC Library in Mac! No need to install into path.");
-    } else {
-      final File dmg = new File(dir, "VLC.dmg");
-      final File diskPath = new File("/Volumes/VLC media player");
-      FileUtils.copyURLToFile(new URL(RuntimeUtilities.getURL()), dmg);
-      try {
-        if (mountDiskImage(dmg) != 0) {
-          throw new IOException("Could not Mount Disk File!");
-        }
-      } catch (final InterruptedException e) {
-        e.printStackTrace();
+    final File dmg = new File(dir, "VLC.dmg");
+    final File diskPath = new File("/Volumes/VLC media player");
+    FileUtils.copyURLToFile(new URL(RuntimeUtilities.getURL()), dmg);
+    try {
+      if (mountDiskImage(dmg) != 0) {
+        throw new IOException("Could not Mount Disk File!");
       }
-      final File app = new File(dir, "VLC.app");
-      FileUtils.copyDirectory(new File(diskPath, "VLC.app"), app);
-      try {
-        changePermissions(app.getAbsolutePath());
-      } catch (final InterruptedException e) {
-        e.printStackTrace();
-      }
-      Logger.info("Moved File!");
-      try {
-        if (unmountDiskImage(diskPath.getAbsolutePath()) != 0) {
-          throw new IOException("Could not Unmount Disk File!");
-        }
-      } catch (final InterruptedException e) {
-        e.printStackTrace();
-      }
-      Logger.info("Unmounting Disk Successfully");
-      deleteArchive(dmg);
-      Logger.info("Deleted DMG File");
+    } catch (final InterruptedException e) {
+      e.printStackTrace();
     }
+    final File app = new File(dir, "VLC.app");
+    FileUtils.copyDirectory(new File(diskPath, "VLC.app"), app);
+    try {
+      changePermissions(app.getAbsolutePath());
+    } catch (final InterruptedException e) {
+      e.printStackTrace();
+    }
+    Logger.info("Moved File!");
+    try {
+      if (unmountDiskImage(diskPath.getAbsolutePath()) != 0) {
+        throw new IOException("Could not Unmount Disk File!");
+      }
+    } catch (final InterruptedException e) {
+      e.printStackTrace();
+    }
+    Logger.info("Unmounting Disk Successfully");
+    deleteArchive(dmg);
+    Logger.info("Deleted DMG File");
     loadNativeDependency(new File(dir));
   }
 

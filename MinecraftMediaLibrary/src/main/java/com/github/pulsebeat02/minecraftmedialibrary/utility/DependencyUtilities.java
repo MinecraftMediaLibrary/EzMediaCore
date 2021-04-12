@@ -27,8 +27,9 @@ import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyResolution;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.RepositoryDependency;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import org.apache.commons.lang.StringUtils;
+import com.sun.jna.NativeLibrary;
 import org.jetbrains.annotations.NotNull;
+import uk.co.caprica.vlcj.binding.RuntimeUtil;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.BufferedInputStream;
@@ -42,6 +43,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Queue;
 import java.util.function.LongConsumer;
 
 /**
@@ -50,8 +54,9 @@ import java.util.function.LongConsumer;
  */
 public final class DependencyUtilities {
 
-  public static URLClassLoader CLASSLOADER;
+  private static URLClassLoader CLASSLOADER;
   private static Method ADD_URL_METHOD;
+  private static File NATIVE_VLC_PATH;
 
   static {
     Logger.info("Attempting to Open Reflection Module...");
@@ -404,12 +409,50 @@ public final class DependencyUtilities {
    * @param library the library
    * @return whether vlc can be found or not
    */
-  public static boolean vlcExists(@NotNull final MinecraftMediaLibrary library) {
-    for (final File f : new File(library.getPlugin().getDataFolder(), "vlc").listFiles()) {
-      if (StringUtils.containsIgnoreCase(f.getName(), "vlc")) {
-        return true;
+  public static boolean checkVLCExistance(@NotNull final MinecraftMediaLibrary library) {
+    String keyword = "libvlc";
+    if (RuntimeUtilities.isWindows()) {
+      keyword += ".dll";
+    } else if (RuntimeUtilities.isMac()) {
+      keyword += ".dylib";
+    } else if (RuntimeUtilities.isLinux()) {
+      keyword += ".so";
+    }
+    final Queue<File> folders = new ArrayDeque<>();
+    folders.add(new File(library.getPlugin().getDataFolder(), "vlc"));
+    while (!folders.isEmpty()) {
+      final File f = folders.remove();
+      if (f.isDirectory()) {
+        folders.addAll(Arrays.asList(f.listFiles()));
+      } else {
+        if (f.getName().equals(keyword)) {
+          Logger.info("Found VLC Installation on this Server! Good Job :)");
+          NATIVE_VLC_PATH = f.getParentFile();
+          NativeLibrary.addSearchPath(
+              RuntimeUtil.getLibVlcLibraryName(), NATIVE_VLC_PATH.getAbsolutePath());
+          new NativeDiscovery().discover();
+          return true;
+        }
       }
     }
-    return new NativeDiscovery().discover();
+    return false;
+  }
+
+  /**
+   * Gets the Native path of VLC binaries.
+   *
+   * @return the File of the folder
+   */
+  public static File getNativeVlcPath() {
+    return NATIVE_VLC_PATH;
+  }
+
+  /**
+   * Sets the classloader used for dependency loading.
+   *
+   * @param CLASSLOADER the classloader
+   */
+  public static void setClassloader(final URLClassLoader CLASSLOADER) {
+    DependencyUtilities.CLASSLOADER = CLASSLOADER;
   }
 }

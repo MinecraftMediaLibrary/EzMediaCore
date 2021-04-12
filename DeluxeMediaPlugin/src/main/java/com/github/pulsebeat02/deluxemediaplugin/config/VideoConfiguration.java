@@ -65,12 +65,15 @@ public class VideoConfiguration extends AbstractConfiguration {
       }
     }
     if (holder == null) {
-      Logger.error("Setting " + ditherSetting + " is NOT a valid setting!");
+      Logger.error(
+          "Setting "
+              + ditherSetting
+              + " in video.yml is NOT a valid dithering algorithm! Resorting to Filter Lite Algorithm!");
+      holder = DitherSetting.SIERRA_FILTER_LITE_DITHER.getHolder();
     }
     final boolean vlcj = configuration.getBoolean("using-vlcj");
     if (enabled) {
       final MinecraftMediaLibrary library = player.getLibrary();
-      assert holder != null;
       final ItemFrameCallback callback =
           new ItemFrameCallback(
               getPlugin().getLibrary(),
@@ -82,10 +85,12 @@ public class VideoConfiguration extends AbstractConfiguration {
               0,
               holder);
       if (vlcj) {
-        assert url != null;
-        player = new VLCJIntegratedPlayer(library, url, width, height, callback::send);
+        if (url == null) {
+          Logger.info("URL in video.yml is not a valid or specified url!");
+        } else {
+          player = new VLCJIntegratedPlayer(library, url, width, height, callback::send);
+        }
       }
-      // player = new BasicVideoPlayer(library, url, width, height, callback::send);
       this.callback = callback;
     }
   }

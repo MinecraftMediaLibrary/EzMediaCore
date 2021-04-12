@@ -73,21 +73,6 @@ public abstract class SilentOSDependentSolution {
   public abstract void downloadVLCLibrary() throws IOException;
 
   /**
-   * Checks existence of VLC folder.
-   *
-   * @param dir the directory
-   * @return whether it can be found
-   */
-  public boolean checkVLCExistance(@NotNull final String dir) {
-    final File folder = findVLCFolder(new File(dir));
-    if (folder == null || !folder.exists()) {
-      return false;
-    }
-    loadNativeDependency(folder);
-    return getNativeDiscovery().discover();
-  }
-
-  /**
    * Loads native dependency from file.
    *
    * @param folder directory

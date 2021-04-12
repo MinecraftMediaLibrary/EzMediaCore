@@ -111,9 +111,9 @@ public final class MinecraftMediaLibrary {
             return handler.onPacketInterceptIn(player, packet);
           }
         };
-    parent = http == null ? path + "/http" : http;
-    dependenciesFolder = libraryPath == null ? path + "/mml_libs" : libraryPath;
-    vlcFolder = vlcPath == null ? path + "/vlc" : vlcPath;
+    parent = http == null ? path + "/http/" : http;
+    dependenciesFolder = libraryPath == null ? path + "/mml_libs/" : libraryPath;
+    vlcFolder = vlcPath == null ? path + "/vlc/" : vlcPath;
     createNecessaryFolders();
     vlcj = isUsingVLCJ;
     handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
