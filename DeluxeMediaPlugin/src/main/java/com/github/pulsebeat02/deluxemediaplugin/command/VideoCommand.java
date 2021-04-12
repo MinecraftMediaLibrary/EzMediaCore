@@ -198,19 +198,15 @@ public class VideoCommand extends BaseCommand {
               Component.text("=====================================", NamedTextColor.AQUA)));
       if (youtube) {
         audience.sendMessage(
-            ChatUtilities.formatMessage(
-                Component.text("Title: " + extractor.getVideoTitle(), NamedTextColor.GOLD)));
+            Component.text("Title: " + extractor.getVideoTitle(), NamedTextColor.GOLD));
         audience.sendMessage(
-            ChatUtilities.formatMessage(
-                Component.text("Author: " + extractor.getAuthor(), NamedTextColor.GOLD)));
+            Component.text("Author: " + extractor.getAuthor(), NamedTextColor.GOLD));
         audience.sendMessage(
-            ChatUtilities.formatMessage(
-                Component.text("Rating: " + extractor.getVideoRating(), NamedTextColor.GOLD)));
+            Component.text("Rating: " + extractor.getVideoRating(), NamedTextColor.GOLD));
         audience.sendMessage(
-            ChatUtilities.formatMessage(
-                TextComponent.ofChildren(
-                    Component.text("Video Identifier: ", NamedTextColor.GOLD),
-                    Component.text(extractor.getVideoId(), NamedTextColor.RED))));
+            TextComponent.ofChildren(
+                Component.text("Video Identifier: ", NamedTextColor.GOLD),
+                Component.text(extractor.getVideoId(), NamedTextColor.RED)));
       } else {
         audience.sendMessage(
             ChatUtilities.formatMessage(
