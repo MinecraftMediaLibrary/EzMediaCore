@@ -37,6 +37,6 @@ fun main() {
 //    management.relocate()
 //    management.load()
     val ffmpeg =
-            FFmpegDependencyInstallation(folder.absolutePath)
+        FFmpegDependencyInstallation(folder.absolutePath)
     ffmpeg.install()
 }

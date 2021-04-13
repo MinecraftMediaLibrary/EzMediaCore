@@ -28,6 +28,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -98,6 +99,7 @@ public class FFmpegDependencyInstallation {
    * @return the FFMPEG file
    * @throws IOException if an issue occurred during downloading
    */
+  @NotNull
   public File downloadFFmpeg() throws IOException {
     final File folder = new File(dependencyFolder);
     mkdir(folder);
@@ -118,6 +120,7 @@ public class FFmpegDependencyInstallation {
    * @param folder the folder file
    * @return file
    */
+  @Nullable
   public File searchFFMPEG(@NotNull final File folder) {
     for (final File f : folder.listFiles()) {
       if (f.getName().contains("ffmpeg")) {
@@ -148,6 +151,7 @@ public class FFmpegDependencyInstallation {
    *
    * @return the artifact id
    */
+  @NotNull
   private String getFFmpegUrl() {
     Logger.info("Detecting Operating System...");
     final String arch = System.getProperty("os.name").toLowerCase();

@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -42,6 +43,7 @@ public class ResourceUtilities {
    * @return contents in String format
    * @throws IOException if file couldn't be found
    */
+  @NotNull
   public static String getFileContents(@NotNull final String name) throws IOException {
     final ClassLoader loader = ResourceUtilities.class.getClassLoader();
     final InputStream input = loader.getResourceAsStream(name);
@@ -58,6 +60,7 @@ public class ResourceUtilities {
    * @param resourcePath path
    * @return file object
    */
+  @Nullable
   public static File getResourceAsFile(@NotNull final String resourcePath) {
     try {
       final InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(resourcePath);
@@ -86,6 +89,7 @@ public class ResourceUtilities {
    * @param resource the resource name
    * @return the inputstream of the file
    */
+  @Nullable
   public static InputStream accessResourceFileJar(@NotNull final String resource) {
     InputStream input = ResourceUtilities.class.getResourceAsStream("/resources/" + resource);
     if (input == null) {

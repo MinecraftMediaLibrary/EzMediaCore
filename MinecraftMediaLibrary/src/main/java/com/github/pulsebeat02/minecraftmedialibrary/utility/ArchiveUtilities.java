@@ -146,6 +146,7 @@ public final class ArchiveUtilities {
    * @param f file to check
    * @return set of arhcives in folder
    */
+  @NotNull
   public static Set<File> containsArchiveExtension(@NotNull final File f) {
     final Set<File> files = new HashSet<>();
     for (final File child : f.listFiles()) {
@@ -164,6 +165,7 @@ public final class ArchiveUtilities {
    * @param name file name
    * @return archive format
    */
+  @NotNull
   public static String getCompressedType(@NotNull final String name) {
     if (name.endsWith("zip")) {
       return "zip";
@@ -183,7 +185,8 @@ public final class ArchiveUtilities {
               + "in the /vlc folder, and it is required by you to extract the file in order to get the VLC "
               + "libraries. This is a required step, and VLCJ will not run if you do not perform this step.");
     }
-    return "";
+    throw new UnsupportedOperationException(
+        "Cannot find Archive Extension for File! (" + name + ")");
   }
 
   /**
@@ -192,6 +195,7 @@ public final class ArchiveUtilities {
    * @param full file name
    * @return trimmed name
    */
+  @NotNull
   public static String getFileName(@NotNull final String full) {
     if (full.endsWith(".tar.gz") || full.endsWith(".tar.xz")) {
       return full.substring(0, full.length() - 7);

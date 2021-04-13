@@ -138,6 +138,7 @@ public final class RuntimeUtilities {
    *
    * @return the linux distribution
    */
+  @NotNull
   public static String getLinuxDistribution() {
     if (!LINUX) {
       return "";
@@ -178,6 +179,7 @@ public final class RuntimeUtilities {
    * @param distro the distro
    * @return the distribution name
    */
+  @NotNull
   public static String getDistributionName(@NotNull final String distro) {
     final String[] arr = distro.split(" ");
     for (final String str : arr) {
@@ -185,7 +187,7 @@ public final class RuntimeUtilities {
         return str.substring(6, str.length() - 1);
       }
     }
-    return "";
+    return "[NO DISTRIBUTION NAME]";
   }
 
   /**
@@ -194,6 +196,7 @@ public final class RuntimeUtilities {
    * @param distro the distro
    * @return the distribution version
    */
+  @NotNull
   public static String getDistributionVersion(@NotNull final String distro) {
     final String[] arr = distro.split(" ");
     for (final String str : arr) {
@@ -201,7 +204,7 @@ public final class RuntimeUtilities {
         return str.substring(8, str.length() - 1);
       }
     }
-    return "";
+    return "[NO DISTRIBUTION VERSION]";
   }
 
   /**

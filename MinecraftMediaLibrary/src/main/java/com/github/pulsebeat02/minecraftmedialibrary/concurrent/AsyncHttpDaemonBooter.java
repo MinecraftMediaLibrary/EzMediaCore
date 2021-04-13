@@ -46,6 +46,7 @@ public class AsyncHttpDaemonBooter {
    *
    * @return the CompletableFuture
    */
+  @NotNull
   public CompletableFuture<Void> startServer() {
     return CompletableFuture.runAsync(daemon::startServer);
   }

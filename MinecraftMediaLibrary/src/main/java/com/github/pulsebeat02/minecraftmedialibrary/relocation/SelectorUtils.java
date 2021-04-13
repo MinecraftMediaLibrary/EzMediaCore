@@ -35,13 +35,13 @@ import java.util.StringTokenizer;
  * @author Magesh Umasankar
  * @author <a href="mailto:bruce@callenish.com">Bruce Atherton</a>
  */
-final class SelectorUtils {
+public final class SelectorUtils {
+
   private static final String PATTERN_HANDLER_PREFIX = "[";
   private static final String PATTERN_HANDLER_SUFFIX = "]";
   private static final String REGEX_HANDLER_PREFIX = "%regex" + PATTERN_HANDLER_PREFIX;
   private static final String ANT_HANDLER_PREFIX = "%ant" + PATTERN_HANDLER_PREFIX;
 
-  /** Private Constructor */
   private SelectorUtils() {}
 
   private static boolean isAntPrefixedPattern(final String pattern) {

@@ -90,6 +90,7 @@ public class YoutubeExtraction implements VideoExtractorBase {
    * @return video file
    */
   @Override
+  @NotNull
   public File downloadVideo() {
     onVideoDownload();
     final Optional<String> videoID = VideoExtractionUtilities.getVideoID(url);
@@ -116,6 +117,7 @@ public class YoutubeExtraction implements VideoExtractorBase {
    * @return audio file
    */
   @Override
+  @NotNull
   public File extractAudio() {
     if (video == null) {
       downloadVideo();

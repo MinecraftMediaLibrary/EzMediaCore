@@ -38,6 +38,7 @@ public interface RequestHandlerBase {
    * @param file to create header for
    * @return Header of the specified file
    */
+  @NotNull
   String buildHeader(@NotNull final File file);
 
   /**

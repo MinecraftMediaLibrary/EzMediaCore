@@ -46,6 +46,7 @@ public class AsyncRequestHandler {
    *
    * @return the CompletableFuture
    */
+  @NotNull
   public CompletableFuture<Void> handleRequest() {
     return CompletableFuture.runAsync(request::handleRequest);
   }

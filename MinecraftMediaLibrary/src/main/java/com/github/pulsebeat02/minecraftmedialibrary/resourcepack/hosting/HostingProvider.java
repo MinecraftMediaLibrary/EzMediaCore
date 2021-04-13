@@ -38,6 +38,7 @@ public interface HostingProvider {
    * @param file to generate parent directory of the HTTP Server for.
    * @return String url for the generated url to access the specific file.
    */
+  @NotNull
   String generateUrl(@NotNull final String file);
 
   /**
@@ -46,5 +47,6 @@ public interface HostingProvider {
    * @param path to gnerate parent directory of the HTTP Server for.
    * @return String url for the generated url to access the specific file.
    */
+  @NotNull
   String generateUrl(@NotNull final Path path);
 }

@@ -36,8 +36,8 @@ object LinuxPackageJSONTest {
     @JvmStatic
     fun main(args: Array<String>) {
         val packages = GSON!!.fromJson<Map<String, List<LinuxPackage>>>(
-                fileContents,
-                MAP_STRING_LINUX_OS_PACKAGE_TYPE_TOKEN!!.type
+            fileContents,
+            MAP_STRING_LINUX_OS_PACKAGE_TYPE_TOKEN!!.type
         )
     }
 
@@ -57,16 +57,16 @@ object LinuxPackageJSONTest {
     private class LinuxOSPackagesAdapter : TypeAdapter<LinuxOSPackages>() {
         override fun write(out: JsonWriter, linuxOSPackages: LinuxOSPackages) {
             GSON!!.toJson(
-                    linuxOSPackages.links.asMap(),
-                    MAP_STRING_LIST_LINUX_PACKAGE_TYPE_TOKEN!!.type,
-                    out
+                linuxOSPackages.links.asMap(),
+                MAP_STRING_LIST_LINUX_PACKAGE_TYPE_TOKEN!!.type,
+                out
             )
         }
 
         override fun read(`in`: JsonReader): LinuxOSPackages {
             val map = GSON!!.fromJson<Map<String, Collection<LinuxPackage>>>(
-                    `in`,
-                    MAP_STRING_LIST_LINUX_PACKAGE_TYPE_TOKEN!!.type
+                `in`,
+                MAP_STRING_LIST_LINUX_PACKAGE_TYPE_TOKEN!!.type
             )
             val multimap: ListMultimap<String, LinuxPackage> = ArrayListMultimap.create()
             map.forEach { (k: String?, iterable: Collection<LinuxPackage>?) -> multimap.putAll(k, iterable) }
@@ -78,8 +78,8 @@ object LinuxPackageJSONTest {
         MAP_STRING_LIST_LINUX_PACKAGE_TYPE_TOKEN = object : TypeToken<Map<String, List<LinuxPackage>>>() {}
         MAP_STRING_LINUX_OS_PACKAGE_TYPE_TOKEN = object : TypeToken<Map<String, LinuxOSPackages>>() {}
         GSON = GsonBuilder()
-                .registerTypeAdapter(LinuxOSPackages::class.java, LinuxOSPackagesAdapter())
-                .setPrettyPrinting()
-                .create()
+            .registerTypeAdapter(LinuxOSPackages::class.java, LinuxOSPackagesAdapter())
+            .setPrettyPrinting()
+            .create()
     }
 }

@@ -48,6 +48,7 @@ public final class FileUtilities {
    * @param path the path
    * @return the file
    */
+  @NotNull
   public static File downloadImageFile(@NotNull final String url, @NotNull final String path) {
     final String filePath = path + "/" + UUID.randomUUID() + ".png";
     try (final InputStream in = new URL(url).openStream()) {

@@ -105,6 +105,7 @@ public final class MapImage implements ImageMapHolder, ConfigurationSerializable
    * @param deserialize the deserialize
    * @return the map image
    */
+  @NotNull
   public static MapImage deserialize(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final Map<String, Object> deserialize) {

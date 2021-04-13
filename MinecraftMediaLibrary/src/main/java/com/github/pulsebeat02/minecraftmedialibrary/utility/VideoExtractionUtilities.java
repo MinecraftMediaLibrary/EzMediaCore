@@ -49,6 +49,7 @@ public final class VideoExtractionUtilities {
    * @param url the url
    * @return an Optional containing the String url if existing
    */
+  @NotNull
   public static Optional<String> getVideoID(@NotNull final String url) {
     final Pattern compiledPattern =
         Pattern.compile("(?<=youtu.be/|watch\\?v=|/videos/|embed)[^#]*");
@@ -69,7 +70,7 @@ public final class VideoExtractionUtilities {
    * @throws NoSuchAlgorithmException the no such algorithm exception
    * @throws IOException the io exception
    */
-  public static byte[] createHashSHA(@NotNull final File file)
+  public static byte @NotNull [] createHashSHA(@NotNull final File file)
       throws NoSuchAlgorithmException, IOException {
     final MessageDigest digest = MessageDigest.getInstance("SHA-1");
     final InputStream fis = new FileInputStream(file);

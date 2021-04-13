@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
@@ -83,6 +84,7 @@ public enum CPUArchitecture {
    * @param name the name
    * @return the cpu architecture
    */
+  @Nullable
   public static CPUArchitecture fromName(@NotNull final String name) {
     for (final CPUArchitecture val : values()) {
       if (val.name().equals(name)) {

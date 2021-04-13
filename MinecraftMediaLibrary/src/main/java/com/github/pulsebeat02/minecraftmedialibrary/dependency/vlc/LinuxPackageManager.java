@@ -124,6 +124,7 @@ public class LinuxPackageManager {
    * @return package stored in archive
    * @throws IOException exception if file can't be downloaded
    */
+  @NotNull
   public File getDesignatedPackage() throws IOException {
     Logger.info("Attempting to Find VLC Package for Machine.");
     final String fullInfo = RuntimeUtilities.getLinuxDistribution();

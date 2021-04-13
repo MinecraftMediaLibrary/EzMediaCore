@@ -27,6 +27,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.sun.jna.NativeLibrary;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
@@ -109,6 +110,7 @@ public abstract class SilentOSDependentSolution {
    * @param folder search folder
    * @return file
    */
+  @Nullable
   public File findVLCFolder(@NotNull final File folder) {
     for (final File f : folder.listFiles()) {
       final String name = f.getName();

@@ -23,6 +23,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -47,7 +48,7 @@ public final class VideoUtilities {
    * @param image the image
    * @return the buffer
    */
-  public static int[] getBuffer(@NotNull final File image) {
+  public static int @NotNull [] getBuffer(@NotNull final File image) {
     try {
       return getBuffer(ImageIO.read(image));
     } catch (final IOException e) {
@@ -62,7 +63,7 @@ public final class VideoUtilities {
    * @param image the image
    * @return the buffer
    */
-  public static int[] getBuffer(@NotNull final BufferedImage image) {
+  public static int @NotNull [] getBuffer(@NotNull final BufferedImage image) {
     return image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
   }
 
@@ -74,6 +75,7 @@ public final class VideoUtilities {
    * @param height the height
    * @return resulting BufferedImage
    */
+  @NotNull
   public static BufferedImage getBufferedImage(
       @NotNull final int[] rgb, final int width, final int height) {
     final BufferedImage image = new BufferedImage(width, height, 1);
@@ -87,7 +89,7 @@ public final class VideoUtilities {
    * @param array the array
    * @return resulting byte[]
    */
-  public static byte[] toByteArray(final int @NotNull [] array) {
+  public static byte @NotNull [] toByteArray(final int @NotNull [] array) {
     final ByteBuffer buffer = ByteBuffer.allocate(array.length * 4);
     final IntBuffer intBuffer = buffer.asIntBuffer();
     intBuffer.put(array);
@@ -100,6 +102,7 @@ public final class VideoUtilities {
    * @param array the array
    * @return resulting BufferedImage
    */
+  @Nullable
   public static BufferedImage toBufferedImage(@NotNull final byte[] array) {
     final ByteArrayInputStream bis = new ByteArrayInputStream(array);
     try {
@@ -117,6 +120,7 @@ public final class VideoUtilities {
    * @param dim dimension
    * @return resulting BufferedImage
    */
+  @NotNull
   private static BufferedImage resizeBufferedImage(
       @NotNull final BufferedImage originalImage, final Dimension dim) {
     final int type = BufferedImage.TYPE_INT_ARGB;
@@ -139,6 +143,7 @@ public final class VideoUtilities {
    * @param boundary the boundary
    * @return resulting scaled dimension
    */
+  @NotNull
   public static Dimension getScaledDimension(
       @NotNull final Dimension imgSize, @NotNull final Dimension boundary) {
     final int origWidth = imgSize.width;
@@ -166,6 +171,7 @@ public final class VideoUtilities {
    * @param height the height
    * @return resulting rescaled BufferedImage
    */
+  @NotNull
   public static BufferedImage resizeImage(
       @NotNull final BufferedImage image, final int width, final int height) {
     return resizeBufferedImage(

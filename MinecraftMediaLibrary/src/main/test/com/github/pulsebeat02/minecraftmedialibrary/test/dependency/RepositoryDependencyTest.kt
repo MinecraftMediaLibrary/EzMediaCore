@@ -26,7 +26,7 @@ fun main(args: Array<String>) {
     management.relocate()
     management.load()
     val ffmpeg =
-            FFmpegDependencyInstallation("")
+        FFmpegDependencyInstallation("")
     ffmpeg.install()
     object : CipherFactory {
         override fun createCipher(s: String): Cipher? {

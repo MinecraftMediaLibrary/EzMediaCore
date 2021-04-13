@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -43,6 +44,7 @@ public final class CollectionUtilities {
    * @param input the input
    * @return the multimap
    */
+  @NotNull
   public static <K, V> Multimap<K, V> createMultiMap(final Map<K, ? extends Iterable<V>> input) {
     final Multimap<K, V> multimap = ArrayListMultimap.create();
     for (final Map.Entry<K, ? extends Iterable<V>> entry : input.entrySet()) {

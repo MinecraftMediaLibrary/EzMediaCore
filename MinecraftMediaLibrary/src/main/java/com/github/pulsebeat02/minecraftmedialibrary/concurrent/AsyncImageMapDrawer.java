@@ -46,6 +46,7 @@ public class AsyncImageMapDrawer {
    *
    * @return the CompletableFuture
    */
+  @NotNull
   public CompletableFuture<Void> drawImage() {
     return CompletableFuture.runAsync(imageMapHolder::drawImage);
   }

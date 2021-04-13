@@ -47,6 +47,7 @@ public class AsyncVideoExtraction {
    *
    * @return the completable future
    */
+  @NotNull
   public CompletableFuture<File> downloadVideo() {
     return CompletableFuture.supplyAsync(extractor::downloadVideo);
   }
@@ -56,6 +57,7 @@ public class AsyncVideoExtraction {
    *
    * @return the completable future
    */
+  @NotNull
   public CompletableFuture<File> extractAudio() {
     return CompletableFuture.supplyAsync(extractor::extractAudio);
   }

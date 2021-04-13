@@ -173,6 +173,7 @@ public abstract class PackageBase {
    * @param file the file
    * @return the package base
    */
+  @NotNull
   public static PackageBase getFromFile(
       @NotNull final MinecraftMediaLibrary library, @NotNull final File file) {
     final String extension = file.getName();

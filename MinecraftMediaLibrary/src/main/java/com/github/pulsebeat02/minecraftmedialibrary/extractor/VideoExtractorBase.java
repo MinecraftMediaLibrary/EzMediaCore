@@ -22,6 +22,8 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.extractor;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 
 /**
@@ -36,6 +38,7 @@ public interface VideoExtractorBase {
    *
    * @return the downloaded video
    */
+  @NotNull
   File downloadVideo();
 
   /**
@@ -45,6 +48,7 @@ public interface VideoExtractorBase {
    *
    * @return the extracted audio
    */
+  @NotNull
   File extractAudio();
 
   /**

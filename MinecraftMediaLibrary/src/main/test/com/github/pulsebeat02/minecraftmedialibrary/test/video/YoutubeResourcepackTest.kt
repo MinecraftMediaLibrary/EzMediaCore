@@ -37,7 +37,7 @@ class YoutubeResourcepackTest : JavaPlugin() {
 
     fun getResourcepackUrlYoutube(youtubeUrl: String, directory: String, port: Int): String {
         val extraction: YoutubeExtraction = object : YoutubeExtraction(
-                youtubeUrl, directory, ExtractionSetting.Builder().createExtractionSetting()
+            youtubeUrl, directory, ExtractionSetting.Builder().createExtractionSetting()
         ) {
             override fun onVideoDownload() {
                 println("Video is Downloading!")
@@ -50,14 +50,14 @@ class YoutubeResourcepackTest : JavaPlugin() {
         val executor = Executors.newCachedThreadPool()
         CompletableFuture.runAsync({ AsyncVideoExtraction(extraction).extractAudio() }, executor)
         CompletableFuture.runAsync(
-                { AsyncVideoExtraction(extraction).downloadVideo() }, executor
+            { AsyncVideoExtraction(extraction).downloadVideo() }, executor
         )
         val wrapper = ResourcepackWrapper.Builder()
-                .setAudio(extraction.audio)
-                .setDescription("Youtube Video: " + extraction.videoTitle)
-                .setPath(directory)
-                .setPackFormat(6)
-                .createResourcepackHostingProvider(library)
+            .setAudio(extraction.audio)
+            .setDescription("Youtube Video: " + extraction.videoTitle)
+            .setPath(directory)
+            .setPackFormat(6)
+            .createResourcepackHostingProvider(library)
         wrapper.buildResourcePack()
         val hosting = HttpDaemonProvider(directory, port)
         hosting.startServer()
@@ -68,10 +68,10 @@ class YoutubeResourcepackTest : JavaPlugin() {
     fun displayImage(map: Int, image: File) {
         val bi = ImageIO.read(image)
         val imageMap = MapImage.Builder()
-                .setMap(map)
-                .setWidth(bi.width)
-                .setHeight(bi.height)
-                .createImageMap(library)
+            .setMap(map)
+            .setWidth(bi.width)
+            .setHeight(bi.height)
+            .createImageMap(library)
         imageMap.drawImage()
     }
 }

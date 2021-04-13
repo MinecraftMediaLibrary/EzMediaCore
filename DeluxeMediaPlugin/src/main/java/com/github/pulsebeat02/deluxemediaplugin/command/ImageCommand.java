@@ -89,7 +89,7 @@ public class ImageCommand extends BaseCommand implements Listener {
   }
 
   private boolean isUrl(@NotNull final String mrl) {
-    return (mrl.startsWith("http://")) || mrl.startsWith("https://") && mrl.endsWith(".png");
+    return ((mrl.startsWith("http://")) || mrl.startsWith("https://")) && mrl.endsWith(".png");
   }
 
   @Override

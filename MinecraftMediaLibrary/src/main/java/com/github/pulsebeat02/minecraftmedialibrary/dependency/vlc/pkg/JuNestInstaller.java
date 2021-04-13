@@ -84,6 +84,13 @@ public class JuNestInstaller extends PackageBase {
         script, new String[] {}, "Successfully installed VLC Package");
   }
 
+  /**
+   * Creates the necessary bash script required for JuNest.
+   *
+   * @param path the path at which the script is located
+   * @return the resulting script
+   */
+  @NotNull
   private String getBashScript(@NotNull final String path) {
     final StringBuilder sb = new StringBuilder(baseDirectory + "junest-master/bin/junest setup \n");
     sb.append(new File(baseDirectory + "junest-master/bin/junest").getAbsolutePath())

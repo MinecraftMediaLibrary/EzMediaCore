@@ -95,6 +95,7 @@ public final class DependencyUtilities {
    * @return the file
    * @throws IOException the io exception
    */
+  @NotNull
   public static File downloadMavenDependency(
       @NotNull final RepositoryDependency dependency, @NotNull final String parent)
       throws IOException {
@@ -109,6 +110,7 @@ public final class DependencyUtilities {
    * @return the file
    * @throws IOException the io exception
    */
+  @NotNull
   public static File downloadJitpackDependency(
       @NotNull final RepositoryDependency dependency, @NotNull final String parent)
       throws IOException {
@@ -126,6 +128,7 @@ public final class DependencyUtilities {
    * @return jar file
    * @throws IOException if the url constructed cannot be found
    */
+  @NotNull
   public static File downloadAndLoadDependency(
       @NotNull final String groupId,
       @NotNull final String artifactId,
@@ -150,6 +153,7 @@ public final class DependencyUtilities {
    * @return jar file
    * @throws IOException if the url constructed cannot be found
    */
+  @NotNull
   public static File downloadAndLoadDependency(
       @NotNull final String groupId,
       @NotNull final String artifactId,
@@ -172,6 +176,7 @@ public final class DependencyUtilities {
    */
   @LegacyApi(since = "1.3.0")
   @Deprecated
+  @NotNull
   public static String getMavenCentralUrl(@NotNull final RepositoryDependency dependency) {
     return getDependencyUrl(dependency);
   }
@@ -185,6 +190,7 @@ public final class DependencyUtilities {
    */
   @LegacyApi(since = "1.3.0")
   @Deprecated
+  @NotNull
   public static String getJitpackUrl(@NotNull final RepositoryDependency dependency) {
     return getDependencyUrl(dependency);
   }
@@ -195,6 +201,7 @@ public final class DependencyUtilities {
    * @param dependency the dependency
    * @return the jitpack url
    */
+  @NotNull
   public static String getRepoUrl(@NotNull final RepositoryDependency dependency) {
     return getDependencyUrl(dependency);
   }
@@ -205,6 +212,7 @@ public final class DependencyUtilities {
    * @param dependency the dependency
    * @return the dependency url
    */
+  @NotNull
   public static String getDependencyUrl(@NotNull final RepositoryDependency dependency) {
     return String.format(
         "%s%s/%s/%s/",
@@ -223,6 +231,7 @@ public final class DependencyUtilities {
    * @param base the base
    * @return the dependency url
    */
+  @NotNull
   public static String getDependencyUrl(
       @NotNull final String groupId,
       @NotNull final String artifactId,
@@ -240,6 +249,7 @@ public final class DependencyUtilities {
    * @return the file
    * @throws IOException the io exception
    */
+  @NotNull
   public static File downloadFile(
       @NotNull final RepositoryDependency dependency,
       @NotNull final String link,
@@ -260,6 +270,7 @@ public final class DependencyUtilities {
    * @return the file
    * @throws IOException the io exception
    */
+  @NotNull
   public static File downloadFile(
       @NotNull final RepositoryDependency dependency,
       @NotNull final String link,
@@ -282,6 +293,7 @@ public final class DependencyUtilities {
    * @return the file
    * @throws IOException the io exception
    */
+  @NotNull
   public static File downloadFile(
       @NotNull final String groupId,
       @NotNull final String artifactId,
@@ -307,6 +319,7 @@ public final class DependencyUtilities {
    * @return the file
    * @throws IOException the io exception
    */
+  @NotNull
   public static File downloadFile(
       @NotNull final String groupId,
       @NotNull final String artifactId,
@@ -329,6 +342,7 @@ public final class DependencyUtilities {
    * @return the file
    * @throws IOException the io exception
    */
+  @NotNull
   public static File downloadFile(@NotNull final Path p, @NotNull final String url)
       throws IOException {
     Logger.info("Downloading Dependency at " + url + " into folder " + p);
@@ -351,6 +365,7 @@ public final class DependencyUtilities {
    * @return the file
    * @throws IOException the io exception
    */
+  @NotNull
   public static File downloadFile(
       @NotNull final Path p, @NotNull final String url, @NotNull final LongConsumer progress)
       throws IOException {

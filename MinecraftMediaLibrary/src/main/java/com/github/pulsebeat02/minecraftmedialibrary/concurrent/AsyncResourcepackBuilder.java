@@ -46,6 +46,7 @@ public class AsyncResourcepackBuilder {
    *
    * @return the CompletableFuture
    */
+  @NotNull
   public CompletableFuture<Void> buildResourcePack() {
     return CompletableFuture.runAsync(packHolder::buildResourcePack);
   }

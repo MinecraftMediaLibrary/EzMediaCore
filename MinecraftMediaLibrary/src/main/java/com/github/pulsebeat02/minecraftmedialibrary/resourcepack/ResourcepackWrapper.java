@@ -42,7 +42,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Locale;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -106,6 +105,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
    * @param deserialize the deserialize
    * @return the resourcepack wrapper
    */
+  @NotNull
   public static ResourcepackWrapper deserialize(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final Map<String, Object> deserialize) {
@@ -187,6 +187,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
    *
    * @return pack json
    */
+  @NotNull
   public String getPackJson() {
     final JsonObject mcmeta = new JsonObject();
     final JsonObject pack = new JsonObject();
@@ -201,6 +202,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
    *
    * @return sound json
    */
+  @NotNull
   public String getSoundJson() {
     final JsonObject category = new JsonObject();
     final JsonObject type = new JsonObject();

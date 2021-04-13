@@ -135,6 +135,7 @@ public class RequestHandler implements Runnable, RequestHandlerBase {
    * @param req request
    * @return request Matcher
    */
+  @NotNull
   private Matcher requestPattern(final String req) {
     return MATCHER.matcher(req);
   }
@@ -151,11 +152,13 @@ public class RequestHandler implements Runnable, RequestHandlerBase {
    * @param request the request
    * @return the file
    */
+  @NotNull
   public File requestFileCallback(final String request) {
     return new File(daemon.getParentDirectory(), request);
   }
 
   @Override
+  @NotNull
   public String buildHeader(final @NotNull File f) {
     return String.format(
         "HTTP/1.0 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nDate: %s GMT\r\nServer: HttpDaemon\r\nUser-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n",
