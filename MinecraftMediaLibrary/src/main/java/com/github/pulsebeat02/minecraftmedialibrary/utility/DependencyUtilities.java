@@ -22,15 +22,11 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
-import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyResolution;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.RepositoryDependency;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import com.sun.jna.NativeLibrary;
 import org.jetbrains.annotations.NotNull;
-import uk.co.caprica.vlcj.binding.RuntimeUtil;
-import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -43,9 +39,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Queue;
 import java.util.function.LongConsumer;
 
 /**
@@ -56,7 +49,6 @@ public final class DependencyUtilities {
 
   private static URLClassLoader CLASSLOADER;
   private static Method ADD_URL_METHOD;
-  private static File NATIVE_VLC_PATH;
 
   static {
     Logger.info("Attempting to Open Reflection Module...");
@@ -348,7 +340,7 @@ public final class DependencyUtilities {
     Logger.info("Downloading Dependency at " + url + " into folder " + p);
     final BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
     final FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p));
-    final byte[] dataBuffer = new byte[131072];
+    final byte[] dataBuffer = new byte[8192];
     int bytesRead;
     while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
       fileOutputStream.write(dataBuffer, 0, bytesRead);
@@ -372,7 +364,7 @@ public final class DependencyUtilities {
     Logger.info("Downloading Dependency at " + url + " into folder " + p);
     final BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
     final FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p));
-    final byte[] dataBuffer = new byte[131072];
+    final byte[] dataBuffer = new byte[8192];
     int bytesRead;
     while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
       progress.accept(bytesRead);
@@ -418,49 +410,6 @@ public final class DependencyUtilities {
     Logger.info("Finished Loading Dependency " + file.getName());
   }
 
-  /**
-   * Checks if VLC installation exists or not.
-   *
-   * @param library the library
-   * @return whether vlc can be found or not
-   */
-  public static boolean checkVLCExistance(@NotNull final MinecraftMediaLibrary library) {
-    String keyword = "libvlc";
-    if (RuntimeUtilities.isWindows()) {
-      keyword += ".dll";
-    } else if (RuntimeUtilities.isMac()) {
-      keyword += ".dylib";
-    } else if (RuntimeUtilities.isLinux()) {
-      keyword += ".so";
-    }
-    final Queue<File> folders = new ArrayDeque<>();
-    folders.add(new File(library.getPlugin().getDataFolder(), "vlc"));
-    while (!folders.isEmpty()) {
-      final File f = folders.remove();
-      if (f.isDirectory()) {
-        folders.addAll(Arrays.asList(f.listFiles()));
-      } else {
-        if (f.getName().equals(keyword)) {
-          Logger.info("Found VLC Installation on this Server! Good Job :)");
-          NATIVE_VLC_PATH = f.getParentFile();
-          NativeLibrary.addSearchPath(
-              RuntimeUtil.getLibVlcLibraryName(), NATIVE_VLC_PATH.getAbsolutePath());
-          new NativeDiscovery().discover();
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Gets the Native path of VLC binaries.
-   *
-   * @return the File of the folder
-   */
-  public static File getNativeVlcPath() {
-    return NATIVE_VLC_PATH;
-  }
 
   /**
    * Sets the classloader used for dependency loading.
