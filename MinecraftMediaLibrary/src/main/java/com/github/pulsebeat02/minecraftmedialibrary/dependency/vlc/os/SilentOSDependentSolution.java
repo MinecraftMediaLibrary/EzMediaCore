@@ -104,22 +104,6 @@ public abstract class SilentOSDependentSolution {
   }
 
   /**
-   * Gets VLC folder in folder.
-   *
-   * @param folder search folder
-   * @return file
-   */
-  public File findVLCFolder(@NotNull final File folder) {
-    for (final File f : folder.listFiles()) {
-      final String name = f.getName();
-      if (StringUtils.containsIgnoreCase(name, "vlc") && !name.endsWith(".dmg")) {
-        return f;
-      }
-    }
-    return null;
-  }
-
-  /**
    * Deletes file (archive).
    *
    * @param zip archive

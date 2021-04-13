@@ -27,6 +27,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyI
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.VLCNativeDependencyFetcher;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
@@ -55,8 +56,7 @@ public final class DependencyInstantiation {
     assignClassLoader();
     try {
       CompletableFuture.allOf(
-              CompletableFuture.runAsync(this::loadDependencies)
-                  .thenRunAsync(() -> loadVLC(!DependencyUtilities.checkVLCExistance(instance))),
+              CompletableFuture.runAsync(this::loadDependencies).thenRunAsync(this::loadVLC),
               CompletableFuture.runAsync(this::loadFfmpeg))
           .get();
     } catch (final InterruptedException | ExecutionException e) {
@@ -87,8 +87,8 @@ public final class DependencyInstantiation {
   }
 
   /** Downloads/Loads VLC dependency. */
-  public void loadVLC(final boolean download) {
-    if (!DependencyUtilities.checkVLCExistance(instance)) {
+  public void loadVLC() {
+    if (!VLCUtilities.checkVLCExistance(instance)) {
       new VLCNativeDependencyFetcher(instance).downloadLibraries();
     }
     if (instance.isUsingVLCJ()) {
