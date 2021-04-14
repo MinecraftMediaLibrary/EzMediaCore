@@ -11,7 +11,7 @@
  * ============================================================================
  */
 
-package com.github.pulsebeat02.minecraftmedialibrary.test.coolstuff;
+package com.github.pulsebeat02.minecraftmedialibrary.test.misc;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
