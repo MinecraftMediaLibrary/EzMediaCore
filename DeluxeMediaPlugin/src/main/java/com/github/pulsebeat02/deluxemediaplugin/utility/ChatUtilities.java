@@ -123,10 +123,11 @@ public final class ChatUtilities {
     for (final Map.Entry<String, String> entry : usages.entrySet()) {
       builder.append(
           Component.join(
-              Component.newline(),
+              Component.space(),
               Component.text(entry.getKey(), NamedTextColor.LIGHT_PURPLE),
-              Component.text(" - ", NamedTextColor.GOLD),
-              Component.text(entry.getValue(), NamedTextColor.AQUA)));
+              Component.text("-", NamedTextColor.GOLD),
+              Component.text(entry.getValue(), NamedTextColor.AQUA),
+              Component.newline()));
     }
     builder.append(Component.text("------------------", NamedTextColor.AQUA));
     return builder.build();

@@ -99,6 +99,15 @@ public final class MapImage implements ImageMapHolder, ConfigurationSerializable
   }
 
   /**
+   * Returns a new builder class to use.
+   *
+   * @return the builder
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /**
    * Deserializes a map image.
    *
    * @param library the library
@@ -148,7 +157,8 @@ public final class MapImage implements ImageMapHolder, ConfigurationSerializable
    * @return map of serialized values
    */
   @Override
-  public @NotNull Map<String, Object> serialize() {
+  @NotNull
+  public Map<String, Object> serialize() {
     final Map<String, Object> serialized = new HashMap<>();
     serialized.put("map", map);
     serialized.put("image", image.getAbsolutePath());
@@ -209,6 +219,8 @@ public final class MapImage implements ImageMapHolder, ConfigurationSerializable
     private File image;
     private int height;
     private int width;
+
+    private Builder() {}
 
     /**
      * Sets map.

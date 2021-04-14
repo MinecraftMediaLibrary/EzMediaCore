@@ -99,6 +99,15 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
   }
 
   /**
+   * Returns a new builder class to use.
+   *
+   * @return the builder
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /**
    * Deserializes ResourcepackWrapper.
    *
    * @param library the library
@@ -124,7 +133,8 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
    * @return map of serialized values
    */
   @Override
-  public @NotNull Map<String, Object> serialize() {
+  @NotNull
+  public Map<String, Object> serialize() {
     return ImmutableMap.of(
         "path", path,
         "audio", audio.getAbsolutePath(),
@@ -275,6 +285,8 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
     private String description;
     private int packFormat;
     private String path;
+
+    private Builder() {}
 
     /**
      * Sets audio.

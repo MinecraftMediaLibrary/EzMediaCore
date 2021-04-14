@@ -133,7 +133,8 @@ public class ImageCommand extends BaseCommand implements Listener {
     audience.sendMessage(
         ChatUtilities.formatMessage(
             Component.text(
-                "Changed item frame dimensions to " + width + ":" + height + " (width:height)",
+                String.format(
+                    "Changed item frame dimensions to %d:%d (width:height)", width, height),
                 NamedTextColor.GOLD)));
     return 1;
   }
@@ -149,7 +150,8 @@ public class ImageCommand extends BaseCommand implements Listener {
     final String mrl = context.getArgument("mrl", String.class);
     final ComponentLike successful =
         ChatUtilities.formatMessage(
-            Component.text("Successfully drew image on map " + id, NamedTextColor.GOLD));
+            Component.text(
+                String.format("Successfully drew image on map %d", id), NamedTextColor.GOLD));
     final DeluxeMediaPlugin plugin = getPlugin();
     final MinecraftMediaLibrary library = plugin.getLibrary();
     if (isUrl(mrl)) {
@@ -165,7 +167,8 @@ public class ImageCommand extends BaseCommand implements Listener {
       } else {
         audience.sendMessage(
             ChatUtilities.formatMessage(
-                Component.text("File " + img.getName() + " cannot be found!", NamedTextColor.RED)));
+                Component.text(
+                    String.format("File %s cannot be found!", img.getName()), NamedTextColor.RED)));
       }
     }
     return 1;
@@ -189,7 +192,8 @@ public class ImageCommand extends BaseCommand implements Listener {
     MapImage.resetMap(getPlugin().getLibrary(), id);
     audience.sendMessage(
         ChatUtilities.formatMessage(
-            Component.text("Successfully purged the map with ID " + id, NamedTextColor.GOLD)));
+            Component.text(
+                String.format("Successfully purged the map with ID %d", id), NamedTextColor.GOLD)));
     return 1;
   }
 

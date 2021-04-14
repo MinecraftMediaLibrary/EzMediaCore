@@ -123,6 +123,15 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
     Logger.info("Created a VLCJ Integrated Video Player (" + file.getAbsolutePath() + ")");
   }
 
+  /**
+   * Returns a new builder class to use.
+   *
+   * @return the builder
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
   /** Starts playing the video. */
   @Override
   public void start() {
@@ -164,6 +173,8 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
     private int width;
     private int height;
     private Consumer<int[]> callback;
+
+    private Builder() {}
 
     /**
      * Sets url.

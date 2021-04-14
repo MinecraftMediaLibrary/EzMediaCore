@@ -74,6 +74,31 @@ public final class ItemFrameCallback implements CallbackBase {
   }
 
   /**
+   * Returns a new builder class to use.
+   *
+   * @return the builder
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /**
+   * Sends the necessary data onto the itemframes while dithering.
+   *
+   * @param data to send
+   */
+  @Override
+  public void send(final int[] data) {
+    final long time = System.currentTimeMillis();
+    final long difference = time - lastUpdated;
+    if (difference >= delay) {
+      lastUpdated = time;
+      final ByteBuffer dithered = type.ditherIntoMinecraft(data, videoWidth);
+      library.getHandler().display(viewers, map, width, height, dithered, videoWidth);
+    }
+  }
+
+  /**
    * Get viewers uuid [ ].
    *
    * @return the uuid [ ]
@@ -136,17 +161,6 @@ public final class ItemFrameCallback implements CallbackBase {
     return delay;
   }
 
-  @Override
-  public void send(final int[] data) {
-    final long time = System.currentTimeMillis();
-    final long difference = time - lastUpdated;
-    if (difference >= delay) {
-      lastUpdated = time;
-      final ByteBuffer dithered = type.ditherIntoMinecraft(data, videoWidth);
-      library.getHandler().display(viewers, map, width, height, dithered, videoWidth);
-    }
-  }
-
   /**
    * Gets library.
    *
@@ -193,6 +207,8 @@ public final class ItemFrameCallback implements CallbackBase {
     private int height;
     private int videoWidth;
     private int delay;
+
+    private Builder() {}
 
     /**
      * Sets viewers.

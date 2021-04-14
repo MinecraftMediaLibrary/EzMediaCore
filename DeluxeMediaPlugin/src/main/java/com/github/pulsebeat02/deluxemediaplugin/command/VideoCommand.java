@@ -45,8 +45,12 @@ public class VideoCommand extends BaseCommand {
   private boolean youtube;
   private YoutubeExtraction extractor;
   private File file;
+
   private int frameWidth;
   private int frameHeight;
+  private int screenWidth;
+  private int screenHeight;
+
   private int startingMap;
   private CompletableFuture<Void> future;
 
@@ -56,6 +60,8 @@ public class VideoCommand extends BaseCommand {
     dither = DitherSetting.SIERRA_FILTER_LITE_DITHER.getHolder();
     frameWidth = 5;
     frameHeight = 5;
+    screenWidth = 640;
+    screenHeight = 360;
     final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
     builder
         .requires(super::testPermission)
@@ -121,18 +127,17 @@ public class VideoCommand extends BaseCommand {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final String algorithm = context.getArgument("dithering-algorithm", String.class);
     final DitherSetting setting = DitherSetting.fromString(algorithm);
+    final TextComponent component;
     if (setting == null) {
-      audience.sendMessage(
-          ChatUtilities.formatMessage(
-              Component.text("Could not find dither type " + algorithm, NamedTextColor.RED)));
+      component = Component.text("Could not find dither type " + algorithm, NamedTextColor.RED);
     } else {
-      audience.sendMessage(
-          ChatUtilities.formatMessage(
-              TextComponent.ofChildren(
-                  Component.text("Set dither type to ", NamedTextColor.GOLD),
-                  Component.text(algorithm, NamedTextColor.AQUA))));
+      component =
+          TextComponent.ofChildren(
+              Component.text("Set dither type to ", NamedTextColor.GOLD),
+              Component.text(algorithm, NamedTextColor.AQUA));
       dither = setting.getHolder();
     }
+    audience.sendMessage(ChatUtilities.formatMessage(component));
     return 1;
   }
 
@@ -165,11 +170,9 @@ public class VideoCommand extends BaseCommand {
     audience.sendMessage(
         ChatUtilities.formatMessage(
             Component.text(
-                "Set itemframe map dimensions to "
-                    + frameWidth
-                    + ":"
-                    + frameHeight
-                    + " (width:height)",
+                String.format(
+                    "Set itemframe map dimensions to %s:%s (width:height)",
+                    frameWidth, frameHeight),
                 NamedTextColor.GOLD)));
     return 1;
   }
@@ -182,21 +185,22 @@ public class VideoCommand extends BaseCommand {
     if (!opt.isPresent()) {
       return 1;
     }
-    final int[] dims = opt.get();
+    final TextComponent component;
     if (player != null) {
-      player.setHeight(dims[0]);
-      player.setWidth(dims[1]);
-      audience.sendMessage(
-          ChatUtilities.formatMessage(
-              Component.text(
-                  "Set screen dimensions to " + dims[0] + ":" + dims[1] + " (width:height)",
-                  NamedTextColor.GOLD)));
+      final int[] dims = opt.get();
+      screenWidth = dims[0];
+      screenHeight = dims[1];
+      component =
+          Component.text(
+              String.format(
+                  "Set screen dimensions to %d:%d (width:height)", screenWidth, screenHeight),
+              NamedTextColor.GOLD);
     } else {
-      audience.sendMessage(
-          ChatUtilities.formatMessage(
-              Component.text(
-                  "Please load a video first before executing this command!", NamedTextColor.RED)));
+      component =
+          Component.text(
+              "Please load a video first before executing this command!", NamedTextColor.RED);
     }
+    audience.sendMessage(ChatUtilities.formatMessage(component));
     return 1;
   }
 
@@ -210,26 +214,24 @@ public class VideoCommand extends BaseCommand {
       audience.sendMessage(
           ChatUtilities.formatMessage(
               Component.text("=====================================", NamedTextColor.AQUA)));
-      if (youtube) {
-        audience.sendMessage(
-            Component.text("Title: " + extractor.getVideoTitle(), NamedTextColor.GOLD));
-        audience.sendMessage(
-            Component.text("Author: " + extractor.getAuthor(), NamedTextColor.GOLD));
-        audience.sendMessage(
-            Component.text("Rating: " + extractor.getVideoRating(), NamedTextColor.GOLD));
-        audience.sendMessage(
-            TextComponent.ofChildren(
-                Component.text("Video Identifier: ", NamedTextColor.GOLD),
-                Component.text(extractor.getVideoId(), NamedTextColor.RED)));
-      } else {
-        audience.sendMessage(
-            ChatUtilities.formatMessage(
-                Component.text("Video Name: " + file.getName(), NamedTextColor.GOLD)));
-        audience.sendMessage(
-            ChatUtilities.formatMessage(
-                Component.text(
-                    "Size: " + file.getTotalSpace() / 1024 + " Kilobytes", NamedTextColor.GOLD)));
-      }
+      audience.sendMessage(
+          youtube
+              ? Component.join(
+                  Component.newline(),
+                  Component.text(
+                      String.format("Title: %s", extractor.getVideoTitle()), NamedTextColor.GOLD),
+                  Component.text(
+                      String.format("Author: %s", extractor.getAuthor()), NamedTextColor.GOLD),
+                  Component.text(
+                      String.format("Rating: %s", extractor.getVideoRating()), NamedTextColor.GOLD),
+                  TextComponent.ofChildren(
+                      Component.text("Video Identifier: ", NamedTextColor.GOLD),
+                      Component.text(extractor.getVideoId(), NamedTextColor.RED)))
+              : Component.join(
+                  Component.newline(),
+                  Component.text("Video Name: " + file.getName(), NamedTextColor.GOLD),
+                  Component.text(
+                      "Size: " + file.getTotalSpace() / 1024 + " Kilobytes", NamedTextColor.GOLD)));
       audience.sendMessage(
           ChatUtilities.formatMessage(
               Component.text("=====================================", NamedTextColor.AQUA)));
@@ -252,24 +254,32 @@ public class VideoCommand extends BaseCommand {
               Component.text("File and URL not Specified!", NamedTextColor.RED)));
       return 1;
     }
-    if (youtube) {
-      audience.sendMessage(
-          ChatUtilities.formatMessage(
-              Component.text("Starting Video on URL: " + extractor.getUrl(), NamedTextColor.GOLD)));
-    } else {
-      audience.sendMessage(
-          ChatUtilities.formatMessage(
-              Component.text("Starting Video on File: " + file.getName(), NamedTextColor.GOLD)));
-    }
+    audience.sendMessage(
+        ChatUtilities.formatMessage(
+            youtube
+                ? Component.text(
+                    "Starting Video on URL: " + extractor.getUrl(), NamedTextColor.GOLD)
+                : Component.text(
+                    "Starting Video on File: " + file.getName(), NamedTextColor.GOLD)));
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
-    final ItemFrameCallback callback =
-        new ItemFrameCallback(library, null, startingMap, frameWidth, frameHeight, 640, 0, dither);
-    // TODO: Configure the video command to work with custom dimensions
     if (library.isUsingVLCJ()) {
-      final boolean initiated = player != null;
-      final int width = initiated ? player.getWidth() : 640;
-      final int height = initiated ? player.getHeight() : 360;
-      player = new VLCJIntegratedPlayer(library, extractor.getUrl(), width, height, callback::send);
+      player =
+          VLCJIntegratedPlayer.builder()
+              .setUrl(extractor.getUrl())
+              .setWidth(screenWidth)
+              .setHeight(screenHeight)
+              .setCallback(
+                  ItemFrameCallback.builder()
+                          .setViewers(null)
+                          .setMap(startingMap)
+                          .setWidth(frameWidth)
+                          .setHeight(frameHeight)
+                          .setVideoWidth(screenWidth)
+                          .setDelay(0)
+                          .setDitherHolder(dither)
+                          .createItemFrameCallback(library)
+                      ::send)
+              .createVLCJIntegratedPlayer(library);
     }
     player.start();
     return 1;
@@ -282,29 +292,25 @@ public class VideoCommand extends BaseCommand {
     final String folderPath = plugin.getDataFolder().getAbsolutePath();
     if (!VideoExtractionUtilities.getVideoID(mrl).isPresent()) {
       final File f = new File(folderPath, mrl);
+      final TextComponent component;
       if (f.exists()) {
         youtube = false;
         extractor = null;
         file = f;
-        audience.sendMessage(
-            ChatUtilities.formatMessage(
-                Component.text("Successfully loaded video " + f.getName(), NamedTextColor.GOLD)));
+        component = Component.text("Successfully loaded video " + f.getName(), NamedTextColor.GOLD);
       } else if (mrl.startsWith("http://") || mrl.startsWith("https://")) {
-        audience.sendMessage(
-            ChatUtilities.formatMessage(
-                Component.text(
-                    ChatColor.RED + "Link " + mrl + " is not a valid Youtube video link!",
-                    NamedTextColor.RED)));
+        component =
+            Component.text(
+                ChatColor.RED + "Link " + mrl + " is not a valid Youtube video link!",
+                NamedTextColor.RED);
       } else {
-        audience.sendMessage(
-            ChatUtilities.formatMessage(
-                Component.text("File " + f.getName() + " cannot be found!", NamedTextColor.RED)));
+        component = Component.text("File " + f.getName() + " cannot be found!", NamedTextColor.RED);
       }
+      audience.sendMessage(ChatUtilities.formatMessage(component));
     } else {
       youtube = true;
       if (future != null && !future.isDone()) {
         future.cancel(true);
-        extractor = null;
       }
       extractor =
           new YoutubeExtraction(mrl, folderPath, plugin.getEncoderConfiguration().getSettings());
@@ -324,11 +330,13 @@ public class VideoCommand extends BaseCommand {
               .thenRunAsync(
                   () -> {
                     final ResourcepackWrapper wrapper =
-                        new ResourcepackWrapper.Builder()
+                        ResourcepackWrapper.builder()
                             .setAudio(extractor.getAudio())
                             .setDescription("Youtube Video: " + extractor.getVideoTitle())
                             .setPath(
-                                plugin.getDataFolder().getAbsolutePath() + "/http/resourcepack.zip")
+                                String.format(
+                                    "%s/http/resourcepack.zip",
+                                    plugin.getDataFolder().getAbsolutePath()))
                             .setPackFormat(6)
                             .createResourcepackHostingProvider(plugin.getLibrary());
                     wrapper.buildResourcePack();
@@ -352,7 +360,8 @@ public class VideoCommand extends BaseCommand {
                     audience.sendMessage(
                         ChatUtilities.formatMessage(
                             Component.text(
-                                "Successfully loaded video " + mrl, NamedTextColor.GOLD)));
+                                String.format("Successfully loaded video %s", mrl),
+                                NamedTextColor.GOLD)));
                   });
     }
     return 1;

@@ -37,7 +37,7 @@ class YoutubeResourcepackTest : JavaPlugin() {
 
     fun getResourcepackUrlYoutube(youtubeUrl: String, directory: String, port: Int): String {
         val extraction: YoutubeExtraction = object : YoutubeExtraction(
-            youtubeUrl, directory, ExtractionSetting.Builder().createExtractionSetting()
+            youtubeUrl, directory, ExtractionSetting.builder().createExtractionSetting()
         ) {
             override fun onVideoDownload() {
                 println("Video is Downloading!")
@@ -52,7 +52,7 @@ class YoutubeResourcepackTest : JavaPlugin() {
         CompletableFuture.runAsync(
             { AsyncVideoExtraction(extraction).downloadVideo() }, executor
         )
-        val wrapper = ResourcepackWrapper.Builder()
+        val wrapper = ResourcepackWrapper.builder()
             .setAudio(extraction.audio)
             .setDescription("Youtube Video: " + extraction.videoTitle)
             .setPath(directory)
@@ -67,7 +67,7 @@ class YoutubeResourcepackTest : JavaPlugin() {
     @Throws(IOException::class)
     fun displayImage(map: Int, image: File) {
         val bi = ImageIO.read(image)
-        val imageMap = MapImage.Builder()
+        val imageMap = MapImage.builder()
             .setMap(map)
             .setWidth(bi.width)
             .setHeight(bi.height)

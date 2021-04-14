@@ -57,6 +57,15 @@ public class ExtractionSetting {
   }
 
   /**
+   * Returns a new builder class to use.
+   *
+   * @return the builder
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /**
    * Gets codec.
    *
    * @return the codec
@@ -162,6 +171,8 @@ public class ExtractionSetting {
     private int channels = 2;
     private int samplingRate = 44100;
     private int volume = 48;
+
+    private Builder() {}
 
     /**
      * Sets bitrate.
