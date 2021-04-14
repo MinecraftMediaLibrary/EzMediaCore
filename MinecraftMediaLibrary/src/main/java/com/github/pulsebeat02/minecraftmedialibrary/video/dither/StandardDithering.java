@@ -22,6 +22,8 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -121,6 +123,7 @@ public final class StandardDithering implements DitherHolder {
   }
 
   @Override
+  @NotNull
   public DitherSetting getSetting() {
     return DitherSetting.STANDARD_MINECRAFT_DITHER;
   }

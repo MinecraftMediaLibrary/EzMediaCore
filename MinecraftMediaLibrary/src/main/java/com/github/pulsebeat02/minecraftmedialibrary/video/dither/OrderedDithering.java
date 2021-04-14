@@ -23,6 +23,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 
@@ -298,7 +299,7 @@ public final class OrderedDithering implements DitherHolder {
       case 8:
         return DitherSetting.BAYER_ORDERED_8_DIMENSIONAL;
     }
-    return null;
+    throw new UnsupportedOperationException("Invalid Ordered Matrix Dimension!");
   }
 
   /**

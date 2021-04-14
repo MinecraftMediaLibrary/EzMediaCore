@@ -22,6 +22,8 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -283,6 +285,7 @@ public final class FilterLiteDither implements DitherHolder {
    * @return setting
    */
   @Override
+  @NotNull
   public DitherSetting getSetting() {
     return DitherSetting.SIERRA_FILTER_LITE_DITHER;
   }

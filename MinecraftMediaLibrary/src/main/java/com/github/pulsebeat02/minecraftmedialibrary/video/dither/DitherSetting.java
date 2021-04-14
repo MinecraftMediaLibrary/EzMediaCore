@@ -23,6 +23,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /** An enum to store the possible dithering modes the user can take. */
 public enum DitherSetting {
@@ -57,6 +58,7 @@ public enum DitherSetting {
    * @param str input
    * @return setting
    */
+  @Nullable
   public static DitherSetting fromString(@NotNull final String str) {
     final String search = str.toUpperCase();
     for (final DitherSetting setting : DitherSetting.values()) {

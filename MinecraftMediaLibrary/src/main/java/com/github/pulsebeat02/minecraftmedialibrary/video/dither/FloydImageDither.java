@@ -408,6 +408,7 @@ public final class FloydImageDither implements DitherHolder {
    * @return setting
    */
   @Override
+  @NotNull
   public DitherSetting getSetting() {
     return DitherSetting.FLOYD_STEINBERG_DITHER;
   }

@@ -25,40 +25,52 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.dither.development;
 import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.MinecraftMapPalette;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.StaticDitherInitialization;
 
+import java.awt.*;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A custom approach which uses FilterLite along a memory cached lookup table full of already
- * dithered values. Uses integers which are must faster, but uses an extreme amount of memory.
- * (Dynamic Programming)
+ * dithered values. Uses bytes to save memory, but it is slower this way. (Dynamic Programming)
  *
  * @deprecated Should not be used in real environments!
  */
 @LegacyApi(since = "1.2.0")
 @Deprecated
-public class IntPulseDithering implements DitherHolder {
+public class DynamicByteDithering implements DitherHolder {
 
   /**
    * Performs Filter Lite Dithering custom implementation.
    *
    * @author PulseBeat_02
    */
-  private static final int[] table;
+  private static final byte[] table;
 
   private static final byte[] COLOR_MAP;
+  private static final int[] values;
 
   private static final int[] FULL_COLOR_MAP;
 
   static {
     COLOR_MAP = StaticDitherInitialization.COLOR_MAP;
     FULL_COLOR_MAP = StaticDitherInitialization.FULL_COLOR_MAP;
-    table = new int[256 * 256 * 256];
+    table = new byte[256 * 256 * 256];
+    final Map<Integer, Byte> mappings = new HashMap<>();
+    final Color[] colors = MinecraftMapPalette.colors;
+    values = new int[colors.length];
+    for (int i = 0; i < colors.length; i++) {
+      final int rgb = colors[i].getRGB();
+      values[i] = rgb;
+      mappings.put(rgb, (byte) i);
+    }
     for (int r = 0; r < 256; r++) {
       for (int g = 0; g < 256; g++) {
         for (int b = 0; b < 256; b++) {
-          table[(r << 16) + (g << 8) + (b)] = getBestFullColor(r, g, b);
+          table[(r << 16) + (g << 8) + (b)] = mappings.get(getBestFullColor(r, g, b));
         }
       }
     }
@@ -85,7 +97,7 @@ public class IntPulseDithering implements DitherHolder {
    * @return the color
    */
   public static int getColor(final int r, final int g, final int b) {
-    return table[(r << 16) + (g << 8) + (b)];
+    return values[table[(r << 16) + (g << 8) + (b)]];
   }
 
   /** Init. */

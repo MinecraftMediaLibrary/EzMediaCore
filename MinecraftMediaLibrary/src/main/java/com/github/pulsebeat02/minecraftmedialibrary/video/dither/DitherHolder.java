@@ -22,6 +22,8 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -52,5 +54,5 @@ public interface DitherHolder {
    *
    * @return DitherSetting for the setting.
    */
-  DitherSetting getSetting();
+  @NotNull DitherSetting getSetting();
 }

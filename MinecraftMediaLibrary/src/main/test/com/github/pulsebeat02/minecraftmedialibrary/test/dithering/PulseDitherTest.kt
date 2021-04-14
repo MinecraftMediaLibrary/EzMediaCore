@@ -3,7 +3,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.test.dithering
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.FilterLiteDither
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.StaticDitherInitialization
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.development.IntPulseDithering
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.development.DynamicIntegerDithering
 import java.awt.GridLayout
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
@@ -27,7 +27,8 @@ class PulseDitherTest(image: File) : JFrame() {
 
     private fun ditherPulse(before: BufferedImage): BufferedImage {
         val buffer = VideoUtilities.getBuffer(before)
-        IntPulseDithering().dither(buffer, before.width)
+        DynamicIntegerDithering()
+            .dither(buffer, before.width)
         return VideoUtilities.getBufferedImage(buffer, before.width, before.height)
     }
 
@@ -40,7 +41,7 @@ class PulseDitherTest(image: File) : JFrame() {
             // Windows: C:\\Users\\Brandon Li\\Desktop\\kingmammoth.png
             // Mac: /Users/bli24/Desktop/platform1/6vv2qz15h7e51.png
             StaticDitherInitialization.init()
-            IntPulseDithering.init()
+            DynamicIntegerDithering.init()
             FilterLiteDither.init()
             PulseDitherTest(File("/Users/bli24/Desktop/platform1/6vv2qz15h7e51.png"))
         }

@@ -23,14 +23,4 @@
 package com.github.pulsebeat02.minecraftmedialibrary.video.dither.frame;
 
 /** In Development: Frame analysis tool used for analyzing frames of videos. */
-public class FrameAnalysisTool {
-
-  /**
-   * Frame analysis tool int [ ].
-   *
-   * @return the int [ ]
-   */
-  public static int[] frameAnalysisTool() {
-    return null;
-  }
-}
+public class FrameAnalysisTool {}

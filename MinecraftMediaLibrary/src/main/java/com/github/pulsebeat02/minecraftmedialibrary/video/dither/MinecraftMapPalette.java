@@ -22,6 +22,8 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.*;
 
 /** The net.minecraft.server palette of all possible colors. */
@@ -184,6 +186,7 @@ public final class MinecraftMapPalette {
    * @param b blue
    * @return color
    */
+  @NotNull
   private static Color c(final int r, final int g, final int b) {
     return new Color(r, g, b);
   }
