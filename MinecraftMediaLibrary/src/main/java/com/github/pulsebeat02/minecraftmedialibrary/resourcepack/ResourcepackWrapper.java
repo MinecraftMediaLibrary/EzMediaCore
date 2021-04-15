@@ -90,12 +90,14 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
     this.description = description;
     this.packFormat = packFormat;
     if (!ResourcepackUtilities.validatePackFormat(packFormat)) {
-      throw new InvalidPackFormatException("Invalid Pack Format Exception (" + packFormat + ")");
+      throw new InvalidPackFormatException(
+          String.format("Invalid Pack Format Exception (%d)", packFormat));
     }
     if (icon != null && !ResourcepackUtilities.validateResourcepackIcon(icon)) {
-      throw new InvalidPackIconException("Invalid Pack Icon! Must be PNG (" + icon.getName() + ")");
+      throw new InvalidPackIconException(
+          String.format("Invalid Pack Icon! Must be PNG (%s)", icon.getName()));
     }
-    Logger.info("New Resourcepack (" + path + ") was Initialized");
+    Logger.info(String.format("New Resourcepack (%s) was Initialized", path));
   }
 
   /**

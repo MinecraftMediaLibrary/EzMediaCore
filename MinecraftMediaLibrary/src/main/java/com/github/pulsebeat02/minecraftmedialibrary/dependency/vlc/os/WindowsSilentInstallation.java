@@ -70,7 +70,7 @@ public class WindowsSilentInstallation extends SilentOSDependentSolution {
     final String path = zip.getAbsolutePath();
     ArchiveUtilities.decompressArchive(new File(path), new File(dir));
     vlcPath = new File(zip.getParentFile(), "vlc-3.0.12").getAbsolutePath();
-    Logger.info("Successfully Extracted File (" + path + ")");
+    Logger.info(String.format("Successfully Extracted File (%s)", path));
     deleteArchive(zip);
     loadNativeDependency(new File(dir));
     printSystemEnvironmentVariables();

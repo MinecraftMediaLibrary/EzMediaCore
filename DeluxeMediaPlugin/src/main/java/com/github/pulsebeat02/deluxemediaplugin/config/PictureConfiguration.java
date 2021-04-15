@@ -30,7 +30,7 @@ public class PictureConfiguration extends AbstractConfiguration {
 
   public PictureConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, "picture.yml");
-    this.images = new HashSet<>();
+    images = new HashSet<>();
   }
 
   public void addPhoto(final int map, @NotNull final File file, final int width, final int height) {
@@ -42,9 +42,9 @@ public class PictureConfiguration extends AbstractConfiguration {
     final FileConfiguration configuration = getFileConfiguration();
     for (final MapImage image : images) {
       final long key = image.getMap();
-      configuration.set(key + ".location", image.getImage().getAbsolutePath());
-      configuration.set(key + ".width", image.getWidth());
-      configuration.set(key + ".height", image.getHeight());
+      configuration.set(String.format("%d.location", key), image.getImage().getAbsolutePath());
+      configuration.set(String.format("%d.width", key), image.getWidth());
+      configuration.set(String.format("%d.height", key), image.getHeight());
     }
     saveConfig();
   }
@@ -54,9 +54,11 @@ public class PictureConfiguration extends AbstractConfiguration {
     final FileConfiguration configuration = getFileConfiguration();
     for (final String key : configuration.getKeys(false)) {
       final int id = Integer.parseInt(key);
-      final File file = new File(Objects.requireNonNull(configuration.getString(id + ".location")));
+      final File file =
+          new File(
+              Objects.requireNonNull(configuration.getString(String.format("%d.location", id))));
       if (!file.exists()) {
-        Logger.error("Could not read " + file.getAbsolutePath() + " at id " + id + "!");
+        Logger.error(String.format("Could not read %s at id %d!", file.getAbsolutePath(), id));
         continue;
       }
       final int width = configuration.getInt(id + "width");

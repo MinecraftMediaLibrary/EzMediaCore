@@ -56,7 +56,7 @@ public final class VideoExtractionUtilities {
     final Matcher matcher = compiledPattern.matcher(url);
     if (matcher.find()) {
       final String id = matcher.group();
-      Logger.info("Found Video ID for " + url + "(" + id + ")");
+      Logger.info(String.format("Found Video ID for %s(%s)", url, id));
       return Optional.of(id);
     }
     return Optional.empty();
@@ -84,7 +84,7 @@ public final class VideoExtractionUtilities {
     }
     final byte[] hash = digest.digest();
     Logger.info(
-        "Generated Hash for File " + file.getAbsolutePath() + " (" + new String(hash) + ")");
+        String.format("Generated Hash for File %s (%s)", file.getAbsolutePath(), new String(hash)));
     return hash;
   }
 }

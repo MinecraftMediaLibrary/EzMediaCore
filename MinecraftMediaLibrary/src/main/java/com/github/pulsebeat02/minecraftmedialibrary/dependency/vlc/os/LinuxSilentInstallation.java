@@ -63,7 +63,7 @@ public class LinuxSilentInstallation extends SilentOSDependentSolution {
     final LinuxPackageManager manager = new LinuxPackageManager(dir);
     final File f = manager.getDesignatedPackage();
     PackageBase.getFromFile(library, f).installPackage();
-    Logger.info("Downloaded and Loaded Package (" + f.getAbsolutePath() + ")");
+    Logger.info(String.format("Downloaded and Loaded Package (%s)", f.getAbsolutePath()));
     loadNativeDependency(new File(dir));
     printSystemEnvironmentVariables();
     printSystemProperties();

@@ -111,9 +111,9 @@ public final class MinecraftMediaLibrary {
             return handler.onPacketInterceptIn(player, packet);
           }
         };
-    parent = http == null ? path + "/http/" : http;
-    dependenciesFolder = libraryPath == null ? path + "/mml_libs/" : libraryPath;
-    vlcFolder = vlcPath == null ? path + "/vlc/" : vlcPath;
+    parent = http == null ? String.format("%s/http/", path) : http;
+    dependenciesFolder = libraryPath == null ? String.format("%s/mml_libs/", path) : libraryPath;
+    vlcFolder = vlcPath == null ? String.format("%s/vlc/", path) : vlcPath;
     createNecessaryFolders();
     vlcj = isUsingVLCJ;
     handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
@@ -160,10 +160,10 @@ public final class MinecraftMediaLibrary {
 
   /** Runs debug information. */
   private void debugInformation() {
-    Logger.info("Plugin " + plugin.getName() + " initialized MinecraftMediaLibrary");
+    Logger.info(String.format("Plugin %s initialized MinecraftMediaLibrary", plugin.getName()));
     Logger.info("==================================================================");
-    Logger.info("Path: " + parent);
-    Logger.info("Using VLCJ? " + (vlcj ? "Yes" : "No"));
+    Logger.info(String.format("Path: %s", parent));
+    Logger.info(String.format("Using VLCJ? %s", vlcj ? "Yes" : "No"));
     Logger.info("==================================================================");
   }
 
@@ -181,12 +181,9 @@ public final class MinecraftMediaLibrary {
     Logger.info("CPU Architecture: " + RuntimeUtilities.getCpuArch());
     Logger.info("System Operating System Version: " + System.getProperty("os.version"));
     Logger.info(
-        "Windows/Mac/Linux: "
-            + RuntimeUtilities.isWindows()
-            + "/"
-            + RuntimeUtilities.isMac()
-            + "/"
-            + RuntimeUtilities.isLinux());
+        String.format(
+            "Windows/Mac/Linux: %s/%s/%s",
+            RuntimeUtilities.isWindows(), RuntimeUtilities.isMac(), RuntimeUtilities.isLinux()));
     Logger.info("Linux Distribution (If Linux): " + RuntimeUtilities.getLinuxDistribution());
   }
 

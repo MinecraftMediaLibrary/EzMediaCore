@@ -124,7 +124,7 @@ final class JarRelocatorTask {
     }
 
     // directory entries must end in "/"
-    final JarEntry entry = new JarEntry(name + "/");
+    final JarEntry entry = new JarEntry(String.format("%s/", name));
     jarOut.putNextEntry(entry);
     resources.add(name);
   }
@@ -158,7 +158,7 @@ final class JarRelocatorTask {
     final String mappedName = remapper.map(name.substring(0, name.indexOf('.')));
 
     // Now we put it back on so the class file is written out with the right extension.
-    jarOut.putNextEntry(new JarEntry(mappedName + ".class"));
+    jarOut.putNextEntry(new JarEntry(String.format("%s.class", mappedName)));
     jarOut.write(renamedClass);
   }
 }

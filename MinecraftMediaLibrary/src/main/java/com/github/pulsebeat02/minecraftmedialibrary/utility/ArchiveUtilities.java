@@ -125,12 +125,14 @@ public final class ArchiveUtilities {
     while (!queue.isEmpty()) {
       final File current = queue.remove();
       currentFolder =
-          new File(currentFolder.getAbsolutePath() + "/" + getFileName(current.getName()));
+          new File(
+              String.format(
+                  "%s/%s", currentFolder.getAbsolutePath(), getFileName(current.getName())));
       decompressArchive(current, currentFolder);
       if (!current.getAbsolutePath().equals(file.getAbsolutePath()) && current.delete()) {
-        Logger.info("Deleted Zip: " + current.getName() + " successfully");
+        Logger.info(String.format("Deleted Zip: %s successfully", current.getName()));
       } else {
-        Logger.error("Could not delete Zip: " + current.getName() + "!");
+        Logger.error(String.format("Could not delete Zip: %s!", current.getName()));
       }
       final int before = queue.size();
       queue.addAll(containsArchiveExtension(currentFolder));
@@ -186,7 +188,7 @@ public final class ArchiveUtilities {
               + "libraries. This is a required step, and VLCJ will not run if you do not perform this step.");
     }
     throw new UnsupportedOperationException(
-        "Cannot find Archive Extension for File! (" + name + ")");
+        String.format("Cannot find Archive Extension for File! (%s)", name));
   }
 
   /**

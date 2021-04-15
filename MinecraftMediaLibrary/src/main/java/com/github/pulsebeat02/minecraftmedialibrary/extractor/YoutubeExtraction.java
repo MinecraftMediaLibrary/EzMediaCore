@@ -94,7 +94,7 @@ public class YoutubeExtraction implements VideoExtractorBase {
   public File downloadVideo() {
     onVideoDownload();
     final Optional<String> videoID = VideoExtractionUtilities.getVideoID(url);
-    Logger.info("Downloading Video at URL (" + url + ")");
+    Logger.info(String.format("Downloading Video at URL (%s)", url));
     if (videoID.isPresent()) {
       try {
         final YoutubeVideo ytVideo = new YoutubeDownloader().getVideo(videoID.get());
@@ -102,9 +102,9 @@ public class YoutubeExtraction implements VideoExtractorBase {
         video =
             ytVideo.download(
                 ytVideo.videoWithAudioFormats().get(0), new File(directory), "video", true);
-        Logger.info("Successfully Downloaded Video at URL: (" + url + ")");
+        Logger.info(String.format("Successfully Downloaded Video at URL: (%s)", url));
       } catch (final IOException | YoutubeException e) {
-        Logger.info("Could not Download Video at URL!: (" + url + ")");
+        Logger.info(String.format("Could not Download Video at URL!: (%s)", url));
         e.printStackTrace();
       }
     }
@@ -123,17 +123,18 @@ public class YoutubeExtraction implements VideoExtractorBase {
       downloadVideo();
     }
     onAudioExtraction();
-    Logger.info("Extracting Audio from Video File (" + video.getAbsolutePath() + ")");
-    audio = new File(directory + "/audio.ogg");
+    Logger.info(String.format("Extracting Audio from Video File (%s)", video.getAbsolutePath()));
+    audio = new File(String.format("%s/audio.ogg", directory));
     try {
       encoder.encode(new MultimediaObject(video, ffmpegLocator), audio, attrs);
       Logger.info(
-          "Successfully Extracted Audio from Video File! (Target: "
-              + audio.getAbsolutePath()
-              + ")");
+          String.format(
+              "Successfully Extracted Audio from Video File! (Target: %s)",
+              audio.getAbsolutePath()));
     } catch (final EncoderException e) {
       Logger.error(
-          "Couldn't Extract Audio from Video File! (Video: " + video.getAbsolutePath() + ")");
+          String.format(
+              "Couldn't Extract Audio from Video File! (Video: %s)", video.getAbsolutePath()));
       e.printStackTrace();
     }
     return audio;

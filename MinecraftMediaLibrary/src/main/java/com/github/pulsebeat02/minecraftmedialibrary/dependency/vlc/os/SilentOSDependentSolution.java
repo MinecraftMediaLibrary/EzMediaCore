@@ -87,7 +87,7 @@ public abstract class SilentOSDependentSolution {
   public void printSystemEnvironmentVariables() {
     Logger.info("======== SYSTEM ENVIRONMENT VARIABLES ========");
     for (final Map.Entry<String, String> entry : System.getenv().entrySet()) {
-      Logger.info("Key: " + entry.getKey() + "| Entry: " + entry.getValue());
+      Logger.info(String.format("Key: %s | Entry: %s", entry.getKey(), entry.getValue()));
     }
     Logger.info("==============================================");
   }
@@ -99,7 +99,7 @@ public abstract class SilentOSDependentSolution {
     final Enumeration<Object> keys = p.keys();
     while (keys.hasMoreElements()) {
       final String key = (String) keys.nextElement();
-      Logger.info("Key: " + key + "| Entry: " + p.get(key));
+      Logger.info(String.format("Key: %s | Entry: %s", key, p.get(key)));
     }
     Logger.info("===============================================");
   }

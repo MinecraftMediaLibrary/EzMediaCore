@@ -50,7 +50,7 @@ public final class FileUtilities {
    */
   @NotNull
   public static File downloadImageFile(@NotNull final String url, @NotNull final String path) {
-    final String filePath = path + "/" + UUID.randomUUID() + ".png";
+    final String filePath = String.format("%s/%s.png", path, UUID.randomUUID());
     try (final InputStream in = new URL(url).openStream()) {
       Files.copy(in, Paths.get(filePath));
     } catch (final IOException e) {
@@ -68,7 +68,7 @@ public final class FileUtilities {
   public static void createFile(@NotNull final File file, @NotNull final String successful) {
     try {
       if (file.getParentFile().mkdirs()) {
-        Logger.info("Created Directories for File (" + file.getAbsolutePath() + ")");
+        Logger.info(String.format("Created Directories for File (%s)", file.getAbsolutePath()));
       }
       if (file.createNewFile()) {
         Logger.info(successful);

@@ -321,7 +321,7 @@ public final class Reflection {
    * @throws IllegalArgumentException If the class doesn't exist.
    */
   public static Class<?> getMinecraftClass(final String name) {
-    return getCanonicalClass(NMS_PREFIX + "." + name);
+    return getCanonicalClass(String.format("%s.%s", NMS_PREFIX, name));
   }
 
   /**
@@ -331,7 +331,7 @@ public final class Reflection {
    * @throws IllegalArgumentException If the class doesn't exist.
    */
   public static Class<?> getCraftBukkitClass(final String name) {
-    return getCanonicalClass(OBC_PREFIX + "." + name);
+    return getCanonicalClass(String.format("%s.%s", OBC_PREFIX, name));
   }
 
   /**

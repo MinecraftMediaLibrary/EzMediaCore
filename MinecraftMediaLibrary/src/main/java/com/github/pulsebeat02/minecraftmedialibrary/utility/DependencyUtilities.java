@@ -247,9 +247,10 @@ public final class DependencyUtilities {
       @NotNull final String link,
       @NotNull final String parent)
       throws IOException {
-    final String file = dependency.getArtifact() + "-" + dependency.getVersion() + ".jar";
+    final String file =
+        String.format("%s-%s.jar", dependency.getArtifact(), dependency.getVersion());
     final String url = link + file;
-    return downloadFile(Paths.get(parent + "/" + file), url);
+    return downloadFile(Paths.get(String.format("%s/%s", parent, file)), url);
   }
 
   /**
@@ -269,9 +270,10 @@ public final class DependencyUtilities {
       @NotNull final String parent,
       @NotNull final LongConsumer consumer)
       throws IOException {
-    final String file = dependency.getArtifact() + "-" + dependency.getVersion() + ".jar";
+    final String file =
+        String.format("%s-%s.jar", dependency.getArtifact(), dependency.getVersion());
     final String url = link + file;
-    return downloadFile(Paths.get(parent + "/" + file), url, consumer);
+    return downloadFile(Paths.get(String.format("%s/%s", parent, file)), url, consumer);
   }
 
   /**
@@ -293,10 +295,10 @@ public final class DependencyUtilities {
       @NotNull final String parent,
       @NotNull final DependencyResolution resolution)
       throws IOException {
-    final String file = artifactId + "-" + version + ".jar";
+    final String file = String.format("%s-%s.jar", artifactId, version);
     final String url =
         getDependencyUrl(groupId, artifactId, version, resolution.getBaseUrl()) + file;
-    return downloadFile(Paths.get(parent + "/" + file), url);
+    return downloadFile(Paths.get(String.format("%s/%s", parent, file)), url);
   }
 
   /**
@@ -320,10 +322,10 @@ public final class DependencyUtilities {
       @NotNull final DependencyResolution resolution,
       @NotNull final LongConsumer consumer)
       throws IOException {
-    final String file = artifactId + "-" + version + ".jar";
+    final String file = String.format("%s-%s.jar", artifactId, version);
     final String url =
         getDependencyUrl(groupId, artifactId, version, resolution.getBaseUrl()) + file;
-    return downloadFile(Paths.get(parent + "/" + file), url, consumer);
+    return downloadFile(Paths.get(String.format("%s/%s", parent, file)), url, consumer);
   }
 
   /**
@@ -337,7 +339,7 @@ public final class DependencyUtilities {
   @NotNull
   public static File downloadFile(@NotNull final Path p, @NotNull final String url)
       throws IOException {
-    Logger.info("Downloading Dependency at " + url + " into folder " + p);
+    Logger.info(String.format("Downloading Dependency at %s into folder %s", url, p));
     final BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
     final FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p));
     final byte[] dataBuffer = new byte[8192];
@@ -361,7 +363,7 @@ public final class DependencyUtilities {
   public static File downloadFile(
       @NotNull final Path p, @NotNull final String url, @NotNull final LongConsumer progress)
       throws IOException {
-    Logger.info("Downloading Dependency at " + url + " into folder " + p);
+    Logger.info(String.format("Downloading Dependency at %s into folder %s", url, p));
     final BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
     final FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p));
     final byte[] dataBuffer = new byte[8192];
@@ -409,7 +411,6 @@ public final class DependencyUtilities {
     }
     Logger.info("Finished Loading Dependency " + file.getName());
   }
-
 
   /**
    * Sets the classloader used for dependency loading.

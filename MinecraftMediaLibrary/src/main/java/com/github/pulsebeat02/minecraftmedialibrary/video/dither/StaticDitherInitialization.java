@@ -53,7 +53,7 @@ public final class StaticDitherInitialization {
         final Color color = MinecraftMapPalette.getColor((byte) i);
         colors.add(color.getRGB());
       } catch (final IndexOutOfBoundsException e) {
-        Logger.info("Captured " + (i - 1) + " colors!");
+        Logger.info(String.format("Captured %d colors!", i - 1));
         largest = i - 1;
         break;
       }
@@ -79,7 +79,8 @@ public final class StaticDitherInitialization {
       }
     }
     final long end = System.nanoTime();
-    Logger.info("Initial lookup table initialized in " + (end - start) / 1_000_000.0 + " ms");
+    Logger.info(
+        String.format("Initial lookup table initialized in %s ms", (end - start) / 1_000_000.0));
   }
 
   /**

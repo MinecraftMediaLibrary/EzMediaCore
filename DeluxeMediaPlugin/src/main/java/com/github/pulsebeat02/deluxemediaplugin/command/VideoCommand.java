@@ -24,7 +24,6 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -231,7 +230,8 @@ public class VideoCommand extends BaseCommand {
                   Component.newline(),
                   Component.text("Video Name: " + file.getName(), NamedTextColor.GOLD),
                   Component.text(
-                      "Size: " + file.getTotalSpace() / 1024 + " Kilobytes", NamedTextColor.GOLD)));
+                      String.format("Size: %d Kilobytes", file.getTotalSpace() / 1024),
+                      NamedTextColor.GOLD)));
       audience.sendMessage(
           ChatUtilities.formatMessage(
               Component.text("=====================================", NamedTextColor.AQUA)));
@@ -301,10 +301,12 @@ public class VideoCommand extends BaseCommand {
       } else if (mrl.startsWith("http://") || mrl.startsWith("https://")) {
         component =
             Component.text(
-                ChatColor.RED + "Link " + mrl + " is not a valid Youtube video link!",
+                String.format("Link %s is not a valid Youtube video link!", mrl),
                 NamedTextColor.RED);
       } else {
-        component = Component.text("File " + f.getName() + " cannot be found!", NamedTextColor.RED);
+        component =
+            Component.text(
+                String.format("File %s cannot be found!", f.getName()), NamedTextColor.RED);
       }
       audience.sendMessage(ChatUtilities.formatMessage(component));
     } else {

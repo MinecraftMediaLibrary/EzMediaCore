@@ -132,7 +132,7 @@ public class HttpDaemon extends Thread implements HttpDaemonBase {
   /** Terminate the Server. */
   public void terminate() {
     onServerTerminate();
-    Logger.info("Terminating HTTP Server at " + Bukkit.getIp() + ":" + port);
+    Logger.info(String.format("Terminating HTTP Server at %s:%d", Bukkit.getIp(), port));
     running = false;
     if (!socket.isClosed()) {
       try {

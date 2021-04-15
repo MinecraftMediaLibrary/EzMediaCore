@@ -162,12 +162,12 @@ public class LinuxPackageManager {
       if (link.getArch() == arch) {
         final String url = link.getUrl();
         final String fileName = url.substring(url.lastIndexOf("/") + 1);
-        final File file = new File(vlc.getAbsolutePath() + "/" + fileName);
+        final File file = new File(String.format("%s/%s", vlc.getAbsolutePath(), fileName));
         URL uri = null;
         try {
           uri = new URL(link.getUrl());
         } catch (final MalformedURLException e) {
-          Logger.info("Main Site is Down! Using Mirror! (" + url + ")");
+          Logger.info(String.format("Main Site is Down! Using Mirror! (%s)", url));
           try {
             uri = new URL(link.getMirror());
           } catch (final MalformedURLException e1) {

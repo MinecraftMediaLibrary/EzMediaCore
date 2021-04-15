@@ -98,7 +98,7 @@ public class HttpDaemonProvider implements HostingProvider {
   @Override
   @NotNull
   public String generateUrl(@NotNull final String file) {
-    return "http://" + serverIP + ":" + port + "/" + getRelativePath(file);
+    return String.format("http://%s:%d/%s", serverIP, port, getRelativePath(file));
   }
 
   /**
@@ -110,7 +110,7 @@ public class HttpDaemonProvider implements HostingProvider {
   @Override
   @NotNull
   public String generateUrl(@NotNull final Path path) {
-    return "http://" + serverIP + ":" + port + "/" + getRelativePath(path.toString());
+    return String.format("http://%s:%d/%s", serverIP, port, getRelativePath(path.toString()));
   }
 
   /**

@@ -108,7 +108,7 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
       if (f.isDirectory()) {
         if (f.getName().equals("plugins")) {
           path = f.getAbsolutePath();
-          Logger.info("Found VLC plugins folder (" + path + ")");
+          Logger.info(String.format("Found VLC plugins folder (%s)", path));
           loadLibrary();
           return path;
         }

@@ -61,9 +61,9 @@ public final class NMSReflectionManager {
       Logger.info("Loading NMS Class for Version " + VERSION);
       final Class<?> clazz =
           Class.forName(
-              "com.github.pulsebeat02.minecraftmedialibrary.nms.impl."
-                  + VERSION
-                  + ".NMSMapPacketIntercepter");
+              String.format(
+                  "com.github.pulsebeat02.minecraftmedialibrary.nms.impl.%s.NMSMapPacketIntercepter",
+                  VERSION));
       return (PacketHandler) clazz.getDeclaredConstructor().newInstance();
     } catch (final ClassNotFoundException
         | InstantiationException
@@ -71,10 +71,9 @@ public final class NMSReflectionManager {
         | NoSuchMethodException
         | InvocationTargetException e) {
       Logger.error(
-          "The Server Version you are using ("
-              + VERSION
-              + ") is not yet supported by MinecraftMediaLibrary! "
-              + "Shutting down due to the Fatal Error");
+          String.format(
+              "The Server Version you are using (%s) is not yet supported by MinecraftMediaLibrary! Shutting down due to the Fatal Error",
+              VERSION));
       return null;
     }
   }

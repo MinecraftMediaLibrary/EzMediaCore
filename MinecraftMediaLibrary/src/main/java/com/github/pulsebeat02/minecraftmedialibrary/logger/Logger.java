@@ -51,7 +51,7 @@ public final class Logger {
       }
       LOGGER = new File(folder, "mml.log");
       if (LOGGER.createNewFile()) {
-        System.out.println("File Created (" + LOGGER.getName() + ")");
+        System.out.printf("File Created (%s)%n", LOGGER.getName());
       } else {
         System.out.println("Log File Exists Already");
       }
@@ -67,7 +67,7 @@ public final class Logger {
    * @param info the info
    */
   public static void info(@NotNull final Object info) {
-    directPrint(System.currentTimeMillis() + ": [INFO] " + info + "\n");
+    directPrint(String.format("%d: [INFO] %s\n", System.currentTimeMillis(), info));
   }
 
   /**
@@ -76,7 +76,7 @@ public final class Logger {
    * @param warning the warning
    */
   public static void warn(@NotNull final Object warning) {
-    directPrint(System.currentTimeMillis() + ": [WARN] " + warning + "\n");
+    directPrint(String.format("%d: [WARN] %s\n", System.currentTimeMillis(), warning));
   }
 
   /**
@@ -85,7 +85,7 @@ public final class Logger {
    * @param error the error
    */
   public static void error(@NotNull final Object error) {
-    directPrint(System.currentTimeMillis() + ": [ERROR] " + error + "\n");
+    directPrint(String.format("%d: [ERROR] %s\n", System.currentTimeMillis(), error));
   }
 
   /**

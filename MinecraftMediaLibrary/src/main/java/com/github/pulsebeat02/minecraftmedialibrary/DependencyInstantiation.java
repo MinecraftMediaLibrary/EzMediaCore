@@ -111,7 +111,7 @@ public final class DependencyInstantiation {
     final Set<File> files = management.getFiles();
     for (final File file : files) {
       if (file.delete()) {
-        Logger.info("Finished Initializing Dependency (" + file.getAbsolutePath() + ")");
+        Logger.info(String.format("Finished Initializing Dependency (%s)", file.getAbsolutePath()));
       }
     }
     files.clear();

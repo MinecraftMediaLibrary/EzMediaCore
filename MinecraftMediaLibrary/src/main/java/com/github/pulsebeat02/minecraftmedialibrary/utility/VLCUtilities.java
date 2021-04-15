@@ -59,7 +59,7 @@ public final class VLCUtilities {
           NATIVE_VLC_PATH = f.getParentFile();
           final String path = NATIVE_VLC_PATH.getAbsolutePath();
           NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), path);
-          setVLCPluginPath(path + "/plugins/");
+          setVLCPluginPath(String.format("%s/plugins/", path));
           loadLibVLCLibrary();
           return true;
         }

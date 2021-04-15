@@ -54,5 +54,6 @@ public interface DitherHolder {
    *
    * @return DitherSetting for the setting.
    */
-  @NotNull DitherSetting getSetting();
+  @NotNull
+  DitherSetting getSetting();
 }

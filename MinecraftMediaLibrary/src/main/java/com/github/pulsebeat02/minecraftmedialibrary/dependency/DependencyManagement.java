@@ -69,22 +69,23 @@ public class DependencyManagement {
     if (!dir.exists()) {
       if (dir.mkdir()) {
         Logger.info(
-            "Dependency Directory ("
-                + dir.getAbsolutePath()
-                + ") does not exist... Creating a folder");
+            String.format(
+                "Dependency Directory (%s) does not exist... Creating a folder",
+                dir.getAbsolutePath()));
       } else {
-        Logger.info("Dependency Directory (" + dir.getAbsolutePath() + ") exists!");
+        Logger.info(String.format("Dependency Directory (%s) exists!", dir.getAbsolutePath()));
       }
     }
     relocatedDir = new File(dir, "relocated");
     if (!relocatedDir.exists()) {
       if (relocatedDir.mkdir()) {
         Logger.info(
-            "Relocated Directory ("
-                + relocatedDir.getAbsolutePath()
-                + ") does not exist... Creating a folder");
+            String.format(
+                "Relocated Directory (%s) does not exist... Creating a folder",
+                relocatedDir.getAbsolutePath()));
       } else {
-        Logger.info("Relocated Directory (" + relocatedDir.getAbsolutePath() + ") exists!");
+        Logger.info(
+            String.format("Relocated Directory (%s) exists!", relocatedDir.getAbsolutePath()));
       }
     }
   }
@@ -100,7 +101,7 @@ public class DependencyManagement {
           try {
             file = DependencyUtilities.downloadMavenDependency(dependency, dir.getAbsolutePath());
           } catch (final IOException e) {
-            Logger.info("Could NOT find " + artifact + " in Maven Central Repository!");
+            Logger.info(String.format("Could NOT find %s in Maven Central Repository!", artifact));
             e.printStackTrace();
           }
         } else if (dependency.getResolution() == DependencyResolution.JITPACK_DEPENDENCY) {
@@ -108,7 +109,8 @@ public class DependencyManagement {
           try {
             file = DependencyUtilities.downloadJitpackDependency(dependency, dir.getAbsolutePath());
           } catch (final IOException e) {
-            Logger.info("Could NOT find " + artifact + " in Jitpack Central Repository!");
+            Logger.info(
+                String.format("Could NOT find %s in Jitpack Central Repository!", artifact));
             e.printStackTrace();
           }
         }

@@ -69,7 +69,7 @@ final class RelocatingRemapper extends Remapper {
 
     final Matcher m = CLASS_PATTERN.matcher(name);
     if (m.matches()) {
-      prefix = m.group(1) + "L";
+      prefix = String.format("%sL", m.group(1));
       suffix = ";";
       name = m.group(2);
     }

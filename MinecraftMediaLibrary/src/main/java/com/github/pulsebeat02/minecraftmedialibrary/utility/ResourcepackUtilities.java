@@ -45,11 +45,11 @@ public final class ResourcepackUtilities {
   public static boolean validatePackFormat(final int format) {
     for (final PackFormatVersioning version : PackFormatVersioning.values()) {
       if (format == version.getPackFormatID()) {
-        Logger.info("Pack Format Supported! (" + format + ")");
+        Logger.info(String.format("Pack Format Supported! (%d)", format));
         return true;
       }
     }
-    Logger.warn("Pack Format Not Supported! (" + format + ")");
+    Logger.warn(String.format("Pack Format Not Supported! (%d)", format));
     return false;
   }
 
@@ -62,9 +62,9 @@ public final class ResourcepackUtilities {
   public static boolean validateResourcepackIcon(@NotNull final File icon) {
     final boolean valid = icon.getName().endsWith(".png");
     if (valid) {
-      Logger.info("Resourcepack Icon Accepted! (" + icon.getAbsolutePath() + ")");
+      Logger.info(String.format("Resourcepack Icon Accepted! (%s)", icon.getAbsolutePath()));
     } else {
-      Logger.warn("Resourcepack Icon Not Supported! (" + icon.getAbsolutePath() + ")");
+      Logger.warn(String.format("Resourcepack Icon Not Supported! (%s)", icon.getAbsolutePath()));
     }
     return icon.getName().endsWith(".png");
   }

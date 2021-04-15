@@ -67,7 +67,7 @@ public class FFmpegDependencyInstallation {
    * @param dependency directory path
    */
   public FFmpegDependencyInstallation(@NotNull final String dependency) {
-    dependencyFolder = dependency + "/ffmpeg/";
+    dependencyFolder = String.format("%s/ffmpeg/", dependency);
     final File folder = new File(dependencyFolder);
     if (folder.mkdir()) {
       Logger.info("Created FFMPEG Folder");

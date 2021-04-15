@@ -71,7 +71,7 @@ public final class MapImage implements ImageMapHolder, ConfigurationSerializable
     this.width = width;
     this.height = height;
     Logger.info(
-        "Initialized Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
+        String.format("Initialized Image at Map ID %d (Source: %s)", map, image.getAbsolutePath()));
   }
 
   /**
@@ -95,7 +95,7 @@ public final class MapImage implements ImageMapHolder, ConfigurationSerializable
     this.width = width;
     this.height = height;
     Logger.info(
-        "Initialized Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
+        String.format("Initialized Image at Map ID %d (Source: %s)", map, image.getAbsolutePath()));
   }
 
   /**
@@ -144,7 +144,8 @@ public final class MapImage implements ImageMapHolder, ConfigurationSerializable
         new FloydImageDither()
             .ditherIntoMinecraft(Objects.requireNonNull(VideoUtilities.getBuffer(image)), width);
     library.getHandler().display(null, map, width, height, buffer, width);
-    Logger.info("Drew Image at Map ID " + map + " (Source: " + image.getAbsolutePath() + ")");
+    Logger.info(
+        String.format("Drew Image at Map ID %d (Source: %s)", map, image.getAbsolutePath()));
   }
 
   /** Called when an image is being draw on a map. */

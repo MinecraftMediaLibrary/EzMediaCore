@@ -187,7 +187,7 @@ public abstract class PackageBase {
       if (extension.endsWith(str)) {
         Logger.info("Found Algorithm (B): " + str);
         return new JuNestInstaller(
-            library.getPlugin().getDataFolder().getAbsolutePath() + "/linux-image/",
+            String.format("%s/linux-image/", library.getPlugin().getDataFolder().getAbsolutePath()),
             file,
             str.equals(".deb"));
       }

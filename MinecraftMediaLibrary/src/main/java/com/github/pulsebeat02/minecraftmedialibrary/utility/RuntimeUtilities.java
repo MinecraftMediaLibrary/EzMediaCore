@@ -270,7 +270,8 @@ public final class RuntimeUtilities {
    */
   public static void executeBashScript(
       @NotNull final File file, @NotNull final String[] arguments, @NotNull final String message) {
-    Logger.info("Script: " + file.getAbsolutePath() + " " + String.join(" ", arguments));
+    Logger.info(
+        String.format("Script: %s %s", file.getAbsolutePath(), String.join(" ", arguments)));
     try {
       final ProcessBuilder pb =
           new ProcessBuilder("bash", file.getAbsolutePath(), String.join(" ", arguments));
@@ -281,7 +282,8 @@ public final class RuntimeUtilities {
       Logger.info(
           pb.start().waitFor() == 0
               ? message
-              : "An issue occurred while running script! (" + file.getAbsolutePath() + ")");
+              : String.format(
+                  "An issue occurred while running script! (%s)", file.getAbsolutePath()));
     } catch (final InterruptedException | IOException e) {
       e.printStackTrace();
     }

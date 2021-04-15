@@ -83,7 +83,7 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
             false,
             new WindowsVideoSurfaceAdapter());
     mediaPlayerComponent.videoSurface().set(surface);
-    Logger.info("Created a VLCJ Integrated Video Player (" + url + ")");
+    Logger.info(String.format("Created a VLCJ Integrated Video Player (%s)", url));
   }
 
   /**
@@ -120,7 +120,8 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
             false,
             new WindowsVideoSurfaceAdapter());
     mediaPlayerComponent.videoSurface().set(surface);
-    Logger.info("Created a VLCJ Integrated Video Player (" + file.getAbsolutePath() + ")");
+    Logger.info(
+        String.format("Created a VLCJ Integrated Video Player (%s)", file.getAbsolutePath()));
   }
 
   /**
@@ -145,7 +146,7 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
     for (final Player p : Bukkit.getOnlinePlayers()) {
       p.playSound(p.getLocation(), getLibrary().getPlugin().getName().toLowerCase(), 1.0F, 1.0F);
     }
-    Logger.info("Started Playing Video! (" + url + ")");
+    Logger.info(String.format("Started Playing Video! (%s)", url));
   }
 
   /** Stops playing the video. */
@@ -153,7 +154,7 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
   public void stop() {
     if (mediaPlayerComponent != null) {
       mediaPlayerComponent.controls().stop();
-      Logger.info("Stopped Playing Video! (" + getUrl() + ")");
+      Logger.info(String.format("Stopped Playing Video! (%s)", getUrl()));
     }
   }
 

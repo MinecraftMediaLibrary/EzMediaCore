@@ -74,7 +74,7 @@ public class JuNestInstaller extends PackageBase {
     Logger.info("Installing cURL Package...");
     new CondaInstallation(baseDirectory).installPackage("curl");
     Logger.info("Setting Up VLC Installation");
-    final File script = new File(baseDirectory + "scripts/vlc-installation.sh");
+    final File script = new File(String.format("%s/scripts/vlc-installation.sh", baseDirectory));
     FileUtilities.createFile(script, "Made VLC Installation Script");
     Files.write(
         script.toPath(),
@@ -92,8 +92,10 @@ public class JuNestInstaller extends PackageBase {
    */
   @NotNull
   private String getBashScript(@NotNull final String path) {
-    final StringBuilder sb = new StringBuilder(baseDirectory + "junest-master/bin/junest setup \n");
-    sb.append(new File(baseDirectory + "junest-master/bin/junest").getAbsolutePath())
+    final StringBuilder sb =
+        new StringBuilder(String.format("%s/junest-master/bin/junest setup \n", baseDirectory));
+    sb.append(
+            new File(String.format("%s/junest-master/bin/junest", baseDirectory)).getAbsolutePath())
         .append(" -f \n");
     if (isDebian) {
       sb.append("apt install ").append(path);
@@ -123,7 +125,7 @@ public class JuNestInstaller extends PackageBase {
    * @throws IOException if an exception occurred while fetching the url or file
    */
   private void downloadJuNest() throws IOException {
-    final File junest = new File(baseDirectory + "junest.zip");
+    final File junest = new File(String.format("%s/junest.zip", baseDirectory));
     FileUtils.copyURLToFile(
         new URL("https://github.com/PulseBeat02/junest/archive/refs/heads/master.zip"), junest);
     ArchiveUtilities.decompressArchive(junest, junest.getParentFile());
@@ -135,7 +137,7 @@ public class JuNestInstaller extends PackageBase {
    * @throws IOException if an exception occurred while fetching the url or file
    */
   private void setJuNestPaths() throws IOException {
-    final File script = new File(baseDirectory + "scripts/junest-installation.sh");
+    final File script = new File(String.format("%s/scripts/junest-installation.sh", baseDirectory));
     FileUtilities.createFile(script, "Made JuNest Script");
     Files.write(
         script.toPath(),
