@@ -20,4 +20,5 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
+/** Luck's Relocation Library */
 package com.github.pulsebeat02.minecraftmedialibrary.relocation;
