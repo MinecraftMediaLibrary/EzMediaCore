@@ -179,13 +179,13 @@ public abstract class PackageBase {
     final String extension = file.getName();
     for (final String str : ALGORITHM_A) {
       if (extension.endsWith(str)) {
-        Logger.info("Found Algorithm (A): " + str);
+        Logger.info(String.format("Found Algorithm (A): %s", str));
         return new ExtractionInstaller(file);
       }
     }
     for (final String str : ALGORITHM_B) {
       if (extension.endsWith(str)) {
-        Logger.info("Found Algorithm (B): " + str);
+        Logger.info(String.format("Found Algorithm (B): %s", str));
         return new JuNestInstaller(
             String.format("%s/linux-image/", library.getPlugin().getDataFolder().getAbsolutePath()),
             file,

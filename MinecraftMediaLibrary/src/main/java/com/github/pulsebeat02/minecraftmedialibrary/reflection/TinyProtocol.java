@@ -178,7 +178,7 @@ public abstract class TinyProtocol {
                 }
               }
             } catch (final Exception e) {
-              plugin.getLogger().log(Level.SEVERE, "Cannot inject incomming channel " + channel, e);
+              plugin.getLogger().log(Level.SEVERE, String.format("Cannot inject incoming channel %s", channel), e);
             }
           }
         };

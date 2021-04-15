@@ -186,14 +186,14 @@ public final class MinecraftMediaLibrary {
     Logger.info("===========================================");
     Logger.info("            SYSTEM INFORMATION             ");
     Logger.info("===========================================");
-    Logger.info("System Operating System: " + RuntimeUtilities.getOperatingSystem());
-    Logger.info("CPU Architecture: " + RuntimeUtilities.getCpuArch());
-    Logger.info("System Operating System Version: " + System.getProperty("os.version"));
+    Logger.info(String.format("System Operating System: %s", RuntimeUtilities.getOperatingSystem()));
+    Logger.info(String.format("CPU Architecture: %s", RuntimeUtilities.getCpuArch()));
+    Logger.info(String.format("System Operating System Version: %s", System.getProperty("os.version")));
     Logger.info(
         String.format(
             "Windows/Mac/Linux: %s/%s/%s",
             RuntimeUtilities.isWindows(), RuntimeUtilities.isMac(), RuntimeUtilities.isLinux()));
-    Logger.info("Linux Distribution (If Linux): " + RuntimeUtilities.getLinuxDistribution());
+    Logger.info(String.format("Linux Distribution (If Linux): %s", RuntimeUtilities.getLinuxDistribution()));
   }
 
   /** Shutdown Instance */

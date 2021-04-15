@@ -121,7 +121,7 @@ public class FileRequestHandler implements Runnable, RequestHandler {
       client.close();
     } catch (final IOException e) {
       flag = true;
-      verbose("I/O error " + e);
+      verbose(String.format("I/O error %s", e));
     }
     if (flag) {
       daemon.onResourcepackFailedDownload(client);

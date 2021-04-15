@@ -147,7 +147,7 @@ public final class Reflection {
       return getField(target.getSuperclass(), name, fieldType, index);
     }
 
-    throw new IllegalArgumentException("Cannot find field with type " + fieldType);
+    throw new IllegalArgumentException(String.format("Cannot find field with type %s", fieldType));
   }
 
   /**
@@ -205,7 +205,7 @@ public final class Reflection {
           try {
             return method.invoke(target, arguments);
           } catch (final Exception e) {
-            throw new RuntimeException("Cannot invoke method " + method, e);
+            throw new RuntimeException(String.format("Cannot invoke method %s", method), e);
           }
         };
       }
@@ -252,7 +252,7 @@ public final class Reflection {
           try {
             return constructor.newInstance(arguments);
           } catch (final Exception e) {
-            throw new RuntimeException("Cannot invoke constructor " + constructor, e);
+            throw new RuntimeException(String.format("Cannot invoke constructor %s", constructor), e);
           }
         };
       }
@@ -344,7 +344,7 @@ public final class Reflection {
     try {
       return Class.forName(canonicalName);
     } catch (final ClassNotFoundException e) {
-      throw new IllegalArgumentException("Cannot find " + canonicalName, e);
+      throw new IllegalArgumentException(String.format("Cannot find %s", canonicalName), e);
     }
   }
 
@@ -370,7 +370,7 @@ public final class Reflection {
       } else if ("version".equalsIgnoreCase(variable)) {
         replacement = VERSION;
       } else {
-        throw new IllegalArgumentException("Unknown variable: " + variable);
+        throw new IllegalArgumentException(String.format("Unknown variable: %s", variable));
       }
 
       // Assume the expanded variables are all packages, and append a dot

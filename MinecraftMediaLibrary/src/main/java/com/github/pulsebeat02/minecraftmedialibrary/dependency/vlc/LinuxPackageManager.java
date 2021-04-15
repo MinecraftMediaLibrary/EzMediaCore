@@ -135,14 +135,14 @@ public class LinuxPackageManager {
     outer:
     for (final Map.Entry<String, LinuxOSPackages> entry : packages.entrySet()) {
       final String name = entry.getKey().toLowerCase();
-      Logger.info("Attempting Operating System " + name);
+      Logger.info(String.format("Attempting Operating System %s", name));
       if (distro.contains(name)) {
-        Logger.info("Found Operating System: " + name);
+        Logger.info(String.format("Found Operating System: %s", name));
         final ListMultimap<String, LinuxPackage> links = entry.getValue().getLinks();
         for (final String version : links.keySet()) {
-          Logger.info("Attempting Version: " + version);
+          Logger.info(String.format("Attempting Version: %s", version));
           if (ver.contains(version.toLowerCase())) {
-            Logger.info("Found Version: " + version);
+            Logger.info(String.format("Found Version: %s", version));
             set = links.get(version);
             break outer;
           }
@@ -159,7 +159,7 @@ public class LinuxPackageManager {
       throw new UnsupportedOperatingSystemException("Unsupported Operating System Platform!");
     }
     for (final LinuxPackage link : set) {
-      Logger.info("Trying Out Link: " + link.getUrl());
+      Logger.info(String.format("Trying Out Link: %s", link.getUrl()));
       if (link.getArch() == arch) {
         final String url = link.getUrl();
         final String fileName = url.substring(url.lastIndexOf("/") + 1);

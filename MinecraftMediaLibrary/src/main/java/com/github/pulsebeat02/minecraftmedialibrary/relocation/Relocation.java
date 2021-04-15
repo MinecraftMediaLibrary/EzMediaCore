@@ -134,7 +134,7 @@ public final class Relocation {
       return false;
     }
 
-    return path.startsWith(pathPattern) || path.startsWith("/" + pathPattern);
+    return path.startsWith(pathPattern) || path.startsWith(String.format("/%s", pathPattern));
   }
 
   /**

@@ -61,7 +61,7 @@ public abstract class AbstractConfiguration {
       try {
         getConfig().save(configFile);
       } catch (final IOException e) {
-        plugin.getLogger().log(Level.SEVERE, "Could not save config to " + configFile, e);
+        plugin.getLogger().log(Level.SEVERE, String.format("Could not save config to %s", configFile), e);
       }
     }
   }
