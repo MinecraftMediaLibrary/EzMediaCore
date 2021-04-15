@@ -38,6 +38,7 @@ com.github.pulsebeat02.minecraftmedialibrary.relocation
 com.github.pulsebeat02.minecraftmedialibrary.resourcepack
 com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting
 com.github.pulsebeat02.minecraftmedialibrary.test.misc
+com.github.pulsebeat02.minecraftmedialibrary.test.video
 com.github.pulsebeat02.minecraftmedialibrary.utility
 com.github.pulsebeat02.minecraftmedialibrary.video.dither
 com.github.pulsebeat02.minecraftmedialibrary.video.dither.development
