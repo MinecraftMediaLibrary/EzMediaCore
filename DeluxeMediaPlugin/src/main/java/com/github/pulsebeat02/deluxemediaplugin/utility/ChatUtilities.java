@@ -119,7 +119,10 @@ public final class ChatUtilities {
 
   public static TextComponent getCommandUsage(@NotNull final Map<String, String> usages) {
     final TextComponent.Builder builder =
-        Component.text().append(Component.text("------------------", NamedTextColor.AQUA));
+        Component.text()
+            .append(Component.text("------------------", NamedTextColor.AQUA))
+            .append(Component.newline());
+
     for (final Map.Entry<String, String> entry : usages.entrySet()) {
       builder.append(
           Component.join(

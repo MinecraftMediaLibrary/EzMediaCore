@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.binding.LibC;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 import uk.co.caprica.vlcj.binding.internal.libvlc_instance_t;
+import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 import uk.co.caprica.vlcj.support.version.LibVlcVersion;
 
 import java.io.File;
@@ -65,7 +66,7 @@ public final class VLCUtilities {
         }
       }
     }
-    return false;
+    return new NativeDiscovery().discover();
   }
 
   /**
