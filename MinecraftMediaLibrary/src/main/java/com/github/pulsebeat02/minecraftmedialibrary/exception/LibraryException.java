@@ -20,30 +20,51 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.http;
+package com.github.pulsebeat02.minecraftmedialibrary.exception;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+public class LibraryException extends AssertionError {
 
-/**
- * The base handler of requests. Used for creating custom request managers. Used within the
- * MinecraftMediaLibrary to handle requests to an HTTP daemon.
- */
-public interface RequestHandlerBase {
+  private static final long serialVersionUID = -6914539609629173333L;
 
   /**
-   * Creates a header for the HTTP request. Useful for certain connections.
+   * Instantiates a new InvalidYoutubeURLException.
    *
-   * @param file to create header for
-   * @return Header of the specified file
+   * @param message the exception message
    */
-  @NotNull
-  String buildHeader(@NotNull final File file);
+  public LibraryException(@NotNull final String message) {
+    super(message);
+  }
 
   /**
-   * Handles the incoming request accordingly. Warning: Overriding this requires a rewrite of the
-   * incoming connection
+   * Gets the cause of the exception.
+   *
+   * @return this
    */
-  void handleRequest();
+  @Override
+  public synchronized Throwable getCause() {
+    return this;
+  }
+
+  /**
+   * Initializes the cause of the exception.
+   *
+   * @param cause cause
+   * @return this
+   */
+  @Override
+  public synchronized Throwable initCause(@NotNull final Throwable cause) {
+    return this;
+  }
+
+  /**
+   * Fills in stack trace for exception.
+   *
+   * @return throwable stack trace
+   */
+  @Override
+  public synchronized Throwable fillInStackTrace() {
+    return this;
+  }
 }

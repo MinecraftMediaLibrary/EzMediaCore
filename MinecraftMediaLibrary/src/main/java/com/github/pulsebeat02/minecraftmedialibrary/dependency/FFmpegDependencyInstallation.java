@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 
 /**
  * A special handling class specific to the JAVE2 library. JAVE2 is an extension to * "JAVE", an
@@ -66,8 +67,8 @@ public class FFmpegDependencyInstallation {
    *
    * @param dependency directory path
    */
-  public FFmpegDependencyInstallation(@NotNull final String dependency) {
-    dependencyFolder = String.format("%s/ffmpeg/", dependency);
+  public FFmpegDependencyInstallation(@NotNull final Path dependency) {
+    dependencyFolder = String.format("%s/ffmpeg/", dependency.normalize());
     final File folder = new File(dependencyFolder);
     if (folder.mkdir()) {
       Logger.info("Created FFMPEG Folder");
@@ -100,7 +101,7 @@ public class FFmpegDependencyInstallation {
    * @throws IOException if an issue occurred during downloading
    */
   @NotNull
-  public File downloadFFmpeg() throws IOException {
+  private File downloadFFmpeg() throws IOException {
     final File folder = new File(dependencyFolder);
     mkdir(folder);
     File file = searchFFMPEG(folder);
@@ -121,7 +122,7 @@ public class FFmpegDependencyInstallation {
    * @return file
    */
   @Nullable
-  public File searchFFMPEG(@NotNull final File folder) {
+  private File searchFFMPEG(@NotNull final File folder) {
     for (final File f : folder.listFiles()) {
       if (f.getName().contains("ffmpeg")) {
         file = f;
@@ -136,7 +137,7 @@ public class FFmpegDependencyInstallation {
    *
    * @param folder the folder file
    */
-  public void mkdir(@NotNull final File folder) {
+  private void mkdir(@NotNull final File folder) {
     if (!folder.exists()) {
       if (folder.mkdir()) {
         Logger.info("Library folder created successfully");

@@ -93,7 +93,7 @@ public final class Logger {
    *
    * @param line to print
    */
-  protected static void directPrint(@NotNull final String line) {
+  private static void directPrint(@NotNull final String line) {
     if (VERBOSE) {
       try {
         WRITER.write(line);

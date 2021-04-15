@@ -46,7 +46,7 @@ public final class VLCUtilities {
       keyword += "so";
     }
     final Queue<File> folders = new ArrayDeque<>();
-    folders.add(new File(library.getPlugin().getDataFolder(), "vlc"));
+    folders.add(new File(library.getVlcFolder()));
     while (!folders.isEmpty()) {
       final File f = folders.remove();
       if (f.isDirectory()) {
@@ -75,7 +75,7 @@ public final class VLCUtilities {
    * @param path the vlc plugin path
    * @return whether the path set was successful or not
    */
-  public static boolean setVLCPluginPath(@NotNull final String path) {
+  private static boolean setVLCPluginPath(@NotNull final String path) {
     if (RuntimeUtilities.isWindows()) {
       return LibC.INSTANCE._putenv(String.format("%s=%s", VLC_PLUGIN_PATH, path)) == 0;
     }
@@ -87,7 +87,7 @@ public final class VLCUtilities {
    *
    * @return whether if the library was successfully loaded or not.
    */
-  public static boolean loadLibVLCLibrary() {
+  private static boolean loadLibVLCLibrary() {
     try {
       final libvlc_instance_t instance = libvlc_new(0, new StringArray(new String[0]));
       if (instance != null) {

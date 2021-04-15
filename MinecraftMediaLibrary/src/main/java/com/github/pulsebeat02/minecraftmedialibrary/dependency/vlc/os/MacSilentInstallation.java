@@ -72,7 +72,7 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
     FileUtils.copyURLToFile(new URL(RuntimeUtilities.getURL()), dmg);
     try {
       if (mountDiskImage(dmg) != 0) {
-        throw new IOException("Could not Mount Disk File!");
+        throw new RuntimeException("Could not Mount Disk File!");
       }
     } catch (final InterruptedException e) {
       e.printStackTrace();
@@ -87,7 +87,7 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
     Logger.info("Moved File!");
     try {
       if (unmountDiskImage(diskPath.getAbsolutePath()) != 0) {
-        throw new IOException("Could not Unmount Disk File!");
+        throw new RuntimeException("Could not Unmount Disk File!");
       }
     } catch (final InterruptedException e) {
       e.printStackTrace();

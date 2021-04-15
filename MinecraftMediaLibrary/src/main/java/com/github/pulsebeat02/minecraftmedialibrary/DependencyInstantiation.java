@@ -65,20 +65,20 @@ public final class DependencyInstantiation {
   }
 
   /** Assigns ClassLoader for classpath loading. */
-  public void assignClassLoader() {
+  private void assignClassLoader() {
     DependencyUtilities.setClassloader(
         (URLClassLoader) instance.getPlugin().getClass().getClassLoader());
   }
 
   /** Downloads/Loads Jave dependency. */
-  public void loadFfmpeg() {
+  private void loadFfmpeg() {
     final FFmpegDependencyInstallation ffmpegDependencyInstallation =
         new FFmpegDependencyInstallation(instance);
     ffmpegDependencyInstallation.install();
   }
 
   /** Downloads/Loads Jitpack/Maven dependencies. */
-  public void loadDependencies() {
+  private void loadDependencies() {
     final DependencyManagement dependencyManagement = new DependencyManagement(instance);
     dependencyManagement.install();
     dependencyManagement.relocate();
@@ -87,7 +87,7 @@ public final class DependencyInstantiation {
   }
 
   /** Downloads/Loads VLC dependency. */
-  public void loadVLC() {
+  private void loadVLC() {
     if (!VLCUtilities.checkVLCExistance(instance)) {
       new VLCNativeDependencyFetcher(instance).downloadLibraries();
     }
@@ -97,6 +97,7 @@ public final class DependencyInstantiation {
       } catch (final Exception e) {
         Logger.error("The user does not have VLCJ installed! This is a very fatal error.");
         instance.setVlcj(false);
+        instance.shutdown();
         e.printStackTrace();
       }
     }
@@ -107,7 +108,7 @@ public final class DependencyInstantiation {
    *
    * @param management the dependency management
    */
-  public void deleteDependencies(@NotNull final DependencyManagement management) {
+  private void deleteDependencies(@NotNull final DependencyManagement management) {
     final Set<File> files = management.getFiles();
     for (final File file : files) {
       if (file.delete()) {

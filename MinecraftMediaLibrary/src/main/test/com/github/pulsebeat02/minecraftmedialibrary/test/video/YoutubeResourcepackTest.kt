@@ -16,7 +16,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary
 import com.github.pulsebeat02.minecraftmedialibrary.concurrent.AsyncVideoExtraction
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionSetting
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction
-import com.github.pulsebeat02.minecraftmedialibrary.image.MapImage
+import com.github.pulsebeat02.minecraftmedialibrary.image.MinecraftMapImage
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider
 import org.bukkit.plugin.java.JavaPlugin
@@ -67,7 +67,7 @@ class YoutubeResourcepackTest : JavaPlugin() {
     @Throws(IOException::class)
     fun displayImage(map: Int, image: File) {
         val bi = ImageIO.read(image)
-        val imageMap = MapImage.builder()
+        val imageMap = MinecraftMapImage.builder()
             .setMap(map)
             .setWidth(bi.width)
             .setHeight(bi.height)

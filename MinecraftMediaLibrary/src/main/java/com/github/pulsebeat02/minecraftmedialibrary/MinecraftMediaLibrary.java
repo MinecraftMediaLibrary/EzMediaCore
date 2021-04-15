@@ -38,6 +38,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * This is the starting class of MinecraftMediaLibrary which describes the starting class for all
@@ -53,9 +55,10 @@ public final class MinecraftMediaLibrary {
   private final PlayerJoinLeaveHandler listener;
   private final PacketHandler handler;
   private final TinyProtocol protocol;
-  private final String parent;
-  private final String dependenciesFolder;
-  private final String vlcFolder;
+  private final Path parentFolder;
+  private final Path httpParentFolder;
+  private final Path dependenciesFolder;
+  private final Path vlcFolder;
   private boolean vlcj;
   private boolean disabled;
 
@@ -94,7 +97,6 @@ public final class MinecraftMediaLibrary {
       @Nullable final String vlcPath,
       final boolean isUsingVLCJ) {
     final java.util.logging.Logger logger = plugin.getLogger();
-    final String path = plugin.getDataFolder().getAbsolutePath();
     this.plugin = plugin;
     Logger.initializeLogger(this);
     protocol =
@@ -111,9 +113,12 @@ public final class MinecraftMediaLibrary {
             return handler.onPacketInterceptIn(player, packet);
           }
         };
-    parent = http == null ? String.format("%s/http/", path) : http;
-    dependenciesFolder = libraryPath == null ? String.format("%s/mml_libs/", path) : libraryPath;
-    vlcFolder = vlcPath == null ? String.format("%s/vlc/", path) : vlcPath;
+    final String path = String.format("%s/mml", plugin.getDataFolder().getAbsolutePath());
+    parentFolder = Paths.get(path);
+    httpParentFolder = Paths.get(http == null ? String.format("%s/http/", path) : http);
+    dependenciesFolder =
+        Paths.get(libraryPath == null ? String.format("%s/mml_libs/", path) : libraryPath);
+    vlcFolder = Paths.get(vlcPath == null ? String.format("%s/vlc/", path) : vlcPath);
     createNecessaryFolders();
     vlcj = isUsingVLCJ;
     handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
@@ -128,22 +133,26 @@ public final class MinecraftMediaLibrary {
 
   /** Creates the necessary folders required. */
   private void createNecessaryFolders() {
-    final File parentHttpFile = new File(parent);
-    final File dependenciesFile = new File(dependenciesFolder);
-    final File vlcjFile = new File(vlcFolder);
+    final File parentHttpFile = httpParentFolder.toFile();
+    final File dependenciesFile = dependenciesFolder.toFile();
+    final File vlcjFile = vlcFolder.toFile();
     if (!parentHttpFile.isDirectory()) {
       if (parentHttpFile.mkdirs()) {
-        Logger.info("Successfully created directory: " + parentHttpFile.getAbsolutePath());
+        Logger.info(
+            String.format("Successfully created directory: %s", parentHttpFile.getAbsolutePath()));
       }
     }
     if (!dependenciesFile.isDirectory()) {
       if (dependenciesFile.mkdirs()) {
-        Logger.info("Successfully created directory: " + dependenciesFile.getAbsolutePath());
+        Logger.info(
+            String.format(
+                "Successfully created directory: %s", dependenciesFile.getAbsolutePath()));
       }
     }
     if (!vlcjFile.isDirectory()) {
       if (vlcjFile.mkdirs()) {
-        Logger.info("Successfully created directory: " + vlcjFile.getAbsolutePath());
+        Logger.info(
+            String.format("Successfully created directory: %s", vlcjFile.getAbsolutePath()));
       }
     }
   }
@@ -162,7 +171,7 @@ public final class MinecraftMediaLibrary {
   private void debugInformation() {
     Logger.info(String.format("Plugin %s initialized MinecraftMediaLibrary", plugin.getName()));
     Logger.info("==================================================================");
-    Logger.info(String.format("Path: %s", parent));
+    Logger.info(String.format("Path: %s", httpParentFolder));
     Logger.info(String.format("Using VLCJ? %s", vlcj ? "Yes" : "No"));
     Logger.info("==================================================================");
   }
@@ -227,8 +236,8 @@ public final class MinecraftMediaLibrary {
    *
    * @return the path
    */
-  public String getPath() {
-    return parent;
+  public Path getPath() {
+    return httpParentFolder;
   }
 
   /**
@@ -245,8 +254,8 @@ public final class MinecraftMediaLibrary {
    *
    * @return the parent
    */
-  public String getParent() {
-    return parent;
+  public Path getHttpParentFolder() {
+    return httpParentFolder;
   }
 
   /**
@@ -281,7 +290,7 @@ public final class MinecraftMediaLibrary {
    *
    * @return the dependencies
    */
-  public String getDependenciesFolder() {
+  public Path getDependenciesFolder() {
     return dependenciesFolder;
   }
 
@@ -290,7 +299,7 @@ public final class MinecraftMediaLibrary {
    *
    * @return the vlc
    */
-  public String getVlcFolder() {
+  public Path getVlcFolder() {
     return vlcFolder;
   }
 
@@ -301,5 +310,14 @@ public final class MinecraftMediaLibrary {
    */
   public boolean isDisabled() {
     return disabled;
+  }
+
+  /**
+   * Gets the parent folder of the library.
+   *
+   * @return the path of the library
+   */
+  public Path getParentFolder() {
+    return parentFolder;
   }
 }

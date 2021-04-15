@@ -84,7 +84,7 @@ public class CommandTask {
    *
    * @throws IOException if the output cannot be read
    */
-  public void getOutput() throws IOException {
+  private void getOutput() throws IOException {
     final StringBuilder output = new StringBuilder();
     final BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
     String str;

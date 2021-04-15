@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -74,9 +75,9 @@ public class DependencyManagement {
    *
    * @param dirPath directory
    */
-  public DependencyManagement(@NotNull final String dirPath) {
+  public DependencyManagement(@NotNull final Path dirPath) {
     files = new HashSet<>();
-    dir = new File(dirPath);
+    dir = dirPath.toFile();
     if (!dir.exists()) {
       if (dir.mkdir()) {
         Logger.info(
@@ -117,11 +118,11 @@ public class DependencyManagement {
   }
 
   /**
-   * Installs a specific dependency by itself.
+   * Installs a specific dependency.
    *
    * @param dependency the repository dependency
    */
-  public void installDependency(@NotNull final RepositoryDependency dependency) {
+  private void installDependency(@NotNull final RepositoryDependency dependency) {
     final String artifact = dependency.getArtifact();
     File file = null;
     if (dependency.getResolution() == DependencyResolution.MAVEN_DEPENDENCY) {

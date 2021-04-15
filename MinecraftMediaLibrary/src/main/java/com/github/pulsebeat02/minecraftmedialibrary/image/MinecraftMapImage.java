@@ -42,7 +42,7 @@ import java.util.Objects;
  * to draw the specific image onto the map. MapImage also supports serialization/deserialization, so
  * it can be stored in configuration files if necessary.
  */
-public final class MapImage implements ImageMapHolder, ConfigurationSerializable {
+public final class MinecraftMapImage implements MapImageHolder, ConfigurationSerializable {
 
   private final MinecraftMediaLibrary library;
   private final int map;
@@ -59,7 +59,7 @@ public final class MapImage implements ImageMapHolder, ConfigurationSerializable
    * @param width the width
    * @param height the height
    */
-  public MapImage(
+  public MinecraftMapImage(
       @NotNull final MinecraftMediaLibrary library,
       final int map,
       @NotNull final File image,
@@ -83,7 +83,7 @@ public final class MapImage implements ImageMapHolder, ConfigurationSerializable
    * @param width the width
    * @param height the height
    */
-  public MapImage(
+  public MinecraftMapImage(
       @NotNull final MinecraftMediaLibrary library,
       final int map,
       @NotNull final String url,
@@ -115,10 +115,10 @@ public final class MapImage implements ImageMapHolder, ConfigurationSerializable
    * @return the map image
    */
   @NotNull
-  public static MapImage deserialize(
+  public static MinecraftMapImage deserialize(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final Map<String, Object> deserialize) {
-    return new MapImage(
+    return new MinecraftMapImage(
         library,
         NumberConversions.toInt(deserialize.get("map")),
         new File(String.valueOf(deserialize.get("image"))),
@@ -273,8 +273,8 @@ public final class MapImage implements ImageMapHolder, ConfigurationSerializable
      * @param library the library
      * @return the map image
      */
-    public MapImage createImageMap(final MinecraftMediaLibrary library) {
-      return new MapImage(library, map, image, width, height);
+    public MinecraftMapImage createImageMap(final MinecraftMediaLibrary library) {
+      return new MinecraftMapImage(library, map, image, width, height);
     }
   }
 }

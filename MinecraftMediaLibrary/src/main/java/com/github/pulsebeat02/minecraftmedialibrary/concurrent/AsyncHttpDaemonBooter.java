@@ -22,7 +22,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.concurrent;
 
-import com.github.pulsebeat02.minecraftmedialibrary.http.HttpDaemonBase;
+import com.github.pulsebeat02.minecraftmedialibrary.http.HttpDaemon;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -30,14 +30,14 @@ import java.util.concurrent.CompletableFuture;
 /** An async helper class used for booting HttpDaemons. */
 public class AsyncHttpDaemonBooter {
 
-  private final HttpDaemonBase daemon;
+  private final HttpDaemon daemon;
 
   /**
    * Instantiates a new AsyncHttpDaemonBooter.
    *
    * @param daemon the daemon
    */
-  public AsyncHttpDaemonBooter(@NotNull final HttpDaemonBase daemon) {
+  public AsyncHttpDaemonBooter(@NotNull final HttpDaemon daemon) {
     this.daemon = daemon;
   }
 

@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
@@ -49,7 +50,7 @@ public final class FileUtilities {
    * @return the file
    */
   @NotNull
-  public static File downloadImageFile(@NotNull final String url, @NotNull final String path) {
+  public static File downloadImageFile(@NotNull final String url, @NotNull final Path path) {
     final String filePath = String.format("%s/%s.png", path, UUID.randomUUID());
     try (final InputStream in = new URL(url).openStream()) {
       Files.copy(in, Paths.get(filePath));

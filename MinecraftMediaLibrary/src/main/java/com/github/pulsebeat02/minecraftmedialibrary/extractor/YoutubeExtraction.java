@@ -45,7 +45,7 @@ import java.util.Optional;
  * Youtube extraction class used to extract audio from video files. Very useful for extraction media
  * from a specific link.
  */
-public class YoutubeExtraction implements VideoExtractorBase {
+public class YoutubeExtraction implements VideoExtractor {
 
   private final Encoder encoder;
   private final EncodingAttributes attrs;

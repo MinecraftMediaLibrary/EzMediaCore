@@ -30,7 +30,7 @@ import java.io.File;
  * A useful interface that is used to specify custom video extraction classes. Used within the
  * library as well.
  */
-public interface VideoExtractorBase {
+public interface VideoExtractor {
 
   /**
    * Downloads the specified video given the url. If the video is a Youtube URL and the video id

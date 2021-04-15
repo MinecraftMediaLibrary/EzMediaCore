@@ -200,7 +200,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
    * @return pack json
    */
   @NotNull
-  public String getPackJson() {
+  private String getPackJson() {
     final JsonObject mcmeta = new JsonObject();
     final JsonObject pack = new JsonObject();
     pack.addProperty("pack_format", packFormat);
@@ -215,7 +215,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
    * @return sound json
    */
   @NotNull
-  public String getSoundJson() {
+  private String getSoundJson() {
     final JsonObject category = new JsonObject();
     final JsonObject type = new JsonObject();
     final JsonArray sounds = new JsonArray();

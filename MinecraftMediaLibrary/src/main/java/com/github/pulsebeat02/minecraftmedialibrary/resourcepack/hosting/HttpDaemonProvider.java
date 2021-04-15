@@ -22,7 +22,8 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting;
 
-import com.github.pulsebeat02.minecraftmedialibrary.http.HttpDaemon;
+import com.github.pulsebeat02.minecraftmedialibrary.exception.NetworkHttpException;
+import com.github.pulsebeat02.minecraftmedialibrary.http.HttpFileDaemonServer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
@@ -38,9 +39,9 @@ import java.nio.file.Paths;
  */
 public class HttpDaemonProvider implements HostingProvider {
 
-  private final String serverIP;
   private final int port;
-  private HttpDaemon daemon;
+  private HttpFileDaemonServer daemon;
+  private String serverIP;
 
   /**
    * Instantiates a new Http daemon provider.
@@ -50,9 +51,9 @@ public class HttpDaemonProvider implements HostingProvider {
    */
   public HttpDaemonProvider(@NotNull final String path, final int port) {
     this.port = port;
-    serverIP = getPublicIP();
     try {
-      daemon = new HttpDaemon(port, path);
+      serverIP = getPublicIP();
+      daemon = new HttpFileDaemonServer(port, path);
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -69,19 +70,10 @@ public class HttpDaemonProvider implements HostingProvider {
     this.port = port;
     serverIP = ip;
     try {
-      daemon = new HttpDaemon(port, path);
+      daemon = new HttpFileDaemonServer(port, path);
     } catch (final IOException e) {
       e.printStackTrace();
     }
-  }
-
-  /**
-   * Gets server ip.
-   *
-   * @return the server ip
-   */
-  public String getServerIp() {
-    return serverIP;
   }
 
   /** Start server. */
@@ -119,7 +111,7 @@ public class HttpDaemonProvider implements HostingProvider {
    * @return the public ip
    */
   @NotNull
-  public String getPublicIP() {
+  public String getPublicIP() throws IOException {
     try (final BufferedReader in =
         new BufferedReader(
             new InputStreamReader(new URL("https://checkip.amazonaws.com").openStream()))) {
@@ -129,7 +121,7 @@ public class HttpDaemonProvider implements HostingProvider {
     } catch (final IOException e) {
       e.printStackTrace();
     }
-    return "";
+    throw new NetworkHttpException("Cannot Find Public IP Address!");
   }
 
   /**
@@ -146,11 +138,20 @@ public class HttpDaemonProvider implements HostingProvider {
   }
 
   /**
+   * Gets server ip.
+   *
+   * @return the server ip
+   */
+  public String getServerIp() {
+    return serverIP;
+  }
+
+  /**
    * Gets daemon.
    *
    * @return the daemon
    */
-  public HttpDaemon getDaemon() {
+  public HttpFileDaemonServer getDaemon() {
     return daemon;
   }
 

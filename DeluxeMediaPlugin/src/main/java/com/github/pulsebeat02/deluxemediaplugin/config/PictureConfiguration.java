@@ -14,7 +14,7 @@
 package com.github.pulsebeat02.deluxemediaplugin.config;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import com.github.pulsebeat02.minecraftmedialibrary.image.MapImage;
+import com.github.pulsebeat02.minecraftmedialibrary.image.MinecraftMapImage;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +26,7 @@ import java.util.Set;
 
 public class PictureConfiguration extends AbstractConfiguration {
 
-  private final Set<MapImage> images;
+  private final Set<MinecraftMapImage> images;
 
   public PictureConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, "picture.yml");
@@ -34,13 +34,13 @@ public class PictureConfiguration extends AbstractConfiguration {
   }
 
   public void addPhoto(final int map, @NotNull final File file, final int width, final int height) {
-    images.add(new MapImage(getPlugin().getLibrary(), map, file, width, height));
+    images.add(new MinecraftMapImage(getPlugin().getLibrary(), map, file, width, height));
   }
 
   @Override
   public void deserialize() {
     final FileConfiguration configuration = getFileConfiguration();
-    for (final MapImage image : images) {
+    for (final MinecraftMapImage image : images) {
       final long key = image.getMap();
       configuration.set(String.format("%d.location", key), image.getImage().getAbsolutePath());
       configuration.set(String.format("%d.width", key), image.getWidth());
@@ -63,11 +63,11 @@ public class PictureConfiguration extends AbstractConfiguration {
       }
       final int width = configuration.getInt(id + "width");
       final int height = configuration.getInt(id + "height");
-      images.add(new MapImage(getPlugin().getLibrary(), id, file, width, height));
+      images.add(new MinecraftMapImage(getPlugin().getLibrary(), id, file, width, height));
     }
   }
 
-  public Set<MapImage> getImages() {
+  public Set<MinecraftMapImage> getImages() {
     return images;
   }
 }

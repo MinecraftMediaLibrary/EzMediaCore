@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * Thrown if a pack format is not supported or an error has been created while trying to find the
  * correct pack format.
  */
-public class InvalidPackFormatException extends AssertionError {
+public class InvalidPackFormatException extends LibraryException {
 
   private static final long serialVersionUID = -4686809703553076358L;
 
@@ -39,36 +39,5 @@ public class InvalidPackFormatException extends AssertionError {
    */
   public InvalidPackFormatException(@NotNull final String message) {
     super(message);
-  }
-
-  /**
-   * Gets the cause of the exception.
-   *
-   * @return this
-   */
-  @Override
-  public synchronized Throwable getCause() {
-    return this;
-  }
-
-  /**
-   * Initializes the cause of the exception.
-   *
-   * @param cause cause
-   * @return this
-   */
-  @Override
-  public synchronized Throwable initCause(@NotNull final Throwable cause) {
-    return this;
-  }
-
-  /**
-   * Fills in stack trace for exception.
-   *
-   * @return throwable stack trace
-   */
-  @Override
-  public synchronized Throwable fillInStackTrace() {
-    return this;
   }
 }

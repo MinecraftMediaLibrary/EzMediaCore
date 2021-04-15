@@ -25,7 +25,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.exception;
 import org.jetbrains.annotations.NotNull;
 
 /** Thrown if the specified url is invalid. */
-public class InvalidYoutubeURLException extends AssertionError {
+public class InvalidYoutubeURLException extends LibraryException {
 
   private static final long serialVersionUID = -6428433369003844013L;
 
@@ -36,36 +36,5 @@ public class InvalidYoutubeURLException extends AssertionError {
    */
   public InvalidYoutubeURLException(@NotNull final String message) {
     super(message);
-  }
-
-  /**
-   * Gets the cause of the exception.
-   *
-   * @return this
-   */
-  @Override
-  public synchronized Throwable getCause() {
-    return this;
-  }
-
-  /**
-   * Initializes the cause of the exception.
-   *
-   * @param cause cause
-   * @return this
-   */
-  @Override
-  public synchronized Throwable initCause(@NotNull final Throwable cause) {
-    return this;
-  }
-
-  /**
-   * Fills in stack trace for exception.
-   *
-   * @return throwable stack trace
-   */
-  @Override
-  public synchronized Throwable fillInStackTrace() {
-    return this;
   }
 }

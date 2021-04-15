@@ -48,7 +48,7 @@ public class ResourceUtilities {
     final ClassLoader loader = ResourceUtilities.class.getClassLoader();
     final InputStream input = loader.getResourceAsStream(name);
     if (input == null) {
-      throw new IllegalArgumentException("File not Found! " + name);
+      throw new NullPointerException("File not Found! " + name);
     } else {
       return IOUtils.toString(input, StandardCharsets.UTF_8.name());
     }

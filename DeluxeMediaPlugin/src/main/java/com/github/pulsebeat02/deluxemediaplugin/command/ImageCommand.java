@@ -16,7 +16,7 @@ package com.github.pulsebeat02.deluxemediaplugin.command;
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.image.MapImage;
+import com.github.pulsebeat02.minecraftmedialibrary.image.MinecraftMapImage;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.LongArgumentType;
@@ -47,7 +47,7 @@ import java.util.UUID;
 
 public class ImageCommand extends BaseCommand implements Listener {
 
-  private final Set<MapImage> images;
+  private final Set<MinecraftMapImage> images;
   private final Set<UUID> listen;
   private final LiteralCommandNode<CommandSender> literalNode;
   private int width;
@@ -113,8 +113,8 @@ public class ImageCommand extends BaseCommand implements Listener {
     final File f =
         FileUtilities.downloadImageFile(
             "https://images.news18.com/ibnlive/uploads/2020/12/1607660925_untitled-design-2020-12-11t095722.206.png",
-            library.getPlugin().getDataFolder().getAbsolutePath());
-    new MapImage(library, 69, f, width, height).drawImage();
+            library.getParentFolder());
+    new MinecraftMapImage(library, 69, f, width, height).drawImage();
     audience.sendMessage(
         ChatUtilities.formatMessage(Component.text("Gottem", NamedTextColor.GOLD)));
     return 1;
@@ -155,14 +155,13 @@ public class ImageCommand extends BaseCommand implements Listener {
     final DeluxeMediaPlugin plugin = getPlugin();
     final MinecraftMediaLibrary library = plugin.getLibrary();
     if (isUrl(mrl)) {
-      final File img =
-          FileUtilities.downloadImageFile(mrl, plugin.getDataFolder().getAbsolutePath());
-      new MapImage(library, id, img, width, height).drawImage();
+      final File img = FileUtilities.downloadImageFile(mrl, plugin.getLibrary().getParentFolder());
+      new MinecraftMapImage(library, id, img, width, height).drawImage();
       audience.sendMessage(successful);
     } else {
       final File img = new File(plugin.getDataFolder(), mrl);
       if (img.exists()) {
-        new MapImage(library, id, img, width, height).drawImage();
+        new MinecraftMapImage(library, id, img, width, height).drawImage();
         audience.sendMessage(successful);
       } else {
         audience.sendMessage(
@@ -182,14 +181,14 @@ public class ImageCommand extends BaseCommand implements Listener {
       return 1;
     }
     final int id = (int) opt.getAsLong();
-    final Iterator<MapImage> itr = images.iterator();
+    final Iterator<MinecraftMapImage> itr = images.iterator();
     while (itr.hasNext()) {
       if (itr.next().getMap() == id) {
         itr.remove();
         break;
       }
     }
-    MapImage.resetMap(getPlugin().getLibrary(), id);
+    MinecraftMapImage.resetMap(getPlugin().getLibrary(), id);
     audience.sendMessage(
         ChatUtilities.formatMessage(
             Component.text(
@@ -215,8 +214,8 @@ public class ImageCommand extends BaseCommand implements Listener {
     if (listen.contains(p.getUniqueId())) {
       final Audience audience = getPlugin().getAudiences().player(p);
       if (event.getMessage().equalsIgnoreCase("YES")) {
-        for (final MapImage image : images) {
-          MapImage.resetMap(getPlugin().getLibrary(), image.getMap());
+        for (final MinecraftMapImage image : images) {
+          MinecraftMapImage.resetMap(getPlugin().getLibrary(), image.getMap());
         }
         images.clear();
         audience.sendMessage(

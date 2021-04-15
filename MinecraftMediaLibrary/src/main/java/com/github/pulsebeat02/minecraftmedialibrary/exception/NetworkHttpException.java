@@ -20,18 +20,21 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.image;
+package com.github.pulsebeat02.minecraftmedialibrary.exception;
 
-/**
- * Holds the map image and functions which call the necessary draw functions and events when
- * necessary. Also can be used to create custom map image classes. Used within the
- * MinecraftMediaLibrary to draw/display images to players.
- */
-public interface ImageMapHolder {
+import org.jetbrains.annotations.NotNull;
 
-  /** Draws a specified image onto a Map. */
-  void drawImage();
+/** Throw when a Network HTTP exception has occurred. */
+public class NetworkHttpException extends LibraryException {
 
-  /** Called before image is drawn. */
-  void onDrawImage();
+  private static final long serialVersionUID = -8317098640373685160L;
+
+  /**
+   * Instantiates a new InvalidYoutubeURLException.
+   *
+   * @param message the exception message
+   */
+  public NetworkHttpException(@NotNull final String message) {
+    super(message);
+  }
 }

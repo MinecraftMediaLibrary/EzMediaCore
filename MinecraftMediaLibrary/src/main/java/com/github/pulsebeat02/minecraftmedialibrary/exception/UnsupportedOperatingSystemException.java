@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Thrown if the operating system the current environment is using is unsupported by the library.
  */
-public class UnsupportedOperatingSystemException extends AssertionError {
+public class UnsupportedOperatingSystemException extends LibraryException {
 
   private static final long serialVersionUID = 1682368011870345698L;
 
@@ -38,36 +38,5 @@ public class UnsupportedOperatingSystemException extends AssertionError {
    */
   public UnsupportedOperatingSystemException(@NotNull final String message) {
     super(message);
-  }
-
-  /**
-   * Gets the cause of the exception.
-   *
-   * @return this
-   */
-  @Override
-  public synchronized Throwable getCause() {
-    return this;
-  }
-
-  /**
-   * Initializes the cause of the exception.
-   *
-   * @param cause cause
-   * @return this
-   */
-  @Override
-  public synchronized Throwable initCause(@NotNull final Throwable cause) {
-    return this;
-  }
-
-  /**
-   * Fills in stack trace for exception.
-   *
-   * @return throwable stack trace
-   */
-  @Override
-  public synchronized Throwable fillInStackTrace() {
-    return this;
   }
 }
