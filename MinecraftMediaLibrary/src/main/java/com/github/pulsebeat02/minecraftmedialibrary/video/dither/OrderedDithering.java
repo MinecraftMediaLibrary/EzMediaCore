@@ -289,6 +289,7 @@ public final class OrderedDithering implements DitherHolder {
    * @return setting
    */
   @Override
+  @NotNull
   public DitherSetting getSetting() {
     switch (n) {
       case 2:

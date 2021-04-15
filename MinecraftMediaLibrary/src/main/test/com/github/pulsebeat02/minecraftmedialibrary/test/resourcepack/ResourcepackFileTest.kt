@@ -10,11 +10,11 @@
  * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/26/2021
  * ============================================================================
  */
-package com.github.pulsebeat02.minecraftmedialibrary.test.video
+package com.github.pulsebeat02.minecraftmedialibrary.test.resourcepack
 
 import com.google.gson.JsonObject
 
-fun main(args: Array<String>) {
+fun main() {
     println(generateJSON())
 }
 

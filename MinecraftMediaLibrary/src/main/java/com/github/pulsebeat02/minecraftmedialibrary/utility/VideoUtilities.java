@@ -48,7 +48,7 @@ public final class VideoUtilities {
    * @param image the image
    * @return the buffer
    */
-  public static int @NotNull [] getBuffer(@NotNull final File image) {
+  public static int @Nullable [] getBuffer(@NotNull final File image) {
     try {
       return getBuffer(ImageIO.read(image));
     } catch (final IOException e) {

@@ -33,6 +33,7 @@ import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
@@ -44,7 +45,7 @@ import java.util.Properties;
  */
 public abstract class SilentOSDependentSolution {
 
-  private final String dir;
+  private final Path dir;
   private final NativeDiscovery nativeDiscovery;
 
   /**
@@ -61,7 +62,7 @@ public abstract class SilentOSDependentSolution {
    *
    * @param dir the directory
    */
-  public SilentOSDependentSolution(@NotNull final String dir) {
+  public SilentOSDependentSolution(@NotNull final Path dir) {
     this.dir = dir;
     nativeDiscovery = new NativeDiscovery();
   }
@@ -140,7 +141,7 @@ public abstract class SilentOSDependentSolution {
    *
    * @return directory
    */
-  public String getDir() {
+  public Path getDir() {
     return dir;
   }
 

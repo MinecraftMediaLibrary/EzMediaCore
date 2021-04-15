@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * The Linux specific installation for VLC is hard in the sense that we must specify the correct
@@ -58,13 +59,13 @@ public class LinuxSilentInstallation extends SilentOSDependentSolution {
    */
   @Override
   public void downloadVLCLibrary() throws IOException {
-    final String dir = getDir();
+    final Path dir = getDir();
     Logger.info("No VLC Installation found on this Computer. Proceeding to a manual install.");
     final LinuxPackageManager manager = new LinuxPackageManager(dir);
     final File f = manager.getDesignatedPackage();
     PackageBase.getFromFile(library, f).installPackage();
     Logger.info(String.format("Downloaded and Loaded Package (%s)", f.getAbsolutePath()));
-    loadNativeDependency(new File(dir));
+    loadNativeDependency(dir.toFile());
     printSystemEnvironmentVariables();
     printSystemProperties();
   }

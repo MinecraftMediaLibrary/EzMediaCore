@@ -26,6 +26,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.StaticDitherInitialization;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 
@@ -178,7 +179,8 @@ public class DynamicIntegerDithering implements DitherHolder {
   }
 
   @Override
+  @NotNull
   public DitherSetting getSetting() {
-    return null;
+    return DitherSetting.EXPERIMENTAL_DITHERING;
   }
 }

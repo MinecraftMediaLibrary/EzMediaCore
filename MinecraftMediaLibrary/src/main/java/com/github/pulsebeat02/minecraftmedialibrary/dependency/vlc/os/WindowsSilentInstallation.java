@@ -34,6 +34,7 @@ import uk.co.caprica.vlcj.binding.RuntimeUtil;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 
 /**
  * The Windows specific silent installation. It uses a zip file hosted on Github to install the VLC
@@ -57,22 +58,23 @@ public class WindowsSilentInstallation extends SilentOSDependentSolution {
    *
    * @param dir the directory
    */
-  public WindowsSilentInstallation(@NotNull final String dir) {
+  public WindowsSilentInstallation(@NotNull final Path dir) {
     super(dir);
   }
 
   @Override
   public void downloadVLCLibrary() throws IOException {
-    final String dir = getDir();
+    final Path dir = getDir();
     Logger.info("No VLC Installation found on this Computer. Proceeding to a manual install.");
-    final File zip = new File(dir, "VLC.zip");
+    final File zip = dir.resolve("VLC.zip").toFile();
     FileUtils.copyURLToFile(new URL(RuntimeUtilities.getURL()), zip);
     final String path = zip.getAbsolutePath();
-    ArchiveUtilities.decompressArchive(new File(path), new File(dir));
+    final File dirFile = dir.toFile();
+    ArchiveUtilities.decompressArchive(new File(path), dirFile);
     vlcPath = new File(zip.getParentFile(), "vlc-3.0.12").getAbsolutePath();
     Logger.info(String.format("Successfully Extracted File (%s)", path));
     deleteArchive(zip);
-    loadNativeDependency(new File(dir));
+    loadNativeDependency(dirFile);
     printSystemEnvironmentVariables();
     printSystemProperties();
   }

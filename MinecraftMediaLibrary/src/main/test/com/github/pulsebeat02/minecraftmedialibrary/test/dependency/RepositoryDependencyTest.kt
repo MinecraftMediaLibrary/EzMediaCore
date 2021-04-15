@@ -18,15 +18,16 @@ import com.github.kiulian.downloader.cipher.CipherFunction
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyManagement
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger
+import java.nio.file.Paths
 
-fun main(args: Array<String>) {
+fun main() {
     Logger.setVerbose(true)
-    val management = DependencyManagement("")
+    val management = DependencyManagement(Paths.get(""))
     management.install()
     management.relocate()
     management.load()
     val ffmpeg =
-        FFmpegDependencyInstallation("")
+        FFmpegDependencyInstallation(Paths.get(""))
     ffmpeg.install()
     object : CipherFactory {
         override fun createCipher(s: String): Cipher? {

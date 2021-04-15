@@ -20,7 +20,7 @@
  .   SOFTWARE.                                                                               .
  ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.test.resource;
+package com.github.pulsebeat02.minecraftmedialibrary.test.lab
 
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ResourceUtilities
 

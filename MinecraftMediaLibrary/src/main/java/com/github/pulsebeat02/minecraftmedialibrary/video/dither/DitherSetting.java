@@ -22,6 +22,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
 
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.development.DynamicIntegerDithering;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +45,10 @@ public enum DitherSetting {
   BAYER_ORDERED_8_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.ModeEight)),
 
   /** Floyd Steinberg Dithering */
-  FLOYD_STEINBERG_DITHER(new FloydImageDither());
+  FLOYD_STEINBERG_DITHER(new FloydImageDither()),
+
+  /** Experimental Dithering */
+  EXPERIMENTAL_DITHERING(new DynamicIntegerDithering());
 
   private final DitherHolder holder;
 

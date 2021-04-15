@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.test.dependency
 
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation
 import java.io.File
+import java.nio.file.Paths
 
 fun main() {
     val folder = File(System.getProperty("user.dir") + "/dependencies-test")
@@ -37,6 +38,6 @@ fun main() {
 //    management.relocate()
 //    management.load()
     val ffmpeg =
-        FFmpegDependencyInstallation(folder.absolutePath)
+        FFmpegDependencyInstallation(Paths.get(folder.absolutePath))
     ffmpeg.install()
 }

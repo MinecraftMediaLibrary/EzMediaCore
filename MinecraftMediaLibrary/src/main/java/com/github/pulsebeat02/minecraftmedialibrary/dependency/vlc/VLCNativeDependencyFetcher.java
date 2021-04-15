@@ -32,6 +32,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * The main class of the VLC native dependency fetcher. It calls the correct classes and dependency
@@ -52,7 +53,7 @@ public class VLCNativeDependencyFetcher {
    * @param library the library
    */
   public VLCNativeDependencyFetcher(@NotNull final MinecraftMediaLibrary library) {
-    final String dir = library.getVlcFolder();
+    final Path dir = library.getVlcFolder();
     if (RuntimeUtilities.isLinux()) {
       solution = new LinuxSilentInstallation(library);
     } else if (RuntimeUtilities.isWindows()) {

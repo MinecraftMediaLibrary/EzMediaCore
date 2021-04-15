@@ -13,7 +13,8 @@
 package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc
 
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackageManager
+import java.nio.file.Paths
 
-fun main(args: Array<String>) {
-    LinuxPackageManager("").getDesignatedPackage()
+fun main() {
+    LinuxPackageManager(Paths.get("")).designatedPackage
 }

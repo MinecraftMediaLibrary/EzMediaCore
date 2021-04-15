@@ -46,7 +46,7 @@ public final class VLCUtilities {
       keyword += "so";
     }
     final Queue<File> folders = new ArrayDeque<>();
-    folders.add(new File(library.getVlcFolder()));
+    folders.add(library.getVlcFolder().toFile());
     while (!folders.isEmpty()) {
       final File f = folders.remove();
       if (f.isDirectory()) {

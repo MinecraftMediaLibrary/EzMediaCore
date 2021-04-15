@@ -11,7 +11,7 @@
  * ============================================================================
  */
 
-package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc
+package com.github.pulsebeat02.minecraftmedialibrary.test.extraction
 
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities

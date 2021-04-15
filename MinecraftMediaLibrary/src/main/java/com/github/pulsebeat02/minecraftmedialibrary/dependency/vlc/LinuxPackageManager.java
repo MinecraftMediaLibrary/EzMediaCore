@@ -43,6 +43,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -92,7 +93,7 @@ public class LinuxPackageManager {
    *
    * @param dir directory
    */
-  public LinuxPackageManager(@NotNull final String dir) {
+  public LinuxPackageManager(@NotNull final Path dir) {
     Logger.info("Reading System OS JSON file...");
     try {
       packages =
@@ -104,7 +105,7 @@ public class LinuxPackageManager {
       Logger.info("Could not read System OS JSON file");
       e.printStackTrace();
     }
-    vlc = new File(dir);
+    vlc = dir.toFile();
     if (!vlc.exists()) {
       if (vlc.mkdir()) {
         Logger.info("Made VLC Directory");

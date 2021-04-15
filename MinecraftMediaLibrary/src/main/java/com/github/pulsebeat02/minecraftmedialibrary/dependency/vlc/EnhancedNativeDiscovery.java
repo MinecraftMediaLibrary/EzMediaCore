@@ -35,6 +35,7 @@ import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 import uk.co.caprica.vlcj.support.version.LibVlcVersion;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Queue;
@@ -59,7 +60,7 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
     VLC_PLUGIN_PATH = "VLC_PLUGIN_PATH";
   }
 
-  private final String dir;
+  private final Path dir;
   private String path;
 
   /**
@@ -76,7 +77,7 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
    *
    * @param dir directory
    */
-  public EnhancedNativeDiscovery(@NotNull final String dir) {
+  public EnhancedNativeDiscovery(@NotNull final Path dir) {
     this.dir = dir;
   }
 
@@ -93,7 +94,7 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
    */
   @Override
   public String discover() {
-    final File fold = new File(dir);
+    final File fold = dir.toFile();
     if (!fold.exists()) {
       return null;
     }
@@ -180,7 +181,7 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
    *
    * @return dir directory
    */
-  public String getDir() {
+  public Path getDir() {
     return dir;
   }
 

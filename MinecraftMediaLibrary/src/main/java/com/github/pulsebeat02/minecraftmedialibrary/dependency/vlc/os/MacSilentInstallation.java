@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 
 /**
  * The Mac specific silent installation for VLC. Mac is significantly harder to accomplish compared
@@ -60,14 +61,14 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
    *
    * @param dir the directory
    */
-  public MacSilentInstallation(@NotNull final String dir) {
+  public MacSilentInstallation(@NotNull final Path dir) {
     super(dir);
   }
 
   @Override
   public void downloadVLCLibrary() throws IOException {
-    final String dir = getDir();
-    final File dmg = new File(dir, "VLC.dmg");
+    final Path dir = getDir();
+    final File dmg = dir.resolve("VLC.dmg").toFile();
     final File diskPath = new File("/Volumes/VLC media player");
     FileUtils.copyURLToFile(new URL(RuntimeUtilities.getURL()), dmg);
     try {
@@ -77,7 +78,7 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
     } catch (final InterruptedException e) {
       e.printStackTrace();
     }
-    final File app = new File(dir, "VLC.app");
+    final File app = dir.resolve("VLC.app").toFile();
     FileUtils.copyDirectory(new File(diskPath, "VLC.app"), app);
     try {
       changePermissions(app.getAbsolutePath());
@@ -95,7 +96,7 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
     Logger.info("Unmounting Disk Successfully");
     deleteArchive(dmg);
     Logger.info("Deleted DMG File");
-    loadNativeDependency(new File(dir));
+    loadNativeDependency(dir.toFile());
   }
 
   /**
