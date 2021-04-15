@@ -211,8 +211,7 @@ public class VideoCommand extends BaseCommand {
               Component.text("There isn't a video currently playing!", NamedTextColor.RED)));
     } else {
       audience.sendMessage(
-          ChatUtilities.formatMessage(
-              Component.text("=====================================", NamedTextColor.AQUA)));
+          Component.text("=====================================", NamedTextColor.AQUA));
       audience.sendMessage(
           youtube
               ? Component.join(
@@ -233,8 +232,7 @@ public class VideoCommand extends BaseCommand {
                       String.format("Size: %d Kilobytes", file.getTotalSpace() / 1024),
                       NamedTextColor.GOLD)));
       audience.sendMessage(
-          ChatUtilities.formatMessage(
-              Component.text("=====================================", NamedTextColor.AQUA)));
+          Component.text("=====================================", NamedTextColor.AQUA));
     }
     return 1;
   }
@@ -265,7 +263,7 @@ public class VideoCommand extends BaseCommand {
     if (library.isUsingVLCJ()) {
       player =
           VLCJIntegratedPlayer.builder()
-              .setUrl(extractor.getUrl())
+              .setUrl(extractor.getVideo().getAbsolutePath())
               .setWidth(screenWidth)
               .setHeight(screenHeight)
               .setCallback(

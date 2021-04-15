@@ -31,10 +31,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -44,6 +49,12 @@ import java.util.stream.Collectors;
  * install, load, or relocate the binaries.
  */
 public class DependencyManagement {
+
+  private static final ExecutorService EXECUTOR_SERVICE;
+
+  static {
+    EXECUTOR_SERVICE = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+  }
 
   private final Set<File> files;
   private final File dir;
@@ -92,38 +103,52 @@ public class DependencyManagement {
 
   /** Installs all libraries from links. */
   public void install() {
+    final List<Callable<Object>> tasks = new ArrayList<>();
     for (final RepositoryDependency dependency : RepositoryDependency.values()) {
       if (!checkExists(relocatedDir, dependency)) {
-        final String artifact = dependency.getArtifact();
-        File file = null;
-        if (dependency.getResolution() == DependencyResolution.MAVEN_DEPENDENCY) {
-          Logger.info("Checking Maven Central Repository for " + artifact);
-          try {
-            file = DependencyUtilities.downloadMavenDependency(dependency, dir.getAbsolutePath());
-          } catch (final IOException e) {
-            Logger.info(String.format("Could NOT find %s in Maven Central Repository!", artifact));
-            e.printStackTrace();
-          }
-        } else if (dependency.getResolution() == DependencyResolution.JITPACK_DEPENDENCY) {
-          Logger.info("Checking Jitpack Central Repository for " + artifact);
-          try {
-            file = DependencyUtilities.downloadJitpackDependency(dependency, dir.getAbsolutePath());
-          } catch (final IOException e) {
-            Logger.info(
-                String.format("Could NOT find %s in Jitpack Central Repository!", artifact));
-            e.printStackTrace();
-          }
-        }
-        if (file != null) {
-          files.add(file);
-        }
+        tasks.add(Executors.callable(() -> installDependency(dependency)));
       }
+    }
+    try {
+      EXECUTOR_SERVICE.invokeAll(tasks);
+    } catch (final InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * Installs a specific dependency by itself.
+   *
+   * @param dependency the repository dependency
+   */
+  public void installDependency(@NotNull final RepositoryDependency dependency) {
+    final String artifact = dependency.getArtifact();
+    File file = null;
+    if (dependency.getResolution() == DependencyResolution.MAVEN_DEPENDENCY) {
+      Logger.info("Checking Maven Central Repository for " + artifact);
+      try {
+        file = DependencyUtilities.downloadMavenDependency(dependency, dir.getAbsolutePath());
+      } catch (final IOException e) {
+        Logger.info(String.format("Could NOT find %s in Maven Central Repository!", artifact));
+        e.printStackTrace();
+      }
+    } else if (dependency.getResolution() == DependencyResolution.JITPACK_DEPENDENCY) {
+      Logger.info("Checking Jitpack Central Repository for " + artifact);
+      try {
+        file = DependencyUtilities.downloadJitpackDependency(dependency, dir.getAbsolutePath());
+      } catch (final IOException e) {
+        Logger.info(String.format("Could NOT find %s in Jitpack Central Repository!", artifact));
+        e.printStackTrace();
+      }
+    }
+    if (file != null) {
+      files.add(file);
     }
   }
 
   /** Relocates Dependencies. */
   public void relocate() {
-    for (final File f : dir.listFiles()) {
+    for (final File f : Objects.requireNonNull(dir.listFiles())) {
       if (f.getName().contains("asm")) {
         try {
           DependencyUtilities.loadDependency(f);
@@ -137,20 +162,28 @@ public class DependencyManagement {
         Arrays.stream(JarRelocationConvention.values())
             .map(JarRelocationConvention::getRelocation)
             .collect(Collectors.toList());
+    final List<Callable<Object>> tasks = new ArrayList<>();
     for (final File f : files) {
-      final JarRelocator relocator =
-          new JarRelocator(f, new File(relocatedDir, f.getName()), relocations);
-      try {
-        relocator.run();
-      } catch (final IOException e) {
-        e.printStackTrace();
-      }
+      tasks.add(
+          Executors.callable(
+              () -> {
+                try {
+                  new JarRelocator(f, new File(relocatedDir, f.getName()), relocations).run();
+                } catch (final IOException e) {
+                  e.printStackTrace();
+                }
+              }));
+    }
+    try {
+      EXECUTOR_SERVICE.invokeAll(tasks);
+    } catch (final InterruptedException e) {
+      e.printStackTrace();
     }
   }
 
   /** Install and load. */
   public void load() {
-    for (final File f : relocatedDir.listFiles()) {
+    for (final File f : Objects.requireNonNull(relocatedDir.listFiles())) {
       try {
         DependencyUtilities.loadDependency(f);
       } catch (final IOException e) {
@@ -171,7 +204,7 @@ public class DependencyManagement {
     if (!dir.exists()) {
       return false;
     }
-    for (final File f : dir.listFiles()) {
+    for (final File f : Objects.requireNonNull(dir.listFiles())) {
       if (f.getName().contains(dependency.getArtifact())) {
         return true;
       }

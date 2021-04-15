@@ -3,7 +3,7 @@ enabled: true
 
 # You must port forward this specific port in order to have the server running.
 # You can also change it to something different if the port is used.
-port: 1234
+port: 1334
 
 # This is the directory for which the HTTP Server is located in. It is also where
 # resourcepacks will be made and hosted. Make sure this folder DOES NOT have any
