@@ -34,13 +34,13 @@
         <dependency>
             <groupId>uk.co.caprica</groupId>
             <artifactId>vlcj</artifactId>
-            <version>4.6.0</version>
+            <version>4.7.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>uk.co.caprica</groupId>
             <artifactId>vlcj-natives</artifactId>
-            <version>4.1.0</version>
+            <version>4.5.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
