@@ -287,7 +287,7 @@ public class VideoCommand extends BaseCommand {
     final DeluxeMediaPlugin plugin = getPlugin();
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
-    final String folderPath = plugin.getDataFolder().getAbsolutePath();
+    final String folderPath = String.format("%s/mml/", plugin.getDataFolder().getAbsolutePath());
     if (!VideoExtractionUtilities.getVideoID(mrl).isPresent()) {
       final File f = new File(folderPath, mrl);
       final TextComponent component;
@@ -335,7 +335,7 @@ public class VideoCommand extends BaseCommand {
                             .setDescription(String.format("Youtube Video: %s", extractor.getVideoTitle()))
                             .setPath(
                                 String.format(
-                                    "%s/http/resourcepack.zip",
+                                    "%s/mml/http/resourcepack.zip",
                                     plugin.getDataFolder().getAbsolutePath()))
                             .setPackFormat(6)
                             .createResourcepackHostingProvider(plugin.getLibrary());
@@ -345,9 +345,6 @@ public class VideoCommand extends BaseCommand {
                       for (final Player p : Bukkit.getOnlinePlayers()) {
                         p.setResourcePack(url);
                       }
-                      audience.sendMessage(
-                          ChatUtilities.formatMessage(
-                              Component.text("Sending Resourcepack...", NamedTextColor.GOLD)));
                     } else {
                       audience.sendMessage(
                           ChatUtilities.formatMessage(

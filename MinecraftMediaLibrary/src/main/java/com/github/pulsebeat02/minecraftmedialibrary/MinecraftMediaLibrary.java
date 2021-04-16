@@ -117,7 +117,7 @@ public final class MinecraftMediaLibrary {
     parentFolder = Paths.get(path);
     httpParentFolder = Paths.get(http == null ? String.format("%s/http/", path) : http);
     dependenciesFolder =
-        Paths.get(libraryPath == null ? String.format("%s/mml_libs/", path) : libraryPath);
+        Paths.get(libraryPath == null ? String.format("%s/libraries/", path) : libraryPath);
     vlcFolder = Paths.get(vlcPath == null ? String.format("%s/vlc/", path) : vlcPath);
     createNecessaryFolders();
     vlcj = isUsingVLCJ;

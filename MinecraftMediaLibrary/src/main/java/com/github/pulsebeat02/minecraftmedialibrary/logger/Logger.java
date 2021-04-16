@@ -45,8 +45,8 @@ public final class Logger {
 
   public static void initializeLogger(@NotNull final MinecraftMediaLibrary library) {
     try {
-      final File folder = library.getPlugin().getDataFolder();
-      if (folder.mkdir()) {
+      final File folder = new File(library.getPlugin().getDataFolder(), "mml");
+      if (folder.mkdirs()) {
         System.out.println("Created Directory");
       }
       LOGGER = new File(folder, "mml.log");
