@@ -107,9 +107,9 @@ public final class RuntimeUtilities {
     Logger.info("=========================================");
     Logger.info(" Final Results After Runtime Scanning... ");
     Logger.info("=========================================");
-    Logger.info("Operating System: " + OPERATING_SYSTEM);
-    Logger.info("CPU Architecture: " + CPU_ARCH);
-    Logger.info("Link Used: " + URL);
+    Logger.info(String.format("Operating System: %s", OPERATING_SYSTEM));
+    Logger.info(String.format("CPU Architecture: %s", CPU_ARCH));
+    Logger.info(String.format("Link Used: %s", URL));
     Logger.info("=========================================");
   }
 

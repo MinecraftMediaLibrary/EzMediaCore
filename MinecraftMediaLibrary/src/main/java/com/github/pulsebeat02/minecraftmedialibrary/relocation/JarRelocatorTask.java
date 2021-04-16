@@ -149,7 +149,7 @@ final class JarRelocatorTask {
     try {
       classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
     } catch (final Throwable e) {
-      throw new RuntimeException("Error processing class " + name, e);
+      throw new RuntimeException(String.format("Error processing class %s", name), e);
     }
 
     final byte[] renamedClass = classWriter.toByteArray();

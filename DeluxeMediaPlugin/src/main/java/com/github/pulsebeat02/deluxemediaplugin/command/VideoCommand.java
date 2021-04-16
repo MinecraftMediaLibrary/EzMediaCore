@@ -128,7 +128,7 @@ public class VideoCommand extends BaseCommand {
     final DitherSetting setting = DitherSetting.fromString(algorithm);
     final TextComponent component;
     if (setting == null) {
-      component = Component.text("Could not find dither type " + algorithm, NamedTextColor.RED);
+      component = Component.text(String.format("Could not find dither type %s", algorithm), NamedTextColor.RED);
     } else {
       component =
           TextComponent.ofChildren(
@@ -151,7 +151,7 @@ public class VideoCommand extends BaseCommand {
     startingMap = (int) id.getAsLong();
     audience.sendMessage(
         ChatUtilities.formatMessage(
-            Component.text("Set starting-map on id " + startingMap, NamedTextColor.GOLD)));
+            Component.text(String.format("Set starting-map on id %d", startingMap), NamedTextColor.GOLD)));
     return 1;
   }
 
@@ -227,7 +227,7 @@ public class VideoCommand extends BaseCommand {
                       Component.text(extractor.getVideoId(), NamedTextColor.RED)))
               : Component.join(
                   Component.newline(),
-                  Component.text("Video Name: " + file.getName(), NamedTextColor.GOLD),
+                  Component.text(String.format("Video Name: %s", file.getName()), NamedTextColor.GOLD),
                   Component.text(
                       String.format("Size: %d Kilobytes", file.getTotalSpace() / 1024),
                       NamedTextColor.GOLD)));
@@ -256,9 +256,9 @@ public class VideoCommand extends BaseCommand {
         ChatUtilities.formatMessage(
             youtube
                 ? Component.text(
-                    "Starting Video on URL: " + extractor.getUrl(), NamedTextColor.GOLD)
+                    String.format("Starting Video on URL: %s", extractor.getUrl()), NamedTextColor.GOLD)
                 : Component.text(
-                    "Starting Video on File: " + file.getName(), NamedTextColor.GOLD)));
+                    String.format("Starting Video on File: %s", file.getName()), NamedTextColor.GOLD)));
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
     if (library.isUsingVLCJ()) {
       player =
@@ -287,7 +287,7 @@ public class VideoCommand extends BaseCommand {
     final DeluxeMediaPlugin plugin = getPlugin();
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
-    final String folderPath = plugin.getDataFolder().getAbsolutePath();
+    final String folderPath = String.format("%s/mml/", plugin.getDataFolder().getAbsolutePath());
     if (!VideoExtractionUtilities.getVideoID(mrl).isPresent()) {
       final File f = new File(folderPath, mrl);
       final TextComponent component;
@@ -295,7 +295,7 @@ public class VideoCommand extends BaseCommand {
         youtube = false;
         extractor = null;
         file = f;
-        component = Component.text("Successfully loaded video " + f.getName(), NamedTextColor.GOLD);
+        component = Component.text(String.format("Successfully loaded video %s", f.getName()), NamedTextColor.GOLD);
       } else if (mrl.startsWith("http://") || mrl.startsWith("https://")) {
         component =
             Component.text(
@@ -332,10 +332,10 @@ public class VideoCommand extends BaseCommand {
                     final ResourcepackWrapper wrapper =
                         ResourcepackWrapper.builder()
                             .setAudio(extractor.getAudio())
-                            .setDescription("Youtube Video: " + extractor.getVideoTitle())
+                            .setDescription(String.format("Youtube Video: %s", extractor.getVideoTitle()))
                             .setPath(
                                 String.format(
-                                    "%s/http/resourcepack.zip",
+                                    "%s/mml/http/resourcepack.zip",
                                     plugin.getDataFolder().getAbsolutePath()))
                             .setPackFormat(6)
                             .createResourcepackHostingProvider(plugin.getLibrary());
@@ -345,9 +345,6 @@ public class VideoCommand extends BaseCommand {
                       for (final Player p : Bukkit.getOnlinePlayers()) {
                         p.setResourcePack(url);
                       }
-                      audience.sendMessage(
-                          ChatUtilities.formatMessage(
-                              Component.text("Sending Resourcepack...", NamedTextColor.GOLD)));
                     } else {
                       audience.sendMessage(
                           ChatUtilities.formatMessage(

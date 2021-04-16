@@ -55,14 +55,14 @@ public class PluginUpdateChecker {
             plugin,
             () -> {
               try (InputStream inputStream =
-                      new URL("https://api.spigotmc.org/legacy/update.php?resource=" + resource)
+                      new URL(String.format("https://api.spigotmc.org/legacy/update.php?resource=%d", resource))
                           .openStream();
                   Scanner scanner = new Scanner(inputStream)) {
                 if (scanner.hasNext()) {
                   consumer.accept(scanner.next());
                 }
               } catch (IOException exception) {
-                this.plugin.getLogger().info("Cannot look for updates: " + exception.getMessage());
+                this.plugin.getLogger().info(String.format("Cannot look for updates: %s", exception.getMessage()));
               }
             });
   }

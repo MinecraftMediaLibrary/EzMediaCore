@@ -58,7 +58,7 @@ public final class NMSReflectionManager {
   public static PacketHandler getNewPacketHandlerInstance(
       @NotNull final MinecraftMediaLibrary library) {
     try {
-      Logger.info("Loading NMS Class for Version " + VERSION);
+      Logger.info(String.format("Loading NMS Class for Version %s", VERSION));
       final Class<?> clazz =
           Class.forName(
               String.format(

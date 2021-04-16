@@ -403,13 +403,13 @@ public final class DependencyUtilities {
    * @throws IOException the io exception
    */
   public static void loadDependency(@NotNull final File file) throws IOException {
-    Logger.info("Loading JAR Dependency at: " + file.getAbsolutePath());
+    Logger.info(String.format("Loading JAR Dependency at: %s", file.getAbsolutePath()));
     try {
       ADD_URL_METHOD.invoke(CLASSLOADER, file.toURI().toURL());
     } catch (final IllegalAccessException | InvocationTargetException e) {
       e.printStackTrace();
     }
-    Logger.info("Finished Loading Dependency " + file.getName());
+    Logger.info(String.format("Finished Loading Dependency %s", file.getName()));
   }
 
   /**

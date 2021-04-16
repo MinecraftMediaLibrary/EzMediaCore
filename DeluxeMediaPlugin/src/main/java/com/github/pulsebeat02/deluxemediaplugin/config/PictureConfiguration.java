@@ -61,8 +61,8 @@ public class PictureConfiguration extends AbstractConfiguration {
         Logger.error(String.format("Could not read %s at id %d!", file.getAbsolutePath(), id));
         continue;
       }
-      final int width = configuration.getInt(id + "width");
-      final int height = configuration.getInt(id + "height");
+      final int width = configuration.getInt(String.format("%dwidth", id));
+      final int height = configuration.getInt(String.format("%dheight", id));
       images.add(new MinecraftMapImage(getPlugin().getLibrary(), id, file, width, height));
     }
   }

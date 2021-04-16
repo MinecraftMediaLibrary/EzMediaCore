@@ -66,9 +66,7 @@ public class VideoConfiguration extends AbstractConfiguration {
     }
     if (holder == null) {
       Logger.error(
-          "Setting "
-              + ditherSetting
-              + " in video.yml is NOT a valid dithering algorithm! Resorting to Filter Lite Algorithm!");
+              String.format("Setting %s in video.yml is NOT a valid dithering algorithm! Resorting to Filter Lite Algorithm!", ditherSetting));
       holder = DitherSetting.SIERRA_FILTER_LITE_DITHER.getHolder();
     }
     final boolean vlcj = configuration.getBoolean("using-vlcj");

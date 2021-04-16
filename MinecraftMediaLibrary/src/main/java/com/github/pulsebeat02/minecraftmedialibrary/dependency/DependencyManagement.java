@@ -126,7 +126,7 @@ public class DependencyManagement {
     final String artifact = dependency.getArtifact();
     File file = null;
     if (dependency.getResolution() == DependencyResolution.MAVEN_DEPENDENCY) {
-      Logger.info("Checking Maven Central Repository for " + artifact);
+      Logger.info(String.format("Checking Maven Central Repository for %s", artifact));
       try {
         file = DependencyUtilities.downloadMavenDependency(dependency, dir.getAbsolutePath());
       } catch (final IOException e) {
@@ -134,7 +134,7 @@ public class DependencyManagement {
         e.printStackTrace();
       }
     } else if (dependency.getResolution() == DependencyResolution.JITPACK_DEPENDENCY) {
-      Logger.info("Checking Jitpack Central Repository for " + artifact);
+      Logger.info(String.format("Checking Jitpack Central Repository for %s", artifact));
       try {
         file = DependencyUtilities.downloadJitpackDependency(dependency, dir.getAbsolutePath());
       } catch (final IOException e) {

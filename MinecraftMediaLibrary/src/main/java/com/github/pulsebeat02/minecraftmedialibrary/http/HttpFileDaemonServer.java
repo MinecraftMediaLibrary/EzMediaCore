@@ -73,9 +73,9 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon {
     verbose = true;
     Logger.info("Started HTTP Server: ");
     Logger.info("========================================");
-    Logger.info("IP: " + Bukkit.getIp());
-    Logger.info("PORT: " + port);
-    Logger.info("DIRECTORY: " + directory.getAbsolutePath());
+    Logger.info(String.format("IP: %s", Bukkit.getIp()));
+    Logger.info(String.format("PORT: %d", port));
+    Logger.info(String.format("DIRECTORY: %s", directory.getAbsolutePath()));
     Logger.info("========================================");
   }
 
@@ -103,9 +103,9 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon {
     verbose = true;
     Logger.info("Started HTTP Server: ");
     Logger.info("========================================");
-    Logger.info("IP: " + Bukkit.getIp());
-    Logger.info("PORT: " + port);
-    Logger.info("DIRECTORY: " + path);
+    Logger.info(String.format("IP: %s", Bukkit.getIp()));
+    Logger.info(String.format("PORT: %d", port));
+    Logger.info(String.format("DIRECTORY: %s", path));
     Logger.info("========================================");
   }
 

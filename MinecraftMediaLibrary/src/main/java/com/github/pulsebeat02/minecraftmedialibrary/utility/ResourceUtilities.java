@@ -48,7 +48,7 @@ public class ResourceUtilities {
     final ClassLoader loader = ResourceUtilities.class.getClassLoader();
     final InputStream input = loader.getResourceAsStream(name);
     if (input == null) {
-      throw new NullPointerException("File not Found! " + name);
+      throw new NullPointerException(String.format("File not Found! %s", name));
     } else {
       return IOUtils.toString(input, StandardCharsets.UTF_8.name());
     }
@@ -91,7 +91,7 @@ public class ResourceUtilities {
    */
   @Nullable
   public static InputStream accessResourceFileJar(@NotNull final String resource) {
-    InputStream input = ResourceUtilities.class.getResourceAsStream("/resources/" + resource);
+    InputStream input = ResourceUtilities.class.getResourceAsStream(String.format("/resources/%s", resource));
     if (input == null) {
       input = ResourceUtilities.class.getClassLoader().getResourceAsStream(resource);
     }
