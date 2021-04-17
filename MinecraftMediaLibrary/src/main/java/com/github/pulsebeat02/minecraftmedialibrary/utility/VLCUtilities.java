@@ -1,6 +1,5 @@
 package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
-import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.sun.jna.NativeLibrary;
 import com.sun.jna.StringArray;
@@ -33,10 +32,10 @@ public final class VLCUtilities {
   /**
    * Checks if VLC installation exists or not.
    *
-   * @param library the library
+   * @param directory the library
    * @return whether vlc can be found or not
    */
-  public static boolean checkVLCExistance(@NotNull final MinecraftMediaLibrary library) {
+  public static boolean checkVLCExistance(@NotNull final File directory) {
     String keyword = "libvlc.";
     if (RuntimeUtilities.isWindows()) {
       keyword += "dll";
@@ -45,24 +44,52 @@ public final class VLCUtilities {
     } else if (RuntimeUtilities.isLinux()) {
       keyword += "so";
     }
+    boolean plugins = false;
+    boolean libvlc = false;
     final Queue<File> folders = new ArrayDeque<>();
-    folders.add(library.getVlcFolder().toFile());
+    folders.add(directory);
     while (!folders.isEmpty()) {
+      if (plugins && libvlc) {
+        return true;
+      }
       final File f = folders.remove();
+      final String name = f.getName();
       if (f.isDirectory()) {
-        final File[] children = f.listFiles();
-        if (children != null) {
-          folders.addAll(Arrays.asList(children));
+        if (!plugins && name.equals("plugins")) {
+          final String path = f.getAbsolutePath();
+          setVLCPluginPath(path);
+          Logger.info(String.format("Found Plugins Path (%s)", path));
+          plugins = true;
+        } else {
+          final File[] children = f.listFiles();
+          if (children != null) {
+            folders.addAll(Arrays.asList(children));
+          }
         }
       } else {
-        if (f.getName().equals(keyword)) {
-          Logger.info("Found VLC Installation on this Server! Good Job :)");
-          NATIVE_VLC_PATH = f.getParentFile();
-          final String path = NATIVE_VLC_PATH.getAbsolutePath();
-          NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), path);
-          setVLCPluginPath(String.format("%s/plugins/", path));
+        if (!libvlc && name.equals(keyword)) {
+
+          /*
+
+          In general, when we find the LibVLC file we need to also find the parent
+          directory where all the binaries are stored. Unfortunately, this is different
+          for every operating system out there so we must be careful.
+
+          TODO: Verify Linux's LibVLC path is correct
+
+           */
+
+          if (RuntimeUtilities.isWindows()) {
+            NATIVE_VLC_PATH = f.getParentFile();
+          } else if (RuntimeUtilities.isMac() || RuntimeUtilities.isLinux()) {
+            NATIVE_VLC_PATH = f.getParentFile().getParentFile();
+          }
+
+          Logger.info(String.format("Found LibVLC (%s)", f.getAbsoluteFile()));
+          NativeLibrary.addSearchPath(
+              RuntimeUtil.getLibVlcLibraryName(), NATIVE_VLC_PATH.getAbsolutePath());
           loadLibVLCLibrary();
-          return true;
+          libvlc = true;
         }
       }
     }

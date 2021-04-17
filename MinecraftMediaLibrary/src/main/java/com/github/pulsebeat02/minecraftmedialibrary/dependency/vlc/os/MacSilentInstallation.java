@@ -26,20 +26,24 @@ import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTask;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
+import com.sun.jna.NativeLibrary;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
+import uk.co.caprica.vlcj.binding.RuntimeUtil;
+import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * The Mac specific silent installation for VLC. Mac is significantly harder to accomplish compared
  * to Windows and possibly just as hard for Linux. Due to permission and security measures the
  * operating system has, we must install the file from a dmg. The current implementation installs
  * the proper dmg to the computer, then mounts it by using a command. After that, it moves the .APP
- * file that is inside the mounted drive into the specified folder. Because .APP is actually a
+ * file that is inside the mounted drive into the application folder. Because .APP is actually a
  * folder, we must call the move folder method instead of the move file method. Next, we have to
  * call a command to change the permissions of the file we are able to access the binaries and use
  * them. We call the chmod command to do this and set the permissions to 755. Finally, we unmount
@@ -78,7 +82,7 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
     } catch (final InterruptedException e) {
       e.printStackTrace();
     }
-    final File app = dir.resolve("VLC.app").toFile();
+    final File app = Paths.get(System.getProperty("user.home"), "/Applications/").resolve("VLC.app").toFile();
     FileUtils.copyDirectory(new File(diskPath, "VLC.app"), app);
     try {
       changePermissions(app.getAbsolutePath());
@@ -96,7 +100,13 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
     Logger.info("Unmounting Disk Successfully");
     deleteArchive(dmg);
     Logger.info("Deleted DMG File");
-    loadNativeDependency(dir.toFile());
+    loadNativeDependency(app);
+  }
+
+  @Override
+  public void loadNativeDependency(final @NotNull File folder) {
+    NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), folder.getAbsolutePath());
+    new NativeDiscovery().discover();
   }
 
   /**

@@ -66,6 +66,15 @@ public class VLCNativeDependencyFetcher {
   }
 
   /**
+   * FOR TESTING MAC BUILDS ONLY! PLEASE DO NOT USE!
+   *
+   * @param path the path
+   */
+  public VLCNativeDependencyFetcher(@NotNull final Path path) {
+    solution = new MacSilentInstallation(path);
+  }
+
+  /**
    * Download vlc libraries.
    *
    * <p>Currently in progress! Not finished as I am trying to support other operating systems.

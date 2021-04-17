@@ -24,12 +24,12 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.os;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities;
 import com.sun.jna.NativeLibrary;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
-import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,7 +46,6 @@ import java.util.Properties;
 public abstract class SilentOSDependentSolution {
 
   private final Path dir;
-  private final NativeDiscovery nativeDiscovery;
 
   /**
    * Instantiates a new SilentOSDependentSolution.
@@ -64,7 +63,6 @@ public abstract class SilentOSDependentSolution {
    */
   public SilentOSDependentSolution(@NotNull final Path dir) {
     this.dir = dir;
-    nativeDiscovery = new NativeDiscovery();
   }
 
   /**
@@ -81,7 +79,7 @@ public abstract class SilentOSDependentSolution {
    */
   public void loadNativeDependency(@NotNull final File folder) {
     NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), folder.getAbsolutePath());
-    nativeDiscovery.discover();
+    VLCUtilities.checkVLCExistance(folder);
   }
 
   /** Prints all System environment variables. */
@@ -143,14 +141,5 @@ public abstract class SilentOSDependentSolution {
    */
   public Path getDir() {
     return dir;
-  }
-
-  /**
-   * Gets NativeDiscovery.
-   *
-   * @return native discovery
-   */
-  public NativeDiscovery getNativeDiscovery() {
-    return nativeDiscovery;
   }
 }
