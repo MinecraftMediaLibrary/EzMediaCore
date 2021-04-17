@@ -82,7 +82,7 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
     } catch (final InterruptedException e) {
       e.printStackTrace();
     }
-    final File app = Paths.get(System.getProperty("user.home"), "/Applications/").resolve("VLC.app").toFile();
+    final File app = Paths.get("/Applications/").resolve("VLC.app").toFile();
     FileUtils.copyDirectory(new File(diskPath, "VLC.app"), app);
     try {
       changePermissions(app.getAbsolutePath());

@@ -18,6 +18,7 @@ import java.io.File
 import java.nio.file.Paths
 
 fun main() {
+//    println(NativeDiscovery().discover())
     MacTest().macTest()
 }
 

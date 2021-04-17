@@ -118,7 +118,11 @@ public final class MinecraftMediaLibrary {
     httpParentFolder = Paths.get(http == null ? String.format("%s/http/", path) : http);
     dependenciesFolder =
         Paths.get(libraryPath == null ? String.format("%s/libraries/", path) : libraryPath);
-    vlcFolder = Paths.get(vlcPath == null ? String.format("%s/vlc/", path) : vlcPath);
+    Path vlc = Paths.get(vlcPath == null ? String.format("%s/vlc/", path) : vlcPath);
+    if (RuntimeUtilities.isMac()) {
+      vlc = Paths.get("/Applications/");
+    }
+    vlcFolder = vlc;
     createNecessaryFolders();
     vlcj = isUsingVLCJ;
     handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
@@ -186,14 +190,18 @@ public final class MinecraftMediaLibrary {
     Logger.info("===========================================");
     Logger.info("            SYSTEM INFORMATION             ");
     Logger.info("===========================================");
-    Logger.info(String.format("System Operating System: %s", RuntimeUtilities.getOperatingSystem()));
+    Logger.info(
+        String.format("System Operating System: %s", RuntimeUtilities.getOperatingSystem()));
     Logger.info(String.format("CPU Architecture: %s", RuntimeUtilities.getCpuArch()));
-    Logger.info(String.format("System Operating System Version: %s", System.getProperty("os.version")));
+    Logger.info(
+        String.format("System Operating System Version: %s", System.getProperty("os.version")));
     Logger.info(
         String.format(
             "Windows/Mac/Linux: %s/%s/%s",
             RuntimeUtilities.isWindows(), RuntimeUtilities.isMac(), RuntimeUtilities.isLinux()));
-    Logger.info(String.format("Linux Distribution (If Linux): %s", RuntimeUtilities.getLinuxDistribution()));
+    Logger.info(
+        String.format(
+            "Linux Distribution (If Linux): %s", RuntimeUtilities.getLinuxDistribution()));
   }
 
   /** Shutdown Instance */
