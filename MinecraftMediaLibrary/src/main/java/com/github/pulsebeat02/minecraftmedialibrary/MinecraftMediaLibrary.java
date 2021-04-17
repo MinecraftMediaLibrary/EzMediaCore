@@ -120,7 +120,7 @@ public final class MinecraftMediaLibrary {
         Paths.get(libraryPath == null ? String.format("%s/libraries/", path) : libraryPath);
     Path vlc = Paths.get(vlcPath == null ? String.format("%s/vlc/", path) : vlcPath);
     if (RuntimeUtilities.isMac()) {
-      vlc = Paths.get("/Applications/");
+      vlc = Paths.get("/Applications/VLC.app");
     }
     vlcFolder = vlc;
     createNecessaryFolders();

@@ -83,7 +83,7 @@ public class WindowsSilentInstallation extends SilentOSDependentSolution {
   @Override
   public void loadNativeDependency(@NotNull final File folder) {
     NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), vlcPath);
-    VLCUtilities.checkVLCExistance(folder);
+    VLCUtilities.checkVLCExistence(folder);
   }
 
   /**

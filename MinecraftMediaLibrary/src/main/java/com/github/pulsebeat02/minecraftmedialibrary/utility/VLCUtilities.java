@@ -35,7 +35,13 @@ public final class VLCUtilities {
    * @param directory the library
    * @return whether vlc can be found or not
    */
-  public static boolean checkVLCExistance(@NotNull final File directory) {
+  public static boolean checkVLCExistence(@NotNull final File directory) {
+    if (new NativeDiscovery().discover()) {
+      return true;
+    }
+    if (!directory.exists()) {
+      return false;
+    }
     String keyword = "libvlc.";
     if (RuntimeUtilities.isWindows()) {
       keyword += "dll";
@@ -93,7 +99,7 @@ public final class VLCUtilities {
         }
       }
     }
-    return new NativeDiscovery().discover();
+    return false;
   }
 
   /**
@@ -103,10 +109,9 @@ public final class VLCUtilities {
    * @return whether the path set was successful or not
    */
   private static boolean setVLCPluginPath(@NotNull final String path) {
-    if (RuntimeUtilities.isWindows()) {
-      return LibC.INSTANCE._putenv(String.format("%s=%s", VLC_PLUGIN_PATH, path)) == 0;
-    }
-    return LibC.INSTANCE.setenv(VLC_PLUGIN_PATH, path, 1) == 0;
+    return RuntimeUtilities.isWindows()
+        ? LibC.INSTANCE._putenv(String.format("%s=%s", VLC_PLUGIN_PATH, path)) == 0
+        : LibC.INSTANCE.setenv(VLC_PLUGIN_PATH, path, 1) == 0;
   }
 
   /**

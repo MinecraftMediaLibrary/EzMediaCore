@@ -79,7 +79,7 @@ public abstract class SilentOSDependentSolution {
    */
   public void loadNativeDependency(@NotNull final File folder) {
     NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), folder.getAbsolutePath());
-    VLCUtilities.checkVLCExistance(folder);
+    VLCUtilities.checkVLCExistence(folder);
   }
 
   /** Prints all System environment variables. */

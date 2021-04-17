@@ -88,7 +88,7 @@ public final class DependencyInstantiation {
 
   /** Downloads/Loads VLC dependency. */
   private void loadVLC() {
-    if (!VLCUtilities.checkVLCExistance(instance.getVlcFolder().toFile())) {
+    if (!VLCUtilities.checkVLCExistence(instance.getVlcFolder().toFile())) {
       new VLCNativeDependencyFetcher(instance).downloadLibraries();
     }
     if (instance.isUsingVLCJ()) {
