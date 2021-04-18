@@ -11,8 +11,7 @@ import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 import uk.co.caprica.vlcj.support.version.LibVlcVersion;
 
 import java.io.File;
-import java.util.ArrayDeque;
-import java.util.Arrays;
+import java.util.PriorityQueue;
 import java.util.Queue;
 
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_new;
@@ -36,23 +35,19 @@ public final class VLCUtilities {
    * @return whether vlc can be found or not
    */
   public static boolean checkVLCExistence(@NotNull final File directory) {
-    if (new NativeDiscovery().discover()) {
-      return true;
-    }
+    final String vlcName = RuntimeUtil.getLibVlcLibraryName();
     if (!directory.exists()) {
       return false;
     }
-    String keyword = "libvlc.";
-    if (RuntimeUtilities.isWindows()) {
-      keyword += "dll";
-    } else if (RuntimeUtilities.isMac()) {
-      keyword += "dylib";
-    } else if (RuntimeUtilities.isLinux()) {
-      keyword += "so";
+    if (new NativeDiscovery().discover()) {
+      return true;
     }
+    final String extension =
+        RuntimeUtilities.isWindows() ? "dll" : RuntimeUtilities.isMac() ? "dylib" : "so";
+    final String keyword = "libvlc." + extension;
     boolean plugins = false;
     boolean libvlc = false;
-    final Queue<File> folders = new ArrayDeque<>();
+    final Queue<File> folders = getPriorityQueue(keyword);
     folders.add(directory);
     while (!folders.isEmpty()) {
       if (plugins && libvlc) {
@@ -60,16 +55,20 @@ public final class VLCUtilities {
       }
       final File f = folders.remove();
       final String name = f.getName();
+      final String path = f.getAbsolutePath();
       if (f.isDirectory()) {
         if (!plugins && name.equals("plugins")) {
-          final String path = f.getAbsolutePath();
           setVLCPluginPath(path);
           Logger.info(String.format("Found Plugins Path (%s)", path));
           plugins = true;
         } else {
           final File[] children = f.listFiles();
           if (children != null) {
-            folders.addAll(Arrays.asList(children));
+            for (final File child : children) {
+              if (child.isDirectory() || (child.isFile() && child.getName().contains(extension))) {
+                folders.add(child);
+              }
+            }
           }
         }
       } else {
@@ -81,25 +80,45 @@ public final class VLCUtilities {
           directory where all the binaries are stored. Unfortunately, this is different
           for every operating system out there so we must be careful.
 
-          TODO: Verify Linux's LibVLC path is correct
-
            */
 
-          if (RuntimeUtilities.isWindows()) {
-            NATIVE_VLC_PATH = f.getParentFile();
-          } else if (RuntimeUtilities.isMac() || RuntimeUtilities.isLinux()) {
-            NATIVE_VLC_PATH = f.getParentFile().getParentFile();
-          }
+          NATIVE_VLC_PATH =
+              RuntimeUtilities.isWindows()
+                  ? f.getParentFile()
+                  : RuntimeUtilities.isMac()
+                      ? f.getParentFile().getParentFile().getParentFile().getParentFile()
+                      : f.getParentFile().getParentFile();
 
-          Logger.info(String.format("Found LibVLC (%s)", f.getAbsoluteFile()));
-          NativeLibrary.addSearchPath(
-              RuntimeUtil.getLibVlcLibraryName(), NATIVE_VLC_PATH.getAbsolutePath());
+          NativeLibrary.addSearchPath(vlcName, path);
+          Logger.info(String.format("Found LibVLC (%s)", path));
           loadLibVLCLibrary();
           libvlc = true;
         }
       }
     }
     return false;
+  }
+
+  private static PriorityQueue<File> getPriorityQueue(@NotNull final String keyword) {
+    return RuntimeUtilities.isWindows()
+        ? new PriorityQueue<>()
+        : new PriorityQueue<>(
+            (o1, o2) -> {
+
+              /*
+
+              Heuristic algorithm which allows the libvlc compiled file be found easier on Unix
+              systems. (This includes Mac and Linux, where the file is deeply in the recursion).
+              It is not needed for Windows as the file is in the main directory.
+
+               */
+
+              final String name = o1.getName();
+              if (name.equals(keyword) || name.equals("lib")) {
+                return Integer.MIN_VALUE;
+              }
+              return o1.compareTo(o2);
+            });
   }
 
   /**
