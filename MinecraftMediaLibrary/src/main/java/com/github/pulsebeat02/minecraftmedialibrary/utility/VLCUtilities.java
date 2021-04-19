@@ -57,7 +57,15 @@ public final class VLCUtilities {
       final String path = f.getAbsolutePath();
       if (f.isDirectory()) {
         if (!plugins && name.equals("plugins")) {
-          setVLCPluginPath(path);
+
+          /*
+
+          TODO: Need to test line below for MAC and Linux
+
+           */
+
+          setVLCPluginPath(f.getParent());
+
           Logger.info(String.format("Found Plugins Path (%s)", path));
           plugins = true;
         } else {

@@ -136,13 +136,8 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
   /** Starts playing the video. */
   @Override
   public void start() {
-    if (mediaPlayerComponent != null) {
-      mediaPlayerComponent.release();
-    }
     final String url = getUrl();
-    if (mediaPlayerComponent != null) {
-      mediaPlayerComponent.media().play(url);
-    }
+    mediaPlayerComponent.media().play(url);
     for (final Player p : Bukkit.getOnlinePlayers()) {
       p.playSound(p.getLocation(), getLibrary().getPlugin().getName().toLowerCase(), 1.0F, 1.0F);
     }
@@ -152,10 +147,8 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
   /** Stops playing the video. */
   @Override
   public void stop() {
-    if (mediaPlayerComponent != null) {
-      mediaPlayerComponent.controls().stop();
-      Logger.info(String.format("Stopped Playing Video! (%s)", getUrl()));
-    }
+    mediaPlayerComponent.controls().stop();
+    Logger.info(String.format("Stopped Playing Video! (%s)", getUrl()));
   }
 
   /**
