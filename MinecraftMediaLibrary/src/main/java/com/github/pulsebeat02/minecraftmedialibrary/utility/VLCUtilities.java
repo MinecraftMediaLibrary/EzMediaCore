@@ -72,6 +72,7 @@ public final class VLCUtilities {
           }
         }
       } else {
+
         if (!libvlc && name.equals(keyword)) {
 
           /*
@@ -83,11 +84,9 @@ public final class VLCUtilities {
            */
 
           NATIVE_VLC_PATH =
-              RuntimeUtilities.isWindows()
+              RuntimeUtilities.isWindows() || RuntimeUtilities.isMac()
                   ? f.getParentFile()
-                  : RuntimeUtilities.isMac()
-                      ? f.getParentFile().getParentFile().getParentFile().getParentFile()
-                      : f.getParentFile().getParentFile();
+                  : f.getParentFile().getParentFile();
 
           NativeLibrary.addSearchPath(vlcName, path);
           Logger.info(String.format("Found LibVLC (%s)", path));

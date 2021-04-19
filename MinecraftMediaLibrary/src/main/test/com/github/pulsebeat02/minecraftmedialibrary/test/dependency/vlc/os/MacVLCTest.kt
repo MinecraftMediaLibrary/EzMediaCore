@@ -14,17 +14,17 @@ package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc.os
 
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.VLCNativeDependencyFetcher
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger
+import com.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities
 import java.io.File
 import java.nio.file.Paths
 
 fun main() {
-//    println(NativeDiscovery().discover())
-    MacTest().macTest()
+    MacTest().loadVLC()
 }
 
 class MacTest {
 
-    fun macTest() {
+    fun installVLC() {
         Logger.setVerbose(false)
         val folder = File(System.getProperty("user.dir"), "/vlc")
         if (!folder.exists()) {
@@ -37,4 +37,9 @@ class MacTest {
         println(folder.absolutePath)
         VLCNativeDependencyFetcher(Paths.get(folder.absolutePath)).downloadLibraries()
     }
+
+    fun loadVLC() {
+        println(VLCUtilities.checkVLCExistence(File("/Applications/VLC.app")))
+    }
+
 }
