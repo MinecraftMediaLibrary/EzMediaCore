@@ -35,7 +35,6 @@ public final class VLCUtilities {
    * @return whether vlc can be found or not
    */
   public static boolean checkVLCExistence(@NotNull final File directory) {
-    final String vlcName = RuntimeUtil.getLibVlcLibraryName();
     if (!directory.exists()) {
       return false;
     }
@@ -88,7 +87,7 @@ public final class VLCUtilities {
                   ? f.getParentFile()
                   : f.getParentFile().getParentFile();
 
-          NativeLibrary.addSearchPath(vlcName, path);
+          NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), NATIVE_VLC_PATH.getAbsolutePath());
           Logger.info(String.format("Found LibVLC (%s)", path));
           loadLibVLCLibrary();
           libvlc = true;
