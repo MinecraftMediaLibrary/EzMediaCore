@@ -1,6 +1,9 @@
 package com.github.pulsebeat02.deluxemediaplugin.command;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import com.github.pulsebeat02.deluxemediaplugin.command.audio.AudioCommand;
+import com.github.pulsebeat02.deluxemediaplugin.command.dither.DitherCommand;
+import com.github.pulsebeat02.deluxemediaplugin.command.image.ImageCommand;
 import com.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommand;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.brigadier.CommandDispatcher;
@@ -32,7 +35,8 @@ public final class CommandHandler implements TabExecutor {
         ImmutableSet.of(
             new ImageCommand(plugin, this),
             new DitherCommand(plugin, this),
-            new VideoCommand(plugin, this));
+            new VideoCommand(plugin, this),
+            new AudioCommand(plugin, this));
     final CommandMap commandMap = CommandMapHelper.getCommandMap();
     for (final BaseCommand command : commands) {
       rootNode.addChild(command.getCommandNode());

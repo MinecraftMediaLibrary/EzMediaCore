@@ -39,7 +39,8 @@ public final class SelectorUtils {
 
   private static final String PATTERN_HANDLER_PREFIX = "[";
   private static final String PATTERN_HANDLER_SUFFIX = "]";
-  private static final String REGEX_HANDLER_PREFIX = String.format("%%regex%s", PATTERN_HANDLER_PREFIX);
+  private static final String REGEX_HANDLER_PREFIX =
+      String.format("%%regex%s", PATTERN_HANDLER_PREFIX);
   private static final String ANT_HANDLER_PREFIX = String.format("%%ant%s", PATTERN_HANDLER_PREFIX);
 
   private SelectorUtils() {}

@@ -20,38 +20,46 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.image;
+package com.github.pulsebeat02.minecraftmedialibrary.image.gif;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.extractor.FFmpegLocation;
+import com.github.pulsebeat02.minecraftmedialibrary.image.MapImageHolder;
+import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImage;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.FloydImageDither;
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
+import com.github.pulsebeat02.minecraftmedialibrary.video.itemframe.ItemFrameCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.video.player.VLCJIntegratedPlayer;
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.io.FilenameUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
+import ws.schild.jave.Encoder;
+import ws.schild.jave.EncoderException;
+import ws.schild.jave.MultimediaObject;
+import ws.schild.jave.encode.AudioAttributes;
+import ws.schild.jave.encode.EncodingAttributes;
 
+import java.awt.*;
 import java.io.File;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
+import java.io.IOException;
 import java.util.Map;
-import java.util.Objects;
 
-/**
- * A class used to draw and display an image onto maps. It uses the draw method provided in the API
- * to draw the specific image onto the map. MapImage also supports serialization/deserialization, so
- * it can be stored in configuration files if necessary.
- */
-public final class MinecraftMapImage implements MapImageHolder, ConfigurationSerializable {
+public class MinecraftDynamicImage implements MapImageHolder, ConfigurationSerializable {
 
   private final MinecraftMediaLibrary library;
-  private final int map;
   private final File image;
+  private final int map;
   private final int height;
   private final int width;
+  private VLCJIntegratedPlayer player;
 
   /**
-   * Instantiates a new MapImage.
+   * Instantiates a new MinecraftDynamicImage.
    *
    * @param library the library
    * @param map the map
@@ -59,7 +67,7 @@ public final class MinecraftMapImage implements MapImageHolder, ConfigurationSer
    * @param width the width
    * @param height the height
    */
-  public MinecraftMapImage(
+  public MinecraftDynamicImage(
       @NotNull final MinecraftMediaLibrary library,
       final int map,
       @NotNull final File image,
@@ -83,7 +91,7 @@ public final class MinecraftMapImage implements MapImageHolder, ConfigurationSer
    * @param width the width
    * @param height the height
    */
-  public MinecraftMapImage(
+  public MinecraftDynamicImage(
       @NotNull final MinecraftMediaLibrary library,
       final int map,
       @NotNull final String url,
@@ -115,10 +123,10 @@ public final class MinecraftMapImage implements MapImageHolder, ConfigurationSer
    * @return the map image
    */
   @NotNull
-  public static MinecraftMapImage deserialize(
+  public static MinecraftStaticImage deserialize(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final Map<String, Object> deserialize) {
-    return new MinecraftMapImage(
+    return new MinecraftStaticImage(
         library,
         NumberConversions.toInt(deserialize.get("map")),
         new File(String.valueOf(deserialize.get("image"))),
@@ -140,12 +148,54 @@ public final class MinecraftMapImage implements MapImageHolder, ConfigurationSer
   @Override
   public void drawImage() {
     onDrawImage();
-    final ByteBuffer buffer =
-        new FloydImageDither()
-            .ditherIntoMinecraft(Objects.requireNonNull(VideoUtilities.getBuffer(image)), width);
-    library.getHandler().display(null, map, width, height, buffer, width);
-    Logger.info(
-        String.format("Drew Image at Map ID %d (Source: %s)", map, image.getAbsolutePath()));
+    try {
+      final Dimension dims = VideoUtilities.getDimensions(image);
+      final int w = (int) dims.getWidth();
+      player =
+          VLCJIntegratedPlayer.builder()
+              .setUrl(image.getAbsolutePath())
+              .setWidth(w)
+              .setHeight((int) dims.getHeight())
+              .setCallback(
+                  ItemFrameCallback.builder()
+                          .setViewers(null)
+                          .setMap(map)
+                          .setWidth(width)
+                          .setHeight(height)
+                          .setVideoWidth(w)
+                          .setDelay(0)
+                          .setDitherHolder(DitherSetting.FLOYD_STEINBERG_DITHER.getHolder())
+                          .createItemFrameCallback(library)
+                      ::send)
+              .createVLCJIntegratedPlayer(library);
+      player.setRepeat(true);
+      player.start(Bukkit.getOnlinePlayers());
+      Logger.info(
+          String.format(
+              "Drew Dynamic Image at Map ID %d (Source: %s)", map, image.getAbsolutePath()));
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /** Converts a Gif into an MPEG file. */
+  private void convertGifIntoMpeg() {
+    final FFmpegLocation ffmpegLocator = new FFmpegLocation();
+    final String name = image.getName();
+    final Encoder encoder = new Encoder(ffmpegLocator);
+    final AudioAttributes audio = new AudioAttributes();
+    audio.setVolume(0);
+    final EncodingAttributes attrs = new EncodingAttributes();
+    attrs.setInputFormat(FilenameUtils.getExtension(name));
+    attrs.setOutputFormat("mp4");
+    attrs.setAudioAttributes(audio);
+    final File output =
+        new File(library.getImageFolder().toFile(), FilenameUtils.getBaseName(name) + ".mp4");
+    try {
+      encoder.encode(new MultimediaObject(image, ffmpegLocator), output, attrs);
+    } catch (final EncoderException e) {
+      e.printStackTrace();
+    }
   }
 
   /** Called when an image is being draw on a map. */
@@ -160,12 +210,12 @@ public final class MinecraftMapImage implements MapImageHolder, ConfigurationSer
   @Override
   @NotNull
   public Map<String, Object> serialize() {
-    final Map<String, Object> serialized = new HashMap<>();
-    serialized.put("map", map);
-    serialized.put("image", image.getAbsolutePath());
-    serialized.put("width", width);
-    serialized.put("height", height);
-    return serialized;
+    return ImmutableMap.of(
+        "type", "dynamic",
+        "map", map,
+        "image", image.getAbsolutePath(),
+        "width", width,
+        "height", height);
   }
 
   /**
@@ -273,8 +323,8 @@ public final class MinecraftMapImage implements MapImageHolder, ConfigurationSer
      * @param library the library
      * @return the map image
      */
-    public MinecraftMapImage createImageMap(final MinecraftMediaLibrary library) {
-      return new MinecraftMapImage(library, map, image, width, height);
+    public MinecraftDynamicImage createImageMap(final MinecraftMediaLibrary library) {
+      return new MinecraftDynamicImage(library, map, image, width, height);
     }
   }
 }

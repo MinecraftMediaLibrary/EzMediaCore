@@ -24,7 +24,6 @@ package com.github.pulsebeat02.minecraftmedialibrary.video.player;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
@@ -39,6 +38,7 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32Buffe
 
 import java.io.File;
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.function.Consumer;
 
 /**
@@ -134,12 +134,16 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
     return new Builder();
   }
 
-  /** Starts playing the video. */
+  /**
+   * Starts playing the video.
+   *
+   * @param players which players should hear the audio
+   */
   @Override
-  public void start() {
+  public void start(@NotNull final Collection<? extends Player> players) {
     final String url = getUrl();
     mediaPlayerComponent.media().play(url);
-    for (final Player p : Bukkit.getOnlinePlayers()) {
+    for (final Player p : players) {
       p.playSound(p.getLocation(), getLibrary().getPlugin().getName().toLowerCase(), 1.0F, 1.0F);
     }
     Logger.info(String.format("Started Playing Video! (%s)", url));
@@ -150,6 +154,16 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
   public void stop() {
     mediaPlayerComponent.controls().stop();
     Logger.info(String.format("Stopped Playing Video! (%s)", getUrl()));
+  }
+
+  /** Releases the media player. */
+  @Override
+  public void release() {
+    mediaPlayerComponent.release();
+  }
+
+  public void setRepeat(final boolean setting) {
+    mediaPlayerComponent.controls().setRepeat(setting);
   }
 
   /**

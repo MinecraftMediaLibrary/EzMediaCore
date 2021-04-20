@@ -5,10 +5,3 @@ load: STARTUP
 authors: [ PulseBeat_02, BananaPuncher714, Jetp250 ]
 version: 1.0.0
 description: Play Media in Minecraft
-permissions:
-  deluxemediaplugin.video:
-    description: Allows you use the video command
-    default: op
-  deluxemediaplugin.dither:
-    description: Allows you to use the dithering command
-    default: op

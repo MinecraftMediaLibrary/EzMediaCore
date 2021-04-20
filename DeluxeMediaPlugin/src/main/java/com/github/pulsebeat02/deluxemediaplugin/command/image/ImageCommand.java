@@ -1,22 +1,32 @@
-/*
- * ============================================================================
- * Copyright (C) PulseBeat_02 - All Rights Reserved
- *
- * This file is part of MinecraftMediaLibrary
- *
- * Unauthorized copying of this file, via any medium is strictly prohibited
- * Proprietary and confidential
- *
- * Written by Brandon Li <brandonli2006ma@gmail.com>, 2/28/2021
- * ============================================================================
- */
+/*............................................................................................
+. Copyright © 2021 Brandon Li                                                               .
+.                                                                                           .
+. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
+. software and associated documentation files (the “Software”), to deal in the Software     .
+. without restriction, including without limitation the rights to use, copy, modify, merge, .
+. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
+. persons to whom the Software is furnished to do so, subject to the following conditions:  .
+.                                                                                           .
+. The above copyright notice and this permission notice shall be included in all copies     .
+. or substantial portions of the Software.                                                  .
+.                                                                                           .
+. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
+.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
+.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
+.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
+.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
+.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
+.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
+.   SOFTWARE.                                                                               .
+............................................................................................*/
 
-package com.github.pulsebeat02.deluxemediaplugin.command;
+package com.github.pulsebeat02.deluxemediaplugin.command.image;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import com.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.image.MinecraftMapImage;
+import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImage;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.LongArgumentType;
@@ -47,7 +57,7 @@ import java.util.UUID;
 
 public class ImageCommand extends BaseCommand implements Listener {
 
-  private final Set<MinecraftMapImage> images;
+  private final Set<MinecraftStaticImage> images;
   private final Set<UUID> listen;
   private final LiteralCommandNode<CommandSender> literalNode;
   private int width;
@@ -114,7 +124,7 @@ public class ImageCommand extends BaseCommand implements Listener {
         FileUtilities.downloadImageFile(
             "https://images.news18.com/ibnlive/uploads/2020/12/1607660925_untitled-design-2020-12-11t095722.206.png",
             library.getParentFolder());
-    new MinecraftMapImage(library, 69, f, width, height).drawImage();
+    new MinecraftStaticImage(library, 69, f, width, height).drawImage();
     audience.sendMessage(
         ChatUtilities.formatMessage(Component.text("Gottem", NamedTextColor.GOLD)));
     return 1;
@@ -156,12 +166,12 @@ public class ImageCommand extends BaseCommand implements Listener {
     final MinecraftMediaLibrary library = plugin.getLibrary();
     if (isUrl(mrl)) {
       final File img = FileUtilities.downloadImageFile(mrl, plugin.getLibrary().getParentFolder());
-      new MinecraftMapImage(library, id, img, width, height).drawImage();
+      new MinecraftStaticImage(library, id, img, width, height).drawImage();
       audience.sendMessage(successful);
     } else {
       final File img = new File(plugin.getDataFolder(), mrl);
       if (img.exists()) {
-        new MinecraftMapImage(library, id, img, width, height).drawImage();
+        new MinecraftStaticImage(library, id, img, width, height).drawImage();
         audience.sendMessage(successful);
       } else {
         audience.sendMessage(
@@ -181,14 +191,14 @@ public class ImageCommand extends BaseCommand implements Listener {
       return 1;
     }
     final int id = (int) opt.getAsLong();
-    final Iterator<MinecraftMapImage> itr = images.iterator();
+    final Iterator<MinecraftStaticImage> itr = images.iterator();
     while (itr.hasNext()) {
       if (itr.next().getMap() == id) {
         itr.remove();
         break;
       }
     }
-    MinecraftMapImage.resetMap(getPlugin().getLibrary(), id);
+    MinecraftStaticImage.resetMap(getPlugin().getLibrary(), id);
     audience.sendMessage(
         ChatUtilities.formatMessage(
             Component.text(
@@ -214,8 +224,8 @@ public class ImageCommand extends BaseCommand implements Listener {
     if (listen.contains(p.getUniqueId())) {
       final Audience audience = getPlugin().getAudiences().player(p);
       if (event.getMessage().equalsIgnoreCase("YES")) {
-        for (final MinecraftMapImage image : images) {
-          MinecraftMapImage.resetMap(getPlugin().getLibrary(), image.getMap());
+        for (final MinecraftStaticImage image : images) {
+          MinecraftStaticImage.resetMap(getPlugin().getLibrary(), image.getMap());
         }
         images.clear();
         audience.sendMessage(

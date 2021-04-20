@@ -31,11 +31,11 @@ public class PluginUpdateChecker {
 
   public PluginUpdateChecker(@NotNull final DeluxeMediaPlugin plugin) {
     this.plugin = plugin;
-    this.resource = -1;
+      resource = -1;
   }
 
   public void checkForUpdates() {
-    Logger logger = plugin.getLogger();
+    final Logger logger = plugin.getLogger();
     logger.info("Checking for Updates...");
     getLatestVersion(
         version -> {
@@ -54,15 +54,20 @@ public class PluginUpdateChecker {
         .runTaskAsynchronously(
             plugin,
             () -> {
-              try (InputStream inputStream =
-                      new URL(String.format("https://api.spigotmc.org/legacy/update.php?resource=%d", resource))
+              try (final InputStream inputStream =
+                      new URL(
+                              String.format(
+                                  "https://api.spigotmc.org/legacy/update.php?resource=%d",
+                                  resource))
                           .openStream();
-                  Scanner scanner = new Scanner(inputStream)) {
+                   final Scanner scanner = new Scanner(inputStream)) {
                 if (scanner.hasNext()) {
                   consumer.accept(scanner.next());
                 }
-              } catch (IOException exception) {
-                this.plugin.getLogger().info(String.format("Cannot look for updates: %s", exception.getMessage()));
+              } catch (final IOException exception) {
+                  plugin
+                    .getLogger()
+                    .info(String.format("Cannot look for updates: %s", exception.getMessage()));
               }
             });
   }

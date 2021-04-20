@@ -26,7 +26,6 @@ import com.github.kiulian.downloader.YoutubeDownloader;
 import com.github.kiulian.downloader.YoutubeException;
 import com.github.kiulian.downloader.model.VideoDetails;
 import com.github.kiulian.downloader.model.YoutubeVideo;
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import org.jetbrains.annotations.NotNull;
@@ -290,19 +289,5 @@ public class YoutubeExtraction implements VideoExtractor {
    */
   public ProcessLocator getFfmpegLocator() {
     return ffmpegLocator;
-  }
-
-  /** Private utility class used to override the current ffmpeg location strategy. */
-  private static class FFmpegLocation implements ProcessLocator {
-
-    /**
-     * Returns the ffmpeg binary path.
-     *
-     * @return ffmpeg binary path
-     */
-    @Override
-    public String getExecutablePath() {
-      return FFmpegDependencyInstallation.getFFmpegPath();
-    }
   }
 }

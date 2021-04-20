@@ -35,8 +35,8 @@ public abstract class AbstractConfiguration {
   public AbstractConfiguration(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final String name) {
     this.plugin = plugin;
-    this.fileName = name;
-    this.configFile = new File(plugin.getDataFolder(), fileName);
+      fileName = name;
+      configFile = new File(plugin.getDataFolder(), fileName);
   }
 
   public void reloadConfig() {
@@ -51,7 +51,7 @@ public abstract class AbstractConfiguration {
 
   public FileConfiguration getConfig() {
     if (fileConfiguration == null) {
-      this.reloadConfig();
+        reloadConfig();
     }
     return fileConfiguration;
   }
@@ -61,7 +61,9 @@ public abstract class AbstractConfiguration {
       try {
         getConfig().save(configFile);
       } catch (final IOException e) {
-        plugin.getLogger().log(Level.SEVERE, String.format("Could not save config to %s", configFile), e);
+        plugin
+            .getLogger()
+            .log(Level.SEVERE, String.format("Could not save config to %s", configFile), e);
       }
     }
   }

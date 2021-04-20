@@ -252,7 +252,8 @@ public final class Reflection {
           try {
             return constructor.newInstance(arguments);
           } catch (final Exception e) {
-            throw new RuntimeException(String.format("Cannot invoke constructor %s", constructor), e);
+            throw new RuntimeException(
+                String.format("Cannot invoke constructor %s", constructor), e);
           }
         };
       }

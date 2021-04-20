@@ -14,7 +14,7 @@
 package com.github.pulsebeat02.deluxemediaplugin.config;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import com.github.pulsebeat02.minecraftmedialibrary.image.MinecraftMapImage;
+import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImage;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +26,7 @@ import java.util.Set;
 
 public class PictureConfiguration extends AbstractConfiguration {
 
-  private final Set<MinecraftMapImage> images;
+  private final Set<MinecraftStaticImage> images;
 
   public PictureConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, "picture.yml");
@@ -34,13 +34,13 @@ public class PictureConfiguration extends AbstractConfiguration {
   }
 
   public void addPhoto(final int map, @NotNull final File file, final int width, final int height) {
-    images.add(new MinecraftMapImage(getPlugin().getLibrary(), map, file, width, height));
+    images.add(new MinecraftStaticImage(getPlugin().getLibrary(), map, file, width, height));
   }
 
   @Override
   public void deserialize() {
     final FileConfiguration configuration = getFileConfiguration();
-    for (final MinecraftMapImage image : images) {
+    for (final MinecraftStaticImage image : images) {
       final long key = image.getMap();
       configuration.set(String.format("%d.location", key), image.getImage().getAbsolutePath());
       configuration.set(String.format("%d.width", key), image.getWidth());
@@ -63,11 +63,11 @@ public class PictureConfiguration extends AbstractConfiguration {
       }
       final int width = configuration.getInt(String.format("%dwidth", id));
       final int height = configuration.getInt(String.format("%dheight", id));
-      images.add(new MinecraftMapImage(getPlugin().getLibrary(), id, file, width, height));
+      images.add(new MinecraftStaticImage(getPlugin().getLibrary(), id, file, width, height));
     }
   }
 
-  public Set<MinecraftMapImage> getImages() {
+  public Set<MinecraftStaticImage> getImages() {
     return images;
   }
 }

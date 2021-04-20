@@ -59,6 +59,8 @@ public final class MinecraftMediaLibrary {
   private final Path httpParentFolder;
   private final Path dependenciesFolder;
   private final Path vlcFolder;
+  private final Path imageFolder;
+  private final Path audioFolder;
   private boolean vlcj;
   private boolean disabled;
 
@@ -69,7 +71,7 @@ public final class MinecraftMediaLibrary {
    * @param isUsingVLCJ whether using vlcj
    */
   public MinecraftMediaLibrary(@NotNull final Plugin plugin, final boolean isUsingVLCJ) {
-    this(plugin, null, null, null, isUsingVLCJ);
+    this(plugin, null, null, null, null, null, isUsingVLCJ);
   }
 
   /**
@@ -78,7 +80,7 @@ public final class MinecraftMediaLibrary {
    * @param plugin the plugin
    */
   public MinecraftMediaLibrary(@NotNull final Plugin plugin) {
-    this(plugin, null, null, null, true);
+    this(plugin, null, null, null, null, null, true);
   }
 
   /**
@@ -95,6 +97,8 @@ public final class MinecraftMediaLibrary {
       @Nullable final String http,
       @Nullable final String libraryPath,
       @Nullable final String vlcPath,
+      @Nullable final String imagePath,
+      @Nullable final String audioPath,
       final boolean isUsingVLCJ) {
     final java.util.logging.Logger logger = plugin.getLogger();
     this.plugin = plugin;
@@ -116,6 +120,8 @@ public final class MinecraftMediaLibrary {
     final String path = String.format("%s/mml", plugin.getDataFolder().getAbsolutePath());
     parentFolder = Paths.get(path);
     httpParentFolder = Paths.get(http == null ? String.format("%s/http/", path) : http);
+    imageFolder = Paths.get(imagePath == null ? String.format("%s/image/", path) : imagePath);
+    audioFolder = Paths.get(audioPath == null ? String.format("%s/audio/", path) : audioPath);
     dependenciesFolder =
         Paths.get(libraryPath == null ? String.format("%s/libraries/", path) : libraryPath);
     Path vlc = Paths.get(vlcPath == null ? String.format("%s/vlc/", path) : vlcPath);
@@ -327,5 +333,23 @@ public final class MinecraftMediaLibrary {
    */
   public Path getParentFolder() {
     return parentFolder;
+  }
+
+  /**
+   * Gets the image folder of the library.
+   *
+   * @return the path of the image folder
+   */
+  public Path getImageFolder() {
+    return imageFolder;
+  }
+
+  /**
+   * Gets the audio folder of the library.
+   *
+   * @return the path of the audio folder
+   */
+  public Path getAudioFolder() {
+    return audioFolder;
   }
 }

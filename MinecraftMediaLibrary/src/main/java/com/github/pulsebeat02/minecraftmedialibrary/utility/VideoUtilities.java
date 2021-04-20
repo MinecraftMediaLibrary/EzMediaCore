@@ -22,10 +22,14 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.FileImageInputStream;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -33,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.Iterator;
 
 /**
  * Special video utilities used throughout the library and also open to users. Used for easier video
@@ -178,5 +183,31 @@ public final class VideoUtilities {
         image,
         getScaledDimension(
             new Dimension(image.getWidth(), image.getHeight()), new Dimension(width, height)));
+  }
+
+  /**
+   * Gets the dimensions of an image file.
+   *
+   * @param file the image file
+   * @return the dimensions of the image
+   */
+  public static Dimension getDimensions(@NotNull final File file) throws IOException {
+    final Iterator<ImageReader> iter =
+        ImageIO.getImageReadersBySuffix(FilenameUtils.getExtension(file.getName()));
+    while (iter.hasNext()) {
+      final ImageReader reader = iter.next();
+      try {
+        final ImageInputStream stream = new FileImageInputStream(file);
+        reader.setInput(stream);
+        final int width = reader.getWidth(reader.getMinIndex());
+        final int height = reader.getHeight(reader.getMinIndex());
+        return new Dimension(width, height);
+      } catch (final IOException e) {
+        e.printStackTrace();
+      } finally {
+        reader.dispose();
+      }
+    }
+    throw new IOException("Not a known image file: " + file.getAbsolutePath());
   }
 }

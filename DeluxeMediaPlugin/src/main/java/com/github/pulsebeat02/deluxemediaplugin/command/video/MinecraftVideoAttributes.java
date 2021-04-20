@@ -10,12 +10,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MinecraftVideoAttributes {
 
+  private final AtomicBoolean completion;
   private DitherHolder dither;
   private YoutubeExtraction extractor;
   private VideoPlayerBase player;
   private File file;
-
-  private final AtomicBoolean completion;
   private boolean youtube;
 
   private int frameWidth;

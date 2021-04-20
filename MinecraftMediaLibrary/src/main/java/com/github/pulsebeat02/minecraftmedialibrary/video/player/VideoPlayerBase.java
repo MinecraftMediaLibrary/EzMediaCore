@@ -23,8 +23,10 @@
 package com.github.pulsebeat02.minecraftmedialibrary.video.player;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.function.Consumer;
 
 public abstract class VideoPlayerBase {
@@ -120,9 +122,16 @@ public abstract class VideoPlayerBase {
     return callback;
   }
 
-  /** Starts player. */
-  public abstract void start();
+  /**
+   * Starts player.
+   *
+   * @param players which players to play the audio for
+   */
+  public abstract void start(@NotNull final Collection<? extends Player> players);
 
   /** Stops player. */
   public abstract void stop();
+
+  /** Releases player. */
+  public abstract void release();
 }

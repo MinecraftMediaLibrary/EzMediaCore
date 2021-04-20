@@ -2,7 +2,6 @@ package com.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
-import com.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
@@ -267,7 +266,7 @@ public class VideoCommand extends BaseCommand {
     if (library.isUsingVLCJ()) {
       attributes.setPlayer(
           VLCJIntegratedPlayer.builder()
-              .setUrl(extractor.getVideo().getAbsolutePath())
+              .setUrl(attributes.getFile().getAbsolutePath())
               .setWidth(attributes.getScreenWidth())
               .setHeight(attributes.getScreenHeight())
               .setCallback(
@@ -283,7 +282,7 @@ public class VideoCommand extends BaseCommand {
                       ::send)
               .createVLCJIntegratedPlayer(library));
     }
-    attributes.getPlayer().start();
+    attributes.getPlayer().start(Bukkit.getOnlinePlayers());
     return 1;
   }
 
@@ -302,7 +301,7 @@ public class VideoCommand extends BaseCommand {
         component =
             Component.text(
                 String.format("Successfully loaded video %s", f.getName()), NamedTextColor.GOLD);
-      } else if (mrl.startsWith("http://") || mrl.startsWith("https://")) {
+      } else if (mrl.startsWith("http://")) {
         component =
             Component.text(
                 String.format("Link %s is not a valid Youtube video link!", mrl),
@@ -315,23 +314,18 @@ public class VideoCommand extends BaseCommand {
       audience.sendMessage(ChatUtilities.formatMessage(component));
     } else {
       attributes.setYoutube(true);
-      attributes.setFile(null);
-      attributes.setExtractor(
-          new YoutubeExtraction(mrl, folderPath, plugin.getEncoderConfiguration().getSettings()));
-      final YoutubeExtraction extractor = attributes.getExtractor();
+      final YoutubeExtraction extractor =
+          new YoutubeExtraction(mrl, folderPath, plugin.getEncoderConfiguration().getSettings());
       extractor.extractAudio();
-      final HttpConfiguration configuration = plugin.getHttpConfiguration();
-      HttpDaemonProvider setup = null;
-      if (configuration.isEnabled()) {
-        setup = configuration.getDaemon();
-        if (!setup.getDaemon().isRunning()) {
-          setup.startServer();
-        }
-      }
-      final HttpDaemonProvider provider = setup;
+      attributes.setFile(extractor.getVideo());
+      attributes.setExtractor(extractor);
       CompletableFuture.runAsync(extractor::downloadVideo)
           .thenRunAsync(
-              () -> sendResourcepack(provider, audience, buildResourcepack(extractor, plugin)))
+              () ->
+                  sendResourcepack(
+                      plugin.getHttpConfiguration().getDaemon(),
+                      audience,
+                      buildResourcepack(extractor, plugin)))
           .thenRunAsync(
               () ->
                   audience.sendMessage(
@@ -346,15 +340,7 @@ public class VideoCommand extends BaseCommand {
 
   private ResourcepackWrapper buildResourcepack(
       @NotNull final YoutubeExtraction extractor, @NotNull final DeluxeMediaPlugin plugin) {
-    final ResourcepackWrapper wrapper =
-        ResourcepackWrapper.builder()
-            .setAudio(extractor.getAudio())
-            .setDescription(String.format("Youtube Video: %s", extractor.getVideoTitle()))
-            .setPath(
-                String.format(
-                    "%s/mml/http/resourcepack.zip", plugin.getDataFolder().getAbsolutePath()))
-            .setPackFormat(6)
-            .createResourcepackHostingProvider(plugin.getLibrary());
+    final ResourcepackWrapper wrapper = ResourcepackWrapper.of(extractor, plugin.getLibrary());
     wrapper.buildResourcePack();
     return wrapper;
   }

@@ -91,7 +91,8 @@ public class ResourceUtilities {
    */
   @Nullable
   public static InputStream accessResourceFileJar(@NotNull final String resource) {
-    InputStream input = ResourceUtilities.class.getResourceAsStream(String.format("/resources/%s", resource));
+    InputStream input =
+        ResourceUtilities.class.getResourceAsStream(String.format("/resources/%s", resource));
     if (input == null) {
       input = ResourceUtilities.class.getClassLoader().getResourceAsStream(resource);
     }

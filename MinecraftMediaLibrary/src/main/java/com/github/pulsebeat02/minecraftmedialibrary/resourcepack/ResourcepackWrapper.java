@@ -25,6 +25,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.resourcepack;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.exception.InvalidPackFormatException;
 import com.github.pulsebeat02.minecraftmedialibrary.exception.InvalidPackIconException;
+import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ResourcepackUtilities;
 import com.google.common.collect.ImmutableMap;
@@ -107,6 +108,46 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
    */
   public static Builder builder() {
     return new Builder();
+  }
+
+  /**
+   * Creates a ResourcepackWrapper out of a YoutubeExtractor.
+   *
+   * @param extractor the YoutubeExtractor
+   * @param library the library
+   * @return the resulting ResourcepackWrapper
+   */
+  public static ResourcepackWrapper of(
+      @NotNull final YoutubeExtraction extractor, @NotNull final MinecraftMediaLibrary library) {
+    return ResourcepackWrapper.builder()
+        .setAudio(extractor.getAudio())
+        .setDescription(String.format("Youtube Video: %s", extractor.getVideoTitle()))
+        .setPath(
+            String.format(
+                "%s/mml/http/resourcepack.zip",
+                library.getPlugin().getDataFolder().getAbsolutePath()))
+        .setPackFormat(6)
+        .createResourcepackHostingProvider(library);
+  }
+
+  /**
+   * Creates a ResourcepackWrapper out of a File.
+   *
+   * @param audio the audio file
+   * @param library the library
+   * @return the resulting ResourcepackWrapper
+   */
+  public static ResourcepackWrapper of(
+      @NotNull final File audio, @NotNull final MinecraftMediaLibrary library) {
+    return ResourcepackWrapper.builder()
+        .setAudio(audio)
+        .setDescription(String.format("Media: %s", audio.getName()))
+        .setPath(
+            String.format(
+                "%s/mml/http/resourcepack.zip",
+                library.getPlugin().getDataFolder().getAbsolutePath()))
+        .setPackFormat(6)
+        .createResourcepackHostingProvider(library);
   }
 
   /**
