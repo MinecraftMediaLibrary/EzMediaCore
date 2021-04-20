@@ -3,7 +3,8 @@ package com.github.pulsebeat02.minecraftmedialibrary.test.lab
 import java.nio.file.Paths
 
 fun main() {
-    val parent = Paths.get("a/b/c/d")
-    val child = Paths.get("a/b/c/d/e")
-    println(parent.relativize(child))
+    println(
+            Paths.get("C:\\Users\\Brandon Li\\Desktop\\server\\plugins\\DeluxeMediaPlugin\\mml\\http").normalize()
+                    .relativize(Paths.get("C:\\Users\\Brandon Li\\Desktop\\server\\plugins\\DeluxeMediaPlugin/mml/http/resourcepack.zip")).normalize()
+                    .toString())
 }
