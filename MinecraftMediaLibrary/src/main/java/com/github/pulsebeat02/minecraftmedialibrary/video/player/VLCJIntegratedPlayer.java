@@ -120,6 +120,7 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
             false,
             new WindowsVideoSurfaceAdapter());
     mediaPlayerComponent.videoSurface().set(surface);
+    mediaPlayerComponent.audio().mute();
     Logger.info(
         String.format("Created a VLCJ Integrated Video Player (%s)", file.getAbsolutePath()));
   }

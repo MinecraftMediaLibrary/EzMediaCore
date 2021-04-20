@@ -3,11 +3,9 @@ package com.github.pulsebeat02.deluxemediaplugin.command;
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.tree.RootCommandNode;
-import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
@@ -56,14 +54,11 @@ public final class CommandHandler implements TabExecutor {
       @NotNull final Command command,
       @NotNull final String label,
       final String @NotNull [] args) {
-    final String joined = command.getName() + ' ' + String.join(" ", args);
-    final ParseResults<CommandSender> results = dispatcher.parse(joined.trim(), sender);
     try {
-      dispatcher.execute(results);
+      dispatcher.execute(
+          dispatcher.parse(command.getName() + ' ' + String.join(" ", args).trim(), sender));
     } catch (final CommandSyntaxException exception) {
-      exception.printStackTrace();
-      final Audience audience = plugin.getAudiences().sender(sender);
-      audience.sendMessage(((BaseCommand) command).usage());
+      plugin.getAudiences().sender(sender).sendMessage(((BaseCommand) command).usage());
     }
     return true;
   }
@@ -83,9 +78,12 @@ public final class CommandHandler implements TabExecutor {
       @NotNull final Command command,
       @NotNull final String alias,
       final String @NotNull [] args) {
-    final String joined = command.getName() + ' ' + String.join(" ", args);
-    final ParseResults<CommandSender> results = dispatcher.parse(joined, sender);
-    return dispatcher.getCompletionSuggestions(results).join().getList().stream()
+    return dispatcher
+        .getCompletionSuggestions(
+            dispatcher.parse(command.getName() + ' ' + String.join(" ", args), sender))
+        .join()
+        .getList()
+        .stream()
         .map(Suggestion::getText)
         .collect(Collectors.toList());
   }
