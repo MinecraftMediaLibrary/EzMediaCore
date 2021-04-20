@@ -11,6 +11,8 @@ import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 import uk.co.caprica.vlcj.support.version.LibVlcVersion;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
@@ -20,7 +22,7 @@ import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_release;
 public final class VLCUtilities {
 
   private static final String VLC_PLUGIN_PATH;
-  private static File NATIVE_VLC_PATH;
+  private static Path NATIVE_VLC_PATH;
 
   static {
     VLC_PLUGIN_PATH = "VLC_PLUGIN_PATH";
@@ -38,7 +40,9 @@ public final class VLCUtilities {
     if (!directory.exists()) {
       return false;
     }
-    if (new NativeDiscovery().discover()) {
+    final NativeDiscovery discovery = new NativeDiscovery();
+    if (discovery.discover()) {
+      NATIVE_VLC_PATH = Paths.get(discovery.discoveredPath());
       return true;
     }
     final String extension =
@@ -60,11 +64,18 @@ public final class VLCUtilities {
 
           /*
 
-          TODO: Need to test line below for MAC and Linux
+          Windows: Parent
+          MacOS: Same Directory
+          Linux: Parent of Parent
 
            */
 
-          setVLCPluginPath(f.getParent());
+          setVLCPluginPath(
+              RuntimeUtilities.isWindows()
+                  ? f.getParent()
+                  : RuntimeUtilities.isMac()
+                      ? f.getParent() + "/lib/"
+                      : f.getParentFile().getParent());
 
           Logger.info(String.format("Found Plugins Path (%s)", path));
           plugins = true;
@@ -85,17 +96,14 @@ public final class VLCUtilities {
           /*
 
           In general, when we find the LibVLC file we need to also find the parent
-          directory where all the binaries are stored. Unfortunately, this is different
-          for every operating system out there so we must be careful.
+          directory where all the binaries are stored.
 
            */
 
-          NATIVE_VLC_PATH =
-              RuntimeUtilities.isWindows() || RuntimeUtilities.isMac()
-                  ? f.getParentFile()
-                  : f.getParentFile().getParentFile();
+          NATIVE_VLC_PATH = f.getParentFile().toPath();
 
-          NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), NATIVE_VLC_PATH.getAbsolutePath());
+          NativeLibrary.addSearchPath(
+              RuntimeUtil.getLibVlcLibraryName(), NATIVE_VLC_PATH.toAbsolutePath().toString());
           Logger.info(String.format("Found LibVLC (%s)", path));
           loadLibVLCLibrary();
           libvlc = true;
@@ -131,12 +139,16 @@ public final class VLCUtilities {
    * Sets the VLC plugin path to the specified path provided.
    *
    * @param path the vlc plugin path
-   * @return whether the path set was successful or not
    */
-  private static boolean setVLCPluginPath(@NotNull final String path) {
-    return RuntimeUtilities.isWindows()
-        ? LibC.INSTANCE._putenv(String.format("%s=%s", VLC_PLUGIN_PATH, path)) == 0
-        : LibC.INSTANCE.setenv(VLC_PLUGIN_PATH, path, 1) == 0;
+  private static void setVLCPluginPath(@NotNull final String path) {
+    final String env = System.getenv("VLC_PLUGIN_PATH");
+    if (env == null || env.length() == 0) {
+      if (RuntimeUtilities.isWindows()) {
+        LibC.INSTANCE._putenv(String.format("%s=%s", VLC_PLUGIN_PATH, path));
+      } else {
+        LibC.INSTANCE.setenv(VLC_PLUGIN_PATH, path, 1);
+      }
+    }
   }
 
   /**
@@ -165,7 +177,7 @@ public final class VLCUtilities {
    *
    * @return the File of the folder
    */
-  public static File getNativeVlcPath() {
+  public static Path getNativeVlcPath() {
     return NATIVE_VLC_PATH;
   }
 }

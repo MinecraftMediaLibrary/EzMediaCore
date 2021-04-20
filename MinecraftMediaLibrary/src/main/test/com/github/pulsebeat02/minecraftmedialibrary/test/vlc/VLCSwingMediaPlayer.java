@@ -21,6 +21,23 @@ public class VLCSwingMediaPlayer extends JFrame {
     initialize();
   }
 
+  public static void main(final String[] args) {
+    try {
+      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    } catch (final Exception e) {
+      e.printStackTrace();
+    }
+    final NativeDiscovery discovery = new NativeDiscovery();
+    discovery.discover();
+    System.out.println(discovery.discoveredPath());
+    final Map<String, String> env = System.getenv();
+    for (final String envName : env.keySet()) {
+      System.out.format("%s=%s%n", envName, env.get(envName));
+    }
+    new VLCSwingMediaPlayer("VLC Media Player")
+        .loadVideo("/Users/bli24/Desktop/test.mp4");
+  }
+
   public void initialize() {
 
     setBounds(100, 100, 600, 400);
@@ -39,32 +56,27 @@ public class VLCSwingMediaPlayer extends JFrame {
     contentPane.add(mediaPlayerComponent, BorderLayout.CENTER);
 
     final JPanel controlsPane = new JPanel();
+
     final JButton playButton = new JButton("Play");
     controlsPane.add(playButton);
     contentPane.add(controlsPane, BorderLayout.SOUTH);
+    playButton.addActionListener(e -> mediaPlayerComponent.mediaPlayer().controls().start());
+
+    final JButton pauseButton = new JButton("Pause");
+    controlsPane.add(pauseButton);
+    contentPane.add(controlsPane, BorderLayout.SOUTH);
+    playButton.addActionListener(e -> mediaPlayerComponent.mediaPlayer().controls().pause());
+
+    final JButton resumeButton = new JButton("Resume");
+    controlsPane.add(resumeButton);
+    contentPane.add(controlsPane, BorderLayout.SOUTH);
     playButton.addActionListener(e -> mediaPlayerComponent.mediaPlayer().controls().play());
+
     setContentPane(contentPane);
     setVisible(true);
-
   }
 
   public void loadVideo(final String path) {
     mediaPlayerComponent.mediaPlayer().media().startPaused(path);
-  }
-
-  public static void main(final String[] args) {
-    try {
-      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-    } catch (final Exception e) {
-      e.printStackTrace();
-    }
-    final NativeDiscovery discovery = new NativeDiscovery();
-    discovery.discover();
-    System.out.println(discovery.discoveredPath());
-    final Map<String, String> env = System.getenv();
-    for (final String envName : env.keySet()) {
-      System.out.format("%s=%s%n", envName, env.get(envName));
-    }
-    new VLCSwingMediaPlayer("VLC Media Player").loadVideo("C:\\test.mp4");
   }
 }
