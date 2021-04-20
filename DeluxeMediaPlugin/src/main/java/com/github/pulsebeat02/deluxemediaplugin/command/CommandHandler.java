@@ -1,6 +1,7 @@
 package com.github.pulsebeat02.deluxemediaplugin.command;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import com.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommand;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
