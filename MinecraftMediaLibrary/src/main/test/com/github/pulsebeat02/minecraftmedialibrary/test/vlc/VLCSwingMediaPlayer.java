@@ -7,7 +7,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.Map;
 
 public class VLCSwingMediaPlayer extends JFrame {
 
@@ -18,7 +17,6 @@ public class VLCSwingMediaPlayer extends JFrame {
   public VLCSwingMediaPlayer(final String title) {
     super(title);
     mediaPlayerComponent = new EmbeddedMediaPlayerComponent();
-    initialize();
   }
 
   public static void main(final String[] args) {
@@ -27,15 +25,10 @@ public class VLCSwingMediaPlayer extends JFrame {
     } catch (final Exception e) {
       e.printStackTrace();
     }
-    final NativeDiscovery discovery = new NativeDiscovery();
-    discovery.discover();
-    System.out.println(discovery.discoveredPath());
-    final Map<String, String> env = System.getenv();
-    for (final String envName : env.keySet()) {
-      System.out.format("%s=%s%n", envName, env.get(envName));
-    }
-    new VLCSwingMediaPlayer("VLC Media Player")
-        .loadVideo("/Users/bli24/Desktop/test.mp4");
+    System.out.println(new NativeDiscovery().discover());
+    final VLCSwingMediaPlayer player = new VLCSwingMediaPlayer("VLC Media Player");
+    player.initialize();
+    player.loadVideo("/Users/bli24/Desktop/test.mp4");
   }
 
   public void initialize() {
