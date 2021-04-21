@@ -26,6 +26,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.function.Consumer;
 
@@ -54,6 +55,28 @@ public abstract class VideoPlayerBase {
       @NotNull final Consumer<int[]> callback) {
     this.library = library;
     this.url = url;
+    this.width = width;
+    this.height = height;
+    this.callback = callback;
+  }
+
+  /**
+   * Instantiates a new Abstract video player.
+   *
+   * @param library the library
+   * @param file the file
+   * @param width the width
+   * @param height the height
+   * @param callback the callback
+   */
+  public VideoPlayerBase(
+      @NotNull final MinecraftMediaLibrary library,
+      @NotNull final File file,
+      final int width,
+      final int height,
+      @NotNull final Consumer<int[]> callback) {
+    this.library = library;
+    url = file.getAbsolutePath();
     this.width = width;
     this.height = height;
     this.callback = callback;

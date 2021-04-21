@@ -79,7 +79,7 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
     final CallbackVideoSurface surface =
         new CallbackVideoSurface(
             bufferFormatCallback,
-            new MinecraftRenderCallback(),
+            new MinecraftVideoRenderCallback(),
             false,
             new WindowsVideoSurfaceAdapter());
     mediaPlayerComponent.videoSurface().set(surface);
@@ -101,7 +101,7 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
       final int width,
       final int height,
       @NotNull final Consumer<int[]> callback) {
-    super(library, file.getAbsolutePath(), width, height, callback);
+    super(library, file, width, height, callback);
     mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
     final BufferFormatCallback bufferFormatCallback =
         new BufferFormatCallback() {
@@ -116,7 +116,7 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
     final CallbackVideoSurface surface =
         new CallbackVideoSurface(
             bufferFormatCallback,
-            new MinecraftRenderCallback(),
+            new MinecraftVideoRenderCallback(),
             false,
             new WindowsVideoSurfaceAdapter());
     mediaPlayerComponent.videoSurface().set(surface);
@@ -241,15 +241,18 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
     }
   }
 
-  private class MinecraftRenderCallback extends RenderCallbackAdapter {
+  private class MinecraftVideoRenderCallback extends RenderCallbackAdapter {
 
-    private MinecraftRenderCallback() {
+    private final Consumer<int[]> callback;
+
+    private MinecraftVideoRenderCallback() {
       super(new int[getWidth() * getHeight()]);
+      callback = getCallback();
     }
 
     @Override
     protected void onDisplay(final MediaPlayer mediaPlayer, final int[] buffer) {
-      getCallback().accept(buffer);
+      callback.accept(buffer);
     }
   }
 }
