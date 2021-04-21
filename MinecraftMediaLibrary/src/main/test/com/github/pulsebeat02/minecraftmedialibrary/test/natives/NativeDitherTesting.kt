@@ -20,7 +20,7 @@
  .   SOFTWARE.                                                                               .
  ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.test.native
+package com.github.pulsebeat02.minecraftmedialibrary.test.natives
 
 import com.github.pulsebeat02.minecraftmedialibrary.natives.NativeFilterLiteDither
 

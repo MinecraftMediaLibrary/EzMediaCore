@@ -61,22 +61,12 @@ public final class VLCUtilities {
       final String path = f.getAbsolutePath();
       if (f.isDirectory()) {
         if (!plugins && name.equals("plugins")) {
-
-          /*
-
-          Windows: Parent
-          MacOS: Same Directory
-          Linux: Parent of Parent
-
-           */
-
           setVLCPluginPath(
               RuntimeUtilities.isWindows()
                   ? f.getParent()
                   : RuntimeUtilities.isMac()
-                      ? f.getParent() + "/lib/"
-                      : f.getParentFile().getParent());
-
+                      ? f.getParent() + "/lib/../plugins"
+                      : f.getParent() + "/vlc/plugins");
           Logger.info(String.format("Found Plugins Path (%s)", path));
           plugins = true;
         } else {
@@ -90,20 +80,14 @@ public final class VLCUtilities {
           }
         }
       } else {
-
         if (!libvlc && name.equals(keyword)) {
-
-          /*
-
-          In general, when we find the LibVLC file we need to also find the parent
-          directory where all the binaries are stored.
-
-           */
-
           NATIVE_VLC_PATH = f.getParentFile().toPath();
-
-          NativeLibrary.addSearchPath(
-              RuntimeUtil.getLibVlcLibraryName(), NATIVE_VLC_PATH.toAbsolutePath().toString());
+          final String vlcPath = NATIVE_VLC_PATH.toAbsolutePath().toString();
+          if (RuntimeUtilities.isMac()) {
+            NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcCoreLibraryName(), vlcPath);
+            NativeLibrary.getInstance(RuntimeUtil.getLibVlcCoreLibraryName());
+          }
+          NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), vlcPath);
           Logger.info(String.format("Found LibVLC (%s)", path));
           loadLibVLCLibrary();
           libvlc = true;
