@@ -201,7 +201,7 @@ public final class FilterLiteDither implements DitherHolder {
     final int height = buffer.length / width;
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;
-    final int[][] dither_buffer = new int[2][width + width << 1];
+    final int[][] dither_buffer = new int[2][width << 2];
     final ByteBuffer data = ByteBuffer.allocate(buffer.length);
     for (int y = 0; y < height; ++y) {
       final boolean hasNextY = y < heightMinus;

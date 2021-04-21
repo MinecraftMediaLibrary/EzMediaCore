@@ -1,28 +1,42 @@
 #include <iostream>
+#include <jni.h>
 
 static jint *color_map;
+static jint *full_color_map;
 
-JNIEXPORT void JNICALL setup(JNIEnv *env, jobject current, jintArray arr) {
-    color_map = (*env)->GetIntArrayElements(env, arr, NULL);
+JNIEXPORT void JNICALL Java_com_github_pulsebeat02_minecraftmedialibrary_natives_NativeFilterLiteDither_setup(JNIEnv *env, jobject current, jintArray color, jIntArray full) {
+    color_map = (*env) -> GetIntArrayElements(env, color, NULL);
+    full_color_map = (*env) -> GetIntArrayElements(env, full, NULL);
 }
 
-JNIEXPORT void JNICALL dither_native(JNIEnv *env, jobject current, jobject buffer, jintArray arr, jint width) {
-    jint *array = (*env)->GetIntArrayElements(env, arr, NULL);
-    jsize height = (*env)->GetArrayLength(env, jArr);
+char get_best_color(const int rgb) {
+    return color_map[
+            (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
+}
+
+int getBestFullColor(const int red, const int green, const int blue) {
+    return full_color_map[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
+}
+
+
+JNIEXPORT void JNICALL Java_com_github_pulsebeat02_minecraftmedialibrary_natives_NativeFilterLiteDither_dither_native(JNIEnv *env, jobject current, jobject buffer, jintArray arr, jint width) {
+    jint *array = (*env) -> GetIntArrayElements(env, arr, NULL);
+    jsize *height = (*env) -> GetArrayLength(env, jArr);
+    jbyte *data = (*env) -> GetDirectBufferAddress(env, buffer);
     const int widthMinus = width - 1;
     const int heightMinus = height - 1;
-    const int dither_buffer[2][(width + width) << 2];
-    jbyte *data = (*env)->GetDirectBufferAddress(env, buffer);
+    const int span = width << 2;
+    int dither_buffer[2][span];
     for (int y = 0; y < height; ++y) {
         const bool hasNextY = y < heightMinus;
         const int yIndex = y * width;
         if (!(y & 0x1)) {
             int bufferIndex = 0;
-            int buf1[] = dither_buffer[0];
-            int buf2[] = dither_buffer[1];
+            int buf1[span] = dither_buffer[0];
+            int buf2[span] = dither_buffer[1];
             for (int x = 0; x < width; ++x) {
                 const int index = yIndex + x;
-                const int rgb = buffer[index];
+                const int rgb = array[index];
                 int red = rgb >> 16 & 0xFF;
                 int green = rgb >> 8 & 0xFF;
                 int blue = rgb & 0xFF;
@@ -48,7 +62,7 @@ JNIEXPORT void JNICALL dither_native(JNIEnv *env, jobject current, jobject buffe
                     buf2[bufferIndex - 2] = delta_g >> 2;
                     buf2[bufferIndex - 1] = delta_b >> 2;
                 }
-                data.put(index, getBestColor(closest));
+                data.put(index, get_best_color(closest));
             }
         } else {
             int bufferIndex = width + (width << 1) - 1;
@@ -56,7 +70,7 @@ JNIEXPORT void JNICALL dither_native(JNIEnv *env, jobject current, jobject buffe
             int buf2[] = dither_buffer[0];
             for (int x = width - 1; x >= 0; --x) {
                 const int index = yIndex + x;
-                const int rgb = buffer[index];
+                const int rgb = array[index];
                 int red = rgb >> 16 & 0xFF;
                 int green = rgb >> 8 & 0xFF;
                 int blue = rgb & 0xFF;
@@ -82,13 +96,8 @@ JNIEXPORT void JNICALL dither_native(JNIEnv *env, jobject current, jobject buffe
                     buf2[bufferIndex + 2] = delta_g >> 2;
                     buf2[bufferIndex + 1] = delta_r >> 2;
                 }
-                data.put(index, getBestColor(closest));
+                data.put(index, get_best_color(closest));
             }
         }
     }
-}
-
-char getBestColor(const int rgb) {
-    return color_map[
-            (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
 }

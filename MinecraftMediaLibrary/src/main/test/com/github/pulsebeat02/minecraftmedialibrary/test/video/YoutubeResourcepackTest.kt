@@ -32,7 +32,7 @@ class YoutubeResourcepackTest : JavaPlugin() {
     private var library: MinecraftMediaLibrary? = null
 
     override fun onEnable() {
-        library = MinecraftMediaLibrary(this, true)
+        library = MinecraftMediaLibrary(this)
     }
 
     fun getResourcepackUrlYoutube(youtubeUrl: String, directory: String, port: Int): String {
