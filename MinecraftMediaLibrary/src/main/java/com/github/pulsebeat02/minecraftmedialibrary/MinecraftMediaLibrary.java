@@ -68,16 +68,6 @@ public final class MinecraftMediaLibrary {
    * Instantiates a new MinecraftMediaLibrary.
    *
    * @param plugin the plugin
-   * @param isUsingVLCJ whether using vlcj
-   */
-  public MinecraftMediaLibrary(@NotNull final Plugin plugin, final boolean isUsingVLCJ) {
-    this(plugin, null, null, null, null, null, isUsingVLCJ);
-  }
-
-  /**
-   * Instantiates a new MinecraftMediaLibrary.
-   *
-   * @param plugin the plugin
    */
   public MinecraftMediaLibrary(@NotNull final Plugin plugin) {
     this(plugin, null, null, null, null, null, true);
@@ -100,8 +90,11 @@ public final class MinecraftMediaLibrary {
       @Nullable final String imagePath,
       @Nullable final String audioPath,
       final boolean isUsingVLCJ) {
+
     final java.util.logging.Logger logger = plugin.getLogger();
+
     this.plugin = plugin;
+
     Logger.initializeLogger(this);
     protocol =
         new TinyProtocol(plugin) {
@@ -117,6 +110,7 @@ public final class MinecraftMediaLibrary {
             return handler.onPacketInterceptIn(player, packet);
           }
         };
+
     final String path = String.format("%s/mml", plugin.getDataFolder().getAbsolutePath());
     parentFolder = Paths.get(path);
     httpParentFolder = Paths.get(http == null ? String.format("%s/http/", path) : http);
@@ -128,15 +122,16 @@ public final class MinecraftMediaLibrary {
     if (RuntimeUtilities.isMac()) {
       vlc = Paths.get("/Applications/", "VLC.app");
     }
+
     vlcFolder = vlc;
-    createNecessaryFolders();
     vlcj = isUsingVLCJ;
     handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
     listener = new PlayerJoinLeaveHandler(this);
+
+    createNecessaryFolders();
     registerEvents();
     debugInformation();
     printSystemInformation();
-    logger.info("Starting Dependency Tasks... this may take a while!");
     dependencyTasks();
     checkJavaVersion();
   }
@@ -169,6 +164,8 @@ public final class MinecraftMediaLibrary {
 
   /** Runs dependency tasks required. */
   private void dependencyTasks() {
+    Logger.info(
+        "Starting Dependency Tasks... This may take a while depending on your enviornment!");
     new DependencyInstantiation(this).startTasks();
   }
 

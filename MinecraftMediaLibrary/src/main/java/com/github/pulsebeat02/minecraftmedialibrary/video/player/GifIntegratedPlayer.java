@@ -105,6 +105,11 @@ public class GifIntegratedPlayer extends VideoPlayerBase {
     return new Builder();
   }
 
+  /**
+   * Starts the Gif player.
+   *
+   * @param players which players to play the audio for
+   */
   @Override
   public void start(final @NotNull Collection<? extends Player> players) {
     final Consumer<int[]> callback = getCallback();
@@ -123,11 +128,13 @@ public class GifIntegratedPlayer extends VideoPlayerBase {
         TimeUnit.MILLISECONDS);
   }
 
+  /** Stops the Gif player. */
   @Override
   public void stop() {
     scheduler.shutdown();
   }
 
+  /** Releases the Gif player. */
   @Override
   public void release() {
     scheduler = null;
