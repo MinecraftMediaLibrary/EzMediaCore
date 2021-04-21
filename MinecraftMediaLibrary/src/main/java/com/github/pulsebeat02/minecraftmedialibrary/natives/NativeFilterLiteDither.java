@@ -30,7 +30,21 @@ public class NativeFilterLiteDither {
     System.loadLibrary("filterlite-dither");
   }
 
-  public native void setup(final int[] colorMap);
+  /**
+   * The native method used for setup which calls a C++ method in the filterlite-dither.so/.dll
+   * file.
+   *
+   * @param colorMap the passed in colormap
+   */
+  private native void setup(final int[] colorMap, final int[] fullColorMap);
 
-  public native void dither_native(final ByteBuffer buffer, final int[] data, final int width);
+  /**
+   * The native method used to dither a specific array of data that calls a C++ method in the
+   * filterlite-dither.so/.dll file.
+   *
+   * @param buffer the buffer to edit
+   * @param data the image data to read
+   * @param width the width passed in
+   */
+  private native void dither_native(final ByteBuffer buffer, final int[] data, final int width);
 }
