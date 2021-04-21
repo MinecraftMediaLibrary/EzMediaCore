@@ -51,7 +51,7 @@ Most of the code is documented which can be found [here](https://pulsebeat02.git
 
 ## List of Tasks
 A list of the tasks I need to do can be found [here](https://github.com/PulseBeat02/MinecraftMediaLibrary/issues/3).
-I am currently working on a ton of support for other operating systems. It currently only works on Windows, but hopefully I can get it to work on MacOS and Linux systems soon.
+I am currently working on a ton of support for other operating systems. It currently only works on Windows, but hopefully I can get it to work on Linux systems soon.
 
 ---
 
