@@ -15,7 +15,9 @@ and useful classes for other plugins to take advantage of. One of the most impor
 play **videos** on a Minecraft Spigot server. It uses a [very optimized dithering method](https://github.com/PulseBeat02/MinecraftMediaLibrary/blob/master/MinecraftMediaLibrary/src/main/java/com/github/pulsebeat02/minecraftmedialibrary/video/dither/FilterLiteDither.java) along side with
 **VLC Media Player Integration** if necessary to parse the video even quicker. As a result, frames can reach up to **35** times per
 second at times with very good quality on maps if necessary. In comparison, a *smooth* animation is one which is 24
-frames only.
+frames only. Here is a demo of what it would look like:
+
+[![Epic Video Playback](https://yt-embed.herokuapp.com/embed?v=9oIns_Kp_sk&t=30s)](https://www.youtube.com/watch?v=9oIns_Kp_sk&t=30s)
 
 The plugin takes advantages of maps to handle its video playback. Currently, it uses maps with ids to
 display the video.
@@ -47,6 +49,12 @@ Most of the code is documented which can be found [here](https://pulsebeat02.git
 
 ---
 
+## List of Tasks
+A list of the tasks I need to do can be found [here](https://github.com/PulseBeat02/MinecraftMediaLibrary/issues/3).
+I am currently working on a ton of support for other operating systems. It currently only works on Windows, but hopefully I can get it to work on MacOS and Linux systems soon.
+
+---
+
 ## Contributors/Acknowledgements
 - [BananaPuncher714](https://github.com/BananaPuncher714) for helping lead the spark for the project, as well as code the Floyd-Steinberg implementation in Java.
 - [Jetp250](https://github.com/jetp250) for helping with the Floyd-Steinberg implementation.
@@ -55,7 +63,3 @@ Most of the code is documented which can be found [here](https://pulsebeat02.git
 - [VLCJ](https://github.com/caprica/vlcj) for providing the Java bindings and support to use VLC in the scope of Java.
 
 ---
-
-## List of Tasks
-A list of the tasks I need to do can be found [here](https://github.com/PulseBeat02/MinecraftMediaLibrary/issues/3). I am currently working on a ton of support for other operating systems. It currently only works on Windows, but hopefully I can get it to work on MacOS and Linux systems soon.
-
