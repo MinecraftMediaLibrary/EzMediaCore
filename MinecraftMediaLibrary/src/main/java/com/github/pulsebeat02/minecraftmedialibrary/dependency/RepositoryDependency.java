@@ -46,7 +46,7 @@ public enum RepositoryDependency {
       DependencyResolution.JITPACK_DEPENDENCY),
 
   /** Jave Core Maven Dependency */
-  JAVE_CORE("ws{}schild", "jave-core", "3{}0{}1", DependencyResolution.MAVEN_DEPENDENCY),
+  JAVE_CORE("ws{}schild", "jave-core", "3{}1{}1", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** Apache Commons Compression Maven Dependency */
   COMMONS_COMPRESSION(
