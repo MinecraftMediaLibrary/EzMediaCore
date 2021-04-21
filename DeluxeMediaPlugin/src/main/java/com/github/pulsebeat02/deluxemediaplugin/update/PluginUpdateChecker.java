@@ -31,7 +31,7 @@ public class PluginUpdateChecker {
 
   public PluginUpdateChecker(@NotNull final DeluxeMediaPlugin plugin) {
     this.plugin = plugin;
-      resource = -1;
+    resource = -1;
   }
 
   public void checkForUpdates() {
@@ -60,12 +60,12 @@ public class PluginUpdateChecker {
                                   "https://api.spigotmc.org/legacy/update.php?resource=%d",
                                   resource))
                           .openStream();
-                   final Scanner scanner = new Scanner(inputStream)) {
+                  final Scanner scanner = new Scanner(inputStream)) {
                 if (scanner.hasNext()) {
                   consumer.accept(scanner.next());
                 }
               } catch (final IOException exception) {
-                  plugin
+                plugin
                     .getLogger()
                     .info(String.format("Cannot look for updates: %s", exception.getMessage()));
               }

@@ -91,8 +91,6 @@ public final class MinecraftMediaLibrary {
       @Nullable final String audioPath,
       final boolean isUsingVLCJ) {
 
-    final java.util.logging.Logger logger = plugin.getLogger();
-
     this.plugin = plugin;
 
     Logger.initializeLogger(this);
@@ -118,12 +116,8 @@ public final class MinecraftMediaLibrary {
     audioFolder = Paths.get(audioPath == null ? String.format("%s/audio/", path) : audioPath);
     dependenciesFolder =
         Paths.get(libraryPath == null ? String.format("%s/libraries/", path) : libraryPath);
-    Path vlc = Paths.get(vlcPath == null ? String.format("%s/vlc/", path) : vlcPath);
-    if (RuntimeUtilities.isMac()) {
-      vlc = Paths.get("/Applications/", "VLC.app");
-    }
+    vlcFolder = Paths.get(vlcPath == null ? String.format("%s/vlc/", path) : vlcPath);
 
-    vlcFolder = vlc;
     vlcj = isUsingVLCJ;
     handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
     listener = new PlayerJoinLeaveHandler(this);

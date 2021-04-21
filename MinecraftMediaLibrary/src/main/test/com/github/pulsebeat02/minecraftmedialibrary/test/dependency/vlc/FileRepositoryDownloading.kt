@@ -12,12 +12,6 @@
  */
 package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc
 
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackageManager
-import org.apache.commons.io.FileUtils
-import java.io.File
-import java.io.IOException
-import java.net.URL
-
 fun main() {
 //    val manager = LinuxPackageManager("")
 //    for (dict in manager.allPackages.values) {

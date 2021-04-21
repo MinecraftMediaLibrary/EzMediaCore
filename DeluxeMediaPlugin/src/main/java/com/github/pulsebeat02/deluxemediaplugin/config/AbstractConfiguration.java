@@ -35,8 +35,8 @@ public abstract class AbstractConfiguration {
   public AbstractConfiguration(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final String name) {
     this.plugin = plugin;
-      fileName = name;
-      configFile = new File(plugin.getDataFolder(), fileName);
+    fileName = name;
+    configFile = new File(plugin.getDataFolder(), fileName);
   }
 
   public void reloadConfig() {
@@ -51,7 +51,7 @@ public abstract class AbstractConfiguration {
 
   public FileConfiguration getConfig() {
     if (fileConfiguration == null) {
-        reloadConfig();
+      reloadConfig();
     }
     return fileConfiguration;
   }

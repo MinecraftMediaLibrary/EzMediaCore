@@ -70,6 +70,7 @@ public class VLCNativeDependencyFetcher {
    *
    * @param path the path
    */
+  @Deprecated
   public VLCNativeDependencyFetcher(@NotNull final Path path) {
     solution = new MacSilentInstallation(path);
   }

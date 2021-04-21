@@ -4,7 +4,9 @@ import java.nio.file.Paths
 
 fun main() {
     println(
-            Paths.get("C:\\Users\\Brandon Li\\Desktop\\server\\plugins\\DeluxeMediaPlugin\\mml\\http").normalize()
-                    .relativize(Paths.get("C:\\Users\\Brandon Li\\Desktop\\server\\plugins\\DeluxeMediaPlugin/mml/http/resourcepack.zip")).normalize()
-                    .toString())
+        Paths.get("C:\\Users\\Brandon Li\\Desktop\\server\\plugins\\DeluxeMediaPlugin\\mml\\http").normalize()
+            .relativize(Paths.get("C:\\Users\\Brandon Li\\Desktop\\server\\plugins\\DeluxeMediaPlugin/mml/http/resourcepack.zip"))
+            .normalize()
+            .toString()
+    )
 }

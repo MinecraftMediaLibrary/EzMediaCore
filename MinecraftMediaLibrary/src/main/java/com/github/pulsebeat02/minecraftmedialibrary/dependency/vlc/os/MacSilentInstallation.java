@@ -26,17 +26,14 @@ import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTask;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
-import com.sun.jna.NativeLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
-import uk.co.caprica.vlcj.binding.RuntimeUtil;
-import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * The Mac specific silent installation for VLC. Mac is significantly harder to accomplish compared
@@ -82,7 +79,7 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
     } catch (final InterruptedException e) {
       e.printStackTrace();
     }
-    final File app = Paths.get("/Applications/").resolve("VLC.app").toFile();
+    final File app = dir.resolve("VLC.app").toFile();
     FileUtils.copyDirectory(new File(diskPath, "VLC.app"), app);
     try {
       changePermissions(app.getAbsolutePath());
@@ -105,8 +102,7 @@ public class MacSilentInstallation extends SilentOSDependentSolution {
 
   @Override
   public void loadNativeDependency(final @NotNull File folder) {
-    NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), folder.getAbsolutePath());
-    new NativeDiscovery().discover();
+    VLCUtilities.checkVLCExistence(folder);
   }
 
   /**
