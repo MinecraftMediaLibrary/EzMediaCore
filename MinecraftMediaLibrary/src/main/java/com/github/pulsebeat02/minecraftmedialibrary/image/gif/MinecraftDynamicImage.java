@@ -24,14 +24,14 @@ package com.github.pulsebeat02.minecraftmedialibrary.image.gif;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.FFmpegLocation;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapIntegratedPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.image.MapImageHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImage;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapIntegratedPlayer;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;

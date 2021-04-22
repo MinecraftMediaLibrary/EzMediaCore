@@ -23,8 +23,8 @@
 package com.github.pulsebeat02.minecraftmedialibrary.frame.entity;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;

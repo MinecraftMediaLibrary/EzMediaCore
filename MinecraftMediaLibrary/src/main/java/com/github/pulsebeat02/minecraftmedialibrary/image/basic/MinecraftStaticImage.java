@@ -23,11 +23,11 @@
 package com.github.pulsebeat02.minecraftmedialibrary.image.basic;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.FloydImageDither;
 import com.github.pulsebeat02.minecraftmedialibrary.image.MapImageHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.FloydImageDither;
 import com.google.common.collect.ImmutableMap;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.util.NumberConversions;

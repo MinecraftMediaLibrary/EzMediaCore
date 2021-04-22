@@ -392,8 +392,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
      * @param library the library
      * @return the resourcepack wrapper
      */
-    public ResourcepackWrapper build(
-        final MinecraftMediaLibrary library) {
+    public ResourcepackWrapper build(final MinecraftMediaLibrary library) {
       return new ResourcepackWrapper(library, path, audio, icon, description, packFormat);
     }
   }

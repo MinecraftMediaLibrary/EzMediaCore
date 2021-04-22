@@ -1,33 +1,33 @@
 /*............................................................................................
- . Copyright © 2021 Brandon Li                                                               .
- .                                                                                           .
- . Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
- . software and associated documentation files (the “Software”), to deal in the Software     .
- . without restriction, including without limitation the rights to use, copy, modify, merge, .
- . publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
- . persons to whom the Software is furnished to do so, subject to the following conditions:  .
- .                                                                                           .
- . The above copyright notice and this permission notice shall be included in all copies     .
- . or substantial portions of the Software.                                                  .
- .                                                                                           .
- . THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
- .  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
- .   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
- .   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
- .   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
- .   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
- .   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
- .   SOFTWARE.                                                                               .
- ............................................................................................*/
+. Copyright © 2021 Brandon Li                                                               .
+.                                                                                           .
+. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
+. software and associated documentation files (the “Software”), to deal in the Software     .
+. without restriction, including without limitation the rights to use, copy, modify, merge, .
+. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
+. persons to whom the Software is furnished to do so, subject to the following conditions:  .
+.                                                                                           .
+. The above copyright notice and this permission notice shall be included in all copies     .
+. or substantial portions of the Software.                                                  .
+.                                                                                           .
+. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
+.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
+.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
+.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
+.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
+.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
+.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
+.   SOFTWARE.                                                                               .
+............................................................................................*/
 
 package com.github.pulsebeat02.minecraftmedialibrary.frame.gif;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ImageUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.entity.Player;
@@ -175,8 +175,7 @@ public class GIFIntegratedPlayer extends VideoPlayer {
      * @param library the library
      * @return the vlcj integrated player
      */
-    public GIFIntegratedPlayer build(
-        @NotNull final MinecraftMediaLibrary library) {
+    public GIFIntegratedPlayer build(@NotNull final MinecraftMediaLibrary library) {
       if (PathUtilities.isValidPath(url)) {
         return new GIFIntegratedPlayer(library, new File(url), width, height, callback);
       } else {

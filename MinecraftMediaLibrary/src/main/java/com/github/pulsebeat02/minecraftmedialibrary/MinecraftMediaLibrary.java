@@ -103,8 +103,8 @@ public final class MinecraftMediaLibrary {
     vlcj = isUsingVLCJ;
     handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
     listener = new PlayerJoinLeaveHandler(this);
-    DebuggerUtilities.getPluginDebugInfo(this);
-    DebuggerUtilities.getSystemDebugInfo(this);
+    Logger.info(DebuggerUtilities.getPluginDebugInfo(this));
+    Logger.info(DebuggerUtilities.getSystemDebugInfo(this));
     DebuggerUtilities.redirectLoggingOutput();
     Bukkit.getPluginManager().registerEvents(listener, plugin);
     dependencyTasks();

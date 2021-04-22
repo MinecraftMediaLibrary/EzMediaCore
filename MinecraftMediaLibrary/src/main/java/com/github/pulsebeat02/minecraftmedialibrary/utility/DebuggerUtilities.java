@@ -3,12 +3,8 @@ package com.github.pulsebeat02.minecraftmedialibrary.utility;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.LoggerFactory;
 import uk.co.caprica.nativestreams.NativeStreams;
 import ws.schild.jave.ConversionOutputAnalyzer;
 
