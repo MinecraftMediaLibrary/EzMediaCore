@@ -1,40 +1,17 @@
-/*............................................................................................
-. Copyright © 2021 Brandon Li                                                               .
-.                                                                                           .
-. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
-. software and associated documentation files (the “Software”), to deal in the Software     .
-. without restriction, including without limitation the rights to use, copy, modify, merge, .
-. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
-. persons to whom the Software is furnished to do so, subject to the following conditions:  .
-.                                                                                           .
-. The above copyright notice and this permission notice shall be included in all copies     .
-. or substantial portions of the Software.                                                  .
-.                                                                                           .
-. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
-.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
-.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
-.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
-.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
-.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
-.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
-.   SOFTWARE.                                                                               .
-............................................................................................*/
-
-package com.github.pulsebeat02.minecraftmedialibrary.video.itemframe;
+package com.github.pulsebeat02.minecraftmedialibrary.video.callback;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherHolder;
+import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.ByteBuffer;
 import java.util.UUID;
 
-/** The callback used for itemframes to update maps for each frame when necessary. */
-public final class ItemFrameCallback implements CallbackBase {
+/** The callback used for itemframes to update entity clouds for each frame when necessary. */
+public final class EntityCloudCallback extends Callback {
 
   private final MinecraftMediaLibrary library;
   private final UUID[] viewers;
-  private final DitherHolder type;
+  private final Entity[] entities;
   private final int map;
   private final int videoWidth;
   private final int delay;
@@ -47,25 +24,25 @@ public final class ItemFrameCallback implements CallbackBase {
    *
    * @param library the library
    * @param viewers the viewers
+   * @param entities the entities
    * @param map the map
    * @param width the width
    * @param height the height
    * @param videoWidth the video width
    * @param delay the delay
-   * @param type the type
    */
-  public ItemFrameCallback(
+  public EntityCloudCallback(
       @NotNull final MinecraftMediaLibrary library,
       final UUID[] viewers,
+      @NotNull final Entity[] entities,
       final int map,
       final int width,
       final int height,
       final int videoWidth,
-      final int delay,
-      @NotNull final DitherHolder type) {
+      final int delay) {
     this.library = library;
     this.viewers = viewers;
-    this.type = type;
+    this.entities = entities;
     this.map = map;
     this.width = width;
     this.height = height;
@@ -90,11 +67,9 @@ public final class ItemFrameCallback implements CallbackBase {
   @Override
   public void send(final int[] data) {
     final long time = System.currentTimeMillis();
-    final long difference = time - lastUpdated;
-    if (difference >= delay) {
+    if (time - lastUpdated >= delay) {
       lastUpdated = time;
-      final ByteBuffer dithered = type.ditherIntoMinecraft(data, videoWidth);
-      library.getHandler().display(viewers, map, width, height, dithered, videoWidth);
+      library.getHandler().display(viewers, entities, data, width);
     }
   }
 
@@ -189,19 +164,19 @@ public final class ItemFrameCallback implements CallbackBase {
   }
 
   /**
-   * Gets type.
+   * Gets entities.
    *
    * @return the type
    */
-  public DitherHolder getType() {
-    return type;
+  public Entity[] getEntities() {
+    return entities;
   }
 
   /** The type Builder. */
   public static class Builder {
 
     private UUID[] viewers;
-    private DitherHolder type;
+    private Entity[] entities;
     private int map;
     private int width;
     private int height;
@@ -279,11 +254,11 @@ public final class ItemFrameCallback implements CallbackBase {
     /**
      * Sets dither holder.
      *
-     * @param holder the holder
+     * @param entities the holder
      * @return the dither holder
      */
-    public Builder setDitherHolder(final DitherHolder holder) {
-      type = holder;
+    public Builder setEntities(final Entity[] entities) {
+      this.entities = entities;
       return this;
     }
 
@@ -293,8 +268,9 @@ public final class ItemFrameCallback implements CallbackBase {
      * @param library the library
      * @return the item frame callback
      */
-    public ItemFrameCallback createItemFrameCallback(final MinecraftMediaLibrary library) {
-      return new ItemFrameCallback(library, viewers, map, width, height, videoWidth, delay, type);
+    public EntityCloudCallback createEntityCloudCallback(final MinecraftMediaLibrary library) {
+      return new EntityCloudCallback(
+          library, viewers, entities, map, width, height, videoWidth, delay);
     }
   }
 }

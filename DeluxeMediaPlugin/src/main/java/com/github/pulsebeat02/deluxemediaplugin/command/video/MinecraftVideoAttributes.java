@@ -3,7 +3,7 @@ package com.github.pulsebeat02.deluxemediaplugin.command.video;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
-import com.github.pulsebeat02.minecraftmedialibrary.video.player.VideoPlayerBase;
+import com.github.pulsebeat02.minecraftmedialibrary.video.player.VideoPlayer;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -13,7 +13,7 @@ public class MinecraftVideoAttributes {
   private final AtomicBoolean completion;
   private DitherHolder dither;
   private YoutubeExtraction extractor;
-  private VideoPlayerBase player;
+  private VideoPlayer player;
   private File file;
   private boolean youtube;
 
@@ -48,11 +48,11 @@ public class MinecraftVideoAttributes {
     this.extractor = extractor;
   }
 
-  public VideoPlayerBase getPlayer() {
+  public VideoPlayer getPlayer() {
     return player;
   }
 
-  public void setPlayer(final VideoPlayerBase player) {
+  public void setPlayer(final VideoPlayer player) {
     this.player = player;
   }
 

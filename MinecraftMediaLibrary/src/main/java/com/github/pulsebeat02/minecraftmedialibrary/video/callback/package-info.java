@@ -21,9 +21,9 @@
 ............................................................................................*/
 
 /**
- * Item frame callbacks can be found here, which control the visuals of an item frame.
+ * Callbacks can be found here.
  *
  * @since 1.0
  * @author PulseBeat_02
  */
-package com.github.pulsebeat02.minecraftmedialibrary.video.itemframe;
+package com.github.pulsebeat02.minecraftmedialibrary.video.callback;

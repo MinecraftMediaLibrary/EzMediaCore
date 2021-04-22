@@ -9,8 +9,8 @@ import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWra
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
-import com.github.pulsebeat02.minecraftmedialibrary.video.itemframe.ItemFrameCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.video.player.VLCJIntegratedPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.video.callback.MapDataCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.video.player.MapIntegratedPlayer;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -85,7 +85,7 @@ public class VideoCommand extends BaseCommand {
     return ChatUtilities.getCommandUsage(
         ImmutableMap.<String, String>builder()
             .put("/video", "Lists the command usage for the video command")
-            .put("/video start", "Starts the video")
+            .put("/video play", "Plays the video")
             .put("/video stop", "Stops the video")
             .put("/video load [url]", "Loads a Youtube link")
             .put("/video load [file]", "Loads a specific video file")
@@ -251,7 +251,7 @@ public class VideoCommand extends BaseCommand {
               Component.text("The video is still being downloaded!", NamedTextColor.RED)));
       return 1;
     }
-    atomicBoolean.set(false);
+
     final YoutubeExtraction extractor = attributes.getExtractor();
     audience.sendMessage(
         ChatUtilities.formatMessage(
@@ -264,13 +264,15 @@ public class VideoCommand extends BaseCommand {
                     NamedTextColor.GOLD)));
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
     if (library.isVlcj()) {
+
+
       attributes.setPlayer(
-          VLCJIntegratedPlayer.builder()
+          MapIntegratedPlayer.builder()
               .setUrl(attributes.getFile().getAbsolutePath())
               .setWidth(attributes.getScreenWidth())
               .setHeight(attributes.getScreenHeight())
               .setCallback(
-                  ItemFrameCallback.builder()
+                  MapDataCallback.builder()
                           .setViewers(null)
                           .setMap(attributes.getStartingMap())
                           .setWidth(attributes.getFrameWidth())
@@ -280,7 +282,28 @@ public class VideoCommand extends BaseCommand {
                           .setDitherHolder(attributes.getDither())
                           .createItemFrameCallback(library)
                       ::send)
-              .createVLCJIntegratedPlayer(library));
+              .build(library));
+
+//      attributes.setPlayer(
+//              EntityCloudIntegratedPlayer.builder()
+//                      .setUrl(attributes.getFile().getAbsolutePath())
+//                      .setWidth(attributes.getScreenWidth())
+//                      .setHeight(attributes.getScreenHeight())
+//                      .build(library));
+//      attributes.getPlayer().set
+//
+//              .setCallback(
+//                      EntityCloudCallback.builder()
+//                              .setViewers(null)
+//                              .setMap(attributes.getStartingMap())
+//                              .setWidth(attributes.getFrameWidth())
+//                              .setHeight(attributes.getFrameHeight())
+//                              .setVideoWidth(attributes.getScreenWidth())
+//                              .setDelay(0)
+//                              .setEntities()
+//                              .createItemFrameCallback(library)
+//                              ::send)
+
     }
     attributes.getPlayer().start(Bukkit.getOnlinePlayers());
     return 1;
@@ -292,6 +315,7 @@ public class VideoCommand extends BaseCommand {
     final String mrl = context.getArgument("mrl", String.class);
     final String folderPath = String.format("%s/mml/", plugin.getDataFolder().getAbsolutePath());
     if (!VideoExtractionUtilities.getVideoID(mrl).isPresent()) {
+
       final File f = new File(folderPath, mrl);
       final TextComponent component;
       if (f.exists()) {
@@ -334,6 +358,10 @@ public class VideoCommand extends BaseCommand {
                               String.format("Successfully loaded video %s", mrl),
                               NamedTextColor.GOLD))))
           .whenCompleteAsync((t, throwable) -> attributes.getCompletion().set(true));
+    }
+    final AtomicBoolean atomicBoolean = attributes.getCompletion();
+    if (atomicBoolean.get()) {
+      atomicBoolean.set(false);
     }
     return 1;
   }

@@ -23,23 +23,20 @@
 package com.github.pulsebeat02.minecraftmedialibrary.video.player;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
-import org.bukkit.entity.Player;
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.function.Consumer;
 
-public abstract class VideoPlayerBase {
-
-  private final MinecraftMediaLibrary library;
-  private final String url;
-  private final Consumer<int[]> callback;
-  private int width;
-  private int height;
+/**
+ * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
+ * specific function from native libraries. It renders it on maps.
+ */
+public class MapIntegratedPlayer extends VideoPlayer {
 
   /**
-   * Instantiates a new Abstract video player.
+   * Instantiates a new Vlcj integrated player on itemframes.
    *
    * @param library the library
    * @param url the url
@@ -47,21 +44,18 @@ public abstract class VideoPlayerBase {
    * @param height the height
    * @param callback the callback
    */
-  public VideoPlayerBase(
+  public MapIntegratedPlayer(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final String url,
+      @NotNull final Consumer<int[]> callback,
       final int width,
-      final int height,
-      @NotNull final Consumer<int[]> callback) {
-    this.library = library;
-    this.url = url;
-    this.width = width;
-    this.height = height;
-    this.callback = callback;
+      final int height) {
+    super(library, url, width, height, callback);
+    Logger.info(String.format("Created a VLCJ Integrated Itemframe Video Player (%s)", url));
   }
 
   /**
-   * Instantiates a new Abstract video player.
+   * Instantiates a new VLCJIntegratedPlayer.
    *
    * @param library the library
    * @param file the file
@@ -69,92 +63,58 @@ public abstract class VideoPlayerBase {
    * @param height the height
    * @param callback the callback
    */
-  public VideoPlayerBase(
+  public MapIntegratedPlayer(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final File file,
+      @NotNull final Consumer<int[]> callback,
       final int width,
-      final int height,
-      @NotNull final Consumer<int[]> callback) {
-    this.library = library;
-    url = file.getAbsolutePath();
-    this.width = width;
-    this.height = height;
-    this.callback = callback;
+      final int height) {
+    super(library, file, width, height, callback);
+    Logger.info(
+        String.format("Created a VLCJ Integrated Video Player (%s)", file.getAbsolutePath()));
   }
 
   /**
-   * Gets library.
+   * Returns a new builder class to use.
    *
-   * @return the library
+   * @return the builder
    */
-  public MinecraftMediaLibrary getLibrary() {
-    return library;
+  public static Builder builder() {
+    return new Builder();
   }
 
-  /**
-   * Gets url.
-   *
-   * @return the url
-   */
-  public String getUrl() {
-    return url;
+  /** The type Builder. */
+  public static class Builder {
+
+    private String url;
+    private int width;
+    private int height;
+    private Consumer<int[]> callback;
+
+    private Builder() {}
+
+    public Builder setUrl(final String url) {
+      this.url = url;
+      return this;
+    }
+
+    public Builder setWidth(final int width) {
+      this.width = width;
+      return this;
+    }
+
+    public Builder setHeight(final int height) {
+      this.height = height;
+      return this;
+    }
+
+    public Builder setCallback(final Consumer<int[]> callback) {
+      this.callback = callback;
+      return this;
+    }
+
+    public MapIntegratedPlayer build(@NotNull final MinecraftMediaLibrary library) {
+      return new MapIntegratedPlayer(library, url, callback, width, height);
+    }
   }
-
-  /**
-   * Gets width.
-   *
-   * @return the width
-   */
-  public int getWidth() {
-    return width;
-  }
-
-  /**
-   * Sets width.
-   *
-   * @param width the width
-   */
-  public void setWidth(final int width) {
-    this.width = width;
-  }
-
-  /**
-   * Gets height.
-   *
-   * @return the height
-   */
-  public int getHeight() {
-    return height;
-  }
-
-  /**
-   * Sets height.
-   *
-   * @param height the height
-   */
-  public void setHeight(final int height) {
-    this.height = height;
-  }
-
-  /**
-   * Gets callback.
-   *
-   * @return the callback
-   */
-  public Consumer<int[]> getCallback() {
-    return callback;
-  }
-
-  /**
-   * Starts player.
-   *
-   * @param players which players to play the audio for
-   */
-  public abstract void start(@NotNull final Collection<? extends Player> players);
-
-  /** Stops player. */
-  public abstract void stop();
-
-  /** Releases player. */
-  public abstract void release();
 }

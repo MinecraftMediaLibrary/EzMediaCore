@@ -30,8 +30,8 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
-import com.github.pulsebeat02.minecraftmedialibrary.video.itemframe.ItemFrameCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.video.player.VLCJIntegratedPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.video.callback.MapDataCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.video.player.MapIntegratedPlayer;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;
@@ -56,7 +56,7 @@ public class MinecraftDynamicImage implements MapImageHolder, ConfigurationSeria
   private final int map;
   private final int height;
   private final int width;
-  private VLCJIntegratedPlayer player;
+  private MapIntegratedPlayer player;
 
   /**
    * Instantiates a new MinecraftDynamicImage.
@@ -152,12 +152,12 @@ public class MinecraftDynamicImage implements MapImageHolder, ConfigurationSeria
       final Dimension dims = VideoUtilities.getDimensions(image);
       final int w = (int) dims.getWidth();
       player =
-          VLCJIntegratedPlayer.builder()
+          MapIntegratedPlayer.builder()
               .setUrl(image.getAbsolutePath())
               .setWidth(w)
               .setHeight((int) dims.getHeight())
               .setCallback(
-                  ItemFrameCallback.builder()
+                  MapDataCallback.builder()
                           .setViewers(null)
                           .setMap(map)
                           .setWidth(width)
@@ -167,7 +167,7 @@ public class MinecraftDynamicImage implements MapImageHolder, ConfigurationSeria
                           .setDitherHolder(DitherSetting.FLOYD_STEINBERG_DITHER.getHolder())
                           .createItemFrameCallback(library)
                       ::send)
-              .createVLCJIntegratedPlayer(library);
+              .build(library);
       player.setRepeat(true);
       player.start(Bukkit.getOnlinePlayers());
       Logger.info(

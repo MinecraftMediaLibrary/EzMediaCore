@@ -43,5 +43,5 @@ com.github.pulsebeat02.minecraftmedialibrary.utility
 com.github.pulsebeat02.minecraftmedialibrary.video.dither
 com.github.pulsebeat02.minecraftmedialibrary.video.dither.development
 com.github.pulsebeat02.minecraftmedialibrary.video.dither.frame
-com.github.pulsebeat02.minecraftmedialibrary.video.itemframe
+com.github.pulsebeat02.minecraftmedialibrary.video.callback.entitycloud.itemframe
 com.github.pulsebeat02.minecraftmedialibrary.video.player

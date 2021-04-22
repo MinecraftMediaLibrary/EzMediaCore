@@ -20,20 +20,18 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.video.itemframe;
-
-import org.jetbrains.annotations.NotNull;
+package com.github.pulsebeat02.minecraftmedialibrary.video.callback;
 
 /**
  * A callback interface for map data. Useful for creating custom callbacks. MinecraftMediaLibrary
  * uses this for itemframe callbacks to achieve quick changes.
  */
-public interface CallbackBase {
+public abstract class Callback {
 
   /**
    * Sends data for map packets to the players.
    *
    * @param data to send
    */
-  void send(@NotNull final int[] data);
+  public abstract void send(final int[] data);
 }

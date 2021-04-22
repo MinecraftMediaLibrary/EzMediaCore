@@ -41,7 +41,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public class GifIntegratedPlayer extends VideoPlayerBase {
+public class GIFIntegratedPlayer extends VideoPlayer {
 
   private final List<BufferedImage> images;
   private final float frameDuration;
@@ -57,7 +57,7 @@ public class GifIntegratedPlayer extends VideoPlayerBase {
    * @param height the height
    * @param callback the callback
    */
-  public GifIntegratedPlayer(
+  public GIFIntegratedPlayer(
       final @NotNull MinecraftMediaLibrary library,
       final @NotNull String url,
       final int width,
@@ -84,7 +84,7 @@ public class GifIntegratedPlayer extends VideoPlayerBase {
    * @param height the height
    * @param callback the callback
    */
-  public GifIntegratedPlayer(
+  public GIFIntegratedPlayer(
       final @NotNull MinecraftMediaLibrary library,
       final @NotNull File file,
       final int width,
@@ -200,9 +200,9 @@ public class GifIntegratedPlayer extends VideoPlayerBase {
      * @param library the library
      * @return the vlcj integrated player
      */
-    public GifIntegratedPlayer createVLCJIntegratedPlayer(
+    public GIFIntegratedPlayer createVLCJIntegratedPlayer(
         @NotNull final MinecraftMediaLibrary library) {
-      return new GifIntegratedPlayer(library, url, width, height, callback);
+      return new GIFIntegratedPlayer(library, url, width, height, callback);
     }
   }
 }

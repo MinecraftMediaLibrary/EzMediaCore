@@ -18,16 +18,16 @@ import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
-import com.github.pulsebeat02.minecraftmedialibrary.video.itemframe.ItemFrameCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.video.player.VLCJIntegratedPlayer;
-import com.github.pulsebeat02.minecraftmedialibrary.video.player.VideoPlayerBase;
+import com.github.pulsebeat02.minecraftmedialibrary.video.callback.MapDataCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.video.player.MapIntegratedPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.video.player.VideoPlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 public class VideoConfiguration extends AbstractConfiguration {
 
-  private VideoPlayerBase player;
-  private ItemFrameCallback callback;
+  private VideoPlayer player;
+  private MapDataCallback callback;
 
   public VideoConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, "video.yml");
@@ -74,32 +74,32 @@ public class VideoConfiguration extends AbstractConfiguration {
     final boolean vlcj = configuration.getBoolean("using-vlcj");
     if (enabled) {
       final MinecraftMediaLibrary library = player.getLibrary();
-      final ItemFrameCallback callback =
-          new ItemFrameCallback(
+      final MapDataCallback callback =
+          new MapDataCallback(
               getPlugin().getLibrary(),
               null,
+              holder,
               startingMapID,
               frameWidth,
               frameHeight,
               width,
-              0,
-              holder);
+              0);
       if (vlcj) {
         if (url == null) {
           Logger.info("URL in video.yml is not a valid or specified url!");
         } else {
-          player = new VLCJIntegratedPlayer(library, url, width, height, callback::send);
+          player = new MapIntegratedPlayer(library, url, callback::send, width, height);
         }
       }
       this.callback = callback;
     }
   }
 
-  public VideoPlayerBase getPlayer() {
+  public VideoPlayer getPlayer() {
     return player;
   }
 
-  public ItemFrameCallback getCallback() {
+  public MapDataCallback getCallback() {
     return callback;
   }
 }

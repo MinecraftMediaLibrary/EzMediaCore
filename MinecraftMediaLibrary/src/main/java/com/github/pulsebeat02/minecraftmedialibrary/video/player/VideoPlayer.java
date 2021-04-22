@@ -41,16 +41,17 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.function.Consumer;
 
-/**
- * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
- * specific function from native libraries.
- */
-public class VLCJIntegratedPlayer extends VideoPlayerBase {
+public abstract class VideoPlayer {
 
   private final EmbeddedMediaPlayer mediaPlayerComponent;
+  private final MinecraftMediaLibrary library;
+  private final String url;
+  private final Consumer<int[]> callback;
+  private int width;
+  private int height;
 
   /**
-   * Instantiates a new Vlcj integrated player.
+   * Instantiates a new Abstract video player.
    *
    * @param library the library
    * @param url the url
@@ -58,19 +59,23 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
    * @param height the height
    * @param callback the callback
    */
-  public VLCJIntegratedPlayer(
+  public VideoPlayer(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final String url,
       final int width,
       final int height,
       @NotNull final Consumer<int[]> callback) {
-    super(library, url, width, height, callback);
+    this.library = library;
+    this.url = url;
+    this.width = width;
+    this.height = height;
+    this.callback = callback;
     mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
     final BufferFormatCallback bufferFormatCallback =
         new BufferFormatCallback() {
           @Override
           public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {
-            return new RV32BufferFormat(getWidth(), getHeight());
+            return new RV32BufferFormat(width, height);
           }
 
           @Override
@@ -79,15 +84,15 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
     final CallbackVideoSurface surface =
         new CallbackVideoSurface(
             bufferFormatCallback,
-            new MinecraftVideoRenderCallback(),
+            new MinecraftVideoRenderCallback(callback, width, height),
             false,
             new WindowsVideoSurfaceAdapter());
     mediaPlayerComponent.videoSurface().set(surface);
-    Logger.info(String.format("Created a VLCJ Integrated Video Player (%s)", url));
+    mediaPlayerComponent.audio().mute();
   }
 
   /**
-   * Instantiates a new VLCJIntegratedPlayer.
+   * Instantiates a new Abstract video player.
    *
    * @param library the library
    * @param file the file
@@ -95,19 +100,23 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
    * @param height the height
    * @param callback the callback
    */
-  public VLCJIntegratedPlayer(
+  public VideoPlayer(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final File file,
       final int width,
       final int height,
       @NotNull final Consumer<int[]> callback) {
-    super(library, file, width, height, callback);
+    this.library = library;
+    url = file.getAbsolutePath();
+    this.width = width;
+    this.height = height;
+    this.callback = callback;
     mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
     final BufferFormatCallback bufferFormatCallback =
         new BufferFormatCallback() {
           @Override
           public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {
-            return new RV32BufferFormat(getWidth(), getHeight());
+            return new RV32BufferFormat(width, height);
           }
 
           @Override
@@ -116,32 +125,91 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
     final CallbackVideoSurface surface =
         new CallbackVideoSurface(
             bufferFormatCallback,
-            new MinecraftVideoRenderCallback(),
+            new MinecraftVideoRenderCallback(callback, width, height),
             false,
             new WindowsVideoSurfaceAdapter());
     mediaPlayerComponent.videoSurface().set(surface);
     mediaPlayerComponent.audio().mute();
-    Logger.info(
-        String.format("Created a VLCJ Integrated Video Player (%s)", file.getAbsolutePath()));
   }
 
   /**
-   * Returns a new builder class to use.
+   * Gets library.
    *
-   * @return the builder
+   * @return the library
    */
-  public static Builder builder() {
-    return new Builder();
+  public MinecraftMediaLibrary getLibrary() {
+    return library;
   }
 
   /**
-   * Starts playing the video.
+   * Gets url.
    *
-   * @param players which players should hear the audio
+   * @return the url
    */
-  @Override
+  public String getUrl() {
+    return url;
+  }
+
+  /**
+   * Gets width.
+   *
+   * @return the width
+   */
+  public int getWidth() {
+    return width;
+  }
+
+  /**
+   * Sets width.
+   *
+   * @param width the width
+   */
+  public void setWidth(final int width) {
+    this.width = width;
+  }
+
+  /**
+   * Gets height.
+   *
+   * @return the height
+   */
+  public int getHeight() {
+    return height;
+  }
+
+  /**
+   * Sets height.
+   *
+   * @param height the height
+   */
+  public void setHeight(final int height) {
+    this.height = height;
+  }
+
+  /**
+   * Gets callback.
+   *
+   * @return the callback
+   */
+  public Consumer<int[]> getCallback() {
+    return callback;
+  }
+
+  /**
+   * Gets the MediaPlayerComponent.
+   *
+   * @return the MediaPlayerComponent
+   */
+  public EmbeddedMediaPlayer getMediaPlayerComponent() {
+    return mediaPlayerComponent;
+  }
+
+  /**
+   * Starts player.
+   *
+   * @param players which players to play the audio for
+   */
   public void start(@NotNull final Collection<? extends Player> players) {
-    final String url = getUrl();
     mediaPlayerComponent.media().play(url);
     for (final Player p : players) {
       p.playSound(p.getLocation(), getLibrary().getPlugin().getName().toLowerCase(), 1.0F, 1.0F);
@@ -149,110 +217,58 @@ public class VLCJIntegratedPlayer extends VideoPlayerBase {
     Logger.info(String.format("Started Playing Video! (%s)", url));
   }
 
-  /** Stops playing the video. */
-  @Override
+  /** Stops player. */
   public void stop() {
     mediaPlayerComponent.controls().stop();
-    Logger.info(String.format("Stopped Playing Video! (%s)", getUrl()));
+    Logger.info(String.format("Stopped Playing Video!(%s)", url));
   }
 
-  /** Releases the media player. */
-  @Override
+  /** Releases player. */
   public void release() {
     mediaPlayerComponent.release();
+    Logger.info(String.format("Released Video! (%s)", url));
   }
 
+  /** Repeats the player. */
   public void setRepeat(final boolean setting) {
     mediaPlayerComponent.controls().setRepeat(setting);
   }
 
-  /**
-   * Gets media player component.
-   *
-   * @return the media player component
-   */
-  public EmbeddedMediaPlayer getMediaPlayerComponent() {
-    return mediaPlayerComponent;
-  }
-
-  /** The type Builder. */
-  public static class Builder {
-
-    private String url;
-    private int width;
-    private int height;
-    private Consumer<int[]> callback;
-
-    private Builder() {}
-
-    /**
-     * Sets url.
-     *
-     * @param url the url
-     * @return the url
-     */
-    public Builder setUrl(@NotNull final String url) {
-      this.url = url;
-      return this;
-    }
-
-    /**
-     * Sets width.
-     *
-     * @param width the width
-     * @return the width
-     */
-    public Builder setWidth(final int width) {
-      this.width = width;
-      return this;
-    }
-
-    /**
-     * Sets height.
-     *
-     * @param height the height
-     * @return the height
-     */
-    public Builder setHeight(final int height) {
-      this.height = height;
-      return this;
-    }
-
-    /**
-     * Sets callback.
-     *
-     * @param callback the callback
-     * @return the callback
-     */
-    public Builder setCallback(@NotNull final Consumer<int[]> callback) {
-      this.callback = callback;
-      return this;
-    }
-
-    /**
-     * Create vlcj integrated player vlcj integrated player.
-     *
-     * @param library the library
-     * @return the vlcj integrated player
-     */
-    public VLCJIntegratedPlayer createVLCJIntegratedPlayer(
-        @NotNull final MinecraftMediaLibrary library) {
-      return new VLCJIntegratedPlayer(library, url, width, height, callback);
-    }
-  }
-
-  private class MinecraftVideoRenderCallback extends RenderCallbackAdapter {
+  private static class MinecraftVideoRenderCallback extends RenderCallbackAdapter {
 
     private final Consumer<int[]> callback;
 
-    private MinecraftVideoRenderCallback() {
-      super(new int[getWidth() * getHeight()]);
-      callback = getCallback();
+    /**
+     * Instantiates a new MinecraftVideoRenderCallback.
+     *
+     * @param callback the callback
+     * @param width the width
+     * @param height the height
+     */
+    public MinecraftVideoRenderCallback(
+        @NotNull final Consumer<int[]> callback, final int width, final int height) {
+      super(new int[width * height]);
+      this.callback = callback;
     }
 
+    /**
+     * Displays the image data.
+     *
+     * @param mediaPlayer the media player
+     * @param buffer the buffer
+     */
     @Override
     protected void onDisplay(final MediaPlayer mediaPlayer, final int[] buffer) {
       callback.accept(buffer);
+    }
+
+    /**
+     * Gets the callback for this render.
+     *
+     * @return the callback for the image data.
+     */
+    public Consumer<int[]> getCallback() {
+      return callback;
     }
   }
 }
