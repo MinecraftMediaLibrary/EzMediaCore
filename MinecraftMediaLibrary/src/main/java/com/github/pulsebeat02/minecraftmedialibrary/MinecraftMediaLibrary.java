@@ -105,6 +105,7 @@ public final class MinecraftMediaLibrary {
     listener = new PlayerJoinLeaveHandler(this);
     DebuggerUtilities.getPluginDebugInfo(this);
     DebuggerUtilities.getSystemDebugInfo(this);
+    DebuggerUtilities.redirectLoggingOutput();
     Bukkit.getPluginManager().registerEvents(listener, plugin);
     dependencyTasks();
     JavaVersionUtilities.sendWarningMessage();

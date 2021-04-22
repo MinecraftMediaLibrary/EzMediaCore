@@ -1,7 +1,16 @@
 package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.LoggerFactory;
+import uk.co.caprica.nativestreams.NativeStreams;
+import ws.schild.jave.ConversionOutputAnalyzer;
 
 /** A set of utilities which allow the better debugging output of the media library. */
 public final class DebuggerUtilities {
@@ -42,5 +51,12 @@ public final class DebuggerUtilities {
             RuntimeUtilities.isWindows(), RuntimeUtilities.isMac(), RuntimeUtilities.isLinux()),
         String.format(
             "Linux Distribution (If Linux): %s", RuntimeUtilities.getLinuxDistribution()));
+  }
+
+  /** Redirects the JAVE2 Logging Output and VLCJ Logging Output to the proper logger file. */
+  public static void redirectLoggingOutput() {
+    final String path = Logger.getLogFile().getAbsolutePath();
+    new NativeStreams(path, path);
+    Configurator.setLevel(ConversionOutputAnalyzer.class.getName(), Level.OFF);
   }
 }

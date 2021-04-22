@@ -38,6 +38,9 @@ public enum RepositoryDependency {
   /** VLCJ Natives Maven Dependency */
   VLCJ_NATIVES("uk{}co{}caprica", "vlcj-natives", "4{}1{}0", DependencyResolution.MAVEN_DEPENDENCY),
 
+  /** VLCJ NativeStreams Dependency */
+  VLCJ_NATIVE_STREAMS("uk{}co{}caprica", "native-streams", "2{}0{}0", DependencyResolution.MAVEN_DEPENDENCY),
+
   /** Youtube Downloader Maven Dependency */
   YOUTUBE_DOWNLOADER(
       "com{}github{}sealedtx",

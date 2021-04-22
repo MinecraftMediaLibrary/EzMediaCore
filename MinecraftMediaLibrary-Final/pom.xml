@@ -50,6 +50,10 @@
                             <shadedPattern>com.github.pulsebeat02.vlcj.binding</shadedPattern>
                         </relocation>
                         <relocation>
+                            <pattern>uk.co.caprica.nativestreams</pattern>
+                            <shadedPattern>com.github.pulsebeat02.vlcj.nativestreams</shadedPattern>
+                        </relocation>
+                        <relocation>
                             <pattern>com.github.sealedtx.downloader</pattern>
                             <shadedPattern>com.github.pulsebeat02.youtube</shadedPattern>
                         </relocation>

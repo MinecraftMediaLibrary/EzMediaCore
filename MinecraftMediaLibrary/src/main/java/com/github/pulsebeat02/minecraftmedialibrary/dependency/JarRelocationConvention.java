@@ -39,6 +39,9 @@ public enum JarRelocationConvention {
   /** VLCJ Natives Jar Relocation Convention */
   VLCJ_NATIVES("uk{}co{}caprica{}vlcj{}binding", "com{}github{}pulsebeat02{}vlcj{}binding"),
 
+  /** VLCJ NativeStreams Jar Relocation Convention */
+  VLCJ_NATIVE_STREAMS("uk{}co{}caprica{}nativestreams", "com{}github{}pulsebeat02{}vlcj{}nativestreams"),
+
   /** Youtube Downloader Jar Relocation Convention */
   YOUTUBE_DOWNLOADER("com{}github{}sealedtx{}downloader", "com{}github{}pulsebeat02{}youtube"),
 
