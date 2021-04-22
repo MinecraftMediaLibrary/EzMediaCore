@@ -91,7 +91,7 @@ public final class DependencyInstantiation {
     if (!VLCUtilities.checkVLCExistence(instance.getVlcFolder().toFile())) {
       new VLCNativeDependencyFetcher(instance).downloadLibraries();
     }
-    if (instance.isUsingVLCJ()) {
+    if (instance.isVlcj()) {
       try {
         new MediaPlayerFactory();
       } catch (final Exception e) {

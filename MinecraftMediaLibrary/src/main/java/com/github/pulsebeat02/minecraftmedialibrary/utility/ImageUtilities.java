@@ -35,6 +35,10 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A series of Image utility functions that are used to extract information about certain image
+ * files.
+ */
 public final class ImageUtilities {
 
   private ImageUtilities() {}

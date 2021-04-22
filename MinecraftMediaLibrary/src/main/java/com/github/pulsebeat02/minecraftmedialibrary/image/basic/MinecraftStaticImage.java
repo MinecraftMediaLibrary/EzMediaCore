@@ -92,7 +92,7 @@ public final class MinecraftStaticImage implements MapImageHolder, Configuration
       final int height) {
     this.library = library;
     this.map = map;
-    image = FileUtilities.downloadImageFile(url, library.getPath());
+    image = FileUtilities.downloadImageFile(url, library.getImageFolder());
     this.width = width;
     this.height = height;
     Logger.info(

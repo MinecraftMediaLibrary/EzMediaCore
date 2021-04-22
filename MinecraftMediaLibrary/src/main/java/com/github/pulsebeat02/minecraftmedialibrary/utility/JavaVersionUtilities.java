@@ -38,7 +38,7 @@ public final class JavaVersionUtilities {
     MAJOR_VERSION = Integer.parseInt(JAVA_VERSION.split("\\.")[1]);
   }
 
-  public JavaVersionUtilities() {}
+  private JavaVersionUtilities() {}
 
   /**
    * Gets Java Version.
@@ -58,7 +58,8 @@ public final class JavaVersionUtilities {
     return MAJOR_VERSION;
   }
 
-  public void sendWarningMessage() {
+  /** Sends a specific warning message for an outdated Java version. */
+  public static void sendWarningMessage() {
     if (MAJOR_VERSION < 11) {
       Logger.warn(
           "MinecraftMediaPlugin is moving towards a newer Java Version (Java 11) \n"

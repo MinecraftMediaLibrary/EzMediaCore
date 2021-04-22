@@ -263,7 +263,7 @@ public class VideoCommand extends BaseCommand {
                     String.format("Starting Video on File: %s", file.getName()),
                     NamedTextColor.GOLD)));
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
-    if (library.isUsingVLCJ()) {
+    if (library.isVlcj()) {
       attributes.setPlayer(
           VLCJIntegratedPlayer.builder()
               .setUrl(attributes.getFile().getAbsolutePath())

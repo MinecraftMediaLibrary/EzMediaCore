@@ -27,8 +27,8 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import com.github.pulsebeat02.minecraftmedialibrary.reflection.NMSReflectionManager;
 import com.github.pulsebeat02.minecraftmedialibrary.reflection.TinyProtocol;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.DebuggerUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.JavaVersionUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import io.netty.channel.Channel;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -37,9 +37,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * This is the starting class of MinecraftMediaLibrary which describes the starting class for all
@@ -55,12 +53,7 @@ public final class MinecraftMediaLibrary {
   private final PlayerJoinLeaveHandler listener;
   private final PacketHandler handler;
   private final TinyProtocol protocol;
-  private final Path parentFolder;
-  private final Path httpParentFolder;
-  private final Path dependenciesFolder;
-  private final Path vlcFolder;
-  private final Path imageFolder;
-  private final Path audioFolder;
+  private final LibraryPathHandle handle;
   private boolean vlcj;
   private boolean disabled;
 
@@ -90,9 +83,7 @@ public final class MinecraftMediaLibrary {
       @Nullable final String imagePath,
       @Nullable final String audioPath,
       final boolean isUsingVLCJ) {
-
     this.plugin = plugin;
-
     Logger.initializeLogger(this);
     protocol =
         new TinyProtocol(plugin) {
@@ -108,100 +99,25 @@ public final class MinecraftMediaLibrary {
             return handler.onPacketInterceptIn(player, packet);
           }
         };
-
-    final String path = String.format("%s/mml", plugin.getDataFolder().getAbsolutePath());
-    parentFolder = Paths.get(path);
-    httpParentFolder = Paths.get(http == null ? String.format("%s/http/", path) : http);
-    imageFolder = Paths.get(imagePath == null ? String.format("%s/image/", path) : imagePath);
-    audioFolder = Paths.get(audioPath == null ? String.format("%s/audio/", path) : audioPath);
-    dependenciesFolder =
-        Paths.get(libraryPath == null ? String.format("%s/libraries/", path) : libraryPath);
-    vlcFolder = Paths.get(vlcPath == null ? String.format("%s/vlc/", path) : vlcPath);
-
+    handle = new LibraryPathHandle(plugin, http, libraryPath, vlcPath, imagePath, audioPath);
     vlcj = isUsingVLCJ;
     handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
     listener = new PlayerJoinLeaveHandler(this);
-
-    createNecessaryFolders();
-    registerEvents();
-    debugInformation();
-    printSystemInformation();
+    DebuggerUtilities.getPluginDebugInfo(this);
+    DebuggerUtilities.getSystemDebugInfo(this);
+    Bukkit.getPluginManager().registerEvents(listener, plugin);
     dependencyTasks();
-    checkJavaVersion();
-  }
-
-  /** Creates the necessary folders required. */
-  private void createNecessaryFolders() {
-    final File parentHttpFile = httpParentFolder.toFile();
-    final File dependenciesFile = dependenciesFolder.toFile();
-    final File vlcjFile = vlcFolder.toFile();
-    if (!parentHttpFile.isDirectory()) {
-      if (parentHttpFile.mkdirs()) {
-        Logger.info(
-            String.format("Successfully created directory: %s", parentHttpFile.getAbsolutePath()));
-      }
-    }
-    if (!dependenciesFile.isDirectory()) {
-      if (dependenciesFile.mkdirs()) {
-        Logger.info(
-            String.format(
-                "Successfully created directory: %s", dependenciesFile.getAbsolutePath()));
-      }
-    }
-    if (!vlcjFile.isDirectory()) {
-      if (vlcjFile.mkdirs()) {
-        Logger.info(
-            String.format("Successfully created directory: %s", vlcjFile.getAbsolutePath()));
-      }
-    }
+    JavaVersionUtilities.sendWarningMessage();
   }
 
   /** Runs dependency tasks required. */
   private void dependencyTasks() {
     Logger.info(
-        "Starting Dependency Tasks... This may take a while depending on your enviornment!");
+        "Starting Dependency Tasks... This may take a while depending on your environment!");
     new DependencyInstantiation(this).startTasks();
   }
 
-  /** Runs event registration tasks. */
-  private void registerEvents() {
-    Bukkit.getPluginManager().registerEvents(listener, plugin);
-  }
-
-  /** Runs debug information. */
-  private void debugInformation() {
-    Logger.info(String.format("Plugin %s initialized MinecraftMediaLibrary", plugin.getName()));
-    Logger.info("==================================================================");
-    Logger.info(String.format("Path: %s", httpParentFolder));
-    Logger.info(String.format("Using VLCJ? %s", vlcj ? "Yes" : "No"));
-    Logger.info("==================================================================");
-  }
-
-  /** Prompts warning based on Java Version */
-  private void checkJavaVersion() {
-    new JavaVersionUtilities().sendWarningMessage();
-  }
-
-  /** Print system information. */
-  private void printSystemInformation() {
-    Logger.info("===========================================");
-    Logger.info("            SYSTEM INFORMATION             ");
-    Logger.info("===========================================");
-    Logger.info(
-        String.format("System Operating System: %s", RuntimeUtilities.getOperatingSystem()));
-    Logger.info(String.format("CPU Architecture: %s", RuntimeUtilities.getCpuArch()));
-    Logger.info(
-        String.format("System Operating System Version: %s", System.getProperty("os.version")));
-    Logger.info(
-        String.format(
-            "Windows/Mac/Linux: %s/%s/%s",
-            RuntimeUtilities.isWindows(), RuntimeUtilities.isMac(), RuntimeUtilities.isLinux()));
-    Logger.info(
-        String.format(
-            "Linux Distribution (If Linux): %s", RuntimeUtilities.getLinuxDistribution()));
-  }
-
-  /** Shutdown Instance */
+  /** Shutdown the library instance */
   public void shutdown() {
     Logger.info("Shutting Down!");
     disabled = true;
@@ -237,34 +153,7 @@ public final class MinecraftMediaLibrary {
   }
 
   /**
-   * Gets path.
-   *
-   * @return the path
-   */
-  public Path getPath() {
-    return httpParentFolder;
-  }
-
-  /**
-   * Is using vlcj boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isUsingVLCJ() {
-    return vlcj;
-  }
-
-  /**
-   * Gets parent.
-   *
-   * @return the parent
-   */
-  public Path getHttpParentFolder() {
-    return httpParentFolder;
-  }
-
-  /**
-   * Is vlcj boolean.
+   * Whether the library is using vlcj.
    *
    * @return the boolean
    */
@@ -273,7 +162,7 @@ public final class MinecraftMediaLibrary {
   }
 
   /**
-   * Sets status of vlcj.
+   * Sets the usage status of vlcj.
    *
    * @param vlcj status
    */
@@ -282,7 +171,7 @@ public final class MinecraftMediaLibrary {
   }
 
   /**
-   * Gets listener.
+   * Gets the listener.
    *
    * @return the listener
    */
@@ -291,30 +180,39 @@ public final class MinecraftMediaLibrary {
   }
 
   /**
-   * Gets dependencies.
+   * Gets the path of the parent library folder.
    *
-   * @return the dependencies
+   * @return the path
+   */
+  public Path getPath() {
+    return handle.getParentFolder();
+  }
+
+  /**
+   * Gets the http parent folder.
+   *
+   * @return the parent
+   */
+  public Path getHttpParentFolder() {
+    return handle.getHttpParentFolder();
+  }
+
+  /**
+   * Gets dependencies folder.
+   *
+   * @return the dependencies folder
    */
   public Path getDependenciesFolder() {
-    return dependenciesFolder;
+    return handle.getDependenciesFolder();
   }
 
   /**
-   * Gets vlc.
+   * Gets the vlc folder.
    *
-   * @return the vlc
+   * @return the vlc folder
    */
   public Path getVlcFolder() {
-    return vlcFolder;
-  }
-
-  /**
-   * Gets whether the library is disabled or not.
-   *
-   * @return the state
-   */
-  public boolean isDisabled() {
-    return disabled;
+    return handle.getVlcFolder();
   }
 
   /**
@@ -323,7 +221,7 @@ public final class MinecraftMediaLibrary {
    * @return the path of the library
    */
   public Path getParentFolder() {
-    return parentFolder;
+    return handle.getParentFolder();
   }
 
   /**
@@ -332,7 +230,7 @@ public final class MinecraftMediaLibrary {
    * @return the path of the image folder
    */
   public Path getImageFolder() {
-    return imageFolder;
+    return handle.getImageFolder();
   }
 
   /**
@@ -341,6 +239,24 @@ public final class MinecraftMediaLibrary {
    * @return the path of the audio folder
    */
   public Path getAudioFolder() {
-    return audioFolder;
+    return handle.getAudioFolder();
+  }
+
+  /**
+   * Gets the library path handle.
+   *
+   * @return the path handle
+   */
+  public LibraryPathHandle getHandle() {
+    return handle;
+  }
+
+  /**
+   * Returns the status of the library.
+   *
+   * @return whether the library is disabled or not
+   */
+  public boolean isDisabled() {
+    return disabled;
   }
 }

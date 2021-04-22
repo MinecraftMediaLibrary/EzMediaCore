@@ -20,8 +20,9 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary;
+package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
+import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

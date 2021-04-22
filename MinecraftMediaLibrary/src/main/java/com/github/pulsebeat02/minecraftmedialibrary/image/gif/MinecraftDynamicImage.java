@@ -99,7 +99,7 @@ public class MinecraftDynamicImage implements MapImageHolder, ConfigurationSeria
       final int height) {
     this.library = library;
     this.map = map;
-    image = FileUtilities.downloadImageFile(url, library.getPath());
+    image = FileUtilities.downloadImageFile(url, library.getImageFolder());
     this.width = width;
     this.height = height;
     Logger.info(
