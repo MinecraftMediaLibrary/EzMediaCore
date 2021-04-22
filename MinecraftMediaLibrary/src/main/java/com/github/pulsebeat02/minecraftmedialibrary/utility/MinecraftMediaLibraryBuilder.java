@@ -73,7 +73,7 @@ public class MinecraftMediaLibraryBuilder {
     return this;
   }
 
-  public MinecraftMediaLibrary create() {
+  public MinecraftMediaLibrary build() {
     return new MinecraftMediaLibrary(
         plugin, http, libraryPath, vlcPath, imagePath, audioPath, isUsingVLCJ);
   }

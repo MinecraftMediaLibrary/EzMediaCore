@@ -29,9 +29,9 @@ import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticI
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
-import com.github.pulsebeat02.minecraftmedialibrary.video.callback.MapDataCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.video.player.MapIntegratedPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapIntegratedPlayer;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;
@@ -158,15 +158,14 @@ public class MinecraftDynamicImage implements MapImageHolder, ConfigurationSeria
               .setHeight((int) dims.getHeight())
               .setCallback(
                   MapDataCallback.builder()
-                          .setViewers(null)
-                          .setMap(map)
-                          .setWidth(width)
-                          .setHeight(height)
-                          .setVideoWidth(w)
-                          .setDelay(0)
-                          .setDitherHolder(DitherSetting.FLOYD_STEINBERG_DITHER.getHolder())
-                          .createItemFrameCallback(library)
-                      ::send)
+                      .setViewers(null)
+                      .setMap(map)
+                      .setWidth(width)
+                      .setHeight(height)
+                      .setVideoWidth(w)
+                      .setDelay(0)
+                      .setDitherHolder(DitherSetting.FLOYD_STEINBERG_DITHER.getHolder())
+                      .build(library))
               .build(library);
       player.setRepeat(true);
       player.start(Bukkit.getOnlinePlayers());
@@ -323,7 +322,7 @@ public class MinecraftDynamicImage implements MapImageHolder, ConfigurationSeria
      * @param library the library
      * @return the map image
      */
-    public MinecraftDynamicImage createImageMap(final MinecraftMediaLibrary library) {
+    public MinecraftDynamicImage build(final MinecraftMediaLibrary library) {
       return new MinecraftDynamicImage(library, map, image, width, height);
     }
   }

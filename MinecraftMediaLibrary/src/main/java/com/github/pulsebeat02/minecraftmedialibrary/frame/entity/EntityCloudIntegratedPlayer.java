@@ -1,19 +1,37 @@
-package com.github.pulsebeat02.minecraftmedialibrary.video.player;
+/*............................................................................................
+. Copyright © 2021 Brandon Li                                                               .
+.                                                                                           .
+. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
+. software and associated documentation files (the “Software”), to deal in the Software     .
+. without restriction, including without limitation the rights to use, copy, modify, merge, .
+. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
+. persons to whom the Software is furnished to do so, subject to the following conditions:  .
+.                                                                                           .
+. The above copyright notice and this permission notice shall be included in all copies     .
+. or substantial portions of the Software.                                                  .
+.                                                                                           .
+. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
+.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
+.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
+.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
+.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
+.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
+.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
+.   SOFTWARE.                                                                               .
+............................................................................................*/
+
+package com.github.pulsebeat02.minecraftmedialibrary.frame.entity;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import org.apache.commons.lang.StringUtils;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
 import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.function.Consumer;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
@@ -22,7 +40,7 @@ import java.util.function.Consumer;
 public class EntityCloudIntegratedPlayer extends VideoPlayer {
 
   private final Location location;
-  private Entity[] entities;
+  private final Entity[] entities;
 
   /**
    * Instantiates a new Vlcj integrated player on entity clouds.
@@ -37,12 +55,13 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
   public EntityCloudIntegratedPlayer(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final String url,
-      @NotNull final Consumer<int[]> callback,
+      @NotNull final EntityCloudCallback callback,
       @NotNull final Location location,
       final int width,
       final int height) {
     super(library, url, width, height, callback);
     this.location = location;
+    entities = callback.getEntities();
     Logger.info(String.format("Created a VLCJ Integrated Entity Cloud Video Player (%s)", url));
   }
 
@@ -59,45 +78,15 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
   public EntityCloudIntegratedPlayer(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final File file,
-      @NotNull final Consumer<int[]> callback,
+      @NotNull final EntityCloudCallback callback,
       @NotNull final Location location,
       final int width,
       final int height) {
     super(library, file, width, height, callback);
     this.location = location;
+    entities = callback.getEntities();
     Logger.info(
         String.format("Created a VLCJ Integrated Video Player (%s)", file.getAbsolutePath()));
-  }
-
-  /**
-   * Spawns the proper clouds at the location.
-   *
-   * @return the entities
-   */
-  public Entity[] getCloudEntities() {
-    final int height = getHeight();
-    final Entity[] ents = new Entity[height];
-    final Location spawn = location.clone();
-    final World world = spawn.getWorld();
-    if (world != null) {
-      for (int i = height - 1; i >= 0; i--) {
-        final AreaEffectCloud cloud =
-            (AreaEffectCloud) spawn.getWorld().spawnEntity(spawn, EntityType.AREA_EFFECT_CLOUD);
-        ents[i] = cloud;
-        cloud.setInvulnerable(true);
-        cloud.setDuration(999999);
-        cloud.setDurationOnUse(0);
-        cloud.setRadiusOnUse(0);
-        cloud.setRadius(0);
-        cloud.setRadiusPerTick(0);
-        cloud.setReapplicationDelay(0);
-        cloud.setCustomNameVisible(true);
-        cloud.setCustomName(StringUtils.repeat("-", height));
-        cloud.setGravity(false);
-        spawn.add(0, 0.225d, 0);
-      }
-    }
-    return ents;
   }
 
   /**
@@ -116,7 +105,6 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
    */
   @Override
   public void start(@NotNull final Collection<? extends Player> players) {
-    entities = getCloudEntities();
     super.start(players);
   }
 
@@ -155,7 +143,7 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
     private String url;
     private int width;
     private int height;
-    private Consumer<int[]> callback;
+    private EntityCloudCallback callback;
     private Location location;
 
     private Builder() {}
@@ -175,7 +163,7 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
       return this;
     }
 
-    public Builder setCallback(final Consumer<int[]> callback) {
+    public Builder setCallback(final EntityCloudCallback callback) {
       this.callback = callback;
       return this;
     }
@@ -185,8 +173,7 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
       return this;
     }
 
-    public EntityCloudIntegratedPlayer build(
-        @NotNull final MinecraftMediaLibrary library) {
+    public EntityCloudIntegratedPlayer build(@NotNull final MinecraftMediaLibrary library) {
       return new EntityCloudIntegratedPlayer(library, url, callback, location, width, height);
     }
   }

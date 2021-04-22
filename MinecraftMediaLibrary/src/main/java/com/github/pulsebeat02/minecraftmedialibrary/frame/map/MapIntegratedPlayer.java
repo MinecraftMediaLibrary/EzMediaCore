@@ -1,33 +1,33 @@
 /*............................................................................................
-. Copyright © 2021 Brandon Li                                                               .
-.                                                                                           .
-. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
-. software and associated documentation files (the “Software”), to deal in the Software     .
-. without restriction, including without limitation the rights to use, copy, modify, merge, .
-. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
-. persons to whom the Software is furnished to do so, subject to the following conditions:  .
-.                                                                                           .
-. The above copyright notice and this permission notice shall be included in all copies     .
-. or substantial portions of the Software.                                                  .
-.                                                                                           .
-. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
-.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
-.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
-.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
-.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
-.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
-.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
-.   SOFTWARE.                                                                               .
-............................................................................................*/
+ . Copyright © 2021 Brandon Li                                                               .
+ .                                                                                           .
+ . Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
+ . software and associated documentation files (the “Software”), to deal in the Software     .
+ . without restriction, including without limitation the rights to use, copy, modify, merge, .
+ . publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
+ . persons to whom the Software is furnished to do so, subject to the following conditions:  .
+ .                                                                                           .
+ . The above copyright notice and this permission notice shall be included in all copies     .
+ . or substantial portions of the Software.                                                  .
+ .                                                                                           .
+ . THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
+ .  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
+ .   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
+ .   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
+ .   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
+ .   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
+ .   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
+ .   SOFTWARE.                                                                               .
+ ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.video.player;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.map;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.function.Consumer;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
@@ -47,7 +47,7 @@ public class MapIntegratedPlayer extends VideoPlayer {
   public MapIntegratedPlayer(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final String url,
-      @NotNull final Consumer<int[]> callback,
+      @NotNull final MapDataCallback callback,
       final int width,
       final int height) {
     super(library, url, width, height, callback);
@@ -66,7 +66,7 @@ public class MapIntegratedPlayer extends VideoPlayer {
   public MapIntegratedPlayer(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final File file,
-      @NotNull final Consumer<int[]> callback,
+      @NotNull final MapDataCallback callback,
       final int width,
       final int height) {
     super(library, file, width, height, callback);
@@ -89,7 +89,7 @@ public class MapIntegratedPlayer extends VideoPlayer {
     private String url;
     private int width;
     private int height;
-    private Consumer<int[]> callback;
+    private MapDataCallback callback;
 
     private Builder() {}
 
@@ -108,7 +108,7 @@ public class MapIntegratedPlayer extends VideoPlayer {
       return this;
     }
 
-    public Builder setCallback(final Consumer<int[]> callback) {
+    public Builder setCallback(final MapDataCallback callback) {
       this.callback = callback;
       return this;
     }

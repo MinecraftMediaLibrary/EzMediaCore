@@ -13,9 +13,9 @@
 package com.github.pulsebeat02.minecraftmedialibrary.test.dithering
 
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.FilterLiteDither
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.FloydImageDither
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.StaticDitherInitialization
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.FilterLiteDither
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.FloydImageDither
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.StaticDitherInitialization
 import java.awt.GridLayout
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent

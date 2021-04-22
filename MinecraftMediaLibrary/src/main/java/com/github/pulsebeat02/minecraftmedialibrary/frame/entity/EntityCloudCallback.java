@@ -1,16 +1,45 @@
-package com.github.pulsebeat02.minecraftmedialibrary.video.callback;
+/*............................................................................................
+. Copyright © 2021 Brandon Li                                                               .
+.                                                                                           .
+. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
+. software and associated documentation files (the “Software”), to deal in the Software     .
+. without restriction, including without limitation the rights to use, copy, modify, merge, .
+. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
+. persons to whom the Software is furnished to do so, subject to the following conditions:  .
+.                                                                                           .
+. The above copyright notice and this permission notice shall be included in all copies     .
+. or substantial portions of the Software.                                                  .
+.                                                                                           .
+. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
+.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
+.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
+.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
+.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
+.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
+.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
+.   SOFTWARE.                                                                               .
+............................................................................................*/
+
+package com.github.pulsebeat02.minecraftmedialibrary.frame.entity;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
+import org.apache.commons.lang.StringUtils;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
 /** The callback used for itemframes to update entity clouds for each frame when necessary. */
-public final class EntityCloudCallback extends Callback {
+public final class EntityCloudCallback implements FrameCallback {
 
   private final MinecraftMediaLibrary library;
   private final UUID[] viewers;
+  private final Location location;
   private final Entity[] entities;
   private final int map;
   private final int videoWidth;
@@ -24,7 +53,7 @@ public final class EntityCloudCallback extends Callback {
    *
    * @param library the library
    * @param viewers the viewers
-   * @param entities the entities
+   * @param location the location
    * @param map the map
    * @param width the width
    * @param height the height
@@ -34,7 +63,7 @@ public final class EntityCloudCallback extends Callback {
   public EntityCloudCallback(
       @NotNull final MinecraftMediaLibrary library,
       final UUID[] viewers,
-      @NotNull final Entity[] entities,
+      @NotNull final Location location,
       final int map,
       final int width,
       final int height,
@@ -42,7 +71,8 @@ public final class EntityCloudCallback extends Callback {
       final int delay) {
     this.library = library;
     this.viewers = viewers;
-    this.entities = entities;
+    this.location = location;
+    entities = getCloudEntities();
     this.map = map;
     this.width = width;
     this.height = height;
@@ -57,6 +87,37 @@ public final class EntityCloudCallback extends Callback {
    */
   public static Builder builder() {
     return new Builder();
+  }
+
+  /**
+   * Spawns the proper clouds at the location.
+   *
+   * @return the entities
+   */
+  private Entity[] getCloudEntities() {
+    final int height = getHeight();
+    final Entity[] ents = new Entity[height];
+    final Location spawn = location.clone();
+    final World world = spawn.getWorld();
+    if (world != null) {
+      for (int i = height - 1; i >= 0; i--) {
+        final AreaEffectCloud cloud =
+            (AreaEffectCloud) spawn.getWorld().spawnEntity(spawn, EntityType.AREA_EFFECT_CLOUD);
+        ents[i] = cloud;
+        cloud.setInvulnerable(true);
+        cloud.setDuration(999999);
+        cloud.setDurationOnUse(0);
+        cloud.setRadiusOnUse(0);
+        cloud.setRadius(0);
+        cloud.setRadiusPerTick(0);
+        cloud.setReapplicationDelay(0);
+        cloud.setCustomNameVisible(true);
+        cloud.setCustomName(StringUtils.repeat("-", height));
+        cloud.setGravity(false);
+        spawn.add(0, 0.225d, 0);
+      }
+    }
+    return ents;
   }
 
   /**
@@ -168,6 +229,15 @@ public final class EntityCloudCallback extends Callback {
    *
    * @return the type
    */
+  public Location getLocation() {
+    return location;
+  }
+
+  /**
+   * Gets the cloud entities.
+   *
+   * @return the entities
+   */
   public Entity[] getEntities() {
     return entities;
   }
@@ -176,7 +246,7 @@ public final class EntityCloudCallback extends Callback {
   public static class Builder {
 
     private UUID[] viewers;
-    private Entity[] entities;
+    private Location location;
     private int map;
     private int width;
     private int height;
@@ -252,13 +322,13 @@ public final class EntityCloudCallback extends Callback {
     }
 
     /**
-     * Sets dither holder.
+     * Sets the location.
      *
-     * @param entities the holder
-     * @return the dither holder
+     * @param location the location
+     * @return the location
      */
-    public Builder setEntities(final Entity[] entities) {
-      this.entities = entities;
+    public Builder setLocation(final Location location) {
+      this.location = location;
       return this;
     }
 
@@ -268,9 +338,9 @@ public final class EntityCloudCallback extends Callback {
      * @param library the library
      * @return the item frame callback
      */
-    public EntityCloudCallback createEntityCloudCallback(final MinecraftMediaLibrary library) {
+    public EntityCloudCallback build(final MinecraftMediaLibrary library) {
       return new EntityCloudCallback(
-          library, viewers, entities, map, width, height, videoWidth, delay);
+          library, viewers, location, map, width, height, videoWidth, delay);
     }
   }
 }

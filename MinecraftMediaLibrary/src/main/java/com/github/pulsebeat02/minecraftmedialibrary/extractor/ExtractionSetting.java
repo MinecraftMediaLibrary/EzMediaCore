@@ -223,7 +223,7 @@ public class ExtractionSetting {
      *
      * @return the extraction setting
      */
-    public ExtractionSetting createExtractionSetting() {
+    public ExtractionSetting build() {
       return new ExtractionSetting(bitrate, channels, samplingRate, volume);
     }
   }

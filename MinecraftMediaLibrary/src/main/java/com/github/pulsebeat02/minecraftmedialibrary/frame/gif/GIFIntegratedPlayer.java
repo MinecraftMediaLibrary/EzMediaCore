@@ -1,30 +1,33 @@
 /*............................................................................................
-. Copyright © 2021 Brandon Li                                                               .
-.                                                                                           .
-. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
-. software and associated documentation files (the “Software”), to deal in the Software     .
-. without restriction, including without limitation the rights to use, copy, modify, merge, .
-. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
-. persons to whom the Software is furnished to do so, subject to the following conditions:  .
-.                                                                                           .
-. The above copyright notice and this permission notice shall be included in all copies     .
-. or substantial portions of the Software.                                                  .
-.                                                                                           .
-. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
-.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
-.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
-.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
-.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
-.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
-.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
-.   SOFTWARE.                                                                               .
-............................................................................................*/
+ . Copyright © 2021 Brandon Li                                                               .
+ .                                                                                           .
+ . Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
+ . software and associated documentation files (the “Software”), to deal in the Software     .
+ . without restriction, including without limitation the rights to use, copy, modify, merge, .
+ . publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
+ . persons to whom the Software is furnished to do so, subject to the following conditions:  .
+ .                                                                                           .
+ . The above copyright notice and this permission notice shall be included in all copies     .
+ . or substantial portions of the Software.                                                  .
+ .                                                                                           .
+ . THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
+ .  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
+ .   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
+ .   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
+ .   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
+ .   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
+ .   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
+ .   SOFTWARE.                                                                               .
+ ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.video.player;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.gif;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ImageUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.entity.Player;
@@ -39,7 +42,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 public class GIFIntegratedPlayer extends VideoPlayer {
 
@@ -47,33 +49,6 @@ public class GIFIntegratedPlayer extends VideoPlayer {
   private final float frameDuration;
   private ScheduledExecutorService scheduler;
   private int index;
-
-  /**
-   * Instantiates a new Abstract video player.
-   *
-   * @param library the library
-   * @param url the url
-   * @param width the width
-   * @param height the height
-   * @param callback the callback
-   */
-  public GIFIntegratedPlayer(
-      final @NotNull MinecraftMediaLibrary library,
-      final @NotNull String url,
-      final int width,
-      final int height,
-      final @NotNull Consumer<int[]> callback) {
-    super(library, url, width, height, callback);
-    final File downloaded = new File(library.getImageFolder().toFile(), FilenameUtils.getName(url));
-    try {
-      FileUtils.copyURLToFile(new URL(url), downloaded);
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
-    images = ImageUtilities.getFrames(downloaded);
-    frameDuration = ImageUtilities.getGifFrameDelay(downloaded);
-    scheduler = Executors.newScheduledThreadPool(1);
-  }
 
   /**
    * Instantiates a new Abstract video player.
@@ -89,7 +64,7 @@ public class GIFIntegratedPlayer extends VideoPlayer {
       final @NotNull File file,
       final int width,
       final int height,
-      final @NotNull Consumer<int[]> callback) {
+      final FrameCallback callback) {
     super(library, file, width, height, callback);
     images = ImageUtilities.getFrames(file);
     frameDuration = ImageUtilities.getGifFrameDelay(file);
@@ -112,7 +87,7 @@ public class GIFIntegratedPlayer extends VideoPlayer {
    */
   @Override
   public void start(final @NotNull Collection<? extends Player> players) {
-    final Consumer<int[]> callback = getCallback();
+    final FrameCallback callback = getCallback();
     final int size = images.size();
     final int delay = (int) (frameDuration * 1000);
     scheduler.scheduleAtFixedRate(
@@ -120,7 +95,7 @@ public class GIFIntegratedPlayer extends VideoPlayer {
           if (index >= size) {
             scheduler.shutdown();
           }
-          callback.accept(VideoUtilities.getBuffer(images.get(index)));
+          callback.send(VideoUtilities.getBuffer(images.get(index)));
           index++;
         },
         0,
@@ -146,7 +121,7 @@ public class GIFIntegratedPlayer extends VideoPlayer {
     private String url;
     private int width;
     private int height;
-    private Consumer<int[]> callback;
+    private FrameCallback callback;
 
     private Builder() {}
 
@@ -189,7 +164,7 @@ public class GIFIntegratedPlayer extends VideoPlayer {
      * @param callback the callback
      * @return the callback
      */
-    public Builder setCallback(@NotNull final Consumer<int[]> callback) {
+    public Builder setCallback(@NotNull final FrameCallback callback) {
       this.callback = callback;
       return this;
     }
@@ -200,9 +175,20 @@ public class GIFIntegratedPlayer extends VideoPlayer {
      * @param library the library
      * @return the vlcj integrated player
      */
-    public GIFIntegratedPlayer createVLCJIntegratedPlayer(
+    public GIFIntegratedPlayer build(
         @NotNull final MinecraftMediaLibrary library) {
-      return new GIFIntegratedPlayer(library, url, width, height, callback);
+      if (PathUtilities.isValidPath(url)) {
+        return new GIFIntegratedPlayer(library, new File(url), width, height, callback);
+      } else {
+        final File downloaded =
+            new File(library.getImageFolder().toFile(), FilenameUtils.getName(url));
+        try {
+          FileUtils.copyURLToFile(new URL(url), downloaded);
+        } catch (final IOException e) {
+          e.printStackTrace();
+        }
+        return new GIFIntegratedPlayer(library, downloaded, width, height, callback);
+      }
     }
   }
 }

@@ -127,7 +127,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
                 "%s/mml/http/resourcepack.zip",
                 library.getPlugin().getDataFolder().getAbsolutePath()))
         .setPackFormat(6)
-        .createResourcepackHostingProvider(library);
+        .build(library);
   }
 
   /**
@@ -147,7 +147,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
                 "%s/mml/http/resourcepack.zip",
                 library.getPlugin().getDataFolder().getAbsolutePath()))
         .setPackFormat(6)
-        .createResourcepackHostingProvider(library);
+        .build(library);
   }
 
   /**
@@ -392,7 +392,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
      * @param library the library
      * @return the resourcepack wrapper
      */
-    public ResourcepackWrapper createResourcepackHostingProvider(
+    public ResourcepackWrapper build(
         final MinecraftMediaLibrary library) {
       return new ResourcepackWrapper(library, path, audio, icon, description, packFormat);
     }

@@ -20,40 +20,47 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
+package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.ByteBuffer;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Paths;
 
 /**
- * An interface that is useful for handling custom dithering algorithms. Used in
- * MinecraftMediaLibrary for many algorithms.
+ * A collection of Path utilities useful for determining and extracting information from certain
+ * paths.
  */
-public interface DitherHolder {
+public final class PathUtilities {
+
+  private PathUtilities() {}
 
   /**
-   * Dithers the buffer using the given width.
    *
-   * @param buffer data for the image
-   * @param width units for the image
-   */
-  void dither(final int[] buffer, final int width);
-
-  /**
-   * Dithers the buffer into the ByteBuffer.
    *
-   * @param buffer data for the image
-   * @param width units for the image
-   * @return ByteBuffer buffer for dithered image
-   */
-  ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width);
-
-  /**
-   * Gets the current dither setting.
+   * <pre>
+   * Checks if a string is a valid path.
+   * Null safe.
    *
-   * @return DitherSetting for the setting.
+   * Calling examples:
+   *    isValidPath("c:/test");      //returns true
+   *    isValidPath("c:/te:t");      //returns false
+   *    isValidPath("c:/te?t");      //returns false
+   *    isValidPath("c/te*t");       //returns false
+   *    isValidPath("good.txt");     //returns true
+   *    isValidPath("not|good.txt"); //returns false
+   *    isValidPath("not:good.txt"); //returns false
+   * </pre>
+   *
+   * @param path the path
+   * @return whether the path is valid
    */
-  @NotNull
-  DitherSetting getSetting();
+  public static boolean isValidPath(@NotNull final String path) {
+    try {
+      Paths.get(path);
+    } catch (final InvalidPathException | NullPointerException ex) {
+      return false;
+    }
+    return true;
+  }
 }

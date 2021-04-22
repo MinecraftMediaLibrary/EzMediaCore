@@ -13,8 +13,8 @@
 package com.github.pulsebeat02.minecraftmedialibrary.test.dithering
 
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.OrderedDithering
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.OrderedDithering.DitherType
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.OrderedDithering
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.OrderedDithering.DitherType
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.File

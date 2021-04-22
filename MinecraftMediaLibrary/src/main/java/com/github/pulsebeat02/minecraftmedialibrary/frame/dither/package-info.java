@@ -21,9 +21,9 @@
 ............................................................................................*/
 
 /**
- * Callbacks can be found here.
+ * Perhaps some of the greatest dithering algorithms which are very performant.
  *
  * @since 1.0
- * @author PulseBeat_02
+ * @author PulseBeat_02, Jetp250, BananaPuncher714.
  */
-package com.github.pulsebeat02.minecraftmedialibrary.video.callback;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.dither;

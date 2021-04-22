@@ -24,7 +24,17 @@ package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
 import com.sun.imageio.plugins.gif.GIFImageReader;
 import com.sun.imageio.plugins.gif.GIFImageReaderSpi;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
+import ws.schild.jave.Encoder;
+import ws.schild.jave.EncoderException;
+import ws.schild.jave.MultimediaObject;
+import ws.schild.jave.encode.AudioAttributes;
+import ws.schild.jave.encode.EncodingAttributes;
+import ws.schild.jave.encode.VideoAttributes;
+import ws.schild.jave.filters.ScaleFilter;
+import ws.schild.jave.filters.helpers.ForceOriginalAspectRatio;
+import ws.schild.jave.info.VideoSize;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -78,5 +88,28 @@ public final class ImageUtilities {
       e.printStackTrace();
     }
     return -1f;
+  }
+
+  public static void convertGifToMpeg(@NotNull final File gif, @NotNull final File output)
+      throws IOException {
+    if (!FilenameUtils.getExtension(gif.getName()).equalsIgnoreCase("gfi")) {
+      throw new IOException(
+          String.format("Invalid Image Format (Must be Gif) %s", gif.getAbsoluteFile()));
+    }
+    final AudioAttributes audio = new AudioAttributes();
+    audio.setVolume(0);
+    final VideoAttributes vAttrs = new VideoAttributes();
+    vAttrs.setPixelFormat("yuv420p");
+    vAttrs.addFilter(new ScaleFilter(VideoSize.vga, ForceOriginalAspectRatio.DISABLE));
+    final EncodingAttributes attrs = new EncodingAttributes();
+    attrs.setAudioAttributes(audio);
+    attrs.setVideoAttributes(vAttrs);
+    attrs.setOutputFormat("mp4");
+    try {
+      final Encoder encoder = new Encoder();
+      encoder.encode(new MultimediaObject(gif), output, attrs);
+    } catch (final EncoderException e) {
+      e.printStackTrace();
+    }
   }
 }

@@ -21,9 +21,9 @@
 ............................................................................................*/
 
 /**
- * Advanced functions such as dithering, VLC C++ interaction can be found here.
+ * Algorithms related to frame analysis in a video.
  *
  * @since 1.0
  * @author PulseBeat_02
  */
-package com.github.pulsebeat02.minecraftmedialibrary.video;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.dither.frame;

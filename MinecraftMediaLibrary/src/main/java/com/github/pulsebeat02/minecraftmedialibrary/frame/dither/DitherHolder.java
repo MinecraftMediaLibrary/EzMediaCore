@@ -20,18 +20,40 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.video.callback;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.dither;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.nio.ByteBuffer;
 
 /**
- * A callback interface for map data. Useful for creating custom callbacks. MinecraftMediaLibrary
- * uses this for itemframe callbacks to achieve quick changes.
+ * An interface that is useful for handling custom dithering algorithms. Used in
+ * MinecraftMediaLibrary for many algorithms.
  */
-public abstract class Callback {
+public interface DitherHolder {
 
   /**
-   * Sends data for map packets to the players.
+   * Dithers the buffer using the given width.
    *
-   * @param data to send
+   * @param buffer data for the image
+   * @param width units for the image
    */
-  public abstract void send(final int[] data);
+  void dither(final int[] buffer, final int width);
+
+  /**
+   * Dithers the buffer into the ByteBuffer.
+   *
+   * @param buffer data for the image
+   * @param width units for the image
+   * @return ByteBuffer buffer for dithered image
+   */
+  ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width);
+
+  /**
+   * Gets the current dither setting.
+   *
+   * @return DitherSetting for the setting.
+   */
+  @NotNull
+  DitherSetting getSetting();
 }

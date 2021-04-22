@@ -20,7 +20,7 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.video.player;
+package com.github.pulsebeat02.minecraftmedialibrary.frame;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
@@ -43,10 +43,10 @@ import java.util.function.Consumer;
 
 public abstract class VideoPlayer {
 
-  private final EmbeddedMediaPlayer mediaPlayerComponent;
   private final MinecraftMediaLibrary library;
   private final String url;
-  private final Consumer<int[]> callback;
+  private final FrameCallback callback;
+  private EmbeddedMediaPlayer mediaPlayerComponent;
   private int width;
   private int height;
 
@@ -64,31 +64,13 @@ public abstract class VideoPlayer {
       @NotNull final String url,
       final int width,
       final int height,
-      @NotNull final Consumer<int[]> callback) {
+      @NotNull final FrameCallback callback) {
     this.library = library;
     this.url = url;
     this.width = width;
     this.height = height;
     this.callback = callback;
-    mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
-    final BufferFormatCallback bufferFormatCallback =
-        new BufferFormatCallback() {
-          @Override
-          public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {
-            return new RV32BufferFormat(width, height);
-          }
-
-          @Override
-          public void allocatedBuffers(final ByteBuffer[] buffers) {}
-        };
-    final CallbackVideoSurface surface =
-        new CallbackVideoSurface(
-            bufferFormatCallback,
-            new MinecraftVideoRenderCallback(callback, width, height),
-            false,
-            new WindowsVideoSurfaceAdapter());
-    mediaPlayerComponent.videoSurface().set(surface);
-    mediaPlayerComponent.audio().mute();
+    initializePlayer();
   }
 
   /**
@@ -105,30 +87,29 @@ public abstract class VideoPlayer {
       @NotNull final File file,
       final int width,
       final int height,
-      @NotNull final Consumer<int[]> callback) {
-    this.library = library;
-    url = file.getAbsolutePath();
-    this.width = width;
-    this.height = height;
-    this.callback = callback;
-    mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
-    final BufferFormatCallback bufferFormatCallback =
-        new BufferFormatCallback() {
-          @Override
-          public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {
-            return new RV32BufferFormat(width, height);
-          }
+      @NotNull final FrameCallback callback) {
+    this(library, file.getAbsolutePath(), width, height, callback);
+  }
 
-          @Override
-          public void allocatedBuffers(final ByteBuffer[] buffers) {}
-        };
-    final CallbackVideoSurface surface =
-        new CallbackVideoSurface(
-            bufferFormatCallback,
-            new MinecraftVideoRenderCallback(callback, width, height),
-            false,
-            new WindowsVideoSurfaceAdapter());
-    mediaPlayerComponent.videoSurface().set(surface);
+  private void initializePlayer() {
+    mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
+    mediaPlayerComponent
+        .videoSurface()
+        .set(
+            new CallbackVideoSurface(
+                new BufferFormatCallback() {
+                  @Override
+                  public BufferFormat getBufferFormat(
+                      final int sourceWidth, final int sourceHeight) {
+                    return new RV32BufferFormat(width, height);
+                  }
+
+                  @Override
+                  public void allocatedBuffers(final ByteBuffer[] buffers) {}
+                },
+                new MinecraftVideoRenderCallback(this),
+                false,
+                new WindowsVideoSurfaceAdapter()));
     mediaPlayerComponent.audio().mute();
   }
 
@@ -191,7 +172,7 @@ public abstract class VideoPlayer {
    *
    * @return the callback
    */
-  public Consumer<int[]> getCallback() {
+  public FrameCallback getCallback() {
     return callback;
   }
 
@@ -205,33 +186,38 @@ public abstract class VideoPlayer {
   }
 
   /**
-   * Starts player.
+   * Starts the player.
    *
    * @param players which players to play the audio for
    */
   public void start(@NotNull final Collection<? extends Player> players) {
+    if (mediaPlayerComponent == null) {
+      initializePlayer();
+    }
     mediaPlayerComponent.media().play(url);
     for (final Player p : players) {
       p.playSound(p.getLocation(), getLibrary().getPlugin().getName().toLowerCase(), 1.0F, 1.0F);
     }
-    Logger.info(String.format("Started Playing Video! (%s)", url));
+    Logger.info(String.format("Started Playing the Video! (%s)", url));
   }
 
-  /** Stops player. */
+  /** Stops the player. */
   public void stop() {
     mediaPlayerComponent.controls().stop();
-    Logger.info(String.format("Stopped Playing Video!(%s)", url));
+    Logger.info(String.format("Stopped Playing the Video! (%s)", url));
   }
 
-  /** Releases player. */
+  /** Releases the player. */
   public void release() {
     mediaPlayerComponent.release();
-    Logger.info(String.format("Released Video! (%s)", url));
+    mediaPlayerComponent = null;
+    Logger.info(String.format("Released the Video! (%s)", url));
   }
 
   /** Repeats the player. */
   public void setRepeat(final boolean setting) {
     mediaPlayerComponent.controls().setRepeat(setting);
+    Logger.info(String.format("Set Setting Loop to (%s)! (%s)", setting, url));
   }
 
   private static class MinecraftVideoRenderCallback extends RenderCallbackAdapter {
@@ -241,14 +227,11 @@ public abstract class VideoPlayer {
     /**
      * Instantiates a new MinecraftVideoRenderCallback.
      *
-     * @param callback the callback
-     * @param width the width
-     * @param height the height
+     * @param player the VideoPlayer
      */
-    public MinecraftVideoRenderCallback(
-        @NotNull final Consumer<int[]> callback, final int width, final int height) {
-      super(new int[width * height]);
-      this.callback = callback;
+    public MinecraftVideoRenderCallback(@NotNull final VideoPlayer player) {
+      super(new int[player.getWidth() * player.getHeight()]);
+      callback = player.getCallback()::send;
     }
 
     /**

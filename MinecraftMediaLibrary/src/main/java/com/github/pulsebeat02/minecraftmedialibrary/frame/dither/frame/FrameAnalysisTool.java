@@ -20,10 +20,7 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-/**
- * A set of build in video players for easier video media controlling.
- *
- * @since 1.0
- * @author PulseBeat_02
- */
-package com.github.pulsebeat02.minecraftmedialibrary.video.player;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.dither.frame;
+
+/** In Development: Frame analysis tool used for analyzing frames of videos. */
+public class FrameAnalysisTool {}

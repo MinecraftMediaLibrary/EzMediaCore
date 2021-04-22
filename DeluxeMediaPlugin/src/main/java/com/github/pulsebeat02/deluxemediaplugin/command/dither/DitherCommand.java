@@ -25,7 +25,7 @@ package com.github.pulsebeat02.deluxemediaplugin.command.dither;
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;

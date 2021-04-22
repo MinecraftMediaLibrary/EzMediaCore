@@ -27,7 +27,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.image.MapImageHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.FloydImageDither;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.FloydImageDither;
 import com.google.common.collect.ImmutableMap;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.util.NumberConversions;
@@ -274,7 +274,7 @@ public final class MinecraftStaticImage implements MapImageHolder, Configuration
      * @param library the library
      * @return the map image
      */
-    public MinecraftStaticImage createImageMap(final MinecraftMediaLibrary library) {
+    public MinecraftStaticImage build(final MinecraftMediaLibrary library) {
       return new MinecraftStaticImage(library, map, image, width, height);
     }
   }

@@ -20,12 +20,12 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.video.dither.development;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.dither.development;
 
 import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherHolder;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.StaticDitherInitialization;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.StaticDitherInitialization;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;

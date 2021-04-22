@@ -21,9 +21,9 @@
 ............................................................................................*/
 
 /**
- * Algorithms currently in development. (Deprecated)
+ * Advanced functions such as dithering, VLC C++ interaction can be found here.
  *
  * @since 1.0
  * @author PulseBeat_02
  */
-package com.github.pulsebeat02.minecraftmedialibrary.video.dither.development;
+package com.github.pulsebeat02.minecraftmedialibrary.frame;

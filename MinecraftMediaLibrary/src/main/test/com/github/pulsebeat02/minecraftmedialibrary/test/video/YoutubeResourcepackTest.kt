@@ -37,7 +37,7 @@ class YoutubeResourcepackTest : JavaPlugin() {
 
     fun getResourcepackUrlYoutube(youtubeUrl: String, directory: String, port: Int): String {
         val extraction: YoutubeExtraction = object : YoutubeExtraction(
-            youtubeUrl, directory, ExtractionSetting.builder().createExtractionSetting()
+            youtubeUrl, directory, ExtractionSetting.builder().build()
         ) {
             override fun onVideoDownload() {
                 println("Video is Downloading!")
@@ -57,7 +57,7 @@ class YoutubeResourcepackTest : JavaPlugin() {
             .setDescription("Youtube Video: " + extraction.videoTitle)
             .setPath(directory)
             .setPackFormat(6)
-            .createResourcepackHostingProvider(library)
+            .build(library)
         wrapper.buildResourcePack()
         val hosting = HttpDaemonProvider(directory, port)
         hosting.startServer()
@@ -71,7 +71,7 @@ class YoutubeResourcepackTest : JavaPlugin() {
             .setMap(map)
             .setWidth(bi.width)
             .setHeight(bi.height)
-            .createImageMap(library)
+            .build(library)
         imageMap.drawImage()
     }
 }

@@ -5,12 +5,14 @@ import com.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudIntegratedPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapIntegratedPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.video.callback.MapDataCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
-import com.github.pulsebeat02.minecraftmedialibrary.video.player.MapIntegratedPlayer;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -75,7 +77,13 @@ public class VideoCommand extends BaseCommand {
                         .then(
                             argument("dithering-algorithm", StringArgumentType.greedyString())
                                 .suggests(this::suggestDitherAlgorithm)
-                                .executes(this::setDitherAlgorithm))))
+                                .executes(this::setDitherAlgorithm)))
+                .then(
+                    literal("mode")
+                        .then(
+                            argument("video-mode", StringArgumentType.greedyString())
+                                .suggests(this::suggestVideoMode)
+                                .executes(this::setVideoMode))))
         .executes(this::displayInformation);
     literalNode = builder.build();
   }
@@ -97,6 +105,9 @@ public class VideoCommand extends BaseCommand {
             .put(
                 "/video set starting-map [id]",
                 "Sets the starting map id from id to id + 25. (For example 0 - 24)")
+            .put(
+                "/video set mode [mode]",
+                "Sets whether the video should be entity clouds or itemframes")
             .build());
   }
 
@@ -104,6 +115,37 @@ public class VideoCommand extends BaseCommand {
       final CommandContext<CommandSender> context, final SuggestionsBuilder builder) {
     Arrays.stream(DitherSetting.values()).forEach(x -> builder.suggest(x.name()));
     return builder.buildFuture();
+  }
+
+  private CompletableFuture<Suggestions> suggestVideoMode(
+      final CommandContext<CommandSender> context, final SuggestionsBuilder builder) {
+    builder.suggest("itemframe");
+    builder.suggest("entity");
+    return builder.buildFuture();
+  }
+
+  private int setVideoMode(@NotNull final CommandContext<CommandSender> context) {
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    final String mode = context.getArgument("video-mode", String.class);
+    final TextComponent component;
+    if (mode.equalsIgnoreCase("itemframe")) {
+      attributes.setMaps(true);
+      component =
+          TextComponent.ofChildren(
+              Component.text("Set video mode to ", NamedTextColor.GOLD),
+              Component.text(mode, NamedTextColor.AQUA));
+    } else if (mode.equalsIgnoreCase("entity")) {
+      attributes.setMaps(false);
+      component =
+          TextComponent.ofChildren(
+              Component.text("Set video mode to ", NamedTextColor.GOLD),
+              Component.text(mode, NamedTextColor.AQUA));
+    } else {
+      component =
+          Component.text(String.format("Could not find video mode %s", mode), NamedTextColor.RED);
+    }
+    audience.sendMessage(component);
+    return 1;
   }
 
   private int setDitherAlgorithm(@NotNull final CommandContext<CommandSender> context) {
@@ -235,7 +277,8 @@ public class VideoCommand extends BaseCommand {
   }
 
   private int playVideo(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    final CommandSender sender = context.getSource();
+    final Audience audience = getPlugin().getAudiences().sender(sender);
     final boolean youtube = attributes.isYoutube();
     final File file = attributes.getFile();
     if (file == null && !youtube) {
@@ -263,48 +306,57 @@ public class VideoCommand extends BaseCommand {
                     NamedTextColor.GOLD)));
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
     if (library.isVlcj()) {
-
-      attributes.setPlayer(
-          MapIntegratedPlayer.builder()
-              .setUrl(attributes.getFile().getAbsolutePath())
-              .setWidth(attributes.getScreenWidth())
-              .setHeight(attributes.getScreenHeight())
-              .setCallback(
-                  MapDataCallback.builder()
-                          .setViewers(null)
-                          .setMap(attributes.getStartingMap())
-                          .setWidth(attributes.getFrameWidth())
-                          .setHeight(attributes.getFrameHeight())
-                          .setVideoWidth(attributes.getScreenWidth())
-                          .setDelay(0)
-                          .setDitherHolder(attributes.getDither())
-                          .createItemFrameCallback(library)
-                      ::send)
-              .build(library));
-
-      //      attributes.setPlayer(
-      //              EntityCloudIntegratedPlayer.builder()
-      //                      .setUrl(attributes.getFile().getAbsolutePath())
-      //                      .setWidth(attributes.getScreenWidth())
-      //                      .setHeight(attributes.getScreenHeight())
-      //                      .build(library));
-      //      attributes.getPlayer().set
-      //
-      //              .setCallback(
-      //                      EntityCloudCallback.builder()
-      //                              .setViewers(null)
-      //                              .setMap(attributes.getStartingMap())
-      //                              .setWidth(attributes.getFrameWidth())
-      //                              .setHeight(attributes.getFrameHeight())
-      //                              .setVideoWidth(attributes.getScreenWidth())
-      //                              .setDelay(0)
-      //                              .setEntities()
-      //                              .createItemFrameCallback(library)
-      //                              ::send)
-
+      if (attributes.isUsingMaps()) {
+        attributes.setPlayer(createMapPlayer());
+      } else {
+        if (sender instanceof Player) {
+          attributes.setPlayer(createEntityCloudPlayer((Player) sender));
+        } else {
+          audience.sendMessage(
+              Component.text("You must be a Player to execute this command!", NamedTextColor.RED));
+        }
+      }
     }
     attributes.getPlayer().start(Bukkit.getOnlinePlayers());
     return 1;
+  }
+
+  private MapIntegratedPlayer createMapPlayer() {
+    final MinecraftMediaLibrary library = getPlugin().getLibrary();
+    return MapIntegratedPlayer.builder()
+        .setUrl(attributes.getFile().getAbsolutePath())
+        .setWidth(attributes.getScreenWidth())
+        .setHeight(attributes.getScreenHeight())
+        .setCallback(
+            MapDataCallback.builder()
+                .setViewers(null)
+                .setMap(attributes.getStartingMap())
+                .setWidth(attributes.getFrameWidth())
+                .setHeight(attributes.getFrameHeight())
+                .setVideoWidth(attributes.getScreenWidth())
+                .setDelay(0)
+                .setDitherHolder(attributes.getDither())
+                .build(library))
+        .build(library);
+  }
+
+  private EntityCloudIntegratedPlayer createEntityCloudPlayer(@NotNull final Player sender) {
+    final MinecraftMediaLibrary library = getPlugin().getLibrary();
+    return EntityCloudIntegratedPlayer.builder()
+        .setUrl(attributes.getFile().getAbsolutePath())
+        .setWidth(attributes.getScreenWidth())
+        .setHeight(attributes.getScreenHeight())
+        .setCallback(
+            EntityCloudCallback.builder()
+                .setViewers(null)
+                .setMap(attributes.getStartingMap())
+                .setWidth(attributes.getFrameWidth())
+                .setHeight(attributes.getFrameHeight())
+                .setVideoWidth(attributes.getScreenWidth())
+                .setDelay(0)
+                .setLocation(sender.getLocation())
+                .build(library))
+        .build(library);
   }
 
   private int loadVideo(@NotNull final CommandContext<CommandSender> context) {

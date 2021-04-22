@@ -20,17 +20,18 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.video.callback;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.map;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherHolder;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
 /** The callback used for itemframes to update maps for each frame when necessary. */
-public final class MapDataCallback extends Callback {
+public final class MapDataCallback implements FrameCallback {
 
   private final MinecraftMediaLibrary library;
   private final UUID[] viewers;
@@ -292,7 +293,7 @@ public final class MapDataCallback extends Callback {
      * @param library the library
      * @return the item frame callback
      */
-    public MapDataCallback createItemFrameCallback(final MinecraftMediaLibrary library) {
+    public MapDataCallback build(final MinecraftMediaLibrary library) {
       return new MapDataCallback(library, viewers, type, map, width, height, videoWidth, delay);
     }
   }

@@ -20,7 +20,7 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.video.dither;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.dither;
 
 import com.github.pulsebeat02.minecraftmedialibrary.annotation.Author;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;

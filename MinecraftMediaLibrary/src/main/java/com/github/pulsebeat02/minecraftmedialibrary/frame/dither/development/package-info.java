@@ -21,9 +21,9 @@
 ............................................................................................*/
 
 /**
- * Algorithms related to frame analysis in a video.
+ * Algorithms currently in development. (Deprecated)
  *
  * @since 1.0
  * @author PulseBeat_02
  */
-package com.github.pulsebeat02.minecraftmedialibrary.video.dither.frame;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.dither.development;
