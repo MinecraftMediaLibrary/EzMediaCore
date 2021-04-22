@@ -48,7 +48,7 @@ public class VideoCommand extends BaseCommand {
     final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
     builder
         .requires(super::testPermission)
-        .then(literal("start").executes(this::startVideo))
+        .then(literal("play").executes(this::playVideo))
         .then(literal("stop").executes(this::stopVideo))
         .then(
             literal("load")
@@ -234,7 +234,7 @@ public class VideoCommand extends BaseCommand {
     return 1;
   }
 
-  private int startVideo(@NotNull final CommandContext<CommandSender> context) {
+  private int playVideo(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final boolean youtube = attributes.isYoutube();
     final File file = attributes.getFile();

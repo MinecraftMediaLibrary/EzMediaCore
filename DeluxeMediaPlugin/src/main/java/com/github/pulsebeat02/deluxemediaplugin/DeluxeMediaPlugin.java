@@ -53,7 +53,8 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       library = new MinecraftMediaLibrary(this);
       registerCommands();
       registerConfigurations();
-      checkUpdates();
+      new Metrics(this, 10229);
+      new PluginUpdateChecker(this).checkForUpdates();
       audiences = BukkitAudiences.create(this);
       logger.info("Finished Loading Instance and Plugin");
     } else {
@@ -94,11 +95,6 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
   private void registerCommands() {
     handler = new CommandHandler(this);
-  }
-
-  private void checkUpdates() {
-    final Metrics metrics = new Metrics(this, 10229);
-    new PluginUpdateChecker(this).checkForUpdates();
   }
 
   public MinecraftMediaLibrary getLibrary() {
