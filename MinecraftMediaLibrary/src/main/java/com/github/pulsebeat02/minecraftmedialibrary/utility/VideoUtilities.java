@@ -190,6 +190,7 @@ public final class VideoUtilities {
    *
    * @param file the image file
    * @return the dimensions of the image
+   * @throws IOException if an issue occurred while fetching the image data
    */
   public static Dimension getDimensions(@NotNull final File file) throws IOException {
     final Iterator<ImageReader> iter =

@@ -214,7 +214,11 @@ public abstract class VideoPlayer {
     Logger.info(String.format("Released the Video! (%s)", url));
   }
 
-  /** Repeats the player. */
+  /**
+   * Repeats the player.
+   *
+   * @param setting the setting
+   */
   public void setRepeat(final boolean setting) {
     mediaPlayerComponent.controls().setRepeat(setting);
     Logger.info(String.format("Set Setting Loop to (%s)! (%s)", setting, url));

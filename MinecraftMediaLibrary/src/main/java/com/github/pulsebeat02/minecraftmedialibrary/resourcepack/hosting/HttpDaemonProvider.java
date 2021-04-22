@@ -111,7 +111,7 @@ public class HttpDaemonProvider implements HostingProvider {
    * @return the public ip
    */
   @NotNull
-  public String getPublicIP() throws IOException {
+  public String getPublicIP() {
     try (final BufferedReader in =
         new BufferedReader(
             new InputStreamReader(new URL("https://checkip.amazonaws.com").openStream()))) {

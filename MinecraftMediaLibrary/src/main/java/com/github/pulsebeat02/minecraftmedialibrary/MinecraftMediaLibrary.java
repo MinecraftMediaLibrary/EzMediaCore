@@ -73,6 +73,8 @@ public final class MinecraftMediaLibrary {
    * @param http the path
    * @param libraryPath dependency path
    * @param vlcPath vlc installation path
+   * @param audioPath audio path
+   * @param imagePath image path
    * @param isUsingVLCJ whether using vlcj
    */
   public MinecraftMediaLibrary(

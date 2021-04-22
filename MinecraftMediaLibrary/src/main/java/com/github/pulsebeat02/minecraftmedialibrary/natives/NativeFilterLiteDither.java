@@ -34,7 +34,8 @@ public class NativeFilterLiteDither {
    * The native method used for setup which calls a C++ method in the filterlite-dither.so/.dll
    * file.
    *
-   * @param colorMap the passed in colormap
+   * @param colorMap the passed in color map
+   * @param fullColorMap the passed in full color map
    */
   private native void setup(final int[] colorMap, final int[] fullColorMap);
 
