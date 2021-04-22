@@ -29,6 +29,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
+import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -69,7 +70,6 @@ public class AudioCommand extends BaseCommand {
 
   private int playAudio(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
-    final MinecraftMediaLibrary library = getPlugin().getLibrary();
     if (audio == null) {
       audience.sendMessage(
           ChatUtilities.formatMessage(
@@ -138,14 +138,19 @@ public class AudioCommand extends BaseCommand {
           ChatUtilities.formatMessage(
               Component.text(
                   "You have HTTP set false by default. You cannot "
-                      + "play Youtube videos without a daemon",
+                      + "play audio files without a daemon",
                   NamedTextColor.RED)));
     }
   }
 
   @Override
   public Component usage() {
-    return null;
+    return ChatUtilities.getCommandUsage(
+        ImmutableMap.<String, String>builder()
+            .put("/audio load [url]", "Loads a Youtube Link")
+            .put("/audio load [file]", "Loads a specific audio file")
+            .put("/audio play", "Plays the audio to players")
+            .build());
   }
 
   @Override
