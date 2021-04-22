@@ -8,8 +8,8 @@ import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.video.callback.MapDataCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.video.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.video.player.MapIntegratedPlayer;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -251,7 +251,6 @@ public class VideoCommand extends BaseCommand {
               Component.text("The video is still being downloaded!", NamedTextColor.RED)));
       return 1;
     }
-
     final YoutubeExtraction extractor = attributes.getExtractor();
     audience.sendMessage(
         ChatUtilities.formatMessage(
@@ -264,7 +263,6 @@ public class VideoCommand extends BaseCommand {
                     NamedTextColor.GOLD)));
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
     if (library.isVlcj()) {
-
 
       attributes.setPlayer(
           MapIntegratedPlayer.builder()
@@ -284,25 +282,25 @@ public class VideoCommand extends BaseCommand {
                       ::send)
               .build(library));
 
-//      attributes.setPlayer(
-//              EntityCloudIntegratedPlayer.builder()
-//                      .setUrl(attributes.getFile().getAbsolutePath())
-//                      .setWidth(attributes.getScreenWidth())
-//                      .setHeight(attributes.getScreenHeight())
-//                      .build(library));
-//      attributes.getPlayer().set
-//
-//              .setCallback(
-//                      EntityCloudCallback.builder()
-//                              .setViewers(null)
-//                              .setMap(attributes.getStartingMap())
-//                              .setWidth(attributes.getFrameWidth())
-//                              .setHeight(attributes.getFrameHeight())
-//                              .setVideoWidth(attributes.getScreenWidth())
-//                              .setDelay(0)
-//                              .setEntities()
-//                              .createItemFrameCallback(library)
-//                              ::send)
+      //      attributes.setPlayer(
+      //              EntityCloudIntegratedPlayer.builder()
+      //                      .setUrl(attributes.getFile().getAbsolutePath())
+      //                      .setWidth(attributes.getScreenWidth())
+      //                      .setHeight(attributes.getScreenHeight())
+      //                      .build(library));
+      //      attributes.getPlayer().set
+      //
+      //              .setCallback(
+      //                      EntityCloudCallback.builder()
+      //                              .setViewers(null)
+      //                              .setMap(attributes.getStartingMap())
+      //                              .setWidth(attributes.getFrameWidth())
+      //                              .setHeight(attributes.getFrameHeight())
+      //                              .setVideoWidth(attributes.getScreenWidth())
+      //                              .setDelay(0)
+      //                              .setEntities()
+      //                              .createItemFrameCallback(library)
+      //                              ::send)
 
     }
     attributes.getPlayer().start(Bukkit.getOnlinePlayers());
@@ -314,8 +312,9 @@ public class VideoCommand extends BaseCommand {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
     final String folderPath = String.format("%s/mml/", plugin.getDataFolder().getAbsolutePath());
+    final AtomicBoolean atomicBoolean = attributes.getCompletion();
     if (!VideoExtractionUtilities.getVideoID(mrl).isPresent()) {
-
+      atomicBoolean.set(false);
       final File f = new File(folderPath, mrl);
       final TextComponent component;
       if (f.exists()) {
@@ -336,7 +335,9 @@ public class VideoCommand extends BaseCommand {
                 String.format("File %s cannot be found!", f.getName()), NamedTextColor.RED);
       }
       audience.sendMessage(ChatUtilities.formatMessage(component));
+      atomicBoolean.set(true);
     } else {
+      atomicBoolean.set(false);
       attributes.setYoutube(true);
       final YoutubeExtraction extractor =
           new YoutubeExtraction(mrl, folderPath, plugin.getEncoderConfiguration().getSettings());
@@ -357,11 +358,7 @@ public class VideoCommand extends BaseCommand {
                           Component.text(
                               String.format("Successfully loaded video %s", mrl),
                               NamedTextColor.GOLD))))
-          .whenCompleteAsync((t, throwable) -> attributes.getCompletion().set(true));
-    }
-    final AtomicBoolean atomicBoolean = attributes.getCompletion();
-    if (atomicBoolean.get()) {
-      atomicBoolean.set(false);
+          .whenCompleteAsync((t, throwable) -> atomicBoolean.set(true));
     }
     return 1;
   }
