@@ -89,7 +89,9 @@ public final class VLCUtilities {
           }
           NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), vlcPath);
           Logger.info(String.format("Found LibVLC (%s)", path));
-          loadLibVLCLibrary();
+          if (loadLibVLCLibrary()) {
+            Logger.info("Successfully Loaded LibVLC Library");
+          }
           libvlc = true;
         }
       }
