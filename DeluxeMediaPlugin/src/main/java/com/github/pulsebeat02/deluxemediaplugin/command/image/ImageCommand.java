@@ -27,8 +27,10 @@ import com.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImage;
+import com.github.pulsebeat02.minecraftmedialibrary.image.gif.MinecraftDynamicImage;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -60,6 +62,7 @@ public class ImageCommand extends BaseCommand implements Listener {
   private final Set<MinecraftStaticImage> images;
   private final Set<UUID> listen;
   private final LiteralCommandNode<CommandSender> literalNode;
+  private final Set<String> extensions;
   private int width;
   private int height;
 
@@ -71,6 +74,7 @@ public class ImageCommand extends BaseCommand implements Listener {
     images = new HashSet<>();
     width = 1;
     height = 1;
+    extensions = ImmutableSet.of(".png", ".jpg", ".jpeg", ".tif", ".gif");
     final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
     builder
         .requires(super::testPermission)
@@ -117,6 +121,7 @@ public class ImageCommand extends BaseCommand implements Listener {
             "/image rickroll", "Posts a Rick Roll image on map id 69"));
   }
 
+  // Not sure if this even works...
   private int setRickRoll(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
@@ -137,9 +142,14 @@ public class ImageCommand extends BaseCommand implements Listener {
     if (!opt.isPresent()) {
       return 1;
     }
+
+    // Get the proper dimensions specified
     final int[] dims = opt.get();
+
+    // Set the dimensions
     width = dims[0];
     height = dims[1];
+
     audience.sendMessage(
         ChatUtilities.formatMessage(
             Component.text(
@@ -156,7 +166,11 @@ public class ImageCommand extends BaseCommand implements Listener {
     if (!opt.isPresent()) {
       return 1;
     }
+
+    // Get the id the user specified
     final int id = (int) opt.getAsLong();
+
+    // Get the mrl (media resource location) the user specified
     final String mrl = context.getArgument("mrl", String.class);
     final ComponentLike successful =
         ChatUtilities.formatMessage(
@@ -164,14 +178,52 @@ public class ImageCommand extends BaseCommand implements Listener {
                 String.format("Successfully drew image on map %d", id), NamedTextColor.GOLD));
     final DeluxeMediaPlugin plugin = getPlugin();
     final MinecraftMediaLibrary library = plugin.getLibrary();
+
+    // If the mrl is a link
     if (isUrl(mrl)) {
+
+      // Declare a new file for the image, download it
       final File img = FileUtilities.downloadImageFile(mrl, plugin.getLibrary().getParentFolder());
-      new MinecraftStaticImage(library, id, img, width, height).drawImage();
+
+      final String name = img.getName().toLowerCase();
+
+      // Check if it's a gif or not
+      if (name.endsWith(".gif")) {
+
+        // Create a new instance and draw it
+        new MinecraftDynamicImage(library, id, img, width, height).drawImage();
+      }
+
+      // Check if it's a valid image file
+      else if (extensions.stream().anyMatch(name::endsWith)) {
+
+        // Create a new instance and draw it
+        new MinecraftStaticImage(library, id, img, width, height).drawImage();
+      }
       audience.sendMessage(successful);
     } else {
+
+      // Otherwise it must be a file or invalid
       final File img = new File(plugin.getDataFolder(), mrl);
+
+      // If it is a file that exists and has a valid extension
       if (img.exists()) {
-        new MinecraftStaticImage(library, id, img, width, height).drawImage();
+
+        final String name = img.getName().toLowerCase();
+
+        // Check if it's a gif or not
+        if (name.endsWith(".gif")) {
+
+          // Create a new instance and draw it
+          new MinecraftStaticImage(library, id, img, width, height).drawImage();
+        }
+
+        // Check if it's a valid image file
+        else if (extensions.stream().anyMatch(name::endsWith)) {
+
+          // Create a new instance and draw it
+          new MinecraftDynamicImage(library, id, img, width, height).drawImage();
+        }
         audience.sendMessage(successful);
       } else {
         audience.sendMessage(
@@ -190,7 +242,11 @@ public class ImageCommand extends BaseCommand implements Listener {
     if (!opt.isPresent()) {
       return 1;
     }
+
+    // Get the id the user specified
     final int id = (int) opt.getAsLong();
+
+    // Try to find the map id and remove it
     final Iterator<MinecraftStaticImage> itr = images.iterator();
     while (itr.hasNext()) {
       if (itr.next().getMap() == id) {
@@ -198,6 +254,8 @@ public class ImageCommand extends BaseCommand implements Listener {
         break;
       }
     }
+
+    // Reset the map data on there
     MinecraftStaticImage.resetMap(getPlugin().getLibrary(), id);
     audience.sendMessage(
         ChatUtilities.formatMessage(
@@ -224,10 +282,15 @@ public class ImageCommand extends BaseCommand implements Listener {
     if (listen.contains(p.getUniqueId())) {
       final Audience audience = getPlugin().getAudiences().player(p);
       if (event.getMessage().equalsIgnoreCase("YES")) {
+
+        // Loop through all maps, reset all of the images
         for (final MinecraftStaticImage image : images) {
           MinecraftStaticImage.resetMap(getPlugin().getLibrary(), image.getMap());
         }
+
+        // Clear images Set
         images.clear();
+
         audience.sendMessage(
             ChatUtilities.formatMessage(
                 Component.text("Successfully purged all image maps", NamedTextColor.GOLD)));

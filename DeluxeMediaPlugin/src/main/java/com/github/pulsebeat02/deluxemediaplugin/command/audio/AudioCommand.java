@@ -79,11 +79,13 @@ public class AudioCommand extends BaseCommand {
     if (!atomicBoolean.get()) {
       audience.sendMessage(
           ChatUtilities.formatMessage(
-              Component.text("The audio is still being downloaded!", NamedTextColor.RED)));
+              Component.text("The audio is still being loaded!", NamedTextColor.RED)));
       return 1;
     }
     audience.sendMessage(
         ChatUtilities.formatMessage(Component.text("Started playing audio!", NamedTextColor.GOLD)));
+
+    // Play the sound to all users on the server
     for (final Player p : Bukkit.getOnlinePlayers()) {
       p.playSound(p.getLocation(), getPlugin().getName().toLowerCase(), 1.0F, 1.0F);
     }
@@ -95,16 +97,28 @@ public class AudioCommand extends BaseCommand {
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
     final String mrl = context.getArgument("mrl", String.class);
     if (mrl.startsWith("https://")) {
+
+      // Create a new Youtube Extractor from the url
       final YoutubeExtraction extraction =
           new YoutubeExtraction(
               mrl,
               library.getAudioFolder().toString(),
               getPlugin().getEncoderConfiguration().getSettings());
+
+      // Extract the audio
       audio = extraction.extractAudio();
+
     } else {
+
+      // Create a new file
       final File file = new File(mrl);
+
+      // Check if the file exists
       if (file.exists()) {
+
+        // Assign it then
         audio = file;
+
       } else {
         audience.sendMessage(
             ChatUtilities.formatMessage(
@@ -114,10 +128,18 @@ public class AudioCommand extends BaseCommand {
         return 1;
       }
     }
+
+    // Make the resourcepack wrapping process async
     CompletableFuture.runAsync(
             () -> {
+
+              // Create a resourcepack from the audio and library instance
               final ResourcepackWrapper wrapper = ResourcepackWrapper.of(audio, library);
+
+              // Build the resourcepack
               wrapper.buildResourcePack();
+
+              // Send the resourcepack to players
               sendResourcepack(getPlugin().getHttpConfiguration().getDaemon(), audience, wrapper);
             })
         .whenCompleteAsync((t, throwable) -> atomicBoolean.set(true));
@@ -129,7 +151,11 @@ public class AudioCommand extends BaseCommand {
       @NotNull final Audience audience,
       @NotNull final ResourcepackWrapper wrapper) {
     if (provider != null) {
+
+      // Get a resourcepack url for the file
       final String url = provider.generateUrl(wrapper.getPath());
+
+      // Send the resourcepack to all players on the server
       for (final Player p : Bukkit.getOnlinePlayers()) {
         p.setResourcePack(url);
       }

@@ -64,6 +64,8 @@ public class DitherCommand extends BaseCommand {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     audience.sendMessage(
         ChatUtilities.formatMessage(Component.text("Possible Settings: ", NamedTextColor.GOLD)));
+
+    // List all possible dithering settings the user can select
     for (final DitherSetting setting : DitherSetting.values()) {
       audience.sendMessage(Component.text(setting.name(), NamedTextColor.AQUA));
     }

@@ -129,12 +129,16 @@ public class VideoCommand extends BaseCommand {
     final String mode = context.getArgument("video-mode", String.class);
     final TextComponent component;
     if (mode.equalsIgnoreCase("itemframe")) {
+
+      // Set video mode to be maps
       attributes.setMaps(true);
       component =
           TextComponent.ofChildren(
               Component.text("Set video mode to ", NamedTextColor.GOLD),
               Component.text(mode, NamedTextColor.AQUA));
     } else if (mode.equalsIgnoreCase("entity")) {
+
+      // Set video mode to be entity clouds
       attributes.setMaps(false);
       component =
           TextComponent.ofChildren(
@@ -162,6 +166,8 @@ public class VideoCommand extends BaseCommand {
           TextComponent.ofChildren(
               Component.text("Set dither type to ", NamedTextColor.GOLD),
               Component.text(algorithm, NamedTextColor.AQUA));
+
+      // Set the dither algorithm for the video attributes
       attributes.setDither(setting.getHolder());
     }
     audience.sendMessage(ChatUtilities.formatMessage(component));
@@ -176,6 +182,8 @@ public class VideoCommand extends BaseCommand {
     if (!id.isPresent()) {
       return 1;
     }
+
+    // Set the starting map of the video player
     attributes.setStartingMap((int) id.getAsLong());
     audience.sendMessage(
         ChatUtilities.formatMessage(
@@ -194,6 +202,8 @@ public class VideoCommand extends BaseCommand {
       return 1;
     }
     final int[] dims = opt.get();
+
+    // Set the itemframe dimensions of the video player
     attributes.setFrameWidth(dims[0]);
     attributes.setFrameHeight(dims[1]);
     audience.sendMessage(
@@ -216,6 +226,8 @@ public class VideoCommand extends BaseCommand {
     final TextComponent component;
     if (attributes.getPlayer() != null) {
       final int[] dims = opt.get();
+
+      // Set the screen dimensions (in pixels) of the video player
       attributes.setScreenWidth(dims[0]);
       attributes.setScreenHeight(dims[1]);
       component =
@@ -272,6 +284,8 @@ public class VideoCommand extends BaseCommand {
   private int stopVideo(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     audience.sendMessage(Component.text("Stopped the Video!", NamedTextColor.GOLD));
+
+    // Stop the media player
     attributes.getPlayer().stop();
     return 1;
   }
@@ -305,11 +319,21 @@ public class VideoCommand extends BaseCommand {
                     String.format("Starting Video on File: %s", file.getName()),
                     NamedTextColor.GOLD)));
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
+
+    // Check if the library is using vlcj
     if (library.isVlcj()) {
+
+      // If the mode is maps
       if (attributes.isUsingMaps()) {
+
+        // Set the player to be a new map integrated player
         attributes.setPlayer(createMapPlayer());
       } else {
+
+        // Check if the sender is an instanceof a Player
         if (sender instanceof Player) {
+
+          // Set the player to be a new cloud integrated player
           attributes.setPlayer(createEntityCloudPlayer((Player) sender));
         } else {
           audience.sendMessage(
@@ -317,11 +341,23 @@ public class VideoCommand extends BaseCommand {
         }
       }
     }
+
+    // Start the player and play the sound to all online players
     attributes.getPlayer().start(Bukkit.getOnlinePlayers());
     return 1;
   }
 
   private MapIntegratedPlayer createMapPlayer() {
+
+    /*
+
+    Creates a MapIntegratedPlayer using the absolute path of the file, the screen width in pixels,
+    the screen height in pixels, along with a callback. The callback consists of whatever viewers to
+    be specified (null for all, otherwise a UUID[]), the starting map, the itemframe width, the
+    itemframe height, the width of the screen in pixels, the delay, the dithering algorithm, and the
+    proper library instance.
+
+     */
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
     return MapIntegratedPlayer.builder()
         .setUrl(attributes.getFile().getAbsolutePath())
@@ -341,6 +377,16 @@ public class VideoCommand extends BaseCommand {
   }
 
   private EntityCloudIntegratedPlayer createEntityCloudPlayer(@NotNull final Player sender) {
+
+    /*
+
+    Creates a EntityCloudIntegratedPlayer using the absolute path of the file, the screen width in pixels,
+    the screen height in pixels, along with a callback. The callback consists of whatever viewers to
+    be specified (null for all, otherwise a UUID[]), the starting map, the itemframe width, the
+    itemframe height, the width of the screen in pixels, the delay, the dithering algorithm, the location
+    at which the screen should be located, and the proper library instance.
+
+     */
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
     return EntityCloudIntegratedPlayer.builder()
         .setUrl(attributes.getFile().getAbsolutePath())
@@ -366,10 +412,16 @@ public class VideoCommand extends BaseCommand {
     final String folderPath = String.format("%s/mml/", plugin.getDataFolder().getAbsolutePath());
     final AtomicBoolean atomicBoolean = attributes.getCompletion();
     if (!VideoExtractionUtilities.getVideoID(mrl).isPresent()) {
+
+      // This means we have a file
       atomicBoolean.set(false);
       final File f = new File(folderPath, mrl);
       final TextComponent component;
+
+      // Check file existence
       if (f.exists()) {
+
+        // Set youtube to false, extractor to null, etc because we are using an actual video file.
         attributes.setYoutube(false);
         attributes.setExtractor(null);
         attributes.setFile(f);
@@ -389,16 +441,31 @@ public class VideoCommand extends BaseCommand {
       audience.sendMessage(ChatUtilities.formatMessage(component));
       atomicBoolean.set(true);
     } else {
+
+      // This means we have a Youtube link
       atomicBoolean.set(false);
+
+      // Set the attributes of a Youtube Video to be true
       attributes.setYoutube(true);
+
+      // Create an extractor out of the Youtube link
       final YoutubeExtraction extractor =
           new YoutubeExtraction(mrl, folderPath, plugin.getEncoderConfiguration().getSettings());
+
+      // Extract the audio of the URL
       extractor.extractAudio();
+
+      // Set the file to be the video file of the extraction
       attributes.setFile(extractor.getVideo());
+
+      // Set the extractor
       attributes.setExtractor(extractor);
+
+      // Download the video asyncronously
       CompletableFuture.runAsync(extractor::downloadVideo)
           .thenRunAsync(
               () ->
+                  // Send the resourcepack to all players on the server
                   sendResourcepack(
                       plugin.getHttpConfiguration().getDaemon(),
                       audience,
@@ -417,7 +484,11 @@ public class VideoCommand extends BaseCommand {
 
   private ResourcepackWrapper buildResourcepack(
       @NotNull final YoutubeExtraction extractor, @NotNull final DeluxeMediaPlugin plugin) {
+
+    // Get the resourcepack wrapper from the extractor
     final ResourcepackWrapper wrapper = ResourcepackWrapper.of(extractor, plugin.getLibrary());
+
+    // Build the resourcepack
     wrapper.buildResourcePack();
     return wrapper;
   }
@@ -427,7 +498,11 @@ public class VideoCommand extends BaseCommand {
       @NotNull final Audience audience,
       @NotNull final ResourcepackWrapper wrapper) {
     if (provider != null) {
+
+      // Generates a url given by the HTTP server for a file
       final String url = provider.generateUrl(wrapper.getPath());
+
+      // Send the resourcepack url to all players on the server
       for (final Player p : Bukkit.getOnlinePlayers()) {
         p.setResourcePack(url);
       }
