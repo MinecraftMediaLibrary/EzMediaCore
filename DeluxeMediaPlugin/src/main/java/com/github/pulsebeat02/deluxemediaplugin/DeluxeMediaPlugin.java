@@ -44,13 +44,19 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
   @Override
   public void onEnable() {
+
+    // Get the plugin logger
     logger = getLogger();
+
     if (!OUTDATED) {
-      CommandUtilities.ensureInit();
-      com.github.pulsebeat02.minecraftmedialibrary.logger.Logger.setVerbose(true);
       logger.info("DeluxeMediaPlugin is Initializing");
+      CommandUtilities.ensureInit();
+
       logger.info("Loading MinecraftMediaLibrary Instance...");
+
+      // Define a new MinecraftMediaLibrary Instance
       library = new MinecraftMediaLibrary(this);
+
       registerCommands();
       registerConfigurations();
       new Metrics(this, 10229);

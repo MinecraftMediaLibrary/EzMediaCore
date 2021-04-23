@@ -14,6 +14,7 @@
 package com.github.pulsebeat02.deluxemediaplugin.config;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImage;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -34,11 +35,21 @@ public class PictureConfiguration extends AbstractConfiguration {
   }
 
   public void addPhoto(final int map, @NotNull final File file, final int width, final int height) {
-    images.add(new MinecraftStaticImage(getPlugin().getLibrary(), map, file, width, height));
+
+    // Add an image
+    images.add(
+        MinecraftStaticImage.builder()
+            .setMap(map)
+            .setImage(file)
+            .setWidth(width)
+            .setHeight(height)
+            .build(getPlugin().getLibrary()));
   }
 
   @Override
   public void deserialize() {
+
+    // Deserialize the images settings
     final FileConfiguration configuration = getFileConfiguration();
     for (final MinecraftStaticImage image : images) {
       final long key = image.getMap();
@@ -51,19 +62,43 @@ public class PictureConfiguration extends AbstractConfiguration {
 
   @Override
   public void serialize() {
+
+    // Read the images from the configuration file
     final FileConfiguration configuration = getFileConfiguration();
+
+    // Get library instance
+    final MinecraftMediaLibrary library = getPlugin().getLibrary();
+
     for (final String key : configuration.getKeys(false)) {
+
+      // Get the map id
       final int id = Integer.parseInt(key);
+
+      // Get the file path of the image
       final File file =
           new File(
               Objects.requireNonNull(configuration.getString(String.format("%d.location", id))));
+
+      // If it doesn't exist, throw an error
       if (!file.exists()) {
         Logger.error(String.format("Could not read %s at id %d!", file.getAbsolutePath(), id));
         continue;
       }
-      final int width = configuration.getInt(String.format("%dwidth", id));
-      final int height = configuration.getInt(String.format("%dheight", id));
-      images.add(new MinecraftStaticImage(getPlugin().getLibrary(), id, file, width, height));
+
+      // Get the width of the image
+      final int width = configuration.getInt(String.format("%d.width", id));
+
+      // Get the height of the image
+      final int height = configuration.getInt(String.format("%d.height", id));
+
+      // Define a new image with the specified id
+      images.add(
+          MinecraftStaticImage.builder()
+              .setMap(id)
+              .setImage(file)
+              .setWidth(width)
+              .setHeight(height)
+              .build(library));
     }
   }
 
