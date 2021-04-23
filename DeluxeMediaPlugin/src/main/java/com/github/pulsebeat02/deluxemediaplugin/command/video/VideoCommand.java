@@ -395,7 +395,6 @@ public class VideoCommand extends BaseCommand {
         .setCallback(
             EntityCloudCallback.builder()
                 .setViewers(null)
-                .setMap(attributes.getStartingMap())
                 .setWidth(attributes.getFrameWidth())
                 .setHeight(attributes.getFrameHeight())
                 .setVideoWidth(attributes.getScreenWidth())

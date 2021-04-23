@@ -41,7 +41,6 @@ public final class ChatCallback implements FrameCallback {
 
   private final MinecraftMediaLibrary library;
   private final Set<Player> viewers;
-  private final int map;
   private final int width;
   private final int height;
   private final int delay;
@@ -52,7 +51,6 @@ public final class ChatCallback implements FrameCallback {
    *
    * @param library the library
    * @param viewers the viewers
-   * @param map the map
    * @param chatWidth the chat width
    * @param chatHeight the chat height
    * @param delay the delay
@@ -60,14 +58,12 @@ public final class ChatCallback implements FrameCallback {
   public ChatCallback(
       @NotNull final MinecraftMediaLibrary library,
       final UUID[] viewers,
-      final int map,
       final int chatWidth,
       final int chatHeight,
       final int delay) {
     this.library = library;
     this.viewers = Collections.newSetFromMap(new WeakHashMap<>());
     this.viewers.addAll(Arrays.stream(viewers).map(Bukkit::getPlayer).collect(Collectors.toSet()));
-    this.map = map;
     width = chatWidth;
     height = chatHeight;
     this.delay = delay;
@@ -111,21 +107,12 @@ public final class ChatCallback implements FrameCallback {
   }
 
   /**
-   * Get viewers uuid [ ].
+   * Get the viewers.
    *
-   * @return the uuid [ ]
+   * @return the viewers
    */
   public Set<Player> getViewers() {
     return viewers;
-  }
-
-  /**
-   * Gets map.
-   *
-   * @return the map
-   */
-  public long getMap() {
-    return map;
   }
 
   /**
@@ -177,7 +164,6 @@ public final class ChatCallback implements FrameCallback {
   public static class Builder {
 
     private UUID[] viewers;
-    private int map;
     private int width;
     private int height;
     private int delay;
@@ -193,17 +179,6 @@ public final class ChatCallback implements FrameCallback {
      */
     public Builder setViewers(final UUID[] viewers) {
       this.viewers = viewers;
-      return this;
-    }
-
-    /**
-     * Sets map.
-     *
-     * @param map the map
-     * @return the map
-     */
-    public Builder setMap(final int map) {
-      this.map = map;
       return this;
     }
 
@@ -247,7 +222,7 @@ public final class ChatCallback implements FrameCallback {
      * @return the item frame callback
      */
     public ChatCallback build(final MinecraftMediaLibrary library) {
-      return new ChatCallback(library, viewers, map, width, height, delay);
+      return new ChatCallback(library, viewers, width, height, delay);
     }
   }
 }

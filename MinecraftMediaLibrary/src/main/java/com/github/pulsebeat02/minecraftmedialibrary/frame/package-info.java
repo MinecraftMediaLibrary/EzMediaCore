@@ -21,7 +21,10 @@
 ............................................................................................*/
 
 /**
- * Advanced functions such as dithering, VLC C++ interaction can be found here.
+ * Advanced functions such as dithering, VLC C++ interaction can be found here. You may ask why I
+ * could've just made a default VideoPlayer and make it accept any callback possible. While this is
+ * possible, I would like to still provide an abstraction for the actual video player itself just in
+ * case that we need to add, remove, or modify existing features.
  *
  * @since 1.0
  * @author PulseBeat_02

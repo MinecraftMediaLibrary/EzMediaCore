@@ -21,9 +21,9 @@
 ............................................................................................*/
 
 /**
- * Classes used to display videos in entity clouds.
+ * Classes used to display videos in chat.
  *
  * @since 1.0
  * @author PulseBeat_02
  */
-package com.github.pulsebeat02.minecraftmedialibrary.frame.entity;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.chat;

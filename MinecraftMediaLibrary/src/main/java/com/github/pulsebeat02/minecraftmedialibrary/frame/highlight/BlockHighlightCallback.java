@@ -20,23 +20,21 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.frame.map;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.highlight;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
+import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.ByteBuffer;
 import java.util.UUID;
 
-/** The callback used for itemframes to update maps for each frame when necessary. */
-public final class MapDataCallback implements FrameCallback {
+/** The callback used to update block highlights for each frame when necessary. */
+public final class BlockHighlightCallback implements FrameCallback {
 
   private final MinecraftMediaLibrary library;
   private final UUID[] viewers;
-  private final DitherHolder type;
-  private final int map;
+  private final Location location;
   private final int videoWidth;
   private final int delay;
   private final int width;
@@ -44,30 +42,27 @@ public final class MapDataCallback implements FrameCallback {
   private long lastUpdated;
 
   /**
-   * Instantiates a new Item frame callback.
+   * Instantiates a new BlockHighlightCallback.
    *
    * @param library the library
    * @param viewers the viewers
-   * @param map the map
+   * @param location the location
    * @param width the width
    * @param height the height
    * @param videoWidth the video width
    * @param delay the delay
-   * @param type the type
    */
-  public MapDataCallback(
+  public BlockHighlightCallback(
       @NotNull final MinecraftMediaLibrary library,
       final UUID[] viewers,
-      @NotNull final DitherHolder type,
-      final int map,
+      @NotNull final Location location,
       final int width,
       final int height,
       final int videoWidth,
       final int delay) {
     this.library = library;
     this.viewers = viewers;
-    this.type = type;
-    this.map = map;
+    this.location = location;
     this.width = width;
     this.height = height;
     this.videoWidth = videoWidth;
@@ -84,7 +79,7 @@ public final class MapDataCallback implements FrameCallback {
   }
 
   /**
-   * Sends the necessary data onto the itemframes while dithering.
+   * Sends the necessary data onto the clouds while dithering.
    *
    * @param data to send
    */
@@ -93,8 +88,7 @@ public final class MapDataCallback implements FrameCallback {
     final long time = System.currentTimeMillis();
     if (time - lastUpdated >= delay) {
       lastUpdated = time;
-      final ByteBuffer dithered = type.ditherIntoMinecraft(data, videoWidth);
-      library.getHandler().display(viewers, map, width, height, dithered, videoWidth);
+      // TODO: Implement Block Highlights
     }
   }
 
@@ -105,15 +99,6 @@ public final class MapDataCallback implements FrameCallback {
    */
   public UUID[] getViewers() {
     return viewers;
-  }
-
-  /**
-   * Gets map.
-   *
-   * @return the map
-   */
-  public long getMap() {
-    return map;
   }
 
   /**
@@ -171,20 +156,19 @@ public final class MapDataCallback implements FrameCallback {
   }
 
   /**
-   * Gets the dithering type.
+   * Gets location.
    *
-   * @return the dithering type
+   * @return the location
    */
-  public DitherHolder getType() {
-    return type;
+  public Location getLocation() {
+    return location;
   }
 
   /** The type Builder. */
   public static class Builder {
 
     private UUID[] viewers;
-    private DitherHolder type;
-    private int map;
+    private Location location;
     private int width;
     private int height;
     private int videoWidth;
@@ -200,17 +184,6 @@ public final class MapDataCallback implements FrameCallback {
      */
     public Builder setViewers(@NotNull final UUID[] viewers) {
       this.viewers = viewers;
-      return this;
-    }
-
-    /**
-     * Sets map.
-     *
-     * @param map the map
-     * @return the map
-     */
-    public Builder setMap(final int map) {
-      this.map = map;
       return this;
     }
 
@@ -259,24 +232,25 @@ public final class MapDataCallback implements FrameCallback {
     }
 
     /**
-     * Sets dither holder.
+     * Sets the location.
      *
-     * @param holder the holder
-     * @return the dither holder
+     * @param location the location
+     * @return the location
      */
-    public Builder setDitherHolder(final DitherHolder holder) {
-      type = holder;
+    public Builder setLocation(final Location location) {
+      this.location = location;
       return this;
     }
 
     /**
-     * Create item frame callback item frame callback.
+     * Create entity cloud callback
      *
      * @param library the library
-     * @return the item frame callback
+     * @return the entity cloud callback
      */
-    public MapDataCallback build(final MinecraftMediaLibrary library) {
-      return new MapDataCallback(library, viewers, type, map, width, height, videoWidth, delay);
+    public BlockHighlightCallback build(final MinecraftMediaLibrary library) {
+      return new BlockHighlightCallback(
+          library, viewers, location, width, height, videoWidth, delay);
     }
   }
 }

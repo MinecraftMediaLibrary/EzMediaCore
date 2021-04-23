@@ -20,56 +20,65 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.frame.map;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
+import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
+import java.util.WeakHashMap;
+import java.util.stream.Collectors;
 
-/** The callback used for itemframes to update maps for each frame when necessary. */
-public final class MapDataCallback implements FrameCallback {
+/** The callback used to update scoreboard for each frame when necessary. */
+public final class ScoreboardCallback implements FrameCallback {
 
   private final MinecraftMediaLibrary library;
-  private final UUID[] viewers;
-  private final DitherHolder type;
-  private final int map;
+  private final Set<Player> viewers;
   private final int videoWidth;
   private final int delay;
   private final int width;
   private final int height;
+  private final String name;
   private long lastUpdated;
 
+  private Scoreboard scoreboard;
+  private Objective objective;
+  private int id;
+
   /**
-   * Instantiates a new Item frame callback.
+   * Instantiates a new ScoreboardCallback.
    *
    * @param library the library
    * @param viewers the viewers
-   * @param map the map
    * @param width the width
    * @param height the height
    * @param videoWidth the video width
    * @param delay the delay
-   * @param type the type
    */
-  public MapDataCallback(
+  public ScoreboardCallback(
       @NotNull final MinecraftMediaLibrary library,
       final UUID[] viewers,
-      @NotNull final DitherHolder type,
-      final int map,
       final int width,
       final int height,
       final int videoWidth,
       final int delay) {
     this.library = library;
-    this.viewers = viewers;
-    this.type = type;
-    this.map = map;
+    this.viewers = Collections.newSetFromMap(new WeakHashMap<>());
+    this.viewers.addAll(Arrays.stream(viewers).map(Bukkit::getPlayer).collect(Collectors.toSet()));
     this.width = width;
     this.height = height;
+    name = library.getPlugin().getName() + " Video Player";
     this.videoWidth = videoWidth;
     this.delay = delay;
   }
@@ -84,7 +93,7 @@ public final class MapDataCallback implements FrameCallback {
   }
 
   /**
-   * Sends the necessary data onto the itemframes while dithering.
+   * Sends the necessary data onto the clouds while dithering.
    *
    * @param data to send
    */
@@ -93,27 +102,49 @@ public final class MapDataCallback implements FrameCallback {
     final long time = System.currentTimeMillis();
     if (time - lastUpdated >= delay) {
       lastUpdated = time;
-      final ByteBuffer dithered = type.ditherIntoMinecraft(data, videoWidth);
-      library.getHandler().display(viewers, map, width, height, dithered, videoWidth);
+      if (scoreboard == null) {
+        scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        objective = scoreboard.registerNewObjective("rd-" + id++, "dummy", name);
+        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+        for (int i = 0; i < height; i++) {
+          final Team team = scoreboard.registerNewTeam("SLOT_" + i);
+          final String entry = ChatColor.values()[i].toString();
+          team.addEntry(entry);
+          objective.getScore(entry).setScore(15 - i);
+        }
+      }
+      for (final Player player : viewers) {
+        player.setScoreboard(scoreboard);
+      }
+      for (int y = 0; y < height; y++) {
+        int before = -1;
+        final StringBuilder msg = new StringBuilder();
+        for (int x = 0; x < width; x++) {
+          final int rgb = data[width * y + x];
+          if (before != rgb) {
+            msg.append(ChatColor.of("#" + String.format("%08x", rgb).substring(2)));
+          }
+          msg.append("\u2588");
+          before = rgb;
+        }
+        for (final Player player : viewers) {
+          player.sendMessage(msg.toString());
+        }
+        final Team team = scoreboard.getTeam("SLOT_" + y);
+        if (team != null) {
+          team.setSuffix(msg.toString());
+        }
+      }
     }
   }
 
   /**
-   * Get viewers uuid [ ].
+   * Get the viewers.
    *
-   * @return the uuid [ ]
+   * @return the viewers
    */
-  public UUID[] getViewers() {
+  public Set<Player> getViewers() {
     return viewers;
-  }
-
-  /**
-   * Gets map.
-   *
-   * @return the map
-   */
-  public long getMap() {
-    return map;
   }
 
   /**
@@ -170,21 +201,10 @@ public final class MapDataCallback implements FrameCallback {
     return lastUpdated;
   }
 
-  /**
-   * Gets the dithering type.
-   *
-   * @return the dithering type
-   */
-  public DitherHolder getType() {
-    return type;
-  }
-
   /** The type Builder. */
   public static class Builder {
 
     private UUID[] viewers;
-    private DitherHolder type;
-    private int map;
     private int width;
     private int height;
     private int videoWidth;
@@ -200,17 +220,6 @@ public final class MapDataCallback implements FrameCallback {
      */
     public Builder setViewers(@NotNull final UUID[] viewers) {
       this.viewers = viewers;
-      return this;
-    }
-
-    /**
-     * Sets map.
-     *
-     * @param map the map
-     * @return the map
-     */
-    public Builder setMap(final int map) {
-      this.map = map;
       return this;
     }
 
@@ -259,24 +268,13 @@ public final class MapDataCallback implements FrameCallback {
     }
 
     /**
-     * Sets dither holder.
-     *
-     * @param holder the holder
-     * @return the dither holder
-     */
-    public Builder setDitherHolder(final DitherHolder holder) {
-      type = holder;
-      return this;
-    }
-
-    /**
-     * Create item frame callback item frame callback.
+     * Create entity cloud callback
      *
      * @param library the library
-     * @return the item frame callback
+     * @return the entity cloud callback
      */
-    public MapDataCallback build(final MinecraftMediaLibrary library) {
-      return new MapDataCallback(library, viewers, type, map, width, height, videoWidth, delay);
+    public ScoreboardCallback build(final MinecraftMediaLibrary library) {
+      return new ScoreboardCallback(library, viewers, width, height, videoWidth, delay);
     }
   }
 }

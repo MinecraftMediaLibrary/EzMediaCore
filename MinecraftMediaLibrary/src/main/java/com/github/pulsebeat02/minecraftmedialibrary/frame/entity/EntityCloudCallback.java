@@ -41,7 +41,6 @@ public final class EntityCloudCallback implements FrameCallback {
   private final UUID[] viewers;
   private final Location location;
   private final Entity[] entities;
-  private final int map;
   private final int videoWidth;
   private final int delay;
   private final int width;
@@ -54,7 +53,6 @@ public final class EntityCloudCallback implements FrameCallback {
    * @param library the library
    * @param viewers the viewers
    * @param location the location
-   * @param map the map
    * @param width the width
    * @param height the height
    * @param videoWidth the video width
@@ -64,7 +62,6 @@ public final class EntityCloudCallback implements FrameCallback {
       @NotNull final MinecraftMediaLibrary library,
       final UUID[] viewers,
       @NotNull final Location location,
-      final int map,
       final int width,
       final int height,
       final int videoWidth,
@@ -73,7 +70,6 @@ public final class EntityCloudCallback implements FrameCallback {
     this.viewers = viewers;
     this.location = location;
     entities = getCloudEntities();
-    this.map = map;
     this.width = width;
     this.height = height;
     this.videoWidth = videoWidth;
@@ -144,15 +140,6 @@ public final class EntityCloudCallback implements FrameCallback {
   }
 
   /**
-   * Gets map.
-   *
-   * @return the map
-   */
-  public long getMap() {
-    return map;
-  }
-
-  /**
    * Gets width.
    *
    * @return the width
@@ -207,9 +194,9 @@ public final class EntityCloudCallback implements FrameCallback {
   }
 
   /**
-   * Gets entities.
+   * Gets location.
    *
-   * @return the type
+   * @return the location
    */
   public Location getLocation() {
     return location;
@@ -245,17 +232,6 @@ public final class EntityCloudCallback implements FrameCallback {
      */
     public Builder setViewers(@NotNull final UUID[] viewers) {
       this.viewers = viewers;
-      return this;
-    }
-
-    /**
-     * Sets map.
-     *
-     * @param map the map
-     * @return the map
-     */
-    public Builder setMap(final int map) {
-      this.map = map;
       return this;
     }
 
@@ -321,8 +297,7 @@ public final class EntityCloudCallback implements FrameCallback {
      * @return the entity cloud callback
      */
     public EntityCloudCallback build(final MinecraftMediaLibrary library) {
-      return new EntityCloudCallback(
-          library, viewers, location, map, width, height, videoWidth, delay);
+      return new EntityCloudCallback(library, viewers, location, width, height, videoWidth, delay);
     }
   }
 }

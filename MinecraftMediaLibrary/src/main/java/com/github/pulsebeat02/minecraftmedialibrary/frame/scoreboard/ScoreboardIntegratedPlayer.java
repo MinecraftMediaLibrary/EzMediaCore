@@ -20,11 +20,10 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.frame.chat;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -34,12 +33,12 @@ import java.util.Collection;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
- * specific function from native libraries. It renders it in chat.
+ * specific function from native libraries. It renders it in a scoreboard.
  */
-public class ChatIntegratedPlayer extends VideoPlayer {
+public class ScoreboardIntegratedPlayer extends VideoPlayer {
 
   /**
-   * Instantiates a new ChatIntegratedPlayer.
+   * Instantiates a new ScoreboardIntegratedPlayer.
    *
    * @param library the library
    * @param url the url
@@ -47,18 +46,18 @@ public class ChatIntegratedPlayer extends VideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public ChatIntegratedPlayer(
+  public ScoreboardIntegratedPlayer(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final String url,
-      @NotNull final ChatCallback callback,
+      @NotNull final ScoreboardCallback callback,
       final int width,
       final int height) {
     super(library, url, width, height, callback);
-    Logger.info(String.format("Created a Chat Integrated Video Player (%s)", url));
+    Logger.info(String.format("Created a Scoreboard Integrated Video Player (%s)", url));
   }
 
   /**
-   * Instantiates a new ChatIntegratedPlayer.
+   * Instantiates a new ScoreboardIntegratedPlayer.
    *
    * @param library the library
    * @param file the file
@@ -66,15 +65,15 @@ public class ChatIntegratedPlayer extends VideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public ChatIntegratedPlayer(
+  public ScoreboardIntegratedPlayer(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final File file,
-      @NotNull final EntityCloudCallback callback,
+      @NotNull final ScoreboardCallback callback,
       final int width,
       final int height) {
     super(library, file, width, height, callback);
     Logger.info(
-        String.format("Created a Chat Integrated Video Player (%s)", file.getAbsolutePath()));
+        String.format("Created a Scoreboard Integrated Video Player (%s)", file.getAbsolutePath()));
   }
 
   /**
@@ -108,7 +107,7 @@ public class ChatIntegratedPlayer extends VideoPlayer {
     private String url;
     private int width;
     private int height;
-    private ChatCallback callback;
+    private ScoreboardCallback callback;
 
     private Builder() {}
 
@@ -127,13 +126,13 @@ public class ChatIntegratedPlayer extends VideoPlayer {
       return this;
     }
 
-    public Builder setCallback(final ChatCallback callback) {
+    public Builder setCallback(final ScoreboardCallback callback) {
       this.callback = callback;
       return this;
     }
 
-    public ChatIntegratedPlayer build(@NotNull final MinecraftMediaLibrary library) {
-      return new ChatIntegratedPlayer(library, url, callback, width, height);
+    public ScoreboardIntegratedPlayer build(@NotNull final MinecraftMediaLibrary library) {
+      return new ScoreboardIntegratedPlayer(library, url, callback, width, height);
     }
   }
 }
