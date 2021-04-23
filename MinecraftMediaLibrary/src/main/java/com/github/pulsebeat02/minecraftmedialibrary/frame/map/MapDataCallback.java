@@ -94,7 +94,7 @@ public final class MapDataCallback implements FrameCallback {
     if (time - lastUpdated >= delay) {
       lastUpdated = time;
       final ByteBuffer dithered = type.ditherIntoMinecraft(data, videoWidth);
-      library.getHandler().display(viewers, map, width, height, dithered, videoWidth);
+      library.getHandler().displayMaps(viewers, map, width, height, dithered, videoWidth);
     }
   }
 

@@ -144,7 +144,7 @@ public final class MinecraftStaticImage implements MapImageHolder, Configuration
     final ByteBuffer buffer =
         new FloydImageDither()
             .ditherIntoMinecraft(Objects.requireNonNull(VideoUtilities.getBuffer(image)), width);
-    library.getHandler().display(null, map, width, height, buffer, width);
+    library.getHandler().displayMaps(null, map, width, height, buffer, width);
     Logger.info(
         String.format("Drew Image at Map ID %d (Source: %s)", map, image.getAbsolutePath()));
   }

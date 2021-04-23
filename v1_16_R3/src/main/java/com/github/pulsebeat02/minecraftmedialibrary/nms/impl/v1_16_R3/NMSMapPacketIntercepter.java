@@ -1,28 +1,30 @@
 /*............................................................................................
- . Copyright © 2021 Brandon Li                                                               .
- .                                                                                           .
- . Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
- . software and associated documentation files (the “Software”), to deal in the Software     .
- . without restriction, including without limitation the rights to use, copy, modify, merge, .
- . publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
- . persons to whom the Software is furnished to do so, subject to the following conditions:  .
- .                                                                                           .
- . The above copyright notice and this permission notice shall be included in all copies     .
- . or substantial portions of the Software.                                                  .
- .                                                                                           .
- . THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
- .  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
- .   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
- .   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
- .   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
- .   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
- .   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
- .   SOFTWARE.                                                                               .
- ............................................................................................*/
+. Copyright © 2021 Brandon Li                                                               .
+.                                                                                           .
+. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
+. software and associated documentation files (the “Software”), to deal in the Software     .
+. without restriction, including without limitation the rights to use, copy, modify, merge, .
+. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
+. persons to whom the Software is furnished to do so, subject to the following conditions:  .
+.                                                                                           .
+. The above copyright notice and this permission notice shall be included in all copies     .
+. or substantial portions of the Software.                                                  .
+.                                                                                           .
+. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
+.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
+.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
+.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
+.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
+.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
+.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
+.   SOFTWARE.                                                                               .
+............................................................................................*/
 
 package com.github.pulsebeat02.minecraftmedialibrary.nms.impl.v1_16_R3;
 
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import net.minecraft.server.v1_16_R3.ChatComponentText;
 import net.minecraft.server.v1_16_R3.ChatHexColor;
 import net.minecraft.server.v1_16_R3.DataWatcher;
@@ -30,6 +32,9 @@ import net.minecraft.server.v1_16_R3.DataWatcherObject;
 import net.minecraft.server.v1_16_R3.DataWatcherRegistry;
 import net.minecraft.server.v1_16_R3.IChatBaseComponent;
 import net.minecraft.server.v1_16_R3.MapIcon;
+import net.minecraft.server.v1_16_R3.MinecraftKey;
+import net.minecraft.server.v1_16_R3.PacketDataSerializer;
+import net.minecraft.server.v1_16_R3.PacketPlayOutCustomPayload;
 import net.minecraft.server.v1_16_R3.PacketPlayOutEntityMetadata;
 import net.minecraft.server.v1_16_R3.PacketPlayOutMap;
 import net.minecraft.server.v1_16_R3.PlayerConnection;
@@ -83,9 +88,10 @@ public class NMSMapPacketIntercepter implements PacketHandler {
   private final Map<UUID, PlayerConnection> playerConnections = new ConcurrentHashMap<>();
   private final Map<UUID, Long> lastUpdated = new ConcurrentHashMap<>();
   private final Set<Integer> maps = new TreeSet<>();
+  private final MinecraftKey debugMarker = new MinecraftKey("debug/game_test_add_marker");
 
   @Override
-  public void display(
+  public void displayMaps(
       final UUID[] viewers,
       final int map,
       final int width,
@@ -97,11 +103,30 @@ public class NMSMapPacketIntercepter implements PacketHandler {
     final int pixH = height << 7;
     final int xOff = (pixW - videoWidth) / 2;
     final int yOff = (pixH - vidHeight) / 2;
-    display(viewers, map, width, height, rgb, videoWidth, xOff, yOff);
+    displayMaps(viewers, map, width, height, rgb, videoWidth, xOff, yOff);
   }
 
   @Override
-  public void display(
+  public void displayDebugMarker(
+      final UUID[] viewers,
+      final int x,
+      final int y,
+      final int z,
+      final int color,
+      final int time) {
+    final ByteBuf buf = Unpooled.buffer();
+    buf.writeLong(((long) x & 67108863L) << 38 | (long) y & 4095L | ((long) z & 67108863L) << 12);
+    buf.writeInt(color);
+    buf.writeInt(time);
+    final PacketPlayOutCustomPayload packet =
+        new PacketPlayOutCustomPayload(debugMarker, new PacketDataSerializer(buf));
+    for (final UUID uuid : viewers) {
+      playerConnections.get(uuid).sendPacket(packet);
+    }
+  }
+
+  @Override
+  public void displayMaps(
       final UUID[] viewers,
       final int map,
       final int width,
@@ -186,7 +211,7 @@ public class NMSMapPacketIntercepter implements PacketHandler {
   }
 
   @Override
-  public void display(
+  public void displayEntities(
       final UUID[] viewers, final Entity[] entities, final int[] data, final int width) {
     final int height = data.length / width;
     final int maxHeight = Math.min(height, entities.length);

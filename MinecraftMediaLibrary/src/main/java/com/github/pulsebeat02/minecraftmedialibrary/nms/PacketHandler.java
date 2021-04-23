@@ -35,7 +35,20 @@ import java.util.UUID;
 public interface PacketHandler {
 
   /**
-   * Display map to UUIDs.
+   * Displays debug markers to viewers.
+   *
+   * @param viewers the viewers
+   * @param x the x value
+   * @param y the y value
+   * @param z the z value
+   * @param color the color
+   * @param time the time to display
+   */
+  void displayDebugMarker(
+      final UUID[] viewers, final int x, final int y, final int z, final int color, final int time);
+
+  /**
+   * Displays map to UUIDs.
    *
    * @param viewers the viewers
    * @param map the map
@@ -46,7 +59,7 @@ public interface PacketHandler {
    * @param xOffset the x offset
    * @param yOffset the y offset
    */
-  void display(
+  void displayMaps(
       UUID[] viewers,
       int map,
       int mapWidth,
@@ -57,7 +70,7 @@ public interface PacketHandler {
       int yOffset);
 
   /**
-   * Display map to UUIDs.
+   * Displays map to UUIDs.
    *
    * @param viewers the viewers
    * @param map the map
@@ -66,7 +79,7 @@ public interface PacketHandler {
    * @param rgb the rgb
    * @param videoWidth the video width
    */
-  void display(
+  void displayMaps(
       UUID[] viewers, int map, int mapWidth, int mapHeight, ByteBuffer rgb, int videoWidth);
 
   /**
@@ -77,7 +90,7 @@ public interface PacketHandler {
    * @param data the data
    * @param width the width
    */
-  void display(UUID[] viewers, Entity[] entities, int[] data, int width);
+  void displayEntities(UUID[] viewers, Entity[] entities, int[] data, int width);
 
   /**
    * Registers player.

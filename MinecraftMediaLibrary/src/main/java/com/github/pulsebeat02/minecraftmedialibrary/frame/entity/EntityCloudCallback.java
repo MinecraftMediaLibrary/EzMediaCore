@@ -126,7 +126,7 @@ public final class EntityCloudCallback implements FrameCallback {
     final long time = System.currentTimeMillis();
     if (time - lastUpdated >= delay) {
       lastUpdated = time;
-      library.getHandler().display(viewers, entities, data, width);
+      library.getHandler().displayEntities(viewers, entities, data, width);
     }
   }
 
