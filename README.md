@@ -47,6 +47,8 @@ Dependency:
 
 Most of the code is documented which can be found [here](https://pulsebeat02.github.io/MinecraftMediaLibrary/).
 
+However, if you want examples, you can take a look at [this module](https://github.com/PulseBeat02/MinecraftMediaLibrary/tree/master/DeluxeMediaPlugin/src/main/java/com/github/pulsebeat02/deluxemediaplugin) where I wrote comments for every piece of code in the plugin which used the library. It is the plugin I used that displayed the video.
+
 ---
 
 ## List of Tasks
