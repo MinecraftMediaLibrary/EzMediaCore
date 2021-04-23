@@ -43,7 +43,7 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
   private final Entity[] entities;
 
   /**
-   * Instantiates a new Vlcj integrated player on entity clouds.
+   * Instantiates a new EntityCloudIntegratedPlayer.
    *
    * @param library the library
    * @param url the url
@@ -66,7 +66,7 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
   }
 
   /**
-   * Instantiates a new VLCJIntegratedPlayer.
+   * Instantiates a new EntityCloudIntegratedPlayer.
    *
    * @param library the library
    * @param file the file

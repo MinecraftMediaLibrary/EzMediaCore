@@ -39,8 +39,8 @@ public final class MapDataCallback implements FrameCallback {
   private final int map;
   private final int videoWidth;
   private final int delay;
-  private int width;
-  private int height;
+  private final int width;
+  private final int height;
   private long lastUpdated;
 
   /**
@@ -126,30 +126,12 @@ public final class MapDataCallback implements FrameCallback {
   }
 
   /**
-   * Sets width.
-   *
-   * @param width the width
-   */
-  public void setWidth(final int width) {
-    this.width = width;
-  }
-
-  /**
    * Gets height.
    *
    * @return the height
    */
   public int getHeight() {
     return height;
-  }
-
-  /**
-   * Sets height.
-   *
-   * @param height the height
-   */
-  public void setHeight(final int height) {
-    this.height = height;
   }
 
   /**

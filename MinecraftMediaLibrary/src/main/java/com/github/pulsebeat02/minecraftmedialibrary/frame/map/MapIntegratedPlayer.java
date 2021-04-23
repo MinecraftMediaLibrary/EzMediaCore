@@ -36,7 +36,7 @@ import java.io.File;
 public class MapIntegratedPlayer extends VideoPlayer {
 
   /**
-   * Instantiates a new Vlcj integrated player on itemframes.
+   * Instantiates a new MapIntegratedPlayer.
    *
    * @param library the library
    * @param url the url
@@ -55,7 +55,7 @@ public class MapIntegratedPlayer extends VideoPlayer {
   }
 
   /**
-   * Instantiates a new VLCJIntegratedPlayer.
+   * Instantiates a new MapIntegratedPlayer.
    *
    * @param library the library
    * @param file the file

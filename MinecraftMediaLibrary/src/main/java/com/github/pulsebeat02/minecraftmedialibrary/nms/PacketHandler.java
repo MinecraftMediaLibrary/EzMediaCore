@@ -70,7 +70,7 @@ public interface PacketHandler {
       UUID[] viewers, int map, int mapWidth, int mapHeight, ByteBuffer rgb, int videoWidth);
 
   /**
-   * Display map to UUIDs.
+   * Display entities to UUIDs.
    *
    * @param viewers the viewers
    * @param entities the entities

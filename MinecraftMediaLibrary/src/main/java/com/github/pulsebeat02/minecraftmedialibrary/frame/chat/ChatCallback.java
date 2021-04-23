@@ -20,63 +20,56 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.frame.entity;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.chat;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
-import org.apache.commons.lang.StringUtils;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.entity.AreaEffectCloud;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
+import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
+import java.util.WeakHashMap;
+import java.util.stream.Collectors;
 
-/** The callback used for clouds to update entity clouds for each frame when necessary. */
-public final class EntityCloudCallback implements FrameCallback {
+/** The callback used to update chat for each frame when necessary. */
+public final class ChatCallback implements FrameCallback {
 
   private final MinecraftMediaLibrary library;
-  private final UUID[] viewers;
-  private final Location location;
-  private final Entity[] entities;
+  private final Set<Player> viewers;
   private final int map;
-  private final int videoWidth;
-  private final int delay;
   private final int width;
   private final int height;
+  private final int delay;
   private long lastUpdated;
 
   /**
-   * Instantiates a new EntityCloudCallback.
+   * Instantiates a new Item frame callback.
    *
    * @param library the library
    * @param viewers the viewers
-   * @param location the location
    * @param map the map
-   * @param width the width
-   * @param height the height
-   * @param videoWidth the video width
+   * @param chatWidth the chat width
+   * @param chatHeight the chat height
    * @param delay the delay
    */
-  public EntityCloudCallback(
+  public ChatCallback(
       @NotNull final MinecraftMediaLibrary library,
       final UUID[] viewers,
-      @NotNull final Location location,
       final int map,
-      final int width,
-      final int height,
-      final int videoWidth,
+      final int chatWidth,
+      final int chatHeight,
       final int delay) {
     this.library = library;
-    this.viewers = viewers;
-    this.location = location;
-    entities = getCloudEntities();
+    this.viewers = Collections.newSetFromMap(new WeakHashMap<>());
+    this.viewers.addAll(Arrays.stream(viewers).map(Bukkit::getPlayer).collect(Collectors.toSet()));
     this.map = map;
-    this.width = width;
-    this.height = height;
-    this.videoWidth = videoWidth;
+    width = chatWidth;
+    height = chatHeight;
     this.delay = delay;
   }
 
@@ -90,38 +83,7 @@ public final class EntityCloudCallback implements FrameCallback {
   }
 
   /**
-   * Spawns the proper clouds at the location.
-   *
-   * @return the entities
-   */
-  private Entity[] getCloudEntities() {
-    final int height = getHeight();
-    final Entity[] ents = new Entity[height];
-    final Location spawn = location.clone();
-    final World world = spawn.getWorld();
-    if (world != null) {
-      for (int i = height - 1; i >= 0; i--) {
-        final AreaEffectCloud cloud =
-            (AreaEffectCloud) spawn.getWorld().spawnEntity(spawn, EntityType.AREA_EFFECT_CLOUD);
-        ents[i] = cloud;
-        cloud.setInvulnerable(true);
-        cloud.setDuration(999999);
-        cloud.setDurationOnUse(0);
-        cloud.setRadiusOnUse(0);
-        cloud.setRadius(0);
-        cloud.setRadiusPerTick(0);
-        cloud.setReapplicationDelay(0);
-        cloud.setCustomNameVisible(true);
-        cloud.setCustomName(StringUtils.repeat("-", height));
-        cloud.setGravity(false);
-        spawn.add(0, 0.225d, 0);
-      }
-    }
-    return ents;
-  }
-
-  /**
-   * Sends the necessary data onto the clouds while dithering.
+   * Sends the necessary data into the chat.
    *
    * @param data to send
    */
@@ -130,7 +92,21 @@ public final class EntityCloudCallback implements FrameCallback {
     final long time = System.currentTimeMillis();
     if (time - lastUpdated >= delay) {
       lastUpdated = time;
-      library.getHandler().display(viewers, entities, data, width);
+      for (int y = 0; y < height; y++) {
+        int before = -1;
+        final StringBuilder msg = new StringBuilder();
+        for (int x = 0; x < width; x++) {
+          final int rgb = data[width * y + x];
+          if (before != rgb) {
+            msg.append(ChatColor.of("#" + String.format("%08x", rgb).substring(2)));
+          }
+          msg.append("\u2588");
+          before = rgb;
+        }
+        for (final Player player : viewers) {
+          player.sendMessage(msg.toString());
+        }
+      }
     }
   }
 
@@ -139,7 +115,7 @@ public final class EntityCloudCallback implements FrameCallback {
    *
    * @return the uuid [ ]
    */
-  public UUID[] getViewers() {
+  public Set<Player> getViewers() {
     return viewers;
   }
 
@@ -150,24 +126,6 @@ public final class EntityCloudCallback implements FrameCallback {
    */
   public long getMap() {
     return map;
-  }
-
-  /**
-   * Gets width.
-   *
-   * @return the width
-   */
-  public int getWidth() {
-    return width;
-  }
-
-  /**
-   * Gets height.
-   *
-   * @return the height
-   */
-  public int getHeight() {
-    return height;
   }
 
   /**
@@ -189,12 +147,21 @@ public final class EntityCloudCallback implements FrameCallback {
   }
 
   /**
-   * Gets video width.
+   * Gets chat width.
    *
    * @return the video width
    */
-  public int getVideoWidth() {
-    return videoWidth;
+  public int getWidth() {
+    return width;
+  }
+
+  /**
+   * Gets chat height.
+   *
+   * @return the video height
+   */
+  public int getHeight() {
+    return height;
   }
 
   /**
@@ -206,34 +173,15 @@ public final class EntityCloudCallback implements FrameCallback {
     return lastUpdated;
   }
 
-  /**
-   * Gets entities.
-   *
-   * @return the type
-   */
-  public Location getLocation() {
-    return location;
-  }
-
-  /**
-   * Gets the cloud entities.
-   *
-   * @return the entities
-   */
-  public Entity[] getEntities() {
-    return entities;
-  }
-
   /** The type Builder. */
   public static class Builder {
 
     private UUID[] viewers;
-    private Location location;
     private int map;
     private int width;
     private int height;
-    private int videoWidth;
     private int delay;
+    private long lastUpdated;
 
     private Builder() {}
 
@@ -243,7 +191,7 @@ public final class EntityCloudCallback implements FrameCallback {
      * @param viewers the viewers
      * @return the viewers
      */
-    public Builder setViewers(@NotNull final UUID[] viewers) {
+    public Builder setViewers(final UUID[] viewers) {
       this.viewers = viewers;
       return this;
     }
@@ -260,7 +208,7 @@ public final class EntityCloudCallback implements FrameCallback {
     }
 
     /**
-     * Sets width.
+     * Sets chat width.
      *
      * @param width the width
      * @return the width
@@ -271,24 +219,13 @@ public final class EntityCloudCallback implements FrameCallback {
     }
 
     /**
-     * Sets height.
+     * Sets chat height.
      *
      * @param height the height
      * @return the height
      */
     public Builder setHeight(final int height) {
       this.height = height;
-      return this;
-    }
-
-    /**
-     * Sets video width.
-     *
-     * @param videoWidth the video width
-     * @return the video width
-     */
-    public Builder setVideoWidth(final int videoWidth) {
-      this.videoWidth = videoWidth;
       return this;
     }
 
@@ -304,25 +241,13 @@ public final class EntityCloudCallback implements FrameCallback {
     }
 
     /**
-     * Sets the location.
-     *
-     * @param location the location
-     * @return the location
-     */
-    public Builder setLocation(final Location location) {
-      this.location = location;
-      return this;
-    }
-
-    /**
-     * Create entity cloud callback
+     * Create item frame callback item frame callback.
      *
      * @param library the library
-     * @return the entity cloud callback
+     * @return the item frame callback
      */
-    public EntityCloudCallback build(final MinecraftMediaLibrary library) {
-      return new EntityCloudCallback(
-          library, viewers, location, map, width, height, videoWidth, delay);
+    public ChatCallback build(final MinecraftMediaLibrary library) {
+      return new ChatCallback(library, viewers, map, width, height, delay);
     }
   }
 }
