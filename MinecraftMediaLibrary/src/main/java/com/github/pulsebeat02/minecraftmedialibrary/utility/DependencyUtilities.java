@@ -374,6 +374,8 @@ public final class DependencyUtilities {
       progress.accept(bytesRead);
       fileOutputStream.write(dataBuffer, 0, bytesRead);
     }
+    in.close();
+    fileOutputStream.close();
     return new File(p.toString());
   }
 
