@@ -106,7 +106,7 @@ public class AudioCommand extends BaseCommand {
               getPlugin().getEncoderConfiguration().getSettings());
 
       // Extract the audio
-      audio = extraction.extractAudio();
+      audio = extraction.extractAudio().toFile();
 
     } else {
 
@@ -134,7 +134,7 @@ public class AudioCommand extends BaseCommand {
             () -> {
 
               // Create a resourcepack from the audio and library instance
-              final ResourcepackWrapper wrapper = ResourcepackWrapper.of(audio, library);
+              final ResourcepackWrapper wrapper = ResourcepackWrapper.of(audio.toPath(), library);
 
               // Build the resourcepack
               wrapper.buildResourcePack();

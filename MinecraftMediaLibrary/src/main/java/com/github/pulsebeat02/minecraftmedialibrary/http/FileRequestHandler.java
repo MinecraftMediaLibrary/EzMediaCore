@@ -26,7 +26,6 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,6 +35,9 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.regex.Matcher;
@@ -96,12 +98,12 @@ public class FileRequestHandler implements Runnable, RequestHandler {
       final Matcher get = requestPattern(request);
       if (get.matches()) {
         request = get.group(1);
-        final File result = requestFileCallback(request);
+        final Path result = requestFileCallback(request);
         verbose(
             String.format("Request '%s' is being served to %s", request, client.getInetAddress()));
         try {
           out.write(buildHeader(result).getBytes(StandardCharsets.UTF_8));
-          final FileInputStream fis = new FileInputStream(result);
+          final FileInputStream fis = new FileInputStream(result.toFile());
           final byte[] data = new byte[64 * 1024];
           for (int read; (read = fis.read(data)) > -1; ) {
             out.write(data, 0, read);
@@ -152,18 +154,23 @@ public class FileRequestHandler implements Runnable, RequestHandler {
    * @return the file
    */
   @NotNull
-  public File requestFileCallback(final String request) {
-    return new File(daemon.getParentDirectory(), request);
+  public Path requestFileCallback(final String request) {
+    return daemon.getParentDirectory().resolve(request);
   }
 
   @Override
   @NotNull
-  public String buildHeader(final @NotNull File f) {
-    return String.format(
-        "HTTP/1.0 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nDate: %s GMT\r\nServer: HttpDaemon\r\nUser-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n",
-        header.getHeader(),
-        f.length(),
-        new SimpleDateFormat("dd MMM yyyy HH:mm:ss").format(Calendar.getInstance().getTime()));
+  public String buildHeader(final @NotNull Path f) {
+    try {
+      return String.format(
+          "HTTP/1.0 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nDate: %s GMT\r\nServer: HttpDaemon\r\nUser-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n",
+          header.getHeader(),
+          Files.size(f),
+          new SimpleDateFormat("dd MMM yyyy HH:mm:ss").format(Calendar.getInstance().getTime()));
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+    return "";
   }
 
   /**

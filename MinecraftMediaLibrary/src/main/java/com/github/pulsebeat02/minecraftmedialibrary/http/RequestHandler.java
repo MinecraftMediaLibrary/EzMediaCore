@@ -25,6 +25,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.http;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.nio.file.Path;
 
 /**
  * The base handler of requests. Used for creating custom request managers. Used within the
@@ -39,7 +40,7 @@ public interface RequestHandler {
    * @return Header of the specified file
    */
   @NotNull
-  String buildHeader(@NotNull final File file);
+  String buildHeader(@NotNull final Path file);
 
   /**
    * Handles the incoming request accordingly. Warning: Overriding this requires a rewrite of the

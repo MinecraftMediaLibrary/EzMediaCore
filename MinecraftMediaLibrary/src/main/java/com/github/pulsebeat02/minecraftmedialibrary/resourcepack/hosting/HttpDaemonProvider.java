@@ -132,9 +132,7 @@ public class HttpDaemonProvider implements HostingProvider {
    */
   @NotNull
   public String getRelativePath(@NotNull final String absolutePath) {
-    return Paths.get(daemon.getParentDirectory().getAbsolutePath())
-        .relativize(Paths.get(absolutePath))
-        .toString();
+    return daemon.getParentDirectory().relativize(Paths.get(absolutePath)).toString();
   }
 
   /**

@@ -37,6 +37,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -58,10 +60,32 @@ public class GIFIntegratedPlayer extends VideoPlayer {
    * @param width the width
    * @param height the height
    * @param callback the callback
+   * @deprecated uses File
    */
+  @Deprecated
   public GIFIntegratedPlayer(
       final @NotNull MinecraftMediaLibrary library,
       final @NotNull File file,
+      final int width,
+      final int height,
+      final FrameCallback callback) {
+    this(library, file.toPath(), width, height, callback);
+  }
+
+  /**
+   * Instantiates a new GIF video player.
+   *
+   * @param library the library
+   * @param file the file
+   * @param width the width
+   * @param height the height
+   * @param callback the callback
+   * @deprecated uses File
+   */
+  @Deprecated
+  public GIFIntegratedPlayer(
+      final @NotNull MinecraftMediaLibrary library,
+      final @NotNull Path file,
       final int width,
       final int height,
       final FrameCallback callback) {
@@ -177,7 +201,7 @@ public class GIFIntegratedPlayer extends VideoPlayer {
      */
     public GIFIntegratedPlayer build(@NotNull final MinecraftMediaLibrary library) {
       if (PathUtilities.isValidPath(url)) {
-        return new GIFIntegratedPlayer(library, new File(url), width, height, callback);
+        return new GIFIntegratedPlayer(library, Paths.get(url), width, height, callback);
       } else {
         final File downloaded =
             new File(library.getImageFolder().toFile(), FilenameUtils.getName(url));
@@ -186,7 +210,7 @@ public class GIFIntegratedPlayer extends VideoPlayer {
         } catch (final IOException e) {
           e.printStackTrace();
         }
-        return new GIFIntegratedPlayer(library, downloaded, width, height, callback);
+        return new GIFIntegratedPlayer(library, downloaded.toPath(), width, height, callback);
       }
     }
   }

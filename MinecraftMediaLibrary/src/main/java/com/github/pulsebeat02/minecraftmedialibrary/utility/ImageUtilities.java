@@ -42,6 +42,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +60,7 @@ public final class ImageUtilities {
    * @param gif the gif file
    * @return a List of BufferedImage's containing the frames
    */
-  public static List<BufferedImage> getFrames(@NotNull final File gif) {
+  public static List<BufferedImage> getFrames(@NotNull final Path gif) {
     final List<BufferedImage> frames = new ArrayList<>();
     final ImageReader ir = new GIFImageReader(new GIFImageReaderSpi());
     try {
@@ -79,9 +80,9 @@ public final class ImageUtilities {
    * @param file the gif file
    * @return the delay between each frame
    */
-  public static float getGifFrameDelay(@NotNull final File file) {
+  public static float getGifFrameDelay(@NotNull final Path file) {
     try {
-      final RandomAccessFile raf = new RandomAccessFile(file, "r");
+      final RandomAccessFile raf = new RandomAccessFile(file.toFile(), "r");
       raf.seek(324);
       return raf.read() / 100f;
     } catch (final IOException e) {
@@ -90,11 +91,11 @@ public final class ImageUtilities {
     return -1f;
   }
 
-  public static void convertGifToMpeg(@NotNull final File gif, @NotNull final File output)
+  public static void convertGifToMpeg(@NotNull final Path gif, @NotNull final Path output)
       throws IOException {
-    if (!FilenameUtils.getExtension(gif.getName()).equalsIgnoreCase("gfi")) {
+    if (!FilenameUtils.getExtension(gif.getFileName().toString()).equalsIgnoreCase("gfi")) {
       throw new IOException(
-          String.format("Invalid Image Format (Must be Gif) %s", gif.getAbsoluteFile()));
+          String.format("Invalid Image Format (Must be Gif) %s", gif.toAbsolutePath().toString()));
     }
     final AudioAttributes audio = new AudioAttributes();
     audio.setVolume(0);
@@ -107,7 +108,7 @@ public final class ImageUtilities {
     attrs.setOutputFormat("mp4");
     try {
       final Encoder encoder = new Encoder();
-      encoder.encode(new MultimediaObject(gif), output, attrs);
+      encoder.encode(new MultimediaObject(gif.toFile()), output.toFile(), attrs);
     } catch (final EncoderException e) {
       e.printStackTrace();
     }

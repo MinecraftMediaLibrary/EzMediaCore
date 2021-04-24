@@ -24,7 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.extractor;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import java.nio.file.Path;
 
 /**
  * A useful interface that is used to specify custom video extraction classes. Used within the
@@ -39,7 +39,7 @@ public interface VideoExtractor {
    * @return the downloaded video
    */
   @NotNull
-  File downloadVideo();
+  Path downloadVideo();
 
   /**
    * Extracts audio from the video just downloaded. If the video was not downloaded, it will prompt
@@ -49,7 +49,7 @@ public interface VideoExtractor {
    * @return the extracted audio
    */
   @NotNull
-  File extractAudio();
+  Path extractAudio();
 
   /**
    * This method is called at the beginning of video download. Useful for preparation in advance of

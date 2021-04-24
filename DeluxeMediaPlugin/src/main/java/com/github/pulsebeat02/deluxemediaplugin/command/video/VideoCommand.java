@@ -465,7 +465,7 @@ public class VideoCommand extends BaseCommand {
       extractor.extractAudio();
 
       // Set the file to be the video file of the extraction
-      attributes.setFile(extractor.getVideo());
+      attributes.setFile(extractor.getVideo().toFile());
 
       // Set the extractor
       attributes.setExtractor(extractor);

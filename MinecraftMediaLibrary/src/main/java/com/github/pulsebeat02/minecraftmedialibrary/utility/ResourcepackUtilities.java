@@ -26,7 +26,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackFormatVersioning;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import java.nio.file.Path;
 
 /**
  * Special resourcepack utilities used throughout the library and also open to users. Used for
@@ -59,13 +59,15 @@ public final class ResourcepackUtilities {
    * @param icon the icon
    * @return resourcepack icon validation
    */
-  public static boolean validateResourcepackIcon(@NotNull final File icon) {
-    final boolean valid = icon.getName().endsWith(".png");
+  public static boolean validateResourcepackIcon(@NotNull final Path icon) {
+    final String name = icon.getFileName().toString();
+    final boolean valid = name.endsWith(".png");
+    final String path = icon.toAbsolutePath().toString();
     if (valid) {
-      Logger.info(String.format("Resourcepack Icon Accepted! (%s)", icon.getAbsolutePath()));
+      Logger.info(String.format("Resourcepack Icon Accepted! (%s)", path));
     } else {
-      Logger.warn(String.format("Resourcepack Icon Not Supported! (%s)", icon.getAbsolutePath()));
+      Logger.warn(String.format("Resourcepack Icon Not Supported! (%s)", path));
     }
-    return icon.getName().endsWith(".png");
+    return name.endsWith(".png");
   }
 }

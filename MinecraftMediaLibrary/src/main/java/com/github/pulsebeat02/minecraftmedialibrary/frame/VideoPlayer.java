@@ -36,8 +36,8 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCall
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.RenderCallbackAdapter;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32BufferFormat;
 
-import java.io.File;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.function.Consumer;
 
@@ -85,11 +85,11 @@ public abstract class VideoPlayer {
    */
   public VideoPlayer(
       @NotNull final MinecraftMediaLibrary library,
-      @NotNull final File file,
+      @NotNull final Path file,
       final int width,
       final int height,
       @NotNull final FrameCallback callback) {
-    this(library, file.getAbsolutePath(), width, height, callback);
+    this(library, file.toAbsolutePath().toString(), width, height, callback);
   }
 
   private void initializePlayer() {

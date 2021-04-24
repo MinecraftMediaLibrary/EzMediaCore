@@ -27,11 +27,12 @@ import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -51,7 +52,7 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon {
 
   private final int port;
   private ServerSocket socket;
-  private File directory;
+  private Path directory;
   private boolean running;
   private ZipHeader header;
   private boolean verbose;
@@ -63,7 +64,7 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon {
    * @param directory the directory
    * @throws IOException the io exception
    */
-  public HttpFileDaemonServer(final int port, @NotNull final File directory) throws IOException {
+  public HttpFileDaemonServer(final int port, @NotNull final Path directory) throws IOException {
     running = true;
     this.port = port;
     socket = new ServerSocket(port);
@@ -75,7 +76,7 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon {
     Logger.info("========================================");
     Logger.info(String.format("IP: %s", Bukkit.getIp()));
     Logger.info(String.format("PORT: %d", port));
-    Logger.info(String.format("DIRECTORY: %s", directory.getAbsolutePath()));
+    Logger.info(String.format("DIRECTORY: %s", directory.toAbsolutePath().toString()));
     Logger.info("========================================");
   }
 
@@ -98,7 +99,7 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon {
       Logger.error(e.getMessage());
       return;
     }
-    directory = new File(path);
+    directory = Paths.get(path);
     header = ZipHeader.ZIP;
     verbose = true;
     Logger.info("Started HTTP Server: ");
@@ -208,7 +209,7 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon {
    *
    * @return the parent directory
    */
-  public File getParentDirectory() {
+  public Path getParentDirectory() {
     return directory;
   }
 
@@ -244,7 +245,7 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon {
    *
    * @return the directory
    */
-  public File getDirectory() {
+  public Path getDirectory() {
     return directory;
   }
 

@@ -38,6 +38,8 @@ import ws.schild.jave.process.ProcessLocator;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 /**
@@ -53,8 +55,8 @@ public class YoutubeExtraction implements VideoExtractor {
   private final String url;
   private final String directory;
   private VideoDetails details;
-  private File video;
-  private File audio;
+  private Path video;
+  private Path audio;
 
   /**
    * Instantiates a new YoutubeExtraction.
@@ -90,7 +92,7 @@ public class YoutubeExtraction implements VideoExtractor {
    */
   @Override
   @NotNull
-  public File downloadVideo() {
+  public Path downloadVideo() {
     onVideoDownload();
     final Optional<String> videoID = VideoExtractionUtilities.getVideoID(url);
     Logger.info(String.format("Downloading Video at URL (%s)", url));
@@ -99,8 +101,10 @@ public class YoutubeExtraction implements VideoExtractor {
         final YoutubeVideo ytVideo = new YoutubeDownloader().getVideo(videoID.get());
         details = ytVideo.details();
         video =
-            ytVideo.download(
-                ytVideo.videoWithAudioFormats().get(0), new File(directory), "video", true);
+            ytVideo
+                .download(
+                    ytVideo.videoWithAudioFormats().get(0), new File(directory), "video", true)
+                .toPath();
         Logger.info(String.format("Successfully Downloaded Video at URL: (%s)", url));
       } catch (final IOException | YoutubeException e) {
         Logger.info(String.format("Could not Download Video at URL!: (%s)", url));
@@ -117,23 +121,22 @@ public class YoutubeExtraction implements VideoExtractor {
    */
   @Override
   @NotNull
-  public File extractAudio() {
+  public Path extractAudio() {
     if (video == null) {
       downloadVideo();
     }
     onAudioExtraction();
-    Logger.info(String.format("Extracting Audio from Video File (%s)", video.getAbsolutePath()));
-    audio = new File(String.format("%s/audio.ogg", directory));
+    final String videoPath = video.toAbsolutePath().toString();
+    Logger.info(String.format("Extracting Audio from Video File (%s)", videoPath));
+    audio = Paths.get(String.format("%s/audio.ogg", directory));
     try {
-      encoder.encode(new MultimediaObject(video, ffmpegLocator), audio, attrs);
+      encoder.encode(new MultimediaObject(video.toFile(), ffmpegLocator), audio.toFile(), attrs);
       Logger.info(
           String.format(
               "Successfully Extracted Audio from Video File! (Target: %s)",
-              audio.getAbsolutePath()));
+              audio.toAbsolutePath().toString()));
     } catch (final EncoderException e) {
-      Logger.error(
-          String.format(
-              "Couldn't Extract Audio from Video File! (Video: %s)", video.getAbsolutePath()));
+      Logger.error(String.format("Couldn't Extract Audio from Video File! (Video: %s)", videoPath));
       e.printStackTrace();
     }
     return audio;
@@ -170,7 +173,7 @@ public class YoutubeExtraction implements VideoExtractor {
    *
    * @return the video
    */
-  public File getVideo() {
+  public Path getVideo() {
     return video;
   }
 
@@ -179,7 +182,7 @@ public class YoutubeExtraction implements VideoExtractor {
    *
    * @return the audio
    */
-  public File getAudio() {
+  public Path getAudio() {
     return audio;
   }
 

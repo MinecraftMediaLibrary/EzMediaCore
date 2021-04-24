@@ -38,10 +38,10 @@ import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -62,8 +62,8 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
 
   private final MinecraftMediaLibrary library;
   private final String path;
-  private final File audio;
-  private final File icon;
+  private final Path audio;
+  private final Path icon;
   private final String description;
   private final int packFormat;
 
@@ -80,8 +80,8 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
   public ResourcepackWrapper(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final String path,
-      @NotNull final File audio,
-      @Nullable final File icon,
+      @NotNull final Path audio,
+      @Nullable final Path icon,
       final String description,
       final int packFormat) {
     this.library = library;
@@ -96,7 +96,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
     }
     if (icon != null && !ResourcepackUtilities.validateResourcepackIcon(icon)) {
       throw new InvalidPackIconException(
-          String.format("Invalid Pack Icon! Must be PNG (%s)", icon.getName()));
+          String.format("Invalid Pack Icon! Must be PNG (%s)", icon.getFileName().toString()));
     }
     Logger.info(String.format("New Resourcepack (%s) was Initialized", path));
   }
@@ -138,10 +138,10 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
    * @return the resulting ResourcepackWrapper
    */
   public static ResourcepackWrapper of(
-      @NotNull final File audio, @NotNull final MinecraftMediaLibrary library) {
+      @NotNull final Path audio, @NotNull final MinecraftMediaLibrary library) {
     return ResourcepackWrapper.builder()
         .setAudio(audio)
-        .setDescription(String.format("Media: %s", audio.getName()))
+        .setDescription(String.format("Media: %s", audio.getFileName().toString()))
         .setPath(
             String.format(
                 "%s/mml/http/resourcepack.zip",
@@ -164,8 +164,8 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
     return new ResourcepackWrapper(
         library,
         String.valueOf(deserialize.get("path")),
-        new File(String.valueOf(deserialize.get("audio"))),
-        new File(String.valueOf(deserialize.get("icon"))),
+        Paths.get(String.valueOf(deserialize.get("audio"))),
+        Paths.get(String.valueOf(deserialize.get("icon"))),
         String.valueOf(deserialize.get("description")),
         NumberConversions.toInt(deserialize.get("pack-format")));
   }
@@ -180,8 +180,8 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
   public Map<String, Object> serialize() {
     return ImmutableMap.of(
         "path", path,
-        "audio", audio.getAbsolutePath(),
-        "icon", icon.getAbsolutePath(),
+        "audio", audio.toAbsolutePath().toString(),
+        "icon", icon.toAbsolutePath().toString(),
         "description", description,
         "pack-format", packFormat);
   }
@@ -193,14 +193,10 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
     Logger.info("Wrapping Resourcepack...");
     try {
 
-      final File zipFile = new File(path);
-      if (!zipFile.exists()) {
-        if (zipFile.createNewFile()) {
-          Logger.info("Created Zip File");
-        }
-      }
+      final Path zipFile = Paths.get(path);
+      Files.createFile(zipFile);
 
-      final ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipFile));
+      final ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipFile.toFile()));
       final ZipEntry config = new ZipEntry("pack.mcmeta");
       out.putNextEntry(config);
       out.write(getPackJson().getBytes());
@@ -213,13 +209,13 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
 
       final ZipEntry soundFile = new ZipEntry("assets/minecraft/sounds/audio.ogg");
       out.putNextEntry(soundFile);
-      out.write(Files.readAllBytes(Paths.get(audio.getAbsolutePath())));
+      out.write(Files.readAllBytes(Paths.get(audio.toAbsolutePath().toString())));
       out.closeEntry();
 
-      if (icon != null && icon.exists()) {
+      if (icon != null && Files.exists(icon)) {
         final ZipEntry iconFile = new ZipEntry("pack.png");
         out.putNextEntry(iconFile);
-        out.write(Files.readAllBytes(Paths.get(icon.getAbsolutePath())));
+        out.write(Files.readAllBytes(Paths.get(icon.toAbsolutePath().toString())));
         out.closeEntry();
       }
 
@@ -289,7 +285,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
    *
    * @return the audio
    */
-  public File getAudio() {
+  public Path getAudio() {
     return audio;
   }
 
@@ -298,7 +294,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
    *
    * @return the icon
    */
-  public File getIcon() {
+  public Path getIcon() {
     return icon;
   }
 
@@ -323,8 +319,8 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
   /** The type Builder. */
   public static class Builder {
 
-    private File audio;
-    private File icon;
+    private Path audio;
+    private Path icon;
     private String description;
     private int packFormat;
     private String path;
@@ -337,7 +333,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
      * @param audio the audio
      * @return the audio
      */
-    public Builder setAudio(@NotNull final File audio) {
+    public Builder setAudio(@NotNull final Path audio) {
       this.audio = audio;
       return this;
     }
@@ -348,7 +344,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
      * @param icon the icon
      * @return the icon
      */
-    public Builder setIcon(@NotNull final File icon) {
+    public Builder setIcon(@NotNull final Path icon) {
       this.icon = icon;
       return this;
     }

@@ -31,10 +31,12 @@ import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
 
 /**
  * A special handling class specific to the JAVE2 library. JAVE2 is an extension to * "JAVE", an
@@ -51,8 +53,8 @@ public class FFmpegDependencyInstallation {
 
   private static String FFMPEG_PATH;
 
-  private final String dependencyFolder;
-  private File file;
+  private final Path dependencyFolder;
+  private Path file;
 
   /**
    * Instantiates a new JaveDependencyInstallation
@@ -69,10 +71,12 @@ public class FFmpegDependencyInstallation {
    * @param dependency directory path
    */
   public FFmpegDependencyInstallation(@NotNull final Path dependency) {
-    dependencyFolder = String.format("%s/ffmpeg/", dependency.normalize());
-    final File folder = new File(dependencyFolder);
-    if (folder.mkdir()) {
+    dependencyFolder = Paths.get(String.format("%s/ffmpeg/", dependency.normalize()));
+    try {
+      Files.createDirectory(dependencyFolder);
       Logger.info("Created FFMPEG Folder");
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
   }
 
@@ -92,7 +96,7 @@ public class FFmpegDependencyInstallation {
     } catch (final IOException e) {
       e.printStackTrace();
     }
-    FFMPEG_PATH = file.getAbsolutePath();
+    FFMPEG_PATH = file.toAbsolutePath().toString();
   }
 
   /**
@@ -102,20 +106,18 @@ public class FFmpegDependencyInstallation {
    * @throws IOException if an issue occurred during downloading
    */
   @NotNull
-  private File downloadFFmpeg() throws IOException {
-    final File folder = new File(dependencyFolder);
-    mkdir(folder);
-    File file = searchFFMPEG(folder);
+  private Path downloadFFmpeg() throws IOException {
+    Path file = searchFFMPEG(dependencyFolder);
     if (file != null) {
       return file;
     }
     final String fileUrl = getFFmpegUrl();
     final URL url = new URL(fileUrl);
-    file = new File(dependencyFolder, FilenameUtils.getName(url.getPath()));
-    FileUtils.copyURLToFile(url, file);
+    file = dependencyFolder.resolve(FilenameUtils.getName(url.getPath()));
+    FileUtils.copyURLToFile(url, file.toFile());
     if (RuntimeUtilities.isMac()) {
-      // Change permissions so JAVE2 can use the app properly
-      new CommandTask("chmod", "-R", "777", file.getAbsolutePath()).run();
+      // Change permissions so JAVE2 can access the file
+      new CommandTask("chmod", "-R", "777", file.toAbsolutePath().toString()).run();
     }
     return file;
   }
@@ -127,29 +129,17 @@ public class FFmpegDependencyInstallation {
    * @return file
    */
   @Nullable
-  private File searchFFMPEG(@NotNull final File folder) {
-    for (final File f : folder.listFiles()) {
-      if (f.getName().contains("ffmpeg")) {
-        file = f;
-        return file;
+  private Path searchFFMPEG(@NotNull final Path folder) {
+    try {
+      final Optional<Path> file =
+          Files.walk(folder).filter(f -> f.getFileName().toString().contains("ffmpeg")).findFirst();
+      if (file.isPresent()) {
+        return file.get();
       }
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
     return null;
-  }
-
-  /**
-   * Creates directory if not existent.
-   *
-   * @param folder the folder file
-   */
-  private void mkdir(@NotNull final File folder) {
-    if (!folder.exists()) {
-      if (folder.mkdir()) {
-        Logger.info("Library folder created successfully");
-      } else {
-        Logger.error("Library folder couldn't created successfully");
-      }
-    }
   }
 
   /**

@@ -26,6 +26,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.extractor.VideoExtractor;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
 /** An async helper class used for extracting videos.F */
@@ -48,7 +49,7 @@ public class AsyncVideoExtraction {
    * @return the completable future
    */
   @NotNull
-  public CompletableFuture<File> downloadVideo() {
+  public CompletableFuture<Path> downloadVideo() {
     return CompletableFuture.supplyAsync(extractor::downloadVideo);
   }
 
@@ -58,7 +59,7 @@ public class AsyncVideoExtraction {
    * @return the completable future
    */
   @NotNull
-  public CompletableFuture<File> extractAudio() {
+  public CompletableFuture<Path> extractAudio() {
     return CompletableFuture.supplyAsync(extractor::extractAudio);
   }
 }
