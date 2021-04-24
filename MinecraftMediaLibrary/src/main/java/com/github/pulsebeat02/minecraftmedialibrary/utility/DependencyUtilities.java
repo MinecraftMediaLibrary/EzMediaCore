@@ -345,8 +345,8 @@ public final class DependencyUtilities {
     Logger.info(String.format("Downloading Dependency at %s into folder %s", url, p));
     final File file = p.toFile();
     try (final InputStream inputStream = new URL(url).openStream();
-         final ReadableByteChannel readableByteChannel = Channels.newChannel(inputStream);
-         final FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+        final ReadableByteChannel readableByteChannel = Channels.newChannel(inputStream);
+        final FileOutputStream fileOutputStream = new FileOutputStream(file)) {
       fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
     }
     return file;
@@ -366,16 +366,15 @@ public final class DependencyUtilities {
       @NotNull final Path p, @NotNull final String url, @NotNull final LongConsumer progress)
       throws IOException {
     Logger.info(String.format("Downloading Dependency at %s into folder %s", url, p));
-    final BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
-    final FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p));
-    final byte[] dataBuffer = new byte[8192];
-    int bytesRead;
-    while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-      progress.accept(bytesRead);
-      fileOutputStream.write(dataBuffer, 0, bytesRead);
+    try (final BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
+        final FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p))) {
+      final byte[] dataBuffer = new byte[8192];
+      int bytesRead;
+      while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+        progress.accept(bytesRead);
+        fileOutputStream.write(dataBuffer, 0, bytesRead);
+      }
     }
-    in.close();
-    fileOutputStream.close();
     return new File(p.toString());
   }
 
@@ -388,16 +387,14 @@ public final class DependencyUtilities {
    */
   public static long getFileSize(@NotNull final String url) throws IOException {
     final URL download = new URL(url);
-    HttpURLConnection conn = null;
-    try {
-      conn = (HttpURLConnection) download.openConnection();
+    final HttpURLConnection conn = (HttpURLConnection) download.openConnection();
+    try (final AutoCloseable conc = conn::disconnect) {
       conn.setRequestMethod("HEAD");
       return conn.getContentLengthLong();
-    } finally {
-      if (conn != null) {
-        conn.disconnect();
-      }
+    } catch (final Exception e) {
+      e.printStackTrace();
     }
+    return -1L;
   }
 
   /**
