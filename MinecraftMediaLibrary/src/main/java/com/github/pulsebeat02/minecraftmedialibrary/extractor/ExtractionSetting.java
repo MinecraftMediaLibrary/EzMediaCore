@@ -22,6 +22,8 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.extractor;
 
+import com.google.common.base.Preconditions;
+
 /**
  * A class full of audio properties to specify the properties of an audio file. It is used
  * eventually in JAVE2 while audio conversion is taking place. Strongly recommended to research each
@@ -50,6 +52,10 @@ public class ExtractionSetting {
     codec = "libvorbis";
     outputFormat = "ogg";
     inputFormat = "mp4";
+    Preconditions.checkArgument(bitrate > 0, String.format("Invalid Bitrate! (%d)", bitrate));
+    Preconditions.checkArgument(channels > 0, String.format("Invalid Channels! (%d)", channels));
+    Preconditions.checkArgument(samplingRate > 0, String.format("Invalid Sampling Rate! (%d)", samplingRate));
+    Preconditions.checkArgument(volume > 0, String.format("Invalid Volume! (%d)", volume));
     this.bitrate = bitrate;
     this.channels = channels;
     this.samplingRate = samplingRate;

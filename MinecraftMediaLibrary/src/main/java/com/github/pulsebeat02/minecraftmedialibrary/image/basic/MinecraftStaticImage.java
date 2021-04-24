@@ -28,6 +28,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.image.MapImageHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.util.NumberConversions;
@@ -66,6 +67,7 @@ public final class MinecraftStaticImage implements MapImageHolder, Configuration
       @NotNull final File image,
       final int width,
       final int height) {
+    Preconditions.checkArgument(image.exists(), "Image does not exist!");
     this.library = library;
     this.map = map;
     this.image = image;

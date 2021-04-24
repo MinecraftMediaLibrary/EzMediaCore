@@ -26,6 +26,8 @@ import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyResolution;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.RepositoryDependency;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedInputStream;
@@ -50,8 +52,8 @@ import java.util.function.LongConsumer;
  */
 public final class DependencyUtilities {
 
-  private static URLClassLoader CLASSLOADER;
   private static Method ADD_URL_METHOD;
+  private static URLClassLoader CLASSLOADER;
 
   static {
     Logger.info("Attempting to Open Reflection Module...");
@@ -232,6 +234,11 @@ public final class DependencyUtilities {
       @NotNull final String artifactId,
       @NotNull final String version,
       @NotNull final String base) {
+    Preconditions.checkArgument(!groupId.isEmpty(), "Group ID cannot be empty!");
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(groupId), "Group ID cannot be empty!");
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(artifactId), "Artifact ID cannot be empty!");
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(version), "Version cannot be empty!");
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(base), "Base URL cannot be empty or null!");
     return String.format("%s%s/%s/%s/", base, groupId.replaceAll("\\.", "/"), artifactId, version);
   }
 
@@ -301,7 +308,7 @@ public final class DependencyUtilities {
     final String file = String.format("%s-%s.jar", artifactId, version);
     final String url =
         getDependencyUrl(groupId, artifactId, version, resolution.getBaseUrl()) + file;
-    return downloadFile(Paths.get(String.format("%s/%s", parent, file)), url);
+    return downloadFile(Paths.get(parent, file), url);
   }
 
   /**
@@ -342,6 +349,7 @@ public final class DependencyUtilities {
   @NotNull
   public static File downloadFile(@NotNull final Path p, @NotNull final String url)
       throws IOException {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
     Logger.info(String.format("Downloading Dependency at %s into folder %s", url, p));
     final File file = p.toFile();
     try (final InputStream inputStream = new URL(url).openStream();
@@ -365,6 +373,7 @@ public final class DependencyUtilities {
   public static File downloadFile(
       @NotNull final Path p, @NotNull final String url, @NotNull final LongConsumer progress)
       throws IOException {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
     Logger.info(String.format("Downloading Dependency at %s into folder %s", url, p));
     try (final BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
         final FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p))) {
@@ -386,6 +395,7 @@ public final class DependencyUtilities {
    * @throws IOException if url is invalid
    */
   public static long getFileSize(@NotNull final String url) throws IOException {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
     final URL download = new URL(url);
     final HttpURLConnection conn = (HttpURLConnection) download.openConnection();
     try (final AutoCloseable conc = conn::disconnect) {
@@ -404,6 +414,8 @@ public final class DependencyUtilities {
    * @throws IOException the io exception
    */
   public static void loadDependency(@NotNull final File file) throws IOException {
+    Preconditions.checkArgument(
+        file.exists(), String.format("Dependency File %s doesn't exist!", file.getAbsolutePath()));
     Logger.info(String.format("Loading JAR Dependency at: %s", file.getAbsolutePath()));
     try {
       ADD_URL_METHOD.invoke(CLASSLOADER, file.toURI().toURL());

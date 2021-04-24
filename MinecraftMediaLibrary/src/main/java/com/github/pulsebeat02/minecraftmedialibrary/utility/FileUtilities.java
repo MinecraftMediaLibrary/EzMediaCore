@@ -23,6 +23,8 @@
 package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -51,6 +53,7 @@ public final class FileUtilities {
    */
   @NotNull
   public static File downloadImageFile(@NotNull final String url, @NotNull final Path path) {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be null or empty!");
     final String filePath = String.format("%s/%s.png", path, UUID.randomUUID());
     try (final InputStream in = new URL(url).openStream()) {
       Files.copy(in, Paths.get(filePath));

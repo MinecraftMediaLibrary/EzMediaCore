@@ -88,8 +88,8 @@ public class MapIntegratedPlayer extends VideoPlayer {
   public static class Builder {
 
     private String url;
-    private int width;
-    private int height;
+    private int width = 5;
+    private int height = 5;
     private MapDataCallback callback;
 
     private Builder() {}

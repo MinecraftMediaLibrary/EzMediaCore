@@ -106,8 +106,8 @@ public class ScoreboardIntegratedPlayer extends VideoPlayer {
   public static class Builder {
 
     private String url;
-    private int width;
-    private int height;
+    private int width = 10;
+    private int height = 10;
     private ScoreboardCallback callback;
 
     private Builder() {}

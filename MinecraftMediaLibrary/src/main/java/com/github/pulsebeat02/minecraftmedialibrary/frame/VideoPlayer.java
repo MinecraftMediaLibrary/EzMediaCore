@@ -24,6 +24,8 @@ package com.github.pulsebeat02.minecraftmedialibrary.frame;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
@@ -66,6 +68,9 @@ public abstract class VideoPlayer {
       final int width,
       final int height,
       @NotNull final FrameCallback callback) {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
+    Preconditions.checkArgument(width > 0, String.format("Width is not valid! (%d)", width));
+    Preconditions.checkArgument(height > 0, String.format("Height is not valid! (%d)", height));
     this.library = library;
     this.url = url;
     this.width = width;

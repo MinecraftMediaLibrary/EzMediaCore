@@ -28,6 +28,8 @@ import com.github.kiulian.downloader.model.VideoDetails;
 import com.github.kiulian.downloader.model.YoutubeVideo;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 import ws.schild.jave.Encoder;
 import ws.schild.jave.EncoderException;
@@ -40,6 +42,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -69,6 +72,8 @@ public class YoutubeExtraction implements VideoExtractor {
       @NotNull final String url,
       @NotNull final String directory,
       @NotNull final ExtractionSetting settings) {
+    Preconditions.checkArgument(Strings.isNullOrEmpty(url), "Youtube URL cannot be empty null!");
+    Preconditions.checkArgument(Strings.isNullOrEmpty(directory), "Directory cannot be empty null!");
     this.url = url;
     this.directory = directory;
     ffmpegLocator = new FFmpegLocation();

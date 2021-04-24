@@ -32,6 +32,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticI
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;
@@ -73,6 +74,7 @@ public class MinecraftDynamicImage implements MapImageHolder, ConfigurationSeria
       @NotNull final File image,
       final int width,
       final int height) {
+    Preconditions.checkArgument(image.exists(), "Image does not exist!");
     this.library = library;
     this.map = map;
     this.image = image;
