@@ -20,77 +20,10 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
-
-import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Arrays;
-
 /**
- * An enum containing all the supported CPU Architectures for each of the Linux packages. Useful for
- * easier management.
+ * Special Linux Distribution dependent solutions for installing VLC.
+ *
+ * @since 1.0
+ * @author PulseBeat_02
  */
-public enum CPUArchitecture {
-
-  /** AMD64 CPU Architecture. */
-  AMD64,
-
-  /** AARCH64 CPU Architecture. */
-  AARCH64,
-
-  /** ARMHF CPU Architecture. */
-  ARMHF,
-
-  /** ARMV7H CPU Architecture. */
-  ARMV7H,
-
-  /** ARMHFP CPU Architecture. */
-  ARMHFP,
-
-  /** ARMV7HL CPU Architecture. */
-  ARMV7HL,
-
-  /** ARMV7 CPU Architecture. */
-  ARMV7,
-
-  /** ARM64 CPU Architecture. */
-  ARM64,
-
-  /** EARNMV7HF CPU Architecture. */
-  EARNMV7HF,
-
-  /** X86_64 CPU Architecture. */
-  X86_64,
-
-  /** I386 CPU Architecture. */
-  I386,
-
-  /** I586 CPU Architecture. */
-  I586,
-
-  /** I486 CPU Architecture. */
-  I486;
-
-  static {
-    Logger.info("Listing All Possible CPU Architectures...");
-    Arrays.stream(values()).forEach(x -> Logger.info(x.name()));
-  }
-
-  /**
-   * Gets CPUArchitecture from name.
-   *
-   * @param name the name
-   * @return the cpu architecture
-   */
-  @Nullable
-  public static CPUArchitecture fromName(@NotNull final String name) {
-    for (final CPUArchitecture val : values()) {
-      if (val.name().equals(name)) {
-        return val;
-      }
-    }
-    return null;
-  }
-}
+package com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.pkg;

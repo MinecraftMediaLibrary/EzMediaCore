@@ -1,4 +1,4 @@
-package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg;
+package com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.pkg;
 
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;

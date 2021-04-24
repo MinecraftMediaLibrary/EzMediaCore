@@ -20,75 +20,76 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
+package com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.pkg;
 
+import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+
 /**
- * This instantiates a new LinuxPackage which is used for easy installation. It will specify the
- * correct CPU Architecture the package is for, the url asociated with such a package, and the
- * mirror Github url if the main mirror is down.
+ * Installs packages from the Conda package manager. Used for the JuNestInstaller as a helper class
+ * to install the proper dependencies needed for JuNest.
  */
-public class LinuxPackage {
+public class CondaInstallation {
 
-  private final CPUArchitecture arch;
-  private final String url;
-  private final String mirror;
+  private final File conda;
+  private final String baseDirectory;
 
   /**
-   * Instantiates a new LinuxPackage.
+   * Instantiates a new CondaInstallation.
    *
-   * @param url the url
-   * @param arch the arch
+   * @param baseDirectory the base directory
    */
-  public LinuxPackage(@NotNull final String url, @NotNull final CPUArchitecture arch) {
-    this.arch = arch;
-    this.url = url;
-    mirror =
-        "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/linux/"
-            + url.substring(url.lastIndexOf("/") + 1);
+  public CondaInstallation(@NotNull final String baseDirectory) {
+    this.baseDirectory = baseDirectory;
+    conda = new File(baseDirectory, "scripts/conda.sh");
+    try {
+      setup();
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
   }
 
   /**
-   * Instantiates a new LinuxPackage.
+   * Installs the package manager.
    *
-   * @param url the url
-   * @param mirror the mirror url
-   * @param arch the arch
+   * @throws IOException if an exception occurred while fetching the url or file
    */
-  public LinuxPackage(
-      @NotNull final String url,
-      @NotNull final String mirror,
-      @NotNull final CPUArchitecture arch) {
-    this.arch = arch;
-    this.url = url;
-    this.mirror = mirror;
+  public void setup() throws IOException {
+    FileUtilities.createFile(conda, "Created conda.sh File");
+    FileUtils.copyURLToFile(
+        new URL(
+            "https://github.com/PulseBeat02/Conda-Mirror/raw/main/Miniconda3-latest-Linux-x86_64.sh"),
+        conda);
+    RuntimeUtilities.executeBashScript(
+        conda,
+        new String[] {"-b", "-p", new File(baseDirectory, "conda").getAbsolutePath()},
+        "Successfully Installed Conda");
   }
 
   /**
-   * Gets CPU Architecture.
+   * Installs a specific package from the name.
    *
-   * @return CPU Architecture of package
+   * @param pkgName the package name
    */
-  public CPUArchitecture getArch() {
-    return arch;
+  public void installPackage(@NotNull final String pkgName) {
+    RuntimeUtilities.executeBashScript(
+        conda,
+        new String[] {"install", "-c", "-b", "conda-forge", pkgName},
+        "Successfully Installed cURL");
   }
 
   /**
-   * Gets the package URL.
+   * Gets the Conda script associated with the instance.
    *
-   * @return the package URL
+   * @return the file script
    */
-  public String getUrl() {
-    return url;
-  }
-
-  /**
-   * Gets the mirror URL.
-   *
-   * @return the mirror URL
-   */
-  public String getMirror() {
-    return mirror;
+  public File getCondaScript() {
+    return conda;
   }
 }

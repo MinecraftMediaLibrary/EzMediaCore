@@ -312,7 +312,7 @@ public class VideoCommand extends BaseCommand {
 
     // Check if video is playing
     final VideoPlayer player = attributes.getPlayer();
-    if (player.isPlaying()) {
+    if (player != null && player.isPlaying()) {
 
       // Release the video if it is (which stops it)
       player.release();

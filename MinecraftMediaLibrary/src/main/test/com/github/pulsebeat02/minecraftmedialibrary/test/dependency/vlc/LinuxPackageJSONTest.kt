@@ -12,8 +12,8 @@
  */
 package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc
 
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxOSPackages
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackage
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxOSPackages
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxPackage
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.ListMultimap
 import com.google.common.reflect.TypeToken

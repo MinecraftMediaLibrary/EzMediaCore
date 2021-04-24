@@ -20,7 +20,7 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
+package com.github.pulsebeat02.minecraftmedialibrary.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;

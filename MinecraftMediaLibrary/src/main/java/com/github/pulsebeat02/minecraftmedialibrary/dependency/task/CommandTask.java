@@ -65,7 +65,7 @@ public class CommandTask {
    *
    * @param command command
    */
-  public CommandTask(@NotNull final String[] command) {
+  public CommandTask(@NotNull final String... command) {
     this.command = command;
   }
 

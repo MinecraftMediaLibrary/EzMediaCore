@@ -20,53 +20,72 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.os;
+package com.github.pulsebeat02.minecraftmedialibrary.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackageManager;
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.pkg.PackageBase;
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxSilentInstallation;
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.mac.MacSilentInstallation;
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.SilentOSDependentSolution;
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.windows.WindowsSilentInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
 /**
- * The Linux specific installation for VLC is hard in the sense that we must specify the correct
- * packages to be used for each distribution. Our handling class LinuxPackageManager makes this
- * class's job much easier. It creates an instance of the LinuxPackageManager class, gets the needed
- * package, extracts the contents, and then loads the binaries into the runtime.
+ * The main class of the VLC native dependency fetcher. It calls the correct classes and dependency
+ * solution based on the working operating system of the environment. It should be noted that VLC
+ * uses operating system dependent binaries, meaning that each operating system must be carefully
+ * handled correctly in order to load the binaries properly.
+ *
+ * <p>Currently Supported Operating Systems: SLACKWARE OPENSUSE LEAP DEBIAN UBUNTU ARCH_LINUX FEDORA
+ * SOLUS KAOS FREEBSD CENTOS NETBSD
  */
-public class LinuxSilentInstallation extends SilentOSDependentSolution {
+public class VLCNativeDependencyFetcher {
 
-  private final MinecraftMediaLibrary library;
+  private final SilentOSDependentSolution solution;
 
   /**
-   * Instantiates a new LinuxSilentInstallation.
+   * Instantiates a new VLC Native Dependency Fetcher process.
    *
-   * @param library the library.
+   * @param library the library
    */
-  public LinuxSilentInstallation(@NotNull final MinecraftMediaLibrary library) {
-    super(library);
-    this.library = library;
+  public VLCNativeDependencyFetcher(@NotNull final MinecraftMediaLibrary library) {
+    final Path dir = library.getVlcFolder();
+    if (RuntimeUtilities.isLinux()) {
+      solution = new LinuxSilentInstallation(library);
+    } else if (RuntimeUtilities.isWindows()) {
+      solution = new WindowsSilentInstallation(dir);
+    } else if (RuntimeUtilities.isMac()) {
+      solution = new MacSilentInstallation(dir);
+    } else {
+      solution = null;
+    }
   }
 
   /**
-   * Download the VLC library.
+   * FOR TESTING MAC BUILDS ONLY! PLEASE DO NOT USE!
    *
-   * @throws IOException if the io had issues
+   * @param path the path
    */
-  @Override
-  public void downloadVLCLibrary() throws IOException {
-    final Path dir = getDir();
-    Logger.info("No VLC Installation found on this Computer. Proceeding to a manual install.");
-    final LinuxPackageManager manager = new LinuxPackageManager(dir);
-    final File f = manager.getDesignatedPackage();
-    PackageBase.getFromFile(library, f).installPackage();
-    Logger.info(String.format("Downloaded and Loaded Package (%s)", f.getAbsolutePath()));
-    loadNativeDependency(dir.toFile());
-    printSystemEnvironmentVariables();
-    printSystemProperties();
+  @Deprecated
+  public VLCNativeDependencyFetcher(@NotNull final Path path) {
+    solution = new MacSilentInstallation(path);
+  }
+
+  /**
+   * Download vlc libraries.
+   *
+   * <p>Currently in progress! Not finished as I am trying to support other operating systems.
+   */
+  public void downloadLibraries() {
+    Logger.info("Trying to find Native VLC Installation...");
+    try {
+      solution.downloadVLCLibrary();
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
   }
 }

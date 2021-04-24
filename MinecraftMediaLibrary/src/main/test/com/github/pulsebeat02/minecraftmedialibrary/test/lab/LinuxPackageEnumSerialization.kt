@@ -12,7 +12,7 @@
  */
 package com.github.pulsebeat02.minecraftmedialibrary.test.lab
 
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.LinuxPackage
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxPackage
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 

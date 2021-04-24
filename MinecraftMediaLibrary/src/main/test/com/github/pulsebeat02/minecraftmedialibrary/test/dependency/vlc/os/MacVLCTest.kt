@@ -12,7 +12,7 @@
  */
 package com.github.pulsebeat02.minecraftmedialibrary.test.dependency.vlc.os
 
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.VLCNativeDependencyFetcher
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.VLCNativeDependencyFetcher
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities
 import java.io.File

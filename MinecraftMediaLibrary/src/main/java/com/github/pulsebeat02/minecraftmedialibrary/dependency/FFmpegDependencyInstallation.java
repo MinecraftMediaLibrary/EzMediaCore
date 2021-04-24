@@ -23,6 +23,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.dependency;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTask;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
@@ -112,6 +113,10 @@ public class FFmpegDependencyInstallation {
     final URL url = new URL(fileUrl);
     file = new File(dependencyFolder, FilenameUtils.getName(url.getPath()));
     FileUtils.copyURLToFile(url, file);
+    if (RuntimeUtilities.isMac()) {
+      // Change permissions so JAVE2 can use the app properly
+      new CommandTask("chmod", "-R", "777", file.getAbsolutePath()).run();
+    }
     return file;
   }
 

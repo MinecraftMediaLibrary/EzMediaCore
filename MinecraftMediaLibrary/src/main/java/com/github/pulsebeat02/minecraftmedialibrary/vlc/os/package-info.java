@@ -21,10 +21,9 @@
 ............................................................................................*/
 
 /**
- * VLC specific dependency handling can be found here. This includes detecting System OS, grabbing
- * version, and selecting the correct package for the specific operating system.
+ * Special Operating System dependent solutions for installing VLC.
  *
  * @since 1.0
  * @author PulseBeat_02
  */
-package com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc;
+package com.github.pulsebeat02.minecraftmedialibrary.vlc.os;

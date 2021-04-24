@@ -24,7 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary;
 
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyManagement;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
-import com.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.VLCNativeDependencyFetcher;
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.VLCNativeDependencyFetcher;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities;
