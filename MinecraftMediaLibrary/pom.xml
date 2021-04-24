@@ -47,6 +47,7 @@
             <groupId>uk.co.caprica</groupId>
             <artifactId>native-streams</artifactId>
             <version>1.0.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.github.sealedtx</groupId>
