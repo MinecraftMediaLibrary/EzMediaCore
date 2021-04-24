@@ -109,7 +109,7 @@ public final class MinecraftMediaLibrary {
     Logger.info(DebuggerUtilities.getSystemDebugInfo(this));
     Bukkit.getPluginManager().registerEvents(listener, plugin);
     dependencyTasks();
-    DebuggerUtilities.redirectLoggingOutput();
+    // DebuggerUtilities.redirectLoggingOutput();
     JavaVersionUtilities.sendWarningMessage();
   }
 
