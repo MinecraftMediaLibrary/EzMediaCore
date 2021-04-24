@@ -47,6 +47,7 @@ public abstract class VideoPlayer {
   private final String url;
   private final FrameCallback callback;
   private EmbeddedMediaPlayer mediaPlayerComponent;
+  private boolean playing;
   private int width;
   private int height;
 
@@ -191,24 +192,29 @@ public abstract class VideoPlayer {
    * @param players which players to play the audio for
    */
   public void start(@NotNull final Collection<? extends Player> players) {
+    playing = true;
     if (mediaPlayerComponent == null) {
       initializePlayer();
     }
     mediaPlayerComponent.media().play(url);
+    final String name = getLibrary().getPlugin().getName().toLowerCase();
     for (final Player p : players) {
-      p.playSound(p.getLocation(), getLibrary().getPlugin().getName().toLowerCase(), 1.0F, 1.0F);
+      p.stopSound(name);
+      p.playSound(p.getLocation(), name, 1.0F, 1.0F);
     }
     Logger.info(String.format("Started Playing the Video! (%s)", url));
   }
 
   /** Stops the player. */
   public void stop() {
+    playing = false;
     mediaPlayerComponent.controls().stop();
     Logger.info(String.format("Stopped Playing the Video! (%s)", url));
   }
 
   /** Releases the player. */
   public void release() {
+    stop();
     mediaPlayerComponent.release();
     mediaPlayerComponent = null;
     Logger.info(String.format("Released the Video! (%s)", url));
@@ -222,6 +228,15 @@ public abstract class VideoPlayer {
   public void setRepeat(final boolean setting) {
     mediaPlayerComponent.controls().setRepeat(setting);
     Logger.info(String.format("Set Setting Loop to (%s)! (%s)", setting, url));
+  }
+
+  /**
+   * Returns whether the video is playing.
+   *
+   * @return whether the video is playing or not
+   */
+  public boolean isPlaying() {
+    return playing;
   }
 
   private static class MinecraftVideoRenderCallback extends RenderCallbackAdapter {

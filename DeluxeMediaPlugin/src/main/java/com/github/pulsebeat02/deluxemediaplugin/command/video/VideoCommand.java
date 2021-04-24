@@ -5,6 +5,7 @@ import com.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudIntegratedPlayer;
@@ -308,6 +309,15 @@ public class VideoCommand extends BaseCommand {
               Component.text("The video is still being downloaded!", NamedTextColor.RED)));
       return 1;
     }
+
+    // Check if video is playing
+    final VideoPlayer player = attributes.getPlayer();
+    if (player.isPlaying()) {
+
+      // Release the video if it is (which stops it)
+      player.release();
+    }
+
     final YoutubeExtraction extractor = attributes.getExtractor();
     audience.sendMessage(
         ChatUtilities.formatMessage(
@@ -343,7 +353,7 @@ public class VideoCommand extends BaseCommand {
     }
 
     // Start the player and play the sound to all online players
-    attributes.getPlayer().start(Bukkit.getOnlinePlayers());
+    player.start(Bukkit.getOnlinePlayers());
     return 1;
   }
 

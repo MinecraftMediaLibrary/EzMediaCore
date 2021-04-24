@@ -31,7 +31,7 @@ public class MinecraftVideoAttributes {
     screenWidth = 640;
     screenHeight = 360;
     completion = new AtomicBoolean(false);
-    maps = false;
+    maps = true;
   }
 
   public DitherHolder getDither() {
