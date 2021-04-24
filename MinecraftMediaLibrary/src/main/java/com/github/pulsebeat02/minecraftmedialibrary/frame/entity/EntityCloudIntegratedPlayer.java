@@ -31,6 +31,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 
 /**
@@ -77,7 +78,7 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
    */
   public EntityCloudIntegratedPlayer(
       @NotNull final MinecraftMediaLibrary library,
-      @NotNull final File file,
+      @NotNull final Path file,
       @NotNull final EntityCloudCallback callback,
       @NotNull final Location location,
       final int width,
@@ -86,7 +87,7 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
     this.location = location;
     entities = callback.getEntities();
     Logger.info(
-        String.format("Created a VLCJ Integrated Video Player (%s)", file.getAbsolutePath()));
+        String.format("Created a VLCJ Integrated Video Player (%s)", file.toAbsolutePath().toString()));
   }
 
   /**

@@ -37,7 +37,13 @@ public class HttpConfiguration extends AbstractConfiguration {
     configuration.set("enabled", enabled);
     configuration.set("port", daemon.getPort());
     final HttpFileDaemonServer http = daemon.getDaemon();
-    configuration.set("directory", http.getDirectory().getAbsolutePath());
+    configuration.set(
+        "directory",
+        getPlugin()
+            .getDataFolder()
+            .toPath()
+            .relativize(http.getDirectory().toAbsolutePath())
+            .toString());
     configuration.set(
         "header", http.getHeader() == HttpFileDaemonServer.ZipHeader.ZIP ? "ZIP" : "OCTET_STREAM");
     configuration.set("verbose", http.isVerbose());

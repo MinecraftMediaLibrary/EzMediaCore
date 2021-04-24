@@ -28,6 +28,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.nio.file.Path;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
@@ -65,13 +66,13 @@ public class MapIntegratedPlayer extends VideoPlayer {
    */
   public MapIntegratedPlayer(
       @NotNull final MinecraftMediaLibrary library,
-      @NotNull final File file,
+      @NotNull final Path file,
       @NotNull final MapDataCallback callback,
       final int width,
       final int height) {
     super(library, file, width, height, callback);
     Logger.info(
-        String.format("Created a VLCJ Integrated Video Player (%s)", file.getAbsolutePath()));
+        String.format("Created a VLCJ Integrated Video Player (%s)", file.toAbsolutePath().toString()));
   }
 
   /**

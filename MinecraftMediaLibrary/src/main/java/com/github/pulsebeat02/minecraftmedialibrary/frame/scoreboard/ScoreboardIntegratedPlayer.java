@@ -28,7 +28,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 
 /**
@@ -67,13 +67,14 @@ public class ScoreboardIntegratedPlayer extends VideoPlayer {
    */
   public ScoreboardIntegratedPlayer(
       @NotNull final MinecraftMediaLibrary library,
-      @NotNull final File file,
+      @NotNull final Path file,
       @NotNull final ScoreboardCallback callback,
       final int width,
       final int height) {
     super(library, file, width, height, callback);
     Logger.info(
-        String.format("Created a Scoreboard Integrated Video Player (%s)", file.getAbsolutePath()));
+        String.format(
+            "Created a Scoreboard Integrated Video Player (%s)", file.toAbsolutePath().toString()));
   }
 
   /**
