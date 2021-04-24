@@ -31,6 +31,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -73,8 +74,10 @@ public class FFmpegDependencyInstallation {
   public FFmpegDependencyInstallation(@NotNull final Path dependency) {
     dependencyFolder = Paths.get(String.format("%s/ffmpeg/", dependency.normalize()));
     try {
-      Files.createDirectory(dependencyFolder);
-      Logger.info("Created FFMPEG Folder");
+      if (!Files.exists(dependencyFolder)) {
+        Files.createDirectory(dependencyFolder);
+        Logger.info("Created FFMPEG Folder");
+      }
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -131,10 +134,14 @@ public class FFmpegDependencyInstallation {
   @Nullable
   private Path searchFFMPEG(@NotNull final Path folder) {
     try {
-      final Optional<Path> file =
+      final Optional<Path> optional =
           Files.walk(folder).filter(f -> f.getFileName().toString().contains("ffmpeg")).findFirst();
-      if (file.isPresent()) {
-        return file.get();
+      if (optional.isPresent()) {
+        final Path p = optional.get();
+        if (Files.isRegularFile(p)) {
+          file = p;
+          return p;
+        }
       }
     } catch (final IOException e) {
       e.printStackTrace();
