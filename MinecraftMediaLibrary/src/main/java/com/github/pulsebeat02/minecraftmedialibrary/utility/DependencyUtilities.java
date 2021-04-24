@@ -32,11 +32,14 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.LongConsumer;
@@ -340,14 +343,13 @@ public final class DependencyUtilities {
   public static File downloadFile(@NotNull final Path p, @NotNull final String url)
       throws IOException {
     Logger.info(String.format("Downloading Dependency at %s into folder %s", url, p));
-    final BufferedInputStream in = new BufferedInputStream(new URL(url).openStream());
-    final FileOutputStream fileOutputStream = new FileOutputStream(String.valueOf(p));
-    final byte[] dataBuffer = new byte[8192];
-    int bytesRead;
-    while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-      fileOutputStream.write(dataBuffer, 0, bytesRead);
+    final File file = p.toFile();
+    try (final InputStream inputStream = new URL(url).openStream();
+         final ReadableByteChannel readableByteChannel = Channels.newChannel(inputStream);
+         final FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+      fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
     }
-    return new File(p.toString());
+    return file;
   }
 
   /**

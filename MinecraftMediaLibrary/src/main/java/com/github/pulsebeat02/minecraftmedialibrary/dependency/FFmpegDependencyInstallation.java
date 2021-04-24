@@ -25,13 +25,12 @@ package com.github.pulsebeat02.minecraftmedialibrary.dependency;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTask;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -115,9 +114,8 @@ public class FFmpegDependencyInstallation {
       return file;
     }
     final String fileUrl = getFFmpegUrl();
-    final URL url = new URL(fileUrl);
-    file = dependencyFolder.resolve(FilenameUtils.getName(url.getPath()));
-    FileUtils.copyURLToFile(url, file.toFile());
+    file = dependencyFolder.resolve(FilenameUtils.getName(new URL(fileUrl).getPath()));
+    DependencyUtilities.downloadFile(file, fileUrl);
     if (RuntimeUtilities.isMac()) {
       // Change permissions so JAVE2 can access the file
       new CommandTask("chmod", "-R", "777", file.toAbsolutePath().toString()).run();
