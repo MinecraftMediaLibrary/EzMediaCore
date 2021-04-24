@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.frame.entity;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -37,7 +38,7 @@ import java.util.UUID;
 /** The callback used for clouds to update entity clouds for each frame when necessary. */
 public final class EntityCloudCallback implements FrameCallback {
 
-  private final MinecraftMediaLibrary library;
+  private final PacketHandler handler;
   private final UUID[] viewers;
   private final Location location;
   private final Entity[] entities;
@@ -66,7 +67,7 @@ public final class EntityCloudCallback implements FrameCallback {
       final int height,
       final int videoWidth,
       final int delay) {
-    this.library = library;
+    handler = library.getHandler();
     this.viewers = viewers;
     this.location = location;
     entities = getCloudEntities();
@@ -126,7 +127,7 @@ public final class EntityCloudCallback implements FrameCallback {
     final long time = System.currentTimeMillis();
     if (time - lastUpdated >= delay) {
       lastUpdated = time;
-      library.getHandler().displayEntities(viewers, entities, data, width);
+      handler.displayEntities(viewers, entities, data, width);
     }
   }
 
@@ -167,12 +168,12 @@ public final class EntityCloudCallback implements FrameCallback {
   }
 
   /**
-   * Gets library.
+   * Gets the PacketHandler.
    *
    * @return the library
    */
-  public MinecraftMediaLibrary getLibrary() {
-    return library;
+  public PacketHandler getHandler() {
+    return handler;
   }
 
   /**

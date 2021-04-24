@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.frame.highlight;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +33,7 @@ import java.util.UUID;
 /** The callback used to update block highlights for each frame when necessary. */
 public final class BlockHighlightCallback implements FrameCallback {
 
-  private final MinecraftMediaLibrary library;
+  private final PacketHandler handler;
   private final UUID[] viewers;
   private final Location location;
   private final int videoWidth;
@@ -60,7 +61,7 @@ public final class BlockHighlightCallback implements FrameCallback {
       final int height,
       final int videoWidth,
       final int delay) {
-    this.library = library;
+    handler = library.getHandler();
     this.viewers = viewers;
     this.location = location;
     this.width = width;
@@ -88,7 +89,17 @@ public final class BlockHighlightCallback implements FrameCallback {
     final long time = System.currentTimeMillis();
     if (time - lastUpdated >= delay) {
       lastUpdated = time;
-      // TODO: Implement Block Highlights
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          handler.displayDebugMarker(
+              viewers,
+              (int) (location.getX() - (width / 2D)) + x,
+              (int) (location.getY() + (height / 2D)) - y,
+              (int) location.getZ(),
+              data[width * y + x],
+              delay + 100);
+        }
+      }
     }
   }
 
@@ -129,12 +140,12 @@ public final class BlockHighlightCallback implements FrameCallback {
   }
 
   /**
-   * Gets library.
+   * Gets the PacketHandler.
    *
    * @return the library
    */
-  public MinecraftMediaLibrary getLibrary() {
-    return library;
+  public PacketHandler getHandler() {
+    return handler;
   }
 
   /**

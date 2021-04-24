@@ -25,15 +25,15 @@ package com.github.pulsebeat02.minecraftmedialibrary.frame.map;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
+import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.ByteBuffer;
 import java.util.UUID;
 
 /** The callback used for itemframes to update maps for each frame when necessary. */
 public final class MapDataCallback implements FrameCallback {
 
-  private final MinecraftMediaLibrary library;
+  private final PacketHandler handler;
   private final UUID[] viewers;
   private final DitherHolder type;
   private final int map;
@@ -64,7 +64,7 @@ public final class MapDataCallback implements FrameCallback {
       final int height,
       final int videoWidth,
       final int delay) {
-    this.library = library;
+    handler = library.getHandler();
     this.viewers = viewers;
     this.type = type;
     this.map = map;
@@ -93,8 +93,8 @@ public final class MapDataCallback implements FrameCallback {
     final long time = System.currentTimeMillis();
     if (time - lastUpdated >= delay) {
       lastUpdated = time;
-      final ByteBuffer dithered = type.ditherIntoMinecraft(data, videoWidth);
-      library.getHandler().displayMaps(viewers, map, width, height, dithered, videoWidth);
+      handler.displayMaps(
+          viewers, map, width, height, type.ditherIntoMinecraft(data, videoWidth), videoWidth);
     }
   }
 
@@ -144,12 +144,12 @@ public final class MapDataCallback implements FrameCallback {
   }
 
   /**
-   * Gets library.
+   * Gets the PacketHandler.
    *
    * @return the library
    */
-  public MinecraftMediaLibrary getLibrary() {
-    return library;
+  public PacketHandler getHandler() {
+    return handler;
   }
 
   /**

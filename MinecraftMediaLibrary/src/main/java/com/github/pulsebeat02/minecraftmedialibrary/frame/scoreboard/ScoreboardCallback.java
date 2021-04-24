@@ -53,7 +53,6 @@ public final class ScoreboardCallback implements FrameCallback {
   private long lastUpdated;
 
   private Scoreboard scoreboard;
-  private Objective objective;
   private int id;
 
   /**
@@ -104,7 +103,7 @@ public final class ScoreboardCallback implements FrameCallback {
       lastUpdated = time;
       if (scoreboard == null) {
         scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-        objective = scoreboard.registerNewObjective("rd-" + id++, "dummy", name);
+        final Objective objective = scoreboard.registerNewObjective("rd-" + id++, "dummy", name);
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         for (int i = 0; i < height; i++) {
           final Team team = scoreboard.registerNewTeam("SLOT_" + i);
@@ -116,10 +115,10 @@ public final class ScoreboardCallback implements FrameCallback {
       for (final Player player : viewers) {
         player.setScoreboard(scoreboard);
       }
-      for (int y = 0; y < height; y++) {
+      for (int y = 0; y < height; ++y) {
         int before = -1;
         final StringBuilder msg = new StringBuilder();
-        for (int x = 0; x < width; x++) {
+        for (int x = 0; x < width; ++x) {
           final int rgb = data[width * y + x];
           if (before != rgb) {
             msg.append(ChatColor.of("#" + String.format("%08x", rgb).substring(2)));

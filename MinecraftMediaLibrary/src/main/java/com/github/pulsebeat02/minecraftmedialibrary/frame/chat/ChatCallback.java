@@ -88,10 +88,10 @@ public final class ChatCallback implements FrameCallback {
     final long time = System.currentTimeMillis();
     if (time - lastUpdated >= delay) {
       lastUpdated = time;
-      for (int y = 0; y < height; y++) {
+      for (int y = 0; y < height; ++y) {
         int before = -1;
         final StringBuilder msg = new StringBuilder();
-        for (int x = 0; x < width; x++) {
+        for (int x = 0; x < width; ++x) {
           final int rgb = data[width * y + x];
           if (before != rgb) {
             msg.append(ChatColor.of("#" + String.format("%08x", rgb).substring(2)));
