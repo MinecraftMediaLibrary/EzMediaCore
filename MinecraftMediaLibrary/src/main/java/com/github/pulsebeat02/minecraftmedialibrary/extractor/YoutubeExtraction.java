@@ -72,8 +72,8 @@ public class YoutubeExtraction implements VideoExtractor {
       @NotNull final String url,
       @NotNull final String directory,
       @NotNull final ExtractionSetting settings) {
-    Preconditions.checkArgument(Strings.isNullOrEmpty(url), "Youtube URL cannot be empty null!");
-    Preconditions.checkArgument(Strings.isNullOrEmpty(directory), "Directory cannot be empty null!");
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "Youtube URL cannot be empty null!");
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(directory), "Directory cannot be empty null!");
     this.url = url;
     this.directory = directory;
     ffmpegLocator = new FFmpegLocation();

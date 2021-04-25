@@ -310,14 +310,6 @@ public class VideoCommand extends BaseCommand {
       return 1;
     }
 
-    // Check if video is playing
-    final VideoPlayer player = attributes.getPlayer();
-    if (player != null && player.isPlaying()) {
-
-      // Release the video if it is (which stops it)
-      player.release();
-    }
-
     final YoutubeExtraction extractor = attributes.getExtractor();
     audience.sendMessage(
         ChatUtilities.formatMessage(
@@ -329,6 +321,11 @@ public class VideoCommand extends BaseCommand {
                     String.format("Starting Video on File: %s", file.getName()),
                     NamedTextColor.GOLD)));
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
+
+    final VideoPlayer player = attributes.getPlayer();
+    if (player.isPlaying()) {
+      player.stop();
+    }
 
     // Check if the library is using vlcj
     if (library.isVlcj()) {
@@ -353,7 +350,7 @@ public class VideoCommand extends BaseCommand {
     }
 
     // Start the player and play the sound to all online players
-    player.start(Bukkit.getOnlinePlayers());
+    attributes.getPlayer().start(Bukkit.getOnlinePlayers());
     return 1;
   }
 

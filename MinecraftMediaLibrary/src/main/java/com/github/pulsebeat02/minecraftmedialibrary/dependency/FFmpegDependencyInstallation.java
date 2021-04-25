@@ -31,12 +31,13 @@ import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
+import java.util.Objects;
 
 /**
  * A special handling class specific to the JAVE2 library. JAVE2 is an extension to * "JAVE", an
@@ -131,18 +132,11 @@ public class FFmpegDependencyInstallation {
    */
   @Nullable
   private Path searchFFMPEG(@NotNull final Path folder) {
-    try {
-      final Optional<Path> optional =
-          Files.walk(folder).filter(f -> f.getFileName().toString().contains("ffmpeg")).findFirst();
-      if (optional.isPresent()) {
-        final Path p = optional.get();
-        if (Files.isRegularFile(p)) {
-          file = p;
-          return p;
-        }
+    for (final File f : Objects.requireNonNull(folder.toFile().listFiles())) {
+      if (f.getName().contains("ffmpeg")) {
+        file = f.toPath();
+        return file;
       }
-    } catch (final IOException e) {
-      e.printStackTrace();
     }
     return null;
   }

@@ -194,7 +194,9 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
     try {
 
       final Path zipFile = Paths.get(path);
-      Files.createFile(zipFile);
+      if (!Files.exists(zipFile)) {
+        Files.createFile(zipFile);
+      }
 
       final ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipFile.toFile()));
       final ZipEntry config = new ZipEntry("pack.mcmeta");

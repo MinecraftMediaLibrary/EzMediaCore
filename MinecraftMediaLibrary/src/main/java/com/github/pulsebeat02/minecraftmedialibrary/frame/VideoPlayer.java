@@ -202,10 +202,8 @@ public abstract class VideoPlayer {
       initializePlayer();
     }
     mediaPlayerComponent.media().play(url);
-    final String name = getLibrary().getPlugin().getName().toLowerCase();
     for (final Player p : players) {
-      p.stopSound(name);
-      p.playSound(p.getLocation(), name, 1.0F, 1.0F);
+      p.playSound(p.getLocation(), getLibrary().getPlugin().getName().toLowerCase(), 1.0F, 1.0F);
     }
     Logger.info(String.format("Started Playing the Video! (%s)", url));
   }
@@ -219,7 +217,7 @@ public abstract class VideoPlayer {
 
   /** Releases the player. */
   public void release() {
-    stop();
+    playing = false;
     mediaPlayerComponent.release();
     mediaPlayerComponent = null;
     Logger.info(String.format("Released the Video! (%s)", url));

@@ -57,6 +57,8 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       // Define a new MinecraftMediaLibrary Instance
       library = new MinecraftMediaLibrary(this);
 
+      com.github.pulsebeat02.minecraftmedialibrary.logger.Logger.setVerbose(true);
+
       registerCommands();
       registerConfigurations();
       new Metrics(this, 10229);
