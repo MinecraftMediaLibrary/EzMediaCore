@@ -109,8 +109,8 @@ public class NMSMapPacketIntercepter implements PacketHandler {
     final int vidHeight = rgb.capacity() / videoWidth;
     final int pixW = width << 7;
     final int pixH = height << 7;
-    final int xOff = (pixW - videoWidth) / 2;
-    final int yOff = (pixH - vidHeight) / 2;
+    final int xOff = (pixW - videoWidth) >> 1;
+    final int yOff = (pixH - vidHeight) >> 1;
     displayMaps(viewers, map, width, height, rgb, videoWidth, xOff, yOff);
   }
 
