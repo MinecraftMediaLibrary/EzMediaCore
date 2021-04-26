@@ -323,7 +323,7 @@ public class VideoCommand extends BaseCommand {
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
 
     final VideoPlayer player = attributes.getPlayer();
-    if (player.isPlaying()) {
+    if (player != null && player.isPlaying()) {
       player.stop();
     }
 
@@ -350,6 +350,7 @@ public class VideoCommand extends BaseCommand {
     }
 
     // Start the player and play the sound to all online players
+    assert attributes.getPlayer() != null;
     attributes.getPlayer().start(Bukkit.getOnlinePlayers());
     return 1;
   }
