@@ -33,6 +33,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -510,8 +512,13 @@ public class VideoCommand extends BaseCommand {
       final String url = provider.generateUrl(wrapper.getPath());
 
       // Send the resourcepack url to all players on the server
-      for (final Player p : Bukkit.getOnlinePlayers()) {
-        p.setResourcePack(url);
+      try {
+        for (final Player p : Bukkit.getOnlinePlayers()) {
+          p.setResourcePack(
+              url, VideoExtractionUtilities.createHashSHA(new File(wrapper.getPath())));
+        }
+      } catch (final NoSuchAlgorithmException | IOException e) {
+        e.printStackTrace();
       }
     } else {
       audience.sendMessage(

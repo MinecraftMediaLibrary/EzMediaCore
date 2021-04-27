@@ -128,7 +128,7 @@ public class ParallelVideoPlayer extends VideoPlayer {
   @Override
   public void start(final @NotNull Collection<? extends Player> players) {}
 
-  public void send(final int[] data) {
+  public void getFirstFrame() {
     final long time = System.currentTimeMillis();
     if (time - lastUpdated >= delay) {
       lastUpdated = time;
