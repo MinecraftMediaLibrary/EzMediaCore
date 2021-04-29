@@ -408,7 +408,7 @@ public class VideoCommand extends BaseCommand {
                 .setWidth(attributes.getFrameWidth())
                 .setHeight(attributes.getFrameHeight())
                 .setVideoWidth(attributes.getScreenWidth())
-                .setDelay(0)
+                .setDelay(40)
                 .setLocation(sender.getLocation())
                 .build(library))
         .build(library);

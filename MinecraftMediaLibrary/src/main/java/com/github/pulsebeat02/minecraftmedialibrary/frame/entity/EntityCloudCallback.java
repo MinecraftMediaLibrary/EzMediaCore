@@ -41,6 +41,7 @@ public final class EntityCloudCallback implements FrameCallback {
   private final PacketHandler handler;
   private final UUID[] viewers;
   private final Location location;
+  private final String charType;
   private final Entity[] entities;
   private final int videoWidth;
   private final int delay;
@@ -70,6 +71,38 @@ public final class EntityCloudCallback implements FrameCallback {
     handler = library.getHandler();
     this.viewers = viewers;
     this.location = location;
+    charType = "-";
+    entities = getCloudEntities();
+    this.width = width;
+    this.height = height;
+    this.videoWidth = videoWidth;
+    this.delay = delay;
+  }
+
+  /**
+   * Instantiates a new EntityCloudCallback.
+   *
+   * @param library the library
+   * @param viewers the viewers
+   * @param location the location
+   * @param width the width
+   * @param height the height
+   * @param videoWidth the video width
+   * @param delay the delay
+   */
+  public EntityCloudCallback(
+          @NotNull final MinecraftMediaLibrary library,
+          final UUID[] viewers,
+          @NotNull final Location location,
+          @NotNull final String str,
+          final int width,
+          final int height,
+          final int videoWidth,
+          final int delay) {
+    handler = library.getHandler();
+    this.viewers = viewers;
+    this.location = location;
+    charType = str;
     entities = getCloudEntities();
     this.width = width;
     this.height = height;
@@ -99,7 +132,7 @@ public final class EntityCloudCallback implements FrameCallback {
     if (world != null) {
       for (int i = height - 1; i >= 0; i--) {
         final AreaEffectCloud cloud =
-            (AreaEffectCloud) spawn.getWorld().spawnEntity(spawn, EntityType.AREA_EFFECT_CLOUD);
+            (AreaEffectCloud) world.spawnEntity(spawn, EntityType.AREA_EFFECT_CLOUD);
         ents[i] = cloud;
         cloud.setInvulnerable(true);
         cloud.setDuration(999999);
@@ -109,7 +142,7 @@ public final class EntityCloudCallback implements FrameCallback {
         cloud.setRadiusPerTick(0);
         cloud.setReapplicationDelay(0);
         cloud.setCustomNameVisible(true);
-        cloud.setCustomName(StringUtils.repeat("-", height));
+        cloud.setCustomName(StringUtils.repeat(charType, height));
         cloud.setGravity(false);
         spawn.add(0, 0.225d, 0);
       }
