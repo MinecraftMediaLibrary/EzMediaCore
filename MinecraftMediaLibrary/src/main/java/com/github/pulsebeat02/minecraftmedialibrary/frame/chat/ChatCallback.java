@@ -36,7 +36,11 @@ import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 
-/** The callback used to update chat for each frame when necessary. */
+/**
+ * The callback used to update chat for each frame when necessary.
+ *
+ * <p>It sends the necessary chat to the players to create a video.
+ */
 public final class ChatCallback implements FrameCallback {
 
   private final MinecraftMediaLibrary library;

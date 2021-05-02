@@ -43,6 +43,25 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.function.Consumer;
 
+/**
+ * The main abstract class for VideoPlayer classes to extend. Frame Callbacks and Video Players MUST
+ * have the correct classes associated with each other! An example of the classes that are linked
+ * together can be found below:
+ *
+ * <p>ChatCallback -> ChatIntegratedPlayer
+ *
+ * <p>EntityCloudCallback -> EntityCloudIntegratedPlayer
+ *
+ * <p>GifIntegratedPlayer ->
+ *
+ * <p>BlockHighlightCallback -> BlockHighlightPlayer
+ *
+ * <p>MapDataCallback -> MapIntegratedPlayer
+ *
+ * <p>ParallelVideoPlayer
+ *
+ * <p>ScoreboardCallback -> ScoreboardIntegratedPlayer
+ */
 public abstract class VideoPlayer {
 
   private final MinecraftMediaLibrary library;

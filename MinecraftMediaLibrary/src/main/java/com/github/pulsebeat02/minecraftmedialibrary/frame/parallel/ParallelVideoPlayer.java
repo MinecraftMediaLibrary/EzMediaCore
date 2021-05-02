@@ -99,6 +99,9 @@ import java.util.concurrent.Future;
  * from Guava, it just wraps the checked Future#get() exceptions in an unchecked exception/error)
  *
  * </pre>
+ *
+ * This is currently a VideoPlayer in progress. It will not function at all. Please wait as I
+ * try to develop it.
  */
 public class ParallelVideoPlayer extends VideoPlayer {
 

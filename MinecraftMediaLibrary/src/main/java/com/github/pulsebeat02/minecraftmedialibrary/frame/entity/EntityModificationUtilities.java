@@ -32,9 +32,9 @@ import org.jetbrains.annotations.NotNull;
  * An class containing utilities for the default built-in entities which can be used to play videos
  * in Minecraft.
  */
-public class DefaultEntities {
+public class EntityModificationUtilities {
 
-  public static Entity getModifiedAreaEffectCloud(
+  protected static Entity getModifiedAreaEffectCloud(
       @NotNull final AreaEffectCloud cloud, @NotNull final String name, final int height) {
     cloud.setInvulnerable(true);
     cloud.setDuration(999999);
@@ -49,7 +49,7 @@ public class DefaultEntities {
     return cloud;
   }
 
-  public static Entity getModifiedArmorStand(
+  protected static Entity getModifiedArmorStand(
       @NotNull final ArmorStand armorstand, @NotNull final String name, final int height) {
     armorstand.setInvulnerable(true);
     armorstand.setVisible(false);

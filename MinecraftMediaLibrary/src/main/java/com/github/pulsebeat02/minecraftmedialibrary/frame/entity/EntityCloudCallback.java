@@ -28,19 +28,45 @@ import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.AreaEffectCloud;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-/** The callback used for clouds to update entity clouds for each frame when necessary. */
+/**
+ * The callback used for clouds to update entity clouds for each frame when necessary.
+ *
+ * <p>When defining, you must pass in the basic arguments, but also a ScreenEntityType which defines
+ * what type of Entity you are going to use for the callback. This entity could be any type of
+ * entity.
+ *
+ * <p>For example, if you wanted to use the built in AreaEffectCloud (Cloud Particle) player, you
+ * could pass in ScreenEntityType.AREA_EFFECT_CLOUD and it would automatically customize the entity
+ * for you.
+ *
+ * <p>Or for an ArmorStand player, you could pass in ScreenEntityType.ARMORSTAND and it would
+ * customize that specific entity accordingly.
+ *
+ * <p>For custom implementations, you would need to pass in ScreenEntityType.CUSTOM to tell the
+ * player that you are using a custom entity for the player, AND override the
+ * EntityCloudCallback#modifyEntity class to modify and return the entity properly. If you don't
+ * override the method, it will throw many exceptions into the console explaining that the method
+ * has to be overridden in order to function properly.
+ *
+ * <p>The ScreenEntityType and method override SHOULD ALWAYS BE SYNCED. For example, when you use
+ * ScreenEntityType.AREA_EFFECT_CLOUD or ScreenEntityType.ARMORSTAND, you SHOULD NOT be overriding
+ * the method as the library will be able to do that for you. You should only override it if you are
+ * using ScreenEntityType.CUSTOM, which is where you manually customise it yourself.
+ */
 public final class EntityCloudCallback implements FrameCallback {
 
   private final PacketHandler handler;
   private final UUID[] viewers;
   private final Location location;
   private final String charType;
+  private final ScreenEntityType type;
   private final Entity[] entities;
   private final int videoWidth;
   private final int delay;
@@ -63,6 +89,7 @@ public final class EntityCloudCallback implements FrameCallback {
       @NotNull final MinecraftMediaLibrary library,
       final UUID[] viewers,
       @NotNull final Location location,
+      @NotNull final ScreenEntityType type,
       final int width,
       final int height,
       final int videoWidth,
@@ -70,6 +97,7 @@ public final class EntityCloudCallback implements FrameCallback {
     handler = library.getHandler();
     this.viewers = viewers;
     this.location = location;
+    this.type = type;
     charType = "-";
     entities = getCloudEntities();
     this.width = width;
@@ -94,6 +122,7 @@ public final class EntityCloudCallback implements FrameCallback {
       final UUID[] viewers,
       @NotNull final Location location,
       @NotNull final String str,
+      @NotNull final ScreenEntityType type,
       final int width,
       final int height,
       final int videoWidth,
@@ -101,6 +130,7 @@ public final class EntityCloudCallback implements FrameCallback {
     handler = library.getHandler();
     this.viewers = viewers;
     this.location = location;
+    this.type = type;
     charType = str;
     entities = getCloudEntities();
     this.width = width;
@@ -130,13 +160,34 @@ public final class EntityCloudCallback implements FrameCallback {
     final World world = spawn.getWorld();
     if (world != null) {
       for (int i = height - 1; i >= 0; i--) {
-        final AreaEffectCloud cloud =
-            (AreaEffectCloud) world.spawnEntity(spawn, EntityType.AREA_EFFECT_CLOUD);
-        ents[i] = DefaultEntities.getModifiedAreaEffectCloud(cloud, charType, height);
+        ents[i] = modifyEntity(world.spawnEntity(spawn, EntityType.AREA_EFFECT_CLOUD));
         spawn.add(0, 0.225d, 0);
       }
     }
     return ents;
+  }
+
+  /**
+   * Modifies the entity accordingly. Users may override the method if they would like to modify the
+   * entity with custom attributes.
+   *
+   * @param entity the entity to modify
+   */
+  public Entity modifyEntity(@NotNull final Entity entity) {
+    switch (type) {
+      case AREA_EFFECT_CLOUD:
+        return EntityModificationUtilities.getModifiedAreaEffectCloud(
+            (AreaEffectCloud) entity, charType, getHeight());
+      case ARMORSTAND:
+        return EntityModificationUtilities.getModifiedArmorStand(
+            (ArmorStand) entity, charType, getHeight());
+      case CUSTOM:
+        /*
+        Override the method for custom entity
+         */
+        break;
+    }
+    throw new IllegalArgumentException("Custom entity must have the modifyEntity overridden!");
   }
 
   /**
@@ -234,12 +285,30 @@ public final class EntityCloudCallback implements FrameCallback {
     return entities;
   }
 
+  /**
+   * Gets the char type used in the name.
+   *
+   * @return the char used
+   */
+  public String getCharType() {
+    return charType;
+  }
+
+  /**
+   * Gets the type of entity used.
+   *
+   * @return the type of entity
+   */
+  public ScreenEntityType getType() {
+    return type;
+  }
+
   /** The type Builder. */
   public static class Builder {
 
     private UUID[] viewers;
     private Location location;
-    private int map;
+    private ScreenEntityType type;
     private int width;
     private int height;
     private int videoWidth;
@@ -314,13 +383,25 @@ public final class EntityCloudCallback implements FrameCallback {
     }
 
     /**
+     * Sets the proper entity type of the player.
+     *
+     * @param type the entity type
+     * @return the type
+     */
+    public Builder setType(final ScreenEntityType type) {
+      this.type = type;
+      return this;
+    }
+
+    /**
      * Create entity cloud callback
      *
      * @param library the library
      * @return the entity cloud callback
      */
     public EntityCloudCallback build(final MinecraftMediaLibrary library) {
-      return new EntityCloudCallback(library, viewers, location, width, height, videoWidth, delay);
+      return new EntityCloudCallback(
+          library, viewers, location, type, width, height, videoWidth, delay);
     }
   }
 }
