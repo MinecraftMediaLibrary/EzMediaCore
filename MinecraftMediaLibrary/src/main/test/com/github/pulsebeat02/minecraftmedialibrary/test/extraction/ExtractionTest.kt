@@ -23,7 +23,7 @@ fun main() {
     Logger.info("Running Command Chain! (Setup)")
     val junest = File("/Users/bli24/Desktop/junest-7.3.7.zip")
     FileUtils.copyURLToFile(
-        URL("https://github.com/PulseBeat02/JuNest-Mirror/raw/main/junest-7.3.7.zip"), junest
+        URL("https://github.com/MinecraftMediaLibrary/JuNest-Mirror/raw/main/junest-7.3.7.zip"), junest
     )
     ArchiveUtilities.decompressArchive(junest, junest.parentFile)
 }

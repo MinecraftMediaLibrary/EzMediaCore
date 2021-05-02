@@ -127,7 +127,7 @@ public class JuNestInstaller extends PackageBase {
   private void downloadJuNest() throws IOException {
     final File junest = new File(String.format("%s/junest.zip", baseDirectory));
     FileUtils.copyURLToFile(
-        new URL("https://github.com/PulseBeat02/junest/archive/refs/heads/master.zip"), junest);
+        new URL("https://github.com/MinecraftMediaLibrary/junest/archive/refs/heads/master.zip"), junest);
     ArchiveUtilities.decompressArchive(junest, junest.getParentFile());
   }
 

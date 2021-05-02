@@ -64,7 +64,7 @@ public class CondaInstallation {
     FileUtilities.createFile(conda, "Created conda.sh File");
     FileUtils.copyURLToFile(
         new URL(
-            "https://github.com/PulseBeat02/Conda-Mirror/raw/main/Miniconda3-latest-Linux-x86_64.sh"),
+            "https://github.com/MinecraftMediaLibrary/Conda-Mirror/raw/main/Miniconda3-latest-Linux-x86_64.sh"),
         conda);
     RuntimeUtilities.executeBashScript(
         conda,

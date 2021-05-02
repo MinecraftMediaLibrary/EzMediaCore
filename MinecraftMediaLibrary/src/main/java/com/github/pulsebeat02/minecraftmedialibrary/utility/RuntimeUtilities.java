@@ -75,7 +75,7 @@ public final class RuntimeUtilities {
       is64bit = true;
       if (WINDOWS) {
         Logger.info("Detected Windows 64 Bit!");
-        URL = "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/win64/VLC.zip";
+        URL = "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/win64/VLC.zip";
       } else if (LINUX) {
         if (CPU_ARCH.contains("arm")) {
           Logger.info("Detected Linux ARM 64 Bit!");
@@ -87,16 +87,16 @@ public final class RuntimeUtilities {
         if (!CPU_ARCH.contains("amd")) {
           Logger.info("Detected MACOS 64 Bit! (Silicon)");
           URL =
-              "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-intel64/VLC.dmg";
+              "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/macos-intel64/VLC.dmg";
         } else {
           Logger.info("Detected MACOS 64 Bit! (AMD)");
-          URL = "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/macos-arm64/VLC.dmg";
+          URL = "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/macos-arm64/VLC.dmg";
         }
       }
     } else {
       is64bit = false;
       if (WINDOWS) {
-        URL = "https://github.com/PulseBeat02/VLC-Release-Mirror/raw/master/win32/VLC.zip";
+        URL = "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/win32/VLC.zip";
       } else if (LINUX) {
         if (CPU_ARCH.contains("arm")) {
           Logger.info("Detected ARM 32 Bit!");
