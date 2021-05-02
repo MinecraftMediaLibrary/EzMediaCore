@@ -25,7 +25,6 @@ package com.github.pulsebeat02.minecraftmedialibrary.frame.entity;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.AreaEffectCloud;
@@ -91,14 +90,14 @@ public final class EntityCloudCallback implements FrameCallback {
    * @param delay the delay
    */
   public EntityCloudCallback(
-          @NotNull final MinecraftMediaLibrary library,
-          final UUID[] viewers,
-          @NotNull final Location location,
-          @NotNull final String str,
-          final int width,
-          final int height,
-          final int videoWidth,
-          final int delay) {
+      @NotNull final MinecraftMediaLibrary library,
+      final UUID[] viewers,
+      @NotNull final Location location,
+      @NotNull final String str,
+      final int width,
+      final int height,
+      final int videoWidth,
+      final int delay) {
     handler = library.getHandler();
     this.viewers = viewers;
     this.location = location;
@@ -133,17 +132,7 @@ public final class EntityCloudCallback implements FrameCallback {
       for (int i = height - 1; i >= 0; i--) {
         final AreaEffectCloud cloud =
             (AreaEffectCloud) world.spawnEntity(spawn, EntityType.AREA_EFFECT_CLOUD);
-        ents[i] = cloud;
-        cloud.setInvulnerable(true);
-        cloud.setDuration(999999);
-        cloud.setDurationOnUse(0);
-        cloud.setRadiusOnUse(0);
-        cloud.setRadius(0);
-        cloud.setRadiusPerTick(0);
-        cloud.setReapplicationDelay(0);
-        cloud.setCustomNameVisible(true);
-        cloud.setCustomName(StringUtils.repeat(charType, height));
-        cloud.setGravity(false);
+        ents[i] = DefaultEntities.getModifiedAreaEffectCloud(cloud, charType, height);
         spawn.add(0, 0.225d, 0);
       }
     }

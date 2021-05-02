@@ -23,9 +23,7 @@
 package com.github.pulsebeat02.minecraftmedialibrary.entity;
 
 import com.google.common.collect.ImmutableSet;
-import org.bukkit.Location;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
@@ -33,7 +31,6 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -46,24 +43,19 @@ import java.util.Set;
  * EntityModification#invokeGetter with the name of the method (getName) and the argument ("custom
  * name"))
  */
-public class EntityModificationHelper {
+public class EntityModificationHelper<T extends Entity> {
 
   private final Class<?> entityClass;
-  private final Location location;
-  private final Entity entity;
   private final Map<String, Method> methods;
   private final Set<Class<?>> validArguments;
 
   /**
    * Instantiates a new EntityModificationHelper.
    *
-   * @param type the entity type
+   * @param clazz the entity type
    */
-  public EntityModificationHelper(
-      @NotNull final EntityType type, @NotNull final Location location) {
-    entityClass = type.getEntityClass();
-    this.location = location;
-    entity = Objects.requireNonNull(location.getWorld()).spawnEntity(location, type);
+  public EntityModificationHelper(@NotNull final Class<?> clazz) {
+    entityClass = clazz;
     methods = getProperMethods();
     validArguments =
         ImmutableSet.<Class<?>>builder()
@@ -103,13 +95,13 @@ public class EntityModificationHelper {
    * @param argument the argument
    * @return true if the operation was successful, false otherwise
    */
-  public boolean invokeGetter(@NotNull final String methodName, @NotNull final Object argument) {
+  public boolean invokeGetter(
+      @NotNull final T entity, @NotNull final String methodName, @NotNull final Object argument) {
     if (!methods.containsKey(methodName)) {
       return false;
     }
-    final Method method = methods.get(methodName);
     try {
-      method.invoke(entity, argument);
+      methods.get(methodName).invoke(entity, argument);
       return true;
     } catch (final IllegalAccessException | InvocationTargetException e) {
       e.printStackTrace();
@@ -160,14 +152,5 @@ public class EntityModificationHelper {
    */
   public Collection<String> getMethodNames() {
     return methods.keySet();
-  }
-
-  /**
-   * Gets the specific location of the entity.
-   *
-   * @return the location
-   */
-  public Location getLocation() {
-    return location;
   }
 }
