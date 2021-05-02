@@ -40,7 +40,13 @@ import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 
-/** The callback used to update scoreboard for each frame when necessary. */
+/**
+ * The callback used to update scoreboard for each frame when necessary.
+ *
+ * <p>By default, the scoreboard name will be set to the plugin name plus a space and "Video
+ * Player". For example, if your plugin name was called "MyPlugin", the scoreboard which would be
+ * used would be named: "MyPlugin Video Player".
+ */
 public final class ScoreboardCallback implements FrameCallback {
 
   private final MinecraftMediaLibrary library;

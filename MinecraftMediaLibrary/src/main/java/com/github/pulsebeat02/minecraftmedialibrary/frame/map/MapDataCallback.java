@@ -30,7 +30,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-/** The callback used for itemframes to update maps for each frame when necessary. */
+/**
+ * The callback used for itemframes to update maps for each frame when necessary.
+ *
+ * <p>You should pass in the necessary arguments that are needed. But also another argument which
+ * specifies the dithering type. Each dithering type has it's own benefits. For example, Error
+ * Diffusion Dithering algorithms (such as Floyd Steinberg, Filter Lite, etc) are known to provide
+ * better and smoother color results rather than Ordered Dithering. However, the result is that it
+ * is slower and will likely make the video player play less frames. Filter Lite is set by default
+ * as it is very fast and provides very great results.
+ */
 public final class MapDataCallback implements FrameCallback {
 
   private final PacketHandler handler;

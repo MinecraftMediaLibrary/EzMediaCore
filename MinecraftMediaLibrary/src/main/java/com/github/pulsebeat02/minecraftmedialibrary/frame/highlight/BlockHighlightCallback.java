@@ -30,7 +30,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-/** The callback used to update block highlights for each frame when necessary. */
+/**
+ * The callback used to update block highlights for each frame when necessary.
+ *
+ * <p>This video player is only visible if the player has debug mode turned on. It uses custom
+ * packets to send to the player with the RGB colors to make a video player.
+ */
 public final class BlockHighlightCallback implements FrameCallback {
 
   private final PacketHandler handler;
