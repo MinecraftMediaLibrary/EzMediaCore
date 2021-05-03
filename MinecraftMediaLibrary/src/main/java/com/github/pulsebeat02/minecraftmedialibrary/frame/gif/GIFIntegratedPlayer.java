@@ -129,7 +129,7 @@ public class GIFIntegratedPlayer extends VideoPlayer {
 
   /** Stops the Gif player. */
   @Override
-  public void stop() {
+  public void stop(@NotNull final Collection<? extends Player> players) {
     scheduler.shutdown();
   }
 

@@ -9,6 +9,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudIntegratedPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.ScreenEntityType;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapIntegratedPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
@@ -289,7 +290,7 @@ public class VideoCommand extends BaseCommand {
     audience.sendMessage(Component.text("Stopped the Video!", NamedTextColor.GOLD));
 
     // Stop the media player
-    attributes.getPlayer().stop();
+    attributes.getPlayer().stop(Bukkit.getOnlinePlayers());
     return 1;
   }
 
@@ -326,7 +327,7 @@ public class VideoCommand extends BaseCommand {
 
     final VideoPlayer player = attributes.getPlayer();
     if (player != null && player.isPlaying()) {
-      player.stop();
+      player.stop(Bukkit.getOnlinePlayers());
     }
 
     // Check if the library is using vlcj
@@ -410,6 +411,7 @@ public class VideoCommand extends BaseCommand {
                 .setVideoWidth(attributes.getScreenWidth())
                 .setDelay(40)
                 .setLocation(sender.getLocation())
+                .setType(ScreenEntityType.ARMORSTAND)
                 .build(library))
         .build(library);
   }
