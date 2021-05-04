@@ -92,9 +92,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.PulseBeat02</groupId>
+            <groupId>com.github.pulsebeat02</groupId>
             <artifactId>jarchivelib</artifactId>
-            <version>master-SNAPSHOT</version>
+            <version>v1.2.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
