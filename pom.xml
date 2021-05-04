@@ -35,7 +35,7 @@
         </plugins>
     </build>
     <modules>
-        <module>MinecraftMediaLibrary</module>
+        <module>MinecraftMediaLibrary-API</module>
         <module>v1_16_R3</module>
         <module>v1_16_R2</module>
         <module>v1_16_R1</module>
@@ -52,7 +52,7 @@
         <module>v1_8_R2</module>
         <module>v1_8_R1</module>
         <module>MinecraftMediaLibrary-NMS</module>
-        <module>MinecraftMediaLibrary-Final</module>
+        <module>MinecraftMediaLibrary</module>
         <module>DeluxeMediaPlugin</module>
     </modules>
     <properties>

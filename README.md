@@ -40,7 +40,7 @@ Dependency:
 ```xml
 	<dependency>
 	    <groupId>com.github.PulseBeat02</groupId>
-	    <artifactId>MinecraftMediaLibrary</artifactId>
+	    <artifactId>MinecraftMediaLibrary-API</artifactId>
 	    <version>master-SNAPSHOT</version>
 	</dependency>
 ```

@@ -2,172 +2,106 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <packaging>jar</packaging>
-    <properties>
-        <kotlin.version>1.4.31</kotlin.version>
-        <skipTests>true</skipTests>
-    </properties>
     <parent>
         <artifactId>MinecraftMediaLibrary-Parent</artifactId>
         <groupId>com.github.pulsebeat02</groupId>
         <version>RELEASE-1.4.0</version>
     </parent>
+    <modelVersion>4.0.0</modelVersion>
     <artifactId>MinecraftMediaLibrary</artifactId>
+    <name>MinecraftMediaLibrary</name>
+    <description>Official Media Library for Minecraft Spigot</description>
+    <url>https://github.com/PulseBeat02/MinecraftMediaLibrary</url>
+    <licenses>
+        <license>
+            <name>MinecraftMediaLibrary License</name>
+            <url>https://github.com/PulseBeat02/MinecraftMediaLibrary/blob/master/LICENSE</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>PulseBeat_02</name>
+            <email>brandonli2006ma@gmail.com</email>
+            <url>https://github.com/PulseBeat02</url>
+        </developer>
+    </developers>
     <build>
-        <testSourceDirectory>src/main/test</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19.1</version>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <relocations>
+                        <relocation>
+                            <pattern>uk.co.caprica.vlcj</pattern>
+                            <shadedPattern>com.github.pulsebeat02.vlcj</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>uk.co.caprica.vlcj.binding</pattern>
+                            <shadedPattern>com.github.pulsebeat02.vlcj.binding</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>uk.co.caprica.nativestreams</pattern>
+                            <shadedPattern>com.github.pulsebeat02.vlcj.nativestreams</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.github.sealedtx.downloader</pattern>
+                            <shadedPattern>com.github.pulsebeat02.youtube</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>ws.schild.jave</pattern>
+                            <shadedPattern>com.github.pulsebeat02.jave</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.apache.commons.compress</pattern>
+                            <shadedPattern>com.github.pulsebeat02.compress</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.rauschig.jarchivelib</pattern>
+                            <shadedPattern>com.github.pulsebeat02.jarchivelib</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.tukaani.xz</pattern>
+                            <shadedPattern>com.github.pulsebeat02.xz</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.ow2.asm</pattern>
+                            <shadedPattern>com.github.pulsebeat02.asm</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.ow2.asm.commons</pattern>
+                            <shadedPattern>com.github.pulsebeat02.asm.commons</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.apache.commons.io</pattern>
+                            <shadedPattern>org.bukkit.craftbukkit.libs.org.apache.commons.io</shadedPattern>
+                        </relocation>
+                    </relocations>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                </configuration>
             </plugin>
         </plugins>
     </build>
     <dependencies>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.16.5-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>uk.co.caprica</groupId>
-            <artifactId>vlcj</artifactId>
-            <version>4.7.1</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>uk.co.caprica</groupId>
-            <artifactId>vlcj-natives</artifactId>
-            <version>4.1.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>uk.co.caprica</groupId>
-            <artifactId>native-streams</artifactId>
-            <version>1.0.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.sealedtx</groupId>
-            <artifactId>java-youtube-downloader</artifactId>
-            <version>2.5.2</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>ws.schild</groupId>
-            <artifactId>jave-core</artifactId>
-            <version>3.0.1</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>5.0.0.Alpha2</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.mojang</groupId>
-            <artifactId>authlib</artifactId>
-            <version>1.5.25</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>20.1.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm</artifactId>
-            <version>9.1</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm-commons</artifactId>
-            <version>9.1</version>
-            <scope>provided</scope>
+            <groupId>com.github.pulsebeat02</groupId>
+            <artifactId>MinecraftMediaLibrary-API</artifactId>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.pulsebeat02</groupId>
-            <artifactId>jarchivelib</artifactId>
-            <version>v1.2.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.tukaani</groupId>
-            <artifactId>xz</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.73</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna</artifactId>
-            <version>5.7.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.bytedeco</groupId>
-            <artifactId>javacv-platform</artifactId>
-            <version>1.5.5</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.github.glytching</groupId>
-            <artifactId>junit-extensions</artifactId>
-            <version>2.4.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-jdk8</artifactId>
-            <version>${kotlin.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-test</artifactId>
-            <version>${kotlin.version}</version>
-            <scope>test</scope>
+            <artifactId>MinecraftMediaLibrary-NMS</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.junit</groupId>
-                <artifactId>junit-bom</artifactId>
-                <version>5.7.1</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-    <repositories>
-        <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-        </repository>
-        <repository>
-            <id>minecraft-repo</id>
-            <url>https://libraries.minecraft.net/</url>
-        </repository>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
 </project>
