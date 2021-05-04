@@ -33,8 +33,11 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
@@ -48,6 +51,19 @@ import java.util.stream.Collectors;
  * used would be named: "MyPlugin Video Player".
  */
 public final class ScoreboardCallback implements FrameCallback {
+
+  private static ChatColor[] COLORS;
+
+  static {
+    try {
+      final Field field = ChatColor.class.getDeclaredField("BY_CHAR");
+      field.setAccessible(true);
+      COLORS = ((Map<Character, ChatColor>) field.get(null)).values().toArray(new ChatColor[0]);
+      field.setAccessible(false);
+    } catch (final NoSuchFieldException | IllegalAccessException e) {
+      e.printStackTrace();
+    }
+  }
 
   private final MinecraftMediaLibrary library;
   private final Set<Player> viewers;
@@ -108,12 +124,12 @@ public final class ScoreboardCallback implements FrameCallback {
     if (time - lastUpdated >= delay) {
       lastUpdated = time;
       if (scoreboard == null) {
-        scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        scoreboard = Objects.requireNonNull(Bukkit.getScoreboardManager()).getNewScoreboard();
         final Objective objective = scoreboard.registerNewObjective("rd-" + id++, "dummy", name);
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         for (int i = 0; i < height; i++) {
           final Team team = scoreboard.registerNewTeam("SLOT_" + i);
-          final String entry = ChatColor.values()[i].toString();
+          final String entry = COLORS[i].toString();
           team.addEntry(entry);
           objective.getScore(entry).setScore(15 - i);
         }

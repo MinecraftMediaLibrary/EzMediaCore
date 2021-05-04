@@ -12,11 +12,11 @@
  */
 package com.github.pulsebeat02.minecraftmedialibrary.test.lab
 
-import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxPackage
-import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
+import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities
+import org.apache.commons.io.FilenameUtils
 
-fun main(args: Array<String>) {
-    val gson = GsonBuilder().setPrettyPrinting().create()
-    val token = object : TypeToken<Map<String?, Map<String?, Set<LinuxPackage?>?>?>?>() {}.type
+fun main() {
+    println(FilenameUtils.getExtension("gradlew.bat"))
+    println(FilenameUtils.getExtension("test.tar.gz"))
+    println(ArchiveUtilities.getFileName("x.tar"))
 }

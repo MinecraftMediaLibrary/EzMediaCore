@@ -274,7 +274,7 @@ public final class Reflection {
    *
    * <p>
    *
-   * @see {@link #getClass()} for more information.
+   * @see Class#getClass() for more information.
    * @param lookupName - the class name with variables.
    * @return The class.
    */

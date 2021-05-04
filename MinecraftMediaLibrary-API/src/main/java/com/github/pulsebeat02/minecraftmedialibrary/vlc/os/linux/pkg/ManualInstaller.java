@@ -19,19 +19,15 @@ public class ManualInstaller extends PackageBase {
 
   /**
    * Installs the packages accordingly.
-   *
-   * @throws IOException if an io issue has occurred during the process
    */
   @Override
-  public void installPackage() throws IOException {
+  public void installPackage() {
     Logger.info("Please look at the message in the logger...");
   }
 
   /**
    * Uses any steps to setup a package.
-   *
-   * @throws IOException if an io issue has occurred during the process
    */
   @Override
-  public void setupPackage() throws IOException {}
+  public void setupPackage() {}
 }

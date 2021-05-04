@@ -24,7 +24,8 @@ package com.github.pulsebeat02.minecraftmedialibrary.test.image
 
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ImageUtilities
 import java.io.File
+import java.nio.file.Paths
 
 fun main() {
-    println(ImageUtilities.getGifFrameDelay(File("/Users/bli24/Desktop/test.gif")))
+    println(ImageUtilities.getGifFrameDelay(Paths.get("/Users/bli24/Desktop/test.gif")))
 }
