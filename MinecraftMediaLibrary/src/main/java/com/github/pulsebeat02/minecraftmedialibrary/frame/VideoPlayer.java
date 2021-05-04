@@ -67,6 +67,7 @@ public abstract class VideoPlayer {
   private final MinecraftMediaLibrary library;
   private final String url;
   private final FrameCallback callback;
+  private final String sound;
   private EmbeddedMediaPlayer mediaPlayerComponent;
   private boolean playing;
   private int width;
@@ -95,6 +96,7 @@ public abstract class VideoPlayer {
     this.width = width;
     this.height = height;
     this.callback = callback;
+    sound = getLibrary().getPlugin().getName().toLowerCase();
     initializePlayer();
   }
 
@@ -222,15 +224,18 @@ public abstract class VideoPlayer {
     }
     mediaPlayerComponent.media().play(url);
     for (final Player p : players) {
-      p.playSound(p.getLocation(), getLibrary().getPlugin().getName().toLowerCase(), 1.0F, 1.0F);
+      p.playSound(p.getLocation(), sound, 1.0F, 1.0F);
     }
     Logger.info(String.format("Started Playing the Video! (%s)", url));
   }
 
   /** Stops the player. */
-  public void stop() {
+  public void stop(@NotNull final Collection<? extends Player> players) {
     playing = false;
     mediaPlayerComponent.controls().stop();
+    for (final Player p : players) {
+      p.stopSound(sound);
+    }
     Logger.info(String.format("Stopped Playing the Video! (%s)", url));
   }
 

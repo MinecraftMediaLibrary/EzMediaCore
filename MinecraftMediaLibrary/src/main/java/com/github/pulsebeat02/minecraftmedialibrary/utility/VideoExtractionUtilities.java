@@ -67,24 +67,27 @@ public final class VideoExtractionUtilities {
    *
    * @param file the file
    * @return the byte [ ]
-   * @throws NoSuchAlgorithmException the no such algorithm exception
-   * @throws IOException the io exception
    */
-  public static byte @NotNull [] createHashSHA(@NotNull final File file)
-      throws NoSuchAlgorithmException, IOException {
-    final MessageDigest digest = MessageDigest.getInstance("SHA-1");
-    final InputStream fis = new FileInputStream(file);
-    int n = 0;
-    final byte[] buffer = new byte[8192];
-    while (n != -1) {
-      n = fis.read(buffer);
-      if (n > 0) {
-        digest.update(buffer, 0, n);
+  public static byte @NotNull [] createHashSHA(@NotNull final File file) {
+    try {
+      final MessageDigest digest = MessageDigest.getInstance("SHA-1");
+      final InputStream fis = new FileInputStream(file);
+      int n = 0;
+      final byte[] buffer = new byte[8192];
+      while (n != -1) {
+        n = fis.read(buffer);
+        if (n > 0) {
+          digest.update(buffer, 0, n);
+        }
       }
+      final byte[] hash = digest.digest();
+      Logger.info(
+          String.format(
+              "Generated Hash for File %s (%s)", file.getAbsolutePath(), new String(hash)));
+      return hash;
+    } catch (final IOException | NoSuchAlgorithmException e) {
+      e.printStackTrace();
     }
-    final byte[] hash = digest.digest();
-    Logger.info(
-        String.format("Generated Hash for File %s (%s)", file.getAbsolutePath(), new String(hash)));
-    return hash;
+    return new byte[]{};
   }
 }

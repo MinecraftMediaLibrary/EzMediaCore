@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.frame.highlight;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;

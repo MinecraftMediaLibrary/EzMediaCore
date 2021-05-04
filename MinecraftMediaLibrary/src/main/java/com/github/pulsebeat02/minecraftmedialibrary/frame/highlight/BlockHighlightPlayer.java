@@ -29,7 +29,7 @@ public class BlockHighlightPlayer extends VideoPlayer {
   public BlockHighlightPlayer(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final String url,
-      @NotNull final ChatCallback callback,
+      @NotNull final BlockHighlightCallback callback,
       final int width,
       final int height) {
     super(library, url, width, height, callback);
@@ -48,14 +48,14 @@ public class BlockHighlightPlayer extends VideoPlayer {
   public BlockHighlightPlayer(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final Path file,
-      @NotNull final EntityCloudCallback callback,
+      @NotNull final BlockHighlightCallback callback,
       final int width,
       final int height) {
     super(library, file, width, height, callback);
     Logger.info(
         String.format(
             "Created a Debug Highlight Integrated Video Player (%s)",
-            file.toAbsolutePath().toString()));
+                file.toAbsolutePath()));
   }
 
   /**
@@ -89,7 +89,7 @@ public class BlockHighlightPlayer extends VideoPlayer {
     private String url;
     private int width = 15;
     private int height = 15;
-    private ChatCallback callback;
+    private BlockHighlightCallback callback;
 
     private Builder() {}
 
@@ -108,7 +108,7 @@ public class BlockHighlightPlayer extends VideoPlayer {
       return this;
     }
 
-    public Builder setCallback(final ChatCallback callback) {
+    public Builder setCallback(final BlockHighlightCallback callback) {
       this.callback = callback;
       return this;
     }

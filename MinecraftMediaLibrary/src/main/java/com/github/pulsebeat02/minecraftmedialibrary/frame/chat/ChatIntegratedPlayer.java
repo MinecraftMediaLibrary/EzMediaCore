@@ -77,7 +77,7 @@ public class ChatIntegratedPlayer extends VideoPlayer {
       final int height) {
     super(library, file, width, height, callback);
     Logger.info(
-        String.format("Created a Chat Integrated Video Player (%s)", file.toAbsolutePath().toString()));
+        String.format("Created a Chat Integrated Video Player (%s)", file.toAbsolutePath()));
   }
 
   /**
