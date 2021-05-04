@@ -6,12 +6,18 @@ import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatIntegratedPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudIntegratedPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.ScreenEntityType;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.highlight.BlockHighlightCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.highlight.BlockHighlightPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapIntegratedPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.ScoreboardCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.ScoreboardIntegratedPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
@@ -34,8 +40,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -123,8 +127,7 @@ public class VideoCommand extends BaseCommand {
 
   private CompletableFuture<Suggestions> suggestVideoMode(
       final CommandContext<CommandSender> context, final SuggestionsBuilder builder) {
-    builder.suggest("itemframe");
-    builder.suggest("entity");
+    Arrays.stream(VideoType.values()).forEach(x -> builder.suggest(x.getName()));
     return builder.buildFuture();
   }
 
@@ -132,18 +135,9 @@ public class VideoCommand extends BaseCommand {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final String mode = context.getArgument("video-mode", String.class);
     final TextComponent component;
-    if (mode.equalsIgnoreCase("itemframe")) {
-
-      // Set video mode to be maps
-      attributes.setMaps(true);
-      component =
-          TextComponent.ofChildren(
-              Component.text("Set video mode to ", NamedTextColor.GOLD),
-              Component.text(mode, NamedTextColor.AQUA));
-    } else if (mode.equalsIgnoreCase("entity")) {
-
-      // Set video mode to be entity clouds
-      attributes.setMaps(false);
+    final VideoType type = VideoType.fromString(mode);
+    if (type != null) {
+      attributes.setVideoType(type);
       component =
           TextComponent.ofChildren(
               Component.text("Set video mode to ", NamedTextColor.GOLD),
@@ -333,42 +327,70 @@ public class VideoCommand extends BaseCommand {
     // Check if the library is using vlcj
     if (library.isVlcj()) {
 
-      // If the mode is maps
-      if (attributes.isUsingMaps()) {
+      // Get the video type
+      final VideoType type = attributes.getVideoType();
+      switch (type) {
+        case ITEMFRAME:
 
-        // Set the player to be a new map integrated player
-        attributes.setPlayer(createMapPlayer());
-      } else {
+          // If the mode is set to itemframes/maps
+          // Set the player to be a new map integrated player
+          attributes.setPlayer(createMapPlayer());
+          break;
 
-        // Check if the sender is an instanceof a Player
-        if (sender instanceof Player) {
+        case AREA_EFFECT_CLOUD:
 
-          // Set the player to be a new cloud integrated player
-          attributes.setPlayer(createEntityCloudPlayer((Player) sender));
-        } else {
-          audience.sendMessage(
-              Component.text("You must be a Player to execute this command!", NamedTextColor.RED));
-        }
+          // If the mode is set to an area effect cloud
+          // Check if the sender is an instanceof a Player
+          if (sender instanceof Player) {
+
+            // Set the player to be a new cloud integrated player
+            attributes.setPlayer(createEntityCloudPlayer((Player) sender));
+          } else {
+            audience.sendMessage(
+                Component.text(
+                    "You must be an in-game player to execute this command!", NamedTextColor.RED));
+          }
+          break;
+
+        case CHATBOX:
+          // If the mode is set to a chatbox
+          // Set the player to be a chat player
+          attributes.setPlayer(createChatBoxPlayer());
+          break;
+
+        case SCOREBOARD:
+          // If the mode is set to a scoreboard
+          // Set the player to be a scoreboard player
+          attributes.setPlayer(createScoreboardPlayer());
+          break;
+
+        case DEBUG_HIGHLIGHTS:
+          // If the mode is set to debug highlights
+          // Check if the sender is an instanceof a Player
+          if (sender instanceof Player) {
+
+            // Set the player to be a debug highlights player
+            attributes.setPlayer(createBlockHighlightPlayer((Player) sender));
+          } else {
+            audience.sendMessage(
+                Component.text(
+                    "You must be an in-game player to execute this command!", NamedTextColor.RED));
+          }
+          break;
       }
+    } else {
+      audience.sendMessage(
+          Component.text("VLC isn't enabled! Cannot play videos!", NamedTextColor.RED));
+      return 1;
     }
 
     // Start the player and play the sound to all online players
-    assert attributes.getPlayer() != null;
-    attributes.getPlayer().start(Bukkit.getOnlinePlayers());
+    assert player != null;
+    player.start(Bukkit.getOnlinePlayers());
     return 1;
   }
 
   private MapIntegratedPlayer createMapPlayer() {
-
-    /*
-
-    Creates a MapIntegratedPlayer using the absolute path of the file, the screen width in pixels,
-    the screen height in pixels, along with a callback. The callback consists of whatever viewers to
-    be specified (null for all, otherwise a UUID[]), the starting map, the itemframe width, the
-    itemframe height, the width of the screen in pixels, the delay, the dithering algorithm, and the
-    proper library instance.
-
-     */
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
     return MapIntegratedPlayer.builder()
         .setUrl(attributes.getFile().getAbsolutePath())
@@ -388,16 +410,6 @@ public class VideoCommand extends BaseCommand {
   }
 
   private EntityCloudIntegratedPlayer createEntityCloudPlayer(@NotNull final Player sender) {
-
-    /*
-
-    Creates a EntityCloudIntegratedPlayer using the absolute path of the file, the screen width in pixels,
-    the screen height in pixels, along with a callback. The callback consists of whatever viewers to
-    be specified (null for all, otherwise a UUID[]), the starting map, the itemframe width, the
-    itemframe height, the width of the screen in pixels, the delay, the dithering algorithm, the location
-    at which the screen should be located, and the proper library instance.
-
-     */
     final MinecraftMediaLibrary library = getPlugin().getLibrary();
     return EntityCloudIntegratedPlayer.builder()
         .setUrl(attributes.getFile().getAbsolutePath())
@@ -412,6 +424,57 @@ public class VideoCommand extends BaseCommand {
                 .setDelay(40)
                 .setLocation(sender.getLocation())
                 .setType(ScreenEntityType.AREA_EFFECT_CLOUD)
+                .build(library))
+        .build(library);
+  }
+
+  private ChatIntegratedPlayer createChatBoxPlayer() {
+    final MinecraftMediaLibrary library = getPlugin().getLibrary();
+    return ChatIntegratedPlayer.builder()
+        .setUrl(attributes.getFile().getAbsolutePath())
+        .setWidth(attributes.getScreenWidth())
+        .setHeight(attributes.getScreenHeight())
+        .setCallback(
+            ChatCallback.builder()
+                .setViewers(null)
+                .setWidth(attributes.getScreenWidth())
+                .setHeight(attributes.getScreenHeight())
+                .setDelay(40)
+                .build(library))
+        .build(library);
+  }
+
+  private ScoreboardIntegratedPlayer createScoreboardPlayer() {
+    final MinecraftMediaLibrary library = getPlugin().getLibrary();
+    return ScoreboardIntegratedPlayer.builder()
+        .setUrl(attributes.getFile().getAbsolutePath())
+        .setWidth(attributes.getScreenWidth())
+        .setHeight(attributes.getScreenHeight())
+        .setCallback(
+            ScoreboardCallback.builder()
+                .setViewers(null)
+                .setWidth(attributes.getScreenWidth())
+                .setHeight(attributes.getScreenHeight())
+                .setVideoWidth(attributes.getScreenWidth())
+                .setDelay(40)
+                .build(library))
+        .build(library);
+  }
+
+  private BlockHighlightPlayer createBlockHighlightPlayer(@NotNull final Player sender) {
+    final MinecraftMediaLibrary library = getPlugin().getLibrary();
+    return BlockHighlightPlayer.builder()
+        .setUrl(attributes.getFile().getAbsolutePath())
+        .setWidth(attributes.getScreenWidth())
+        .setHeight(attributes.getScreenHeight())
+        .setCallback(
+            BlockHighlightCallback.builder()
+                .setViewers(null)
+                .setWidth(attributes.getScreenWidth())
+                .setHeight(attributes.getScreenHeight())
+                .setVideoWidth(attributes.getScreenWidth())
+                .setDelay(40)
+                .setLocation(sender.getLocation())
                 .build(library))
         .build(library);
   }
@@ -514,13 +577,9 @@ public class VideoCommand extends BaseCommand {
       final String url = provider.generateUrl(wrapper.getPath());
 
       // Send the resourcepack url to all players on the server
-      try {
-        for (final Player p : Bukkit.getOnlinePlayers()) {
-          p.setResourcePack(
-              url, VideoExtractionUtilities.createHashSHA(new File(wrapper.getPath())));
-        }
-      } catch (final NoSuchAlgorithmException | IOException e) {
-        e.printStackTrace();
+      final byte[] hash = VideoExtractionUtilities.createHashSHA(new File(wrapper.getPath()));
+      for (final Player p : Bukkit.getOnlinePlayers()) {
+        p.setResourcePack(url, hash);
       }
     } else {
       audience.sendMessage(

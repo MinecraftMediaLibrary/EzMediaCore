@@ -65,7 +65,7 @@ public enum DitherSetting {
   @Nullable
   public static DitherSetting fromString(@NotNull final String str) {
     final String search = str.toUpperCase();
-    for (final DitherSetting setting : DitherSetting.values()) {
+    for (final DitherSetting setting : values()) {
       if (setting.name().equals(search)) {
         return setting;
       }

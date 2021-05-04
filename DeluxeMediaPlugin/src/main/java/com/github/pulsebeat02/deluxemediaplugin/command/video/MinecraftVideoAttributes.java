@@ -4,6 +4,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -16,7 +17,7 @@ public class MinecraftVideoAttributes {
   private VideoPlayer player;
   private File file;
   private boolean youtube;
-  private boolean maps;
+  private VideoType mode;
 
   private int frameWidth;
   private int frameHeight;
@@ -31,7 +32,7 @@ public class MinecraftVideoAttributes {
     screenWidth = 640;
     screenHeight = 360;
     completion = new AtomicBoolean(false);
-    maps = true;
+    mode = VideoType.ITEMFRAME;
   }
 
   public DitherHolder getDither() {
@@ -118,11 +119,11 @@ public class MinecraftVideoAttributes {
     return completion;
   }
 
-  public boolean isUsingMaps() {
-    return maps;
+  public VideoType getVideoType() {
+    return mode;
   }
 
-  public void setMaps(final boolean maps) {
-    this.maps = maps;
+  public void setVideoType(@NotNull final VideoType type) {
+    mode = type;
   }
 }

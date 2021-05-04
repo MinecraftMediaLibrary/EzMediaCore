@@ -87,7 +87,7 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
     this.location = location;
     entities = callback.getEntities();
     Logger.info(
-        String.format("Created a VLCJ Integrated Video Player (%s)", file.toAbsolutePath().toString()));
+        String.format("Created a VLCJ Integrated Video Player (%s)", file.toAbsolutePath()));
   }
 
   /**
