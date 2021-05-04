@@ -406,12 +406,12 @@ public class VideoCommand extends BaseCommand {
         .setCallback(
             EntityCloudCallback.builder()
                 .setViewers(null)
-                .setWidth(attributes.getFrameWidth())
-                .setHeight(attributes.getFrameHeight())
+                .setWidth(attributes.getScreenWidth())
+                .setHeight(attributes.getScreenHeight())
                 .setVideoWidth(attributes.getScreenWidth())
                 .setDelay(40)
                 .setLocation(sender.getLocation())
-                .setType(ScreenEntityType.ARMORSTAND)
+                .setType(ScreenEntityType.AREA_EFFECT_CLOUD)
                 .build(library))
         .build(library);
   }

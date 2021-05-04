@@ -99,11 +99,11 @@ public final class EntityCloudCallback implements FrameCallback {
     this.location = location;
     this.type = type;
     charType = "-";
-    entities = getCloudEntities();
     this.width = width;
     this.height = height;
     this.videoWidth = videoWidth;
     this.delay = delay;
+    entities = getCloudEntities();
   }
 
   /**
@@ -132,11 +132,11 @@ public final class EntityCloudCallback implements FrameCallback {
     this.location = location;
     this.type = type;
     charType = str;
-    entities = getCloudEntities();
     this.width = width;
     this.height = height;
     this.videoWidth = videoWidth;
     this.delay = delay;
+    entities = getCloudEntities();
   }
 
   /**
@@ -158,9 +158,15 @@ public final class EntityCloudCallback implements FrameCallback {
     final Entity[] ents = new Entity[height];
     final Location spawn = location.clone();
     final World world = spawn.getWorld();
+    final EntityType entityType =
+        type == ScreenEntityType.AREA_EFFECT_CLOUD
+            ? EntityType.AREA_EFFECT_CLOUD
+            : type == ScreenEntityType.ARMORSTAND
+                ? EntityType.ARMOR_STAND
+                : EntityType.AREA_EFFECT_CLOUD;
     if (world != null) {
       for (int i = height - 1; i >= 0; i--) {
-        ents[i] = modifyEntity(world.spawnEntity(spawn, EntityType.AREA_EFFECT_CLOUD));
+        ents[i] = modifyEntity(world.spawnEntity(spawn, entityType));
         spawn.add(0, 0.225d, 0);
       }
     }
