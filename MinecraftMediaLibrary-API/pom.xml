@@ -94,7 +94,7 @@
         <dependency>
             <groupId>com.github.pulsebeat02</groupId>
             <artifactId>jarchivelib</artifactId>
-            <version>v1.2.0</version>
+            <version>master-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
