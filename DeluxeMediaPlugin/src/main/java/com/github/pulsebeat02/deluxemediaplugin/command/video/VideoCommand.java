@@ -6,18 +6,7 @@ import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatIntegratedPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudIntegratedPlayer;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.ScreenEntityType;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.highlight.BlockHighlightCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.highlight.BlockHighlightPlayer;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapIntegratedPlayer;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.ScoreboardCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.ScoreboardIntegratedPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
@@ -50,6 +39,7 @@ public class VideoCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> literalNode;
   private final MinecraftVideoAttributes attributes;
+  private final VideoBuilder videoBuilder;
 
   public VideoCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
@@ -94,6 +84,7 @@ public class VideoCommand extends BaseCommand {
                                 .executes(this::setVideoMode))))
         .executes(this::displayInformation);
     literalNode = builder.build();
+    videoBuilder = new VideoBuilder(plugin.getLibrary(), attributes);
   }
 
   @Override
@@ -334,7 +325,7 @@ public class VideoCommand extends BaseCommand {
 
           // If the mode is set to itemframes/maps
           // Set the player to be a new map integrated player
-          attributes.setPlayer(createMapPlayer());
+          attributes.setPlayer(videoBuilder.createMapPlayer());
           break;
 
         case AREA_EFFECT_CLOUD:
@@ -344,7 +335,7 @@ public class VideoCommand extends BaseCommand {
           if (sender instanceof Player) {
 
             // Set the player to be a new cloud integrated player
-            attributes.setPlayer(createEntityCloudPlayer((Player) sender));
+            attributes.setPlayer(videoBuilder.createEntityCloudPlayer((Player) sender));
           } else {
             audience.sendMessage(
                 Component.text(
@@ -355,13 +346,13 @@ public class VideoCommand extends BaseCommand {
         case CHATBOX:
           // If the mode is set to a chatbox
           // Set the player to be a chat player
-          attributes.setPlayer(createChatBoxPlayer());
+          attributes.setPlayer(videoBuilder.createChatBoxPlayer());
           break;
 
         case SCOREBOARD:
           // If the mode is set to a scoreboard
           // Set the player to be a scoreboard player
-          attributes.setPlayer(createScoreboardPlayer());
+          attributes.setPlayer(videoBuilder.createScoreboardPlayer());
           break;
 
         case DEBUG_HIGHLIGHTS:
@@ -370,7 +361,7 @@ public class VideoCommand extends BaseCommand {
           if (sender instanceof Player) {
 
             // Set the player to be a debug highlights player
-            attributes.setPlayer(createBlockHighlightPlayer((Player) sender));
+            attributes.setPlayer(videoBuilder.createBlockHighlightPlayer((Player) sender));
           } else {
             audience.sendMessage(
                 Component.text(
@@ -388,95 +379,6 @@ public class VideoCommand extends BaseCommand {
     assert player != null;
     player.start(Bukkit.getOnlinePlayers());
     return 1;
-  }
-
-  private MapIntegratedPlayer createMapPlayer() {
-    final MinecraftMediaLibrary library = getPlugin().getLibrary();
-    return MapIntegratedPlayer.builder()
-        .setUrl(attributes.getFile().getAbsolutePath())
-        .setWidth(attributes.getScreenWidth())
-        .setHeight(attributes.getScreenHeight())
-        .setCallback(
-            MapDataCallback.builder()
-                .setViewers(null)
-                .setMap(attributes.getStartingMap())
-                .setWidth(attributes.getFrameWidth())
-                .setHeight(attributes.getFrameHeight())
-                .setVideoWidth(attributes.getScreenWidth())
-                .setDelay(0)
-                .setDitherHolder(attributes.getDither())
-                .build(library))
-        .build(library);
-  }
-
-  private EntityCloudIntegratedPlayer createEntityCloudPlayer(@NotNull final Player sender) {
-    final MinecraftMediaLibrary library = getPlugin().getLibrary();
-    return EntityCloudIntegratedPlayer.builder()
-        .setUrl(attributes.getFile().getAbsolutePath())
-        .setWidth(attributes.getScreenWidth())
-        .setHeight(attributes.getScreenHeight())
-        .setCallback(
-            EntityCloudCallback.builder()
-                .setViewers(null)
-                .setWidth(attributes.getScreenWidth())
-                .setHeight(attributes.getScreenHeight())
-                .setVideoWidth(attributes.getScreenWidth())
-                .setDelay(40)
-                .setLocation(sender.getLocation())
-                .setType(ScreenEntityType.AREA_EFFECT_CLOUD)
-                .build(library))
-        .build(library);
-  }
-
-  private ChatIntegratedPlayer createChatBoxPlayer() {
-    final MinecraftMediaLibrary library = getPlugin().getLibrary();
-    return ChatIntegratedPlayer.builder()
-        .setUrl(attributes.getFile().getAbsolutePath())
-        .setWidth(attributes.getScreenWidth())
-        .setHeight(attributes.getScreenHeight())
-        .setCallback(
-            ChatCallback.builder()
-                .setViewers(null)
-                .setWidth(attributes.getScreenWidth())
-                .setHeight(attributes.getScreenHeight())
-                .setDelay(40)
-                .build(library))
-        .build(library);
-  }
-
-  private ScoreboardIntegratedPlayer createScoreboardPlayer() {
-    final MinecraftMediaLibrary library = getPlugin().getLibrary();
-    return ScoreboardIntegratedPlayer.builder()
-        .setUrl(attributes.getFile().getAbsolutePath())
-        .setWidth(attributes.getScreenWidth())
-        .setHeight(attributes.getScreenHeight())
-        .setCallback(
-            ScoreboardCallback.builder()
-                .setViewers(null)
-                .setWidth(attributes.getScreenWidth())
-                .setHeight(attributes.getScreenHeight())
-                .setVideoWidth(attributes.getScreenWidth())
-                .setDelay(40)
-                .build(library))
-        .build(library);
-  }
-
-  private BlockHighlightPlayer createBlockHighlightPlayer(@NotNull final Player sender) {
-    final MinecraftMediaLibrary library = getPlugin().getLibrary();
-    return BlockHighlightPlayer.builder()
-        .setUrl(attributes.getFile().getAbsolutePath())
-        .setWidth(attributes.getScreenWidth())
-        .setHeight(attributes.getScreenHeight())
-        .setCallback(
-            BlockHighlightCallback.builder()
-                .setViewers(null)
-                .setWidth(attributes.getScreenWidth())
-                .setHeight(attributes.getScreenHeight())
-                .setVideoWidth(attributes.getScreenWidth())
-                .setDelay(40)
-                .setLocation(sender.getLocation())
-                .build(library))
-        .build(library);
   }
 
   private int loadVideo(@NotNull final CommandContext<CommandSender> context) {

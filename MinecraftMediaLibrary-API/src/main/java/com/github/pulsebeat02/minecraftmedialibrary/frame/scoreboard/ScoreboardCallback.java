@@ -228,7 +228,6 @@ public final class ScoreboardCallback implements FrameCallback {
     private UUID[] viewers;
     private int width;
     private int height;
-    private int videoWidth;
     private int delay;
 
     private Builder() {}
@@ -267,17 +266,6 @@ public final class ScoreboardCallback implements FrameCallback {
     }
 
     /**
-     * Sets video width.
-     *
-     * @param videoWidth the video width
-     * @return the video width
-     */
-    public Builder setVideoWidth(final int videoWidth) {
-      this.videoWidth = videoWidth;
-      return this;
-    }
-
-    /**
      * Sets delay.
      *
      * @param delay the delay
@@ -295,7 +283,7 @@ public final class ScoreboardCallback implements FrameCallback {
      * @return the entity cloud callback
      */
     public ScoreboardCallback build(final MinecraftMediaLibrary library) {
-      return new ScoreboardCallback(library, viewers, width, height, videoWidth, delay);
+      return new ScoreboardCallback(library, viewers, width, height, width, delay);
     }
   }
 }

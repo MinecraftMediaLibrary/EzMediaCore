@@ -171,7 +171,6 @@ public final class ChatCallback implements FrameCallback {
     private int width;
     private int height;
     private int delay;
-    private long lastUpdated;
 
     private Builder() {}
 

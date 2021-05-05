@@ -188,7 +188,6 @@ public final class BlockHighlightCallback implements FrameCallback {
     private Location location;
     private int width;
     private int height;
-    private int videoWidth;
     private int delay;
 
     private Builder() {}
@@ -227,17 +226,6 @@ public final class BlockHighlightCallback implements FrameCallback {
     }
 
     /**
-     * Sets video width.
-     *
-     * @param videoWidth the video width
-     * @return the video width
-     */
-    public Builder setVideoWidth(final int videoWidth) {
-      this.videoWidth = videoWidth;
-      return this;
-    }
-
-    /**
      * Sets delay.
      *
      * @param delay the delay
@@ -267,7 +255,7 @@ public final class BlockHighlightCallback implements FrameCallback {
      */
     public BlockHighlightCallback build(final MinecraftMediaLibrary library) {
       return new BlockHighlightCallback(
-          library, viewers, location, width, height, videoWidth, delay);
+          library, viewers, location, width, height, width, delay);
     }
   }
 }

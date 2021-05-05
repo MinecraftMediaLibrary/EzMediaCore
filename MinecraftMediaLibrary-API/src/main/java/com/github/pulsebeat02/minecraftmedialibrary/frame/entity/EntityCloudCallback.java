@@ -317,7 +317,6 @@ public final class EntityCloudCallback implements FrameCallback {
     private ScreenEntityType type;
     private int width;
     private int height;
-    private int videoWidth;
     private int delay;
 
     private Builder() {}
@@ -352,17 +351,6 @@ public final class EntityCloudCallback implements FrameCallback {
      */
     public Builder setHeight(final int height) {
       this.height = height;
-      return this;
-    }
-
-    /**
-     * Sets video width.
-     *
-     * @param videoWidth the video width
-     * @return the video width
-     */
-    public Builder setVideoWidth(final int videoWidth) {
-      this.videoWidth = videoWidth;
       return this;
     }
 
@@ -407,7 +395,7 @@ public final class EntityCloudCallback implements FrameCallback {
      */
     public EntityCloudCallback build(final MinecraftMediaLibrary library) {
       return new EntityCloudCallback(
-          library, viewers, location, type, width, height, videoWidth, delay);
+          library, viewers, location, type, width, height, width, delay);
     }
   }
 }
