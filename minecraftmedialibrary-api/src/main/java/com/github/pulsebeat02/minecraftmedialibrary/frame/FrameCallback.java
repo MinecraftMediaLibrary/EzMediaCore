@@ -26,6 +26,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.frame;
  * A callback interface for map data. Useful for creating custom callbacks. MinecraftMediaLibrary
  * uses this for itemframe callbacks to achieve quick changes.
  */
+@FunctionalInterface
 public interface FrameCallback {
 
   /**

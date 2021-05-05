@@ -392,6 +392,7 @@ public final class Reflection {
   }
 
   /** An interface for invoking a specific constructor. */
+  @FunctionalInterface
   public interface ConstructorInvoker {
     /**
      * Invoke a constructor for a specific class.
@@ -403,6 +404,7 @@ public final class Reflection {
   }
 
   /** An interface for invoking a specific method. */
+  @FunctionalInterface
   public interface MethodInvoker {
     /**
      * Invoke a method on a specific target object.
