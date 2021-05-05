@@ -15,10 +15,6 @@ public enum VideoType {
     this.name = name;
   }
 
-  public String getName() {
-    return name;
-  }
-
   public static VideoType fromString(@NotNull final String str) {
     for (final VideoType type : values()) {
       if (type.getName().equals(str)) {
@@ -26,5 +22,9 @@ public enum VideoType {
       }
     }
     return null;
+  }
+
+  public String getName() {
+    return name;
   }
 }

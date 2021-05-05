@@ -4,7 +4,6 @@ import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.IOException;
 
 public class ManualInstaller extends PackageBase {
 
@@ -17,17 +16,13 @@ public class ManualInstaller extends PackageBase {
     super(file, true);
   }
 
-  /**
-   * Installs the packages accordingly.
-   */
+  /** Installs the packages accordingly. */
   @Override
   public void installPackage() {
     Logger.info("Please look at the message in the logger...");
   }
 
-  /**
-   * Uses any steps to setup a package.
-   */
+  /** Uses any steps to setup a package. */
   @Override
   public void setupPackage() {}
 }

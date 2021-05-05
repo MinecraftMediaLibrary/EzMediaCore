@@ -88,6 +88,6 @@ public final class VideoExtractionUtilities {
     } catch (final IOException | NoSuchAlgorithmException e) {
       e.printStackTrace();
     }
-    return new byte[]{};
+    return new byte[] {};
   }
 }

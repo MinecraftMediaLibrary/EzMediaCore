@@ -4,7 +4,6 @@ import com.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.IOException;
 
 /** Extracts the package binaries instead of other methods. */
 public class ExtractionInstaller extends PackageBase {
@@ -18,18 +17,14 @@ public class ExtractionInstaller extends PackageBase {
     super(file, true);
   }
 
-  /**
-   * Installs the packages accordingly.
-   */
+  /** Installs the packages accordingly. */
   @Override
   public void installPackage() {
     final File f = getFile();
     ArchiveUtilities.recursiveExtraction(f, f.getParentFile());
   }
 
-  /**
-   * Uses any steps to setup a package.
-   */
+  /** Uses any steps to setup a package. */
   @Override
   public void setupPackage() {}
 }

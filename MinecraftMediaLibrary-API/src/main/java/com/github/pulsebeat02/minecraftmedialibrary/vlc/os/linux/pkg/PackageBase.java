@@ -23,9 +23,9 @@
 package com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.pkg;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxPackage;
 import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxPackageManager;
-import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
 

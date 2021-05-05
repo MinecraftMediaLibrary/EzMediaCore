@@ -51,8 +51,6 @@ public class ScreenBuilder {
       blockLocation.setX(initialX);
       blockLocation.setZ(initialZ);
     }
-
-
   }
 
   public ItemStack getMapFromID(final int id) {

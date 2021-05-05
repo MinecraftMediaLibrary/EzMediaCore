@@ -26,11 +26,10 @@ import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.exception.InvalidPackFormatException;
 import com.github.pulsebeat02.minecraftmedialibrary.exception.InvalidPackIconException;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
+import com.github.pulsebeat02.minecraftmedialibrary.json.GsonHandler;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.ResourcepackUtilities;
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -53,12 +52,6 @@ import java.util.zip.ZipOutputStream;
  * specify other attributes such as the icon, description, and format.
  */
 public class ResourcepackWrapper implements PackHolder, ConfigurationSerializable {
-
-  private static final Gson GSON;
-
-  static {
-    GSON = new GsonBuilder().setPrettyPrinting().create();
-  }
 
   private final MinecraftMediaLibrary library;
   private final String path;
@@ -245,7 +238,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
     pack.addProperty("pack_format", packFormat);
     pack.addProperty("description", description);
     mcmeta.add("pack", pack);
-    return GSON.toJson(mcmeta);
+    return GsonHandler.getGson().toJson(mcmeta);
   }
 
   /**
@@ -261,7 +254,36 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
     sounds.add("audio");
     category.add("sounds", sounds);
     type.add(library.getPlugin().getName().toLowerCase(), category);
-    return GSON.toJson(type);
+    return GsonHandler.getGson().toJson(type);
+  }
+
+  /**
+   * Checks if the two ResourcepackWrapper objects are equal.
+   *
+   * @param obj the other object
+   * @return whether the two objects are equal or not
+   */
+  @Override
+  public boolean equals(final Object obj) {
+    if (!(obj instanceof ResourcepackWrapper)) {
+      return false;
+    }
+    final ResourcepackWrapper wrapper = (ResourcepackWrapper) obj;
+    return path.equals(wrapper.getPath())
+        && audio.equals(wrapper.getAudio())
+        && icon.equals(wrapper.getIcon())
+        && description.equals(wrapper.getDescription())
+        && packFormat == wrapper.getPackFormat();
+  }
+
+  /**
+   * Returns a String version of the current instance.
+   *
+   * @return the stringified version of the instance
+   */
+  @Override
+  public String toString() {
+    return GsonHandler.getGson().toJson(this);
   }
 
   /**

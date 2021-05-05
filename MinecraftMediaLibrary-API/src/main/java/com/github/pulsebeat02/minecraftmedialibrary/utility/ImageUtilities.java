@@ -39,7 +39,6 @@ import ws.schild.jave.info.VideoSize;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Path;
@@ -95,7 +94,7 @@ public final class ImageUtilities {
       throws IOException {
     if (!FilenameUtils.getExtension(gif.getFileName().toString()).equalsIgnoreCase("gfi")) {
       throw new IOException(
-          String.format("Invalid Image Format (Must be Gif) %s", gif.toAbsolutePath().toString()));
+          String.format("Invalid Image Format (Must be Gif) %s", gif.toAbsolutePath()));
     }
     final AudioAttributes audio = new AudioAttributes();
     audio.setVolume(0);

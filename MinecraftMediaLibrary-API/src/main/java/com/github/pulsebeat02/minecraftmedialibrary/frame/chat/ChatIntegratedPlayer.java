@@ -26,12 +26,9 @@ import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 

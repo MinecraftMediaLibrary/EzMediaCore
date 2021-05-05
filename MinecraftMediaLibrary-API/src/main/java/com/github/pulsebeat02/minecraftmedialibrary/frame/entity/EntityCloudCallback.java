@@ -394,8 +394,7 @@ public final class EntityCloudCallback implements FrameCallback {
      * @return the entity cloud callback
      */
     public EntityCloudCallback build(final MinecraftMediaLibrary library) {
-      return new EntityCloudCallback(
-          library, viewers, location, type, width, height, width, delay);
+      return new EntityCloudCallback(library, viewers, location, type, width, height, width, delay);
     }
   }
 }

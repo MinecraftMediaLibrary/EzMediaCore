@@ -22,11 +22,13 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.task;
 
+import com.github.pulsebeat02.minecraftmedialibrary.json.GsonHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 
 /**
  * A specialized CommandTask which executes native commands from the Runtime. The class is used for
@@ -93,6 +95,31 @@ public class CommandTask {
     }
     br.close();
     result = output.toString();
+  }
+
+  /**
+   * Checks the two objects to see if they are equal. If obj is an instance of CommandTask, it
+   * checks if the argument arrays are equal.
+   *
+   * @param obj the other object
+   * @return whether the command arguments are equal or not
+   */
+  @Override
+  public boolean equals(final Object obj) {
+    if (!(obj instanceof CommandTask)) {
+      return false;
+    }
+    return Arrays.equals(command, ((CommandTask) obj).getCommand());
+  }
+
+  /**
+   * Gets a command string from the arguments.
+   *
+   * @return the command string
+   */
+  @Override
+  public String toString() {
+    return GsonHandler.getGson().toJson(this);
   }
 
   /**

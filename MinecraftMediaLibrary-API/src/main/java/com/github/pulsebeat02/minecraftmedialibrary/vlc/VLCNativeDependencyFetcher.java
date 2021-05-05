@@ -23,12 +23,12 @@
 package com.github.pulsebeat02.minecraftmedialibrary.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxSilentInstallation;
-import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.mac.MacSilentInstallation;
-import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.SilentOSDependentSolution;
-import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.windows.WindowsSilentInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.SilentOSDependentSolution;
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxSilentInstallation;
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.mac.MacSilentInstallation;
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.windows.WindowsSilentInstallation;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

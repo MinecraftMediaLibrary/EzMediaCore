@@ -25,7 +25,6 @@ package com.github.pulsebeat02.minecraftmedialibrary.concurrent;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.VideoExtractor;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 

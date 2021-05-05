@@ -76,7 +76,7 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon {
     Logger.info("========================================");
     Logger.info(String.format("IP: %s", Bukkit.getIp()));
     Logger.info(String.format("PORT: %d", port));
-    Logger.info(String.format("DIRECTORY: %s", directory.toAbsolutePath().toString()));
+    Logger.info(String.format("DIRECTORY: %s", directory.toAbsolutePath()));
     Logger.info("========================================");
   }
 

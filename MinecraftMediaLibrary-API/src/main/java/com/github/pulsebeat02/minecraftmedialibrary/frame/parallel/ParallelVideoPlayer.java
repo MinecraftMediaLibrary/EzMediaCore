@@ -100,8 +100,8 @@ import java.util.concurrent.Future;
  *
  * </pre>
  *
- * This is currently a VideoPlayer in progress. It will not function at all. Please wait as I
- * try to develop it.
+ * This is currently a VideoPlayer in progress. It will not function at all. Please wait as I try to
+ * develop it.
  */
 public class ParallelVideoPlayer extends VideoPlayer {
 

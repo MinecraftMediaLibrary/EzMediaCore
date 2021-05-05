@@ -2,8 +2,6 @@ package com.github.pulsebeat02.minecraftmedialibrary.frame.highlight;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -54,8 +52,7 @@ public class BlockHighlightPlayer extends VideoPlayer {
     super(library, file, width, height, callback);
     Logger.info(
         String.format(
-            "Created a Debug Highlight Integrated Video Player (%s)",
-                file.toAbsolutePath()));
+            "Created a Debug Highlight Integrated Video Player (%s)", file.toAbsolutePath()));
   }
 
   /**

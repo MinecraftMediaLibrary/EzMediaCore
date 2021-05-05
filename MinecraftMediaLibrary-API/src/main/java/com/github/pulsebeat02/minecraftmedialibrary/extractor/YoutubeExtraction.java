@@ -26,6 +26,7 @@ import com.github.kiulian.downloader.YoutubeDownloader;
 import com.github.kiulian.downloader.YoutubeException;
 import com.github.kiulian.downloader.model.VideoDetails;
 import com.github.kiulian.downloader.model.YoutubeVideo;
+import com.github.pulsebeat02.minecraftmedialibrary.json.GsonHandler;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import com.google.common.base.Preconditions;
@@ -42,7 +43,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -73,7 +73,8 @@ public class YoutubeExtraction implements VideoExtractor {
       @NotNull final String directory,
       @NotNull final ExtractionSetting settings) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "Youtube URL cannot be empty null!");
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(directory), "Directory cannot be empty null!");
+    Preconditions.checkArgument(
+        !Strings.isNullOrEmpty(directory), "Directory cannot be empty null!");
     this.url = url;
     this.directory = directory;
     ffmpegLocator = new FFmpegLocation();
@@ -139,7 +140,7 @@ public class YoutubeExtraction implements VideoExtractor {
       Logger.info(
           String.format(
               "Successfully Extracted Audio from Video File! (Target: %s)",
-              audio.toAbsolutePath().toString()));
+              audio.toAbsolutePath()));
     } catch (final EncoderException e) {
       Logger.error(String.format("Couldn't Extract Audio from Video File! (Video: %s)", videoPath));
       e.printStackTrace();
@@ -154,6 +155,36 @@ public class YoutubeExtraction implements VideoExtractor {
   /** Called when the audio is being extracted from the video. */
   @Override
   public void onAudioExtraction() {}
+
+  /**
+   * Checks if two YoutubExtraction classes are equal (in properties) with the exception of files.
+   *
+   * @param obj the other object
+   * @return whether the two objects are equal in properties with the exception of files
+   */
+  @Override
+  public boolean equals(final Object obj) {
+    if (!(obj instanceof YoutubeExtraction)) {
+      return false;
+    }
+    final YoutubeExtraction extraction = (YoutubeExtraction) obj;
+    return encoder.equals(extraction.getEncoder())
+        && attrs.equals(extraction.getAttrs())
+        && ffmpegLocator.equals(extraction.getFfmpegLocator())
+        && url.equals(extraction.getUrl())
+        && directory.equals(extraction.getDirectory())
+        && details.equals(extraction.getDetails());
+  }
+
+  /**
+   * Returns a String of the YoutubeExtraction.
+   *
+   * @return the stringified version of the instance
+   */
+  @Override
+  public String toString() {
+    return GsonHandler.getGson().toJson(this);
+  }
 
   /**
    * Gets directory.

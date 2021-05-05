@@ -24,7 +24,6 @@ package com.github.pulsebeat02.minecraftmedialibrary.http;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.nio.file.Path;
 
 /**

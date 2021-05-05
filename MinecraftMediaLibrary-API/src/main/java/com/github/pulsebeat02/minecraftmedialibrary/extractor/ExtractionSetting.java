@@ -22,6 +22,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.extractor;
 
+import com.github.pulsebeat02.minecraftmedialibrary.json.GsonHandler;
 import com.google.common.base.Preconditions;
 
 /**
@@ -54,7 +55,8 @@ public class ExtractionSetting {
     inputFormat = "mp4";
     Preconditions.checkArgument(bitrate > 0, String.format("Invalid Bitrate! (%d)", bitrate));
     Preconditions.checkArgument(channels > 0, String.format("Invalid Channels! (%d)", channels));
-    Preconditions.checkArgument(samplingRate > 0, String.format("Invalid Sampling Rate! (%d)", samplingRate));
+    Preconditions.checkArgument(
+        samplingRate > 0, String.format("Invalid Sampling Rate! (%d)", samplingRate));
     Preconditions.checkArgument(volume > 0, String.format("Invalid Volume! (%d)", volume));
     this.bitrate = bitrate;
     this.channels = channels;
@@ -69,6 +71,32 @@ public class ExtractionSetting {
    */
   public static Builder builder() {
     return new Builder();
+  }
+
+  /**
+   * Checks if two ExtractionSetting objects are directly equal (properties).
+   *
+   * @param obj the other object
+   * @return whether the two are equal in properties
+   */
+  @Override
+  public boolean equals(final Object obj) {
+    if (!(obj instanceof ExtractionSetting)) {
+      return false;
+    }
+    final ExtractionSetting setting = (ExtractionSetting) obj;
+    return setting.getCodec().equals(codec)
+        && setting.getOutputFormat().equals(outputFormat)
+        && setting.getInputFormat().equals(inputFormat)
+        && setting.getBitrate() == bitrate
+        && setting.getChannels() == channels
+        && setting.getSamplingRate() == samplingRate
+        && setting.getVolume() == volume;
+  }
+
+  @Override
+  public String toString() {
+    return GsonHandler.getGson().toJson(this);
   }
 
   /**

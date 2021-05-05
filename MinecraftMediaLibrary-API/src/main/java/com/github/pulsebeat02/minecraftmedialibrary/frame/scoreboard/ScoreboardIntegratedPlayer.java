@@ -73,8 +73,7 @@ public class ScoreboardIntegratedPlayer extends VideoPlayer {
       final int height) {
     super(library, file, width, height, callback);
     Logger.info(
-        String.format(
-            "Created a Scoreboard Integrated Video Player (%s)", file.toAbsolutePath()));
+        String.format("Created a Scoreboard Integrated Video Player (%s)", file.toAbsolutePath()));
   }
 
   /**

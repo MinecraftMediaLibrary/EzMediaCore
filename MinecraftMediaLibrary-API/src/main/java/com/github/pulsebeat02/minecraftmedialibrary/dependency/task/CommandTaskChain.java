@@ -22,6 +22,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.dependency.task;
 
+import com.github.pulsebeat02.minecraftmedialibrary.json.GsonHandler;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -114,5 +115,29 @@ public class CommandTaskChain {
         }
       }
     }
+  }
+
+  /**
+   * Checks if the CommandTaskChain is equivalent to another object using Map#equals.
+   *
+   * @param obj the other object
+   * @return whether the two maps for each CommandTaskChain are equal
+   */
+  @Override
+  public boolean equals(final Object obj) {
+    if (!(obj instanceof CommandTaskChain)) {
+      return false;
+    }
+    return chain.equals(((CommandTaskChain) obj).getChain());
+  }
+
+  /**
+   * Converts the chain to a string.
+   *
+   * @return the stringified version of the chain
+   */
+  @Override
+  public String toString() {
+    return GsonHandler.getGson().toJson(this);
   }
 }
