@@ -39,8 +39,8 @@ Repository:
 Dependency:
 ```xml
 	<dependency>
-	    <groupId>com.github.PulseBeat02</groupId>
-	    <artifactId>MinecraftMediaLibrary</artifactId>
+	    <groupId>com.github.pulsebeat02</groupId>
+	    <artifactId>minecraftmedialibrary</artifactId>
 	    <version>master-SNAPSHOT</version>
 	</dependency>
 ```

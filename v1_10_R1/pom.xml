@@ -18,7 +18,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.pulsebeat02</groupId>
-            <artifactId>MinecraftMediaLibrary-API</artifactId>
+            <artifactId>minecraftmedialibrary-api</artifactId>
             <version>${project.parent.version}</version>
             <scope>provided</scope>
         </dependency>

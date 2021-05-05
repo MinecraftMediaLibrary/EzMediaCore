@@ -8,7 +8,7 @@
         <version>RELEASE-1.4.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>MinecraftMediaLibrary</artifactId>
+    <artifactId>minecraftmedialibrary</artifactId>
     <name>MinecraftMediaLibrary</name>
     <description>Official Media Library for Minecraft Spigot</description>
     <url>https://github.com/PulseBeat02/MinecraftMediaLibrary</url>
@@ -94,12 +94,12 @@
     <dependencies>
         <dependency>
             <groupId>com.github.pulsebeat02</groupId>
-            <artifactId>MinecraftMediaLibrary-API</artifactId>
+            <artifactId>minecraftmedialibrary-api</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.pulsebeat02</groupId>
-            <artifactId>MinecraftMediaLibrary-NMS</artifactId>
+            <artifactId>minecraftmedialibrary-nms</artifactId>
             <version>${project.parent.version}</version>
             <scope>compile</scope>
         </dependency>

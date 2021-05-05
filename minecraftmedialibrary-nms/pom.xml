@@ -9,7 +9,7 @@
     </parent>
     <!-- This module stores all the NMS Modules -->
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>MinecraftMediaLibrary-NMS</artifactId>
+    <artifactId>minecraftmedialibrary-nms</artifactId>
     <build>
         <plugins>
             <plugin>

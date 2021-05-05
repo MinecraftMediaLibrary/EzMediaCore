@@ -13,7 +13,7 @@
         <groupId>com.github.pulsebeat02</groupId>
         <version>RELEASE-1.4.0</version>
     </parent>
-    <artifactId>MinecraftMediaLibrary-API</artifactId>
+    <artifactId>minecraftmedialibrary-api</artifactId>
     <build>
         <testSourceDirectory>src/main/test</testSourceDirectory>
         <plugins>

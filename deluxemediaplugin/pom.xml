@@ -8,7 +8,10 @@
         <version>RELEASE-1.4.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>DeluxeMediaPlugin</artifactId>
+    <artifactId>deluxemediaplugin</artifactId>
+    <properties>
+        <jar.finalName>DeluxeMediaPlugin-${parent.version}</jar.finalName>
+    </properties>
     <build>
         <plugins>
             <plugin>
@@ -20,6 +23,10 @@
                         <relocation>
                             <pattern>org.bstats</pattern>
                             <shadedPattern>com.github.pulsebeat02.bstats</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>net.kyori</pattern>
+                            <shadedPattern>com.github.pulsebeat02.kyori</shadedPattern>
                         </relocation>
                     </relocations>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
@@ -44,7 +51,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.pulsebeat02</groupId>
-            <artifactId>MinecraftMediaLibrary</artifactId>
+            <artifactId>minecraftmedialibrary</artifactId>
             <version>RELEASE-1.4.0</version>
             <scope>compile</scope>
         </dependency>
