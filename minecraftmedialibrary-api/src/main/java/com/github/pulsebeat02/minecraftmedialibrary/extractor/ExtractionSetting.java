@@ -57,7 +57,7 @@ public class ExtractionSetting {
     Preconditions.checkArgument(channels > 0, String.format("Invalid Channels! (%d)", channels));
     Preconditions.checkArgument(
         samplingRate > 0, String.format("Invalid Sampling Rate! (%d)", samplingRate));
-    Preconditions.checkArgument(volume > 0, String.format("Invalid Volume! (%d)", volume));
+    Preconditions.checkArgument(volume >= 0, String.format("Invalid Volume! (%d)", volume));
     this.bitrate = bitrate;
     this.channels = channels;
     this.samplingRate = samplingRate;
