@@ -1,4 +1,6 @@
 [![Build Status](https://img.shields.io/circleci/build/github/MinecraftMediaLibrary/MinecraftMediaLibrary?style=for-the-badge)](https://app.circleci.com/pipelines/github/MinecraftMediaLibrary/MinecraftMediaLibrary)
+[![Documentation Status](https://img.shields.io/readthedocs/minecraftmedialibrary-wiki/latest?style=for-the-badge)](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/)
+[![Discord](https://img.shields.io/discord/817501569108017223?style=for-the-badge)](https://discord.gg/qVhhbCWQQV)
 [![Language](https://img.shields.io/badge/Made%20with-Java-1f425f.svg?style=for-the-badge)](https://www.java.com/en/)
 [![Lines of Code](https://img.shields.io/tokei/lines/github/MinecraftMediaLibrary/MinecraftMediaLibrary?style=for-the-badge)](https://github.com/MinecraftMediaLibrary/MinecraftMediaLibrary)
 
@@ -45,7 +47,7 @@ Dependency:
 	</dependency>
 ```
 
-Most of the code is documented which can be found [here](https://minecraftmedialibrary.github.io/MinecraftMediaLibrary/).
+Most of the code is documented which can be found [here](https://minecraftmedialibrary.github.io/MinecraftMediaLibrary/). For detailed documentation with explanations, visit the [readthedocs page](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/) (which is still in progress).
 
 However, if you want examples, you can take a look at [this module](https://github.com/MinecraftMediaLibrary/MinecraftMediaLibrary/tree/master/DeluxeMediaPlugin/src/main/java/com/github/pulsebeat02/deluxemediaplugin) where I wrote comments for every piece of code in the plugin which used the library. It is the plugin I used that displayed the video.
 
