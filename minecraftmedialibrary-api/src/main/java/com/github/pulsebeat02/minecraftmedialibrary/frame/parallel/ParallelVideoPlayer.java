@@ -26,6 +26,7 @@ import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.FilterLiteDither;
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -33,8 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 /**
@@ -106,9 +105,9 @@ import java.util.concurrent.Future;
 public class ParallelVideoPlayer extends VideoPlayer {
 
   private final PacketHandler handler;
-  private final Future<ByteBuffer> ditheredContents;
-  private final Queue<Future<ByteBuffer>> frameQueue;
   private final DitherHolder holder;
+  private final FilterLiteDither dither;
+  private ByteBuffer frame;
   private int map;
   private int width, height;
   private int videoWidth;
@@ -123,19 +122,25 @@ public class ParallelVideoPlayer extends VideoPlayer {
       @NotNull final FrameCallback callback) {
     super(library, file.toAbsolutePath().toString(), width, height, callback);
     handler = library.getHandler();
-    ditheredContents = new CompletableFuture<>();
-    frameQueue = new LinkedList<>();
     holder = null;
+    dither = new FilterLiteDither();
   }
 
   @Override
-  public void start(final @NotNull Collection<? extends Player> players) {}
+  public void start(final @NotNull Collection<? extends Player> players) {
 
-  public void getFirstFrame() {
+  }
+
+  public void handleFrame(final int[] data) {
     final long time = System.currentTimeMillis();
     if (time - lastUpdated >= delay) {
       lastUpdated = time;
-      // ditheredContents = holder.ditherIntoMinecraft(data, videoWidth);
+      process(data);
     }
+  }
+
+  public CompletableFuture<?> process(final int[] data) {
+    return CompletableFuture.supplyAsync(
+            () -> frame = dither.ditherIntoMinecraft(data, videoWidth));
   }
 }
