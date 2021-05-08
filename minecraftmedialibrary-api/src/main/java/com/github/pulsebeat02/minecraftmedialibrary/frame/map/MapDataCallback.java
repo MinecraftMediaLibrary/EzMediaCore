@@ -229,7 +229,7 @@ public final class MapDataCallback implements FrameCallback {
      * @param width the width
      * @return the width
      */
-    public Builder setWidth(final int width) {
+    public Builder setItemframeWidth(final int width) {
       this.width = width;
       return this;
     }
@@ -240,7 +240,7 @@ public final class MapDataCallback implements FrameCallback {
      * @param height the height
      * @return the height
      */
-    public Builder setHeight(final int height) {
+    public Builder setItemframeHeight(final int height) {
       this.height = height;
       return this;
     }

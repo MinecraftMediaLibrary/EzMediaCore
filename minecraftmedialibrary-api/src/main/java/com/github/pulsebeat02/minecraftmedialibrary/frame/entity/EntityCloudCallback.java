@@ -338,7 +338,7 @@ public final class EntityCloudCallback implements FrameCallback {
      * @param width the width
      * @return the width
      */
-    public Builder setWidth(final int width) {
+    public Builder setEntityWidth(final int width) {
       this.width = width;
       return this;
     }
@@ -349,7 +349,7 @@ public final class EntityCloudCallback implements FrameCallback {
      * @param height the height
      * @return the height
      */
-    public Builder setHeight(final int height) {
+    public Builder setEntityHeight(final int height) {
       this.height = height;
       return this;
     }

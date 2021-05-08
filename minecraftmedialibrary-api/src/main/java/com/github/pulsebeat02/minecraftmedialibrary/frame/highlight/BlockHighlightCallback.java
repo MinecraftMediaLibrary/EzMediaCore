@@ -208,7 +208,7 @@ public final class BlockHighlightCallback implements FrameCallback {
      * @param width the width
      * @return the width
      */
-    public Builder setWidth(final int width) {
+    public Builder setHighlightWidth(final int width) {
       this.width = width;
       return this;
     }
@@ -219,7 +219,7 @@ public final class BlockHighlightCallback implements FrameCallback {
      * @param height the height
      * @return the height
      */
-    public Builder setHeight(final int height) {
+    public Builder setHighlightHeight(final int height) {
       this.height = height;
       return this;
     }

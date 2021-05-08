@@ -117,8 +117,8 @@ public class VideoConfiguration extends AbstractConfiguration {
               .setViewers(null)
               .setDitherHolder(holder)
               .setMap(startingMapID)
-              .setWidth(frameWidth)
-              .setHeight(frameHeight)
+              .setItemframeWidth(frameWidth)
+              .setItemframeHeight(frameHeight)
               .setVideoWidth(width)
               .setDelay(0)
               .build(library);

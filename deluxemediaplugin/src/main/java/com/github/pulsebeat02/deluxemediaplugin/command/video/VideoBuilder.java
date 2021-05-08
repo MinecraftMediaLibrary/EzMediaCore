@@ -36,8 +36,8 @@ public class VideoBuilder {
             MapDataCallback.builder()
                 .setViewers(null)
                 .setMap(attributes.getStartingMap())
-                .setWidth(attributes.getFrameWidth())
-                .setHeight(attributes.getFrameHeight())
+                .setItemframeWidth(attributes.getFrameWidth())
+                .setItemframeHeight(attributes.getFrameHeight())
                 .setVideoWidth(attributes.getScreenWidth())
                 .setDelay(0)
                 .setDitherHolder(attributes.getDither())
@@ -53,8 +53,8 @@ public class VideoBuilder {
         .setCallback(
             EntityCloudCallback.builder()
                 .setViewers(null)
-                .setWidth(attributes.getScreenWidth())
-                .setHeight(attributes.getScreenHeight())
+                .setEntityWidth(attributes.getScreenWidth())
+                .setEntityHeight(attributes.getScreenHeight())
                 .setDelay(40)
                 .setLocation(sender.getLocation())
                 .setType(ScreenEntityType.AREA_EFFECT_CLOUD)
@@ -70,8 +70,8 @@ public class VideoBuilder {
         .setCallback(
             ChatCallback.builder()
                 .setViewers(null)
-                .setWidth(attributes.getScreenWidth())
-                .setHeight(attributes.getScreenHeight())
+                .setChatWidth(attributes.getScreenWidth())
+                .setChatHeight(attributes.getScreenHeight())
                 .setDelay(40)
                 .build(library))
         .build(library);
@@ -85,8 +85,8 @@ public class VideoBuilder {
         .setCallback(
             ScoreboardCallback.builder()
                 .setViewers(null)
-                .setWidth(attributes.getScreenWidth())
-                .setHeight(attributes.getScreenHeight())
+                .setScoreboardWidth(attributes.getScreenWidth())
+                .setScoreboardHeight(attributes.getScreenHeight())
                 .setDelay(40)
                 .build(library))
         .build(library);
@@ -100,8 +100,8 @@ public class VideoBuilder {
         .setCallback(
             BlockHighlightCallback.builder()
                 .setViewers(null)
-                .setWidth(attributes.getScreenWidth())
-                .setHeight(attributes.getScreenHeight())
+                .setHighlightWidth(attributes.getScreenWidth())
+                .setHighlightHeight(attributes.getScreenHeight())
                 .setDelay(40)
                 .setLocation(sender.getLocation())
                 .build(library))
