@@ -43,7 +43,7 @@ Dependency:
 	<dependency>
 	    <groupId>com.github.pulsebeat02</groupId>
 	    <artifactId>minecraftmedialibrary</artifactId>
-	    <version>main-SNAPSHOT</version>
+	    <version>master-SNAPSHOT</version>
 	</dependency>
 ```
 
