@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.frame;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.bukkit.entity.Player;
@@ -32,6 +33,9 @@ import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.CallbackVideoSurface;
+import uk.co.caprica.vlcj.player.embedded.videosurface.LinuxVideoSurfaceAdapter;
+import uk.co.caprica.vlcj.player.embedded.videosurface.OsxVideoSurfaceAdapter;
+import uk.co.caprica.vlcj.player.embedded.videosurface.VideoSurfaceAdapter;
 import uk.co.caprica.vlcj.player.embedded.videosurface.WindowsVideoSurfaceAdapter;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormat;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCallback;
@@ -65,9 +69,12 @@ import java.util.function.Consumer;
 public abstract class VideoPlayer {
 
   private final MinecraftMediaLibrary library;
+  private final VideoSurfaceAdapter adapter;
+  private final MinecraftVideoRenderCallback renderCallback;
   private final String url;
   private final FrameCallback callback;
   private final String sound;
+
   private EmbeddedMediaPlayer mediaPlayerComponent;
   private boolean playing;
   private int width;
@@ -96,6 +103,13 @@ public abstract class VideoPlayer {
     this.width = width;
     this.height = height;
     this.callback = callback;
+    renderCallback = new MinecraftVideoRenderCallback(this);
+    adapter =
+        RuntimeUtilities.isWindows()
+            ? new WindowsVideoSurfaceAdapter()
+            : RuntimeUtilities.isMac()
+                ? new OsxVideoSurfaceAdapter()
+                : new LinuxVideoSurfaceAdapter();
     sound = getLibrary().getPlugin().getName().toLowerCase();
     initializePlayer();
   }
@@ -134,9 +148,9 @@ public abstract class VideoPlayer {
                   @Override
                   public void allocatedBuffers(final ByteBuffer[] buffers) {}
                 },
-                new MinecraftVideoRenderCallback(this),
+                renderCallback,
                 false,
-                new WindowsVideoSurfaceAdapter()));
+                adapter));
     mediaPlayerComponent.audio().mute();
   }
 
@@ -210,6 +224,33 @@ public abstract class VideoPlayer {
    */
   public EmbeddedMediaPlayer getMediaPlayerComponent() {
     return mediaPlayerComponent;
+  }
+
+  /**
+   * Gets the adapter.
+   *
+   * @return the video surface adapter
+   */
+  public VideoSurfaceAdapter getAdapter() {
+    return adapter;
+  }
+
+  /**
+   * Gets the MinecraftVideoRenderCallback.
+   *
+   * @return the Minecraft render callback
+   */
+  public MinecraftVideoRenderCallback getRenderCallback() {
+    return renderCallback;
+  }
+
+  /**
+   * Gets the sound name for the resourcepack.
+   *
+   * @return the sound name
+   */
+  public String getSound() {
+    return sound;
   }
 
   /**
