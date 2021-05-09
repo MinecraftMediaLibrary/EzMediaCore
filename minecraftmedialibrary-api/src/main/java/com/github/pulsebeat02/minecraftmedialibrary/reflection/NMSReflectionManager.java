@@ -22,11 +22,9 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.reflection;
 
-import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import org.bukkit.Bukkit;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
@@ -51,12 +49,10 @@ public final class NMSReflectionManager {
   /**
    * Gets new packet handler instance.
    *
-   * @param library the library
    * @return the new packet handler instance
    */
   @Nullable
-  public static PacketHandler getNewPacketHandlerInstance(
-      @NotNull final MinecraftMediaLibrary library) {
+  public static PacketHandler getNewPacketHandlerInstance() {
     try {
       Logger.info(String.format("Loading NMS Class for Version %s", VERSION));
       final Class<?> clazz =

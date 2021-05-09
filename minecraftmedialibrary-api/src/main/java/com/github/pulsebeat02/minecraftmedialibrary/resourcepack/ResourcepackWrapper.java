@@ -53,9 +53,9 @@ import java.util.zip.ZipOutputStream;
  */
 public class ResourcepackWrapper implements PackHolder, ConfigurationSerializable {
 
-  private final MinecraftMediaLibrary library;
   private final String path;
   private final Path audio;
+  private final String soundName;
   private final Path icon;
   private final String description;
   private final int packFormat;
@@ -77,7 +77,27 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
       @Nullable final Path icon,
       @NotNull final String description,
       final int packFormat) {
-    this.library = library;
+    this(library.getPlugin().getName().toLowerCase(), path, audio, icon, description, packFormat);
+  }
+
+  /**
+   * Instantiates a new Resourcepack wrapper.
+   *
+   * @param name the sound name
+   * @param path the path
+   * @param audio the audio
+   * @param icon the icon
+   * @param description the description
+   * @param packFormat the pack format
+   */
+  public ResourcepackWrapper(
+      @NotNull final String name,
+      @NotNull final String path,
+      @NotNull final Path audio,
+      @Nullable final Path icon,
+      @NotNull final String description,
+      final int packFormat) {
+    this.soundName = name;
     this.path = path;
     this.audio = audio;
     this.icon = icon;
@@ -111,7 +131,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
    * @return the resulting ResourcepackWrapper
    */
   public static ResourcepackWrapper of(
-      @NotNull final YoutubeExtraction extractor, @NotNull final MinecraftMediaLibrary library) {
+      @NotNull final MinecraftMediaLibrary library, @NotNull final YoutubeExtraction extractor) {
     return ResourcepackWrapper.builder()
         .setAudio(extractor.getAudio())
         .setDescription(String.format("Youtube Video: %s", extractor.getVideoTitle()))
@@ -131,7 +151,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
    * @return the resulting ResourcepackWrapper
    */
   public static ResourcepackWrapper of(
-      @NotNull final Path audio, @NotNull final MinecraftMediaLibrary library) {
+      @NotNull final MinecraftMediaLibrary library, @NotNull final Path audio) {
     return ResourcepackWrapper.builder()
         .setAudio(audio)
         .setDescription(String.format("Media: %s", audio.getFileName().toString()))
@@ -253,7 +273,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
     final JsonArray sounds = new JsonArray();
     sounds.add("audio");
     category.add("sounds", sounds);
-    type.add(library.getPlugin().getName().toLowerCase(), category);
+    type.add(soundName, category);
     return GsonHandler.getGson().toJson(type);
   }
 
@@ -287,12 +307,12 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
   }
 
   /**
-   * Gets library.
+   * Gets sound name.
    *
-   * @return the library
+   * @return the sound name
    */
-  public MinecraftMediaLibrary getLibrary() {
-    return library;
+  public String getSoundName() {
+    return soundName;
   }
 
   /**
@@ -414,6 +434,16 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
      */
     public ResourcepackWrapper build(final MinecraftMediaLibrary library) {
       return new ResourcepackWrapper(library, path, audio, icon, description, packFormat);
+    }
+
+    /**
+     * Create resourcepack hosting provider resourcepack wrapper (with sound).
+     *
+     * @param sound the sound
+     * @return the resourcepack wrapper
+     */
+    public ResourcepackWrapper build(final String sound) {
+      return new ResourcepackWrapper(sound, path, audio, icon, description, packFormat);
     }
   }
 }

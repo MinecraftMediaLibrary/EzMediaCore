@@ -103,7 +103,7 @@ public final class MinecraftMediaLibrary {
         };
     handle = new LibraryPathHandle(plugin, http, libraryPath, vlcPath, imagePath, audioPath);
     vlcj = isUsingVLCJ;
-    handler = NMSReflectionManager.getNewPacketHandlerInstance(this);
+    handler = NMSReflectionManager.getNewPacketHandlerInstance();
     listener = new PlayerJoinLeaveHandler(this);
     Logger.info(DebuggerUtilities.getPluginDebugInfo(this));
     Logger.info(DebuggerUtilities.getSystemDebugInfo(this));
