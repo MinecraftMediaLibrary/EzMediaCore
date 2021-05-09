@@ -66,4 +66,7 @@ I am currently working on a ton of support for other operating systems. It curre
 - [VLC Media Player](https://www.videolan.org/) for allowing this library to play videos efficiently using C/C++ binaries.
 - [VLCJ](https://github.com/caprica/vlcj) for providing the Java bindings and support to use VLC in the scope of Java.
 
+**Please Note**
+I am not afflicted with Minecraft or Mojang in any way. This is a reminder due to how I have Minecraft in the library's name.
+
 ---
