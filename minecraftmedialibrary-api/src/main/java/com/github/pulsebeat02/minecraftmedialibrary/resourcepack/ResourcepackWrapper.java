@@ -75,7 +75,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
       @NotNull final String path,
       @NotNull final Path audio,
       @Nullable final Path icon,
-      final String description,
+      @NotNull final String description,
       final int packFormat) {
     this.library = library;
     this.path = path;
