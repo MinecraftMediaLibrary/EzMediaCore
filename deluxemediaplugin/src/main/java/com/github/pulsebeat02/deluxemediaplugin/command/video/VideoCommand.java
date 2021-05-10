@@ -462,7 +462,7 @@ public class VideoCommand extends BaseCommand {
       @NotNull final YoutubeExtraction extractor, @NotNull final DeluxeMediaPlugin plugin) {
 
     // Get the resourcepack wrapper from the extractor
-    final ResourcepackWrapper wrapper = ResourcepackWrapper.of(extractor, plugin.getLibrary());
+    final ResourcepackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), extractor);
 
     // Build the resourcepack
     wrapper.buildResourcePack();

@@ -134,7 +134,7 @@ public class AudioCommand extends BaseCommand {
             () -> {
 
               // Create a resourcepack from the audio and library instance
-              final ResourcepackWrapper wrapper = ResourcepackWrapper.of(audio.toPath(), library);
+              final ResourcepackWrapper wrapper = ResourcepackWrapper.of(library, audio.toPath());
 
               // Build the resourcepack
               wrapper.buildResourcePack();
