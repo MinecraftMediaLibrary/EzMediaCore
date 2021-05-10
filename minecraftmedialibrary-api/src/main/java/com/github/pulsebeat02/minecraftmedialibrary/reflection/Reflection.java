@@ -290,8 +290,6 @@ public final class Reflection {
    * <p>Strings enclosed with curly brackets - such as {TEXT} - will be replaced according to the
    * following table:
    *
-   * <p>
-   *
    * <table border="1">
    * <tr>
    * <th>Variable</th>
@@ -324,6 +322,7 @@ public final class Reflection {
    *
    * @param name - the name of the class, excluding the package.
    * @throws IllegalArgumentException If the class doesn't exist.
+   * @return the Minecraft class.
    */
   public static Class<?> getMinecraftClass(final String name) {
     return getCanonicalClass(String.format("%s.%s", NMS_PREFIX, name));
@@ -334,6 +333,7 @@ public final class Reflection {
    *
    * @param name - the name of the class, excluding the package.
    * @throws IllegalArgumentException If the class doesn't exist.
+   * @return the CraftBukkit class.
    */
   public static Class<?> getCraftBukkitClass(final String name) {
     return getCanonicalClass(String.format("%s.%s", OBC_PREFIX, name));

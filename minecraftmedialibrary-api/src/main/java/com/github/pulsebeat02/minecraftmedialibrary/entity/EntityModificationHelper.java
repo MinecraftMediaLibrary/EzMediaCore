@@ -37,9 +37,9 @@ import java.util.Set;
  * Utility class for plugins to be able to modify a specific entity using commands only. For
  * example,
  *
- * <p>/mob set [ENTITY_TYPE] -> Sets the type of entity. (Create a new EntityModificationHelper)
+ * <p>/mob set [ENTITY_TYPE] - Sets the type of entity. (Create a new EntityModificationHelper)
  *
- * <p>/mob modify getName "custom name" -> Sets the name of the entity. (call the
+ * <p>/mob modify getName "custom name" - Sets the name of the entity. (call the
  * EntityModification#invokeGetter with the name of the method (getName) and the argument ("custom
  * name"))
  */
@@ -91,6 +91,7 @@ public class EntityModificationHelper<T extends Entity> {
   /**
    * Invokes a specific argument based off the method name.
    *
+   * @param entity the entity
    * @param methodName the method name
    * @param argument the argument
    * @return true if the operation was successful, false otherwise

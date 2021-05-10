@@ -81,9 +81,9 @@ import java.util.concurrent.Future;
  * running at once at a good pace), it can provide the results faster.
  *
  * Since the actual dithering process will be made async/in parallel, encapsulate
- * the result in a Future<int[]>
+ * the result in a Future&lt;int[]&gt;
  *
- * Have a FrameSender class (or whatever you wanna call it) with a Queue<Future<int[]>>,
+ * Have a FrameSender class (or whatever you wanna call it) with a Queue&lt;Future&lt;int[]&gt;&gt;,
  * I believe a LinkedList is the best option here
  *
  * Add the future data to the FrameSender queue orderly before/when the dithering starts

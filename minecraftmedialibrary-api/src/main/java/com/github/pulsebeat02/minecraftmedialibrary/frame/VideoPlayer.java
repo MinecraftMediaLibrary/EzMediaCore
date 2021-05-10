@@ -52,19 +52,19 @@ import java.util.function.Consumer;
  * have the correct classes associated with each other! An example of the classes that are linked
  * together can be found below:
  *
- * <p>ChatCallback -> ChatIntegratedPlayer
+ * <p>ChatCallback - ChatIntegratedPlayer
  *
- * <p>EntityCloudCallback -> EntityCloudIntegratedPlayer
+ * <p>EntityCloudCallback - EntityCloudIntegratedPlayer
  *
- * <p>GifIntegratedPlayer ->
+ * <p>GifIntegratedPlayer - [In Development]
  *
- * <p>BlockHighlightCallback -> BlockHighlightPlayer
+ * <p>BlockHighlightCallback - BlockHighlightPlayer
  *
- * <p>MapDataCallback -> MapIntegratedPlayer
+ * <p>MapDataCallback - MapIntegratedPlayer
  *
- * <p>ParallelVideoPlayer
+ * <p>ParallelVideoPlayer - [In Development]
  *
- * <p>ScoreboardCallback -> ScoreboardIntegratedPlayer
+ * <p>ScoreboardCallback - ScoreboardIntegratedPlayer
  */
 public abstract class VideoPlayer {
 
@@ -270,7 +270,11 @@ public abstract class VideoPlayer {
     Logger.info(String.format("Started Playing the Video! (%s)", url));
   }
 
-  /** Stops the player. */
+  /**
+   * Stops the player.
+   *
+   * @param players the players
+   */
   public void stop(@NotNull final Collection<? extends Player> players) {
     playing = false;
     mediaPlayerComponent.controls().stop();

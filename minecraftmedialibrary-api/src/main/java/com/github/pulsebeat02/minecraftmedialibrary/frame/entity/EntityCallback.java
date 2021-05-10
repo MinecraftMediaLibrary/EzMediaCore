@@ -80,6 +80,7 @@ public final class EntityCallback implements FrameCallback {
    * @param library the library
    * @param viewers the viewers
    * @param location the location
+   * @param type the screen type
    * @param width the width
    * @param height the height
    * @param videoWidth the video width
@@ -112,6 +113,8 @@ public final class EntityCallback implements FrameCallback {
    * @param library the library
    * @param viewers the viewers
    * @param location the location
+   * @param str the String used for the name
+   * @param type the screen type
    * @param width the width
    * @param height the height
    * @param videoWidth the video width
@@ -178,6 +181,7 @@ public final class EntityCallback implements FrameCallback {
    * entity with custom attributes.
    *
    * @param entity the entity to modify
+   * @return the modified entity
    */
   public Entity modifyEntity(@NotNull final Entity entity) {
     switch (type) {
