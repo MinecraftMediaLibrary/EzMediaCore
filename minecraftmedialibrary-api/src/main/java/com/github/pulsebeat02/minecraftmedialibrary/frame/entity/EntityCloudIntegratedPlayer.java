@@ -105,6 +105,11 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
    */
   @Override
   public void start(@NotNull final Collection<? extends Player> players) {
+    if (entities != null) {
+      for (final Entity entity : entities) {
+        entity.remove();
+      }
+    }
     super.start(players);
   }
 
