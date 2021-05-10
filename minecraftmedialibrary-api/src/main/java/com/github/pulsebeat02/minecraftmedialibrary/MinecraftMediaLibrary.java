@@ -22,7 +22,8 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary;
 
-import com.github.pulsebeat02.minecraftmedialibrary.listener.PlayerJoinLeaveHandler;
+import com.github.pulsebeat02.minecraftmedialibrary.listener.PlayerInteractionHandler;
+import com.github.pulsebeat02.minecraftmedialibrary.listener.PlayerJoinLeaveRegistration;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import com.github.pulsebeat02.minecraftmedialibrary.reflection.NMSReflectionManager;
@@ -50,10 +51,10 @@ import java.nio.file.Path;
 public final class MinecraftMediaLibrary {
 
   private final Plugin plugin;
-  private final PlayerJoinLeaveHandler listener;
   private final PacketHandler handler;
   private final TinyProtocol protocol;
   private final LibraryPathHandle handle;
+  private final PlayerJoinLeaveRegistration registrationHandler;
   private boolean vlcj;
   private boolean disabled;
 
@@ -104,12 +105,11 @@ public final class MinecraftMediaLibrary {
     handle = new LibraryPathHandle(plugin, http, libraryPath, vlcPath, imagePath, audioPath);
     vlcj = isUsingVLCJ;
     handler = NMSReflectionManager.getNewPacketHandlerInstance();
-    listener = new PlayerJoinLeaveHandler(this);
+    registrationHandler = new PlayerJoinLeaveRegistration(this);
     Logger.info(DebuggerUtilities.getPluginDebugInfo(this));
     Logger.info(DebuggerUtilities.getSystemDebugInfo(this));
-    Bukkit.getPluginManager().registerEvents(listener, plugin);
+    Bukkit.getPluginManager().registerEvents(registrationHandler, plugin);
     dependencyTasks();
-    // DebuggerUtilities.redirectLoggingOutput();
     JavaVersionUtilities.sendWarningMessage();
   }
 
@@ -124,7 +124,7 @@ public final class MinecraftMediaLibrary {
   public void shutdown() {
     Logger.info("Shutting Down!");
     disabled = true;
-    HandlerList.unregisterAll(listener);
+    HandlerList.unregisterAll(registrationHandler);
     Logger.info("Good Bye");
   }
 
@@ -178,8 +178,8 @@ public final class MinecraftMediaLibrary {
    *
    * @return the listener
    */
-  public PlayerJoinLeaveHandler getListener() {
-    return listener;
+  public PlayerJoinLeaveRegistration getRegistrationHandler() {
+    return registrationHandler;
   }
 
   /**

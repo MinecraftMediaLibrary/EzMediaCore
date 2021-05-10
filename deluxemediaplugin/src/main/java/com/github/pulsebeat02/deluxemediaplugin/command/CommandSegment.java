@@ -30,6 +30,7 @@ public interface CommandSegment<S, T extends CommandNode<S>> {
    *
    * @param name name
    * @param type argument type
+   * @param <T> the generic
    * @return required argument builder from name and type.
    */
   default <T> RequiredArgumentBuilder<S, T> argument(
