@@ -37,7 +37,7 @@ import java.util.Collection;
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it on entities.
  */
-public class EntityCloudIntegratedPlayer extends VideoPlayer {
+public class EntityIntegratedPlayer extends VideoPlayer {
 
   private final Location location;
   private final Entity[] entities;
@@ -52,10 +52,10 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
    * @param callback the callback
    * @param location the location
    */
-  public EntityCloudIntegratedPlayer(
+  public EntityIntegratedPlayer(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final String url,
-      @NotNull final EntityCloudCallback callback,
+      @NotNull final EntityCallback callback,
       @NotNull final Location location,
       final int width,
       final int height) {
@@ -75,10 +75,10 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
    * @param callback the callback
    * @param location the location
    */
-  public EntityCloudIntegratedPlayer(
+  public EntityIntegratedPlayer(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final Path file,
-      @NotNull final EntityCloudCallback callback,
+      @NotNull final EntityCallback callback,
       @NotNull final Location location,
       final int width,
       final int height) {
@@ -105,23 +105,24 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
    */
   @Override
   public void start(@NotNull final Collection<? extends Player> players) {
-    if (entities != null) {
-      for (final Entity entity : entities) {
-        entity.remove();
-      }
-    }
+    removeEntities();
     super.start(players);
   }
 
   /** Releases the media player. */
   @Override
   public void release() {
+    removeEntities();
+    super.release();
+  }
+
+  /** Removes all entities. */
+  public void removeEntities() {
     if (entities != null) {
       for (final Entity entity : entities) {
         entity.remove();
       }
     }
-    super.release();
   }
 
   /**
@@ -148,7 +149,7 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
     private String url;
     private int width = 5;
     private int height = 5;
-    private EntityCloudCallback callback;
+    private EntityCallback callback;
     private Location location;
 
     private Builder() {}
@@ -168,7 +169,7 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
       return this;
     }
 
-    public Builder setCallback(final EntityCloudCallback callback) {
+    public Builder setCallback(final EntityCallback callback) {
       this.callback = callback;
       return this;
     }
@@ -178,8 +179,8 @@ public class EntityCloudIntegratedPlayer extends VideoPlayer {
       return this;
     }
 
-    public EntityCloudIntegratedPlayer build(@NotNull final MinecraftMediaLibrary library) {
-      return new EntityCloudIntegratedPlayer(library, url, callback, location, width, height);
+    public EntityIntegratedPlayer build(@NotNull final MinecraftMediaLibrary library) {
+      return new EntityIntegratedPlayer(library, url, callback, location, width, height);
     }
   }
 }

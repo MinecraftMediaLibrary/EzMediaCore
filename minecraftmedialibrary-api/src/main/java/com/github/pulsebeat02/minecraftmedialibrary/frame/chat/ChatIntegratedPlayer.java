@@ -24,7 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.frame.chat;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +69,7 @@ public class ChatIntegratedPlayer extends VideoPlayer {
   public ChatIntegratedPlayer(
       @NotNull final MinecraftMediaLibrary library,
       @NotNull final Path file,
-      @NotNull final EntityCloudCallback callback,
+      @NotNull final EntityCallback callback,
       final int width,
       final int height) {
     super(library, file, width, height, callback);

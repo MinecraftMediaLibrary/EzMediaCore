@@ -3,8 +3,8 @@ package com.github.pulsebeat02.deluxemediaplugin.command.video;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatIntegratedPlayer;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudCallback;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCloudIntegratedPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityIntegratedPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.ScreenEntityType;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.highlight.BlockHighlightCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.highlight.BlockHighlightPlayer;
@@ -45,13 +45,13 @@ public class VideoBuilder {
         .build(library);
   }
 
-  public EntityCloudIntegratedPlayer createEntityCloudPlayer(@NotNull final Player sender) {
-    return EntityCloudIntegratedPlayer.builder()
+  public EntityIntegratedPlayer createEntityCloudPlayer(@NotNull final Player sender) {
+    return EntityIntegratedPlayer.builder()
         .setUrl(attributes.getFile().getAbsolutePath())
         .setWidth(attributes.getScreenWidth())
         .setHeight(attributes.getScreenHeight())
         .setCallback(
-            EntityCloudCallback.builder()
+            EntityCallback.builder()
                 .setViewers(null)
                 .setEntityWidth(attributes.getScreenWidth())
                 .setEntityHeight(attributes.getScreenHeight())

@@ -60,7 +60,7 @@ import java.util.UUID;
  * the method as the library will be able to do that for you. You should only override it if you are
  * using ScreenEntityType.CUSTOM, which is where you manually customise it yourself.
  */
-public final class EntityCloudCallback implements FrameCallback {
+public final class EntityCallback implements FrameCallback {
 
   private final PacketHandler handler;
   private final UUID[] viewers;
@@ -85,7 +85,7 @@ public final class EntityCloudCallback implements FrameCallback {
    * @param videoWidth the video width
    * @param delay the delay
    */
-  public EntityCloudCallback(
+  public EntityCallback(
       @NotNull final MinecraftMediaLibrary library,
       final UUID[] viewers,
       @NotNull final Location location,
@@ -117,7 +117,7 @@ public final class EntityCloudCallback implements FrameCallback {
    * @param videoWidth the video width
    * @param delay the delay
    */
-  public EntityCloudCallback(
+  public EntityCallback(
       @NotNull final MinecraftMediaLibrary library,
       final UUID[] viewers,
       @NotNull final Location location,
@@ -393,8 +393,8 @@ public final class EntityCloudCallback implements FrameCallback {
      * @param library the library
      * @return the entity cloud callback
      */
-    public EntityCloudCallback build(final MinecraftMediaLibrary library) {
-      return new EntityCloudCallback(library, viewers, location, type, width, height, width, delay);
+    public EntityCallback build(final MinecraftMediaLibrary library) {
+      return new EntityCallback(library, viewers, location, type, width, height, width, delay);
     }
   }
 }
