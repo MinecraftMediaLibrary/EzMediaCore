@@ -1,7 +1,7 @@
 description = "v1_10_R1"
 
-plugins {
-    id("com.github.pulsebeat02.java-conventions")
+repositories {
+    mavenLocal()
 }
 
 dependencies {
