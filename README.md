@@ -75,14 +75,14 @@ MinecraftMediaLibrary Dependency:
 **Gradle (Groovy)**
 ```groovy
 dependencies {
-  implementation 'com.github.minecraftmedialibrary:minecraftmedialibrary:-SNAPSHOT'
+  implementation 'com.github.minecraftmedialibrary:minecraftmedialibrary:master-SNAPSHOT'
 }
 ```
 
 **Gradle (Kotlin)**
 ```kotlin
 dependencies {
-  implementation ("com.github.minecraftmedialibrary:minecraftmedialibrary:-SNAPSHOT")
+  implementation ("com.github.minecraftmedialibrary:minecraftmedialibrary:master-SNAPSHOT")
 }
 ```
 
