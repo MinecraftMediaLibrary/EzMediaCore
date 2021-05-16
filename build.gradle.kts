@@ -1,5 +1,5 @@
 description = "minecraftmedialibrary-parent"
-version = "RELEASE-1.4.0"
+version = "1.4.0"
 
 plugins {
     java
