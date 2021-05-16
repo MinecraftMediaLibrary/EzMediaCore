@@ -7,7 +7,6 @@ plugins {
 }
 
 dependencies {
-    api(project(":minecraftmedialibrary-api"))
     compileOnly("org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
     compileOnly("uk.co.caprica:vlcj:4.7.1")
     compileOnly("uk.co.caprica:vlcj-natives:4.1.0")
@@ -28,6 +27,7 @@ dependencies {
     testImplementation("io.github.glytching:junit-extensions:2.4.0")
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.31")
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.4.31")
+    api(project(":minecraftmedialibrary-api"))
     implementation(project(":v1_16_R3"))
     implementation(project(":v1_16_R2"))
     implementation(project(":v1_16_R1"))

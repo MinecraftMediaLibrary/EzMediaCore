@@ -18,6 +18,5 @@ include(":v1_9_R1")
 include(":v1_8_R2")
 include(":v1_8_R1")
 
-include(":minecraftmedialibrary-nms")
 include(":minecraftmedialibrary")
 include(":deluxemediaplugin")
