@@ -34,10 +34,12 @@ import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 import uk.co.caprica.vlcj.support.version.LibVlcVersion;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Set;
 
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_new;
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_release;
@@ -47,17 +49,17 @@ public class MMLNativeDiscovery {
   private final boolean heuristics;
   private final String extension;
   private final String keyword;
-  private final String parentPluginExtension;
+  private final Set<String> possibleExtensions;
   private Path nativeVLCPath;
 
   public MMLNativeDiscovery(
       final boolean heuristics,
       @NotNull final String extension,
-      @NotNull final String parentPluginExtension) {
+      @NotNull final Set<String> possibleExtensions) {
     this.heuristics = heuristics;
     this.extension = extension;
     keyword = String.format("libvlc.%s", extension);
-    this.parentPluginExtension = parentPluginExtension;
+    this.possibleExtensions = possibleExtensions;
   }
 
   /**
@@ -88,9 +90,14 @@ public class MMLNativeDiscovery {
       final String path = f.getAbsolutePath();
       if (f.isDirectory()) {
         if (!plugins && name.equals("plugins")) {
-          setVLCPluginPath(String.format("%s%s", f.getParent(), parentPluginExtension));
-          Logger.info(String.format("Found Plugins Path (%s)", path));
-          plugins = true;
+          for (final String extension : possibleExtensions) {
+            final String pathExtension = String.format("%s%s", f.getParent(), extension);
+            if (Files.exists(Paths.get(pathExtension))) {
+              setVLCPluginPath(pathExtension);
+              Logger.info(String.format("Found Plugins Path (%s)", path));
+              plugins = true;
+            }
+          }
         } else {
           final File[] children = f.listFiles();
           if (children != null) {
@@ -221,7 +228,7 @@ public class MMLNativeDiscovery {
    *
    * @return the parent plugin extension path
    */
-  public String getParentPluginExtension() {
-    return parentPluginExtension;
+  public Set<String> getPossibleExtensions() {
+    return possibleExtensions;
   }
 }

@@ -23,10 +23,11 @@
 package com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux;
 
 import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.MMLNativeDiscovery;
+import com.google.common.collect.ImmutableSet;
 
 public class LinuxNativeDiscovery extends MMLNativeDiscovery {
 
   public LinuxNativeDiscovery() {
-    super(true, "so", "/vlc/plugins");
+    super(true, "so", ImmutableSet.of("/vlc/plugins", "/plugins"));
   }
 }
