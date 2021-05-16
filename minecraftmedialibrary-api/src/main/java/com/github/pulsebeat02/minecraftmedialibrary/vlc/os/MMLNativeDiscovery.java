@@ -60,6 +60,10 @@ public class MMLNativeDiscovery {
     this.extension = extension;
     keyword = String.format("libvlc.%s", extension);
     this.possibleExtensions = possibleExtensions;
+    final NativeDiscovery discovery = new NativeDiscovery();
+    if (discovery.discover()) {
+      nativeVLCPath = Paths.get(discovery.discoveredPath());
+    }
   }
 
   /**
@@ -72,9 +76,7 @@ public class MMLNativeDiscovery {
     if (!directory.exists()) {
       return false;
     }
-    final NativeDiscovery discovery = new NativeDiscovery();
-    if (discovery.discover()) {
-      nativeVLCPath = Paths.get(discovery.discoveredPath());
+    if (nativeVLCPath != null) {
       return true;
     }
     boolean plugins = false;

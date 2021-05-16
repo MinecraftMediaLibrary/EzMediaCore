@@ -20,15 +20,41 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.vlc.os.windows;
+package com.github.pulsebeat02.minecraftmedialibrary.vlc.os;
 
-import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.MMLNativeDiscovery;
-import com.google.common.collect.ImmutableSet;
+import org.jetbrains.annotations.NotNull;
 
-public class WindowsNativeDiscovery extends MMLNativeDiscovery {
+import java.util.Set;
 
-  public WindowsNativeDiscovery() {
-    super(false, "dll", ImmutableSet.of(""));
+/** A base class for well known directory location for VLC. */
+public class WellKnownDirectoryProvider {
+
+  private final Set<String> directories;
+
+  /**
+   * Instantiates a new WellKnownDirectories.
+   *
+   * @param directories the directories to search for
+   */
+  public WellKnownDirectoryProvider(@NotNull final Set<String> directories) {
+    this.directories = directories;
   }
 
+  /**
+   * Returns a Set of possible paths to search for.
+   *
+   * @return the possible paths
+   */
+  public Set<String> search() {
+    return directories;
+  }
+
+  /**
+   * Gets the directories (being looked for)
+   *
+   * @return the directories
+   */
+  public Set<String> getDirectories() {
+    return directories;
+  }
 }

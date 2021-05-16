@@ -22,13 +22,34 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.vlc.os.windows;
 
-import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.MMLNativeDiscovery;
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.WellKnownDirectoryProvider;
 import com.google.common.collect.ImmutableSet;
+import com.sun.jna.platform.win32.Advapi32Util;
+import com.sun.jna.platform.win32.WinReg;
 
-public class WindowsNativeDiscovery extends MMLNativeDiscovery {
+import java.util.Set;
 
-  public WindowsNativeDiscovery() {
-    super(false, "dll", ImmutableSet.of(""));
+/** Well known Windows directory for VLC installation. */
+public class WindowsKnownDirectories extends WellKnownDirectoryProvider {
+
+  /** Instantiates a new WindowsKnownDirectories. */
+  public WindowsKnownDirectories() {
+    super(ImmutableSet.of());
   }
 
+  /**
+   * Searches and returns a set of possible paths.
+   *
+   * @return the possible paths
+   */
+  @Override
+  public Set<String> search() {
+    try {
+      return ImmutableSet.of(
+          Advapi32Util.registryGetStringValue(
+              WinReg.HKEY_LOCAL_MACHINE, "SOFTWARE\\VideoLAN\\VLC", "InstallDir"));
+    } catch (final Exception e) {
+      return ImmutableSet.of();
+    }
+  }
 }

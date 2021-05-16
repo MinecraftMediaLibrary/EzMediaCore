@@ -20,15 +20,40 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.vlc.os.windows;
+package com.github.pulsebeat02.minecraftmedialibrary.vlc.os.mac;
 
-import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.MMLNativeDiscovery;
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.WellKnownDirectoryProvider;
 import com.google.common.collect.ImmutableSet;
 
-public class WindowsNativeDiscovery extends MMLNativeDiscovery {
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Set;
 
-  public WindowsNativeDiscovery() {
-    super(false, "dll", ImmutableSet.of(""));
+/** Well known Mac directory for VLC installation. */
+public class MacKnownDirectories extends WellKnownDirectoryProvider {
+
+  /** Instantiates a new MacKnownDirectories. */
+  public MacKnownDirectories() {
+    super(
+        ImmutableSet.of(
+            "/Applications/VLC.app/Contents/Frameworks",
+            "/Applications/VLC.app/Contents/MacOS/lib"));
   }
 
+  /**
+   * Searches and returns a set of possible paths.
+   *
+   * @return the possible paths
+   */
+  @Override
+  public Set<String> search() {
+    final Set<String> paths = new HashSet<>();
+    for (final String path : getDirectories()) {
+      if (Files.exists(Paths.get(path))) {
+        paths.add(path);
+      }
+    }
+    return paths;
+  }
 }

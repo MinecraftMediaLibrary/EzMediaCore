@@ -20,15 +20,44 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.vlc.os.windows;
+package com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux;
 
-import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.MMLNativeDiscovery;
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.WellKnownDirectoryProvider;
 import com.google.common.collect.ImmutableSet;
 
-public class WindowsNativeDiscovery extends MMLNativeDiscovery {
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Set;
 
-  public WindowsNativeDiscovery() {
-    super(false, "dll", ImmutableSet.of(""));
+/** Well known Linux directory for VLC installation. */
+public class LinuxKnownDirectories extends WellKnownDirectoryProvider {
+
+  /** Instantiates a new LinuxKnownDirectories. */
+  public LinuxKnownDirectories() {
+    super(
+        ImmutableSet.of(
+            "/usr/lib/x86_64-linux-gnu",
+            "/usr/lib64",
+            "/usr/local/lib64",
+            "/usr/lib/i386-linux-gnu",
+            "/usr/lib",
+            "/usr/local/lib"));
   }
 
+  /**
+   * Searches and returns a set of possible paths.
+   *
+   * @return the possible paths
+   */
+  @Override
+  public Set<String> search() {
+    final Set<String> paths = new HashSet<>();
+    for (final String path : getDirectories()) {
+      if (Files.exists(Paths.get(path))) {
+        paths.add(path);
+      }
+    }
+    return paths;
+  }
 }
