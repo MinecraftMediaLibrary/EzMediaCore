@@ -23,10 +23,24 @@
 package com.github.pulsebeat02.minecraftmedialibrary.vlc.os.windows;
 
 import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.MMLNativeDiscovery;
+import com.google.common.collect.ImmutableSet;
+import com.sun.jna.platform.win32.Advapi32Util;
+import com.sun.jna.platform.win32.WinReg;
+import org.jetbrains.annotations.Nullable;
 
 public class WindowsNativeDiscovery extends MMLNativeDiscovery {
 
   public WindowsNativeDiscovery() {
-    super(false, "dll", "");
+    super(false, "dll", ImmutableSet.of(""));
+  }
+
+  @Nullable
+  public String getInstallationDirectory() {
+    try {
+      return Advapi32Util.registryGetStringValue(
+          WinReg.HKEY_LOCAL_MACHINE, "SOFTWARE\\VideoLAN\\VLC", "InstallDir");
+    } catch (final Exception e) {
+      return null;
+    }
   }
 }
