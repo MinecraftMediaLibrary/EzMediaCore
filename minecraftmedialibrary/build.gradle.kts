@@ -64,7 +64,14 @@ publishing {
                     developer {
                         id.set("pulsebeat02")
                         name.set("Brandon Li")
-                        email.set("brandonli2006ma@gmail.com")
+                    }
+                    developer {
+                        id.set("emilyy-dev")
+                        name.set("Emily")
+                    }
+                    developer {
+                        id.set("Conclure")
+                        name.set("Conclure")
                     }
                 }
                 scm {
