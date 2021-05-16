@@ -4,6 +4,7 @@ description = "minecraftmedialibrary"
 
 plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
+    `maven-publish`
 }
 
 dependencies {
@@ -43,6 +44,57 @@ dependencies {
     implementation(project(":v1_8_R3"))
     implementation(project(":v1_8_R2"))
     implementation(project(":v1_8_R1"))
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            pom {
+                name.set("MinecraftMediaLibrary")
+                description.set("A Spigot library used to play media")
+                url.set("https://github.com/MinecraftMediaLibrary/MinecraftMediaLibrary")
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("pulsebeat02")
+                        name.set("Brandon Li")
+                        email.set("brandonli2006ma@gmail.com")
+                    }
+                }
+                scm {
+                    connection.set("scm:git:git://github.com/MinecraftMediaLibrary/MinecraftMediaLibrary.git")
+                    developerConnection.set("scm:git:git://github.com/MinecraftMediaLibrary/MinecraftMediaLibrary.git")
+                    url.set("https://github.com/MinecraftMediaLibrary/MinecraftMediaLibrary")
+                }
+            }
+        }
+    }
+    
+/*
+      repositories {
+        maven {
+            url = uri(
+                if (version.toString().endsWith("SNAPSHOT"))
+                    "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                else
+                    "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+            )
+            val ossUsername: String by project
+            val ossPassword: String by project
+            credentials {
+                username = ossUsername
+                password = ossPassword
+            }
+        }
+    }
+*/
+
 }
 
 tasks.withType<ShadowJar> {
