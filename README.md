@@ -62,9 +62,10 @@ I am currently working on a ton of support for other operating systems. It curre
 ## Contributors/Acknowledgements
 - [BananaPuncher714](https://github.com/BananaPuncher714) for helping lead the spark for the project, as well as code the Floyd-Steinberg implementation in Java.
 - [Jetp250](https://github.com/jetp250) for helping with the Floyd-Steinberg implementation.
-- [Fefo6644](https://github.com/Fefo6644) for helping me with asyncronous tasks and implementation.
+- [Fefo6644](https://github.com/Fefo6644) for helping me with asynchronous tasks and implementation.
 - [VLC Media Player](https://www.videolan.org/) for allowing this library to play videos efficiently using C/C++ binaries.
 - [VLCJ](https://github.com/caprica/vlcj) for providing the Java bindings and support to use VLC in the scope of Java.
+- And other libraries used to allow this to be possible.
 
 **Please Note**
 I am not afflicted with Minecraft or Mojang in any way. This is a reminder due to how I have Minecraft in the library's name.
