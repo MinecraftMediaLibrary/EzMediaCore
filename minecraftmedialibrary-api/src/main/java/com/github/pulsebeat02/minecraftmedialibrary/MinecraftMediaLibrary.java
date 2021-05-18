@@ -22,7 +22,6 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary;
 
-import com.github.pulsebeat02.minecraftmedialibrary.listener.PlayerInteractionHandler;
 import com.github.pulsebeat02.minecraftmedialibrary.listener.PlayerJoinLeaveRegistration;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;

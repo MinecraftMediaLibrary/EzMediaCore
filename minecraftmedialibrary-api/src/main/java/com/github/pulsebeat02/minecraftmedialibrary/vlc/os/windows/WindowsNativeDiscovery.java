@@ -30,5 +30,4 @@ public class WindowsNativeDiscovery extends MMLNativeDiscovery {
   public WindowsNativeDiscovery() {
     super(false, "dll", ImmutableSet.of(""));
   }
-
 }

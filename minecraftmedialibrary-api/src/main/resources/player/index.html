@@ -3,7 +3,7 @@
 <head>
     <title>MinecraftMediaLibrary Audio Player</title>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="css/stylesheet.css">
+    <link href="css/stylesheet.css" rel="stylesheet">
     <script src="https://unpkg.com/wavesurfer.js@5.0.1/dist/wavesurfer.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="js/controls.js"></script>
@@ -32,7 +32,7 @@
                 <div class="progress__indicator"></div>
             </div>
         </div>
-        <div id="wavesurfer" class="wavesurfer__elem"></div>
+        <div class="wavesurfer__elem" id="wavesurfer"></div>
         <div class="artist__name">
             <p>Moonlight Serenade</p>
             <h1>Glenn Miller</h1>
@@ -41,7 +41,7 @@
         </div>
         <div class="controls">
             <button class="button__prev"></button>
-            <button id="play" class="button__play load">
+            <button class="button__play load" id="play">
                 <span class="button__play-iconplay"></span>
                 <span class="button__play-iconpause"></span>
                 <span class="button__loader"></span>

@@ -79,7 +79,11 @@ public enum RepositoryDependency {
   FAST_JSON("com{}alibaba", "fastjson", "1{}2{}73", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** Spotify Maven Dependency */
-  SPOTIFY("se{}michaelthelin{}spotify", "spotify-web-api-java", "6{}5{}4", DependencyResolution.MAVEN_DEPENDENCY);
+  SPOTIFY(
+      "se{}michaelthelin{}spotify",
+      "spotify-web-api-java",
+      "6{}5{}4",
+      DependencyResolution.MAVEN_DEPENDENCY);
 
   private final String group;
   private final String artifact;
