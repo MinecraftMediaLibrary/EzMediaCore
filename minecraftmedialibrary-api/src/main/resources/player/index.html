@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>MinecraftMediaLibrary Audio Player</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/stylesheet.css">
+    <script src="https://unpkg.com/wavesurfer.js@5.0.1/dist/wavesurfer.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="js/controls.js"></script>
+</head>
+<body>
+<div class="phone">
+    <div class="player">
+        <div class="wavesurfer">
+            <div class="recordplayer">
+                <div class="recordplayer__disc">
+                    <div class="recordplayer__disc-stripe1"></div>
+                    <div class="recordplayer__disc-stripe2"></div>
+                </div>
+            </div>
+            <div class="artist__image">
+                <div class="artist__image-url"></div>
+            </div>
+
+            <div class="time">
+                <span class="time__minutes"></span>
+                <span>:</span>
+                <span class="time__seconds"></span>
+            </div>
+            <div class="progress">
+                <div class="progress__button"></div>
+                <div class="progress__indicator"></div>
+            </div>
+        </div>
+        <div id="wavesurfer" class="wavesurfer__elem"></div>
+        <div class="artist__name">
+            <p>Moonlight Serenade</p>
+            <h1>Glenn Miller</h1>
+            <div class="love">♡</div>
+            <div class="share"></div>
+        </div>
+        <div class="controls">
+            <button class="button__prev"></button>
+            <button id="play" class="button__play load">
+                <span class="button__play-iconplay"></span>
+                <span class="button__play-iconpause"></span>
+                <span class="button__loader"></span>
+            </button>
+            <button class="button__next"></button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
