@@ -42,7 +42,7 @@ public enum RepositoryDependency {
   VLCJ_NATIVE_STREAMS(
       "uk{}co{}caprica", "native-streams", "1{}0{}0", DependencyResolution.MAVEN_DEPENDENCY),
 
-  /** Youtube Downloader Maven Dependency */
+  /** Youtube Downloader Jitpack Dependency */
   YOUTUBE_DOWNLOADER(
       "com{}github{}sealedtx",
       "java-youtube-downloader",
@@ -56,7 +56,7 @@ public enum RepositoryDependency {
   COMMONS_COMPRESSION(
       "org{}apache{}commons", "commons-compress", "1{}20", DependencyResolution.MAVEN_DEPENDENCY),
 
-  /** Compression Maven Dependency */
+  /** Compression Jitpack Dependency */
   COMPRESSION(
       "com{}github{}PulseBeat02",
       "jarchivelib",
@@ -76,7 +76,10 @@ public enum RepositoryDependency {
   JNA("net{}java{}dev{}jna", "jna", "5{}7{}0", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** Fast JSON Maven Dependency */
-  FAST_JSON("com{}alibaba", "fastjson", "1{}2{}73", DependencyResolution.MAVEN_DEPENDENCY);
+  FAST_JSON("com{}alibaba", "fastjson", "1{}2{}73", DependencyResolution.MAVEN_DEPENDENCY),
+
+  /** Spotify Maven Dependency */
+  SPOTIFY("se{}michaelthelin{}spotify", "spotify-web-api-java", "6{}5{}4", DependencyResolution.MAVEN_DEPENDENCY);
 
   private final String group;
   private final String artifact;

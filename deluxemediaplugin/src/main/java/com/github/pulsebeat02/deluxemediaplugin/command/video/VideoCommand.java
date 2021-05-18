@@ -409,7 +409,7 @@ public class VideoCommand extends BaseCommand {
     final String mrl = context.getArgument("mrl", String.class);
     final String folderPath = String.format("%s/mml/", plugin.getDataFolder().getAbsolutePath());
     final AtomicBoolean atomicBoolean = attributes.getCompletion();
-    if (!VideoExtractionUtilities.getVideoID(mrl).isPresent()) {
+    if (!VideoExtractionUtilities.getYoutubeID(mrl).isPresent()) {
 
       // This means we have a file
       atomicBoolean.set(false);

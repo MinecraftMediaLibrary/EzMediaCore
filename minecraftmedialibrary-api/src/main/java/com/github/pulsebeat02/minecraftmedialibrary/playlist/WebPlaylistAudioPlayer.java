@@ -20,36 +20,60 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.http;
+package com.github.pulsebeat02.minecraftmedialibrary.playlist;
 
-import java.net.Socket;
+import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * An interface to specify custom Http Daemon classes. Used within the MinecraftMediaLibrary as
- * well.
- */
-public interface HttpDaemon {
+public class WebPlaylistAudioPlayer {
 
-  /** Method used to start the HTTP Daemon. */
-  void startServer();
-
-  /** Called right before the HTTP Daemon starts running. */
-  void onServerStart();
-
-  /** Called right before the HTTP Daemon terminates. */
-  void onServerTerminate();
+  private final AudioPlaylistControls playlist;
 
   /**
-   * Called when an incoming user connects to the HTTP Server.
+   * Instantiates a PlaylistAudioPlayer.
    *
-   * @param client for the incoming connection.
+   * @param url the url
+   * @param type the playlist type
    */
-  void onClientConnect(final Socket client);
+  public WebPlaylistAudioPlayer(@NotNull final String url, @NotNull final PlaylistType type) {
+    playlist = new AudioPlaylistControls(url, type);
+  }
 
   /**
-   * Called when a resourcepack failed to be installed for a user.
+   * Instantiates a PlaylistAudioPlayer.
    *
-   * @param socket for the connection which failed download.
+   * @param url the url
+   * @deprecated due to how it is better to specify the playlist type
    */
-  void onRequestFailed(final Socket socket);
+  @Deprecated
+  @LegacyApi(since = "1.4.0")
+  public WebPlaylistAudioPlayer(@NotNull final String url) {
+    playlist =
+        new AudioPlaylistControls(
+            url, url.contains("open.spotify.com") ? PlaylistType.SPOTIFY : PlaylistType.YOUTUBE);
+  }
+
+  /** Skips forward a song. */
+  public void skipForwardSong() {
+    playlist.skipForwardSong();
+    final String id = playlist.getCurrentSong();
+    // .. play audio
+  }
+
+  /** Skips backward a song. */
+  public void skipBackwardSong() {
+    playlist.skipBackwardSong();
+    final String id = playlist.getCurrentSong();
+    // .. play audio
+  }
+
+  /** Pauses the audio. */
+  public void pauseSong() {
+    // .. pause audio
+  }
+
+  /** Resumes the audio. */
+  public void resumeSong() {
+    // .. resume audio
+  }
 }

@@ -20,36 +20,20 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.http;
+package com.github.pulsebeat02.minecraftmedialibrary.exception;
 
-import java.net.Socket;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * An interface to specify custom Http Daemon classes. Used within the MinecraftMediaLibrary as
- * well.
- */
-public interface HttpDaemon {
+public class InvalidPlaylistException extends LibraryException {
 
-  /** Method used to start the HTTP Daemon. */
-  void startServer();
-
-  /** Called right before the HTTP Daemon starts running. */
-  void onServerStart();
-
-  /** Called right before the HTTP Daemon terminates. */
-  void onServerTerminate();
+  private static final long serialVersionUID = 6632975059132666888L;
 
   /**
-   * Called when an incoming user connects to the HTTP Server.
+   * Instantiates a new InvalidPlaylistException.
    *
-   * @param client for the incoming connection.
+   * @param message the exception message
    */
-  void onClientConnect(final Socket client);
-
-  /**
-   * Called when a resourcepack failed to be installed for a user.
-   *
-   * @param socket for the connection which failed download.
-   */
-  void onRequestFailed(final Socket socket);
+  public InvalidPlaylistException(final @NotNull String message) {
+    super(message);
+  }
 }

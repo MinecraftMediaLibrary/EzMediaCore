@@ -24,6 +24,7 @@ dependencies {
     compileOnly("com.alibaba:fastjson:1.2.73")
     compileOnly("net.java.dev.jna:jna:5.7.0")
     compileOnly("org.bytedeco:javacv-platform:1.5.5")
+    compileOnly("se.michaelthelin.spotify:spotify-web-api-java:6.5.4")
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     testImplementation("io.github.glytching:junit-extensions:2.4.0")
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.31")
@@ -116,4 +117,5 @@ tasks.withType<ShadowJar> {
     relocate("org.ow2.asm", "com.github.pulsebeat02.asm")
     relocate("org.ow2.asm.commons", "com.github.pulsebeat02.asm.commons")
     relocate("org.apache.commons.io", "org.bukkit.craftbukkit.libs.org.apache.commons.io")
+    relocate("com.wrapper.spotify", "com.github.pulsebeat02.spotify")
 }

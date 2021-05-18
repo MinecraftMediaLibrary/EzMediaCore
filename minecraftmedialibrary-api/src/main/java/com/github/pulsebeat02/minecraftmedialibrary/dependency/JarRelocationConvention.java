@@ -65,7 +65,10 @@ public enum JarRelocationConvention {
   ASM_COMMONS("org{}ow2{}asm{}commons", "com{}github{}pulsebeat02{}asm{}commons"),
 
   /** Fast JSON Jar Relocation Convention */
-  FAST_JSON("com{}alibaba{}fastjson", "com{}github{}pulsebeat02{}fastjson");
+  FAST_JSON("com{}alibaba{}fastjson", "com{}github{}pulsebeat02{}fastjson"),
+
+  /** Spotify Jar Relocation Convention */
+  SPOTIFY("com{}wrapper{}spotify", "com{}github{}pulsebeat02{}spotify");
 
   private final Relocation relocation;
 

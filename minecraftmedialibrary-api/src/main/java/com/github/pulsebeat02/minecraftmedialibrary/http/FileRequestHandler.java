@@ -43,7 +43,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * A class used to handle incoming requests. It checks if the current request being recieved is a
+ * A class used to handle incoming requests. It checks if the current request being received is a
  * GET request and sends the correct response back to the client.
  */
 public class FileRequestHandler implements Runnable, RequestHandler {
@@ -125,7 +125,7 @@ public class FileRequestHandler implements Runnable, RequestHandler {
       verbose(String.format("I/O error %s", e));
     }
     if (flag) {
-      daemon.onResourcepackFailedDownload(client);
+      daemon.onRequestFailed(client);
     }
   }
 
@@ -140,6 +140,11 @@ public class FileRequestHandler implements Runnable, RequestHandler {
     return MATCHER.matcher(req);
   }
 
+  /**
+   * If it is verbose, then it will print the information.
+   *
+   * @param info the info
+   */
   private void verbose(final String info) {
     if (daemon.isVerbose()) {
       Logger.info(info);
