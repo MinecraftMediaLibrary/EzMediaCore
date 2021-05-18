@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 description = "deluxemediaplugin"
-version = "RELEASE-1.4.0"
+version = "1.4.0"
 
 plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
@@ -17,6 +17,7 @@ dependencies {
 }
 
 tasks.withType<ShadowJar> {
+    archiveBaseName.set("DeluxeMediaPlugin")
     relocate("net.kyori", "com.github.pulsebeat02.deluxemediaplugin.lib.kyori")
     relocate("org.bstats", "com.github.pulsebeat02.deluxemediaplugin.lib.bstats")
     relocate("com.mojang.brigadier", "com.github.pulsebeat02.deluxemediaplugin.lib.brigadier")

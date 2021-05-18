@@ -24,13 +24,14 @@ package com.github.pulsebeat02.minecraftmedialibrary.vlc.os.mac;
 
 import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.MMLNativeDiscovery;
+import com.google.common.collect.ImmutableSet;
 import com.sun.jna.NativeLibrary;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 
 public class MacNativeDiscovery extends MMLNativeDiscovery {
 
   public MacNativeDiscovery() {
-    super(true, "dylib", "/lib/../plugins");
+    super(true, "dylib", ImmutableSet.of("/lib/../plugins"));
   }
 
   @Override

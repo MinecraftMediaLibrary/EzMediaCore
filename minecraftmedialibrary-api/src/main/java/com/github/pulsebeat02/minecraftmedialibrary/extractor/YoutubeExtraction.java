@@ -100,7 +100,7 @@ public class YoutubeExtraction implements VideoExtractor {
   @NotNull
   public Path downloadVideo() {
     onVideoDownload();
-    final Optional<String> videoID = VideoExtractionUtilities.getVideoID(url);
+    final Optional<String> videoID = VideoExtractionUtilities.getYoutubeID(url);
     Logger.info(String.format("Downloading Video at URL (%s)", url));
     if (videoID.isPresent()) {
       try {

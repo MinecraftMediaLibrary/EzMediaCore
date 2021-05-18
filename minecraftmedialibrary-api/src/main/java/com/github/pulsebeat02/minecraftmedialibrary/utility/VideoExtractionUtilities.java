@@ -41,25 +41,46 @@ import java.util.regex.Pattern;
  */
 public final class VideoExtractionUtilities {
 
+  private static final Pattern YOUTUBE_ID_PATTERN;
+
+  static {
+    YOUTUBE_ID_PATTERN = Pattern.compile("(?<=youtu.be/|watch\\?v=|/videos/|embed)[^#]*");
+  }
+
   private VideoExtractionUtilities() {}
 
   /**
-   * Extracts video id from Youtube URL.
+   * Extracts id from Youtube URL.
    *
    * @param url the url
    * @return an Optional containing the String url if existing
    */
   @NotNull
-  public static Optional<String> getVideoID(@NotNull final String url) {
-    final Pattern compiledPattern =
-        Pattern.compile("(?<=youtu.be/|watch\\?v=|/videos/|embed)[^#]*");
-    final Matcher matcher = compiledPattern.matcher(url);
+  public static Optional<String> getYoutubeID(@NotNull final String url) {
+    final Matcher matcher = YOUTUBE_ID_PATTERN.matcher(url);
     if (matcher.find()) {
       final String id = matcher.group();
       Logger.info(String.format("Found Video ID for %s(%s)", url, id));
       return Optional.of(id);
     }
     return Optional.empty();
+  }
+
+  /**
+   * Extracts id from Spotify URL.
+   *
+   * @param url the url
+   * @return an Optional containing the String url if existing
+   */
+  @NotNull
+  public static Optional<String> getSpotifyID(@NotNull final String url) {
+    final String[] split = url.split("\\?")[0].split("/");
+    final String id = split[split.length - 1];
+    if (id.isEmpty()) {
+      return Optional.empty();
+    } else {
+      return Optional.of(id);
+    }
   }
 
   /**

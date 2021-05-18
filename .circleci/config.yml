@@ -11,12 +11,12 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "pom.xml" }}
+            - v1-dependencies-{{ checksum "build.gradle.kts" }}
             - v1-dependencies-
       - save_cache:
           paths:
             - ~/.m2/
-          key: v1-dependencies-{{ checksum "pom.xml" }}
+          key: v1-dependencies-{{ checksum "build.gradle.kts" }}
       - run: wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
       - run: ls ~/.m2/repository/org/spigotmc/spigot/1.8-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.8 >> /dev/null 2>&1
       - run: ls ~/.m2/repository/org/spigotmc/spigot/1.8.3-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.8.3 >> /dev/null 2>&1
@@ -33,4 +33,4 @@ jobs:
       - run: ls ~/.m2/repository/org/spigotmc/spigot/1.16.1-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.16.1 >> /dev/null 2>&1
       - run: ls ~/.m2/repository/org/spigotmc/spigot/1.16.3-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.16.3 >> /dev/null 2>&1
       - run: ls ~/.m2/repository/org/spigotmc/spigot/1.16.4-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.16.4 >> /dev/null 2>&1
-      - run: mvn clean package
+      - run: ./gradlew shadowJar

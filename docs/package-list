@@ -26,12 +26,15 @@ com.github.pulsebeat02.minecraftmedialibrary.listener
 com.github.pulsebeat02.minecraftmedialibrary.logger
 com.github.pulsebeat02.minecraftmedialibrary.natives
 com.github.pulsebeat02.minecraftmedialibrary.nms
+com.github.pulsebeat02.minecraftmedialibrary.playlist
+com.github.pulsebeat02.minecraftmedialibrary.playlist.spotify
+com.github.pulsebeat02.minecraftmedialibrary.playlist.youtube
 com.github.pulsebeat02.minecraftmedialibrary.reflection
 com.github.pulsebeat02.minecraftmedialibrary.relocation
 com.github.pulsebeat02.minecraftmedialibrary.resourcepack
 com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting
 com.github.pulsebeat02.minecraftmedialibrary.screen
-com.github.pulsebeat02.minecraftmedialibrary.site
+com.github.pulsebeat02.minecraftmedialibrary.test.junest
 com.github.pulsebeat02.minecraftmedialibrary.test.misc
 com.github.pulsebeat02.minecraftmedialibrary.test.video
 com.github.pulsebeat02.minecraftmedialibrary.test.vlc

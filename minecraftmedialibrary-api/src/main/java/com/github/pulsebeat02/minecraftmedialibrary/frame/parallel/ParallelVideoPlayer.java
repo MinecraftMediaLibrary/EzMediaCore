@@ -35,7 +35,6 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 /**
  *
  *
@@ -127,9 +126,7 @@ public class ParallelVideoPlayer extends VideoPlayer {
   }
 
   @Override
-  public void start(final @NotNull Collection<? extends Player> players) {
-
-  }
+  public void start(final @NotNull Collection<? extends Player> players) {}
 
   public void handleFrame(final int[] data) {
     final long time = System.currentTimeMillis();
@@ -141,6 +138,6 @@ public class ParallelVideoPlayer extends VideoPlayer {
 
   public CompletableFuture<?> process(final int[] data) {
     return CompletableFuture.supplyAsync(
-            () -> frame = dither.ditherIntoMinecraft(data, videoWidth));
+        () -> frame = dither.ditherIntoMinecraft(data, videoWidth));
   }
 }

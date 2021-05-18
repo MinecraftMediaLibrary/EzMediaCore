@@ -20,55 +20,60 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.site;
+package com.github.pulsebeat02.minecraftmedialibrary.playlist.spotify;
 
-import com.github.kiulian.downloader.YoutubeDownloader;
-import com.github.kiulian.downloader.YoutubeException;
-import com.github.kiulian.downloader.model.playlist.PlaylistDetails;
-import com.github.kiulian.downloader.model.playlist.PlaylistVideoDetails;
-import com.github.kiulian.downloader.model.playlist.YoutubePlaylist;
+import com.github.pulsebeat02.minecraftmedialibrary.exception.InvalidPlaylistException;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
+import com.wrapper.spotify.SpotifyApi;
+import com.wrapper.spotify.exceptions.SpotifyWebApiException;
+import com.wrapper.spotify.model_objects.specification.Playlist;
+import com.wrapper.spotify.model_objects.specification.PlaylistTrack;
+import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * A class for helping to get the videos from a specific Youtube playlist.
- */
-public class YoutubePlaylistHelper {
+/** A class for helping to get the videos from a specific Spotify playlist. */
+public class SpotifyPlaylistHelper {
+
+  private static final SpotifyApi SPOTIFY_API;
+
+  static {
+    SPOTIFY_API = new SpotifyApi.Builder().setAccessToken("").build();
+  }
 
   private final String url;
-  private PlaylistDetails details;
+  private Playlist playlist;
 
   /**
-   * Instantiates a new YoutubePlaylistHelper
+   * Instantiates a new SpotifyPlaylistHelper
    *
    * @param url the url of the playlist
    */
-  public YoutubePlaylistHelper(@NotNull final String url) {
+  public SpotifyPlaylistHelper(@NotNull final String url) {
     this.url = url;
   }
 
   /**
-   * Gets all the video ids for the playlist.
+   * Gets all the album songs for the playlist.
    *
-   * @return the video ids of the playlist
+   * @return the album songs of the playlist
    */
   @NotNull
-  public List<PlaylistVideoDetails> getVideoIDs() {
-    final Optional<String> id = VideoExtractionUtilities.getVideoID(url);
+  public List<PlaylistTrack> getAlbumSongs() {
+    final Optional<String> id = VideoExtractionUtilities.getSpotifyID(url);
     if (id.isPresent()) {
       try {
-        final YoutubePlaylist playlist = new YoutubeDownloader().getPlaylist(id.get());
-        details = playlist.details();
-        return playlist.videos();
-      } catch (final YoutubeException e) {
+        playlist = SPOTIFY_API.getPlaylist(id.get()).build().execute();
+        return Arrays.asList(playlist.getTracks().getItems());
+      } catch (final IOException | ParseException | SpotifyWebApiException e) {
         e.printStackTrace();
       }
     }
-    return Collections.emptyList();
+    throw new InvalidPlaylistException(String.format("Invalid Spotify Playlist! (%s)", url));
   }
 
   /**
@@ -77,7 +82,7 @@ public class YoutubePlaylistHelper {
    * @return the title
    */
   public String getTitle() {
-    return details.title();
+    return playlist.getName();
   }
 
   /**
@@ -86,7 +91,7 @@ public class YoutubePlaylistHelper {
    * @return the author
    */
   public String getAuthor() {
-    return details.author();
+    return playlist.getOwner().getDisplayName();
   }
 
   /**
@@ -95,15 +100,42 @@ public class YoutubePlaylistHelper {
    * @return the video count
    */
   public int getVideoCount() {
-    return details.videoCount();
+    return playlist.getTracks().getItems().length;
   }
 
   /**
-   * Gets the view count.
+   * Gets the follower count.
    *
-   * @return the view count
+   * @return the follower count
    */
-  public int getViewCount() {
-    return details.viewCount();
+  public int getFollowerCount() {
+    return playlist.getFollowers().getTotal();
+  }
+
+  /**
+   * Gets the description.
+   *
+   * @return the description
+   */
+  public String getDescription() {
+    return playlist.getDescription();
+  }
+
+  /**
+   * Gets the url of the playlist.
+   *
+   * @return the url
+   */
+  public String getUrl() {
+    return url;
+  }
+
+  /**
+   * Gets the playlist.
+   *
+   * @return the playlist
+   */
+  public Playlist getPlaylist() {
+    return playlist;
   }
 }

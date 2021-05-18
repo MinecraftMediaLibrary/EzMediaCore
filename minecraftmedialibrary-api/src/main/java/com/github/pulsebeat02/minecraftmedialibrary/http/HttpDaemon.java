@@ -51,5 +51,5 @@ public interface HttpDaemon {
    *
    * @param socket for the connection which failed download.
    */
-  void onResourcepackFailedDownload(final Socket socket);
+  void onRequestFailed(final Socket socket);
 }

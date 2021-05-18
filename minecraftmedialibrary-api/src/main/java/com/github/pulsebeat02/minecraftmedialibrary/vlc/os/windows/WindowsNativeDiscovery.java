@@ -23,10 +23,11 @@
 package com.github.pulsebeat02.minecraftmedialibrary.vlc.os.windows;
 
 import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.MMLNativeDiscovery;
+import com.google.common.collect.ImmutableSet;
 
 public class WindowsNativeDiscovery extends MMLNativeDiscovery {
 
   public WindowsNativeDiscovery() {
-    super(false, "dll", "");
+    super(false, "dll", ImmutableSet.of(""));
   }
 }

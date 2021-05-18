@@ -28,24 +28,65 @@ display the video.
 Due to financial concerns, I am unable to provide a Maven central repository to host my artifacts. However, the library
 is usable if you use Jitpack.
 
-Repository:
+---
+
+Jitpack Repository:
+
+**Maven**
 ```xml
-	<repositories>
-		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
-		</repository>
-	</repositories>
+<repositories>
+  <repository>
+    <id>jitpack.io</id>
+    <url>https://jitpack.io</url>
+  </repository>
+</repositories>
 ```
 
-Dependency:
-```xml
-	<dependency>
-	    <groupId>com.github.pulsebeat02</groupId>
-	    <artifactId>minecraftmedialibrary</artifactId>
-	    <version>master-SNAPSHOT</version>
-	</dependency>
+**Gradle (Groovy)**
+```groovy
+repositories {
+  maven { 
+    url 'https://jitpack.io' 
+  }
+}
 ```
+
+**Gradle (Kotlin)**
+```kotlin
+repositories {
+  maven { 
+    url ("https://jitpack.io")
+  }
+}
+```
+---
+
+MinecraftMediaLibrary Dependency:
+
+**Maven**
+```xml
+<dependency>
+  <groupId>com.github.pulsebeat02</groupId>
+  <artifactId>minecraftmedialibrary</artifactId>
+  <version>master-SNAPSHOT</version>
+</dependency>
+```
+
+**Gradle (Groovy)**
+```groovy
+dependencies {
+  implementation 'com.github.minecraftmedialibrary:minecraftmedialibrary:master-SNAPSHOT'
+}
+```
+
+**Gradle (Kotlin)**
+```kotlin
+dependencies {
+  implementation ("com.github.minecraftmedialibrary:minecraftmedialibrary:master-SNAPSHOT")
+}
+```
+
+---
 
 Most of the code is documented which can be found [here](https://minecraftmedialibrary.github.io/MinecraftMediaLibrary/). For detailed documentation with explanations, visit the [readthedocs page](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/) (which is still in progress).
 
@@ -62,7 +103,8 @@ I am currently working on a ton of support for other operating systems. It curre
 ## Contributors/Acknowledgements
 - [BananaPuncher714](https://github.com/BananaPuncher714) for helping lead the spark for the project, as well as code the Floyd-Steinberg implementation in Java.
 - [Jetp250](https://github.com/jetp250) for helping with the Floyd-Steinberg implementation.
-- [Fefo6644](https://github.com/Fefo6644) for helping me with asyncronous tasks and implementation.
+- [Fefo6644](https://github.com/Fefo6644) for helping me with asynchronous tasks and implementation.
+- [Conclure](https://github.com/Conclure) for helping me migrate from maven to gradle.
 - [VLC Media Player](https://www.videolan.org/) for allowing this library to play videos efficiently using C/C++ binaries.
 - [VLCJ](https://github.com/caprica/vlcj) for providing the Java bindings and support to use VLC in the scope of Java.
 - And other libraries used to allow this to be possible.

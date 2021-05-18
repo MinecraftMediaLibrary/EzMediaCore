@@ -29,7 +29,7 @@ public class LibraryException extends AssertionError {
   private static final long serialVersionUID = -6914539609629173333L;
 
   /**
-   * Instantiates a new InvalidYoutubeURLException.
+   * Instantiates a new LibraryException.
    *
    * @param message the exception message
    */

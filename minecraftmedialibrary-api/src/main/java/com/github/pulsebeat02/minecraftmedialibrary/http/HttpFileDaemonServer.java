@@ -65,19 +65,7 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon {
    * @throws IOException the io exception
    */
   public HttpFileDaemonServer(final int port, @NotNull final Path directory) throws IOException {
-    running = true;
-    this.port = port;
-    socket = new ServerSocket(port);
-    socket.setReuseAddress(true);
-    this.directory = directory;
-    header = ZipHeader.ZIP;
-    verbose = true;
-    Logger.info("Started HTTP Server: ");
-    Logger.info("========================================");
-    Logger.info(String.format("IP: %s", Bukkit.getIp()));
-    Logger.info(String.format("PORT: %d", port));
-    Logger.info(String.format("DIRECTORY: %s", directory.toAbsolutePath()));
-    Logger.info("========================================");
+    this(port, directory.toAbsolutePath().toString());
   }
 
   /**
@@ -123,7 +111,7 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon {
     onServerStart();
     while (running) {
       try {
-        EXECUTOR_SERVICE.submit(new Thread(new FileRequestHandler(this, header, socket.accept())));
+        EXECUTOR_SERVICE.submit(new FileRequestHandler(this, header, socket.accept()));
       } catch (final IOException e) {
         e.printStackTrace();
       }
@@ -161,12 +149,12 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon {
   public void onClientConnect(final Socket client) {}
 
   /**
-   * Called if a resourcepack failed to download for a user.
+   * Called if a request failed to download for a user.
    *
    * @param client client
    */
   @Override
-  public void onResourcepackFailedDownload(final Socket client) {}
+  public void onRequestFailed(final Socket client) {}
 
   /**
    * Gets zip header.
