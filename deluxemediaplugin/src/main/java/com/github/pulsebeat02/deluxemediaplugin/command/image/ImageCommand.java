@@ -25,6 +25,7 @@ package com.github.pulsebeat02.deluxemediaplugin.command.image;
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImage;
 import com.github.pulsebeat02.minecraftmedialibrary.image.gif.MinecraftDynamicImage;
@@ -124,7 +125,7 @@ public class ImageCommand extends BaseCommand implements Listener {
   // Not sure if this even works...
   private int setRickRoll(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
-    final MinecraftMediaLibrary library = getPlugin().getLibrary();
+    final MediaLibrary library = getPlugin().getLibrary();
     final File f =
         FileUtilities.downloadImageFile(
             "https://images.news18.com/ibnlive/uploads/2020/12/1607660925_untitled-design-2020-12-11t095722.206.png",
@@ -177,7 +178,7 @@ public class ImageCommand extends BaseCommand implements Listener {
             Component.text(
                 String.format("Successfully drew image on map %d", id), NamedTextColor.GOLD));
     final DeluxeMediaPlugin plugin = getPlugin();
-    final MinecraftMediaLibrary library = plugin.getLibrary();
+    final MediaLibrary library = plugin.getLibrary();
 
     // If the mrl is a link
     if (isUrl(mrl)) {

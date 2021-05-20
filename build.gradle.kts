@@ -8,11 +8,7 @@ plugins {
 
 subprojects {
 
-    apply(plugin = "java")
-
-    if (this.name != "deluxemediaplugin") {
-        apply(plugin = "java-library")
-    }
+    apply(plugin = "java-library")
 
     java {
         sourceCompatibility = JavaVersion.VERSION_1_8

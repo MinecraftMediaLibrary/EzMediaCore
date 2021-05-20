@@ -23,6 +23,7 @@
 package com.github.pulsebeat02.deluxemediaplugin.config;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImage;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
@@ -76,7 +77,7 @@ public class PictureConfiguration extends AbstractConfiguration {
     final FileConfiguration configuration = getFileConfiguration();
 
     // Get library instance
-    final MinecraftMediaLibrary library = getPlugin().getLibrary();
+    final MediaLibrary library = getPlugin().getLibrary();
 
     for (final String key : configuration.getKeys(false)) {
 

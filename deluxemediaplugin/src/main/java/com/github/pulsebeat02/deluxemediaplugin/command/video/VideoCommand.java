@@ -25,6 +25,7 @@ package com.github.pulsebeat02.deluxemediaplugin.command.video;
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
@@ -330,7 +331,7 @@ public class VideoCommand extends BaseCommand {
                 : Component.text(
                     String.format("Starting Video on File: %s", file.getName()),
                     NamedTextColor.GOLD)));
-    final MinecraftMediaLibrary library = getPlugin().getLibrary();
+    final MediaLibrary library = getPlugin().getLibrary();
 
     final VideoPlayer player = attributes.getPlayer();
     if (player != null && player.isPlaying()) {

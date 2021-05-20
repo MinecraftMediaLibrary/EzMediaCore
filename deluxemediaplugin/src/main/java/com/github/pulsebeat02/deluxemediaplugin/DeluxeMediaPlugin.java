@@ -30,19 +30,24 @@ import com.github.pulsebeat02.deluxemediaplugin.config.PictureConfiguration;
 import com.github.pulsebeat02.deluxemediaplugin.config.VideoConfiguration;
 import com.github.pulsebeat02.deluxemediaplugin.update.PluginUpdateChecker;
 import com.github.pulsebeat02.deluxemediaplugin.utility.CommandUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Constructor;
+import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 public final class DeluxeMediaPlugin extends JavaPlugin {
 
   public static boolean OUTDATED = false;
 
-  private MinecraftMediaLibrary library;
+  private MediaLibrary library;
   private BukkitAudiences audiences;
   private CommandHandler handler;
   private Logger logger;
@@ -64,7 +69,14 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       logger.info("Loading MinecraftMediaLibrary Instance...");
 
       // Define a new MinecraftMediaLibrary Instance
-      library = new MinecraftMediaLibrary(this);
+      final Optional<MediaLibrary> mediaLibrary = this.setupMediaLibrary();
+
+      if (!mediaLibrary.isPresent()) {
+        this.getServer().getPluginManager().disablePlugin(this);
+        return;
+      }
+
+      this.library = mediaLibrary.get();
 
       com.github.pulsebeat02.minecraftmedialibrary.logger.Logger.setVerbose(true);
 
@@ -110,11 +122,23 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
     encoderConfiguration.read();
   }
 
+  private Optional<MediaLibrary> setupMediaLibrary() {
+    try {
+      final Constructor<MinecraftMediaLibrary> constructor = MinecraftMediaLibrary.class
+          .getDeclaredConstructor(Plugin.class);
+      constructor.setAccessible(true);
+      return Optional.of(constructor.newInstance(this));
+    } catch (ReflectiveOperationException exception) {
+      this.getLogger().log(Level.SEVERE, "Couldn't instantiate media library instance, disabling...", new Error(exception));
+      return Optional.empty();
+    }
+  }
+
   private void registerCommands() {
     handler = new CommandHandler(this);
   }
 
-  public MinecraftMediaLibrary getLibrary() {
+  public MediaLibrary getLibrary() {
     return library;
   }
 
