@@ -15,7 +15,7 @@ dependencies {
     compileOnlyApi("com.github.pulsebeat02:jarchivelib:master-SNAPSHOT")
     compileOnlyApi("org.tukaani:xz:1.0")
     compileOnlyApi("com.alibaba:fastjson:1.2.73")
-    compileOnlyApi("net.java.dev.jna:jna:5.7.0")
+    compileOnlyApi("net.java.dev.jna:jna:5.8.0")
     compileOnlyApi("org.bytedeco:javacv-platform:1.5.5")
     compileOnlyApi("se.michaelthelin.spotify:spotify-web-api-java:6.5.4")
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")

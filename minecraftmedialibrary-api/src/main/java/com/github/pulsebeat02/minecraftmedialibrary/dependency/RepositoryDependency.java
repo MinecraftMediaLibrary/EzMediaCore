@@ -73,7 +73,10 @@ public enum RepositoryDependency {
   ASM_COMMONS("org{}ow2{}asm", "asm-commons", "9{}1", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** JNA Maven Dependency */
-  JNA("net{}java{}dev{}jna", "jna", "5{}7{}0", DependencyResolution.MAVEN_DEPENDENCY),
+  JNA("net{}java{}dev{}jna", "jna", "5{}8{}0", DependencyResolution.MAVEN_DEPENDENCY),
+
+  /** JNA Platform Maven Dependency */
+  JNA_PLATFORM("net{}java{}dev{}jna", "jna-platform", "5{}8{}0", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** Fast JSON Maven Dependency */
   FAST_JSON("com{}alibaba", "fastjson", "1{}2{}73", DependencyResolution.MAVEN_DEPENDENCY),
