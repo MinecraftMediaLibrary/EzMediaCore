@@ -21,6 +21,8 @@ tasks.withType<ShadowJar> {
     relocate("net.kyori", "com.github.pulsebeat02.deluxemediaplugin.lib.kyori")
     relocate("org.bstats", "com.github.pulsebeat02.deluxemediaplugin.lib.bstats")
     relocate("com.mojang.brigadier", "com.github.pulsebeat02.deluxemediaplugin.lib.brigadier")
+    relocate("com.github.pulsebeat02.minecraftmedialibrary", "com.github.pulsebeat02.deluxemediaplugin.lib.minecraftmedialibrary")
+
     relocate("uk.co.caprica.vlcj", "com.github.pulsebeat02.vlcj")
     relocate("uk.co.caprica.vlcj.binding", "com.github.pulsebeat02.vlcj.binding")
     relocate("uk.co.caprica.nativestreams", "com.github.pulsebeat02.vlcj.nativestreams")
