@@ -44,7 +44,7 @@ public enum JarRelocationConvention {
       "uk{}co{}caprica{}nativestreams", "com{}github{}pulsebeat02{}vlcj{}nativestreams"),
 
   /** Youtube Downloader Jar Relocation Convention */
-  YOUTUBE_DOWNLOADER("com{}github{}sealedtx{}downloader", "com{}github{}pulsebeat02{}youtube"),
+  YOUTUBE_DOWNLOADER("com{}github{}kiulian{}downloader", "com{}github{}pulsebeat02{}youtube"),
 
   /** Jave Core Jar Relocation Convention */
   JAVE_CORE("ws{}schild{}jave", "com{}github{}pulsebeat02{}jave"),
