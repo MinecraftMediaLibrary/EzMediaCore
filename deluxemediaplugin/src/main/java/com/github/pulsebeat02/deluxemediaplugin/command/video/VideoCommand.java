@@ -398,8 +398,7 @@ public class VideoCommand extends BaseCommand {
     }
 
     // Start the player and play the sound to all online players
-    assert player != null;
-    player.start(Bukkit.getOnlinePlayers());
+    attributes.getPlayer().start(Bukkit.getOnlinePlayers());
     return 1;
   }
 
