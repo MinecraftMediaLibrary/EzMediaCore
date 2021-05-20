@@ -20,15 +20,10 @@
  .   SOFTWARE.                                                                               .
  ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.test.lab
+package com.github.pulsebeat02.minecraftmedialibrary.test.request
 
-import java.nio.file.Paths
+import com.github.pulsebeat02.minecraftmedialibrary.utility.RequestUtilities
 
 fun main() {
-    println(
-        Paths.get("C:\\Users\\Brandon Li\\Desktop\\server\\plugins\\DeluxeMediaPlugin\\mml\\http").normalize()
-            .relativize(Paths.get("C:\\Users\\Brandon Li\\Desktop\\server\\plugins\\DeluxeMediaPlugin/mml/http/resourcepack.zip"))
-            .normalize()
-            .toString()
-    )
+    RequestUtilities.getSearchedVideos("minecraft revenge", "")
 }
