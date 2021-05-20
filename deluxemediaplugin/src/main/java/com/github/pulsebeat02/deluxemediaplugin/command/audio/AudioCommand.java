@@ -25,6 +25,7 @@ package com.github.pulsebeat02.deluxemediaplugin.command.audio;
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
+import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
@@ -94,7 +95,7 @@ public class AudioCommand extends BaseCommand {
 
   private int loadAudio(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
-    final MinecraftMediaLibrary library = getPlugin().getLibrary();
+    final MediaLibrary library = getPlugin().getLibrary();
     final String mrl = context.getArgument("mrl", String.class);
     if (mrl.startsWith("https://")) {
 

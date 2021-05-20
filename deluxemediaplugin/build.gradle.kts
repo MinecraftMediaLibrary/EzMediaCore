@@ -8,7 +8,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":minecraftmedialibrary"))
+    implementation(project(":main"))
     implementation("org.bstats:bstats-bukkit:1.8")
     implementation("com.mojang:brigadier:1.0.18")
     implementation("net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT")
