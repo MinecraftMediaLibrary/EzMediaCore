@@ -27,6 +27,8 @@ import com.google.common.collect.ImmutableSet;
 import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.WinReg;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /** Well known Windows directory for VLC installation. */
@@ -45,9 +47,10 @@ public class WindowsKnownDirectories extends WellKnownDirectoryProvider {
   @Override
   public Set<String> search() {
     try {
-      return ImmutableSet.of(
-          Advapi32Util.registryGetStringValue(
-              WinReg.HKEY_LOCAL_MACHINE, "SOFTWARE\\VideoLAN\\VLC", "InstallDir"));
+      return new HashSet<>(
+          Collections.singleton(
+              Advapi32Util.registryGetStringValue(
+                  WinReg.HKEY_LOCAL_MACHINE, "SOFTWARE\\VideoLAN\\VLC", "InstallDir")));
     } catch (final Exception e) {
       return ImmutableSet.of();
     }
