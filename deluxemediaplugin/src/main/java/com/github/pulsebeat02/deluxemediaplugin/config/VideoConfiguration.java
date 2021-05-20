@@ -23,6 +23,7 @@
 package com.github.pulsebeat02.deluxemediaplugin.config;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
@@ -110,7 +111,7 @@ public class VideoConfiguration extends AbstractConfiguration {
     if (enabled) {
 
       // Get the library instance
-      final MinecraftMediaLibrary library = player.getLibrary();
+      final MediaLibrary library = player.getLibrary();
 
       /*
 
