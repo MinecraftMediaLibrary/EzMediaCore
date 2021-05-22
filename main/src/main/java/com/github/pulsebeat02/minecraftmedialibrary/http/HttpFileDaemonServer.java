@@ -1,24 +1,24 @@
 /*............................................................................................
-. Copyright © 2021 Brandon Li                                                               .
-.                                                                                           .
-. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
-. software and associated documentation files (the “Software”), to deal in the Software     .
-. without restriction, including without limitation the rights to use, copy, modify, merge, .
-. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
-. persons to whom the Software is furnished to do so, subject to the following conditions:  .
-.                                                                                           .
-. The above copyright notice and this permission notice shall be included in all copies     .
-. or substantial portions of the Software.                                                  .
-.                                                                                           .
-. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
-.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
-.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
-.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
-.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
-.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
-.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
-.   SOFTWARE.                                                                               .
-............................................................................................*/
+ . Copyright © 2021 Brandon Li                                                               .
+ .                                                                                           .
+ . Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
+ . software and associated documentation files (the “Software”), to deal in the Software     .
+ . without restriction, including without limitation the rights to use, copy, modify, merge, .
+ . publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
+ . persons to whom the Software is furnished to do so, subject to the following conditions:  .
+ .                                                                                           .
+ . The above copyright notice and this permission notice shall be included in all copies     .
+ . or substantial portions of the Software.                                                  .
+ .                                                                                           .
+ . THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
+ .  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
+ .   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
+ .   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
+ .   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
+ .   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
+ .   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
+ .   SOFTWARE.                                                                               .
+ ............................................................................................*/
 
 package com.github.pulsebeat02.minecraftmedialibrary.http;
 
@@ -42,7 +42,7 @@ import java.util.concurrent.Executors;
  * must be specified as well as a base directory. It then runs on an async thread while logging out
  * connections (if set to enabled).
  */
-public class HttpFileDaemonServer extends Thread implements HttpDaemon {
+public class HttpFileDaemonServer extends Thread implements HttpDaemon, ZipRequestHeader {
 
   private static final ExecutorService EXECUTOR_SERVICE;
 
@@ -119,7 +119,8 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon {
   }
 
   /** Terminate the Server. */
-  public void terminate() {
+  @Override
+  public void stopServer() {
     onServerTerminate();
     Logger.info(String.format("Terminating HTTP Server at %s:%d", Bukkit.getIp(), port));
     running = false;
@@ -132,142 +133,60 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon {
     }
   }
 
-  /** Called right when the server starts. */
   @Override
   public void onServerStart() {}
 
-  /** Called when the server is being terminated. */
   @Override
   public void onServerTerminate() {}
 
-  /**
-   * Called if an incoming client is connecting
-   *
-   * @param client for the incoming connection.
-   */
   @Override
   public void onClientConnect(final Socket client) {}
 
-  /**
-   * Called if a request failed to download for a user.
-   *
-   * @param client client
-   */
   @Override
   public void onRequestFailed(final Socket client) {}
 
-  /**
-   * Gets zip header.
-   *
-   * @return the zip header
-   */
+  @Override
   public ZipHeader getZipHeader() {
     return header;
   }
 
-  /**
-   * Sets zip header.
-   *
-   * @param header the header
-   */
-  public void setZipHeader(final ZipHeader header) {
+  @Override
+  public void setZipHeader(@NotNull final ZipHeader header) {
     this.header = header;
   }
 
-  /**
-   * Is verbose boolean.
-   *
-   * @return the boolean
-   */
+  @Override
   public boolean isVerbose() {
     return verbose;
   }
 
-  /**
-   * Sets verbose.
-   *
-   * @param verbose the verbose
-   */
+  @Override
   public void setVerbose(final boolean verbose) {
     this.verbose = verbose;
   }
 
-  /**
-   * Gets parent directory.
-   *
-   * @return the parent directory
-   */
+  @Override
   public Path getParentDirectory() {
     return directory;
   }
 
-  /**
-   * Gets port.
-   *
-   * @return the port
-   */
+  @Override
   public int getPort() {
     return port;
   }
 
-  /**
-   * Is running boolean.
-   *
-   * @return the boolean
-   */
+  @Override
   public boolean isRunning() {
     return running;
   }
 
-  /**
-   * Gets socket.
-   *
-   * @return the socket
-   */
+  @Override
   public ServerSocket getSocket() {
     return socket;
   }
 
-  /**
-   * Gets directory.
-   *
-   * @return the directory
-   */
+  @Override
   public Path getDirectory() {
     return directory;
-  }
-
-  /**
-   * Gets header.
-   *
-   * @return the header
-   */
-  public ZipHeader getHeader() {
-    return header;
-  }
-
-  /** The enum Zip header. */
-  public enum ZipHeader {
-
-    /** ZIP Header */
-    ZIP("application/zip"),
-
-    /** Octet Stream Header */
-    OCTET_STREAM("application/octet-stream");
-
-    private final String header;
-
-    ZipHeader(final String header) {
-      this.header = header;
-    }
-
-    /**
-     * Gets header.
-     *
-     * @return the header
-     */
-    public String getHeader() {
-      return header;
-    }
   }
 }

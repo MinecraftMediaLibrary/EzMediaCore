@@ -20,21 +20,29 @@
  .   SOFTWARE.                                                                               .
  ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.exception;
+package com.github.pulsebeat02.minecraftmedialibrary.http;
 
-import org.jetbrains.annotations.NotNull;
+/** The enum Zip header. */
+public enum ZipHeader {
 
-/** Thrown if the specified url is invalid. */
-public class InvalidYoutubeURLException extends LibraryException {
+    /** ZIP Header */
+    ZIP("application/zip"),
 
-  private static final long serialVersionUID = -6428433369003844013L;
+    /** Octet Stream Header */
+    OCTET_STREAM("application/octet-stream");
 
-  /**
-   * Instantiates a new InvalidYoutubeURLException.
-   *
-   * @param message the exception message
-   */
-  public InvalidYoutubeURLException(@NotNull final String message) {
-    super(message);
-  }
+    private final String header;
+
+    ZipHeader(final String header) {
+        this.header = header;
+    }
+
+    /**
+     * Gets header.
+     *
+     * @return the header
+     */
+    public String getHeader() {
+        return header;
+    }
 }

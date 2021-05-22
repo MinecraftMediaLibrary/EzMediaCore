@@ -30,7 +30,7 @@ import com.google.common.base.Preconditions;
  * eventually in JAVE2 while audio conversion is taking place. Strongly recommended to research each
  * of these properties first or else you might make someone deaf!
  */
-public class ExtractionSetting {
+public class ExtractionSetting implements ConfigurableExtractionSetting {
 
   private final String codec;
   private final String outputFormat;
@@ -69,22 +69,16 @@ public class ExtractionSetting {
    *
    * @return the builder
    */
-  public static Builder builder() {
+  static Builder builder() {
     return new Builder();
   }
 
-  /**
-   * Checks if two ExtractionSetting objects are directly equal (properties).
-   *
-   * @param obj the other object
-   * @return whether the two are equal in properties
-   */
   @Override
   public boolean equals(final Object obj) {
     if (!(obj instanceof ExtractionSetting)) {
       return false;
     }
-    final ExtractionSetting setting = (ExtractionSetting) obj;
+    final ConfigurableExtractionSetting setting = (ConfigurableExtractionSetting) obj;
     return setting.getCodec().equals(codec)
         && setting.getOutputFormat().equals(outputFormat)
         && setting.getInputFormat().equals(inputFormat)
@@ -99,101 +93,57 @@ public class ExtractionSetting {
     return GsonHandler.getGson().toJson(this);
   }
 
-  /**
-   * Gets codec.
-   *
-   * @return the codec
-   */
+  @Override
   public String getCodec() {
     return codec;
   }
 
-  /**
-   * Gets output format.
-   *
-   * @return the output format
-   */
+  @Override
   public String getOutputFormat() {
     return outputFormat;
   }
 
-  /**
-   * Gets input format.
-   *
-   * @return the input format
-   */
+  @Override
   public String getInputFormat() {
     return inputFormat;
   }
 
-  /**
-   * Gets bitrate.
-   *
-   * @return the bitrate
-   */
+  @Override
   public int getBitrate() {
     return bitrate;
   }
 
-  /**
-   * Sets bitrate.
-   *
-   * @param bitrate the bitrate
-   */
+  @Override
   public void setBitrate(final int bitrate) {
     this.bitrate = bitrate;
   }
 
-  /**
-   * Gets channels.
-   *
-   * @return the channels
-   */
+  @Override
   public int getChannels() {
     return channels;
   }
 
-  /**
-   * Sets channels.
-   *
-   * @param channels the channels
-   */
+  @Override
   public void setChannels(final int channels) {
     this.channels = channels;
   }
 
-  /**
-   * Gets sampling rate.
-   *
-   * @return the sampling rate
-   */
+  @Override
   public int getSamplingRate() {
     return samplingRate;
   }
 
-  /**
-   * Sets sampling rate.
-   *
-   * @param samplingRate the sampling rate
-   */
+  @Override
   public void setSamplingRate(final int samplingRate) {
     this.samplingRate = samplingRate;
   }
 
-  /**
-   * Gets volume.
-   *
-   * @return the volume
-   */
+  @Override
   public int getVolume() {
     return volume;
   }
 
-  /**
-   * Sets volume.
-   *
-   * @param volume the volume
-   */
+  @Override
   public void setVolume(final int volume) {
     this.volume = volume;
   }
@@ -257,7 +207,7 @@ public class ExtractionSetting {
      *
      * @return the extraction setting
      */
-    public ExtractionSetting build() {
+    public ConfigurableExtractionSetting build() {
       return new ExtractionSetting(bitrate, channels, samplingRate, volume);
     }
   }

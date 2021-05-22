@@ -24,6 +24,7 @@ package com.github.pulsebeat02.deluxemediaplugin.config;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.minecraftmedialibrary.http.HttpFileDaemonServer;
+import com.github.pulsebeat02.minecraftmedialibrary.http.ZipHeader;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -54,7 +55,7 @@ public class HttpConfiguration extends AbstractConfiguration {
             .relativize(http.getDirectory().toAbsolutePath())
             .toString());
     configuration.set(
-        "header", http.getHeader() == HttpFileDaemonServer.ZipHeader.ZIP ? "ZIP" : "OCTET_STREAM");
+        "header", http.getHeader() == ZipHeader.ZIP ? "ZIP" : "OCTET_STREAM");
     configuration.set("verbose", http.isVerbose());
     saveConfig();
   }
@@ -98,8 +99,8 @@ public class HttpConfiguration extends AbstractConfiguration {
       // Set the header of the HTTP daemon
       http.setZipHeader(
           header == null || header.equals("ZIP")
-              ? HttpFileDaemonServer.ZipHeader.ZIP
-              : HttpFileDaemonServer.ZipHeader.OCTET_STREAM);
+              ? ZipHeader.ZIP
+              : ZipHeader.OCTET_STREAM);
 
       // Set the verbosity
       http.setVerbose(verbose);

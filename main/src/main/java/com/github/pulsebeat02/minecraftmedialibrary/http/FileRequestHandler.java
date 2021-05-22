@@ -1,24 +1,24 @@
 /*............................................................................................
-. Copyright © 2021 Brandon Li                                                               .
-.                                                                                           .
-. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
-. software and associated documentation files (the “Software”), to deal in the Software     .
-. without restriction, including without limitation the rights to use, copy, modify, merge, .
-. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
-. persons to whom the Software is furnished to do so, subject to the following conditions:  .
-.                                                                                           .
-. The above copyright notice and this permission notice shall be included in all copies     .
-. or substantial portions of the Software.                                                  .
-.                                                                                           .
-. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
-.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
-.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
-.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
-.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
-.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
-.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
-.   SOFTWARE.                                                                               .
-............................................................................................*/
+ . Copyright © 2021 Brandon Li                                                               .
+ .                                                                                           .
+ . Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
+ . software and associated documentation files (the “Software”), to deal in the Software     .
+ . without restriction, including without limitation the rights to use, copy, modify, merge, .
+ . publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
+ . persons to whom the Software is furnished to do so, subject to the following conditions:  .
+ .                                                                                           .
+ . The above copyright notice and this permission notice shall be included in all copies     .
+ . or substantial portions of the Software.                                                  .
+ .                                                                                           .
+ . THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
+ .  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
+ .   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
+ .   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
+ .   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
+ .   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
+ .   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
+ .   SOFTWARE.                                                                               .
+ ............................................................................................*/
 
 package com.github.pulsebeat02.minecraftmedialibrary.http;
 
@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
  * A class used to handle incoming requests. It checks if the current request being received is a
  * GET request and sends the correct response back to the client.
  */
-public class FileRequestHandler implements Runnable, RequestHandler {
+public class FileRequestHandler implements Runnable, FileRequestBase {
 
   private static final Pattern MATCHER;
 
@@ -55,19 +55,18 @@ public class FileRequestHandler implements Runnable, RequestHandler {
   }
 
   private final HttpFileDaemonServer daemon;
-  private final HttpFileDaemonServer.ZipHeader header;
+  private final ZipHeader header;
   private final Socket client;
 
   /**
    * Instantiates a new Request handler.
-   *
-   * @param daemon the daemon
+   *  @param daemon the daemon
    * @param header the header
    * @param client the client
    */
   public FileRequestHandler(
       @NotNull final HttpFileDaemonServer daemon,
-      final HttpFileDaemonServer.ZipHeader header,
+      final ZipHeader header,
       @NotNull final Socket client) {
     this.daemon = daemon;
     this.header = header;
@@ -151,14 +150,9 @@ public class FileRequestHandler implements Runnable, RequestHandler {
     }
   }
 
-  /**
-   * Request file callback file.
-   *
-   * @param request the request
-   * @return the file
-   */
+  @Override
   @NotNull
-  public Path requestFileCallback(final String request) {
+  public Path requestFileCallback(@NotNull final String request) {
     return daemon.getParentDirectory().resolve(request);
   }
 
@@ -177,29 +171,16 @@ public class FileRequestHandler implements Runnable, RequestHandler {
     return "";
   }
 
-  /**
-   * Gets daemon.
-   *
-   * @return the daemon
-   */
   public HttpFileDaemonServer getDaemon() {
     return daemon;
   }
 
-  /**
-   * Gets header.
-   *
-   * @return the header
-   */
-  public HttpFileDaemonServer.ZipHeader getHeader() {
+  @Override
+  public ZipHeader getHeader() {
     return header;
   }
 
-  /**
-   * Gets client.
-   *
-   * @return the client
-   */
+  @Override
   public Socket getClient() {
     return client;
   }

@@ -22,88 +22,33 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.http;
 
-import java.net.ServerSocket;
+import org.jetbrains.annotations.NotNull;
+
 import java.net.Socket;
 import java.nio.file.Path;
 
-/**
- * An interface to specify custom Http Daemon classes. Used within the MinecraftMediaLibrary as
- * well.
- */
-public interface HttpDaemon {
-
-  /** Method used to start the HTTP Daemon. */
-  void startServer();
-
-  /** Method used to stop the HTTP Daemon. */
-  void stopServer();
-
-  /** Called right before the HTTP Daemon starts running. */
-  void onServerStart();
-
-  /** Called right before the HTTP Daemon terminates. */
-  void onServerTerminate();
+public interface FileRequestBase extends RequestHandler {
 
   /**
-   * Called when an incoming user connects to the HTTP Server.
+   * Request file callback file.
    *
-   * @param client for the incoming connection.
+   * @param request the request
+   * @return the file
    */
-  void onClientConnect(final Socket client);
+  @NotNull
+  Path requestFileCallback(@NotNull final String request);
 
   /**
-   * Called when a resourcepack failed to be installed for a user.
+   * Gets header.
    *
-   * @param socket for the connection which failed download.
+   * @return the header
    */
-  void onRequestFailed(final Socket socket);
+  ZipHeader getHeader();
 
   /**
-   * Is verbose boolean.
+   * Gets client.
    *
-   * @return the boolean
+   * @return the client
    */
-  boolean isVerbose();
-
-  /**
-   * Sets verbose.
-   *
-   * @param verbose the verbose
-   */
-  void setVerbose(final boolean verbose);
-
-  /**
-   * Gets parent directory.
-   *
-   * @return the parent directory
-   */
-  Path getParentDirectory();
-
-  /**
-   * Gets port.
-   *
-   * @return the port
-   */
-  int getPort();
-
-  /**
-   * Is running boolean.
-   *
-   * @return the boolean
-   */
-  boolean isRunning();
-
-  /**
-   * Gets socket.
-   *
-   * @return the socket
-   */
-  ServerSocket getSocket();
-
-  /**
-   * Gets directory.
-   *
-   * @return the directory
-   */
-  Path getDirectory();
+  Socket getClient();
 }

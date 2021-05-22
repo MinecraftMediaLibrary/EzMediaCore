@@ -43,7 +43,7 @@ import java.util.Set;
  * EntityModification#invokeGetter with the name of the method (getName) and the argument ("custom
  * name"))
  */
-public class EntityModificationHelper<T extends Entity> {
+public class EntityModificationHelper<T extends Entity> implements EntityModificationBase<T> {
 
   private final Class<?> entityClass;
   private final Map<String, Method> methods;
@@ -88,14 +88,7 @@ public class EntityModificationHelper<T extends Entity> {
     return methods;
   }
 
-  /**
-   * Invokes a specific argument based off the method name.
-   *
-   * @param entity the entity
-   * @param methodName the method name
-   * @param argument the argument
-   * @return true if the operation was successful, false otherwise
-   */
+  @Override
   public boolean invokeGetter(
       @NotNull final T entity, @NotNull final String methodName, @NotNull final Object argument) {
     if (!methods.containsKey(methodName)) {
@@ -110,47 +103,27 @@ public class EntityModificationHelper<T extends Entity> {
     }
   }
 
-  /**
-   * Gets the entity class.
-   *
-   * @return the entity class
-   */
+  @Override
   public Class<?> getEntityClass() {
     return entityClass;
   }
 
-  /**
-   * Gets the String/method map.
-   *
-   * @return the String/method map
-   */
+  @Override
   public Map<String, Method> getMethodMap() {
     return methods;
   }
 
-  /**
-   * Gets the possible valid arguments for methods.
-   *
-   * @return the valid arguments
-   */
+  @Override
   public Set<Class<?>> getValidArguments() {
     return validArguments;
   }
 
-  /**
-   * Gets the raw methods from the map.
-   *
-   * @return the raw methods
-   */
+  @Override
   public Collection<Method> getRawMethods() {
     return methods.values();
   }
 
-  /**
-   * Gets the method names from the map.
-   *
-   * @return the method names
-   */
+  @Override
   public Collection<String> getMethodNames() {
     return methods.keySet();
   }

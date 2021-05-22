@@ -20,90 +20,96 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.http;
+package com.github.pulsebeat02.minecraftmedialibrary.extractor;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.file.Path;
-
-/**
- * An interface to specify custom Http Daemon classes. Used within the MinecraftMediaLibrary as
- * well.
- */
-public interface HttpDaemon {
-
-  /** Method used to start the HTTP Daemon. */
-  void startServer();
-
-  /** Method used to stop the HTTP Daemon. */
-  void stopServer();
-
-  /** Called right before the HTTP Daemon starts running. */
-  void onServerStart();
-
-  /** Called right before the HTTP Daemon terminates. */
-  void onServerTerminate();
+public interface ConfigurableExtractionSetting {
 
   /**
-   * Called when an incoming user connects to the HTTP Server.
+   * Checks if two ExtractionSetting objects are directly equal (properties).
    *
-   * @param client for the incoming connection.
+   * @param obj the other object
+   * @return whether the two are equal in properties
    */
-  void onClientConnect(final Socket client);
+  @Override
+  boolean equals(final Object obj);
+
+  @Override
+  String toString();
 
   /**
-   * Called when a resourcepack failed to be installed for a user.
+   * Gets codec.
    *
-   * @param socket for the connection which failed download.
+   * @return the codec
    */
-  void onRequestFailed(final Socket socket);
+  String getCodec();
 
   /**
-   * Is verbose boolean.
+   * Gets output format.
    *
-   * @return the boolean
+   * @return the output format
    */
-  boolean isVerbose();
+  String getOutputFormat();
 
   /**
-   * Sets verbose.
+   * Gets input format.
    *
-   * @param verbose the verbose
+   * @return the input format
    */
-  void setVerbose(final boolean verbose);
+  String getInputFormat();
 
   /**
-   * Gets parent directory.
+   * Gets bitrate.
    *
-   * @return the parent directory
+   * @return the bitrate
    */
-  Path getParentDirectory();
+  int getBitrate();
 
   /**
-   * Gets port.
+   * Sets bitrate.
    *
-   * @return the port
+   * @param bitrate the bitrate
    */
-  int getPort();
+  void setBitrate(final int bitrate);
 
   /**
-   * Is running boolean.
+   * Gets channels.
    *
-   * @return the boolean
+   * @return the channels
    */
-  boolean isRunning();
+  int getChannels();
 
   /**
-   * Gets socket.
+   * Sets channels.
    *
-   * @return the socket
+   * @param channels the channels
    */
-  ServerSocket getSocket();
+  void setChannels(final int channels);
 
   /**
-   * Gets directory.
+   * Gets sampling rate.
    *
-   * @return the directory
+   * @return the sampling rate
    */
-  Path getDirectory();
+  int getSamplingRate();
+
+  /**
+   * Sets sampling rate.
+   *
+   * @param samplingRate the sampling rate
+   */
+  void setSamplingRate(final int samplingRate);
+
+  /**
+   * Gets volume.
+   *
+   * @return the volume
+   */
+  int getVolume();
+
+  /**
+   * Sets volume.
+   *
+   * @param volume the volume
+   */
+  void setVolume(final int volume);
 }

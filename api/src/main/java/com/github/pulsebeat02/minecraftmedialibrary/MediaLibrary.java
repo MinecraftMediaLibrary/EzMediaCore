@@ -1,14 +1,14 @@
 package com.github.pulsebeat02.minecraftmedialibrary;
 
+import com.github.pulsebeat02.minecraftmedialibrary.listener.PlayerJoinLeaveRegistration;
+import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.SilentOSDependentSolution;
 import org.bukkit.plugin.Plugin;
 
 import java.nio.file.Path;
 
-import com.github.pulsebeat02.minecraftmedialibrary.listener.PlayerJoinLeaveRegistration;
-import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
-import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.SilentOSDependentSolution;
-
 public interface MediaLibrary {
+
   /** Shutdown the library instance */
   void shutdown();
 
@@ -110,5 +110,10 @@ public interface MediaLibrary {
    */
   boolean isDisabled();
 
+  /**
+   * Returns the silent installation.
+   *
+   * @return the silent installation
+   */
   SilentOSDependentSolution provideSilentInstallation();
 }

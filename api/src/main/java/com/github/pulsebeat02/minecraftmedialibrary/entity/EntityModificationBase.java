@@ -20,90 +20,61 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.http;
+package com.github.pulsebeat02.minecraftmedialibrary.entity;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.file.Path;
+import org.bukkit.entity.Entity;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * An interface to specify custom Http Daemon classes. Used within the MinecraftMediaLibrary as
- * well.
- */
-public interface HttpDaemon {
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
-  /** Method used to start the HTTP Daemon. */
-  void startServer();
-
-  /** Method used to stop the HTTP Daemon. */
-  void stopServer();
-
-  /** Called right before the HTTP Daemon starts running. */
-  void onServerStart();
-
-  /** Called right before the HTTP Daemon terminates. */
-  void onServerTerminate();
+public interface EntityModificationBase<T extends Entity> {
 
   /**
-   * Called when an incoming user connects to the HTTP Server.
+   * Invokes a specific argument based off the method name.
    *
-   * @param client for the incoming connection.
+   * @param entity the entity
+   * @param methodName the method name
+   * @param argument the argument
+   * @return true if the operation was successful, false otherwise
    */
-  void onClientConnect(final Socket client);
+  boolean invokeGetter(
+      @NotNull final T entity, @NotNull final String methodName, @NotNull final Object argument);
 
   /**
-   * Called when a resourcepack failed to be installed for a user.
+   * Gets the entity class.
    *
-   * @param socket for the connection which failed download.
+   * @return the entity class
    */
-  void onRequestFailed(final Socket socket);
+  Class<?> getEntityClass();
 
   /**
-   * Is verbose boolean.
+   * Gets the String/method map.
    *
-   * @return the boolean
+   * @return the String/method map
    */
-  boolean isVerbose();
+  Map<String, Method> getMethodMap();
 
   /**
-   * Sets verbose.
+   * Gets the possible valid arguments for methods.
    *
-   * @param verbose the verbose
+   * @return the valid arguments
    */
-  void setVerbose(final boolean verbose);
+  Set<Class<?>> getValidArguments();
 
   /**
-   * Gets parent directory.
+   * Gets the raw methods from the map.
    *
-   * @return the parent directory
+   * @return the raw methods
    */
-  Path getParentDirectory();
+  Collection<Method> getRawMethods();
 
   /**
-   * Gets port.
+   * Gets the method names from the map.
    *
-   * @return the port
+   * @return the method names
    */
-  int getPort();
-
-  /**
-   * Is running boolean.
-   *
-   * @return the boolean
-   */
-  boolean isRunning();
-
-  /**
-   * Gets socket.
-   *
-   * @return the socket
-   */
-  ServerSocket getSocket();
-
-  /**
-   * Gets directory.
-   *
-   * @return the directory
-   */
-  Path getDirectory();
+  Collection<String> getMethodNames();
 }
