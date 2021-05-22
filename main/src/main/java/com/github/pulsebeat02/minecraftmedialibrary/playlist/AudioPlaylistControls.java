@@ -22,16 +22,14 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.playlist;
 
-import com.github.kiulian.downloader.model.AbstractVideoDetails;
 import com.github.pulsebeat02.minecraftmedialibrary.playlist.spotify.SpotifyPlaylistHelper;
 import com.github.pulsebeat02.minecraftmedialibrary.playlist.youtube.YoutubePlaylistHelper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /** A class used for audio playlist handling. */
-public class AudioPlaylistControls {
+public class AudioPlaylistControls implements AudioPlaylistControlsBase {
 
   private final String url;
   private final List<String> songs;
@@ -57,67 +55,45 @@ public class AudioPlaylistControls {
    */
   private List<String> getSongs() {
     if (type == PlaylistType.YOUTUBE) {
-      return new YoutubePlaylistHelper(url)
-          .getAlbumSongs().stream().map(AbstractVideoDetails::videoId).collect(Collectors.toList());
+      return new YoutubePlaylistHelper(url).getAlbumSongs();
     } else if (type == PlaylistType.SPOTIFY) {
-      return new SpotifyPlaylistHelper(url)
-          .getAlbumSongs().stream().map(x -> x.getTrack().getId()).collect(Collectors.toList());
+      return new SpotifyPlaylistHelper(url).getAlbumSongs();
     } else {
       throw new UnsupportedOperationException("Unsupported Playlist!");
     }
   }
 
-  /**
-   * Get the current song playing.
-   *
-   * @return the current song playing
-   */
+  @Override
   public synchronized String getCurrentSong() {
     return songs.get(index);
   }
 
-  /** Skip forward a song. */
+  @Override
   public synchronized void skipForwardSong() {
     index++;
   }
 
-  /** Skip backward a song. */
+  @Override
   public synchronized void skipBackwardSong() {
     index--;
   }
 
-  /**
-   * Gets the playlist url.
-   *
-   * @return the playlist url
-   */
+  @Override
   public String getUrl() {
     return url;
   }
 
-  /**
-   * Gets the playlist type.
-   *
-   * @return the playlist type
-   */
+  @Override
   public PlaylistType getType() {
     return type;
   }
 
-  /**
-   * Gets the current index of the song playing.
-   *
-   * @return the index
-   */
+  @Override
   public int getIndex() {
     return index;
   }
 
-  /**
-   * Set the index of a song.
-   *
-   * @param index the index
-   */
+  @Override
   public synchronized void setIndex(final int index) {
     this.index = index;
   }

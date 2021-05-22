@@ -1,29 +1,28 @@
 /*............................................................................................
-. Copyright © 2021 Brandon Li                                                               .
-.                                                                                           .
-. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
-. software and associated documentation files (the “Software”), to deal in the Software     .
-. without restriction, including without limitation the rights to use, copy, modify, merge, .
-. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
-. persons to whom the Software is furnished to do so, subject to the following conditions:  .
-.                                                                                           .
-. The above copyright notice and this permission notice shall be included in all copies     .
-. or substantial portions of the Software.                                                  .
-.                                                                                           .
-. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
-.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
-.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
-.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
-.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
-.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
-.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
-.   SOFTWARE.                                                                               .
-............................................................................................*/
+ . Copyright © 2021 Brandon Li                                                               .
+ .                                                                                           .
+ . Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
+ . software and associated documentation files (the “Software”), to deal in the Software     .
+ . without restriction, including without limitation the rights to use, copy, modify, merge, .
+ . publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
+ . persons to whom the Software is furnished to do so, subject to the following conditions:  .
+ .                                                                                           .
+ . The above copyright notice and this permission notice shall be included in all copies     .
+ . or substantial portions of the Software.                                                  .
+ .                                                                                           .
+ . THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
+ .  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
+ .   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
+ .   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
+ .   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
+ .   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
+ .   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
+ .   SOFTWARE.                                                                               .
+ ............................................................................................*/
 
 package com.github.pulsebeat02.minecraftmedialibrary.playlist;
 
 import com.github.pulsebeat02.minecraftmedialibrary.http.HttpFileDaemonServer;
-import com.github.pulsebeat02.minecraftmedialibrary.http.RequestHandler;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +38,7 @@ import java.util.Set;
  * A class used to handle incoming requests. It checks the request and then appropriately changes
  * the player as so.
  */
-public class PlayerRequestHandler implements Runnable, RequestHandler {
+public class PlayerRequestHandler implements PlayerRequestHandlerBase {
 
   private static final Set<String> VALID_CONTROLS;
 
@@ -48,7 +47,7 @@ public class PlayerRequestHandler implements Runnable, RequestHandler {
   }
 
   private final HttpFileDaemonServer daemon;
-  private final WebPlaylistAudioPlayer audioPlayer;
+  private final WebPlaylistAudioPlayerBase audioPlayer;
   private final Socket client;
 
   /**
@@ -60,7 +59,7 @@ public class PlayerRequestHandler implements Runnable, RequestHandler {
    */
   public PlayerRequestHandler(
       @NotNull final HttpFileDaemonServer daemon,
-      @NotNull final WebPlaylistAudioPlayer audioPlayer,
+      @NotNull final WebPlaylistAudioPlayerBase audioPlayer,
       @NotNull final Socket client) {
     this.daemon = daemon;
     this.audioPlayer = audioPlayer;
@@ -121,20 +120,11 @@ public class PlayerRequestHandler implements Runnable, RequestHandler {
     return "";
   }
 
-  /**
-   * Gets daemon.
-   *
-   * @return the daemon
-   */
   public HttpFileDaemonServer getDaemon() {
     return daemon;
   }
 
-  /**
-   * Gets client.
-   *
-   * @return the client
-   */
+  @Override
   public Socket getClient() {
     return client;
   }

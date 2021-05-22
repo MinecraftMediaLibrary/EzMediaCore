@@ -27,7 +27,6 @@ import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtili
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.specification.Playlist;
-import com.wrapper.spotify.model_objects.specification.PlaylistTrack;
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,9 +34,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /** A class for helping to get the videos from a specific Spotify playlist. */
-public class SpotifyPlaylistHelper {
+public class SpotifyPlaylistHelper implements SpotifyPlaylistHelperBase {
 
   private static final SpotifyApi SPOTIFY_API;
 
@@ -57,18 +57,16 @@ public class SpotifyPlaylistHelper {
     this.url = url;
   }
 
-  /**
-   * Gets all the album songs for the playlist.
-   *
-   * @return the album songs of the playlist
-   */
+  @Override
   @NotNull
-  public List<PlaylistTrack> getAlbumSongs() {
+  public List<String> getAlbumSongs() {
     final Optional<String> id = VideoExtractionUtilities.getSpotifyID(url);
     if (id.isPresent()) {
       try {
         playlist = SPOTIFY_API.getPlaylist(id.get()).build().execute();
-        return Arrays.asList(playlist.getTracks().getItems());
+        return Arrays.stream(playlist.getTracks().getItems())
+            .map(x -> x.getTrack().getId())
+            .collect(Collectors.toList());
       } catch (final IOException | ParseException | SpotifyWebApiException e) {
         e.printStackTrace();
       }
@@ -76,66 +74,33 @@ public class SpotifyPlaylistHelper {
     throw new InvalidPlaylistException(String.format("Invalid Spotify Playlist! (%s)", url));
   }
 
-  /**
-   * Gets the title.
-   *
-   * @return the title
-   */
+  @Override
   public String getTitle() {
     return playlist.getName();
   }
 
-  /**
-   * Gets the author.
-   *
-   * @return the author
-   */
+  @Override
   public String getAuthor() {
     return playlist.getOwner().getDisplayName();
   }
 
-  /**
-   * Gets the video count.
-   *
-   * @return the video count
-   */
+  @Override
   public int getVideoCount() {
     return playlist.getTracks().getItems().length;
   }
 
-  /**
-   * Gets the follower count.
-   *
-   * @return the follower count
-   */
+  @Override
   public int getFollowerCount() {
     return playlist.getFollowers().getTotal();
   }
 
-  /**
-   * Gets the description.
-   *
-   * @return the description
-   */
+  @Override
   public String getDescription() {
     return playlist.getDescription();
   }
 
-  /**
-   * Gets the url of the playlist.
-   *
-   * @return the url
-   */
+  @Override
   public String getUrl() {
     return url;
-  }
-
-  /**
-   * Gets the playlist.
-   *
-   * @return the playlist
-   */
-  public Playlist getPlaylist() {
-    return playlist;
   }
 }

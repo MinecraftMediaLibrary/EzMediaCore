@@ -22,58 +22,46 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.playlist;
 
-import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
-import org.jetbrains.annotations.NotNull;
-
-public class WebPlaylistAudioPlayer {
-
-  private final AudioPlaylistControls playlist;
+public interface AudioPlaylistControlsBase {
 
   /**
-   * Instantiates a PlaylistAudioPlayer.
+   * Get the current song playing.
    *
-   * @param url the url
-   * @param type the playlist type
+   * @return the current song playing
    */
-  public WebPlaylistAudioPlayer(@NotNull final String url, @NotNull final PlaylistType type) {
-    playlist = new AudioPlaylistControls(url, type);
-  }
+  String getCurrentSong();
+
+  /** Skip forward a song. */
+  void skipForwardSong();
+
+  /** Skip backward a song. */
+  void skipBackwardSong();
 
   /**
-   * Instantiates a PlaylistAudioPlayer.
+   * Gets the playlist url.
    *
-   * @param url the url
-   * @deprecated due to how it is better to specify the playlist type
+   * @return the playlist url
    */
-  @Deprecated
-  @LegacyApi(since = "1.4.0")
-  public WebPlaylistAudioPlayer(@NotNull final String url) {
-    playlist =
-        new AudioPlaylistControls(
-            url, url.contains("open.spotify.com") ? PlaylistType.SPOTIFY : PlaylistType.YOUTUBE);
-  }
+  String getUrl();
 
-  /** Skips forward a song. */
-  public void skipForwardSong() {
-    playlist.skipForwardSong();
-    final String id = playlist.getCurrentSong();
-    // .. play audio
-  }
+  /**
+   * Gets the playlist type.
+   *
+   * @return the playlist type
+   */
+  PlaylistType getType();
 
-  /** Skips backward a song. */
-  public void skipBackwardSong() {
-    playlist.skipBackwardSong();
-    final String id = playlist.getCurrentSong();
-    // .. play audio
-  }
+  /**
+   * Gets the current index of the song playing.
+   *
+   * @return the index
+   */
+  int getIndex();
 
-  /** Pauses the audio. */
-  public void pauseSong() {
-    // .. pause audio
-  }
-
-  /** Resumes the audio. */
-  public void resumeSong() {
-    // .. resume audio
-  }
+  /**
+   * Set the index of a song.
+   *
+   * @param index the index
+   */
+  void setIndex(int index);
 }

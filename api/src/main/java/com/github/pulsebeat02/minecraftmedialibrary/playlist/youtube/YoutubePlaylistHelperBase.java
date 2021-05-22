@@ -22,32 +22,11 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.playlist.youtube;
 
-import com.github.kiulian.downloader.YoutubeDownloader;
-import com.github.kiulian.downloader.YoutubeException;
-import com.github.kiulian.downloader.model.playlist.PlaylistDetails;
-import com.github.kiulian.downloader.model.playlist.PlaylistVideoDetails;
-import com.github.kiulian.downloader.model.playlist.YoutubePlaylist;
-import com.github.pulsebeat02.minecraftmedialibrary.exception.InvalidPlaylistException;
-import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Optional;
 
-/** A class for helping to get the videos from a specific Youtube playlist. */
-public class YoutubePlaylistHelper {
-
-  private final String url;
-  private PlaylistDetails details;
-
-  /**
-   * Instantiates a new YoutubePlaylistHelper
-   *
-   * @param url the url of the playlist
-   */
-  public YoutubePlaylistHelper(@NotNull final String url) {
-    this.url = url;
-  }
+public interface YoutubePlaylistHelperBase {
 
   /**
    * Gets all the video ids for the playlist.
@@ -55,71 +34,40 @@ public class YoutubePlaylistHelper {
    * @return the video ids of the playlist
    */
   @NotNull
-  public List<PlaylistVideoDetails> getAlbumSongs() {
-    final Optional<String> id = VideoExtractionUtilities.getYoutubeID(url);
-    if (id.isPresent()) {
-      try {
-        final YoutubePlaylist playlist = new YoutubeDownloader().getPlaylist(id.get());
-        details = playlist.details();
-        return playlist.videos();
-      } catch (final YoutubeException e) {
-        e.printStackTrace();
-      }
-    }
-    throw new InvalidPlaylistException(String.format("Invalid Youtube Playlist! (%s)", url));
-  }
+  List<String> getAlbumSongs();
 
   /**
    * Gets the title.
    *
    * @return the title
    */
-  public String getTitle() {
-    return details.title();
-  }
+  String getTitle();
 
   /**
    * Gets the author.
    *
    * @return the author
    */
-  public String getAuthor() {
-    return details.author();
-  }
+  String getAuthor();
 
   /**
    * Gets the video count.
    *
    * @return the video count
    */
-  public int getVideoCount() {
-    return details.videoCount();
-  }
+  int getVideoCount();
 
   /**
    * Gets the view count.
    *
    * @return the view count
    */
-  public int getViewCount() {
-    return details.viewCount();
-  }
+  int getViewCount();
 
   /**
    * Gets the url.
    *
    * @return the url
    */
-  public String getUrl() {
-    return url;
-  }
-
-  /**
-   * Gets the playlist details.
-   *
-   * @return the playlist details
-   */
-  public PlaylistDetails getDetails() {
-    return details;
-  }
+  String getUrl();
 }
