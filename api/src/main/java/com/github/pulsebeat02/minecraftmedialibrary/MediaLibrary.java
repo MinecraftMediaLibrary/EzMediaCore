@@ -1,8 +1,6 @@
 package com.github.pulsebeat02.minecraftmedialibrary;
 
-import com.github.pulsebeat02.minecraftmedialibrary.listener.PlayerJoinLeaveRegistration;
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
-import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.SilentOSDependentSolution;
 import org.bukkit.plugin.Plugin;
 
 import java.nio.file.Path;
@@ -39,13 +37,6 @@ public interface MediaLibrary {
    * @param vlcj status
    */
   void setVlcj(boolean vlcj);
-
-  /**
-   * Gets the listener.
-   *
-   * @return the listener
-   */
-  PlayerJoinLeaveRegistration getRegistrationHandler();
 
   /**
    * Gets the path of the parent library folder.
@@ -109,11 +100,4 @@ public interface MediaLibrary {
    * @return whether the library is disabled or not
    */
   boolean isDisabled();
-
-  /**
-   * Returns the silent installation.
-   *
-   * @return the silent installation
-   */
-  SilentOSDependentSolution provideSilentInstallation();
 }

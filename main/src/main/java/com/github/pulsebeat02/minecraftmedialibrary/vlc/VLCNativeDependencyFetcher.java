@@ -24,9 +24,11 @@ package com.github.pulsebeat02.minecraftmedialibrary.vlc;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.SilentOSDependentSolution;
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxSilentInstallation;
 import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.mac.MacSilentInstallation;
-
+import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.windows.SimpleWindowsSilentInstallation;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -51,7 +53,13 @@ public class VLCNativeDependencyFetcher {
    * @param library the library
    */
   public VLCNativeDependencyFetcher(@NotNull final MediaLibrary library) {
-    this.solution = library.provideSilentInstallation();
+    if (RuntimeUtilities.isWindows()) {
+      solution = new SimpleWindowsSilentInstallation(library);
+    } else if (RuntimeUtilities.isMac()) {
+      solution = new MacSilentInstallation(library);
+    } else {
+      solution = new LinuxSilentInstallation(library);
+    }
   }
 
   /**
