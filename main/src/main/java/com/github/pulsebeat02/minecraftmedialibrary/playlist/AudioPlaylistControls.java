@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /** A class used for audio playlist handling. */
-public class AudioPlaylistControls implements AudioPlaylistControlsBase {
+public class AudioPlaylistControls implements PlaylistController {
 
   private final String url;
   private final List<String> songs;

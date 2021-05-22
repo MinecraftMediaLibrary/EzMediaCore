@@ -20,18 +20,29 @@
  .   SOFTWARE.                                                                               .
  ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.playlist;
+package com.github.pulsebeat02.minecraftmedialibrary.http.request;
 
-import com.github.pulsebeat02.minecraftmedialibrary.http.RequestHandler;
+/** The enum Zip header. */
+public enum ZipHeader {
 
-import java.net.Socket;
+  /** ZIP Header */
+  ZIP("application/zip"),
 
-public interface PlayerRequestHandlerBase extends Runnable, RequestHandler {
+  /** Octet Stream Header */
+  OCTET_STREAM("application/octet-stream");
 
-    /**
-     * Gets client.
-     *
-     * @return the client
-     */
-    Socket getClient();
+  private final String header;
+
+  ZipHeader(final String header) {
+    this.header = header;
+  }
+
+  /**
+   * Gets header.
+   *
+   * @return the header
+   */
+  public String getHeader() {
+    return header;
+  }
 }

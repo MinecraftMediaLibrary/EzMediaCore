@@ -30,7 +30,7 @@ import com.google.common.base.Preconditions;
  * eventually in JAVE2 while audio conversion is taking place. Strongly recommended to research each
  * of these properties first or else you might make someone deaf!
  */
-public class ExtractionSetting implements ConfigurableExtractionSetting {
+public class ExtractionSetting implements ExtractionConfiguration {
 
   private final String codec;
   private final String outputFormat;
@@ -78,7 +78,7 @@ public class ExtractionSetting implements ConfigurableExtractionSetting {
     if (!(obj instanceof ExtractionSetting)) {
       return false;
     }
-    final ConfigurableExtractionSetting setting = (ConfigurableExtractionSetting) obj;
+    final ExtractionConfiguration setting = (ExtractionConfiguration) obj;
     return setting.getCodec().equals(codec)
         && setting.getOutputFormat().equals(outputFormat)
         && setting.getInputFormat().equals(inputFormat)
@@ -207,7 +207,7 @@ public class ExtractionSetting implements ConfigurableExtractionSetting {
      *
      * @return the extraction setting
      */
-    public ConfigurableExtractionSetting build() {
+    public ExtractionConfiguration build() {
       return new ExtractionSetting(bitrate, channels, samplingRate, volume);
     }
   }

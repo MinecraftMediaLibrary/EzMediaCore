@@ -20,35 +20,26 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.http;
+package com.github.pulsebeat02.minecraftmedialibrary.playlist.spotify;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.net.Socket;
-import java.nio.file.Path;
+import java.util.List;
 
-public interface FileRequestBase extends RequestHandler {
+public interface SpotifyPlaylistSearch {
 
-  /**
-   * Request file callback file.
-   *
-   * @param request the request
-   * @return the file
-   */
   @NotNull
-  Path requestFileCallback(@NotNull final String request);
+  List<String> getAlbumSongs();
 
-  /**
-   * Gets header.
-   *
-   * @return the header
-   */
-  ZipHeader getHeader();
+  String getTitle();
 
-  /**
-   * Gets client.
-   *
-   * @return the client
-   */
-  Socket getClient();
+  String getAuthor();
+
+  int getVideoCount();
+
+  int getFollowerCount();
+
+  String getDescription();
+
+  String getUrl();
 }

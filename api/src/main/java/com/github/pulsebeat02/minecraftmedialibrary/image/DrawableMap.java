@@ -20,54 +20,18 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.playlist.youtube;
+package com.github.pulsebeat02.minecraftmedialibrary.image;
 
-import org.jetbrains.annotations.NotNull;
+/**
+ * Holds the map image and functions which call the necessary draw functions and events when
+ * necessary. Also can be used to create custom map image classes. Used within the
+ * MinecraftMediaLibrary to draw/display images to players.
+ */
+public interface DrawableMap {
 
-import java.util.List;
+  /** Draws a specified image onto a Map. */
+  void drawImage();
 
-public interface YoutubePlaylistHelperBase {
-
-  /**
-   * Gets all the video ids for the playlist.
-   *
-   * @return the video ids of the playlist
-   */
-  @NotNull
-  List<String> getAlbumSongs();
-
-  /**
-   * Gets the title.
-   *
-   * @return the title
-   */
-  String getTitle();
-
-  /**
-   * Gets the author.
-   *
-   * @return the author
-   */
-  String getAuthor();
-
-  /**
-   * Gets the video count.
-   *
-   * @return the video count
-   */
-  int getVideoCount();
-
-  /**
-   * Gets the view count.
-   *
-   * @return the view count
-   */
-  int getViewCount();
-
-  /**
-   * Gets the url.
-   *
-   * @return the url
-   */
-  String getUrl();
+  /** Called before image is drawn. */
+  void onDrawImage();
 }

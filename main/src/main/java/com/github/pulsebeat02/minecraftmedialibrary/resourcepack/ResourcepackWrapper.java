@@ -50,7 +50,7 @@ import java.util.zip.ZipOutputStream;
  * the ability to modify the base resourcepack file as well as the sounds.json file. You may also
  * specify other attributes such as the icon, description, and format.
  */
-public class ResourcepackWrapper implements ResourcepackWrapperBase {
+public class ResourcepackWrapper implements PackWrapper {
 
   private final String path;
   private final Path audio;
@@ -129,7 +129,7 @@ public class ResourcepackWrapper implements ResourcepackWrapperBase {
    * @param library the library
    * @return the resulting ResourcepackWrapper
    */
-  public static ResourcepackWrapperBase of(
+  public static PackWrapper of(
       @NotNull final MediaLibrary library, @NotNull final YoutubeExtraction extractor) {
     return ResourcepackWrapper.builder()
         .setAudio(extractor.getAudio())
@@ -149,7 +149,7 @@ public class ResourcepackWrapper implements ResourcepackWrapperBase {
    * @param library the library
    * @return the resulting ResourcepackWrapper
    */
-  public static ResourcepackWrapperBase of(
+  public static PackWrapper of(
       @NotNull final MediaLibrary library, @NotNull final Path audio) {
     return ResourcepackWrapper.builder()
         .setAudio(audio)
@@ -170,7 +170,7 @@ public class ResourcepackWrapper implements ResourcepackWrapperBase {
    * @return the resourcepack wrapper
    */
   @NotNull
-  public static ResourcepackWrapperBase deserialize(
+  public static PackWrapper deserialize(
           @NotNull final MediaLibrary library,
           @NotNull final Map<String, Object> deserialize) {
     return new ResourcepackWrapper(
@@ -281,7 +281,7 @@ public class ResourcepackWrapper implements ResourcepackWrapperBase {
     if (!(obj instanceof ResourcepackWrapper)) {
       return false;
     }
-    final ResourcepackWrapperBase wrapper = (ResourcepackWrapperBase) obj;
+    final PackWrapper wrapper = (PackWrapper) obj;
     return path.equals(wrapper.getPath())
         && audio.equals(wrapper.getAudio())
         && icon.equals(wrapper.getIcon())
@@ -396,7 +396,7 @@ public class ResourcepackWrapper implements ResourcepackWrapperBase {
      * @param library the library
      * @return the resourcepack wrapper
      */
-    public ResourcepackWrapperBase build(final MediaLibrary library) {
+    public PackWrapper build(final MediaLibrary library) {
       return new ResourcepackWrapper(library, path, audio, icon, description, packFormat);
     }
 
@@ -406,7 +406,7 @@ public class ResourcepackWrapper implements ResourcepackWrapperBase {
      * @param sound the sound
      * @return the resourcepack wrapper
      */
-    public ResourcepackWrapperBase build(final String sound) {
+    public PackWrapper build(final String sound) {
       return new ResourcepackWrapper(sound, path, audio, icon, description, packFormat);
     }
   }

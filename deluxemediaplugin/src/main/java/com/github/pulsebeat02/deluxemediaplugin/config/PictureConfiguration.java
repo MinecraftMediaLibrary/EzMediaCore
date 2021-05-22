@@ -25,7 +25,7 @@ package com.github.pulsebeat02.deluxemediaplugin.config;
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImage;
-import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImageBase;
+import com.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +37,7 @@ import java.util.Set;
 
 public class PictureConfiguration extends AbstractConfiguration {
 
-  private final Set<MinecraftStaticImageBase> images;
+  private final Set<StaticImageProxy> images;
 
   public PictureConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, "picture.yml");
@@ -61,7 +61,7 @@ public class PictureConfiguration extends AbstractConfiguration {
 
     // Deserialize the images settings
     final FileConfiguration configuration = getFileConfiguration();
-    for (final MinecraftStaticImageBase image : images) {
+    for (final StaticImageProxy image : images) {
       final long key = image.getMap();
       configuration.set(String.format("%d.location", key), image.getImage().getAbsolutePath());
       configuration.set(String.format("%d.width", key), image.getWidth());
@@ -112,7 +112,7 @@ public class PictureConfiguration extends AbstractConfiguration {
     }
   }
 
-  public Set<MinecraftStaticImageBase> getImages() {
+  public Set<StaticImageProxy> getImages() {
     return images;
   }
 }

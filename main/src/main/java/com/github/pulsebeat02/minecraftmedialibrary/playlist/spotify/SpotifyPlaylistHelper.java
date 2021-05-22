@@ -37,7 +37,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /** A class for helping to get the videos from a specific Spotify playlist. */
-public class SpotifyPlaylistHelper implements SpotifyPlaylistHelperBase {
+public class SpotifyPlaylistHelper implements SpotifyPlaylistSearch {
 
   private static final SpotifyApi SPOTIFY_API;
 

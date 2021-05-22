@@ -22,7 +22,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.concurrent;
 
-import com.github.pulsebeat02.minecraftmedialibrary.http.RequestHandler;
+import com.github.pulsebeat02.minecraftmedialibrary.http.request.RequestHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;

@@ -47,7 +47,7 @@ public class PlayerRequestHandler implements PlayerRequestHandlerBase {
   }
 
   private final HttpFileDaemonServer daemon;
-  private final WebPlaylistAudioPlayerBase audioPlayer;
+  private final WebResponsivePlayer audioPlayer;
   private final Socket client;
 
   /**
@@ -59,7 +59,7 @@ public class PlayerRequestHandler implements PlayerRequestHandlerBase {
    */
   public PlayerRequestHandler(
       @NotNull final HttpFileDaemonServer daemon,
-      @NotNull final WebPlaylistAudioPlayerBase audioPlayer,
+      @NotNull final WebResponsivePlayer audioPlayer,
       @NotNull final Socket client) {
     this.daemon = daemon;
     this.audioPlayer = audioPlayer;

@@ -20,67 +20,43 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.image.gif;
+package com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting;
 
-import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.image.MapImageHolder;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import com.github.pulsebeat02.minecraftmedialibrary.http.HttpDaemon;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.util.Map;
+public interface HttpServerDaemon extends HostingSolution {
 
-public interface MinecraftDynamicImageBase extends MapImageHolder, ConfigurationSerializable {
-
-  /** Draws the specific image on the map id. */
-  @Override
-  void drawImage();
-
-  /** Called when an image is being draw on a map. */
-  @Override
-  void onDrawImage();
+  /** Start server. */
+  void startServer();
 
   /**
-   * Serializes a MapImage.
+   * Gets relative path for file based off of HTTP server folder.
    *
-   * @return map of serialized values
+   * @param absolutePath the absolute file path
+   * @return the relative path when comparing to the HTTP server folder
    */
-  @Override
   @NotNull
-  Map<String, Object> serialize();
+  String getRelativePath(@NotNull String absolutePath);
 
   /**
-   * Gets library.
+   * Gets server ip.
    *
-   * @return the library
+   * @return the server ip
    */
-  MediaLibrary getLibrary();
+  String getServerIp();
 
   /**
-   * Gets map.
+   * Gets port.
    *
-   * @return the map
+   * @return the port
    */
-  int getMap();
+  int getPort();
 
   /**
-   * Gets image.
+   * Gets the HttpDaemon.
    *
-   * @return the image
+   * @return the HTTP daemon
    */
-  File getImage();
-
-  /**
-   * Gets height.
-   *
-   * @return the height
-   */
-  int getHeight();
-
-  /**
-   * Gets width.
-   *
-   * @return the width
-   */
-  int getWidth();
+  HttpDaemon getDaemon();
 }

@@ -22,6 +22,8 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.http;
 
+import com.github.pulsebeat02.minecraftmedialibrary.http.request.FileRequest;
+import com.github.pulsebeat02.minecraftmedialibrary.http.request.ZipHeader;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,7 +48,7 @@ import java.util.regex.Pattern;
  * A class used to handle incoming requests. It checks if the current request being received is a
  * GET request and sends the correct response back to the client.
  */
-public class FileRequestHandler implements Runnable, FileRequestBase {
+public class FileRequestHandler implements Runnable, FileRequest {
 
   private static final Pattern MATCHER;
 

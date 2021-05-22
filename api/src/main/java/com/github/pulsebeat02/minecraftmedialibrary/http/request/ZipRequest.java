@@ -20,60 +20,19 @@
  .   SOFTWARE.                                                                               .
  ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.playlist;
+package com.github.pulsebeat02.minecraftmedialibrary.http.request;
 
-import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import org.jetbrains.annotations.NotNull;
 
-public class WebPlaylistAudioPlayer implements WebResponsivePlayer {
-
-  private final PlaylistController playlist;
+public interface ZipRequest {
 
   /**
-   * Instantiates a PlaylistAudioPlayer.
+   * Gets zip header.
    *
-   * @param url the url
-   * @param type the playlist type
+   * @return the zip header
    */
-  public WebPlaylistAudioPlayer(@NotNull final String url, @NotNull final PlaylistType type) {
-    playlist = new AudioPlaylistControls(url, type);
-  }
+  ZipHeader getZipHeader();
 
-  /**
-   * Instantiates a PlaylistAudioPlayer.
-   *
-   * @param url the url
-   * @deprecated due to how it is better to specify the playlist type
-   */
-  @Deprecated
-  @LegacyApi(since = "1.4.0")
-  public WebPlaylistAudioPlayer(@NotNull final String url) {
-    playlist =
-        new AudioPlaylistControls(
-            url, url.contains("open.spotify.com") ? PlaylistType.SPOTIFY : PlaylistType.YOUTUBE);
-  }
-
-  @Override
-  public void skipForwardSong() {
-    playlist.skipForwardSong();
-    final String id = playlist.getCurrentSong();
-    // .. play audio
-  }
-
-  @Override
-  public void skipBackwardSong() {
-    playlist.skipBackwardSong();
-    final String id = playlist.getCurrentSong();
-    // .. play audio
-  }
-
-  @Override
-  public void pauseSong() {
-    // .. pause audio
-  }
-
-  @Override
-  public void resumeSong() {
-    // .. resume audio
-  }
+  /** Sets zip header. */
+  void setZipHeader(@NotNull final ZipHeader header);
 }

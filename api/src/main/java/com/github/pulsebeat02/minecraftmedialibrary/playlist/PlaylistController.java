@@ -20,19 +20,48 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.http;
+package com.github.pulsebeat02.minecraftmedialibrary.playlist;
 
-import org.jetbrains.annotations.NotNull;
-
-public interface ZipRequestHeader {
+public interface PlaylistController {
 
   /**
-   * Gets zip header.
+   * Get the current song playing.
    *
-   * @return the zip header
+   * @return the current song playing
    */
-  ZipHeader getZipHeader();
+  String getCurrentSong();
 
-  /** Sets zip header. */
-  void setZipHeader(@NotNull final ZipHeader header);
+  /** Skip forward a song. */
+  void skipForwardSong();
+
+  /** Skip backward a song. */
+  void skipBackwardSong();
+
+  /**
+   * Gets the playlist url.
+   *
+   * @return the playlist url
+   */
+  String getUrl();
+
+  /**
+   * Gets the playlist type.
+   *
+   * @return the playlist type
+   */
+  PlaylistType getType();
+
+  /**
+   * Gets the current index of the song playing.
+   *
+   * @return the index
+   */
+  int getIndex();
+
+  /**
+   * Set the index of a song.
+   *
+   * @param index the index
+   */
+  void setIndex(int index);
 }

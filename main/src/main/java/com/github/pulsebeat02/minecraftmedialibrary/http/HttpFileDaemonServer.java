@@ -22,6 +22,8 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.http;
 
+import com.github.pulsebeat02.minecraftmedialibrary.http.request.ZipHeader;
+import com.github.pulsebeat02.minecraftmedialibrary.http.request.ZipRequest;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
@@ -42,7 +44,7 @@ import java.util.concurrent.Executors;
  * must be specified as well as a base directory. It then runs on an async thread while logging out
  * connections (if set to enabled).
  */
-public class HttpFileDaemonServer extends Thread implements HttpDaemon, ZipRequestHeader {
+public class HttpFileDaemonServer extends Thread implements HttpDaemon, ZipRequest {
 
   private static final ExecutorService EXECUTOR_SERVICE;
 

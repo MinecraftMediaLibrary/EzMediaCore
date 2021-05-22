@@ -22,46 +22,16 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.playlist;
 
-public interface AudioPlaylistControlsBase {
-
-  /**
-   * Get the current song playing.
-   *
-   * @return the current song playing
-   */
-  String getCurrentSong();
-
-  /** Skip forward a song. */
+public interface WebResponsivePlayer {
+  /** Skips forward a song. */
   void skipForwardSong();
 
-  /** Skip backward a song. */
+  /** Skips backward a song. */
   void skipBackwardSong();
 
-  /**
-   * Gets the playlist url.
-   *
-   * @return the playlist url
-   */
-  String getUrl();
+  /** Pauses the audio. */
+  void pauseSong();
 
-  /**
-   * Gets the playlist type.
-   *
-   * @return the playlist type
-   */
-  PlaylistType getType();
-
-  /**
-   * Gets the current index of the song playing.
-   *
-   * @return the index
-   */
-  int getIndex();
-
-  /**
-   * Set the index of a song.
-   *
-   * @param index the index
-   */
-  void setIndex(int index);
+  /** Resumes the audio. */
+  void resumeSong();
 }

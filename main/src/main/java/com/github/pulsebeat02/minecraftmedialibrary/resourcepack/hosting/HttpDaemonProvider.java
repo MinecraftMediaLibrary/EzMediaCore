@@ -37,7 +37,7 @@ import java.nio.file.Paths;
  * The wrapper class and provider for the Http daemon. Useful for creating http daemons and easier
  * handling.
  */
-public class HttpDaemonProvider implements HttpDaemonProviderBase {
+public class HttpDaemonProvider implements HttpServerDaemon {
 
   private final int port;
   private HttpFileDaemonServer daemon;
@@ -123,6 +123,7 @@ public class HttpDaemonProvider implements HttpDaemonProviderBase {
     return serverIP;
   }
 
+  @Override
   public HttpFileDaemonServer getDaemon() {
     return daemon;
   }

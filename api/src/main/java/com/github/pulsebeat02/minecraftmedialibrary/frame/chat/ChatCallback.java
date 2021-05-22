@@ -28,6 +28,7 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,6 +46,7 @@ public final class ChatCallback implements FrameCallback {
 
   private final MediaLibrary library;
   private final Set<Player> viewers;
+  private final String character;
   private final int width;
   private final int height;
   private final int delay;
@@ -62,6 +64,7 @@ public final class ChatCallback implements FrameCallback {
   public ChatCallback(
       @NotNull final MediaLibrary library,
       final UUID[] viewers,
+      @Nullable final String character,
       final int chatWidth,
       final int chatHeight,
       final int delay) {
@@ -70,6 +73,7 @@ public final class ChatCallback implements FrameCallback {
     this.viewers.addAll(Arrays.stream(viewers).map(Bukkit::getPlayer).collect(Collectors.toSet()));
     width = chatWidth;
     height = chatHeight;
+    this.character = character == null ? "\u2588" : character;
     this.delay = delay;
   }
 
@@ -100,7 +104,7 @@ public final class ChatCallback implements FrameCallback {
           if (before != rgb) {
             msg.append(ChatColor.of("#" + String.format("%08x", rgb).substring(2)));
           }
-          msg.append("\u2588");
+          msg.append(character);
           before = rgb;
         }
         for (final Player player : viewers) {
@@ -168,6 +172,7 @@ public final class ChatCallback implements FrameCallback {
   public static class Builder {
 
     private UUID[] viewers;
+    private String character;
     private int width;
     private int height;
     private int delay;
@@ -219,13 +224,24 @@ public final class ChatCallback implements FrameCallback {
     }
 
     /**
+     * Sets character.
+     *
+     * @param character the character
+     * @return the character
+     */
+    public Builder setDelay(final String character) {
+      this.character = character;
+      return this;
+    }
+
+    /**
      * Create item frame callback item frame callback.
      *
      * @param library the library
      * @return the item frame callback
      */
     public ChatCallback build(final MediaLibrary library) {
-      return new ChatCallback(library, viewers, width, height, delay);
+      return new ChatCallback(library, viewers, character, width, height, delay);
     }
   }
 }

@@ -30,8 +30,8 @@ import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
-import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapperBase;
-import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProviderBase;
+import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
+import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpServerDaemon;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -480,11 +480,11 @@ public class VideoCommand extends BaseCommand {
     return 1;
   }
 
-  private ResourcepackWrapperBase buildResourcepack(
+  private PackWrapper buildResourcepack(
       @NotNull final YoutubeExtraction extractor, @NotNull final DeluxeMediaPlugin plugin) {
 
     // Get the resourcepack wrapper from the extractor
-    final ResourcepackWrapperBase wrapper = ResourcepackWrapper.of(plugin.getLibrary(), extractor);
+    final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), extractor);
 
     // Build the resourcepack
     wrapper.buildResourcePack();
@@ -492,9 +492,9 @@ public class VideoCommand extends BaseCommand {
   }
 
   private void sendResourcepack(
-      @Nullable final HttpDaemonProviderBase provider,
+      @Nullable final HttpServerDaemon provider,
       @NotNull final Audience audience,
-      @NotNull final ResourcepackWrapperBase wrapper) {
+      @NotNull final PackWrapper wrapper) {
     if (provider != null) {
 
       // Generates a url given by the HTTP server for a file

@@ -23,17 +23,18 @@
 package com.github.pulsebeat02.deluxemediaplugin.config;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import com.github.pulsebeat02.minecraftmedialibrary.http.HttpDaemon;
 import com.github.pulsebeat02.minecraftmedialibrary.http.HttpFileDaemonServer;
-import com.github.pulsebeat02.minecraftmedialibrary.http.ZipHeader;
+import com.github.pulsebeat02.minecraftmedialibrary.http.request.ZipHeader;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
-import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProviderBase;
+import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpServerDaemon;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 public class HttpConfiguration extends AbstractConfiguration {
 
-  private HttpDaemonProviderBase daemon;
+  private HttpServerDaemon daemon;
   private boolean enabled;
 
   public HttpConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
@@ -47,7 +48,7 @@ public class HttpConfiguration extends AbstractConfiguration {
     final FileConfiguration configuration = getFileConfiguration();
     configuration.set("enabled", enabled);
     configuration.set("port", daemon.getPort());
-    final HttpFileDaemonServer http = daemon.getDaemon();
+    final HttpDaemon http = daemon.getDaemon();
     configuration.set(
         "directory",
         getPlugin()
@@ -56,7 +57,8 @@ public class HttpConfiguration extends AbstractConfiguration {
             .relativize(http.getDirectory().toAbsolutePath())
             .toString());
     configuration.set(
-        "header", http.getHeader() == ZipHeader.ZIP ? "ZIP" : "OCTET_STREAM");
+        "header",
+        ((HttpFileDaemonServer) http).getZipHeader() == ZipHeader.ZIP ? "ZIP" : "OCTET_STREAM");
     configuration.set("verbose", http.isVerbose());
     saveConfig();
   }
@@ -89,7 +91,7 @@ public class HttpConfiguration extends AbstractConfiguration {
 
       // Create a new daemon with the specified directory and port
       daemon = new HttpDaemonProvider(directory, port);
-      final HttpFileDaemonServer http = daemon.getDaemon();
+      final HttpFileDaemonServer http = (HttpFileDaemonServer) daemon.getDaemon();
 
       // Resort to ZIP if the header isn't valid
       if (header == null) {
@@ -99,9 +101,7 @@ public class HttpConfiguration extends AbstractConfiguration {
 
       // Set the header of the HTTP daemon
       http.setZipHeader(
-          header == null || header.equals("ZIP")
-              ? ZipHeader.ZIP
-              : ZipHeader.OCTET_STREAM);
+          header == null || header.equals("ZIP") ? ZipHeader.ZIP : ZipHeader.OCTET_STREAM);
 
       // Set the verbosity
       http.setVerbose(verbose);
@@ -112,7 +112,7 @@ public class HttpConfiguration extends AbstractConfiguration {
     this.enabled = enabled;
   }
 
-  public HttpDaemonProviderBase getDaemon() {
+  public HttpServerDaemon getDaemon() {
     return daemon;
   }
 

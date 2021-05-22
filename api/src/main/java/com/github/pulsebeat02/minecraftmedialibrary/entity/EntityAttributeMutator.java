@@ -20,33 +20,61 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting;
+package com.github.pulsebeat02.minecraftmedialibrary.entity;
 
+import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.file.Path;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
-/**
- * The hosting provider used for generating urls to download a specific file. Useful for creating
- * custom providers and needing to generate links for them.
- */
-public interface HostingProvider {
-
-  /**
-   * Generates a url for the specific requested file.
-   *
-   * @param file to generate parent directory of the HTTP Server for.
-   * @return String url for the generated url to access the specific file.
-   */
-  @NotNull
-  String generateUrl(@NotNull final String file);
+public interface EntityAttributeMutator<T extends Entity> {
 
   /**
-   * Generates a url for the specific requested file.
+   * Invokes a specific argument based off the method name.
    *
-   * @param path to gnerate parent directory of the HTTP Server for.
-   * @return String url for the generated url to access the specific file.
+   * @param entity the entity
+   * @param methodName the method name
+   * @param argument the argument
+   * @return true if the operation was successful, false otherwise
    */
-  @NotNull
-  String generateUrl(@NotNull final Path path);
+  boolean invokeGetter(
+      @NotNull final T entity, @NotNull final String methodName, @NotNull final Object argument);
+
+  /**
+   * Gets the entity class.
+   *
+   * @return the entity class
+   */
+  Class<?> getEntityClass();
+
+  /**
+   * Gets the String/method map.
+   *
+   * @return the String/method map
+   */
+  Map<String, Method> getMethodMap();
+
+  /**
+   * Gets the possible valid arguments for methods.
+   *
+   * @return the valid arguments
+   */
+  Set<Class<?>> getValidArguments();
+
+  /**
+   * Gets the raw methods from the map.
+   *
+   * @return the raw methods
+   */
+  Collection<Method> getRawMethods();
+
+  /**
+   * Gets the method names from the map.
+   *
+   * @return the method names
+   */
+  Collection<String> getMethodNames();
 }

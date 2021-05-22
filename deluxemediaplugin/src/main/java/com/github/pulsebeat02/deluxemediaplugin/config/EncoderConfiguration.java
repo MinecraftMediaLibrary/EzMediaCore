@@ -23,14 +23,14 @@
 package com.github.pulsebeat02.deluxemediaplugin.config;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import com.github.pulsebeat02.minecraftmedialibrary.extractor.ConfigurableExtractionSetting;
+import com.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionConfiguration;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionSetting;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 public class EncoderConfiguration extends AbstractConfiguration {
 
-  private ConfigurableExtractionSetting settings;
+  private ExtractionConfiguration settings;
 
   public EncoderConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, "encoder.yml");
@@ -90,7 +90,7 @@ public class EncoderConfiguration extends AbstractConfiguration {
     settings = new ExtractionSetting(bitrate, channels, samplingRate, volume);
   }
 
-  public ConfigurableExtractionSetting getSettings() {
+  public ExtractionConfiguration getSettings() {
     return settings;
   }
 }

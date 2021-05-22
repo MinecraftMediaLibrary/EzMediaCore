@@ -20,35 +20,96 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting;
+package com.github.pulsebeat02.minecraftmedialibrary.extractor;
 
-import org.jetbrains.annotations.NotNull;
-
-public interface HttpDaemonProviderBase extends HostingProvider {
-
-  /** Start server. */
-  void startServer();
+public interface ExtractionConfiguration {
 
   /**
-   * Gets relative path for file based off of HTTP server folder.
+   * Checks if two ExtractionSetting objects are directly equal (properties).
    *
-   * @param absolutePath the absolute file path
-   * @return the relative path when comparing to the HTTP server folder
+   * @param obj the other object
+   * @return whether the two are equal in properties
    */
-  @NotNull
-  String getRelativePath(@NotNull String absolutePath);
+  @Override
+  boolean equals(final Object obj);
+
+  @Override
+  String toString();
 
   /**
-   * Gets server ip.
+   * Gets codec.
    *
-   * @return the server ip
+   * @return the codec
    */
-  String getServerIp();
+  String getCodec();
 
   /**
-   * Gets port.
+   * Gets output format.
    *
-   * @return the port
+   * @return the output format
    */
-  int getPort();
+  String getOutputFormat();
+
+  /**
+   * Gets input format.
+   *
+   * @return the input format
+   */
+  String getInputFormat();
+
+  /**
+   * Gets bitrate.
+   *
+   * @return the bitrate
+   */
+  int getBitrate();
+
+  /**
+   * Sets bitrate.
+   *
+   * @param bitrate the bitrate
+   */
+  void setBitrate(final int bitrate);
+
+  /**
+   * Gets channels.
+   *
+   * @return the channels
+   */
+  int getChannels();
+
+  /**
+   * Sets channels.
+   *
+   * @param channels the channels
+   */
+  void setChannels(final int channels);
+
+  /**
+   * Gets sampling rate.
+   *
+   * @return the sampling rate
+   */
+  int getSamplingRate();
+
+  /**
+   * Sets sampling rate.
+   *
+   * @param samplingRate the sampling rate
+   */
+  void setSamplingRate(final int samplingRate);
+
+  /**
+   * Gets volume.
+   *
+   * @return the volume
+   */
+  int getVolume();
+
+  /**
+   * Sets volume.
+   *
+   * @param volume the volume
+   */
+  void setVolume(final int volume);
 }

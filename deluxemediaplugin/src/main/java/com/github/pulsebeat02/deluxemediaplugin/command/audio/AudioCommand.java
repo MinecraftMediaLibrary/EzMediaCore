@@ -28,8 +28,8 @@ import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
-import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapperBase;
-import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProviderBase;
+import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
+import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpServerDaemon;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -135,7 +135,7 @@ public class AudioCommand extends BaseCommand {
             () -> {
 
               // Create a resourcepack from the audio and library instance
-              final ResourcepackWrapperBase wrapper = ResourcepackWrapper.of(library, audio.toPath());
+              final PackWrapper wrapper = ResourcepackWrapper.of(library, audio.toPath());
 
               // Build the resourcepack
               wrapper.buildResourcePack();
@@ -148,9 +148,9 @@ public class AudioCommand extends BaseCommand {
   }
 
   private void sendResourcepack(
-      @Nullable final HttpDaemonProviderBase provider,
+      @Nullable final HttpServerDaemon provider,
       @NotNull final Audience audience,
-      @NotNull final ResourcepackWrapperBase wrapper) {
+      @NotNull final PackWrapper wrapper) {
     if (provider != null) {
 
       // Get a resourcepack url for the file

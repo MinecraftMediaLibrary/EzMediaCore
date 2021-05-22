@@ -20,96 +20,33 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.extractor;
+package com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting;
 
-public interface ConfigurableExtractionSetting {
+import org.jetbrains.annotations.NotNull;
 
-  /**
-   * Checks if two ExtractionSetting objects are directly equal (properties).
-   *
-   * @param obj the other object
-   * @return whether the two are equal in properties
-   */
-  @Override
-  boolean equals(final Object obj);
+import java.nio.file.Path;
 
-  @Override
-  String toString();
+/**
+ * The hosting provider used for generating urls to download a specific file. Useful for creating
+ * custom providers and needing to generate links for them.
+ */
+public interface HostingSolution {
 
   /**
-   * Gets codec.
+   * Generates a url for the specific requested file.
    *
-   * @return the codec
+   * @param file to generate parent directory of the HTTP Server for.
+   * @return String url for the generated url to access the specific file.
    */
-  String getCodec();
+  @NotNull
+  String generateUrl(@NotNull final String file);
 
   /**
-   * Gets output format.
+   * Generates a url for the specific requested file.
    *
-   * @return the output format
+   * @param path to gnerate parent directory of the HTTP Server for.
+   * @return String url for the generated url to access the specific file.
    */
-  String getOutputFormat();
-
-  /**
-   * Gets input format.
-   *
-   * @return the input format
-   */
-  String getInputFormat();
-
-  /**
-   * Gets bitrate.
-   *
-   * @return the bitrate
-   */
-  int getBitrate();
-
-  /**
-   * Sets bitrate.
-   *
-   * @param bitrate the bitrate
-   */
-  void setBitrate(final int bitrate);
-
-  /**
-   * Gets channels.
-   *
-   * @return the channels
-   */
-  int getChannels();
-
-  /**
-   * Sets channels.
-   *
-   * @param channels the channels
-   */
-  void setChannels(final int channels);
-
-  /**
-   * Gets sampling rate.
-   *
-   * @return the sampling rate
-   */
-  int getSamplingRate();
-
-  /**
-   * Sets sampling rate.
-   *
-   * @param samplingRate the sampling rate
-   */
-  void setSamplingRate(final int samplingRate);
-
-  /**
-   * Gets volume.
-   *
-   * @return the volume
-   */
-  int getVolume();
-
-  /**
-   * Sets volume.
-   *
-   * @param volume the volume
-   */
-  void setVolume(final int volume);
+  @NotNull
+  String generateUrl(@NotNull final Path path);
 }

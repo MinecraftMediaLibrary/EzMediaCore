@@ -20,26 +20,67 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.playlist.spotify;
+package com.github.pulsebeat02.minecraftmedialibrary.image.gif;
 
+import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.image.DrawableMap;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.io.File;
+import java.util.Map;
 
-public interface SpotifyPlaylistHelperBase {
+public interface DynamicImageProxy extends DrawableMap, ConfigurationSerializable {
 
+  /** Draws the specific image on the map id. */
+  @Override
+  void drawImage();
+
+  /** Called when an image is being draw on a map. */
+  @Override
+  void onDrawImage();
+
+  /**
+   * Serializes a MapImage.
+   *
+   * @return map of serialized values
+   */
+  @Override
   @NotNull
-  List<String> getAlbumSongs();
+  Map<String, Object> serialize();
 
-  String getTitle();
+  /**
+   * Gets library.
+   *
+   * @return the library
+   */
+  MediaLibrary getLibrary();
 
-  String getAuthor();
+  /**
+   * Gets map.
+   *
+   * @return the map
+   */
+  int getMap();
 
-  int getVideoCount();
+  /**
+   * Gets image.
+   *
+   * @return the image
+   */
+  File getImage();
 
-  int getFollowerCount();
+  /**
+   * Gets height.
+   *
+   * @return the height
+   */
+  int getHeight();
 
-  String getDescription();
-
-  String getUrl();
+  /**
+   * Gets width.
+   *
+   * @return the width
+   */
+  int getWidth();
 }

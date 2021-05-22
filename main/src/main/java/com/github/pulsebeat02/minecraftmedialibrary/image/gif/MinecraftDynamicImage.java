@@ -47,7 +47,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-public class MinecraftDynamicImage implements MinecraftDynamicImageBase {
+public class MinecraftDynamicImage implements DynamicImageProxy {
 
   private final MediaLibrary library;
   private final File image;
@@ -293,7 +293,7 @@ public class MinecraftDynamicImage implements MinecraftDynamicImageBase {
      * @param library the library
      * @return the map image
      */
-    public MinecraftDynamicImageBase build(final MediaLibrary library) {
+    public DynamicImageProxy build(final MediaLibrary library) {
       return new MinecraftDynamicImage(library, map, image, width, height);
     }
   }

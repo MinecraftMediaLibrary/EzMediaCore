@@ -20,75 +20,30 @@
  .   SOFTWARE.                                                                               .
  ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.resourcepack;
+package com.github.pulsebeat02.minecraftmedialibrary.http.request;
 
-import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Map;
 
-public interface ResourcepackWrapperBase extends PackHolder, ConfigurationSerializable {
+/**
+ * The base handler of requests. Used for creating custom request managers. Used within the
+ * MinecraftMediaLibrary to handle requests to an HTTP daemon.
+ */
+public interface RequestHandler {
 
-    /**
-     * Checks if the two ResourcepackWrapper objects are equal.
-     *
-     * @param obj the other object
-     * @return whether the two objects are equal or not
-     */
-    @Override
-    boolean equals(Object obj);
+  /**
+   * Creates a header for the HTTP request. Useful for certain connections.
+   *
+   * @param file to create header for
+   * @return Header of the specified file
+   */
+  @NotNull
+  String buildHeader(@NotNull final Path file);
 
-    /**
-     * Returns a String version of the current instance.
-     *
-     * @return the stringified version of the instance
-     */
-    @Override
-    String toString();
-
-    /**
-     * Gets sound name.
-     *
-     * @return the sound name
-     */
-    String getSoundName();
-
-    /**
-     * Gets path.
-     *
-     * @return the path
-     */
-    String getPath();
-
-    /**
-     * Gets audio.
-     *
-     * @return the audio
-     */
-    Path getAudio();
-
-    /**
-     * Gets icon.
-     *
-     * @return the icon
-     */
-    Path getIcon();
-
-    /**
-     * Gets description.
-     *
-     * @return the description
-     */
-    String getDescription();
-
-    /**
-     * Gets pack format.
-     *
-     * @return the pack format
-     */
-    int getPackFormat();
+  /**
+   * Handles the incoming request accordingly. Warning: Overriding this requires a rewrite of the
+   * incoming connection
+   */
+  void handleRequest();
 }

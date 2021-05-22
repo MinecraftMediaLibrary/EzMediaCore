@@ -22,58 +22,16 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.playlist;
 
-import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
-import org.jetbrains.annotations.NotNull;
+import com.github.pulsebeat02.minecraftmedialibrary.http.request.RequestHandler;
 
-public class WebPlaylistAudioPlayer implements WebResponsivePlayer {
+import java.net.Socket;
 
-  private final PlaylistController playlist;
+public interface PlayerRequest extends Runnable, RequestHandler {
 
-  /**
-   * Instantiates a PlaylistAudioPlayer.
-   *
-   * @param url the url
-   * @param type the playlist type
-   */
-  public WebPlaylistAudioPlayer(@NotNull final String url, @NotNull final PlaylistType type) {
-    playlist = new AudioPlaylistControls(url, type);
-  }
-
-  /**
-   * Instantiates a PlaylistAudioPlayer.
-   *
-   * @param url the url
-   * @deprecated due to how it is better to specify the playlist type
-   */
-  @Deprecated
-  @LegacyApi(since = "1.4.0")
-  public WebPlaylistAudioPlayer(@NotNull final String url) {
-    playlist =
-        new AudioPlaylistControls(
-            url, url.contains("open.spotify.com") ? PlaylistType.SPOTIFY : PlaylistType.YOUTUBE);
-  }
-
-  @Override
-  public void skipForwardSong() {
-    playlist.skipForwardSong();
-    final String id = playlist.getCurrentSong();
-    // .. play audio
-  }
-
-  @Override
-  public void skipBackwardSong() {
-    playlist.skipBackwardSong();
-    final String id = playlist.getCurrentSong();
-    // .. play audio
-  }
-
-  @Override
-  public void pauseSong() {
-    // .. pause audio
-  }
-
-  @Override
-  public void resumeSong() {
-    // .. resume audio
-  }
+    /**
+     * Gets client.
+     *
+     * @return the client
+     */
+    Socket getClient();
 }

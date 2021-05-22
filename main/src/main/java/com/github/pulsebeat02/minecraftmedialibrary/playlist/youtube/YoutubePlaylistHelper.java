@@ -36,7 +36,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /** A class for helping to get the videos from a specific Youtube playlist. */
-public class YoutubePlaylistHelper implements YoutubePlaylistHelperBase {
+public class YoutubePlaylistHelper implements YoutubePlaylistSearch {
 
   private final String url;
   private PlaylistDetails details;

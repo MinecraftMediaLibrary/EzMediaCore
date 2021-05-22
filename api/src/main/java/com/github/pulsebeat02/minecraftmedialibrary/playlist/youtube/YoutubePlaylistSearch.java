@@ -20,67 +20,54 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.image.basic;
+package com.github.pulsebeat02.minecraftmedialibrary.playlist.youtube;
 
-import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.image.MapImageHolder;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.util.Map;
+import java.util.List;
 
-public interface MinecraftStaticImageBase extends MapImageHolder, ConfigurationSerializable {
-
-  /** Draws the specific image on the map id. */
-  @Override
-  void drawImage();
-
-  /** Called when an image is being draw on a map. */
-  @Override
-  void onDrawImage();
+public interface YoutubePlaylistSearch {
 
   /**
-   * Serializes a MapImage.
+   * Gets all the video ids for the playlist.
    *
-   * @return map of serialized values
+   * @return the video ids of the playlist
    */
-  @Override
   @NotNull
-  Map<String, Object> serialize();
+  List<String> getAlbumSongs();
 
   /**
-   * Gets library.
+   * Gets the title.
    *
-   * @return the library
+   * @return the title
    */
-  MediaLibrary getLibrary();
+  String getTitle();
 
   /**
-   * Gets map.
+   * Gets the author.
    *
-   * @return the map
+   * @return the author
    */
-  int getMap();
+  String getAuthor();
 
   /**
-   * Gets image.
+   * Gets the video count.
    *
-   * @return the image
+   * @return the video count
    */
-  File getImage();
+  int getVideoCount();
 
   /**
-   * Gets height.
+   * Gets the view count.
    *
-   * @return the height
+   * @return the view count
    */
-  int getHeight();
+  int getViewCount();
 
   /**
-   * Gets width.
+   * Gets the url.
    *
-   * @return the width
+   * @return the url
    */
-  int getWidth();
+  String getUrl();
 }

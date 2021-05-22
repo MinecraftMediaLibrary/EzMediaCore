@@ -22,7 +22,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.concurrent;
 
-import com.github.pulsebeat02.minecraftmedialibrary.image.MapImageHolder;
+import com.github.pulsebeat02.minecraftmedialibrary.image.DrawableMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -30,14 +30,14 @@ import java.util.concurrent.CompletableFuture;
 /** An async helper class used for image map drawing. */
 public class AsyncImageMapDrawer {
 
-  private final MapImageHolder imageMapHolder;
+  private final DrawableMap imageMapHolder;
 
   /**
    * Instantiates a new AsyncImageMapDrawer.
    *
    * @param imageMapHolder the image map holder
    */
-  public AsyncImageMapDrawer(@NotNull final MapImageHolder imageMapHolder) {
+  public AsyncImageMapDrawer(@NotNull final DrawableMap imageMapHolder) {
     this.imageMapHolder = imageMapHolder;
   }
 

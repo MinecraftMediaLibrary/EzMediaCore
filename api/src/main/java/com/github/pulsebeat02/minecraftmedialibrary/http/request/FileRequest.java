@@ -20,60 +20,35 @@
  .   SOFTWARE.                                                                               .
  ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.playlist;
+package com.github.pulsebeat02.minecraftmedialibrary.http.request;
 
-import com.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import org.jetbrains.annotations.NotNull;
 
-public class WebPlaylistAudioPlayer implements WebResponsivePlayer {
+import java.net.Socket;
+import java.nio.file.Path;
 
-  private final PlaylistController playlist;
-
-  /**
-   * Instantiates a PlaylistAudioPlayer.
-   *
-   * @param url the url
-   * @param type the playlist type
-   */
-  public WebPlaylistAudioPlayer(@NotNull final String url, @NotNull final PlaylistType type) {
-    playlist = new AudioPlaylistControls(url, type);
-  }
+public interface FileRequest extends RequestHandler {
 
   /**
-   * Instantiates a PlaylistAudioPlayer.
+   * Request file callback file.
    *
-   * @param url the url
-   * @deprecated due to how it is better to specify the playlist type
+   * @param request the request
+   * @return the file
    */
-  @Deprecated
-  @LegacyApi(since = "1.4.0")
-  public WebPlaylistAudioPlayer(@NotNull final String url) {
-    playlist =
-        new AudioPlaylistControls(
-            url, url.contains("open.spotify.com") ? PlaylistType.SPOTIFY : PlaylistType.YOUTUBE);
-  }
+  @NotNull
+  Path requestFileCallback(@NotNull final String request);
 
-  @Override
-  public void skipForwardSong() {
-    playlist.skipForwardSong();
-    final String id = playlist.getCurrentSong();
-    // .. play audio
-  }
+  /**
+   * Gets header.
+   *
+   * @return the header
+   */
+  ZipHeader getHeader();
 
-  @Override
-  public void skipBackwardSong() {
-    playlist.skipBackwardSong();
-    final String id = playlist.getCurrentSong();
-    // .. play audio
-  }
-
-  @Override
-  public void pauseSong() {
-    // .. pause audio
-  }
-
-  @Override
-  public void resumeSong() {
-    // .. resume audio
-  }
+  /**
+   * Gets client.
+   *
+   * @return the client
+   */
+  Socket getClient();
 }
