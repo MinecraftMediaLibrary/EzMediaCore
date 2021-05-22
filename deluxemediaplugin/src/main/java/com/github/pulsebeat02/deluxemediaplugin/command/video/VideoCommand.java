@@ -26,12 +26,12 @@ import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
-import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
+import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapperBase;
+import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProviderBase;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -480,11 +480,11 @@ public class VideoCommand extends BaseCommand {
     return 1;
   }
 
-  private ResourcepackWrapper buildResourcepack(
+  private ResourcepackWrapperBase buildResourcepack(
       @NotNull final YoutubeExtraction extractor, @NotNull final DeluxeMediaPlugin plugin) {
 
     // Get the resourcepack wrapper from the extractor
-    final ResourcepackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), extractor);
+    final ResourcepackWrapperBase wrapper = ResourcepackWrapper.of(plugin.getLibrary(), extractor);
 
     // Build the resourcepack
     wrapper.buildResourcePack();
@@ -492,9 +492,9 @@ public class VideoCommand extends BaseCommand {
   }
 
   private void sendResourcepack(
-      @Nullable final HttpDaemonProvider provider,
+      @Nullable final HttpDaemonProviderBase provider,
       @NotNull final Audience audience,
-      @NotNull final ResourcepackWrapper wrapper) {
+      @NotNull final ResourcepackWrapperBase wrapper) {
     if (provider != null) {
 
       // Generates a url given by the HTTP server for a file

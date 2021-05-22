@@ -1,24 +1,24 @@
 /*............................................................................................
-. Copyright © 2021 Brandon Li                                                               .
-.                                                                                           .
-. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
-. software and associated documentation files (the “Software”), to deal in the Software     .
-. without restriction, including without limitation the rights to use, copy, modify, merge, .
-. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
-. persons to whom the Software is furnished to do so, subject to the following conditions:  .
-.                                                                                           .
-. The above copyright notice and this permission notice shall be included in all copies     .
-. or substantial portions of the Software.                                                  .
-.                                                                                           .
-. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
-.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
-.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
-.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
-.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
-.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
-.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
-.   SOFTWARE.                                                                               .
-............................................................................................*/
+ . Copyright © 2021 Brandon Li                                                               .
+ .                                                                                           .
+ . Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
+ . software and associated documentation files (the “Software”), to deal in the Software     .
+ . without restriction, including without limitation the rights to use, copy, modify, merge, .
+ . publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
+ . persons to whom the Software is furnished to do so, subject to the following conditions:  .
+ .                                                                                           .
+ . The above copyright notice and this permission notice shall be included in all copies     .
+ . or substantial portions of the Software.                                                  .
+ .                                                                                           .
+ . THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
+ .  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
+ .   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
+ .   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
+ .   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
+ .   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
+ .   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
+ .   SOFTWARE.                                                                               .
+ ............................................................................................*/
 
 package com.github.pulsebeat02.minecraftmedialibrary.resourcepack;
 
@@ -32,7 +32,6 @@ import com.github.pulsebeat02.minecraftmedialibrary.utility.ResourcepackUtilitie
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +50,7 @@ import java.util.zip.ZipOutputStream;
  * the ability to modify the base resourcepack file as well as the sounds.json file. You may also
  * specify other attributes such as the icon, description, and format.
  */
-public class ResourcepackWrapper implements PackHolder, ConfigurationSerializable {
+public class ResourcepackWrapper implements ResourcepackWrapperBase {
 
   private final String path;
   private final Path audio;
@@ -97,7 +96,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
       @Nullable final Path icon,
       @NotNull final String description,
       final int packFormat) {
-    this.soundName = name;
+    soundName = name;
     this.path = path;
     this.audio = audio;
     this.icon = icon;
@@ -130,7 +129,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
    * @param library the library
    * @return the resulting ResourcepackWrapper
    */
-  public static ResourcepackWrapper of(
+  public static ResourcepackWrapperBase of(
       @NotNull final MediaLibrary library, @NotNull final YoutubeExtraction extractor) {
     return ResourcepackWrapper.builder()
         .setAudio(extractor.getAudio())
@@ -150,7 +149,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
    * @param library the library
    * @return the resulting ResourcepackWrapper
    */
-  public static ResourcepackWrapper of(
+  public static ResourcepackWrapperBase of(
       @NotNull final MediaLibrary library, @NotNull final Path audio) {
     return ResourcepackWrapper.builder()
         .setAudio(audio)
@@ -166,21 +165,21 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
   /**
    * Deserializes ResourcepackWrapper.
    *
-   * @param library the library
+   * @param library     the library
    * @param deserialize the deserialize
    * @return the resourcepack wrapper
    */
   @NotNull
-  public static ResourcepackWrapper deserialize(
-      @NotNull final MediaLibrary library,
-      @NotNull final Map<String, Object> deserialize) {
+  public static ResourcepackWrapperBase deserialize(
+          @NotNull final MediaLibrary library,
+          @NotNull final Map<String, Object> deserialize) {
     return new ResourcepackWrapper(
-        library,
-        String.valueOf(deserialize.get("path")),
-        Paths.get(String.valueOf(deserialize.get("audio"))),
-        Paths.get(String.valueOf(deserialize.get("icon"))),
-        String.valueOf(deserialize.get("description")),
-        NumberConversions.toInt(deserialize.get("pack-format")));
+            library,
+            String.valueOf(deserialize.get("path")),
+            Paths.get(String.valueOf(deserialize.get("audio"))),
+            Paths.get(String.valueOf(deserialize.get("icon"))),
+            String.valueOf(deserialize.get("description")),
+            NumberConversions.toInt(deserialize.get("pack-format")));
   }
 
   /**
@@ -277,18 +276,12 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
     return GsonHandler.getGson().toJson(type);
   }
 
-  /**
-   * Checks if the two ResourcepackWrapper objects are equal.
-   *
-   * @param obj the other object
-   * @return whether the two objects are equal or not
-   */
   @Override
   public boolean equals(final Object obj) {
     if (!(obj instanceof ResourcepackWrapper)) {
       return false;
     }
-    final ResourcepackWrapper wrapper = (ResourcepackWrapper) obj;
+    final ResourcepackWrapperBase wrapper = (ResourcepackWrapperBase) obj;
     return path.equals(wrapper.getPath())
         && audio.equals(wrapper.getAudio())
         && icon.equals(wrapper.getIcon())
@@ -296,66 +289,37 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
         && packFormat == wrapper.getPackFormat();
   }
 
-  /**
-   * Returns a String version of the current instance.
-   *
-   * @return the stringified version of the instance
-   */
   @Override
   public String toString() {
     return GsonHandler.getGson().toJson(this);
   }
 
-  /**
-   * Gets sound name.
-   *
-   * @return the sound name
-   */
+  @Override
   public String getSoundName() {
     return soundName;
   }
 
-  /**
-   * Gets path.
-   *
-   * @return the path
-   */
+  @Override
   public String getPath() {
     return path;
   }
 
-  /**
-   * Gets audio.
-   *
-   * @return the audio
-   */
+  @Override
   public Path getAudio() {
     return audio;
   }
 
-  /**
-   * Gets icon.
-   *
-   * @return the icon
-   */
+  @Override
   public Path getIcon() {
     return icon;
   }
 
-  /**
-   * Gets description.
-   *
-   * @return the description
-   */
+  @Override
   public String getDescription() {
     return description;
   }
 
-  /**
-   * Gets pack format.
-   *
-   * @return the pack format
-   */
+  @Override
   public int getPackFormat() {
     return packFormat;
   }
@@ -432,7 +396,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
      * @param library the library
      * @return the resourcepack wrapper
      */
-    public ResourcepackWrapper build(final MediaLibrary library) {
+    public ResourcepackWrapperBase build(final MediaLibrary library) {
       return new ResourcepackWrapper(library, path, audio, icon, description, packFormat);
     }
 
@@ -442,7 +406,7 @@ public class ResourcepackWrapper implements PackHolder, ConfigurationSerializabl
      * @param sound the sound
      * @return the resourcepack wrapper
      */
-    public ResourcepackWrapper build(final String sound) {
+    public ResourcepackWrapperBase build(final String sound) {
       return new ResourcepackWrapper(sound, path, audio, icon, description, packFormat);
     }
   }

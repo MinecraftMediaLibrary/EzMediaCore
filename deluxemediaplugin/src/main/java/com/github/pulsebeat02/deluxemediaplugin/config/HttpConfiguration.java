@@ -27,12 +27,13 @@ import com.github.pulsebeat02.minecraftmedialibrary.http.HttpFileDaemonServer;
 import com.github.pulsebeat02.minecraftmedialibrary.http.ZipHeader;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
+import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProviderBase;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 public class HttpConfiguration extends AbstractConfiguration {
 
-  private HttpDaemonProvider daemon;
+  private HttpDaemonProviderBase daemon;
   private boolean enabled;
 
   public HttpConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
@@ -111,7 +112,7 @@ public class HttpConfiguration extends AbstractConfiguration {
     this.enabled = enabled;
   }
 
-  public HttpDaemonProvider getDaemon() {
+  public HttpDaemonProviderBase getDaemon() {
     return daemon;
   }
 

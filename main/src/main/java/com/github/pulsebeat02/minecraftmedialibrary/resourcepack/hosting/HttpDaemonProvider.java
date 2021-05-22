@@ -37,7 +37,7 @@ import java.nio.file.Paths;
  * The wrapper class and provider for the Http daemon. Useful for creating http daemons and easier
  * handling.
  */
-public class HttpDaemonProvider implements HostingProvider {
+public class HttpDaemonProvider implements HttpDaemonProviderBase {
 
   private final int port;
   private HttpFileDaemonServer daemon;
@@ -76,29 +76,17 @@ public class HttpDaemonProvider implements HostingProvider {
     }
   }
 
-  /** Start server. */
+  @Override
   public void startServer() {
     daemon.start();
   }
 
-  /**
-   * Generates the URL based on file (String)
-   *
-   * @param file to generate parent directory of the HTTP Server for.
-   * @return file url
-   */
   @Override
   @NotNull
   public String generateUrl(@NotNull final String file) {
     return String.format("http://%s:%d/%s", serverIP, port, getRelativePath(file));
   }
 
-  /**
-   * Generates the URL based on file (Path)
-   *
-   * @param path to gnerate parent directory of the HTTP Server for.
-   * @return file url
-   */
   @Override
   @NotNull
   public String generateUrl(@NotNull final Path path) {
@@ -111,7 +99,7 @@ public class HttpDaemonProvider implements HostingProvider {
    * @return the public ip
    */
   @NotNull
-  public String getPublicIP() {
+  private String getPublicIP() {
     try (final BufferedReader in =
         new BufferedReader(
             new InputStreamReader(new URL("https://checkip.amazonaws.com").openStream()))) {
@@ -124,40 +112,22 @@ public class HttpDaemonProvider implements HostingProvider {
     throw new NetworkHttpException("Cannot Find Public IP Address!");
   }
 
-  /**
-   * Gets relative path for file based off of HTTP server folder.
-   *
-   * @param absolutePath the absolute file path
-   * @return the relative path when comparing to the HTTP server folder
-   */
+  @Override
   @NotNull
   public String getRelativePath(@NotNull final String absolutePath) {
     return daemon.getParentDirectory().relativize(Paths.get(absolutePath)).toString();
   }
 
-  /**
-   * Gets server ip.
-   *
-   * @return the server ip
-   */
+  @Override
   public String getServerIp() {
     return serverIP;
   }
 
-  /**
-   * Gets daemon.
-   *
-   * @return the daemon
-   */
   public HttpFileDaemonServer getDaemon() {
     return daemon;
   }
 
-  /**
-   * Gets port.
-   *
-   * @return the port
-   */
+  @Override
   public int getPort() {
     return port;
   }

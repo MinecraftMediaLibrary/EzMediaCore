@@ -21,18 +21,17 @@ public class ScreenBuilder {
   }
 
   public void buildMapScreen(
-      @NotNull final Location loc,
       @NotNull final Material mat,
       final int width,
       final int height,
       final int startingMap) {
 
-    final Vector direction = loc.getDirection();
-    final Location center = loc.clone().add(direction);
+    final Vector direction = location.getDirection();
+    final Location center = location.clone().add(direction);
 
-    final Location rotate = loc.clone();
+    final Location rotate = location.clone();
     rotate.setPitch(0);
-    rotate.setYaw(loc.getYaw() - 90);
+    rotate.setYaw(location.getYaw() - 90);
     final Vector rotation = rotate.getDirection();
 
     final Location blockLocation = center.clone().add(rotate).subtract(0, width / 2f, 0);
@@ -40,7 +39,7 @@ public class ScreenBuilder {
 
     final int initialX = blockLocation.getBlockX();
     final int initialZ = blockLocation.getBlockZ();
-    final World world = Objects.requireNonNull(loc.getWorld());
+    final World world = Objects.requireNonNull(location.getWorld());
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < height; y++) {
         final int map = startingMap + x * y;
