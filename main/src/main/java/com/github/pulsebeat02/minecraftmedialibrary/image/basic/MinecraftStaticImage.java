@@ -24,13 +24,11 @@ package com.github.pulsebeat02.minecraftmedialibrary.image.basic;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.FloydImageDither;
-import com.github.pulsebeat02.minecraftmedialibrary.image.MapImageHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,7 +42,7 @@ import java.util.Objects;
  * to draw the specific image onto the map. MapImage also supports serialization/deserialization, so
  * it can be stored in configuration files if necessary.
  */
-public final class MinecraftStaticImage implements MapImageHolder, ConfigurationSerializable {
+public class MinecraftStaticImage implements MinecraftStaticImageBase {
 
   private final MediaLibrary library;
   private final int map;
@@ -118,9 +116,8 @@ public final class MinecraftStaticImage implements MapImageHolder, Configuration
    * @return the map image
    */
   @NotNull
-  public static MinecraftStaticImage deserialize(
-      @NotNull final MediaLibrary library,
-      @NotNull final Map<String, Object> deserialize) {
+  public static MinecraftStaticImageBase deserialize(
+      @NotNull final MediaLibrary library, @NotNull final Map<String, Object> deserialize) {
     return new MinecraftStaticImage(
         library,
         NumberConversions.toInt(deserialize.get("map")),
@@ -139,7 +136,6 @@ public final class MinecraftStaticImage implements MapImageHolder, Configuration
     library.getHandler().unregisterMap(id);
   }
 
-  /** Draws the specific image on the map id. */
   @Override
   public void drawImage() {
     onDrawImage();
@@ -151,15 +147,9 @@ public final class MinecraftStaticImage implements MapImageHolder, Configuration
         String.format("Drew Image at Map ID %d (Source: %s)", map, image.getAbsolutePath()));
   }
 
-  /** Called when an image is being draw on a map. */
   @Override
   public void onDrawImage() {}
 
-  /**
-   * Serializes a MapImage.
-   *
-   * @return map of serialized values
-   */
   @Override
   @NotNull
   public Map<String, Object> serialize() {
@@ -171,47 +161,27 @@ public final class MinecraftStaticImage implements MapImageHolder, Configuration
         "height", height);
   }
 
-  /**
-   * Gets library.
-   *
-   * @return the library
-   */
+  @Override
   public MediaLibrary getLibrary() {
     return library;
   }
 
-  /**
-   * Gets map.
-   *
-   * @return the map
-   */
+  @Override
   public int getMap() {
     return map;
   }
 
-  /**
-   * Gets image.
-   *
-   * @return the image
-   */
+  @Override
   public File getImage() {
     return image;
   }
 
-  /**
-   * Gets height.
-   *
-   * @return the height
-   */
+  @Override
   public int getHeight() {
     return height;
   }
 
-  /**
-   * Gets width.
-   *
-   * @return the width
-   */
+  @Override
   public int getWidth() {
     return width;
   }
@@ -276,7 +246,7 @@ public final class MinecraftStaticImage implements MapImageHolder, Configuration
      * @param library the library
      * @return the map image
      */
-    public MinecraftStaticImage build(final MediaLibrary library) {
+    public MinecraftStaticImageBase build(final MediaLibrary library) {
       return new MinecraftStaticImage(library, map, image, width, height);
     }
   }

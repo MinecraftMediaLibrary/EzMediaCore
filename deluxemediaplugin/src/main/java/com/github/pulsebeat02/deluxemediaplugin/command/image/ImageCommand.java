@@ -26,8 +26,8 @@ import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImage;
+import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImageBase;
 import com.github.pulsebeat02.minecraftmedialibrary.image.gif.MinecraftDynamicImage;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.google.common.collect.ImmutableMap;
@@ -60,7 +60,7 @@ import java.util.UUID;
 
 public class ImageCommand extends BaseCommand implements Listener {
 
-  private final Set<MinecraftStaticImage> images;
+  private final Set<MinecraftStaticImageBase> images;
   private final Set<UUID> listen;
   private final LiteralCommandNode<CommandSender> literalNode;
   private final Set<String> extensions;
@@ -248,7 +248,7 @@ public class ImageCommand extends BaseCommand implements Listener {
     final int id = (int) opt.getAsLong();
 
     // Try to find the map id and remove it
-    final Iterator<MinecraftStaticImage> itr = images.iterator();
+    final Iterator<MinecraftStaticImageBase> itr = images.iterator();
     while (itr.hasNext()) {
       if (itr.next().getMap() == id) {
         itr.remove();
@@ -257,7 +257,7 @@ public class ImageCommand extends BaseCommand implements Listener {
     }
 
     // Reset the map data on there
-    MinecraftStaticImage.resetMap(getPlugin().getLibrary(), id);
+      MinecraftStaticImageBase.resetMap(getPlugin().getLibrary(), id);
     audience.sendMessage(
         ChatUtilities.formatMessage(
             Component.text(
@@ -285,8 +285,8 @@ public class ImageCommand extends BaseCommand implements Listener {
       if (event.getMessage().equalsIgnoreCase("YES")) {
 
         // Loop through all maps, reset all of the images
-        for (final MinecraftStaticImage image : images) {
-          MinecraftStaticImage.resetMap(getPlugin().getLibrary(), image.getMap());
+        for (final MinecraftStaticImageBase image : images) {
+            MinecraftStaticImageBase.resetMap(getPlugin().getLibrary(), image.getMap());
         }
 
         // Clear images Set

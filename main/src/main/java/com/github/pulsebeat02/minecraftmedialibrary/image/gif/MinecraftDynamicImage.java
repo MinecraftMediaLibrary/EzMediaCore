@@ -27,8 +27,6 @@ import com.github.pulsebeat02.minecraftmedialibrary.extractor.FFmpegLocation;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapIntegratedPlayer;
-import com.github.pulsebeat02.minecraftmedialibrary.image.MapImageHolder;
-import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImage;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
@@ -36,7 +34,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
 import ws.schild.jave.Encoder;
@@ -50,7 +47,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-public class MinecraftDynamicImage implements MapImageHolder, ConfigurationSerializable {
+public class MinecraftDynamicImage implements MinecraftDynamicImageBase {
 
   private final MediaLibrary library;
   private final File image;
@@ -118,25 +115,6 @@ public class MinecraftDynamicImage implements MapImageHolder, ConfigurationSeria
   }
 
   /**
-   * Deserializes a map image.
-   *
-   * @param library the library
-   * @param deserialize the deserialize
-   * @return the map image
-   */
-  @NotNull
-  public static MinecraftStaticImage deserialize(
-      @NotNull final MediaLibrary library,
-      @NotNull final Map<String, Object> deserialize) {
-    return new MinecraftStaticImage(
-        library,
-        NumberConversions.toInt(deserialize.get("map")),
-        new File(String.valueOf(deserialize.get("image"))),
-        NumberConversions.toInt(deserialize.get("width")),
-        NumberConversions.toInt(deserialize.get("height")));
-  }
-
-  /**
    * Resets a specific map id.
    *
    * @param library the library
@@ -146,7 +124,24 @@ public class MinecraftDynamicImage implements MapImageHolder, ConfigurationSeria
     library.getHandler().unregisterMap(id);
   }
 
-  /** Draws the specific image on the map id. */
+  /**
+   * Deserializes a map image.
+   *
+   * @param library the library
+   * @param deserialize the deserialize
+   * @return the map image
+   */
+  @NotNull
+  public static MinecraftDynamicImage deserialize(
+      @NotNull final MediaLibrary library, @NotNull final Map<String, Object> deserialize) {
+    return new MinecraftDynamicImage(
+        library,
+        NumberConversions.toInt(deserialize.get("map")),
+        new File(String.valueOf(deserialize.get("image"))),
+        NumberConversions.toInt(deserialize.get("width")),
+        NumberConversions.toInt(deserialize.get("height")));
+  }
+
   @Override
   public void drawImage() {
     onDrawImage();
@@ -199,15 +194,9 @@ public class MinecraftDynamicImage implements MapImageHolder, ConfigurationSeria
     }
   }
 
-  /** Called when an image is being draw on a map. */
   @Override
   public void onDrawImage() {}
 
-  /**
-   * Serializes a MapImage.
-   *
-   * @return map of serialized values
-   */
   @Override
   @NotNull
   public Map<String, Object> serialize() {
@@ -219,47 +208,27 @@ public class MinecraftDynamicImage implements MapImageHolder, ConfigurationSeria
         "height", height);
   }
 
-  /**
-   * Gets library.
-   *
-   * @return the library
-   */
+  @Override
   public MediaLibrary getLibrary() {
     return library;
   }
 
-  /**
-   * Gets map.
-   *
-   * @return the map
-   */
+  @Override
   public int getMap() {
     return map;
   }
 
-  /**
-   * Gets image.
-   *
-   * @return the image
-   */
+  @Override
   public File getImage() {
     return image;
   }
 
-  /**
-   * Gets height.
-   *
-   * @return the height
-   */
+  @Override
   public int getHeight() {
     return height;
   }
 
-  /**
-   * Gets width.
-   *
-   * @return the width
-   */
+  @Override
   public int getWidth() {
     return width;
   }
@@ -324,7 +293,7 @@ public class MinecraftDynamicImage implements MapImageHolder, ConfigurationSeria
      * @param library the library
      * @return the map image
      */
-    public MinecraftDynamicImage build(final MediaLibrary library) {
+    public MinecraftDynamicImageBase build(final MediaLibrary library) {
       return new MinecraftDynamicImage(library, map, image, width, height);
     }
   }

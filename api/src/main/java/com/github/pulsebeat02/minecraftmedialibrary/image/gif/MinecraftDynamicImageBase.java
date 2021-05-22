@@ -20,29 +20,67 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.http;
+package com.github.pulsebeat02.minecraftmedialibrary.image.gif;
 
-/** The enum Zip header. */
-public enum ZipHeader {
+import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
+import com.github.pulsebeat02.minecraftmedialibrary.image.MapImageHolder;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.jetbrains.annotations.NotNull;
 
-  /** ZIP Header */
-  ZIP("application/zip"),
+import java.io.File;
+import java.util.Map;
 
-  /** Octet Stream Header */
-  OCTET_STREAM("application/octet-stream");
+public interface MinecraftDynamicImageBase extends MapImageHolder, ConfigurationSerializable {
 
-  private final String header;
+  /** Draws the specific image on the map id. */
+  @Override
+  void drawImage();
 
-  ZipHeader(final String header) {
-    this.header = header;
-  }
+  /** Called when an image is being draw on a map. */
+  @Override
+  void onDrawImage();
 
   /**
-   * Gets header.
+   * Serializes a MapImage.
    *
-   * @return the header
+   * @return map of serialized values
    */
-  public String getHeader() {
-    return header;
-  }
+  @Override
+  @NotNull
+  Map<String, Object> serialize();
+
+  /**
+   * Gets library.
+   *
+   * @return the library
+   */
+  MediaLibrary getLibrary();
+
+  /**
+   * Gets map.
+   *
+   * @return the map
+   */
+  int getMap();
+
+  /**
+   * Gets image.
+   *
+   * @return the image
+   */
+  File getImage();
+
+  /**
+   * Gets height.
+   *
+   * @return the height
+   */
+  int getHeight();
+
+  /**
+   * Gets width.
+   *
+   * @return the width
+   */
+  int getWidth();
 }
