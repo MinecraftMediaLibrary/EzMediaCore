@@ -1,24 +1,25 @@
-/*............................................................................................
-. Copyright © 2021 Brandon Li                                                               .
-.                                                                                           .
-. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
-. software and associated documentation files (the “Software”), to deal in the Software     .
-. without restriction, including without limitation the rights to use, copy, modify, merge, .
-. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
-. persons to whom the Software is furnished to do so, subject to the following conditions:  .
-.                                                                                           .
-. The above copyright notice and this permission notice shall be included in all copies     .
-. or substantial portions of the Software.                                                  .
-.                                                                                           .
-. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
-.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
-.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
-.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
-.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
-.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
-.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
-.   SOFTWARE.                                                                               .
-............................................................................................*/
+/*.........................................................................................
+. Copyright © 2021 Brandon Li
+.                                                                                        .
+. Permission is hereby granted, free of charge, to any person obtaining a copy of this
+. software and associated documentation files (the “Software”), to deal in the Software
+. without restriction, including without limitation the rights to use, copy, modify, merge,
+. publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+. persons to whom the Software is furnished to do so, subject to the following conditions:
+.
+. The above copyright notice and this permission notice shall be included in all copies
+. or substantial portions of the Software.
+.
+. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+. EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+. MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+. NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+. BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+. ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+. CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.  SOFTWARE.
+.                                                                                        .
+.........................................................................................*/
 
 package com.github.pulsebeat02.minecraftmedialibrary.frame;
 
@@ -66,7 +67,7 @@ import java.util.function.Consumer;
  *
  * <p>ScoreboardCallback - ScoreboardIntegratedPlayer
  */
-public abstract class VideoPlayer {
+public abstract class VideoPlayer implements VideoPlayerContext {
 
   private final MediaLibrary library;
   private final VideoSurfaceAdapter adapter;
@@ -154,110 +155,62 @@ public abstract class VideoPlayer {
     mediaPlayerComponent.audio().mute();
   }
 
-  /**
-   * Gets library.
-   *
-   * @return the library
-   */
+  @Override
   public MediaLibrary getLibrary() {
     return library;
   }
 
-  /**
-   * Gets url.
-   *
-   * @return the url
-   */
+  @Override
   public String getUrl() {
     return url;
   }
 
-  /**
-   * Gets width.
-   *
-   * @return the width
-   */
+  @Override
   public int getWidth() {
     return width;
   }
 
-  /**
-   * Sets width.
-   *
-   * @param width the width
-   */
+  @Override
   public void setWidth(final int width) {
     this.width = width;
   }
 
-  /**
-   * Gets height.
-   *
-   * @return the height
-   */
+  @Override
   public int getHeight() {
     return height;
   }
 
-  /**
-   * Sets height.
-   *
-   * @param height the height
-   */
+  @Override
   public void setHeight(final int height) {
     this.height = height;
   }
 
-  /**
-   * Gets callback.
-   *
-   * @return the callback
-   */
+  @Override
   public FrameCallback getCallback() {
     return callback;
   }
 
-  /**
-   * Gets the MediaPlayerComponent.
-   *
-   * @return the MediaPlayerComponent
-   */
+  @Override
   public EmbeddedMediaPlayer getMediaPlayerComponent() {
     return mediaPlayerComponent;
   }
 
-  /**
-   * Gets the adapter.
-   *
-   * @return the video surface adapter
-   */
+  @Override
   public VideoSurfaceAdapter getAdapter() {
     return adapter;
   }
 
-  /**
-   * Gets the MinecraftVideoRenderCallback.
-   *
-   * @return the Minecraft render callback
-   */
+  @Override
   public MinecraftVideoRenderCallback getRenderCallback() {
     return renderCallback;
   }
 
-  /**
-   * Gets the sound name for the resourcepack.
-   *
-   * @return the sound name
-   */
+  @Override
   public String getSound() {
     return sound;
   }
 
-  /**
-   * Starts the player.
-   *
-   * @param players which players to play the audio for
-   */
+  @Override
   public void start(@NotNull final Collection<? extends Player> players) {
     playing = true;
     if (mediaPlayerComponent == null) {
@@ -270,11 +223,7 @@ public abstract class VideoPlayer {
     Logger.info(String.format("Started Playing the Video! (%s)", url));
   }
 
-  /**
-   * Stops the player.
-   *
-   * @param players the players
-   */
+  @Override
   public void stop(@NotNull final Collection<? extends Player> players) {
     playing = false;
     mediaPlayerComponent.controls().stop();
@@ -284,7 +233,7 @@ public abstract class VideoPlayer {
     Logger.info(String.format("Stopped Playing the Video! (%s)", url));
   }
 
-  /** Releases the player. */
+  @Override
   public void release() {
     playing = false;
     mediaPlayerComponent.release();
@@ -292,26 +241,18 @@ public abstract class VideoPlayer {
     Logger.info(String.format("Released the Video! (%s)", url));
   }
 
-  /**
-   * Repeats the player.
-   *
-   * @param setting the setting
-   */
+  @Override
   public void setRepeat(final boolean setting) {
     mediaPlayerComponent.controls().setRepeat(setting);
     Logger.info(String.format("Set Setting Loop to (%s)! (%s)", setting, url));
   }
 
-  /**
-   * Returns whether the video is playing.
-   *
-   * @return whether the video is playing or not
-   */
+  @Override
   public boolean isPlaying() {
     return playing;
   }
 
-  private static class MinecraftVideoRenderCallback extends RenderCallbackAdapter {
+  static class MinecraftVideoRenderCallback extends RenderCallbackAdapter {
 
     private final Consumer<int[]> callback;
 

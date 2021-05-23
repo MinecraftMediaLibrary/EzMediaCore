@@ -21,10 +21,7 @@ public class ScreenBuilder {
   }
 
   public void buildMapScreen(
-      @NotNull final Material mat,
-      final int width,
-      final int height,
-      final int startingMap) {
+      @NotNull final Material mat, final int width, final int height, final int startingMap) {
 
     final Vector direction = location.getDirection();
     final Location center = location.clone().add(direction);

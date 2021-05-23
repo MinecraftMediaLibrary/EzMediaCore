@@ -30,24 +30,24 @@ import org.bukkit.Location;
 import java.util.UUID;
 
 public interface BlockHighlightCallbackPrototype extends FrameCallback, FrameCallbackAttribute {
-    /**
-     * Get viewers uuid [ ].
-     *
-     * @return the uuid [ ]
-     */
-    UUID[] getViewers();
+  /**
+   * Get viewers uuid [ ].
+   *
+   * @return the uuid [ ]
+   */
+  UUID[] getViewers();
 
-    /**
-     * Gets the PacketHandler.
-     *
-     * @return the library
-     */
-    PacketHandler getHandler();
+  /**
+   * Gets the PacketHandler.
+   *
+   * @return the library
+   */
+  PacketHandler getHandler();
 
-    /**
-     * Gets location.
-     *
-     * @return the location
-     */
-    Location getLocation();
+  /**
+   * Gets location.
+   *
+   * @return the location
+   */
+  Location getLocation();
 }
