@@ -24,11 +24,11 @@ package com.github.pulsebeat02.deluxemediaplugin.config;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallbackPrototype;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.map.MapIntegratedPlayer;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -165,7 +165,7 @@ public class VideoConfiguration extends AbstractConfiguration {
     return player;
   }
 
-  public MapDataCallback getCallback() {
+  public MapDataCallbackPrototype getCallback() {
     return callback;
   }
 }

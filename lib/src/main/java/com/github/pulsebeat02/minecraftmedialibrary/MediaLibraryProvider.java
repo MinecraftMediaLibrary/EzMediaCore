@@ -5,9 +5,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class MediaLibraryProvider {
-  private MediaLibraryProvider() { }
 
-  public static MediaLibrary create(Plugin plugin) {
+  private MediaLibraryProvider() {}
+
+  public static MediaLibrary create(final Plugin plugin) {
     return new MinecraftMediaLibrary(plugin);
   }
 
@@ -19,6 +20,7 @@ public final class MediaLibraryProvider {
       @Nullable final String imagePath,
       @Nullable final String audioPath,
       final boolean isUsingVLCJ) {
-    return new MinecraftMediaLibrary(plugin, http, libraryPath, vlcPath, imagePath, audioPath, isUsingVLCJ);
+    return new MinecraftMediaLibrary(
+        plugin, http, libraryPath, vlcPath, imagePath, audioPath, isUsingVLCJ);
   }
 }

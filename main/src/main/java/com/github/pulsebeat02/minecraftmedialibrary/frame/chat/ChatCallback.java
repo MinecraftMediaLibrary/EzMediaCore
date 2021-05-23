@@ -23,7 +23,6 @@
 package com.github.pulsebeat02.minecraftmedialibrary.frame.chat;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -42,7 +41,7 @@ import java.util.stream.Collectors;
  *
  * <p>It sends the necessary chat to the players to create a video.
  */
-public final class ChatCallback implements FrameCallback {
+public final class ChatCallback implements ChatCallbackPrototype {
 
   private final MediaLibrary library;
   private final Set<Player> viewers;
@@ -114,56 +113,37 @@ public final class ChatCallback implements FrameCallback {
     }
   }
 
-  /**
-   * Get the viewers.
-   *
-   * @return the viewers
-   */
+  @Override
   public Set<Player> getViewers() {
     return viewers;
   }
 
-  /**
-   * Gets delay.
-   *
-   * @return the delay
-   */
+  @Override
   public int getDelay() {
     return delay;
   }
 
-  /**
-   * Gets library.
-   *
-   * @return the library
-   */
+  @Override
   public MediaLibrary getLibrary() {
     return library;
   }
 
-  /**
-   * Gets chat width.
-   *
-   * @return the video width
-   */
+  @Override
   public int getWidth() {
     return width;
   }
 
-  /**
-   * Gets chat height.
-   *
-   * @return the video height
-   */
+  @Override
+  public int getVideoWidth() {
+    return width;
+  }
+
+  @Override
   public int getHeight() {
     return height;
   }
 
-  /**
-   * Gets last updated.
-   *
-   * @return the last updated
-   */
+  @Override
   public long getLastUpdated() {
     return lastUpdated;
   }
@@ -240,7 +220,7 @@ public final class ChatCallback implements FrameCallback {
      * @param library the library
      * @return the item frame callback
      */
-    public ChatCallback build(final MediaLibrary library) {
+    public ChatCallbackPrototype build(final MediaLibrary library) {
       return new ChatCallback(library, viewers, character, width, height, delay);
     }
   }

@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
  * Player". For example, if your plugin name was called "MyPlugin", the scoreboard which would be
  * used would be named: "MyPlugin Video Player".
  */
-public final class ScoreboardCallback implements FrameCallback {
+public final class ScoreboardCallback implements ScoreboardCallbackPrototype {
 
   private static ChatColor[] COLORS;
 
@@ -159,65 +159,37 @@ public final class ScoreboardCallback implements FrameCallback {
     }
   }
 
-  /**
-   * Get the viewers.
-   *
-   * @return the viewers
-   */
+  @Override
   public Set<Player> getViewers() {
     return viewers;
   }
 
-  /**
-   * Gets width.
-   *
-   * @return the width
-   */
+  @Override
   public int getWidth() {
     return width;
   }
 
-  /**
-   * Gets height.
-   *
-   * @return the height
-   */
+  @Override
   public int getHeight() {
     return height;
   }
 
-  /**
-   * Gets delay.
-   *
-   * @return the delay
-   */
+  @Override
   public int getDelay() {
     return delay;
   }
 
-  /**
-   * Gets library.
-   *
-   * @return the library
-   */
+  @Override
   public MediaLibrary getLibrary() {
     return library;
   }
 
-  /**
-   * Gets video width.
-   *
-   * @return the video width
-   */
+  @Override
   public int getVideoWidth() {
     return videoWidth;
   }
 
-  /**
-   * Gets last updated.
-   *
-   * @return the last updated
-   */
+  @Override
   public long getLastUpdated() {
     return lastUpdated;
   }

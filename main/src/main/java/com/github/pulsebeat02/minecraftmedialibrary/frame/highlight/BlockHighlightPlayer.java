@@ -27,7 +27,7 @@ public class BlockHighlightPlayer extends VideoPlayer {
   public BlockHighlightPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
-      @NotNull final BlockHighlightCallback callback,
+      @NotNull final BlockHighlightCallbackPrototype callback,
       final int width,
       final int height) {
     super(library, url, width, height, callback);
@@ -46,7 +46,7 @@ public class BlockHighlightPlayer extends VideoPlayer {
   public BlockHighlightPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final Path file,
-      @NotNull final BlockHighlightCallback callback,
+      @NotNull final BlockHighlightCallbackPrototype callback,
       final int width,
       final int height) {
     super(library, file, width, height, callback);
@@ -86,7 +86,7 @@ public class BlockHighlightPlayer extends VideoPlayer {
     private String url;
     private int width = 15;
     private int height = 15;
-    private BlockHighlightCallback callback;
+    private BlockHighlightCallbackPrototype callback;
 
     private Builder() {}
 
@@ -105,7 +105,7 @@ public class BlockHighlightPlayer extends VideoPlayer {
       return this;
     }
 
-    public Builder setCallback(final BlockHighlightCallback callback) {
+    public Builder setCallback(final BlockHighlightCallbackPrototype callback) {
       this.callback = callback;
       return this;
     }

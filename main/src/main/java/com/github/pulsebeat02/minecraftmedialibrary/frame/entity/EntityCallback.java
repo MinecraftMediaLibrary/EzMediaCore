@@ -23,7 +23,6 @@
 package com.github.pulsebeat02.minecraftmedialibrary.frame.entity;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -60,9 +59,10 @@ import java.util.UUID;
  * the method as the library will be able to do that for you. You should only override it if you are
  * using ScreenEntityType.CUSTOM, which is where you manually customise it yourself.
  */
-public final class EntityCallback implements FrameCallback {
+public final class EntityCallback implements EntityCallbackPrototype {
 
   private final PacketHandler handler;
+  private final MediaLibrary library;
   private final UUID[] viewers;
   private final Location location;
   private final String charType;
@@ -96,6 +96,7 @@ public final class EntityCallback implements FrameCallback {
       final int videoWidth,
       final int delay) {
     handler = library.getHandler();
+    this.library = library;
     this.viewers = viewers;
     this.location = location;
     this.type = type;
@@ -134,6 +135,7 @@ public final class EntityCallback implements FrameCallback {
     this.viewers = viewers;
     this.location = location;
     this.type = type;
+    this.library = library;
     charType = str;
     this.width = width;
     this.height = height;
@@ -176,13 +178,7 @@ public final class EntityCallback implements FrameCallback {
     return ents;
   }
 
-  /**
-   * Modifies the entity accordingly. Users may override the method if they would like to modify the
-   * entity with custom attributes.
-   *
-   * @param entity the entity to modify
-   * @return the modified entity
-   */
+  @Override
   public Entity modifyEntity(@NotNull final Entity entity) {
     switch (type) {
       case AREA_EFFECT_CLOUD:
@@ -214,101 +210,62 @@ public final class EntityCallback implements FrameCallback {
     }
   }
 
-  /**
-   * Get viewers uuid [ ].
-   *
-   * @return the uuid [ ]
-   */
+  @Override
   public UUID[] getViewers() {
     return viewers;
   }
 
-  /**
-   * Gets width.
-   *
-   * @return the width
-   */
+  @Override
   public int getWidth() {
     return width;
   }
 
-  /**
-   * Gets height.
-   *
-   * @return the height
-   */
+  @Override
   public int getHeight() {
     return height;
   }
 
-  /**
-   * Gets delay.
-   *
-   * @return the delay
-   */
+  @Override
   public int getDelay() {
     return delay;
   }
 
-  /**
-   * Gets the PacketHandler.
-   *
-   * @return the library
-   */
+  @Override
+  public MediaLibrary getLibrary() {
+    return library;
+  }
+
+  @Override
   public PacketHandler getHandler() {
     return handler;
   }
 
-  /**
-   * Gets video width.
-   *
-   * @return the video width
-   */
+  @Override
   public int getVideoWidth() {
     return videoWidth;
   }
 
-  /**
-   * Gets last updated.
-   *
-   * @return the last updated
-   */
+  @Override
   public long getLastUpdated() {
     return lastUpdated;
   }
 
-  /**
-   * Gets location.
-   *
-   * @return the location
-   */
+  @Override
   public Location getLocation() {
     return location;
   }
 
-  /**
-   * Gets the cloud entities.
-   *
-   * @return the entities
-   */
+  @Override
   public Entity[] getEntities() {
     return entities;
   }
 
-  /**
-   * Gets the char type used in the name.
-   *
-   * @return the char used
-   */
+  @Override
   public String getCharType() {
     return charType;
   }
 
-  /**
-   * Gets the type of entity used.
-   *
-   * @return the type of entity
-   */
+  @Override
   public ScreenEntityType getType() {
     return type;
   }
@@ -397,7 +354,7 @@ public final class EntityCallback implements FrameCallback {
      * @param library the library
      * @return the entity cloud callback
      */
-    public EntityCallback build(final MediaLibrary library) {
+    public EntityCallbackPrototype build(final MediaLibrary library) {
       return new EntityCallback(library, viewers, location, type, width, height, width, delay);
     }
   }

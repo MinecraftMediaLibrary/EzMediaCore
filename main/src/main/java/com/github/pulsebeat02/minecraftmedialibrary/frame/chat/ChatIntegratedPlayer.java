@@ -20,23 +20,27 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.frame.map;
+package com.github.pulsebeat02.minecraftmedialibrary.frame.chat;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCallback;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCallbackPrototype;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
+import java.util.Collection;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
- * specific function from native libraries. It renders it on maps.
+ * specific function from native libraries. It renders it in chat.
  */
-public class MapIntegratedPlayer extends VideoPlayer {
+public class ChatIntegratedPlayer extends VideoPlayer {
 
   /**
-   * Instantiates a new MapIntegratedPlayer.
+   * Instantiates a new ChatIntegratedPlayer.
    *
    * @param library the library
    * @param url the url
@@ -44,18 +48,18 @@ public class MapIntegratedPlayer extends VideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public MapIntegratedPlayer(
+  public ChatIntegratedPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
-      @NotNull final MapDataCallback callback,
+      @NotNull final ChatCallbackPrototype callback,
       final int width,
       final int height) {
     super(library, url, width, height, callback);
-    Logger.info(String.format("Created a VLCJ Integrated Itemframe Video Player (%s)", url));
+    Logger.info(String.format("Created a Chat Integrated Video Player (%s)", url));
   }
 
   /**
-   * Instantiates a new MapIntegratedPlayer.
+   * Instantiates a new ChatIntegratedPlayer.
    *
    * @param library the library
    * @param file the file
@@ -63,15 +67,15 @@ public class MapIntegratedPlayer extends VideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public MapIntegratedPlayer(
+  public ChatIntegratedPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final Path file,
-      @NotNull final MapDataCallback callback,
+      @NotNull final EntityCallbackPrototype callback,
       final int width,
       final int height) {
     super(library, file, width, height, callback);
     Logger.info(
-        String.format("Created a VLCJ Integrated Video Player (%s)", file.toAbsolutePath()));
+        String.format("Created a Chat Integrated Video Player (%s)", file.toAbsolutePath()));
   }
 
   /**
@@ -83,13 +87,29 @@ public class MapIntegratedPlayer extends VideoPlayer {
     return new Builder();
   }
 
+  /**
+   * Starts player.
+   *
+   * @param players which players to play the audio for
+   */
+  @Override
+  public void start(@NotNull final Collection<? extends Player> players) {
+    super.start(players);
+  }
+
+  /** Releases the media player. */
+  @Override
+  public void release() {
+    super.release();
+  }
+
   /** The type Builder. */
   public static class Builder {
 
     private String url;
-    private int width = 5;
-    private int height = 5;
-    private MapDataCallback callback;
+    private int width = 15;
+    private int height = 15;
+    private ChatCallbackPrototype callback;
 
     private Builder() {}
 
@@ -108,13 +128,13 @@ public class MapIntegratedPlayer extends VideoPlayer {
       return this;
     }
 
-    public Builder setCallback(final MapDataCallback callback) {
+    public Builder setCallback(final ChatCallbackPrototype callback) {
       this.callback = callback;
       return this;
     }
 
-    public MapIntegratedPlayer build(@NotNull final MediaLibrary library) {
-      return new MapIntegratedPlayer(library, url, callback, width, height);
+    public ChatIntegratedPlayer build(@NotNull final MediaLibrary library) {
+      return new ChatIntegratedPlayer(library, url, callback, width, height);
     }
   }
 }
