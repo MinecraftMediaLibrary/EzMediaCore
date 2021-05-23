@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.exception;
 
 import org.jetbrains.annotations.NotNull;
 
+/** Thrown if the playlist specified is invalid. */
 public class InvalidPlaylistException extends LibraryException {
 
   private static final long serialVersionUID = 6632975059132666888L;

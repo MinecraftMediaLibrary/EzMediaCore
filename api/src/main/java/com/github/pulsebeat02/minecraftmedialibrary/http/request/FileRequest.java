@@ -24,10 +24,10 @@ package com.github.pulsebeat02.minecraftmedialibrary.http.request;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.net.Socket;
 import java.nio.file.Path;
 
-public interface FileRequest extends RequestHandler {
+/** File request prototype. */
+public interface FileRequest extends RequestHandler, ClientRequest {
 
   /**
    * Request file callback file.
@@ -44,11 +44,4 @@ public interface FileRequest extends RequestHandler {
    * @return the header
    */
   ZipHeader getHeader();
-
-  /**
-   * Gets client.
-   *
-   * @return the client
-   */
-  Socket getClient();
 }

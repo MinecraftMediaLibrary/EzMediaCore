@@ -29,7 +29,9 @@ import org.bukkit.Location;
 
 import java.util.UUID;
 
+/** A prototype of the BlockHighlightCallback (pre-mature). */
 public interface BlockHighlightCallbackPrototype extends FrameCallback, FrameCallbackAttribute {
+
   /**
    * Get viewers uuid [ ].
    *

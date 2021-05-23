@@ -29,16 +29,11 @@ import com.github.pulsebeat02.minecraftmedialibrary.reflection.NMSReflectionMana
 import com.github.pulsebeat02.minecraftmedialibrary.reflection.TinyProtocol;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.DebuggerUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.JavaVersionUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
-import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.SilentOSDependentSolution;
-import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxSilentInstallation;
-import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.mac.MacSilentInstallation;
-import com.github.pulsebeat02.minecraftmedialibrary.vlc.os.windows.SimpleWindowsSilentInstallation;
-
 import io.netty.channel.Channel;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -180,7 +175,7 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
    * @return the listener
    */
   @Override
-  public PlayerJoinLeaveRegistration getRegistrationHandler() {
+  public Listener getRegistrationHandler() {
     return registrationHandler;
   }
 
@@ -272,20 +267,5 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
   @Override
   public boolean isDisabled() {
     return disabled;
-  }
-
-  @Override
-  public SilentOSDependentSolution provideSilentInstallation() {
-    final Path dir = this.getVlcFolder();
-
-    if (RuntimeUtilities.isLinux()) {
-      return new LinuxSilentInstallation(this);
-    } else if (RuntimeUtilities.isWindows()) {
-      return new SimpleWindowsSilentInstallation(dir);
-    } else if (RuntimeUtilities.isMac()) {
-      return new MacSilentInstallation(dir);
-    }
-
-    return null;
   }
 }

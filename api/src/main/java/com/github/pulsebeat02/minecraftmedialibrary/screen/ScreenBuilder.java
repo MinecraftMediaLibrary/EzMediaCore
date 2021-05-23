@@ -12,14 +12,28 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+/** Screen builder class used to assist building screens with maps. */
 public class ScreenBuilder {
 
   private final Location location;
 
+  /**
+   * Instantiates a new ScreenBuilder.
+   *
+   * @param player the player
+   */
   public ScreenBuilder(@NotNull final Player player) {
     location = player.getLocation();
   }
 
+  /**
+   * Builds a new screen based on the player location.
+   *
+   * @param mat the material to use
+   * @param width the width of the screen in blocks
+   * @param height the height of the screen in blocks
+   * @param startingMap the map to use starting off with
+   */
   public void buildMapScreen(
       @NotNull final Material mat, final int width, final int height, final int startingMap) {
 

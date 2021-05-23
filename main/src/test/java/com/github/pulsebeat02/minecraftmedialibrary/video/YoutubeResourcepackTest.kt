@@ -19,13 +19,14 @@
  .   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
  .   SOFTWARE.                                                                               .
  ............................................................................................*/
-package com.github.pulsebeat02.minecraftmedialibrary.test.video
+package com.github.pulsebeat02.minecraftmedialibrary.video
 
 import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary
+import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary
 import com.github.pulsebeat02.minecraftmedialibrary.concurrent.AsyncVideoExtraction
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionSetting
 import com.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction
-import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImage
+import com.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImage
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper
 import com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider
 import org.bukkit.plugin.java.JavaPlugin
@@ -41,7 +42,7 @@ class YoutubeResourcepackTest : JavaPlugin() {
     private var library: MediaLibrary? = null
 
     override fun onEnable() {
-        library = MediaLibrary(this)
+        // library = MediaLibraryProvider.create(this)
     }
 
     fun getResourcepackUrlYoutube(youtubeUrl: String, directory: String, port: Int): String {
@@ -76,7 +77,7 @@ class YoutubeResourcepackTest : JavaPlugin() {
     @Throws(IOException::class)
     fun displayImage(map: Int, image: File) {
         val bi = ImageIO.read(image)
-        val imageMap = MinecraftStaticImage.builder()
+        val imageMap = StaticImage.builder()
             .setMap(map)
             .setWidth(bi.width)
             .setHeight(bi.height)

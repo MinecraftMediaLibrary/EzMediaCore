@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 
 public final class CommandUtilities {
 
-  private static HashMap<String, Command> knownCommands = null;
+  private static final HashMap<String, Command> knownCommands;
 
   static {
     final String ver = Bukkit.getVersion();
@@ -60,10 +60,13 @@ public final class CommandUtilities {
                   + "outdated version of Minecraft. Please update as versions below 1.8 are not "
                   + "supported. We are sorry of the inconvenience.");
       DeluxeMediaPlugin.OUTDATED = true;
+      knownCommands = null;
     }
   }
 
-  public static void ensureInit() {}
+  public static void ensureInit() {
+    Bukkit.getLogger().log(Level.INFO, "[DeluxeMediaPlugin] Ensuring Initialization...");
+  }
 
   public static void unRegisterBukkitCommand(
       @NotNull final DeluxeMediaPlugin plugin, final BaseCommand cmd) {

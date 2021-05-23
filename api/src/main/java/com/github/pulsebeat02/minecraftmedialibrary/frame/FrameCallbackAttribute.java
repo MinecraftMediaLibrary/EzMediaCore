@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.frame;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 
+/** Attributes used for FrameCallbacks. */
 public interface FrameCallbackAttribute {
 
   /**

@@ -28,7 +28,9 @@ import org.bukkit.entity.Player;
 
 import java.util.Set;
 
+/** A prototype of the ChatCallback (pre-mature). */
 public interface ChatCallbackPrototype extends FrameCallback, FrameCallbackAttribute {
+
   /**
    * Get the viewers.
    *

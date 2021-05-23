@@ -24,7 +24,7 @@ package com.github.pulsebeat02.deluxemediaplugin.config;
 
 import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImage;
+import com.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImage;
 import com.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -48,7 +48,7 @@ public class PictureConfiguration extends AbstractConfiguration {
 
     // Add an image
     images.add(
-        MinecraftStaticImage.builder()
+        StaticImage.builder()
             .setMap(map)
             .setImage(file)
             .setWidth(width)
@@ -103,7 +103,7 @@ public class PictureConfiguration extends AbstractConfiguration {
 
       // Define a new image with the specified id
       images.add(
-          MinecraftStaticImage.builder()
+          StaticImage.builder()
               .setMap(id)
               .setImage(file)
               .setWidth(width)

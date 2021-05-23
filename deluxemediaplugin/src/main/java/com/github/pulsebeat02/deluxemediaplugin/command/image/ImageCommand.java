@@ -26,9 +26,9 @@ import com.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import com.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import com.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import com.github.pulsebeat02.minecraftmedialibrary.image.basic.MinecraftStaticImage;
+import com.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImage;
 import com.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
-import com.github.pulsebeat02.minecraftmedialibrary.image.gif.MinecraftDynamicImage;
+import com.github.pulsebeat02.minecraftmedialibrary.image.gif.DynamicImage;
 import com.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -130,7 +130,7 @@ public class ImageCommand extends BaseCommand implements Listener {
         FileUtilities.downloadImageFile(
             "https://images.news18.com/ibnlive/uploads/2020/12/1607660925_untitled-design-2020-12-11t095722.206.png",
             library.getParentFolder());
-    new MinecraftStaticImage(library, 69, f, width, height).drawImage();
+    new StaticImage(library, 69, f, width, height).drawImage();
     audience.sendMessage(
         ChatUtilities.formatMessage(Component.text("Gottem", NamedTextColor.GOLD)));
     return 1;
@@ -192,14 +192,14 @@ public class ImageCommand extends BaseCommand implements Listener {
       if (name.endsWith(".gif")) {
 
         // Create a new instance and draw it
-        new MinecraftDynamicImage(library, id, img, width, height).drawImage();
+        new DynamicImage(library, id, img, width, height).drawImage();
       }
 
       // Check if it's a valid image file
       else if (extensions.stream().anyMatch(name::endsWith)) {
 
         // Create a new instance and draw it
-        new MinecraftStaticImage(library, id, img, width, height).drawImage();
+        new StaticImage(library, id, img, width, height).drawImage();
       }
       audience.sendMessage(successful);
     } else {
@@ -216,14 +216,14 @@ public class ImageCommand extends BaseCommand implements Listener {
         if (name.endsWith(".gif")) {
 
           // Create a new instance and draw it
-          new MinecraftStaticImage(library, id, img, width, height).drawImage();
+          new StaticImage(library, id, img, width, height).drawImage();
         }
 
         // Check if it's a valid image file
         else if (extensions.stream().anyMatch(name::endsWith)) {
 
           // Create a new instance and draw it
-          new MinecraftDynamicImage(library, id, img, width, height).drawImage();
+          new DynamicImage(library, id, img, width, height).drawImage();
         }
         audience.sendMessage(successful);
       } else {
@@ -257,7 +257,7 @@ public class ImageCommand extends BaseCommand implements Listener {
     }
 
     // Reset the map data on there
-      StaticImageProxy.resetMap(getPlugin().getLibrary(), id);
+    StaticImage.resetMap(getPlugin().getLibrary(), id);
     audience.sendMessage(
         ChatUtilities.formatMessage(
             Component.text(
@@ -286,7 +286,7 @@ public class ImageCommand extends BaseCommand implements Listener {
 
         // Loop through all maps, reset all of the images
         for (final StaticImageProxy image : images) {
-            StaticImageProxy.resetMap(getPlugin().getLibrary(), image.getMap());
+            StaticImage.resetMap(getPlugin().getLibrary(), image.getMap());
         }
 
         // Clear images Set

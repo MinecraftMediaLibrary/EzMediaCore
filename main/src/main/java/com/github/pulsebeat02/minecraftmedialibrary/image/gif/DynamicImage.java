@@ -47,7 +47,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-public class MinecraftDynamicImage implements DynamicImageProxy {
+public class DynamicImage implements DynamicImageProxy {
 
   private final MediaLibrary library;
   private final File image;
@@ -57,7 +57,7 @@ public class MinecraftDynamicImage implements DynamicImageProxy {
   private MapIntegratedPlayer player;
 
   /**
-   * Instantiates a new MinecraftDynamicImage.
+   * Instantiates a new DynamicImage.
    *
    * @param library the library
    * @param map the map
@@ -65,7 +65,7 @@ public class MinecraftDynamicImage implements DynamicImageProxy {
    * @param width the width
    * @param height the height
    */
-  public MinecraftDynamicImage(
+  public DynamicImage(
       @NotNull final MediaLibrary library,
       final int map,
       @NotNull final File image,
@@ -90,7 +90,7 @@ public class MinecraftDynamicImage implements DynamicImageProxy {
    * @param width the width
    * @param height the height
    */
-  public MinecraftDynamicImage(
+  public DynamicImage(
       @NotNull final MediaLibrary library,
       final int map,
       @NotNull final String url,
@@ -132,9 +132,9 @@ public class MinecraftDynamicImage implements DynamicImageProxy {
    * @return the map image
    */
   @NotNull
-  public static MinecraftDynamicImage deserialize(
+  public static DynamicImage deserialize(
       @NotNull final MediaLibrary library, @NotNull final Map<String, Object> deserialize) {
-    return new MinecraftDynamicImage(
+    return new DynamicImage(
         library,
         NumberConversions.toInt(deserialize.get("map")),
         new File(String.valueOf(deserialize.get("image"))),
@@ -294,7 +294,7 @@ public class MinecraftDynamicImage implements DynamicImageProxy {
      * @return the map image
      */
     public DynamicImageProxy build(final MediaLibrary library) {
-      return new MinecraftDynamicImage(library, map, image, width, height);
+      return new DynamicImage(library, map, image, width, height);
     }
   }
 }

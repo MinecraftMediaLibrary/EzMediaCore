@@ -22,6 +22,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.playlist;
 
+/** Interface used for web responsive players. */
 public interface WebResponsivePlayer {
   /** Skips forward a song. */
   void skipForwardSong();

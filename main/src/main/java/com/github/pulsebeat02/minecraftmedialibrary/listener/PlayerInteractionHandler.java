@@ -33,6 +33,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 /**
  * Provider class which ignores interaction on itemframes. Can be used by plugins if they want. (Not
  * used by default)
@@ -65,7 +67,9 @@ public class PlayerInteractionHandler implements Listener {
     if (stack.getType() != Material.FILLED_MAP) {
       return;
     }
-    if (library.getHandler().isMapRegistered(((MapMeta) stack.getItemMeta()).getMapId())) {
+    if (library
+        .getHandler()
+        .isMapRegistered(((MapMeta) Objects.requireNonNull(stack.getItemMeta())).getMapId())) {
       event.setCancelled(true);
     }
   }

@@ -26,6 +26,7 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.nio.file.Path;
 
+/** A pack wrapper to help wrap packs. */
 public interface PackWrapper extends PackHolder, ConfigurationSerializable {
 
   /**

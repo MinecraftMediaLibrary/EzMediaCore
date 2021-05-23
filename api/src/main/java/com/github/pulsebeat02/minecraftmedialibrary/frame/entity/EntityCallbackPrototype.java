@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+/** A prototype of the EntityCallback (pre-mature). */
 public interface EntityCallbackPrototype extends FrameCallback, FrameCallbackAttribute {
 
   /**

@@ -69,7 +69,7 @@ public class ExtractionSetting implements ExtractionConfiguration {
    *
    * @return the builder
    */
-  static Builder builder() {
+  public static Builder builder() {
     return new Builder();
   }
 

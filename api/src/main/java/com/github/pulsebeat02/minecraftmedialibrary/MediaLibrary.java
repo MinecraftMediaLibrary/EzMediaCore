@@ -1,10 +1,12 @@
 package com.github.pulsebeat02.minecraftmedialibrary;
 
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
 import java.nio.file.Path;
 
+/** The base media library class used the media library. */
 public interface MediaLibrary {
 
   /** Shutdown the library instance */
@@ -100,4 +102,11 @@ public interface MediaLibrary {
    * @return whether the library is disabled or not
    */
   boolean isDisabled();
+
+  /**
+   * Gets the listener.
+   *
+   * @return the listener
+   */
+  Listener getRegistrationHandler();
 }

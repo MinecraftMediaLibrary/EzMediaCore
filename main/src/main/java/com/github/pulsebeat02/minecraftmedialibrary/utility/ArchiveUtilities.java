@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
@@ -151,7 +152,7 @@ public final class ArchiveUtilities {
   @NotNull
   public static Set<File> containsArchiveExtension(@NotNull final File f) {
     final Set<File> files = new HashSet<>();
-    for (final File child : f.listFiles()) {
+    for (final File child : Objects.requireNonNull(f.listFiles())) {
       for (final String ext : ARCHIVE_EXTENSIONS) {
         if (child.getName().endsWith(ext)) {
           files.add(child);

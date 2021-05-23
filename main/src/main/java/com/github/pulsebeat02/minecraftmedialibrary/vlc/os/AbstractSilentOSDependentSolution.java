@@ -10,6 +10,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 
 import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
@@ -82,7 +83,7 @@ public abstract class AbstractSilentOSDependentSolution implements SilentOSDepen
   @Override
   @Nullable
   public File findVLCFolder(@NotNull final File folder) {
-    for (final File f : folder.listFiles()) {
+    for (final File f : Objects.requireNonNull(folder.listFiles())) {
       final String name = f.getName();
       if (StringUtils.containsIgnoreCase(name, "vlc") && !name.endsWith(".dmg")) {
         return f;
@@ -108,6 +109,6 @@ public abstract class AbstractSilentOSDependentSolution implements SilentOSDepen
 
   @Override
   public Path getDir() {
-    return this.dir;
+    return dir;
   }
 }

@@ -19,11 +19,11 @@
  .   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
  .   SOFTWARE.                                                                               .
  ............................................................................................*/
+
 /**
- * Video related classes and hosting solution tests can be found here.
+ * Classes relating to JSON handling.
  *
  * @since 1.0
  * @author PulseBeat_02
  */
-package com.github.pulsebeat02.minecraftmedialibrary.test.video
-
+package com.github.pulsebeat02.minecraftmedialibrary.json;

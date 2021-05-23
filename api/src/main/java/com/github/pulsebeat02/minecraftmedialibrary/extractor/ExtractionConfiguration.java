@@ -22,6 +22,7 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.extractor;
 
+/** Interface for Extractor. */
 public interface ExtractionConfiguration {
 
   /**

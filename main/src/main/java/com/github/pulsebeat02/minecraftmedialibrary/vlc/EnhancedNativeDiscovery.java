@@ -38,6 +38,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Queue;
 
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_new;
@@ -113,7 +114,7 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
           loadLibrary();
           return path;
         }
-        folders.addAll(Arrays.asList(f.listFiles()));
+        folders.addAll(Arrays.asList(Objects.requireNonNull(f.listFiles())));
       }
     }
     Logger.error("Could NOT find VLC plugins folder. This is a fatal error!");

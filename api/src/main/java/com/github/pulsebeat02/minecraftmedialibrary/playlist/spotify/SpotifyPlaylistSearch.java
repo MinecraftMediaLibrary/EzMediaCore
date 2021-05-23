@@ -26,20 +26,56 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+/** A Spotify playlist searcher class. */
 public interface SpotifyPlaylistSearch {
 
+  /**
+   * Gets all the album songs of the playlist.
+   *
+   * @return the album songs
+   */
   @NotNull
   List<String> getAlbumSongs();
 
+  /**
+   * Gets the title of the playlist.
+   *
+   * @return the title
+   */
   String getTitle();
 
+  /**
+   * Gets the displayed name of the author.
+   *
+   * @return the author
+   */
   String getAuthor();
 
+  /**
+   * Gets the video count of the playlist
+   *
+   * @return the video count
+   */
   int getVideoCount();
 
+  /**
+   * Gets the follower count of the playlist.
+   *
+   * @return the follower count
+   */
   int getFollowerCount();
 
+  /**
+   * Gets the description of the playlist.
+   *
+   * @return the description
+   */
   String getDescription();
 
+  /**
+   * Gets the URL of the playlist.
+   *
+   * @return the url
+   */
   String getUrl();
 }

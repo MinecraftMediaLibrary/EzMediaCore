@@ -8,6 +8,7 @@ plugins {
 }
 
 dependencies {
+
     compileOnlyApi("org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
     api("uk.co.caprica:vlcj:4.7.1")
     api("uk.co.caprica:vlcj-natives:4.1.0")
@@ -39,15 +40,16 @@ dependencies {
     api(project(":v1_15_R1"))
     api(project(":v1_14_R1"))
     api(project(":v1_13_R2"))
-    //api(project(":v1_13_R1"))
+    api(project(":v1_13_R1"))
     api(project(":v1_12_R1"))
-    //api(project(":v1_11_R1"))
-    //api(project(":v1_10_R1"))
-    //api(project(":v1_9_R2"))
-    //api(project(":v1_9_R1"))
+    api(project(":v1_11_R1"))
+    api(project(":v1_10_R1"))
+    api(project(":v1_9_R2"))
+    api(project(":v1_9_R1"))
     api(project(":v1_8_R3"))
-    //api(project(":v1_8_R2"))
-    //api(project(":v1_8_R1"))
+    api(project(":v1_8_R2"))
+    api(project(":v1_8_R1"))
+
 }
 
 publishing {

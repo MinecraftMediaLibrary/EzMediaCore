@@ -8,10 +8,22 @@ public final class MediaLibraryProvider {
 
   private MediaLibraryProvider() {}
 
+  /**
+   * Static builder to create a media library from plugin.
+   *
+   * @param plugin the plugin
+   * @return a new MediaLibrary instance
+   */
   public static MediaLibrary create(final Plugin plugin) {
     return new MinecraftMediaLibrary(plugin);
   }
 
+  /**
+   * Static builder to create a media library from plugin.
+   *
+   * @param plugin the plugin
+   * @return a new MediaLibrary instance
+   */
   public static MediaLibrary create(
       @NotNull final Plugin plugin,
       @Nullable final String http,

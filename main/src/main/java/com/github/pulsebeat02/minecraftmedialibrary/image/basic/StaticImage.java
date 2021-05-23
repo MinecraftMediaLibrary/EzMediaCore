@@ -42,7 +42,7 @@ import java.util.Objects;
  * to draw the specific image onto the map. MapImage also supports serialization/deserialization, so
  * it can be stored in configuration files if necessary.
  */
-public class MinecraftStaticImage implements StaticImageProxy {
+public class StaticImage implements StaticImageProxy {
 
   private final MediaLibrary library;
   private final int map;
@@ -51,7 +51,7 @@ public class MinecraftStaticImage implements StaticImageProxy {
   private final int width;
 
   /**
-   * Instantiates a new MinecraftStaticImage.
+   * Instantiates a new StaticImage.
    *
    * @param library the library
    * @param map the map
@@ -59,7 +59,7 @@ public class MinecraftStaticImage implements StaticImageProxy {
    * @param width the width
    * @param height the height
    */
-  public MinecraftStaticImage(
+  public StaticImage(
       @NotNull final MediaLibrary library,
       final int map,
       @NotNull final File image,
@@ -84,7 +84,7 @@ public class MinecraftStaticImage implements StaticImageProxy {
    * @param width the width
    * @param height the height
    */
-  public MinecraftStaticImage(
+  public StaticImage(
       @NotNull final MediaLibrary library,
       final int map,
       @NotNull final String url,
@@ -118,7 +118,7 @@ public class MinecraftStaticImage implements StaticImageProxy {
   @NotNull
   public static StaticImageProxy deserialize(
       @NotNull final MediaLibrary library, @NotNull final Map<String, Object> deserialize) {
-    return new MinecraftStaticImage(
+    return new StaticImage(
         library,
         NumberConversions.toInt(deserialize.get("map")),
         new File(String.valueOf(deserialize.get("image"))),
@@ -247,7 +247,7 @@ public class MinecraftStaticImage implements StaticImageProxy {
      * @return the map image
      */
     public StaticImageProxy build(final MediaLibrary library) {
-      return new MinecraftStaticImage(library, map, image, width, height);
+      return new StaticImage(library, map, image, width, height);
     }
   }
 }

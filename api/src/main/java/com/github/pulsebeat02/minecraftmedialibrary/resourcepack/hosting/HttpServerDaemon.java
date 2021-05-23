@@ -25,6 +25,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting;
 import com.github.pulsebeat02.minecraftmedialibrary.http.HttpDaemon;
 import org.jetbrains.annotations.NotNull;
 
+/** HTTP Server daemon solution to hosting resourcepacks. */
 public interface HttpServerDaemon extends HostingSolution {
 
   /** Start server. */

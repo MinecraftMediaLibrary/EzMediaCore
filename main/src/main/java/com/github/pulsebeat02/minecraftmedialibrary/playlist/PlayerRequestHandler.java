@@ -23,6 +23,8 @@
 package com.github.pulsebeat02.minecraftmedialibrary.playlist;
 
 import com.github.pulsebeat02.minecraftmedialibrary.http.HttpFileDaemonServer;
+import com.github.pulsebeat02.minecraftmedialibrary.http.request.ClientRequest;
+import com.github.pulsebeat02.minecraftmedialibrary.http.request.RequestHandler;
 import com.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +40,7 @@ import java.util.Set;
  * A class used to handle incoming requests. It checks the request and then appropriately changes
  * the player as so.
  */
-public class PlayerRequestHandler implements PlayerRequestHandlerBase {
+public class PlayerRequestHandler implements RequestHandler, ClientRequest {
 
   private static final Set<String> VALID_CONTROLS;
 

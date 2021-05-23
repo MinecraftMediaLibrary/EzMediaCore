@@ -190,17 +190,29 @@ public abstract class VideoPlayer implements VideoPlayerContext {
     return callback;
   }
 
-  @Override
+  /**
+   * Gets the MediaPlayerComponent.
+   *
+   * @return the MediaPlayerComponent
+   */
   public EmbeddedMediaPlayer getMediaPlayerComponent() {
     return mediaPlayerComponent;
   }
 
-  @Override
+  /**
+   * Gets the adapter.
+   *
+   * @return the video surface adapter
+   */
   public VideoSurfaceAdapter getAdapter() {
     return adapter;
   }
 
-  @Override
+  /**
+   * Gets the MinecraftVideoRenderCallback.
+   *
+   * @return the Minecraft render callback
+   */
   public MinecraftVideoRenderCallback getRenderCallback() {
     return renderCallback;
   }

@@ -20,40 +20,60 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.frame.dither;
+package com.github.pulsebeat02.minecraftmedialibrary;
 
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.nio.ByteBuffer;
+/** A builder class which helps users create a MinecraftMediaLibrary instance to use. */
+public class MinecraftMediaLibraryBuilder {
 
-/**
- * An interface that is useful for handling custom dithering algorithms. Used in
- * MinecraftMediaLibrary for many algorithms.
- */
-public interface DitherHolder {
+  private Plugin plugin;
+  private boolean isUsingVLCJ = true;
+  private String http = null;
+  private String libraryPath = null;
+  private String vlcPath = null;
+  private String imagePath = null;
+  private String audioPath = null;
 
-  /**
-   * Dithers the buffer using the given width.
-   *
-   * @param buffer data for the image
-   * @param width units for the image
-   */
-  void dither(final int[] buffer, final int width);
+  public MinecraftMediaLibraryBuilder setPlugin(@NotNull final Plugin plugin) {
+    this.plugin = plugin;
+    return this;
+  }
 
-  /**
-   * Dithers the buffer into the ByteBuffer.
-   *
-   * @param buffer data for the image
-   * @param width units for the image
-   * @return ByteBuffer buffer for dithered image
-   */
-  ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width);
+  public MinecraftMediaLibraryBuilder setIsUsingVLCJ(final boolean isUsingVLCJ) {
+    this.isUsingVLCJ = isUsingVLCJ;
+    return this;
+  }
 
-  /**
-   * Gets the current dither setting.
-   *
-   * @return DitherSetting for the setting.
-   */
-  @NotNull
-  DitherSetting getSetting();
+  public MinecraftMediaLibraryBuilder setHttp(@Nullable final String http) {
+    this.http = http;
+    return this;
+  }
+
+  public MinecraftMediaLibraryBuilder setLibraryPath(@Nullable final String libraryPath) {
+    this.libraryPath = libraryPath;
+    return this;
+  }
+
+  public MinecraftMediaLibraryBuilder setVlcPath(final @Nullable String vlcPath) {
+    this.vlcPath = vlcPath;
+    return this;
+  }
+
+  public MinecraftMediaLibraryBuilder setImagePath(@Nullable final String imagePath) {
+    this.imagePath = imagePath;
+    return this;
+  }
+
+  public MinecraftMediaLibraryBuilder setAudioPath(@Nullable final String audioPath) {
+    this.audioPath = audioPath;
+    return this;
+  }
+
+  public MediaLibrary build() {
+    return MediaLibraryProvider.create(
+        plugin, http, libraryPath, vlcPath, imagePath, audioPath, isUsingVLCJ);
+  }
 }

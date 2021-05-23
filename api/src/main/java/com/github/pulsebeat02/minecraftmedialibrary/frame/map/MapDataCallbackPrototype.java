@@ -24,12 +24,14 @@ package com.github.pulsebeat02.minecraftmedialibrary.frame.map;
 
 import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallbackAttribute;
-import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
+import com.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitheringAlgorithm;
 import com.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 
 import java.util.UUID;
 
+/** A prototype of the MapDataCallback (pre-mature). */
 public interface MapDataCallbackPrototype extends FrameCallback, FrameCallbackAttribute {
+
   /**
    * Get viewers uuid [ ].
    *
@@ -56,5 +58,5 @@ public interface MapDataCallbackPrototype extends FrameCallback, FrameCallbackAt
    *
    * @return the dithering type
    */
-  DitherHolder getType();
+  DitheringAlgorithm getType();
 }

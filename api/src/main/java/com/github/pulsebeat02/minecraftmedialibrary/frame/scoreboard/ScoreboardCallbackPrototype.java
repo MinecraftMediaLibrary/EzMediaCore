@@ -28,7 +28,9 @@ import org.bukkit.entity.Player;
 
 import java.util.Set;
 
+/** A prototype of the Scoreboard Callback (pre-mature). */
 public interface ScoreboardCallbackPrototype extends FrameCallback, FrameCallbackAttribute {
+
   /**
    * Get the viewers.
    *

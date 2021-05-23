@@ -20,61 +20,10 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package com.github.pulsebeat02.minecraftmedialibrary.utility;
-
-import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-/** A builder class which helps users create a MinecraftMediaLibrary instance to use. */
-public class MinecraftMediaLibraryBuilder {
-
-  private Plugin plugin;
-  private boolean isUsingVLCJ = true;
-  private String http = null;
-  private String libraryPath = null;
-  private String vlcPath = null;
-  private String imagePath = null;
-  private String audioPath = null;
-
-  public MinecraftMediaLibraryBuilder setPlugin(@NotNull final Plugin plugin) {
-    this.plugin = plugin;
-    return this;
-  }
-
-  public MinecraftMediaLibraryBuilder setIsUsingVLCJ(final boolean isUsingVLCJ) {
-    this.isUsingVLCJ = isUsingVLCJ;
-    return this;
-  }
-
-  public MinecraftMediaLibraryBuilder setHttp(@Nullable final String http) {
-    this.http = http;
-    return this;
-  }
-
-  public MinecraftMediaLibraryBuilder setLibraryPath(@Nullable final String libraryPath) {
-    this.libraryPath = libraryPath;
-    return this;
-  }
-
-  public MinecraftMediaLibraryBuilder setVlcPath(final @Nullable String vlcPath) {
-    this.vlcPath = vlcPath;
-    return this;
-  }
-
-  public MinecraftMediaLibraryBuilder setImagePath(@Nullable final String imagePath) {
-    this.imagePath = imagePath;
-    return this;
-  }
-
-  public MinecraftMediaLibraryBuilder setAudioPath(@Nullable final String audioPath) {
-    this.audioPath = audioPath;
-    return this;
-  }
-
-  public MediaLibrary build() {
-    return new MediaLibrary(
-        plugin, http, libraryPath, vlcPath, imagePath, audioPath, isUsingVLCJ);
-  }
-}
+/**
+ * Spotify playlist classes.
+ *
+ * @since 1.0
+ * @author PulseBeat_02
+ */
+package com.github.pulsebeat02.minecraftmedialibrary.playlist.spotify;

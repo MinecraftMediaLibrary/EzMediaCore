@@ -30,7 +30,7 @@ import java.nio.file.Path;
  * The base handler of requests. Used for creating custom request managers. Used within the
  * MinecraftMediaLibrary to handle requests to an HTTP daemon.
  */
-public interface RequestHandler {
+public interface RequestHandler extends Runnable {
 
   /**
    * Creates a header for the HTTP request. Useful for certain connections.

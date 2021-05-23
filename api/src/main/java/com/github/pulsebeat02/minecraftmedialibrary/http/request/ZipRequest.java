@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.http.request;
 
 import org.jetbrains.annotations.NotNull;
 
+/** Zip request prototype. */
 public interface ZipRequest {
 
   /**

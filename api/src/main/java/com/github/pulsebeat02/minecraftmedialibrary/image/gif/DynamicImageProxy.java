@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.Map;
 
+/** Dynamic image proxy used to draw images. */
 public interface DynamicImageProxy extends DrawableMap, ConfigurationSerializable {
 
   /** Draws the specific image on the map id. */

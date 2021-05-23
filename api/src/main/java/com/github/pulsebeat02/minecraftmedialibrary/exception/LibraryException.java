@@ -24,6 +24,7 @@ package com.github.pulsebeat02.minecraftmedialibrary.exception;
 
 import org.jetbrains.annotations.NotNull;
 
+/** Basic library exception that MinecraftMediaLibrary uses. */
 public class LibraryException extends AssertionError {
 
   private static final long serialVersionUID = -6914539609629173333L;

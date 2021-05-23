@@ -81,8 +81,7 @@ public final class VideoUtilities {
    * @return resulting BufferedImage
    */
   @NotNull
-  public static BufferedImage getBufferedImage(
-      @NotNull final int[] rgb, final int width, final int height) {
+  public static BufferedImage getBufferedImage(final int @NotNull [] rgb, final int width, final int height) {
     final BufferedImage image = new BufferedImage(width, height, 1);
     image.setRGB(0, 0, width, height, rgb, 0, width);
     return image;
@@ -108,7 +107,7 @@ public final class VideoUtilities {
    * @return resulting BufferedImage
    */
   @Nullable
-  public static BufferedImage toBufferedImage(@NotNull final byte[] array) {
+  public static BufferedImage toBufferedImage(final byte @NotNull [] array) {
     final ByteArrayInputStream bis = new ByteArrayInputStream(array);
     try {
       return ImageIO.read(bis);

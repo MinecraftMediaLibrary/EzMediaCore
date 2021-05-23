@@ -19,10 +19,11 @@
 .   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
+
 /**
- * Testing classes to test the VLC media player.
+ * Classes relating to static imagery.
  *
  * @since 1.0
  * @author PulseBeat_02
  */
-package com.github.pulsebeat02.minecraftmedialibrary.test.vlc;
+package com.github.pulsebeat02.minecraftmedialibrary.image.basic;

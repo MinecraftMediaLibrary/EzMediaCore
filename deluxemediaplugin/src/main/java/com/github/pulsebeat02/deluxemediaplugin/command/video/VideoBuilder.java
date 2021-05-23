@@ -22,6 +22,7 @@
 
 package com.github.pulsebeat02.deluxemediaplugin.command.video;
 
+import com.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatCallback;
 import com.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatIntegratedPlayer;
@@ -39,11 +40,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class VideoBuilder {
 
-  private final MinecraftMediaLibrary library;
+  private final MediaLibrary library;
   private final MinecraftVideoAttributes attributes;
 
   public VideoBuilder(
-      @NotNull final MinecraftMediaLibrary library,
+      @NotNull final MediaLibrary library,
       @NotNull final MinecraftVideoAttributes attributes) {
     this.library = library;
     this.attributes = attributes;
