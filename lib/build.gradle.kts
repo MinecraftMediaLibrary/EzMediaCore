@@ -81,3 +81,9 @@ tasks.withType<ShadowJar> {
     relocate("org.apache.commons.io", "org.bukkit.craftbukkit.libs.org.apache.commons.io")
     relocate("com.wrapper.spotify", "com.github.pulsebeat02.spotify")
 }
+
+tasks {
+    build {
+        dependsOn(shadowJar)
+    }
+}
