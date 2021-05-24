@@ -22,6 +22,12 @@ public final class MediaLibraryProvider {
    * Static builder to create a media library from plugin.
    *
    * @param plugin the plugin
+   * @param http the http
+   * @param libraryPath the library path
+   * @param vlcPath the vlc path
+   * @param imagePath the image path
+   * @param audioPath the audio path
+   * @param isUsingVLCJ if user is using VLCJ
    * @return a new MediaLibrary instance
    */
   public static MediaLibrary create(

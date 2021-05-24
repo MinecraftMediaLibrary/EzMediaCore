@@ -34,6 +34,10 @@ public interface ZipRequest {
    */
   ZipHeader getZipHeader();
 
-  /** Sets zip header. */
+  /**
+   * Sets zip header.
+   *
+   * @param header ZipHeader
+   */
   void setZipHeader(@NotNull final ZipHeader header);
 }

@@ -56,6 +56,7 @@ public final class ChatCallback implements ChatCallbackPrototype {
    *
    * @param library the library
    * @param viewers the viewers
+   * @param character the character to use
    * @param chatWidth the chat width
    * @param chatHeight the chat height
    * @param delay the delay

@@ -29,3 +29,13 @@ subprojects {
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
     }
 }
+
+/*
+tasks.withType<Javadoc> {
+    source("src/main/java")
+    isFailOnError = false
+    setDestinationDir(project.file("docs"))
+}
+*/
+
+

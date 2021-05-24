@@ -290,7 +290,7 @@ public final class Reflection {
    * <p>Strings enclosed with curly brackets - such as {TEXT} - will be replaced according to the
    * following table:
    *
-   * <table border="1">
+   * <table border="1" summary="Package Name">
    * <tr>
    * <th>Variable</th>
    * <th>Content</th>
@@ -301,7 +301,7 @@ public final class Reflection {
    * </tr>
    * <tr>
    * <td>{obc}</td>
-   * <td>Actual pacakge name of org.bukkit.craftbukkit.VERSION</td>
+   * <td>Actual package name of org.bukkit.craftbukkit.VERSION</td>
    * </tr>
    * <tr>
    * <td>{version}</td>

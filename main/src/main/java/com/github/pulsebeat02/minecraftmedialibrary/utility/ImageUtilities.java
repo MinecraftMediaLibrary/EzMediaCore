@@ -22,8 +22,8 @@
 
 package com.github.pulsebeat02.minecraftmedialibrary.utility;
 
-import com.sun.imageio.plugins.gif.GIFImageReader;
-import com.sun.imageio.plugins.gif.GIFImageReaderSpi;
+//import com.sun.imageio.plugins.gif.GIFImageReader;
+//import com.sun.imageio.plugins.gif.GIFImageReaderSpi;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import ws.schild.jave.Encoder;
@@ -48,7 +48,10 @@ import java.util.List;
 /**
  * A series of Image utility functions that are used to extract information about certain image
  * files.
+ *
+ * @deprecated uses sun packages
  */
+@Deprecated
 public final class ImageUtilities {
 
   private ImageUtilities() {}
@@ -61,6 +64,7 @@ public final class ImageUtilities {
    */
   public static List<BufferedImage> getFrames(@NotNull final Path gif) {
     final List<BufferedImage> frames = new ArrayList<>();
+    /*
     final ImageReader ir = new GIFImageReader(new GIFImageReaderSpi());
     try {
       ir.setInput(ImageIO.createImageInputStream(gif));
@@ -70,6 +74,7 @@ public final class ImageUtilities {
     } catch (final IOException e) {
       e.printStackTrace();
     }
+    */
     return frames;
   }
 
@@ -91,10 +96,10 @@ public final class ImageUtilities {
   }
 
   public static void convertGifToMpeg(@NotNull final Path gif, @NotNull final Path output)
-      throws IOException {
+          throws IOException {
     if (!FilenameUtils.getExtension(gif.getFileName().toString()).equalsIgnoreCase("gfi")) {
       throw new IOException(
-          String.format("Invalid Image Format (Must be Gif) %s", gif.toAbsolutePath()));
+              String.format("Invalid Image Format (Must be Gif) %s", gif.toAbsolutePath()));
     }
     final AudioAttributes audio = new AudioAttributes();
     audio.setVolume(0);
