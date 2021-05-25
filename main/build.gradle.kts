@@ -25,6 +25,12 @@ dependencies {
     testImplementation("io.github.glytching:junit-extensions:2.4.0")
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.31")
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.4.31")
+    testImplementation("uk.co.caprica:vlcj:4.7.1")
+    testImplementation("org.bytedeco:javacv-platform:1.5.5")
+    testImplementation("com.github.sealedtx:java-youtube-downloader:2.5.2")
+    testImplementation("commons-io:commons-io:2.8.0")
+    testImplementation("ws.schild:jave-core:3.0.1")
+
 
     api(project(":api"))
     implementation(project(":v1_16_R3"))
