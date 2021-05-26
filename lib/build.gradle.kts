@@ -3,6 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
     `maven-publish`
+    signing
 }
 
 dependencies {
@@ -39,12 +40,33 @@ publishing {
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://github.com/MinecraftMediaLibrary/MinecraftMediaLibrary.git")
-                    developerConnection.set("scm:git:git://github.com/MinecraftMediaLibrary/MinecraftMediaLibrary.git")
+                    connection.set("scm:git:https://github.com/MinecraftMediaLibrary/MinecraftMediaLibrary.git")
+                    developerConnection.set("scm:git:https://github.com/MinecraftMediaLibrary/MinecraftMediaLibrary.git")
                     url.set("https://github.com/MinecraftMediaLibrary/MinecraftMediaLibrary")
                 }
             }
         }
+    }
+    repositories {
+        maven {
+            name = "OSSRH"
+            setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2")
+            credentials {
+                username = System.getenv("OSSRH_USER") ?: return@credentials
+                password = System.getenv("OSSRH_PASSWORD") ?: return@credentials
+            }
+        }
+    }
+}
+
+configure(subprojects) {
+    apply<SigningPlugin>()
+    configure<SigningExtension> {
+        val key = System.getenv("SIGNING_KEY") ?: return@configure
+        val password = System.getenv("SIGNING_PASSWORD") ?: return@configure
+        val publishing: PublishingExtension by project
+        useInMemoryPgpKeys(key, password)
+        sign(publishing.publications)
     }
 }
 
