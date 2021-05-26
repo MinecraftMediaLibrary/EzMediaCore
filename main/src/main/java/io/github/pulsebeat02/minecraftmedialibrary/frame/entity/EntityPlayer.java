@@ -20,11 +20,13 @@
  .   SOFTWARE.                                                                               .
  ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.frame.highlight;
+package io.github.pulsebeat02.minecraftmedialibrary.frame.entity;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,48 +35,58 @@ import java.util.Collection;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
- * specific function from native libraries. It renders it in debug highlights.
+ * specific function from native libraries. It renders it on entities.
  */
-public class BlockHighlightPlayer extends VLCVideoPlayer {
+public class EntityPlayer extends VLCVideoPlayer {
+
+  private final Location location;
+  private final Entity[] entities;
 
   /**
-   * Instantiates a new BlockHighlightPlayer.
+   * Instantiates a new EntityPlayer.
    *
    * @param library the library
    * @param url the url
    * @param width the width
    * @param height the height
    * @param callback the callback
+   * @param location the location
    */
-  public BlockHighlightPlayer(
+  public EntityPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
-      @NotNull final BlockHighlightCallbackPrototype callback,
+      @NotNull final EntityCallbackPrototype callback,
+      @NotNull final Location location,
       final int width,
       final int height) {
     super(library, url, width, height, callback);
-    Logger.info(String.format("Created a Debug Highlight Integrated Video Player (%s)", url));
+    this.location = location;
+    entities = callback.getEntities();
+    Logger.info(String.format("Created a VLCJ Integrated Entity Cloud Video Player (%s)", url));
   }
 
   /**
-   * Instantiates a new BlockHighlightPlayer.
+   * Instantiates a new EntityPlayer.
    *
    * @param library the library
    * @param file the file
    * @param width the width
    * @param height the height
    * @param callback the callback
+   * @param location the location
    */
-  public BlockHighlightPlayer(
+  public EntityPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final Path file,
-      @NotNull final BlockHighlightCallbackPrototype callback,
+      @NotNull final EntityCallbackPrototype callback,
+      @NotNull final Location location,
       final int width,
       final int height) {
     super(library, file, width, height, callback);
+    this.location = location;
+    entities = callback.getEntities();
     Logger.info(
-        String.format(
-            "Created a Debug Highlight Integrated Video Player (%s)", file.toAbsolutePath()));
+        String.format("Created a VLCJ Integrated Video Player (%s)", file.toAbsolutePath()));
   }
 
   /**
@@ -86,13 +98,59 @@ public class BlockHighlightPlayer extends VLCVideoPlayer {
     return new Builder();
   }
 
+  /**
+   * Starts player.
+   *
+   * @param players which players to play the audio for
+   */
+  @Override
+  public void start(@NotNull final Collection<? extends Player> players) {
+    removeEntities();
+    super.start(players);
+  }
+
+  /** Releases the media player. */
+  @Override
+  public void release() {
+    removeEntities();
+    super.release();
+  }
+
+  /** Removes all entities. */
+  public void removeEntities() {
+    if (entities != null) {
+      for (final Entity entity : entities) {
+        entity.remove();
+      }
+    }
+  }
+
+  /**
+   * Gets the location of the player.
+   *
+   * @return the location
+   */
+  public Location getLocation() {
+    return location;
+  }
+
+  /**
+   * Gets the entity array.
+   *
+   * @return the entity array
+   */
+  public Entity[] getEntities() {
+    return entities;
+  }
+
   /** The type Builder. */
   public static class Builder {
 
     private String url;
-    private int width = 15;
-    private int height = 15;
-    private BlockHighlightCallbackPrototype callback;
+    private int width = 5;
+    private int height = 5;
+    private EntityCallbackPrototype callback;
+    private Location location;
 
     private Builder() {}
 
@@ -111,13 +169,18 @@ public class BlockHighlightPlayer extends VLCVideoPlayer {
       return this;
     }
 
-    public Builder setCallback(final BlockHighlightCallbackPrototype callback) {
+    public Builder setCallback(final EntityCallbackPrototype callback) {
       this.callback = callback;
       return this;
     }
 
-    public BlockHighlightPlayer build(@NotNull final MediaLibrary library) {
-      return new BlockHighlightPlayer(library, url, callback, width, height);
+    public Builder setLocation(final Location location) {
+      this.location = location;
+      return this;
+    }
+
+    public EntityPlayer build(@NotNull final MediaLibrary library) {
+      return new EntityPlayer(library, url, callback, location, width, height);
     }
   }
 }

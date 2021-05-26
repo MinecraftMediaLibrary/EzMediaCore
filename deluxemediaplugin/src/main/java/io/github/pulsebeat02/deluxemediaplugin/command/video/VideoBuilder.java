@@ -24,16 +24,16 @@ package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatIntegratedPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityIntegratedPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.ScreenEntityType;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.highlight.BlockHighlightCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.highlight.BlockHighlightPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapIntegratedPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.ScoreboardCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.ScoreboardIntegratedPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.ScoreboardPlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,8 +48,8 @@ public class VideoBuilder {
     this.attributes = attributes;
   }
 
-  public MapIntegratedPlayer createMapPlayer() {
-    return MapIntegratedPlayer.builder()
+  public MapPlayer createMapPlayer() {
+    return MapPlayer.builder()
         .setUrl(attributes.getFile().getAbsolutePath())
         .setWidth(attributes.getScreenWidth())
         .setHeight(attributes.getScreenHeight())
@@ -66,8 +66,8 @@ public class VideoBuilder {
         .build(library);
   }
 
-  public EntityIntegratedPlayer createEntityCloudPlayer(@NotNull final Player sender) {
-    return EntityIntegratedPlayer.builder()
+  public EntityPlayer createEntityCloudPlayer(@NotNull final Player sender) {
+    return EntityPlayer.builder()
         .setUrl(attributes.getFile().getAbsolutePath())
         .setWidth(attributes.getScreenWidth())
         .setHeight(attributes.getScreenHeight())
@@ -83,8 +83,8 @@ public class VideoBuilder {
         .build(library);
   }
 
-  public ChatIntegratedPlayer createChatBoxPlayer() {
-    return ChatIntegratedPlayer.builder()
+  public ChatPlayer createChatBoxPlayer() {
+    return ChatPlayer.builder()
         .setUrl(attributes.getFile().getAbsolutePath())
         .setWidth(attributes.getScreenWidth())
         .setHeight(attributes.getScreenHeight())
@@ -98,8 +98,8 @@ public class VideoBuilder {
         .build(library);
   }
 
-  public ScoreboardIntegratedPlayer createScoreboardPlayer() {
-    return ScoreboardIntegratedPlayer.builder()
+  public ScoreboardPlayer createScoreboardPlayer() {
+    return ScoreboardPlayer.builder()
         .setUrl(attributes.getFile().getAbsolutePath())
         .setWidth(attributes.getScreenWidth())
         .setHeight(attributes.getScreenHeight())

@@ -45,7 +45,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class GIFIntegratedPlayer extends VLCVideoPlayer {
+public class GIFPlayer extends VLCVideoPlayer {
 
   private final List<BufferedImage> images;
   private final float frameDuration;
@@ -63,7 +63,7 @@ public class GIFIntegratedPlayer extends VLCVideoPlayer {
    * @deprecated uses File
    */
   @Deprecated
-  public GIFIntegratedPlayer(
+  public GIFPlayer(
       final @NotNull MediaLibrary library,
       final @NotNull File file,
       final int width,
@@ -83,7 +83,7 @@ public class GIFIntegratedPlayer extends VLCVideoPlayer {
    * @deprecated uses File
    */
   @Deprecated
-  public GIFIntegratedPlayer(
+  public GIFPlayer(
       final @NotNull MediaLibrary library,
       final @NotNull Path file,
       final int width,
@@ -199,9 +199,9 @@ public class GIFIntegratedPlayer extends VLCVideoPlayer {
      * @param library the library
      * @return the vlcj integrated player
      */
-    public GIFIntegratedPlayer build(@NotNull final MediaLibrary library) {
+    public GIFPlayer build(@NotNull final MediaLibrary library) {
       if (PathUtilities.isValidPath(url)) {
-        return new GIFIntegratedPlayer(library, Paths.get(url), width, height, callback);
+        return new GIFPlayer(library, Paths.get(url), width, height, callback);
       } else {
         final File downloaded =
             new File(library.getImageFolder().toFile(), FilenameUtils.getName(url));
@@ -210,7 +210,7 @@ public class GIFIntegratedPlayer extends VLCVideoPlayer {
         } catch (final IOException e) {
           e.printStackTrace();
         }
-        return new GIFIntegratedPlayer(library, downloaded.toPath(), width, height, callback);
+        return new GIFPlayer(library, downloaded.toPath(), width, height, callback);
       }
     }
   }

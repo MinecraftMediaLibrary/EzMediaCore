@@ -28,7 +28,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.extractor.FFmpegLocation;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapIntegratedPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
@@ -54,7 +54,7 @@ public class DynamicImage implements DynamicImageProxy {
   private final int map;
   private final int height;
   private final int width;
-  private MapIntegratedPlayer player;
+  private MapPlayer player;
 
   /**
    * Instantiates a new DynamicImage.
@@ -149,7 +149,7 @@ public class DynamicImage implements DynamicImageProxy {
       final Dimension dims = VideoUtilities.getDimensions(image);
       final int w = (int) dims.getWidth();
       player =
-          MapIntegratedPlayer.builder()
+          MapPlayer.builder()
               .setUrl(image.getAbsolutePath())
               .setWidth(w)
               .setHeight((int) dims.getHeight())

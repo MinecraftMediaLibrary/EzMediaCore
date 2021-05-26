@@ -68,7 +68,10 @@ public enum JarRelocationConvention {
   FAST_JSON("com{}alibaba{}fastjson", "com{}github{}pulsebeat02{}fastjson"),
 
   /** Spotify Jar Relocation Convention */
-  SPOTIFY("com{}wrapper{}spotify", "com{}github{}pulsebeat02{}spotify");
+  SPOTIFY("com{}wrapper{}spotify", "com{}github{}pulsebeat02{}spotify"),
+
+  /** ByteDeco Jar Relocation Convention */
+  BYTEDECO("org{}bytedeco", "com{}github{}pulsebeat02{}bytedeco");
 
   private final Relocation relocation;
 

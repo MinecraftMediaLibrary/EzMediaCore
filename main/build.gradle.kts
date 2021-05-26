@@ -31,7 +31,6 @@ dependencies {
     testImplementation("commons-io:commons-io:2.8.0")
     testImplementation("ws.schild:jave-core:3.0.1")
 
-
     api(project(":api"))
     implementation(project(":v1_16_R3"))
     implementation(project(":v1_16_R2"))

@@ -44,19 +44,24 @@ import java.util.concurrent.CompletableFuture;
  * have the correct classes associated with each other! An example of the classes that are linked
  * together can be found below:
  *
- * <p>ChatCallback - ChatIntegratedPlayer
+ * <p>ChatCallback - LinuxChatPlayer
  *
- * <p>EntityCloudCallback - EntityCloudIntegratedPlayer
+ * <p>EntityCloudCallback - LinuxEntityPlayer
  *
  * <p>GifIntegratedPlayer - [In Development]
  *
- * <p>BlockHighlightCallback - BlockHighlightPlayer
+ * <p>BlockHighlightCallback - LinuxBlockHighlightPlayer
  *
- * <p>MapDataCallback - MapIntegratedPlayer
+ * <p>MapDataCallback - LinuxMapPlayer
  *
  * <p>ParallelVideoPlayer - [In Development]
  *
- * <p>ScoreboardCallback - ScoreboardIntegratedPlayer
+ * <p>ScoreboardCallback - LinuxScoreboardPlayer
+ *
+ * <p>The JavaCVVideoPlayer uses JavaCV (a Java implementation of OpenCV) mainly used for Linux or
+ * any other odd ball operating systems that don't have VLC supported. If you are on a Windows or
+ * MacOS operating system, it is strongly recommended to use the VLCVideoPlayer players instead as
+ * they are much faster and coded in C/C++ libraries.
  */
 public abstract class JavaCVVideoPlayer implements VideoPlayerContext {
 

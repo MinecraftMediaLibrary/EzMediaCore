@@ -82,6 +82,7 @@ tasks.withType<ShadowJar> {
     relocate("org.ow2.asm.commons", "io.github.pulsebeat02.asm.commons")
     relocate("org.apache.commons.io", "org.bukkit.craftbukkit.libs.org.apache.commons.io")
     relocate("com.wrapper.spotify", "io.github.pulsebeat02.spotify")
+    relocate("org.bytedeco", "io.github.pulsebeat02.bytedeco")
 }
 
 tasks {

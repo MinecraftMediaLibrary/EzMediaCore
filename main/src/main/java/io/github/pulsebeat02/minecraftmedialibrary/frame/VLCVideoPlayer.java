@@ -53,19 +53,24 @@ import java.util.function.Consumer;
  * have the correct classes associated with each other! An example of the classes that are linked
  * together can be found below:
  *
- * <p>ChatCallback - ChatIntegratedPlayer
+ * <p>ChatCallback - ChatPlayer
  *
- * <p>EntityCloudCallback - EntityCloudIntegratedPlayer
+ * <p>EntityCloudCallback - EntityPlayer
  *
  * <p>GifIntegratedPlayer - [In Development]
  *
  * <p>BlockHighlightCallback - BlockHighlightPlayer
  *
- * <p>MapDataCallback - MapIntegratedPlayer
+ * <p>MapDataCallback - MapPlayer
  *
  * <p>ParallelVideoPlayer - [In Development]
  *
- * <p>ScoreboardCallback - ScoreboardIntegratedPlayer
+ * <p>ScoreboardCallback - ScoreboardPlayer
+ *
+ * <p>The VLCVideoPlayer directly uses VLC if it is supported in the platform. This includes Windows
+ * and MacOS operating systems. However, for Linux systems that are not supported (or any other odd
+ * ball operating systems), you have to use the JavaCVVideoPlayer players which are slower but very
+ * compatible.
  */
 public abstract class VLCVideoPlayer implements VideoPlayerContext {
 

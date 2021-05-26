@@ -29,7 +29,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallbackPrototype;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapIntegratedPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -149,7 +149,7 @@ public class VideoConfiguration extends AbstractConfiguration {
 
            */
           player =
-              MapIntegratedPlayer.builder()
+              MapPlayer.builder()
                   .setUrl(url)
                   .setCallback(callback)
                   .setWidth(width)

@@ -26,20 +26,18 @@ import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCallbackPrototype;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
-import java.util.Collection;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it in chat.
  */
-public class ChatIntegratedPlayer extends VLCVideoPlayer {
+public class ChatPlayer extends VLCVideoPlayer {
 
   /**
-   * Instantiates a new ChatIntegratedPlayer.
+   * Instantiates a new ChatPlayer.
    *
    * @param library the library
    * @param url the url
@@ -47,7 +45,7 @@ public class ChatIntegratedPlayer extends VLCVideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public ChatIntegratedPlayer(
+  public ChatPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
       @NotNull final ChatCallbackPrototype callback,
@@ -58,7 +56,7 @@ public class ChatIntegratedPlayer extends VLCVideoPlayer {
   }
 
   /**
-   * Instantiates a new ChatIntegratedPlayer.
+   * Instantiates a new ChatPlayer.
    *
    * @param library the library
    * @param file the file
@@ -66,7 +64,7 @@ public class ChatIntegratedPlayer extends VLCVideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public ChatIntegratedPlayer(
+  public ChatPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final Path file,
       @NotNull final EntityCallbackPrototype callback,
@@ -84,22 +82,6 @@ public class ChatIntegratedPlayer extends VLCVideoPlayer {
    */
   public static Builder builder() {
     return new Builder();
-  }
-
-  /**
-   * Starts player.
-   *
-   * @param players which players to play the audio for
-   */
-  @Override
-  public void start(@NotNull final Collection<? extends Player> players) {
-    super.start(players);
-  }
-
-  /** Releases the media player. */
-  @Override
-  public void release() {
-    super.release();
   }
 
   /** The type Builder. */
@@ -132,8 +114,8 @@ public class ChatIntegratedPlayer extends VLCVideoPlayer {
       return this;
     }
 
-    public ChatIntegratedPlayer build(@NotNull final MediaLibrary library) {
-      return new ChatIntegratedPlayer(library, url, callback, width, height);
+    public ChatPlayer build(@NotNull final MediaLibrary library) {
+      return new ChatPlayer(library, url, callback, width, height);
     }
   }
 }
