@@ -34,7 +34,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.BasicVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
@@ -333,7 +333,7 @@ public class VideoCommand extends BaseCommand {
                     NamedTextColor.GOLD)));
     final MediaLibrary library = getPlugin().getLibrary();
 
-    final VideoPlayer player = attributes.getPlayer();
+    final BasicVideoPlayer player = attributes.getPlayer();
     if (player != null && player.isPlaying()) {
       player.stop(Bukkit.getOnlinePlayers());
     }

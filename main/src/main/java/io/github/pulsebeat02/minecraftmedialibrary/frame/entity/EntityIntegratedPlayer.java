@@ -23,7 +23,7 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.entity;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.BasicVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -37,7 +37,7 @@ import java.util.Collection;
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it on entities.
  */
-public class EntityIntegratedPlayer extends VideoPlayer {
+public class EntityIntegratedPlayer extends BasicVideoPlayer {
 
   private final Location location;
   private final Entity[] entities;

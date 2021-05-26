@@ -24,7 +24,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.frame.parallel;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.BasicVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.FilterLiteDither;
 import io.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
@@ -101,7 +101,7 @@ import java.util.concurrent.CompletableFuture;
  * This is currently a VideoPlayer in progress. It will not function at all. Please wait as I try to
  * develop it.
  */
-public class ParallelVideoPlayer extends VideoPlayer {
+public class ParallelVideoPlayer extends BasicVideoPlayer {
 
   private final PacketHandler handler;
   private final DitherHolder holder;

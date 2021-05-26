@@ -1,24 +1,24 @@
 /*............................................................................................
- . Copyright © 2021 Brandon Li                                                               .
- .                                                                                           .
- . Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
- . software and associated documentation files (the “Software”), to deal in the Software     .
- . without restriction, including without limitation the rights to use, copy, modify, merge, .
- . publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
- . persons to whom the Software is furnished to do so, subject to the following conditions:  .
- .                                                                                           .
- . The above copyright notice and this permission notice shall be included in all copies     .
- . or substantial portions of the Software.                                                  .
- .                                                                                           .
- . THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
- .  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
- .   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
- .   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
- .   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
- .   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
- .   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
- .   SOFTWARE.                                                                               .
- ............................................................................................*/
+. Copyright © 2021 Brandon Li                                                               .
+.                                                                                           .
+. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
+. software and associated documentation files (the “Software”), to deal in the Software     .
+. without restriction, including without limitation the rights to use, copy, modify, merge, .
+. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
+. persons to whom the Software is furnished to do so, subject to the following conditions:  .
+.                                                                                           .
+. The above copyright notice and this permission notice shall be included in all copies     .
+. or substantial portions of the Software.                                                  .
+.                                                                                           .
+. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
+.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
+.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
+.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
+.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
+.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
+.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
+.   SOFTWARE.                                                                               .
+............................................................................................*/
 
 package io.github.pulsebeat02.minecraftmedialibrary.frame;
 
@@ -31,6 +31,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
+import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.CallbackVideoSurface;
 import uk.co.caprica.vlcj.player.embedded.videosurface.LinuxVideoSurfaceAdapter;
@@ -66,7 +67,7 @@ import java.util.function.Consumer;
  *
  * <p>ScoreboardCallback - ScoreboardIntegratedPlayer
  */
-public abstract class VideoPlayer implements VideoPlayerContext {
+public abstract class BasicVideoPlayer implements VideoPlayerContext {
 
   private final MediaLibrary library;
   private final VideoSurfaceAdapter adapter;
@@ -76,6 +77,7 @@ public abstract class VideoPlayer implements VideoPlayerContext {
   private final String sound;
 
   private EmbeddedMediaPlayer mediaPlayerComponent;
+  private Collection<Player> watchers;
   private boolean playing;
   private int width;
   private int height;
@@ -89,7 +91,7 @@ public abstract class VideoPlayer implements VideoPlayerContext {
    * @param height the height
    * @param callback the callback
    */
-  public VideoPlayer(
+  public BasicVideoPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
       final int width,
@@ -123,7 +125,7 @@ public abstract class VideoPlayer implements VideoPlayerContext {
    * @param height the height
    * @param callback the callback
    */
-  public VideoPlayer(
+  public BasicVideoPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final Path file,
       final int width,
@@ -231,6 +233,7 @@ public abstract class VideoPlayer implements VideoPlayerContext {
     for (final Player p : players) {
       p.playSound(p.getLocation(), sound, 1.0F, 1.0F);
     }
+    watchers.addAll(players);
     Logger.info(String.format("Started Playing the Video! (%s)", url));
   }
 
@@ -255,7 +258,24 @@ public abstract class VideoPlayer implements VideoPlayerContext {
   @Override
   public void setRepeat(final boolean setting) {
     mediaPlayerComponent.controls().setRepeat(setting);
+    if (setting) {
+      mediaPlayerComponent
+          .events()
+          .addMediaPlayerEventListener(
+              new MediaPlayerEventAdapter() {
+                @Override
+                public void finished(@NotNull final MediaPlayer mediaPlayer) {
+                  playAudio(watchers);
+                }
+              });
+    }
     Logger.info(String.format("Set Setting Loop to (%s)! (%s)", setting, url));
+  }
+
+  private void playAudio(@NotNull final Collection<? extends Player> players) {
+    for (final Player p : players) {
+      p.playSound(p.getLocation(), sound, 1.0F, 1.0F);
+    }
   }
 
   @Override
@@ -272,7 +292,7 @@ public abstract class VideoPlayer implements VideoPlayerContext {
      *
      * @param player the VideoPlayer
      */
-    public MinecraftVideoRenderCallback(@NotNull final VideoPlayer player) {
+    public MinecraftVideoRenderCallback(@NotNull final BasicVideoPlayer player) {
       super(new int[player.getWidth() * player.getHeight()]);
       callback = player.getCallback()::send;
     }

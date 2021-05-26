@@ -24,7 +24,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.frame.gif;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.BasicVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.ImageUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
@@ -45,7 +45,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class GIFIntegratedPlayer extends VideoPlayer {
+public class GIFIntegratedPlayer extends BasicVideoPlayer {
 
   private final List<BufferedImage> images;
   private final float frameDuration;

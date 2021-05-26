@@ -22,24 +22,25 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.video;
 
-import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
+
+import javax.imageio.ImageIO;
+import java.io.ByteArrayInputStream;
 
 public class JavaCVTest {
 
   public static void main(final String[] args) throws Exception {
-    final OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(1);
+    final FrameGrabber grabber = new OpenCVFrameGrabber("");
     grabber.start();
-    final CanvasFrame cFrame =
-        new CanvasFrame("Capture Preview", CanvasFrame.getDefaultGamma() / grabber.getGamma());
     Frame frame;
     while ((frame = grabber.grab()) != null) {
-      if (cFrame.isVisible()) {
-        final byte[] buffer = frame.data.array();
-      }
+      final int width = frame.imageWidth;
+      final int[] rgb =
+          ImageIO.read(new ByteArrayInputStream(frame.data.array()))
+              .getRGB(0, 0, width, frame.imageHeight, null, 0, width);
     }
-    cFrame.dispose();
     grabber.stop();
   }
 }

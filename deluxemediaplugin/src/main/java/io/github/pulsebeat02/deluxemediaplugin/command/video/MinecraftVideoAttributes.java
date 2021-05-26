@@ -23,7 +23,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.BasicVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,7 @@ public class MinecraftVideoAttributes {
   private final AtomicBoolean completion;
   private DitherHolder dither;
   private YoutubeExtraction extractor;
-  private VideoPlayer player;
+  private BasicVideoPlayer player;
   private File file;
   private boolean youtube;
   private VideoType mode;
@@ -73,11 +73,11 @@ public class MinecraftVideoAttributes {
     this.extractor = extractor;
   }
 
-  public VideoPlayer getPlayer() {
+  public BasicVideoPlayer getPlayer() {
     return player;
   }
 
-  public void setPlayer(final VideoPlayer player) {
+  public void setPlayer(final BasicVideoPlayer player) {
     this.player = player;
   }
 
