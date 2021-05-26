@@ -49,7 +49,9 @@ publishing {
     }
     repositories {
         maven {
-            name = "OSSRH"
+            url = if (version.toString()
+                    .endsWith("SNAPSHOT")
+            ) uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") else uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
             setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2")
             credentials {
                 username = System.getenv("OSSRH_USER") ?: return@credentials
@@ -57,15 +59,12 @@ publishing {
             }
         }
     }
-}
-
-configure(subprojects) {
-    apply<SigningPlugin>()
-    configure<SigningExtension> {
-        val key = System.getenv("SIGNING_KEY") ?: return@configure
-        val password = System.getenv("SIGNING_PASSWORD") ?: return@configure
+    signing {
         val publishing: PublishingExtension by project
-        useInMemoryPgpKeys(key, password)
+        useInMemoryPgpKeys(
+            System.getenv("SIGNING_KEY") ?: return@signing,
+            System.getenv("SIGNING_PASSWORD") ?: return@signing
+        )
         sign(publishing.publications)
     }
 }
