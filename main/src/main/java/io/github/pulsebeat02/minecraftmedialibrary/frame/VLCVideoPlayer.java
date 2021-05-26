@@ -67,7 +67,7 @@ import java.util.function.Consumer;
  *
  * <p>ScoreboardCallback - ScoreboardIntegratedPlayer
  */
-public abstract class BasicVideoPlayer implements VideoPlayerContext {
+public abstract class VLCVideoPlayer implements VideoPlayerContext {
 
   private final MediaLibrary library;
   private final VideoSurfaceAdapter adapter;
@@ -91,7 +91,7 @@ public abstract class BasicVideoPlayer implements VideoPlayerContext {
    * @param height the height
    * @param callback the callback
    */
-  public BasicVideoPlayer(
+  public VLCVideoPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
       final int width,
@@ -125,7 +125,7 @@ public abstract class BasicVideoPlayer implements VideoPlayerContext {
    * @param height the height
    * @param callback the callback
    */
-  public BasicVideoPlayer(
+  public VLCVideoPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final Path file,
       final int width,
@@ -292,7 +292,7 @@ public abstract class BasicVideoPlayer implements VideoPlayerContext {
      *
      * @param player the VideoPlayer
      */
-    public MinecraftVideoRenderCallback(@NotNull final BasicVideoPlayer player) {
+    public MinecraftVideoRenderCallback(@NotNull final VLCVideoPlayer player) {
       super(new int[player.getWidth() * player.getHeight()]);
       callback = player.getCallback()::send;
     }

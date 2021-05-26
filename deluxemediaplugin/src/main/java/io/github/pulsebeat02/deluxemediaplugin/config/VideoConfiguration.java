@@ -24,7 +24,7 @@ package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.BasicVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class VideoConfiguration extends AbstractConfiguration {
 
-  private BasicVideoPlayer player;
+  private VLCVideoPlayer player;
   private MapDataCallback callback;
 
   public VideoConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
@@ -161,7 +161,7 @@ public class VideoConfiguration extends AbstractConfiguration {
     }
   }
 
-  public BasicVideoPlayer getPlayer() {
+  public VLCVideoPlayer getPlayer() {
     return player;
   }
 

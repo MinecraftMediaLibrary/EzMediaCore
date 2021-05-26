@@ -23,7 +23,7 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.map;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.BasicVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +33,7 @@ import java.nio.file.Path;
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it on maps.
  */
-public class MapIntegratedPlayer extends BasicVideoPlayer {
+public class MapIntegratedPlayer extends VLCVideoPlayer {
 
   /**
    * Instantiates a new MapIntegratedPlayer.

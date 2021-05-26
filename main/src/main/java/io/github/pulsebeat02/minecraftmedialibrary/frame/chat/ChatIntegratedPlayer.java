@@ -23,7 +23,7 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.chat;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.BasicVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCallbackPrototype;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.entity.Player;
@@ -36,7 +36,7 @@ import java.util.Collection;
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it in chat.
  */
-public class ChatIntegratedPlayer extends BasicVideoPlayer {
+public class ChatIntegratedPlayer extends VLCVideoPlayer {
 
   /**
    * Instantiates a new ChatIntegratedPlayer.
