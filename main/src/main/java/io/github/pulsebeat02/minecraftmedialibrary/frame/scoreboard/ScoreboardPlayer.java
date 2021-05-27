@@ -23,36 +23,55 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.FrameGrabberType;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.JavaCVVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.file.Path;
+
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
- * specific function from native libraries. It renders it in a scoreboard.
+ * specific function from native libraries. It renders it in a scoreboard. Linux compatible.
  */
-public class ScoreboardPlayer extends JavaCVVideoPlayer {
+public class ScoreboardPlayer extends VLCVideoPlayer {
 
   /**
    * Instantiates a new ScoreboardPlayer.
    *
    * @param library the library
-   * @param type the type
-   * @param arg the arg
+   * @param url the url
    * @param width the width
    * @param height the height
    * @param callback the callback
    */
   public ScoreboardPlayer(
       @NotNull final MediaLibrary library,
-      @NotNull final FrameGrabberType type,
-      @NotNull final Object arg,
+      @NotNull final String url,
       @NotNull final ScoreboardCallback callback,
       final int width,
       final int height) {
-    super(library, type, arg, width, height, callback);
-    Logger.info(String.format("Created a Scoreboard Integrated Video Player (%s)", arg));
+    super(library, url, width, height, callback);
+    Logger.info(String.format("Created a Scoreboard Integrated Video Player (%s)", url));
+  }
+
+  /**
+   * Instantiates a new ScoreboardPlayer.
+   *
+   * @param library the library
+   * @param file the file
+   * @param width the width
+   * @param height the height
+   * @param callback the callback
+   */
+  public ScoreboardPlayer(
+      @NotNull final MediaLibrary library,
+      @NotNull final Path file,
+      @NotNull final ScoreboardCallback callback,
+      final int width,
+      final int height) {
+    super(library, file, width, height, callback);
+    Logger.info(
+        String.format("Created a Scoreboard Integrated Video Player (%s)", file.toAbsolutePath()));
   }
 
   /**
@@ -71,8 +90,6 @@ public class ScoreboardPlayer extends JavaCVVideoPlayer {
     private int width = 10;
     private int height = 10;
     private ScoreboardCallback callback;
-    private FrameGrabberType type;
-    private Object arg;
 
     private Builder() {}
 
@@ -96,18 +113,8 @@ public class ScoreboardPlayer extends JavaCVVideoPlayer {
       return this;
     }
 
-    public Builder setVideoType(final FrameGrabberType type) {
-      this.type = type;
-      return this;
-    }
-
-    public Builder setArgument(final Object arg) {
-      this.arg = arg;
-      return this;
-    }
-
     public ScoreboardPlayer build(@NotNull final MediaLibrary library) {
-      return new ScoreboardPlayer(library, type, arg, callback, width, height);
+      return new ScoreboardPlayer(library, url, callback, width, height);
     }
   }
 }
