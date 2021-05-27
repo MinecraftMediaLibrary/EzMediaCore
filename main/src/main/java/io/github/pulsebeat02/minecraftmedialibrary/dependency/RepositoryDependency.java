@@ -90,7 +90,7 @@ public enum RepositoryDependency {
       DependencyResolution.MAVEN_DEPENDENCY),
 
   /** JavaCV Maven Dependency */
-  JAVACV("org{}bytedeco", "javacv-platform", "1{]5{}5", DependencyResolution.MAVEN_DEPENDENCY),
+  JAVACV("org{}bytedeco", "javacv-platform", "1{}5{}5", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** JavaCPP Maven Dependency */
   JAVACPP("org{}bytedeco", "javacpp", "1{}5{}5", DependencyResolution.MAVEN_DEPENDENCY);

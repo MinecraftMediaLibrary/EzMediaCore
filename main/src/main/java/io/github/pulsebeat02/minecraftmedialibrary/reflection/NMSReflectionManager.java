@@ -58,7 +58,7 @@ public final class NMSReflectionManager {
       final Class<?> clazz =
           Class.forName(
               String.format(
-                  "com.github.pulsebeat02.minecraftmedialibrary.nms.impl.%s.NMSMapPacketIntercepter",
+                  "io.github.pulsebeat02.minecraftmedialibrary.nms.impl.%s.NMSMapPacketIntercepter",
                   VERSION));
       return (PacketHandler) clazz.getDeclaredConstructor().newInstance();
     } catch (final ClassNotFoundException

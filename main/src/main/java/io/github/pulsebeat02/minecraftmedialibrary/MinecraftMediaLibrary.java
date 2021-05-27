@@ -88,23 +88,27 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
       final boolean isUsingVLCJ) {
     this.plugin = plugin;
     Logger.initializeLogger(this);
-    protocol =
-        new TinyProtocol(plugin) {
-          @Override
-          public Object onPacketOutAsync(
-              final Player player, final Channel channel, final Object packet) {
-            return handler.onPacketInterceptOut(player, packet);
-          }
+    handler = NMSReflectionManager.getNewPacketHandlerInstance();
+    if (handler != null) {
+      protocol =
+          new TinyProtocol(plugin) {
+            @Override
+            public Object onPacketOutAsync(
+                final Player player, final Channel channel, final Object packet) {
+              return handler.onPacketInterceptOut(player, packet);
+            }
 
-          @Override
-          public Object onPacketInAsync(
-              final Player player, final Channel channel, final Object packet) {
-            return handler.onPacketInterceptIn(player, packet);
-          }
-        };
+            @Override
+            public Object onPacketInAsync(
+                final Player player, final Channel channel, final Object packet) {
+              return handler.onPacketInterceptIn(player, packet);
+            }
+          };
+    } else {
+      protocol = null;
+    }
     handle = new LibraryPathHandle(plugin, http, libraryPath, vlcPath, imagePath, audioPath);
     vlcj = isUsingVLCJ;
-    handler = NMSReflectionManager.getNewPacketHandlerInstance();
     registrationHandler = new PlayerJoinLeaveRegistration(this);
     Logger.info(DebuggerUtilities.getPluginDebugInfo(this));
     Logger.info(DebuggerUtilities.getSystemDebugInfo(this));

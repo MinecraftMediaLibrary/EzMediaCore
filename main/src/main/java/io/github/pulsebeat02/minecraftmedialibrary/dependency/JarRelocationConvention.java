@@ -34,44 +34,44 @@ import org.jetbrains.annotations.NotNull;
 public enum JarRelocationConvention {
 
   /** VLCJ Jar Relocation Convention */
-  VLCJ("uk{}co{}caprica{}vlcj", "com{}github{}pulsebeat02{}vlcj"),
+  VLCJ("uk{}co{}caprica{}vlcj", "io{}github{}pulsebeat02{}vlcj"),
 
   /** VLCJ Natives Jar Relocation Convention */
-  VLCJ_NATIVES("uk{}co{}caprica{}vlcj{}binding", "com{}github{}pulsebeat02{}vlcj{}binding"),
+  VLCJ_NATIVES("uk{}co{}caprica{}vlcj{}binding", "io{}github{}pulsebeat02{}vlcj{}binding"),
 
   /** VLCJ NativeStreams Jar Relocation Convention */
   VLCJ_NATIVE_STREAMS(
-      "uk{}co{}caprica{}nativestreams", "com{}github{}pulsebeat02{}vlcj{}nativestreams"),
+      "uk{}co{}caprica{}nativestreams", "io{}github{}pulsebeat02{}vlcj{}nativestreams"),
 
   /** Youtube Downloader Jar Relocation Convention */
-  YOUTUBE_DOWNLOADER("com{}github{}kiulian{}downloader", "com{}github{}pulsebeat02{}youtube"),
+  YOUTUBE_DOWNLOADER("com{}github{}kiulian{}downloader", "io{}github{}pulsebeat02{}youtube"),
 
   /** Jave Core Jar Relocation Convention */
-  JAVE_CORE("ws{}schild{}jave", "com{}github{}pulsebeat02{}jave"),
+  JAVE_CORE("ws{}schild{}jave", "io{}github{}pulsebeat02{}jave"),
 
   /** Apache Commons Compression Jar Relocation Convention */
-  COMMONS_COMPRESSION("org{}apache{}commons{}compress", "com{}github{}pulsebeat02{}compress"),
+  COMMONS_COMPRESSION("org{}apache{}commons{}compress", "io{}github{}pulsebeat02{}compress"),
 
   /** Compression Jar Relocation Convention */
-  COMPRESSION("org{}rauschig{}jarchivelib", "com{}github{}pulsebeat02{}jarchivelib"),
+  COMPRESSION("org{}rauschig{}jarchivelib", "io{}github{}pulsebeat02{}jarchivelib"),
 
   /** Compress XZ Jar Relocation Convention */
-  XZ("org{}tukaani.xz", "com{}github{}pulsebeat02{}xz"),
+  XZ("org{}tukaani.xz", "io{}github{}pulsebeat02{}xz"),
 
   /** ASM Jar Relocation Convention */
-  ASM("org{}ow2{}asm", "com{}github{}pulsebeat02{}asm"),
+  ASM("org{}ow2{}asm", "io{}github{}pulsebeat02{}asm"),
 
   /** ASM Commons Jar Relocation Convention */
-  ASM_COMMONS("org{}ow2{}asm{}commons", "com{}github{}pulsebeat02{}asm{}commons"),
+  ASM_COMMONS("org{}ow2{}asm{}commons", "io{}github{}pulsebeat02{}asm{}commons"),
 
   /** Fast JSON Jar Relocation Convention */
-  FAST_JSON("com{}alibaba{}fastjson", "com{}github{}pulsebeat02{}fastjson"),
+  FAST_JSON("com{}alibaba{}fastjson", "io{}github{}pulsebeat02{}fastjson"),
 
   /** Spotify Jar Relocation Convention */
-  SPOTIFY("com{}wrapper{}spotify", "com{}github{}pulsebeat02{}spotify"),
+  SPOTIFY("com{}wrapper{}spotify", "io{}github{}pulsebeat02{}spotify"),
 
   /** ByteDeco Jar Relocation Convention */
-  BYTEDECO("org{}bytedeco", "com{}github{}pulsebeat02{}bytedeco");
+  BYTEDECO("org{}bytedeco", "io{}github{}pulsebeat02{}bytedeco");
 
   private final Relocation relocation;
 

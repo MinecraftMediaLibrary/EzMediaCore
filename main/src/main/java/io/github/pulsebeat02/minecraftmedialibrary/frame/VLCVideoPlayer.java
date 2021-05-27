@@ -45,6 +45,7 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32Buffe
 
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Consumer;
 
@@ -82,7 +83,7 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
   private final String sound;
 
   private EmbeddedMediaPlayer mediaPlayerComponent;
-  private Collection<Player> watchers;
+  private final Collection<Player> watchers;
   private boolean playing;
   private int width;
   private int height;
@@ -118,6 +119,7 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
                 ? new OsxVideoSurfaceAdapter()
                 : new LinuxVideoSurfaceAdapter();
     sound = getLibrary().getPlugin().getName().toLowerCase();
+    watchers = new ArrayList<>();
     initializePlayer();
   }
 
@@ -158,7 +160,7 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
                 renderCallback,
                 false,
                 adapter));
-    mediaPlayerComponent.audio().mute();
+    mediaPlayerComponent.audio().setMute(true);
   }
 
   @Override
