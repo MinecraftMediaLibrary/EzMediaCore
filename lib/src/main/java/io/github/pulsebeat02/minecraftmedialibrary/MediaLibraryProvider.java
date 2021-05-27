@@ -26,7 +26,18 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.ref.WeakReference;
+import java.util.Map;
+import java.util.WeakHashMap;
+
 public final class MediaLibraryProvider {
+
+  /** Instantiation set. Only one plugin should have one media library associated with such. */
+  private static final Map<Plugin, WeakReference<MediaLibrary>> instantiated;
+
+  static {
+    instantiated = new WeakHashMap<>();
+  }
 
   private MediaLibraryProvider() {}
 
@@ -37,7 +48,7 @@ public final class MediaLibraryProvider {
    * @return a new MediaLibrary instance
    */
   public static MediaLibrary create(final Plugin plugin) {
-    return new MinecraftMediaLibrary(plugin);
+    return checkValidity(plugin, new MinecraftMediaLibrary(plugin));
   }
 
   /**
@@ -60,7 +71,45 @@ public final class MediaLibraryProvider {
       @Nullable final String imagePath,
       @Nullable final String audioPath,
       final boolean isUsingVLCJ) {
-    return new MinecraftMediaLibrary(
-        plugin, http, libraryPath, vlcPath, imagePath, audioPath, isUsingVLCJ);
+    return checkValidity(
+        plugin,
+        new MinecraftMediaLibrary(
+            plugin, http, libraryPath, vlcPath, imagePath, audioPath, isUsingVLCJ));
+  }
+
+  /**
+   * Checks if the plugin has the library instantiated.
+   *
+   * @param plugin the plugin
+   * @return whether the library is instantiated for the plugin
+   */
+  public static boolean getLibraryStatus(@NotNull final Plugin plugin) {
+    return instantiated.containsKey(plugin);
+  }
+
+  /**
+   * Gets the library instance.
+   *
+   * @param plugin the plugin
+   * @return the library instance
+   */
+  public static MediaLibrary getLibraryInstance(@NotNull final Plugin plugin) {
+    return instantiated.get(plugin).get();
+  }
+
+  /**
+   * Checks the validity of the plugin, and see if an instance was created.
+   *
+   * @param plugin the plugin
+   */
+  private static MediaLibrary checkValidity(final Plugin plugin, final MediaLibrary library) {
+    final String id = plugin.getName();
+    if (instantiated.containsKey(plugin)) {
+      throw new IllegalStateException(
+          String.format(
+              "Plugin %s cannot instantiate MinecraftMediaLibrary twice!", plugin.getName()));
+    }
+    instantiated.put(plugin, new WeakReference<>(library));
+    return library;
   }
 }
