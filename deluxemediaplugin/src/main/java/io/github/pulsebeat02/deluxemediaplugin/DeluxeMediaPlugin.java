@@ -104,8 +104,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       logger.severe(
           "WARNING: MinecraftMediaLibrary instance is null... something is fishy going on.");
     }
-    final Set<BaseCommand> cmds = handler.getCommands();
-    if (cmds != null) {
+    if (handler != null) {
       for (final BaseCommand cmd : handler.getCommands()) {
         CommandUtilities.unRegisterBukkitCommand(this, cmd);
       }
