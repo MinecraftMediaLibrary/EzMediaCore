@@ -56,10 +56,10 @@ public final class DependencyInstantiation {
   public void startTasks() {
     assignClassLoader();
     try {
-      CompletableFuture.allOf(
-              CompletableFuture.runAsync(this::loadDependencies).thenRunAsync(this::loadVLC),
-              CompletableFuture.runAsync(this::loadFfmpeg))
-          .get();
+      final CompletableFuture<Void> future = CompletableFuture.runAsync(this::loadFfmpeg);
+      loadDependencies();
+      loadVLC();
+      future.get();
     } catch (final InterruptedException | ExecutionException e) {
       e.printStackTrace();
     }
