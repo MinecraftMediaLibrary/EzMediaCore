@@ -20,65 +20,9 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.frame.dither;
+package io.github.pulsebeat02.minecraftmedialibrary.frame;
 
-import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.development.DynamicIntegerDithering;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-/** An enum to store the possible dithering modes the user can take. */
-public enum DitherSetting {
-
-  /** Standard Minecraft Dithering */
-  STANDARD_MINECRAFT_DITHER(new StandardDithering()),
-
-  /** Sierra Filter Lite Dithering */
-  SIERRA_FILTER_LITE_DITHER(new FilterLiteDither()),
-
-  /** Bayer Ordered 2 Dimensional Dithering */
-  BAYER_ORDERED_2_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.ModeTwo)),
-
-  /** Bayer Ordered 4 Dimensional Dithering */
-  BAYER_ORDERED_4_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.ModeFour)),
-
-  /** Bayer Ordered 8 Dimensional Dithering */
-  BAYER_ORDERED_8_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.ModeEight)),
-
-  /** Floyd Steinberg Dithering */
-  FLOYD_STEINBERG_DITHER(new FloydImageDither()),
-
-  /** Experimental Dithering */
-  EXPERIMENTAL_DITHERING(new DynamicIntegerDithering());
-
-  private final DitherHolder holder;
-
-  DitherSetting(@NotNull final DitherHolder holder) {
-    this.holder = holder;
-  }
-
-  /**
-   * Returns DitherSetting from String.
-   *
-   * @param str input
-   * @return setting
-   */
-  @Nullable
-  public static DitherSetting fromString(@NotNull final String str) {
-    final String search = str.toUpperCase();
-    for (final DitherSetting setting : values()) {
-      if (setting.name().equals(search)) {
-        return setting;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Gets holder.
-   *
-   * @return the holder
-   */
-  public DitherHolder getHolder() {
-    return holder;
-  }
+public enum FrameGrabberType {
+  NORMAL_VIDEO,
+  CAMERA_OUTPUT
 }

@@ -23,55 +23,36 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.map;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.FrameGrabberType;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.JavaCVVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
-
-import java.nio.file.Path;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it on maps. Linux compatible.
  */
-public class LinuxMapPlayer extends VLCVideoPlayer {
+public class LinuxMapPlayer extends JavaCVVideoPlayer {
 
   /**
    * Instantiates a new LinuxMapPlayer.
    *
    * @param library the library
-   * @param url the url
+   * @param type the type
+   * @param arg the arg
    * @param width the width
    * @param height the height
    * @param callback the callback
    */
   public LinuxMapPlayer(
       @NotNull final MediaLibrary library,
-      @NotNull final String url,
+      @NotNull final FrameGrabberType type,
+      @NotNull final Object arg,
       @NotNull final MapDataCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, url, width, height, callback);
-    Logger.info(String.format("Created a VLCJ Integrated Itemframe Video Player (%s)", url));
-  }
-
-  /**
-   * Instantiates a new LinuxMapPlayer.
-   *
-   * @param library the library
-   * @param file the file
-   * @param width the width
-   * @param height the height
-   * @param callback the callback
-   */
-  public LinuxMapPlayer(
-      @NotNull final MediaLibrary library,
-      @NotNull final Path file,
-      @NotNull final MapDataCallbackPrototype callback,
-      final int width,
-      final int height) {
-    super(library, file, width, height, callback);
-    Logger.info(
-        String.format("Created a VLCJ Integrated Video Player (%s)", file.toAbsolutePath()));
+    super(library, type, arg, width, height, callback);
+    Logger.info(String.format("Created a VLCJ Integrated Itemframe Video Player (%s)", arg));
   }
 
   /**
@@ -90,6 +71,8 @@ public class LinuxMapPlayer extends VLCVideoPlayer {
     private int width = 5;
     private int height = 5;
     private MapDataCallbackPrototype callback;
+    private FrameGrabberType type;
+    private Object arg;
 
     private Builder() {}
 
@@ -113,8 +96,18 @@ public class LinuxMapPlayer extends VLCVideoPlayer {
       return this;
     }
 
+    public Builder setVideoType(final FrameGrabberType type) {
+      this.type = type;
+      return this;
+    }
+
+    public Builder setArgument(final Object arg) {
+      this.arg = arg;
+      return this;
+    }
+
     public LinuxMapPlayer build(@NotNull final MediaLibrary library) {
-      return new LinuxMapPlayer(library, url, callback, width, height);
+      return new LinuxMapPlayer(library, type, arg, callback, width, height);
     }
   }
 }

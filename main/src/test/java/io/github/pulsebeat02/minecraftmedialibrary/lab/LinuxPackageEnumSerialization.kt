@@ -21,9 +21,9 @@
  ............................................................................................*/
 package io.github.pulsebeat02.minecraftmedialibrary.lab
 
-import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxPackage
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxPackage
 
 fun main() {
     val gson = GsonBuilder().setPrettyPrinting().create()

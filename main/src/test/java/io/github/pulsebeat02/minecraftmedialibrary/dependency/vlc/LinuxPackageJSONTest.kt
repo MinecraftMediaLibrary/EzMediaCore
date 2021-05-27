@@ -21,8 +21,6 @@
  ............................................................................................*/
 package io.github.pulsebeat02.minecraftmedialibrary.dependency.vlc
 
-import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxOSPackages
-import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxPackage
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.ListMultimap
 import com.google.common.reflect.TypeToken
@@ -31,6 +29,8 @@ import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
+import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxOSPackages
+import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxPackage
 import org.apache.commons.io.IOUtils
 import java.io.IOException
 import java.nio.charset.StandardCharsets

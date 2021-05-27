@@ -22,8 +22,6 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.natives
 
-import io.github.pulsebeat02.minecraftmedialibrary.natives.NativeFilterLiteDither
-
 fun main() {
     NativeFilterLiteDither()
 }

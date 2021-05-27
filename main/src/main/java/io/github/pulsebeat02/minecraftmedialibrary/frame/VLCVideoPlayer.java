@@ -81,9 +81,8 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
   private final String url;
   private final FrameCallback callback;
   private final String sound;
-
-  private EmbeddedMediaPlayer mediaPlayerComponent;
   private final Collection<Player> watchers;
+  private EmbeddedMediaPlayer mediaPlayerComponent;
   private boolean playing;
   private int width;
   private int height;

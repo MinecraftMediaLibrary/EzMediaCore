@@ -23,7 +23,6 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.entity.Player;
@@ -35,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.imageio.ImageIO;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
@@ -66,9 +64,10 @@ import java.util.concurrent.CompletableFuture;
 public abstract class JavaCVVideoPlayer implements VideoPlayerContext {
 
   private final MediaLibrary library;
-  private final String url;
+  private final Object arg;
   private final FrameCallback callback;
   private final String sound;
+  private final FrameGrabberType type;
   private FrameGrabber grabber;
 
   private boolean playing;
@@ -80,45 +79,43 @@ public abstract class JavaCVVideoPlayer implements VideoPlayerContext {
    * Instantiates a new Abstract video player.
    *
    * @param library the library
-   * @param url the url
+   * @param type the type of video playback
+   * @param arg the argument
    * @param width the width
    * @param height the height
    * @param callback the callback
    */
   public JavaCVVideoPlayer(
       @NotNull final MediaLibrary library,
-      @NotNull final String url,
+      @NotNull final FrameGrabberType type,
+      @NotNull final Object arg,
       final int width,
       final int height,
       @NotNull final FrameCallback callback) {
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
     Preconditions.checkArgument(width > 0, String.format("Width is not valid! (%d)", width));
     Preconditions.checkArgument(height > 0, String.format("Height is not valid! (%d)", height));
     this.library = library;
-    this.url = url;
+    this.arg = arg;
     this.width = width;
     this.height = height;
     this.callback = callback;
+    this.type = type;
     sound = getLibrary().getPlugin().getName().toLowerCase();
-    grabber = new OpenCVFrameGrabber(url);
+    initializePlayer();
   }
 
-  /**
-   * Instantiates a new Abstract video player.
-   *
-   * @param library the library
-   * @param file the file
-   * @param width the width
-   * @param height the height
-   * @param callback the callback
-   */
-  public JavaCVVideoPlayer(
-      @NotNull final MediaLibrary library,
-      @NotNull final Path file,
-      final int width,
-      final int height,
-      @NotNull final FrameCallback callback) {
-    this(library, file.toAbsolutePath().toString(), width, height, callback);
+  private void initializePlayer() {
+    switch (type) {
+      case NORMAL_VIDEO:
+        grabber = new OpenCVFrameGrabber((String) arg);
+        break;
+      case CAMERA_OUTPUT:
+        grabber = new OpenCVFrameGrabber((int) arg);
+        break;
+      default:
+        grabber = new OpenCVFrameGrabber((String) arg);
+        break;
+    }
   }
 
   @Override
@@ -128,7 +125,7 @@ public abstract class JavaCVVideoPlayer implements VideoPlayerContext {
 
   @Override
   public String getUrl() {
-    return url;
+    return arg.toString();
   }
 
   @Override
@@ -165,7 +162,7 @@ public abstract class JavaCVVideoPlayer implements VideoPlayerContext {
   public void start(@NotNull final Collection<? extends Player> players) {
     playing = true;
     if (grabber == null) {
-      grabber = new OpenCVFrameGrabber(url);
+      initializePlayer();
     }
     CompletableFuture.runAsync(
             () -> {
@@ -195,7 +192,7 @@ public abstract class JavaCVVideoPlayer implements VideoPlayerContext {
               }
             });
     playAudio(players);
-    Logger.info(String.format("Started Playing the Video! (%s)", url));
+    Logger.info(String.format("Started Playing the Video! (%s)", arg));
   }
 
   @Override
@@ -211,7 +208,7 @@ public abstract class JavaCVVideoPlayer implements VideoPlayerContext {
     for (final Player p : players) {
       p.stopSound(sound);
     }
-    Logger.info(String.format("Stopped Playing the Video! (%s)", url));
+    Logger.info(String.format("Stopped Playing the Video! (%s)", arg));
   }
 
   @Override
@@ -226,13 +223,13 @@ public abstract class JavaCVVideoPlayer implements VideoPlayerContext {
       }
       grabber = null;
     }
-    Logger.info(String.format("Released the Video! (%s)", url));
+    Logger.info(String.format("Released the Video! (%s)", arg));
   }
 
   @Override
   public void setRepeat(final boolean setting) {
     repeat = true;
-    Logger.info(String.format("Set Setting Loop to (%s)! (%s)", setting, url));
+    Logger.info(String.format("Set Setting Loop to (%s)! (%s)", setting, arg));
   }
 
   private void playAudio(@NotNull final Collection<? extends Player> players) {

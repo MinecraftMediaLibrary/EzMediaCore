@@ -22,7 +22,6 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.dependency
 
-import io.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation
 import java.io.File
 import java.nio.file.Paths
 

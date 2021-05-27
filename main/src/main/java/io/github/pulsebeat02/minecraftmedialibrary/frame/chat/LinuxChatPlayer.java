@@ -23,12 +23,10 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.chat;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.FrameGrabberType;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.JavaCVVideoPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCallbackPrototype;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
-
-import java.nio.file.Path;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
@@ -40,39 +38,21 @@ public class LinuxChatPlayer extends JavaCVVideoPlayer {
    * Instantiates a new LinuxChatPlayer.
    *
    * @param library the library
-   * @param url the url
+   * @param type the type
+   * @param arg the arg
    * @param width the width
    * @param height the height
    * @param callback the callback
    */
   public LinuxChatPlayer(
       @NotNull final MediaLibrary library,
-      @NotNull final String url,
+      @NotNull final FrameGrabberType type,
+      @NotNull final Object arg,
       @NotNull final ChatCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, url, width, height, callback);
-    Logger.info(String.format("Created a Chat Integrated Video Player (%s)", url));
-  }
-
-  /**
-   * Instantiates a new LinuxChatPlayer.
-   *
-   * @param library the library
-   * @param file the file
-   * @param width the width
-   * @param height the height
-   * @param callback the callback
-   */
-  public LinuxChatPlayer(
-      @NotNull final MediaLibrary library,
-      @NotNull final Path file,
-      @NotNull final EntityCallbackPrototype callback,
-      final int width,
-      final int height) {
-    super(library, file, width, height, callback);
-    Logger.info(
-        String.format("Created a Chat Integrated Video Player (%s)", file.toAbsolutePath()));
+    super(library, type, arg, width, height, callback);
+    Logger.info(String.format("Created a Chat Integrated Video Player (%s)", arg));
   }
 
   /**
@@ -91,6 +71,8 @@ public class LinuxChatPlayer extends JavaCVVideoPlayer {
     private int width = 15;
     private int height = 15;
     private ChatCallbackPrototype callback;
+    private FrameGrabberType type;
+    private Object arg;
 
     private Builder() {}
 
@@ -114,8 +96,18 @@ public class LinuxChatPlayer extends JavaCVVideoPlayer {
       return this;
     }
 
+    public Builder setVideoType(final FrameGrabberType type) {
+      this.type = type;
+      return this;
+    }
+
+    public Builder setArgument(final Object arg) {
+      this.arg = arg;
+      return this;
+    }
+
     public LinuxChatPlayer build(@NotNull final MediaLibrary library) {
-      return new LinuxChatPlayer(library, url, callback, width, height);
+      return new LinuxChatPlayer(library, type, arg, callback, width, height);
     }
   }
 }
