@@ -35,6 +35,8 @@ import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public final class VLCUtilities {
@@ -64,8 +66,8 @@ public final class VLCUtilities {
       throw new UnsupportedOperatingSystemException(
           "Couldn't find the correct method to discover VLC!");
     }
-    final Set<String> paths = provider.search();
-    paths.add(directory.getAbsolutePath());
+    final List<String> paths = new ArrayList<>(provider.search());
+    paths.add(0, directory.getAbsolutePath());
     for (final String path : paths) {
       if (discovery.discover(new File(path))) {
         return true;
