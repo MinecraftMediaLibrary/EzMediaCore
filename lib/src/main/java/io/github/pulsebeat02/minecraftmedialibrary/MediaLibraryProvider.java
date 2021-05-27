@@ -23,6 +23,7 @@
 package io.github.pulsebeat02.minecraftmedialibrary;
 
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -85,6 +86,16 @@ public final class MediaLibraryProvider {
    */
   public static boolean getLibraryStatus(@NotNull final Plugin plugin) {
     return instantiated.containsKey(plugin);
+  }
+
+  /**
+   * Checks if the plugin has the library instantiated.
+   *
+   * @param clazz the plugin class
+   * @return whether the library is instantiated for the plugin
+   */
+  public static <T extends JavaPlugin> boolean getLibraryStatus(@NotNull final Class<T> clazz) {
+    return instantiated.containsKey(JavaPlugin.getPlugin(clazz));
   }
 
   /**
