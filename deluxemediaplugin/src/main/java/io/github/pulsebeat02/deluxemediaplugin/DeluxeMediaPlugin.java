@@ -41,6 +41,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Constructor;
 import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -103,10 +104,12 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       logger.severe(
           "WARNING: MinecraftMediaLibrary instance is null... something is fishy going on.");
     }
-    for (final BaseCommand cmd : handler.getCommands()) {
-      CommandUtilities.unRegisterBukkitCommand(this, cmd);
+    final Set<BaseCommand> cmds = handler.getCommands();
+    if (cmds != null) {
+      for (final BaseCommand cmd : handler.getCommands()) {
+        CommandUtilities.unRegisterBukkitCommand(this, cmd);
+      }
     }
-
     logger.info("Enclosing MinecraftMediaLibrary and Plugin Successfully Shutdown");
   }
 
