@@ -9,6 +9,7 @@ plugins {
 
 dependencies {
     implementation(project(":main"))
+    implementation(project(":lib"))
     implementation("org.bstats:bstats-bukkit:1.8")
     implementation("com.mojang:brigadier:1.0.18")
     implementation("net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT")
@@ -18,12 +19,12 @@ dependencies {
 
 tasks.withType<ShadowJar> {
     archiveBaseName.set("DeluxeMediaPlugin")
-    relocate("net.kyori", "com.github.pulsebeat02.deluxemediaplugin.lib.kyori")
-    relocate("org.bstats", "com.github.pulsebeat02.deluxemediaplugin.lib.bstats")
-    relocate("com.mojang.brigadier", "com.github.pulsebeat02.deluxemediaplugin.lib.brigadier")
+    relocate("net.kyori", "io.github.pulsebeat02.deluxemediaplugin.lib.kyori")
+    relocate("org.bstats", "io.github.pulsebeat02.deluxemediaplugin.lib.bstats")
+    relocate("com.mojang.brigadier", "io.github.pulsebeat02.deluxemediaplugin.lib.brigadier")
     relocate(
-        "com.github.pulsebeat02.minecraftmedialibrary",
-        "com.github.pulsebeat02.deluxemediaplugin.lib.minecraftmedialibrary"
+        "io.github.pulsebeat02.minecraftmedialibrary",
+        "io.github.pulsebeat02.deluxemediaplugin.lib.minecraftmedialibrary"
     )
 
     relocate("uk.co.caprica.vlcj", "io.github.pulsebeat02.vlcj")

@@ -116,6 +116,7 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
     Bukkit.getPluginManager().registerEvents(registrationHandler, plugin);
     dependencyTasks();
     JavaVersionUtilities.sendWarningMessage();
+    Logger.info("Finished Initializing Library!");
   }
 
   /** Runs dependency tasks required. */

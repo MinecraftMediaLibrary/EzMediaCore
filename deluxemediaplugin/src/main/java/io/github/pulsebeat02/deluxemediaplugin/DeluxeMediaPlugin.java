@@ -31,6 +31,7 @@ import io.github.pulsebeat02.deluxemediaplugin.config.VideoConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.update.PluginUpdateChecker;
 import io.github.pulsebeat02.deluxemediaplugin.utility.CommandUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
+import io.github.pulsebeat02.minecraftmedialibrary.MediaLibraryProvider;
 import io.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bstats.bukkit.Metrics;
@@ -68,15 +69,17 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
       logger.info("Loading MinecraftMediaLibrary Instance...");
 
-      // Define a new MinecraftMediaLibrary Instance
-      final Optional<MediaLibrary> mediaLibrary = setupMediaLibrary();
+//      // Define a new MinecraftMediaLibrary Instance
+//      final Optional<MediaLibrary> mediaLibrary = setupMediaLibrary();
+//
+//      if (!mediaLibrary.isPresent()) {
+//        getServer().getPluginManager().disablePlugin(this);
+//        return;
+//      }
+//
+//      library = mediaLibrary.get();
 
-      if (!mediaLibrary.isPresent()) {
-        getServer().getPluginManager().disablePlugin(this);
-        return;
-      }
-
-      library = mediaLibrary.get();
+      library = MediaLibraryProvider.create(this);
 
       registerCommands();
       registerConfigurations();
