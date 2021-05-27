@@ -25,10 +25,10 @@ package io.github.pulsebeat02.minecraftmedialibrary.logger;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * The custom logger implementation that is used throughout the library. The log file can be found
@@ -38,10 +38,9 @@ import java.io.IOException;
 public final class Logger {
 
   /** Tracks whether log should be verbose */
-  public static boolean VERBOSE;
-
-  protected static volatile BufferedWriter WRITER;
-  protected static File LOGGER;
+  protected static boolean VERBOSE;
+  protected static volatile PrintWriter WRITER;
+  protected static File LOG_FILE;
 
   public static void initializeLogger(@NotNull final MediaLibrary library) {
     try {
@@ -49,13 +48,13 @@ public final class Logger {
       if (folder.mkdirs()) {
         System.out.println("Created Directory");
       }
-      LOGGER = new File(folder, "mml.log");
-      if (LOGGER.createNewFile()) {
-        System.out.printf("File Created (%s)%n", LOGGER.getName());
+      LOG_FILE = new File(folder, "mml.log");
+      if (LOG_FILE.createNewFile()) {
+        System.out.printf("File Created (%s)%n", LOG_FILE.getName());
       } else {
         System.out.println("Log File Exists Already");
       }
-      WRITER = new BufferedWriter(new FileWriter(LOGGER, false));
+      WRITER = new PrintWriter(new FileWriter(LOG_FILE), true);
     } catch (final IOException exception) {
       exception.printStackTrace();
     }
@@ -95,12 +94,8 @@ public final class Logger {
    */
   private static void directPrint(@NotNull final String line) {
     if (VERBOSE) {
-      try {
-        WRITER.write(line);
-        WRITER.flush();
-      } catch (final IOException exception) {
-        exception.printStackTrace();
-      }
+      WRITER.write(line);
+      WRITER.flush();
     }
   }
 
@@ -123,11 +118,11 @@ public final class Logger {
   }
 
   /**
-   * Gets the BufferedWriter associated with the Logger.
+   * Gets the PrintWriter associated with the Logger.
    *
    * @return the BufferedWriter
    */
-  public static BufferedWriter getWriter() {
+  public static PrintWriter getWriter() {
     return WRITER;
   }
 
@@ -137,6 +132,6 @@ public final class Logger {
    * @return the log file
    */
   public static File getLogFile() {
-    return LOGGER;
+    return LOG_FILE;
   }
 }

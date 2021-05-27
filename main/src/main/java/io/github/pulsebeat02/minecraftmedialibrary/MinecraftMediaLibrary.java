@@ -88,6 +88,7 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
       final boolean isUsingVLCJ) {
     this.plugin = plugin;
     Logger.initializeLogger(this);
+    Logger.setVerbose(true);
     handler = NMSReflectionManager.getNewPacketHandlerInstance();
     if (handler != null) {
       protocol =

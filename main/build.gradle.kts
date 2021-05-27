@@ -4,7 +4,7 @@ dependencies {
 
     compileOnlyApi("org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
     compileOnly("uk.co.caprica:vlcj:4.7.1")
-    compileOnly("uk.co.caprica:vlcj-natives:4.1.0")
+    compileOnly("uk.co.caprica:vlcj-natives:4.5.0")
     compileOnly("uk.co.caprica:native-streams:1.0.0")
     compileOnly("com.github.sealedtx:java-youtube-downloader:2.5.2")
     compileOnly("ws.schild:jave-core:3.0.1")

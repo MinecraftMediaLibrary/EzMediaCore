@@ -36,7 +36,7 @@ public enum RepositoryDependency {
   VLCJ("uk{}co{}caprica", "vlcj", "4{}7{}1", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** VLCJ Natives Maven Dependency */
-  VLCJ_NATIVES("uk{}co{}caprica", "vlcj-natives", "4{}1{}0", DependencyResolution.MAVEN_DEPENDENCY),
+  VLCJ_NATIVES("uk{}co{}caprica", "vlcj-natives", "4{}5{}0", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** VLCJ NativeStreams Dependency */
   VLCJ_NATIVE_STREAMS(

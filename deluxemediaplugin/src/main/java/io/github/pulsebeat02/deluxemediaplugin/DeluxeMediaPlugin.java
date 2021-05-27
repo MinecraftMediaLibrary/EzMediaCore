@@ -78,8 +78,6 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
       library = mediaLibrary.get();
 
-      io.github.pulsebeat02.minecraftmedialibrary.logger.Logger.setVerbose(true);
-
       registerCommands();
       registerConfigurations();
       new Metrics(this, 10229);
