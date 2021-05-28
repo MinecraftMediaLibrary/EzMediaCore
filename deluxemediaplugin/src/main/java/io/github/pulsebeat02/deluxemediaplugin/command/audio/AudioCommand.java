@@ -99,15 +99,19 @@ public class AudioCommand extends BaseCommand {
     final String mrl = context.getArgument("mrl", String.class);
     if (mrl.startsWith("https://")) {
 
-      // Create a new Youtube Extractor from the url
-      final YoutubeExtraction extraction =
-          new YoutubeExtraction(
-              mrl,
-              library.getAudioFolder().toString(),
-              getPlugin().getEncoderConfiguration().getSettings());
+      CompletableFuture.runAsync(
+          () -> {
 
-      // Extract the audio
-      audio = extraction.extractAudio().toFile();
+            // Create a new Youtube Extractor from the url
+            final YoutubeExtraction extraction =
+                new YoutubeExtraction(
+                    mrl,
+                    library.getAudioFolder().toString(),
+                    getPlugin().getEncoderConfiguration().getSettings());
+
+            // Extract the audio
+            audio = extraction.extractAudio().toFile();
+          });
 
     } else {
 

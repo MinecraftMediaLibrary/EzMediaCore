@@ -42,6 +42,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.lang.reflect.Constructor;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,7 +71,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       CommandUtilities.ensureInit();
 
       logger.info("Loading MinecraftMediaLibrary Instance...");
-      library = MediaLibraryProvider.create(this);
+      CompletableFuture.runAsync(() -> library = MediaLibraryProvider.create(this));
 
       logger.info("Loading Commands...");
       registerCommands();
@@ -92,7 +93,6 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
       logger.severe("Plugin cannot load until server version is at least 1.8");
       Bukkit.getPluginManager().disablePlugin(this);
-
     }
   }
 

@@ -446,49 +446,42 @@ public class VideoCommand extends BaseCommand {
       // Set the attributes of a Youtube Video to be true
       attributes.setYoutube(true);
 
-      // Create an extractor out of the Youtube link
-      final YoutubeExtraction extractor =
-          new YoutubeExtraction(mrl, folderPath, plugin.getEncoderConfiguration().getSettings());
+      CompletableFuture.runAsync(
+              () -> {
 
-      // Extract the audio of the URL
-      extractor.extractAudio();
+                // Create an extractor out of the Youtube link
+                final YoutubeExtraction extractor =
+                    new YoutubeExtraction(
+                        mrl, folderPath, plugin.getEncoderConfiguration().getSettings());
 
-      // Set the file to be the video file of the extraction
-      attributes.setFile(extractor.getVideo().toFile());
+                // Extract the audio of the URL
+                extractor.extractAudio();
 
-      // Set the extractor
-      attributes.setExtractor(extractor);
+                // Set the file to be the video file of the extraction
+                attributes.setFile(extractor.getVideo().toFile());
 
-      // Download the video asyncronously
-      CompletableFuture.runAsync(extractor::downloadVideo)
-          .thenRunAsync(
-              () ->
-                  // Send the resourcepack to all players on the server
-                  sendResourcepack(
-                      plugin.getHttpConfiguration().getDaemon(),
-                      audience,
-                      buildResourcepack(extractor, plugin)))
-          .thenRunAsync(
-              () ->
-                  audience.sendMessage(
-                      ChatUtilities.formatMessage(
-                          Component.text(
-                              String.format("Successfully loaded video %s", mrl),
-                              NamedTextColor.GOLD))))
+                // Set the extractor
+                attributes.setExtractor(extractor);
+
+                // Get the resourcepack wrapper from the extractor
+                final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), extractor);
+
+                // Build the resourcepack
+                wrapper.buildResourcePack();
+
+                // Send the resourcepack to all players on the server
+                sendResourcepack(plugin.getHttpConfiguration().getDaemon(), audience, wrapper);
+
+                // Send success message
+                audience.sendMessage(
+                    ChatUtilities.formatMessage(
+                        Component.text(
+                            String.format("Successfully loaded video %s", mrl),
+                            NamedTextColor.GOLD)));
+              })
           .whenCompleteAsync((t, throwable) -> atomicBoolean.set(true));
     }
     return 1;
-  }
-
-  private PackWrapper buildResourcepack(
-      @NotNull final YoutubeExtraction extractor, @NotNull final DeluxeMediaPlugin plugin) {
-
-    // Get the resourcepack wrapper from the extractor
-    final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), extractor);
-
-    // Build the resourcepack
-    wrapper.buildResourcePack();
-    return wrapper;
   }
 
   private void sendResourcepack(

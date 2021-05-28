@@ -35,93 +35,86 @@ import java.io.File;
 import java.net.URLClassLoader;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-/**
- * A special dependency instantiation class used to run dependency tasks asynchronously.
- */
+/** A special dependency instantiation class used to run dependency tasks asynchronously. */
 public final class DependencyInstantiation {
 
-    private final MediaLibrary instance;
+  private final MediaLibrary instance;
 
-    /**
-     * Instantiates a new DependencyInstantiation for loading dependencies.
-     *
-     * @param library the library
-     */
-    public DependencyInstantiation(@NotNull final MediaLibrary library) {
-        instance = library;
-    }
+  /**
+   * Instantiates a new DependencyInstantiation for loading dependencies.
+   *
+   * @param library the library
+   */
+  public DependencyInstantiation(@NotNull final MediaLibrary library) {
+    instance = library;
+  }
 
-    /**
-     * Starts dependency tasks.
-     */
-    public void startTasks() {
-        assignClassLoader();
-        instance.setDependencyTasks(CompletableFuture.allOf(
-                CompletableFuture.runAsync(this::loadFfmpeg),
-                CompletableFuture.runAsync(this::loadDependencies).thenRunAsync(this::loadVLC)
-        ));
+  /** Starts dependency tasks. */
+  public void startTasks() {
+    assignClassLoader();
+    try {
+      CompletableFuture.allOf(
+              CompletableFuture.runAsync(this::loadFfmpeg),
+              CompletableFuture.runAsync(this::loadDependencies).thenRunAsync(this::loadVLC))
+          .get();
+    } catch (final InterruptedException | ExecutionException e) {
+      e.printStackTrace();
     }
+  }
 
-    /**
-     * Assigns ClassLoader for classpath loading.
-     */
-    private void assignClassLoader() {
-        DependencyUtilities.setClassloader(
-                (URLClassLoader) instance.getPlugin().getClass().getClassLoader());
-    }
+  /** Assigns ClassLoader for classpath loading. */
+  private void assignClassLoader() {
+    DependencyUtilities.setClassloader(
+        (URLClassLoader) instance.getPlugin().getClass().getClassLoader());
+  }
 
-    /**
-     * Downloads/Loads Jave dependency.
-     */
-    private void loadFfmpeg() {
-        final FFmpegDependencyInstallation ffmpegDependencyInstallation =
-                new FFmpegDependencyInstallation(instance);
-        ffmpegDependencyInstallation.install();
-    }
+  /** Downloads/Loads Jave dependency. */
+  private void loadFfmpeg() {
+    final FFmpegDependencyInstallation ffmpegDependencyInstallation =
+        new FFmpegDependencyInstallation(instance);
+    ffmpegDependencyInstallation.install();
+  }
 
-    /**
-     * Downloads/Loads Jitpack/Maven dependencies.
-     */
-    private void loadDependencies() {
-        final DependencyManagement dependencyManagement = new DependencyManagement(instance);
-        dependencyManagement.install();
-        dependencyManagement.relocate();
-        dependencyManagement.load();
-        deleteDependencies(dependencyManagement);
-    }
+  /** Downloads/Loads Jitpack/Maven dependencies. */
+  private void loadDependencies() {
+    final DependencyManagement dependencyManagement = new DependencyManagement(instance);
+    dependencyManagement.install();
+    dependencyManagement.relocate();
+    dependencyManagement.load();
+    deleteDependencies(dependencyManagement);
+  }
 
-    /**
-     * Downloads/Loads VLC dependency.
-     */
-    private void loadVLC() {
-        if (!VLCUtilities.checkVLCExistence(instance.getVlcFolder().toFile())) {
-            new VLCNativeDependencyFetcher(instance).downloadLibraries();
-        }
-        if (instance.isVlcj()) {
-            try {
-                new MediaPlayerFactory();
-            } catch (final Exception e) {
-                Logger.error("The user does not have VLCJ installed! This is a very fatal error.");
-                instance.setVlcj(false);
-                instance.shutdown();
-                e.printStackTrace();
-            }
-        }
+  /** Downloads/Loads VLC dependency. */
+  private void loadVLC() {
+    if (!VLCUtilities.checkVLCExistence(instance.getVlcFolder().toFile())) {
+      new VLCNativeDependencyFetcher(instance).downloadLibraries();
     }
+    if (instance.isVlcj()) {
+      try {
+        new MediaPlayerFactory();
+      } catch (final Exception e) {
+        Logger.error("The user does not have VLCJ installed! This is a very fatal error.");
+        instance.setVlcj(false);
+        instance.shutdown();
+        e.printStackTrace();
+      }
+    }
+  }
 
-    /**
-     * Deletes the dependencies after finished loading.
-     *
-     * @param management the dependency management
-     */
-    private void deleteDependencies(@NotNull final DependencyManagement management) {
-        final Set<File> files = management.getFiles();
-        for (final File file : files) {
-            if (file.delete()) {
-                Logger.info(String.format("Finished Initializing Dependency (%s)", file.getAbsolutePath()));
-            }
-        }
-        files.clear();
+  /**
+   * Deletes the dependencies after finished loading.
+   *
+   * @param management the dependency management
+   */
+  private void deleteDependencies(@NotNull final DependencyManagement management) {
+    final Set<File> files = management.getFiles();
+    for (final File file : files) {
+      if (file.delete()) {
+        Logger.info(String.format("Finished Initializing Dependency (%s)", file.getAbsolutePath()));
+      }
     }
+    files.clear();
+  }
 }

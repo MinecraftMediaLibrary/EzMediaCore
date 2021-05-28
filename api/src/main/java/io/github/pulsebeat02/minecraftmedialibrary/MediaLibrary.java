@@ -132,14 +132,4 @@ public interface MediaLibrary {
    * @return the listener
    */
   Listener getRegistrationHandler();
-
-  /**
-   * Gets the dependency tasks.
-   *
-   * @return the tasks
-   */
-  CompletableFuture<Void> getDependencyTasks();
-
-  /** Sets the dependency tasks. */
-  void setDependencyTasks(final CompletableFuture<Void> tasks);
 }
