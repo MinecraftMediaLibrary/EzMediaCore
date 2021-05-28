@@ -28,7 +28,6 @@ import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -37,6 +36,9 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -88,11 +90,10 @@ public class FileRequestHandler implements Runnable, FileRequest {
   public void handleRequest() {
     daemon.onClientConnect(client);
     boolean flag = false;
-    try {
-      final BufferedReader in =
-          new BufferedReader(new InputStreamReader(client.getInputStream(), "8859_1"));
-      final OutputStream out = client.getOutputStream();
-      final PrintWriter pout = new PrintWriter(new OutputStreamWriter(out, "8859_1"), true);
+    try (final BufferedReader in =
+            new BufferedReader(new InputStreamReader(client.getInputStream(), "8859_1"));
+        final OutputStream out = client.getOutputStream();
+        final PrintWriter pout = new PrintWriter(new OutputStreamWriter(out, "8859_1"), true)) {
       final InetAddress address = client.getInetAddress();
       String request = in.readLine();
       verbose(String.format("Received request '%s' from %s", request, address.toString()));
@@ -103,13 +104,9 @@ public class FileRequestHandler implements Runnable, FileRequest {
         verbose(String.format("Request '%s' is being served to %s", request, address));
         try {
           out.write(buildHeader(result).getBytes(StandardCharsets.UTF_8));
-          final FileInputStream fis = new FileInputStream(result.toFile());
-          final byte[] data = new byte[64 * 1024];
-          for (int read; (read = fis.read(data)) > -1; ) {
-            out.write(data, 0, read);
+          try (final WritableByteChannel channel = Channels.newChannel(out)) {
+            FileChannel.open(result).transferTo(0, Long.MAX_VALUE, channel);
           }
-          out.flush();
-          fis.close();
           verbose(String.format("Successfully served '%s' to %s", request, address));
         } catch (final FileNotFoundException e) {
           flag = true;
