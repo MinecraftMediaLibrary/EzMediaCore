@@ -72,6 +72,9 @@ public class HttpConfiguration extends AbstractConfiguration {
     // Get whether the server is enabled or not
     final boolean enabled = configuration.getBoolean("enabled");
 
+    // Get the specified ip
+    final String ip = configuration.getString("ip");
+
     // Get the port at which the HTTP server is hosted on (Must be port-forwarded!)
     final int port = configuration.getInt("port");
 
@@ -90,7 +93,12 @@ public class HttpConfiguration extends AbstractConfiguration {
     if (enabled) {
 
       // Create a new daemon with the specified directory and port
-      daemon = new HttpDaemonProvider(directory, port);
+      if (ip == null || ip.equals("public")) {
+        daemon = new HttpDaemonProvider(directory, port);
+      } else {
+        daemon = new HttpDaemonProvider(directory, port, ip);
+      }
+
       final HttpFileDaemonServer http = (HttpFileDaemonServer) daemon.getDaemon();
 
       // Resort to ZIP if the header isn't valid
