@@ -46,7 +46,7 @@ public class ScreenCommand extends BaseCommand {
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "screen", executor, "deluxemediaplugin.command.screen", "");
     final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
-    builder.requires(super::testPermission).executes(this::sendScreenGui);
+    builder.requires(super::testPermission).then(literal("build").executes(this::sendScreenGui));
     literalNode = builder.build();
   }
 
