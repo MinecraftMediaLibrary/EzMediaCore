@@ -35,6 +35,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -92,16 +93,14 @@ public class FileRequestHandler implements Runnable, FileRequest {
           new BufferedReader(new InputStreamReader(client.getInputStream(), "8859_1"));
       final OutputStream out = client.getOutputStream();
       final PrintWriter pout = new PrintWriter(new OutputStreamWriter(out, "8859_1"), true);
+      final InetAddress address = client.getInetAddress();
       String request = in.readLine();
-      verbose(
-          String.format(
-              "Received request '%s' from %s", request, client.getInetAddress().toString()));
+      verbose(String.format("Received request '%s' from %s", request, address.toString()));
       final Matcher get = requestPattern(request);
       if (get.matches()) {
         request = get.group(1);
         final Path result = requestFileCallback(request);
-        verbose(
-            String.format("Request '%s' is being served to %s", request, client.getInetAddress()));
+        verbose(String.format("Request '%s' is being served to %s", request, address));
         try {
           out.write(buildHeader(result).getBytes(StandardCharsets.UTF_8));
           final FileInputStream fis = new FileInputStream(result.toFile());
@@ -111,8 +110,7 @@ public class FileRequestHandler implements Runnable, FileRequest {
           }
           out.flush();
           fis.close();
-          verbose(
-              String.format("Successfully served '%s' to %s", request, client.getInetAddress()));
+          verbose(String.format("Successfully served '%s' to %s", request, address));
         } catch (final FileNotFoundException e) {
           flag = true;
           pout.println("HTTP/1.0 404 Object Not Found");
