@@ -7,6 +7,10 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
+repositories {
+    maven("https://libraries.minecraft.net/")
+}
+
 dependencies {
     implementation(project(":main"))
     implementation(project(":lib"))
@@ -14,6 +18,7 @@ dependencies {
     implementation("com.mojang:brigadier:1.0.18")
     implementation("net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT")
     implementation("me.mattstudios.utils:matt-framework-gui:2.0.2")
+    implementation("com.mojang:authlib:1.5.25")
     compileOnly("org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
     compileOnly("org.jetbrains:annotations:20.1.0")
 }

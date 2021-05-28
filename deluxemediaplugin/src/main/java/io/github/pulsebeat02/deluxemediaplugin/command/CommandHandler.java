@@ -32,6 +32,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.audio.AudioCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.image.ImageCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.map.MapCommand;
+import io.github.pulsebeat02.deluxemediaplugin.command.screen.ScreenCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommand;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -62,7 +63,8 @@ public final class CommandHandler implements TabExecutor {
             new DitherCommand(plugin, this),
             new VideoCommand(plugin, this),
             new AudioCommand(plugin, this),
-            new MapCommand(plugin, this));
+            new MapCommand(plugin, this),
+            new ScreenCommand(plugin, this));
     final CommandMap commandMap = CommandMapHelper.getCommandMap();
     for (final BaseCommand command : commands) {
       rootNode.addChild(command.getCommandNode());

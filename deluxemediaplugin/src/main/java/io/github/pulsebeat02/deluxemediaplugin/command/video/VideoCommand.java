@@ -362,7 +362,7 @@ public class VideoCommand extends BaseCommand {
           } else {
             audience.sendMessage(
                 Component.text(
-                    "You must be an in-game player to execute this command!", NamedTextColor.RED));
+                    "You must be an player to execute this command!", NamedTextColor.RED));
           }
           break;
 

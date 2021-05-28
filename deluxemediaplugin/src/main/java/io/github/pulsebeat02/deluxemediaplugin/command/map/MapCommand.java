@@ -45,7 +45,7 @@ public class MapCommand extends BaseCommand {
   private final LiteralCommandNode<CommandSender> literalNode;
 
   public MapCommand(@NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
-    super(plugin, "dither", executor, "deluxemediaplugin.command.image", "");
+    super(plugin, "map", executor, "deluxemediaplugin.command.map", "");
     final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
     builder
         .requires(super::testPermission)
