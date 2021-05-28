@@ -13,6 +13,7 @@ dependencies {
     implementation("org.bstats:bstats-bukkit:1.8")
     implementation("com.mojang:brigadier:1.0.18")
     implementation("net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT")
+    implementation("me.mattstudios.utils:matt-framework-gui:2.0.2")
     compileOnly("org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
     compileOnly("org.jetbrains:annotations:20.1.0")
 }
@@ -26,6 +27,7 @@ tasks.withType<ShadowJar> {
         "io.github.pulsebeat02.minecraftmedialibrary",
         "io.github.pulsebeat02.deluxemediaplugin.lib.minecraftmedialibrary"
     )
+    relocate("me.mattstudios.mfgui", "io.github.pulsebeat02.deluxemediaplugin.lib.mfgui")
 
     relocate("uk.co.caprica.vlcj", "io.github.pulsebeat02.vlcj")
     relocate("uk.co.caprica.vlcj.binding", "io.github.pulsebeat02.vlcj.binding")

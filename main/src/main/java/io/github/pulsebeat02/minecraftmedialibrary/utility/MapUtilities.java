@@ -20,76 +20,84 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.screen;
+package io.github.pulsebeat02.minecraftmedialibrary.utility;
 
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-/** Screen builder class used to assist building screens with maps. */
-public class ScreenBuilder {
+/** A set of helpful utility methods relating to maps */
+public final class MapUtilities {
 
-  private final Location location;
+  private MapUtilities() {}
 
   /**
-   * Instantiates a new ScreenBuilder.
+   * Gets an ItemStack map from a specific id.
+   *
+   * @param id the id
+   * @return the map itemstack
+   */
+  @NotNull
+  public static ItemStack getMapFromID(final int id) {
+    final ItemStack map = new ItemStack(Material.FILLED_MAP);
+    final MapMeta meta = Objects.requireNonNull((MapMeta) map.getItemMeta());
+    meta.setMapId(id);
+    map.setItemMeta(meta);
+    return map;
+  }
+
+  /**
+   * Gives the player a map with the specified id.
    *
    * @param player the player
+   * @param id the id
    */
-  public ScreenBuilder(@NotNull final Player player) {
-    location = player.getLocation();
+  public static void givePlayerMap(@NotNull final Player player, final int id) {
+    player.getInventory().addItem(getMapFromID(id));
   }
 
   /**
    * Builds a new screen based on the player location.
    *
+   * @param player the player
    * @param mat the material to use
    * @param width the width of the screen in blocks
    * @param height the height of the screen in blocks
    * @param startingMap the map to use starting off with
    */
-  public void buildMapScreen(
-      @NotNull final Material mat, final int width, final int height, final int startingMap) {
+  public static void buildMapScreen(
+      @NotNull final Player player,
+      @NotNull final Material mat,
+      final int width,
+      final int height,
+      final int startingMap) {
 
-    final Vector direction = location.getDirection();
-    final Location center = location.clone().add(direction);
+    final World world = player.getWorld();
+    final BlockFace face = player.getFacing();
+    final BlockFace opposite = face.getOppositeFace();
+    final Block start = player.getLocation().getBlock().getRelative(face);
 
-    final Location rotate = location.clone();
-    rotate.setPitch(0);
-    rotate.setYaw(location.getYaw() - 90);
-    final Vector rotation = rotate.getDirection();
+    // Start at top left corner
+    int map = 0;
+    for (int h = height; h >= 0; h--) {
+      for (int w = 0; w < width; w++) {
+        final Block current = start.getRelative(BlockFace.UP, h).getRelative(BlockFace.EAST, w);
+        current.setType(mat);
 
-    final Location blockLocation = center.clone().add(rotate).subtract(0, width / 2f, 0);
-    rotate.multiply(-1);
+        final ItemFrame frame = world.spawn(current.getRelative(opposite).getLocation(), ItemFrame.class);
+        frame.setFacingDirection(face);
+        frame.setItem(getMapFromID(map));
 
-    final int initialX = blockLocation.getBlockX();
-    final int initialZ = blockLocation.getBlockZ();
-    final World world = Objects.requireNonNull(location.getWorld());
-    for (int x = 0; x < width; x++) {
-      for (int y = 0; y < height; y++) {
-        final int map = startingMap + x * y;
-        final Block block = blockLocation.getBlock();
-        block.setType(mat);
+        map++;
       }
-      blockLocation.add(0, 1, 0);
-      blockLocation.setX(initialX);
-      blockLocation.setZ(initialZ);
     }
-  }
-
-  public ItemStack getMapFromID(final int id) {
-    final ItemStack map = new ItemStack(Material.FILLED_MAP);
-    final MapMeta meta = (MapMeta) map.getItemMeta();
-    meta.setMapId(id);
-    map.setItemMeta(meta);
-    return map;
   }
 }
