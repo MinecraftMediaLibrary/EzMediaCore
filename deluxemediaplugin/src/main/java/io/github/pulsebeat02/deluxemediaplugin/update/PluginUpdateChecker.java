@@ -45,7 +45,6 @@ public class PluginUpdateChecker {
 
   public void checkForUpdates() {
     final Logger logger = plugin.getLogger();
-    logger.info("Checking for Updates...");
     getLatestVersion(
         version -> {
           if (plugin.getDescription().getVersion().equalsIgnoreCase(version)) {

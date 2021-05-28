@@ -32,6 +32,8 @@ import io.github.pulsebeat02.deluxemediaplugin.command.audio.AudioCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.image.ImageCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommand;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
@@ -81,11 +83,19 @@ public final class CommandHandler implements TabExecutor {
       @NotNull final Command command,
       @NotNull final String label,
       final String @NotNull [] args) {
-    try {
-      dispatcher.execute(
-          dispatcher.parse(command.getName() + ' ' + String.join(" ", args).trim(), sender));
-    } catch (final CommandSyntaxException exception) {
-      plugin.getAudiences().sender(sender).sendMessage(((BaseCommand) command).usage());
+    final Audience audience = plugin.getAudiences().sender(sender);
+    if (plugin.getLibrary().getDependencyTasks().isDone()) {
+      try {
+        dispatcher.execute(
+            dispatcher.parse(
+                String.format("%s %s", command.getName(), String.join(" ", args).trim()), sender));
+      } catch (final CommandSyntaxException exception) {
+        audience.sendMessage(((BaseCommand) command).usage());
+      }
+    } else {
+      audience.sendMessage(
+          Component.text(
+              "Please wait for DeluxeMediaPlugin to finish all dependency tasks before running a command!"));
     }
     return true;
   }
@@ -107,7 +117,8 @@ public final class CommandHandler implements TabExecutor {
       final String @NotNull [] args) {
     return dispatcher
         .getCompletionSuggestions(
-            dispatcher.parse(command.getName() + ' ' + String.join(" ", args), sender))
+            dispatcher.parse(
+                String.format("%s %s", command.getName(), String.join(" ", args)), sender))
         .join()
         .getList()
         .stream()

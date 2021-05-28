@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * This is the starting class of MinecraftMediaLibrary which describes the starting class for all
@@ -55,6 +56,8 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
   private final TinyProtocol protocol;
   private final LibraryPathHandle handle;
   private final PlayerJoinLeaveRegistration registrationHandler;
+
+  private CompletableFuture<Void> tasks;
   private boolean vlcj;
   private boolean disabled;
 
@@ -185,6 +188,11 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
     return registrationHandler;
   }
 
+  @Override
+  public CompletableFuture<Void> getDependencyTasks() {
+    return null;
+  }
+
   /**
    * Gets the path of the parent library folder.
    *
@@ -273,5 +281,15 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
   @Override
   public boolean isDisabled() {
     return disabled;
+  }
+
+  /**
+   * Sets the completable future tasks.
+   *
+   * @param tasks the tasks
+   */
+  @Override
+  public void setDependencyTasks(final CompletableFuture<Void> tasks) {
+    this.tasks = tasks;
   }
 }

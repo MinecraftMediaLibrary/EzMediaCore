@@ -65,38 +65,42 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
     logger = getLogger();
 
     if (!OUTDATED) {
+
       logger.info("DeluxeMediaPlugin is Initializing");
       CommandUtilities.ensureInit();
 
       logger.info("Loading MinecraftMediaLibrary Instance...");
-
-//      // Define a new MinecraftMediaLibrary Instance
-//      final Optional<MediaLibrary> mediaLibrary = setupMediaLibrary();
-//
-//      if (!mediaLibrary.isPresent()) {
-//        getServer().getPluginManager().disablePlugin(this);
-//        return;
-//      }
-//
-//      library = mediaLibrary.get();
-
       library = MediaLibraryProvider.create(this);
 
+      logger.info("Loading Commands...");
       registerCommands();
+
+      logger.info("Loading Configuration Files...");
       registerConfigurations();
+
+      logger.info("Sending Metrics Statistics...");
       new Metrics(this, 10229);
+
+      logger.info("Checking for Updates...");
       new PluginUpdateChecker(this).checkForUpdates();
+
       audiences = BukkitAudiences.create(this);
+
       logger.info("Finished Loading Instance and Plugin");
+
     } else {
+
       logger.severe("Plugin cannot load until server version is at least 1.8");
       Bukkit.getPluginManager().disablePlugin(this);
+
     }
   }
 
   @Override
   public void onDisable() {
+
     logger.info("DeluxeMediaPlugin is Shutting Down");
+
     logger.info("Shutting Down MinecraftMediaLibrary Instance...");
     if (library != null) {
       library.shutdown();
@@ -104,12 +108,16 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       logger.severe(
           "WARNING: MinecraftMediaLibrary instance is null... something is fishy going on.");
     }
-    if (handler != null) {
+
+    logger.info("Unregistering Commands");
+    final Set<BaseCommand> cmds = handler.getCommands();
+    if (cmds != null) {
       for (final BaseCommand cmd : handler.getCommands()) {
         CommandUtilities.unRegisterBukkitCommand(this, cmd);
       }
     }
-    logger.info("Enclosing MinecraftMediaLibrary and Plugin Successfully Shutdown");
+
+    logger.info("DeluxeMediaPlugin Successfully Shutdown");
   }
 
   private void registerConfigurations() {
