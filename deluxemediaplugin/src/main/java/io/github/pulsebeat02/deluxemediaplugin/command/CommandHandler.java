@@ -84,7 +84,7 @@ public final class CommandHandler implements TabExecutor {
       @NotNull final String label,
       final String @NotNull [] args) {
     final Audience audience = plugin.getAudiences().sender(sender);
-    if (plugin.getLibrary().getDependencyTasks().isDone()) {
+    if (plugin.getLibraryCompletion().isDone()) {
       try {
         dispatcher.execute(
             dispatcher.parse(
