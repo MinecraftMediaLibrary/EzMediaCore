@@ -35,7 +35,6 @@ import io.github.pulsebeat02.deluxemediaplugin.command.map.MapCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.screen.ScreenCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommand;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
@@ -88,18 +87,12 @@ public final class CommandHandler implements TabExecutor {
       @NotNull final String label,
       final String @NotNull [] args) {
     final Audience audience = plugin.getAudiences().sender(sender);
-    if (plugin.getLibraryCompletion().isDone()) {
-      try {
-        dispatcher.execute(
-            dispatcher.parse(
-                String.format("%s %s", command.getName(), String.join(" ", args).trim()), sender));
-      } catch (final CommandSyntaxException exception) {
-        audience.sendMessage(((BaseCommand) command).usage());
-      }
-    } else {
-      audience.sendMessage(
-          Component.text(
-              "Please wait for DeluxeMediaPlugin to finish all dependency tasks before running a command!"));
+    try {
+      dispatcher.execute(
+          dispatcher.parse(
+              String.format("%s %s", command.getName(), String.join(" ", args).trim()), sender));
+    } catch (final CommandSyntaxException exception) {
+      audience.sendMessage(((BaseCommand) command).usage());
     }
     return true;
   }

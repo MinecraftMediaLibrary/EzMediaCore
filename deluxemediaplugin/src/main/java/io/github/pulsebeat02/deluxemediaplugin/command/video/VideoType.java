@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 public enum VideoType {
   ITEMFRAME("itemframe-maps"),
-  AREA_EFFECT_CLOUD("area-effect-clouds"),
+  ARMOR_STAND("armorstands"),
   CHATBOX("chatbox"),
   DEBUG_HIGHLIGHTS("debug-highlights"),
   SCOREBOARD("scoreboard");

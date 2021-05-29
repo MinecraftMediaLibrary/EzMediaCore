@@ -351,14 +351,14 @@ public class VideoCommand extends BaseCommand {
           attributes.setPlayer(videoBuilder.createMapPlayer());
           break;
 
-        case AREA_EFFECT_CLOUD:
+        case ARMOR_STAND:
 
           // If the mode is set to an area effect cloud
           // Check if the sender is an instanceof a Player
           if (sender instanceof Player) {
 
             // Set the player to be a new cloud integrated player
-            attributes.setPlayer(videoBuilder.createEntityCloudPlayer((Player) sender));
+            attributes.setPlayer(videoBuilder.createEntityPlayer((Player) sender));
           } else {
             audience.sendMessage(
                 Component.text(
