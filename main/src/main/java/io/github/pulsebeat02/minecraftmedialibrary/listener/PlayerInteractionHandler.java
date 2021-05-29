@@ -58,6 +58,7 @@ public class PlayerInteractionHandler implements Listener {
    * @param event the event
    */
   @EventHandler
+  @SuppressWarnings("deprecation")
   public void onPlayerInteract(final HangingBreakByEntityEvent event) {
     final Hanging hanging = event.getEntity();
     if (!(hanging instanceof ItemFrame)) {

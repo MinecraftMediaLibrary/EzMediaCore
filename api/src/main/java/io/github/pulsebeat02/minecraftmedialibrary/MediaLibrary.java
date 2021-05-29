@@ -27,7 +27,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
 import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
 
 /** The base media library class used the media library. */
 public interface MediaLibrary {

@@ -33,7 +33,6 @@ import io.github.pulsebeat02.minecraftmedialibrary.frame.map.LinuxMapPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.LinuxScoreboardPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.ScoreboardPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -52,13 +51,7 @@ public class VideoPlayer {
             ScoreboardPlayer.class, LinuxScoreboardPlayer.class);
   }
 
-  private final VideoPlayerContext player;
-
   public VideoPlayer(@NotNull final VideoPlayerContext player) {
-    this.player = player;
     final Class<?> clazz = player.getClass();
-    if (clazz.getName().contains("Linux")) {
-
-    }
   }
 }

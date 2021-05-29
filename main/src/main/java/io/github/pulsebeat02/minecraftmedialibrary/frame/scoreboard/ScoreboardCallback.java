@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
  * Player". For example, if your plugin name was called "MyPlugin", the scoreboard which would be
  * used would be named: "MyPlugin Video Player".
  */
+@SuppressWarnings("unchecked")
 public final class ScoreboardCallback implements ScoreboardCallbackPrototype {
 
   private static ChatColor[] COLORS;

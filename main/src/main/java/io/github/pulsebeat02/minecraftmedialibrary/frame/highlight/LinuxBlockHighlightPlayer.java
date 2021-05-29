@@ -67,7 +67,6 @@ public class LinuxBlockHighlightPlayer extends JavaCVVideoPlayer {
   /** The type Builder. */
   public static class Builder {
 
-    private String url;
     private int width = 15;
     private int height = 15;
     private BlockHighlightCallbackPrototype callback;
@@ -75,11 +74,6 @@ public class LinuxBlockHighlightPlayer extends JavaCVVideoPlayer {
     private Object arg;
 
     private Builder() {}
-
-    public Builder setUrl(final String url) {
-      this.url = url;
-      return this;
-    }
 
     public Builder setWidth(final int width) {
       this.width = width;

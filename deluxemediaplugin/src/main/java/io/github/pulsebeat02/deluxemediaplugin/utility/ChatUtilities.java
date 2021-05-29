@@ -48,11 +48,6 @@ public final class ChatUtilities {
                 Component.text(']'));
   }
 
-  @Deprecated
-  public static Component formatMessage(@NotNull final String message) {
-    return TextComponent.ofChildren(PREFIX, Component.space(), Component.text(message));
-  }
-
   public static Component formatMessage(@NotNull final TextComponent message) {
     return TextComponent.ofChildren(PREFIX, Component.space(), message);
   }

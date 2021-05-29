@@ -35,6 +35,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("unchecked")
 public final class CommandUtilities {
 
   private static final HashMap<String, Command> knownCommands;
