@@ -66,7 +66,7 @@ public class VideoBuilder {
         .build(library);
   }
 
-  public EntityPlayer createEntityCloudPlayer(@NotNull final Player sender) {
+  public EntityPlayer createEntityPlayer(@NotNull final Player sender) {
     return EntityPlayer.builder()
         .setUrl(attributes.getFile().getAbsolutePath())
         .setWidth(attributes.getScreenWidth())
@@ -78,7 +78,7 @@ public class VideoBuilder {
                 .setEntityHeight(attributes.getScreenHeight())
                 .setDelay(40)
                 .setLocation(sender.getLocation())
-                .setType(ScreenEntityType.AREA_EFFECT_CLOUD)
+                .setType(ScreenEntityType.ARMORSTAND)
                 .build(library))
         .build(library);
   }
