@@ -52,10 +52,9 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
 
   private final Plugin plugin;
   private final PacketHandler handler;
-  private final TinyProtocol protocol;
-  private final LibraryPathHandle handle;
   private final PlayerJoinLeaveRegistration registrationHandler;
 
+  private final LibraryPathHandle handle;
   private boolean vlcj;
   private boolean disabled;
 
@@ -87,37 +86,42 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
       @Nullable final String imagePath,
       @Nullable final String audioPath,
       final boolean isUsingVLCJ) {
+
     this.plugin = plugin;
+
     Logger.initializeLogger(this);
     Logger.setVerbose(true);
-    handler = NMSReflectionManager.getNewPacketHandlerInstance();
-    if (handler != null) {
-      protocol =
-          new TinyProtocol(plugin) {
-            @Override
-            public Object onPacketOutAsync(
-                final Player player, final Channel channel, final Object packet) {
-              return handler.onPacketInterceptOut(player, packet);
-            }
 
-            @Override
-            public Object onPacketInAsync(
-                final Player player, final Channel channel, final Object packet) {
-              return handler.onPacketInterceptIn(player, packet);
-            }
-          };
-    } else {
-      protocol = null;
-    }
-    handle = new LibraryPathHandle(plugin, http, libraryPath, vlcPath, imagePath, audioPath);
-    vlcj = isUsingVLCJ;
+    JavaVersionUtilities.sendWarningMessage();
+
     registrationHandler = new PlayerJoinLeaveRegistration(this);
+    Bukkit.getPluginManager().registerEvents(registrationHandler, plugin);
+
+    handle = new LibraryPathHandle(plugin, http, libraryPath, vlcPath, imagePath, audioPath);
     Logger.info(DebuggerUtilities.getPluginDebugInfo(this));
     Logger.info(DebuggerUtilities.getSystemDebugInfo(this));
-    Bukkit.getPluginManager().registerEvents(registrationHandler, plugin);
-    dependencyTasks();
-    JavaVersionUtilities.sendWarningMessage();
-    Logger.info("Finished Initializing Library!");
+
+    handler = NMSReflectionManager.getNewPacketHandlerInstance();
+    if (handler != null) {
+      new TinyProtocol(plugin) {
+        @Override
+        public Object onPacketOutAsync(
+            final Player player, final Channel channel, final Object packet) {
+          return handler.onPacketInterceptOut(player, packet);
+        }
+
+        @Override
+        public Object onPacketInAsync(
+            final Player player, final Channel channel, final Object packet) {
+          return handler.onPacketInterceptIn(player, packet);
+        }
+      };
+      vlcj = isUsingVLCJ;
+      dependencyTasks();
+      Logger.info("Finished Initializing Library!");
+    } else {
+      shutdown();
+    }
   }
 
   /** Runs dependency tasks required. */
