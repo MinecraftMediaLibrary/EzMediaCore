@@ -58,7 +58,6 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
   private PictureConfiguration pictureConfiguration;
   private VideoConfiguration videoConfiguration;
   private EncoderConfiguration encoderConfiguration;
-  private CompletableFuture<Void> libraryCompletion;
 
   @Override
   public void onEnable() {
@@ -72,8 +71,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       CommandUtilities.ensureInit();
 
       logger.info("Loading MinecraftMediaLibrary Instance...");
-      libraryCompletion =
-          CompletableFuture.runAsync(() -> library = MediaLibraryProvider.create(this));
+      library = MediaLibraryProvider.create(this);
 
       logger.info("Loading Commands...");
       registerCommands();
@@ -181,9 +179,5 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
   public CommandHandler getHandler() {
     return handler;
-  }
-
-  public CompletableFuture<Void> getLibraryCompletion() {
-    return libraryCompletion;
   }
 }
