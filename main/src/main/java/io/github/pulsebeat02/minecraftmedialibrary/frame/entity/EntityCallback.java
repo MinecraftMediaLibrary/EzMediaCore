@@ -172,7 +172,7 @@ public final class EntityCallback implements EntityCallbackPrototype {
     if (world != null) {
       for (int i = height - 1; i >= 0; i--) {
         ents[i] = modifyEntity(world.spawnEntity(spawn, entityType));
-        spawn.add(0, 0.225d, 0);
+        spawn.add(0.0, 0.225, 0.0);
       }
     }
     return ents;

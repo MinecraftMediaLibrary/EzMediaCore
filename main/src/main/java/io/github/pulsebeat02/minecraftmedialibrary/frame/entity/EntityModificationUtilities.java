@@ -39,9 +39,9 @@ public class EntityModificationUtilities {
     cloud.setInvulnerable(true);
     cloud.setDuration(999999);
     cloud.setDurationOnUse(0);
-    cloud.setRadiusOnUse(0);
-    cloud.setRadius(0);
-    cloud.setRadiusPerTick(0);
+    cloud.setRadiusOnUse(0.0f);
+    cloud.setRadius(0.0f);
+    cloud.setRadiusPerTick(0.0f);
     cloud.setReapplicationDelay(0);
     cloud.setCustomNameVisible(true);
     cloud.setCustomName(StringUtils.repeat(name, height));

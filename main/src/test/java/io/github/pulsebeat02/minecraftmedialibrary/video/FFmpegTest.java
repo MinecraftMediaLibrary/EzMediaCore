@@ -22,25 +22,51 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.video;
 
-import org.bytedeco.javacv.Frame;
-import org.bytedeco.javacv.FrameGrabber;
-import org.bytedeco.javacv.OpenCVFrameGrabber;
+import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
+import com.github.kokorin.jaffree.ffmpeg.Frame;
+import com.github.kokorin.jaffree.ffmpeg.FrameInput;
+import com.github.kokorin.jaffree.ffmpeg.FrameProducer;
+import com.github.kokorin.jaffree.ffmpeg.Stream;
 
-import javax.imageio.ImageIO;
-import java.io.ByteArrayInputStream;
+import com.github.kokorin.jaffree.ffmpeg.UrlOutput;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.nio.file.Paths;
+import java.util.Collections;
 
-public class JavaCVTest {
-
-  public static void main(final String[] args) throws Exception {
-    final FrameGrabber grabber = new OpenCVFrameGrabber("");
-    grabber.start();
-    Frame frame;
-    while ((frame = grabber.grab()) != null) {
-      final int width = frame.imageWidth;
-      final int[] rgb =
-          ImageIO.read(new ByteArrayInputStream(frame.data.array()))
-              .getRGB(0, 0, width, frame.imageHeight, null, 0, width);
-    }
-    grabber.stop();
+public class FFmpegTest {
+  public static void main(final String[] args) {
+    final FrameProducer producer = new FrameProducer() {
+      private long frameCounter = 0;
+      @Override
+      public java.util.List<Stream> produceStreams() {
+        return Collections.singletonList(new Stream()
+                .setType(Stream.Type.VIDEO)
+                .setTimebase(1000L)
+                .setWidth(320)
+                .setHeight(240)
+        );
+      }
+      @Override
+      public Frame produce() {
+        if (frameCounter > 30) {
+          return null;
+        }
+        final BufferedImage image = new BufferedImage(320, 240, BufferedImage.TYPE_3BYTE_BGR);
+        final Graphics2D graphics = image.createGraphics();
+        graphics.setPaint(new Color(frameCounter * 1.0f / 30, 0, 0));
+        graphics.fillRect(0, 0, 320, 240);
+        final Frame videoFrame = Frame.createVideoFrame(0, frameCounter * 100, image);
+        frameCounter++;
+        return videoFrame;
+      }
+    };
+    new FFmpeg(
+            Paths.get(
+                "C:\\Users\\Brandon Li\\Desktop\\server\\plugins\\DeluxeMediaPlugin\\mml\\libraries\\ffmpeg\\ffmpeg-amd64.exe"))
+        .addInput(FrameInput.withProducer(producer))
+        .addOutput(UrlOutput.toUrl("C://test.mp4"))
+        .execute();
   }
 }
