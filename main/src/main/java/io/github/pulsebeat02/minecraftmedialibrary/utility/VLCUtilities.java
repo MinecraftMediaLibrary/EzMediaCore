@@ -34,8 +34,8 @@ import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.windows.WindowsNativeD
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
-import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,7 +69,7 @@ public final class VLCUtilities {
     final List<String> paths = new ArrayList<>(provider.search());
     paths.add(0, directory.toString());
     for (final String path : paths) {
-      if (discovery.discover(new File(path))) {
+      if (discovery.discover(Paths.get(path))) {
         return true;
       }
     }

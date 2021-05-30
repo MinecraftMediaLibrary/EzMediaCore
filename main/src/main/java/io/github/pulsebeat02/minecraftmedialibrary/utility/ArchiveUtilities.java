@@ -29,13 +29,15 @@ import org.jetbrains.annotations.NotNull;
 import org.rauschig.jarchivelib.Archiver;
 import org.rauschig.jarchivelib.ArchiverFactory;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Special archive utilities used throughout the library and also open to users. Used for easier
@@ -58,8 +60,8 @@ public final class ArchiveUtilities {
    * @param file the file
    * @param result the folder
    */
-  public static void decompressArchive(@NotNull final File file, @NotNull final File result) {
-    final String name = file.getName();
+  public static void decompressArchive(@NotNull final Path file, @NotNull final Path result) {
+    final String name = file.getFileName().toString();
     final String[] types = getCompressedType(name).split(" ");
     final Archiver archiver;
     if (types.length == 1) {
@@ -68,7 +70,7 @@ public final class ArchiveUtilities {
       archiver = ArchiverFactory.createArchiver(types[0], types[1]);
     }
     try {
-      archiver.extract(file, result);
+      archiver.extract(file.toFile(), result.toFile());
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -83,13 +85,13 @@ public final class ArchiveUtilities {
    * @param compression the compression
    */
   public static void decompressArchive(
-      @NotNull final File file,
-      @NotNull final File result,
+      @NotNull final Path file,
+      @NotNull final Path result,
       @NotNull final String type,
       @NotNull final String compression) {
     final Archiver archiver = ArchiverFactory.createArchiver(type, compression);
     try {
-      archiver.extract(file, result);
+      archiver.extract(file.toFile(), result.toFile());
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -103,10 +105,10 @@ public final class ArchiveUtilities {
    * @param type the type
    */
   public static void decompressArchive(
-      @NotNull final File file, @NotNull final File result, @NotNull final String type) {
+      @NotNull final Path file, @NotNull final Path result, @NotNull final String type) {
     final Archiver archiver = ArchiverFactory.createArchiver(type);
     try {
-      archiver.extract(file, result);
+      archiver.extract(file.toFile(), result.toFile());
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -118,22 +120,30 @@ public final class ArchiveUtilities {
    * @param file archive
    * @param folder where to extract to
    */
-  public static void recursiveExtraction(@NotNull final File file, @NotNull final File folder) {
+  public static void recursiveExtraction(@NotNull final Path file, @NotNull final Path folder) {
     decompressArchive(file, folder);
-    File currentFolder = folder;
-    final Queue<File> queue = new LinkedList<>(containsArchiveExtension(currentFolder));
+    Path currentFolder = folder;
+    final Queue<Path> queue = new LinkedList<>(containsArchiveExtension(currentFolder));
     queue.remove(file);
     while (!queue.isEmpty()) {
-      final File current = queue.remove();
+      final Path current = queue.remove();
       currentFolder =
-          new File(
+          Paths.get(
               String.format(
-                  "%s/%s", currentFolder.getAbsolutePath(), getFileName(current.getName())));
+                  "%s/%s",
+                  currentFolder.toAbsolutePath(), getFileName(current.getFileName().toString())));
       decompressArchive(current, currentFolder);
-      if (!current.getAbsolutePath().equals(file.getAbsolutePath()) && current.delete()) {
-        Logger.info(String.format("Deleted Zip: %s successfully", current.getName()));
+      if (!current.toAbsolutePath().toString().equals(file.toAbsolutePath().toString())) {
+        try {
+          Files.delete(current);
+          Logger.info(String.format("Deleted Zip: %s successfully", current.getFileName()));
+        } catch (final IOException e) {
+          Logger.info(
+              String.format("Failed to Deleted Zip: %s successfully", current.getFileName()));
+          e.printStackTrace();
+        }
       } else {
-        Logger.error(String.format("Could not delete Zip: %s!", current.getName()));
+        Logger.error(String.format("Could not delete Zip: %s!", current.getFileName()));
       }
       final int before = queue.size();
       queue.addAll(containsArchiveExtension(currentFolder));
@@ -150,14 +160,19 @@ public final class ArchiveUtilities {
    * @return set of arhcives in folder
    */
   @NotNull
-  public static Set<File> containsArchiveExtension(@NotNull final File f) {
-    final Set<File> files = new HashSet<>();
-    for (final File child : Objects.requireNonNull(f.listFiles())) {
-      for (final String ext : ARCHIVE_EXTENSIONS) {
-        if (child.getName().endsWith(ext)) {
-          files.add(child);
-        }
-      }
+  public static Set<Path> containsArchiveExtension(@NotNull final Path f) {
+    final Set<Path> files = new HashSet<>();
+    try (final Stream<Path> paths = Files.walk(f)) {
+      paths.forEach(
+          x -> {
+            for (final String ext : ARCHIVE_EXTENSIONS) {
+              if (x.getFileName().endsWith(ext)) {
+                files.add(x);
+              }
+            }
+          });
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
     return files;
   }

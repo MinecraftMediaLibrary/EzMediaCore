@@ -43,7 +43,7 @@ public class ExtractionInstaller extends PackageBase {
   @Override
   public void installPackage() {
     final Path f = getFile();
-    ArchiveUtilities.recursiveExtraction(f.toFile(), f.getParent().toFile());
+    ArchiveUtilities.recursiveExtraction(f, f.getParent());
   }
 
   /** Uses any steps to setup a package. */

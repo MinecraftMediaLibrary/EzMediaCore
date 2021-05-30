@@ -31,7 +31,6 @@ import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -94,7 +93,7 @@ public final class DependencyUtilities {
    * @throws IOException the io exception
    */
   @NotNull
-  public static File downloadMavenDependency(
+  public static Path downloadMavenDependency(
       @NotNull final RepositoryDependency dependency, @NotNull final String parent)
       throws IOException {
     return downloadFile(dependency, getRepoUrl(dependency), parent);
@@ -109,7 +108,7 @@ public final class DependencyUtilities {
    * @throws IOException the io exception
    */
   @NotNull
-  public static File downloadJitpackDependency(
+  public static Path downloadJitpackDependency(
       @NotNull final RepositoryDependency dependency, @NotNull final String parent)
       throws IOException {
     return downloadFile(dependency, getRepoUrl(dependency), parent);
@@ -127,15 +126,15 @@ public final class DependencyUtilities {
    * @throws IOException if the url constructed cannot be found
    */
   @NotNull
-  public static File downloadAndLoadDependency(
+  public static Path downloadAndLoadDependency(
       @NotNull final String groupId,
       @NotNull final String artifactId,
       @NotNull final String version,
       @NotNull final String directory,
       @NotNull final DependencyResolution resolution)
       throws IOException {
-    final File f = downloadFile(groupId, artifactId, version, directory, resolution);
-    loadDependency(f.toPath());
+    final Path f = downloadFile(groupId, artifactId, version, directory, resolution);
+    loadDependency(f);
     return f;
   }
 
@@ -152,7 +151,7 @@ public final class DependencyUtilities {
    * @throws IOException if the url constructed cannot be found
    */
   @NotNull
-  public static File downloadAndLoadDependency(
+  public static Path downloadAndLoadDependency(
       @NotNull final String groupId,
       @NotNull final String artifactId,
       @NotNull final String version,
@@ -160,8 +159,8 @@ public final class DependencyUtilities {
       @NotNull final DependencyResolution resolution,
       @NotNull final LongConsumer consumer)
       throws IOException {
-    final File f = downloadFile(groupId, artifactId, version, directory, resolution, consumer);
-    loadDependency(f.toPath());
+    final Path f = downloadFile(groupId, artifactId, version, directory, resolution, consumer);
+    loadDependency(f);
     return f;
   }
 
@@ -253,7 +252,7 @@ public final class DependencyUtilities {
    * @throws IOException the io exception
    */
   @NotNull
-  public static File downloadFile(
+  public static Path downloadFile(
       @NotNull final RepositoryDependency dependency,
       @NotNull final String link,
       @NotNull final String parent)
@@ -275,7 +274,7 @@ public final class DependencyUtilities {
    * @throws IOException the io exception
    */
   @NotNull
-  public static File downloadFile(
+  public static Path downloadFile(
       @NotNull final RepositoryDependency dependency,
       @NotNull final String link,
       @NotNull final String parent,
@@ -299,7 +298,7 @@ public final class DependencyUtilities {
    * @throws IOException the io exception
    */
   @NotNull
-  public static File downloadFile(
+  public static Path downloadFile(
       @NotNull final String groupId,
       @NotNull final String artifactId,
       @NotNull final String version,
@@ -325,7 +324,7 @@ public final class DependencyUtilities {
    * @throws IOException the io exception
    */
   @NotNull
-  public static File downloadFile(
+  public static Path downloadFile(
       @NotNull final String groupId,
       @NotNull final String artifactId,
       @NotNull final String version,
@@ -348,17 +347,16 @@ public final class DependencyUtilities {
    * @throws IOException the io exception
    */
   @NotNull
-  public static File downloadFile(@NotNull final Path p, @NotNull final String url)
+  public static Path downloadFile(@NotNull final Path p, @NotNull final String url)
       throws IOException {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
     Logger.info(String.format("Downloading Dependency at %s into folder %s", url, p));
-    final File file = p.toFile();
     try (final InputStream inputStream = new URL(url).openStream();
         final ReadableByteChannel readableByteChannel = Channels.newChannel(inputStream);
-        final FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+        final FileOutputStream fileOutputStream = new FileOutputStream(p.toFile())) {
       fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
     }
-    return file;
+    return p;
   }
 
   /**
@@ -371,7 +369,7 @@ public final class DependencyUtilities {
    * @throws IOException the io exception
    */
   @NotNull
-  public static File downloadFile(
+  public static Path downloadFile(
       @NotNull final Path p, @NotNull final String url, @NotNull final LongConsumer progress)
       throws IOException {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
@@ -385,7 +383,7 @@ public final class DependencyUtilities {
         fileOutputStream.write(dataBuffer, 0, bytesRead);
       }
     }
-    return new File(p.toString());
+    return p;
   }
 
   /**

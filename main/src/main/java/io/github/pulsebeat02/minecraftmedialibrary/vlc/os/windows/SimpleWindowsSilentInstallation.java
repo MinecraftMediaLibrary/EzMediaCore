@@ -72,7 +72,7 @@ public class SimpleWindowsSilentInstallation extends AbstractSilentOSDependentSo
     final Path zip = dir.resolve("VLC.zip");
     FileUtils.copyURLToFile(new URL(RuntimeUtilities.getURL()), zip.toFile());
     final String path = zip.toAbsolutePath().toString();
-    ArchiveUtilities.decompressArchive(Paths.get(path).toFile(), dir.toFile());
+    ArchiveUtilities.decompressArchive(Paths.get(path), dir);
     vlcPath = zip.getParent().resolve("vlc-3.0.12").toString();
     Logger.info(String.format("Successfully Extracted File (%s)", path));
     deleteArchive(zip);

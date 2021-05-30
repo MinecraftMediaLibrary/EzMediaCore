@@ -34,12 +34,13 @@ import uk.co.caprica.vlcj.binding.internal.libvlc_instance_t;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 import uk.co.caprica.vlcj.support.version.LibVlcVersion;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_new;
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_release;
@@ -95,26 +96,29 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
    */
   @Override
   public String discover() {
-    final File fold = dir.toFile();
-    if (!fold.exists()) {
+    if (!Files.exists(dir)) {
       return null;
     }
-    final File dependency = getVLCFile(fold);
+    final Path dependency = getVLCFile(dir);
     if (dependency == null) {
       return null;
     }
-    final Queue<File> folders = new ArrayDeque<>();
+    final Queue<Path> folders = new ArrayDeque<>();
     folders.add(dependency);
     while (!folders.isEmpty()) {
-      final File f = folders.remove();
-      if (f.isDirectory()) {
-        if (f.getName().equals("plugins")) {
-          path = f.getAbsolutePath();
+      final Path f = folders.remove();
+      if (Files.isDirectory(f)) {
+        if (f.getFileName().toString().equals("plugins")) {
+          path = f.toAbsolutePath().toString();
           Logger.info(String.format("Found VLC plugins folder (%s)", path));
           loadLibrary();
           return path;
         }
-        folders.addAll(Arrays.asList(Objects.requireNonNull(f.listFiles())));
+        try {
+          folders.addAll(Files.walk(f).collect(Collectors.toList()));
+        } catch (final IOException e) {
+          e.printStackTrace();
+        }
       }
     }
     Logger.error("Could NOT find VLC plugins folder. This is a fatal error!");
@@ -127,11 +131,20 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
    * @param dir directory
    * @return file
    */
-  private File getVLCFile(@NotNull final File dir) {
-    for (final File f : Objects.requireNonNull(dir.listFiles())) {
-      if (StringUtils.containsIgnoreCase(f.getName(), "VLC")) {
-        return f;
+  private Path getVLCFile(@NotNull final Path dir) {
+    try {
+      final Optional<Path> path =
+          Files.walk(dir)
+              .filter(
+                  x ->
+                      Files.exists(x)
+                          && StringUtils.containsIgnoreCase(x.getFileName().toString(), "VLC"))
+              .findFirst();
+      if (path.isPresent()) {
+        return path.get();
       }
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
     return null;
   }

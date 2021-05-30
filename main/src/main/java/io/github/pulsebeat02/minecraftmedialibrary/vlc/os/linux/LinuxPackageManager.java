@@ -39,7 +39,6 @@ import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -49,7 +48,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * The main package fetcher for Linux Distributions. It parses a JSON file of all the packaged
@@ -195,8 +194,11 @@ public class LinuxPackageManager {
 
   /** Extract contents. Should only be one package located in folder */
   public void extractContents() {
-    final File file = vlc.toFile();
-    ArchiveUtilities.recursiveExtraction(Objects.requireNonNull(file.listFiles())[0], file);
+    try {
+      ArchiveUtilities.recursiveExtraction(Files.walk(vlc).collect(Collectors.toList()).get(0), vlc);
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
   }
 
   /**

@@ -91,7 +91,7 @@ public class DependencyManagement {
     relocatedDir = dir.resolve("relocated");
     if (!Files.exists(relocatedDir)) {
       try {
-        Files.createDirectory(dir);
+        Files.createDirectory(relocatedDir);
         Logger.info(
             String.format(
                 "Relocated Directory (%s) does not exist... Creating a folder",
@@ -129,8 +129,8 @@ public class DependencyManagement {
       Logger.info(String.format("Checking Maven Central Repository for %s", artifact));
       try {
         file =
-            DependencyUtilities.downloadMavenDependency(dependency, dir.toAbsolutePath().toString())
-                .toPath();
+            DependencyUtilities.downloadMavenDependency(
+                dependency, dir.toAbsolutePath().toString());
       } catch (final IOException e) {
         Logger.info(String.format("Could NOT find %s in Maven Central Repository!", artifact));
         e.printStackTrace();
@@ -140,8 +140,7 @@ public class DependencyManagement {
       try {
         file =
             DependencyUtilities.downloadJitpackDependency(
-                    dependency, dir.toAbsolutePath().toString())
-                .toPath();
+                dependency, dir.toAbsolutePath().toString());
       } catch (final IOException e) {
         Logger.info(String.format("Could NOT find %s in Jitpack Central Repository!", artifact));
         e.printStackTrace();

@@ -31,14 +31,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class AbstractSilentOSDependentSolution implements SilentOSDependentSolution {
 
@@ -69,7 +70,8 @@ public abstract class AbstractSilentOSDependentSolution implements SilentOSDepen
    */
   @Override
   public void loadNativeDependency(@NotNull final Path folder) {
-    NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), folder.toAbsolutePath().toString());
+    NativeLibrary.addSearchPath(
+        RuntimeUtil.getLibVlcLibraryName(), folder.toAbsolutePath().toString());
     VLCUtilities.checkVLCExistence(folder);
   }
 
@@ -104,12 +106,17 @@ public abstract class AbstractSilentOSDependentSolution implements SilentOSDepen
    */
   @Override
   @Nullable
-  public File findVLCFolder(@NotNull final File folder) {
-    for (final File f : Objects.requireNonNull(folder.listFiles())) {
-      final String name = f.getName();
-      if (StringUtils.containsIgnoreCase(name, "vlc") && !name.endsWith(".dmg")) {
-        return f;
+  public Path findVLCFolder(@NotNull final Path folder) {
+    try (final Stream<Path> paths = Files.walk(folder)) {
+      final List<Path> p = paths.collect(Collectors.toList());
+      for (final Path f : p) {
+        final String name = f.getFileName().toString();
+        if (StringUtils.containsIgnoreCase(name, "vlc") && !name.endsWith(".dmg")) {
+          return f;
+        }
       }
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
     return null;
   }

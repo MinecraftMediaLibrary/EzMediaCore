@@ -25,7 +25,6 @@ package io.github.pulsebeat02.minecraftmedialibrary.vlc.os;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -62,7 +61,7 @@ public interface SilentOSDependentSolution {
    * @return file
    */
   @Nullable
-  File findVLCFolder(@NotNull final File folder);
+  Path findVLCFolder(@NotNull final Path folder);
 
   /**
    * Deletes file (archive).

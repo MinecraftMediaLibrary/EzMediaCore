@@ -30,7 +30,6 @@ import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -138,7 +137,7 @@ public class JuNestInstaller extends PackageBase {
     FileUtils.copyURLToFile(
         new URL("https://github.com/MinecraftMediaLibrary/junest/archive/refs/heads/master.zip"),
         junest.toFile());
-    ArchiveUtilities.decompressArchive(junest.toFile(), junest.getParent().toFile());
+    ArchiveUtilities.decompressArchive(junest, junest.getParent());
   }
 
   /**
@@ -147,13 +146,14 @@ public class JuNestInstaller extends PackageBase {
    * @throws IOException if an exception occurred while fetching the url or file
    */
   private void setJuNestPaths() throws IOException {
-    final File script = new File(String.format("%s/scripts/junest-installation.sh", baseDirectory));
-    FileUtilities.createFile(script.toPath(), "Made JuNest Script");
+    final Path script =
+        Paths.get(String.format("%s/scripts/junest-installation.sh", baseDirectory));
+    FileUtilities.createFile(script, "Made JuNest Script");
     Files.write(
-        script.toPath(),
+        script,
         ResourceUtilities.getFileContents("script/junest.sh").getBytes(),
         StandardOpenOption.CREATE);
-    RuntimeUtilities.executeBashScript(script.toPath(), new String[] {}, "Successfully installed JuNest");
+    RuntimeUtilities.executeBashScript(script, new String[] {}, "Successfully installed JuNest");
   }
 
   /**

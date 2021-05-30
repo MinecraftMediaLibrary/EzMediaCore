@@ -32,10 +32,10 @@ import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.SilentInstallationType
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * The Mac specific silent installation for VLC. Mac is significantly harder to accomplish compared
@@ -71,35 +71,35 @@ public class MacSilentInstallation extends AbstractSilentOSDependentSolution {
   @Override
   public void downloadVLCLibrary() throws IOException {
     final Path dir = getDir();
-    final File dmg = dir.resolve("VLC.dmg").toFile();
-    final File diskPath = new File("/Volumes/VLC media player");
-    FileUtils.copyURLToFile(new URL(RuntimeUtilities.getURL()), dmg);
+    final Path dmg = dir.resolve("VLC.dmg");
+    final Path diskPath = Paths.get("/Volumes/VLC media player");
+    FileUtils.copyURLToFile(new URL(RuntimeUtilities.getURL()), dmg.toFile());
     try {
-      if (mountDiskImage(dmg) != 0) {
+      if (mountDiskImage(dmg.toAbsolutePath().toString()) != 0) {
         throw new RuntimeException("Could not Mount Disk File!");
       }
     } catch (final InterruptedException e) {
       e.printStackTrace();
     }
-    final File app = dir.resolve("VLC.app").toFile();
-    FileUtils.copyDirectory(new File(diskPath, "VLC.app"), app);
+    final Path app = dir.resolve("VLC.app");
+    FileUtils.copyDirectory(diskPath.resolve("VLC.app").toFile(), app.toFile());
     try {
-      changePermissions(app.getAbsolutePath());
+      changePermissions(app.toAbsolutePath().toString());
     } catch (final InterruptedException e) {
       e.printStackTrace();
     }
     Logger.info("Moved File!");
     try {
-      if (unmountDiskImage(diskPath.getAbsolutePath()) != 0) {
+      if (unmountDiskImage(diskPath.toAbsolutePath().toString()) != 0) {
         throw new RuntimeException("Could not Unmount Disk File!");
       }
     } catch (final InterruptedException e) {
       e.printStackTrace();
     }
     Logger.info("Unmounting Disk Successfully");
-    deleteArchive(dmg.toPath());
+    deleteArchive(dmg);
     Logger.info("Deleted DMG File");
-    loadNativeDependency(app.toPath());
+    loadNativeDependency(app);
   }
 
   @Override
@@ -120,8 +120,8 @@ public class MacSilentInstallation extends AbstractSilentOSDependentSolution {
    * @throws IOException if dmg cannot be found
    * @throws InterruptedException waiting for process
    */
-  private int mountDiskImage(@NotNull final File dmg) throws IOException, InterruptedException {
-    final String[] command = {"/usr/bin/hdiutil", "attach", dmg.getAbsolutePath()};
+  private int mountDiskImage(@NotNull final String dmg) throws IOException, InterruptedException {
+    final String[] command = {"/usr/bin/hdiutil", "attach", dmg};
     final CommandTask t = new CommandTask(command, true);
     Logger.info("============= DMG INFORMATION =============");
     Logger.info(t.getResult());

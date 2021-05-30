@@ -33,13 +33,14 @@ import uk.co.caprica.vlcj.binding.internal.libvlc_instance_t;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 import uk.co.caprica.vlcj.support.version.LibVlcVersion;
 
-import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_new;
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_release;
@@ -72,8 +73,8 @@ public class MMLNativeDiscovery {
    * @param directory the library
    * @return whether vlc can be found or not
    */
-  public boolean discover(@NotNull final File directory) {
-    if (!directory.exists()) {
+  public boolean discover(@NotNull final Path directory) {
+    if (!Files.exists(directory)) {
       return false;
     }
     if (nativeVLCPath != null) {
@@ -81,16 +82,16 @@ public class MMLNativeDiscovery {
     }
     boolean plugins = false;
     boolean libvlc = false;
-    final Queue<File> folders = getPriorityQueue(keyword);
+    final Queue<Path> folders = getPriorityQueue(keyword);
     folders.add(directory);
     while (!folders.isEmpty()) {
       if (plugins && libvlc) {
         return true;
       }
-      final File f = folders.remove();
-      final String name = f.getName();
-      final String path = f.getAbsolutePath();
-      if (f.isDirectory()) {
+      final Path f = folders.remove();
+      final String name = f.getFileName().toString();
+      final String path = f.toAbsolutePath().toString();
+      if (Files.isDirectory(f)) {
         if (!plugins && name.equals("plugins")) {
           for (final String extension : possibleExtensions) {
             final String pathExtension = String.format("%s%s", f.getParent(), extension);
@@ -101,18 +102,22 @@ public class MMLNativeDiscovery {
             }
           }
         } else {
-          final File[] children = f.listFiles();
-          if (children != null) {
-            for (final File child : children) {
-              if (child.isDirectory() || (child.isFile() && child.getName().contains(extension))) {
-                folders.add(child);
-              }
-            }
+          try (final Stream<Path> paths = Files.walk(Paths.get("/home/you/Desktop"))) {
+            paths.forEach(
+                x -> {
+                  if (Files.isDirectory(x)
+                      || (Files.isRegularFile(x)
+                          && x.getFileName().toString().contains(extension))) {
+                    folders.add(x);
+                  }
+                });
+          } catch (final IOException e) {
+            e.printStackTrace();
           }
         }
       } else {
         if (!libvlc && name.equals(keyword)) {
-          nativeVLCPath = f.getParentFile().toPath();
+          nativeVLCPath = f.toAbsolutePath();
           final String vlcPath = nativeVLCPath.toString();
           setupVLC();
           NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), vlcPath);
@@ -129,7 +134,7 @@ public class MMLNativeDiscovery {
 
   public void setupVLC() {}
 
-  private PriorityQueue<File> getPriorityQueue(@NotNull final String keyword) {
+  private PriorityQueue<Path> getPriorityQueue(@NotNull final String keyword) {
     return heuristics
         ? new PriorityQueue<>()
         : new PriorityQueue<>(
@@ -143,7 +148,7 @@ public class MMLNativeDiscovery {
 
                */
 
-              final String name = o1.getName();
+              final String name = o1.getFileName().toString();
               if (name.equals(keyword) || name.equals("lib")) {
                 return Integer.MIN_VALUE;
               }
