@@ -61,7 +61,7 @@ public final class ArchiveUtilities {
    * @param result the folder
    */
   public static void decompressArchive(@NotNull final Path file, @NotNull final Path result) {
-    final String name = file.getFileName().toString();
+    final String name = PathUtilities.getName(file);
     final String[] types = getCompressedType(name).split(" ");
     final Archiver archiver;
     if (types.length == 1) {
@@ -131,7 +131,7 @@ public final class ArchiveUtilities {
           Paths.get(
               String.format(
                   "%s/%s",
-                  currentFolder.toAbsolutePath(), getFileName(current.getFileName().toString())));
+                  currentFolder.toAbsolutePath(), getFileName(PathUtilities.getName(current))));
       decompressArchive(current, currentFolder);
       if (!current.toAbsolutePath().toString().equals(file.toAbsolutePath().toString())) {
         try {

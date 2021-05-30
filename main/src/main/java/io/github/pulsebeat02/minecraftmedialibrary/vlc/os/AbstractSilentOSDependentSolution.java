@@ -25,6 +25,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.vlc.os;
 import com.sun.jna.NativeLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -110,7 +111,7 @@ public abstract class AbstractSilentOSDependentSolution implements SilentOSDepen
     try (final Stream<Path> paths = Files.walk(folder)) {
       final List<Path> p = paths.collect(Collectors.toList());
       for (final Path f : p) {
-        final String name = f.getFileName().toString();
+        final String name = PathUtilities.getName(f);
         if (StringUtils.containsIgnoreCase(name, "vlc") && !name.endsWith(".dmg")) {
           return f;
         }

@@ -96,7 +96,7 @@ public final class ImageUtilities {
 
   public static void convertGifToMpeg(@NotNull final Path gif, @NotNull final Path output)
       throws IOException {
-    if (!FilenameUtils.getExtension(gif.getFileName().toString()).equalsIgnoreCase("gfi")) {
+    if (!FilenameUtils.getExtension(PathUtilities.getName(gif)).equalsIgnoreCase("gfi")) {
       throw new IOException(
           String.format("Invalid Image Format (Must be Gif) %s", gif.toAbsolutePath()));
     }

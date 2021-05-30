@@ -60,7 +60,7 @@ public final class ResourcepackUtilities {
    * @return resourcepack icon validation
    */
   public static boolean validateResourcepackIcon(@NotNull final Path icon) {
-    final String name = icon.getFileName().toString();
+    final String name = PathUtilities.getName(icon);
     final boolean valid = name.endsWith(".png");
     final String path = icon.toAbsolutePath().toString();
     if (valid) {

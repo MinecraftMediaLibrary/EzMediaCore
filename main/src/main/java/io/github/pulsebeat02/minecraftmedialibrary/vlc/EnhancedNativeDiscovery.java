@@ -26,6 +26,7 @@ import com.sun.jna.StringArray;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -108,7 +109,7 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
     while (!folders.isEmpty()) {
       final Path f = folders.remove();
       if (Files.isDirectory(f)) {
-        if (f.getFileName().toString().equals("plugins")) {
+        if (PathUtilities.getName(f).equals("plugins")) {
           path = f.toAbsolutePath().toString();
           Logger.info(String.format("Found VLC plugins folder (%s)", path));
           loadLibrary();
@@ -138,7 +139,7 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
               .filter(
                   x ->
                       Files.exists(x)
-                          && StringUtils.containsIgnoreCase(x.getFileName().toString(), "VLC"))
+                          && StringUtils.containsIgnoreCase(PathUtilities.getName(x), "VLC"))
               .findFirst();
       if (path.isPresent()) {
         return path.get();

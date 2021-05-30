@@ -25,6 +25,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.utility;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -62,5 +63,15 @@ public final class PathUtilities {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Gets the name for a path.
+   *
+   * @param path the path
+   * @return the name for the path
+   */
+  public static String getName(@NotNull final Path path) {
+    return path.getFileName().toString();
   }
 }

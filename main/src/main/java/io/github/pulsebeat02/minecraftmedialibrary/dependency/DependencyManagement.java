@@ -26,6 +26,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.relocation.JarRelocator;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -155,7 +156,7 @@ public class DependencyManagement {
   public void relocate() {
     try (final Stream<Path> paths = Files.walk(dir)) {
       paths
-          .filter(x -> Files.isRegularFile(x) && x.getFileName().toString().contains("asm"))
+          .filter(x -> Files.isRegularFile(x) && PathUtilities.getName(x).contains("asm"))
           .forEach(
               x -> {
                 try {
@@ -227,7 +228,7 @@ public class DependencyManagement {
       return paths.anyMatch(
           x ->
               Files.isRegularFile(x)
-                  && x.getFileName().toString().contains(dependency.getArtifact()));
+                  && PathUtilities.getName(x).contains(dependency.getArtifact()));
     } catch (final IOException e) {
       e.printStackTrace();
     }

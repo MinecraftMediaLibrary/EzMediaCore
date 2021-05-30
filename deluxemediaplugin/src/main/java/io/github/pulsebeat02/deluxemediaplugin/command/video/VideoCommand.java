@@ -39,6 +39,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpServerDaemon;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -288,7 +289,8 @@ public class VideoCommand extends BaseCommand {
                 : Component.join(
                     Component.newline(),
                     Component.text(
-                        String.format("Video Name: %s", file.getFileName()), NamedTextColor.GOLD),
+                        String.format("Video Name: %s", PathUtilities.getName(file)),
+                        NamedTextColor.GOLD),
                     Component.text(
                         String.format("Size: %d Kilobytes", Files.size(file) / 1024),
                         NamedTextColor.GOLD)));
@@ -337,7 +339,7 @@ public class VideoCommand extends BaseCommand {
                     String.format("Starting Video on URL: %s", extractor.getUrl()),
                     NamedTextColor.GOLD)
                 : Component.text(
-                    String.format("Starting Video on File: %s", file.getFileName()),
+                    String.format("Starting Video on File: %s", PathUtilities.getName(file)),
                     NamedTextColor.GOLD)));
     final MediaLibrary library = getPlugin().getLibrary();
 
@@ -433,7 +435,7 @@ public class VideoCommand extends BaseCommand {
         attributes.setFile(f);
         component =
             Component.text(
-                String.format("Successfully loaded video %s", f.getFileName()),
+                String.format("Successfully loaded video %s", PathUtilities.getName(f)),
                 NamedTextColor.GOLD);
       } else if (mrl.startsWith("http://")) {
         component =
@@ -443,7 +445,8 @@ public class VideoCommand extends BaseCommand {
       } else {
         component =
             Component.text(
-                String.format("File %s cannot be found!", f.getFileName()), NamedTextColor.RED);
+                String.format("File %s cannot be found!", PathUtilities.getName(f)),
+                NamedTextColor.RED);
       }
       audience.sendMessage(ChatUtilities.formatMessage(component));
       atomicBoolean.set(true);

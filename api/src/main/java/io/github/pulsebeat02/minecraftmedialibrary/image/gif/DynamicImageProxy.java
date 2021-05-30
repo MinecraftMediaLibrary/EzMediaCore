@@ -27,7 +27,6 @@ import io.github.pulsebeat02.minecraftmedialibrary.image.DrawableMap;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Map;
 

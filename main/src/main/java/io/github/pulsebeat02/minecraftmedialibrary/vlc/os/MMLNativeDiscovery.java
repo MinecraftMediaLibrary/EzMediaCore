@@ -25,6 +25,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.vlc.os;
 import com.sun.jna.NativeLibrary;
 import com.sun.jna.StringArray;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.binding.LibC;
@@ -89,8 +90,7 @@ public class MMLNativeDiscovery {
         return true;
       }
       final Path f = folders.remove();
-      Logger.info("Recursing Element: " + f.toString());
-      final String name = f.getFileName().toString();
+      final String name = PathUtilities.getName(f);
       final String path = f.toAbsolutePath().toString();
       if (Files.isDirectory(f)) {
         if (!plugins && name.equals("plugins")) {
@@ -103,24 +103,19 @@ public class MMLNativeDiscovery {
             }
           }
         } else {
-          try (final Stream<Path> paths = Files.walk(f)) {
-            paths.forEach(
-                x -> {
-                  if ((Files.isDirectory(x)
-                          || (Files.isRegularFile(x)
-                              && x.getFileName().toString().contains(extension)))
-                      && !x.equals(f)) {
-                    folders.add(x);
-                  }
-                });
+          try (final Stream<Path> stream = Files.walk(f)) {
+            stream
+                .filter(x -> Files.isDirectory(x) || PathUtilities.getName(x).endsWith(extension))
+                .filter(x -> !x.equals(f))
+                .forEach(folders::add);
           } catch (final IOException e) {
             e.printStackTrace();
           }
         }
       } else {
         if (!libvlc && name.equals(keyword)) {
-          nativeVLCPath = f.toAbsolutePath();
-          final String vlcPath = nativeVLCPath.toString();
+          nativeVLCPath = f.getParent().toAbsolutePath();
+          final String vlcPath = nativeVLCPath.toAbsolutePath().toString();
           setupVLC();
           NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), vlcPath);
           Logger.info(String.format("Found LibVLC (%s)", path));
@@ -150,7 +145,7 @@ public class MMLNativeDiscovery {
 
                */
 
-              final String name = o1.getFileName().toString();
+              final String name = PathUtilities.getName(o1);
               if (name.equals(keyword) || name.equals("lib")) {
                 return Integer.MIN_VALUE;
               }

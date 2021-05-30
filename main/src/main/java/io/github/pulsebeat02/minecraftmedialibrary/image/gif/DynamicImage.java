@@ -31,6 +31,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;
@@ -177,7 +178,7 @@ public class DynamicImage implements DynamicImageProxy {
   /** Converts a Gif into an MPEG file. */
   private void convertGifIntoMpeg() {
     final FFmpegLocation ffmpegLocator = new FFmpegLocation();
-    final String name = image.getFileName().toString();
+    final String name = PathUtilities.getName(image);
     final Encoder encoder = new Encoder(ffmpegLocator);
     final AudioAttributes audio = new AudioAttributes();
     audio.setVolume(0);

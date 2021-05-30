@@ -25,6 +25,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.pkg;
 import com.google.common.collect.ImmutableSet;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxPackage;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxPackageManager;
 import org.apache.commons.io.FilenameUtils;
@@ -177,7 +178,7 @@ public abstract class PackageBase {
   @NotNull
   public static PackageBase getFromFile(
       @NotNull final MediaLibrary library, @NotNull final Path file) {
-    final String extension = FilenameUtils.getExtension(file.getFileName().toString());
+    final String extension = FilenameUtils.getExtension(PathUtilities.getName(file));
     for (final String str : ALGORITHM_A) {
       if (extension.endsWith(str)) {
         Logger.info(String.format("Found Algorithm (A): %s", str));

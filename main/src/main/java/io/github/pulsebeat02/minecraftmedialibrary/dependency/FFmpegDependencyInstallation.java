@@ -26,6 +26,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTask;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
@@ -142,7 +143,7 @@ public class FFmpegDependencyInstallation {
   private Path searchFFmpeg(@NotNull final Path folder) {
     try (final Stream<Path> paths = Files.walk(folder)) {
       paths
-          .filter(x -> Files.isRegularFile(x) && x.getFileName().toString().contains("ffmpeg"))
+          .filter(x -> Files.isRegularFile(x) && PathUtilities.getName(x).contains("ffmpeg"))
           .findFirst()
           .ifPresent(path -> file = path);
     } catch (final IOException e) {

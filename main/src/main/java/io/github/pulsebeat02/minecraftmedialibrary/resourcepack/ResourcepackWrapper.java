@@ -31,6 +31,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.exception.InvalidPackIconExce
 import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import io.github.pulsebeat02.minecraftmedialibrary.json.GsonHandler;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.ResourcepackUtilities;
 import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
@@ -108,7 +109,7 @@ public class ResourcepackWrapper implements PackWrapper {
     }
     if (icon != null && !ResourcepackUtilities.validateResourcepackIcon(icon)) {
       throw new InvalidPackIconException(
-          String.format("Invalid Pack Icon! Must be PNG (%s)", icon.getFileName().toString()));
+          String.format("Invalid Pack Icon! Must be PNG (%s)", PathUtilities.getName(icon)));
     }
     Logger.info(String.format("New Resourcepack (%s) was Initialized", path));
   }
@@ -152,7 +153,7 @@ public class ResourcepackWrapper implements PackWrapper {
   public static PackWrapper of(@NotNull final MediaLibrary library, @NotNull final Path audio) {
     return ResourcepackWrapper.builder()
         .setAudio(audio)
-        .setDescription(String.format("Media: %s", audio.getFileName().toString()))
+        .setDescription(String.format("Media: %s", PathUtilities.getName(audio)))
         .setPath(
             String.format(
                 "%s/mml/http/resourcepack.zip",

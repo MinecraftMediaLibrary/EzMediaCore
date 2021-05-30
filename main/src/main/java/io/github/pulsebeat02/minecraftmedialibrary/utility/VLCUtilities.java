@@ -73,7 +73,6 @@ public final class VLCUtilities {
         return true;
       }
     }
-    // last resort
     return new NativeDiscovery().discover();
   }
 }

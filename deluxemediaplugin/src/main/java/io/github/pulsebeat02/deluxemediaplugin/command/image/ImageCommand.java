@@ -37,6 +37,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImage;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
 import io.github.pulsebeat02.minecraftmedialibrary.image.gif.DynamicImage;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
@@ -188,7 +189,7 @@ public class ImageCommand extends BaseCommand implements Listener {
       // Declare a new file for the image, download it
       final Path img = FileUtilities.downloadImageFile(mrl, plugin.getLibrary().getParentFolder());
 
-      final String name = img.getFileName().toString().toLowerCase();
+      final String name = PathUtilities.getName(img).toLowerCase();
 
       // Check if it's a gif or not
       if (name.endsWith(".gif")) {
@@ -212,7 +213,7 @@ public class ImageCommand extends BaseCommand implements Listener {
       // If it is a file that exists and has a valid extension
       if (Files.exists(img)) {
 
-        final String name = img.getFileName().toString().toLowerCase();
+        final String name = PathUtilities.getName(img).toLowerCase();
 
         // Check if it's a gif or not
         if (name.endsWith(".gif")) {
@@ -232,7 +233,8 @@ public class ImageCommand extends BaseCommand implements Listener {
         audience.sendMessage(
             ChatUtilities.formatMessage(
                 Component.text(
-                    String.format("File %s cannot be found!", img.getFileName().toString()), NamedTextColor.RED)));
+                    String.format("File %s cannot be found!", PathUtilities.getName(img)),
+                    NamedTextColor.RED)));
       }
     }
     return 1;
