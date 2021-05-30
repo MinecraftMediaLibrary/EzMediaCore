@@ -93,7 +93,7 @@ public final class DependencyInstantiation {
         Logger.info(
             "Unfortunately, MinecraftMediaLibrary cannot download VLC binaries on Linux "
                 + "as it requires the user to manually install them instead. A VLC Media Player installation "
-                + "could not be found on this computer. Instead, the library will resort to using JavaCV to "
+                + "could not be found on this computer. Instead, the library will resort to using FFmpeg to "
                 + "play videos.");
         instance.setVlcj(false);
       } else {
