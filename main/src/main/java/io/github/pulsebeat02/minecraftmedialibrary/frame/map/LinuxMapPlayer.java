@@ -67,7 +67,6 @@ public class LinuxMapPlayer extends JavaCVVideoPlayer {
   /** The type Builder. */
   public static class Builder {
 
-    private String url;
     private int width = 5;
     private int height = 5;
     private MapDataCallbackPrototype callback;
@@ -75,11 +74,6 @@ public class LinuxMapPlayer extends JavaCVVideoPlayer {
     private Object arg;
 
     private Builder() {}
-
-    public Builder setUrl(final String url) {
-      this.url = url;
-      return this;
-    }
 
     public Builder setWidth(final int width) {
       this.width = width;

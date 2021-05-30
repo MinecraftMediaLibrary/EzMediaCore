@@ -131,7 +131,7 @@ public final class BlockHighlightCallback implements BlockHighlightCallbackProto
 
   @Override
   public MediaLibrary getLibrary() {
-    return null;
+    return library;
   }
 
   @Override

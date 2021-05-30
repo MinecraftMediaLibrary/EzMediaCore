@@ -128,7 +128,7 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
    * @return file
    */
   private File getVLCFile(@NotNull final File dir) {
-    for (final File f : dir.listFiles()) {
+    for (final File f : Objects.requireNonNull(dir.listFiles())) {
       if (StringUtils.containsIgnoreCase(f.getName(), "VLC")) {
         return f;
       }

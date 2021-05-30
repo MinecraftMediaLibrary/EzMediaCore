@@ -62,6 +62,7 @@ import java.util.logging.Level;
  *
  * @author Kristian
  */
+@SuppressWarnings("deprecation")
 public abstract class TinyProtocol {
   private static final AtomicInteger ID = new AtomicInteger(0);
 

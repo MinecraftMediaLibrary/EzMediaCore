@@ -46,6 +46,7 @@ public final class MapUtilities {
    * @return the map itemstack
    */
   @NotNull
+  @SuppressWarnings("deprecation")
   public static ItemStack getMapFromID(final int id) {
     final ItemStack map = new ItemStack(Material.FILLED_MAP);
     final MapMeta meta = Objects.requireNonNull((MapMeta) map.getItemMeta());

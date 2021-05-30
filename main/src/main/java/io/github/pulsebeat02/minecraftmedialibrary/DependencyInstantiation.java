@@ -26,10 +26,10 @@ import io.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyManageme
 import io.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.VLCNativeDependencyFetcher;
 import org.jetbrains.annotations.NotNull;
-import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
 import java.io.File;
 import java.net.URLClassLoader;
@@ -89,16 +89,17 @@ public final class DependencyInstantiation {
   /** Downloads/Loads VLC dependency. */
   private void loadVLC() {
     if (!VLCUtilities.checkVLCExistence(instance.getVlcFolder().toFile())) {
-      new VLCNativeDependencyFetcher(instance).downloadLibraries();
-    }
-    if (instance.isVlcj()) {
-      try {
-        new MediaPlayerFactory();
-      } catch (final Exception e) {
-        Logger.error("The user does not have VLCJ installed! This is a very fatal error.");
+      if (RuntimeUtilities.isLinux()) {
+        Logger.info(
+            "Unfortunately, MinecraftMediaLibrary cannot download VLC binaries on Linux "
+                + "as it requires the user to manually install them instead. A VLC Media Player installation "
+                + "could not be found on this computer. Instead, the library will resort to using JavaCV to "
+                + "play videos.");
         instance.setVlcj(false);
-        instance.shutdown();
-        e.printStackTrace();
+      } else {
+        Logger.info(
+            "Windows and Mac computers are supported by VLC. Proceeding to download the libraries for VLC.");
+        new VLCNativeDependencyFetcher(instance).downloadLibraries();
       }
     }
   }

@@ -38,6 +38,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Base64;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -55,9 +56,11 @@ public class SkullCreator {
   private static Field blockProfileField;
   private static Method metaSetProfileMethod;
   private static Field metaProfileField;
+
   private SkullCreator() {}
 
   /** Creates a player skull, should work in both legacy and new Bukkit APIs. */
+  @SuppressWarnings("deprecation")
   public static ItemStack createSkull() {
     checkLegacy();
 
@@ -122,7 +125,7 @@ public class SkullCreator {
     notNull(item, "item");
     notNull(name, "name");
 
-    final SkullMeta meta = (SkullMeta) item.getItemMeta();
+    final SkullMeta meta = Objects.requireNonNull((SkullMeta) item.getItemMeta());
     meta.setOwner(name);
     item.setItemMeta(meta);
 
@@ -140,7 +143,7 @@ public class SkullCreator {
     notNull(item, "item");
     notNull(id, "id");
 
-    final SkullMeta meta = (SkullMeta) item.getItemMeta();
+    final SkullMeta meta = Objects.requireNonNull((SkullMeta) item.getItemMeta());
     meta.setOwningPlayer(Bukkit.getOfflinePlayer(id));
     item.setItemMeta(meta);
 
@@ -244,6 +247,7 @@ public class SkullCreator {
     state.update(false, false);
   }
 
+  @SuppressWarnings("deprecation")
   private static void setToSkull(final Block block) {
     checkLegacy();
 
@@ -271,7 +275,7 @@ public class SkullCreator {
     } catch (final URISyntaxException e) {
       throw new RuntimeException(e);
     }
-    final String toEncode = "{\"textures\":{\"SKIN\":{\"url\":\"" + actualUrl.toString() + "\"}}}";
+    final String toEncode = "{\"textures\":{\"SKIN\":{\"url\":\"" + actualUrl + "\"}}}";
     return Base64.getEncoder().encodeToString(toEncode.getBytes());
   }
 
@@ -323,7 +327,6 @@ public class SkullCreator {
 
   // suppress warning since PLAYER_HEAD doesn't exist in 1.12.2,
   // but we expect this and catch the error at runtime.
-  @SuppressWarnings("JavaReflectionMemberAccess")
   private static void checkLegacy() {
     try {
       // if both of these succeed, then we are running

@@ -54,7 +54,6 @@ public class DynamicImage implements DynamicImageProxy {
   private final int map;
   private final int height;
   private final int width;
-  private MapPlayer player;
 
   /**
    * Instantiates a new DynamicImage.
@@ -148,21 +147,20 @@ public class DynamicImage implements DynamicImageProxy {
     try {
       final Dimension dims = VideoUtilities.getDimensions(image);
       final int w = (int) dims.getWidth();
-      player =
-          MapPlayer.builder()
+      final MapPlayer player = MapPlayer.builder()
               .setUrl(image.getAbsolutePath())
               .setWidth(w)
               .setHeight((int) dims.getHeight())
               .setCallback(
-                  MapDataCallback.builder()
-                      .setViewers(null)
-                      .setMap(map)
-                      .setItemframeWidth(width)
-                      .setItemframeHeight(height)
-                      .setVideoWidth(w)
-                      .setDelay(0)
-                      .setDitherHolder(DitherSetting.FLOYD_STEINBERG_DITHER.getHolder())
-                      .build(library))
+                      MapDataCallback.builder()
+                              .setViewers(null)
+                              .setMap(map)
+                              .setItemframeWidth(width)
+                              .setItemframeHeight(height)
+                              .setVideoWidth(w)
+                              .setDelay(0)
+                              .setDitherHolder(DitherSetting.FLOYD_STEINBERG_DITHER.getHolder())
+                              .build(library))
               .build(library);
       player.setRepeat(true);
       player.start(Bukkit.getOnlinePlayers());

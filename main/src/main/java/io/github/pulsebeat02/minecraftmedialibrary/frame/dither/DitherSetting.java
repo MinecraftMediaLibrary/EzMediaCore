@@ -48,6 +48,7 @@ public enum DitherSetting {
   FLOYD_STEINBERG_DITHER(new FloydImageDither()),
 
   /** Experimental Dithering */
+  @SuppressWarnings("deprecation")
   EXPERIMENTAL_DITHERING(new DynamicIntegerDithering());
 
   private final DitherHolder holder;

@@ -20,115 +20,38 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary;
+package io.github.pulsebeat02.minecraftmedialibrary.frame;
 
-import io.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
+import com.google.common.collect.ImmutableMap;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.chat.LinuxChatPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.LinuxEntityPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.highlight.BlockHighlightPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.highlight.LinuxBlockHighlightPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.map.LinuxMapPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.LinuxScoreboardPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.ScoreboardPlayer;
+import org.jetbrains.annotations.NotNull;
 
-import java.nio.file.Path;
+import java.util.Map;
 
-/** The base media library class used the media library. */
-public interface MediaLibrary {
+public class VideoPlayer {
 
-  /** Shutdown the library instance */
-  void shutdown();
+  private static final Map<Class<?>, Class<?>> MAPPINGS;
 
-  /**
-   * Gets plugin.
-   *
-   * @return the plugin
-   */
-  Plugin getPlugin();
+  static {
+    MAPPINGS =
+        ImmutableMap.of(
+            ChatPlayer.class, LinuxChatPlayer.class,
+            EntityPlayer.class, LinuxEntityPlayer.class,
+            BlockHighlightPlayer.class, LinuxBlockHighlightPlayer.class,
+            MapPlayer.class, LinuxMapPlayer.class,
+            ScoreboardPlayer.class, LinuxScoreboardPlayer.class);
+  }
 
-  /**
-   * Gets handler.
-   *
-   * @return the handler
-   */
-  PacketHandler getHandler();
-
-  /**
-   * Whether the library is using vlcj.
-   *
-   * @return the boolean
-   */
-  boolean isVlcj();
-
-  /**
-   * Sets the usage status of vlcj.
-   *
-   * @param vlcj status
-   */
-  void setVlcj(boolean vlcj);
-
-  /**
-   * Gets the path of the parent library folder.
-   *
-   * @return the path
-   */
-  Path getPath();
-
-  /**
-   * Gets the http parent folder.
-   *
-   * @return the parent
-   */
-  Path getHttpParentFolder();
-
-  /**
-   * Gets dependencies folder.
-   *
-   * @return the dependencies folder
-   */
-  Path getDependenciesFolder();
-
-  /**
-   * Gets the vlc folder.
-   *
-   * @return the vlc folder
-   */
-  Path getVlcFolder();
-
-  /**
-   * Gets the parent folder of the library.
-   *
-   * @return the path of the library
-   */
-  Path getParentFolder();
-
-  /**
-   * Gets the image folder of the library.
-   *
-   * @return the path of the image folder
-   */
-  Path getImageFolder();
-
-  /**
-   * Gets the audio folder of the library.
-   *
-   * @return the path of the audio folder
-   */
-  Path getAudioFolder();
-
-  /**
-   * Gets the library path handle.
-   *
-   * @return the path handle
-   */
-  LibraryPathHandle getHandle();
-
-  /**
-   * Returns the status of the library.
-   *
-   * @return whether the library is disabled or not
-   */
-  boolean isDisabled();
-
-  /**
-   * Gets the listener.
-   *
-   * @return the listener
-   */
-  Listener getRegistrationHandler();
+  public VideoPlayer(@NotNull final VideoPlayerContext player) {
+    final Class<?> clazz = player.getClass();
+  }
 }
