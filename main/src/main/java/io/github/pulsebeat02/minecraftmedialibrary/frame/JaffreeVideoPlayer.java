@@ -22,20 +22,29 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.frame;
 
+import com.github.kokorin.jaffree.StreamType;
+import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
+import com.github.kokorin.jaffree.ffmpeg.FFmpegResultFuture;
+import com.github.kokorin.jaffree.ffmpeg.Frame;
+import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
+import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
+import com.github.kokorin.jaffree.ffmpeg.Input;
+import com.github.kokorin.jaffree.ffmpeg.Stream;
+import com.github.kokorin.jaffree.ffmpeg.UrlInput;
 import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
+import io.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.entity.Player;
-import org.bytedeco.javacv.Frame;
-import org.bytedeco.javacv.FrameGrabber;
-import org.bytedeco.javacv.OpenCVFrameGrabber;
 import org.jetbrains.annotations.NotNull;
 
-import javax.imageio.ImageIO;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * The main abstract class for VideoPlayer classes to extend. Frame Callbacks and Video Players MUST
@@ -61,17 +70,18 @@ import java.util.concurrent.CompletableFuture;
  * MacOS operating system, it is strongly recommended to use the VLCVideoPlayer players instead as
  * they are much faster and coded in C/C++ libraries.
  */
-public abstract class JavaCVVideoPlayer implements VideoPlayerContext {
+public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
 
   private final MediaLibrary library;
-  private final Object arg;
   private final FrameCallback callback;
   private final String sound;
-  private final FrameGrabberType type;
-  private FrameGrabber grabber;
+  private final String url;
 
+  private FFmpeg ffmpeg;
+  private FFmpegResultFuture future;
   private boolean playing;
   private boolean repeat;
+  private int frameRate;
   private int width;
   private int height;
 
@@ -79,43 +89,59 @@ public abstract class JavaCVVideoPlayer implements VideoPlayerContext {
    * Instantiates a new Abstract video player.
    *
    * @param library the library
-   * @param type the type of video playback
-   * @param arg the argument
+   * @param url the url
    * @param width the width
    * @param height the height
    * @param callback the callback
    */
-  public JavaCVVideoPlayer(
+  public JaffreeVideoPlayer(
       @NotNull final MediaLibrary library,
-      @NotNull final FrameGrabberType type,
-      @NotNull final Object arg,
+      @NotNull final String url,
       final int width,
       final int height,
       @NotNull final FrameCallback callback) {
     Preconditions.checkArgument(width > 0, String.format("Width is not valid! (%d)", width));
     Preconditions.checkArgument(height > 0, String.format("Height is not valid! (%d)", height));
+    this.url = url;
     this.library = library;
-    this.arg = arg;
     this.width = width;
     this.height = height;
+    frameRate = 25;
     this.callback = callback;
-    this.type = type;
     sound = getLibrary().getPlugin().getName().toLowerCase();
     initializePlayer();
   }
 
   private void initializePlayer() {
-    switch (type) {
-      case NORMAL_VIDEO:
-        grabber = new OpenCVFrameGrabber((String) arg);
-        break;
-      case CAMERA_OUTPUT:
-        grabber = new OpenCVFrameGrabber((int) arg);
-        break;
-      default:
-        grabber = new OpenCVFrameGrabber((String) arg);
-        break;
+    final Input input;
+    final Path path = Paths.get(url);
+    if (Files.exists(path)) {
+      input = UrlInput.fromPath(path);
+    } else {
+      input = UrlInput.fromUrl(url);
     }
+    ffmpeg =
+        new FFmpeg(Paths.get(FFmpegDependencyInstallation.getFFmpegPath()))
+            .addInput(input)
+            .addOutput(
+                FrameOutput.withConsumer(
+                        new FrameConsumer() {
+                          @Override
+                          public void consumeStreams(final List<Stream> streams) {}
+
+                          @Override
+                          public void consume(final Frame frame) {
+                            if (frame == null) {
+                              return;
+                            }
+                            callback.send(
+                                frame.getImage().getRGB(0, 0, width, height, null, 0, width));
+                          }
+                        })
+                    .setFrameRate(frameRate)
+                    .disableStream(StreamType.AUDIO)
+                    .disableStream(StreamType.SUBTITLE)
+                    .disableStream(StreamType.DATA));
   }
 
   @Override
@@ -125,7 +151,7 @@ public abstract class JavaCVVideoPlayer implements VideoPlayerContext {
 
   @Override
   public String getUrl() {
-    return arg.toString();
+    return url;
   }
 
   @Override
@@ -161,85 +187,70 @@ public abstract class JavaCVVideoPlayer implements VideoPlayerContext {
   @Override
   public void start(@NotNull final Collection<? extends Player> players) {
     playing = true;
-    if (grabber == null) {
+    if (ffmpeg == null) {
       initializePlayer();
     }
     CompletableFuture.runAsync(
-            () -> {
-              try {
-                grabber.start();
-                Frame frame;
-                while ((frame = grabber.grab()) != null) {
-                  final int width = frame.imageWidth;
-                  final int[] rgb =
-                      ImageIO.read(new ByteArrayInputStream(frame.data.array()))
-                          .getRGB(0, 0, width, frame.imageHeight, null, 0, width);
-                  callback.send(rgb);
-                }
-              } catch (final IOException e) {
-                e.printStackTrace();
-              }
-            })
-        .whenCompleteAsync(
-            (t, throwable) -> {
-              if (repeat) {
-                try {
-                  grabber.restart();
-                } catch (final FrameGrabber.Exception e) {
-                  e.printStackTrace();
-                }
-                playAudio(players);
-              }
-            });
-    playAudio(players);
-    Logger.info(String.format("Started Playing the Video! (%s)", arg));
+        () -> {
+          do {
+            future = ffmpeg.executeAsync();
+            playAudio(players);
+            try {
+              future.toCompletableFuture().get();
+            } catch (final InterruptedException | ExecutionException e) {
+              e.printStackTrace();
+            }
+          } while (repeat);
+        });
+    Logger.info(String.format("Started Playing the Video! (%s)", url));
   }
 
   @Override
   public void stop(@NotNull final Collection<? extends Player> players) {
     playing = false;
-    if (grabber != null) {
-      try {
-        grabber.stop();
-      } catch (final FrameGrabber.Exception e) {
-        e.printStackTrace();
-      }
+    if (ffmpeg != null) {
+      future.graceStop();
     }
     for (final Player p : players) {
       p.stopSound(sound);
     }
-    Logger.info(String.format("Stopped Playing the Video! (%s)", arg));
+    Logger.info(String.format("Stopped Playing the Video! (%s)", url));
   }
 
   @Override
   public void release() {
     playing = false;
-    if (grabber != null) {
-      try {
-        grabber.stop();
-        grabber.release();
-      } catch (final FrameGrabber.Exception e) {
-        e.printStackTrace();
-      }
-      grabber = null;
+    if (ffmpeg != null) {
+      future.graceStop();
+      ffmpeg = null;
     }
-    Logger.info(String.format("Released the Video! (%s)", arg));
+    Logger.info(String.format("Released the Video! (%s)", url));
   }
 
   @Override
   public void setRepeat(final boolean setting) {
     repeat = true;
-    Logger.info(String.format("Set Setting Loop to (%s)! (%s)", setting, arg));
+    Logger.info(String.format("Set Setting Loop to (%s)! (%s)", setting, url));
+  }
+
+  @Override
+  public boolean isPlaying() {
+    return playing;
+  }
+
+  @Override
+  public int getFrameRate() {
+    return frameRate;
+  }
+
+  @Override
+  public void setFrameRate(final int frameRate) {
+    this.frameRate = frameRate;
   }
 
   private void playAudio(@NotNull final Collection<? extends Player> players) {
     for (final Player p : players) {
       p.playSound(p.getLocation(), sound, 1.0F, 1.0F);
     }
-  }
-
-  @Override
-  public boolean isPlaying() {
-    return playing;
   }
 }

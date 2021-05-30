@@ -23,8 +23,7 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.FrameGrabberType;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.JavaCVVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreeVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,27 +31,25 @@ import org.jetbrains.annotations.NotNull;
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it in a scoreboard.
  */
-public class LinuxScoreboardPlayer extends JavaCVVideoPlayer {
+public class LinuxScoreboardPlayer extends JaffreeVideoPlayer {
 
   /**
    * Instantiates a new LinuxScoreboardPlayer.
    *
    * @param library the library
-   * @param type the type
-   * @param arg the arg
+   * @param url the url
    * @param width the width
    * @param height the height
    * @param callback the callback
    */
   public LinuxScoreboardPlayer(
       @NotNull final MediaLibrary library,
-      @NotNull final FrameGrabberType type,
-      @NotNull final Object arg,
-      @NotNull final ScoreboardCallback callback,
+      @NotNull final String url,
+      @NotNull final ScoreboardCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, type, arg, width, height, callback);
-    Logger.info(String.format("Created a Scoreboard Integrated Video Player (%s)", arg));
+    super(library, url, width, height, callback);
+    Logger.info(String.format("Created a Scoreboard Integrated Video Player (%s)", url));
   }
 
   /**
@@ -67,11 +64,10 @@ public class LinuxScoreboardPlayer extends JavaCVVideoPlayer {
   /** The type Builder. */
   public static class Builder {
 
+    private ScoreboardCallbackPrototype callback;
     private int width = 10;
     private int height = 10;
-    private ScoreboardCallback callback;
-    private FrameGrabberType type;
-    private Object arg;
+    private String url;
 
     private Builder() {}
 
@@ -90,18 +86,13 @@ public class LinuxScoreboardPlayer extends JavaCVVideoPlayer {
       return this;
     }
 
-    public Builder setVideoType(final FrameGrabberType type) {
-      this.type = type;
-      return this;
-    }
-
-    public Builder setArgument(final Object arg) {
-      this.arg = arg;
+    public Builder setUrl(final String url) {
+      this.url = url;
       return this;
     }
 
     public LinuxScoreboardPlayer build(@NotNull final MediaLibrary library) {
-      return new LinuxScoreboardPlayer(library, type, arg, callback, width, height);
+      return new LinuxScoreboardPlayer(library, url, callback, width, height);
     }
   }
 }

@@ -22,51 +22,41 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.video;
 
+import com.github.kokorin.jaffree.StreamType;
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
 import com.github.kokorin.jaffree.ffmpeg.Frame;
-import com.github.kokorin.jaffree.ffmpeg.FrameInput;
-import com.github.kokorin.jaffree.ffmpeg.FrameProducer;
+import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
+import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
+import com.github.kokorin.jaffree.ffmpeg.UrlInput;
 
-import com.github.kokorin.jaffree.ffmpeg.UrlOutput;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
 import java.nio.file.Paths;
-import java.util.Collections;
+import java.util.List;
 
 public class FFmpegTest {
   public static void main(final String[] args) {
-    final FrameProducer producer = new FrameProducer() {
-      private long frameCounter = 0;
-      @Override
-      public java.util.List<Stream> produceStreams() {
-        return Collections.singletonList(new Stream()
-                .setType(Stream.Type.VIDEO)
-                .setTimebase(1000L)
-                .setWidth(320)
-                .setHeight(240)
-        );
-      }
-      @Override
-      public Frame produce() {
-        if (frameCounter > 30) {
-          return null;
-        }
-        final BufferedImage image = new BufferedImage(320, 240, BufferedImage.TYPE_3BYTE_BGR);
-        final Graphics2D graphics = image.createGraphics();
-        graphics.setPaint(new Color(frameCounter * 1.0f / 30, 0, 0));
-        graphics.fillRect(0, 0, 320, 240);
-        final Frame videoFrame = Frame.createVideoFrame(0, frameCounter * 100, image);
-        frameCounter++;
-        return videoFrame;
-      }
-    };
-    new FFmpeg(
-            Paths.get(
-                "C:\\Users\\Brandon Li\\Desktop\\server\\plugins\\DeluxeMediaPlugin\\mml\\libraries\\ffmpeg\\ffmpeg-amd64.exe"))
-        .addInput(FrameInput.withProducer(producer))
-        .addOutput(UrlOutput.toUrl("C://test.mp4"))
+    new FFmpeg(Paths.get("/Users/bli24/Desktop/ffmpeg"))
+        .addInput(
+            UrlInput.fromUrl(
+                "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"))
+        .addOutput(
+            FrameOutput.withConsumer(
+                    new FrameConsumer() {
+                      @Override
+                      public void consumeStreams(final List<Stream> streams) {}
+
+                      @Override
+                      public void consume(final Frame frame) {
+                        if (frame == null) {
+                          return;
+                        }
+                        System.out.println(frame.getImage().getHeight());
+                      }
+                    })
+                .setFrameRate(30)
+                .disableStream(StreamType.AUDIO)
+                .disableStream(StreamType.SUBTITLE)
+                .disableStream(StreamType.DATA))
         .execute();
   }
 }

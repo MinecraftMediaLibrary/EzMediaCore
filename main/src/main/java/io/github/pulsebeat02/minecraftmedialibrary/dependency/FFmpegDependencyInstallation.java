@@ -58,7 +58,7 @@ public class FFmpegDependencyInstallation {
   private Path file;
 
   /**
-   * Instantiates a new JaveDependencyInstallation
+   * Instantiates a new FFmpegDependencyInstallation
    *
    * @param library library
    */
@@ -67,7 +67,7 @@ public class FFmpegDependencyInstallation {
   }
 
   /**
-   * Instantiates a new JaveDependencyInstallation
+   * Instantiates a new FFmpegDependencyInstallation
    *
    * @param dependency directory path
    */
@@ -86,10 +86,19 @@ public class FFmpegDependencyInstallation {
   /**
    * Gets the path of the executable ffmpeg binary.
    *
-   * @return the path of the ffmpeg library
+   * @return the path of the ffmpeg binary
    */
   public static String getFFmpegPath() {
     return FFMPEG_PATH;
+  }
+
+  /**
+   * Sets the path of the executable ffmpeg binary.
+   *
+   * @param ffmpegPath the path of the ffmpeg binary
+   */
+  public static void setFfmpegPath(final String ffmpegPath) {
+    FFMPEG_PATH = ffmpegPath;
   }
 
   /** Installs FFMPEG Resource */

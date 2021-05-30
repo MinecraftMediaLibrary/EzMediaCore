@@ -82,8 +82,10 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
   private final FrameCallback callback;
   private final String sound;
   private final Collection<Player> watchers;
+
   private EmbeddedMediaPlayer mediaPlayerComponent;
   private boolean playing;
+  private int frameRate;
   private int width;
   private int height;
 
@@ -278,18 +280,28 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
     Logger.info(String.format("Set Setting Loop to (%s)! (%s)", setting, url));
   }
 
+  @Override
+  public boolean isPlaying() {
+    return playing;
+  }
+
+  @Override
+  public int getFrameRate() {
+    return frameRate;
+  }
+
+  @Override
+  public void setFrameRate(final int frameRate) {
+    this.frameRate = frameRate;
+  }
+
   private void playAudio(@NotNull final Collection<? extends Player> players) {
     for (final Player p : players) {
       p.playSound(p.getLocation(), sound, 1.0F, 1.0F);
     }
   }
 
-  @Override
-  public boolean isPlaying() {
-    return playing;
-  }
-
-  static class MinecraftVideoRenderCallback extends RenderCallbackAdapter {
+  private static class MinecraftVideoRenderCallback extends RenderCallbackAdapter {
 
     private final Consumer<int[]> callback;
 

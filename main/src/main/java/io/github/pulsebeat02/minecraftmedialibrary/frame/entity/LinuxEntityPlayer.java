@@ -23,8 +23,7 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.entity;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.FrameGrabberType;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.JavaCVVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreeVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -37,7 +36,7 @@ import java.util.Collection;
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it on entities. Linux compatible.
  */
-public class LinuxEntityPlayer extends JavaCVVideoPlayer {
+public class LinuxEntityPlayer extends JaffreeVideoPlayer {
 
   private final Location location;
   private final Entity[] entities;
@@ -46,8 +45,7 @@ public class LinuxEntityPlayer extends JavaCVVideoPlayer {
    * Instantiates a new LinuxEntityPlayer.
    *
    * @param library the library
-   * @param type the type
-   * @param arg the arg
+   * @param url the url
    * @param width the width
    * @param height the height
    * @param callback the callback
@@ -55,16 +53,15 @@ public class LinuxEntityPlayer extends JavaCVVideoPlayer {
    */
   public LinuxEntityPlayer(
       @NotNull final MediaLibrary library,
-      @NotNull final FrameGrabberType type,
-      @NotNull final Object arg,
+      @NotNull final String url,
       @NotNull final EntityCallbackPrototype callback,
       @NotNull final Location location,
       final int width,
       final int height) {
-    super(library, type, arg, width, height, callback);
+    super(library, url, width, height, callback);
     this.location = location;
     entities = callback.getEntities();
-    Logger.info(String.format("Created a VLCJ Integrated Entity Cloud Video Player (%s)", arg));
+    Logger.info(String.format("Created a VLCJ Integrated Entity Cloud Video Player (%s)", url));
   }
 
   /**
@@ -124,12 +121,11 @@ public class LinuxEntityPlayer extends JavaCVVideoPlayer {
   /** The type Builder. */
   public static class Builder {
 
+    private EntityCallbackPrototype callback;
     private int width = 5;
     private int height = 5;
-    private EntityCallbackPrototype callback;
     private Location location;
-    private FrameGrabberType type;
-    private Object arg;
+    private String url;
 
     private Builder() {}
 
@@ -153,18 +149,13 @@ public class LinuxEntityPlayer extends JavaCVVideoPlayer {
       return this;
     }
 
-    public Builder setVideoType(final FrameGrabberType type) {
-      this.type = type;
-      return this;
-    }
-
-    public Builder setArgument(final Object arg) {
-      this.arg = arg;
+    public Builder setUrl(final String url) {
+      this.url = url;
       return this;
     }
 
     public LinuxEntityPlayer build(@NotNull final MediaLibrary library) {
-      return new LinuxEntityPlayer(library, type, arg, callback, location, width, height);
+      return new LinuxEntityPlayer(library, url, callback, location, width, height);
     }
   }
 }

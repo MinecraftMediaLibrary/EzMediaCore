@@ -43,6 +43,7 @@ public class LibraryPathHandle {
   private final Path vlcFolder;
   private final Path imageFolder;
   private final Path audioFolder;
+  private Path ffmpegPath;
 
   /**
    * Instantiates a new LibraryPathHandle.
@@ -133,5 +134,23 @@ public class LibraryPathHandle {
    */
   public Path getAudioFolder() {
     return audioFolder;
+  }
+
+  /**
+   * Get the ffmpeg path to the file.
+   *
+   * @return the path of the ffmpeg binary
+   */
+  public Path getFfmpegPath() {
+    return ffmpegPath;
+  }
+
+  /**
+   * Set the ffmpeg path to the file.
+   *
+   * @param ffmpegPath the path to the ffmpegp binary
+   */
+  public void setFfmpegPath(final Path ffmpegPath) {
+    this.ffmpegPath = ffmpegPath;
   }
 }

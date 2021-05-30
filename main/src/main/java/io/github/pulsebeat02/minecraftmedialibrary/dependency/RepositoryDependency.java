@@ -89,11 +89,8 @@ public enum RepositoryDependency {
       "6{}5{}4",
       DependencyResolution.MAVEN_DEPENDENCY),
 
-  /** JavaCV Maven Dependency */
-  JAVACV("org{}bytedeco", "javacv-platform", "1{}5{}5", DependencyResolution.MAVEN_DEPENDENCY),
-
-  /** JavaCPP Maven Dependency */
-  JAVACPP("org{}bytedeco", "javacpp", "1{}5{}5", DependencyResolution.MAVEN_DEPENDENCY);
+  /** Jaffree Maven Dependency */
+  JAFFREE("com{}github{}kokorin{}jaffree", "jaffree", "2021{}05{}26", DependencyResolution.MAVEN_DEPENDENCY);
 
   private final String group;
   private final String artifact;

@@ -71,7 +71,7 @@ public enum JarRelocationConvention {
   SPOTIFY("com{}wrapper{}spotify", "io{}github{}pulsebeat02{}spotify"),
 
   /** ByteDeco Jar Relocation Convention */
-  BYTEDECO("org{}bytedeco", "io{}github{}pulsebeat02{}bytedeco");
+  JAFFREE("com{}github{}kokorin", "io{}github{}pulsebeat02{}kokorin");
 
   private final Relocation relocation;
 

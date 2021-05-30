@@ -19,8 +19,6 @@ dependencies {
     compileOnly("net.java.dev.jna:jna:5.8.0")
     compileOnly("net.java.dev.jna:jna-platform:5.8.0")
     compileOnly("se.michaelthelin.spotify:spotify-web-api-java:6.5.4")
-
-    compileOnly("org.bytedeco:javacv-platform:1.5.5")
     compileOnly("com.github.kokorin.jaffree:jaffree:2021.05.26")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
@@ -28,12 +26,10 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.31")
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.4.31")
     testImplementation("uk.co.caprica:vlcj:4.7.1")
-    testImplementation("org.bytedeco:javacv-platform:1.5.5")
     testImplementation("com.github.sealedtx:java-youtube-downloader:2.5.2")
     testImplementation("commons-io:commons-io:2.8.0")
-
-    testImplementation("com.github.kokorin.jaffree:jaffree:2021.05.26")
     testImplementation("ws.schild:jave-core:3.0.1")
+    testImplementation("com.github.kokorin.jaffree:jaffree:2021.05.26")
 
     api(project(":api"))
     implementation(project(":v1_16_R3"))

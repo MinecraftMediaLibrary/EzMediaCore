@@ -117,4 +117,18 @@ public interface VideoPlayerContext {
    * @return whether the video is playing or not
    */
   boolean isPlaying();
+
+  /**
+   * Gets the frame rate for the video.
+   *
+   * @return the frame rate
+   */
+  int getFrameRate();
+
+  /**
+   * Sets the frame rate for the video
+   *
+   * @param frameRate the frames in hertz
+   */
+  void setFrameRate(int frameRate);
 }
