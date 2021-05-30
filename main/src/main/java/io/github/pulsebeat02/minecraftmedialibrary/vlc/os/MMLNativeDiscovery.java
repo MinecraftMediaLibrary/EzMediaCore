@@ -89,6 +89,7 @@ public class MMLNativeDiscovery {
         return true;
       }
       final Path f = folders.remove();
+      Logger.info("Recursing Element: " + f.toString());
       final String name = f.getFileName().toString();
       final String path = f.toAbsolutePath().toString();
       if (Files.isDirectory(f)) {
@@ -102,12 +103,13 @@ public class MMLNativeDiscovery {
             }
           }
         } else {
-          try (final Stream<Path> paths = Files.walk(Paths.get("/home/you/Desktop"))) {
+          try (final Stream<Path> paths = Files.walk(f)) {
             paths.forEach(
                 x -> {
-                  if (Files.isDirectory(x)
-                      || (Files.isRegularFile(x)
-                          && x.getFileName().toString().contains(extension))) {
+                  if ((Files.isDirectory(x)
+                          || (Files.isRegularFile(x)
+                              && x.getFileName().toString().contains(extension)))
+                      && !x.equals(f)) {
                     folders.add(x);
                   }
                 });
