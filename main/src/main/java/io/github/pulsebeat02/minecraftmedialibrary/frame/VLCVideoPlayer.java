@@ -143,7 +143,13 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
   }
 
   private void initializePlayer() {
-    mediaPlayerComponent = new MediaPlayerFactory().mediaPlayers().newEmbeddedMediaPlayer();
+    mediaPlayerComponent =
+        new MediaPlayerFactory(
+                frameRate != 0
+                    ? new String[] {String.format("--fps-fps=%d", frameRate)}
+                    : new String[] {})
+            .mediaPlayers()
+            .newEmbeddedMediaPlayer();
     mediaPlayerComponent
         .videoSurface()
         .set(
