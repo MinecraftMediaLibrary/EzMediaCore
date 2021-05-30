@@ -30,7 +30,9 @@ import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -44,7 +46,7 @@ public class PictureConfiguration extends AbstractConfiguration {
     images = new HashSet<>();
   }
 
-  public void addPhoto(final int map, @NotNull final File file, final int width, final int height) {
+  public void addPhoto(final int map, @NotNull final Path file, final int width, final int height) {
 
     // Add an image
     images.add(
@@ -63,7 +65,7 @@ public class PictureConfiguration extends AbstractConfiguration {
     final FileConfiguration configuration = getFileConfiguration();
     for (final StaticImageProxy image : images) {
       final long key = image.getMap();
-      configuration.set(String.format("%d.location", key), image.getImage().getAbsolutePath());
+      configuration.set(String.format("%d.location", key), image.getImage().toString());
       configuration.set(String.format("%d.width", key), image.getWidth());
       configuration.set(String.format("%d.height", key), image.getHeight());
     }
@@ -85,13 +87,13 @@ public class PictureConfiguration extends AbstractConfiguration {
       final int id = Integer.parseInt(key);
 
       // Get the file path of the image
-      final File file =
-          new File(
+      final Path file =
+          Paths.get(
               Objects.requireNonNull(configuration.getString(String.format("%d.location", id))));
 
       // If it doesn't exist, throw an error
-      if (!file.exists()) {
-        Logger.error(String.format("Could not read %s at id %d!", file.getAbsolutePath(), id));
+      if (!Files.exists(file)) {
+        Logger.error(String.format("Could not read %s at id %d!", file, id));
         continue;
       }
 

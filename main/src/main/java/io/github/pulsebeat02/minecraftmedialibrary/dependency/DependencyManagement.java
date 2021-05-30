@@ -25,23 +25,22 @@ package io.github.pulsebeat02.minecraftmedialibrary.dependency;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.relocation.JarRelocator;
-import io.github.pulsebeat02.minecraftmedialibrary.relocation.Relocation;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This is the full dependency management class, which handles the dependencies of the project by
@@ -57,9 +56,9 @@ public class DependencyManagement {
     EXECUTOR_SERVICE = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
   }
 
-  private final Set<File> files;
-  private final File dir;
-  private final File relocatedDir;
+  private final Set<Path> files;
+  private final Path dir;
+  private final Path relocatedDir;
 
   /**
    * Instantiates a new DependencyManagement.
@@ -77,27 +76,28 @@ public class DependencyManagement {
    */
   public DependencyManagement(@NotNull final Path dirPath) {
     files = new HashSet<>();
-    dir = dirPath.toFile();
-    if (!dir.exists()) {
-      if (dir.mkdir()) {
+    dir = dirPath;
+    if (!Files.exists(dir)) {
+      try {
+        Files.createDirectory(dir);
         Logger.info(
             String.format(
                 "Dependency Directory (%s) does not exist... Creating a folder",
-                dir.getAbsolutePath()));
-      } else {
-        Logger.info(String.format("Dependency Directory (%s) exists!", dir.getAbsolutePath()));
+                dir.toAbsolutePath()));
+      } catch (final IOException e) {
+        e.printStackTrace();
       }
     }
-    relocatedDir = new File(dir, "relocated");
-    if (!relocatedDir.exists()) {
-      if (relocatedDir.mkdir()) {
+    relocatedDir = dir.resolve("relocated");
+    if (!Files.exists(relocatedDir)) {
+      try {
+        Files.createDirectory(dir);
         Logger.info(
             String.format(
                 "Relocated Directory (%s) does not exist... Creating a folder",
-                relocatedDir.getAbsolutePath()));
-      } else {
-        Logger.info(
-            String.format("Relocated Directory (%s) exists!", relocatedDir.getAbsolutePath()));
+                relocatedDir.toAbsolutePath()));
+      } catch (final IOException e) {
+        e.printStackTrace();
       }
     }
   }
@@ -124,11 +124,13 @@ public class DependencyManagement {
    */
   private void installDependency(@NotNull final RepositoryDependency dependency) {
     final String artifact = dependency.getArtifact();
-    File file = null;
+    Path file = null;
     if (dependency.getResolution() == DependencyResolution.MAVEN_DEPENDENCY) {
       Logger.info(String.format("Checking Maven Central Repository for %s", artifact));
       try {
-        file = DependencyUtilities.downloadMavenDependency(dependency, dir.getAbsolutePath());
+        file =
+            DependencyUtilities.downloadMavenDependency(dependency, dir.toAbsolutePath().toString())
+                .toPath();
       } catch (final IOException e) {
         Logger.info(String.format("Could NOT find %s in Maven Central Repository!", artifact));
         e.printStackTrace();
@@ -136,7 +138,10 @@ public class DependencyManagement {
     } else if (dependency.getResolution() == DependencyResolution.JITPACK_DEPENDENCY) {
       Logger.info(String.format("Checking Jitpack Central Repository for %s", artifact));
       try {
-        file = DependencyUtilities.downloadJitpackDependency(dependency, dir.getAbsolutePath());
+        file =
+            DependencyUtilities.downloadJitpackDependency(
+                    dependency, dir.toAbsolutePath().toString())
+                .toPath();
       } catch (final IOException e) {
         Logger.info(String.format("Could NOT find %s in Jitpack Central Repository!", artifact));
         e.printStackTrace();
@@ -149,27 +154,34 @@ public class DependencyManagement {
 
   /** Relocates Dependencies. */
   public void relocate() {
-    for (final File f : Objects.requireNonNull(dir.listFiles())) {
-      if (f.getName().contains("asm")) {
-        try {
-          DependencyUtilities.loadDependency(f);
-          files.remove(f);
-        } catch (final IOException e) {
-          e.printStackTrace();
-        }
-      }
+    try (final Stream<Path> paths = Files.walk(dir)) {
+      paths
+          .filter(x -> Files.isRegularFile(x) && x.getFileName().toString().contains("asm"))
+          .forEach(
+              x -> {
+                try {
+                  DependencyUtilities.loadDependency(x);
+                } catch (final IOException e) {
+                  e.printStackTrace();
+                }
+                files.remove(x);
+              });
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
-    final List<Relocation> relocations =
-        Arrays.stream(JarRelocationConvention.values())
-            .map(JarRelocationConvention::getRelocation)
-            .collect(Collectors.toList());
     final List<Callable<Object>> tasks = new ArrayList<>();
-    for (final File f : files) {
+    for (final Path f : files) {
       tasks.add(
           Executors.callable(
               () -> {
                 try {
-                  new JarRelocator(f, new File(relocatedDir, f.getName()), relocations).run();
+                  new JarRelocator(
+                          f,
+                          relocatedDir.resolve(f.getFileName()),
+                          Arrays.stream(JarRelocationConvention.values())
+                              .map(JarRelocationConvention::getRelocation)
+                              .collect(Collectors.toList()))
+                      .run();
                 } catch (final IOException e) {
                   e.printStackTrace();
                 }
@@ -184,12 +196,19 @@ public class DependencyManagement {
 
   /** Install and load. */
   public void load() {
-    for (final File f : Objects.requireNonNull(relocatedDir.listFiles())) {
-      try {
-        DependencyUtilities.loadDependency(f);
-      } catch (final IOException e) {
-        e.printStackTrace();
-      }
+    try (final Stream<Path> paths = Files.walk(relocatedDir)) {
+      paths
+          .filter(Files::isRegularFile)
+          .forEach(
+              x -> {
+                try {
+                  DependencyUtilities.loadDependency(x);
+                } catch (final IOException e) {
+                  e.printStackTrace();
+                }
+              });
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
   }
 
@@ -201,14 +220,17 @@ public class DependencyManagement {
    * @return the boolean
    */
   private boolean checkExists(
-      @NotNull final File dir, @NotNull final RepositoryDependency dependency) {
-    if (!dir.exists()) {
+      @NotNull final Path dir, @NotNull final RepositoryDependency dependency) {
+    if (!Files.exists(dir)) {
       return false;
     }
-    for (final File f : Objects.requireNonNull(dir.listFiles())) {
-      if (f.getName().contains(dependency.getArtifact())) {
-        return true;
-      }
+    try (final Stream<Path> paths = Files.walk(dir)) {
+      return paths.anyMatch(
+          x ->
+              Files.isRegularFile(x)
+                  && x.getFileName().toString().contains(dependency.getArtifact()));
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
     return false;
   }
@@ -218,7 +240,7 @@ public class DependencyManagement {
    *
    * @return the set of files downloaded
    */
-  public Set<File> getFiles() {
+  public Set<Path> getFiles() {
     return files;
   }
 }

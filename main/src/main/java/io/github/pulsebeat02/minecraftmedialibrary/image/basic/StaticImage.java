@@ -32,8 +32,10 @@ import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
 import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Objects;
 
@@ -46,7 +48,7 @@ public class StaticImage implements StaticImageProxy {
 
   private final MediaLibrary library;
   private final int map;
-  private final File image;
+  private final Path image;
   private final int height;
   private final int width;
 
@@ -62,17 +64,17 @@ public class StaticImage implements StaticImageProxy {
   public StaticImage(
       @NotNull final MediaLibrary library,
       final int map,
-      @NotNull final File image,
+      @NotNull final Path image,
       final int width,
       final int height) {
-    Preconditions.checkArgument(image.exists(), "Image does not exist!");
+    Preconditions.checkArgument(Files.exists(image), "Image does not exist!");
     this.library = library;
     this.map = map;
     this.image = image;
     this.width = width;
     this.height = height;
     Logger.info(
-        String.format("Initialized Image at Map ID %d (Source: %s)", map, image.getAbsolutePath()));
+        String.format("Initialized Image at Map ID %d (Source: %s)", map, image.toAbsolutePath()));
   }
 
   /**
@@ -96,7 +98,7 @@ public class StaticImage implements StaticImageProxy {
     this.width = width;
     this.height = height;
     Logger.info(
-        String.format("Initialized Image at Map ID %d (Source: %s)", map, image.getAbsolutePath()));
+        String.format("Initialized Image at Map ID %d (Source: %s)", map, image.toAbsolutePath()));
   }
 
   /**
@@ -121,7 +123,7 @@ public class StaticImage implements StaticImageProxy {
     return new StaticImage(
         library,
         NumberConversions.toInt(deserialize.get("map")),
-        new File(String.valueOf(deserialize.get("image"))),
+        Paths.get(String.valueOf(deserialize.get("image"))),
         NumberConversions.toInt(deserialize.get("width")),
         NumberConversions.toInt(deserialize.get("height")));
   }
@@ -144,7 +146,7 @@ public class StaticImage implements StaticImageProxy {
             .ditherIntoMinecraft(Objects.requireNonNull(VideoUtilities.getBuffer(image)), width);
     library.getHandler().displayMaps(null, map, width, height, buffer, width);
     Logger.info(
-        String.format("Drew Image at Map ID %d (Source: %s)", map, image.getAbsolutePath()));
+        String.format("Drew Image at Map ID %d (Source: %s)", map, image.toAbsolutePath()));
   }
 
   @Override
@@ -156,7 +158,7 @@ public class StaticImage implements StaticImageProxy {
     return ImmutableMap.of(
         "type", "static",
         "map", map,
-        "image", image.getAbsolutePath(),
+        "image", image.toAbsolutePath().toString(),
         "width", width,
         "height", height);
   }
@@ -172,7 +174,7 @@ public class StaticImage implements StaticImageProxy {
   }
 
   @Override
-  public File getImage() {
+  public Path getImage() {
     return image;
   }
 
@@ -190,7 +192,7 @@ public class StaticImage implements StaticImageProxy {
   public static class Builder {
 
     private int map;
-    private File image;
+    private Path image;
     private int height;
     private int width;
 
@@ -213,7 +215,7 @@ public class StaticImage implements StaticImageProxy {
      * @param image the image
      * @return the image
      */
-    public Builder setImage(@NotNull final File image) {
+    public Builder setImage(@NotNull final Path image) {
       this.image = image;
       return this;
     }

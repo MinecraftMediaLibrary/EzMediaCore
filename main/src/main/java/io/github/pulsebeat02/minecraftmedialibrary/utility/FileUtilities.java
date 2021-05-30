@@ -27,7 +27,6 @@ import com.google.common.base.Strings;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -52,7 +51,7 @@ public final class FileUtilities {
    * @return the file
    */
   @NotNull
-  public static File downloadImageFile(@NotNull final String url, @NotNull final Path path) {
+  public static Path downloadImageFile(@NotNull final String url, @NotNull final Path path) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be null or empty!");
     final String filePath = String.format("%s/%s.png", path, UUID.randomUUID());
     try (final InputStream in = new URL(url).openStream()) {
@@ -60,7 +59,7 @@ public final class FileUtilities {
     } catch (final IOException e) {
       e.printStackTrace();
     }
-    return new File(filePath);
+    return Paths.get(filePath);
   }
 
   /**
@@ -69,12 +68,15 @@ public final class FileUtilities {
    * @param file the file
    * @param successful the successful message
    */
-  public static void createFile(@NotNull final File file, @NotNull final String successful) {
+  public static void createFile(@NotNull final Path file, @NotNull final String successful) {
     try {
-      if (file.getParentFile().mkdirs()) {
-        Logger.info(String.format("Created Directories for File (%s)", file.getAbsolutePath()));
+      final Path parent = file.getParent();
+      if (!Files.exists(parent)) {
+        Files.createDirectories(file.getParent());
+        Logger.info(String.format("Created Directories for File (%s)", file.toAbsolutePath()));
       }
-      if (file.createNewFile()) {
+      if (!Files.exists(file)) {
+        Files.createFile(file);
         Logger.info(successful);
       }
     } catch (final IOException e) {

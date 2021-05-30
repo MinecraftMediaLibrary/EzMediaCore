@@ -25,10 +25,12 @@ package io.github.pulsebeat02.minecraftmedialibrary.logger;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * The custom logger implementation that is used throughout the library. The log file can be found
@@ -40,21 +42,23 @@ public final class Logger {
   /** Tracks whether log should be verbose */
   protected static boolean VERBOSE;
   protected static volatile PrintWriter WRITER;
-  protected static File LOG_FILE;
+  protected static Path LOG_FILE;
 
   public static void initializeLogger(@NotNull final MediaLibrary library) {
     try {
-      final File folder = new File(library.getPlugin().getDataFolder(), "mml");
-      if (folder.mkdirs()) {
+      final Path folder = Paths.get(library.getPlugin().getDataFolder().toString()).resolve("mml");
+      if (!Files.exists(folder)) {
+        Files.createDirectories(folder);
         System.out.println("Created Directory");
       }
-      LOG_FILE = new File(folder, "mml.log");
-      if (LOG_FILE.createNewFile()) {
-        System.out.printf("File Created (%s)%n", LOG_FILE.getName());
+      LOG_FILE = folder.resolve("mml.log");
+      if (!Files.exists(LOG_FILE)) {
+        Files.createFile(LOG_FILE);
+        System.out.printf("File Created (%s)%n", LOG_FILE.getFileName());
       } else {
         System.out.println("Log File Exists Already");
       }
-      WRITER = new PrintWriter(new FileWriter(LOG_FILE), true);
+      WRITER = new PrintWriter(new FileWriter(LOG_FILE.toFile()), true);
     } catch (final IOException exception) {
       exception.printStackTrace();
     }
@@ -131,7 +135,7 @@ public final class Logger {
    *
    * @return the log file
    */
-  public static File getLogFile() {
+  public static Path getLogFile() {
     return LOG_FILE;
   }
 }

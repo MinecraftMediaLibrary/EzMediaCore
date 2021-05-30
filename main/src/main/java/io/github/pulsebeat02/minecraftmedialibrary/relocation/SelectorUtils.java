@@ -22,7 +22,6 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.relocation;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -68,7 +67,7 @@ public final class SelectorUtils {
    */
   public static boolean matchPath(
       final String pattern, final String str, final boolean isCaseSensitive) {
-    return matchPath(pattern, str, File.separator, isCaseSensitive);
+    return matchPath(pattern, str, System.getProperty("file.separator"), isCaseSensitive);
   }
 
   private static boolean matchPath(

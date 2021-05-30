@@ -73,7 +73,7 @@ public final class DebuggerUtilities {
 
   /** Redirects the JAVE2 Logging Output and VLCJ Logging Output to the proper logger file. */
   public static void redirectLoggingOutput() {
-    final String path = Logger.getLogFile().getAbsolutePath();
+    final String path = Logger.getLogFile().toString();
     new NativeStreams(path, path);
     Configurator.setLevel(ConversionOutputAnalyzer.class.getName(), Level.OFF);
   }

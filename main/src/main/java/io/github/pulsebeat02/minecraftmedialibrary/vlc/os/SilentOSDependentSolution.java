@@ -47,7 +47,7 @@ public interface SilentOSDependentSolution {
    *
    * @param folder directory
    */
-  void loadNativeDependency(@NotNull File folder);
+  void loadNativeDependency(@NotNull final Path folder);
 
   /** Prints all System environment variables. */
   void printSystemEnvironmentVariables();
@@ -62,14 +62,14 @@ public interface SilentOSDependentSolution {
    * @return file
    */
   @Nullable
-  File findVLCFolder(@NotNull File folder);
+  File findVLCFolder(@NotNull final File folder);
 
   /**
    * Deletes file (archive).
    *
    * @param zip archive
    */
-  void deleteArchive(@NotNull File zip);
+  void deleteArchive(@NotNull final Path zip);
 
   /**
    * Gets directory of file.

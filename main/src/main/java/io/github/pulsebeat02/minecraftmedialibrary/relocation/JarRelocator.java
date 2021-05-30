@@ -23,9 +23,9 @@
 package io.github.pulsebeat02.minecraftmedialibrary.relocation;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -37,9 +37,9 @@ import java.util.jar.JarOutputStream;
 public final class JarRelocator {
 
   /** The input jar */
-  private final File input;
+  private final Path input;
   /** The output jar */
-  private final File output;
+  private final Path output;
   /** The relocating remapper */
   private final RelocatingRemapper remapper;
 
@@ -54,7 +54,7 @@ public final class JarRelocator {
    * @param relocations the relocations
    */
   public JarRelocator(
-      final File input, final File output, final Collection<Relocation> relocations) {
+      final Path input, final Path output, final Collection<Relocation> relocations) {
     this.input = input;
     this.output = output;
     remapper = new RelocatingRemapper(relocations);
@@ -67,7 +67,7 @@ public final class JarRelocator {
    * @param output the output jar file
    * @param relocations the relocations
    */
-  public JarRelocator(final File input, final File output, final Map<String, String> relocations) {
+  public JarRelocator(final Path input, final Path output, final Map<String, String> relocations) {
     this.input = input;
     this.output = output;
     final Collection<Relocation> c = new ArrayList<>(relocations.size());
@@ -89,8 +89,8 @@ public final class JarRelocator {
     }
 
     try (final JarOutputStream out =
-        new JarOutputStream(new BufferedOutputStream(new FileOutputStream(output)))) {
-      try (final JarFile in = new JarFile(input)) {
+        new JarOutputStream(new BufferedOutputStream(new FileOutputStream(output.toFile())))) {
+      try (final JarFile in = new JarFile(input.toFile())) {
         final JarRelocatorTask task = new JarRelocatorTask(remapper, out, in);
         task.processEntries();
       }

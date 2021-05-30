@@ -51,7 +51,10 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -258,7 +261,7 @@ public class VideoCommand extends BaseCommand {
   private int displayInformation(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final boolean youtube = attributes.isYoutube();
-    final File file = attributes.getFile();
+    final Path file = attributes.getFile();
     if (file == null && !youtube) {
       audience.sendMessage(
           ChatUtilities.formatMessage(
@@ -267,26 +270,31 @@ public class VideoCommand extends BaseCommand {
       final YoutubeExtraction extractor = attributes.getExtractor();
       audience.sendMessage(
           Component.text("=====================================", NamedTextColor.AQUA));
-      audience.sendMessage(
-          youtube
-              ? Component.join(
-                  Component.newline(),
-                  Component.text(
-                      String.format("Title: %s", extractor.getVideoTitle()), NamedTextColor.GOLD),
-                  Component.text(
-                      String.format("Author: %s", extractor.getAuthor()), NamedTextColor.GOLD),
-                  Component.text(
-                      String.format("Rating: %s", extractor.getVideoRating()), NamedTextColor.GOLD),
-                  TextComponent.ofChildren(
-                      Component.text("Video Identifier: ", NamedTextColor.GOLD),
-                      Component.text(extractor.getVideoId(), NamedTextColor.RED)))
-              : Component.join(
-                  Component.newline(),
-                  Component.text(
-                      String.format("Video Name: %s", file.getName()), NamedTextColor.GOLD),
-                  Component.text(
-                      String.format("Size: %d Kilobytes", file.getTotalSpace() / 1024),
-                      NamedTextColor.GOLD)));
+      try {
+        audience.sendMessage(
+            youtube
+                ? Component.join(
+                    Component.newline(),
+                    Component.text(
+                        String.format("Title: %s", extractor.getVideoTitle()), NamedTextColor.GOLD),
+                    Component.text(
+                        String.format("Author: %s", extractor.getAuthor()), NamedTextColor.GOLD),
+                    Component.text(
+                        String.format("Rating: %s", extractor.getVideoRating()),
+                        NamedTextColor.GOLD),
+                    TextComponent.ofChildren(
+                        Component.text("Video Identifier: ", NamedTextColor.GOLD),
+                        Component.text(extractor.getVideoId(), NamedTextColor.RED)))
+                : Component.join(
+                    Component.newline(),
+                    Component.text(
+                        String.format("Video Name: %s", file.getFileName()), NamedTextColor.GOLD),
+                    Component.text(
+                        String.format("Size: %d Kilobytes", Files.size(file) / 1024),
+                        NamedTextColor.GOLD)));
+      } catch (final IOException e) {
+        e.printStackTrace();
+      }
       audience.sendMessage(
           Component.text("=====================================", NamedTextColor.AQUA));
     }
@@ -306,7 +314,7 @@ public class VideoCommand extends BaseCommand {
     final CommandSender sender = context.getSource();
     final Audience audience = getPlugin().getAudiences().sender(sender);
     final boolean youtube = attributes.isYoutube();
-    final File file = attributes.getFile();
+    final Path file = attributes.getFile();
     if (file == null && !youtube) {
       audience.sendMessage(
           ChatUtilities.formatMessage(
@@ -329,7 +337,7 @@ public class VideoCommand extends BaseCommand {
                     String.format("Starting Video on URL: %s", extractor.getUrl()),
                     NamedTextColor.GOLD)
                 : Component.text(
-                    String.format("Starting Video on File: %s", file.getName()),
+                    String.format("Starting Video on File: %s", file.getFileName()),
                     NamedTextColor.GOLD)));
     final MediaLibrary library = getPlugin().getLibrary();
 
@@ -413,11 +421,11 @@ public class VideoCommand extends BaseCommand {
 
       // This means we have a file
       atomicBoolean.set(false);
-      final File f = new File(folderPath, mrl);
+      final Path f = Paths.get(folderPath).resolve(mrl);
       final TextComponent component;
 
       // Check file existence
-      if (f.exists()) {
+      if (Files.exists(f)) {
 
         // Set youtube to false, extractor to null, etc because we are using an actual video file.
         attributes.setYoutube(false);
@@ -425,7 +433,8 @@ public class VideoCommand extends BaseCommand {
         attributes.setFile(f);
         component =
             Component.text(
-                String.format("Successfully loaded video %s", f.getName()), NamedTextColor.GOLD);
+                String.format("Successfully loaded video %s", f.getFileName()),
+                NamedTextColor.GOLD);
       } else if (mrl.startsWith("http://")) {
         component =
             Component.text(
@@ -434,7 +443,7 @@ public class VideoCommand extends BaseCommand {
       } else {
         component =
             Component.text(
-                String.format("File %s cannot be found!", f.getName()), NamedTextColor.RED);
+                String.format("File %s cannot be found!", f.getFileName()), NamedTextColor.RED);
       }
       audience.sendMessage(ChatUtilities.formatMessage(component));
       atomicBoolean.set(true);
@@ -458,7 +467,7 @@ public class VideoCommand extends BaseCommand {
                 extractor.extractAudio();
 
                 // Set the file to be the video file of the extraction
-                attributes.setFile(extractor.getVideo().toFile());
+                attributes.setFile(extractor.getVideo());
 
                 // Set the extractor
                 attributes.setExtractor(extractor);
@@ -494,7 +503,7 @@ public class VideoCommand extends BaseCommand {
       final String url = provider.generateUrl(wrapper.getPath());
 
       // Send the resourcepack url to all players on the server
-      final byte[] hash = VideoExtractionUtilities.createHashSHA(new File(wrapper.getPath()));
+      final byte[] hash = VideoExtractionUtilities.createHashSHA(Paths.get(wrapper.getPath()));
       for (final Player p : Bukkit.getOnlinePlayers()) {
         p.setResourcePack(url, hash);
       }

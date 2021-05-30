@@ -38,7 +38,7 @@ public class MacNativeDiscovery extends MMLNativeDiscovery {
   public void setupVLC() {
     if (RuntimeUtilities.isMac()) {
       NativeLibrary.addSearchPath(
-          RuntimeUtil.getLibVlcCoreLibraryName(), getDiscoveredPath().toAbsolutePath().toString());
+          RuntimeUtil.getLibVlcCoreLibraryName(), getDiscoveredPath().toString());
       NativeLibrary.getInstance(RuntimeUtil.getLibVlcCoreLibraryName());
     }
   }

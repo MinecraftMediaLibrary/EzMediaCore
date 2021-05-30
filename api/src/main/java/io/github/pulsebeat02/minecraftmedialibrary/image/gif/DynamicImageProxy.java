@@ -28,6 +28,7 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Map;
 
 /** Dynamic image proxy used to draw images. */
@@ -69,7 +70,7 @@ public interface DynamicImageProxy extends DrawableMap, ConfigurationSerializabl
    *
    * @return the image
    */
-  File getImage();
+  Path getImage();
 
   /**
    * Gets height.

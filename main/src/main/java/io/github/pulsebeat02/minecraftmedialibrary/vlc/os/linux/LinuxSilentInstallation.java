@@ -29,7 +29,6 @@ import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.SilentInstallationType
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.pkg.PackageBase;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -63,10 +62,10 @@ public class LinuxSilentInstallation extends AbstractSilentOSDependentSolution {
     final Path dir = getDir();
     Logger.info("No VLC Installation found on this Computer. Proceeding to a manual install.");
     final LinuxPackageManager manager = new LinuxPackageManager(dir);
-    final File f = manager.getDesignatedPackage();
+    final Path f = manager.getDesignatedPackage();
     PackageBase.getFromFile(library, f).installPackage();
-    Logger.info(String.format("Downloaded and Loaded Package (%s)", f.getAbsolutePath()));
-    loadNativeDependency(dir.toFile());
+    Logger.info(String.format("Downloaded and Loaded Package (%s)", f.getFileName()));
+    loadNativeDependency(dir);
     printSystemEnvironmentVariables();
     printSystemProperties();
   }

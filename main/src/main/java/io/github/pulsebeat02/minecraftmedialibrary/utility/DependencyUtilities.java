@@ -42,6 +42,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.LongConsumer;
@@ -134,7 +135,7 @@ public final class DependencyUtilities {
       @NotNull final DependencyResolution resolution)
       throws IOException {
     final File f = downloadFile(groupId, artifactId, version, directory, resolution);
-    loadDependency(f);
+    loadDependency(f.toPath());
     return f;
   }
 
@@ -160,7 +161,7 @@ public final class DependencyUtilities {
       @NotNull final LongConsumer consumer)
       throws IOException {
     final File f = downloadFile(groupId, artifactId, version, directory, resolution, consumer);
-    loadDependency(f);
+    loadDependency(f.toPath());
     return f;
   }
 
@@ -413,16 +414,17 @@ public final class DependencyUtilities {
    * @param file the file
    * @throws IOException the io exception
    */
-  public static void loadDependency(@NotNull final File file) throws IOException {
+  public static void loadDependency(@NotNull final Path file) throws IOException {
     Preconditions.checkArgument(
-        file.exists(), String.format("Dependency File %s doesn't exist!", file.getAbsolutePath()));
-    Logger.info(String.format("Loading JAR Dependency at: %s", file.getAbsolutePath()));
+        Files.exists(file),
+        String.format("Dependency File %s doesn't exist!", file.toAbsolutePath()));
+    Logger.info(String.format("Loading JAR Dependency at: %s", file.toAbsolutePath()));
     try {
-      ADD_URL_METHOD.invoke(CLASSLOADER, file.toURI().toURL());
+      ADD_URL_METHOD.invoke(CLASSLOADER, file.toFile().toURI().toURL());
     } catch (final IllegalAccessException | InvocationTargetException e) {
       e.printStackTrace();
     }
-    Logger.info(String.format("Finished Loading Dependency %s", file.getName()));
+    Logger.info(String.format("Finished Loading Dependency %s", file.getFileName()));
   }
 
   /**

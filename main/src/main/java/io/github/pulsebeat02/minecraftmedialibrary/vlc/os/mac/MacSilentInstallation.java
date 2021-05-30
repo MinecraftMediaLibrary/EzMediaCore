@@ -97,13 +97,13 @@ public class MacSilentInstallation extends AbstractSilentOSDependentSolution {
       e.printStackTrace();
     }
     Logger.info("Unmounting Disk Successfully");
-    deleteArchive(dmg);
+    deleteArchive(dmg.toPath());
     Logger.info("Deleted DMG File");
-    loadNativeDependency(app);
+    loadNativeDependency(app.toPath());
   }
 
   @Override
-  public void loadNativeDependency(final @NotNull File folder) {
+  public void loadNativeDependency(final @NotNull Path folder) {
     VLCUtilities.checkVLCExistence(folder);
   }
 

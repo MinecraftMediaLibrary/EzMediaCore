@@ -43,7 +43,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -77,7 +79,7 @@ public class LinuxPackageManager {
             .create();
   }
 
-  private final File vlc;
+  private final Path vlc;
   private Map<String, LinuxOSPackages> packages;
 
   /**
@@ -106,12 +108,14 @@ public class LinuxPackageManager {
       Logger.info("Could not read System OS JSON file");
       e.printStackTrace();
     }
-    vlc = dir.toFile();
-    if (!vlc.exists()) {
-      if (vlc.mkdir()) {
+    vlc = dir;
+    if (!Files.exists(vlc)) {
+      try {
+        Files.createDirectory(vlc);
         Logger.info("Made VLC Directory");
-      } else {
+      } catch (final IOException e) {
         Logger.error("Failed to Make VLC Directory");
+        e.printStackTrace();
       }
     }
   }
@@ -127,7 +131,7 @@ public class LinuxPackageManager {
    * @throws IOException exception if file can't be downloaded
    */
   @NotNull
-  public File getDesignatedPackage() throws IOException {
+  public Path getDesignatedPackage() throws IOException {
     Logger.info("Attempting to Find VLC Package for Machine.");
     final String fullInfo = RuntimeUtilities.getLinuxDistribution();
     final String distro = RuntimeUtilities.getDistributionName(fullInfo).toLowerCase();
@@ -164,7 +168,7 @@ public class LinuxPackageManager {
       if (link.getArch() == arch) {
         final String url = link.getUrl();
         final String fileName = url.substring(url.lastIndexOf("/") + 1);
-        final File file = new File(String.format("%s/%s", vlc.getAbsolutePath(), fileName));
+        final Path file = Paths.get(String.format("%s/%s", vlc.toString(), fileName));
         URL uri = null;
         try {
           uri = new URL(link.getUrl());
@@ -179,7 +183,7 @@ public class LinuxPackageManager {
           e.printStackTrace();
         }
         if (uri != null) {
-          FileUtils.copyURLToFile(uri, file);
+          FileUtils.copyURLToFile(uri, file.toFile());
           PACKAGE = link;
           return file;
         }
@@ -191,7 +195,8 @@ public class LinuxPackageManager {
 
   /** Extract contents. Should only be one package located in folder */
   public void extractContents() {
-    ArchiveUtilities.recursiveExtraction(Objects.requireNonNull(vlc.listFiles())[0], vlc);
+    final File file = vlc.toFile();
+    ArchiveUtilities.recursiveExtraction(Objects.requireNonNull(file.listFiles())[0], file);
   }
 
   /**

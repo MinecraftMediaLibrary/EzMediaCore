@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +49,7 @@ public final class VLCUtilities {
    * @param directory the library
    * @return whether vlc can be found or not
    */
-  public static boolean checkVLCExistence(@NotNull final File directory) {
+  public static boolean checkVLCExistence(@NotNull final Path directory) {
     MMLNativeDiscovery discovery = null;
     WellKnownDirectoryProvider provider = null;
     if (RuntimeUtilities.isWindows()) {
@@ -66,7 +67,7 @@ public final class VLCUtilities {
           "Couldn't find the correct method to discover VLC!");
     }
     final List<String> paths = new ArrayList<>(provider.search());
-    paths.add(0, directory.getAbsolutePath());
+    paths.add(0, directory.toString());
     for (final String path : paths) {
       if (discovery.discover(new File(path))) {
         return true;

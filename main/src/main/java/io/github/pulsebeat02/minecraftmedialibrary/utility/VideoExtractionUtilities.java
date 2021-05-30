@@ -25,10 +25,10 @@ package io.github.pulsebeat02.minecraftmedialibrary.utility;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
@@ -89,10 +89,10 @@ public final class VideoExtractionUtilities {
    * @param file the file
    * @return the byte [ ]
    */
-  public static byte @NotNull [] createHashSHA(@NotNull final File file) {
+  public static byte @NotNull [] createHashSHA(@NotNull final Path file) {
     try {
       final MessageDigest digest = MessageDigest.getInstance("SHA-1");
-      final InputStream fis = new FileInputStream(file);
+      final InputStream fis = new FileInputStream(file.toFile());
       int n = 0;
       final byte[] buffer = new byte[8192];
       while (n != -1) {
@@ -104,7 +104,7 @@ public final class VideoExtractionUtilities {
       final byte[] hash = digest.digest();
       Logger.info(
           String.format(
-              "Generated Hash for File %s (%s)", file.getAbsolutePath(), new String(hash)));
+              "Generated Hash for File %s (%s)", file.toAbsolutePath(), new String(hash)));
       return hash;
     } catch (final IOException | NoSuchAlgorithmException e) {
       e.printStackTrace();

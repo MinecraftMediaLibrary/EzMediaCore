@@ -27,9 +27,10 @@ import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Installs packages from the Conda package manager. Used for the JuNestInstaller as a helper class
@@ -37,7 +38,7 @@ import java.net.URL;
  */
 public class CondaInstallation {
 
-  private final File conda;
+  private final Path conda;
   private final String baseDirectory;
 
   /**
@@ -47,7 +48,7 @@ public class CondaInstallation {
    */
   public CondaInstallation(@NotNull final String baseDirectory) {
     this.baseDirectory = baseDirectory;
-    conda = new File(baseDirectory, "scripts/conda.sh");
+    conda = Paths.get(baseDirectory).resolve("scripts/conda.sh");
     try {
       setup();
     } catch (final IOException e) {
@@ -65,10 +66,12 @@ public class CondaInstallation {
     FileUtils.copyURLToFile(
         new URL(
             "https://github.com/MinecraftMediaLibrary/Conda-Mirror/raw/main/Miniconda3-latest-Linux-x86_64.sh"),
-        conda);
+        conda.toFile());
     RuntimeUtilities.executeBashScript(
         conda,
-        new String[] {"-b", "-p", new File(baseDirectory, "conda").getAbsolutePath()},
+        new String[] {
+          "-b", "-p", Paths.get(baseDirectory).resolve("conda").toAbsolutePath().toString()
+        },
         "Successfully Installed Conda");
   }
 
@@ -89,7 +92,7 @@ public class CondaInstallation {
    *
    * @return the file script
    */
-  public File getCondaScript() {
+  public Path getCondaScript() {
     return conda;
   }
 }

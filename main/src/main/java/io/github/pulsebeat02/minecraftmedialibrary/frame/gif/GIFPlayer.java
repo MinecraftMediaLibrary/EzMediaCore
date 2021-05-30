@@ -34,7 +34,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -51,26 +50,6 @@ public class GIFPlayer extends VLCVideoPlayer {
   private final float frameDuration;
   private ScheduledExecutorService scheduler;
   private int index;
-
-  /**
-   * Instantiates a new GIF video player.
-   *
-   * @param library the library
-   * @param file the file
-   * @param width the width
-   * @param height the height
-   * @param callback the callback
-   * @deprecated uses File
-   */
-  @Deprecated
-  public GIFPlayer(
-      final @NotNull MediaLibrary library,
-      final @NotNull File file,
-      final int width,
-      final int height,
-      final FrameCallback callback) {
-    this(library, file.toPath(), width, height, callback);
-  }
 
   /**
    * Instantiates a new GIF video player.
@@ -203,14 +182,13 @@ public class GIFPlayer extends VLCVideoPlayer {
       if (PathUtilities.isValidPath(url)) {
         return new GIFPlayer(library, Paths.get(url), width, height, callback);
       } else {
-        final File downloaded =
-            new File(library.getImageFolder().toFile(), FilenameUtils.getName(url));
+        final Path downloaded = library.getImageFolder().resolve(FilenameUtils.getName(url));
         try {
-          FileUtils.copyURLToFile(new URL(url), downloaded);
+          FileUtils.copyURLToFile(new URL(url), downloaded.toFile());
         } catch (final IOException e) {
           e.printStackTrace();
         }
-        return new GIFPlayer(library, downloaded.toPath(), width, height, callback);
+        return new GIFPlayer(library, downloaded, width, height, callback);
       }
     }
   }

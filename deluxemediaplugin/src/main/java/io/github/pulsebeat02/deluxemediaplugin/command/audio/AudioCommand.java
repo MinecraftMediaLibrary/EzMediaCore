@@ -45,7 +45,9 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -53,7 +55,7 @@ public class AudioCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> literalNode;
   private final AtomicBoolean atomicBoolean;
-  private File audio;
+  private Path audio;
 
   public AudioCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
@@ -110,16 +112,16 @@ public class AudioCommand extends BaseCommand {
                     getPlugin().getEncoderConfiguration().getSettings());
 
             // Extract the audio
-            audio = extraction.extractAudio().toFile();
+            audio = extraction.extractAudio();
           });
 
     } else {
 
       // Create a new file
-      final File file = new File(mrl);
+      final Path file = Paths.get(mrl);
 
       // Check if the file exists
-      if (file.exists()) {
+      if (Files.exists(file)) {
 
         // Assign it then
         audio = file;
@@ -139,7 +141,7 @@ public class AudioCommand extends BaseCommand {
             () -> {
 
               // Create a resourcepack from the audio and library instance
-              final PackWrapper wrapper = ResourcepackWrapper.of(library, audio.toPath());
+              final PackWrapper wrapper = ResourcepackWrapper.of(library, audio);
 
               // Build the resourcepack
               wrapper.buildResourcePack();

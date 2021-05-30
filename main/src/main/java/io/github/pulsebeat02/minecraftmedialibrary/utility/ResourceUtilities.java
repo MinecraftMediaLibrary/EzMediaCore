@@ -26,8 +26,6 @@ import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -51,35 +49,6 @@ public class ResourceUtilities {
       throw new NullPointerException(String.format("File not Found! %s", name));
     } else {
       return IOUtils.toString(input, StandardCharsets.UTF_8.name());
-    }
-  }
-
-  /**
-   * Gets the resource from path as file in resources folder.
-   *
-   * @param resourcePath path
-   * @return file object
-   */
-  @Nullable
-  public static File getResourceAsFile(@NotNull final String resourcePath) {
-    try {
-      final InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(resourcePath);
-      if (in == null) {
-        return null;
-      }
-      final File tempFile = File.createTempFile(String.valueOf(in.hashCode()), ".tmp");
-      tempFile.deleteOnExit();
-      try (final FileOutputStream out = new FileOutputStream(tempFile)) {
-        final byte[] buffer = new byte[1024];
-        int bytesRead;
-        while ((bytesRead = in.read(buffer)) != -1) {
-          out.write(buffer, 0, bytesRead);
-        }
-      }
-      return tempFile;
-    } catch (final IOException e) {
-      e.printStackTrace();
-      return null;
     }
   }
 

@@ -31,8 +31,10 @@ import io.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.VLCNativeDependencyFetcher;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import java.io.IOException;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -88,7 +90,7 @@ public final class DependencyInstantiation {
 
   /** Downloads/Loads VLC dependency. */
   private void loadVLC() {
-    if (!VLCUtilities.checkVLCExistence(instance.getVlcFolder().toFile())) {
+    if (!VLCUtilities.checkVLCExistence(instance.getVlcFolder())) {
       if (RuntimeUtilities.isLinux()) {
         Logger.info(
             "Unfortunately, MinecraftMediaLibrary cannot download VLC binaries on Linux "
@@ -110,10 +112,13 @@ public final class DependencyInstantiation {
    * @param management the dependency management
    */
   private void deleteDependencies(@NotNull final DependencyManagement management) {
-    final Set<File> files = management.getFiles();
-    for (final File file : files) {
-      if (file.delete()) {
-        Logger.info(String.format("Finished Initializing Dependency (%s)", file.getAbsolutePath()));
+    final Set<Path> files = management.getFiles();
+    for (final Path file : files) {
+      try {
+        Files.delete(file);
+        Logger.info(String.format("Finished Initializing Dependency (%s)", file.toAbsolutePath()));
+      } catch (final IOException e) {
+        e.printStackTrace();
       }
     }
     files.clear();

@@ -32,6 +32,8 @@ import org.jetbrains.annotations.Nullable;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.Map;
@@ -66,8 +68,8 @@ public abstract class AbstractSilentOSDependentSolution implements SilentOSDepen
    * @param folder directory
    */
   @Override
-  public void loadNativeDependency(@NotNull final File folder) {
-    NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), folder.getAbsolutePath());
+  public void loadNativeDependency(@NotNull final Path folder) {
+    NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), folder.toAbsolutePath().toString());
     VLCUtilities.checkVLCExistence(folder);
   }
 
@@ -118,12 +120,14 @@ public abstract class AbstractSilentOSDependentSolution implements SilentOSDepen
    * @param zip archive
    */
   @Override
-  public void deleteArchive(@NotNull final File zip) {
+  public void deleteArchive(@NotNull final Path zip) {
     Logger.info("Deleting Archive...");
-    if (zip.delete()) {
+    try {
+      Files.delete(zip);
       Logger.info("Archive deleted after installation.");
-    } else {
+    } catch (final IOException e) {
       Logger.error("Archive could NOT be deleted after installation!");
+      e.printStackTrace();
     }
   }
 

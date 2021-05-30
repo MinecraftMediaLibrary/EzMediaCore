@@ -25,7 +25,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.pkg;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import java.nio.file.Path;
 
 public class ManualInstaller extends PackageBase {
 
@@ -34,7 +34,7 @@ public class ManualInstaller extends PackageBase {
    *
    * @param file the file
    */
-  public ManualInstaller(@NotNull final File file) {
+  public ManualInstaller(@NotNull final Path file) {
     super(file, true);
   }
 

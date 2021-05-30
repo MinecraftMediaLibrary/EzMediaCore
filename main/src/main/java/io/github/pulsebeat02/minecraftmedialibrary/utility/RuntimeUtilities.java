@@ -26,9 +26,9 @@ import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 
 /**
  * Special runtime utilities used throughout the library and also open to users. Used for easier
@@ -272,21 +272,22 @@ public final class RuntimeUtilities {
    * @param message the success message
    */
   public static void executeBashScript(
-      @NotNull final File file, @NotNull final String[] arguments, @NotNull final String message) {
+          @NotNull final Path file, @NotNull final String[] arguments, @NotNull final String message) {
+    final String str = file.toAbsolutePath().toString();
     Logger.info(
-        String.format("Script: %s %s", file.getAbsolutePath(), String.join(" ", arguments)));
+        String.format("Script: %s %s", str, String.join(" ", arguments)));
     try {
       final ProcessBuilder pb =
-          new ProcessBuilder("bash", file.getAbsolutePath(), String.join(" ", arguments));
+          new ProcessBuilder("bash", str, String.join(" ", arguments));
       final ProcessBuilder.Redirect redirect =
-          ProcessBuilder.Redirect.appendTo(Logger.getLogFile());
+          ProcessBuilder.Redirect.appendTo(Logger.getLogFile().toFile());
       pb.redirectOutput(redirect);
       pb.redirectError(redirect);
       Logger.info(
           pb.start().waitFor() == 0
               ? message
               : String.format(
-                  "An issue occurred while running script! (%s)", file.getAbsolutePath()));
+                  "An issue occurred while running script! (%s)", str));
     } catch (final InterruptedException | IOException e) {
       e.printStackTrace();
     }

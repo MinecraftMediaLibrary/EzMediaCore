@@ -27,10 +27,12 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.logging.Level;
 
 public abstract class AbstractConfiguration {
@@ -38,18 +40,18 @@ public abstract class AbstractConfiguration {
   private final DeluxeMediaPlugin plugin;
   private final String fileName;
 
-  private final File configFile;
+  private final Path configFile;
   private FileConfiguration fileConfiguration;
 
   public AbstractConfiguration(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final String name) {
     this.plugin = plugin;
     fileName = name;
-    configFile = new File(plugin.getDataFolder(), fileName);
+    configFile = Paths.get(plugin.getDataFolder().toString()).resolve(fileName);
   }
 
   public void reloadConfig() {
-    fileConfiguration = YamlConfiguration.loadConfiguration(configFile);
+    fileConfiguration = YamlConfiguration.loadConfiguration(configFile.toFile());
     final InputStream defConfigStream = plugin.getResource(fileName);
     if (defConfigStream != null) {
       final YamlConfiguration defConfig =
@@ -68,7 +70,7 @@ public abstract class AbstractConfiguration {
   public void saveConfig() {
     if (fileConfiguration != null && configFile != null) {
       try {
-        getConfig().save(configFile);
+        getConfig().save(configFile.toFile());
       } catch (final IOException e) {
         plugin
             .getLogger()
@@ -78,13 +80,13 @@ public abstract class AbstractConfiguration {
   }
 
   public void saveDefaultConfig() {
-    if (!configFile.exists()) {
+    if (!Files.exists(configFile)) {
       plugin.saveResource(fileName, false);
     }
   }
 
   public void read() {
-    if (!configFile.exists()) {
+    if (!Files.exists(configFile)) {
       saveDefaultConfig();
     }
     getConfig();
@@ -103,7 +105,7 @@ public abstract class AbstractConfiguration {
     return fileName;
   }
 
-  public File getConfigFile() {
+  public Path getConfigFile() {
     return configFile;
   }
 

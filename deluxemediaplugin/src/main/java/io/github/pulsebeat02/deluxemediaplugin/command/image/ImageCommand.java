@@ -50,7 +50,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Optional;
@@ -126,7 +128,7 @@ public class ImageCommand extends BaseCommand implements Listener {
   private int setRickRoll(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = getPlugin().getAudiences().sender(context.getSource());
     final MediaLibrary library = getPlugin().getLibrary();
-    final File f =
+    final Path f =
         FileUtilities.downloadImageFile(
             "https://images.news18.com/ibnlive/uploads/2020/12/1607660925_untitled-design-2020-12-11t095722.206.png",
             library.getParentFolder());
@@ -184,9 +186,9 @@ public class ImageCommand extends BaseCommand implements Listener {
     if (isUrl(mrl)) {
 
       // Declare a new file for the image, download it
-      final File img = FileUtilities.downloadImageFile(mrl, plugin.getLibrary().getParentFolder());
+      final Path img = FileUtilities.downloadImageFile(mrl, plugin.getLibrary().getParentFolder());
 
-      final String name = img.getName().toLowerCase();
+      final String name = img.getFileName().toString().toLowerCase();
 
       // Check if it's a gif or not
       if (name.endsWith(".gif")) {
@@ -205,12 +207,12 @@ public class ImageCommand extends BaseCommand implements Listener {
     } else {
 
       // Otherwise it must be a file or invalid
-      final File img = new File(plugin.getDataFolder(), mrl);
+      final Path img = Paths.get(plugin.getDataFolder().toString()).resolve(mrl);
 
       // If it is a file that exists and has a valid extension
-      if (img.exists()) {
+      if (Files.exists(img)) {
 
-        final String name = img.getName().toLowerCase();
+        final String name = img.getFileName().toString().toLowerCase();
 
         // Check if it's a gif or not
         if (name.endsWith(".gif")) {
@@ -230,7 +232,7 @@ public class ImageCommand extends BaseCommand implements Listener {
         audience.sendMessage(
             ChatUtilities.formatMessage(
                 Component.text(
-                    String.format("File %s cannot be found!", img.getName()), NamedTextColor.RED)));
+                    String.format("File %s cannot be found!", img.getFileName().toString()), NamedTextColor.RED)));
       }
     }
     return 1;

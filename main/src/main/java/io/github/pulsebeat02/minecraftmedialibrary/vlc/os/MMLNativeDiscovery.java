@@ -113,7 +113,7 @@ public class MMLNativeDiscovery {
       } else {
         if (!libvlc && name.equals(keyword)) {
           nativeVLCPath = f.getParentFile().toPath();
-          final String vlcPath = nativeVLCPath.toAbsolutePath().toString();
+          final String vlcPath = nativeVLCPath.toString();
           setupVLC();
           NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), vlcPath);
           Logger.info(String.format("Found LibVLC (%s)", path));

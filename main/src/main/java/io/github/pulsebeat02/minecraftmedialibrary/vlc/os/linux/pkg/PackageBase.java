@@ -27,10 +27,11 @@ import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxPackage;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxPackageManager;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Set;
 
 /**
@@ -146,7 +147,7 @@ public abstract class PackageBase {
       ImmutableSet.of(".txz", ".tar.xz", ".tgz", ".tar.gz", ".zst");
   private static final Set<String> ALGORITHM_B = ImmutableSet.of(".deb", ".rpm");
   private final LinuxPackage pkg;
-  private final File file;
+  private final Path file;
 
   /**
    * Instantiates a new PackageInstaller.
@@ -154,7 +155,7 @@ public abstract class PackageBase {
    * @param file the file
    * @param setup whether setup should be automatic
    */
-  public PackageBase(@NotNull final File file, final boolean setup) {
+  public PackageBase(@NotNull final Path file, final boolean setup) {
     pkg = LinuxPackageManager.getPackage();
     this.file = file;
     if (setup) {
@@ -175,8 +176,8 @@ public abstract class PackageBase {
    */
   @NotNull
   public static PackageBase getFromFile(
-      @NotNull final MediaLibrary library, @NotNull final File file) {
-    final String extension = file.getName();
+      @NotNull final MediaLibrary library, @NotNull final Path file) {
+    final String extension = FilenameUtils.getExtension(file.getFileName().toString());
     for (final String str : ALGORITHM_A) {
       if (extension.endsWith(str)) {
         Logger.info(String.format("Found Algorithm (A): %s", str));
@@ -210,7 +211,7 @@ public abstract class PackageBase {
    *
    * @return the file
    */
-  public File getFile() {
+  public Path getFile() {
     return file;
   }
 

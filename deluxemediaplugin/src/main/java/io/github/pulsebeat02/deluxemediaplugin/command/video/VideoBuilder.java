@@ -50,7 +50,7 @@ public class VideoBuilder {
 
   public MapPlayer createMapPlayer() {
     return MapPlayer.builder()
-        .setUrl(attributes.getFile().getAbsolutePath())
+        .setUrl(attributes.getFile().toString())
         .setWidth(attributes.getScreenWidth())
         .setHeight(attributes.getScreenHeight())
         .setCallback(
@@ -68,7 +68,7 @@ public class VideoBuilder {
 
   public EntityPlayer createEntityPlayer(@NotNull final Player sender) {
     return EntityPlayer.builder()
-        .setUrl(attributes.getFile().getAbsolutePath())
+        .setUrl(attributes.getFile().toString())
         .setWidth(attributes.getScreenWidth())
         .setHeight(attributes.getScreenHeight())
         .setCallback(
@@ -85,7 +85,7 @@ public class VideoBuilder {
 
   public ChatPlayer createChatBoxPlayer() {
     return ChatPlayer.builder()
-        .setUrl(attributes.getFile().getAbsolutePath())
+        .setUrl(attributes.getFile().toString())
         .setWidth(attributes.getScreenWidth())
         .setHeight(attributes.getScreenHeight())
         .setCallback(
@@ -100,7 +100,7 @@ public class VideoBuilder {
 
   public ScoreboardPlayer createScoreboardPlayer() {
     return ScoreboardPlayer.builder()
-        .setUrl(attributes.getFile().getAbsolutePath())
+        .setUrl(attributes.getFile().toString())
         .setWidth(attributes.getScreenWidth())
         .setHeight(attributes.getScreenHeight())
         .setCallback(
@@ -115,7 +115,7 @@ public class VideoBuilder {
 
   public BlockHighlightPlayer createBlockHighlightPlayer(@NotNull final Player sender) {
     return BlockHighlightPlayer.builder()
-        .setUrl(attributes.getFile().getAbsolutePath())
+        .setUrl(attributes.getFile().toString())
         .setWidth(attributes.getScreenWidth())
         .setHeight(attributes.getScreenHeight())
         .setCallback(

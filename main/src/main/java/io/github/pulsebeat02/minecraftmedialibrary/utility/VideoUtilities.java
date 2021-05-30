@@ -33,10 +33,10 @@ import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.nio.file.Path;
 import java.util.Iterator;
 
 /**
@@ -53,9 +53,9 @@ public final class VideoUtilities {
    * @param image the image
    * @return the buffer
    */
-  public static int @Nullable [] getBuffer(@NotNull final File image) {
+  public static int @Nullable [] getBuffer(@NotNull final Path image) {
     try {
-      return getBuffer(ImageIO.read(image));
+      return getBuffer(ImageIO.read(image.toFile()));
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -192,13 +192,13 @@ public final class VideoUtilities {
    * @return the dimensions of the image
    * @throws IOException if an issue occurred while fetching the image data
    */
-  public static Dimension getDimensions(@NotNull final File file) throws IOException {
+  public static Dimension getDimensions(@NotNull final Path file) throws IOException {
     final Iterator<ImageReader> iter =
-        ImageIO.getImageReadersBySuffix(FilenameUtils.getExtension(file.getName()));
+        ImageIO.getImageReadersBySuffix(FilenameUtils.getExtension(file.getFileName().toString()));
     while (iter.hasNext()) {
       final ImageReader reader = iter.next();
       try {
-        final ImageInputStream stream = new FileImageInputStream(file);
+        final ImageInputStream stream = new FileImageInputStream(file.toFile());
         reader.setInput(stream);
         final int width = reader.getWidth(reader.getMinIndex());
         final int height = reader.getHeight(reader.getMinIndex());
@@ -209,6 +209,6 @@ public final class VideoUtilities {
         reader.dispose();
       }
     }
-    throw new IOException("Not a known image file: " + file.getAbsolutePath());
+    throw new IOException("Not a known image file: " + file.toAbsolutePath());
   }
 }

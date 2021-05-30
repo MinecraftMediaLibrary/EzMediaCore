@@ -25,7 +25,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.pkg;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import java.nio.file.Path;
 
 /** Extracts the package binaries instead of other methods. */
 public class ExtractionInstaller extends PackageBase {
@@ -35,15 +35,15 @@ public class ExtractionInstaller extends PackageBase {
    *
    * @param file the file
    */
-  public ExtractionInstaller(@NotNull final File file) {
+  public ExtractionInstaller(@NotNull final Path file) {
     super(file, true);
   }
 
   /** Installs the packages accordingly. */
   @Override
   public void installPackage() {
-    final File f = getFile();
-    ArchiveUtilities.recursiveExtraction(f, f.getParentFile());
+    final Path f = getFile();
+    ArchiveUtilities.recursiveExtraction(f.toFile(), f.getParent().toFile());
   }
 
   /** Uses any steps to setup a package. */

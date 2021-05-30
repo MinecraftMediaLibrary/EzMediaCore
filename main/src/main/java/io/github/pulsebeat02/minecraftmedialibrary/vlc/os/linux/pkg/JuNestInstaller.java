@@ -34,6 +34,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 /** Installs a package that can be Debian or RPM based on the JuNest distribution. */
@@ -50,12 +52,19 @@ public class JuNestInstaller extends PackageBase {
    * @param isDebian whether package is Debian or not
    */
   public JuNestInstaller(
-      @NotNull final String baseDirectory, @NotNull final File file, final boolean isDebian) {
+      @NotNull final String baseDirectory, @NotNull final Path file, final boolean isDebian) {
     super(file, false);
     this.isDebian = isDebian;
     this.baseDirectory = baseDirectory;
-    if (new File(baseDirectory, "scripts").mkdirs()) {
-      Logger.info("Made Scripts Directory");
+    final Path scripts = Paths.get(baseDirectory).resolve("scripts");
+    if (!Files.exists(scripts)) {
+      try {
+        Files.createDirectory(scripts);
+        Logger.info("Made Scripts Directory");
+      } catch (final IOException e) {
+        Logger.info("Failed to Make Scripts Directory");
+        e.printStackTrace();
+      }
     }
     try {
       setupPackage();
@@ -64,22 +73,22 @@ public class JuNestInstaller extends PackageBase {
     }
   }
 
-  /**
-   * Installs the packages accordingly.
-   *
-   * @throws IOException if an io issue has occurred during the process
-   */
+  /** Installs the packages accordingly. */
   @Override
-  public void installPackage() throws IOException {
+  public void installPackage() {
     Logger.info("Installing cURL Package...");
     new CondaInstallation(baseDirectory).installPackage("curl");
     Logger.info("Setting Up VLC Installation");
-    final File script = new File(String.format("%s/scripts/vlc-installation.sh", baseDirectory));
+    final Path script = Paths.get(String.format("%s/scripts/vlc-installation.sh", baseDirectory));
     FileUtilities.createFile(script, "Made VLC Installation Script");
-    Files.write(
-        script.toPath(),
-        getBashScript(getFile().getAbsolutePath()).getBytes(),
-        StandardOpenOption.CREATE);
+    try {
+      Files.write(
+          script,
+          getBashScript(getFile().toAbsolutePath().toString()).getBytes(),
+          StandardOpenOption.CREATE);
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
     RuntimeUtilities.executeBashScript(
         script, new String[] {}, "Successfully installed VLC Package");
   }
@@ -95,7 +104,7 @@ public class JuNestInstaller extends PackageBase {
     final StringBuilder sb =
         new StringBuilder(String.format("%s/junest-master/bin/junest setup \n", baseDirectory));
     sb.append(
-            new File(String.format("%s/junest-master/bin/junest", baseDirectory)).getAbsolutePath())
+            Paths.get(String.format("%s/junest-master/bin/junest", baseDirectory)).toAbsolutePath())
         .append(" -f \n");
     if (isDebian) {
       sb.append("apt install ").append(path);
@@ -125,11 +134,11 @@ public class JuNestInstaller extends PackageBase {
    * @throws IOException if an exception occurred while fetching the url or file
    */
   private void downloadJuNest() throws IOException {
-    final File junest = new File(String.format("%s/junest.zip", baseDirectory));
+    final Path junest = Paths.get(String.format("%s/junest.zip", baseDirectory));
     FileUtils.copyURLToFile(
         new URL("https://github.com/MinecraftMediaLibrary/junest/archive/refs/heads/master.zip"),
-        junest);
-    ArchiveUtilities.decompressArchive(junest, junest.getParentFile());
+        junest.toFile());
+    ArchiveUtilities.decompressArchive(junest.toFile(), junest.getParent().toFile());
   }
 
   /**
@@ -139,12 +148,12 @@ public class JuNestInstaller extends PackageBase {
    */
   private void setJuNestPaths() throws IOException {
     final File script = new File(String.format("%s/scripts/junest-installation.sh", baseDirectory));
-    FileUtilities.createFile(script, "Made JuNest Script");
+    FileUtilities.createFile(script.toPath(), "Made JuNest Script");
     Files.write(
         script.toPath(),
         ResourceUtilities.getFileContents("script/junest.sh").getBytes(),
         StandardOpenOption.CREATE);
-    RuntimeUtilities.executeBashScript(script, new String[] {}, "Successfully installed JuNest");
+    RuntimeUtilities.executeBashScript(script.toPath(), new String[] {}, "Successfully installed JuNest");
   }
 
   /**

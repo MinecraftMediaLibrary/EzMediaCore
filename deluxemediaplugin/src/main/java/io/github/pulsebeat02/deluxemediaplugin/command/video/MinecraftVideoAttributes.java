@@ -28,7 +28,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MinecraftVideoAttributes {
@@ -37,7 +37,7 @@ public class MinecraftVideoAttributes {
   private DitherHolder dither;
   private YoutubeExtraction extractor;
   private VLCVideoPlayer player;
-  private File file;
+  private Path file;
   private boolean youtube;
   private VideoType mode;
 
@@ -81,11 +81,11 @@ public class MinecraftVideoAttributes {
     this.player = player;
   }
 
-  public File getFile() {
+  public Path getFile() {
     return file;
   }
 
-  public void setFile(final File file) {
+  public void setFile(final Path file) {
     this.file = file;
   }
 
