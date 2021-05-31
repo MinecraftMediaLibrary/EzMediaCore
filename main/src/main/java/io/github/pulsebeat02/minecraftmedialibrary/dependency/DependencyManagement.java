@@ -211,6 +211,7 @@ public class DependencyManagement {
     } catch (final IOException e) {
       e.printStackTrace();
     }
+    DependencyUtilities.load();
   }
 
   /** Deletes all the stale dependency files. */
