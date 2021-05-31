@@ -127,6 +127,7 @@ public class VideoCommand extends BaseCommand {
             .put("/video stop", "Stops the video")
             .put("/video load [url]", "Loads a Youtube link")
             .put("/video load [file]", "Loads a specific video file")
+            .put("/video load resourcepack", "Loads the past resourcepack used for the video")
             .put("/video set screen-dimension [width:height]", "Sets the resolution of the screen")
             .put(
                 "/video set itemframe-dimension [width:height]",
@@ -165,10 +166,10 @@ public class VideoCommand extends BaseCommand {
     }
     sendResourcepackFile();
     audience.sendMessage(
-            ChatUtilities.formatMessage(
-                    Component.text(
-                            String.format("Sent Resourcepack URL! (%s)", resourcepackLink),
-                            NamedTextColor.GOLD)));
+        ChatUtilities.formatMessage(
+            Component.text(
+                String.format("Sent Resourcepack URL! (%s)", resourcepackLink),
+                NamedTextColor.GOLD)));
     return 1;
   }
 

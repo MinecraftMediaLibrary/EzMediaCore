@@ -27,6 +27,7 @@ import com.google.common.base.Strings;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
+import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
@@ -245,7 +246,7 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
     }
     mediaPlayerComponent.media().play(url);
     for (final Player p : players) {
-      p.playSound(p.getLocation(), sound, 1.0F, 1.0F);
+      p.playSound(p.getLocation(), sound, SoundCategory.MUSIC, 100.0F, 1.0F);
     }
     watchers.addAll(players);
     Logger.info(String.format("Started Playing the Video! (%s)", url));

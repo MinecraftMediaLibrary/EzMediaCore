@@ -127,7 +127,7 @@ public class FFmpegDependencyInstallation {
     final String fileUrl = getFFmpegUrl();
     file = dependencyFolder.resolve(FilenameUtils.getName(new URL(fileUrl).getPath()));
     DependencyUtilities.downloadFile(file, fileUrl);
-    if (RuntimeUtilities.isMac()) {
+    if (RuntimeUtilities.isMac() || RuntimeUtilities.isLinux()) {
       // Change permissions so JAVE2 can access the file
       new CommandTask("chmod", "-R", "777", file.toAbsolutePath().toString()).run();
     }

@@ -23,8 +23,8 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.gui;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
+import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
-import dev.triumphteam.gui.guis.PersistentGui;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.MapUtilities;
 import net.kyori.adventure.text.Component;
@@ -40,7 +40,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class ScreenBuilderGui {
 
-  private final PersistentGui gui;
+  private final Gui gui;
   private final Player viewer;
   private final DeluxeMediaPlugin plugin;
   private Material material;
@@ -49,7 +49,8 @@ public class ScreenBuilderGui {
   private int id;
 
   public ScreenBuilderGui(@NotNull final DeluxeMediaPlugin pl, @NotNull final Player player) {
-    gui = new PersistentGui(6, "Choose Screen Size");
+    gui =
+        Gui.gui().rows(6).title(Component.text("Choose Screen Size", NamedTextColor.GOLD)).create();
     plugin = pl;
     viewer = player;
     width = 5;

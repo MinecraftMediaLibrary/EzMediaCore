@@ -35,10 +35,12 @@ import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpServerDaemon;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.SoundCategory;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
@@ -55,7 +57,10 @@ public class AudioCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> literalNode;
   private final AtomicBoolean atomicBoolean;
+  private final String key;
   private Path audio;
+  private String resourcepackLink;
+  private byte[] hash;
 
   public AudioCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
@@ -65,10 +70,32 @@ public class AudioCommand extends BaseCommand {
         .requires(super::testPermission)
         .then(
             literal("load")
-                .then(argument("mrl", StringArgumentType.greedyString()).executes(this::loadAudio)))
-        .then(literal("play").executes(this::playAudio));
+                .then(argument("mrl", StringArgumentType.greedyString()).executes(this::loadAudio))
+                .then(literal("resourcepack").executes(this::getResourcepackLink)))
+        .then(literal("play").executes(this::playAudio))
+        .then(literal("stop").executes(this::stopAudio));
+    key = getPlugin().getName().toLowerCase();
     literalNode = builder.build();
     atomicBoolean = new AtomicBoolean(false);
+  }
+
+  private int getResourcepackLink(@NotNull final CommandContext<CommandSender> context) {
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    if (resourcepackLink == null && hash == null) {
+      audience.sendMessage(
+          ChatUtilities.formatMessage(
+              Component.text(
+                  "Please load a resourcepack first before executing this command!",
+                  NamedTextColor.RED)));
+      return 1;
+    }
+    sendResourcepackFile();
+    audience.sendMessage(
+        ChatUtilities.formatMessage(
+            Component.text(
+                String.format("Sent Resourcepack URL! (%s)", resourcepackLink),
+                NamedTextColor.GOLD)));
+    return 1;
   }
 
   private int playAudio(@NotNull final CommandContext<CommandSender> context) {
@@ -85,13 +112,41 @@ public class AudioCommand extends BaseCommand {
               Component.text("The audio is still being loaded!", NamedTextColor.RED)));
       return 1;
     }
-    audience.sendMessage(
-        ChatUtilities.formatMessage(Component.text("Started playing audio!", NamedTextColor.GOLD)));
 
     // Play the sound to all users on the server
     for (final Player p : Bukkit.getOnlinePlayers()) {
-      p.playSound(p.getLocation(), getPlugin().getName().toLowerCase(), 1.0F, 1.0F);
+      p.playSound(p.getLocation(), key, SoundCategory.MUSIC, 100.0F, 1.0F);
     }
+
+    audience.sendMessage(
+        ChatUtilities.formatMessage(Component.text("Started playing audio!", NamedTextColor.GOLD)));
+
+    return 1;
+  }
+
+  private int stopAudio(@NotNull final CommandContext<CommandSender> context) {
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    if (audio == null) {
+      audience.sendMessage(
+          ChatUtilities.formatMessage(
+              Component.text("File and URL not Specified!", NamedTextColor.RED)));
+      return 1;
+    }
+    if (!atomicBoolean.get()) {
+      audience.sendMessage(
+          ChatUtilities.formatMessage(
+              Component.text("The audio is still being loaded!", NamedTextColor.RED)));
+      return 1;
+    }
+
+    // Stop the sound to all users on the server
+    for (final Player p : Bukkit.getOnlinePlayers()) {
+      p.stopSound(key);
+    }
+
+    audience.sendMessage(
+        ChatUtilities.formatMessage(Component.text("Stopped playing audio!", NamedTextColor.GOLD)));
+
     return 1;
   }
 
@@ -148,8 +203,13 @@ public class AudioCommand extends BaseCommand {
 
               // Send the resourcepack to players
               sendResourcepack(getPlugin().getHttpConfiguration().getDaemon(), audience, wrapper);
+
+              audience.sendMessage(
+                      ChatUtilities.formatMessage(Component.text("Loaded Audio!", NamedTextColor.GOLD)));
+
             })
         .whenCompleteAsync((t, throwable) -> atomicBoolean.set(true));
+
     return 1;
   }
 
@@ -159,20 +219,25 @@ public class AudioCommand extends BaseCommand {
       @NotNull final PackWrapper wrapper) {
     if (provider != null) {
 
-      // Get a resourcepack url for the file
-      final String url = provider.generateUrl(wrapper.getPath());
+      // Generates a url given by the HTTP server for a file
+      resourcepackLink = provider.generateUrl(wrapper.getPath());
+      hash = VideoExtractionUtilities.createHashSHA(Paths.get(wrapper.getPath()));
 
-      // Send the resourcepack to all players on the server
-      for (final Player p : Bukkit.getOnlinePlayers()) {
-        p.setResourcePack(url);
-      }
+      // Send the resourcepack url to all players on the server
+      sendResourcepackFile();
+
     } else {
       audience.sendMessage(
           ChatUtilities.formatMessage(
               Component.text(
-                  "You have HTTP set false by default. You cannot "
-                      + "play audio files without a daemon",
+                  "You have HTTP set false by default. You cannot play audio without a daemon",
                   NamedTextColor.RED)));
+    }
+  }
+
+  private void sendResourcepackFile() {
+    for (final Player p : Bukkit.getOnlinePlayers()) {
+      p.setResourcePack(resourcepackLink, hash);
     }
   }
 
@@ -182,7 +247,9 @@ public class AudioCommand extends BaseCommand {
         ImmutableMap.<String, String>builder()
             .put("/audio load [url]", "Loads a Youtube Link")
             .put("/audio load [file]", "Loads a specific audio file")
+            .put("/audio load resourcepack", "Loads the past resourcepack used for the audio")
             .put("/audio play", "Plays the audio to players")
+            .put("/audio stop", "Stops the audio")
             .build());
   }
 
