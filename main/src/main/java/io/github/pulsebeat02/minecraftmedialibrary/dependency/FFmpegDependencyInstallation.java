@@ -109,6 +109,7 @@ public class FFmpegDependencyInstallation {
       e.printStackTrace();
     }
     FFMPEG_PATH = file.toAbsolutePath().toString();
+    Logger.info(String.format("FFMPEG Path: %s", FFMPEG_PATH));
   }
 
   /**
@@ -144,6 +145,7 @@ public class FFmpegDependencyInstallation {
     try (final Stream<Path> paths = Files.walk(folder)) {
       paths
           .filter(x -> Files.isRegularFile(x) && PathUtilities.getName(x).contains("ffmpeg"))
+          .filter(x -> !folder.equals(x))
           .findFirst()
           .ifPresent(path -> file = path);
     } catch (final IOException e) {

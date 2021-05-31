@@ -33,6 +33,7 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
+import io.github.pulsebeat02.minecraftmedialibrary.extractor.AudioExtractionHelper;
 import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
@@ -433,10 +434,39 @@ public class VideoCommand extends BaseCommand {
         attributes.setYoutube(false);
         attributes.setExtractor(null);
         attributes.setFile(f);
+
+        CompletableFuture.runAsync(
+                () -> {
+                  final Path audioPath = Paths.get(folderPath, "custom.ogg");
+
+                  new AudioExtractionHelper(
+                          plugin.getEncoderConfiguration().getSettings(), Paths.get(mrl), audioPath)
+                      .extract();
+
+                  // Get the resourcepack wrapper from the extractor
+                  final PackWrapper wrapper =
+                      ResourcepackWrapper.of(plugin.getLibrary(), audioPath);
+
+                  // Build the resourcepack
+                  wrapper.buildResourcePack();
+
+                  // Send the resourcepack to all players on the server
+                  sendResourcepack(plugin.getHttpConfiguration().getDaemon(), audience, wrapper);
+
+                  // Send success message
+                  audience.sendMessage(
+                      ChatUtilities.formatMessage(
+                          Component.text(
+                              String.format("Successfully loaded video %s", mrl),
+                              NamedTextColor.GOLD)));
+                })
+            .whenCompleteAsync((t, throwable) -> atomicBoolean.set(true));
+
         component =
             Component.text(
                 String.format("Successfully loaded video %s", PathUtilities.getName(f)),
                 NamedTextColor.GOLD);
+
       } else if (mrl.startsWith("http://")) {
         component =
             Component.text(

@@ -32,12 +32,6 @@ import io.github.pulsebeat02.minecraftmedialibrary.json.GsonHandler;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import org.jetbrains.annotations.NotNull;
-import ws.schild.jave.Encoder;
-import ws.schild.jave.EncoderException;
-import ws.schild.jave.MultimediaObject;
-import ws.schild.jave.encode.AudioAttributes;
-import ws.schild.jave.encode.EncodingAttributes;
-import ws.schild.jave.process.ProcessLocator;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,10 +45,7 @@ import java.util.Optional;
  */
 public class YoutubeExtraction implements VideoExtractor {
 
-  private final Encoder encoder;
-  private final EncodingAttributes attrs;
-  private final ProcessLocator ffmpegLocator;
-
+  private final ExtractionConfiguration configuration;
   private final String url;
   private final String directory;
   private VideoDetails details;
@@ -77,18 +68,7 @@ public class YoutubeExtraction implements VideoExtractor {
         !Strings.isNullOrEmpty(directory), "Directory cannot be empty null!");
     this.url = url;
     this.directory = directory;
-    ffmpegLocator = new FFmpegLocation();
-    encoder = new Encoder(ffmpegLocator);
-    final AudioAttributes attributes = new AudioAttributes();
-    attributes.setCodec(settings.getCodec());
-    attributes.setBitRate(settings.getBitrate());
-    attributes.setChannels(settings.getChannels());
-    attributes.setSamplingRate(settings.getSamplingRate());
-    attributes.setVolume(settings.getVolume());
-    attrs = new EncodingAttributes();
-    attrs.setInputFormat(settings.getInputFormat());
-    attrs.setOutputFormat(settings.getOutputFormat());
-    attrs.setAudioAttributes(attributes);
+    configuration = settings;
   }
 
   /**
@@ -132,19 +112,9 @@ public class YoutubeExtraction implements VideoExtractor {
       downloadVideo();
     }
     onAudioExtraction();
-    final String videoPath = video.toAbsolutePath().toString();
-    Logger.info(String.format("Extracting Audio from Video File (%s)", videoPath));
+    Logger.info(String.format("Extracting Audio from Video File (%s)", video.toAbsolutePath()));
     audio = Paths.get(String.format("%s/audio.ogg", directory));
-    try {
-      encoder.encode(new MultimediaObject(video.toFile(), ffmpegLocator), audio.toFile(), attrs);
-      Logger.info(
-          String.format(
-              "Successfully Extracted Audio from Video File! (Target: %s)",
-              audio.toAbsolutePath()));
-    } catch (final EncoderException e) {
-      Logger.error(String.format("Couldn't Extract Audio from Video File! (Video: %s)", videoPath));
-      e.printStackTrace();
-    }
+    new AudioExtractionHelper(configuration, video, audio).extract();
     return audio;
   }
 
@@ -157,7 +127,7 @@ public class YoutubeExtraction implements VideoExtractor {
   public void onAudioExtraction() {}
 
   /**
-   * Checks if two YoutubExtraction classes are equal (in properties) with the exception of files.
+   * Checks if two YoutubeExtraction classes are equal (in properties) with the exception of files.
    *
    * @param obj the other object
    * @return whether the two objects are equal in properties with the exception of files
@@ -168,9 +138,7 @@ public class YoutubeExtraction implements VideoExtractor {
       return false;
     }
     final YoutubeExtraction extraction = (YoutubeExtraction) obj;
-    return encoder.equals(extraction.getEncoder())
-        && attrs.equals(extraction.getAttrs())
-        && ffmpegLocator.equals(extraction.getFfmpegLocator())
+    return configuration.equals(extraction.getConfiguration())
         && url.equals(extraction.getUrl())
         && directory.equals(extraction.getDirectory())
         && details.equals(extraction.getDetails());
@@ -304,29 +272,11 @@ public class YoutubeExtraction implements VideoExtractor {
   }
 
   /**
-   * Gets the audio/video encoder.
+   * Gets the extraction configuration
    *
-   * @return the encoder
+   * @return the extraction configuration
    */
-  public Encoder getEncoder() {
-    return encoder;
-  }
-
-  /**
-   * Gets the encoding attributes.
-   *
-   * @return the encoding attributes
-   */
-  public EncodingAttributes getAttrs() {
-    return attrs;
-  }
-
-  /**
-   * Gets the process locator.
-   *
-   * @return the ffmpeg locator
-   */
-  public ProcessLocator getFfmpegLocator() {
-    return ffmpegLocator;
+  public ExtractionConfiguration getConfiguration() {
+    return configuration;
   }
 }
