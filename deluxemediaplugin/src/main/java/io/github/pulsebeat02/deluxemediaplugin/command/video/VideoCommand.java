@@ -68,6 +68,8 @@ public class VideoCommand extends BaseCommand {
   private final LiteralCommandNode<CommandSender> literalNode;
   private final MinecraftVideoAttributes attributes;
   private final VideoBuilder videoBuilder;
+  private String resourcepackLink;
+  private byte[] hash;
 
   public VideoCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
@@ -80,7 +82,8 @@ public class VideoCommand extends BaseCommand {
         .then(literal("stop").executes(this::stopVideo))
         .then(
             literal("load")
-                .then(argument("mrl", StringArgumentType.greedyString()).executes(this::loadVideo)))
+                .then(argument("mrl", StringArgumentType.greedyString()).executes(this::loadVideo))
+                .then(literal("resourcepack").executes(this::getResourcepackLink)))
         .then(
             literal("set")
                 .then(
@@ -148,6 +151,25 @@ public class VideoCommand extends BaseCommand {
       final CommandContext<CommandSender> context, final SuggestionsBuilder builder) {
     Arrays.stream(VideoType.values()).forEach(x -> builder.suggest(x.getName()));
     return builder.buildFuture();
+  }
+
+  private int getResourcepackLink(@NotNull final CommandContext<CommandSender> context) {
+    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    if (resourcepackLink == null && hash == null) {
+      audience.sendMessage(
+          ChatUtilities.formatMessage(
+              Component.text(
+                  "Please load a resourcepack first before executing this command!",
+                  NamedTextColor.RED)));
+      return 1;
+    }
+    sendResourcepackFile();
+    audience.sendMessage(
+            ChatUtilities.formatMessage(
+                    Component.text(
+                            String.format("Sent Resourcepack URL! (%s)", resourcepackLink),
+                            NamedTextColor.GOLD)));
+    return 1;
   }
 
   private int setVideoMode(@NotNull final CommandContext<CommandSender> context) {
@@ -531,13 +553,12 @@ public class VideoCommand extends BaseCommand {
     if (provider != null) {
 
       // Generates a url given by the HTTP server for a file
-      final String url = provider.generateUrl(wrapper.getPath());
+      resourcepackLink = provider.generateUrl(wrapper.getPath());
+      hash = VideoExtractionUtilities.createHashSHA(Paths.get(wrapper.getPath()));
 
       // Send the resourcepack url to all players on the server
-      final byte[] hash = VideoExtractionUtilities.createHashSHA(Paths.get(wrapper.getPath()));
-      for (final Player p : Bukkit.getOnlinePlayers()) {
-        p.setResourcePack(url, hash);
-      }
+      sendResourcepackFile();
+
     } else {
       audience.sendMessage(
           ChatUtilities.formatMessage(
@@ -545,6 +566,12 @@ public class VideoCommand extends BaseCommand {
                   "You have HTTP set false by default. You cannot "
                       + "play Youtube videos without a daemon",
                   NamedTextColor.RED)));
+    }
+  }
+
+  private void sendResourcepackFile() {
+    for (final Player p : Bukkit.getOnlinePlayers()) {
+      p.setResourcePack(resourcepackLink, hash);
     }
   }
 
