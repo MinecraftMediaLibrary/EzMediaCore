@@ -83,6 +83,11 @@ public class DependencyManagement {
   public DependencyManagement(@NotNull final Path dirPath) {
     files = new HashSet<>();
     dir = dirPath;
+    relocatedDir = dir.resolve("relocated");
+  }
+
+  /** Initializes the DependencyManagement */
+  private void initialize() {
     if (Files.notExists(dir)) {
       try {
         Files.createDirectory(dir);
@@ -94,7 +99,6 @@ public class DependencyManagement {
         e.printStackTrace();
       }
     }
-    relocatedDir = dir.resolve("relocated");
     if (Files.notExists(relocatedDir)) {
       try {
         Files.createDirectory(relocatedDir);
@@ -108,8 +112,16 @@ public class DependencyManagement {
     }
   }
 
+  /** Starts the dependency loading process. */
+  public void start() {
+    install();
+    relocate();
+    load();
+    delete();
+  }
+
   /** Installs all libraries from links. */
-  public void install() {
+  private void install() {
     final List<Callable<Object>> tasks = new ArrayList<>();
     for (final RepositoryDependency dependency : RepositoryDependency.values()) {
       if (!checkExists(relocatedDir, dependency)) {
@@ -160,7 +172,7 @@ public class DependencyManagement {
   }
 
   /** Relocates Dependencies. */
-  public void relocate() {
+  private void relocate() {
     try {
       final JarRelocatorFacadeFactory factory = ReflectiveJarRelocatorFacadeFactory.create();
       final List<RelocationRule> relocations =
@@ -196,7 +208,7 @@ public class DependencyManagement {
   }
 
   /** Install and load. */
-  public void load() {
+  private void load() {
     try (final Stream<Path> paths = Files.walk(relocatedDir)) {
       paths
           .filter(Files::isRegularFile)
@@ -215,7 +227,7 @@ public class DependencyManagement {
   }
 
   /** Deletes all the stale dependency files. */
-  public void delete() {
+  private void delete() {
     for (final Path file : files) {
       try {
         Files.delete(file);

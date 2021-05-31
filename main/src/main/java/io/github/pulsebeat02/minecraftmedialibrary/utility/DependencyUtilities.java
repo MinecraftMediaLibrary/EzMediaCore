@@ -396,7 +396,8 @@ public final class DependencyUtilities {
 
   /** Loads all dependency jars that were loaded. */
   public static void load() {
-    Logger.info("Loading ALl Dependency Jars!");
+    Logger.info("Loading All Dependency Jars!");
+    Logger.info(String.format("Dependencies to Load: %s", LOADER.getJars()));
     LOADER.loadJars();
     Logger.info("Finished Loading ALl Dependency Jars!");
   }

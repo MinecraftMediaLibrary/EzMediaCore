@@ -51,28 +51,12 @@ public final class DependencyInstantiation {
   public void startTasks() {
     try {
       CompletableFuture.allOf(
-              CompletableFuture.runAsync(this::loadFfmpeg),
-              CompletableFuture.runAsync(this::loadDependencies).thenRunAsync(this::loadVLC))
+              CompletableFuture.runAsync(() -> new FFmpegDependencyInstallation(instance).install()),
+              CompletableFuture.runAsync(() -> new DependencyManagement(instance).start()).thenRunAsync(this::loadVLC))
           .get();
     } catch (final InterruptedException | ExecutionException e) {
       e.printStackTrace();
     }
-  }
-
-  /** Downloads/Loads Jave dependency. */
-  private void loadFfmpeg() {
-    final FFmpegDependencyInstallation ffmpegDependencyInstallation =
-        new FFmpegDependencyInstallation(instance);
-    ffmpegDependencyInstallation.install();
-  }
-
-  /** Downloads/Loads Jitpack/Maven dependencies. */
-  private void loadDependencies() {
-    final DependencyManagement dependencyManagement = new DependencyManagement(instance);
-    dependencyManagement.install();
-    dependencyManagement.relocate();
-    dependencyManagement.load();
-    dependencyManagement.delete();
   }
 
   /** Downloads/Loads VLC dependency. */
