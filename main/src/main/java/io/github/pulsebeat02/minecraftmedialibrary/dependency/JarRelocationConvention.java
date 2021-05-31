@@ -22,7 +22,7 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.dependency;
 
-import io.github.pulsebeat02.minecraftmedialibrary.relocation.Relocation;
+import io.github.slimjar.relocation.RelocationRule;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -67,7 +67,7 @@ public enum JarRelocationConvention {
   /** ByteDeco Jar Relocation Convention */
   JAFFREE("com{}github{}kokorin", "io{}github{}pulsebeat02{}kokorin");
 
-  private final Relocation relocation;
+  private final RelocationRule relocation;
 
   /**
    * Creates a JarRelocation convention based on arguments.
@@ -76,7 +76,7 @@ public enum JarRelocationConvention {
    * @param after replacement
    */
   JarRelocationConvention(@NotNull final String before, @NotNull final String after) {
-    relocation = new Relocation(before.replaceAll("\\{}", "."), after.replaceAll("\\{}", "."));
+    relocation = new RelocationRule(before.replaceAll("\\{}", "."), after.replaceAll("\\{}", "."));
   }
 
   /**
@@ -84,7 +84,7 @@ public enum JarRelocationConvention {
    *
    * @return the relocation
    */
-  public Relocation getRelocation() {
+  public RelocationRule getRelocation() {
     return relocation;
   }
 }

@@ -24,15 +24,19 @@ package io.github.pulsebeat02.minecraftmedialibrary.dependency;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import io.github.pulsebeat02.minecraftmedialibrary.relocation.JarRelocator;
-import io.github.pulsebeat02.minecraftmedialibrary.relocation.Relocation;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
+import io.github.slimjar.relocation.RelocationRule;
+import io.github.slimjar.relocation.facade.JarRelocatorFacadeFactory;
+import io.github.slimjar.relocation.facade.ReflectiveJarRelocatorFacadeFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -157,25 +161,36 @@ public class DependencyManagement {
 
   /** Relocates Dependencies. */
   public void relocate() {
-    final List<Relocation> relocations =
-        Arrays.stream(JarRelocationConvention.values())
-            .map(JarRelocationConvention::getRelocation)
-            .collect(Collectors.toList());
-    final List<Callable<Object>> tasks = new ArrayList<>();
-    for (final Path f : files) {
-      tasks.add(
-          Executors.callable(
-              () -> {
-                try {
-                  new JarRelocator(f, relocatedDir.resolve(f.getFileName()), relocations).run();
-                } catch (final IOException e) {
-                  e.printStackTrace();
-                }
-              }));
-    }
     try {
+      final JarRelocatorFacadeFactory factory = ReflectiveJarRelocatorFacadeFactory.create();
+      final List<RelocationRule> relocations =
+          Arrays.stream(JarRelocationConvention.values())
+              .map(JarRelocationConvention::getRelocation)
+              .collect(Collectors.toList());
+      final List<Callable<Object>> tasks = new ArrayList<>();
+      for (final Path f : files) {
+        tasks.add(
+            Executors.callable(
+                () -> {
+                  try {
+                    factory
+                        .createFacade(
+                            f.toFile(), relocatedDir.resolve(f.getFileName()).toFile(), relocations)
+                        .run();
+                  } catch (final IOException
+                      | IllegalAccessException
+                      | InstantiationException
+                      | InvocationTargetException e) {
+                    e.printStackTrace();
+                  }
+                }));
+      }
       EXECUTOR_SERVICE.invokeAll(tasks);
-    } catch (final InterruptedException e) {
+    } catch (final URISyntaxException
+        | ReflectiveOperationException
+        | NoSuchAlgorithmException
+        | IOException
+        | InterruptedException e) {
       e.printStackTrace();
     }
   }
