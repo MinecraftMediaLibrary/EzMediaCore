@@ -25,17 +25,11 @@ package io.github.pulsebeat02.minecraftmedialibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyManagement;
 import io.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.VLCNativeDependencyFetcher;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -55,7 +49,6 @@ public final class DependencyInstantiation {
 
   /** Starts dependency tasks. */
   public void startTasks() {
-    assignClassLoader();
     try {
       CompletableFuture.allOf(
               CompletableFuture.runAsync(this::loadFfmpeg),
@@ -64,12 +57,6 @@ public final class DependencyInstantiation {
     } catch (final InterruptedException | ExecutionException e) {
       e.printStackTrace();
     }
-  }
-
-  /** Assigns ClassLoader for classpath loading. */
-  private void assignClassLoader() {
-    DependencyUtilities.setClassloader(
-        (URLClassLoader) instance.getPlugin().getClass().getClassLoader());
   }
 
   /** Downloads/Loads Jave dependency. */

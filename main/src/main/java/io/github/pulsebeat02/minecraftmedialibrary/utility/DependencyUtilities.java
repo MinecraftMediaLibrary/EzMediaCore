@@ -35,11 +35,8 @@ import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
@@ -54,36 +51,8 @@ import java.util.function.LongConsumer;
 public final class DependencyUtilities {
 
   private static final EnhancedDependencyLoader LOADER;
-  private static boolean LEGACY;
-  private static Method ADD_URL_METHOD;
-  private static URLClassLoader CLASSLOADER;
 
   static {
-    Logger.info("Attempting to Open Reflection Module...");
-    try {
-      final Class<?> moduleClass = Class.forName("java.lang.Module");
-      final Method getModuleMethod = Class.class.getMethod("getModule");
-      final Method addOpensMethod = moduleClass.getMethod("addOpens", String.class, moduleClass);
-      final Object urlClassLoaderModule = getModuleMethod.invoke(URLClassLoader.class);
-      final Object thisModule = getModuleMethod.invoke(DependencyUtilities.class);
-      addOpensMethod.invoke(
-          urlClassLoaderModule, URLClassLoader.class.getPackage().getName(), thisModule);
-      Logger.info(
-          "User is using Java 9+, meaning Reflection Module does have to be opened. You may safely ignore this.");
-    } catch (final ClassNotFoundException
-        | NoSuchMethodException
-        | IllegalAccessException
-        | InvocationTargetException ignored) {
-      LEGACY = true;
-      Logger.info(
-          "User is using Java 8, meaning Reflection Module does NOT have to be opened. You may safely ignore this.");
-    }
-    try {
-      ADD_URL_METHOD = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-      ADD_URL_METHOD.setAccessible(true);
-    } catch (final NoSuchMethodException e) {
-      e.printStackTrace();
-    }
     LOADER = new EnhancedDependencyLoader();
   }
 
@@ -421,43 +390,14 @@ public final class DependencyUtilities {
     Preconditions.checkArgument(
         Files.exists(file),
         String.format("Dependency File %s doesn't exist!", file.toAbsolutePath()));
-    Logger.info(String.format("Loading JAR Dependency at: %s", file.toAbsolutePath()));
-    if (LEGACY) {
-      try {
-        ADD_URL_METHOD.invoke(CLASSLOADER, file.toFile().toURI().toURL());
-      } catch (final IllegalAccessException | InvocationTargetException e) {
-        e.printStackTrace();
-      }
-    } else {
-      LOADER.addJar(file);
-    }
+    LOADER.addJar(file);
     Logger.info(String.format("Added Dependency %s to Load", file.getFileName()));
   }
 
   /** Loads all dependency jars that were loaded. */
   public static void load() {
-    if (!LEGACY) {
-      Logger.info("Loading ALl Dependency Jars!");
-      LOADER.loadJars();
-      Logger.info("Finished Loading ALl Dependency Jars!");
-    }
-  }
-
-  /**
-   * Sets the classloader used for dependency loading.
-   *
-   * @param CLASSLOADER the classloader
-   */
-  public static void setClassloader(final URLClassLoader CLASSLOADER) {
-    DependencyUtilities.CLASSLOADER = CLASSLOADER;
-  }
-
-  /**
-   * Returns whether the Java version is equivalent to 1.8
-   *
-   * @return the Java version
-   */
-  public static boolean isLegacyJava() {
-    return LEGACY;
+    Logger.info("Loading ALl Dependency Jars!");
+    LOADER.loadJars();
+    Logger.info("Finished Loading ALl Dependency Jars!");
   }
 }
