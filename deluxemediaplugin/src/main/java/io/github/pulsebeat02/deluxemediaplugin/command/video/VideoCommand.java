@@ -328,7 +328,7 @@ public class VideoCommand extends BaseCommand {
     if (!atomicBoolean.get()) {
       audience.sendMessage(
           ChatUtilities.formatMessage(
-              Component.text("The video is still being downloaded!", NamedTextColor.RED)));
+              Component.text("The video is still being processed!", NamedTextColor.RED)));
       return 1;
     }
 
@@ -423,12 +423,13 @@ public class VideoCommand extends BaseCommand {
     if (!VideoExtractionUtilities.getYoutubeID(mrl).isPresent()) {
 
       // This means we have a file
-      atomicBoolean.set(false);
       final Path f = Paths.get(folderPath).resolve(mrl);
-      final TextComponent component;
 
       // Check file existence
       if (Files.exists(f)) {
+
+        // Set status to false
+        atomicBoolean.set(false);
 
         // Set youtube to false, extractor to null, etc because we are using an actual video file.
         attributes.setYoutube(false);
@@ -436,50 +437,46 @@ public class VideoCommand extends BaseCommand {
         attributes.setFile(f);
 
         CompletableFuture.runAsync(
-                () -> {
-                  final Path audioPath = Paths.get(folderPath, "custom.ogg");
+            () -> {
+              final Path audioPath = Paths.get(folderPath, "custom.ogg");
 
-                  new AudioExtractionHelper(
-                          plugin.getEncoderConfiguration().getSettings(), Paths.get(mrl), audioPath)
-                      .extract();
+              new AudioExtractionHelper(
+                      plugin.getEncoderConfiguration().getSettings(), Paths.get(mrl), audioPath)
+                  .extract();
 
-                  // Get the resourcepack wrapper from the extractor
-                  final PackWrapper wrapper =
-                      ResourcepackWrapper.of(plugin.getLibrary(), audioPath);
+              // Get the resourcepack wrapper from the extractor
+              final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), audioPath);
 
-                  // Build the resourcepack
-                  wrapper.buildResourcePack();
+              // Build the resourcepack
+              wrapper.buildResourcePack();
 
-                  // Send the resourcepack to all players on the server
-                  sendResourcepack(plugin.getHttpConfiguration().getDaemon(), audience, wrapper);
+              // Send the resourcepack to all players on the server
+              sendResourcepack(plugin.getHttpConfiguration().getDaemon(), audience, wrapper);
 
-                  // Send success message
-                  audience.sendMessage(
-                      ChatUtilities.formatMessage(
-                          Component.text(
-                              String.format("Successfully loaded video %s", mrl),
-                              NamedTextColor.GOLD)));
-                })
-            .whenCompleteAsync((t, throwable) -> atomicBoolean.set(true));
+              // Send success message
+              audience.sendMessage(
+                  ChatUtilities.formatMessage(
+                      Component.text(
+                          String.format("Successfully loaded video %s", mrl),
+                          NamedTextColor.GOLD)));
 
-        component =
-            Component.text(
-                String.format("Successfully loaded video %s", PathUtilities.getName(f)),
-                NamedTextColor.GOLD);
+              // Set completed
+              atomicBoolean.set(true);
+            });
 
       } else if (mrl.startsWith("http://")) {
-        component =
-            Component.text(
-                String.format("Link %s is not a valid Youtube video link!", mrl),
-                NamedTextColor.RED);
+        audience.sendMessage(
+            ChatUtilities.formatMessage(
+                Component.text(
+                    String.format("Link %s is not a valid Youtube video link!", mrl),
+                    NamedTextColor.RED)));
       } else {
-        component =
-            Component.text(
-                String.format("File %s cannot be found!", PathUtilities.getName(f)),
-                NamedTextColor.RED);
+        audience.sendMessage(
+            ChatUtilities.formatMessage(
+                Component.text(
+                    String.format("File %s cannot be found!", PathUtilities.getName(f)),
+                    NamedTextColor.RED)));
       }
-      audience.sendMessage(ChatUtilities.formatMessage(component));
-      atomicBoolean.set(true);
     } else {
 
       // This means we have a Youtube link
@@ -489,39 +486,40 @@ public class VideoCommand extends BaseCommand {
       attributes.setYoutube(true);
 
       CompletableFuture.runAsync(
-              () -> {
+          () -> {
 
-                // Create an extractor out of the Youtube link
-                final YoutubeExtraction extractor =
-                    new YoutubeExtraction(
-                        mrl, folderPath, plugin.getEncoderConfiguration().getSettings());
+            // Create an extractor out of the Youtube link
+            final YoutubeExtraction extractor =
+                new YoutubeExtraction(
+                    mrl, folderPath, plugin.getEncoderConfiguration().getSettings());
 
-                // Extract the audio of the URL
-                extractor.extractAudio();
+            // Extract the audio of the URL
+            extractor.extractAudio();
 
-                // Set the file to be the video file of the extraction
-                attributes.setFile(extractor.getVideo());
+            // Set the file to be the video file of the extraction
+            attributes.setFile(extractor.getVideo());
 
-                // Set the extractor
-                attributes.setExtractor(extractor);
+            // Set the extractor
+            attributes.setExtractor(extractor);
 
-                // Get the resourcepack wrapper from the extractor
-                final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), extractor);
+            // Get the resourcepack wrapper from the extractor
+            final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), extractor);
 
-                // Build the resourcepack
-                wrapper.buildResourcePack();
+            // Build the resourcepack
+            wrapper.buildResourcePack();
 
-                // Send the resourcepack to all players on the server
-                sendResourcepack(plugin.getHttpConfiguration().getDaemon(), audience, wrapper);
+            // Send the resourcepack to all players on the server
+            sendResourcepack(plugin.getHttpConfiguration().getDaemon(), audience, wrapper);
 
-                // Send success message
-                audience.sendMessage(
-                    ChatUtilities.formatMessage(
-                        Component.text(
-                            String.format("Successfully loaded video %s", mrl),
-                            NamedTextColor.GOLD)));
-              })
-          .whenCompleteAsync((t, throwable) -> atomicBoolean.set(true));
+            // Send success message
+            audience.sendMessage(
+                ChatUtilities.formatMessage(
+                    Component.text(
+                        String.format("Successfully loaded video %s", mrl), NamedTextColor.GOLD)));
+
+            // Set completed
+            atomicBoolean.set(true);
+          });
     }
     return 1;
   }

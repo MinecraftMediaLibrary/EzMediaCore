@@ -31,6 +31,8 @@ import ws.schild.jave.encode.AudioAttributes;
 import ws.schild.jave.encode.EncodingAttributes;
 
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 /** An audio extraction helper that helps extract audio from video files. */
 public class AudioExtractionHelper implements AudioExtractionContext {
@@ -43,9 +45,10 @@ public class AudioExtractionHelper implements AudioExtractionContext {
     ENCODER = new Encoder(FFMPEG_LOCATION);
   }
 
+  private final EncodingAttributes attrs;
   private final Path input;
   private final Path output;
-  private final EncodingAttributes attrs;
+  private CompletableFuture<Void> future;
 
   /**
    * Instantiates a new AudioExtractionHelper.
@@ -86,6 +89,16 @@ public class AudioExtractionHelper implements AudioExtractionContext {
     }
   }
 
+  @Override
+  public void extractAsync() {
+    future = CompletableFuture.runAsync(this::extract);
+  }
+
+  @Override
+  public void extractAsync(final @NotNull Executor executor) {
+    future = CompletableFuture.runAsync(this::extract, executor);
+  }
+
   /**
    * Checks if the current instance and object are equal.
    *
@@ -111,6 +124,11 @@ public class AudioExtractionHelper implements AudioExtractionContext {
   @Override
   public Path getOutput() {
     return output;
+  }
+
+  @Override
+  public CompletableFuture<Void> toCompletableFuture() {
+    return future;
   }
 
   /**
