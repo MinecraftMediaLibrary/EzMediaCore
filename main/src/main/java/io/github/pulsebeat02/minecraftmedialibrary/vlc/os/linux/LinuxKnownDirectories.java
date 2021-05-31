@@ -27,8 +27,8 @@ import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.WellKnownDirectoryProv
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /** Well known Linux directory for VLC installation. */
 public class LinuxKnownDirectories extends WellKnownDirectoryProvider {
@@ -52,12 +52,8 @@ public class LinuxKnownDirectories extends WellKnownDirectoryProvider {
    */
   @Override
   public Set<String> search() {
-    final Set<String> paths = new HashSet<>();
-    for (final String path : getDirectories()) {
-      if (Files.exists(Paths.get(path))) {
-        paths.add(path);
-      }
-    }
-    return paths;
+    return getDirectories().stream()
+        .filter(p -> Files.exists(Paths.get(p)))
+        .collect(Collectors.toSet());
   }
 }

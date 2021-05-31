@@ -20,9 +20,10 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.utility;
+package io.github.pulsebeat02.minecraftmedialibrary.vlc;
 
 import io.github.pulsebeat02.minecraftmedialibrary.exception.UnsupportedOperatingSystemException;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.MMLNativeDiscovery;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.WellKnownDirectoryProvider;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.LinuxKnownDirectories;
@@ -39,19 +40,20 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class VLCUtilities {
+/** A class used to search for the binaries for VLC. */
+public class VLCBinarySearcher {
 
-  private VLCUtilities() {}
+  private final MMLNativeDiscovery discovery;
+  private final WellKnownDirectoryProvider provider;
+  private final Path search;
 
   /**
-   * Checks if VLC installation exists or not.
+   * Instantiates a new VLCBinarySearcher
    *
-   * @param directory the library
-   * @return whether vlc can be found or not
+   * @param path the path
    */
-  public static boolean checkVLCExistence(@NotNull final Path directory) {
-    MMLNativeDiscovery discovery = null;
-    WellKnownDirectoryProvider provider = null;
+  public VLCBinarySearcher(@NotNull final Path path) {
+    search = path;
     if (RuntimeUtilities.isWindows()) {
       discovery = new WindowsNativeDiscovery();
       provider = new WindowsKnownDirectories();
@@ -61,18 +63,29 @@ public final class VLCUtilities {
     } else if (RuntimeUtilities.isLinux()) {
       discovery = new LinuxNativeDiscovery();
       provider = new LinuxKnownDirectories();
-    }
-    if (discovery == null) {
+    } else {
       throw new UnsupportedOperatingSystemException(
           "Couldn't find the correct method to discover VLC!");
     }
+  }
+
+  public boolean search() {
     final List<String> paths = new ArrayList<>(provider.search());
-    paths.add(0, directory.toString());
+    paths.add(0, search.toString());
     for (final String path : paths) {
       if (discovery.discover(Paths.get(path))) {
         return true;
       }
     }
     return new NativeDiscovery().discover();
+  }
+
+  /**
+   * Gets the search location.
+   *
+   * @return the search location
+   */
+  public Path getSearchLocation() {
+    return search;
   }
 }

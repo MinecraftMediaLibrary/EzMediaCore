@@ -93,7 +93,8 @@ public final class MapUtilities {
         final Block current = start.getRelative(BlockFace.UP, h).getRelative(BlockFace.EAST, w);
         current.setType(mat);
 
-        final ItemFrame frame = world.spawn(current.getRelative(opposite).getLocation(), ItemFrame.class);
+        final ItemFrame frame =
+            world.spawn(current.getRelative(opposite).getLocation(), ItemFrame.class);
         frame.setFacingDirection(face);
         frame.setItem(getMapFromID(map));
 

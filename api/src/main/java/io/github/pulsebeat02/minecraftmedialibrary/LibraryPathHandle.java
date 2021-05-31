@@ -69,7 +69,7 @@ public class LibraryPathHandle {
     audioFolder = Paths.get(audioPath == null ? String.format("%s/audio/", path) : audioPath);
     dependenciesFolder =
         Paths.get(libraryPath == null ? String.format("%s/libraries/", path) : libraryPath);
-    vlcFolder = Paths.get(vlcPath == null ? String.format("%s/vlc/", path) : vlcPath);
+    vlcFolder = Paths.get(vlcPath == null ? String.format("%s/libraries/vlc/", path) : vlcPath);
     try {
       Files.createDirectories(parentFolder);
       Files.createDirectories(httpParentFolder);

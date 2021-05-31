@@ -26,7 +26,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyManageme
 import io.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities;
+import io.github.pulsebeat02.minecraftmedialibrary.vlc.VLCBinarySearcher;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.VLCNativeDependencyFetcher;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,7 +37,6 @@ import java.util.concurrent.ExecutionException;
 public final class DependencyInstantiation {
 
   private final MediaLibrary instance;
-
   /**
    * Instantiates a new DependencyInstantiation for loading dependencies.
    *
@@ -51,8 +50,9 @@ public final class DependencyInstantiation {
   public void startTasks() {
     try {
       CompletableFuture.allOf(
-              CompletableFuture.runAsync(() -> new FFmpegDependencyInstallation(instance).install()),
-              CompletableFuture.runAsync(() -> new DependencyManagement(instance).start()).thenRunAsync(this::loadVLC))
+              CompletableFuture.runAsync(() -> new FFmpegDependencyInstallation(instance).start()),
+              CompletableFuture.runAsync(() -> new DependencyManagement(instance).start())
+                  .thenRunAsync(this::loadVLC))
           .get();
     } catch (final InterruptedException | ExecutionException e) {
       e.printStackTrace();
@@ -61,7 +61,7 @@ public final class DependencyInstantiation {
 
   /** Downloads/Loads VLC dependency. */
   private void loadVLC() {
-    if (!VLCUtilities.checkVLCExistence(instance.getVlcFolder())) {
+    if (!new VLCBinarySearcher(instance.getVlcFolder()).search()) {
       if (RuntimeUtilities.isLinux()) {
         Logger.info(
             "Unfortunately, MinecraftMediaLibrary cannot download VLC binaries on Linux "

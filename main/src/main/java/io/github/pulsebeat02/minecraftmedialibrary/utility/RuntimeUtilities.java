@@ -272,13 +272,11 @@ public final class RuntimeUtilities {
    * @param message the success message
    */
   public static void executeBashScript(
-          @NotNull final Path file, @NotNull final String[] arguments, @NotNull final String message) {
+      @NotNull final Path file, @NotNull final String[] arguments, @NotNull final String message) {
     final String str = file.toAbsolutePath().toString();
-    Logger.info(
-        String.format("Script: %s %s", str, String.join(" ", arguments)));
+    Logger.info(String.format("Script: %s %s", str, String.join(" ", arguments)));
     try {
-      final ProcessBuilder pb =
-          new ProcessBuilder("bash", str, String.join(" ", arguments));
+      final ProcessBuilder pb = new ProcessBuilder("bash", str, String.join(" ", arguments));
       final ProcessBuilder.Redirect redirect =
           ProcessBuilder.Redirect.appendTo(Logger.getLogFile().toFile());
       pb.redirectOutput(redirect);
@@ -286,8 +284,7 @@ public final class RuntimeUtilities {
       Logger.info(
           pb.start().waitFor() == 0
               ? message
-              : String.format(
-                  "An issue occurred while running script! (%s)", str));
+              : String.format("An issue occurred while running script! (%s)", str));
     } catch (final InterruptedException | IOException e) {
       e.printStackTrace();
     }

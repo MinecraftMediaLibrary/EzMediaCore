@@ -145,8 +145,7 @@ public class StaticImage implements StaticImageProxy {
         new FloydImageDither()
             .ditherIntoMinecraft(Objects.requireNonNull(VideoUtilities.getBuffer(image)), width);
     library.getHandler().displayMaps(null, map, width, height, buffer, width);
-    Logger.info(
-        String.format("Drew Image at Map ID %d (Source: %s)", map, image.toAbsolutePath()));
+    Logger.info(String.format("Drew Image at Map ID %d (Source: %s)", map, image.toAbsolutePath()));
   }
 
   @Override

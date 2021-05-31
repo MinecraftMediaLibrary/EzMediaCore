@@ -26,7 +26,7 @@ import com.sun.jna.NativeLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities;
+import io.github.pulsebeat02.minecraftmedialibrary.vlc.VLCBinarySearcher;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,7 +73,7 @@ public abstract class AbstractSilentOSDependentSolution implements SilentOSDepen
   public void loadNativeDependency(@NotNull final Path folder) {
     NativeLibrary.addSearchPath(
         RuntimeUtil.getLibVlcLibraryName(), folder.toAbsolutePath().toString());
-    VLCUtilities.checkVLCExistence(folder);
+    new VLCBinarySearcher(folder).search();
   }
 
   /** Prints all System environment variables. */

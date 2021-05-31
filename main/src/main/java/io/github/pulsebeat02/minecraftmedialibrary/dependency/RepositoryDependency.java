@@ -84,7 +84,11 @@ public enum RepositoryDependency {
       DependencyResolution.MAVEN_DEPENDENCY),
 
   /** Jaffree Maven Dependency */
-  JAFFREE("com{}github{}kokorin{}jaffree", "jaffree", "2021{}05{}26", DependencyResolution.MAVEN_DEPENDENCY);
+  JAFFREE(
+      "com{}github{}kokorin{}jaffree",
+      "jaffree",
+      "2021{}05{}26",
+      DependencyResolution.MAVEN_DEPENDENCY);
 
   private final String group;
   private final String artifact;

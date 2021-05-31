@@ -109,10 +109,12 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
     }
 
     logger.info("Unregistering Commands");
-    final Set<BaseCommand> cmds = handler.getCommands();
-    if (cmds != null) {
-      for (final BaseCommand cmd : handler.getCommands()) {
-        CommandUtilities.unRegisterBukkitCommand(this, cmd);
+    if (handler != null) {
+      final Set<BaseCommand> cmds = handler.getCommands();
+      if (cmds != null) {
+        for (final BaseCommand cmd : handler.getCommands()) {
+          CommandUtilities.unRegisterBukkitCommand(this, cmd);
+        }
       }
     }
 

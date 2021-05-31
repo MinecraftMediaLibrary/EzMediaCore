@@ -27,14 +27,13 @@ import io.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTask;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities;
+import io.github.pulsebeat02.minecraftmedialibrary.vlc.VLCBinarySearcher;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.AbstractSilentOSDependentSolution;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.SilentInstallationType;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -105,7 +104,7 @@ public class MacSilentInstallation extends AbstractSilentOSDependentSolution {
 
   @Override
   public void loadNativeDependency(final @NotNull Path folder) {
-    VLCUtilities.checkVLCExistence(folder);
+    new VLCBinarySearcher(folder).search();
   }
 
   @Override

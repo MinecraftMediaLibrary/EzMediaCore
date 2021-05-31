@@ -41,23 +41,16 @@ public final class Logger {
 
   /** Tracks whether log should be verbose */
   protected static boolean VERBOSE;
+
   protected static volatile PrintWriter WRITER;
   protected static Path LOG_FILE;
 
   public static void initializeLogger(@NotNull final MediaLibrary library) {
     try {
       final Path folder = Paths.get(library.getPlugin().getDataFolder().toString()).resolve("mml");
-      if (Files.notExists(folder)) {
-        Files.createDirectories(folder);
-        System.out.println("Created Directory");
-      }
       LOG_FILE = folder.resolve("mml.log");
-      if (Files.notExists(LOG_FILE)) {
-        Files.createFile(LOG_FILE);
-        System.out.printf("File Created (%s)%n", LOG_FILE.getFileName());
-      } else {
-        System.out.println("Log File Exists Already");
-      }
+      Files.createDirectories(folder);
+      Files.createFile(LOG_FILE);
       WRITER = new PrintWriter(new FileWriter(LOG_FILE.toFile()), true);
     } catch (final IOException exception) {
       exception.printStackTrace();

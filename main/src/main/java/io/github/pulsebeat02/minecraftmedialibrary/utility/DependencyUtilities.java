@@ -34,27 +34,25 @@ import org.jetbrains.annotations.NotNull;
 import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.function.LongConsumer;
+import java.util.stream.Collectors;
 
 /**
  * Special dependency utilities used throughout the library and also open to users. Used for easier
  * dependency management.
  */
 public final class DependencyUtilities {
-
-  private static final EnhancedDependencyLoader LOADER;
-
-  static {
-    LOADER = new EnhancedDependencyLoader();
-  }
 
   private DependencyUtilities() {}
 
@@ -86,56 +84,6 @@ public final class DependencyUtilities {
       @NotNull final RepositoryDependency dependency, @NotNull final String parent)
       throws IOException {
     return downloadFile(dependency, getRepoUrl(dependency), parent);
-  }
-
-  /**
-   * Loads and downloads a dependency based from arguments.
-   *
-   * @param groupId group id
-   * @param artifactId artifact id
-   * @param version version
-   * @param directory directory
-   * @param resolution resolution
-   * @return jar file
-   * @throws IOException if the url constructed cannot be found
-   */
-  @NotNull
-  public static Path downloadAndLoadDependency(
-      @NotNull final String groupId,
-      @NotNull final String artifactId,
-      @NotNull final String version,
-      @NotNull final String directory,
-      @NotNull final DependencyResolution resolution)
-      throws IOException {
-    final Path f = downloadFile(groupId, artifactId, version, directory, resolution);
-    loadDependency(f);
-    return f;
-  }
-
-  /**
-   * Loads and downloads a dependency based from arguments with consumer.
-   *
-   * @param groupId group id
-   * @param artifactId artifact id
-   * @param version version
-   * @param directory directory
-   * @param resolution resolution
-   * @param consumer consumer
-   * @return jar file
-   * @throws IOException if the url constructed cannot be found
-   */
-  @NotNull
-  public static Path downloadAndLoadDependency(
-      @NotNull final String groupId,
-      @NotNull final String artifactId,
-      @NotNull final String version,
-      @NotNull final String directory,
-      @NotNull final DependencyResolution resolution,
-      @NotNull final LongConsumer consumer)
-      throws IOException {
-    final Path f = downloadFile(groupId, artifactId, version, directory, resolution, consumer);
-    loadDependency(f);
-    return f;
   }
 
   /**
@@ -325,10 +273,10 @@ public final class DependencyUtilities {
       throws IOException {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
     Logger.info(String.format("Downloading Dependency at %s into folder %s", url, p));
-    try (final InputStream inputStream = new URL(url).openStream();
-        final ReadableByteChannel readableByteChannel = Channels.newChannel(inputStream);
-        final FileOutputStream fileOutputStream = new FileOutputStream(p.toFile())) {
-      fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+    try (final ReadableByteChannel readableByteChannel =
+            Channels.newChannel(new URL(url).openStream());
+        final FileChannel channel = new FileOutputStream(p.toFile()).getChannel()) {
+      channel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
     }
     return p;
   }
@@ -381,24 +329,30 @@ public final class DependencyUtilities {
   }
 
   /**
-   * Load JAR file.
+   * Loads all JAR files provided.
    *
-   * @param file the file
-   * @throws IOException the io exception
+   * @param files the files
    */
-  public static void loadDependency(@NotNull final Path file) throws IOException {
-    Preconditions.checkArgument(
-        Files.exists(file),
-        String.format("Dependency File %s doesn't exist!", file.toAbsolutePath()));
-    LOADER.addJar(file);
-    Logger.info(String.format("Added Dependency %s to Load", file.getFileName()));
-  }
-
-  /** Loads all dependency jars that were loaded. */
-  public static void load() {
-    Logger.info("Loading All Dependency Jars!");
-    Logger.info(String.format("Dependencies to Load: %s", LOADER.getJars()));
-    LOADER.loadJars();
+  public static void loadDependencies(@NotNull final List<Path> files) {
+    files.forEach(
+        p ->
+            Preconditions.checkArgument(
+                Files.exists(p),
+                String.format("Dependency File %s doesn't exist!", p.toAbsolutePath())));
+    Logger.info(String.format("Loading All Dependency Jars! (%s)", files));
+    new EnhancedDependencyLoader(
+            files.stream()
+                .map(
+                    x -> {
+                      try {
+                        return x.toUri().toURL();
+                      } catch (final MalformedURLException e) {
+                        e.printStackTrace();
+                      }
+                      throw new InvalidPathException(x.toString(), "Path is not a valid file!");
+                    })
+                .collect(Collectors.toList()))
+        .loadJars();
     Logger.info("Finished Loading ALl Dependency Jars!");
   }
 }

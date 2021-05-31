@@ -47,6 +47,15 @@ public class EnhancedDependencyLoader {
   }
 
   /**
+   * Instantiates a new EnhancedDependencyLoader
+   *
+   * @param paths the paths
+   */
+  public EnhancedDependencyLoader(@NotNull final List<URL> paths) {
+    jars = paths;
+  }
+
+  /**
    * Adds a jar to the loading list.
    *
    * @param file the dependency

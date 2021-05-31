@@ -54,7 +54,7 @@ public class FFmpegDependencyInstallation {
 
   private static String FFMPEG_PATH;
 
-  private final Path dependencyFolder;
+  private final Path ffmpegFolder;
   private Path file;
 
   /**
@@ -72,12 +72,9 @@ public class FFmpegDependencyInstallation {
    * @param dependency directory path
    */
   public FFmpegDependencyInstallation(@NotNull final Path dependency) {
-    dependencyFolder = Paths.get(String.format("%s/ffmpeg/", dependency.normalize()));
+    ffmpegFolder = Paths.get(String.format("%s/ffmpeg/", dependency.normalize()));
     try {
-      if (Files.notExists(dependencyFolder)) {
-        Files.createDirectory(dependencyFolder);
-        Logger.info("Created FFMPEG Folder");
-      }
+      Files.createDirectories(ffmpegFolder);
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -101,8 +98,8 @@ public class FFmpegDependencyInstallation {
     FFMPEG_PATH = ffmpegPath;
   }
 
-  /** Installs FFMPEG Resource */
-  public void install() {
+  /** Starts installation of FFmpeg Resource */
+  public void start() {
     try {
       file = downloadFFmpeg();
     } catch (final IOException e) {
@@ -120,12 +117,15 @@ public class FFmpegDependencyInstallation {
    */
   @NotNull
   private Path downloadFFmpeg() throws IOException {
-    Path file = searchFFmpeg(dependencyFolder);
+    Path file = searchFFmpeg(ffmpegFolder);
     if (file != null) {
       return file;
     }
     final String fileUrl = getFFmpegUrl();
-    file = dependencyFolder.resolve(FilenameUtils.getName(new URL(fileUrl).getPath()));
+    file = ffmpegFolder.resolve(FilenameUtils.getName(new URL(fileUrl).getPath()));
+    if (Files.notExists(file)) {
+      Files.createFile(file);
+    }
     DependencyUtilities.downloadFile(file, fileUrl);
     if (RuntimeUtilities.isMac() || RuntimeUtilities.isLinux()) {
       // Change permissions so JAVE2 can access the file

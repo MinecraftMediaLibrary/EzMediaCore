@@ -54,14 +54,10 @@ public class JuNestInstaller extends PackageBase {
     this.isDebian = isDebian;
     this.baseDirectory = baseDirectory;
     final Path scripts = Paths.get(baseDirectory).resolve("scripts");
-    if (Files.notExists(scripts)) {
-      try {
-        Files.createDirectory(scripts);
-        Logger.info("Made Scripts Directory");
-      } catch (final IOException e) {
-        Logger.info("Failed to Make Scripts Directory");
-        e.printStackTrace();
-      }
+    try {
+      Files.createDirectories(scripts);
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
     try {
       setupPackage();
@@ -125,12 +121,8 @@ public class JuNestInstaller extends PackageBase {
     Logger.info("JuNest Setup Completion");
   }
 
-  /**
-   * Installs and extracts JuNest into the proper directory.
-   *
-   * @throws IOException if an exception occurred while fetching the url or file
-   */
-  private void downloadJuNest() throws IOException {
+  /** Installs and extracts JuNest into the proper directory. */
+  private void downloadJuNest() {
     final Path junest = Paths.get(String.format("%s/junest.zip", baseDirectory));
     FileUtilities.copyURLToFile(
         "https://github.com/MinecraftMediaLibrary/junest/archive/refs/heads/master.zip", junest);

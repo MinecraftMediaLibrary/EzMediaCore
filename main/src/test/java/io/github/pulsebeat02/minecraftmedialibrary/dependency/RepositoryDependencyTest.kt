@@ -30,12 +30,10 @@ import java.nio.file.Paths
 fun main() {
     Logger.setVerbose(true)
     val management = DependencyManagement(Paths.get(""))
-    management.install()
-    management.relocate()
-    management.load()
+    management.start()
     val ffmpeg =
         FFmpegDependencyInstallation(Paths.get(""))
-    ffmpeg.install()
+    ffmpeg.start()
     object : CipherFactory {
         override fun createCipher(s: String): Cipher? {
             return null

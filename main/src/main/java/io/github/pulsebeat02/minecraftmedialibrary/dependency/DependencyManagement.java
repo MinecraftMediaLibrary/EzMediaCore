@@ -84,31 +84,11 @@ public class DependencyManagement {
     files = new HashSet<>();
     dir = dirPath;
     relocatedDir = dir.resolve("relocated");
-  }
-
-  /** Initializes the DependencyManagement */
-  private void initialize() {
-    if (Files.notExists(dir)) {
-      try {
-        Files.createDirectory(dir);
-        Logger.info(
-            String.format(
-                "Dependency Directory (%s) does not exist... Creating a folder",
-                dir.toAbsolutePath()));
-      } catch (final IOException e) {
-        e.printStackTrace();
-      }
-    }
-    if (Files.notExists(relocatedDir)) {
-      try {
-        Files.createDirectory(relocatedDir);
-        Logger.info(
-            String.format(
-                "Relocated Directory (%s) does not exist... Creating a folder",
-                relocatedDir.toAbsolutePath()));
-      } catch (final IOException e) {
-        e.printStackTrace();
-      }
+    try {
+      Files.createDirectories(dir);
+      Files.createDirectories(relocatedDir);
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
   }
 
@@ -210,20 +190,11 @@ public class DependencyManagement {
   /** Install and load. */
   private void load() {
     try (final Stream<Path> paths = Files.walk(relocatedDir)) {
-      paths
-          .filter(Files::isRegularFile)
-          .forEach(
-              x -> {
-                try {
-                  DependencyUtilities.loadDependency(x);
-                } catch (final IOException e) {
-                  e.printStackTrace();
-                }
-              });
+      DependencyUtilities.loadDependencies(
+          paths.filter(Files::isRegularFile).collect(Collectors.toList()));
     } catch (final IOException e) {
       e.printStackTrace();
     }
-    DependencyUtilities.load();
   }
 
   /** Deletes all the stale dependency files. */

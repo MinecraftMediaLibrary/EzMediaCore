@@ -37,7 +37,6 @@ import io.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.ResourceUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
-import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -109,14 +108,10 @@ public class LinuxPackageManager {
       e.printStackTrace();
     }
     vlc = dir;
-    if (Files.notExists(vlc)) {
-      try {
-        Files.createDirectory(vlc);
-        Logger.info("Made VLC Directory");
-      } catch (final IOException e) {
-        Logger.error("Failed to Make VLC Directory");
-        e.printStackTrace();
-      }
+    try {
+      Files.createDirectories(vlc);
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
   }
 
@@ -128,10 +123,9 @@ public class LinuxPackageManager {
    * Gets package for current Operating System.
    *
    * @return package stored in archive
-   * @throws IOException exception if file can't be downloaded
    */
   @NotNull
-  public Path getDesignatedPackage() throws IOException {
+  public Path getDesignatedPackage() {
     Logger.info("Attempting to Find VLC Package for Machine.");
     final String fullInfo = RuntimeUtilities.getLinuxDistribution();
     final String distro = RuntimeUtilities.getDistributionName(fullInfo).toLowerCase();
@@ -196,7 +190,8 @@ public class LinuxPackageManager {
   /** Extract contents. Should only be one package located in folder */
   public void extractContents() {
     try {
-      ArchiveUtilities.recursiveExtraction(Files.walk(vlc).collect(Collectors.toList()).get(0), vlc);
+      ArchiveUtilities.recursiveExtraction(
+          Files.walk(vlc).collect(Collectors.toList()).get(0), vlc);
     } catch (final IOException e) {
       e.printStackTrace();
     }

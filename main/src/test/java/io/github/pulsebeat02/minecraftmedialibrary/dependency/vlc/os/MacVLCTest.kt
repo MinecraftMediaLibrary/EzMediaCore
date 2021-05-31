@@ -22,7 +22,7 @@
 package io.github.pulsebeat02.minecraftmedialibrary.dependency.vlc.os
 
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger
-import io.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities
+import io.github.pulsebeat02.minecraftmedialibrary.vlc.VLCBinarySearcher
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.VLCNativeDependencyFetcher
 import java.io.File
 import java.nio.file.Paths
@@ -48,7 +48,7 @@ class MacTest {
     }
 
     fun loadVLC() {
-        println(VLCUtilities.checkVLCExistence(File("/Applications/VLC.app")))
+        println(VLCBinarySearcher(Paths.get("/Applications/VLC.app")).search())
     }
 
 }

@@ -116,10 +116,14 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
           return handler.onPacketInterceptIn(player, packet);
         }
       };
+
       vlcj = isUsingVLCJ;
+
       dependencyTasks();
       Logger.info("Finished Initializing Library!");
+
     } else {
+
       shutdown();
     }
   }
