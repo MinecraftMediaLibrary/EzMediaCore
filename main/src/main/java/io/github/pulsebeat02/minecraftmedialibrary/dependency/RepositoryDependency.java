@@ -66,12 +66,6 @@ public enum RepositoryDependency {
   /** Compression XZ Maven Dependency */
   XZ("org{}tukaani", "xz", "1{}0", DependencyResolution.MAVEN_DEPENDENCY),
 
-  /** ASM Maven Dependency */
-  ASM("org{}ow2{}asm", "asm", "9{}1", DependencyResolution.MAVEN_DEPENDENCY),
-
-  /** ASM Commons Maven Dependency */
-  ASM_COMMONS("org{}ow2{}asm", "asm-commons", "9{}1", DependencyResolution.MAVEN_DEPENDENCY),
-
   /** JNA Maven Dependency */
   JNA("net{}java{}dev{}jna", "jna", "5{}8{}0", DependencyResolution.MAVEN_DEPENDENCY),
 

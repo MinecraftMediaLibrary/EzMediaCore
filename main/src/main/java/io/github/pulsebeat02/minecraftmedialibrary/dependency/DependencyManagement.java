@@ -25,6 +25,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.dependency;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.relocation.JarRelocator;
+import io.github.pulsebeat02.minecraftmedialibrary.relocation.Relocation;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import org.jetbrains.annotations.NotNull;
@@ -156,34 +157,17 @@ public class DependencyManagement {
 
   /** Relocates Dependencies. */
   public void relocate() {
-    try (final Stream<Path> paths = Files.walk(dir)) {
-      paths
-          .filter(x -> Files.isRegularFile(x) && PathUtilities.getName(x).contains("asm"))
-          .forEach(
-              x -> {
-                try {
-                  DependencyUtilities.loadDependency(x);
-                } catch (final IOException e) {
-                  e.printStackTrace();
-                }
-                files.remove(x);
-              });
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
+    final List<Relocation> relocations =
+        Arrays.stream(JarRelocationConvention.values())
+            .map(JarRelocationConvention::getRelocation)
+            .collect(Collectors.toList());
     final List<Callable<Object>> tasks = new ArrayList<>();
     for (final Path f : files) {
       tasks.add(
           Executors.callable(
               () -> {
                 try {
-                  new JarRelocator(
-                          f,
-                          relocatedDir.resolve(f.getFileName()),
-                          Arrays.stream(JarRelocationConvention.values())
-                              .map(JarRelocationConvention::getRelocation)
-                              .collect(Collectors.toList()))
-                      .run();
+                  new JarRelocator(f, relocatedDir.resolve(f.getFileName()), relocations).run();
                 } catch (final IOException e) {
                   e.printStackTrace();
                 }
@@ -212,6 +196,19 @@ public class DependencyManagement {
     } catch (final IOException e) {
       e.printStackTrace();
     }
+  }
+
+  /** Deletes all the stale dependency files. */
+  public void delete() {
+    for (final Path file : files) {
+      try {
+        Files.delete(file);
+        Logger.info(String.format("Finished Initializing Dependency (%s)", file.toAbsolutePath()));
+      } catch (final IOException e) {
+        e.printStackTrace();
+      }
+    }
+    files.clear();
   }
 
   /**

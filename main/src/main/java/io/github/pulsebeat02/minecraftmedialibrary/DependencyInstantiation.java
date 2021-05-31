@@ -85,7 +85,7 @@ public final class DependencyInstantiation {
     dependencyManagement.install();
     dependencyManagement.relocate();
     dependencyManagement.load();
-    deleteDependencies(dependencyManagement);
+    dependencyManagement.delete();
   }
 
   /** Downloads/Loads VLC dependency. */
@@ -104,23 +104,5 @@ public final class DependencyInstantiation {
         new VLCNativeDependencyFetcher(instance).downloadLibraries();
       }
     }
-  }
-
-  /**
-   * Deletes the dependencies after finished loading.
-   *
-   * @param management the dependency management
-   */
-  private void deleteDependencies(@NotNull final DependencyManagement management) {
-    final Set<Path> files = management.getFiles();
-    for (final Path file : files) {
-      try {
-        Files.delete(file);
-        Logger.info(String.format("Finished Initializing Dependency (%s)", file.toAbsolutePath()));
-      } catch (final IOException e) {
-        e.printStackTrace();
-      }
-    }
-    files.clear();
   }
 }

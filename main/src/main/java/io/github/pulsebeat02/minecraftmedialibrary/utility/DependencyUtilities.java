@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import io.github.pulsebeat02.minecraftmedialibrary.annotation.LegacyApi;
 import io.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyResolution;
+import io.github.pulsebeat02.minecraftmedialibrary.dependency.EnhancedDependencyLoader;
 import io.github.pulsebeat02.minecraftmedialibrary.dependency.RepositoryDependency;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -52,6 +53,8 @@ import java.util.function.LongConsumer;
  */
 public final class DependencyUtilities {
 
+  private static final EnhancedDependencyLoader LOADER;
+  private static boolean LEGACY;
   private static Method ADD_URL_METHOD;
   private static URLClassLoader CLASSLOADER;
 
@@ -71,6 +74,7 @@ public final class DependencyUtilities {
         | NoSuchMethodException
         | IllegalAccessException
         | InvocationTargetException ignored) {
+      LEGACY = true;
       Logger.info(
           "User is using Java 8, meaning Reflection Module does NOT have to be opened. You may safely ignore this.");
     }
@@ -80,6 +84,7 @@ public final class DependencyUtilities {
     } catch (final NoSuchMethodException e) {
       e.printStackTrace();
     }
+    LOADER = new EnhancedDependencyLoader();
   }
 
   private DependencyUtilities() {}
@@ -417,12 +422,25 @@ public final class DependencyUtilities {
         Files.exists(file),
         String.format("Dependency File %s doesn't exist!", file.toAbsolutePath()));
     Logger.info(String.format("Loading JAR Dependency at: %s", file.toAbsolutePath()));
-    try {
-      ADD_URL_METHOD.invoke(CLASSLOADER, file.toFile().toURI().toURL());
-    } catch (final IllegalAccessException | InvocationTargetException e) {
-      e.printStackTrace();
+    if (LEGACY) {
+      try {
+        ADD_URL_METHOD.invoke(CLASSLOADER, file.toFile().toURI().toURL());
+      } catch (final IllegalAccessException | InvocationTargetException e) {
+        e.printStackTrace();
+      }
+    } else {
+      LOADER.addJar(file);
     }
-    Logger.info(String.format("Finished Loading Dependency %s", file.getFileName()));
+    Logger.info(String.format("Added Dependency %s to Load", file.getFileName()));
+  }
+
+  /** Loads all dependency jars that were loaded. */
+  public static void load() {
+    if (!LEGACY) {
+      Logger.info("Loading ALl Dependency Jars!");
+      LOADER.loadJars();
+      Logger.info("Finished Loading ALl Dependency Jars!");
+    }
   }
 
   /**
@@ -432,5 +450,14 @@ public final class DependencyUtilities {
    */
   public static void setClassloader(final URLClassLoader CLASSLOADER) {
     DependencyUtilities.CLASSLOADER = CLASSLOADER;
+  }
+
+  /**
+   * Returns whether the Java version is equivalent to 1.8
+   *
+   * @return the Java version
+   */
+  public static boolean isLegacyJava() {
+    return LEGACY;
   }
 }

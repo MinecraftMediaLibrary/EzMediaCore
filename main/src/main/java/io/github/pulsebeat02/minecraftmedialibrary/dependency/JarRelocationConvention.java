@@ -58,12 +58,6 @@ public enum JarRelocationConvention {
   /** Compress XZ Jar Relocation Convention */
   XZ("org{}tukaani.xz", "io{}github{}pulsebeat02{}xz"),
 
-  /** ASM Jar Relocation Convention */
-  ASM("org{}ow2{}asm", "io{}github{}pulsebeat02{}asm"),
-
-  /** ASM Commons Jar Relocation Convention */
-  ASM_COMMONS("org{}ow2{}asm{}commons", "io{}github{}pulsebeat02{}asm{}commons"),
-
   /** Fast JSON Jar Relocation Convention */
   FAST_JSON("com{}alibaba{}fastjson", "io{}github{}pulsebeat02{}fastjson"),
 

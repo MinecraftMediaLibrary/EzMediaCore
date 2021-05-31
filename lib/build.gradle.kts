@@ -1,5 +1,9 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
+
+// Collections.empy for all args in DependencyData
+//
+
 plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
     `maven-publish`
@@ -50,7 +54,7 @@ publishing {
     repositories {
         maven {
             url = if (version.toString()
-                            .endsWith("SNAPSHOT")
+                    .endsWith("SNAPSHOT")
             ) uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") else uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
             setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2")
             credentials {
@@ -62,8 +66,8 @@ publishing {
     signing {
         val publishing: PublishingExtension by project
         useInMemoryPgpKeys(
-                System.getenv("SIGNING_KEY") ?: return@signing,
-                System.getenv("SIGNING_PASSWORD") ?: return@signing
+            System.getenv("SIGNING_KEY") ?: return@signing,
+            System.getenv("SIGNING_PASSWORD") ?: return@signing
         )
         sign(publishing.publications)
     }
@@ -78,11 +82,12 @@ tasks.withType<ShadowJar> {
     relocate("org.apache.commons.compress", "io.github.pulsebeat02.compress")
     relocate("org.rauschig.jarchivelib", "io.github.pulsebeat02.jarchivelib")
     relocate("org.tukaani.xz", "io.github.pulsebeat02.xz")
-    relocate("org.ow2.asm", "io.github.pulsebeat02.asm")
-    relocate("org.ow2.asm.commons", "io.github.pulsebeat02.asm.commons")
+    relocate("org.objectweb.asm", "io.github.pulsebeat02.asm")
+    relocate("org.objectweb.asm.commons", "io.github.pulsebeat02.asm.commons")
     relocate("org.apache.commons.io", "org.bukkit.craftbukkit.libs.org.apache.commons.io")
     relocate("com.wrapper.spotify", "io.github.pulsebeat02.spotify")
     relocate("com.github.kokorin", "io.github.pulsebeat02.kokorin")
+    relocate("io.github.slimjar", "io.github.pulsebeat02.slimjar")
 }
 
 tasks {
