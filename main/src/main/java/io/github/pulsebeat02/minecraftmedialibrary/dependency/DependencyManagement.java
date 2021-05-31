@@ -78,7 +78,7 @@ public class DependencyManagement {
   public DependencyManagement(@NotNull final Path dirPath) {
     files = new HashSet<>();
     dir = dirPath;
-    if (!Files.exists(dir)) {
+    if (Files.notExists(dir)) {
       try {
         Files.createDirectory(dir);
         Logger.info(
@@ -90,7 +90,7 @@ public class DependencyManagement {
       }
     }
     relocatedDir = dir.resolve("relocated");
-    if (!Files.exists(relocatedDir)) {
+    if (Files.notExists(relocatedDir)) {
       try {
         Files.createDirectory(relocatedDir);
         Logger.info(
@@ -125,8 +125,9 @@ public class DependencyManagement {
    */
   private void installDependency(@NotNull final RepositoryDependency dependency) {
     final String artifact = dependency.getArtifact();
+    final DependencyResolution resolution = dependency.getResolution();
     Path file = null;
-    if (dependency.getResolution() == DependencyResolution.MAVEN_DEPENDENCY) {
+    if (resolution == DependencyResolution.MAVEN_DEPENDENCY) {
       Logger.info(String.format("Checking Maven Central Repository for %s", artifact));
       try {
         file =
@@ -136,7 +137,8 @@ public class DependencyManagement {
         Logger.info(String.format("Could NOT find %s in Maven Central Repository!", artifact));
         e.printStackTrace();
       }
-    } else if (dependency.getResolution() == DependencyResolution.JITPACK_DEPENDENCY) {
+
+    } else if (resolution == DependencyResolution.JITPACK_DEPENDENCY) {
       Logger.info(String.format("Checking Jitpack Central Repository for %s", artifact));
       try {
         file =
@@ -221,7 +223,7 @@ public class DependencyManagement {
    */
   private boolean checkExists(
       @NotNull final Path dir, @NotNull final RepositoryDependency dependency) {
-    if (!Files.exists(dir)) {
+    if (Files.notExists(dir)) {
       return false;
     }
     try (final Stream<Path> paths = Files.walk(dir)) {

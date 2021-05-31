@@ -74,7 +74,7 @@ public class FFmpegDependencyInstallation {
   public FFmpegDependencyInstallation(@NotNull final Path dependency) {
     dependencyFolder = Paths.get(String.format("%s/ffmpeg/", dependency.normalize()));
     try {
-      if (!Files.exists(dependencyFolder)) {
+      if (Files.notExists(dependencyFolder)) {
         Files.createDirectory(dependencyFolder);
         Logger.info("Created FFMPEG Folder");
       }

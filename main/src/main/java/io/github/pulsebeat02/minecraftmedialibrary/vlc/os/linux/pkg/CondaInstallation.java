@@ -24,11 +24,9 @@ package io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux.pkg;
 
 import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
-import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -63,10 +61,9 @@ public class CondaInstallation {
    */
   public void setup() throws IOException {
     FileUtilities.createFile(conda, "Created conda.sh File");
-    FileUtils.copyURLToFile(
-        new URL(
-            "https://github.com/MinecraftMediaLibrary/Conda-Mirror/raw/main/Miniconda3-latest-Linux-x86_64.sh"),
-        conda.toFile());
+    FileUtilities.copyURLToFile(
+        "https://github.com/MinecraftMediaLibrary/Conda-Mirror/raw/main/Miniconda3-latest-Linux-x86_64.sh",
+        conda);
     RuntimeUtilities.executeBashScript(
         conda,
         new String[] {

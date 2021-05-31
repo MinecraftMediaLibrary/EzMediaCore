@@ -75,7 +75,7 @@ public class MMLNativeDiscovery {
    * @return whether vlc can be found or not
    */
   public boolean discover(@NotNull final Path directory) {
-    if (!Files.exists(directory)) {
+    if (Files.notExists(directory)) {
       return false;
     }
     if (nativeVLCPath != null) {

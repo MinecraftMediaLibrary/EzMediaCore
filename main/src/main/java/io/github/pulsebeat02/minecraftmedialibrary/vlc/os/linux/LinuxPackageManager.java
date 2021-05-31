@@ -34,6 +34,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.exception.UnsupportedOperatingSystemException;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.ResourceUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.apache.commons.io.FileUtils;
@@ -108,7 +109,7 @@ public class LinuxPackageManager {
       e.printStackTrace();
     }
     vlc = dir;
-    if (!Files.exists(vlc)) {
+    if (Files.notExists(vlc)) {
       try {
         Files.createDirectory(vlc);
         Logger.info("Made VLC Directory");
@@ -182,7 +183,7 @@ public class LinuxPackageManager {
           e.printStackTrace();
         }
         if (uri != null) {
-          FileUtils.copyURLToFile(uri, file.toFile());
+          FileUtilities.copyURLToFile(uri.toString(), file);
           PACKAGE = link;
           return file;
         }

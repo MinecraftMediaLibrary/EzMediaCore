@@ -47,12 +47,12 @@ public final class Logger {
   public static void initializeLogger(@NotNull final MediaLibrary library) {
     try {
       final Path folder = Paths.get(library.getPlugin().getDataFolder().toString()).resolve("mml");
-      if (!Files.exists(folder)) {
+      if (Files.notExists(folder)) {
         Files.createDirectories(folder);
         System.out.println("Created Directory");
       }
       LOG_FILE = folder.resolve("mml.log");
-      if (!Files.exists(LOG_FILE)) {
+      if (Files.notExists(LOG_FILE)) {
         Files.createFile(LOG_FILE);
         System.out.printf("File Created (%s)%n", LOG_FILE.getFileName());
       } else {

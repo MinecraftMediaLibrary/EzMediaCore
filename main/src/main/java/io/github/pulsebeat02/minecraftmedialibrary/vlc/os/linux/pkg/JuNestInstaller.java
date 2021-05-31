@@ -27,11 +27,9 @@ import io.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.ResourceUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
-import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -56,7 +54,7 @@ public class JuNestInstaller extends PackageBase {
     this.isDebian = isDebian;
     this.baseDirectory = baseDirectory;
     final Path scripts = Paths.get(baseDirectory).resolve("scripts");
-    if (!Files.exists(scripts)) {
+    if (Files.notExists(scripts)) {
       try {
         Files.createDirectory(scripts);
         Logger.info("Made Scripts Directory");
@@ -134,9 +132,8 @@ public class JuNestInstaller extends PackageBase {
    */
   private void downloadJuNest() throws IOException {
     final Path junest = Paths.get(String.format("%s/junest.zip", baseDirectory));
-    FileUtils.copyURLToFile(
-        new URL("https://github.com/MinecraftMediaLibrary/junest/archive/refs/heads/master.zip"),
-        junest.toFile());
+    FileUtilities.copyURLToFile(
+        "https://github.com/MinecraftMediaLibrary/junest/archive/refs/heads/master.zip", junest);
     ArchiveUtilities.decompressArchive(junest, junest.getParent());
   }
 

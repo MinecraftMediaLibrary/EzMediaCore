@@ -27,9 +27,13 @@ import com.google.common.base.Strings;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -71,14 +75,29 @@ public final class FileUtilities {
   public static void createFile(@NotNull final Path file, @NotNull final String successful) {
     try {
       final Path parent = file.getParent();
-      if (!Files.exists(parent)) {
+      if (Files.notExists(parent)) {
         Files.createDirectories(file.getParent());
         Logger.info(String.format("Created Directories for File (%s)", file.toAbsolutePath()));
       }
-      if (!Files.exists(file)) {
+      if (Files.notExists(file)) {
         Files.createFile(file);
         Logger.info(successful);
       }
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * Copy a file from a url to a path.
+   *
+   * @param url the url
+   * @param path the path
+   */
+  public static void copyURLToFile(@NotNull final String url, @NotNull final Path path) {
+    try (final ReadableByteChannel in = Channels.newChannel(new URL(url).openStream());
+        final FileChannel channel = new FileOutputStream(path.toString()).getChannel()) {
+      channel.transferFrom(in, 0, Long.MAX_VALUE);
     } catch (final IOException e) {
       e.printStackTrace();
     }

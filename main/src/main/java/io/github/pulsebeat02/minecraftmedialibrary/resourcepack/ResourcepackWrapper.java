@@ -205,7 +205,7 @@ public class ResourcepackWrapper implements PackWrapper {
     try {
 
       final Path zipFile = Paths.get(path);
-      if (!Files.exists(zipFile)) {
+      if (Files.notExists(zipFile)) {
         Files.createFile(zipFile);
       }
 

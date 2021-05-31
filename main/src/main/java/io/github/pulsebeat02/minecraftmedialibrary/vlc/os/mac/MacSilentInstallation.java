@@ -25,6 +25,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.vlc.os.mac;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTask;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.AbstractSilentOSDependentSolution;
@@ -73,7 +74,7 @@ public class MacSilentInstallation extends AbstractSilentOSDependentSolution {
     final Path dir = getDir();
     final Path dmg = dir.resolve("VLC.dmg");
     final Path diskPath = Paths.get("/Volumes/VLC media player");
-    FileUtils.copyURLToFile(new URL(RuntimeUtilities.getURL()), dmg.toFile());
+    FileUtilities.copyURLToFile(RuntimeUtilities.getURL(), dmg);
     try {
       if (mountDiskImage(dmg.toAbsolutePath().toString()) != 0) {
         throw new RuntimeException("Could not Mount Disk File!");

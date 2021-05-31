@@ -97,7 +97,7 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
    */
   @Override
   public String discover() {
-    if (!Files.exists(dir)) {
+    if (Files.notExists(dir)) {
       return null;
     }
     final Path dependency = getVLCFile(dir);

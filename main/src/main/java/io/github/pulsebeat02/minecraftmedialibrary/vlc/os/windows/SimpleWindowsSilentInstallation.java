@@ -26,15 +26,14 @@ import com.sun.jna.NativeLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.ArchiveUtilities;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VLCUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.os.AbstractSilentOSDependentSolution;
-import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -70,7 +69,7 @@ public class SimpleWindowsSilentInstallation extends AbstractSilentOSDependentSo
     final Path dir = getDir();
     Logger.info("No VLC Installation found on this Computer. Proceeding to a manual install.");
     final Path zip = dir.resolve("VLC.zip");
-    FileUtils.copyURLToFile(new URL(RuntimeUtilities.getURL()), zip.toFile());
+    FileUtilities.copyURLToFile(RuntimeUtilities.getURL(), zip);
     final String path = zip.toAbsolutePath().toString();
     ArchiveUtilities.decompressArchive(Paths.get(path), dir);
     vlcPath = zip.getParent().resolve("vlc-3.0.12").toString();
