@@ -25,6 +25,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.dependency;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.DependencyUtilities;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.HashingUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import io.github.slimjar.relocation.RelocationRule;
 import io.github.slimjar.relocation.facade.JarRelocatorFacadeFactory;
@@ -134,7 +135,6 @@ public class DependencyManagement {
         Logger.info(String.format("Could NOT find %s in Maven Central Repository!", artifact));
         e.printStackTrace();
       }
-
     } else if (resolution == DependencyResolution.JITPACK_DEPENDENCY) {
       Logger.info(String.format("Checking Jitpack Central Repository for %s", artifact));
       try {
@@ -147,7 +147,19 @@ public class DependencyManagement {
       }
     }
     if (file != null) {
-      files.add(file);
+      if (HashingUtilities.validateDependency(file, dependency)) {
+        Logger.info(String.format("SHA1 Hash for File %s Succeeded!", file));
+        files.add(file);
+      } else {
+        try {
+          Logger.info(
+              String.format("SHA1 Hash for File %s Failed! Downloading the Dependency Again...", file));
+          Files.delete(file);
+          installDependency(dependency);
+        } catch (final IOException e) {
+          e.printStackTrace();
+        }
+      }
     }
   }
 
