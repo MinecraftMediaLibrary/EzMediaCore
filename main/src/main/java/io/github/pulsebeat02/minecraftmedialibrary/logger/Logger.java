@@ -50,7 +50,9 @@ public final class Logger {
       final Path folder = Paths.get(library.getPlugin().getDataFolder().toString()).resolve("mml");
       LOG_FILE = folder.resolve("mml.log");
       Files.createDirectories(folder);
-      Files.createFile(LOG_FILE);
+      if (Files.notExists(LOG_FILE)) {
+        Files.createFile(LOG_FILE);
+      }
       WRITER = new PrintWriter(new FileWriter(LOG_FILE.toFile()), true);
     } catch (final IOException exception) {
       exception.printStackTrace();
