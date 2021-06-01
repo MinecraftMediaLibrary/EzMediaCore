@@ -123,7 +123,7 @@ Thanks to [Mishal321](https://github.com/mishal321), they freely gave us a publi
 - [Conclure](https://github.com/Conclure) for helping me migrate from maven to gradle.
 - [Yugi](https://github.com/Vshnv) for helping me setup [Slimjar](https://github.com/SlimJar/slimjar) and allowing 
   support for futuristic Java versions.
-- [Matt](https://github.com/ipsk) for his GUI framework.
+- [Matt](https://github.com/ipsk) for his [GUI Framework](https://github.com/TriumphTeam/gui/tree/development).
 - And also developers of the libraries I use. Without these libraries, the development would've been a much more
   pain-staking process.
 
