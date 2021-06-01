@@ -3,7 +3,9 @@ description = "minecraftmedialibrary"
 dependencies {
 
     compileOnlyApi("org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
-    implementation("io.github.slimjar:slimjar:1.2.0")
+    implementation(
+        "io.github.slimjar:slimjar:1.2.0"
+    )
     compileOnly("uk.co.caprica:vlcj:4.7.1")
     compileOnly("uk.co.caprica:vlcj-natives:4.1.0")
     compileOnly("uk.co.caprica:native-streams:1.0.0")
@@ -19,6 +21,7 @@ dependencies {
     compileOnly("net.java.dev.jna:jna-platform:5.8.0")
     compileOnly("se.michaelthelin.spotify:spotify-web-api-java:6.5.4")
     compileOnly("com.github.kokorin.jaffree:jaffree:2021.05.26")
+    compileOnly("com.google.guava:guava:30.1.1-jre")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     testImplementation("io.github.glytching:junit-extensions:2.4.0")

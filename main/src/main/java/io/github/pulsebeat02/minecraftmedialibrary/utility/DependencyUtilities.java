@@ -51,6 +51,8 @@ import java.util.stream.Collectors;
 /**
  * Special dependency utilities used throughout the library and also open to users. Used for easier
  * dependency management.
+ *
+ * Example: https://repo1.maven.org/maven2/uk/co/caprica/vlcj/4.7.1/
  */
 public final class DependencyUtilities {
 
@@ -134,7 +136,7 @@ public final class DependencyUtilities {
   @NotNull
   public static String getDependencyUrl(@NotNull final RepositoryDependency dependency) {
     return String.format(
-        "%s%s/%s/%s/",
+        "%s/%s/%s/%s/",
         dependency.getResolution().getBaseUrl(),
         dependency.getGroup().replaceAll("\\.", "/"),
         dependency.getArtifact(),
@@ -161,7 +163,7 @@ public final class DependencyUtilities {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(artifactId), "Artifact ID cannot be empty!");
     Preconditions.checkArgument(!Strings.isNullOrEmpty(version), "Version cannot be empty!");
     Preconditions.checkArgument(!Strings.isNullOrEmpty(base), "Base URL cannot be empty or null!");
-    return String.format("%s%s/%s/%s/", base, groupId.replaceAll("\\.", "/"), artifactId, version);
+    return String.format("%s/%s/%s/%s/", base, groupId.replaceAll("\\.", "/"), artifactId, version);
   }
 
   /**

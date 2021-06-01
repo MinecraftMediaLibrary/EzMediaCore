@@ -29,8 +29,8 @@ import org.jetbrains.annotations.NotNull;
  * It includes the base URLs of certain repositories as well.
  */
 public enum DependencyResolution {
-  MAVEN_DEPENDENCY("https://repo1.maven.org/maven2/"),
-  JITPACK_DEPENDENCY("https://jitpack.io/");
+  MAVEN_DEPENDENCY("https://repo1.maven.org/maven2"),
+  JITPACK_DEPENDENCY("https://jitpack.io");
 
   private final String baseUrl;
 
