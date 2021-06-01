@@ -24,7 +24,6 @@ package io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreeVideoPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -48,8 +47,7 @@ public class LinuxScoreboardPlayer extends JaffreeVideoPlayer {
       @NotNull final ScoreboardCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, url, width, height, callback);
-    Logger.info(String.format("Created a Scoreboard Integrated Video Player (%s)", url));
+    super(library, "Scoreboard", url, width, height, callback);
   }
 
   /**

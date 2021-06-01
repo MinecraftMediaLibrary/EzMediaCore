@@ -24,7 +24,6 @@ package io.github.pulsebeat02.minecraftmedialibrary.frame.map;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -50,8 +49,7 @@ public class MapPlayer extends VLCVideoPlayer {
       @NotNull final MapDataCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, url, width, height, callback);
-    Logger.info(String.format("Created a VLCJ Integrated Itemframe Video Player (%s)", url));
+    super(library, "Itemframe Maps", url, width, height, callback);
   }
 
   /**
@@ -69,9 +67,7 @@ public class MapPlayer extends VLCVideoPlayer {
       @NotNull final MapDataCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, file, width, height, callback);
-    Logger.info(
-        String.format("Created a VLCJ Integrated Video Player (%s)", file.toAbsolutePath()));
+    super(library, "Itemframe Maps", file, width, height, callback);
   }
 
   /**

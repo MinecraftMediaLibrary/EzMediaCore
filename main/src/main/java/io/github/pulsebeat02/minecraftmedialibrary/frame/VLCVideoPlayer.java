@@ -101,6 +101,7 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
    */
   public VLCVideoPlayer(
       @NotNull final MediaLibrary library,
+      @NotNull final String type,
       @NotNull final String url,
       final int width,
       final int height,
@@ -123,6 +124,7 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
     sound = getLibrary().getPlugin().getName().toLowerCase();
     watchers = new ArrayList<>();
     initializePlayer();
+    Logger.info(String.format("Created a VLC Integrated %s Video Player (%s)", type, url));
   }
 
   /**
@@ -136,11 +138,12 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
    */
   public VLCVideoPlayer(
       @NotNull final MediaLibrary library,
+      @NotNull final String type,
       @NotNull final Path file,
       final int width,
       final int height,
       @NotNull final FrameCallback callback) {
-    this(library, file.toAbsolutePath().toString(), width, height, callback);
+    this(library, type, file.toAbsolutePath().toString(), width, height, callback);
   }
 
   private void initializePlayer() {

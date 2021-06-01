@@ -66,7 +66,7 @@ public class GIFPlayer extends VLCVideoPlayer {
       final int width,
       final int height,
       final FrameCallback callback) {
-    super(library, file, width, height, callback);
+    super(library, "Gif", file, width, height, callback);
     images = ImageUtilities.getFrames(file);
     frameDuration = ImageUtilities.getGifFrameDelay(file);
     scheduler = Executors.newScheduledThreadPool(1);

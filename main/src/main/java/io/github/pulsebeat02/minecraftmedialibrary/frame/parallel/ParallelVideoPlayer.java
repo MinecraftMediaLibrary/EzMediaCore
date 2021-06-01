@@ -119,7 +119,7 @@ public class ParallelVideoPlayer extends VLCVideoPlayer {
       final int width,
       final int height,
       @NotNull final FrameCallback callback) {
-    super(library, file.toAbsolutePath().toString(), width, height, callback);
+    super(library, "Parallel", file.toAbsolutePath().toString(), width, height, callback);
     handler = library.getHandler();
     holder = null;
     dither = new FilterLiteDither();

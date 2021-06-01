@@ -25,7 +25,6 @@ package io.github.pulsebeat02.minecraftmedialibrary.frame.chat;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCallbackPrototype;
-import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -51,8 +50,7 @@ public class ChatPlayer extends VLCVideoPlayer {
       @NotNull final ChatCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, url, width, height, callback);
-    Logger.info(String.format("Created a Chat Integrated Video Player (%s)", url));
+    super(library, "Chat", url, width, height, callback);
   }
 
   /**
@@ -70,9 +68,7 @@ public class ChatPlayer extends VLCVideoPlayer {
       @NotNull final EntityCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, file, width, height, callback);
-    Logger.info(
-        String.format("Created a Chat Integrated Video Player (%s)", file.toAbsolutePath()));
+    super(library, "Chat", file, width, height, callback);
   }
 
   /**

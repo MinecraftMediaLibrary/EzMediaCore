@@ -24,7 +24,6 @@ package io.github.pulsebeat02.minecraftmedialibrary.frame.chat;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreeVideoPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -48,8 +47,7 @@ public class LinuxChatPlayer extends JaffreeVideoPlayer {
       @NotNull final ChatCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, url, width, height, callback);
-    Logger.info(String.format("Created a Chat Integrated Video Player (%s)", url));
+    super(library, "Chat", url, width, height, callback);
   }
 
   /**

@@ -96,6 +96,7 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
    */
   public JaffreeVideoPlayer(
       @NotNull final MediaLibrary library,
+      @NotNull final String type,
       @NotNull final String url,
       final int width,
       final int height,
@@ -110,6 +111,7 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
     this.callback = callback;
     sound = getLibrary().getPlugin().getName().toLowerCase();
     initializePlayer();
+    Logger.info(String.format("Created an FFmpeg Integrated %s Video Player (%s)", type, url));
   }
 
   private void initializePlayer() {

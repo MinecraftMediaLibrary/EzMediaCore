@@ -24,7 +24,6 @@ package io.github.pulsebeat02.minecraftmedialibrary.frame.map;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreeVideoPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -48,8 +47,7 @@ public class LinuxMapPlayer extends JaffreeVideoPlayer {
       @NotNull final MapDataCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, url, width, height, callback);
-    Logger.info(String.format("Created a VLCJ Integrated Itemframe Video Player (%s)", url));
+    super(library, "Itemframe Maps", url, width, height, callback);
   }
 
   /**

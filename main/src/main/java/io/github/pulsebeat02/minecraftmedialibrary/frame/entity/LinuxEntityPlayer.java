@@ -24,7 +24,6 @@ package io.github.pulsebeat02.minecraftmedialibrary.frame.entity;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreeVideoPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -58,10 +57,9 @@ public class LinuxEntityPlayer extends JaffreeVideoPlayer {
       @NotNull final Location location,
       final int width,
       final int height) {
-    super(library, url, width, height, callback);
+    super(library, "Entity", url, width, height, callback);
     this.location = location;
     entities = callback.getEntities();
-    Logger.info(String.format("Created a VLCJ Integrated Entity Cloud Video Player (%s)", url));
   }
 
   /**
