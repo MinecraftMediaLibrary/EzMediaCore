@@ -73,7 +73,7 @@ public class MacSilentInstallation extends AbstractSilentOSDependentSolution {
     final Path dir = getDir();
     final Path dmg = dir.resolve("VLC.dmg");
     final Path diskPath = Paths.get("/Volumes/VLC media player");
-    FileUtilities.copyURLToFile(RuntimeUtilities.getURL(), dmg);
+    FileUtilities.copyURLToFile(RuntimeUtilities.getVLCUrl(), dmg);
     try {
       if (mountDiskImage(dmg.toAbsolutePath().toString()) != 0) {
         throw new RuntimeException("Could not Mount Disk File!");

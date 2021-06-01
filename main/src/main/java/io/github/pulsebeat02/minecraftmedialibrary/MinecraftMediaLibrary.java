@@ -93,13 +93,12 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
     Logger.setVerbose(true);
 
     JavaVersionUtilities.sendWarningMessage();
+    DebuggerUtilities.getDebugInformation(this);
 
     registrationHandler = new PlayerJoinLeaveRegistration(this);
     Bukkit.getPluginManager().registerEvents(registrationHandler, plugin);
 
     handle = new LibraryPathHandle(plugin, http, libraryPath, vlcPath, imagePath, audioPath);
-    Logger.info(DebuggerUtilities.getPluginDebugInfo(this));
-    Logger.info(DebuggerUtilities.getSystemDebugInfo(this));
 
     handler = NMSReflectionManager.getNewPacketHandlerInstance();
     if (handler != null) {

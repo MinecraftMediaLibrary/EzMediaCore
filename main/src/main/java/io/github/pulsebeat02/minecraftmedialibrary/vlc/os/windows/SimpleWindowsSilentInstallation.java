@@ -68,7 +68,7 @@ public class SimpleWindowsSilentInstallation extends AbstractSilentOSDependentSo
     final Path dir = getDir();
     Logger.info("No VLC Installation found on this Computer. Proceeding to a manual install.");
     final Path zip = dir.resolve("VLC.zip");
-    FileUtilities.copyURLToFile(RuntimeUtilities.getURL(), zip);
+    FileUtilities.copyURLToFile(RuntimeUtilities.getVLCUrl(), zip);
     final String path = zip.toAbsolutePath().toString();
     ArchiveUtilities.decompressArchive(Paths.get(path), dir);
     vlcPath = zip.getParent().resolve("vlc-3.0.12").toString();

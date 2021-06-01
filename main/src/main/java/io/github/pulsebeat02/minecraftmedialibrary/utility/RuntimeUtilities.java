@@ -57,8 +57,11 @@ public final class RuntimeUtilities {
   /** Using LINUX */
   private static final boolean LINUX;
 
-  /** URL used to download or "LINUX" if Linux */
-  private static String URL;
+  /** URL used to download VLC */
+  private static String VLC_DOWNLOAD_URL;
+
+  /** URL used to download FFMPEG */
+  private static String FFMPEG_DOWNLOAD_URL;
 
   static {
     Logger.info("Detecting Operating System...");
@@ -75,35 +78,47 @@ public final class RuntimeUtilities {
       is64bit = true;
       if (WINDOWS) {
         Logger.info("Detected Windows 64 Bit!");
-        URL =
+        VLC_DOWNLOAD_URL =
             "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/win64/VLC.zip";
+        FFMPEG_DOWNLOAD_URL =
+            "https://github.com/a-schild/jave2/raw/master/jave-nativebin-win64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-amd64.exe";
       } else if (LINUX) {
         if (CPU_ARCH.contains("arm")) {
           Logger.info("Detected Linux ARM 64 Bit!");
+          FFMPEG_DOWNLOAD_URL =
+              "https://github.com/a-schild/jave2/raw/master/jave-nativebin-arm64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-aarch64";
         } else {
           Logger.info("Detected Linux AMD/Intel 64 Bit!");
+          FFMPEG_DOWNLOAD_URL =
+              "https://github.com/a-schild/jave2/raw/master/jave-nativebin-linux64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-amd64";
         }
-        URL = "LINUX";
+        VLC_DOWNLOAD_URL = "LINUX";
       } else if (MAC) {
         if (!CPU_ARCH.contains("amd")) {
           Logger.info("Detected MACOS 64 Bit! (Silicon)");
-          URL =
+          VLC_DOWNLOAD_URL =
               "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/macos-intel64/VLC.dmg";
         } else {
           Logger.info("Detected MACOS 64 Bit! (AMD)");
-          URL =
+          VLC_DOWNLOAD_URL =
               "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/macos-arm64/VLC.dmg";
         }
+        FFMPEG_DOWNLOAD_URL =
+            "https://github.com/a-schild/jave2/raw/master/jave-nativebin-osx64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-x86_64-osx";
       }
     } else {
       is64bit = false;
       if (WINDOWS) {
-        URL =
+        VLC_DOWNLOAD_URL =
             "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/win32/VLC.zip";
+        FFMPEG_DOWNLOAD_URL =
+            "https://github.com/a-schild/jave2/raw/master/jave-nativebin-win32/src/main/resources/ws/schild/jave/nativebin/ffmpeg-x86.exe";
       } else if (LINUX) {
         if (CPU_ARCH.contains("arm")) {
           Logger.info("Detected ARM 32 Bit!");
-          URL = "LINUX";
+          VLC_DOWNLOAD_URL = "LINUX";
+          FFMPEG_DOWNLOAD_URL =
+              "https://github.com/a-schild/jave2/raw/master/jave-nativebin-arm32/src/main/resources/ws/schild/jave/nativebin/ffmpeg-arm";
         }
       }
     }
@@ -112,7 +127,7 @@ public final class RuntimeUtilities {
     Logger.info("=========================================");
     Logger.info(String.format("Operating System: %s", OPERATING_SYSTEM));
     Logger.info(String.format("CPU Architecture: %s", CPU_ARCH));
-    Logger.info(String.format("Link Used: %s", URL));
+    Logger.info(String.format("Link Used: %s", VLC_DOWNLOAD_URL));
     Logger.info("=========================================");
   }
 
@@ -247,12 +262,21 @@ public final class RuntimeUtilities {
   }
 
   /**
-   * Gets VLC url.
+   * Gets the VLC url.
    *
    * @return vlc installation url
    */
-  public static String getURL() {
-    return URL;
+  public static String getVLCUrl() {
+    return VLC_DOWNLOAD_URL;
+  }
+
+  /**
+   * Gets the FFmpeg url.
+   *
+   * @return the FFmpeg url
+   */
+  public static String getFFmpegUrl() {
+    return FFMPEG_DOWNLOAD_URL;
   }
 
   /**

@@ -121,7 +121,7 @@ public class FFmpegDependencyInstallation {
     if (file != null) {
       return file;
     }
-    final String fileUrl = getFFmpegUrl();
+    final String fileUrl = RuntimeUtilities.getFFmpegUrl();
     file = ffmpegFolder.resolve(FilenameUtils.getName(new URL(fileUrl).getPath()));
     if (Files.notExists(file)) {
       Files.createFile(file);
@@ -152,47 +152,5 @@ public class FFmpegDependencyInstallation {
       e.printStackTrace();
     }
     return file;
-  }
-
-  /**
-   * Gets artifact id of FFMPEG dependency.
-   *
-   * @return the artifact id
-   */
-  @NotNull
-  private String getFFmpegUrl() {
-    Logger.info("Detecting Operating System...");
-    final String arch = System.getProperty("os.name").toLowerCase();
-    String artifactId = "INVALID_OPERATING_SYSTEM";
-    if (RuntimeUtilities.is64bit()) {
-      if (RuntimeUtilities.isWindows()) {
-        Logger.info("Detected Windows 64 Bit!");
-        artifactId =
-            "https://github.com/a-schild/jave2/raw/master/jave-nativebin-win64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-amd64.exe";
-      } else if (RuntimeUtilities.isLinux()) {
-        if (arch.contains("arm")) {
-          Logger.info("Detected Linux ARM 64 Bit!");
-          artifactId =
-              "https://github.com/a-schild/jave2/raw/master/jave-nativebin-arm64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-aarch64";
-        } else {
-          Logger.info("Detected Linux AMD/Intel 64 Bit!");
-          artifactId =
-              "https://github.com/a-schild/jave2/raw/master/jave-nativebin-linux64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-amd64";
-        }
-      } else if (RuntimeUtilities.isMac()) {
-        Logger.info("Detected MACOS 64 Bit!");
-        artifactId =
-            "https://github.com/a-schild/jave2/raw/master/jave-nativebin-osx64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-x86_64-osx";
-      }
-    } else {
-      if (RuntimeUtilities.isLinux()) {
-        if (arch.contains("arm")) {
-          Logger.info("Detected ARM 32 Bit!");
-          artifactId =
-              "https://github.com/a-schild/jave2/raw/master/jave-nativebin-arm32/src/main/resources/ws/schild/jave/nativebin/ffmpeg-arm";
-        }
-      }
-    }
-    return artifactId;
   }
 }

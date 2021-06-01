@@ -62,7 +62,7 @@ public final class Logger {
    *
    * @param info the info
    */
-  public static void info(@NotNull final Object info) {
+  public static synchronized void info(@NotNull final Object info) {
     directPrint(String.format("%d: [INFO] %s\n", System.currentTimeMillis(), info));
   }
 
@@ -71,7 +71,7 @@ public final class Logger {
    *
    * @param warning the warning
    */
-  public static void warn(@NotNull final Object warning) {
+  public static synchronized void warn(@NotNull final Object warning) {
     directPrint(String.format("%d: [WARN] %s\n", System.currentTimeMillis(), warning));
   }
 
@@ -80,7 +80,7 @@ public final class Logger {
    *
    * @param error the error
    */
-  public static void error(@NotNull final Object error) {
+  public static synchronized void error(@NotNull final Object error) {
     directPrint(String.format("%d: [ERROR] %s\n", System.currentTimeMillis(), error));
   }
 
@@ -89,7 +89,7 @@ public final class Logger {
    *
    * @param line to print
    */
-  private static void directPrint(@NotNull final String line) {
+  private static synchronized void directPrint(@NotNull final String line) {
     if (VERBOSE) {
       WRITER.write(line);
       WRITER.flush();
