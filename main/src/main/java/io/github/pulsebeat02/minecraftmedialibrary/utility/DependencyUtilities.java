@@ -51,8 +51,6 @@ import java.util.stream.Collectors;
 /**
  * Special dependency utilities used throughout the library and also open to users. Used for easier
  * dependency management.
- *
- * Example: https://repo1.maven.org/maven2/uk/co/caprica/vlcj/4.7.1/
  */
 public final class DependencyUtilities {
 
@@ -355,6 +353,6 @@ public final class DependencyUtilities {
                     })
                 .collect(Collectors.toList()))
         .loadJars();
-    Logger.info("Finished Loading ALl Dependency Jars!");
+    Logger.info("Finished Loading All Dependency Jars!");
   }
 }

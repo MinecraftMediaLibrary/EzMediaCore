@@ -22,7 +22,7 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary;
 
-import io.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyManagement;
+import io.github.pulsebeat02.minecraftmedialibrary.dependency.ArtifactManager;
 import io.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
@@ -51,7 +51,7 @@ public final class DependencyInstantiation {
     try {
       CompletableFuture.allOf(
               CompletableFuture.runAsync(() -> new FFmpegDependencyInstallation(instance).start()),
-              CompletableFuture.runAsync(() -> new DependencyManagement(instance).start())
+              CompletableFuture.runAsync(() -> new ArtifactManager(instance).start())
                   .thenRunAsync(this::loadVLC))
           .get();
     } catch (final InterruptedException | ExecutionException e) {

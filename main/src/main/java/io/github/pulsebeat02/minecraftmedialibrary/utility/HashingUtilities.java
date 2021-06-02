@@ -34,9 +34,17 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 /** Hashing Utilities for getting the hash of certain artifacts and files. */
 public final class HashingUtilities {
+
+  private static final Map<String, String> ARTIFACT_HASHES;
+
+  static {
+    ARTIFACT_HASHES = new HashMap<>();
+  }
 
   /**
    * Checks if the hash of the file matches the dependency.
@@ -78,7 +86,7 @@ public final class HashingUtilities {
    * @return the hexadecimal String
    */
   @NotNull
-  public static String toHexString(@NotNull final byte[] bytes) {
+  public static String toHexString(final byte[] bytes) {
     final StringBuilder hexString = new StringBuilder();
     for (final byte b : bytes) {
       final String hex = Integer.toHexString(0xFF & b);
@@ -127,9 +135,14 @@ public final class HashingUtilities {
    */
   @NotNull
   public static String getHashFromUrl(@NotNull final String url) {
+    if (ARTIFACT_HASHES.containsKey(url)) {
+      return ARTIFACT_HASHES.get(url);
+    }
     try (final BufferedReader in =
         new BufferedReader(new InputStreamReader(new URL(url).openStream()))) {
-      return in.readLine();
+      final String hash = in.readLine();
+      ARTIFACT_HASHES.put(url, hash);
+      return hash;
     } catch (final IOException e) {
       e.printStackTrace();
     }

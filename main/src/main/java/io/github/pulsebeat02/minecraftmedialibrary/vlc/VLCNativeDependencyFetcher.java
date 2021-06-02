@@ -39,9 +39,6 @@ import java.nio.file.Path;
  * solution based on the working operating system of the environment. It should be noted that VLC
  * uses operating system dependent binaries, meaning that each operating system must be carefully
  * handled correctly in order to load the binaries properly.
- *
- * <p>Currently Supported Operating Systems: SLACKWARE OPENSUSE LEAP DEBIAN UBUNTU ARCH_LINUX FEDORA
- * SOLUS KAOS FREEBSD CENTOS NETBSD
  */
 public class VLCNativeDependencyFetcher {
 
@@ -72,11 +69,6 @@ public class VLCNativeDependencyFetcher {
     solution = new MacSilentInstallation(path);
   }
 
-  /**
-   * Download vlc libraries.
-   *
-   * <p>Currently in progress! Not finished as I am trying to support other operating systems.
-   */
   public void downloadLibraries() {
     Logger.info("Trying to find Native VLC Installation...");
     try {

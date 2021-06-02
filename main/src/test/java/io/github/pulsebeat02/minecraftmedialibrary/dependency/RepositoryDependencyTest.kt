@@ -29,7 +29,7 @@ import java.nio.file.Paths
 
 fun main() {
     Logger.setVerbose(true)
-    val management = DependencyManagement(Paths.get(""))
+    val management = ArtifactManager(Paths.get(""))
     management.start()
     val ffmpeg =
         FFmpegDependencyInstallation(Paths.get(""))
