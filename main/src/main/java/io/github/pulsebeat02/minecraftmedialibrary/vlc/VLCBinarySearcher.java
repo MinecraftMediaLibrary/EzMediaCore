@@ -71,7 +71,7 @@ public class VLCBinarySearcher {
 
   public boolean search() {
     final List<String> paths = new ArrayList<>(provider.search());
-    paths.add(0, search.toString());
+    paths.add(search.toString());
     for (final String path : paths) {
       if (discovery.discover(Paths.get(path))) {
         return true;
