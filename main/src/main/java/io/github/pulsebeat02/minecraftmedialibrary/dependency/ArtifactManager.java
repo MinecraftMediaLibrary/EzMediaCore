@@ -201,6 +201,7 @@ public class ArtifactManager {
    * Installs a specific dependency (continues to install until hash is correct).
    *
    * @param dependency the dependency
+   * @return path of the installed dependency
    */
   private Path installDependency(@NotNull final RepositoryDependency dependency) {
     final DependencyResolution resolution = dependency.getResolution();

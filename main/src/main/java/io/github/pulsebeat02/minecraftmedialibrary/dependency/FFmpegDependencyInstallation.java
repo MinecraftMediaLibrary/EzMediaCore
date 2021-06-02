@@ -48,7 +48,7 @@ import java.util.stream.Stream;
  * space for the user. We then end up overriding the get path method to point it to the correct
  * ffmpeg location.
  *
- * @see <a href="https://github.com/a-schild/jave2">JAVE2 Github</a>.
+ * <p>JAVE2 Github: https://github.com/a-schild/jave2
  */
 public class FFmpegDependencyInstallation {
 

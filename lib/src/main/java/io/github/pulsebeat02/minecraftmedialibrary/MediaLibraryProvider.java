@@ -93,6 +93,7 @@ public final class MediaLibraryProvider {
    *
    * @param clazz the plugin class
    * @return whether the library is instantiated for the plugin
+   * @param <T> the type value
    */
   public static <T extends JavaPlugin> boolean getLibraryStatus(@NotNull final Class<T> clazz) {
     return instantiated.containsKey(JavaPlugin.getPlugin(clazz));
@@ -112,6 +113,9 @@ public final class MediaLibraryProvider {
    * Checks the validity of the plugin, and see if an instance was created.
    *
    * @param plugin the plugin
+   * @param library the media library
+   *
+   * @return an instance of the MediaLibrary
    */
   private static MediaLibrary checkValidity(final Plugin plugin, final MediaLibrary library) {
     final String id = plugin.getName();
