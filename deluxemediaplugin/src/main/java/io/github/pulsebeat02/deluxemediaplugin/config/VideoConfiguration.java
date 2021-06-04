@@ -24,6 +24,7 @@ package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
+import io.github.pulsebeat02.minecraftmedialibrary.ServerPropertyMutator;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
@@ -66,6 +67,9 @@ public class VideoConfiguration extends AbstractConfiguration {
 
     // Get whether vlc is enabled or not
     final boolean enabled = configuration.getBoolean("enabled");
+
+    // Get whether we should force the packet threshold setting
+    final boolean forceThreshold = configuration.getBoolean("force-packet-threshold");
 
     // Get the mrl of the media file
     final String url = configuration.getString("url");
@@ -112,6 +116,11 @@ public class VideoConfiguration extends AbstractConfiguration {
 
       // Get the library instance
       final MediaLibrary library = player.getLibrary();
+
+      // This means we should force set the setting in the properties file
+      if (forceThreshold) {
+        new ServerPropertyMutator().mutateCompressionThreshold();
+      }
 
       /*
 
