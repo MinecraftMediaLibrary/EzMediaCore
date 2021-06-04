@@ -119,6 +119,14 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
       vlcj = isUsingVLCJ;
 
       dependencyTasks();
+
+      if (Bukkit.getOnlineMode()) {
+        Logger.info(
+            "Setting the property network-compression-threshold in server.properties to -1 can "
+                + "lead to a significant improvement of performance for servers that aren't proxy"
+                + " servers.");
+      }
+
       Logger.info("Finished Initializing Library!");
 
     } else {
