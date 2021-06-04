@@ -29,13 +29,27 @@ import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
+import io.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
 public class FFmpegTest {
+
   public static void main(final String[] args) {
-    new FFmpeg(Paths.get("/Users/bli24/Desktop/ffmpeg"))
+    final Path path = Paths.get(System.getProperty("user.dir") + "/ffmpeg-test");
+    if (Files.notExists(path)) {
+        try {
+            Files.createDirectory(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    new FFmpegDependencyInstallation(path).start();
+    new FFmpeg(Paths.get(FFmpegDependencyInstallation.getFFmpegPath()))
         .addInput(
             UrlInput.fromUrl(
                 "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"))
