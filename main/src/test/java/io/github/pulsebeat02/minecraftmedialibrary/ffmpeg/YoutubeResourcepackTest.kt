@@ -19,7 +19,7 @@
  .   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
  .   SOFTWARE.                                                                               .
  ............................................................................................*/
-package io.github.pulsebeat02.minecraftmedialibrary.video
+package io.github.pulsebeat02.minecraftmedialibrary.ffmpeg
 
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File

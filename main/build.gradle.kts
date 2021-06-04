@@ -32,6 +32,7 @@ dependencies {
     testImplementation("commons-io:commons-io:2.8.0")
     testImplementation("ws.schild:jave-core:3.0.1")
     testImplementation("com.github.kokorin.jaffree:jaffree:2021.05.26")
+    testImplementation("com.google.guava:guava:30.1.1-jre")
 
     api(project(":api"))
     implementation(project(":v1_16_R3"))

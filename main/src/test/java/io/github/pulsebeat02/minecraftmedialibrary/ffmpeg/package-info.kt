@@ -25,5 +25,5 @@
  * @since 1.0
  * @author PulseBeat_02
  */
-package io.github.pulsebeat02.minecraftmedialibrary.video
+package io.github.pulsebeat02.minecraftmedialibrary.ffmpeg
 

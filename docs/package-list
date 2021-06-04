@@ -36,7 +36,7 @@ io.github.pulsebeat02.minecraftmedialibrary.reflection
 io.github.pulsebeat02.minecraftmedialibrary.resourcepack
 io.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting
 io.github.pulsebeat02.minecraftmedialibrary.utility
-io.github.pulsebeat02.minecraftmedialibrary.video
+io.github.pulsebeat02.minecraftmedialibrary.ffmpeg
 io.github.pulsebeat02.minecraftmedialibrary.vlc
 io.github.pulsebeat02.minecraftmedialibrary.vlc.os
 io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux

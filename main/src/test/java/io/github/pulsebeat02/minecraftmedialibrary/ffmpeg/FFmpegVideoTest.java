@@ -20,7 +20,7 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.video;
+package io.github.pulsebeat02.minecraftmedialibrary.ffmpeg;
 
 import com.github.kokorin.jaffree.StreamType;
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
@@ -37,16 +37,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-public class FFmpegTest {
+public class FFmpegVideoTest {
 
-  public static void main(final String[] args) {
+  public static void main(final String[] args) throws IOException {
     final Path path = Paths.get(System.getProperty("user.dir") + "/ffmpeg-test");
     if (Files.notExists(path)) {
-        try {
-            Files.createDirectory(path);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+      Files.createDirectory(path);
     }
     new FFmpegDependencyInstallation(path).start();
     new FFmpeg(Paths.get(FFmpegDependencyInstallation.getFFmpegPath()))
