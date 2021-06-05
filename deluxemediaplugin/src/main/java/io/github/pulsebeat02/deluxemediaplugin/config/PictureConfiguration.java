@@ -51,10 +51,10 @@ public class PictureConfiguration extends AbstractConfiguration {
     // Add an image
     images.add(
         StaticImage.builder()
-            .setMap(map)
-            .setImage(file)
-            .setWidth(width)
-            .setHeight(height)
+            .map(map)
+            .image(file)
+            .width(width)
+            .height(height)
             .build(getPlugin().getLibrary()));
   }
 
@@ -106,10 +106,10 @@ public class PictureConfiguration extends AbstractConfiguration {
       // Define a new image with the specified id
       images.add(
           StaticImage.builder()
-              .setMap(id)
-              .setImage(file)
-              .setWidth(width)
-              .setHeight(height)
+              .map(id)
+              .image(file)
+              .width(width)
+              .height(height)
               .build(library));
     }
   }

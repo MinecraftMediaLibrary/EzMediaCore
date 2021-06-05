@@ -133,13 +133,13 @@ public class VideoConfiguration extends AbstractConfiguration {
       */
       final MapDataCallback callback =
           MapDataCallback.builder()
-              .setViewers(null)
-              .setDitherHolder(holder)
-              .setMap(startingMapID)
-              .setItemframeWidth(frameWidth)
-              .setItemframeHeight(frameHeight)
-              .setVideoWidth(width)
-              .setDelay(0)
+              .viewers(null)
+              .ditherHolder(holder)
+              .map(startingMapID)
+              .itemframeWidth(frameWidth)
+              .itemframeHeight(frameHeight)
+              .videoWidth(width)
+              .delay(0)
               .build(library);
 
       if (vlcj) {
@@ -159,10 +159,10 @@ public class VideoConfiguration extends AbstractConfiguration {
            */
           player =
               MapPlayer.builder()
-                  .setUrl(url)
-                  .setCallback(callback)
-                  .setWidth(width)
-                  .setHeight(height)
+                  .url(url)
+                  .callback(callback)
+                  .width(width)
+                  .height(height)
                   .build(library);
         }
       }
