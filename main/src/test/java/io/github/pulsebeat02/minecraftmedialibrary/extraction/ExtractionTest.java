@@ -20,33 +20,38 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.extractor;
+package io.github.pulsebeat02.minecraftmedialibrary.extraction;
 
+import io.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
+import io.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionSetting;
+import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
+
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
+import java.nio.file.Paths;
 
-public interface AudioExtractionContext {
-  /** Extracts the audio from the video file to the specified location. */
-  void extract();
+public class ExtractionTest {
 
-  /**
-   * Gets the path to the input file.
-   *
-   * @return the input file.
-   */
-  Path getInput();
+  public static void main(final String[] args) throws IOException {
 
-  /**
-   * Gets the path to the output file.
-   *
-   * @return the output file.
-   */
-  Path getOutput();
+    final Path parent = Paths.get(System.getProperty("user.dir"));
+    final Path path = parent.resolve("ffmpeg-test");
+    final Path audio = path.resolve("audio.ogg");
+    if (Files.exists(audio)) {
+      Files.delete(audio);
+    }
+    if (Files.notExists(path)) {
+      Files.createDirectory(path);
+    }
 
-  /**
-   * Gets the arguments for the command.
-   *
-   * @return the arguments
-   */
-  List<String> getArguments();
+    new FFmpegDependencyInstallation(path).start();
+
+    System.out.println(FFmpegDependencyInstallation.getFFmpegPath());
+
+    final ExtractionSetting settings = new ExtractionSetting("libvorbis", 160000, 2, 44100, 100);
+    new YoutubeExtraction(
+            "https://www.youtube.com/watch?v=NFB6Y2Qt8ag&list=LL&index=5", path, settings)
+        .extractAudio();
+  }
 }

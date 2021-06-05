@@ -22,12 +22,9 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.ffmpeg;
 
-import com.github.kokorin.jaffree.StreamType;
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
-import com.github.kokorin.jaffree.ffmpeg.PipeOutput;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
-import io.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
-import io.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionSetting;
+import com.github.kokorin.jaffree.ffmpeg.UrlOutput;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,24 +34,32 @@ import java.nio.file.Paths;
 public class FFmpegAudioTest {
 
   public static void main(final String[] args) throws IOException {
+    tryExtraction();
+  }
+
+  public static void tryExtraction() {
+
     final Path parent = Paths.get(System.getProperty("user.dir"));
     final Path path = parent.resolve("ffmpeg-test");
-    final Path audioPath = parent.resolve("audio.ogg");
+    final Path audioPath = path.resolve("audio.ogg");
     if (Files.notExists(path)) {
-      Files.createDirectory(path);
+      try {
+        Files.createDirectory(path);
+      } catch (final IOException e) {
+        e.printStackTrace();
+      }
     }
 
-    final ExtractionSetting setting = new ExtractionSetting(160000, 2, 44100, 1);
-    final PipeOutput output = PipeOutput.pumpTo(Files.newOutputStream(audioPath));
-    output.setCodec(StreamType.AUDIO, setting.getCodec());
-    output.addArguments("-b:v", String.valueOf(setting.getBitrate() / 1000F));
+    final UrlOutput output = UrlOutput.toPath(audioPath);
+    output.addArguments("-b:v", "160K");
     output.addArguments("-ac", "2");
-    output.addArguments("-r", String.valueOf(setting.getSamplingRate()));
-    output.addArguments("-filter:a", "\"volume=" + setting.getVolume() + "\"");
+    output.addArguments("-r", "44100");
+    output.addArguments("-filter:a", "\"volume=1\"");
 
-    new FFmpegDependencyInstallation(path).start();
-    new FFmpeg(Paths.get(FFmpegDependencyInstallation.getFFmpegPath()))
-        .addInput(UrlInput.fromPath(Paths.get("/Users/bli24/Downloads/opsu/Songs/1034063 K-DA - POP-STARS (feat. Madison Beer, (G)I-DLE, Jaira Burns)/audio.mp3")))
+    new FFmpeg(
+            Paths.get(
+                "/Users/bli24/IdeaProjects/MinecraftMediaLibrary/ffmpeg-test/ffmpeg/ffmpeg-x86_64-osx"))
+        .addInput(UrlInput.fromPath(Paths.get("/Users/bli24/Downloads/kda.mp4")))
         .addOutput(output)
         .execute();
   }

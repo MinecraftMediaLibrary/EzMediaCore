@@ -123,7 +123,7 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
       input = UrlInput.fromUrl(url);
     }
     ffmpeg =
-        new FFmpeg(Paths.get(FFmpegDependencyInstallation.getFFmpegPath()))
+        new FFmpeg(FFmpegDependencyInstallation.getFFmpegPath())
             .addInput(input)
             .addOutput(
                 FrameOutput.withConsumer(

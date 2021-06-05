@@ -45,10 +45,8 @@ public class FFmpegVideoTest {
       Files.createDirectory(path);
     }
     new FFmpegDependencyInstallation(path).start();
-    new FFmpeg(Paths.get(FFmpegDependencyInstallation.getFFmpegPath()))
-        .addInput(
-            UrlInput.fromUrl(
-                "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"))
+    new FFmpeg(FFmpegDependencyInstallation.getFFmpegPath())
+        .addInput(UrlInput.fromPath(Paths.get("/Users/bli24/Downloads/kda.mp4")))
         .addOutput(
             FrameOutput.withConsumer(
                     new FrameConsumer() {

@@ -22,33 +22,28 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.extractor;
 
+import com.google.common.collect.ImmutableList;
+import io.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
-import ws.schild.jave.Encoder;
-import ws.schild.jave.EncoderException;
-import ws.schild.jave.MultimediaObject;
-import ws.schild.jave.encode.AudioAttributes;
-import ws.schild.jave.encode.EncodingAttributes;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /** An audio extraction helper that helps extract audio from video files. */
 public class AudioExtractionHelper implements AudioExtractionContext {
 
-  private static final Encoder ENCODER;
-  private static final FFmpegLocation FFMPEG_LOCATION;
-
-  static {
-    FFMPEG_LOCATION = new FFmpegLocation();
-    ENCODER = new Encoder(FFMPEG_LOCATION);
-  }
-
-  private final EncodingAttributes attrs;
+  private final List<String> arguments;
   private final Path input;
   private final Path output;
-  private CompletableFuture<Void> future;
 
   /**
    * Instantiates a new AudioExtractionHelper.
@@ -61,42 +56,80 @@ public class AudioExtractionHelper implements AudioExtractionContext {
       @NotNull final ExtractionConfiguration settings,
       @NotNull final Path input,
       @NotNull final Path output) {
-    this.input = input;
-    this.output = output;
-    final AudioAttributes attributes = new AudioAttributes();
-    attributes.setCodec(settings.getCodec());
-    attributes.setBitRate(settings.getBitrate());
-    attributes.setChannels(settings.getChannels());
-    attributes.setSamplingRate(settings.getSamplingRate());
-    attributes.setVolume(settings.getVolume());
-    attrs = new EncodingAttributes();
-    attrs.setInputFormat(settings.getInputFormat());
-    attrs.setOutputFormat(settings.getOutputFormat());
-    attrs.setAudioAttributes(attributes);
+    this.input = input.toAbsolutePath();
+    this.output = output.toAbsolutePath();
+    arguments = generateArguments(settings);
+    if (Files.exists(output)) {
+      try {
+        Files.delete(output);
+      } catch (final IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  /**
+   * Generates UrlOutput from the ExtractionConfiguration. Example full command to extract ogg from
+   * an mp4 file:
+   *
+   * <p>/Users/bli24/IdeaProjects/MinecraftMediaLibrary/ffmpeg-test/ffmpeg/ffmpeg-x86_64-osx -f mp4
+   * -i /Users/bli24/IdeaProjects/MinecraftMediaLibrary/ffmpeg-test/video.mp4 -vn -acodec libvorbis
+   * -ab 160000 -ac 2 -ar 44100 -vol 1 -f ogg -y
+   * /Users/bli24/IdeaProjects/MinecraftMediaLibrary/ffmpeg-test/audio.ogg
+   *
+   * @param configuration the configuration
+   * @return the UrlOutput
+   */
+  private List<String> generateArguments(@NotNull final ExtractionConfiguration configuration) {
+    final String in = input.toString();
+    return new ArrayList<>(
+        ImmutableList.<String>builder()
+            .add(FFmpegDependencyInstallation.getFFmpegPath().toString())
+            .add("-f", FilenameUtils.getExtension(in))
+            .add("-i", in)
+            .add("-vn")
+            .add("-acodec", "libvorbis")
+            .add("-ab", String.valueOf(configuration.getBitrate()))
+            .add("-ac", String.valueOf(configuration.getChannels()))
+            .add("-ar", String.valueOf(configuration.getSamplingRate()))
+            .add("-vol", String.valueOf(configuration.getVolume() / 100))
+            .add("-ss", String.valueOf(configuration.getStartTime()))
+            .add("-f", FilenameUtils.getExtension(output.toString()))
+            .build());
+  }
+
+  /**
+   * Adds arguments to the command.
+   *
+   * @param args the arguments
+   */
+  public void addArguments(@NotNull final String... args) {
+    arguments.addAll(Arrays.stream(args).collect(Collectors.toList()));
   }
 
   @Override
   public void extract() {
+    arguments.add("-y");
+    arguments.add(output.toString());
+    final ProcessBuilder builder = new ProcessBuilder(arguments);
+    builder.redirectErrorStream(true);
     try {
-      ENCODER.encode(new MultimediaObject(input.toFile(), FFMPEG_LOCATION), output.toFile(), attrs);
-      Logger.info(
-          String.format(
-              "Successfully Extracted Audio from Video File! (Target: %s)",
-              output.toAbsolutePath()));
-    } catch (final EncoderException e) {
-      Logger.error(String.format("Couldn't Extract Audio from Video File! (Video: %s)", output));
+      final Process p = builder.start();
+      Logger.info(String.format("Starting Extraction Process with Arguments: %s", arguments));
+      try (final BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+        String line;
+        while (true) {
+          line = r.readLine();
+          if (line == null) {
+            break;
+          }
+          Logger.info(line);
+        }
+      }
+    } catch (final IOException e) {
       e.printStackTrace();
     }
-  }
-
-  @Override
-  public void extractAsync() {
-    future = CompletableFuture.runAsync(this::extract);
-  }
-
-  @Override
-  public void extractAsync(final @NotNull Executor executor) {
-    future = CompletableFuture.runAsync(this::extract, executor);
+    Logger.info("Finished Extraction Process..!");
   }
 
   /**
@@ -113,7 +146,7 @@ public class AudioExtractionHelper implements AudioExtractionContext {
     final AudioExtractionHelper extraction = (AudioExtractionHelper) obj;
     return input.equals(extraction.getInput())
         && output.equals(extraction.getOutput())
-        && attrs.equals(extraction.getEncodingAttributes());
+        && arguments.equals(extraction.getArguments());
   }
 
   @Override
@@ -127,16 +160,7 @@ public class AudioExtractionHelper implements AudioExtractionContext {
   }
 
   @Override
-  public CompletableFuture<Void> toCompletableFuture() {
-    return future;
-  }
-
-  /**
-   * Gets the encoding attributes.
-   *
-   * @return the encoding attributes
-   */
-  protected EncodingAttributes getEncodingAttributes() {
-    return attrs;
+  public List<String> getArguments() {
+    return arguments;
   }
 }

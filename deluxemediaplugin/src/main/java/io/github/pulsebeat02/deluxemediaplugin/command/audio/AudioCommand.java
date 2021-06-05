@@ -163,7 +163,7 @@ public class AudioCommand extends BaseCommand {
             final YoutubeExtraction extraction =
                 new YoutubeExtraction(
                     mrl,
-                    library.getAudioFolder().toString(),
+                    Paths.get(library.getAudioFolder().toString()),
                     getPlugin().getEncoderConfiguration().getSettings());
 
             // Extract the audio

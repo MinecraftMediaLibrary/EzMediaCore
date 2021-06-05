@@ -514,7 +514,7 @@ public class VideoCommand extends BaseCommand {
             // Create an extractor out of the Youtube link
             final YoutubeExtraction extractor =
                 new YoutubeExtraction(
-                    mrl, folderPath, plugin.getEncoderConfiguration().getSettings());
+                    mrl, Paths.get(folderPath), plugin.getEncoderConfiguration().getSettings());
 
             // Extract the audio of the URL
             extractor.extractAudio();

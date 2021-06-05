@@ -22,6 +22,8 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.extractor;
 
+import org.jetbrains.annotations.NotNull;
+
 /** Interface for Extractor. */
 public interface ExtractionConfiguration {
 
@@ -33,30 +35,6 @@ public interface ExtractionConfiguration {
    */
   @Override
   boolean equals(final Object obj);
-
-  @Override
-  String toString();
-
-  /**
-   * Gets codec.
-   *
-   * @return the codec
-   */
-  String getCodec();
-
-  /**
-   * Gets output format.
-   *
-   * @return the output format
-   */
-  String getOutputFormat();
-
-  /**
-   * Gets input format.
-   *
-   * @return the input format
-   */
-  String getInputFormat();
 
   /**
    * Gets bitrate.
@@ -101,6 +79,20 @@ public interface ExtractionConfiguration {
   void setSamplingRate(final int samplingRate);
 
   /**
+   * Gets the codec the audio should be encoded in.
+   *
+   * @return the codec
+   */
+  String getCodec();
+
+  /**
+   * Sets the codec the audio should be encoded in.
+   *
+   * @param codec the codec
+   */
+  void setCodec(@NotNull final String codec);
+
+  /**
    * Gets volume.
    *
    * @return the volume
@@ -113,4 +105,18 @@ public interface ExtractionConfiguration {
    * @param volume the volume
    */
   void setVolume(final int volume);
+
+  /**
+   * Gets the start time of the audio.
+   *
+   * @return the start time in seconds
+   */
+  int getStartTime();
+
+  /**
+   * Sets the start time of the audio.
+   *
+   * @param time the time in seconds
+   */
+  void setStartTime(final int time);
 }

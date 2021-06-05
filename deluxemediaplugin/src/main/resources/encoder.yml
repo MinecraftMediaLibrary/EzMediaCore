@@ -12,4 +12,4 @@ sampling-rate: 44100
 
 # The volume at which the sound should be played at. Increase or decrease this if you have trouble
 # trying to hear the sound the video produces.
-volume: 48
+volume: 350

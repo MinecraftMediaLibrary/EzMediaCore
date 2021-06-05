@@ -115,7 +115,7 @@ public class VideoConfiguration extends AbstractConfiguration {
     if (enabled) {
 
       // Get the library instance
-      final MediaLibrary library = player.getLibrary();
+      final MediaLibrary library = getPlugin().getLibrary();
 
       // This means we should force set the setting in the properties file
       if (forceThreshold) {

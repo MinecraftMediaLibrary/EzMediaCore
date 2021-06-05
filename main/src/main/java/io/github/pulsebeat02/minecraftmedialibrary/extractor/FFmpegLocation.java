@@ -35,6 +35,6 @@ public class FFmpegLocation implements ProcessLocator {
    */
   @Override
   public String getExecutablePath() {
-    return FFmpegDependencyInstallation.getFFmpegPath();
+    return FFmpegDependencyInstallation.getFFmpegPath().toString();
   }
 }

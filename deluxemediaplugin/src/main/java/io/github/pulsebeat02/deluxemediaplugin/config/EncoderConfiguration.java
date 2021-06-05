@@ -87,7 +87,7 @@ public class EncoderConfiguration extends AbstractConfiguration {
     final int volume = configuration.getInt("volume");
 
     // Create a new audio extraction configuration to be used
-    settings = new ExtractionSetting(bitrate, channels, samplingRate, volume);
+    settings = new ExtractionSetting("libvorbis", bitrate, channels, samplingRate, volume);
   }
 
   public ExtractionConfiguration getSettings() {

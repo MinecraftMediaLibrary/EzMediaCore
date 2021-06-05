@@ -52,7 +52,7 @@ import java.util.stream.Stream;
  */
 public class FFmpegDependencyInstallation {
 
-  private static String FFMPEG_PATH;
+  private static Path FFMPEG_PATH;
 
   private final Path ffmpegFolder;
   private Path file;
@@ -85,7 +85,7 @@ public class FFmpegDependencyInstallation {
    *
    * @return the path of the ffmpeg binary
    */
-  public static String getFFmpegPath() {
+  public static Path getFFmpegPath() {
     return FFMPEG_PATH;
   }
 
@@ -94,7 +94,7 @@ public class FFmpegDependencyInstallation {
    *
    * @param ffmpegPath the path of the ffmpeg binary
    */
-  public static void setFfmpegPath(final String ffmpegPath) {
+  public static void setFfmpegPath(final Path ffmpegPath) {
     FFMPEG_PATH = ffmpegPath;
   }
 
@@ -105,7 +105,7 @@ public class FFmpegDependencyInstallation {
     } catch (final IOException e) {
       e.printStackTrace();
     }
-    FFMPEG_PATH = file.toAbsolutePath().toString();
+    FFMPEG_PATH = file.toAbsolutePath();
     Logger.info(String.format("FFMPEG Path: %s", FFMPEG_PATH));
   }
 
