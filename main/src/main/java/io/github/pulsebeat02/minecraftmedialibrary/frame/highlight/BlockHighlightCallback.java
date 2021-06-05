@@ -115,6 +115,16 @@ public final class BlockHighlightCallback implements BlockHighlightCallbackProto
   }
 
   @Override
+  public PacketHandler getHandler() {
+    return handler;
+  }
+
+  @Override
+  public Location getLocation() {
+    return location;
+  }
+
+  @Override
   public int getWidth() {
     return width;
   }
@@ -135,11 +145,6 @@ public final class BlockHighlightCallback implements BlockHighlightCallbackProto
   }
 
   @Override
-  public PacketHandler getHandler() {
-    return handler;
-  }
-
-  @Override
   public int getVideoWidth() {
     return videoWidth;
   }
@@ -147,11 +152,6 @@ public final class BlockHighlightCallback implements BlockHighlightCallbackProto
   @Override
   public long getLastUpdated() {
     return lastUpdated;
-  }
-
-  @Override
-  public Location getLocation() {
-    return location;
   }
 
   /** The type Builder. */
@@ -171,7 +171,7 @@ public final class BlockHighlightCallback implements BlockHighlightCallbackProto
      * @param viewers the viewers
      * @return the viewers
      */
-    public Builder setViewers(@NotNull final UUID[] viewers) {
+    public Builder viewers(@NotNull final UUID[] viewers) {
       this.viewers = viewers;
       return this;
     }
@@ -182,7 +182,7 @@ public final class BlockHighlightCallback implements BlockHighlightCallbackProto
      * @param width the width
      * @return the width
      */
-    public Builder setHighlightWidth(final int width) {
+    public Builder highlightWidth(final int width) {
       this.width = width;
       return this;
     }
@@ -193,7 +193,7 @@ public final class BlockHighlightCallback implements BlockHighlightCallbackProto
      * @param height the height
      * @return the height
      */
-    public Builder setHighlightHeight(final int height) {
+    public Builder highlightHeight(final int height) {
       this.height = height;
       return this;
     }
@@ -204,7 +204,7 @@ public final class BlockHighlightCallback implements BlockHighlightCallbackProto
      * @param delay the delay
      * @return the delay
      */
-    public Builder setDelay(final int delay) {
+    public Builder delay(final int delay) {
       this.delay = delay;
       return this;
     }
@@ -215,7 +215,7 @@ public final class BlockHighlightCallback implements BlockHighlightCallbackProto
      * @param location the location
      * @return the location
      */
-    public Builder setLocation(final Location location) {
+    public Builder location(final Location location) {
       this.location = location;
       return this;
     }

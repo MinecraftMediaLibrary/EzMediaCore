@@ -120,6 +120,16 @@ public final class ChatCallback implements ChatCallbackPrototype {
   }
 
   @Override
+  public int getWidth() {
+    return width;
+  }
+
+  @Override
+  public int getHeight() {
+    return height;
+  }
+
+  @Override
   public int getDelay() {
     return delay;
   }
@@ -130,18 +140,8 @@ public final class ChatCallback implements ChatCallbackPrototype {
   }
 
   @Override
-  public int getWidth() {
-    return width;
-  }
-
-  @Override
   public int getVideoWidth() {
     return width;
-  }
-
-  @Override
-  public int getHeight() {
-    return height;
   }
 
   @Override
@@ -166,7 +166,7 @@ public final class ChatCallback implements ChatCallbackPrototype {
      * @param viewers the viewers
      * @return the viewers
      */
-    public Builder setViewers(final UUID[] viewers) {
+    public Builder viewers(final UUID[] viewers) {
       this.viewers = viewers;
       return this;
     }
@@ -177,7 +177,7 @@ public final class ChatCallback implements ChatCallbackPrototype {
      * @param width the width
      * @return the width
      */
-    public Builder setChatWidth(final int width) {
+    public Builder chatWidth(final int width) {
       this.width = width;
       return this;
     }
@@ -188,7 +188,7 @@ public final class ChatCallback implements ChatCallbackPrototype {
      * @param height the height
      * @return the height
      */
-    public Builder setChatHeight(final int height) {
+    public Builder chatHeight(final int height) {
       this.height = height;
       return this;
     }
@@ -199,7 +199,7 @@ public final class ChatCallback implements ChatCallbackPrototype {
      * @param delay the delay
      * @return the delay
      */
-    public Builder setDelay(final int delay) {
+    public Builder delay(final int delay) {
       this.delay = delay;
       return this;
     }
@@ -210,7 +210,7 @@ public final class ChatCallback implements ChatCallbackPrototype {
      * @param character the character
      * @return the character
      */
-    public Builder setDelay(final String character) {
+    public Builder character(final String character) {
       this.character = character;
       return this;
     }

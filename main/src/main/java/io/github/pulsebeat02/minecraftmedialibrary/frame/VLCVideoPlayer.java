@@ -209,33 +209,6 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
     return callback;
   }
 
-  /**
-   * Gets the MediaPlayerComponent.
-   *
-   * @return the MediaPlayerComponent
-   */
-  public EmbeddedMediaPlayer getMediaPlayerComponent() {
-    return mediaPlayerComponent;
-  }
-
-  /**
-   * Gets the adapter.
-   *
-   * @return the video surface adapter
-   */
-  public VideoSurfaceAdapter getAdapter() {
-    return adapter;
-  }
-
-  /**
-   * Gets the MinecraftVideoRenderCallback.
-   *
-   * @return the Minecraft render callback
-   */
-  public MinecraftVideoRenderCallback getRenderCallback() {
-    return renderCallback;
-  }
-
   @Override
   public String getSound() {
     return sound;
@@ -303,6 +276,33 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
   @Override
   public void setFrameRate(final int frameRate) {
     this.frameRate = frameRate;
+  }
+
+  /**
+   * Gets the MediaPlayerComponent.
+   *
+   * @return the MediaPlayerComponent
+   */
+  public EmbeddedMediaPlayer getMediaPlayerComponent() {
+    return mediaPlayerComponent;
+  }
+
+  /**
+   * Gets the adapter.
+   *
+   * @return the video surface adapter
+   */
+  public VideoSurfaceAdapter getAdapter() {
+    return adapter;
+  }
+
+  /**
+   * Gets the MinecraftVideoRenderCallback.
+   *
+   * @return the Minecraft render callback
+   */
+  public MinecraftVideoRenderCallback getRenderCallback() {
+    return renderCallback;
   }
 
   private void playAudio(@NotNull final Collection<? extends Player> players) {

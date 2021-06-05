@@ -145,16 +145,6 @@ public class ExtractionSetting implements ExtractionConfiguration {
   }
 
   @Override
-  public int getVolume() {
-    return volume;
-  }
-
-  @Override
-  public void setVolume(final int volume) {
-    this.volume = volume;
-  }
-
-  @Override
   public String getCodec() {
     return codec;
   }
@@ -162,6 +152,16 @@ public class ExtractionSetting implements ExtractionConfiguration {
   @Override
   public void setCodec(@NotNull final String codec) {
     this.codec = codec;
+  }
+
+  @Override
+  public int getVolume() {
+    return volume;
+  }
+
+  @Override
+  public void setVolume(final int volume) {
+    this.volume = volume;
   }
 
   @Override
@@ -186,32 +186,32 @@ public class ExtractionSetting implements ExtractionConfiguration {
 
     private Builder() {}
 
-    public Builder setBitrate(final int bitrate) {
+    public Builder bitrate(final int bitrate) {
       this.bitrate = bitrate;
       return this;
     }
 
-    public Builder setChannels(final int channels) {
+    public Builder channels(final int channels) {
       this.channels = channels;
       return this;
     }
 
-    public Builder setSamplingRate(final int samplingRate) {
+    public Builder samplingRate(final int samplingRate) {
       this.samplingRate = samplingRate;
       return this;
     }
 
-    public Builder setVolume(final int volume) {
+    public Builder volume(final int volume) {
       this.volume = volume;
       return this;
     }
 
-    public Builder setCodec(@NotNull final String codec) {
+    public Builder codec(@NotNull final String codec) {
       this.codec = codec;
       return this;
     }
 
-    public Builder setStartTime(final int start) {
+    public Builder startTime(final int start) {
       this.start = start;
       return this;
     }

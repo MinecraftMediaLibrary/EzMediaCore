@@ -132,6 +132,21 @@ public class AudioExtractionHelper implements AudioExtractionContext {
     Logger.info("Finished Extraction Process..!");
   }
 
+  @Override
+  public Path getInput() {
+    return input;
+  }
+
+  @Override
+  public Path getOutput() {
+    return output;
+  }
+
+  @Override
+  public List<String> getArguments() {
+    return arguments;
+  }
+
   /**
    * Checks if the current instance and object are equal.
    *
@@ -147,20 +162,5 @@ public class AudioExtractionHelper implements AudioExtractionContext {
     return input.equals(extraction.getInput())
         && output.equals(extraction.getOutput())
         && arguments.equals(extraction.getArguments());
-  }
-
-  @Override
-  public Path getInput() {
-    return input;
-  }
-
-  @Override
-  public Path getOutput() {
-    return output;
-  }
-
-  @Override
-  public List<String> getArguments() {
-    return arguments;
   }
 }

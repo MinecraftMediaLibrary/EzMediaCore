@@ -150,27 +150,27 @@ public class EntityPlayer extends VLCVideoPlayer {
 
     private Builder() {}
 
-    public Builder setUrl(final String url) {
+    public Builder url(final String url) {
       this.url = url;
       return this;
     }
 
-    public Builder setWidth(final int width) {
+    public Builder width(final int width) {
       this.width = width;
       return this;
     }
 
-    public Builder setHeight(final int height) {
+    public Builder height(final int height) {
       this.height = height;
       return this;
     }
 
-    public Builder setCallback(final EntityCallbackPrototype callback) {
+    public Builder callback(final EntityCallbackPrototype callback) {
       this.callback = callback;
       return this;
     }
 
-    public Builder setLocation(final Location location) {
+    public Builder location(final Location location) {
       this.location = location;
       return this;
     }

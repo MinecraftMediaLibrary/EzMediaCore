@@ -119,6 +119,16 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
   }
 
   @Override
+  public PacketHandler getHandler() {
+    return handler;
+  }
+
+  @Override
+  public DitherHolder getType() {
+    return type;
+  }
+
+  @Override
   public int getWidth() {
     return width;
   }
@@ -136,11 +146,6 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
   @Override
   public MediaLibrary getLibrary() {
     return library;
-  }
-
-  @Override
-  public PacketHandler getHandler() {
-    return handler;
   }
 
   /**
@@ -163,11 +168,6 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
     return lastUpdated;
   }
 
-  @Override
-  public DitherHolder getType() {
-    return type;
-  }
-
   /** The type Builder. */
   public static class Builder {
 
@@ -187,7 +187,7 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
      * @param viewers the viewers
      * @return the viewers
      */
-    public Builder setViewers(@NotNull final UUID[] viewers) {
+    public Builder viewers(@NotNull final UUID[] viewers) {
       this.viewers = viewers;
       return this;
     }
@@ -198,7 +198,7 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
      * @param map the map
      * @return the map
      */
-    public Builder setMap(final int map) {
+    public Builder map(final int map) {
       this.map = map;
       return this;
     }
@@ -209,7 +209,7 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
      * @param width the width
      * @return the width
      */
-    public Builder setItemframeWidth(final int width) {
+    public Builder itemframeWidth(final int width) {
       this.width = width;
       return this;
     }
@@ -220,7 +220,7 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
      * @param height the height
      * @return the height
      */
-    public Builder setItemframeHeight(final int height) {
+    public Builder itemframeHeight(final int height) {
       this.height = height;
       return this;
     }
@@ -231,7 +231,7 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
      * @param videoWidth the video width
      * @return the video width
      */
-    public Builder setVideoWidth(final int videoWidth) {
+    public Builder videoWidth(final int videoWidth) {
       this.videoWidth = videoWidth;
       return this;
     }
@@ -242,7 +242,7 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
      * @param delay the delay
      * @return the delay
      */
-    public Builder setDelay(final int delay) {
+    public Builder delay(final int delay) {
       this.delay = delay;
       return this;
     }
@@ -253,7 +253,7 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
      * @param holder the holder
      * @return the dither holder
      */
-    public Builder setDitherHolder(final DitherHolder holder) {
+    public Builder ditherHolder(final DitherHolder holder) {
       type = holder;
       return this;
     }

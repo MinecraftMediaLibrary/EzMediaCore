@@ -196,6 +196,36 @@ public final class EntityCallback implements EntityCallbackPrototype {
     throw new IllegalArgumentException("Custom entity must have the modifyEntity overridden!");
   }
 
+  @Override
+  public UUID[] getViewers() {
+    return viewers;
+  }
+
+  @Override
+  public PacketHandler getHandler() {
+    return handler;
+  }
+
+  @Override
+  public Location getLocation() {
+    return location;
+  }
+
+  @Override
+  public Entity[] getEntities() {
+    return entities;
+  }
+
+  @Override
+  public String getCharType() {
+    return charType;
+  }
+
+  @Override
+  public ScreenEntityType getType() {
+    return type;
+  }
+
   /**
    * Sends the necessary data onto the clouds while dithering.
    *
@@ -208,11 +238,6 @@ public final class EntityCallback implements EntityCallbackPrototype {
       lastUpdated = time;
       handler.displayEntities(viewers, entities, data, width);
     }
-  }
-
-  @Override
-  public UUID[] getViewers() {
-    return viewers;
   }
 
   @Override
@@ -236,11 +261,6 @@ public final class EntityCallback implements EntityCallbackPrototype {
   }
 
   @Override
-  public PacketHandler getHandler() {
-    return handler;
-  }
-
-  @Override
   public int getVideoWidth() {
     return videoWidth;
   }
@@ -248,26 +268,6 @@ public final class EntityCallback implements EntityCallbackPrototype {
   @Override
   public long getLastUpdated() {
     return lastUpdated;
-  }
-
-  @Override
-  public Location getLocation() {
-    return location;
-  }
-
-  @Override
-  public Entity[] getEntities() {
-    return entities;
-  }
-
-  @Override
-  public String getCharType() {
-    return charType;
-  }
-
-  @Override
-  public ScreenEntityType getType() {
-    return type;
   }
 
   /** The type Builder. */
@@ -288,7 +288,7 @@ public final class EntityCallback implements EntityCallbackPrototype {
      * @param viewers the viewers
      * @return the viewers
      */
-    public Builder setViewers(@NotNull final UUID[] viewers) {
+    public Builder viewers(@NotNull final UUID[] viewers) {
       this.viewers = viewers;
       return this;
     }
@@ -299,7 +299,7 @@ public final class EntityCallback implements EntityCallbackPrototype {
      * @param width the width
      * @return the width
      */
-    public Builder setEntityWidth(final int width) {
+    public Builder entityWidth(final int width) {
       this.width = width;
       return this;
     }
@@ -310,7 +310,7 @@ public final class EntityCallback implements EntityCallbackPrototype {
      * @param height the height
      * @return the height
      */
-    public Builder setEntityHeight(final int height) {
+    public Builder entityHeight(final int height) {
       this.height = height;
       return this;
     }
@@ -321,7 +321,7 @@ public final class EntityCallback implements EntityCallbackPrototype {
      * @param delay the delay
      * @return the delay
      */
-    public Builder setDelay(final int delay) {
+    public Builder delay(final int delay) {
       this.delay = delay;
       return this;
     }
@@ -332,7 +332,7 @@ public final class EntityCallback implements EntityCallbackPrototype {
      * @param location the location
      * @return the location
      */
-    public Builder setLocation(final Location location) {
+    public Builder location(final Location location) {
       this.location = location;
       return this;
     }
@@ -343,7 +343,7 @@ public final class EntityCallback implements EntityCallbackPrototype {
      * @param type the entity type
      * @return the type
      */
-    public Builder setType(final ScreenEntityType type) {
+    public Builder type(final ScreenEntityType type) {
       this.type = type;
       return this;
     }

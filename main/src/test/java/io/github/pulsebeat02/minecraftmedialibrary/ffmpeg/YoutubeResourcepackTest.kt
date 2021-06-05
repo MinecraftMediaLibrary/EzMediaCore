@@ -21,6 +21,12 @@
  ............................................................................................*/
 package io.github.pulsebeat02.minecraftmedialibrary.ffmpeg
 
+import io.github.pulsebeat02.minecraftmedialibrary.concurrent.AsyncVideoExtraction
+import io.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionSetting
+import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction
+import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImage
+import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper
+import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
 import java.io.IOException
@@ -38,11 +44,11 @@ class YoutubeResourcepackTest : JavaPlugin() {
     }
 
     fun getResourcepackUrlYoutube(youtubeUrl: String, directory: String, port: Int): String {
-        val extraction: _root_ide_package_.io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction =
-            object : _root_ide_package_.io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction(
+        val extraction: YoutubeExtraction =
+            object : YoutubeExtraction(
                 youtubeUrl,
-                directory,
-                _root_ide_package_.io.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionSetting.builder()
+                Paths.get(directory),
+                ExtractionSetting.builder()
                     .build()
             ) {
                 override fun onVideoDownload() {
@@ -55,28 +61,28 @@ class YoutubeResourcepackTest : JavaPlugin() {
             }
         val executor = Executors.newCachedThreadPool()
         CompletableFuture.runAsync({
-            _root_ide_package_.io.github.pulsebeat02.minecraftmedialibrary.concurrent.AsyncVideoExtraction(
+            AsyncVideoExtraction(
                 extraction
             ).extractAudio()
         }, executor)
         CompletableFuture.runAsync(
             {
-                _root_ide_package_.io.github.pulsebeat02.minecraftmedialibrary.concurrent.AsyncVideoExtraction(
+                AsyncVideoExtraction(
                     extraction
                 )
                     .downloadVideo()
             }, executor
         )
         val wrapper =
-            _root_ide_package_.io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper.builder()
-                .setAudio(extraction.audio)
-                .setDescription("Youtube Video: " + extraction.videoTitle)
-                .setPath(directory)
-                .setPackFormat(6)
+            ResourcepackWrapper.builder()
+                .audio(extraction.audio)
+                .description("Youtube Video: " + extraction.videoTitle)
+                .path(directory)
+                .packFormat(6)
                 .build(library)
         wrapper.buildResourcePack()
         val hosting =
-            _root_ide_package_.io.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider(
+            HttpDaemonProvider(
                 directory,
                 port
             )
@@ -87,10 +93,10 @@ class YoutubeResourcepackTest : JavaPlugin() {
     @Throws(IOException::class)
     fun displayImage(map: Int, image: File) {
         val bi = ImageIO.read(image)
-        val imageMap = _root_ide_package_.io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImage.builder()
-            .setMap(map)
-            .setWidth(bi.width)
-            .setHeight(bi.height)
+        val imageMap = StaticImage.builder()
+            .map(map)
+            .width(bi.width)
+            .height(bi.height)
             .build(library)
         imageMap.drawImage()
     }

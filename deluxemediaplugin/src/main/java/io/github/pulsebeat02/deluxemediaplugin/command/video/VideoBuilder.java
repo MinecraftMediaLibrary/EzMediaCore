@@ -50,81 +50,81 @@ public class VideoBuilder {
 
   public MapPlayer createMapPlayer() {
     return MapPlayer.builder()
-        .setUrl(attributes.getFile().toString())
-        .setWidth(attributes.getScreenWidth())
-        .setHeight(attributes.getScreenHeight())
-        .setCallback(
+        .url(attributes.getFile().toString())
+        .width(attributes.getScreenWidth())
+        .height(attributes.getScreenHeight())
+        .callback(
             MapDataCallback.builder()
-                .setViewers(null)
-                .setMap(attributes.getStartingMap())
-                .setItemframeWidth(attributes.getFrameWidth())
-                .setItemframeHeight(attributes.getFrameHeight())
-                .setVideoWidth(attributes.getScreenWidth())
-                .setDelay(0)
-                .setDitherHolder(attributes.getDither())
+                .viewers(null)
+                .map(attributes.getStartingMap())
+                .itemframeWidth(attributes.getFrameWidth())
+                .itemframeHeight(attributes.getFrameHeight())
+                .videoWidth(attributes.getScreenWidth())
+                .delay(0)
+                .ditherHolder(attributes.getDither())
                 .build(library))
         .build(library);
   }
 
   public EntityPlayer createEntityPlayer(@NotNull final Player sender) {
     return EntityPlayer.builder()
-        .setUrl(attributes.getFile().toString())
-        .setWidth(attributes.getScreenWidth())
-        .setHeight(attributes.getScreenHeight())
-        .setCallback(
+        .url(attributes.getFile().toString())
+        .width(attributes.getScreenWidth())
+        .height(attributes.getScreenHeight())
+        .callback(
             EntityCallback.builder()
-                .setViewers(null)
-                .setEntityWidth(attributes.getScreenWidth())
-                .setEntityHeight(attributes.getScreenHeight())
-                .setDelay(40)
-                .setLocation(sender.getLocation())
-                .setType(ScreenEntityType.ARMORSTAND)
+                .viewers(null)
+                .entityWidth(attributes.getScreenWidth())
+                .entityHeight(attributes.getScreenHeight())
+                .delay(40)
+                .location(sender.getLocation())
+                .type(ScreenEntityType.ARMORSTAND)
                 .build(library))
         .build(library);
   }
 
   public ChatPlayer createChatBoxPlayer() {
     return ChatPlayer.builder()
-        .setUrl(attributes.getFile().toString())
-        .setWidth(attributes.getScreenWidth())
-        .setHeight(attributes.getScreenHeight())
-        .setCallback(
+        .url(attributes.getFile().toString())
+        .width(attributes.getScreenWidth())
+        .height(attributes.getScreenHeight())
+        .callback(
             ChatCallback.builder()
-                .setViewers(null)
-                .setChatWidth(attributes.getScreenWidth())
-                .setChatHeight(attributes.getScreenHeight())
-                .setDelay(40)
+                .viewers(null)
+                .chatWidth(attributes.getScreenWidth())
+                .chatHeight(attributes.getScreenHeight())
+                .delay(40)
                 .build(library))
         .build(library);
   }
 
   public ScoreboardPlayer createScoreboardPlayer() {
     return ScoreboardPlayer.builder()
-        .setUrl(attributes.getFile().toString())
-        .setWidth(attributes.getScreenWidth())
-        .setHeight(attributes.getScreenHeight())
-        .setCallback(
+        .url(attributes.getFile().toString())
+        .width(attributes.getScreenWidth())
+        .height(attributes.getScreenHeight())
+        .callback(
             ScoreboardCallback.builder()
-                .setViewers(null)
-                .setScoreboardWidth(attributes.getScreenWidth())
-                .setScoreboardHeight(attributes.getScreenHeight())
-                .setDelay(40)
+                .viewers(null)
+                .scoreboardWidth(attributes.getScreenWidth())
+                .scoreboardHeight(attributes.getScreenHeight())
+                .delay(40)
                 .build(library))
         .build(library);
   }
 
   public BlockHighlightPlayer createBlockHighlightPlayer(@NotNull final Player sender) {
     return BlockHighlightPlayer.builder()
-        .setUrl(attributes.getFile().toString())
-        .setWidth(attributes.getScreenWidth())
-        .setHeight(attributes.getScreenHeight())
-        .setCallback(
+        .url(attributes.getFile().toString())
+        .width(attributes.getScreenWidth())
+        .height(attributes.getScreenHeight())
+        .callback(
             BlockHighlightCallback.builder()
-                .setViewers(null)
-                .setHighlightWidth(attributes.getScreenWidth())
-                .setHighlightHeight(attributes.getScreenHeight())
-                .setDelay(40)
-                .setLocation(sender.getLocation())
+                .viewers(null)
+                .highlightWidth(attributes.getScreenWidth())
+                .highlightHeight(attributes.getScreenHeight())
+                .delay(40)
+                .location(sender.getLocation())
                 .build(library))
         .build(library);
   }

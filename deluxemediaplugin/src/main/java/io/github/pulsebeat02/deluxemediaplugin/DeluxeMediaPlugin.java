@@ -59,6 +59,32 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
   private EncoderConfiguration encoderConfiguration;
 
   @Override
+  public void onDisable() {
+
+    logger.info("DeluxeMediaPlugin is Shutting Down");
+
+    logger.info("Shutting Down MinecraftMediaLibrary Instance...");
+    if (library != null) {
+      library.shutdown();
+    } else {
+      logger.severe(
+          "WARNING: MinecraftMediaLibrary instance is null... something is fishy going on.");
+    }
+
+    logger.info("Unregistering Commands");
+    if (handler != null) {
+      final Set<BaseCommand> cmds = handler.getCommands();
+      if (cmds != null) {
+        for (final BaseCommand cmd : handler.getCommands()) {
+          CommandUtilities.unRegisterBukkitCommand(this, cmd);
+        }
+      }
+    }
+
+    logger.info("DeluxeMediaPlugin Successfully Shutdown");
+  }
+
+  @Override
   public void onEnable() {
 
     // Get the plugin logger
@@ -93,32 +119,6 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       logger.severe("Plugin cannot load until server version is at least 1.8");
       Bukkit.getPluginManager().disablePlugin(this);
     }
-  }
-
-  @Override
-  public void onDisable() {
-
-    logger.info("DeluxeMediaPlugin is Shutting Down");
-
-    logger.info("Shutting Down MinecraftMediaLibrary Instance...");
-    if (library != null) {
-      library.shutdown();
-    } else {
-      logger.severe(
-          "WARNING: MinecraftMediaLibrary instance is null... something is fishy going on.");
-    }
-
-    logger.info("Unregistering Commands");
-    if (handler != null) {
-      final Set<BaseCommand> cmds = handler.getCommands();
-      if (cmds != null) {
-        for (final BaseCommand cmd : handler.getCommands()) {
-          CommandUtilities.unRegisterBukkitCommand(this, cmd);
-        }
-      }
-    }
-
-    logger.info("DeluxeMediaPlugin Successfully Shutdown");
   }
 
   private void registerConfigurations() {

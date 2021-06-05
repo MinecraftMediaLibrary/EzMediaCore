@@ -205,8 +205,8 @@ public class AudioCommand extends BaseCommand {
               sendResourcepack(getPlugin().getHttpConfiguration().getDaemon(), audience, wrapper);
 
               audience.sendMessage(
-                      ChatUtilities.formatMessage(Component.text("Loaded Audio!", NamedTextColor.GOLD)));
-
+                  ChatUtilities.formatMessage(
+                      Component.text("Loaded Audio!", NamedTextColor.GOLD)));
             })
         .whenCompleteAsync((t, throwable) -> atomicBoolean.set(true));
 

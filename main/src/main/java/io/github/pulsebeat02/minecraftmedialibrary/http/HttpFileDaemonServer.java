@@ -148,16 +148,6 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon, ZipReque
   public void onRequestFailed(final Socket client) {}
 
   @Override
-  public ZipHeader getZipHeader() {
-    return header;
-  }
-
-  @Override
-  public void setZipHeader(@NotNull final ZipHeader header) {
-    this.header = header;
-  }
-
-  @Override
   public boolean isVerbose() {
     return verbose;
   }
@@ -190,5 +180,15 @@ public class HttpFileDaemonServer extends Thread implements HttpDaemon, ZipReque
   @Override
   public Path getDirectory() {
     return directory;
+  }
+
+  @Override
+  public ZipHeader getZipHeader() {
+    return header;
+  }
+
+  @Override
+  public void setZipHeader(@NotNull final ZipHeader header) {
+    this.header = header;
   }
 }

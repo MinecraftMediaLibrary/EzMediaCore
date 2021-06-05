@@ -87,6 +87,20 @@ public class JuNestInstaller extends PackageBase {
   }
 
   /**
+   * Uses any steps to setup a package.
+   *
+   * @throws IOException if an io issue has occurred during the process
+   */
+  @Override
+  public void setupPackage() throws IOException {
+    Logger.info("Setting up JuNest...");
+    downloadJuNest();
+    Logger.info("Setting up Paths...");
+    setJuNestPaths();
+    Logger.info("JuNest Setup Completion");
+  }
+
+  /**
    * Creates the necessary bash script required for JuNest.
    *
    * @param path the path at which the script is located
@@ -105,20 +119,6 @@ public class JuNestInstaller extends PackageBase {
       sb.append("rpm -i ").append(path);
     }
     return sb.toString();
-  }
-
-  /**
-   * Uses any steps to setup a package.
-   *
-   * @throws IOException if an io issue has occurred during the process
-   */
-  @Override
-  public void setupPackage() throws IOException {
-    Logger.info("Setting up JuNest...");
-    downloadJuNest();
-    Logger.info("Setting up Paths...");
-    setJuNestPaths();
-    Logger.info("JuNest Setup Completion");
   }
 
   /** Installs and extracts JuNest into the proper directory. */

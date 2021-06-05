@@ -192,16 +192,6 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
   }
 
   /**
-   * Gets the listener.
-   *
-   * @return the listener
-   */
-  @Override
-  public Listener getRegistrationHandler() {
-    return registrationHandler;
-  }
-
-  /**
    * Gets the path of the parent library folder.
    *
    * @return the path
@@ -289,5 +279,15 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
   @Override
   public boolean isDisabled() {
     return disabled;
+  }
+
+  /**
+   * Gets the listener.
+   *
+   * @return the listener
+   */
+  @Override
+  public Listener getRegistrationHandler() {
+    return registrationHandler;
   }
 }

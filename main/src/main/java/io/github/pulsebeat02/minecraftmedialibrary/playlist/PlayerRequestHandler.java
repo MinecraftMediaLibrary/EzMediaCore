@@ -74,6 +74,18 @@ public class PlayerRequestHandler implements RequestHandler, ClientRequest {
     handleRequest();
   }
 
+  private void verbose(final String info) {
+    if (daemon.isVerbose()) {
+      Logger.info(info);
+    }
+  }
+
+  @Override
+  @NotNull
+  public String buildHeader(final @NotNull Path f) {
+    return "";
+  }
+
   /** Handles the request once the client connects */
   @Override
   public void handleRequest() {
@@ -108,18 +120,6 @@ public class PlayerRequestHandler implements RequestHandler, ClientRequest {
       daemon.onRequestFailed(client);
       verbose(String.format("I/O error %s", e));
     }
-  }
-
-  private void verbose(final String info) {
-    if (daemon.isVerbose()) {
-      Logger.info(info);
-    }
-  }
-
-  @Override
-  @NotNull
-  public String buildHeader(final @NotNull Path f) {
-    return "";
   }
 
   public HttpFileDaemonServer getDaemon() {

@@ -210,7 +210,7 @@ public final class ScoreboardCallback implements ScoreboardCallbackPrototype {
      * @param viewers the viewers
      * @return the viewers
      */
-    public Builder setViewers(@NotNull final UUID[] viewers) {
+    public Builder viewers(@NotNull final UUID[] viewers) {
       this.viewers = viewers;
       return this;
     }
@@ -221,7 +221,7 @@ public final class ScoreboardCallback implements ScoreboardCallbackPrototype {
      * @param width the width
      * @return the width
      */
-    public Builder setScoreboardWidth(final int width) {
+    public Builder scoreboardWidth(final int width) {
       this.width = width;
       return this;
     }
@@ -232,7 +232,7 @@ public final class ScoreboardCallback implements ScoreboardCallbackPrototype {
      * @param height the height
      * @return the height
      */
-    public Builder setScoreboardHeight(final int height) {
+    public Builder scoreboardHeight(final int height) {
       this.height = height;
       return this;
     }
@@ -243,7 +243,7 @@ public final class ScoreboardCallback implements ScoreboardCallbackPrototype {
      * @param delay the delay
      * @return the delay
      */
-    public Builder setDelay(final int delay) {
+    public Builder delay(final int delay) {
       this.delay = delay;
       return this;
     }

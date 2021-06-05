@@ -103,13 +103,13 @@ public class MacSilentInstallation extends AbstractSilentOSDependentSolution {
   }
 
   @Override
-  public void loadNativeDependency(final @NotNull Path folder) {
-    new VLCBinarySearcher(folder).search();
+  public SilentInstallationType getType() {
+    return SilentInstallationType.LINUX;
   }
 
   @Override
-  public SilentInstallationType getType() {
-    return SilentInstallationType.LINUX;
+  public void loadNativeDependency(final @NotNull Path folder) {
+    new VLCBinarySearcher(folder).search();
   }
 
   /**

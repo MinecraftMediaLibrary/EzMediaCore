@@ -132,7 +132,7 @@ public class GIFPlayer extends VLCVideoPlayer {
      * @param url the url
      * @return the url
      */
-    public Builder setUrl(@NotNull final String url) {
+    public Builder url(@NotNull final String url) {
       this.url = url;
       return this;
     }
@@ -143,7 +143,7 @@ public class GIFPlayer extends VLCVideoPlayer {
      * @param width the width
      * @return the width
      */
-    public Builder setWidth(final int width) {
+    public Builder width(final int width) {
       this.width = width;
       return this;
     }
@@ -154,7 +154,7 @@ public class GIFPlayer extends VLCVideoPlayer {
      * @param height the height
      * @return the height
      */
-    public Builder setHeight(final int height) {
+    public Builder height(final int height) {
       this.height = height;
       return this;
     }
@@ -165,7 +165,7 @@ public class GIFPlayer extends VLCVideoPlayer {
      * @param callback the callback
      * @return the callback
      */
-    public Builder setCallback(@NotNull final FrameCallback callback) {
+    public Builder callback(@NotNull final FrameCallback callback) {
       this.callback = callback;
       return this;
     }

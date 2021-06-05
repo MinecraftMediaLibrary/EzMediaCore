@@ -133,13 +133,13 @@ public class ResourcepackWrapper implements PackWrapper {
   public static PackWrapper of(
       @NotNull final MediaLibrary library, @NotNull final YoutubeExtraction extractor) {
     return ResourcepackWrapper.builder()
-        .setAudio(extractor.getAudio())
-        .setDescription(String.format("Youtube Video: %s", extractor.getVideoTitle()))
-        .setPath(
+        .audio(extractor.getAudio())
+        .description(String.format("Youtube Video: %s", extractor.getVideoTitle()))
+        .path(
             String.format(
                 "%s/mml/http/resourcepack.zip",
                 library.getPlugin().getDataFolder().getAbsolutePath()))
-        .setPackFormat(6)
+        .packFormat(6)
         .build(library);
   }
 
@@ -152,13 +152,13 @@ public class ResourcepackWrapper implements PackWrapper {
    */
   public static PackWrapper of(@NotNull final MediaLibrary library, @NotNull final Path audio) {
     return ResourcepackWrapper.builder()
-        .setAudio(audio)
-        .setDescription(String.format("Media: %s", PathUtilities.getName(audio)))
-        .setPath(
+        .audio(audio)
+        .description(String.format("Media: %s", PathUtilities.getName(audio)))
+        .path(
             String.format(
                 "%s/mml/http/resourcepack.zip",
                 library.getPlugin().getDataFolder().getAbsolutePath()))
-        .setPackFormat(6)
+        .packFormat(6)
         .build(library);
   }
 
@@ -340,7 +340,7 @@ public class ResourcepackWrapper implements PackWrapper {
      * @param audio the audio
      * @return the audio
      */
-    public Builder setAudio(@NotNull final Path audio) {
+    public Builder audio(@NotNull final Path audio) {
       this.audio = audio;
       return this;
     }
@@ -351,7 +351,7 @@ public class ResourcepackWrapper implements PackWrapper {
      * @param icon the icon
      * @return the icon
      */
-    public Builder setIcon(@NotNull final Path icon) {
+    public Builder icon(@NotNull final Path icon) {
       this.icon = icon;
       return this;
     }
@@ -362,7 +362,7 @@ public class ResourcepackWrapper implements PackWrapper {
      * @param description the description
      * @return the description
      */
-    public Builder setDescription(@NotNull final String description) {
+    public Builder description(@NotNull final String description) {
       this.description = description;
       return this;
     }
@@ -373,7 +373,7 @@ public class ResourcepackWrapper implements PackWrapper {
      * @param packFormat the pack format
      * @return the pack format
      */
-    public Builder setPackFormat(final int packFormat) {
+    public Builder packFormat(final int packFormat) {
       this.packFormat = packFormat;
       return this;
     }
@@ -384,7 +384,7 @@ public class ResourcepackWrapper implements PackWrapper {
      * @param path the path
      * @return the path
      */
-    public Builder setPath(@NotNull final String path) {
+    public Builder path(@NotNull final String path) {
       this.path = path;
       return this;
     }
