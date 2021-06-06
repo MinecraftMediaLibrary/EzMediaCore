@@ -33,7 +33,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.image.ImageCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.map.MapCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.screen.ScreenCommand;
-import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommand;
+import io.github.pulsebeat02.deluxemediaplugin.rewrite.reference.VideoCommand;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -86,7 +86,7 @@ public final class CommandHandler implements TabExecutor {
       @NotNull final Command command,
       @NotNull final String label,
       final String @NotNull [] args) {
-    final Audience audience = plugin.getAudiences().sender(sender);
+    final Audience audience = plugin.audience().sender(sender);
     try {
       dispatcher.execute(
           dispatcher.parse(

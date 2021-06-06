@@ -23,74 +23,93 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionConfiguration;
-import io.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionSetting;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-public class EncoderConfiguration extends ConfigurationProvider {
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.logging.Level;
 
-  private ExtractionConfiguration settings;
+public abstract class ConfigurationProvider {
 
-  public EncoderConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
-    super(plugin, "encoder.yml");
+  private final DeluxeMediaPlugin plugin;
+  private final String fileName;
+
+  private final Path configFile;
+  private FileConfiguration fileConfiguration;
+
+  public ConfigurationProvider(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final String name) {
+    this.plugin = plugin;
+    fileName = name;
+    configFile = Paths.get(plugin.getDataFolder().toString()).resolve(fileName);
   }
 
-  @Override
-  void deserialize() {
-
-    // Deserialize the audio encoder settings
-    final FileConfiguration configuration = getFileConfiguration();
-    configuration.set("bitrate", settings.getBitrate());
-    configuration.set("channels", settings.getChannels());
-    configuration.set("sampling-rate", settings.getSamplingRate());
-    configuration.set("volume", settings.getVolume());
-    saveConfig();
+  public void reloadConfig() {
+    fileConfiguration = YamlConfiguration.loadConfiguration(configFile.toFile());
+    final InputStream defConfigStream = plugin.getResource(fileName);
+    if (defConfigStream != null) {
+      final YamlConfiguration defConfig =
+          YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
+      fileConfiguration.setDefaults(defConfig);
+    }
   }
 
-  @Override
-  void serialize() {
-
-    // Read the encoder settings
-    final FileConfiguration configuration = getFileConfiguration();
-
-    /*
-
-    Get the bitrate at which the audio should have
-    (Ex: 160000 for decent quality)
-
-    */
-    final int bitrate = configuration.getInt("bitrate");
-
-    /*
-
-    Get the number of channels the audio should have
-    (Ex: 1 for mono-audio, 2 for natural hearing or audio from both sides of the speaker)
-
-    */
-    final int channels = configuration.getInt("channels");
-
-    /*
-
-    Get the sampling rate the audio should have
-    (Ex: 44100 samples per second)
-
-    */
-    final int samplingRate = configuration.getInt("sampling-rate");
-
-    /*
-
-    Get the volume the audio should be
-    (Ex: 48 for normal)
-
-    */
-    final int volume = configuration.getInt("volume");
-
-    // Create a new audio extraction configuration to be used
-    settings = new ExtractionSetting("libvorbis", bitrate, channels, samplingRate, volume);
+  public FileConfiguration getConfig() {
+    if (fileConfiguration == null) {
+      reloadConfig();
+    }
+    return fileConfiguration;
   }
 
-  public ExtractionConfiguration getSettings() {
-    return settings;
+  public void saveConfig() {
+    if (fileConfiguration != null && configFile != null) {
+      try {
+        getConfig().save(configFile.toFile());
+      } catch (final IOException e) {
+        plugin
+            .getLogger()
+            .log(Level.SEVERE, String.format("Could not save config to %s", configFile), e);
+      }
+    }
+  }
+
+  public void saveDefaultConfig() {
+    if (!Files.exists(configFile)) {
+      plugin.saveResource(fileName, false);
+    }
+  }
+
+  public void read() {
+    if (!Files.exists(configFile)) {
+      saveDefaultConfig();
+    }
+    getConfig();
+    serialize();
+  }
+
+  abstract void deserialize();
+
+  abstract void serialize();
+
+  public DeluxeMediaPlugin getPlugin() {
+    return plugin;
+  }
+
+  public String getFileName() {
+    return fileName;
+  }
+
+  public Path getConfigFile() {
+    return configFile;
+  }
+
+  public FileConfiguration getFileConfiguration() {
+    return fileConfiguration;
   }
 }

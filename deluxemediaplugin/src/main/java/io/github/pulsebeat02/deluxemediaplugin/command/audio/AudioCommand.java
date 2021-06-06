@@ -23,222 +23,87 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.audio;
 
 import com.google.common.collect.ImmutableMap;
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
-import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
-import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
-import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
-import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpServerDaemon;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.SoundCategory;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
+import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
+import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
 public class AudioCommand extends BaseCommand {
 
-  private final LiteralCommandNode<CommandSender> literalNode;
-  private final AtomicBoolean atomicBoolean;
-  private final String key;
-  private Path audio;
-  private String resourcepackLink;
-  private byte[] hash;
+  private final LiteralCommandNode<CommandSender> node;
+  private final AudioCommandAttributes attributes;
 
   public AudioCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
-    super(plugin, "audio", executor, "deluxemediaplugin.command.audio", "");
-    final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
-    builder
-        .requires(super::testPermission)
-        .then(
-            literal("load")
-                .then(argument("mrl", StringArgumentType.greedyString()).executes(this::loadAudio))
-                .then(literal("resourcepack").executes(this::getResourcepackLink)))
-        .then(literal("play").executes(this::playAudio))
-        .then(literal("stop").executes(this::stopAudio));
-    key = getPlugin().getName().toLowerCase();
-    literalNode = builder.build();
-    atomicBoolean = new AtomicBoolean(false);
-  }
-
-  private int getResourcepackLink(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
-    if (resourcepackLink == null && hash == null) {
-      audience.sendMessage(
-          ChatUtilities.formatMessage(
-              Component.text(
-                  "Please load a resourcepack first before executing this command!",
-                  NamedTextColor.RED)));
-      return 1;
-    }
-    sendResourcepackFile();
-    audience.sendMessage(
-        ChatUtilities.formatMessage(
-            Component.text(
-                String.format("Sent Resourcepack URL! (%s)", resourcepackLink),
-                NamedTextColor.GOLD)));
-    return 1;
+    super(plugin, "audio", executor, "deluxemediaplugin.command.audio");
+    attributes = new AudioCommandAttributes(plugin);
+    node =
+        literal(getName())
+            .requires(super::testPermission)
+            .then(new AudioLoadCommand<>(attributes).commandNode())
+            .then(literal("play").executes(this::playAudio))
+            .then(literal("stop"))
+            .build();
   }
 
   private int playAudio(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
-    if (audio == null) {
-      audience.sendMessage(
-          ChatUtilities.formatMessage(
-              Component.text("File and URL not Specified!", NamedTextColor.RED)));
-      return 1;
+    final Audience audience = getPlugin().audience().sender(context.getSource());
+    if (checkUnloaded(audience)) {
+      return SINGLE_SUCCESS;
     }
-    if (!atomicBoolean.get()) {
-      audience.sendMessage(
-          ChatUtilities.formatMessage(
-              Component.text("The audio is still being loaded!", NamedTextColor.RED)));
-      return 1;
+    if (checkIncompleteLoad(audience)) {
+      return SINGLE_SUCCESS;
     }
-
-    // Play the sound to all users on the server
-    for (final Player p : Bukkit.getOnlinePlayers()) {
-      p.playSound(p.getLocation(), key, SoundCategory.MUSIC, 100.0F, 1.0F);
-    }
-
-    audience.sendMessage(
-        ChatUtilities.formatMessage(Component.text("Started playing audio!", NamedTextColor.GOLD)));
-
-    return 1;
+    Bukkit.getOnlinePlayers()
+        .forEach(
+            p ->
+                p.playSound(
+                    p.getLocation(), attributes.getSoundKey(), SoundCategory.MUSIC, 100.0F, 1.0F));
+    audience.sendMessage(format(text("Started playing audio!", GOLD)));
+    return SINGLE_SUCCESS;
   }
 
   private int stopAudio(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
-    if (audio == null) {
-      audience.sendMessage(
-          ChatUtilities.formatMessage(
-              Component.text("File and URL not Specified!", NamedTextColor.RED)));
-      return 1;
+    final Audience audience = getPlugin().audience().sender(context.getSource());
+    if (checkUnloaded(audience)) {
+      return SINGLE_SUCCESS;
     }
-    if (!atomicBoolean.get()) {
-      audience.sendMessage(
-          ChatUtilities.formatMessage(
-              Component.text("The audio is still being loaded!", NamedTextColor.RED)));
-      return 1;
+    if (checkIncompleteLoad(audience)) {
+      return SINGLE_SUCCESS;
     }
-
-    // Stop the sound to all users on the server
-    for (final Player p : Bukkit.getOnlinePlayers()) {
-      p.stopSound(key);
-    }
-
-    audience.sendMessage(
-        ChatUtilities.formatMessage(Component.text("Stopped playing audio!", NamedTextColor.GOLD)));
-
-    return 1;
+    Bukkit.getOnlinePlayers().forEach(p -> p.stopSound(attributes.getSoundKey()));
+    audience.sendMessage(format(text("Stopped playing audio!", RED)));
+    return SINGLE_SUCCESS;
   }
 
-  private int loadAudio(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
-    final MediaLibrary library = getPlugin().getLibrary();
-    final String mrl = context.getArgument("mrl", String.class);
-    if (mrl.startsWith("https://")) {
-
-      CompletableFuture.runAsync(
-          () -> {
-
-            // Create a new Youtube Extractor from the url
-            final YoutubeExtraction extraction =
-                new YoutubeExtraction(
-                    mrl,
-                    Paths.get(library.getAudioFolder().toString()),
-                    getPlugin().getEncoderConfiguration().getSettings());
-
-            // Extract the audio
-            audio = extraction.extractAudio();
-          });
-
-    } else {
-
-      // Create a new file
-      final Path file = Paths.get(mrl);
-
-      // Check if the file exists
-      if (Files.exists(file)) {
-
-        // Assign it then
-        audio = file;
-
-      } else {
-        audience.sendMessage(
-            ChatUtilities.formatMessage(
-                Component.text(
-                    "The mrl specified is not valid! It must be a Youtube link or an audio file.",
-                    NamedTextColor.RED)));
-        return 1;
-      }
+  private boolean checkUnloaded(@NotNull final Audience audience) {
+    if (attributes.getResourcepackAudio() == null) {
+      audience.sendMessage(format(text("File or URL not specified!", RED)));
+      return true;
     }
-
-    // Make the resourcepack wrapping process async
-    CompletableFuture.runAsync(
-            () -> {
-
-              // Create a resourcepack from the audio and library instance
-              final PackWrapper wrapper = ResourcepackWrapper.of(library, audio);
-
-              // Build the resourcepack
-              wrapper.buildResourcePack();
-
-              // Send the resourcepack to players
-              sendResourcepack(getPlugin().getHttpConfiguration().getDaemon(), audience, wrapper);
-
-              audience.sendMessage(
-                  ChatUtilities.formatMessage(
-                      Component.text("Loaded Audio!", NamedTextColor.GOLD)));
-            })
-        .whenCompleteAsync((t, throwable) -> atomicBoolean.set(true));
-
-    return 1;
+    return false;
   }
 
-  private void sendResourcepack(
-      @Nullable final HttpServerDaemon provider,
-      @NotNull final Audience audience,
-      @NotNull final PackWrapper wrapper) {
-    if (provider != null) {
-
-      // Generates a url given by the HTTP server for a file
-      resourcepackLink = provider.generateUrl(wrapper.getPath());
-      hash = VideoExtractionUtilities.createHashSHA(Paths.get(wrapper.getPath()));
-
-      // Send the resourcepack url to all players on the server
-      sendResourcepackFile();
-
-    } else {
-      audience.sendMessage(
-          ChatUtilities.formatMessage(
-              Component.text(
-                  "You have HTTP set false by default. You cannot play audio without a daemon",
-                  NamedTextColor.RED)));
+  private boolean checkIncompleteLoad(@NotNull final Audience audience) {
+    if (!attributes.getCompletion().get()) {
+      audience.sendMessage(format(text("Audio is still processing!", RED)));
+      return true;
     }
-  }
-
-  private void sendResourcepackFile() {
-    for (final Player p : Bukkit.getOnlinePlayers()) {
-      p.setResourcePack(resourcepackLink, hash);
-    }
+    return false;
   }
 
   @Override
@@ -255,6 +120,6 @@ public class AudioCommand extends BaseCommand {
 
   @Override
   public LiteralCommandNode<CommandSender> getCommandNode() {
-    return literalNode;
+    return node;
   }
 }

@@ -20,8 +20,10 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.deluxemediaplugin.command.video;
+package io.github.pulsebeat02.deluxemediaplugin.rewrite.video;
 
+import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import io.github.pulsebeat02.deluxemediaplugin.rewrite.reference.VideoType;
 import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
@@ -31,23 +33,29 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MinecraftVideoAttributes {
+public class VideoCommandAttributes {
 
   private final AtomicBoolean completion;
-  private DitherHolder dither;
+  private final DeluxeMediaPlugin plugin;
+
   private YoutubeExtraction extractor;
   private VLCVideoPlayer player;
-  private Path file;
-  private boolean youtube;
+  private DitherHolder dither;
   private VideoType mode;
+  private Path file;
 
+  private boolean youtube;
   private int frameWidth;
   private int frameHeight;
   private int screenWidth;
   private int screenHeight;
   private int startingMap;
 
-  public MinecraftVideoAttributes() {
+  private String resourcepackUrl;
+  private byte[] hash;
+
+  public VideoCommandAttributes(@NotNull final DeluxeMediaPlugin plugin) {
+    this.plugin = plugin;
     dither = DitherSetting.SIERRA_FILTER_LITE_DITHER.getHolder();
     frameWidth = 5;
     frameHeight = 5;
@@ -147,5 +155,33 @@ public class MinecraftVideoAttributes {
 
   public void setVideoType(@NotNull final VideoType type) {
     mode = type;
+  }
+
+  public DeluxeMediaPlugin getPlugin() {
+    return plugin;
+  }
+
+  public VideoType getMode() {
+    return mode;
+  }
+
+  public void setMode(final VideoType mode) {
+    this.mode = mode;
+  }
+
+  public String getResourcepackUrl() {
+    return resourcepackUrl;
+  }
+
+  public void setResourcepackUrl(final String resourcepackUrl) {
+    this.resourcepackUrl = resourcepackUrl;
+  }
+
+  public byte[] getHash() {
+    return hash;
+  }
+
+  public void setHash(final byte[] hash) {
+    this.hash = hash;
   }
 }

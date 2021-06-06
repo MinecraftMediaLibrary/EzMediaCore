@@ -24,7 +24,6 @@ package io.github.pulsebeat02.deluxemediaplugin.command.map;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
@@ -33,42 +32,43 @@ import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.MapUtilities;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.TextComponent.ofChildren;
+import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
+import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
+import static net.kyori.adventure.text.format.NamedTextColor.RED;
+
 public class MapCommand extends BaseCommand {
 
-  private final LiteralCommandNode<CommandSender> literalNode;
+  private final LiteralCommandNode<CommandSender> node;
 
   public MapCommand(@NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "map", executor, "deluxemediaplugin.command.map", "");
-    final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
-    builder
-        .requires(super::testPermission)
-        .then(argument("id", IntegerArgumentType.integer()).executes(this::giveMap));
-    literalNode = builder.build();
+    node =
+        literal(getName())
+            .requires(super::testPermission)
+            .then(argument("id", IntegerArgumentType.integer()).executes(this::giveMap))
+            .build();
   }
 
   private int giveMap(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
-    final Audience audience = getPlugin().getAudiences().sender(sender);
+    final Audience audience = getPlugin().audience().sender(sender);
     if (!(sender instanceof Player)) {
-      audience.sendMessage(
-          Component.text("You must be a player to execute this command!", NamedTextColor.RED));
-      return 1;
+      audience.sendMessage(text("You must be a player to execute this command!", RED));
+      return SINGLE_SUCCESS;
     }
     final int id = context.getArgument("id", int.class);
     ((Player) sender).getInventory().addItem(MapUtilities.getMapFromID(id));
-    audience.sendMessage(
-        ChatUtilities.formatMessage(
-            TextComponent.ofChildren(
-                Component.text("Gave map with id ", NamedTextColor.GOLD),
-                Component.text(id, NamedTextColor.AQUA))));
-    return 1;
+    audience.sendMessage(format(ofChildren(text("Gave map with id ", GOLD), text(id, AQUA))));
+    return SINGLE_SUCCESS;
   }
 
   @Override
@@ -79,6 +79,6 @@ public class MapCommand extends BaseCommand {
 
   @Override
   public LiteralCommandNode<CommandSender> getCommandNode() {
-    return literalNode;
+    return node;
   }
 }

@@ -37,7 +37,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public class PictureConfiguration extends AbstractConfiguration {
+public class PictureConfiguration extends ConfigurationProvider {
 
   private final Set<StaticImageProxy> images;
 
@@ -105,12 +105,7 @@ public class PictureConfiguration extends AbstractConfiguration {
 
       // Define a new image with the specified id
       images.add(
-          StaticImage.builder()
-              .map(id)
-              .image(file)
-              .width(width)
-              .height(height)
-              .build(library));
+          StaticImage.builder().map(id).image(file).width(width).height(height).build(library));
     }
   }
 

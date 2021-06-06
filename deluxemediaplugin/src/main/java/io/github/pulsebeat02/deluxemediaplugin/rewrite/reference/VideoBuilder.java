@@ -20,8 +20,9 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.deluxemediaplugin.command.video;
+package io.github.pulsebeat02.deluxemediaplugin.rewrite.reference;
 
+import io.github.pulsebeat02.deluxemediaplugin.rewrite.video.VideoCommandAttributes;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatPlayer;
@@ -40,10 +41,10 @@ import org.jetbrains.annotations.NotNull;
 public class VideoBuilder {
 
   private final MediaLibrary library;
-  private final MinecraftVideoAttributes attributes;
+  private final VideoCommandAttributes attributes;
 
   public VideoBuilder(
-      @NotNull final MediaLibrary library, @NotNull final MinecraftVideoAttributes attributes) {
+      @NotNull final MediaLibrary library, @NotNull final VideoCommandAttributes attributes) {
     this.library = library;
     this.attributes = attributes;
   }

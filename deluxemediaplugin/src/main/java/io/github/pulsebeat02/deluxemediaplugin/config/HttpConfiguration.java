@@ -32,7 +32,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpServ
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-public class HttpConfiguration extends AbstractConfiguration {
+public class HttpConfiguration extends ConfigurationProvider {
 
   private HttpServerDaemon daemon;
   private boolean enabled;

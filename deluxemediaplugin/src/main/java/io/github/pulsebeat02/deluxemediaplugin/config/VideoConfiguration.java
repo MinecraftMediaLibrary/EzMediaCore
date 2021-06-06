@@ -35,7 +35,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-public class VideoConfiguration extends AbstractConfiguration {
+public class VideoConfiguration extends ConfigurationProvider {
 
   private VLCVideoPlayer player;
   private MapDataCallback callback;

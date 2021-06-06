@@ -20,58 +20,64 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.deluxemediaplugin.command.dither;
+package io.github.pulsebeat02.deluxemediaplugin.command.image;
 
-import com.google.common.collect.ImmutableMap;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.tree.LiteralCommandNode;
+import com.google.common.collect.ImmutableSet;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
-import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
-import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
+import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
 import org.jetbrains.annotations.NotNull;
 
-import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
-import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
-public class DitherCommand extends BaseCommand {
+public class ImageCommandAttributes {
 
-  private final LiteralCommandNode<CommandSender> node;
+  private final DeluxeMediaPlugin plugin;
+  private final Set<StaticImageProxy> images;
+  private final Set<UUID> listen;
+  private final Set<String> extensions;
+  private int width;
+  private int height;
 
-  public DitherCommand(
-      @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
-    super(plugin, "dither", executor, "deluxemediaplugin.command.dither");
-    node =
-        literal(getName())
-            .requires(super::testPermission)
-            .then(literal("list").executes(this::listSettings))
-            .build();
+  public ImageCommandAttributes(@NotNull final DeluxeMediaPlugin plugin) {
+    this.plugin = plugin;
+    images = new HashSet<>();
+    listen = new HashSet<>();
+    extensions = ImmutableSet.of(".png", ".jpg", ".jpeg", ".tif", ".gif");
+    width = 1;
+    height = 1;
   }
 
-  private int listSettings(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = audience().sender(context.getSource());
-    audience.sendMessage(format(text("Possible Dithering Options", GOLD)));
-    for (final DitherSetting setting : DitherSetting.values()) {
-      audience.sendMessage(text(setting.name(), AQUA));
-    }
-    return SINGLE_SUCCESS;
+  public DeluxeMediaPlugin getPlugin() {
+    return plugin;
   }
 
-  @Override
-  public LiteralCommandNode<CommandSender> getCommandNode() {
-    return node;
+  public Set<StaticImageProxy> getImages() {
+    return images;
   }
 
-  @Override
-  public Component usage() {
-    return ChatUtilities.getCommandUsage(
-        ImmutableMap.of("/dither list", "References all possible dithering options to choose"));
+  public Set<UUID> getListen() {
+    return listen;
+  }
+
+  public Set<String> getExtensions() {
+    return extensions;
+  }
+
+  public int getWidth() {
+    return width;
+  }
+
+  public void setWidth(final int width) {
+    this.width = width;
+  }
+
+  public int getHeight() {
+    return height;
+  }
+
+  public void setHeight(final int height) {
+    this.height = height;
   }
 }

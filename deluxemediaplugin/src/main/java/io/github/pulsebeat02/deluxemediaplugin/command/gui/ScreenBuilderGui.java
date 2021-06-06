@@ -115,7 +115,7 @@ public class ScreenBuilderGui {
           viewer.closeInventory();
           MapUtilities.buildMapScreen(viewer, material, width, height, id);
           plugin
-              .getAudiences()
+              .audience()
               .sender(viewer)
               .sendMessage(
                   Component.text("Successfully built your new screen!", NamedTextColor.GREEN));

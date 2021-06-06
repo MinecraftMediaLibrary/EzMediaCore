@@ -20,7 +20,7 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.deluxemediaplugin.command.video;
+package io.github.pulsebeat02.deluxemediaplugin.rewrite.reference;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -31,10 +31,11 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
+import io.github.pulsebeat02.deluxemediaplugin.rewrite.video.VideoCommandAttributes;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegAudioExtractionHelper;
 import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
+import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegAudioExtractionHelper;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
@@ -66,7 +67,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class VideoCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> literalNode;
-  private final MinecraftVideoAttributes attributes;
+  private final VideoCommandAttributes attributes;
   private final VideoBuilder videoBuilder;
   private String resourcepackLink;
   private byte[] hash;
@@ -74,7 +75,7 @@ public class VideoCommand extends BaseCommand {
   public VideoCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "video", executor, "deluxemediaplugin.command.video", "");
-    attributes = new MinecraftVideoAttributes();
+    attributes = new VideoCommandAttributes(plugin);
     final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
     builder
         .requires(super::testPermission)
@@ -155,10 +156,10 @@ public class VideoCommand extends BaseCommand {
   }
 
   private int getResourcepackLink(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    final Audience audience = getPlugin().audience().sender(context.getSource());
     if (resourcepackLink == null && hash == null) {
       audience.sendMessage(
-          ChatUtilities.formatMessage(
+          ChatUtilities.format(
               Component.text(
                   "Please load a resourcepack first before executing this command!",
                   NamedTextColor.RED)));
@@ -166,7 +167,7 @@ public class VideoCommand extends BaseCommand {
     }
     sendResourcepackFile();
     audience.sendMessage(
-        ChatUtilities.formatMessage(
+        ChatUtilities.format(
             Component.text(
                 String.format("Sent Resourcepack URL! (%s)", resourcepackLink),
                 NamedTextColor.GOLD)));
@@ -174,7 +175,7 @@ public class VideoCommand extends BaseCommand {
   }
 
   private int setVideoMode(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    final Audience audience = getPlugin().audience().sender(context.getSource());
     final String mode = context.getArgument("video-mode", String.class);
     final TextComponent component;
     final VideoType type = VideoType.fromString(mode);
@@ -193,7 +194,7 @@ public class VideoCommand extends BaseCommand {
   }
 
   private int setDitherAlgorithm(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    final Audience audience = getPlugin().audience().sender(context.getSource());
     final String algorithm = context.getArgument("dithering-algorithm", String.class);
     final DitherSetting setting = DitherSetting.fromString(algorithm);
     final TextComponent component;
@@ -210,12 +211,12 @@ public class VideoCommand extends BaseCommand {
       // Set the dither algorithm for the video attributes
       attributes.setDither(setting.getHolder());
     }
-    audience.sendMessage(ChatUtilities.formatMessage(component));
+    audience.sendMessage(ChatUtilities.format(component));
     return 1;
   }
 
   private int setStartingMap(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    final Audience audience = getPlugin().audience().sender(context.getSource());
     final OptionalLong id =
         ChatUtilities.checkMapBoundaries(
             audience, context.getArgument("starting-map-id", String.class));
@@ -226,7 +227,7 @@ public class VideoCommand extends BaseCommand {
     // Set the starting map of the video player
     attributes.setStartingMap((int) id.getAsLong());
     audience.sendMessage(
-        ChatUtilities.formatMessage(
+        ChatUtilities.format(
             Component.text(
                 String.format("Set starting-map on id %d", attributes.getStartingMap()),
                 NamedTextColor.GOLD)));
@@ -234,7 +235,7 @@ public class VideoCommand extends BaseCommand {
   }
 
   private int setItemFrameDimension(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    final Audience audience = getPlugin().audience().sender(context.getSource());
     final Optional<int[]> opt =
         ChatUtilities.checkDimensionBoundaries(
             audience, context.getArgument("itemframe-dimensions", String.class));
@@ -247,7 +248,7 @@ public class VideoCommand extends BaseCommand {
     attributes.setFrameWidth(dims[0]);
     attributes.setFrameHeight(dims[1]);
     audience.sendMessage(
-        ChatUtilities.formatMessage(
+        ChatUtilities.format(
             Component.text(
                 String.format(
                     "Set itemframe map dimensions to %s:%s (width:height)", dims[0], dims[1]),
@@ -256,7 +257,7 @@ public class VideoCommand extends BaseCommand {
   }
 
   private int setScreenDimension(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    final Audience audience = getPlugin().audience().sender(context.getSource());
     final Optional<int[]> opt =
         ChatUtilities.checkDimensionBoundaries(
             audience, context.getArgument("screen-dimensions", String.class));
@@ -279,17 +280,17 @@ public class VideoCommand extends BaseCommand {
           Component.text(
               "Please load a video first before executing this command!", NamedTextColor.RED);
     }
-    audience.sendMessage(ChatUtilities.formatMessage(component));
+    audience.sendMessage(ChatUtilities.format(component));
     return 1;
   }
 
   private int displayInformation(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    final Audience audience = getPlugin().audience().sender(context.getSource());
     final boolean youtube = attributes.isYoutube();
     final Path file = attributes.getFile();
     if (file == null && !youtube) {
       audience.sendMessage(
-          ChatUtilities.formatMessage(
+          ChatUtilities.format(
               Component.text("There isn't a video currently playing!", NamedTextColor.RED)));
     } else {
       final YoutubeExtraction extractor = attributes.getExtractor();
@@ -328,7 +329,7 @@ public class VideoCommand extends BaseCommand {
   }
 
   private int stopVideo(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    final Audience audience = getPlugin().audience().sender(context.getSource());
     audience.sendMessage(Component.text("Stopped the Video!", NamedTextColor.GOLD));
 
     // Stop the media player
@@ -338,26 +339,25 @@ public class VideoCommand extends BaseCommand {
 
   private int playVideo(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
-    final Audience audience = getPlugin().getAudiences().sender(sender);
+    final Audience audience = getPlugin().audience().sender(sender);
     final boolean youtube = attributes.isYoutube();
     final Path file = attributes.getFile();
     if (file == null && !youtube) {
       audience.sendMessage(
-          ChatUtilities.formatMessage(
-              Component.text("File and URL not Specified!", NamedTextColor.RED)));
+          ChatUtilities.format(Component.text("File and URL not Specified!", NamedTextColor.RED)));
       return 1;
     }
     final AtomicBoolean atomicBoolean = attributes.getCompletion();
     if (!atomicBoolean.get()) {
       audience.sendMessage(
-          ChatUtilities.formatMessage(
+          ChatUtilities.format(
               Component.text("The video is still being processed!", NamedTextColor.RED)));
       return 1;
     }
 
     final YoutubeExtraction extractor = attributes.getExtractor();
     audience.sendMessage(
-        ChatUtilities.formatMessage(
+        ChatUtilities.format(
             youtube
                 ? Component.text(
                     String.format("Starting Video on URL: %s", extractor.getUrl()),
@@ -439,7 +439,7 @@ public class VideoCommand extends BaseCommand {
 
   private int loadVideo(@NotNull final CommandContext<CommandSender> context) {
     final DeluxeMediaPlugin plugin = getPlugin();
-    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
+    final Audience audience = getPlugin().audience().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
     final String folderPath = String.format("%s/mml/", plugin.getDataFolder().getAbsolutePath());
     final AtomicBoolean atomicBoolean = attributes.getCompletion();
@@ -478,7 +478,7 @@ public class VideoCommand extends BaseCommand {
 
               // Send success message
               audience.sendMessage(
-                  ChatUtilities.formatMessage(
+                  ChatUtilities.format(
                       Component.text(
                           String.format("Successfully loaded video %s", mrl),
                           NamedTextColor.GOLD)));
@@ -489,13 +489,13 @@ public class VideoCommand extends BaseCommand {
 
       } else if (mrl.startsWith("http://")) {
         audience.sendMessage(
-            ChatUtilities.formatMessage(
+            ChatUtilities.format(
                 Component.text(
                     String.format("Link %s is not a valid Youtube video link!", mrl),
                     NamedTextColor.RED)));
       } else {
         audience.sendMessage(
-            ChatUtilities.formatMessage(
+            ChatUtilities.format(
                 Component.text(
                     String.format("File %s cannot be found!", PathUtilities.getName(f)),
                     NamedTextColor.RED)));
@@ -536,7 +536,7 @@ public class VideoCommand extends BaseCommand {
 
             // Send success message
             audience.sendMessage(
-                ChatUtilities.formatMessage(
+                ChatUtilities.format(
                     Component.text(
                         String.format("Successfully loaded video %s", mrl), NamedTextColor.GOLD)));
 
@@ -562,7 +562,7 @@ public class VideoCommand extends BaseCommand {
 
     } else {
       audience.sendMessage(
-          ChatUtilities.formatMessage(
+          ChatUtilities.format(
               Component.text(
                   "You have HTTP set false by default. You cannot "
                       + "play Youtube videos without a daemon",

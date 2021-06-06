@@ -174,7 +174,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
     return encoderConfiguration;
   }
 
-  public BukkitAudiences getAudiences() {
+  public BukkitAudiences audience() {
     return audiences;
   }
 

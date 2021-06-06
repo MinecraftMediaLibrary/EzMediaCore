@@ -48,7 +48,7 @@ public final class ChatUtilities {
                 Component.text(']'));
   }
 
-  public static Component formatMessage(@NotNull final TextComponent message) {
+  public static Component format(@NotNull final TextComponent message) {
     return TextComponent.ofChildren(PREFIX, Component.space(), message);
   }
 

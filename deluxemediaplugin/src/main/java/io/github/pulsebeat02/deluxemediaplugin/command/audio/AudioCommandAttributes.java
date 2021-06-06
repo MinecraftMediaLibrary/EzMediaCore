@@ -20,96 +20,67 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.deluxemediaplugin.config;
+package io.github.pulsebeat02.deluxemediaplugin.command.audio;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.logging.Level;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class AbstractConfiguration {
+public class AudioCommandAttributes {
 
+  private final AtomicBoolean completion;
+  private final String soundKey;
   private final DeluxeMediaPlugin plugin;
-  private final String fileName;
 
-  private final Path configFile;
-  private FileConfiguration fileConfiguration;
+  private Path resourcepackAudio;
+  private String resourcepackLink;
+  private byte[] resourcepackHash;
 
-  public AbstractConfiguration(
-      @NotNull final DeluxeMediaPlugin plugin, @NotNull final String name) {
+  public AudioCommandAttributes(@NotNull final DeluxeMediaPlugin plugin) {
     this.plugin = plugin;
-    fileName = name;
-    configFile = Paths.get(plugin.getDataFolder().toString()).resolve(fileName);
+    completion = new AtomicBoolean(false);
+    soundKey = plugin.getName().toLowerCase();
   }
 
-  public void reloadConfig() {
-    fileConfiguration = YamlConfiguration.loadConfiguration(configFile.toFile());
-    final InputStream defConfigStream = plugin.getResource(fileName);
-    if (defConfigStream != null) {
-      final YamlConfiguration defConfig =
-          YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
-      fileConfiguration.setDefaults(defConfig);
-    }
+  public AtomicBoolean getCompletion() {
+    return completion;
   }
 
-  public FileConfiguration getConfig() {
-    if (fileConfiguration == null) {
-      reloadConfig();
-    }
-    return fileConfiguration;
+  public void setCompletion(final boolean mode) {
+    completion.set(mode);
   }
 
-  public void saveConfig() {
-    if (fileConfiguration != null && configFile != null) {
-      try {
-        getConfig().save(configFile.toFile());
-      } catch (final IOException e) {
-        plugin
-            .getLogger()
-            .log(Level.SEVERE, String.format("Could not save config to %s", configFile), e);
-      }
-    }
+  public String getSoundKey() {
+    return soundKey;
   }
 
-  public void saveDefaultConfig() {
-    if (!Files.exists(configFile)) {
-      plugin.saveResource(fileName, false);
-    }
+  public Path getResourcepackAudio() {
+    return resourcepackAudio;
   }
 
-  public void read() {
-    if (!Files.exists(configFile)) {
-      saveDefaultConfig();
-    }
-    getConfig();
-    serialize();
+  public void setResourcepackAudio(final Path resourcepackAudio) {
+    this.resourcepackAudio = resourcepackAudio;
   }
 
-  abstract void deserialize();
+  public String getResourcepackLink() {
+    return resourcepackLink;
+  }
 
-  abstract void serialize();
+  public void setResourcepackLink(final String resourcepackLink) {
+    this.resourcepackLink = resourcepackLink;
+  }
+
+  public byte[] getResourcepackHash() {
+    return resourcepackHash;
+  }
+
+  public void setResourcepackHash(final byte[] resourcepackHash) {
+    this.resourcepackHash = resourcepackHash;
+  }
 
   public DeluxeMediaPlugin getPlugin() {
     return plugin;
-  }
-
-  public String getFileName() {
-    return fileName;
-  }
-
-  public Path getConfigFile() {
-    return configFile;
-  }
-
-  public FileConfiguration getFileConfiguration() {
-    return fileConfiguration;
   }
 }
