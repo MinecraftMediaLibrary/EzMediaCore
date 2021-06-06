@@ -28,6 +28,7 @@ import com.github.kiulian.downloader.model.VideoDetails;
 import com.github.kiulian.downloader.model.YoutubeVideo;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegAudioExtractionHelper;
 import io.github.pulsebeat02.minecraftmedialibrary.json.GsonHandler;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
@@ -110,7 +111,7 @@ public class YoutubeExtraction implements VideoExtractor {
     onAudioExtraction();
     Logger.info(String.format("Extracting Audio from Video File (%s)", video.toAbsolutePath()));
     audio = Paths.get(String.format("%s/audio.ogg", directory));
-    new AudioExtractionHelper(configuration, video, audio).extract();
+    new FFmpegAudioExtractionHelper(configuration, video, audio).extract();
     return audio;
   }
 

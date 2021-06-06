@@ -20,7 +20,7 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.dependency;
+package io.github.pulsebeat02.minecraftmedialibrary.ffmpeg;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.dependency.task.CommandTask;

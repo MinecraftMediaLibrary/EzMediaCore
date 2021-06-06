@@ -22,48 +22,80 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.ffmpeg;
 
-import com.github.kokorin.jaffree.StreamType;
-import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
-import com.github.kokorin.jaffree.ffmpeg.Frame;
-import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
-import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
-import com.github.kokorin.jaffree.ffmpeg.Stream;
-import com.github.kokorin.jaffree.ffmpeg.UrlInput;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
+import java.util.function.Consumer;
 
-public class FFmpegVideoTest {
+public interface CustomCommandExecutor {
 
-  public static void main(final String[] args) throws IOException {
-    final Path path = Paths.get(System.getProperty("user.dir") + "/ffmpeg-test");
-    if (Files.notExists(path)) {
-      Files.createDirectory(path);
-    }
-    new FFmpegDependencyInstallation(path).start();
-    new FFmpeg(FFmpegDependencyInstallation.getFFmpegPath())
-        .addInput(UrlInput.fromPath(Paths.get("/Users/bli24/Downloads/kda.mp4")))
-        .addOutput(
-            FrameOutput.withConsumer(
-                    new FrameConsumer() {
-                      @Override
-                      public void consumeStreams(final List<Stream> streams) {}
+  /**
+   * Adds an argument to the command.
+   *
+   * @param arg the argument
+   * @return the CustomCommandExecutor
+   */
+  CustomCommandExecutor addArgument(@NotNull final String arg);
 
-                      @Override
-                      public void consume(final Frame frame) {
-                        if (frame == null) {
-                          return;
-                        }
-                        System.out.println(frame.getImage().getHeight());
-                      }
-                    })
-                .setFrameRate(30)
-                .disableStream(StreamType.AUDIO)
-                .disableStream(StreamType.SUBTITLE)
-                .disableStream(StreamType.DATA))
-        .execute();
-  }
+  /**
+   * Adds arguments (-key value or similar) to the command.
+   *
+   * @param key the key
+   * @param value the value
+   * @return the CustomCommandExecutor
+   */
+  CustomCommandExecutor addArguments(@NotNull final String key, @NotNull final String value);
+
+  /**
+   * Adds an argument to the command at the specified index.
+   *
+   * @param arg the argument
+   * @param index the index
+   * @return the CustomCommandExecutor
+   */
+  CustomCommandExecutor addArgument(@NotNull final String arg, final int index);
+
+  /**
+   * Adds arguments (-key value or similar) to the command at the specified index.
+   *
+   * @param key the key
+   * @param value the value
+   * @param index the index
+   * @return the CustomCommandExecutor
+   */
+  CustomCommandExecutor addArguments(
+      @NotNull final String key, @NotNull final String value, final int index);
+
+  /**
+   * Removes all traces of the argument from the command arguments.
+   *
+   * @param arg the argument
+   * @return the CustomCommandExecutor
+   */
+  CustomCommandExecutor removeArgument(@NotNull final String arg);
+
+  /**
+   * Removes the argument at the specified index.
+   *
+   * @param index the index
+   * @return the CustomCommandExecutor
+   */
+  CustomCommandExecutor removeArgument(final int index);
+
+  /** Executes the command with arguments. */
+  void execute();
+
+  /**
+   * Executes the command with arguments and a consumer (to log information).
+   *
+   * @param consumer the consumer
+   */
+  void executeWithConsumer(@NotNull final Consumer<String> consumer);
+
+  /**
+   * Gets the arguments of the command.
+   *
+   * @return the arguments
+   */
+  List<String> getArguments();
 }

@@ -64,7 +64,7 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
    * @param plugin the plugin
    */
   MinecraftMediaLibrary(@NotNull final Plugin plugin) {
-    this(plugin, null, null, null, null, null, true);
+    this(plugin, null, null, null, null, null, null, true);
   }
 
   /**
@@ -76,6 +76,7 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
    * @param vlcPath vlc installation path
    * @param audioPath audio path
    * @param imagePath image path
+   * @param videoPath video path
    * @param isUsingVLCJ whether using vlcj
    */
   MinecraftMediaLibrary(
@@ -85,6 +86,7 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
       @Nullable final String vlcPath,
       @Nullable final String imagePath,
       @Nullable final String audioPath,
+      @Nullable final String videoPath,
       final boolean isUsingVLCJ) {
 
     this.plugin = plugin;
@@ -98,7 +100,8 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
     registrationHandler = new PlayerJoinLeaveRegistration(this);
     Bukkit.getPluginManager().registerEvents(registrationHandler, plugin);
 
-    handle = new LibraryPathHandle(plugin, http, libraryPath, vlcPath, imagePath, audioPath);
+    handle =
+        new LibraryPathHandle(plugin, http, libraryPath, vlcPath, imagePath, audioPath, videoPath);
 
     handler = NMSReflectionManager.getNewPacketHandlerInstance();
     if (handler != null) {
@@ -142,7 +145,6 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
     new DependencyInstantiation(this).startTasks();
   }
 
-  /** Shutdown the library instance */
   @Override
   public void shutdown() {
     Logger.info("Shutting Down!");
@@ -151,141 +153,76 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
     Logger.info("Good Bye");
   }
 
-  /**
-   * Gets plugin.
-   *
-   * @return the plugin
-   */
   @Override
   public Plugin getPlugin() {
     return plugin;
   }
 
-  /**
-   * Gets handler.
-   *
-   * @return the handler
-   */
   @Override
   public PacketHandler getHandler() {
     return handler;
   }
 
-  /**
-   * Whether the library is using vlcj.
-   *
-   * @return the boolean
-   */
   @Override
   public boolean isVlcj() {
     return vlcj;
   }
 
-  /**
-   * Sets the usage status of vlcj.
-   *
-   * @param vlcj status
-   */
   @Override
   public void setVlcj(final boolean vlcj) {
     this.vlcj = vlcj;
   }
 
-  /**
-   * Gets the path of the parent library folder.
-   *
-   * @return the path
-   */
   @Override
   public Path getPath() {
     return handle.getParentFolder();
   }
 
-  /**
-   * Gets the http parent folder.
-   *
-   * @return the parent
-   */
   @Override
   public Path getHttpParentFolder() {
     return handle.getHttpParentFolder();
   }
 
-  /**
-   * Gets dependencies folder.
-   *
-   * @return the dependencies folder
-   */
   @Override
   public Path getDependenciesFolder() {
     return handle.getDependenciesFolder();
   }
 
-  /**
-   * Gets the vlc folder.
-   *
-   * @return the vlc folder
-   */
   @Override
   public Path getVlcFolder() {
     return handle.getVlcFolder();
   }
 
-  /**
-   * Gets the parent folder of the library.
-   *
-   * @return the path of the library
-   */
   @Override
   public Path getParentFolder() {
     return handle.getParentFolder();
   }
 
-  /**
-   * Gets the image folder of the library.
-   *
-   * @return the path of the image folder
-   */
   @Override
   public Path getImageFolder() {
     return handle.getImageFolder();
   }
 
-  /**
-   * Gets the audio folder of the library.
-   *
-   * @return the path of the audio folder
-   */
   @Override
   public Path getAudioFolder() {
     return handle.getAudioFolder();
   }
 
-  /**
-   * Gets the library path handle.
-   *
-   * @return the path handle
-   */
+  @Override
+  public Path getVideoFolder() {
+    return handle.getVideoFolder();
+  }
+
   @Override
   public LibraryPathHandle getHandle() {
     return handle;
   }
 
-  /**
-   * Returns the status of the library.
-   *
-   * @return whether the library is disabled or not
-   */
   @Override
   public boolean isDisabled() {
     return disabled;
   }
 
-  /**
-   * Gets the listener.
-   *
-   * @return the listener
-   */
   @Override
   public Listener getRegistrationHandler() {
     return registrationHandler;

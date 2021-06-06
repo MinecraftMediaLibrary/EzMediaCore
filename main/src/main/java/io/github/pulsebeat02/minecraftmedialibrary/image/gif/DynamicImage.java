@@ -25,23 +25,15 @@ package io.github.pulsebeat02.minecraftmedialibrary.image.gif;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.extractor.FFmpegLocation;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
-import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
-import ws.schild.jave.Encoder;
-import ws.schild.jave.EncoderException;
-import ws.schild.jave.MultimediaObject;
-import ws.schild.jave.encode.AudioAttributes;
-import ws.schild.jave.encode.EncodingAttributes;
 
 import java.awt.*;
 import java.io.IOException;
@@ -215,23 +207,7 @@ public class DynamicImage implements DynamicImageProxy {
   }
 
   /** Converts a Gif into an MPEG file. */
-  private void convertGifIntoMpeg() {
-    final FFmpegLocation ffmpegLocator = new FFmpegLocation();
-    final String name = PathUtilities.getName(image);
-    final Encoder encoder = new Encoder(ffmpegLocator);
-    final AudioAttributes audio = new AudioAttributes();
-    audio.setVolume(0);
-    final EncodingAttributes attrs = new EncodingAttributes();
-    attrs.setInputFormat(FilenameUtils.getExtension(name));
-    attrs.setOutputFormat("mp4");
-    attrs.setAudioAttributes(audio);
-    final Path output = library.getImageFolder().resolve(FilenameUtils.getBaseName(name) + ".mp4");
-    try {
-      encoder.encode(new MultimediaObject(image.toFile(), ffmpegLocator), output.toFile(), attrs);
-    } catch (final EncoderException e) {
-      e.printStackTrace();
-    }
-  }
+  private void convertGifIntoMpeg() {}
 
   /** The type Builder. */
   public static class Builder {

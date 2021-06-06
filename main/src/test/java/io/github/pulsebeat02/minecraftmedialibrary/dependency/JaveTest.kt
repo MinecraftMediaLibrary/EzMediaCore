@@ -22,6 +22,7 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.dependency
 
+import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegDependencyInstallation
 import java.io.File
 import java.nio.file.Paths
 
@@ -37,6 +38,10 @@ fun main() {
 //    management.relocate()
 //    management.load()
     val ffmpeg =
-        FFmpegDependencyInstallation(Paths.get(folder.absolutePath))
+        FFmpegDependencyInstallation(
+            Paths.get(
+                folder.absolutePath
+            )
+        )
     ffmpeg.start()
 }

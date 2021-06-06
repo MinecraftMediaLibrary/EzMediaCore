@@ -33,7 +33,7 @@ import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
 import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
+import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegDependencyInstallation;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -81,6 +81,7 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
   private FFmpegResultFuture future;
   private boolean playing;
   private boolean repeat;
+  private long start;
   private int frameRate;
   private int width;
   private int height;
@@ -110,17 +111,17 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
     frameRate = 25;
     this.callback = callback;
     sound = getLibrary().getPlugin().getName().toLowerCase();
-    initializePlayer();
+    initializePlayer(0);
     Logger.info(String.format("Created an FFmpeg Integrated %s Video Player (%s)", type, url));
   }
 
-  private void initializePlayer() {
+  private void initializePlayer(final int seconds) {
     final Input input;
     final Path path = Paths.get(url);
     if (Files.exists(path)) {
-      input = UrlInput.fromPath(path);
+      input = UrlInput.fromPath(path).setPosition(seconds);
     } else {
-      input = UrlInput.fromUrl(url);
+      input = UrlInput.fromUrl(url).setPosition(seconds);
     }
     ffmpeg =
         new FFmpeg(FFmpegDependencyInstallation.getFFmpegPath())
@@ -190,12 +191,13 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
   public void start(@NotNull final Collection<? extends Player> players) {
     playing = true;
     if (ffmpeg == null) {
-      initializePlayer();
+      initializePlayer(0);
     }
     CompletableFuture.runAsync(
         () -> {
           do {
             future = ffmpeg.executeAsync();
+            start = System.currentTimeMillis();
             playAudio(players);
             try {
               future.toCompletableFuture().get();
@@ -227,6 +229,25 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
       ffmpeg = null;
     }
     Logger.info(String.format("Released the Video! (%s)", url));
+  }
+
+  @Override
+  public void resume(@NotNull final Collection<? extends Player> players) {
+    playing = true;
+    CompletableFuture.runAsync(
+        () -> {
+          do {
+            initializePlayer((int) (System.currentTimeMillis() - start) / 1000);
+            future = ffmpeg.executeAsync();
+            playAudio(players);
+            try {
+              future.toCompletableFuture().get();
+            } catch (final InterruptedException | ExecutionException e) {
+              e.printStackTrace();
+            }
+          } while (repeat);
+        });
+    Logger.info(String.format("Resumed the Video! (%s)", url));
   }
 
   @Override

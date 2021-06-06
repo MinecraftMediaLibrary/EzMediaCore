@@ -97,12 +97,19 @@ public interface VideoPlayerContext {
   /**
    * Stops the player.
    *
-   * @param players the players
+   * @param players which players to stop the audio for
    */
   void stop(@NotNull Collection<? extends Player> players);
 
   /** Releases the player. */
   void release();
+
+  /**
+   * Resumes the player.
+   *
+   * @param players which players to start the audio again for
+   */
+  void resume(@NotNull Collection<? extends Player> players);
 
   /**
    * Repeats the player.

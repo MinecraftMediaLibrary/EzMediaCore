@@ -20,10 +20,11 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.extractor;
+package io.github.pulsebeat02.minecraftmedialibrary.ffmpeg;
 
 import com.google.common.collect.ImmutableList;
-import io.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
+import io.github.pulsebeat02.minecraftmedialibrary.extractor.AudioExtractionContext;
+import io.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionConfiguration;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +40,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /** An audio extraction helper that helps extract audio from video files. */
-public class AudioExtractionHelper implements AudioExtractionContext {
+public class FFmpegAudioExtractionHelper implements AudioExtractionContext {
 
   private final List<String> arguments;
   private final Path input;
@@ -52,7 +53,7 @@ public class AudioExtractionHelper implements AudioExtractionContext {
    * @param input the input
    * @param output the output
    */
-  public AudioExtractionHelper(
+  public FFmpegAudioExtractionHelper(
       @NotNull final ExtractionConfiguration settings,
       @NotNull final Path input,
       @NotNull final Path output) {
@@ -155,10 +156,10 @@ public class AudioExtractionHelper implements AudioExtractionContext {
    */
   @Override
   public boolean equals(final Object obj) {
-    if (!(obj instanceof AudioExtractionHelper)) {
+    if (!(obj instanceof FFmpegAudioExtractionHelper)) {
       return false;
     }
-    final AudioExtractionHelper extraction = (AudioExtractionHelper) obj;
+    final FFmpegAudioExtractionHelper extraction = (FFmpegAudioExtractionHelper) obj;
     return input.equals(extraction.getInput())
         && output.equals(extraction.getOutput())
         && arguments.equals(extraction.getArguments());

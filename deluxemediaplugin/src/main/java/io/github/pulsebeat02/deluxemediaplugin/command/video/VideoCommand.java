@@ -33,7 +33,7 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.extractor.AudioExtractionHelper;
+import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegAudioExtractionHelper;
 import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
@@ -463,7 +463,7 @@ public class VideoCommand extends BaseCommand {
             () -> {
               final Path audioPath = Paths.get(folderPath, "custom.ogg");
 
-              new AudioExtractionHelper(
+              new FFmpegAudioExtractionHelper(
                       plugin.getEncoderConfiguration().getSettings(), Paths.get(mrl), audioPath)
                   .extract();
 

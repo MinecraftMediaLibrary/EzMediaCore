@@ -61,6 +61,7 @@ public final class MediaLibraryProvider {
    * @param vlcPath the vlc path
    * @param imagePath the image path
    * @param audioPath the audio path
+   * @param videoPath the video path
    * @param isUsingVLCJ if user is using VLCJ
    * @return a new MediaLibrary instance
    */
@@ -71,11 +72,12 @@ public final class MediaLibraryProvider {
       @Nullable final String vlcPath,
       @Nullable final String imagePath,
       @Nullable final String audioPath,
+      @Nullable final String videoPath,
       final boolean isUsingVLCJ) {
     return checkValidity(
         plugin,
         new MinecraftMediaLibrary(
-            plugin, http, libraryPath, vlcPath, imagePath, audioPath, isUsingVLCJ));
+            plugin, http, libraryPath, vlcPath, imagePath, audioPath, videoPath, isUsingVLCJ));
   }
 
   /**

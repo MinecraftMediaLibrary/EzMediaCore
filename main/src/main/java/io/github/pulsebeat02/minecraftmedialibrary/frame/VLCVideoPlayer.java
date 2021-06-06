@@ -247,6 +247,19 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
   }
 
   @Override
+  public void resume(@NotNull final Collection<? extends Player> players) {
+    playing = true;
+    if (mediaPlayerComponent == null) {
+      initializePlayer();
+    }
+    mediaPlayerComponent.controls().start();
+    for (final Player p : players) {
+      p.playSound(p.getLocation(), sound, SoundCategory.MUSIC, 100.0F, 1.0F);
+    }
+    Logger.info(String.format("Resumed the Video! (%s)", url));
+  }
+
+  @Override
   public void setRepeat(final boolean setting) {
     mediaPlayerComponent.controls().setRepeat(setting);
     if (setting) {

@@ -22,7 +22,7 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.extraction;
 
-import io.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
+import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegDependencyInstallation;
 import io.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionSetting;
 import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 
