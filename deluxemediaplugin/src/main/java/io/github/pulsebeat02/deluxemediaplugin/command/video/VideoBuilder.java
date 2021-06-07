@@ -51,7 +51,7 @@ public final class VideoBuilder {
 
   public MapPlayer createMapPlayer() {
     return MapPlayer.builder()
-        .url(attributes.getFile().toString())
+        .url(attributes.getVideo().toString())
         .width(attributes.getScreenWidth())
         .height(attributes.getScreenHeight())
         .callback(
@@ -69,7 +69,7 @@ public final class VideoBuilder {
 
   public EntityPlayer createEntityPlayer(@NotNull final Player sender) {
     return EntityPlayer.builder()
-        .url(attributes.getFile().toString())
+        .url(attributes.getVideo().toString())
         .width(attributes.getScreenWidth())
         .height(attributes.getScreenHeight())
         .callback(
@@ -86,7 +86,7 @@ public final class VideoBuilder {
 
   public ChatPlayer createChatBoxPlayer() {
     return ChatPlayer.builder()
-        .url(attributes.getFile().toString())
+        .url(attributes.getVideo().toString())
         .width(attributes.getScreenWidth())
         .height(attributes.getScreenHeight())
         .callback(
@@ -101,7 +101,7 @@ public final class VideoBuilder {
 
   public ScoreboardPlayer createScoreboardPlayer() {
     return ScoreboardPlayer.builder()
-        .url(attributes.getFile().toString())
+        .url(attributes.getVideo().toString())
         .width(attributes.getScreenWidth())
         .height(attributes.getScreenHeight())
         .callback(
@@ -116,7 +116,7 @@ public final class VideoBuilder {
 
   public BlockHighlightPlayer createBlockHighlightPlayer(@NotNull final Player sender) {
     return BlockHighlightPlayer.builder()
-        .url(attributes.getFile().toString())
+        .url(attributes.getVideo().toString())
         .width(attributes.getScreenWidth())
         .height(attributes.getScreenHeight())
         .callback(

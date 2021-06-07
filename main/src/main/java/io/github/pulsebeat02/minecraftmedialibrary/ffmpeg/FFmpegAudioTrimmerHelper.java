@@ -23,9 +23,7 @@
 package io.github.pulsebeat02.minecraftmedialibrary.ffmpeg;
 
 import com.google.common.collect.ImmutableList;
-import io.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionConfiguration;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
@@ -38,27 +36,25 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/** An audio extraction helper that helps extract audio from video files. */
-public class FFmpegAudioExtractionHelper implements AudioExtractionContext {
+public class FFmpegAudioTrimmerHelper implements AudioTrimmerContext {
 
   private final List<String> arguments;
   private final Path input;
   private final Path output;
+  private final long start;
 
   /**
-   * Instantiates a new AudioExtractionHelper.
+   * Instantiates a new FFmpegAudioTrimmerHelper.
    *
-   * @param settings the settings
    * @param input the input
    * @param output the output
    */
-  public FFmpegAudioExtractionHelper(
-      @NotNull final ExtractionConfiguration settings,
-      @NotNull final Path input,
-      @NotNull final Path output) {
+  public FFmpegAudioTrimmerHelper(
+      @NotNull final Path input, @NotNull final Path output, final long start) {
     this.input = input.toAbsolutePath();
     this.output = output.toAbsolutePath();
-    arguments = generateArguments(settings);
+    this.start = start;
+    arguments = generateArguments();
     if (Files.exists(output)) {
       try {
         Files.delete(output);
@@ -69,32 +65,16 @@ public class FFmpegAudioExtractionHelper implements AudioExtractionContext {
   }
 
   /**
-   * Generates arguments from the ExtractionConfiguration. Example full command to extract ogg from
-   * an mp4 file:
+   * Generates arguments from the start time.
    *
-   * <p>/Users/bli24/IdeaProjects/MinecraftMediaLibrary/ffmpeg-test/ffmpeg/ffmpeg-x86_64-osx -f mp4
-   * -i /Users/bli24/IdeaProjects/MinecraftMediaLibrary/ffmpeg-test/video.mp4 -vn -acodec libvorbis
-   * -ab 160000 -ac 2 -ar 44100 -vol 1 -f ogg -y
-   * /Users/bli24/IdeaProjects/MinecraftMediaLibrary/ffmpeg-test/audio.ogg
-   *
-   * @param configuration the configuration
    * @return the UrlOutput
    */
-  private List<String> generateArguments(@NotNull final ExtractionConfiguration configuration) {
-    final String in = input.toString();
+  private List<String> generateArguments() {
     return new ArrayList<>(
         ImmutableList.<String>builder()
             .add(FFmpegDependencyInstallation.getFFmpegPath().toString())
-            .add("-f", FilenameUtils.getExtension(in))
-            .add("-i", in)
-            .add("-vn")
-            .add("-acodec", "libvorbis")
-            .add("-ab", String.valueOf(configuration.getBitrate()))
-            .add("-ac", String.valueOf(configuration.getChannels()))
-            .add("-ar", String.valueOf(configuration.getSamplingRate()))
-            .add("-vol", String.valueOf(configuration.getVolume()))
-            .add("-ss", String.valueOf(configuration.getStartTime()))
-            .add("-f", FilenameUtils.getExtension(output.toString()))
+            .add("-ss", String.valueOf(start))
+            .add("-i", input.toString(), output.toString())
             .build());
   }
 
@@ -108,14 +88,12 @@ public class FFmpegAudioExtractionHelper implements AudioExtractionContext {
   }
 
   @Override
-  public void extract() {
-    arguments.add("-y");
-    arguments.add(output.toString());
+  public void trim() {
     final ProcessBuilder builder = new ProcessBuilder(arguments);
     builder.redirectErrorStream(true);
     try {
       final Process p = builder.start();
-      Logger.info(String.format("Starting Extraction Process with Arguments: %s", arguments));
+      Logger.info(String.format("Starting Trimming Process with Arguments: %s", arguments));
       try (final BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
         String line;
         while (true) {
@@ -129,7 +107,7 @@ public class FFmpegAudioExtractionHelper implements AudioExtractionContext {
     } catch (final IOException e) {
       e.printStackTrace();
     }
-    Logger.info("Finished Extraction Process..!");
+    Logger.info("Finished Trimming Process..!");
   }
 
   @Override

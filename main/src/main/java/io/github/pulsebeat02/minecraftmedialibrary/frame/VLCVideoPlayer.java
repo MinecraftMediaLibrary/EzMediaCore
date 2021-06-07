@@ -291,6 +291,11 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
     this.frameRate = frameRate;
   }
 
+  @Override
+  public long getElapsedTime() {
+    return mediaPlayerComponent.status().time();
+  }
+
   /**
    * Gets the MediaPlayerComponent.
    *

@@ -28,8 +28,12 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
+import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegAudioTrimmerHelper;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
+import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
@@ -37,6 +41,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.CompletableFuture;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
@@ -60,6 +68,7 @@ public final class VideoCommand extends BaseCommand {
             .requires(super::testPermission)
             .then(literal("play").executes(this::playVideo))
             .then(literal("stop").executes(this::stopVideo))
+            .then(literal("resume").executes(this::resumeVideo))
             .then(new VideoLoadCommand(plugin, attributes).node())
             .then(new VideoSettingCommand(plugin, attributes).node())
             .build();
@@ -72,7 +81,6 @@ public final class VideoCommand extends BaseCommand {
     if (mediaNotSpecified(audience) || mediaProcessingIncomplete(audience)) {
       return SINGLE_SUCCESS;
     }
-    sendPlayInformation(audience);
     stopIfPlaying();
     if (plugin.getLibrary().isVlcj()) {
       final VideoType type = attributes.getVideoType();
@@ -108,6 +116,7 @@ public final class VideoCommand extends BaseCommand {
           format(text("VLC isn't enabled! Cannot play videos at the moment.", RED)));
       return SINGLE_SUCCESS;
     }
+    sendPlayInformation(audience);
     attributes.getPlayer().start(Bukkit.getOnlinePlayers());
     return SINGLE_SUCCESS;
   }
@@ -118,8 +127,40 @@ public final class VideoCommand extends BaseCommand {
     return SINGLE_SUCCESS;
   }
 
+  private int resumeVideo(@NotNull final CommandContext<CommandSender> context) {
+    final CommandSender sender = context.getSource();
+    final DeluxeMediaPlugin plugin = plugin();
+    final Audience audience = plugin.audience().sender(sender);
+    if (mediaNotSpecified(audience) || mediaProcessingIncomplete(audience)) {
+      return SINGLE_SUCCESS;
+    }
+    CompletableFuture.runAsync(
+            () -> {
+              final Path audio = attributes.getAudio();
+              final Path temp = attributes.getAudio().getParent().resolve("temp.ogg");
+              new FFmpegAudioTrimmerHelper(audio, temp, attributes.getPlayer().getElapsedTime())
+                  .trim();
+              final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), temp);
+              wrapper.buildResourcePack();
+              final Path path = Paths.get(wrapper.getPath());
+              attributes.setResourcepackUrl(
+                  plugin.getHttpConfiguration().getDaemon().generateUrl(path));
+              attributes.setHash(VideoExtractionUtilities.createHashSHA(path));
+            })
+        .thenRun(this::sendResourcepackFile)
+        .thenRunAsync(
+            () -> audience.sendMessage(format(text(("Successfully resumed video %s"), GOLD))));
+    return SINGLE_SUCCESS;
+  }
+
+  public void sendResourcepackFile() {
+    final String url = attributes.getResourcepackUrl();
+    final byte[] hash = attributes.getHash();
+    Bukkit.getOnlinePlayers().forEach(p -> p.setResourcePack(url, hash));
+  }
+
   private boolean mediaNotSpecified(@NotNull final Audience audience) {
-    if (attributes.getFile() == null && !attributes.isYoutube()) {
+    if (attributes.getVideo() == null && !attributes.isYoutube()) {
       audience.sendMessage(format(text("File and URL not specified yet!", RED)));
       return true;
     }
@@ -153,7 +194,7 @@ public final class VideoCommand extends BaseCommand {
           format(
               text(
                   String.format(
-                      "Starting Video on File: %s", PathUtilities.getName(attributes.getFile())),
+                      "Starting Video on File: %s", PathUtilities.getName(attributes.getVideo())),
                   GOLD)));
     }
   }

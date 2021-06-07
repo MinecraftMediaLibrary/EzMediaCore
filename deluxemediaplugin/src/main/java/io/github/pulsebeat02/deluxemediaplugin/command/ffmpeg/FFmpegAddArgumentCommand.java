@@ -54,30 +54,34 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
     node =
         literal("add")
             .then(
-                argument("argument", StringArgumentType.greedyString()).executes(this::addArgument))
+                argument("arguments", StringArgumentType.greedyString())
+                    .executes(this::addArgument))
             .then(
                 argument("index", IntegerArgumentType.integer())
                     .then(
-                        argument("argument", StringArgumentType.greedyString())
+                        argument("arguments", StringArgumentType.greedyString())
                             .executes(this::addIndexArgument)))
             .build();
   }
 
   private int addIndexArgument(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = plugin.audience().sender(context.getSource());
-    final String argument = context.getArgument("argument", String.class);
+    final String str = context.getArgument("arguments", String.class);
     final int index = context.getArgument("index", int.class);
-    if (argument.contains("=")) {
-      final String[] split = argument.split("=");
-      ffmpeg.addArguments(split[0], split[1], index);
-    } else {
-      ffmpeg.addArgument(argument, index);
+    final String[] args = str.split(" ");
+    for (final String arg : args) {
+      if (arg.contains("=")) {
+        final String[] split = arg.split("=");
+        ffmpeg.addArguments(split[0], split[1], index);
+      } else {
+        ffmpeg.addArgument(arg, index);
+      }
     }
     audience.sendMessage(
         format(
             ofChildren(
                 text("Added arguments ", GOLD),
-                text(argument, AQUA),
+                text(str, AQUA),
                 text(" to the FFmpeg command at index ", GOLD),
                 text(index, AQUA))));
     return SINGLE_SUCCESS;
@@ -85,18 +89,21 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
 
   private int addArgument(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = plugin.audience().sender(context.getSource());
-    final String argument = context.getArgument("argument", String.class);
-    if (argument.contains("=")) {
-      final String[] split = argument.split("=");
-      ffmpeg.addArguments(split[0], split[1]);
-    } else {
-      ffmpeg.addArgument(argument);
+    final String str = context.getArgument("arguments", String.class);
+    final String[] arguments = str.split(" ");
+    for (final String argument : arguments) {
+      if (argument.contains("=")) {
+        final String[] split = argument.split("=");
+        ffmpeg.addArguments(split[0], split[1]);
+      } else {
+        ffmpeg.addArgument(argument);
+      }
     }
     audience.sendMessage(
         format(
             ofChildren(
                 text("Added arguments ", GOLD),
-                text(argument, AQUA),
+                text(str, AQUA),
                 text(" to the FFmpeg command.", GOLD))));
     return SINGLE_SUCCESS;
   }

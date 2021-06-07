@@ -115,13 +115,14 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
     Logger.info(String.format("Created an FFmpeg Integrated %s Video Player (%s)", type, url));
   }
 
-  private void initializePlayer(final int seconds) {
+  private void initializePlayer(final long seconds) {
     final Input input;
     final Path path = Paths.get(url);
+    final long ms = seconds * 1000;
     if (Files.exists(path)) {
-      input = UrlInput.fromPath(path).setPosition(seconds);
+      input = UrlInput.fromPath(path).setPosition(ms);
     } else {
-      input = UrlInput.fromUrl(url).setPosition(seconds);
+      input = UrlInput.fromUrl(url).setPosition(ms);
     }
     ffmpeg =
         new FFmpeg(FFmpegDependencyInstallation.getFFmpegPath())
@@ -237,7 +238,7 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
     CompletableFuture.runAsync(
         () -> {
           do {
-            initializePlayer((int) (System.currentTimeMillis() - start) / 1000);
+            initializePlayer(getElapsedTime());
             future = ffmpeg.executeAsync();
             playAudio(players);
             try {
@@ -269,6 +270,11 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
   @Override
   public void setFrameRate(final int frameRate) {
     this.frameRate = frameRate;
+  }
+
+  @Override
+  public long getElapsedTime() {
+    return (int) (System.currentTimeMillis() - start) / 1000;
   }
 
   private void playAudio(@NotNull final Collection<? extends Player> players) {

@@ -64,12 +64,12 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
             .then(
                 literal("screen-dimension")
                     .then(
-                        argument("screen-dimensions", StringArgumentType.greedyString())
+                        argument("screen-dimensions", StringArgumentType.word())
                             .executes(this::setScreenDimensions)))
             .then(
                 literal("itemframe-dimension")
                     .then(
-                        argument("itemframe-dimensions", StringArgumentType.greedyString())
+                        argument("itemframe-dimensions", StringArgumentType.word())
                             .executes(this::setItemframeDimensions)))
             .then(
                 literal("starting-map")
@@ -81,13 +81,13 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
             .then(
                 literal("dither")
                     .then(
-                        argument("dithering-option", StringArgumentType.greedyString())
+                        argument("dithering-option", StringArgumentType.word())
                             .suggests(this::suggestDitheringOptions)
                             .executes(this::setDitherMode)))
             .then(
                 literal("mode")
                     .then(
-                        argument("video-mode", StringArgumentType.greedyString())
+                        argument("video-mode", StringArgumentType.word())
                             .suggests(this::suggestVideoModes)
                             .executes(this::setMode)))
             .build();

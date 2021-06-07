@@ -20,14 +20,12 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.extractor;
+package io.github.pulsebeat02.minecraftmedialibrary.ffmpeg;
 
 import java.nio.file.Path;
 import java.util.List;
 
-public interface AudioExtractionContext {
-  /** Extracts the audio from the video file to the specified location. */
-  void extract();
+public interface FFmpegExtractionProcess {
 
   /**
    * Gets the path to the input file.

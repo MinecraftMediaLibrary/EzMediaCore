@@ -78,13 +78,14 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
         completion.set(false);
         attributes.setYoutube(false);
         attributes.setExtractor(null);
-        attributes.setFile(file);
+        attributes.setVideo(file);
         CompletableFuture.runAsync(
                 () -> {
                   final Path audio = Paths.get(folder, "custom.ogg");
                   new FFmpegAudioExtractionHelper(
                           plugin.getEncoderConfiguration().getSettings(), file, audio)
                       .extract();
+                  attributes.setAudio(audio);
                   final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), audio);
                   wrapper.buildResourcePack();
                   final Path path = Paths.get(wrapper.getPath());
@@ -115,7 +116,8 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
                 new YoutubeExtraction(
                     mrl, Paths.get(folder), plugin.getEncoderConfiguration().getSettings());
             extraction.extractAudio();
-            attributes.setFile(extraction.getVideo());
+            attributes.setVideo(extraction.getVideo());
+            attributes.setAudio(extraction.getAudio());
             attributes.setExtractor(extraction);
             final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), extraction);
             wrapper.buildResourcePack();
@@ -148,7 +150,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     return SINGLE_SUCCESS;
   }
 
-  public void sendResourcepackFile() {
+  private void sendResourcepackFile() {
     final String url = attributes.getResourcepackUrl();
     final byte[] hash = attributes.getHash();
     Bukkit.getOnlinePlayers().forEach(p -> p.setResourcePack(url, hash));

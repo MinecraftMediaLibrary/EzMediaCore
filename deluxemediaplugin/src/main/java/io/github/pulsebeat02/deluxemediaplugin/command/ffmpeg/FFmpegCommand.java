@@ -96,10 +96,12 @@ public final class FFmpegCommand extends BaseCommand {
     return ChatUtilities.getCommandUsage(
         ImmutableMap.<String, String>builder()
             .put("/ffmpeg reset", "Reset all arguments in the FFmpeg command")
-            .put("/ffmpeg add [key=value]", "Adds an argument to the end of the FFmpeg command")
             .put(
-                "/ffmpeg add [index] [key=value]",
-                "Adds an argument to the specified index of the FFmpeg command")
+                "/ffmpeg add [key=value] [key=value] ...",
+                "Adds the arguments to the end of the FFmpeg command")
+            .put(
+                "/ffmpeg add [index] [key=value] [key=value] ...",
+                "Adds the arguments to the specified index of the FFmpeg command")
             .put(
                 "/ffmpeg remove [key=value]",
                 "Removes the specified argument from the FFmpeg command")

@@ -39,7 +39,8 @@ public final class VideoCommandAttributes {
   private VLCVideoPlayer player;
   private DitherHolder dither;
   private VideoType mode;
-  private Path file;
+  private Path video;
+  private Path audio;
 
   private boolean youtube;
   private int frameWidth;
@@ -85,12 +86,12 @@ public final class VideoCommandAttributes {
     this.player = player;
   }
 
-  public Path getFile() {
-    return file;
+  public Path getVideo() {
+    return video;
   }
 
-  public void setFile(final Path file) {
-    this.file = file;
+  public void setVideo(final Path video) {
+    this.video = video;
   }
 
   public boolean isYoutube() {
@@ -175,5 +176,13 @@ public final class VideoCommandAttributes {
 
   public void setHash(final byte[] hash) {
     this.hash = hash;
+  }
+
+  public Path getAudio() {
+    return audio;
+  }
+
+  public void setAudio(final Path audio) {
+    this.audio = audio;
   }
 }

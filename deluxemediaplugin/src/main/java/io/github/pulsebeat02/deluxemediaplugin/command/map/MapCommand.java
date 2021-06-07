@@ -54,7 +54,9 @@ public final class MapCommand extends BaseCommand {
     node =
         literal(getName())
             .requires(super::testPermission)
-            .then(argument("id", IntegerArgumentType.integer()).executes(this::giveMap))
+            .then(
+                argument("id", IntegerArgumentType.integer(-2_147_483_647, 2_147_483_647))
+                    .executes(this::giveMap))
             .build();
   }
 

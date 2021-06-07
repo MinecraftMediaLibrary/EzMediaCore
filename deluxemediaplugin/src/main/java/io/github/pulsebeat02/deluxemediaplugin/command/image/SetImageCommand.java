@@ -73,8 +73,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
             .then(
                 literal("dimensions")
                     .then(
-                        argument("dims", StringArgumentType.greedyString())
-                            .executes(this::setDimensions)))
+                        argument("dims", StringArgumentType.word()).executes(this::setDimensions)))
             .build();
   }
 

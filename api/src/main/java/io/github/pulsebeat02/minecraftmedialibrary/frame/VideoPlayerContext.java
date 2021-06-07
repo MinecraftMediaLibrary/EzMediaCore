@@ -133,9 +133,16 @@ public interface VideoPlayerContext {
   int getFrameRate();
 
   /**
-   * Sets the frame rate for the video
+   * Sets the frame rate for the video.
    *
    * @param frameRate the frames in hertz
    */
   void setFrameRate(int frameRate);
+
+  /**
+   * Gets the elapsed time of the video.
+   *
+   * @return the elapsed time
+   */
+  long getElapsedTime();
 }
