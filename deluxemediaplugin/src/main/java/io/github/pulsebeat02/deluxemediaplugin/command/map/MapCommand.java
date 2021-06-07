@@ -62,7 +62,7 @@ public final class MapCommand extends BaseCommand {
     final CommandSender sender = context.getSource();
     final Audience audience = getPlugin().audience().sender(sender);
     if (!(sender instanceof Player)) {
-      audience.sendMessage(text("You must be a player to execute this command!", RED));
+      audience.sendMessage(text("You must be a Player to run this command!", RED));
       return SINGLE_SUCCESS;
     }
     final int id = context.getArgument("id", int.class);
