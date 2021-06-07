@@ -22,17 +22,15 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.image;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
-import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImage;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
 import io.github.pulsebeat02.minecraftmedialibrary.image.gif.DynamicImage;
-import java.util.OptionalLong;
 import java.util.Set;
 import java.util.UUID;
 import net.kyori.adventure.audience.Audience;
@@ -63,7 +61,9 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
         literal("purge")
             .then(
                 literal("map")
-                    .then(argument("id", StringArgumentType.word()).executes(this::purgeMap)))
+                    .then(
+                        argument("id", IntegerArgumentType.integer(-2_147_483_647, 2_147_483_647))
+                            .executes(this::purgeMap)))
             .then(literal("all").executes(this::purgeAllMaps))
             .build();
     Bukkit.getPluginManager().registerEvents(this, attributes.getPlugin());
@@ -71,19 +71,17 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
 
   private int purgeMap(@NotNull final CommandContext<CommandSender> context) {
     final DeluxeMediaPlugin plugin = attributes.getPlugin();
-    final Audience audience = plugin.audience().sender(context.getSource());
-    final OptionalLong optional =
-            ChatUtilities.checkMapBoundaries(audience, context.getArgument("id", String.class));
-    if (!optional.isPresent()) {
-      return SINGLE_SUCCESS;
-    }
     final MediaLibrary library = plugin.getLibrary();
-    final int id = (int) optional.getAsLong();
+    final int id = context.getArgument("id", int.class);
     attributes.getImages().removeIf(x -> x.getMap() == id);
     StaticImage.resetMap(library, id);
     DynamicImage.resetMap(library, id);
-    audience.sendMessage(
-        format(ofChildren(text("Successfully purged all maps with id ", GOLD), text(id, AQUA))));
+    plugin
+        .audience()
+        .sender(context.getSource())
+        .sendMessage(
+            format(
+                ofChildren(text("Successfully purged all maps with id ", GOLD), text(id, AQUA))));
     return SINGLE_SUCCESS;
   }
 

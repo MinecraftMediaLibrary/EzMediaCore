@@ -22,6 +22,7 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.image;
 
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -63,7 +64,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
             .then(
                 literal("map")
                     .then(
-                        argument("id", LongArgumentType.longArg())
+                        argument("id", IntegerArgumentType.integer(-2_147_483_647, 2_147_483_647))
                             .then(
                                 argument("mrl", StringArgumentType.greedyString())
                                     .executes(this::setImage))))
@@ -78,12 +79,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
   private int setImage(@NotNull final CommandContext<CommandSender> context) {
     final DeluxeMediaPlugin plugin = attributes.getPlugin();
     final Audience audience = plugin.audience().sender(context.getSource());
-    final OptionalLong optional =
-        ChatUtilities.checkMapBoundaries(audience, context.getArgument("id", String.class));
-    if (!optional.isPresent()) {
-      return SINGLE_SUCCESS;
-    }
-    final int id = (int) optional.getAsLong();
+    final int id = context.getArgument("id", int.class);
     final String mrl = context.getArgument("mrl", String.class);
     final ComponentLike successful =
         format(text(String.format("Successfully drew image on map %d", id), GOLD));

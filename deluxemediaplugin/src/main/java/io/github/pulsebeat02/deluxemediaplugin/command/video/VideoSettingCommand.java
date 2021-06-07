@@ -23,6 +23,7 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
@@ -33,7 +34,6 @@ import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
@@ -69,7 +69,9 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
             .then(
                 literal("starting-map")
                     .then(
-                        argument("map-id", StringArgumentType.greedyString())
+                        argument(
+                                "map-id",
+                                IntegerArgumentType.integer(-2_147_483_647, 2_147_483_647))
                             .executes(this::setStartingMap)))
             .then(
                 literal("dither")
@@ -145,17 +147,16 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
   }
 
   private int setStartingMap(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = attributes.getPlugin().audience().sender(context.getSource());
-    final OptionalLong id =
-        ChatUtilities.checkMapBoundaries(audience, context.getArgument("map-id", String.class));
-    if (!id.isPresent()) {
-      return SINGLE_SUCCESS;
-    }
-    attributes.setStartingMap((int) id.getAsLong());
-    audience.sendMessage(
-        format(
-            ofChildren(
-                text("Set starting map id to ", GOLD), text(attributes.getStartingMap(), AQUA))));
+    attributes.setStartingMap(context.getArgument("map-id", int.class));
+    attributes
+        .getPlugin()
+        .audience()
+        .sender(context.getSource())
+        .sendMessage(
+            format(
+                ofChildren(
+                    text("Set starting map id to ", GOLD),
+                    text(attributes.getStartingMap(), AQUA))));
     return SINGLE_SUCCESS;
   }
 
