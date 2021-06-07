@@ -39,12 +39,12 @@ public final class ImageCommand extends BaseCommand {
   public ImageCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "image", executor, "deluxemediaplugin.command.image");
-    final ImageCommandAttributes attributes = new ImageCommandAttributes(plugin);
+    final ImageCommandAttributes attributes = new ImageCommandAttributes();
     node =
         literal(getName())
             .requires(super::testPermission)
-            .then(new ResetImageCommand(attributes).node())
-            .then(new SetImageCommand(attributes).node())
+            .then(new ResetImageCommand(plugin, attributes).node())
+            .then(new SetImageCommand(plugin, attributes).node())
             .build();
   }
 

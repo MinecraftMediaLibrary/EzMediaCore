@@ -53,15 +53,15 @@ public final class VideoCommand extends BaseCommand {
   public VideoCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "video", executor, "deluxemediaplugin.command.video", "");
-    attributes = new VideoCommandAttributes(plugin);
+    attributes = new VideoCommandAttributes();
     builder = new VideoBuilder(plugin.getLibrary(), attributes);
     node =
         literal(getName())
             .requires(super::testPermission)
             .then(literal("play").executes(this::playVideo))
             .then(literal("stop").executes(this::stopVideo))
-            .then(new VideoLoadCommand(attributes).node())
-            .then(new VideoSettingCommand(attributes).node())
+            .then(new VideoLoadCommand(plugin, attributes).node())
+            .then(new VideoSettingCommand(plugin, attributes).node())
             .build();
   }
 

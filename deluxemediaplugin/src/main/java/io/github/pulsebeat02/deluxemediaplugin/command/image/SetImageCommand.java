@@ -55,8 +55,11 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
 
   private final LiteralCommandNode<CommandSender> node;
   private final ImageCommandAttributes attributes;
+  private final DeluxeMediaPlugin plugin;
 
-  public SetImageCommand(@NotNull final ImageCommandAttributes attributes) {
+  public SetImageCommand(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final ImageCommandAttributes attributes) {
+    this.plugin = plugin;
     this.attributes = attributes;
     node =
         literal("set")
@@ -76,7 +79,6 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
   }
 
   private int setImage(@NotNull final CommandContext<CommandSender> context) {
-    final DeluxeMediaPlugin plugin = attributes.getPlugin();
     final Audience audience = plugin.audience().sender(context.getSource());
     final int id = context.getArgument("id", int.class);
     final String mrl = context.getArgument("mrl", String.class);
@@ -115,7 +117,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
   }
 
   private int setDimensions(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = attributes.getPlugin().audience().sender(context.getSource());
+    final Audience audience = plugin.audience().sender(context.getSource());
     final Optional<int[]> optional =
         ChatUtilities.checkDimensionBoundaries(audience, context.getArgument("dims", String.class));
     if (!optional.isPresent()) {

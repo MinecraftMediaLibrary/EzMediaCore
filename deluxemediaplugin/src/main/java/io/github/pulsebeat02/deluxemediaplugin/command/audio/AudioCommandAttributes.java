@@ -32,14 +32,12 @@ public final class AudioCommandAttributes {
 
   private final AtomicBoolean completion;
   private final String soundKey;
-  private final DeluxeMediaPlugin plugin;
 
   private Path resourcepackAudio;
   private String resourcepackLink;
   private byte[] resourcepackHash;
 
   public AudioCommandAttributes(@NotNull final DeluxeMediaPlugin plugin) {
-    this.plugin = plugin;
     completion = new AtomicBoolean(false);
     soundKey = plugin.getName().toLowerCase();
   }
@@ -78,9 +76,5 @@ public final class AudioCommandAttributes {
 
   public void setResourcepackHash(final byte[] resourcepackHash) {
     this.resourcepackHash = resourcepackHash;
-  }
-
-  public DeluxeMediaPlugin getPlugin() {
-    return plugin;
   }
 }

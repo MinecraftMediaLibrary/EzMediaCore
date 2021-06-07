@@ -22,7 +22,6 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
-import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
@@ -35,7 +34,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class VideoCommandAttributes {
 
   private final AtomicBoolean completion;
-  private final DeluxeMediaPlugin plugin;
 
   private YoutubeExtraction extractor;
   private VLCVideoPlayer player;
@@ -53,8 +51,7 @@ public final class VideoCommandAttributes {
   private String resourcepackUrl;
   private byte[] hash;
 
-  public VideoCommandAttributes(@NotNull final DeluxeMediaPlugin plugin) {
-    this.plugin = plugin;
+  public VideoCommandAttributes() {
     dither = DitherSetting.SIERRA_FILTER_LITE_DITHER.getHolder();
     frameWidth = 5;
     frameHeight = 5;
@@ -154,10 +151,6 @@ public final class VideoCommandAttributes {
 
   public void setVideoType(@NotNull final VideoType type) {
     mode = type;
-  }
-
-  public DeluxeMediaPlugin getPlugin() {
-    return plugin;
   }
 
   public VideoType getMode() {

@@ -70,6 +70,9 @@ public class FFmpegCustomCommandExecutor implements CustomCommandExecutor {
   @Override
   public CustomCommandExecutor addArguments(
       @NotNull final String key, @NotNull final String value, final int index) {
+    if (index < 0 || index > arguments.size() - 1) {
+      return this;
+    }
     arguments.add(index, value);
     arguments.add(index, key);
     return this;

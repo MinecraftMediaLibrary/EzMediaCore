@@ -54,8 +54,11 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   private final LiteralCommandNode<CommandSender> node;
   private final VideoCommandAttributes attributes;
+  private final DeluxeMediaPlugin plugin;
 
-  public VideoLoadCommand(@NotNull final VideoCommandAttributes attributes) {
+  public VideoLoadCommand(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final VideoCommandAttributes attributes) {
+    this.plugin = plugin;
     this.attributes = attributes;
     node =
         literal("load")
@@ -65,7 +68,6 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private int loadVideo(@NotNull final CommandContext<CommandSender> context) {
-    final DeluxeMediaPlugin plugin = attributes.getPlugin();
     final Audience audience = plugin.audience().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
     final String folder = String.format("%s/mml/", plugin.getDataFolder().getAbsolutePath());
@@ -131,7 +133,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = attributes.getPlugin().audience().sender(context.getSource());
+    final Audience audience = plugin.audience().sender(context.getSource());
     if (unloadedResourcepack(audience)) {
       return SINGLE_SUCCESS;
     }

@@ -55,8 +55,11 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
 
   private final LiteralCommandNode<CommandSender> node;
   private final ImageCommandAttributes attributes;
+  private final DeluxeMediaPlugin plugin;
 
-  public ResetImageCommand(@NotNull final ImageCommandAttributes attributes) {
+  public ResetImageCommand(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final ImageCommandAttributes attributes) {
+    this.plugin = plugin;
     this.attributes = attributes;
     node =
         literal("purge")
@@ -67,11 +70,10 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
                             .executes(this::purgeMap)))
             .then(literal("all").executes(this::purgeAllMaps))
             .build();
-    Bukkit.getPluginManager().registerEvents(this, attributes.getPlugin());
+    Bukkit.getPluginManager().registerEvents(this, plugin);
   }
 
   private int purgeMap(@NotNull final CommandContext<CommandSender> context) {
-    final DeluxeMediaPlugin plugin = attributes.getPlugin();
     final MediaLibrary library = plugin.getLibrary();
     final int id = context.getArgument("id", int.class);
     attributes.getImages().removeIf(x -> x.getMap() == id);
@@ -88,7 +90,7 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
 
   private int purgeAllMaps(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
-    final Audience audience = attributes.getPlugin().audience().sender(sender);
+    final Audience audience = plugin.audience().sender(sender);
     if (!(sender instanceof Player)) {
       audience.sendMessage(format(text("You must be a Player to run this command!", RED)));
       return SINGLE_SUCCESS;
@@ -109,7 +111,6 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
     final Set<UUID> listen = attributes.getListen();
     if (listen.contains(uuid)) {
       event.setCancelled(true);
-      final DeluxeMediaPlugin plugin = attributes.getPlugin();
       final Audience audience = plugin.audience().player(p);
       if (event.getMessage().equals("YES")) {
         final MediaLibrary library = plugin.getLibrary();

@@ -23,9 +23,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.image;
 
 import com.google.common.collect.ImmutableSet;
-import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,24 +31,18 @@ import java.util.UUID;
 
 public final class ImageCommandAttributes {
 
-  private final DeluxeMediaPlugin plugin;
   private final Set<StaticImageProxy> images;
   private final Set<UUID> listen;
   private final Set<String> extensions;
   private int width;
   private int height;
 
-  public ImageCommandAttributes(@NotNull final DeluxeMediaPlugin plugin) {
-    this.plugin = plugin;
+  public ImageCommandAttributes() {
     images = new HashSet<>();
     listen = new HashSet<>();
     extensions = ImmutableSet.of(".png", ".jpg", ".jpeg", ".tif", ".gif");
     width = 1;
     height = 1;
-  }
-
-  public DeluxeMediaPlugin getPlugin() {
-    return plugin;
   }
 
   public Set<StaticImageProxy> getImages() {

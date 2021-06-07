@@ -52,18 +52,20 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
 
   private final LiteralCommandNode<CommandSender> node;
   private final AudioCommandAttributes attributes;
+  private final DeluxeMediaPlugin plugin;
 
-  public AudioLoadCommand(@NotNull final AudioCommandAttributes attributes) {
+  public AudioLoadCommand(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final AudioCommandAttributes attributes) {
+    this.plugin = plugin;
+    this.attributes = attributes;
     node =
         literal("load")
             .then(argument("mrl", StringArgumentType.greedyString()).executes(this::loadAudio))
             .then(literal("resourcepack").executes(this::sendResourcepack))
             .build();
-    this.attributes = attributes;
   }
 
   private int loadAudio(@NotNull final CommandContext<CommandSender> context) {
-    final DeluxeMediaPlugin plugin = attributes.getPlugin();
     final Audience audience = plugin.audience().sender(context.getSource());
     final MediaLibrary library = plugin.getLibrary();
     final String mrl = context.getArgument("mrl", String.class);
@@ -109,7 +111,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = attributes.getPlugin().audience().sender(context.getSource());
+    final Audience audience = plugin.audience().sender(context.getSource());
     if (unloadedResourcepack()) {
       audience.sendMessage(format(text("Please load a resourcepack first!", RED)));
       return SINGLE_SUCCESS;

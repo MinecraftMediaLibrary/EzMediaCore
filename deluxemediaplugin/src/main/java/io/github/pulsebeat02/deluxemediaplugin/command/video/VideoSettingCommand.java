@@ -29,6 +29,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
@@ -52,8 +53,11 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
 
   private final LiteralCommandNode<CommandSender> node;
   private final VideoCommandAttributes attributes;
+  private final DeluxeMediaPlugin plugin;
 
-  public VideoSettingCommand(@NotNull final VideoCommandAttributes attributes) {
+  public VideoSettingCommand(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final VideoCommandAttributes attributes) {
+    this.plugin = plugin;
     this.attributes = attributes;
     node =
         literal("set")
@@ -102,7 +106,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
   }
 
   private int setScreenDimensions(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = attributes.getPlugin().audience().sender(context.getSource());
+    final Audience audience = plugin.audience().sender(context.getSource());
     final Optional<int[]> optional =
         ChatUtilities.checkDimensionBoundaries(
             audience, context.getArgument("screen-dimensions", String.class));
@@ -125,7 +129,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
   }
 
   private int setItemframeDimensions(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = attributes.getPlugin().audience().sender(context.getSource());
+    final Audience audience = plugin.audience().sender(context.getSource());
     final Optional<int[]> optional =
         ChatUtilities.checkDimensionBoundaries(
             audience, context.getArgument("itemframe-dimensions", String.class));
@@ -149,8 +153,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
 
   private int setStartingMap(@NotNull final CommandContext<CommandSender> context) {
     attributes.setStartingMap(context.getArgument("map-id", int.class));
-    attributes
-        .getPlugin()
+    plugin
         .audience()
         .sender(context.getSource())
         .sendMessage(
@@ -162,7 +165,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
   }
 
   private int setDitherMode(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = attributes.getPlugin().audience().sender(context.getSource());
+    final Audience audience = plugin.audience().sender(context.getSource());
     final String algorithm = context.getArgument("dithering-option", String.class);
     final DitherSetting setting = DitherSetting.fromString(algorithm);
     if (setting == null) {
@@ -177,7 +180,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
   }
 
   private int setMode(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = attributes.getPlugin().audience().sender(context.getSource());
+    final Audience audience = plugin.audience().sender(context.getSource());
     final String mode = context.getArgument("video-mode", String.class);
     final VideoType type = VideoType.fromString(mode);
     if (type == null) {

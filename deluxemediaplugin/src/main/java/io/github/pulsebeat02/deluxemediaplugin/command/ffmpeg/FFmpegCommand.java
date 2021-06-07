@@ -51,16 +51,16 @@ public final class FFmpegCommand extends BaseCommand {
   public FFmpegCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "ffmpeg", executor, "deluxemediaplugin.command.ffmpeg");
+    ffmpeg = new FFmpegCustomCommandExecutor();
     node =
         literal(getName())
             .requires(super::testPermission)
             .then(literal("reset").executes(this::resetFFmpegCommand))
-            .then(literal("add"))
-            .then(literal("remove"))
+            .then(new FFmpegAddArgumentCommand(plugin, ffmpeg).node())
+            .then(new FFmpegRemoveArgumentCommand(plugin, ffmpeg).node())
             .then(literal("list-arguments").executes(this::listFFmpegArguments))
             .then(literal("run").executes(this::runFFmpegProcess))
             .build();
-    ffmpeg = new FFmpegCustomCommandExecutor();
   }
 
   private int resetFFmpegCommand(@NotNull final CommandContext<CommandSender> context) {
