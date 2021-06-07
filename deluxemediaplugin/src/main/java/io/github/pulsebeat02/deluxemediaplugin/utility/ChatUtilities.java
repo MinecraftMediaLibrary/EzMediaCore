@@ -22,17 +22,16 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.utility;
 
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
 
 public final class ChatUtilities {
 

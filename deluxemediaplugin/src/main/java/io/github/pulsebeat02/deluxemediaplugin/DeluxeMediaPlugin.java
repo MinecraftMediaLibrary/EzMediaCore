@@ -33,17 +33,16 @@ import io.github.pulsebeat02.deluxemediaplugin.utility.CommandUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibraryProvider;
 import io.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
-import org.bstats.bukkit.Metrics;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-
 import java.lang.reflect.Constructor;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import org.bstats.bukkit.Metrics;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public final class DeluxeMediaPlugin extends JavaPlugin {
 

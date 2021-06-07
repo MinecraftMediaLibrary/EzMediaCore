@@ -23,15 +23,14 @@
 package io.github.pulsebeat02.deluxemediaplugin.update;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import org.bukkit.Bukkit;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Scanner;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
 
 public class PluginUpdateChecker {
 

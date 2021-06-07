@@ -45,7 +45,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
-public class MapCommand extends BaseCommand {
+public final class MapCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> node;
 
@@ -78,7 +78,7 @@ public class MapCommand extends BaseCommand {
   }
 
   @Override
-  public LiteralCommandNode<CommandSender> getCommandNode() {
+  public @NotNull LiteralCommandNode<CommandSender> getCommandNode() {
     return node;
   }
 }

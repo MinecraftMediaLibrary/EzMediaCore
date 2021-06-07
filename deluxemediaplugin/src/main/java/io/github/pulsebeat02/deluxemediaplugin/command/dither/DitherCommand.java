@@ -41,7 +41,7 @@ import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
-public class DitherCommand extends BaseCommand {
+public final class DitherCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> node;
 
@@ -65,7 +65,7 @@ public class DitherCommand extends BaseCommand {
   }
 
   @Override
-  public LiteralCommandNode<CommandSender> getCommandNode() {
+  public @NotNull LiteralCommandNode<CommandSender> getCommandNode() {
     return node;
   }
 

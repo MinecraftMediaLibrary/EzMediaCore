@@ -20,15 +20,13 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.deluxemediaplugin.rewrite.video;
+package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
-import io.github.pulsebeat02.deluxemediaplugin.rewrite.reference.VideoBuilder;
-import io.github.pulsebeat02.deluxemediaplugin.rewrite.reference.VideoType;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
@@ -46,7 +44,7 @@ import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
-public class VideoCommand extends BaseCommand {
+public final class VideoCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> node;
   private final VideoCommandAttributes attributes;
@@ -62,7 +60,8 @@ public class VideoCommand extends BaseCommand {
             .requires(super::testPermission)
             .then(literal("play").executes(this::playVideo))
             .then(literal("stop").executes(this::stopVideo))
-            .then(new VideoLoadCommand<>(attributes).commandNode())
+            .then(new VideoLoadCommand(attributes).getCommandNode())
+            .then(new VideoSettingCommand(attributes).getCommandNode())
             .build();
   }
 
@@ -167,7 +166,7 @@ public class VideoCommand extends BaseCommand {
   public TextComponent usage() {
     return ChatUtilities.getCommandUsage(
         ImmutableMap.<String, String>builder()
-            .put("/video", "Lists the command usage for the video command")
+            .put("/video", "Lists the current video playing")
             .put("/video play", "Plays the video")
             .put("/video stop", "Stops the video")
             .put("/video load [url]", "Loads a Youtube link")
@@ -188,7 +187,7 @@ public class VideoCommand extends BaseCommand {
   }
 
   @Override
-  public LiteralCommandNode<CommandSender> getCommandNode() {
+  public @NotNull LiteralCommandNode<CommandSender> getCommandNode() {
     return node;
   }
 }

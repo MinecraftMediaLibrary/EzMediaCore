@@ -25,13 +25,12 @@ package io.github.pulsebeat02.deluxemediaplugin.command.image;
 import com.google.common.collect.ImmutableSet;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.jetbrains.annotations.NotNull;
 
-public class ImageCommandAttributes {
+public final class ImageCommandAttributes {
 
   private final DeluxeMediaPlugin plugin;
   private final Set<StaticImageProxy> images;

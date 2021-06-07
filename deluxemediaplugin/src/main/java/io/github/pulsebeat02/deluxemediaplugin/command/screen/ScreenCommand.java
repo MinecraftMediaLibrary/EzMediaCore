@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
-public class ScreenCommand extends BaseCommand {
+public final class ScreenCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> node;
 
@@ -71,7 +71,7 @@ public class ScreenCommand extends BaseCommand {
   }
 
   @Override
-  public LiteralCommandNode<CommandSender> getCommandNode() {
+  public @NotNull LiteralCommandNode<CommandSender> getCommandNode() {
     return node;
   }
 }

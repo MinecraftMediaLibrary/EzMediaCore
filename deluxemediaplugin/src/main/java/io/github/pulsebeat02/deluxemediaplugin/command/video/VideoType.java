@@ -21,38 +21,33 @@
 .                                                                                        .
 .........................................................................................*/
 
-package io.github.pulsebeat02.deluxemediaplugin.command;
+package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
-import com.mojang.brigadier.tree.ArgumentCommandNode;
-import com.mojang.brigadier.tree.CommandNode;
-import com.mojang.brigadier.tree.LiteralCommandNode;
-import com.mojang.brigadier.tree.RootCommandNode;
 import org.jetbrains.annotations.NotNull;
 
-@FunctionalInterface
-public interface CommandSegment<S, N extends CommandNode<S>> {
+public enum VideoType {
+  ITEMFRAME("itemframe-maps"),
+  ARMOR_STAND("armorstands"),
+  CHATBOX("chatbox"),
+  DEBUG_HIGHLIGHTS("debug-highlights"),
+  SCOREBOARD("scoreboard");
 
-  @NotNull
-  N getCommandNode();
+  private final String name;
 
-  default LiteralArgumentBuilder<S> literal(final String name) {
-    return LiteralArgumentBuilder.literal(name);
+  VideoType(@NotNull final String name) {
+    this.name = name;
   }
 
-  default <T> RequiredArgumentBuilder<S, T> argument(
-      final String name, final ArgumentType<T> type) {
-    return RequiredArgumentBuilder.argument(name, type);
+  public static VideoType fromString(@NotNull final String str) {
+    for (final VideoType type : values()) {
+      if (type.getName().equals(str)) {
+        return type;
+      }
+    }
+    return null;
   }
 
-  @FunctionalInterface
-  interface Root<S> extends CommandSegment<S, RootCommandNode<S>> {}
-
-  @FunctionalInterface
-  interface Literal<S> extends CommandSegment<S, LiteralCommandNode<S>> {}
-
-  @FunctionalInterface
-  interface Argument<S, T> extends CommandSegment<S, ArgumentCommandNode<S, T>> {}
+  public String getName() {
+    return name;
+  }
 }

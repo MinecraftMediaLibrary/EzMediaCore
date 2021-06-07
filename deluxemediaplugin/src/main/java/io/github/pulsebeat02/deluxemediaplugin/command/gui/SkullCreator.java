@@ -24,14 +24,6 @@ package io.github.pulsebeat02.deluxemediaplugin.command.gui;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.SkullType;
-import org.bukkit.block.Block;
-import org.bukkit.block.Skull;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.SkullMeta;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -40,6 +32,13 @@ import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.SkullType;
+import org.bukkit.block.Block;
+import org.bukkit.block.Skull;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 
 /**
  * A library for the Bukkit API to create player skulls from names, base64 strings, and texture
@@ -49,7 +48,7 @@ import java.util.UUID;
  *
  * @author Dean B on 12/28/2016.
  */
-public class SkullCreator {
+public final class SkullCreator {
 
   private static boolean warningPosted = false;
   // some reflection stuff to be used when setting a skull's profile

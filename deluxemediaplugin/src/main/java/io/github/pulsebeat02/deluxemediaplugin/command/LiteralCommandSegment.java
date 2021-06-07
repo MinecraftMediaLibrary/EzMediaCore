@@ -23,6 +23,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command;
 
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import org.jetbrains.annotations.NotNull;
 
 public interface LiteralCommandSegment<S> extends CommandSegment<S, LiteralCommandNode<S>> {
 
@@ -32,5 +33,6 @@ public interface LiteralCommandSegment<S> extends CommandSegment<S, LiteralComma
    * @return literal command node.
    */
   @Override
+  @NotNull
   LiteralCommandNode<S> getCommandNode();
 }

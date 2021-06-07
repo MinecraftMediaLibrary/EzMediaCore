@@ -27,15 +27,14 @@ import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImage;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.jetbrains.annotations.NotNull;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.jetbrains.annotations.NotNull;
 
 public class PictureConfiguration extends ConfigurationProvider {
 

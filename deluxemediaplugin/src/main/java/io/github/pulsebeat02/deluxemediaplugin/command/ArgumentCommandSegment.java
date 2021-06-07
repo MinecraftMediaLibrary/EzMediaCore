@@ -23,6 +23,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command;
 
 import com.mojang.brigadier.tree.ArgumentCommandNode;
+import org.jetbrains.annotations.NotNull;
 
 public interface ArgumentCommandSegment<S, T> extends CommandSegment<S, ArgumentCommandNode<S, T>> {
 
@@ -32,5 +33,6 @@ public interface ArgumentCommandSegment<S, T> extends CommandSegment<S, Argument
    * @return command node
    */
   @Override
+  @NotNull
   ArgumentCommandNode<S, T> getCommandNode();
 }

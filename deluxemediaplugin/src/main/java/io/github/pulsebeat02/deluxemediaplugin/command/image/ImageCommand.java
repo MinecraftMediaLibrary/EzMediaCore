@@ -32,20 +32,19 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 
-public class ImageCommand extends BaseCommand {
+public final class ImageCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> node;
-  private final ImageCommandAttributes attributes;
 
   public ImageCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "image", executor, "deluxemediaplugin.command.image");
-    attributes = new ImageCommandAttributes(plugin);
+    final ImageCommandAttributes attributes = new ImageCommandAttributes(plugin);
     node =
         literal(getName())
             .requires(super::testPermission)
-            .then(new ResetImageCommand<>(attributes).commandNode())
-            .then(new SetImageCommand<>(attributes).commandNode())
+            .then(new ResetImageCommand(attributes).getCommandNode())
+            .then(new SetImageCommand(attributes).getCommandNode())
             .build();
   }
 
@@ -60,7 +59,7 @@ public class ImageCommand extends BaseCommand {
   }
 
   @Override
-  public LiteralCommandNode<CommandSender> getCommandNode() {
+  public @NotNull LiteralCommandNode<CommandSender> getCommandNode() {
     return node;
   }
 }

@@ -20,29 +20,28 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.deluxemediaplugin.rewrite.video;
+package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.rewrite.CommandSegment;
+import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegAudioExtractionHelper;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
-import net.kyori.adventure.audience.Audience;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import net.kyori.adventure.audience.Audience;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
@@ -50,7 +49,7 @@ import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
-public class VideoLoadCommand<S> implements CommandSegment.Literal<CommandSender> {
+public final class VideoLoadCommand implements CommandSegment.Literal<CommandSender> {
 
   private final LiteralCommandNode<CommandSender> node;
   private final VideoCommandAttributes attributes;
@@ -159,7 +158,7 @@ public class VideoLoadCommand<S> implements CommandSegment.Literal<CommandSender
   }
 
   @Override
-  public @NotNull LiteralCommandNode<CommandSender> commandNode() {
+  public @NotNull LiteralCommandNode<CommandSender> getCommandNode() {
     return node;
   }
 }

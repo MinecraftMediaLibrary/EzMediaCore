@@ -26,12 +26,15 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.rewrite.CommandSegment;
+import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImage;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
 import io.github.pulsebeat02.minecraftmedialibrary.image.gif.DynamicImage;
+import java.util.OptionalLong;
+import java.util.Set;
+import java.util.UUID;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -41,10 +44,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.OptionalLong;
-import java.util.Set;
-import java.util.UUID;
-
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
 import static net.kyori.adventure.text.Component.text;
@@ -53,7 +52,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
-public class ResetImageCommand<S> implements CommandSegment.Literal<CommandSender>, Listener {
+public final class ResetImageCommand implements CommandSegment.Literal<CommandSender>, Listener {
 
   private final LiteralCommandNode<CommandSender> node;
   private final ImageCommandAttributes attributes;
@@ -74,7 +73,7 @@ public class ResetImageCommand<S> implements CommandSegment.Literal<CommandSende
     final DeluxeMediaPlugin plugin = attributes.getPlugin();
     final Audience audience = plugin.audience().sender(context.getSource());
     final OptionalLong optional =
-        ChatUtilities.checkMapBoundaries(audience, context.getArgument("id", String.class));
+            ChatUtilities.checkMapBoundaries(audience, context.getArgument("id", String.class));
     if (!optional.isPresent()) {
       return SINGLE_SUCCESS;
     }
@@ -128,7 +127,7 @@ public class ResetImageCommand<S> implements CommandSegment.Literal<CommandSende
   }
 
   @Override
-  public @NotNull LiteralCommandNode<CommandSender> commandNode() {
+  public @NotNull LiteralCommandNode<CommandSender> getCommandNode() {
     return node;
   }
 }

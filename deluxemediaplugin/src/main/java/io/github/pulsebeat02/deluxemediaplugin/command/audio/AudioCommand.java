@@ -42,7 +42,7 @@ import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
-public class AudioCommand extends BaseCommand {
+public final class AudioCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> node;
   private final AudioCommandAttributes attributes;
@@ -54,7 +54,7 @@ public class AudioCommand extends BaseCommand {
     node =
         literal(getName())
             .requires(super::testPermission)
-            .then(new AudioLoadCommand<>(attributes).commandNode())
+            .then(new AudioLoadCommand(attributes).getCommandNode())
             .then(literal("play").executes(this::playAudio))
             .then(literal("stop"))
             .build();
@@ -119,7 +119,7 @@ public class AudioCommand extends BaseCommand {
   }
 
   @Override
-  public LiteralCommandNode<CommandSender> getCommandNode() {
+  public @NotNull LiteralCommandNode<CommandSender> getCommandNode() {
     return node;
   }
 }
