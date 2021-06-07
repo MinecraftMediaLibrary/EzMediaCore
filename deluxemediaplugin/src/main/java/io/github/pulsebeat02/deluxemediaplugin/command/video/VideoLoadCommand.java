@@ -78,22 +78,24 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
         attributes.setExtractor(null);
         attributes.setFile(file);
         CompletableFuture.runAsync(
-            () -> {
-              final Path audio = Paths.get(folder, "custom.ogg");
-              new FFmpegAudioExtractionHelper(
-                      plugin.getEncoderConfiguration().getSettings(), file, audio)
-                  .extract();
-              final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), audio);
-              wrapper.buildResourcePack();
-              final Path path = Paths.get(wrapper.getPath());
-              attributes.setResourcepackUrl(
-                  plugin.getHttpConfiguration().getDaemon().generateUrl(path));
-              attributes.setHash(VideoExtractionUtilities.createHashSHA(path));
-              sendResourcepackFile();
-              audience.sendMessage(
-                  format(text(String.format("Successfully loaded video %s", mrl), GOLD)));
-              completion.set(true);
-            });
+                () -> {
+                  final Path audio = Paths.get(folder, "custom.ogg");
+                  new FFmpegAudioExtractionHelper(
+                          plugin.getEncoderConfiguration().getSettings(), file, audio)
+                      .extract();
+                  final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), audio);
+                  wrapper.buildResourcePack();
+                  final Path path = Paths.get(wrapper.getPath());
+                  attributes.setResourcepackUrl(
+                      plugin.getHttpConfiguration().getDaemon().generateUrl(path));
+                  attributes.setHash(VideoExtractionUtilities.createHashSHA(path));
+                  completion.set(true);
+                })
+            .thenRun(this::sendResourcepackFile)
+            .thenRunAsync(
+                () ->
+                    audience.sendMessage(
+                        format(text(String.format("Successfully loaded video %s", mrl), GOLD))));
       } else if (mrl.startsWith("http")) {
         audience.sendMessage(
             format(text(String.format("Link %s is not a valid Youtube video link!", mrl), RED)));

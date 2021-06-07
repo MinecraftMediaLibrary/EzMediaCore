@@ -102,6 +102,11 @@ public class FFmpegCustomCommandExecutor implements CustomCommandExecutor {
     return arguments;
   }
 
+  @Override
+  public void clearArguments() {
+    arguments.clear();
+  }
+
   /**
    * Internal implementation of execute which runs the command.
    *

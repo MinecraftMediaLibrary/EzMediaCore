@@ -46,6 +46,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.RED;
 public final class ChatUtilities {
 
   private static final ComponentLike PREFIX;
+  private static final ComponentLike EXTERNAL_PROCESS;
 
   static {
     PREFIX =
@@ -57,10 +58,23 @@ public final class ChatUtilities {
                 Component.text(']'),
                 Component.space(),
                 Component.text("»", GRAY));
+    EXTERNAL_PROCESS =
+        Component.text()
+            .color(AQUA)
+            .append(
+                Component.text('['),
+                Component.text("DeluxeMediaPlugin External Process", GOLD),
+                Component.text(']'),
+                Component.space(),
+                Component.text("»", GRAY));
   }
 
   public static Component format(@NotNull final TextComponent message) {
     return ofChildren(PREFIX, space(), message);
+  }
+
+  public static Component formatFFmpeg(@NotNull final TextComponent message) {
+    return ofChildren(EXTERNAL_PROCESS, space(), message);
   }
 
   public static Optional<int[]> checkDimensionBoundaries(

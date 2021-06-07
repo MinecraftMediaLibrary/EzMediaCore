@@ -54,8 +54,7 @@ public final class ImageCommand extends BaseCommand {
         ImmutableMap.of(
             "/image", "Lists the proper usage of the command",
             "/image reset all", "Purges all loaded images onto maps",
-            "/image reset map [id]", "Purges a specific map on an id",
-            "/image rickroll", "Posts a Rick Roll image on map id 69"));
+            "/image reset map [id]", "Purges a specific map on an id"));
   }
 
   @Override

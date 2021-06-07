@@ -98,4 +98,7 @@ public interface CustomCommandExecutor {
    * @return the arguments
    */
   List<String> getArguments();
+
+  /** Clears the arguments of the command. */
+  void clearArguments();
 }
