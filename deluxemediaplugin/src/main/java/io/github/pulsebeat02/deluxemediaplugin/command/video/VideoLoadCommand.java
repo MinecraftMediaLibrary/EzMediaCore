@@ -70,7 +70,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     final String folder = String.format("%s/mml/", plugin.getDataFolder().getAbsolutePath());
     final AtomicBoolean completion = attributes.getCompletion();
     if (!VideoExtractionUtilities.getYoutubeID(mrl).isPresent()) {
-      final Path file = Paths.get(folder).resolve(mrl);
+      final Path file = Paths.get(mrl);
       if (Files.exists(file)) {
         completion.set(false);
         attributes.setYoutube(false);
@@ -80,7 +80,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
             () -> {
               final Path audio = Paths.get(folder, "custom.ogg");
               new FFmpegAudioExtractionHelper(
-                      plugin.getEncoderConfiguration().getSettings(), Paths.get(mrl), audio)
+                      plugin.getEncoderConfiguration().getSettings(), file, audio)
                   .extract();
               final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), audio);
               wrapper.buildResourcePack();
@@ -110,7 +110,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
                 new YoutubeExtraction(
                     mrl, Paths.get(folder), plugin.getEncoderConfiguration().getSettings());
             extraction.extractAudio();
-            attributes.setFile(extraction.getAudio());
+            attributes.setFile(extraction.getVideo());
             attributes.setExtractor(extraction);
             final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), extraction);
             wrapper.buildResourcePack();

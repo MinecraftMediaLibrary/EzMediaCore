@@ -93,7 +93,7 @@ public class FFmpegAudioExtractionHelper implements AudioExtractionContext {
             .add("-ab", String.valueOf(configuration.getBitrate()))
             .add("-ac", String.valueOf(configuration.getChannels()))
             .add("-ar", String.valueOf(configuration.getSamplingRate()))
-            .add("-vol", String.valueOf(configuration.getVolume() / 100))
+            .add("-vol", String.valueOf(configuration.getVolume()))
             .add("-ss", String.valueOf(configuration.getStartTime()))
             .add("-f", FilenameUtils.getExtension(output.toString()))
             .build());
