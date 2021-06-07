@@ -233,7 +233,7 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
     playing = false;
     mediaPlayerComponent.controls().stop();
     for (final Player p : players) {
-      p.stopSound(sound);
+      p.stopSound(sound, SoundCategory.MUSIC);
     }
     Logger.info(String.format("Stopped Playing the Video! (%s)", url));
   }
