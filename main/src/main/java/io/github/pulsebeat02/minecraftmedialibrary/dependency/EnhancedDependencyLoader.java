@@ -62,7 +62,7 @@ public class EnhancedDependencyLoader {
    */
   public void addJar(@NotNull final Path file) {
     try {
-      jars.add(file.toUri().toURL());
+      jars.add(new URL(String.format("jar:%s", file)));
     } catch (final MalformedURLException e) {
       e.printStackTrace();
     }
