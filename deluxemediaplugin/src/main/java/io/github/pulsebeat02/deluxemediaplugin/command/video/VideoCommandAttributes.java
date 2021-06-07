@@ -27,9 +27,10 @@ import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
+import org.jetbrains.annotations.NotNull;
+
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.jetbrains.annotations.NotNull;
 
 public final class VideoCommandAttributes {
 

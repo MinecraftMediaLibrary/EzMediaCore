@@ -60,14 +60,14 @@ public final class VideoCommand extends BaseCommand {
             .requires(super::testPermission)
             .then(literal("play").executes(this::playVideo))
             .then(literal("stop").executes(this::stopVideo))
-            .then(new VideoLoadCommand(attributes).getCommandNode())
-            .then(new VideoSettingCommand(attributes).getCommandNode())
+            .then(new VideoLoadCommand(attributes).node())
+            .then(new VideoSettingCommand(attributes).node())
             .build();
   }
 
   private int playVideo(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
-    final DeluxeMediaPlugin plugin = attributes.getPlugin();
+    final DeluxeMediaPlugin plugin = plugin();
     final Audience audience = plugin.audience().sender(sender);
     if (mediaNotSpecified(audience) || mediaProcessingIncomplete(audience)) {
       return SINGLE_SUCCESS;
@@ -114,11 +114,7 @@ public final class VideoCommand extends BaseCommand {
 
   private int stopVideo(@NotNull final CommandContext<CommandSender> context) {
     attributes.getPlayer().stop(Bukkit.getOnlinePlayers());
-    attributes
-        .getPlugin()
-        .audience()
-        .sender(context.getSource())
-        .sendMessage(text("Stopped the Video!", GOLD));
+    plugin().audience().sender(context.getSource()).sendMessage(text("Stopped the Video!", GOLD));
     return SINGLE_SUCCESS;
   }
 
@@ -187,7 +183,7 @@ public final class VideoCommand extends BaseCommand {
   }
 
   @Override
-  public @NotNull LiteralCommandNode<CommandSender> getCommandNode() {
+  public @NotNull LiteralCommandNode<CommandSender> node() {
     return node;
   }
 }

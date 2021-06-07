@@ -23,14 +23,14 @@
 package io.github.pulsebeat02.deluxemediaplugin.update;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.Scanner;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
-import org.bukkit.Bukkit;
-import org.jetbrains.annotations.NotNull;
 
 public class PluginUpdateChecker {
 
@@ -57,25 +57,22 @@ public class PluginUpdateChecker {
   }
 
   private void getLatestVersion(final Consumer<String> consumer) {
-    Bukkit.getScheduler()
-        .runTaskAsynchronously(
-            plugin,
-            () -> {
-              try (final InputStream inputStream =
-                      new URL(
-                              String.format(
-                                  "https://api.spigotmc.org/legacy/update.php?resource=%d",
-                                  resource))
-                          .openStream();
-                  final Scanner scanner = new Scanner(inputStream)) {
-                if (scanner.hasNext()) {
-                  consumer.accept(scanner.next());
-                }
-              } catch (final IOException exception) {
-                plugin
-                    .getLogger()
-                    .info(String.format("Cannot look for updates: %s", exception.getMessage()));
-              }
-            });
+    CompletableFuture.runAsync(
+        () -> {
+          try (final Scanner scanner =
+              new Scanner(
+                  new URL(
+                          String.format(
+                              "https://api.spigotmc.org/legacy/update.php?resource=%d", resource))
+                      .openStream())) {
+            if (scanner.hasNext()) {
+              consumer.accept(scanner.next());
+            }
+          } catch (final IOException exception) {
+            plugin
+                .getLogger()
+                .info(String.format("Cannot look for updates: %s", exception.getMessage()));
+          }
+        });
   }
 }

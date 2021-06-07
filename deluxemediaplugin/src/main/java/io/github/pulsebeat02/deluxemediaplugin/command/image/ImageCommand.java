@@ -43,8 +43,8 @@ public final class ImageCommand extends BaseCommand {
     node =
         literal(getName())
             .requires(super::testPermission)
-            .then(new ResetImageCommand(attributes).getCommandNode())
-            .then(new SetImageCommand(attributes).getCommandNode())
+            .then(new ResetImageCommand(attributes).node())
+            .then(new SetImageCommand(attributes).node())
             .build();
   }
 
@@ -59,7 +59,7 @@ public final class ImageCommand extends BaseCommand {
   }
 
   @Override
-  public @NotNull LiteralCommandNode<CommandSender> getCommandNode() {
+  public @NotNull LiteralCommandNode<CommandSender> node() {
     return node;
   }
 }

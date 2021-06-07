@@ -34,5 +34,5 @@ public interface ArgumentCommandSegment<S, T> extends CommandSegment<S, Argument
    */
   @Override
   @NotNull
-  ArgumentCommandNode<S, T> getCommandNode();
+  ArgumentCommandNode<S, T> node();
 }

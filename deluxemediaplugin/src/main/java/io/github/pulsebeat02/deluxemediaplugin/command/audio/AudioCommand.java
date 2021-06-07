@@ -54,14 +54,14 @@ public final class AudioCommand extends BaseCommand {
     node =
         literal(getName())
             .requires(super::testPermission)
-            .then(new AudioLoadCommand(attributes).getCommandNode())
+            .then(new AudioLoadCommand(attributes).node())
             .then(literal("play").executes(this::playAudio))
             .then(literal("stop"))
             .build();
   }
 
   private int playAudio(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().audience().sender(context.getSource());
+    final Audience audience = plugin().audience().sender(context.getSource());
     if (checkUnloaded(audience)) {
       return SINGLE_SUCCESS;
     }
@@ -78,7 +78,7 @@ public final class AudioCommand extends BaseCommand {
   }
 
   private int stopAudio(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().audience().sender(context.getSource());
+    final Audience audience = plugin().audience().sender(context.getSource());
     if (checkUnloaded(audience)) {
       return SINGLE_SUCCESS;
     }
@@ -119,7 +119,7 @@ public final class AudioCommand extends BaseCommand {
   }
 
   @Override
-  public @NotNull LiteralCommandNode<CommandSender> getCommandNode() {
+  public @NotNull LiteralCommandNode<CommandSender> node() {
     return node;
   }
 }

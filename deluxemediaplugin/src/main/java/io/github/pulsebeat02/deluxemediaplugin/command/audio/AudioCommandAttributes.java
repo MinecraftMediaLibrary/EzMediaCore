@@ -23,9 +23,10 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.audio;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import org.jetbrains.annotations.NotNull;
+
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.jetbrains.annotations.NotNull;
 
 public final class AudioCommandAttributes {
 

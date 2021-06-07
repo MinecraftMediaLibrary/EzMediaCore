@@ -23,15 +23,16 @@
 package io.github.pulsebeat02.deluxemediaplugin.command;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 public abstract class BaseCommand extends Command implements LiteralCommandSegment<CommandSender> {
 
@@ -97,7 +98,7 @@ public abstract class BaseCommand extends Command implements LiteralCommandSegme
     return Objects.requireNonNull(executor.onTabComplete(sender, this, label, args));
   }
 
-  public DeluxeMediaPlugin getPlugin() {
+  public DeluxeMediaPlugin plugin() {
     return plugin;
   }
 

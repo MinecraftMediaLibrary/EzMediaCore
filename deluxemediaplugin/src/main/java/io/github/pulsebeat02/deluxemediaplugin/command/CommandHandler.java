@@ -34,15 +34,16 @@ import io.github.pulsebeat02.deluxemediaplugin.command.image.ImageCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.map.MapCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.screen.ScreenCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommand;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class CommandHandler implements TabExecutor {
 
@@ -65,7 +66,7 @@ public final class CommandHandler implements TabExecutor {
             new ScreenCommand(plugin, this));
     final CommandMap commandMap = CommandMapHelper.getCommandMap();
     for (final BaseCommand command : commands) {
-      rootNode.addChild(command.getCommandNode());
+      rootNode.addChild(command.node());
       commandMap.register(plugin.getName(), command);
     }
   }

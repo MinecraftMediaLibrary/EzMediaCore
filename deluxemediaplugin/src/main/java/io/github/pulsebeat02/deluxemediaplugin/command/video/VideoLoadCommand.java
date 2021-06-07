@@ -33,15 +33,16 @@ import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
+import net.kyori.adventure.audience.Audience;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import net.kyori.adventure.audience.Audience;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
@@ -158,7 +159,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   @Override
-  public @NotNull LiteralCommandNode<CommandSender> getCommandNode() {
+  public @NotNull LiteralCommandNode<CommandSender> node() {
     return node;
   }
 }

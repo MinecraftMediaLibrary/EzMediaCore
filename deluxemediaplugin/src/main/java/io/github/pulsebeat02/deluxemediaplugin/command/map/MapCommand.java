@@ -60,7 +60,7 @@ public final class MapCommand extends BaseCommand {
 
   private int giveMap(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
-    final Audience audience = getPlugin().audience().sender(sender);
+    final Audience audience = plugin().audience().sender(sender);
     if (!(sender instanceof Player)) {
       audience.sendMessage(text("You must be a Player to run this command!", RED));
       return SINGLE_SUCCESS;
@@ -78,7 +78,7 @@ public final class MapCommand extends BaseCommand {
   }
 
   @Override
-  public @NotNull LiteralCommandNode<CommandSender> getCommandNode() {
+  public @NotNull LiteralCommandNode<CommandSender> node() {
     return node;
   }
 }

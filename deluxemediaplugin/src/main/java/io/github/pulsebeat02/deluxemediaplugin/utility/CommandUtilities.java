@@ -24,15 +24,16 @@ package io.github.pulsebeat02.deluxemediaplugin.utility;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.SimpleCommandMap;
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
-import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.SimpleCommandMap;
-import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unchecked")
 public final class CommandUtilities {
@@ -69,10 +70,7 @@ public final class CommandUtilities {
   }
 
   public static void unRegisterBukkitCommand(
-      @NotNull final DeluxeMediaPlugin plugin, final BaseCommand cmd) {
-    if (cmd == null) {
-      return;
-    }
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final BaseCommand cmd) {
     try {
       knownCommands.remove(cmd.getName());
       for (final String alias : cmd.getAliases()) {
