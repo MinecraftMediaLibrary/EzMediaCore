@@ -19,6 +19,7 @@ dependencies {
     implementation("com.mojang:brigadier:1.0.18")
     implementation("net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT")
     implementation("dev.triumphteam:triumph-gui:3.0.0-SNAPSHOT")
+    implementation("me.lucko:commodore:1.9")
     compileOnly("com.mojang:authlib:1.5.25")
     compileOnly("org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
     compileOnly("org.jetbrains:annotations:20.1.0")
@@ -35,6 +36,7 @@ tasks.withType<ShadowJar> {
     )
     relocate("dev.triumphteam.gui", "io.github.pulsebeat02.deluxemediaplugin.lib.gui")
     relocate("me.mattstudios.util", "io.github.pulsebeat02.deluxemediaplugin.lib.util")
+    relocate("me.lucko.commodore", "io.github.pulsebeat02.deluxemediaplugin.lib.commodore")
 
     relocate("uk.co.caprica.vlcj", "io.github.pulsebeat02.vlcj")
     relocate("uk.co.caprica.vlcj.binding", "io.github.pulsebeat02.vlcj.binding")

@@ -30,10 +30,14 @@ import com.mojang.brigadier.tree.RootCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.audio.AudioCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherCommand;
+import io.github.pulsebeat02.deluxemediaplugin.command.ffmpeg.FFmpegCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.image.ImageCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.map.MapCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.screen.ScreenCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommand;
+import me.lucko.commodore.Commodore;
+import me.lucko.commodore.CommodoreProvider;
+import me.lucko.commodore.file.CommodoreFileFormat;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -41,6 +45,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -63,11 +68,23 @@ public final class CommandHandler implements TabExecutor {
             new VideoCommand(plugin, this),
             new AudioCommand(plugin, this),
             new MapCommand(plugin, this),
-            new ScreenCommand(plugin, this));
+            new ScreenCommand(plugin, this),
+            new FFmpegCommand(plugin, this));
     final CommandMap commandMap = CommandMapHelper.getCommandMap();
+    final Commodore commodore =
+        CommodoreProvider.isSupported() ? CommodoreProvider.getCommodore(plugin) : null;
     for (final BaseCommand command : commands) {
       rootNode.addChild(command.node());
       commandMap.register(plugin.getName(), command);
+      try {
+        if (commodore != null) {
+          commodore.register(
+              CommodoreFileFormat.parse(
+                  plugin.getResource(String.format("commodore/%s.commodore", command.getName()))));
+        }
+      } catch (final IOException e) {
+        e.printStackTrace();
+      }
     }
   }
 

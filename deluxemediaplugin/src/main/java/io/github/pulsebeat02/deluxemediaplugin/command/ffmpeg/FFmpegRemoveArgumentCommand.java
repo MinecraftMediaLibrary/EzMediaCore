@@ -53,9 +53,7 @@ public final class FFmpegRemoveArgumentCommand implements CommandSegment.Literal
     ffmpeg = executor;
     node =
         literal("remove")
-            .then(
-                argument("argument", StringArgumentType.word())
-                    .executes(this::removeArgument))
+            .then(argument("argument", StringArgumentType.word()).executes(this::removeArgument))
             .then(
                 argument("index", IntegerArgumentType.integer())
                     .executes(this::removeIndexArgument))

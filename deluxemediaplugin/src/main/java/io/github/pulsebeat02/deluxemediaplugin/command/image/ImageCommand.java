@@ -53,8 +53,8 @@ public final class ImageCommand extends BaseCommand {
     return ChatUtilities.getCommandUsage(
         ImmutableMap.of(
             "/image", "Lists the proper usage of the command",
-            "/image reset all", "Purges all loaded images onto maps",
-            "/image reset map [id]", "Purges a specific map on an id"));
+            "/image purge all", "Purges all loaded images onto maps",
+            "/image purge map [id]", "Purges a specific map on an id"));
   }
 
   @Override

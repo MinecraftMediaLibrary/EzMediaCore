@@ -33,7 +33,7 @@ public class EncoderConfiguration extends ConfigurationProvider {
   private ExtractionConfiguration settings;
 
   public EncoderConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
-    super(plugin, "encoder.yml");
+    super(plugin, "configuration/encoder.yml");
   }
 
   @Override

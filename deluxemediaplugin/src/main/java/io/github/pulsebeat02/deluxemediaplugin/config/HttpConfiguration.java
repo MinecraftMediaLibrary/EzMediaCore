@@ -38,7 +38,7 @@ public class HttpConfiguration extends ConfigurationProvider {
   private boolean enabled;
 
   public HttpConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
-    super(plugin, "httpserver.yml");
+    super(plugin, "configuration/httpserver.yml");
   }
 
   @Override

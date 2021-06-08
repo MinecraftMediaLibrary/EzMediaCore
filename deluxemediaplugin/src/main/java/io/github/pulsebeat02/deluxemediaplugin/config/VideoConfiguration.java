@@ -41,7 +41,7 @@ public class VideoConfiguration extends ConfigurationProvider {
   private MapDataCallback callback;
 
   public VideoConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
-    super(plugin, "video.yml");
+    super(plugin, "configuration/video.yml");
   }
 
   @Override

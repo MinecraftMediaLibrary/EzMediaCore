@@ -42,7 +42,7 @@ public class PictureConfiguration extends ConfigurationProvider {
   private final Set<StaticImageProxy> images;
 
   public PictureConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
-    super(plugin, "picture.yml");
+    super(plugin, "configuration/picture.yml");
     images = new HashSet<>();
   }
 
