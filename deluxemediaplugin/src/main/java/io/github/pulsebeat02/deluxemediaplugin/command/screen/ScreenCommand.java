@@ -36,6 +36,7 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
@@ -57,7 +58,7 @@ public final class ScreenCommand extends BaseCommand {
     final CommandSender sender = context.getSource();
     final Audience audience = plugin().audience().sender(sender);
     if (!(sender instanceof Player)) {
-      audience.sendMessage(text("You must be a Player to run this command!", RED));
+      audience.sendMessage(format(text("You must be a player to execute this command!", RED)));
       return 1;
     }
     new ScreenBuilderGui(plugin(), (Player) sender);

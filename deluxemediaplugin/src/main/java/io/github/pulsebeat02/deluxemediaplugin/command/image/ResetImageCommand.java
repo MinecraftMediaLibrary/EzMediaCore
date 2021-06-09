@@ -92,7 +92,7 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
     final CommandSender sender = context.getSource();
     final Audience audience = plugin.audience().sender(sender);
     if (!(sender instanceof Player)) {
-      audience.sendMessage(format(text("You must be a Player to run this command!", RED)));
+      audience.sendMessage(format(text("You must be a player to execute this command!", RED)));
       return SINGLE_SUCCESS;
     }
     attributes.getListen().add(((Player) sender).getUniqueId());

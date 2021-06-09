@@ -72,6 +72,11 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     final String mrl = context.getArgument("mrl", String.class);
     final String folder = String.format("%s/mml/", plugin.getDataFolder().getAbsolutePath());
     final AtomicBoolean completion = attributes.getCompletion();
+    audience.sendMessage(
+        format(
+            text(
+                "Setting up resourcepack for video... this may take a while depending on the length/quality of the video.",
+                GOLD)));
     if (!VideoExtractionUtilities.getYoutubeID(mrl).isPresent()) {
       final Path file = Paths.get(mrl);
       if (Files.exists(file)) {
@@ -108,10 +113,10 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
                 text(String.format("File %s cannot be found!", PathUtilities.getName(file)), RED)));
       }
     } else {
-      completion.set(false);
       attributes.setYoutube(true);
       CompletableFuture.runAsync(
           () -> {
+            completion.set(false);
             final YoutubeExtraction extraction =
                 new YoutubeExtraction(
                     mrl, Paths.get(folder), plugin.getEncoderConfiguration().getSettings());
@@ -158,7 +163,8 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   private boolean unloadedResourcepack(@NotNull final Audience audience) {
     if (attributes.getResourcepackUrl() == null && attributes.getHash() == null) {
-      audience.sendMessage(text("Please load a resourcepack before executing this command!", RED));
+      audience.sendMessage(
+          format(text("Please load a resourcepack before executing this command!", RED)));
       return true;
     }
     return false;

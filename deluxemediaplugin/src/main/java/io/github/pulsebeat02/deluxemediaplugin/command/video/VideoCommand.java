@@ -93,7 +93,7 @@ public final class VideoCommand extends BaseCommand {
             attributes.setPlayer(builder.createEntityPlayer((Player) sender));
           } else {
             audience.sendMessage(
-                format(text("You must be an player to execute this command!", RED)));
+                format(text("You must be a player to execute this command!", RED)));
           }
           break;
         case CHATBOX:
@@ -107,7 +107,7 @@ public final class VideoCommand extends BaseCommand {
             attributes.setPlayer(builder.createBlockHighlightPlayer((Player) sender));
           } else {
             audience.sendMessage(
-                format(text("You must be an in-game player to execute this command!", RED)));
+                format(text("You must be a player to execute this command!", RED)));
           }
           break;
       }
@@ -123,7 +123,10 @@ public final class VideoCommand extends BaseCommand {
 
   private int stopVideo(@NotNull final CommandContext<CommandSender> context) {
     attributes.getPlayer().stop(Bukkit.getOnlinePlayers());
-    plugin().audience().sender(context.getSource()).sendMessage(text("Stopped the Video!", GOLD));
+    plugin()
+        .audience()
+        .sender(context.getSource())
+        .sendMessage(format(text("Stopped the Video!", GOLD)));
     return SINGLE_SUCCESS;
   }
 
@@ -134,6 +137,11 @@ public final class VideoCommand extends BaseCommand {
     if (mediaNotSpecified(audience) || mediaProcessingIncomplete(audience)) {
       return SINGLE_SUCCESS;
     }
+    audience.sendMessage(
+        format(
+            text(
+                "Setting up resourcepack for resuming... this may take a while depending on how large the audio file is.",
+                GOLD)));
     CompletableFuture.runAsync(
             () -> {
               final Path audio = attributes.getAudio();

@@ -66,7 +66,7 @@ public final class CommandUtilities {
   }
 
   public static void ensureInit() {
-    Bukkit.getLogger().log(Level.INFO, "[DeluxeMediaPlugin] Ensuring Initialization...");
+    System.out.print(' ');
   }
 
   public static void unRegisterBukkitCommand(

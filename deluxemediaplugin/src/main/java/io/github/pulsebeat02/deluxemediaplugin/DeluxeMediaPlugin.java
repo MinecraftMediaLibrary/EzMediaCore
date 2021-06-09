@@ -33,6 +33,7 @@ import io.github.pulsebeat02.deluxemediaplugin.utility.CommandUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibraryProvider;
 import io.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -40,10 +41,18 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Constructor;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.TextComponent.ofChildren;
+import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
+import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
 public final class DeluxeMediaPlugin extends JavaPlugin {
 
@@ -93,30 +102,53 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
     if (!OUTDATED) {
 
       logger.info("DeluxeMediaPlugin is Initializing");
-      CommandUtilities.ensureInit();
-
-      logger.info("Loading MinecraftMediaLibrary Instance...");
-      library = MediaLibraryProvider.create(this);
-
-      logger.info("Loading Commands...");
-      registerCommands();
-
-      logger.info("Loading Configuration Files...");
-      registerConfigurations();
-
-      logger.info("Sending Metrics Statistics...");
-      new Metrics(this, 10229);
-
-      logger.info("Checking for Updates...");
-      new PluginUpdateChecker(this).checkForUpdates();
-
       audiences = BukkitAudiences.create(this);
 
-      logger.info("Finished Loading Instance and Plugin");
+      final Audience console = audiences.console();
+      final List<String> logo =
+          Arrays.asList(
+              "  _____    __  __   _____  ",
+              " |  __ \\  |  \\/  | |  __ \\ ",
+              " | |  | | | \\  / | | |__) |",
+              " | |  | | | |\\/| | |  ___/ ",
+              " | |__| | | |  | | | |     ",
+              " |_____/  |_|  |_| |_|     ",
+              "                           ");
+      for (final String line : logo) {
+        console.sendMessage(text(line, AQUA));
+      }
+      console.sendMessage(
+          format(
+              ofChildren(text("Running DeluxeMediaPlugin ", AQUA), text("[CLOSED BETA]", GOLD))));
+
+      CommandUtilities.ensureInit();
+
+      console.sendMessage(format(text("Loading MinecraftMediaLibrary Instance...")));
+      library = MediaLibraryProvider.create(this);
+
+      console.sendMessage(format(text("Loading Commands...")));
+      registerCommands();
+
+      console.sendMessage(format(text("Loading Configuration Files...")));
+      registerConfigurations();
+
+      console.sendMessage(format(text("Sending Metrics Statistics...")));
+      new Metrics(this, 10229);
+
+      console.sendMessage(format(text("Checking for Updates...")));
+      new PluginUpdateChecker(this).checkForUpdates();
+
+      console.sendMessage(format(text("Finished Loading Instance and Plugin")));
+
+      console.sendMessage(
+          format(
+              text(
+                  "Hello %%__USER__%%! Thank you for purchasing DeluxeMediaPlugin. For "
+                      + "identifier purposes, this is your purchase id: %%__NONCE__%%")));
 
     } else {
 
-      logger.severe("Plugin cannot load until server version is at least 1.8");
+      logger.severe("Plugin cannot load unless server version is at least 1.8");
       Bukkit.getPluginManager().disablePlugin(this);
     }
   }
@@ -148,6 +180,10 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
               new Error(exception));
       return Optional.empty();
     }
+  }
+
+  public boolean ansiSupported() {
+    return System.console() != null && System.getenv().get("TERM") != null;
   }
 
   private void registerCommands() {

@@ -69,6 +69,14 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
     final Audience audience = plugin.audience().sender(context.getSource());
     final MediaLibrary library = plugin.getLibrary();
     final String mrl = context.getArgument("mrl", String.class);
+    if (isLoadingSound(audience)) {
+      return SINGLE_SUCCESS;
+    }
+    audience.sendMessage(
+        format(
+            text(
+                "Attempting to load the audio file... this may take a while depending on the length/quality of the audio.",
+                GOLD)));
     if (isUrl(mrl)) {
       CompletableFuture.runAsync(
           () ->
@@ -91,6 +99,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
     }
     CompletableFuture.runAsync(
             () -> {
+              attributes.setCompletion(true);
               final PackWrapper wrapper =
                   ResourcepackWrapper.of(library, attributes.getResourcepackAudio());
               wrapper.buildResourcePack();
@@ -106,7 +115,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
                               "Loaded Audio Successfully! (%s)", attributes.getResourcepackLink()),
                           GOLD)));
             })
-        .whenCompleteAsync((t, throwable) -> attributes.setCompletion(true));
+        .whenCompleteAsync((t, throwable) -> attributes.setCompletion(false));
     return SINGLE_SUCCESS;
   }
 
@@ -141,6 +150,18 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
 
   private boolean unloadedResourcepack() {
     return attributes.getResourcepackLink() == null && attributes.getResourcepackHash() == null;
+  }
+
+  private boolean isLoadingSound(@NotNull final Audience audience) {
+    if (attributes.getCompletion().get()) {
+      audience.sendMessage(
+          format(
+              text(
+                  "Please wait for the previous audio to extract first before loading another one!",
+                  RED)));
+      return true;
+    }
+    return false;
   }
 
   @Override

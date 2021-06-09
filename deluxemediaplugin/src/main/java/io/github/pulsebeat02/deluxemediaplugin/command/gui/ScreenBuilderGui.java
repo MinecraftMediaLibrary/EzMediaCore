@@ -36,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
@@ -120,7 +121,7 @@ public final class ScreenBuilderGui {
           plugin
               .audience()
               .sender(viewer)
-              .sendMessage(text("Successfully built your new screen!", GREEN));
+              .sendMessage(format(text("Successfully built your new screen!", GREEN)));
           viewer.playSound(viewer.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 10, 1);
         });
     gui.setItem(50, buildScreen);
