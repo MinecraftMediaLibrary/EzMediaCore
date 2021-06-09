@@ -2,7 +2,7 @@ description = "minecraftmedialibrary"
 
 dependencies {
 
-    compileOnlyApi("org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
+    compileOnlyApi("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
     implementation(
         "io.github.slimjar:slimjar:1.2.0"
     )
