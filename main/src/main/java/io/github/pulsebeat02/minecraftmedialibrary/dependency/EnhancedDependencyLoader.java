@@ -22,13 +22,11 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.dependency;
 
-import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.slimjar.app.builder.ApplicationBuilder;
 import io.github.slimjar.resolver.data.DependencyData;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -41,10 +39,11 @@ import java.util.List;
 public class EnhancedDependencyLoader {
 
   private final List<URL> jars;
+  private final boolean legacy;
 
   /** Instantiates a new EnhancedDependencyLoader */
   public EnhancedDependencyLoader() {
-    jars = new ArrayList<>();
+    this(new ArrayList<>());
   }
 
   /**
@@ -54,6 +53,7 @@ public class EnhancedDependencyLoader {
    */
   public EnhancedDependencyLoader(@NotNull final List<URL> paths) {
     jars = paths;
+    legacy = Integer.parseInt(System.getProperty("java.version").split("\\.")[1]) == 8;
   }
 
   /**
@@ -63,10 +63,12 @@ public class EnhancedDependencyLoader {
    */
   public void addJar(@NotNull final Path file) {
     try {
-      final URL url = new URL(String.format("jar:file:/%s!/", file));
-      jars.add(url);
-      System.out.println(url);
-    } catch (final MalformedURLException e) {
+      if (legacy) {
+        jars.add(file.toUri().toURL());
+      } else {
+        jars.add(new URL(String.format("jar:/%s", file)));
+      }
+    } catch (final IOException e) {
       e.printStackTrace();
     }
   }
