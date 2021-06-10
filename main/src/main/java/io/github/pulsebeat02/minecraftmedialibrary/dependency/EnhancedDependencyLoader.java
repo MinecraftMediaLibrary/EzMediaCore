@@ -39,7 +39,6 @@ import java.util.List;
 public class EnhancedDependencyLoader {
 
   private final List<URL> jars;
-  private final boolean legacy;
 
   /** Instantiates a new EnhancedDependencyLoader */
   public EnhancedDependencyLoader() {
@@ -53,7 +52,7 @@ public class EnhancedDependencyLoader {
    */
   public EnhancedDependencyLoader(@NotNull final List<URL> paths) {
     jars = paths;
-    legacy = Integer.parseInt(System.getProperty("java.version").split("\\.")[1]) == 8;
+    final boolean legacy = Integer.parseInt(System.getProperty("java.version").split("\\.")[1]) == 8;
   }
 
   /**
@@ -63,11 +62,7 @@ public class EnhancedDependencyLoader {
    */
   public void addJar(@NotNull final Path file) {
     try {
-      if (legacy) {
-        jars.add(file.toUri().toURL());
-      } else {
-        jars.add(new URL(String.format("jar:/%s", file)));
-      }
+      jars.add(file.toUri().toURL());
     } catch (final IOException e) {
       e.printStackTrace();
     }

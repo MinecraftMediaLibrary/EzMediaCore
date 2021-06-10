@@ -101,10 +101,11 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
     if (!OUTDATED) {
 
-      logger.info("DeluxeMediaPlugin is Initializing");
       audiences = BukkitAudiences.create(this);
-
       final Audience console = audiences.console();
+
+      console.sendMessage(format(text("Started to Initialize DeluxeMediaPlugin...")));
+
       final List<String> logo =
           Arrays.asList(
               "  _____    __  __   _____  ",
