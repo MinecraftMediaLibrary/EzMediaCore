@@ -22,6 +22,7 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.dependency;
 
+import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.slimjar.app.builder.ApplicationBuilder;
 import io.github.slimjar.resolver.data.DependencyData;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +63,9 @@ public class EnhancedDependencyLoader {
    */
   public void addJar(@NotNull final Path file) {
     try {
-      jars.add(new URL(String.format("jar:%s", file)));
+      final URL url = new URL(String.format("jar:file:/%s!/", file));
+      jars.add(url);
+      System.out.println(url);
     } catch (final MalformedURLException e) {
       e.printStackTrace();
     }

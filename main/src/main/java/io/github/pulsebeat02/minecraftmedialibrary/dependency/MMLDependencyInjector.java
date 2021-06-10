@@ -44,7 +44,7 @@ public final class MMLDependencyInjector implements DependencyInjector {
    *
    * @param dependencies the URLs
    */
-  public MMLDependencyInjector(final List<URL> dependencies) {
+  MMLDependencyInjector(final List<URL> dependencies) {
     this.dependencies = dependencies;
   }
 
