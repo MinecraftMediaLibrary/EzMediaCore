@@ -30,11 +30,13 @@ import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.FilterLiteDither
 import io.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
+
 /**
  *
  *
@@ -123,6 +125,12 @@ public class ParallelVideoPlayer extends VLCVideoPlayer {
     handler = library.getHandler();
     holder = null;
     dither = new FilterLiteDither();
+  }
+
+  @Override
+  @Nullable
+  public VideoPlayerContext toLinuxPlayer() {
+    return null;
   }
 
   @Override
