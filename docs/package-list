@@ -5,7 +5,9 @@ io.github.pulsebeat02.minecraftmedialibrary.dependency
 io.github.pulsebeat02.minecraftmedialibrary.dependency.task
 io.github.pulsebeat02.minecraftmedialibrary.entity
 io.github.pulsebeat02.minecraftmedialibrary.exception
+io.github.pulsebeat02.minecraftmedialibrary.extraction
 io.github.pulsebeat02.minecraftmedialibrary.extractor
+io.github.pulsebeat02.minecraftmedialibrary.ffmpeg
 io.github.pulsebeat02.minecraftmedialibrary.frame
 io.github.pulsebeat02.minecraftmedialibrary.frame.chat
 io.github.pulsebeat02.minecraftmedialibrary.frame.dither
@@ -36,7 +38,6 @@ io.github.pulsebeat02.minecraftmedialibrary.reflection
 io.github.pulsebeat02.minecraftmedialibrary.resourcepack
 io.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting
 io.github.pulsebeat02.minecraftmedialibrary.utility
-io.github.pulsebeat02.minecraftmedialibrary.ffmpeg
 io.github.pulsebeat02.minecraftmedialibrary.vlc
 io.github.pulsebeat02.minecraftmedialibrary.vlc.os
 io.github.pulsebeat02.minecraftmedialibrary.vlc.os.linux
