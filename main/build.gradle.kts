@@ -22,6 +22,7 @@ dependencies {
     compileOnly("se.michaelthelin.spotify:spotify-web-api-java:6.5.4")
     compileOnly("com.github.kokorin.jaffree:jaffree:2021.05.26")
     compileOnly("com.google.guava:guava:30.1.1-jre")
+    compileOnly("org.apache.commons:commons-lang3:3.12.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     testImplementation("io.github.glytching:junit-extensions:2.4.0")

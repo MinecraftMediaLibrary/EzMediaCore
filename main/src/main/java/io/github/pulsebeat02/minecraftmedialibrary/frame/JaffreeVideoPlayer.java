@@ -94,6 +94,7 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
    * @param width the width
    * @param height the height
    * @param callback the callback
+   * @param type the type of video player
    */
   public JaffreeVideoPlayer(
       @NotNull final MediaLibrary library,

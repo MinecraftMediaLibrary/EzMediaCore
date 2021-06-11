@@ -78,6 +78,7 @@ public class ExtractionSetting implements ExtractionConfiguration {
    * @param channels the channels
    * @param samplingRate the sampling rate
    * @param volume the volume
+   * @param codec the codec
    */
   public ExtractionSetting(
       @NotNull final String codec,

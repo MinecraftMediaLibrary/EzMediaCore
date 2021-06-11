@@ -98,6 +98,7 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
    * @param width the width
    * @param height the height
    * @param callback the callback
+   * @param type the type of player
    */
   public VLCVideoPlayer(
       @NotNull final MediaLibrary library,
@@ -135,6 +136,7 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
    * @param width the width
    * @param height the height
    * @param callback the callback
+   * @param type the type of player
    */
   public VLCVideoPlayer(
       @NotNull final MediaLibrary library,

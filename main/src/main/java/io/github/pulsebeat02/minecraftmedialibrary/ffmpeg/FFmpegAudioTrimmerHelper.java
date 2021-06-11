@@ -48,6 +48,7 @@ public class FFmpegAudioTrimmerHelper implements AudioTrimmerContext {
    *
    * @param input the input
    * @param output the output
+   * @param start the start time
    */
   public FFmpegAudioTrimmerHelper(
       @NotNull final Path input, @NotNull final Path output, final long start) {
