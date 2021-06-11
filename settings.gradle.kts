@@ -2,6 +2,7 @@ rootProject.name = "minecraftmedialibrary-root"
 
 include(":api")
 
+include(":v1_17_R1")
 include(":v1_16_R3")
 include(":v1_16_R2")
 include(":v1_16_R1")
@@ -25,3 +26,4 @@ include(":deluxemediaplugin")
 findProject("main")?.name = "minecraftmedialibrary"
 findProject("api")?.name = "minecraftmedialibrary-api"
 findProject("lib")?.name = "minecraftmedialibrary-lib"
+include("v1_17_R1")
