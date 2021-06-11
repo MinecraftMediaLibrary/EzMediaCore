@@ -23,7 +23,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,7 @@ public final class VideoCommandAttributes {
   private final AtomicBoolean completion;
 
   private YoutubeExtraction extractor;
-  private VLCVideoPlayer player;
+  private VideoPlayerContext player;
   private DitherHolder dither;
   private VideoType mode;
   private Path video;
@@ -78,11 +78,11 @@ public final class VideoCommandAttributes {
     this.extractor = extractor;
   }
 
-  public VLCVideoPlayer getPlayer() {
+  public VideoPlayerContext getPlayer() {
     return player;
   }
 
-  public void setPlayer(final VLCVideoPlayer player) {
+  public void setPlayer(final VideoPlayerContext player) {
     this.player = player;
   }
 

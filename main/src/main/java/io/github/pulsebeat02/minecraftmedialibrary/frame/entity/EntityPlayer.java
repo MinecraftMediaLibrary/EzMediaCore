@@ -24,6 +24,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.frame.entity;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -92,6 +93,17 @@ public class EntityPlayer extends VLCVideoPlayer {
    */
   public static Builder builder() {
     return new Builder();
+  }
+
+  @Override
+  public VideoPlayerContext toLinuxPlayer() {
+    return new LinuxEntityPlayer(
+        getLibrary(),
+        getUrl(),
+        (EntityCallbackPrototype) getCallback(),
+        getLocation(),
+        getWidth(),
+        getHeight());
   }
 
   /**

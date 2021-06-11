@@ -24,6 +24,8 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCallback;
@@ -35,6 +37,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.ScoreboardCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.ScoreboardPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,91 +45,102 @@ public final class VideoBuilder {
 
   private final MediaLibrary library;
   private final VideoCommandAttributes attributes;
+  private final boolean linux;
 
   public VideoBuilder(
       @NotNull final MediaLibrary library, @NotNull final VideoCommandAttributes attributes) {
     this.library = library;
     this.attributes = attributes;
+    linux = RuntimeUtilities.isLinux();
   }
 
-  public MapPlayer createMapPlayer() {
-    return MapPlayer.builder()
-        .url(attributes.getVideo().toString())
-        .width(attributes.getScreenWidth())
-        .height(attributes.getScreenHeight())
-        .callback(
-            MapDataCallback.builder()
-                .viewers(null)
-                .map(attributes.getStartingMap())
-                .itemframeWidth(attributes.getFrameWidth())
-                .itemframeHeight(attributes.getFrameHeight())
-                .videoWidth(attributes.getScreenWidth())
-                .delay(0)
-                .ditherHolder(attributes.getDither())
-                .build(library))
-        .build(library);
+  public VideoPlayerContext createMapPlayer() {
+    return wrapCompatibility(
+        MapPlayer.builder()
+            .url(attributes.getVideo().toString())
+            .width(attributes.getScreenWidth())
+            .height(attributes.getScreenHeight())
+            .callback(
+                MapDataCallback.builder()
+                    .viewers(null)
+                    .map(attributes.getStartingMap())
+                    .itemframeWidth(attributes.getFrameWidth())
+                    .itemframeHeight(attributes.getFrameHeight())
+                    .videoWidth(attributes.getScreenWidth())
+                    .delay(0)
+                    .ditherHolder(attributes.getDither())
+                    .build(library))
+            .build(library));
   }
 
-  public EntityPlayer createEntityPlayer(@NotNull final Player sender) {
-    return EntityPlayer.builder()
-        .url(attributes.getVideo().toString())
-        .width(attributes.getScreenWidth())
-        .height(attributes.getScreenHeight())
-        .callback(
-            EntityCallback.builder()
-                .viewers(null)
-                .entityWidth(attributes.getScreenWidth())
-                .entityHeight(attributes.getScreenHeight())
-                .delay(40)
-                .location(sender.getLocation())
-                .type(ScreenEntityType.ARMORSTAND)
-                .build(library))
-        .build(library);
+  public VideoPlayerContext createEntityPlayer(@NotNull final Player sender) {
+    return wrapCompatibility(
+        EntityPlayer.builder()
+            .url(attributes.getVideo().toString())
+            .width(attributes.getScreenWidth())
+            .height(attributes.getScreenHeight())
+            .callback(
+                EntityCallback.builder()
+                    .viewers(null)
+                    .entityWidth(attributes.getScreenWidth())
+                    .entityHeight(attributes.getScreenHeight())
+                    .delay(40)
+                    .location(sender.getLocation())
+                    .type(ScreenEntityType.ARMORSTAND)
+                    .build(library))
+            .build(library));
   }
 
-  public ChatPlayer createChatBoxPlayer() {
-    return ChatPlayer.builder()
-        .url(attributes.getVideo().toString())
-        .width(attributes.getScreenWidth())
-        .height(attributes.getScreenHeight())
-        .callback(
-            ChatCallback.builder()
-                .viewers(null)
-                .chatWidth(attributes.getScreenWidth())
-                .chatHeight(attributes.getScreenHeight())
-                .delay(40)
-                .build(library))
-        .build(library);
+  public VideoPlayerContext createChatBoxPlayer() {
+    return wrapCompatibility(
+        ChatPlayer.builder()
+            .url(attributes.getVideo().toString())
+            .width(attributes.getScreenWidth())
+            .height(attributes.getScreenHeight())
+            .callback(
+                ChatCallback.builder()
+                    .viewers(null)
+                    .chatWidth(attributes.getScreenWidth())
+                    .chatHeight(attributes.getScreenHeight())
+                    .delay(40)
+                    .build(library))
+            .build(library));
   }
 
-  public ScoreboardPlayer createScoreboardPlayer() {
-    return ScoreboardPlayer.builder()
-        .url(attributes.getVideo().toString())
-        .width(attributes.getScreenWidth())
-        .height(attributes.getScreenHeight())
-        .callback(
-            ScoreboardCallback.builder()
-                .viewers(null)
-                .scoreboardWidth(attributes.getScreenWidth())
-                .scoreboardHeight(attributes.getScreenHeight())
-                .delay(40)
-                .build(library))
-        .build(library);
+  public VideoPlayerContext createScoreboardPlayer() {
+    return wrapCompatibility(
+        ScoreboardPlayer.builder()
+            .url(attributes.getVideo().toString())
+            .width(attributes.getScreenWidth())
+            .height(attributes.getScreenHeight())
+            .callback(
+                ScoreboardCallback.builder()
+                    .viewers(null)
+                    .scoreboardWidth(attributes.getScreenWidth())
+                    .scoreboardHeight(attributes.getScreenHeight())
+                    .delay(40)
+                    .build(library))
+            .build(library));
   }
 
-  public BlockHighlightPlayer createBlockHighlightPlayer(@NotNull final Player sender) {
-    return BlockHighlightPlayer.builder()
-        .url(attributes.getVideo().toString())
-        .width(attributes.getScreenWidth())
-        .height(attributes.getScreenHeight())
-        .callback(
-            BlockHighlightCallback.builder()
-                .viewers(null)
-                .highlightWidth(attributes.getScreenWidth())
-                .highlightHeight(attributes.getScreenHeight())
-                .delay(40)
-                .location(sender.getLocation())
-                .build(library))
-        .build(library);
+  public VideoPlayerContext createBlockHighlightPlayer(@NotNull final Player sender) {
+    return wrapCompatibility(
+        BlockHighlightPlayer.builder()
+            .url(attributes.getVideo().toString())
+            .width(attributes.getScreenWidth())
+            .height(attributes.getScreenHeight())
+            .callback(
+                BlockHighlightCallback.builder()
+                    .viewers(null)
+                    .highlightWidth(attributes.getScreenWidth())
+                    .highlightHeight(attributes.getScreenHeight())
+                    .delay(40)
+                    .location(sender.getLocation())
+                    .build(library))
+            .build(library));
+  }
+
+  public VideoPlayerContext wrapCompatibility(@NotNull final VLCVideoPlayer context) {
+    return linux ? context.toLinuxPlayer() : context;
   }
 }

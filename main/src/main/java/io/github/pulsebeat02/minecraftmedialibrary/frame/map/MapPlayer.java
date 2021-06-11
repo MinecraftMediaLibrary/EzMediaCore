@@ -24,6 +24,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.frame.map;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -77,6 +78,12 @@ public class MapPlayer extends VLCVideoPlayer {
    */
   public static Builder builder() {
     return new Builder();
+  }
+
+  @Override
+  public VideoPlayerContext toLinuxPlayer() {
+    return new LinuxMapPlayer(
+        getLibrary(), getUrl(), (MapDataCallbackPrototype) getCallback(), getWidth(), getHeight());
   }
 
   /** The type Builder. */

@@ -52,6 +52,7 @@ import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.form
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.TextComponent.ofChildren;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
+import static net.kyori.adventure.text.format.NamedTextColor.BLUE;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
 public final class DeluxeMediaPlugin extends JavaPlugin {
@@ -108,15 +109,16 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
       final List<String> logo =
           Arrays.asList(
-              "  _____    __  __   _____  ",
-              " |  __ \\  |  \\/  | |  __ \\ ",
-              " | |  | | | \\  / | | |__) |",
-              " | |  | | | |\\/| | |  ___/ ",
-              " | |__| | | |  | | | |     ",
-              " |_____/  |_|  |_| |_|     ",
-              "                           ");
+              " _____       _                __  __          _ _       _____  _             _       ",
+              " |  __ \\     | |              |  \\/  |        | (_)     |  __ \\| |           (_)      ",
+              " | |  | | ___| |_   ___  _____| \\  / | ___  __| |_  __ _| |__) | |_   _  __ _ _ _ __  ",
+              " | |  | |/ _ \\ | | | \\ \\/ / _ \\ |\\/| |/ _ \\/ _` | |/ _` |  ___/| | | | |/ _` | | '_ \\ ",
+              " | |__| |  __/ | |_| |>  <  __/ |  | |  __/ (_| | | (_| | |    | | |_| | (_| | | | | |",
+              " |_____/ \\___|_|\\__,_/_/\\_\\___|_|  |_|\\___|\\__,_|_|\\__,_|_|    |_|\\__,_|\\__, |_|_| |_|",
+              "                                                                         __/ |        ",
+              "                                                                        |___/         ");
       for (final String line : logo) {
-        console.sendMessage(text(line, AQUA));
+        console.sendMessage(text(line, BLUE));
       }
       console.sendMessage(
           format(

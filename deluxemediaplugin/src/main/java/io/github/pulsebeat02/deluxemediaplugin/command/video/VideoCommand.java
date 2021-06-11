@@ -29,7 +29,7 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegAudioTrimmerHelper;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
@@ -82,39 +82,33 @@ public final class VideoCommand extends BaseCommand {
       return SINGLE_SUCCESS;
     }
     stopIfPlaying();
-    if (plugin.getLibrary().isVlcj()) {
-      final VideoType type = attributes.getVideoType();
-      switch (type) {
-        case ITEMFRAME:
-          attributes.setPlayer(builder.createMapPlayer());
-          break;
-        case ARMOR_STAND:
-          if (sender instanceof Player) {
-            attributes.setPlayer(builder.createEntityPlayer((Player) sender));
-          } else {
-            audience.sendMessage(
-                format(text("You must be a player to execute this command!", RED)));
-          }
-          break;
-        case CHATBOX:
-          attributes.setPlayer(builder.createChatBoxPlayer());
-          break;
-        case SCOREBOARD:
-          attributes.setPlayer(builder.createScoreboardPlayer());
-          break;
-        case DEBUG_HIGHLIGHTS:
-          if (sender instanceof Player) {
-            attributes.setPlayer(builder.createBlockHighlightPlayer((Player) sender));
-          } else {
-            audience.sendMessage(
-                format(text("You must be a player to execute this command!", RED)));
-          }
-          break;
-      }
-    } else {
-      audience.sendMessage(
-          format(text("VLC isn't enabled! Cannot play videos at the moment.", RED)));
-      return SINGLE_SUCCESS;
+    final VideoType type = attributes.getVideoType();
+    switch (type) {
+      case ITEMFRAME:
+        attributes.setPlayer(builder.createMapPlayer());
+        break;
+      case ARMOR_STAND:
+        if (sender instanceof Player) {
+          attributes.setPlayer(builder.createEntityPlayer((Player) sender));
+        } else {
+          audience.sendMessage(format(text("You must be a player to execute this command!", RED)));
+          return SINGLE_SUCCESS;
+        }
+        break;
+      case CHATBOX:
+        attributes.setPlayer(builder.createChatBoxPlayer());
+        break;
+      case SCOREBOARD:
+        attributes.setPlayer(builder.createScoreboardPlayer());
+        break;
+      case DEBUG_HIGHLIGHTS:
+        if (sender instanceof Player) {
+          attributes.setPlayer(builder.createBlockHighlightPlayer((Player) sender));
+        } else {
+          audience.sendMessage(format(text("You must be a player to execute this command!", RED)));
+          return SINGLE_SUCCESS;
+        }
+        break;
     }
     sendPlayInformation(audience);
     attributes.getPlayer().start(Bukkit.getOnlinePlayers());
@@ -184,7 +178,7 @@ public final class VideoCommand extends BaseCommand {
   }
 
   private void stopIfPlaying() {
-    final VLCVideoPlayer player = attributes.getPlayer();
+    final VideoPlayerContext player = attributes.getPlayer();
     if (player != null && player.isPlaying()) {
       player.stop(Bukkit.getOnlinePlayers());
     }

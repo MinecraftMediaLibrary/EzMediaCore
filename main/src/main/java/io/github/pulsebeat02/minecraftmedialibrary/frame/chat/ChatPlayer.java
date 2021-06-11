@@ -24,6 +24,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.frame.chat;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCallbackPrototype;
 import org.jetbrains.annotations.NotNull;
 
@@ -78,6 +79,12 @@ public class ChatPlayer extends VLCVideoPlayer {
    */
   public static Builder builder() {
     return new Builder();
+  }
+
+  @Override
+  public VideoPlayerContext toLinuxPlayer() {
+    return new LinuxChatPlayer(
+        getLibrary(), getUrl(), (ChatCallbackPrototype) getCallback(), getWidth(), getHeight());
   }
 
   /** The type Builder. */

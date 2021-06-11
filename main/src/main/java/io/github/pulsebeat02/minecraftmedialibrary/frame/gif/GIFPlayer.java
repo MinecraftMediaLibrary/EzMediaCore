@@ -25,6 +25,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.frame.gif;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.ImageUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
@@ -32,6 +33,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
@@ -79,6 +81,12 @@ public class GIFPlayer extends VLCVideoPlayer {
    */
   public static Builder builder() {
     return new Builder();
+  }
+
+  @Override
+  @Nullable
+  public VideoPlayerContext toLinuxPlayer() {
+    return null;
   }
 
   /**

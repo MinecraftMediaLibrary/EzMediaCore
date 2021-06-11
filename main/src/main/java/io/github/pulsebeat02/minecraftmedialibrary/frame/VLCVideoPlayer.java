@@ -174,6 +174,8 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
     mediaPlayerComponent.audio().setMute(true);
   }
 
+  public abstract VideoPlayerContext toLinuxPlayer();
+
   @Override
   public MediaLibrary getLibrary() {
     return library;
