@@ -27,6 +27,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.FilterLiteDither;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
 import io.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
