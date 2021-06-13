@@ -23,6 +23,7 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.highlight;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.Callback;
 import io.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
@@ -35,17 +36,12 @@ import java.util.UUID;
  * <p>This video player is only visible if the player has debug mode turned on. It uses custom
  * packets to send to the player with the RGB colors to make a video player.
  */
-public final class BlockHighlightCallback implements BlockHighlightCallbackPrototype {
+public final class BlockHighlightCallback extends Callback
+    implements BlockHighlightCallbackPrototype {
 
   private final PacketHandler handler;
-  private final MediaLibrary library;
   private final UUID[] viewers;
   private final Location location;
-  private final int videoWidth;
-  private final int delay;
-  private final int width;
-  private final int height;
-  private long lastUpdated;
 
   /**
    * Instantiates a new BlockHighlightCallback.
@@ -66,14 +62,10 @@ public final class BlockHighlightCallback implements BlockHighlightCallbackProto
       final int height,
       final int videoWidth,
       final int delay) {
+    super(library, width, height, videoWidth, delay);
     handler = library.getHandler();
-    this.library = library;
     this.viewers = viewers;
     this.location = location;
-    this.width = width;
-    this.height = height;
-    this.videoWidth = videoWidth;
-    this.delay = delay;
   }
 
   /**
@@ -93,8 +85,11 @@ public final class BlockHighlightCallback implements BlockHighlightCallbackProto
   @Override
   public void send(final int[] data) {
     final long time = System.currentTimeMillis();
-    if (time - lastUpdated >= delay) {
-      lastUpdated = time;
+    final int delay = getDelay();
+    if (time - getLastUpdated() >= delay) {
+      setLastUpdated(time);
+      final int height = getHeight();
+      final int width = getWidth();
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
           handler.displayDebugMarker(
@@ -122,36 +117,6 @@ public final class BlockHighlightCallback implements BlockHighlightCallbackProto
   @Override
   public Location getLocation() {
     return location;
-  }
-
-  @Override
-  public int getWidth() {
-    return width;
-  }
-
-  @Override
-  public int getHeight() {
-    return height;
-  }
-
-  @Override
-  public int getDelay() {
-    return delay;
-  }
-
-  @Override
-  public MediaLibrary getLibrary() {
-    return library;
-  }
-
-  @Override
-  public int getVideoWidth() {
-    return videoWidth;
-  }
-
-  @Override
-  public long getLastUpdated() {
-    return lastUpdated;
   }
 
   /** The type Builder. */

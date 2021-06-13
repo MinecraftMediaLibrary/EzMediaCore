@@ -112,18 +112,18 @@ public interface VideoPlayerContext {
   void resume(@NotNull Collection<? extends Player> players);
 
   /**
-   * Repeats the player.
-   *
-   * @param setting the setting
-   */
-  void setRepeat(boolean setting);
-
-  /**
    * Returns whether the video is playing.
    *
    * @return whether the video is playing or not
    */
   boolean isPlaying();
+
+  /**
+   * Sets the video to play mode.
+   *
+   * @param mode the mode
+   */
+  void setPlaying(boolean mode);
 
   /**
    * Gets the frame rate for the video.
@@ -145,4 +145,32 @@ public interface VideoPlayerContext {
    * @return the elapsed time
    */
   long getElapsedTime();
+
+  /**
+   * Gets whether the video is looped or not.
+   *
+   * @return whether looping is enabled or not
+   */
+  boolean isRepeat();
+
+  /**
+   * Repeats the player.
+   *
+   * @param setting the setting
+   */
+  void setRepeat(boolean setting);
+
+  /**
+   * Gets the start time of the video.
+   *
+   * @return the start time
+   */
+  long getStart();
+
+  /**
+   * Sets the start time of the video.
+   *
+   * @param start the start time
+   */
+  void setStart(final long start);
 }

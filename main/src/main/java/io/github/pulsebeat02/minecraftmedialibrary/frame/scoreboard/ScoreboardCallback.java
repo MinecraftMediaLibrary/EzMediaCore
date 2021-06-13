@@ -23,6 +23,7 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.Callback;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -50,7 +51,7 @@ import java.util.stream.Collectors;
  * used would be named: "MyPlugin Video Player".
  */
 @SuppressWarnings("unchecked")
-public final class ScoreboardCallback implements ScoreboardCallbackPrototype {
+public final class ScoreboardCallback extends Callback implements ScoreboardCallbackPrototype {
 
   private static ChatColor[] COLORS;
 
@@ -65,15 +66,8 @@ public final class ScoreboardCallback implements ScoreboardCallbackPrototype {
     }
   }
 
-  private final MediaLibrary library;
   private final Set<Player> viewers;
-  private final int videoWidth;
-  private final int delay;
-  private final int width;
-  private final int height;
   private final String name;
-  private long lastUpdated;
-
   private Scoreboard scoreboard;
   private int id;
 
@@ -94,14 +88,10 @@ public final class ScoreboardCallback implements ScoreboardCallbackPrototype {
       final int height,
       final int videoWidth,
       final int delay) {
-    this.library = library;
+    super(library, width, height, videoWidth, delay);
     this.viewers = Collections.newSetFromMap(new WeakHashMap<>());
     this.viewers.addAll(Arrays.stream(viewers).map(Bukkit::getPlayer).collect(Collectors.toSet()));
-    this.width = width;
-    this.height = height;
-    name = library.getPlugin().getName() + " Video Player";
-    this.videoWidth = videoWidth;
-    this.delay = delay;
+    name = String.format("%s Video Player", library.getPlugin().getName());
   }
 
   /**
@@ -121,8 +111,10 @@ public final class ScoreboardCallback implements ScoreboardCallbackPrototype {
   @Override
   public void send(final int[] data) {
     final long time = System.currentTimeMillis();
-    if (time - lastUpdated >= delay) {
-      lastUpdated = time;
+    if (time - getLastUpdated() >= getDelay()) {
+      setLastUpdated(time);
+      final int height = getHeight();
+      final int width = getWidth();
       if (scoreboard == null) {
         scoreboard = Objects.requireNonNull(Bukkit.getScoreboardManager()).getNewScoreboard();
         final Objective objective = scoreboard.registerNewObjective("rd-" + id++, "dummy", name);
@@ -165,33 +157,13 @@ public final class ScoreboardCallback implements ScoreboardCallbackPrototype {
   }
 
   @Override
-  public int getWidth() {
-    return width;
+  public String getName() {
+    return name;
   }
 
   @Override
-  public int getHeight() {
-    return height;
-  }
-
-  @Override
-  public int getDelay() {
-    return delay;
-  }
-
-  @Override
-  public MediaLibrary getLibrary() {
-    return library;
-  }
-
-  @Override
-  public int getVideoWidth() {
-    return videoWidth;
-  }
-
-  @Override
-  public long getLastUpdated() {
-    return lastUpdated;
+  public int getID() {
+    return id;
   }
 
   /** The type Builder. */

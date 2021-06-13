@@ -22,8 +22,6 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.frame;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
@@ -74,21 +72,12 @@ import java.util.function.Consumer;
  * ball operating systems), you have to use the JavaCVVideoPlayer players which are slower but very
  * compatible.
  */
-public abstract class VLCVideoPlayer implements VideoPlayerContext {
+public abstract class VLCVideoPlayer extends VideoPlayer {
 
-  private final MediaLibrary library;
   private final VideoSurfaceAdapter adapter;
   private final MinecraftVideoRenderCallback renderCallback;
-  private final String url;
-  private final FrameCallback callback;
-  private final String sound;
   private final Collection<Player> watchers;
-
   private EmbeddedMediaPlayer mediaPlayerComponent;
-  private boolean playing;
-  private int frameRate;
-  private int width;
-  private int height;
 
   /**
    * Instantiates a new Abstract video player.
@@ -107,14 +96,7 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
       final int width,
       final int height,
       @NotNull final FrameCallback callback) {
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
-    Preconditions.checkArgument(width > 0, String.format("Width is not valid! (%d)", width));
-    Preconditions.checkArgument(height > 0, String.format("Height is not valid! (%d)", height));
-    this.library = library;
-    this.url = url;
-    this.width = width;
-    this.height = height;
-    this.callback = callback;
+    super(library, url, width, height, callback);
     renderCallback = new MinecraftVideoRenderCallback(this);
     adapter =
         RuntimeUtilities.isWindows()
@@ -122,7 +104,6 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
             : RuntimeUtilities.isMac()
                 ? new OsxVideoSurfaceAdapter()
                 : new LinuxVideoSurfaceAdapter();
-    sound = getLibrary().getPlugin().getName().toLowerCase();
     watchers = new ArrayList<>();
     initializePlayer();
     Logger.info(String.format("Created a VLC Integrated %s Video Player (%s)", type, url));
@@ -149,6 +130,7 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
   }
 
   private void initializePlayer() {
+    final int frameRate = getFrameRate();
     mediaPlayerComponent =
         new MediaPlayerFactory(
                 frameRate != 0
@@ -164,7 +146,7 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
                   @Override
                   public BufferFormat getBufferFormat(
                       final int sourceWidth, final int sourceHeight) {
-                    return new RV32BufferFormat(width, height);
+                    return new RV32BufferFormat(getWidth(), getHeight());
                   }
 
                   @Override
@@ -177,91 +159,6 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
   }
 
   public abstract VideoPlayerContext toLinuxPlayer();
-
-  @Override
-  public MediaLibrary getLibrary() {
-    return library;
-  }
-
-  @Override
-  public String getUrl() {
-    return url;
-  }
-
-  @Override
-  public int getWidth() {
-    return width;
-  }
-
-  @Override
-  public void setWidth(final int width) {
-    this.width = width;
-  }
-
-  @Override
-  public int getHeight() {
-    return height;
-  }
-
-  @Override
-  public void setHeight(final int height) {
-    this.height = height;
-  }
-
-  @Override
-  public FrameCallback getCallback() {
-    return callback;
-  }
-
-  @Override
-  public String getSound() {
-    return sound;
-  }
-
-  @Override
-  public void start(@NotNull final Collection<? extends Player> players) {
-    playing = true;
-    if (mediaPlayerComponent == null) {
-      initializePlayer();
-    }
-    mediaPlayerComponent.media().play(url);
-    for (final Player p : players) {
-      p.playSound(p.getLocation(), sound, SoundCategory.MUSIC, 100.0F, 1.0F);
-    }
-    watchers.addAll(players);
-    Logger.info(String.format("Started Playing the Video! (%s)", url));
-  }
-
-  @Override
-  public void stop(@NotNull final Collection<? extends Player> players) {
-    playing = false;
-    mediaPlayerComponent.controls().stop();
-    for (final Player p : players) {
-      p.stopSound(sound, SoundCategory.MUSIC);
-    }
-    Logger.info(String.format("Stopped Playing the Video! (%s)", url));
-  }
-
-  @Override
-  public void release() {
-    playing = false;
-    mediaPlayerComponent.release();
-    mediaPlayerComponent = null;
-    Logger.info(String.format("Released the Video! (%s)", url));
-  }
-
-  @Override
-  public void resume(@NotNull final Collection<? extends Player> players) {
-    playing = true;
-    if (mediaPlayerComponent == null) {
-      initializePlayer();
-    }
-    mediaPlayerComponent.controls().start();
-    for (final Player p : players) {
-      p.playSound(p.getLocation(), sound, SoundCategory.MUSIC, 100.0F, 1.0F);
-    }
-    Logger.info(String.format("Resumed the Video! (%s)", url));
-  }
 
   @Override
   public void setRepeat(final boolean setting) {
@@ -277,22 +174,50 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
                 }
               });
     }
-    Logger.info(String.format("Set Setting Loop to (%s)! (%s)", setting, url));
+    Logger.info(String.format("Set Setting Loop to (%s)! (%s)", setting, getUrl()));
   }
 
   @Override
-  public boolean isPlaying() {
-    return playing;
+  public void start(@NotNull final Collection<? extends Player> players) {
+    setPlaying(true);
+    final String url = getUrl();
+    if (mediaPlayerComponent == null) {
+      initializePlayer();
+    }
+    mediaPlayerComponent.media().play(url);
+    playAudio(players);
+    watchers.addAll(players);
+    Logger.info(String.format("Started Playing the Video! (%s)", url));
   }
 
   @Override
-  public int getFrameRate() {
-    return frameRate;
+  public void stop(@NotNull final Collection<? extends Player> players) {
+    setPlaying(false);
+    mediaPlayerComponent.controls().stop();
+    final String sound = getSound();
+    for (final Player p : players) {
+      p.stopSound(sound, SoundCategory.MUSIC);
+    }
+    Logger.info(String.format("Stopped Playing the Video! (%s)", getUrl()));
   }
 
   @Override
-  public void setFrameRate(final int frameRate) {
-    this.frameRate = frameRate;
+  public void release() {
+    setPlaying(false);
+    mediaPlayerComponent.release();
+    mediaPlayerComponent = null;
+    Logger.info(String.format("Released the Video! (%s)", getUrl()));
+  }
+
+  @Override
+  public void resume(@NotNull final Collection<? extends Player> players) {
+    setPlaying(true);
+    if (mediaPlayerComponent == null) {
+      initializePlayer();
+    }
+    mediaPlayerComponent.controls().start();
+    playAudio(players);
+    Logger.info(String.format("Resumed the Video! (%s)", getUrl()));
   }
 
   @Override
@@ -328,8 +253,9 @@ public abstract class VLCVideoPlayer implements VideoPlayerContext {
   }
 
   private void playAudio(@NotNull final Collection<? extends Player> players) {
+    final String sound = getSound();
     for (final Player p : players) {
-      p.playSound(p.getLocation(), sound, 1.0F, 1.0F);
+      p.playSound(p.getLocation(), sound, SoundCategory.MUSIC, 100.0F, 1.0F);
     }
   }
 

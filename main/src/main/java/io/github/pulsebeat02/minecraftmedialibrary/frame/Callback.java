@@ -20,35 +20,80 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard;
+package io.github.pulsebeat02.minecraftmedialibrary.frame;
 
-import io.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallbackAttribute;
-import org.bukkit.entity.Player;
+import com.google.common.base.Preconditions;
+import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
+/** The abstract callback class. */
+public abstract class Callback implements FrameCallbackAttribute {
 
-/** A prototype of the Scoreboard Callback (pre-mature). */
-public interface ScoreboardCallbackPrototype extends FrameCallback, FrameCallbackAttribute {
-
-  /**
-   * Get the viewers.
-   *
-   * @return the viewers
-   */
-  Set<Player> getViewers();
+  private final MediaLibrary library;
+  private final int width;
+  private final int height;
+  private final int videoWidth;
+  private final int delay;
+  private long lastUpdated;
 
   /**
-   * Gets the name of the scoreboard.
+   * Initializes a new Callback.
    *
-   * @return the name
+   * @param library the library
+   * @param width the width
+   * @param height the height
+   * @param videoWidth the video width
+   * @param delay the delay
    */
-  String getName();
+  public Callback(
+      @NotNull final MediaLibrary library,
+      final int width,
+      final int height,
+      final int videoWidth,
+      final int delay) {
+    Preconditions.checkArgument(width >= 0, "Width must be greater than or equal to 0!");
+    Preconditions.checkArgument(height >= 0, "Height must be greater than or equal to 0!");
+    Preconditions.checkArgument(
+        delay >= 0, "Delay between frames must be greater than or equal to 0!");
+    this.library = library;
+    this.width = width;
+    this.height = height;
+    this.videoWidth = videoWidth;
+    this.delay = delay;
+  }
 
-  /**
-   * Gets the id of the scoreboard.
-   *
-   * @return the id
-   */
-  int getID();
+  @Override
+  public int getWidth() {
+    return width;
+  }
+
+  @Override
+  public int getHeight() {
+    return height;
+  }
+
+  @Override
+  public int getDelay() {
+    return delay;
+  }
+
+  @Override
+  public MediaLibrary getLibrary() {
+    return library;
+  }
+
+  @Override
+  public int getVideoWidth() {
+    return videoWidth;
+  }
+
+  @Override
+  public long getLastUpdated() {
+    return lastUpdated;
+  }
+
+  @Override
+  public void setLastUpdated(final long lastUpdated) {
+    this.lastUpdated = lastUpdated;
+  }
 }

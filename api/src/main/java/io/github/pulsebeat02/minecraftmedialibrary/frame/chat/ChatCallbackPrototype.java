@@ -24,9 +24,8 @@ package io.github.pulsebeat02.minecraftmedialibrary.frame.chat;
 
 import io.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallbackAttribute;
-import org.bukkit.entity.Player;
 
-import java.util.Set;
+import java.util.UUID;
 
 /** A prototype of the ChatCallback (pre-mature). */
 public interface ChatCallbackPrototype extends FrameCallback, FrameCallbackAttribute {
@@ -36,5 +35,12 @@ public interface ChatCallbackPrototype extends FrameCallback, FrameCallbackAttri
    *
    * @return the viewers
    */
-  Set<Player> getViewers();
+  UUID[] getViewers();
+
+  /**
+   * Gets the character of the scoreboard.
+   *
+   * @return the character
+   */
+  String getCharacter();
 }

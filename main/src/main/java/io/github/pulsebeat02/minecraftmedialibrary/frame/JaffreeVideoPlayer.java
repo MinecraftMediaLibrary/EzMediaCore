@@ -31,7 +31,6 @@ import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.Input;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
-import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegDependencyInstallation;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
@@ -70,21 +69,10 @@ import java.util.concurrent.ExecutionException;
  * MacOS operating system, it is strongly recommended to use the VLCVideoPlayer players instead as
  * they are much faster and coded in C/C++ libraries.
  */
-public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
-
-  private final MediaLibrary library;
-  private final FrameCallback callback;
-  private final String sound;
-  private final String url;
+public abstract class JaffreeVideoPlayer extends VideoPlayer {
 
   private FFmpeg ffmpeg;
   private FFmpegResultFuture future;
-  private boolean playing;
-  private boolean repeat;
-  private long start;
-  private int frameRate;
-  private int width;
-  private int height;
 
   /**
    * Instantiates a new Abstract video player.
@@ -103,20 +91,14 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
       final int width,
       final int height,
       @NotNull final FrameCallback callback) {
-    Preconditions.checkArgument(width > 0, String.format("Width is not valid! (%d)", width));
-    Preconditions.checkArgument(height > 0, String.format("Height is not valid! (%d)", height));
-    this.url = url;
-    this.library = library;
-    this.width = width;
-    this.height = height;
-    frameRate = 25;
-    this.callback = callback;
-    sound = getLibrary().getPlugin().getName().toLowerCase();
+    super(library, url, width, height, callback);
     initializePlayer(0);
     Logger.info(String.format("Created an FFmpeg Integrated %s Video Player (%s)", type, url));
   }
 
   private void initializePlayer(final long seconds) {
+    final String url = getUrl();
+    final FrameCallback callback = getCallback();
     final Input input;
     final Path path = Paths.get(url);
     final long ms = seconds * 1000;
@@ -125,6 +107,9 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
     } else {
       input = UrlInput.fromUrl(url).setPosition(ms);
     }
+    final int width = getWidth();
+    final int height = getHeight();
+    final int frameRate = getFrameRate();
     ffmpeg =
         new FFmpeg(FFmpegDependencyInstallation.getFFmpegPath())
             .addInput(input)
@@ -150,48 +135,8 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
   }
 
   @Override
-  public MediaLibrary getLibrary() {
-    return library;
-  }
-
-  @Override
-  public String getUrl() {
-    return url;
-  }
-
-  @Override
-  public int getWidth() {
-    return width;
-  }
-
-  @Override
-  public void setWidth(final int width) {
-    this.width = width;
-  }
-
-  @Override
-  public int getHeight() {
-    return height;
-  }
-
-  @Override
-  public void setHeight(final int height) {
-    this.height = height;
-  }
-
-  @Override
-  public FrameCallback getCallback() {
-    return callback;
-  }
-
-  @Override
-  public String getSound() {
-    return sound;
-  }
-
-  @Override
   public void start(@NotNull final Collection<? extends Player> players) {
-    playing = true;
+    setPlaying(true);
     if (ffmpeg == null) {
       initializePlayer(0);
     }
@@ -199,43 +144,44 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
         () -> {
           do {
             future = ffmpeg.executeAsync();
-            start = System.currentTimeMillis();
+            setStart(System.currentTimeMillis());
             playAudio(players);
             try {
               future.toCompletableFuture().get();
             } catch (final InterruptedException | ExecutionException e) {
               e.printStackTrace();
             }
-          } while (repeat);
+          } while (isRepeat());
         });
-    Logger.info(String.format("Started Playing the Video! (%s)", url));
+    Logger.info(String.format("Started Playing the Video! (%s)", getUrl()));
   }
 
   @Override
   public void stop(@NotNull final Collection<? extends Player> players) {
-    playing = false;
+    final String sound = getSound();
+    setPlaying(false);
     if (ffmpeg != null) {
       future.graceStop();
     }
     for (final Player p : players) {
       p.stopSound(sound);
     }
-    Logger.info(String.format("Stopped Playing the Video! (%s)", url));
+    Logger.info(String.format("Stopped Playing the Video! (%s)", getUrl()));
   }
 
   @Override
   public void release() {
-    playing = false;
+    setPlaying(false);
     if (ffmpeg != null) {
       future.graceStop();
       ffmpeg = null;
     }
-    Logger.info(String.format("Released the Video! (%s)", url));
+    Logger.info(String.format("Released the Video! (%s)", getUrl()));
   }
 
   @Override
   public void resume(@NotNull final Collection<? extends Player> players) {
-    playing = true;
+    setPlaying(true);
     CompletableFuture.runAsync(
         () -> {
           do {
@@ -247,38 +193,24 @@ public abstract class JaffreeVideoPlayer implements VideoPlayerContext {
             } catch (final InterruptedException | ExecutionException e) {
               e.printStackTrace();
             }
-          } while (repeat);
+          } while (isRepeat());
         });
-    Logger.info(String.format("Resumed the Video! (%s)", url));
-  }
-
-  @Override
-  public void setRepeat(final boolean setting) {
-    repeat = true;
-    Logger.info(String.format("Set Setting Loop to (%s)! (%s)", setting, url));
-  }
-
-  @Override
-  public boolean isPlaying() {
-    return playing;
-  }
-
-  @Override
-  public int getFrameRate() {
-    return frameRate;
-  }
-
-  @Override
-  public void setFrameRate(final int frameRate) {
-    this.frameRate = frameRate;
+    Logger.info(String.format("Resumed the Video! (%s)", getUrl()));
   }
 
   @Override
   public long getElapsedTime() {
-    return (int) (System.currentTimeMillis() - start) / 1000;
+    return (int) (System.currentTimeMillis() - getStart()) / 1000;
+  }
+
+  @Override
+  public void setRepeat(final boolean setting) {
+    super.setRepeat(true);
+    Logger.info(String.format("Set Setting Loop to (%s)! (%s)", setting, getUrl()));
   }
 
   private void playAudio(@NotNull final Collection<? extends Player> players) {
+    final String sound = getSound();
     for (final Player p : players) {
       p.playSound(p.getLocation(), sound, 1.0F, 1.0F);
     }

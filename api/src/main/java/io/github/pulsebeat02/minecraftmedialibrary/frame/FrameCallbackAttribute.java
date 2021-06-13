@@ -68,4 +68,11 @@ public interface FrameCallbackAttribute {
    * @return the last updated
    */
   long getLastUpdated();
+
+  /**
+   * Sets the time of the last updated frame.
+   *
+   * @param lastUpdated the last updated frame in ms
+   */
+  void setLastUpdated(long lastUpdated);
 }
