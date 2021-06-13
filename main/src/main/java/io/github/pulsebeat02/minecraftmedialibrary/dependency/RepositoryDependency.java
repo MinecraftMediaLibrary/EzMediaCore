@@ -50,7 +50,7 @@ public enum RepositoryDependency {
       DependencyResolution.JITPACK_DEPENDENCY),
 
   /** Jave Core Maven Dependency */
-  JAVE_CORE("ws{}schild", "jave-core", "3{}0{}1", DependencyResolution.MAVEN_DEPENDENCY),
+  JAVE_CORE("ws{}schild", "jave-core", "3{}1{}1", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** Apache Commons Compression Maven Dependency */
   COMMONS_COMPRESSION(
@@ -74,7 +74,7 @@ public enum RepositoryDependency {
       "net{}java{}dev{}jna", "jna-platform", "5{}8{}0", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** Fast JSON Maven Dependency */
-  FAST_JSON("com{}alibaba", "fastjson", "1{}2{}73", DependencyResolution.MAVEN_DEPENDENCY),
+  FAST_JSON("com{}alibaba", "fastjson", "1{}2{}76", DependencyResolution.MAVEN_DEPENDENCY),
 
   /** Spotify Maven Dependency */
   SPOTIFY(
@@ -87,7 +87,7 @@ public enum RepositoryDependency {
   JAFFREE(
       "com{}github{}kokorin{}jaffree",
       "jaffree",
-      "2021{}05{}26",
+      "2021{}05{}31",
       DependencyResolution.MAVEN_DEPENDENCY);
 
   private final String group;

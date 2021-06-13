@@ -32,20 +32,15 @@ import io.github.pulsebeat02.deluxemediaplugin.update.PluginUpdateChecker;
 import io.github.pulsebeat02.deluxemediaplugin.utility.CommandUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibraryProvider;
-import io.github.pulsebeat02.minecraftmedialibrary.MinecraftMediaLibrary;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
@@ -167,22 +162,6 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
     pictureConfiguration.read();
     videoConfiguration.read();
     encoderConfiguration.read();
-  }
-
-  private Optional<MediaLibrary> setupMediaLibrary() {
-    try {
-      final Constructor<MinecraftMediaLibrary> constructor =
-          MinecraftMediaLibrary.class.getDeclaredConstructor(Plugin.class);
-      constructor.setAccessible(true);
-      return Optional.of(constructor.newInstance(this));
-    } catch (final ReflectiveOperationException exception) {
-      getLogger()
-          .log(
-              Level.SEVERE,
-              "Couldn't instantiate media library instance, disabling...",
-              new Error(exception));
-      return Optional.empty();
-    }
   }
 
   public boolean ansiSupported() {
