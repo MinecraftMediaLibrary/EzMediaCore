@@ -20,20 +20,20 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.frame.highlight;
+package io.github.pulsebeat02.minecraftmedialibrary.frame.chat;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreeVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreePlayer;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
- * specific function from native libraries. It renders it in debug highlights. Linux compatible.
+ * specific function from native libraries. It renders it in chat. Linux compatible.
  */
-public class LinuxBlockHighlightPlayer extends JaffreeVideoPlayer {
+public class FFmpegChatPlayer extends JaffreePlayer {
 
   /**
-   * Instantiates a new LinuxBlockHighlightPlayer.
+   * Instantiates a new LinuxChatPlayer.
    *
    * @param library the library
    * @param url the url
@@ -41,13 +41,13 @@ public class LinuxBlockHighlightPlayer extends JaffreeVideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public LinuxBlockHighlightPlayer(
+  public FFmpegChatPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
-      @NotNull final BlockHighlightCallbackPrototype callback,
+      @NotNull final ChatCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, "Debug Highlights", url, width, height, callback);
+    super(library, "Chat", url, width, height, callback);
   }
 
   /**
@@ -62,7 +62,7 @@ public class LinuxBlockHighlightPlayer extends JaffreeVideoPlayer {
   /** The type Builder. */
   public static class Builder {
 
-    private BlockHighlightCallbackPrototype callback;
+    private ChatCallbackPrototype callback;
     private int width = 10;
     private int height = 10;
     private String url;
@@ -79,7 +79,7 @@ public class LinuxBlockHighlightPlayer extends JaffreeVideoPlayer {
       return this;
     }
 
-    public Builder callback(final BlockHighlightCallbackPrototype callback) {
+    public Builder callback(final ChatCallbackPrototype callback) {
       this.callback = callback;
       return this;
     }
@@ -89,8 +89,8 @@ public class LinuxBlockHighlightPlayer extends JaffreeVideoPlayer {
       return this;
     }
 
-    public LinuxBlockHighlightPlayer build(@NotNull final MediaLibrary library) {
-      return new LinuxBlockHighlightPlayer(library, url, callback, width, height);
+    public FFmpegChatPlayer build(@NotNull final MediaLibrary library) {
+      return new FFmpegChatPlayer(library, url, callback, width, height);
     }
   }
 }

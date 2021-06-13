@@ -69,10 +69,10 @@ import java.util.function.Consumer;
  *
  * <p>The VLCVideoPlayer directly uses VLC if it is supported in the platform. This includes Windows
  * and MacOS operating systems. However, for Linux systems that are not supported (or any other odd
- * ball operating systems), you have to use the JavaCVVideoPlayer players which are slower but very
+ * ball operating systems), you have to use the JaffreePlayer players which are slower but very
  * compatible.
  */
-public abstract class VLCVideoPlayer extends VideoPlayer {
+public abstract class VLCPlayer extends VideoPlayer {
 
   private final VideoSurfaceAdapter adapter;
   private final MinecraftVideoRenderCallback renderCallback;
@@ -80,7 +80,7 @@ public abstract class VLCVideoPlayer extends VideoPlayer {
   private EmbeddedMediaPlayer mediaPlayerComponent;
 
   /**
-   * Instantiates a new Abstract video player.
+   * Instantiates a new VLCPlayer.
    *
    * @param library the library
    * @param url the url
@@ -89,7 +89,7 @@ public abstract class VLCVideoPlayer extends VideoPlayer {
    * @param callback the callback
    * @param type the type of player
    */
-  public VLCVideoPlayer(
+  public VLCPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String type,
       @NotNull final String url,
@@ -110,7 +110,7 @@ public abstract class VLCVideoPlayer extends VideoPlayer {
   }
 
   /**
-   * Instantiates a new Abstract video player.
+   * Instantiates a new VLCPlayer.
    *
    * @param library the library
    * @param file the file
@@ -119,7 +119,7 @@ public abstract class VLCVideoPlayer extends VideoPlayer {
    * @param callback the callback
    * @param type the type of player
    */
-  public VLCVideoPlayer(
+  public VLCPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String type,
       @NotNull final Path file,
@@ -268,7 +268,7 @@ public abstract class VLCVideoPlayer extends VideoPlayer {
      *
      * @param player the VideoPlayer
      */
-    public MinecraftVideoRenderCallback(@NotNull final VLCVideoPlayer player) {
+    public MinecraftVideoRenderCallback(@NotNull final VLCPlayer player) {
       super(new int[player.getWidth() * player.getHeight()]);
       callback = player.getCallback()::send;
     }

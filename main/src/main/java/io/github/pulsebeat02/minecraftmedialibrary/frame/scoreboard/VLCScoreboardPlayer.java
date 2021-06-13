@@ -20,10 +20,10 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.frame.highlight;
+package io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,12 +31,12 @@ import java.nio.file.Path;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
- * specific function from native libraries. It renders it in debug highlights.
+ * specific function from native libraries. It renders it in a scoreboard. Linux compatible.
  */
-public class BlockHighlightPlayer extends VLCVideoPlayer {
+public class VLCScoreboardPlayer extends VLCPlayer {
 
   /**
-   * Instantiates a new BlockHighlightPlayer.
+   * Instantiates a new ScoreboardPlayer.
    *
    * @param library the library
    * @param url the url
@@ -44,17 +44,17 @@ public class BlockHighlightPlayer extends VLCVideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public BlockHighlightPlayer(
+  public VLCScoreboardPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
-      @NotNull final BlockHighlightCallbackPrototype callback,
+      @NotNull final ScoreboardCallback callback,
       final int width,
       final int height) {
-    super(library, "Debug Highlights", url, width, height, callback);
+    super(library, "Scoreboard", url, width, height, callback);
   }
 
   /**
-   * Instantiates a new BlockHighlightPlayer.
+   * Instantiates a new ScoreboardPlayer.
    *
    * @param library the library
    * @param file the file
@@ -62,13 +62,13 @@ public class BlockHighlightPlayer extends VLCVideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public BlockHighlightPlayer(
+  public VLCScoreboardPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final Path file,
-      @NotNull final BlockHighlightCallbackPrototype callback,
+      @NotNull final ScoreboardCallback callback,
       final int width,
       final int height) {
-    super(library, "Debug Highlights", file, width, height, callback);
+    super(library, "Scoreboard", file, width, height, callback);
   }
 
   /**
@@ -82,10 +82,10 @@ public class BlockHighlightPlayer extends VLCVideoPlayer {
 
   @Override
   public VideoPlayerContext toLinuxPlayer() {
-    return new LinuxBlockHighlightPlayer(
+    return new FFmpegScoreboardPlayer(
         getLibrary(),
         getUrl(),
-        (BlockHighlightCallbackPrototype) getCallback(),
+        (ScoreboardCallbackPrototype) getCallback(),
         getWidth(),
         getHeight());
   }
@@ -94,9 +94,9 @@ public class BlockHighlightPlayer extends VLCVideoPlayer {
   public static class Builder {
 
     private String url;
-    private int width = 15;
-    private int height = 15;
-    private BlockHighlightCallbackPrototype callback;
+    private int width = 10;
+    private int height = 10;
+    private ScoreboardCallback callback;
 
     private Builder() {}
 
@@ -115,13 +115,13 @@ public class BlockHighlightPlayer extends VLCVideoPlayer {
       return this;
     }
 
-    public Builder callback(final BlockHighlightCallbackPrototype callback) {
+    public Builder callback(final ScoreboardCallback callback) {
       this.callback = callback;
       return this;
     }
 
-    public BlockHighlightPlayer build(@NotNull final MediaLibrary library) {
-      return new BlockHighlightPlayer(library, url, callback, width, height);
+    public VLCScoreboardPlayer build(@NotNull final MediaLibrary library) {
+      return new VLCScoreboardPlayer(library, url, callback, width, height);
     }
   }
 }

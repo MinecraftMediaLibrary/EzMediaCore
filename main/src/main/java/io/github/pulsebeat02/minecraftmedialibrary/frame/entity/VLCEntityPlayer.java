@@ -23,25 +23,27 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.entity;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreeVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.file.Path;
 import java.util.Collection;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
- * specific function from native libraries. It renders it on entities. Linux compatible.
+ * specific function from native libraries. It renders it on entities.
  */
-public class LinuxEntityPlayer extends JaffreeVideoPlayer {
+public class VLCEntityPlayer extends VLCPlayer {
 
   private final Location location;
   private final Entity[] entities;
 
   /**
-   * Instantiates a new LinuxEntityPlayer.
+   * Instantiates a new EntityPlayer.
    *
    * @param library the library
    * @param url the url
@@ -50,7 +52,7 @@ public class LinuxEntityPlayer extends JaffreeVideoPlayer {
    * @param callback the callback
    * @param location the location
    */
-  public LinuxEntityPlayer(
+  public VLCEntityPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
       @NotNull final EntityCallbackPrototype callback,
@@ -63,12 +65,45 @@ public class LinuxEntityPlayer extends JaffreeVideoPlayer {
   }
 
   /**
+   * Instantiates a new EntityPlayer.
+   *
+   * @param library the library
+   * @param file the file
+   * @param width the width
+   * @param height the height
+   * @param callback the callback
+   * @param location the location
+   */
+  public VLCEntityPlayer(
+      @NotNull final MediaLibrary library,
+      @NotNull final Path file,
+      @NotNull final EntityCallbackPrototype callback,
+      @NotNull final Location location,
+      final int width,
+      final int height) {
+    super(library, "Entity", file, width, height, callback);
+    this.location = location;
+    entities = callback.getEntities();
+  }
+
+  /**
    * Returns a new builder class to use.
    *
    * @return the builder
    */
   public static Builder builder() {
     return new Builder();
+  }
+
+  @Override
+  public VideoPlayerContext toLinuxPlayer() {
+    return new FFmpegEntityPlayer(
+        getLibrary(),
+        getUrl(),
+        (EntityCallbackPrototype) getCallback(),
+        getLocation(),
+        getWidth(),
+        getHeight());
   }
 
   /**
@@ -119,13 +154,18 @@ public class LinuxEntityPlayer extends JaffreeVideoPlayer {
   /** The type Builder. */
   public static class Builder {
 
-    private EntityCallbackPrototype callback;
+    private String url;
     private int width = 5;
     private int height = 5;
+    private EntityCallbackPrototype callback;
     private Location location;
-    private String url;
 
     private Builder() {}
+
+    public Builder url(final String url) {
+      this.url = url;
+      return this;
+    }
 
     public Builder width(final int width) {
       this.width = width;
@@ -147,13 +187,8 @@ public class LinuxEntityPlayer extends JaffreeVideoPlayer {
       return this;
     }
 
-    public Builder url(final String url) {
-      this.url = url;
-      return this;
-    }
-
-    public LinuxEntityPlayer build(@NotNull final MediaLibrary library) {
-      return new LinuxEntityPlayer(library, url, callback, location, width, height);
+    public VLCEntityPlayer build(@NotNull final MediaLibrary library) {
+      return new VLCEntityPlayer(library, url, callback, location, width, height);
     }
   }
 }

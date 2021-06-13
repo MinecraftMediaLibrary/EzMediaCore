@@ -24,19 +24,18 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.chat.VLCChatPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.VLCEntityPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.ScreenEntityType;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.highlight.BlockHighlightCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.highlight.BlockHighlightPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.highlight.VLCBlockHighlightPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.map.VLCPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.ScoreboardCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.ScoreboardPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.VLCScoreboardPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +55,7 @@ public final class VideoBuilder {
 
   public VideoPlayerContext createMapPlayer() {
     return wrapCompatibility(
-        MapPlayer.builder()
+        VLCPlayer.builder()
             .url(attributes.getVideo().toString())
             .width(attributes.getScreenWidth())
             .height(attributes.getScreenHeight())
@@ -75,7 +74,7 @@ public final class VideoBuilder {
 
   public VideoPlayerContext createEntityPlayer(@NotNull final Player sender) {
     return wrapCompatibility(
-        EntityPlayer.builder()
+        VLCEntityPlayer.builder()
             .url(attributes.getVideo().toString())
             .width(attributes.getScreenWidth())
             .height(attributes.getScreenHeight())
@@ -93,7 +92,7 @@ public final class VideoBuilder {
 
   public VideoPlayerContext createChatBoxPlayer() {
     return wrapCompatibility(
-        ChatPlayer.builder()
+        VLCChatPlayer.builder()
             .url(attributes.getVideo().toString())
             .width(attributes.getScreenWidth())
             .height(attributes.getScreenHeight())
@@ -109,7 +108,7 @@ public final class VideoBuilder {
 
   public VideoPlayerContext createScoreboardPlayer() {
     return wrapCompatibility(
-        ScoreboardPlayer.builder()
+        VLCScoreboardPlayer.builder()
             .url(attributes.getVideo().toString())
             .width(attributes.getScreenWidth())
             .height(attributes.getScreenHeight())
@@ -125,7 +124,7 @@ public final class VideoBuilder {
 
   public VideoPlayerContext createBlockHighlightPlayer(@NotNull final Player sender) {
     return wrapCompatibility(
-        BlockHighlightPlayer.builder()
+        VLCBlockHighlightPlayer.builder()
             .url(attributes.getVideo().toString())
             .width(attributes.getScreenWidth())
             .height(attributes.getScreenHeight())
@@ -140,7 +139,7 @@ public final class VideoBuilder {
             .build(library));
   }
 
-  public VideoPlayerContext wrapCompatibility(@NotNull final VLCVideoPlayer context) {
+  public VideoPlayerContext wrapCompatibility(@NotNull final io.github.pulsebeat02.minecraftmedialibrary.frame.VLCPlayer context) {
     return linux ? context.toLinuxPlayer() : context;
   }
 }

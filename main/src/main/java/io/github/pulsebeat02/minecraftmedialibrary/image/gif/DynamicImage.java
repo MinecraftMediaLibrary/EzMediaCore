@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.map.VLCPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
@@ -141,8 +141,8 @@ public class DynamicImage implements DynamicImageProxy {
     try {
       final Dimension dims = VideoUtilities.getDimensions(image);
       final int w = (int) dims.getWidth();
-      final MapPlayer player =
-          MapPlayer.builder()
+      final VLCPlayer player =
+          VLCPlayer.builder()
               .url(image.toAbsolutePath().toString())
               .width(w)
               .height((int) dims.getHeight())

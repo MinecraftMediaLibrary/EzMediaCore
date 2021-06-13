@@ -20,24 +20,22 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.frame.chat;
+package io.github.pulsebeat02.minecraftmedialibrary.frame.map;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCallbackPrototype;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
- * specific function from native libraries. It renders it in chat.
+ * specific function from native libraries. It renders it on maps.
  */
-public class ChatPlayer extends VLCVideoPlayer {
+public class VLCPlayer extends io.github.pulsebeat02.minecraftmedialibrary.frame.VLCPlayer {
 
   /**
-   * Instantiates a new ChatPlayer.
+   * Instantiates a new MapPlayer.
    *
    * @param library the library
    * @param url the url
@@ -45,17 +43,17 @@ public class ChatPlayer extends VLCVideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public ChatPlayer(
+  public VLCPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
-      @NotNull final ChatCallbackPrototype callback,
+      @NotNull final MapDataCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, "Chat", url, width, height, callback);
+    super(library, "Itemframe Maps", url, width, height, callback);
   }
 
   /**
-   * Instantiates a new ChatPlayer.
+   * Instantiates a new MapPlayer.
    *
    * @param library the library
    * @param file the file
@@ -63,13 +61,13 @@ public class ChatPlayer extends VLCVideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public ChatPlayer(
+  public VLCPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final Path file,
-      @NotNull final EntityCallbackPrototype callback,
+      @NotNull final MapDataCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, "Chat", file, width, height, callback);
+    super(library, "Itemframe Maps", file, width, height, callback);
   }
 
   /**
@@ -83,17 +81,17 @@ public class ChatPlayer extends VLCVideoPlayer {
 
   @Override
   public VideoPlayerContext toLinuxPlayer() {
-    return new LinuxChatPlayer(
-        getLibrary(), getUrl(), (ChatCallbackPrototype) getCallback(), getWidth(), getHeight());
+    return new FFmpegMapPlayer(
+        getLibrary(), getUrl(), (MapDataCallbackPrototype) getCallback(), getWidth(), getHeight());
   }
 
   /** The type Builder. */
   public static class Builder {
 
     private String url;
-    private int width = 15;
-    private int height = 15;
-    private ChatCallbackPrototype callback;
+    private int width = 5;
+    private int height = 5;
+    private MapDataCallbackPrototype callback;
 
     private Builder() {}
 
@@ -112,13 +110,13 @@ public class ChatPlayer extends VLCVideoPlayer {
       return this;
     }
 
-    public Builder callback(final ChatCallbackPrototype callback) {
+    public Builder callback(final MapDataCallbackPrototype callback) {
       this.callback = callback;
       return this;
     }
 
-    public ChatPlayer build(@NotNull final MediaLibrary library) {
-      return new ChatPlayer(library, url, callback, width, height);
+    public VLCPlayer build(@NotNull final MediaLibrary library) {
+      return new VLCPlayer(library, url, callback, width, height);
     }
   }
 }

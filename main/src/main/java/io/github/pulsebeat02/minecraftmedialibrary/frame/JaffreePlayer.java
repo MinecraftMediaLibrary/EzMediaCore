@@ -64,18 +64,18 @@ import java.util.concurrent.ExecutionException;
  *
  * <p>ScoreboardCallback - LinuxScoreboardPlayer
  *
- * <p>The JavaCVVideoPlayer uses JavaCV (a Java implementation of OpenCV) mainly used for Linux or
- * any other odd ball operating systems that don't have VLC supported. If you are on a Windows or
- * MacOS operating system, it is strongly recommended to use the VLCVideoPlayer players instead as
- * they are much faster and coded in C/C++ libraries.
+ * <p>The JaffreePlayer uses FFmpeg, mainly used for Linux or any other odd ball operating systems
+ * that don't have VLC supported. If you are on a Windows or MacOS operating system, it is strongly
+ * recommended to use the VLCPlayer players instead as they are much faster and coded in C/C++
+ * libraries.
  */
-public abstract class JaffreeVideoPlayer extends VideoPlayer {
+public abstract class JaffreePlayer extends VideoPlayer {
 
   private FFmpeg ffmpeg;
   private FFmpegResultFuture future;
 
   /**
-   * Instantiates a new Abstract video player.
+   * Instantiates a new JaffreePlayer.
    *
    * @param library the library
    * @param url the url
@@ -84,7 +84,7 @@ public abstract class JaffreeVideoPlayer extends VideoPlayer {
    * @param callback the callback
    * @param type the type of video player
    */
-  public JaffreeVideoPlayer(
+  public JaffreePlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String type,
       @NotNull final String url,

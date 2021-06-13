@@ -50,5 +50,6 @@ tasks.withType<ShadowJar> {
     relocate("com.wrapper.spotify", "io.github.pulsebeat02.spotify")
     relocate("com.github.kokorin", "io.github.pulsebeat02.kokorin")
     relocate("io.github.slimjar", "io.github.pulsebeat02.slimjar")
+    relocate("org.jcodec", "io.github.pulsebeat02.jcodec")
 }
 

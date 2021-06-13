@@ -20,20 +20,20 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.frame.chat;
+package io.github.pulsebeat02.minecraftmedialibrary.frame.map;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreeVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreePlayer;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
- * specific function from native libraries. It renders it in chat. Linux compatible.
+ * specific function from native libraries. It renders it on maps. Linux compatible.
  */
-public class LinuxChatPlayer extends JaffreeVideoPlayer {
+public class FFmpegMapPlayer extends JaffreePlayer {
 
   /**
-   * Instantiates a new LinuxChatPlayer.
+   * Instantiates a new LinuxMapPlayer.
    *
    * @param library the library
    * @param url the url
@@ -41,13 +41,13 @@ public class LinuxChatPlayer extends JaffreeVideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public LinuxChatPlayer(
+  public FFmpegMapPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
-      @NotNull final ChatCallbackPrototype callback,
+      @NotNull final MapDataCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, "Chat", url, width, height, callback);
+    super(library, "Itemframe Maps", url, width, height, callback);
   }
 
   /**
@@ -62,7 +62,7 @@ public class LinuxChatPlayer extends JaffreeVideoPlayer {
   /** The type Builder. */
   public static class Builder {
 
-    private ChatCallbackPrototype callback;
+    private MapDataCallbackPrototype callback;
     private int width = 10;
     private int height = 10;
     private String url;
@@ -79,7 +79,7 @@ public class LinuxChatPlayer extends JaffreeVideoPlayer {
       return this;
     }
 
-    public Builder callback(final ChatCallbackPrototype callback) {
+    public Builder callback(final MapDataCallbackPrototype callback) {
       this.callback = callback;
       return this;
     }
@@ -89,8 +89,8 @@ public class LinuxChatPlayer extends JaffreeVideoPlayer {
       return this;
     }
 
-    public LinuxChatPlayer build(@NotNull final MediaLibrary library) {
-      return new LinuxChatPlayer(library, url, callback, width, height);
+    public FFmpegMapPlayer build(@NotNull final MediaLibrary library) {
+      return new FFmpegMapPlayer(library, url, callback, width, height);
     }
   }
 }

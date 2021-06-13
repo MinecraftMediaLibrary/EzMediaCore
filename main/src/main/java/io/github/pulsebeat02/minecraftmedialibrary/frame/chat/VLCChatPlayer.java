@@ -20,23 +20,24 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard;
+package io.github.pulsebeat02.minecraftmedialibrary.frame.chat;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityCallbackPrototype;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
- * specific function from native libraries. It renders it in a scoreboard. Linux compatible.
+ * specific function from native libraries. It renders it in chat.
  */
-public class ScoreboardPlayer extends VLCVideoPlayer {
+public class VLCChatPlayer extends VLCPlayer {
 
   /**
-   * Instantiates a new ScoreboardPlayer.
+   * Instantiates a new ChatPlayer.
    *
    * @param library the library
    * @param url the url
@@ -44,17 +45,17 @@ public class ScoreboardPlayer extends VLCVideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public ScoreboardPlayer(
+  public VLCChatPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
-      @NotNull final ScoreboardCallback callback,
+      @NotNull final ChatCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, "Scoreboard", url, width, height, callback);
+    super(library, "Chat", url, width, height, callback);
   }
 
   /**
-   * Instantiates a new ScoreboardPlayer.
+   * Instantiates a new ChatPlayer.
    *
    * @param library the library
    * @param file the file
@@ -62,13 +63,13 @@ public class ScoreboardPlayer extends VLCVideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public ScoreboardPlayer(
+  public VLCChatPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final Path file,
-      @NotNull final ScoreboardCallback callback,
+      @NotNull final EntityCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, "Scoreboard", file, width, height, callback);
+    super(library, "Chat", file, width, height, callback);
   }
 
   /**
@@ -82,21 +83,17 @@ public class ScoreboardPlayer extends VLCVideoPlayer {
 
   @Override
   public VideoPlayerContext toLinuxPlayer() {
-    return new LinuxScoreboardPlayer(
-        getLibrary(),
-        getUrl(),
-        (ScoreboardCallbackPrototype) getCallback(),
-        getWidth(),
-        getHeight());
+    return new FFmpegChatPlayer(
+        getLibrary(), getUrl(), (ChatCallbackPrototype) getCallback(), getWidth(), getHeight());
   }
 
   /** The type Builder. */
   public static class Builder {
 
     private String url;
-    private int width = 10;
-    private int height = 10;
-    private ScoreboardCallback callback;
+    private int width = 15;
+    private int height = 15;
+    private ChatCallbackPrototype callback;
 
     private Builder() {}
 
@@ -115,13 +112,13 @@ public class ScoreboardPlayer extends VLCVideoPlayer {
       return this;
     }
 
-    public Builder callback(final ScoreboardCallback callback) {
+    public Builder callback(final ChatCallbackPrototype callback) {
       this.callback = callback;
       return this;
     }
 
-    public ScoreboardPlayer build(@NotNull final MediaLibrary library) {
-      return new ScoreboardPlayer(library, url, callback, width, height);
+    public VLCChatPlayer build(@NotNull final MediaLibrary library) {
+      return new VLCChatPlayer(library, url, callback, width, height);
     }
   }
 }

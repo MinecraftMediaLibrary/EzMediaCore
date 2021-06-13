@@ -20,55 +20,46 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.frame.map;
+package io.github.pulsebeat02.minecraftmedialibrary.frame.entity;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreePlayer;
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.file.Path;
+import java.util.Collection;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
- * specific function from native libraries. It renders it on maps.
+ * specific function from native libraries. It renders it on entities. Linux compatible.
  */
-public class MapPlayer extends VLCVideoPlayer {
+public class FFmpegEntityPlayer extends JaffreePlayer {
+
+  private final Location location;
+  private final Entity[] entities;
 
   /**
-   * Instantiates a new MapPlayer.
+   * Instantiates a new LinuxEntityPlayer.
    *
    * @param library the library
    * @param url the url
    * @param width the width
    * @param height the height
    * @param callback the callback
+   * @param location the location
    */
-  public MapPlayer(
+  public FFmpegEntityPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
-      @NotNull final MapDataCallbackPrototype callback,
+      @NotNull final EntityCallbackPrototype callback,
+      @NotNull final Location location,
       final int width,
       final int height) {
-    super(library, "Itemframe Maps", url, width, height, callback);
-  }
-
-  /**
-   * Instantiates a new MapPlayer.
-   *
-   * @param library the library
-   * @param file the file
-   * @param width the width
-   * @param height the height
-   * @param callback the callback
-   */
-  public MapPlayer(
-      @NotNull final MediaLibrary library,
-      @NotNull final Path file,
-      @NotNull final MapDataCallbackPrototype callback,
-      final int width,
-      final int height) {
-    super(library, "Itemframe Maps", file, width, height, callback);
+    super(library, "Entity", url, width, height, callback);
+    this.location = location;
+    entities = callback.getEntities();
   }
 
   /**
@@ -80,26 +71,61 @@ public class MapPlayer extends VLCVideoPlayer {
     return new Builder();
   }
 
+  /**
+   * Starts player.
+   *
+   * @param players which players to play the audio for
+   */
   @Override
-  public VideoPlayerContext toLinuxPlayer() {
-    return new LinuxMapPlayer(
-        getLibrary(), getUrl(), (MapDataCallbackPrototype) getCallback(), getWidth(), getHeight());
+  public void start(@NotNull final Collection<? extends Player> players) {
+    removeEntities();
+    super.start(players);
+  }
+
+  /** Releases the media player. */
+  @Override
+  public void release() {
+    removeEntities();
+    super.release();
+  }
+
+  /** Removes all entities. */
+  public void removeEntities() {
+    if (entities != null) {
+      for (final Entity entity : entities) {
+        entity.remove();
+      }
+    }
+  }
+
+  /**
+   * Gets the location of the player.
+   *
+   * @return the location
+   */
+  public Location getLocation() {
+    return location;
+  }
+
+  /**
+   * Gets the entity array.
+   *
+   * @return the entity array
+   */
+  public Entity[] getEntities() {
+    return entities;
   }
 
   /** The type Builder. */
   public static class Builder {
 
-    private String url;
+    private EntityCallbackPrototype callback;
     private int width = 5;
     private int height = 5;
-    private MapDataCallbackPrototype callback;
+    private Location location;
+    private String url;
 
     private Builder() {}
-
-    public Builder url(final String url) {
-      this.url = url;
-      return this;
-    }
 
     public Builder width(final int width) {
       this.width = width;
@@ -111,13 +137,23 @@ public class MapPlayer extends VLCVideoPlayer {
       return this;
     }
 
-    public Builder callback(final MapDataCallbackPrototype callback) {
+    public Builder callback(final EntityCallbackPrototype callback) {
       this.callback = callback;
       return this;
     }
 
-    public MapPlayer build(@NotNull final MediaLibrary library) {
-      return new MapPlayer(library, url, callback, width, height);
+    public Builder location(final Location location) {
+      this.location = location;
+      return this;
+    }
+
+    public Builder url(final String url) {
+      this.url = url;
+      return this;
+    }
+
+    public FFmpegEntityPlayer build(@NotNull final MediaLibrary library) {
+      return new FFmpegEntityPlayer(library, url, callback, location, width, height);
     }
   }
 }

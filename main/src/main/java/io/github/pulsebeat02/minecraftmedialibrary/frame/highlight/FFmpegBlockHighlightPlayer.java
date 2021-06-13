@@ -20,20 +20,20 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.minecraftmedialibrary.frame.map;
+package io.github.pulsebeat02.minecraftmedialibrary.frame.highlight;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreeVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreePlayer;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
- * specific function from native libraries. It renders it on maps. Linux compatible.
+ * specific function from native libraries. It renders it in debug highlights. Linux compatible.
  */
-public class LinuxMapPlayer extends JaffreeVideoPlayer {
+public class FFmpegBlockHighlightPlayer extends JaffreePlayer {
 
   /**
-   * Instantiates a new LinuxMapPlayer.
+   * Instantiates a new LinuxBlockHighlightPlayer.
    *
    * @param library the library
    * @param url the url
@@ -41,13 +41,13 @@ public class LinuxMapPlayer extends JaffreeVideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public LinuxMapPlayer(
+  public FFmpegBlockHighlightPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
-      @NotNull final MapDataCallbackPrototype callback,
+      @NotNull final BlockHighlightCallbackPrototype callback,
       final int width,
       final int height) {
-    super(library, "Itemframe Maps", url, width, height, callback);
+    super(library, "Debug Highlights", url, width, height, callback);
   }
 
   /**
@@ -62,7 +62,7 @@ public class LinuxMapPlayer extends JaffreeVideoPlayer {
   /** The type Builder. */
   public static class Builder {
 
-    private MapDataCallbackPrototype callback;
+    private BlockHighlightCallbackPrototype callback;
     private int width = 10;
     private int height = 10;
     private String url;
@@ -79,7 +79,7 @@ public class LinuxMapPlayer extends JaffreeVideoPlayer {
       return this;
     }
 
-    public Builder callback(final MapDataCallbackPrototype callback) {
+    public Builder callback(final BlockHighlightCallbackPrototype callback) {
       this.callback = callback;
       return this;
     }
@@ -89,8 +89,8 @@ public class LinuxMapPlayer extends JaffreeVideoPlayer {
       return this;
     }
 
-    public LinuxMapPlayer build(@NotNull final MediaLibrary library) {
-      return new LinuxMapPlayer(library, url, callback, width, height);
+    public FFmpegBlockHighlightPlayer build(@NotNull final MediaLibrary library) {
+      return new FFmpegBlockHighlightPlayer(library, url, callback, width, height);
     }
   }
 }

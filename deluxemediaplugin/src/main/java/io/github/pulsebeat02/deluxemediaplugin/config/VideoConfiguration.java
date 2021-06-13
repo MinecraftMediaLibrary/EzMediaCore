@@ -25,19 +25,18 @@ package io.github.pulsebeat02.deluxemediaplugin.config;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.ServerPropertyMutator;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallbackPrototype;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.map.VLCPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 public class VideoConfiguration extends ConfigurationProvider {
 
-  private VLCVideoPlayer player;
+  private io.github.pulsebeat02.minecraftmedialibrary.frame.VLCPlayer player;
   private MapDataCallback callback;
 
   public VideoConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
@@ -104,7 +103,7 @@ public class VideoConfiguration extends ConfigurationProvider {
           Logger.info("URL in video.yml is not a valid or specified url!");
         } else {
           player =
-              MapPlayer.builder()
+              VLCPlayer.builder()
                   .url(url)
                   .callback(callback)
                   .width(width)
@@ -116,7 +115,7 @@ public class VideoConfiguration extends ConfigurationProvider {
     }
   }
 
-  public VLCVideoPlayer getPlayer() {
+  public io.github.pulsebeat02.minecraftmedialibrary.frame.VLCPlayer getPlayer() {
     return player;
   }
 

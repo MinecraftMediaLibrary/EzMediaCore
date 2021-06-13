@@ -88,7 +88,10 @@ public enum RepositoryDependency {
       "com{}github{}kokorin{}jaffree",
       "jaffree",
       "2021{}05{}31",
-      DependencyResolution.MAVEN_DEPENDENCY);
+      DependencyResolution.MAVEN_DEPENDENCY),
+
+  /** JCodec Maven Dependency */
+  JCODEC("org{}jcodec", "jcodec", "0{}2{}5", DependencyResolution.MAVEN_DEPENDENCY);
 
   private final String group;
   private final String artifact;

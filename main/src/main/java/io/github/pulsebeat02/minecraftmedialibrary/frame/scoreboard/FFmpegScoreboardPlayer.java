@@ -23,14 +23,14 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreeVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.JaffreePlayer;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it in a scoreboard.
  */
-public class LinuxScoreboardPlayer extends JaffreeVideoPlayer {
+public class FFmpegScoreboardPlayer extends JaffreePlayer {
 
   /**
    * Instantiates a new LinuxScoreboardPlayer.
@@ -41,7 +41,7 @@ public class LinuxScoreboardPlayer extends JaffreeVideoPlayer {
    * @param height the height
    * @param callback the callback
    */
-  public LinuxScoreboardPlayer(
+  public FFmpegScoreboardPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
       @NotNull final ScoreboardCallbackPrototype callback,
@@ -89,8 +89,8 @@ public class LinuxScoreboardPlayer extends JaffreeVideoPlayer {
       return this;
     }
 
-    public LinuxScoreboardPlayer build(@NotNull final MediaLibrary library) {
-      return new LinuxScoreboardPlayer(library, url, callback, width, height);
+    public FFmpegScoreboardPlayer build(@NotNull final MediaLibrary library) {
+      return new FFmpegScoreboardPlayer(library, url, callback, width, height);
     }
   }
 }
