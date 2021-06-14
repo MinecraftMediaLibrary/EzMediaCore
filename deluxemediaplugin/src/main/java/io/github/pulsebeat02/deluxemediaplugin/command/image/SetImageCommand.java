@@ -83,12 +83,12 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
     final String mrl = context.getArgument("mrl", String.class);
     final ComponentLike successful =
         format(text(String.format("Successfully drew image on map %d", id), GOLD));
-    final MediaLibrary library = plugin.getLibrary();
+    final MediaLibrary library = plugin.library();
     final Set<String> extensions = attributes.getExtensions();
     final int width = attributes.getWidth();
     final int height = attributes.getHeight();
     if (isUrl(mrl)) {
-      final Path img = FileUtilities.downloadImageFile(mrl, plugin.getLibrary().getParentFolder());
+      final Path img = FileUtilities.downloadImageFile(mrl, plugin.library().getParentFolder());
       final String name = PathUtilities.getName(img).toLowerCase();
       if (name.endsWith(".gif")) {
         new DynamicImage(library, id, img, width, height).drawImage();

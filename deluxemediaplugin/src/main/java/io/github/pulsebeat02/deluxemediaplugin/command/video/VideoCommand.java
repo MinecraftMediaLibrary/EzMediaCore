@@ -62,7 +62,7 @@ public final class VideoCommand extends BaseCommand {
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "video", executor, "deluxemediaplugin.command.video", "");
     attributes = new VideoCommandAttributes();
-    builder = new VideoBuilder(plugin.getLibrary(), attributes);
+    builder = new VideoBuilder(plugin.library(), attributes);
     node =
         literal(getName())
             .requires(super::testPermission)
@@ -142,7 +142,7 @@ public final class VideoCommand extends BaseCommand {
               final Path temp = attributes.getAudio().getParent().resolve("temp.ogg");
               new FFmpegAudioTrimmerHelper(audio, temp, attributes.getPlayer().getElapsedTime())
                   .trim();
-              final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), temp);
+              final PackWrapper wrapper = ResourcepackWrapper.of(plugin.library(), temp);
               wrapper.buildResourcePack();
               final Path path = Paths.get(wrapper.getPath());
               attributes.setResourcepackUrl(

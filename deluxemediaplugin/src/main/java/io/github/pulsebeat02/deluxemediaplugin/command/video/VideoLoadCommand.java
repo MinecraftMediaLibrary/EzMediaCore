@@ -91,7 +91,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
                           plugin.getEncoderConfiguration().getSettings(), file, audio)
                       .extract();
                   attributes.setAudio(audio);
-                  final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), audio);
+                  final PackWrapper wrapper = ResourcepackWrapper.of(plugin.library(), audio);
                   wrapper.buildResourcePack();
                   final Path path = Paths.get(wrapper.getPath());
                   attributes.setResourcepackUrl(
@@ -124,7 +124,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
             attributes.setVideo(extraction.getVideo());
             attributes.setAudio(extraction.getAudio());
             attributes.setExtractor(extraction);
-            final PackWrapper wrapper = ResourcepackWrapper.of(plugin.getLibrary(), extraction);
+            final PackWrapper wrapper = ResourcepackWrapper.of(plugin.library(), extraction);
             wrapper.buildResourcePack();
             attributes.setResourcepackUrl(
                 plugin.getHttpConfiguration().getDaemon().generateUrl(wrapper.getPath()));

@@ -67,7 +67,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
 
   private int loadAudio(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = plugin.audience().sender(context.getSource());
-    final MediaLibrary library = plugin.getLibrary();
+    final MediaLibrary library = plugin.library();
     final String mrl = context.getArgument("mrl", String.class);
     if (isLoadingSound(audience)) {
       return SINGLE_SUCCESS;

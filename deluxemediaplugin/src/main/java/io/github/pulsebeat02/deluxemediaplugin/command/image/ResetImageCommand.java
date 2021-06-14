@@ -74,7 +74,7 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
   }
 
   private int purgeMap(@NotNull final CommandContext<CommandSender> context) {
-    final MediaLibrary library = plugin.getLibrary();
+    final MediaLibrary library = plugin.library();
     final int id = context.getArgument("id", int.class);
     attributes.getImages().removeIf(x -> x.getMap() == id);
     StaticImage.resetMap(library, id);
@@ -113,7 +113,7 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
       event.setCancelled(true);
       final Audience audience = plugin.audience().player(p);
       if (event.getMessage().equals("YES")) {
-        final MediaLibrary library = plugin.getLibrary();
+        final MediaLibrary library = plugin.library();
         final Set<StaticImageProxy> images = attributes.getImages();
         images.forEach(x -> StaticImage.resetMap(library, x.getMap()));
         images.forEach(x -> DynamicImage.resetMap(library, x.getMap()));

@@ -84,7 +84,7 @@ public class VideoConfiguration extends ConfigurationProvider {
     }
     final boolean vlcj = configuration.getBoolean("using-vlcj");
     if (enabled) {
-      final MediaLibrary library = getPlugin().getLibrary();
+      final MediaLibrary library = getPlugin().library();
       if (forceThreshold) {
         new ServerPropertyMutator().mutateCompressionThreshold();
       }

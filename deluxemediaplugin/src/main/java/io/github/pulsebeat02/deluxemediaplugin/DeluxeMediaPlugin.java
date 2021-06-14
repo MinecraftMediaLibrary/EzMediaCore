@@ -164,16 +164,8 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
     encoderConfiguration.read();
   }
 
-  public boolean ansiSupported() {
-    return System.console() != null && System.getenv().get("TERM") != null;
-  }
-
   private void registerCommands() {
     handler = new CommandHandler(this);
-  }
-
-  public MediaLibrary getLibrary() {
-    return library;
   }
 
   public HttpConfiguration getHttpConfiguration() {
@@ -190,6 +182,10 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
   public EncoderConfiguration getEncoderConfiguration() {
     return encoderConfiguration;
+  }
+
+  public MediaLibrary library() {
+    return library;
   }
 
   public BukkitAudiences audience() {

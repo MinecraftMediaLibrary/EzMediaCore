@@ -53,7 +53,7 @@ public class PictureConfiguration extends ConfigurationProvider {
             .image(file)
             .width(width)
             .height(height)
-            .build(getPlugin().getLibrary()));
+            .build(getPlugin().library()));
   }
 
   @Override
@@ -71,7 +71,7 @@ public class PictureConfiguration extends ConfigurationProvider {
   @Override
   public void serialize() {
     final FileConfiguration configuration = getFileConfiguration();
-    final MediaLibrary library = getPlugin().getLibrary();
+    final MediaLibrary library = getPlugin().library();
     for (final String key : configuration.getKeys(false)) {
       final int id = Integer.parseInt(key);
       final Path file =
