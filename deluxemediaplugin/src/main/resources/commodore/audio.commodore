@@ -1,0 +1,8 @@
+audio {
+  play;
+  stop;
+  load {
+    mrl brigadier:string greedy_phrase;
+    resourcepack;
+  }
+}

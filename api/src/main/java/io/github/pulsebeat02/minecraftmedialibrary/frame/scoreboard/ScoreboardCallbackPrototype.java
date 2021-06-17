@@ -37,4 +37,18 @@ public interface ScoreboardCallbackPrototype extends FrameCallback, FrameCallbac
    * @return the viewers
    */
   Set<Player> getViewers();
+
+  /**
+   * Gets the name of the scoreboard.
+   *
+   * @return the name
+   */
+  String getName();
+
+  /**
+   * Gets the id of the scoreboard.
+   *
+   * @return the id
+   */
+  int getID();
 }

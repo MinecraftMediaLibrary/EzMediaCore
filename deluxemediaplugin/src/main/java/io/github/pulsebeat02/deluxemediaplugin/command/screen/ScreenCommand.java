@@ -23,7 +23,6 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.screen;
 
 import com.google.common.collect.ImmutableMap;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
@@ -32,33 +31,37 @@ import io.github.pulsebeat02.deluxemediaplugin.command.gui.ScreenBuilderGui;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public class ScreenCommand extends BaseCommand {
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
-  private final LiteralCommandNode<CommandSender> literalNode;
+public final class ScreenCommand extends BaseCommand {
+
+  private final LiteralCommandNode<CommandSender> node;
 
   public ScreenCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "screen", executor, "deluxemediaplugin.command.screen", "");
-    final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
-    builder.requires(super::testPermission).then(literal("build").executes(this::sendScreenGui));
-    literalNode = builder.build();
+    node =
+        literal(getName())
+            .requires(super::testPermission)
+            .then(literal("build").executes(this::sendScreenBuilder))
+            .build();
   }
 
-  private int sendScreenGui(@NotNull final CommandContext<CommandSender> context) {
+  private int sendScreenBuilder(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
-    final Audience audience = getPlugin().getAudiences().sender(sender);
+    final Audience audience = plugin().audience().sender(sender);
     if (!(sender instanceof Player)) {
-      audience.sendMessage(
-          Component.text("You must be a player to execute this command!", NamedTextColor.RED));
+      audience.sendMessage(format(text("You must be a player to execute this command!", RED)));
       return 1;
     }
-    new ScreenBuilderGui(getPlugin(), (Player) sender);
+    new ScreenBuilderGui(plugin(), (Player) sender);
     return 1;
   }
 
@@ -69,7 +72,7 @@ public class ScreenCommand extends BaseCommand {
   }
 
   @Override
-  public LiteralCommandNode<CommandSender> getCommandNode() {
-    return literalNode;
+  public @NotNull LiteralCommandNode<CommandSender> node() {
+    return node;
   }
 }

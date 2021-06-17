@@ -23,7 +23,7 @@
 package io.github.pulsebeat02.minecraftmedialibrary;
 
 import io.github.pulsebeat02.minecraftmedialibrary.dependency.ArtifactManager;
-import io.github.pulsebeat02.minecraftmedialibrary.dependency.FFmpegDependencyInstallation;
+import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegDependencyInstallation;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.vlc.VLCBinarySearcher;

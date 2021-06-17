@@ -1,0 +1,3 @@
+map {
+  id brigadier:integer;
+}

@@ -28,12 +28,12 @@ import com.github.kiulian.downloader.model.VideoDetails;
 import com.github.kiulian.downloader.model.YoutubeVideo;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegAudioExtractionHelper;
 import io.github.pulsebeat02.minecraftmedialibrary.json.GsonHandler;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,7 +47,7 @@ public class YoutubeExtraction implements VideoExtractor {
 
   private final ExtractionConfiguration configuration;
   private final String url;
-  private final String directory;
+  private final Path directory;
   private VideoDetails details;
   private Path video;
   private Path audio;
@@ -61,11 +61,9 @@ public class YoutubeExtraction implements VideoExtractor {
    */
   public YoutubeExtraction(
       @NotNull final String url,
-      @NotNull final String directory,
+      @NotNull final Path directory,
       @NotNull final ExtractionConfiguration settings) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "Youtube URL cannot be empty null!");
-    Preconditions.checkArgument(
-        !Strings.isNullOrEmpty(directory), "Directory cannot be empty null!");
     this.url = url;
     this.directory = directory;
     configuration = settings;
@@ -88,8 +86,7 @@ public class YoutubeExtraction implements VideoExtractor {
         details = ytVideo.details();
         video =
             ytVideo
-                .download(
-                    ytVideo.videoWithAudioFormats().get(0), new File(directory), "video", true)
+                .download(ytVideo.videoWithAudioFormats().get(0), directory.toFile(), "video", true)
                 .toPath();
         Logger.info(String.format("Successfully Downloaded Video at URL: (%s)", url));
       } catch (final IOException | YoutubeException e) {
@@ -114,7 +111,7 @@ public class YoutubeExtraction implements VideoExtractor {
     onAudioExtraction();
     Logger.info(String.format("Extracting Audio from Video File (%s)", video.toAbsolutePath()));
     audio = Paths.get(String.format("%s/audio.ogg", directory));
-    new AudioExtractionHelper(configuration, video, audio).extract();
+    new FFmpegAudioExtractionHelper(configuration, video, audio).extract();
     return audio;
   }
 
@@ -159,7 +156,7 @@ public class YoutubeExtraction implements VideoExtractor {
    *
    * @return the directory
    */
-  public String getDirectory() {
+  public Path getDirectory() {
     return directory;
   }
 

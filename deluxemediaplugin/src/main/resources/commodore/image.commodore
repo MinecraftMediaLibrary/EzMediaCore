@@ -1,0 +1,18 @@
+image {
+  purge {
+    all;
+    map {
+      id brigadier:integer;
+    }
+  }
+  set {
+    map {
+      id brigadier:integer {
+        mrl brigadier:string greedy_phrase;
+      }
+    }
+    dimensions {
+      dims brigadier:string single_word;
+    }
+  }
+}

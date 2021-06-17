@@ -23,6 +23,11 @@
 package io.github.pulsebeat02.minecraftmedialibrary.utility;
 
 import org.apache.commons.io.FilenameUtils;
+import org.jcodec.common.model.ColorSpace;
+import org.jcodec.common.model.Picture;
+import org.jcodec.scale.ColorUtil;
+import org.jcodec.scale.RgbToBgr;
+import org.jcodec.scale.Transform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +37,7 @@ import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -44,6 +50,12 @@ import java.util.Iterator;
  * management.
  */
 public final class VideoUtilities {
+
+  private static final RgbToBgr CONVERSION;
+
+  static {
+    CONVERSION = new RgbToBgr();
+  }
 
   private VideoUtilities() {}
 
@@ -210,5 +222,70 @@ public final class VideoUtilities {
       }
     }
     throw new IOException("Not a known image file: " + file.toAbsolutePath());
+  }
+
+  /**
+   * Converts the Picture to a BufferedImage.
+   *
+   * @param src the cropped picture
+   */
+  public static BufferedImage toBufferedImage(Picture src) {
+    if (src.getColor() != ColorSpace.BGR) {
+      final Picture bgr =
+          Picture.createCropped(src.getWidth(), src.getHeight(), ColorSpace.BGR, src.getCrop());
+      if (src.getColor() == ColorSpace.RGB) {
+        CONVERSION.transform(src, bgr);
+      } else {
+        final Transform transform = ColorUtil.getTransform(src.getColor(), ColorSpace.RGB);
+        transform.transform(src, bgr);
+        CONVERSION.transform(bgr, bgr);
+      }
+      src = bgr;
+    }
+    final BufferedImage dst =
+        new BufferedImage(
+            src.getCroppedWidth(), src.getCroppedHeight(), BufferedImage.TYPE_3BYTE_BGR);
+    if (src.getCrop() == null) {
+      toBufferedImage(src, dst);
+    } else {
+      toCroppedBufferedImage(src, dst);
+    }
+    return dst;
+  }
+
+  /**
+   * Converts the Picture to the BufferedImage.
+   *
+   * @param src the picture
+   * @param dst the BufferedImage
+   */
+  public static void toBufferedImage(final Picture src, final BufferedImage dst) {
+    final byte[] data = ((DataBufferByte) dst.getRaster().getDataBuffer()).getData();
+    final byte[] srcData = src.getPlaneData(0);
+    for (int i = 0; i < data.length; i++) {
+      data[i] = (byte) (srcData[i] + 128);
+    }
+  }
+
+  /**
+   * Converts the cropped Picture to the BufferedImage.
+   *
+   * @param src the cropped picture
+   * @param dst the BufferedImage
+   */
+  public static void toCroppedBufferedImage(final Picture src, final BufferedImage dst) {
+    final byte[] data = ((DataBufferByte) dst.getRaster().getDataBuffer()).getData();
+    final byte[] srcData = src.getPlaneData(0);
+    final int dstStride = dst.getWidth() * 3;
+    final int srcStride = src.getWidth() * 3;
+    for (int line = 0, srcOff = 0, dstOff = 0; line < dst.getHeight(); line++) {
+      for (int id = dstOff, is = srcOff; id < dstOff + dstStride; id += 3, is += 3) {
+        data[id] = (byte) (srcData[is] + 128);
+        data[id + 1] = (byte) (srcData[is + 1] + 128);
+        data[id + 2] = (byte) (srcData[is + 2] + 128);
+      }
+      srcOff += srcStride;
+      dstOff += dstStride;
+    }
   }
 }

@@ -23,6 +23,7 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.entity;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.Callback;
 import io.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -59,20 +60,14 @@ import java.util.UUID;
  * the method as the library will be able to do that for you. You should only override it if you are
  * using ScreenEntityType.CUSTOM, which is where you manually customise it yourself.
  */
-public final class EntityCallback implements EntityCallbackPrototype {
+public final class EntityCallback extends Callback implements EntityCallbackPrototype {
 
   private final PacketHandler handler;
-  private final MediaLibrary library;
   private final UUID[] viewers;
   private final Location location;
   private final String charType;
   private final ScreenEntityType type;
   private final Entity[] entities;
-  private final int videoWidth;
-  private final int delay;
-  private final int width;
-  private final int height;
-  private long lastUpdated;
 
   /**
    * Instantiates a new EntityCloudCallback.
@@ -95,17 +90,7 @@ public final class EntityCallback implements EntityCallbackPrototype {
       final int height,
       final int videoWidth,
       final int delay) {
-    handler = library.getHandler();
-    this.library = library;
-    this.viewers = viewers;
-    this.location = location;
-    this.type = type;
-    charType = "-";
-    this.width = width;
-    this.height = height;
-    this.videoWidth = videoWidth;
-    this.delay = delay;
-    entities = getCloudEntities();
+    this(library, viewers, location, "-", type, width, height, videoWidth, delay);
   }
 
   /**
@@ -131,16 +116,12 @@ public final class EntityCallback implements EntityCallbackPrototype {
       final int height,
       final int videoWidth,
       final int delay) {
+    super(library, width, height, videoWidth, delay);
     handler = library.getHandler();
     this.viewers = viewers;
     this.location = location;
     this.type = type;
-    this.library = library;
     charType = str;
-    this.width = width;
-    this.height = height;
-    this.videoWidth = videoWidth;
-    this.delay = delay;
     entities = getCloudEntities();
   }
 
@@ -196,58 +177,14 @@ public final class EntityCallback implements EntityCallbackPrototype {
     throw new IllegalArgumentException("Custom entity must have the modifyEntity overridden!");
   }
 
-  /**
-   * Sends the necessary data onto the clouds while dithering.
-   *
-   * @param data to send
-   */
-  @Override
-  public void send(final int[] data) {
-    final long time = System.currentTimeMillis();
-    if (time - lastUpdated >= delay) {
-      lastUpdated = time;
-      handler.displayEntities(viewers, entities, data, width);
-    }
-  }
-
   @Override
   public UUID[] getViewers() {
     return viewers;
   }
 
   @Override
-  public int getWidth() {
-    return width;
-  }
-
-  @Override
-  public int getHeight() {
-    return height;
-  }
-
-  @Override
-  public int getDelay() {
-    return delay;
-  }
-
-  @Override
-  public MediaLibrary getLibrary() {
-    return library;
-  }
-
-  @Override
   public PacketHandler getHandler() {
     return handler;
-  }
-
-  @Override
-  public int getVideoWidth() {
-    return videoWidth;
-  }
-
-  @Override
-  public long getLastUpdated() {
-    return lastUpdated;
   }
 
   @Override
@@ -270,6 +207,20 @@ public final class EntityCallback implements EntityCallbackPrototype {
     return type;
   }
 
+  /**
+   * Sends the necessary data onto the clouds while dithering.
+   *
+   * @param data to send
+   */
+  @Override
+  public void send(final int[] data) {
+    final long time = System.currentTimeMillis();
+    if (time - getLastUpdated() >= getDelay()) {
+      setLastUpdated(time);
+      handler.displayEntities(viewers, entities, data, getWidth());
+    }
+  }
+
   /** The type Builder. */
   public static class Builder {
 
@@ -288,7 +239,7 @@ public final class EntityCallback implements EntityCallbackPrototype {
      * @param viewers the viewers
      * @return the viewers
      */
-    public Builder setViewers(@NotNull final UUID[] viewers) {
+    public Builder viewers(@NotNull final UUID[] viewers) {
       this.viewers = viewers;
       return this;
     }
@@ -299,7 +250,7 @@ public final class EntityCallback implements EntityCallbackPrototype {
      * @param width the width
      * @return the width
      */
-    public Builder setEntityWidth(final int width) {
+    public Builder entityWidth(final int width) {
       this.width = width;
       return this;
     }
@@ -310,7 +261,7 @@ public final class EntityCallback implements EntityCallbackPrototype {
      * @param height the height
      * @return the height
      */
-    public Builder setEntityHeight(final int height) {
+    public Builder entityHeight(final int height) {
       this.height = height;
       return this;
     }
@@ -321,7 +272,7 @@ public final class EntityCallback implements EntityCallbackPrototype {
      * @param delay the delay
      * @return the delay
      */
-    public Builder setDelay(final int delay) {
+    public Builder delay(final int delay) {
       this.delay = delay;
       return this;
     }
@@ -332,7 +283,7 @@ public final class EntityCallback implements EntityCallbackPrototype {
      * @param location the location
      * @return the location
      */
-    public Builder setLocation(final Location location) {
+    public Builder location(final Location location) {
       this.location = location;
       return this;
     }
@@ -343,7 +294,7 @@ public final class EntityCallback implements EntityCallbackPrototype {
      * @param type the entity type
      * @return the type
      */
-    public Builder setType(final ScreenEntityType type) {
+    public Builder type(final ScreenEntityType type) {
       this.type = type;
       return this;
     }

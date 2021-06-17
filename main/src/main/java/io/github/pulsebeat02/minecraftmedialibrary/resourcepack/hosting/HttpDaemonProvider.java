@@ -83,6 +83,27 @@ public class HttpDaemonProvider implements HttpServerDaemon {
 
   @Override
   @NotNull
+  public String getRelativePath(@NotNull final String absolutePath) {
+    return daemon.getParentDirectory().relativize(Paths.get(absolutePath)).toString();
+  }
+
+  @Override
+  public String getServerIp() {
+    return serverIP;
+  }
+
+  @Override
+  public int getPort() {
+    return port;
+  }
+
+  @Override
+  public HttpFileDaemonServer getDaemon() {
+    return daemon;
+  }
+
+  @Override
+  @NotNull
   public String generateUrl(@NotNull final String file) {
     return String.format("http://%s:%d/%s", serverIP, port, getRelativePath(file));
   }
@@ -110,26 +131,5 @@ public class HttpDaemonProvider implements HttpServerDaemon {
       e.printStackTrace();
     }
     throw new NetworkHttpException("Cannot Find Public IP Address!");
-  }
-
-  @Override
-  @NotNull
-  public String getRelativePath(@NotNull final String absolutePath) {
-    return daemon.getParentDirectory().relativize(Paths.get(absolutePath)).toString();
-  }
-
-  @Override
-  public String getServerIp() {
-    return serverIP;
-  }
-
-  @Override
-  public HttpFileDaemonServer getDaemon() {
-    return daemon;
-  }
-
-  @Override
-  public int getPort() {
-    return port;
   }
 }

@@ -24,6 +24,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.dependency
 import com.github.kiulian.downloader.cipher.Cipher
 import com.github.kiulian.downloader.cipher.CipherFactory
 import com.github.kiulian.downloader.cipher.CipherFunction
+import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegDependencyInstallation
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger
 import java.nio.file.Paths
 

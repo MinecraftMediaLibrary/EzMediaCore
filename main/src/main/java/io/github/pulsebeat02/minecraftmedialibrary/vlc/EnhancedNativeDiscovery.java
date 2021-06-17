@@ -127,30 +127,6 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
   }
 
   /**
-   * Tries to find VLC app/dependency within directory.
-   *
-   * @param dir directory
-   * @return file
-   */
-  private Path getVLCFile(@NotNull final Path dir) {
-    try {
-      final Optional<Path> path =
-          Files.walk(dir)
-              .filter(
-                  x ->
-                      Files.exists(x)
-                          && StringUtils.containsIgnoreCase(PathUtilities.getName(x), "VLC"))
-              .findFirst();
-      if (path.isPresent()) {
-        return path.get();
-      }
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-
-  /**
    * Ran once path is found.
    *
    * @param s path
@@ -173,6 +149,30 @@ public class EnhancedNativeDiscovery implements NativeDiscoveryStrategy {
       return LibC.INSTANCE._putenv(String.format("%s=%s", VLC_PLUGIN_PATH, path)) == 0;
     }
     return LibC.INSTANCE.setenv(VLC_PLUGIN_PATH, path, 1) == 0;
+  }
+
+  /**
+   * Tries to find VLC app/dependency within directory.
+   *
+   * @param dir directory
+   * @return file
+   */
+  private Path getVLCFile(@NotNull final Path dir) {
+    try {
+      final Optional<Path> path =
+          Files.walk(dir)
+              .filter(
+                  x ->
+                      Files.exists(x)
+                          && StringUtils.containsIgnoreCase(PathUtilities.getName(x), "VLC"))
+              .findFirst();
+      if (path.isPresent()) {
+        return path.get();
+      }
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   protected boolean loadLibrary() {

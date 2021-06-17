@@ -28,18 +28,16 @@ import io.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionSetting;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-public class EncoderConfiguration extends AbstractConfiguration {
+public class EncoderConfiguration extends ConfigurationProvider {
 
   private ExtractionConfiguration settings;
 
   public EncoderConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
-    super(plugin, "encoder.yml");
+    super(plugin, "configuration/encoder.yml");
   }
 
   @Override
   void deserialize() {
-
-    // Deserialize the audio encoder settings
     final FileConfiguration configuration = getFileConfiguration();
     configuration.set("bitrate", settings.getBitrate());
     configuration.set("channels", settings.getChannels());
@@ -50,44 +48,12 @@ public class EncoderConfiguration extends AbstractConfiguration {
 
   @Override
   void serialize() {
-
-    // Read the encoder settings
     final FileConfiguration configuration = getFileConfiguration();
-
-    /*
-
-    Get the bitrate at which the audio should have
-    (Ex: 160000 for decent quality)
-
-    */
     final int bitrate = configuration.getInt("bitrate");
-
-    /*
-
-    Get the number of channels the audio should have
-    (Ex: 1 for mono-audio, 2 for natural hearing or audio from both sides of the speaker)
-
-    */
     final int channels = configuration.getInt("channels");
-
-    /*
-
-    Get the sampling rate the audio should have
-    (Ex: 44100 samples per second)
-
-    */
     final int samplingRate = configuration.getInt("sampling-rate");
-
-    /*
-
-    Get the volume the audio should be
-    (Ex: 48 for normal)
-
-    */
     final int volume = configuration.getInt("volume");
-
-    // Create a new audio extraction configuration to be used
-    settings = new ExtractionSetting(bitrate, channels, samplingRate, volume);
+    settings = new ExtractionSetting("libvorbis", bitrate, channels, samplingRate, volume);
   }
 
   public ExtractionConfiguration getSettings() {

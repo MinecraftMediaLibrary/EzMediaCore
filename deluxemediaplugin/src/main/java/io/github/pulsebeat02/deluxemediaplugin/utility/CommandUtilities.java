@@ -66,14 +66,11 @@ public final class CommandUtilities {
   }
 
   public static void ensureInit() {
-    Bukkit.getLogger().log(Level.INFO, "[DeluxeMediaPlugin] Ensuring Initialization...");
+    System.out.print(' ');
   }
 
   public static void unRegisterBukkitCommand(
-      @NotNull final DeluxeMediaPlugin plugin, final BaseCommand cmd) {
-    if (cmd == null) {
-      return;
-    }
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final BaseCommand cmd) {
     try {
       knownCommands.remove(cmd.getName());
       for (final String alias : cmd.getAliases()) {

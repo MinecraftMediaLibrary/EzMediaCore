@@ -23,6 +23,7 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.chat;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.Callback;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -41,15 +42,11 @@ import java.util.stream.Collectors;
  *
  * <p>It sends the necessary chat to the players to create a video.
  */
-public final class ChatCallback implements ChatCallbackPrototype {
+public final class ChatCallback extends Callback implements ChatCallbackPrototype {
 
-  private final MediaLibrary library;
-  private final Set<Player> viewers;
+  private final UUID[] viewers;
+  private final Set<Player> players;
   private final String character;
-  private final int width;
-  private final int height;
-  private final int delay;
-  private long lastUpdated;
 
   /**
    * Instantiates a new Item frame callback.
@@ -68,13 +65,11 @@ public final class ChatCallback implements ChatCallbackPrototype {
       final int chatWidth,
       final int chatHeight,
       final int delay) {
-    this.library = library;
-    this.viewers = Collections.newSetFromMap(new WeakHashMap<>());
-    this.viewers.addAll(Arrays.stream(viewers).map(Bukkit::getPlayer).collect(Collectors.toSet()));
-    width = chatWidth;
-    height = chatHeight;
+    super(library, chatWidth, chatHeight, chatWidth, delay);
+    this.viewers = viewers;
+    players = Collections.newSetFromMap(new WeakHashMap<>());
+    players.addAll(Arrays.stream(viewers).map(Bukkit::getPlayer).collect(Collectors.toList()));
     this.character = character == null ? "\u2588" : character;
-    this.delay = delay;
   }
 
   /**
@@ -94,8 +89,10 @@ public final class ChatCallback implements ChatCallbackPrototype {
   @Override
   public void send(final int[] data) {
     final long time = System.currentTimeMillis();
-    if (time - lastUpdated >= delay) {
-      lastUpdated = time;
+    if (time - getLastUpdated() >= getDelay()) {
+      setLastUpdated(time);
+      final int height = getHeight();
+      final int width = getWidth();
       for (int y = 0; y < height; ++y) {
         int before = -1;
         final StringBuilder msg = new StringBuilder();
@@ -107,7 +104,7 @@ public final class ChatCallback implements ChatCallbackPrototype {
           msg.append(character);
           before = rgb;
         }
-        for (final Player player : viewers) {
+        for (final Player player : players) {
           player.sendMessage(msg.toString());
         }
       }
@@ -115,38 +112,13 @@ public final class ChatCallback implements ChatCallbackPrototype {
   }
 
   @Override
-  public Set<Player> getViewers() {
+  public UUID[] getViewers() {
     return viewers;
   }
 
   @Override
-  public int getDelay() {
-    return delay;
-  }
-
-  @Override
-  public MediaLibrary getLibrary() {
-    return library;
-  }
-
-  @Override
-  public int getWidth() {
-    return width;
-  }
-
-  @Override
-  public int getVideoWidth() {
-    return width;
-  }
-
-  @Override
-  public int getHeight() {
-    return height;
-  }
-
-  @Override
-  public long getLastUpdated() {
-    return lastUpdated;
+  public String getCharacter() {
+    return character;
   }
 
   /** The type Builder. */
@@ -166,7 +138,7 @@ public final class ChatCallback implements ChatCallbackPrototype {
      * @param viewers the viewers
      * @return the viewers
      */
-    public Builder setViewers(final UUID[] viewers) {
+    public Builder viewers(final UUID[] viewers) {
       this.viewers = viewers;
       return this;
     }
@@ -177,7 +149,7 @@ public final class ChatCallback implements ChatCallbackPrototype {
      * @param width the width
      * @return the width
      */
-    public Builder setChatWidth(final int width) {
+    public Builder chatWidth(final int width) {
       this.width = width;
       return this;
     }
@@ -188,7 +160,7 @@ public final class ChatCallback implements ChatCallbackPrototype {
      * @param height the height
      * @return the height
      */
-    public Builder setChatHeight(final int height) {
+    public Builder chatHeight(final int height) {
       this.height = height;
       return this;
     }
@@ -199,7 +171,7 @@ public final class ChatCallback implements ChatCallbackPrototype {
      * @param delay the delay
      * @return the delay
      */
-    public Builder setDelay(final int delay) {
+    public Builder delay(final int delay) {
       this.delay = delay;
       return this;
     }
@@ -210,7 +182,7 @@ public final class ChatCallback implements ChatCallbackPrototype {
      * @param character the character
      * @return the character
      */
-    public Builder setDelay(final String character) {
+    public Builder character(final String character) {
       this.character = character;
       return this;
     }

@@ -37,31 +37,27 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public class PictureConfiguration extends AbstractConfiguration {
+public class PictureConfiguration extends ConfigurationProvider {
 
   private final Set<StaticImageProxy> images;
 
   public PictureConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
-    super(plugin, "picture.yml");
+    super(plugin, "configuration/picture.yml");
     images = new HashSet<>();
   }
 
   public void addPhoto(final int map, @NotNull final Path file, final int width, final int height) {
-
-    // Add an image
     images.add(
         StaticImage.builder()
-            .setMap(map)
-            .setImage(file)
-            .setWidth(width)
-            .setHeight(height)
-            .build(getPlugin().getLibrary()));
+            .map(map)
+            .image(file)
+            .width(width)
+            .height(height)
+            .build(getPlugin().library()));
   }
 
   @Override
   public void deserialize() {
-
-    // Deserialize the images settings
     final FileConfiguration configuration = getFileConfiguration();
     for (final StaticImageProxy image : images) {
       final long key = image.getMap();
@@ -74,43 +70,21 @@ public class PictureConfiguration extends AbstractConfiguration {
 
   @Override
   public void serialize() {
-
-    // Read the images from the configuration file
     final FileConfiguration configuration = getFileConfiguration();
-
-    // Get library instance
-    final MediaLibrary library = getPlugin().getLibrary();
-
+    final MediaLibrary library = getPlugin().library();
     for (final String key : configuration.getKeys(false)) {
-
-      // Get the map id
       final int id = Integer.parseInt(key);
-
-      // Get the file path of the image
       final Path file =
           Paths.get(
               Objects.requireNonNull(configuration.getString(String.format("%d.location", id))));
-
-      // If it doesn't exist, throw an error
       if (!Files.exists(file)) {
         Logger.error(String.format("Could not read %s at id %d!", file, id));
         continue;
       }
-
-      // Get the width of the image
       final int width = configuration.getInt(String.format("%d.width", id));
-
-      // Get the height of the image
       final int height = configuration.getInt(String.format("%d.height", id));
-
-      // Define a new image with the specified id
       images.add(
-          StaticImage.builder()
-              .setMap(id)
-              .setImage(file)
-              .setWidth(width)
-              .setHeight(height)
-              .build(library));
+          StaticImage.builder().map(id).image(file).width(width).height(height).build(library));
     }
   }
 

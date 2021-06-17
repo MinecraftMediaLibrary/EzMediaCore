@@ -22,36 +22,129 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.frame;
 
-import com.google.common.collect.ImmutableMap;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.chat.ChatPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.chat.LinuxChatPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.EntityPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.entity.LinuxEntityPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.highlight.BlockHighlightPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.highlight.LinuxBlockHighlightPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.map.LinuxMapPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.LinuxScoreboardPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.scoreboard.ScoreboardPlayer;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
+/** The abstract video player class. */
+public abstract class VideoPlayer implements VideoPlayerContext {
 
-public class VideoPlayer {
+  private final MediaLibrary library;
+  private final FrameCallback callback;
+  private final String sound;
+  private final String url;
+  private int width;
+  private int height;
+  private boolean playing;
+  private boolean repeat;
+  private long start;
+  private int frameRate;
 
-  private static final Map<Class<?>, Class<?>> MAPPINGS;
-
-  static {
-    MAPPINGS =
-        ImmutableMap.of(
-            ChatPlayer.class, LinuxChatPlayer.class,
-            EntityPlayer.class, LinuxEntityPlayer.class,
-            BlockHighlightPlayer.class, LinuxBlockHighlightPlayer.class,
-            MapPlayer.class, LinuxMapPlayer.class,
-            ScoreboardPlayer.class, LinuxScoreboardPlayer.class);
+  /**
+   * Initializes a new VideoPlayer.
+   *
+   * @param library the library
+   * @param url the url
+   * @param width the width
+   * @param height the height
+   * @param callback the callback
+   */
+  public VideoPlayer(
+      @NotNull final MediaLibrary library,
+      @NotNull final String url,
+      final int width,
+      final int height,
+      @NotNull final FrameCallback callback) {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
+    Preconditions.checkArgument(width > 0, String.format("Width is not valid! (%d)", width));
+    Preconditions.checkArgument(height > 0, String.format("Height is not valid! (%d)", height));
+    this.library = library;
+    this.url = url;
+    this.width = width;
+    this.height = height;
+    this.callback = callback;
+    frameRate = 25;
+    sound = getLibrary().getPlugin().getName().toLowerCase();
   }
 
-  public VideoPlayer(@NotNull final VideoPlayerContext player) {
-    final Class<?> clazz = player.getClass();
+  @Override
+  public MediaLibrary getLibrary() {
+    return library;
+  }
+
+  @Override
+  public String getUrl() {
+    return url;
+  }
+
+  @Override
+  public int getWidth() {
+    return width;
+  }
+
+  @Override
+  public void setWidth(final int width) {
+    this.width = width;
+  }
+
+  @Override
+  public int getHeight() {
+    return height;
+  }
+
+  @Override
+  public void setHeight(final int height) {
+    this.height = height;
+  }
+
+  @Override
+  public FrameCallback getCallback() {
+    return callback;
+  }
+
+  @Override
+  public String getSound() {
+    return sound;
+  }
+
+  @Override
+  public boolean isPlaying() {
+    return playing;
+  }
+
+  @Override
+  public void setPlaying(final boolean playing) {
+    this.playing = playing;
+  }
+
+  @Override
+  public int getFrameRate() {
+    return frameRate;
+  }
+
+  @Override
+  public void setFrameRate(final int frameRate) {
+    this.frameRate = frameRate;
+  }
+
+  @Override
+  public boolean isRepeat() {
+    return repeat;
+  }
+
+  @Override
+  public void setRepeat(final boolean repeat) {
+    this.repeat = repeat;
+  }
+
+  @Override
+  public long getStart() {
+    return start;
+  }
+
+  @Override
+  public void setStart(final long start) {
+    this.start = start;
   }
 }

@@ -32,19 +32,17 @@ import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpServ
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-public class HttpConfiguration extends AbstractConfiguration {
+public class HttpConfiguration extends ConfigurationProvider {
 
   private HttpServerDaemon daemon;
   private boolean enabled;
 
   public HttpConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
-    super(plugin, "httpserver.yml");
+    super(plugin, "configuration/httpserver.yml");
   }
 
   @Override
   public void deserialize() {
-
-    // Deserializes the HTTP configuration
     final FileConfiguration configuration = getFileConfiguration();
     configuration.set("enabled", enabled);
     configuration.set("port", daemon.getPort());
@@ -65,56 +63,30 @@ public class HttpConfiguration extends AbstractConfiguration {
 
   @Override
   public void serialize() {
-
-    // Reads the HTTP server configuration
     final FileConfiguration configuration = getFileConfiguration();
-
-    // Get whether the server is enabled or not
     final boolean enabled = configuration.getBoolean("enabled");
-
-    // Get the specified ip
     final String ip = configuration.getString("ip");
-
-    // Get the port at which the HTTP server is hosted on (Must be port-forwarded!)
     final int port = configuration.getInt("port");
-
-    // Get the directory at which the HTTP server's root is going to be
     final String directory =
         String.format(
             "%s/%s",
             getPlugin().getDataFolder().getAbsolutePath(), configuration.getString("directory"));
-
-    // Get the proper header for files on the HTTP server
     final String header = configuration.getString("header");
-
-    // Get whether the HTTP server should debug information (requests)
     final boolean verbose = configuration.getBoolean("verbose");
-
     if (enabled) {
-
-      // Create a new daemon with the specified directory and port
       if (ip == null || ip.equals("public")) {
         daemon = new HttpDaemonProvider(directory, port);
       } else {
         daemon = new HttpDaemonProvider(directory, port, ip);
       }
-
       final HttpFileDaemonServer http = (HttpFileDaemonServer) daemon.getDaemon();
-
-      // Resort to ZIP if the header isn't valid
       if (header == null) {
         Logger.info(
             "Invalid Header in httpserver.yml! Can only be ZIP or OCTET-STREAM. Resorting to ZIP.");
       }
-
-      // Set the header of the HTTP daemon
       http.setZipHeader(
           header == null || header.equals("ZIP") ? ZipHeader.ZIP : ZipHeader.OCTET_STREAM);
-
-      // Set the verbosity
       http.setVerbose(verbose);
-
-      // Start the server
       daemon.startServer();
     }
     this.enabled = enabled;

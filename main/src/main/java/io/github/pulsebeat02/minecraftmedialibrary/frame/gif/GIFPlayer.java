@@ -24,7 +24,8 @@ package io.github.pulsebeat02.minecraftmedialibrary.frame.gif;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.FrameCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCVideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VLCPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.ImageUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
@@ -32,6 +33,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
@@ -42,7 +44,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class GIFPlayer extends VLCVideoPlayer {
+public class GIFPlayer extends VLCPlayer {
 
   private final List<BufferedImage> images;
   private final float frameDuration;
@@ -79,6 +81,12 @@ public class GIFPlayer extends VLCVideoPlayer {
    */
   public static Builder builder() {
     return new Builder();
+  }
+
+  @Override
+  @Nullable
+  public VideoPlayerContext toLinuxPlayer() {
+    return null;
   }
 
   /**
@@ -132,7 +140,7 @@ public class GIFPlayer extends VLCVideoPlayer {
      * @param url the url
      * @return the url
      */
-    public Builder setUrl(@NotNull final String url) {
+    public Builder url(@NotNull final String url) {
       this.url = url;
       return this;
     }
@@ -143,7 +151,7 @@ public class GIFPlayer extends VLCVideoPlayer {
      * @param width the width
      * @return the width
      */
-    public Builder setWidth(final int width) {
+    public Builder width(final int width) {
       this.width = width;
       return this;
     }
@@ -154,7 +162,7 @@ public class GIFPlayer extends VLCVideoPlayer {
      * @param height the height
      * @return the height
      */
-    public Builder setHeight(final int height) {
+    public Builder height(final int height) {
       this.height = height;
       return this;
     }
@@ -165,7 +173,7 @@ public class GIFPlayer extends VLCVideoPlayer {
      * @param callback the callback
      * @return the callback
      */
-    public Builder setCallback(@NotNull final FrameCallback callback) {
+    public Builder callback(@NotNull final FrameCallback callback) {
       this.callback = callback;
       return this;
     }

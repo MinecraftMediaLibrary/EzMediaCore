@@ -27,9 +27,7 @@ import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.MapUtilities;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -38,7 +36,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-public class ScreenBuilderGui {
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
+import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
+import static net.kyori.adventure.text.format.NamedTextColor.GREEN;
+import static net.kyori.adventure.text.format.NamedTextColor.RED;
+
+public final class ScreenBuilderGui {
 
   private final Gui gui;
   private final Player viewer;
@@ -49,8 +54,7 @@ public class ScreenBuilderGui {
   private int id;
 
   public ScreenBuilderGui(@NotNull final DeluxeMediaPlugin pl, @NotNull final Player player) {
-    gui =
-        Gui.gui().rows(6).title(Component.text("Choose Screen Size", NamedTextColor.GOLD)).create();
+    gui = Gui.gui().rows(6).title(text("Choose Screen Size", GOLD)).create();
     plugin = pl;
     viewer = player;
     width = 5;
@@ -108,17 +112,16 @@ public class ScreenBuilderGui {
 
     final GuiItem buildScreen =
         ItemBuilder.from(Material.LIME_STAINED_GLASS_PANE)
-            .name(Component.text("Build Screen", NamedTextColor.GREEN))
+            .name(text("Build Screen", GREEN))
             .asGuiItem();
     buildScreen.setAction(
         x -> {
           viewer.closeInventory();
           MapUtilities.buildMapScreen(viewer, material, width, height, id);
           plugin
-              .getAudiences()
+              .audience()
               .sender(viewer)
-              .sendMessage(
-                  Component.text("Successfully built your new screen!", NamedTextColor.GREEN));
+              .sendMessage(format(text("Successfully built your new screen!", GREEN)));
           viewer.playSound(viewer.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 10, 1);
         });
     gui.setItem(50, buildScreen);
@@ -141,8 +144,7 @@ public class ScreenBuilderGui {
         ItemBuilder.from(material)
             .name(
                 TextComponent.ofChildren(
-                    Component.text("Material - ", NamedTextColor.GOLD),
-                    Component.text(material.toString(), NamedTextColor.AQUA)))
+                    text("Material - ", GOLD), text(material.toString(), AQUA)))
             .asGuiItem();
     materialItem.setAction(
         x -> {
@@ -155,31 +157,26 @@ public class ScreenBuilderGui {
               ItemBuilder.from(material)
                   .name(
                       TextComponent.ofChildren(
-                          Component.text("Material - ", NamedTextColor.GOLD),
-                          Component.text(material.toString(), NamedTextColor.AQUA)))
+                          text("Material - ", GOLD), text(material.toString(), AQUA)))
                   .build());
         });
     gui.setItem(19, materialItem);
 
     final GuiItem widthItem =
         ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
-            .name(
-                Component.text(
-                    String.format("Screen Width (%d Blocks)", width), NamedTextColor.GOLD))
+            .name(text(String.format("Screen Width (%d Blocks)", width), GOLD))
             .asGuiItem();
     gui.setItem(22, widthItem);
 
     final GuiItem heightItem =
         ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
-            .name(
-                Component.text(
-                    String.format("Screen Height (%d Blocks)", height), NamedTextColor.GOLD))
+            .name(text(String.format("Screen Height (%d Blocks)", height), GOLD))
             .asGuiItem();
     gui.setItem(24, heightItem);
 
     final GuiItem idItem =
         ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
-            .name(Component.text(String.format("Starting Map ID (%d)", id), NamedTextColor.GOLD))
+            .name(text(String.format("Starting Map ID (%d)", id), GOLD))
             .asGuiItem();
     gui.setItem(26, idItem);
   }
@@ -188,7 +185,7 @@ public class ScreenBuilderGui {
     return ItemBuilder.from(
             SkullCreator.itemFromBase64(
                 "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWNkYjhmNDM2NTZjMDZjNGU4NjgzZTJlNjM0MWI0NDc5ZjE1N2Y0ODA4MmZlYTRhZmYwOWIzN2NhM2M2OTk1YiJ9fX0="))
-        .name(Component.text(String.format("Increase %s by One", data), NamedTextColor.GREEN))
+        .name(text(String.format("Increase %s by One", data), GREEN))
         .build();
   }
 
@@ -196,7 +193,7 @@ public class ScreenBuilderGui {
     return ItemBuilder.from(
             SkullCreator.itemFromBase64(
                 "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjFlMWU3MzBjNzcyNzljOGUyZTE1ZDhiMjcxYTExN2U1ZTJjYTkzZDI1YzhiZTNhMDBjYzkyYTAwY2MwYmI4NSJ9fX0="))
-        .name(Component.text(String.format("Decrease %s by One", data), NamedTextColor.RED))
+        .name(text(String.format("Decrease %s by One", data), RED))
         .build();
   }
 }

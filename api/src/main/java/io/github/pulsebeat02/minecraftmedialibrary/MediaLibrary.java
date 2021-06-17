@@ -112,6 +112,13 @@ public interface MediaLibrary {
   Path getAudioFolder();
 
   /**
+   * Gets the video folder of the library.
+   *
+   * @return the path of the video folder
+   */
+  Path getVideoFolder();
+
+  /**
    * Gets the library path handle.
    *
    * @return the path handle

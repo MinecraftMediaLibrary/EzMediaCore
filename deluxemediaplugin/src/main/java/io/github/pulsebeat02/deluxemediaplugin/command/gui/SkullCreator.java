@@ -49,7 +49,7 @@ import java.util.UUID;
  *
  * @author Dean B on 12/28/2016.
  */
-public class SkullCreator {
+public final class SkullCreator {
 
   private static boolean warningPosted = false;
   // some reflection stuff to be used when setting a skull's profile

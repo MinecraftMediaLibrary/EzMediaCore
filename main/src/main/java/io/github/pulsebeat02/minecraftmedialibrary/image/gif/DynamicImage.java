@@ -25,23 +25,15 @@ package io.github.pulsebeat02.minecraftmedialibrary.image.gif;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.extractor.FFmpegLocation;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.map.VLCPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
-import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.util.NumberConversions;
 import org.jetbrains.annotations.NotNull;
-import ws.schild.jave.Encoder;
-import ws.schild.jave.EncoderException;
-import ws.schild.jave.MultimediaObject;
-import ws.schild.jave.encode.AudioAttributes;
-import ws.schild.jave.encode.EncodingAttributes;
 
 import java.awt.*;
 import java.io.IOException;
@@ -149,20 +141,20 @@ public class DynamicImage implements DynamicImageProxy {
     try {
       final Dimension dims = VideoUtilities.getDimensions(image);
       final int w = (int) dims.getWidth();
-      final MapPlayer player =
-          MapPlayer.builder()
-              .setUrl(image.toAbsolutePath().toString())
-              .setWidth(w)
-              .setHeight((int) dims.getHeight())
-              .setCallback(
+      final VLCPlayer player =
+          VLCPlayer.builder()
+              .url(image.toAbsolutePath().toString())
+              .width(w)
+              .height((int) dims.getHeight())
+              .callback(
                   MapDataCallback.builder()
-                      .setViewers(null)
-                      .setMap(map)
-                      .setItemframeWidth(width)
-                      .setItemframeHeight(height)
-                      .setVideoWidth(w)
-                      .setDelay(0)
-                      .setDitherHolder(DitherSetting.FLOYD_STEINBERG_DITHER.getHolder())
+                      .viewers(null)
+                      .map(map)
+                      .itemframeWidth(width)
+                      .itemframeHeight(height)
+                      .videoWidth(w)
+                      .delay(0)
+                      .ditherHolder(DitherSetting.FLOYD_STEINBERG_DITHER.getHolder())
                       .build(library))
               .build(library);
       player.setRepeat(true);
@@ -171,25 +163,6 @@ public class DynamicImage implements DynamicImageProxy {
           String.format(
               "Drew Dynamic Image at Map ID %d (Source: %s)", map, image.toAbsolutePath()));
     } catch (final IOException e) {
-      e.printStackTrace();
-    }
-  }
-
-  /** Converts a Gif into an MPEG file. */
-  private void convertGifIntoMpeg() {
-    final FFmpegLocation ffmpegLocator = new FFmpegLocation();
-    final String name = PathUtilities.getName(image);
-    final Encoder encoder = new Encoder(ffmpegLocator);
-    final AudioAttributes audio = new AudioAttributes();
-    audio.setVolume(0);
-    final EncodingAttributes attrs = new EncodingAttributes();
-    attrs.setInputFormat(FilenameUtils.getExtension(name));
-    attrs.setOutputFormat("mp4");
-    attrs.setAudioAttributes(audio);
-    final Path output = library.getImageFolder().resolve(FilenameUtils.getBaseName(name) + ".mp4");
-    try {
-      encoder.encode(new MultimediaObject(image.toFile(), ffmpegLocator), output.toFile(), attrs);
-    } catch (final EncoderException e) {
       e.printStackTrace();
     }
   }
@@ -233,6 +206,9 @@ public class DynamicImage implements DynamicImageProxy {
     return width;
   }
 
+  /** Converts a Gif into an MPEG file. */
+  private void convertGifIntoMpeg() {}
+
   /** The type Builder. */
   public static class Builder {
 
@@ -249,7 +225,7 @@ public class DynamicImage implements DynamicImageProxy {
      * @param map the map
      * @return the map
      */
-    public Builder setMap(final int map) {
+    public Builder map(final int map) {
       this.map = map;
       return this;
     }
@@ -260,7 +236,7 @@ public class DynamicImage implements DynamicImageProxy {
      * @param image the image
      * @return the image
      */
-    public Builder setImage(@NotNull final Path image) {
+    public Builder image(@NotNull final Path image) {
       this.image = image;
       return this;
     }
@@ -271,7 +247,7 @@ public class DynamicImage implements DynamicImageProxy {
      * @param height the height
      * @return the height
      */
-    public Builder setHeight(final int height) {
+    public Builder height(final int height) {
       this.height = height;
       return this;
     }
@@ -282,7 +258,7 @@ public class DynamicImage implements DynamicImageProxy {
      * @param width the width
      * @return the width
      */
-    public Builder setWidth(final int width) {
+    public Builder width(final int width) {
       this.width = width;
       return this;
     }

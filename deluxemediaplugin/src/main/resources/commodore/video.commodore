@@ -1,0 +1,26 @@
+video {
+  play;
+  stop;
+  resume;
+  load {
+    resourcepack;
+    mrl brigadier:string greedy_phrase;
+  }
+  set {
+    screen-dimensions {
+      screen-dimensions brigadier:string single_word;
+    }
+    itemframe-dimensions {
+      itemframe-dimensions brigadier:string single_word;
+    }
+    starting-map {
+      map-id brigadier:integer;
+    }
+    dither {
+      dithering-option brigadier:string single_word;
+    }
+    mode {
+      video-mode brigadier:string single_word;
+    }
+  }
+}

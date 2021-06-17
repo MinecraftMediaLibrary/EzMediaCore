@@ -203,7 +203,7 @@ public class StaticImage implements StaticImageProxy {
      * @param map the map
      * @return the map
      */
-    public Builder setMap(final int map) {
+    public Builder map(final int map) {
       this.map = map;
       return this;
     }
@@ -214,7 +214,7 @@ public class StaticImage implements StaticImageProxy {
      * @param image the image
      * @return the image
      */
-    public Builder setImage(@NotNull final Path image) {
+    public Builder image(@NotNull final Path image) {
       this.image = image;
       return this;
     }
@@ -225,7 +225,7 @@ public class StaticImage implements StaticImageProxy {
      * @param height the height
      * @return the height
      */
-    public Builder setHeight(final int height) {
+    public Builder height(final int height) {
       this.height = height;
       return this;
     }
@@ -236,7 +236,7 @@ public class StaticImage implements StaticImageProxy {
      * @param width the width
      * @return the width
      */
-    public Builder setWidth(final int width) {
+    public Builder width(final int width) {
       this.width = width;
       return this;
     }

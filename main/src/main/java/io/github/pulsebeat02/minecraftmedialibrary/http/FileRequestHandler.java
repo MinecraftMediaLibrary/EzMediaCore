@@ -85,6 +85,54 @@ public class FileRequestHandler implements Runnable, FileRequest {
     handleRequest();
   }
 
+  /**
+   * Checks if the request matches the GET pattern.
+   *
+   * @param req request
+   * @return request Matcher
+   */
+  @NotNull
+  private Matcher requestPattern(final String req) {
+    return MATCHER.matcher(req);
+  }
+
+  /**
+   * If it is verbose, then it will print the information.
+   *
+   * @param info the info
+   */
+  private void verbose(final String info) {
+    if (daemon.isVerbose()) {
+      Logger.info(info);
+    }
+  }
+
+  @Override
+  @NotNull
+  public Path requestFileCallback(@NotNull final String request) {
+    return daemon.getParentDirectory().resolve(request);
+  }
+
+  @Override
+  public ZipHeader getHeader() {
+    return header;
+  }
+
+  @Override
+  @NotNull
+  public String buildHeader(final @NotNull Path f) {
+    try {
+      return String.format(
+          "HTTP/1.0 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nDate: %s GMT\r\nServer: HttpDaemon\r\nUser-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n",
+          header.getHeader(),
+          Files.size(f),
+          new SimpleDateFormat("dd MMM yyyy HH:mm:ss").format(Calendar.getInstance().getTime()));
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+    return "";
+  }
+
   /** Handles the request once the client connects */
   @Override
   public void handleRequest() {
@@ -126,56 +174,8 @@ public class FileRequestHandler implements Runnable, FileRequest {
     }
   }
 
-  /**
-   * Checks if the request matches the GET pattern.
-   *
-   * @param req request
-   * @return request Matcher
-   */
-  @NotNull
-  private Matcher requestPattern(final String req) {
-    return MATCHER.matcher(req);
-  }
-
-  /**
-   * If it is verbose, then it will print the information.
-   *
-   * @param info the info
-   */
-  private void verbose(final String info) {
-    if (daemon.isVerbose()) {
-      Logger.info(info);
-    }
-  }
-
-  @Override
-  @NotNull
-  public Path requestFileCallback(@NotNull final String request) {
-    return daemon.getParentDirectory().resolve(request);
-  }
-
-  @Override
-  @NotNull
-  public String buildHeader(final @NotNull Path f) {
-    try {
-      return String.format(
-          "HTTP/1.0 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nDate: %s GMT\r\nServer: HttpDaemon\r\nUser-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n",
-          header.getHeader(),
-          Files.size(f),
-          new SimpleDateFormat("dd MMM yyyy HH:mm:ss").format(Calendar.getInstance().getTime()));
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
-    return "";
-  }
-
   public HttpFileDaemonServer getDaemon() {
     return daemon;
-  }
-
-  @Override
-  public ZipHeader getHeader() {
-    return header;
   }
 
   @Override

@@ -23,6 +23,7 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.map;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.Callback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import io.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import org.jetbrains.annotations.NotNull;
@@ -39,18 +40,12 @@ import java.util.UUID;
  * is slower and will likely make the video player play less frames. Filter Lite is set by default
  * as it is very fast and provides very great results.
  */
-public final class MapDataCallback implements MapDataCallbackPrototype {
+public final class MapDataCallback extends Callback implements MapDataCallbackPrototype {
 
   private final PacketHandler handler;
-  private final MediaLibrary library;
   private final UUID[] viewers;
   private final DitherHolder type;
   private final int map;
-  private final int videoWidth;
-  private final int delay;
-  private final int width;
-  private final int height;
-  private long lastUpdated;
 
   /**
    * Instantiates a new Item frame callback.
@@ -73,15 +68,11 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
       final int height,
       final int videoWidth,
       final int delay) {
+    super(library, width, height, videoWidth, delay);
     handler = library.getHandler();
-    this.library = library;
     this.viewers = viewers;
     this.type = type;
     this.map = map;
-    this.width = width;
-    this.height = height;
-    this.videoWidth = videoWidth;
-    this.delay = delay;
   }
 
   /**
@@ -101,10 +92,11 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
   @Override
   public void send(final int[] data) {
     final long time = System.currentTimeMillis();
-    if (time - lastUpdated >= delay) {
-      lastUpdated = time;
+    if (time - getLastUpdated() >= getDelay()) {
+      setLastUpdated(time);
+      final int width = getVideoWidth();
       handler.displayMaps(
-          viewers, map, width, height, type.ditherIntoMinecraft(data, videoWidth), videoWidth);
+          viewers, map, getWidth(), getHeight(), type.ditherIntoMinecraft(data, width), width);
     }
   }
 
@@ -119,48 +111,8 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
   }
 
   @Override
-  public int getWidth() {
-    return width;
-  }
-
-  @Override
-  public int getHeight() {
-    return height;
-  }
-
-  @Override
-  public int getDelay() {
-    return delay;
-  }
-
-  @Override
-  public MediaLibrary getLibrary() {
-    return library;
-  }
-
-  @Override
   public PacketHandler getHandler() {
     return handler;
-  }
-
-  /**
-   * Gets video width.
-   *
-   * @return the video width
-   */
-  @Override
-  public int getVideoWidth() {
-    return videoWidth;
-  }
-
-  /**
-   * Gets last updated.
-   *
-   * @return the last updated
-   */
-  @Override
-  public long getLastUpdated() {
-    return lastUpdated;
   }
 
   @Override
@@ -187,7 +139,7 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
      * @param viewers the viewers
      * @return the viewers
      */
-    public Builder setViewers(@NotNull final UUID[] viewers) {
+    public Builder viewers(@NotNull final UUID[] viewers) {
       this.viewers = viewers;
       return this;
     }
@@ -198,7 +150,7 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
      * @param map the map
      * @return the map
      */
-    public Builder setMap(final int map) {
+    public Builder map(final int map) {
       this.map = map;
       return this;
     }
@@ -209,7 +161,7 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
      * @param width the width
      * @return the width
      */
-    public Builder setItemframeWidth(final int width) {
+    public Builder itemframeWidth(final int width) {
       this.width = width;
       return this;
     }
@@ -220,7 +172,7 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
      * @param height the height
      * @return the height
      */
-    public Builder setItemframeHeight(final int height) {
+    public Builder itemframeHeight(final int height) {
       this.height = height;
       return this;
     }
@@ -231,7 +183,7 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
      * @param videoWidth the video width
      * @return the video width
      */
-    public Builder setVideoWidth(final int videoWidth) {
+    public Builder videoWidth(final int videoWidth) {
       this.videoWidth = videoWidth;
       return this;
     }
@@ -242,7 +194,7 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
      * @param delay the delay
      * @return the delay
      */
-    public Builder setDelay(final int delay) {
+    public Builder delay(final int delay) {
       this.delay = delay;
       return this;
     }
@@ -253,7 +205,7 @@ public final class MapDataCallback implements MapDataCallbackPrototype {
      * @param holder the holder
      * @return the dither holder
      */
-    public Builder setDitherHolder(final DitherHolder holder) {
+    public Builder ditherHolder(final DitherHolder holder) {
       type = holder;
       return this;
     }

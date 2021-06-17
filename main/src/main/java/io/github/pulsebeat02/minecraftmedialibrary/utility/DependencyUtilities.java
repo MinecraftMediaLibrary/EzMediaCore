@@ -29,24 +29,20 @@ import io.github.pulsebeat02.minecraftmedialibrary.dependency.DependencyResoluti
 import io.github.pulsebeat02.minecraftmedialibrary.dependency.EnhancedDependencyLoader;
 import io.github.pulsebeat02.minecraftmedialibrary.dependency.RepositoryDependency;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.LongConsumer;
-import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Special dependency utilities used throughout the library and also open to users. Used for easier
@@ -319,13 +315,8 @@ public final class DependencyUtilities {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
     final URL download = new URL(url);
     final HttpURLConnection conn = (HttpURLConnection) download.openConnection();
-    try (final AutoCloseable conc = conn::disconnect) {
-      conn.setRequestMethod("HEAD");
-      return conn.getContentLengthLong();
-    } catch (final Exception e) {
-      e.printStackTrace();
-    }
-    return -1L;
+    conn.setRequestMethod("HEAD");
+    return conn.getContentLengthLong();
   }
 
   /**
@@ -340,19 +331,11 @@ public final class DependencyUtilities {
                 Files.exists(p),
                 String.format("Dependency File %s doesn't exist!", p.toAbsolutePath())));
     Logger.info(String.format("Loading All Dependency Jars! (%s)", files));
-    new EnhancedDependencyLoader(
-            files.stream()
-                .map(
-                    x -> {
-                      try {
-                        return x.toUri().toURL();
-                      } catch (final MalformedURLException e) {
-                        e.printStackTrace();
-                      }
-                      throw new InvalidPathException(x.toString(), "Path is not a valid file!");
-                    })
-                .collect(Collectors.toList()))
-        .loadJars();
+
+    final EnhancedDependencyLoader loader = new EnhancedDependencyLoader();
+    files.forEach(loader::addJar);
+    loader.loadJars();
+
     Logger.info("Finished Loading All Dependency Jars!");
   }
 }

@@ -26,58 +26,55 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
-import java.util.OptionalLong;
+
+import static net.kyori.adventure.text.Component.join;
+import static net.kyori.adventure.text.Component.newline;
+import static net.kyori.adventure.text.Component.space;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.TextComponent.ofChildren;
+import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
+import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
+import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
+import static net.kyori.adventure.text.format.NamedTextColor.LIGHT_PURPLE;
+import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
 public final class ChatUtilities {
 
   private static final ComponentLike PREFIX;
+  private static final ComponentLike EXTERNAL_PROCESS;
 
   static {
     PREFIX =
         Component.text()
-            .color(NamedTextColor.AQUA)
+            .color(AQUA)
             .append(
                 Component.text('['),
-                Component.text("DeluxeMediaPlugin", NamedTextColor.GOLD),
-                Component.text(']'));
-  }
-
-  public static Component formatMessage(@NotNull final TextComponent message) {
-    return TextComponent.ofChildren(PREFIX, Component.space(), message);
-  }
-
-  public static OptionalLong checkMapBoundaries(
-      @NotNull final Audience sender, @NotNull final String str) {
-    final String message;
-    final OptionalLong opt = checkLongValidity(str);
-    if (!opt.isPresent()) {
-      message = "is not a valid argument!";
-    } else {
-      final long id = opt.getAsLong();
-      if (id < -2_147_483_647L) {
-        message = "is too low!";
-      } else if (id > 2_147_483_647L) {
-        message = "is too high!";
-      } else {
-        return OptionalLong.of(id);
-      }
-    }
-    sender.sendMessage(
+                Component.text("DeluxeMediaPlugin", GOLD),
+                Component.text(']'),
+                Component.space(),
+                Component.text("»", GRAY));
+    EXTERNAL_PROCESS =
         Component.text()
-            .color(NamedTextColor.RED)
+            .color(AQUA)
             .append(
-                Component.text("Argument '"),
-                Component.text(str, NamedTextColor.GOLD),
-                Component.text("' "),
-                Component.text(message),
-                Component.text(" (Must be Integer between -2,147,483,647 - 2,147,483,647)")));
-    return OptionalLong.empty();
+                Component.text('['),
+                Component.text("DeluxeMediaPlugin External Process", GOLD),
+                Component.text(']'),
+                Component.space(),
+                Component.text("»", GRAY));
+  }
+
+  public static Component format(@NotNull final TextComponent message) {
+    return ofChildren(PREFIX, space(), message);
+  }
+
+  public static Component formatFFmpeg(@NotNull final TextComponent message) {
+    return ofChildren(EXTERNAL_PROCESS, space(), message);
   }
 
   public static Optional<int[]> checkDimensionBoundaries(
@@ -94,23 +91,15 @@ public final class ChatUtilities {
       return Optional.of(new int[] {width.getAsInt(), height.getAsInt()});
     }
     sender.sendMessage(
-        Component.text()
-            .color(NamedTextColor.RED)
-            .append(Component.text("Argument '"))
-            .append(Component.text(str, NamedTextColor.GOLD))
-            .append(Component.text("' "))
-            .append(Component.text(message))
-            .append(Component.text(" is not a valid argument!"))
-            .append(Component.text(" (Must be Integer)")));
+        text()
+            .color(RED)
+            .append(text("Argument '"))
+            .append(text(str, GOLD))
+            .append(text("' "))
+            .append(text(message))
+            .append(text(" is not a valid argument!"))
+            .append(text(" (Must be Integer)")));
     return Optional.empty();
-  }
-
-  public static OptionalLong checkLongValidity(@NotNull final String num) {
-    try {
-      return OptionalLong.of(Long.parseLong(num));
-    } catch (final NumberFormatException e) {
-      return OptionalLong.empty();
-    }
   }
 
   public static OptionalInt checkIntegerValidity(@NotNull final String num) {
@@ -123,20 +112,17 @@ public final class ChatUtilities {
 
   public static TextComponent getCommandUsage(@NotNull final Map<String, String> usages) {
     final TextComponent.Builder builder =
-        Component.text()
-            .append(Component.text("------------------", NamedTextColor.AQUA))
-            .append(Component.newline());
-
+        text().append(text("------------------", AQUA)).append(newline());
     for (final Map.Entry<String, String> entry : usages.entrySet()) {
       builder.append(
-          Component.join(
-              Component.space(),
-              Component.text(entry.getKey(), NamedTextColor.LIGHT_PURPLE),
-              Component.text("-", NamedTextColor.GOLD),
-              Component.text(entry.getValue(), NamedTextColor.AQUA),
-              Component.newline()));
+          join(
+              space(),
+              text(entry.getKey(), LIGHT_PURPLE),
+              text("-", GOLD),
+              text(entry.getValue(), AQUA),
+              newline()));
     }
-    builder.append(Component.text("------------------", NamedTextColor.AQUA));
+    builder.append(text("------------------", AQUA));
     return builder.build();
   }
 }

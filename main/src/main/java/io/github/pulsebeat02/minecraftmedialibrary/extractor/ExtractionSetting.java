@@ -24,6 +24,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.extractor;
 
 import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.minecraftmedialibrary.json.GsonHandler;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A class full of audio properties to specify the properties of an audio file. It is used
@@ -32,9 +33,8 @@ import io.github.pulsebeat02.minecraftmedialibrary.json.GsonHandler;
  */
 public class ExtractionSetting implements ExtractionConfiguration {
 
-  private final String codec;
-  private final String outputFormat;
-  private final String inputFormat;
+  private String codec;
+  private int start;
   private int bitrate;
   private int channels;
   private int samplingRate;
@@ -43,25 +43,50 @@ public class ExtractionSetting implements ExtractionConfiguration {
   /**
    * Instantiates a new ExtractionSetting.
    *
-   * @param bitrate the bitrate
+   * @param codec the codec
+   * @param start the start time in seconds
+   * @param bitrate the bitrate in bits
    * @param channels the channels
-   * @param samplingRate the sampling rate
+   * @param samplingRate the sampling rate in bits
    * @param volume the volume
    */
   public ExtractionSetting(
-      final int bitrate, final int channels, final int samplingRate, final int volume) {
-    codec = "libvorbis";
-    outputFormat = "ogg";
-    inputFormat = "mp4";
+      @NotNull final String codec,
+      final int start,
+      final int bitrate,
+      final int channels,
+      final int samplingRate,
+      final int volume) {
+    Preconditions.checkArgument(start >= 0, String.format("Invalid Start Time! (%d)", start));
     Preconditions.checkArgument(bitrate > 0, String.format("Invalid Bitrate! (%d)", bitrate));
     Preconditions.checkArgument(channels > 0, String.format("Invalid Channels! (%d)", channels));
     Preconditions.checkArgument(
         samplingRate > 0, String.format("Invalid Sampling Rate! (%d)", samplingRate));
     Preconditions.checkArgument(volume >= 0, String.format("Invalid Volume! (%d)", volume));
+    this.start = start;
+    this.codec = codec;
     this.bitrate = bitrate;
     this.channels = channels;
     this.samplingRate = samplingRate;
     this.volume = volume;
+  }
+
+  /**
+   * Instantiates a new ExtractionSetting.
+   *
+   * @param bitrate the bitrate
+   * @param channels the channels
+   * @param samplingRate the sampling rate
+   * @param volume the volume
+   * @param codec the codec
+   */
+  public ExtractionSetting(
+      @NotNull final String codec,
+      final int bitrate,
+      final int channels,
+      final int samplingRate,
+      final int volume) {
+    this(codec, 0, bitrate, channels, samplingRate, volume);
   }
 
   /**
@@ -79,10 +104,7 @@ public class ExtractionSetting implements ExtractionConfiguration {
       return false;
     }
     final ExtractionConfiguration setting = (ExtractionConfiguration) obj;
-    return setting.getCodec().equals(codec)
-        && setting.getOutputFormat().equals(outputFormat)
-        && setting.getInputFormat().equals(inputFormat)
-        && setting.getBitrate() == bitrate
+    return setting.getBitrate() == bitrate
         && setting.getChannels() == channels
         && setting.getSamplingRate() == samplingRate
         && setting.getVolume() == volume;
@@ -91,21 +113,6 @@ public class ExtractionSetting implements ExtractionConfiguration {
   @Override
   public String toString() {
     return GsonHandler.getGson().toJson(this);
-  }
-
-  @Override
-  public String getCodec() {
-    return codec;
-  }
-
-  @Override
-  public String getOutputFormat() {
-    return outputFormat;
-  }
-
-  @Override
-  public String getInputFormat() {
-    return inputFormat;
   }
 
   @Override
@@ -139,6 +146,16 @@ public class ExtractionSetting implements ExtractionConfiguration {
   }
 
   @Override
+  public String getCodec() {
+    return codec;
+  }
+
+  @Override
+  public void setCodec(@NotNull final String codec) {
+    this.codec = codec;
+  }
+
+  @Override
   public int getVolume() {
     return volume;
   }
@@ -148,9 +165,21 @@ public class ExtractionSetting implements ExtractionConfiguration {
     this.volume = volume;
   }
 
+  @Override
+  public int getStartTime() {
+    return start;
+  }
+
+  @Override
+  public void setStartTime(final int time) {
+    start = time;
+  }
+
   /** The type Builder. */
   public static class Builder {
 
+    private String codec = "libvorbis";
+    private int start = 0;
     private int bitrate = 160000;
     private int channels = 2;
     private int samplingRate = 44100;
@@ -158,57 +187,38 @@ public class ExtractionSetting implements ExtractionConfiguration {
 
     private Builder() {}
 
-    /**
-     * Sets bitrate.
-     *
-     * @param bitrate the bitrate
-     * @return the bitrate
-     */
-    public Builder setBitrate(final int bitrate) {
+    public Builder bitrate(final int bitrate) {
       this.bitrate = bitrate;
       return this;
     }
 
-    /**
-     * Sets channels.
-     *
-     * @param channels the channels
-     * @return the channels
-     */
-    public Builder setChannels(final int channels) {
+    public Builder channels(final int channels) {
       this.channels = channels;
       return this;
     }
 
-    /**
-     * Sets sampling rate.
-     *
-     * @param samplingRate the sampling rate
-     * @return the sampling rate
-     */
-    public Builder setSamplingRate(final int samplingRate) {
+    public Builder samplingRate(final int samplingRate) {
       this.samplingRate = samplingRate;
       return this;
     }
 
-    /**
-     * Sets volume.
-     *
-     * @param volume the volume
-     * @return the volume
-     */
-    public Builder setVolume(final int volume) {
+    public Builder volume(final int volume) {
       this.volume = volume;
       return this;
     }
 
-    /**
-     * Creates ExtractionSetting from Builder
-     *
-     * @return the extraction setting
-     */
+    public Builder codec(@NotNull final String codec) {
+      this.codec = codec;
+      return this;
+    }
+
+    public Builder startTime(final int start) {
+      this.start = start;
+      return this;
+    }
+
     public ExtractionConfiguration build() {
-      return new ExtractionSetting(bitrate, channels, samplingRate, volume);
+      return new ExtractionSetting(codec, start, bitrate, channels, samplingRate, volume);
     }
   }
 }

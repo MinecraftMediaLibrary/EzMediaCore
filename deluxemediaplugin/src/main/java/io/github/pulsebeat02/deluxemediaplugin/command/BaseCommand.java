@@ -23,6 +23,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -37,6 +38,7 @@ public abstract class BaseCommand extends Command implements LiteralCommandSegme
 
   protected final TabExecutor executor;
   private final DeluxeMediaPlugin plugin;
+  private final BukkitAudiences audience;
 
   /**
    * Instantiates a new BaseCommand.
@@ -58,6 +60,7 @@ public abstract class BaseCommand extends Command implements LiteralCommandSegme
     setAliases(Arrays.asList(aliases));
     this.plugin = plugin;
     this.executor = executor;
+    audience = plugin.audience();
   }
 
   /**
@@ -95,7 +98,11 @@ public abstract class BaseCommand extends Command implements LiteralCommandSegme
     return Objects.requireNonNull(executor.onTabComplete(sender, this, label, args));
   }
 
-  public DeluxeMediaPlugin getPlugin() {
+  public DeluxeMediaPlugin plugin() {
     return plugin;
+  }
+
+  public BukkitAudiences audience() {
+    return audience;
   }
 }

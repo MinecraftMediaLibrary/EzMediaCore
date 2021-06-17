@@ -23,7 +23,6 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.dither;
 
 import com.google.common.collect.ImmutableMap;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
@@ -32,43 +31,47 @@ import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 
-public class DitherCommand extends BaseCommand {
+import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
+import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
-  private final LiteralCommandNode<CommandSender> literalNode;
+public final class DitherCommand extends BaseCommand {
+
+  private final LiteralCommandNode<CommandSender> node;
 
   public DitherCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
-    super(plugin, "dither", executor, "deluxemediaplugin.command.dither", "");
-    final LiteralArgumentBuilder<CommandSender> builder = literal(getName());
-    builder.requires(super::testPermission).then(literal("list").executes(this::listSettings));
-    literalNode = builder.build();
+    super(plugin, "dither", executor, "deluxemediaplugin.command.dither");
+    node =
+        literal(getName())
+            .requires(super::testPermission)
+            .then(literal("list").executes(this::listSettings))
+            .build();
+  }
+
+  private int listSettings(@NotNull final CommandContext<CommandSender> context) {
+    final Audience audience = audience().sender(context.getSource());
+    audience.sendMessage(format(text("Possible Dithering Options", GOLD)));
+    for (final DitherSetting setting : DitherSetting.values()) {
+      audience.sendMessage(text(setting.name(), AQUA));
+    }
+    return SINGLE_SUCCESS;
   }
 
   @Override
-  public LiteralCommandNode<CommandSender> getCommandNode() {
-    return literalNode;
+  public @NotNull LiteralCommandNode<CommandSender> node() {
+    return node;
   }
 
   @Override
   public Component usage() {
     return ChatUtilities.getCommandUsage(
-        ImmutableMap.of("/dither list", "Lists all possible dithering algorithms to choose"));
-  }
-
-  private int listSettings(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = getPlugin().getAudiences().sender(context.getSource());
-    audience.sendMessage(
-        ChatUtilities.formatMessage(Component.text("Possible Settings: ", NamedTextColor.GOLD)));
-
-    // List all possible dithering settings the user can select
-    for (final DitherSetting setting : DitherSetting.values()) {
-      audience.sendMessage(Component.text(setting.name(), NamedTextColor.AQUA));
-    }
-    return 1;
+        ImmutableMap.of("/dither list", "References all possible dithering options to choose"));
   }
 }

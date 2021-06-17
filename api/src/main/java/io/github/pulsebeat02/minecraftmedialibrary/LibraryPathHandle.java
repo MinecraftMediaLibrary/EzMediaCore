@@ -43,7 +43,7 @@ public class LibraryPathHandle {
   private final Path vlcFolder;
   private final Path imageFolder;
   private final Path audioFolder;
-  private Path ffmpegPath;
+  private final Path videoFolder;
 
   /**
    * Instantiates a new LibraryPathHandle.
@@ -54,6 +54,7 @@ public class LibraryPathHandle {
    * @param vlcPath the vlc path
    * @param imagePath the image path
    * @param audioPath the audio path
+   * @param videoPath the video path
    */
   public LibraryPathHandle(
       @NotNull final Plugin plugin,
@@ -61,12 +62,14 @@ public class LibraryPathHandle {
       @Nullable final String libraryPath,
       @Nullable final String vlcPath,
       @Nullable final String imagePath,
-      @Nullable final String audioPath) {
+      @Nullable final String audioPath,
+      @Nullable final String videoPath) {
     final String path = String.format("%s/mml", plugin.getDataFolder().getAbsolutePath());
     parentFolder = Paths.get(path);
     httpParentFolder = Paths.get(http == null ? String.format("%s/http/", path) : http);
     imageFolder = Paths.get(imagePath == null ? String.format("%s/image/", path) : imagePath);
     audioFolder = Paths.get(audioPath == null ? String.format("%s/audio/", path) : audioPath);
+    videoFolder = Paths.get(videoPath == null ? String.format("%s/video/", path) : videoPath);
     dependenciesFolder =
         Paths.get(libraryPath == null ? String.format("%s/libraries/", path) : libraryPath);
     vlcFolder = Paths.get(vlcPath == null ? String.format("%s/libraries/vlc/", path) : vlcPath);
@@ -75,6 +78,7 @@ public class LibraryPathHandle {
       Files.createDirectories(httpParentFolder);
       Files.createDirectories(imageFolder);
       Files.createDirectories(audioFolder);
+      Files.createDirectories(videoFolder);
       Files.createDirectories(dependenciesFolder);
       Files.createDirectories(vlcFolder);
     } catch (final IOException e) {
@@ -137,20 +141,11 @@ public class LibraryPathHandle {
   }
 
   /**
-   * Get the ffmpeg path to the file.
+   * Gets the video folder of the library.
    *
-   * @return the path of the ffmpeg binary
+   * @return the path of the video folder
    */
-  public Path getFfmpegPath() {
-    return ffmpegPath;
-  }
-
-  /**
-   * Set the ffmpeg path to the file.
-   *
-   * @param ffmpegPath the path to the ffmpegp binary
-   */
-  public void setFfmpegPath(final Path ffmpegPath) {
-    this.ffmpegPath = ffmpegPath;
+  public Path getVideoFolder() {
+    return videoFolder;
   }
 }
