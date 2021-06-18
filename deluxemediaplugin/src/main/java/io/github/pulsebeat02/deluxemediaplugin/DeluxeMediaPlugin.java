@@ -24,6 +24,7 @@ package io.github.pulsebeat02.deluxemediaplugin;
 
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandHandler;
+import io.github.pulsebeat02.deluxemediaplugin.config.ConfigurationProvider;
 import io.github.pulsebeat02.deluxemediaplugin.config.EncoderConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.PictureConfiguration;
@@ -32,16 +33,18 @@ import io.github.pulsebeat02.deluxemediaplugin.update.PluginUpdateChecker;
 import io.github.pulsebeat02.deluxemediaplugin.utility.CommandUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibraryProvider;
-import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
-import org.bstats.bukkit.Metrics;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.java.JavaPlugin;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import net.kyori.adventure.text.Component;
+import org.bstats.bukkit.Metrics;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
 import static net.kyori.adventure.text.Component.text;
@@ -66,9 +69,9 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
   @Override
   public void onDisable() {
 
-    logger.info("DeluxeMediaPlugin is Shutting Down");
+    log("DeluxeMediaPlugin is Shutting Down");
 
-    logger.info("Shutting Down MinecraftMediaLibrary Instance...");
+    log("Shutting Down MinecraftMediaLibrary Instance...");
     if (library != null) {
       library.shutdown();
     } else {
@@ -76,7 +79,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
           "WARNING: MinecraftMediaLibrary instance is null... something is fishy going on.");
     }
 
-    logger.info("Unregistering Commands");
+    log("Unregistering Commands");
     if (handler != null) {
       final Set<BaseCommand> cmds = handler.getCommands();
       if (cmds != null) {
@@ -86,7 +89,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       }
     }
 
-    logger.info("DeluxeMediaPlugin Successfully Shutdown");
+    log("DeluxeMediaPlugin Successfully Shutdown");
   }
 
   @Override
@@ -100,7 +103,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       audiences = BukkitAudiences.create(this);
       final Audience console = audiences.console();
 
-      console.sendMessage(format(text("Started to Initialize DeluxeMediaPlugin...")));
+      log("Started to Initialize DeluxeMediaPlugin...");
 
       final List<String> logo =
           Arrays.asList(
@@ -115,34 +118,29 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       for (final String line : logo) {
         console.sendMessage(text(line, BLUE));
       }
-      console.sendMessage(
-          format(
-              ofChildren(text("Running DeluxeMediaPlugin ", AQUA), text("[CLOSED BETA]", GOLD))));
+      log(ofChildren(text("Running DeluxeMediaPlugin ", AQUA), text("[CLOSED BETA]", GOLD)));
 
       CommandUtilities.ensureInit();
 
-      console.sendMessage(format(text("Loading MinecraftMediaLibrary Instance...")));
+      log("Loading MinecraftMediaLibrary Instance...");
       library = MediaLibraryProvider.create(this);
 
-      console.sendMessage(format(text("Loading Commands...")));
+      log("Loading Commands...");
       registerCommands();
 
-      console.sendMessage(format(text("Loading Configuration Files...")));
+      log("Loading Configuration Files...");
       registerConfigurations();
 
-      console.sendMessage(format(text("Sending Metrics Statistics...")));
+      log("Sending Metrics Statistics...");
       new Metrics(this, 10229);
 
-      console.sendMessage(format(text("Checking for Updates...")));
-      new PluginUpdateChecker(this).checkForUpdates();
+      log("Checking for Updates...");
+      new PluginUpdateChecker(this).check();
 
-      console.sendMessage(format(text("Finished Loading Instance and Plugin")));
-
-      console.sendMessage(
-          format(
-              text(
-                  "Hello %%__USER__%%! Thank you for purchasing DeluxeMediaPlugin. For "
-                      + "identifier purposes, this is your purchase id: %%__NONCE__%%")));
+      log("Finished Loading Instance and Plugin");
+      log(
+          "Hello %%__USER__%%! Thank you for purchasing DeluxeMediaPlugin. For identifier purposes, this "
+              + "is your purchase id: %%__NONCE__%%");
 
     } else {
 
@@ -158,10 +156,16 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
     videoConfiguration = new VideoConfiguration(this);
     encoderConfiguration = new EncoderConfiguration(this);
 
-    httpConfiguration.read();
-    pictureConfiguration.read();
-    videoConfiguration.read();
-    encoderConfiguration.read();
+    Stream.of(httpConfiguration, pictureConfiguration, videoConfiguration, encoderConfiguration)
+        .forEach(ConfigurationProvider::read);
+  }
+
+  public void log(@NotNull final String line) {
+    audiences.console().sendMessage(format(text(line)));
+  }
+
+  public void log(@NotNull final Component line) {
+    audiences.console().sendMessage(line);
   }
 
   private void registerCommands() {
@@ -190,9 +194,5 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
   public BukkitAudiences audience() {
     return audiences;
-  }
-
-  public CommandHandler getHandler() {
-    return handler;
   }
 }

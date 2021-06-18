@@ -92,7 +92,6 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
     this.plugin = plugin;
 
     Logger.initializeLogger(this);
-    Logger.setVerbose(true);
 
     JavaVersionUtilities.sendWarningMessage();
     DebuggerUtilities.getDebugInformation(this);
@@ -125,7 +124,7 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
 
       if (Bukkit.getOnlineMode()) {
         Logger.info(
-            "Setting the property network-compression-threshold in server.properties to -1 can "
+            "Setting the property network-compression-threshold in server.properties to -1 could "
                 + "lead to a significant improvement of performance for servers that aren't proxy"
                 + " servers.");
       }
@@ -133,7 +132,6 @@ public final class MinecraftMediaLibrary implements MediaLibrary {
       Logger.info("Finished Initializing Library!");
 
     } else {
-
       shutdown();
     }
   }

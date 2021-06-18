@@ -27,6 +27,9 @@ import org.bukkit.Bukkit;
 
 public class ServerPropertyMutator {
 
+  /**
+   * Changes the compression threshold in the server.properties file.
+   */
   public void mutateCompressionThreshold() {
     if (isProxy()) {
       return;
@@ -40,6 +43,11 @@ public class ServerPropertyMutator {
     }
   }
 
+  /**
+   * Returns whether the server is a proxy or not.
+   *
+   * @return if proxy is enabled
+   */
   private boolean isProxy() {
     return Bukkit.getOnlineMode();
   }

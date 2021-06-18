@@ -57,6 +57,7 @@ public final class Logger {
     } catch (final IOException exception) {
       exception.printStackTrace();
     }
+    VERBOSE = true;
   }
 
   /**

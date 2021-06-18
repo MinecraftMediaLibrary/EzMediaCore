@@ -24,6 +24,7 @@ dependencies {
     compileOnly("com.google.guava:guava:30.1.1-jre")
     compileOnly("org.apache.commons:commons-lang3:3.12.0")
     compileOnly("org.jcodec:jcodec:0.2.5")
+    compileOnly("net.dv8tion:JDA:4.3.0_277")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.0-M1")
     testImplementation("io.github.glytching:junit-extensions:2.4.0")

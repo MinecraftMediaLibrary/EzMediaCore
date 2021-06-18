@@ -29,5 +29,6 @@ subprojects {
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
         maven("https://repo.vshnv.tech/")
         maven("https://papermc.io/repo/repository/maven-public/")
+        maven("https://m2.dv8tion.net/releases")
     }
 }
