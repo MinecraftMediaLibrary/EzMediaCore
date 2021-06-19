@@ -228,6 +228,7 @@ public final class VideoUtilities {
    * Converts the Picture to a BufferedImage.
    *
    * @param src the cropped picture
+   * @return the buffered image
    */
   public static BufferedImage toBufferedImage(Picture src) {
     if (src.getColor() != ColorSpace.BGR) {

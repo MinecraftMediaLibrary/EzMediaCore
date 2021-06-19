@@ -29,7 +29,7 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegAudioTrimmerHelper;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.VideoPlayerContext;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.player.VideoPlayerContext;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;

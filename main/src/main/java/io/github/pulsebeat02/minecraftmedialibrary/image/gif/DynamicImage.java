@@ -26,20 +26,20 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.map.VLCPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.player.VideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.player.VideoPlayerProvider;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.player.callback.MapDataCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoUtilities;
-import org.bukkit.Bukkit;
-import org.bukkit.util.NumberConversions;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Dimension;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import org.bukkit.Bukkit;
+import org.bukkit.util.NumberConversions;
+import org.jetbrains.annotations.NotNull;
 
 public class DynamicImage implements DynamicImageProxy {
 
@@ -141,27 +141,28 @@ public class DynamicImage implements DynamicImageProxy {
     try {
       final Dimension dims = VideoUtilities.getDimensions(image);
       final int w = (int) dims.getWidth();
-      final VLCPlayer player =
-          VLCPlayer.builder()
-              .url(image.toAbsolutePath().toString())
-              .width(w)
-              .height((int) dims.getHeight())
-              .callback(
-                  MapDataCallback.builder()
-                      .viewers(null)
-                      .map(map)
-                      .itemframeWidth(width)
-                      .itemframeHeight(height)
-                      .videoWidth(w)
-                      .delay(0)
-                      .ditherHolder(DitherSetting.FLOYD_STEINBERG_DITHER.getHolder())
-                      .build(library))
-              .build(library);
-      player.setRepeat(true);
-      player.start(Bukkit.getOnlinePlayers());
-      Logger.info(
-          String.format(
-              "Drew Dynamic Image at Map ID %d (Source: %s)", map, image.toAbsolutePath()));
+      final VideoPlayer player =
+          VideoPlayerProvider.createMapPlayer(
+              library,
+              image.toAbsolutePath().toString(),
+              MapDataCallback.builder()
+                  .viewers(null)
+                  .map(map)
+                  .itemframeWidth(width)
+                  .itemframeHeight(height)
+                  .videoWidth(w)
+                  .delay(0)
+                  .ditherHolder(DitherSetting.FLOYD_STEINBERG_DITHER.getHolder())
+                  .build(library),
+              w,
+              (int) dims.getHeight());
+      if (player != null) {
+        player.setRepeat(true);
+        player.start(Bukkit.getOnlinePlayers());
+        Logger.info(
+            String.format(
+                "Drew Dynamic Image at Map ID %d (Source: %s)", map, image.toAbsolutePath()));
+      }
     } catch (final IOException e) {
       e.printStackTrace();
     }

@@ -27,16 +27,19 @@ import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.ServerPropertyMutator;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.map.MapDataCallbackPrototype;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.map.VLCPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.player.VideoPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.player.VideoPlayerProvider;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.player.vlc.VLCPlayer;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.player.callback.MapDataCallback;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.player.map.MapDataCallbackPrototype;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.player.vlc.MapPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 public class VideoConfiguration extends ConfigurationProvider {
 
-  private io.github.pulsebeat02.minecraftmedialibrary.frame.VLCPlayer player;
+  private VideoPlayer player;
   private MapDataCallback callback;
 
   public VideoConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
@@ -102,20 +105,15 @@ public class VideoConfiguration extends ConfigurationProvider {
         if (url == null) {
           Logger.info("URL in video.yml is not a valid or specified url!");
         } else {
-          player =
-              VLCPlayer.builder()
-                  .url(url)
-                  .callback(callback)
-                  .width(width)
-                  .height(height)
-                  .build(library);
+          player = VideoPlayerProvider
+                  .createMapPlayer(library, url, callback, width, height);
         }
       }
       this.callback = callback;
     }
   }
 
-  public io.github.pulsebeat02.minecraftmedialibrary.frame.VLCPlayer getPlayer() {
+  public VideoPlayer getPlayer() {
     return player;
   }
 
