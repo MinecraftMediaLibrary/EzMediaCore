@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * A JCodec integrated player used to play videos in Minecraft. It renders it on maps. Linux
  * compatible.
  */
-public class MapPlayer extends JCodecPlayer {
+public final class MapPlayer extends JCodecPlayer {
 
   /**
    * Instantiates a new JCodecMapPlayer.

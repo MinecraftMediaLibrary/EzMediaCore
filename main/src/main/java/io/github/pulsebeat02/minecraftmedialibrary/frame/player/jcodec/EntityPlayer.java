@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
  * A JCodec integrated player used to play videos in Minecraft. It renders it as entities. Linux
  * compatible.
  */
-public class EntityPlayer extends JCodecPlayer {
+public final class EntityPlayer extends JCodecPlayer {
 
   private final Location location;
   private final Entity[] entities;

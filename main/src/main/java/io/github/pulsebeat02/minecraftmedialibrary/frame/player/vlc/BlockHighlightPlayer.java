@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it in debug highlights.
  */
-public class BlockHighlightPlayer extends VLCPlayer {
+public final class BlockHighlightPlayer extends VLCPlayer {
 
   /**
    * Instantiates a new BlockHighlightPlayer.

@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * A JCodec integrated player used to play videos in Minecraft. It renders it in chat. Linux
  * compatible.
  */
-public class ChatPlayer extends JCodecPlayer {
+public final class ChatPlayer extends JCodecPlayer {
 
   /**
    * Instantiates a new JCodecChatPlayer.

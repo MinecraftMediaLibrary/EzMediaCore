@@ -138,7 +138,7 @@ final class LoadRed extends RecursiveTask<byte[]> {
    * @param palette the palette
    * @param r the r
    */
-  protected LoadRed(final int[] palette, final int r) {
+  LoadRed(final int[] palette, final int r) {
     this.r = r;
     this.palette = palette;
   }
@@ -184,7 +184,7 @@ final class LoadGreen extends RecursiveTask<byte[]> {
    * @param r the r
    * @param g the g
    */
-  protected LoadGreen(final int[] palette, final int r, final int g) {
+  LoadGreen(final int[] palette, final int r, final int g) {
     this.r = r;
     this.g = g;
     this.palette = palette;
@@ -226,7 +226,7 @@ final class LoadBlue extends RecursiveTask<Byte> {
    * @param g the g
    * @param b the b
    */
-  protected LoadBlue(final int[] palette, final int r, final int g, final int b) {
+  LoadBlue(final int[] palette, final int r, final int g, final int b) {
     this.r = r;
     this.g = g;
     this.b = b;

@@ -24,20 +24,17 @@
 package io.github.pulsebeat02.minecraftmedialibrary.frame.player.experimental;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.player.FrameCallback;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.player.vlc.VLCPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.player.VideoPlayerContext;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.FilterLiteDither;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.player.FrameCallback;
+import io.github.pulsebeat02.minecraftmedialibrary.frame.player.vlc.VLCPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
@@ -105,7 +102,7 @@ import java.util.concurrent.CompletableFuture;
  * This is currently a VideoPlayer in progress. It will not function at all. Please wait as I try to
  * develop it.
  */
-public class ParallelVideoPlayer extends VLCPlayer {
+public final class ParallelVideoPlayer extends VLCPlayer {
 
   private final PacketHandler handler;
   private final DitherHolder holder;

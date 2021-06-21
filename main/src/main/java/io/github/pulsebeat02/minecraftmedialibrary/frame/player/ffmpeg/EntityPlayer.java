@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
  * An FFmpeg integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it on entities. Linux compatible.
  */
-public class EntityPlayer extends JaffreePlayer {
+public final class EntityPlayer extends JaffreePlayer {
 
   private final Location location;
   private final Entity[] entities;

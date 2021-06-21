@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it on maps.
  */
-public class MapPlayer extends VLCPlayer {
+public final class MapPlayer extends VLCPlayer {
 
   /**
    * Instantiates a new VLCMapPlayer.

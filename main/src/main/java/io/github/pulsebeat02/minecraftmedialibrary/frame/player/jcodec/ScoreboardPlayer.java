@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * A JCodec integrated player used to play videos in Minecraft. It renders it on a scoreboard. Linux
  * compatible.
  */
-public class ScoreboardPlayer extends JCodecPlayer {
+public final class ScoreboardPlayer extends JCodecPlayer {
 
   /**
    * Instantiates a new FFmpegScoreboardPlayer.

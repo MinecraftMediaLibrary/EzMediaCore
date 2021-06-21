@@ -51,7 +51,7 @@ public abstract class AbstractSilentOSDependentSolution implements SilentOSDepen
    *
    * @param library the library
    */
-  protected AbstractSilentOSDependentSolution(@NotNull final MediaLibrary library) {
+  AbstractSilentOSDependentSolution(@NotNull final MediaLibrary library) {
     this(library.getVlcFolder());
   }
 
@@ -60,7 +60,7 @@ public abstract class AbstractSilentOSDependentSolution implements SilentOSDepen
    *
    * @param dir the directory
    */
-  protected AbstractSilentOSDependentSolution(@NotNull final Path dir) {
+  AbstractSilentOSDependentSolution(@NotNull final Path dir) {
     this.dir = dir;
   }
 

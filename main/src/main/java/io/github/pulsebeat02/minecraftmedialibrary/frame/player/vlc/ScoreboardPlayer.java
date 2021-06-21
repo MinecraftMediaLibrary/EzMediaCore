@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it in a scoreboard. Linux compatible.
  */
-public class ScoreboardPlayer extends VLCPlayer {
+public final class ScoreboardPlayer extends VLCPlayer {
 
   /**
    * Instantiates a new ScoreboardPlayer.

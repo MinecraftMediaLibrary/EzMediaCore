@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * An FFmpeg integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it on maps. Linux compatible.
  */
-public class MapPlayer extends JaffreePlayer {
+public final class MapPlayer extends JaffreePlayer {
 
   /**
    * Instantiates a new FFmpegMapPlayer.

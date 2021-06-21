@@ -35,7 +35,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import org.jetbrains.annotations.NotNull;
 
-public class VideoPlayerProvider {
+public final class VideoPlayerProvider {
 
   private static Constructor<?> BLOCK_HIGHLIGHT_PLAYER;
   private static Constructor<?> CHAT_PLAYER;
@@ -58,10 +58,15 @@ public class VideoPlayerProvider {
     }
     try {
       BLOCK_HIGHLIGHT_PLAYER = Class.forName(name + "BlockHighlightPlayer").getConstructors()[0];
+      BLOCK_HIGHLIGHT_PLAYER.setAccessible(true);
       CHAT_PLAYER = Class.forName(name + "ChatPlayer").getConstructors()[0];
+      CHAT_PLAYER.setAccessible(true);
       ENTITY_PLAYER = Class.forName(name + "EntityPlayer").getConstructors()[0];
+      ENTITY_PLAYER.setAccessible(true);
       MAP_PLAYER = Class.forName(name + "MapPlayer").getConstructors()[0];
+      MAP_PLAYER.setAccessible(true);
       SCOREBOARD_PLAYER = Class.forName(name + "ScoreboardPlayer").getConstructors()[0];
+      SCOREBOARD_PLAYER.setAccessible(true);
     } catch (final ClassNotFoundException e) {
       e.printStackTrace();
     }

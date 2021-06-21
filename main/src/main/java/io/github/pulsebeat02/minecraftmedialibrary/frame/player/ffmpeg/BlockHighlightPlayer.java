@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * An FFmpeg integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it in debug highlights. Linux compatible.
  */
-public class BlockHighlightPlayer extends JaffreePlayer {
+public final class BlockHighlightPlayer extends JaffreePlayer {
 
   /**
    * Instantiates a new FFmpegBlockHighlightPlayer.

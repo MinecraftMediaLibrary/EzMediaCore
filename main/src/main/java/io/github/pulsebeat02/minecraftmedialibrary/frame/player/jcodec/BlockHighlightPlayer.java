@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * A JCodec integrated player used to play videos in Minecraft. It renders it in debug highlights.
  * Linux compatible.
  */
-public class BlockHighlightPlayer extends JCodecPlayer {
+public final class BlockHighlightPlayer extends JCodecPlayer {
 
   /**
    * Instantiates a new JCodecBlockHighlightPlayer.

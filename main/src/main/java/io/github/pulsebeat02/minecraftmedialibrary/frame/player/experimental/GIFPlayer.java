@@ -45,7 +45,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class GIFPlayer extends VLCPlayer {
+public final class GIFPlayer extends VLCPlayer {
 
   private final List<BufferedImage> images;
   private final float frameDuration;

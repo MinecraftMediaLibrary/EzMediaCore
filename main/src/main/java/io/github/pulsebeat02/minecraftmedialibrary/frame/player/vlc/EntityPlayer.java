@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
  * A VLCJ integrated player used to play videos in Minecraft. The library uses a callback for the
  * specific function from native libraries. It renders it on entities.
  */
-public class EntityPlayer extends VLCPlayer {
+public final class EntityPlayer extends VLCPlayer {
 
   private final Location location;
   private final Entity[] entities;
