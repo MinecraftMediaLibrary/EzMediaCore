@@ -57,6 +57,12 @@ public final class VideoPlayerProvider {
       name = String.format("%s.vlc.", base);
     }
     try {
+      final Class<?> blockHighlights = Class.forName(name + "BlockHighlightPlayer");
+
+
+
+
+
       BLOCK_HIGHLIGHT_PLAYER = Class.forName(name + "BlockHighlightPlayer").getConstructors()[0];
       BLOCK_HIGHLIGHT_PLAYER.setAccessible(true);
       CHAT_PLAYER = Class.forName(name + "ChatPlayer").getConstructors()[0];

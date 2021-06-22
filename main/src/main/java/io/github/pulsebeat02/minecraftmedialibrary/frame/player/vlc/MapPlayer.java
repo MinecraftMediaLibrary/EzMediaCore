@@ -43,7 +43,7 @@ public final class MapPlayer extends VLCPlayer {
    * @param height the height
    * @param callback the callback
    */
-  MapPlayer(
+  public MapPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
       @NotNull final MapDataCallbackPrototype callback,
@@ -61,7 +61,7 @@ public final class MapPlayer extends VLCPlayer {
    * @param height the height
    * @param callback the callback
    */
-  MapPlayer(
+  public MapPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final Path file,
       @NotNull final MapDataCallbackPrototype callback,

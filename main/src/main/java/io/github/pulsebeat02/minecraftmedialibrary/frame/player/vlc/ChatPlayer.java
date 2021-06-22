@@ -44,7 +44,7 @@ public final class ChatPlayer extends VLCPlayer {
    * @param height the height
    * @param callback the callback
    */
-  ChatPlayer(
+  public ChatPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
       @NotNull final ChatCallbackPrototype callback,
@@ -62,7 +62,7 @@ public final class ChatPlayer extends VLCPlayer {
    * @param height the height
    * @param callback the callback
    */
-  ChatPlayer(
+  public ChatPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final Path file,
       @NotNull final EntityCallbackPrototype callback,

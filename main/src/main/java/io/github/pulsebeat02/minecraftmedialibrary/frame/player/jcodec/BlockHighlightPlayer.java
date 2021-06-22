@@ -42,7 +42,7 @@ public final class BlockHighlightPlayer extends JCodecPlayer {
    * @param height the height
    * @param callback the callback
    */
-  BlockHighlightPlayer(
+  public BlockHighlightPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
       @NotNull final BlockHighlightCallbackPrototype callback,

@@ -42,7 +42,7 @@ public final class ScoreboardPlayer extends JaffreePlayer {
    * @param height the height
    * @param callback the callback
    */
-  ScoreboardPlayer(
+  public ScoreboardPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
       @NotNull final ScoreboardCallbackPrototype callback,

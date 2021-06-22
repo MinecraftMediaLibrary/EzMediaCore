@@ -87,7 +87,7 @@ public abstract class JaffreePlayer extends VideoPlayer {
    * @param callback the callback
    * @param type the type of video player
    */
-  JaffreePlayer(
+  public JaffreePlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String type,
       @NotNull final String url,

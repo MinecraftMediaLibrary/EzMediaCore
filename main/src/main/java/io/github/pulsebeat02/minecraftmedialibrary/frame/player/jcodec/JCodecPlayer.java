@@ -78,7 +78,7 @@ public class JCodecPlayer extends VideoPlayer {
    * @param callback the callback
    * @param type the type of video player
    */
-  JCodecPlayer(
+  public JCodecPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String type,
       @NotNull final String url,

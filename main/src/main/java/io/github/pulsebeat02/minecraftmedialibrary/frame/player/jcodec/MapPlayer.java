@@ -42,7 +42,7 @@ public final class MapPlayer extends JCodecPlayer {
    * @param height the height
    * @param callback the callback
    */
-  MapPlayer(
+  public MapPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
       @NotNull final MapDataCallbackPrototype callback,

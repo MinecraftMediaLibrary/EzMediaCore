@@ -43,7 +43,7 @@ public final class ScoreboardPlayer extends VLCPlayer {
    * @param height the height
    * @param callback the callback
    */
-  ScoreboardPlayer(
+  public ScoreboardPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
       @NotNull final ScoreboardCallback callback,
@@ -61,7 +61,7 @@ public final class ScoreboardPlayer extends VLCPlayer {
    * @param height the height
    * @param callback the callback
    */
-  ScoreboardPlayer(
+  public ScoreboardPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final Path file,
       @NotNull final ScoreboardCallback callback,

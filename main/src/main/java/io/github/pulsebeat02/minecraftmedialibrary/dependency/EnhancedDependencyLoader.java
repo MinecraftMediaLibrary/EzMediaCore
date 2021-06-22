@@ -24,8 +24,6 @@ package io.github.pulsebeat02.minecraftmedialibrary.dependency;
 
 import io.github.slimjar.app.builder.ApplicationBuilder;
 import io.github.slimjar.resolver.data.DependencyData;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -34,6 +32,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /** Enhanced dependency loader which supports Java 16 and future Java versions. */
 public class EnhancedDependencyLoader {
@@ -52,7 +51,6 @@ public class EnhancedDependencyLoader {
    */
   public EnhancedDependencyLoader(@NotNull final List<URL> paths) {
     jars = paths;
-    final boolean legacy = Integer.parseInt(System.getProperty("java.version").split("\\.")[1]) == 8;
   }
 
   /**
@@ -62,7 +60,7 @@ public class EnhancedDependencyLoader {
    */
   public void addJar(@NotNull final Path file) {
     try {
-      jars.add(file.toUri().toURL());
+      jars.add(new URL(file.toUri().toString().replace("\\", "/").replace("%20", " ")));
     } catch (final IOException e) {
       e.printStackTrace();
     }

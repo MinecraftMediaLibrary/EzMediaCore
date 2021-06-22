@@ -50,7 +50,7 @@ public final class EntityPlayer extends JCodecPlayer {
    * @param callback the callback
    * @param location the location
    */
-  EntityPlayer(
+  public EntityPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
       @NotNull final EntityCallbackPrototype callback,

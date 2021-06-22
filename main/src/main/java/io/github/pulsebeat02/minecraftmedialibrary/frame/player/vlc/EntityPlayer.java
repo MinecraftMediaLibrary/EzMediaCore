@@ -51,7 +51,7 @@ public final class EntityPlayer extends VLCPlayer {
    * @param callback the callback
    * @param location the location
    */
-  EntityPlayer(
+  public EntityPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
       @NotNull final EntityCallbackPrototype callback,
@@ -73,7 +73,7 @@ public final class EntityPlayer extends VLCPlayer {
    * @param callback the callback
    * @param location the location
    */
-  EntityPlayer(
+  public EntityPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final Path file,
       @NotNull final EntityCallbackPrototype callback,

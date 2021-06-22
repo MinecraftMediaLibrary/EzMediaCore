@@ -43,7 +43,7 @@ public final class BlockHighlightPlayer extends VLCPlayer {
    * @param height the height
    * @param callback the callback
    */
-  BlockHighlightPlayer(
+  public BlockHighlightPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
       @NotNull final BlockHighlightCallbackPrototype callback,
@@ -61,7 +61,7 @@ public final class BlockHighlightPlayer extends VLCPlayer {
    * @param height the height
    * @param callback the callback
    */
-  BlockHighlightPlayer(
+  public BlockHighlightPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final Path file,
       @NotNull final BlockHighlightCallbackPrototype callback,

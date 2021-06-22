@@ -42,7 +42,7 @@ public final class ChatPlayer extends JCodecPlayer {
    * @param height the height
    * @param callback the callback
    */
-  ChatPlayer(
+  public ChatPlayer(
       @NotNull final MediaLibrary library,
       @NotNull final String url,
       @NotNull final ChatCallbackPrototype callback,
