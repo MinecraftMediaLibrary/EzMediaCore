@@ -36,13 +36,13 @@ public enum DitherSetting {
   SIERRA_FILTER_LITE_DITHER(new FilterLiteDither()),
 
   /** Bayer Ordered 2 Dimensional Dithering */
-  BAYER_ORDERED_2_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.ModeTwo)),
+  BAYER_ORDERED_2_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.TWO_BY_TWO)),
 
   /** Bayer Ordered 4 Dimensional Dithering */
-  BAYER_ORDERED_4_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.ModeFour)),
+  BAYER_ORDERED_4_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.FOUR_BY_FOUR)),
 
   /** Bayer Ordered 8 Dimensional Dithering */
-  BAYER_ORDERED_8_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.ModeEight)),
+  BAYER_ORDERED_8_DIMENSIONAL(new OrderedDithering(OrderedDithering.DitherType.EIGHT_BY_EIGHT)),
 
   /** Floyd Steinberg Dithering */
   FLOYD_STEINBERG_DITHER(new FloydImageDither()),

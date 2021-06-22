@@ -22,9 +22,8 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.frame.dither;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.nio.ByteBuffer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Ordered dithering is an image dithering algorithm. It is commonly used to display a continuous
@@ -70,14 +69,10 @@ public final class OrderedDithering implements DitherHolder {
     COLOR_MAP = StaticDitherInitialization.COLOR_MAP;
 
     /*
-
     2 by 2 Bayer Ordered Dithering
-
     0   2
     3   1  (1/4)
-
     */
-
     bayerMatrixTwo =
         new float[][] {
           {1f, 3f},
@@ -85,14 +80,11 @@ public final class OrderedDithering implements DitherHolder {
         };
 
     /*
-
     4 by 4 Bayer Ordered Dithering
-
     1  9  3  11
     13 5  15  7
     4  12  2  10
     16 8  14  6   (1/16)
-
      */
 
     bayerMatrixFour =
@@ -104,9 +96,7 @@ public final class OrderedDithering implements DitherHolder {
         };
 
     /*
-
     8 by 8 Bayer Ordered Dithering
-
     1  49  13  61  4  52  16  64
     33 17  45  29  36  20  48  32
     9  57  5  53  12  60  8  56
@@ -115,7 +105,6 @@ public final class OrderedDithering implements DitherHolder {
     35  19  47  31  34  18  46  30
     11  59  7  55  10  58  6  54
     43  27  39  23  42  26  38  22   (1/64)
-
      */
 
     bayerMatrixEight =
@@ -143,17 +132,17 @@ public final class OrderedDithering implements DitherHolder {
    */
   public OrderedDithering(@NotNull final DitherType type) {
     switch (type) {
-      case ModeTwo:
+      case TWO_BY_TWO:
         matrix = bayerMatrixTwo;
         n = 2;
         multiplicative = 0.25f;
         break;
-      case ModeFour:
+      case FOUR_BY_FOUR:
         matrix = bayerMatrixFour;
         n = 4;
         multiplicative = 0.0625f;
         break;
-      case ModeEight:
+      case EIGHT_BY_EIGHT:
         matrix = bayerMatrixEight;
         n = 8;
         multiplicative = 0.015625f;
@@ -255,8 +244,8 @@ public final class OrderedDithering implements DitherHolder {
       final int yIndex = y * width;
       for (int x = 0; x < width; x++) {
         final int index = yIndex + x;
-        final int color = buffer[index];
-        buffer[index] = getBestColorNormal((int) (color + r * (matrix[x % n][y % n])));
+        buffer[index] =
+            getBestColorNormal((int) (buffer[index] + r * ((matrix[x % n][y % n] - 0.5))));
       }
     }
   }
@@ -275,9 +264,7 @@ public final class OrderedDithering implements DitherHolder {
     for (int y = 0; y < height; y++) {
       final int yIndex = y * width;
       for (int x = 0; x < width; x++) {
-        final int index = yIndex + x;
-        final int color = buffer[index];
-        data.put(getBestColor((int) (color + r * (matrix[x % n][y % n]))));
+        data.put(getBestColor((int) (buffer[yIndex + x] + r * ((matrix[x % n][y % n] - 0.5)))));
       }
     }
     return data;
@@ -341,11 +328,11 @@ public final class OrderedDithering implements DitherHolder {
   public enum DitherType {
 
     /** Two Dimensional */
-    ModeTwo("Two Dimensional"),
+    TWO_BY_TWO("Two Dimensional"),
     /** Four Dimensional */
-    ModeFour("Four Dimensional"),
+    FOUR_BY_FOUR("Four Dimensional"),
     /** Eight Dimensional */
-    ModeEight("Eight Dimensional");
+    EIGHT_BY_EIGHT("Eight Dimensional");
 
     private final String name;
 

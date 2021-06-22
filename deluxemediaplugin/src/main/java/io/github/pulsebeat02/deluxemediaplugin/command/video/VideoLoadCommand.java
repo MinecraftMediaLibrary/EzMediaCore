@@ -131,7 +131,6 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
             attributes.setHash(
                 VideoExtractionUtilities.createHashSHA(Paths.get(wrapper.getPath())));
             sendResourcepackFile();
-            sendResourcepackFile(); // first time doesnt work for some reason??
             audience.sendMessage(
                 format(text(String.format("Successfully loaded video %s", mrl), GOLD)));
             completion.set(true);

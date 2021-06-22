@@ -60,7 +60,7 @@ class OrderedDitherTesting(image: File) : JFrame() {
         for (type in DitherType.values()) {
             val buffer = VideoUtilities.getBuffer(before)
             val start = System.currentTimeMillis()
-            OrderedDithering(DitherType.ModeTwo).dither(buffer, before.width)
+            OrderedDithering(DitherType.TWO_BY_TWO).dither(buffer, before.width)
             val end = System.currentTimeMillis()
             val after = VideoUtilities.getBufferedImage(buffer, before.width, before.height)
             val panel = JPanel()

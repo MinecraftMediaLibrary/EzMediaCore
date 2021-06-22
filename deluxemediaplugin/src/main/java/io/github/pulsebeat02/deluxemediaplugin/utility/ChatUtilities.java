@@ -22,15 +22,14 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.utility;
 
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TextComponent;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.OptionalInt;
 
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.newline;
@@ -50,23 +49,19 @@ public final class ChatUtilities {
 
   static {
     PREFIX =
-        Component.text()
+        text()
             .color(AQUA)
             .append(
-                Component.text('['),
-                Component.text("DeluxeMediaPlugin", GOLD),
-                Component.text(']'),
-                Component.space(),
-                Component.text("»", GRAY));
+                text('['), text("DeluxeMediaPlugin", GOLD), text(']'), space(), text("»", GRAY));
     EXTERNAL_PROCESS =
-        Component.text()
+        text()
             .color(AQUA)
             .append(
-                Component.text('['),
-                Component.text("DeluxeMediaPlugin External Process", GOLD),
-                Component.text(']'),
-                Component.space(),
-                Component.text("»", GRAY));
+                text('['),
+                text("DeluxeMediaPlugin External Process", GOLD),
+                text(']'),
+                space(),
+                text("»", GRAY));
   }
 
   public static Component format(@NotNull final TextComponent message) {
