@@ -38,10 +38,9 @@ public interface EntityCallbackPrototype extends FrameCallback, FrameCallbackAtt
    * Modifies the entity accordingly. Users may override the method if they would like to modify the
    * entity with custom attributes.
    *
-   * @param entity the entity to modify
    * @return the modified entity
    */
-  Entity modifyEntity(@NotNull Entity entity);
+  Entity modifiedEntity();
 
   /**
    * Get viewers uuid [ ].

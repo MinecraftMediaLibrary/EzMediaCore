@@ -64,12 +64,12 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
             .then(
                 literal("screen-dimension")
                     .then(
-                        argument("screen-dimensions", StringArgumentType.word())
+                        argument("screen-dimensions", StringArgumentType.greedyString())
                             .executes(this::setScreenDimensions)))
             .then(
                 literal("itemframe-dimension")
                     .then(
-                        argument("itemframe-dimensions", StringArgumentType.word())
+                        argument("itemframe-dimensions", StringArgumentType.greedyString())
                             .executes(this::setItemframeDimensions)))
             .then(
                 literal("starting-map")
@@ -110,19 +110,19 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
     final Optional<int[]> optional =
         ChatUtilities.checkDimensionBoundaries(
             audience, context.getArgument("screen-dimensions", String.class));
-    if (!optional.isPresent() || unloadedVideo(audience)) {
+    if (!optional.isPresent()) {
       return SINGLE_SUCCESS;
     }
     final int[] dimensions = optional.get();
-    attributes.setScreenHeight(dimensions[0]);
-    attributes.setScreenWidth(dimensions[1]);
+    attributes.setScreenWidth(dimensions[0]);
+    attributes.setScreenHeight(dimensions[1]);
     audience.sendMessage(
         format(
             ofChildren(
                 text("Set screen dimensions to ", GOLD),
                 text(
                     String.format(
-                        "%d:%d ", attributes.getScreenHeight(), attributes.getScreenWidth()),
+                        "%d:%d ", attributes.getScreenWidth(), attributes.getScreenHeight()),
                     AQUA),
                 text("(width:height)", GOLD))));
     return SINGLE_SUCCESS;
@@ -190,15 +190,6 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
       audience.sendMessage(format(ofChildren(text("Set video mode to ", GOLD), text(mode, AQUA))));
     }
     return SINGLE_SUCCESS;
-  }
-
-  private boolean unloadedVideo(@NotNull final Audience audience) {
-    if (attributes.getPlayer() == null) {
-      audience.sendMessage(
-          format(text("Please load a video first before running this command!", RED)));
-      return true;
-    }
-    return false;
   }
 
   @Override

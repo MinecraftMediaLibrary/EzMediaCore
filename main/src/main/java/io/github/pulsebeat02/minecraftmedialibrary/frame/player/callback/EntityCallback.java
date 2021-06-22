@@ -1,33 +1,34 @@
 /*.........................................................................................
- . Copyright © 2021 Brandon Li
- .                                                                                        .
- . Permission is hereby granted, free of charge, to any person obtaining a copy of this
- . software and associated documentation files (the “Software”), to deal in the Software
- . without restriction, including without limitation the rights to use, copy, modify, merge,
- . publish, distribute, sublicense, and/or sell copies of the Software, and to permit
- . persons to whom the Software is furnished to do so, subject to the following conditions:
- .
- . The above copyright notice and this permission notice shall be included in all copies
- . or substantial portions of the Software.
- .
- . THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
- . EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- . MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- . NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- . BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- . ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- . CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- .  SOFTWARE.
- .                                                                                        .
- .........................................................................................*/
+. Copyright © 2021 Brandon Li
+.                                                                                        .
+. Permission is hereby granted, free of charge, to any person obtaining a copy of this
+. software and associated documentation files (the “Software”), to deal in the Software
+. without restriction, including without limitation the rights to use, copy, modify, merge,
+. publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+. persons to whom the Software is furnished to do so, subject to the following conditions:
+.
+. The above copyright notice and this permission notice shall be included in all copies
+. or substantial portions of the Software.
+.
+. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+. EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+. MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+. NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+. BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+. ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+. CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.  SOFTWARE.
+.                                                                                        .
+.........................................................................................*/
 
 package io.github.pulsebeat02.minecraftmedialibrary.frame.player.callback;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.player.entity.EntityCallbackPrototype;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.player.EntityModificationUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.player.entity.ScreenEntityType;
 import io.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
+import java.util.UUID;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.AreaEffectCloud;
@@ -35,8 +36,6 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.UUID;
 
 /**
  * The callback used for clouds to update entity clouds for each frame when necessary.
@@ -125,7 +124,7 @@ public final class EntityCallback extends Callback implements EntityCallbackProt
     this.location = location;
     this.type = type;
     charType = str;
-    entities = getCloudEntities();
+    entities = getModifiedEntities();
   }
 
   /**
@@ -142,42 +141,58 @@ public final class EntityCallback extends Callback implements EntityCallbackProt
    *
    * @return the entities
    */
-  private Entity[] getCloudEntities() {
+  private Entity[] getModifiedEntities() {
     final int height = getHeight();
     final Entity[] ents = new Entity[height];
     final Location spawn = location.clone();
     final World world = spawn.getWorld();
-    final EntityType entityType =
-        type == ScreenEntityType.AREA_EFFECT_CLOUD
-            ? EntityType.AREA_EFFECT_CLOUD
-            : type == ScreenEntityType.ARMORSTAND
-                ? EntityType.ARMOR_STAND
-                : EntityType.AREA_EFFECT_CLOUD;
     if (world != null) {
-      for (int i = height - 1; i >= 0; i--) {
-        ents[i] = modifyEntity(world.spawnEntity(spawn, entityType));
-        spawn.add(0.0, 0.225, 0.0);
+      switch (type) {
+        case AREA_EFFECT_CLOUD:
+          for (int i = height - 1; i >= 0; i--) {
+            final AreaEffectCloud cloud =
+                (AreaEffectCloud) world.spawnEntity(spawn, EntityType.AREA_EFFECT_CLOUD);
+            ents[i] = cloud;
+            cloud.setInvulnerable(true);
+            cloud.setDuration(999999);
+            cloud.setDurationOnUse(0);
+            cloud.setRadiusOnUse(0);
+            cloud.setRadius(0);
+            cloud.setRadiusPerTick(0);
+            cloud.setReapplicationDelay(0);
+            cloud.setCustomNameVisible(true);
+            cloud.setCustomName(StringUtils.repeat(charType, height));
+            cloud.setGravity(false);
+            spawn.add(0.0, 0.225, 0.0);
+          }
+          break;
+        case ARMORSTAND:
+          for (int i = height - 1; i >= 0; i--) {
+            final ArmorStand armorstand =
+                (ArmorStand) world.spawnEntity(spawn, EntityType.ARMOR_STAND);
+            ents[i] = armorstand;
+            armorstand.setInvulnerable(true);
+            armorstand.setVisible(false);
+            armorstand.setCustomNameVisible(true);
+            armorstand.setGravity(false);
+            armorstand.setCustomName(StringUtils.repeat(charType, height));
+            spawn.add(0.0, 0.225, 0.0);
+          }
+          break;
+        case CUSTOM:
+          for (int i = height - 1; i >= 0; i--) {
+            ents[i] = modifiedEntity();
+            spawn.add(0.0, 0.225, 0.0);
+          }
+          break;
       }
     }
     return ents;
   }
 
   @Override
-  public Entity modifyEntity(@NotNull final Entity entity) {
-    switch (type) {
-      case AREA_EFFECT_CLOUD:
-        return EntityModificationUtilities.getModifiedAreaEffectCloud(
-            (AreaEffectCloud) entity, charType, getHeight());
-      case ARMORSTAND:
-        return EntityModificationUtilities.getModifiedArmorStand(
-            (ArmorStand) entity, charType, getHeight());
-      case CUSTOM:
-        /*
-        Override the method for custom entity
-         */
-        break;
-    }
-    throw new IllegalArgumentException("Custom entity must have the modifyEntity overridden!");
+  public Entity modifiedEntity() {
+    return null;
   }
 
   @Override
