@@ -36,6 +36,7 @@ dependencies {
     testImplementation("com.google.guava:guava:30.1.1-jre")
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.31")
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.4.31")
+    testImplementation("org.jcodec:jcodec:0.2.5")
 
     api(project(":api"))
     implementation(project(":v1_16_R3"))

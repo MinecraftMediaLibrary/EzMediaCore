@@ -61,9 +61,9 @@ public final class OrderedDithering implements DitherHolder {
    */
   private static final byte[] COLOR_MAP;
 
-  private static final float[][] bayerMatrixTwo;
-  private static final float[][] bayerMatrixFour;
-  private static final float[][] bayerMatrixEight;
+  private static final float[][] BAYER_MATRIX_TWO;
+  private static final float[][] BAYER_MATRIX_FOUR;
+  private static final float[][] BAYER_MATRIX_EIGHT;
 
   static {
     COLOR_MAP = StaticDitherInitialization.COLOR_MAP;
@@ -73,7 +73,7 @@ public final class OrderedDithering implements DitherHolder {
     0   2
     3   1  (1/4)
     */
-    bayerMatrixTwo =
+    BAYER_MATRIX_TWO =
         new float[][] {
           {1f, 3f},
           {4f, 2f},
@@ -87,7 +87,7 @@ public final class OrderedDithering implements DitherHolder {
     16 8  14  6   (1/16)
      */
 
-    bayerMatrixFour =
+    BAYER_MATRIX_FOUR =
         new float[][] {
           {1f, 9f, 3f, 11f},
           {13f, 5f, 15f, 7f},
@@ -107,7 +107,7 @@ public final class OrderedDithering implements DitherHolder {
     43  27  39  23  42  26  38  22   (1/64)
      */
 
-    bayerMatrixEight =
+    BAYER_MATRIX_EIGHT =
         new float[][] {
           {1f, 49f, 13f, 61f, 4f, 52f, 16f, 64f},
           {33f, 17f, 45f, 29f, 36f, 20f, 48f, 32f},
@@ -133,17 +133,17 @@ public final class OrderedDithering implements DitherHolder {
   public OrderedDithering(@NotNull final DitherType type) {
     switch (type) {
       case TWO_BY_TWO:
-        matrix = bayerMatrixTwo;
+        matrix = BAYER_MATRIX_TWO;
         n = 2;
         multiplicative = 0.25f;
         break;
       case FOUR_BY_FOUR:
-        matrix = bayerMatrixFour;
+        matrix = BAYER_MATRIX_FOUR;
         n = 4;
         multiplicative = 0.0625f;
         break;
       case EIGHT_BY_EIGHT:
-        matrix = bayerMatrixEight;
+        matrix = BAYER_MATRIX_EIGHT;
         n = 8;
         multiplicative = 0.015625f;
         break;
@@ -167,7 +167,7 @@ public final class OrderedDithering implements DitherHolder {
    * @return the float [ ] [ ]
    */
   public static float[][] getBayerMatrixTwo() {
-    return bayerMatrixTwo;
+    return BAYER_MATRIX_TWO;
   }
 
   /**
@@ -176,7 +176,7 @@ public final class OrderedDithering implements DitherHolder {
    * @return the float [ ] [ ]
    */
   public static float[][] getBayerMatrixFour() {
-    return bayerMatrixFour;
+    return BAYER_MATRIX_FOUR;
   }
 
   /**
@@ -185,7 +185,7 @@ public final class OrderedDithering implements DitherHolder {
    * @return the float [ ] [ ]
    */
   public static float[][] getBayerMatrixEight() {
-    return bayerMatrixEight;
+    return BAYER_MATRIX_EIGHT;
   }
 
   /**

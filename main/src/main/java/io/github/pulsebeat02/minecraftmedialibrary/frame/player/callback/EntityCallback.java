@@ -28,6 +28,7 @@ import io.github.pulsebeat02.minecraftmedialibrary.frame.player.entity.EntityCal
 import io.github.pulsebeat02.minecraftmedialibrary.frame.player.entity.ScreenEntityType;
 import io.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
 import java.util.UUID;
+import java.util.function.Consumer;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -180,8 +181,15 @@ public final class EntityCallback extends Callback implements EntityCallbackProt
           }
           break;
         case CUSTOM:
+          final Consumer<Entity> consumer = modifyEntity();
+          if (consumer == null) {
+            throw new AssertionError("Must override the modifyEntity method for Custom!");
+          }
           for (int i = height - 1; i >= 0; i--) {
-            ents[i] = modifiedEntity();
+            final ArmorStand armorstand =
+                    (ArmorStand) world.spawnEntity(spawn, EntityType.ARMOR_STAND);
+            consumer.accept(armorstand);
+            ents[i] = armorstand;
             spawn.add(0.0, 0.225, 0.0);
           }
           break;
@@ -191,7 +199,7 @@ public final class EntityCallback extends Callback implements EntityCallbackProt
   }
 
   @Override
-  public Entity modifiedEntity() {
+  public Consumer<Entity> modifyEntity() {
     return null;
   }
 

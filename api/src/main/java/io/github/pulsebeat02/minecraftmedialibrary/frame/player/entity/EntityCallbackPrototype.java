@@ -25,6 +25,7 @@ package io.github.pulsebeat02.minecraftmedialibrary.frame.player.entity;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.player.FrameCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.player.FrameCallbackAttribute;
 import io.github.pulsebeat02.minecraftmedialibrary.nms.PacketHandler;
+import java.util.function.Consumer;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +41,7 @@ public interface EntityCallbackPrototype extends FrameCallback, FrameCallbackAtt
    *
    * @return the modified entity
    */
-  Entity modifiedEntity();
+  Consumer<Entity> modifyEntity();
 
   /**
    * Get viewers uuid [ ].
