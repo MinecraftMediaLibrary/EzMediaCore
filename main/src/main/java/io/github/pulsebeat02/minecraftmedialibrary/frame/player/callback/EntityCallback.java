@@ -151,44 +151,44 @@ public final class EntityCallback extends Callback implements EntityCallbackProt
       switch (type) {
         case AREA_EFFECT_CLOUD:
           for (int i = height - 1; i >= 0; i--) {
-            final AreaEffectCloud cloud =
-                (AreaEffectCloud) world.spawnEntity(spawn, EntityType.AREA_EFFECT_CLOUD);
-            ents[i] = cloud;
-            cloud.setInvulnerable(true);
-            cloud.setDuration(999999);
-            cloud.setDurationOnUse(0);
-            cloud.setRadiusOnUse(0);
-            cloud.setRadius(0);
-            cloud.setRadiusPerTick(0);
-            cloud.setReapplicationDelay(0);
-            cloud.setCustomNameVisible(true);
-            cloud.setCustomName(StringUtils.repeat(charType, height));
-            cloud.setGravity(false);
+            ents[i] = world.spawn(spawn, AreaEffectCloud.class, entity -> {
+              entity.setInvulnerable(true);
+              entity.setDuration(999999);
+              entity.setDurationOnUse(0);
+              entity.setRadiusOnUse(0);
+              entity.setRadius(0);
+              entity.setRadiusPerTick(0);
+              entity.setReapplicationDelay(0);
+              entity.setCustomNameVisible(true);
+              entity.setCustomName(StringUtils.repeat(charType, height));
+              entity.setGravity(false);
+            });
             spawn.add(0.0, 0.225, 0.0);
           }
           break;
         case ARMORSTAND:
           for (int i = height - 1; i >= 0; i--) {
-            final ArmorStand armorstand =
-                (ArmorStand) world.spawnEntity(spawn, EntityType.ARMOR_STAND);
-            ents[i] = armorstand;
-            armorstand.setInvulnerable(true);
-            armorstand.setVisible(false);
-            armorstand.setCustomNameVisible(true);
-            armorstand.setGravity(false);
-            armorstand.setCustomName(StringUtils.repeat(charType, height));
+            ents[i] =
+                world.spawn(
+                    spawn,
+                    ArmorStand.class,
+                    entity -> {
+                      entity.setInvulnerable(true);
+                      entity.setVisible(false);
+                      entity.setCustomNameVisible(true);
+                      entity.setGravity(false);
+                      entity.setCustomName(StringUtils.repeat(charType, height));
+                    });
             spawn.add(0.0, 0.225, 0.0);
           }
           break;
         case CUSTOM:
-          final Consumer<Entity> consumer = modifyEntity();
+          final Consumer<ArmorStand> consumer = modifyEntity();
           if (consumer == null) {
-            throw new AssertionError("Must override the modifyEntity method for Custom!");
+            throw new AssertionError("Must override the modifyEntity method for custom entity!");
           }
           for (int i = height - 1; i >= 0; i--) {
-            final ArmorStand armorstand =
-                    (ArmorStand) world.spawnEntity(spawn, EntityType.ARMOR_STAND);
-            consumer.accept(armorstand);
+            final ArmorStand armorstand = world.spawn(spawn, ArmorStand.class, consumer::accept);
             ents[i] = armorstand;
             spawn.add(0.0, 0.225, 0.0);
           }
@@ -199,7 +199,7 @@ public final class EntityCallback extends Callback implements EntityCallbackProt
   }
 
   @Override
-  public Consumer<Entity> modifyEntity() {
+  public <T> Consumer<T> modifyEntity() {
     return null;
   }
 

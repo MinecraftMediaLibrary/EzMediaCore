@@ -41,7 +41,7 @@ public interface EntityCallbackPrototype extends FrameCallback, FrameCallbackAtt
    *
    * @return the modified entity
    */
-  Consumer<Entity> modifyEntity();
+  <T> Consumer<T> modifyEntity();
 
   /**
    * Get viewers uuid [ ].
