@@ -32,17 +32,17 @@ import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegAudioExtractionH
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.ResourcepackUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
-import net.kyori.adventure.audience.Audience;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import net.kyori.adventure.audience.Audience;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
@@ -80,30 +80,11 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     if (!VideoExtractionUtilities.getYoutubeID(mrl).isPresent()) {
       final Path file = Paths.get(mrl);
       if (Files.exists(file)) {
-        completion.set(false);
-        attributes.setYoutube(false);
-        attributes.setExtractor(null);
-        attributes.setVideo(file);
-        CompletableFuture.runAsync(
-                () -> {
-                  final Path audio = Paths.get(folder, "custom.ogg");
-                  new FFmpegAudioExtractionHelper(
-                          plugin.getEncoderConfiguration().getSettings(), file, audio)
-                      .extract();
-                  attributes.setAudio(audio);
-                  final PackWrapper wrapper = ResourcepackWrapper.of(plugin.library(), audio);
-                  wrapper.buildResourcePack();
-                  final Path path = Paths.get(wrapper.getPath());
-                  attributes.setResourcepackUrl(
-                      plugin.getHttpConfiguration().getDaemon().generateUrl(path));
-                  attributes.setHash(VideoExtractionUtilities.createHashSHA(path));
-                  completion.set(true);
-                })
+        CompletableFuture.runAsync(() -> completion.set(false))
+            .thenRunAsync(() -> wrapResourcepack(setAudioFileAttributes(folder, file)))
             .thenRun(this::sendResourcepackFile)
-            .thenRunAsync(
-                () ->
-                    audience.sendMessage(
-                        format(text(String.format("Successfully loaded video %s", mrl), GOLD))));
+            .thenRunAsync(() -> sendSuccessfulLoadMessage(audience, mrl))
+            .thenRunAsync(() -> completion.set(true));
       } else if (mrl.startsWith("http")) {
         audience.sendMessage(
             format(text(String.format("Link %s is not a valid Youtube video link!", mrl), RED)));
@@ -113,30 +94,58 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
                 text(String.format("File %s cannot be found!", PathUtilities.getName(file)), RED)));
       }
     } else {
-      attributes.setYoutube(true);
-      CompletableFuture.runAsync(
-          () -> {
-            completion.set(false);
-            final YoutubeExtraction extraction =
-                new YoutubeExtraction(
-                    mrl, Paths.get(folder), plugin.getEncoderConfiguration().getSettings());
-            extraction.extractAudio();
-            attributes.setVideo(extraction.getVideo());
-            attributes.setAudio(extraction.getAudio());
-            attributes.setExtractor(extraction);
-            final PackWrapper wrapper = ResourcepackWrapper.of(plugin.library(), extraction);
-            wrapper.buildResourcePack();
-            attributes.setResourcepackUrl(
-                plugin.getHttpConfiguration().getDaemon().generateUrl(wrapper.getPath()));
-            attributes.setHash(
-                VideoExtractionUtilities.createHashSHA(Paths.get(wrapper.getPath())));
-            sendResourcepackFile();
-            audience.sendMessage(
-                format(text(String.format("Successfully loaded video %s", mrl), GOLD)));
-            completion.set(true);
-          });
+      CompletableFuture.runAsync(() -> completion.set(false))
+          .thenRunAsync(() -> wrapResourcepack(setYoutubeAttributes(mrl, folder)))
+          .thenRun(this::sendResourcepackFile)
+          .thenRunAsync(() -> sendSuccessfulLoadMessage(audience, mrl))
+          .thenRunAsync(() -> completion.set(true));
     }
     return SINGLE_SUCCESS;
+  }
+
+  private Path setAudioFileAttributes(@NotNull final String folder, @NotNull final Path file) {
+    final Path audio = Paths.get(folder, "custom.ogg");
+    new FFmpegAudioExtractionHelper(plugin.getEncoderConfiguration().getSettings(), file, audio)
+        .extract();
+    attributes.setExtractor(null);
+    attributes.setVideo(file);
+    attributes.setYoutube(false);
+    attributes.setAudio(audio);
+    return audio;
+  }
+
+  private YoutubeExtraction setYoutubeAttributes(
+      @NotNull final String mrl, @NotNull final String folder) {
+    final YoutubeExtraction extraction =
+        new YoutubeExtraction(
+            mrl, Paths.get(folder), plugin.getEncoderConfiguration().getSettings());
+    extraction.extractAudio();
+    attributes.setYoutube(true);
+    attributes.setVideo(extraction.getVideo());
+    attributes.setAudio(extraction.getAudio());
+    attributes.setExtractor(extraction);
+    return extraction;
+  }
+
+  private void wrapResourcepack(@NotNull final Path audio) {
+    final PackWrapper wrapper = ResourcepackWrapper.of(plugin.library(), audio);
+    wrapper.buildResourcePack();
+    final Path path = Paths.get(wrapper.getPath());
+    attributes.setResourcepackUrl(plugin.getHttpConfiguration().getDaemon().generateUrl(path));
+    attributes.setHash(VideoExtractionUtilities.createHashSHA(path));
+  }
+
+  private void wrapResourcepack(@NotNull final YoutubeExtraction extraction) {
+    final PackWrapper wrapper = ResourcepackWrapper.of(plugin.library(), extraction);
+    wrapper.buildResourcePack();
+    attributes.setResourcepackUrl(
+        plugin.getHttpConfiguration().getDaemon().generateUrl(wrapper.getPath()));
+    attributes.setHash(VideoExtractionUtilities.createHashSHA(Paths.get(wrapper.getPath())));
+  }
+
+  private void sendSuccessfulLoadMessage(
+      @NotNull final Audience audience, @NotNull final String mrl) {
+    audience.sendMessage(format(text(String.format("Successfully loaded video %s", mrl), GOLD)));
   }
 
   private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {
@@ -156,9 +165,8 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private void sendResourcepackFile() {
-    final String url = attributes.getResourcepackUrl();
-    final byte[] hash = attributes.getHash();
-    Bukkit.getOnlinePlayers().forEach(p -> p.setResourcePack(url, hash));
+    ResourcepackUtilities.forceResourcepackLoad(
+        plugin, Bukkit.getOnlinePlayers(), attributes.getResourcepackUrl(), attributes.getHash());
   }
 
   private boolean unloadedResourcepack(@NotNull final Audience audience) {

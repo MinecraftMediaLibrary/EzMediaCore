@@ -56,7 +56,7 @@ public final class AudioCommand extends BaseCommand {
             .requires(super::testPermission)
             .then(new AudioLoadCommand(plugin, attributes).node())
             .then(literal("play").executes(this::playAudio))
-            .then(literal("stop"))
+            .then(literal("stop").executes(this::stopAudio))
             .build();
   }
 

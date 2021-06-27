@@ -31,16 +31,16 @@ import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.ResourcepackUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
-import net.kyori.adventure.audience.Audience;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
+import net.kyori.adventure.audience.Audience;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
@@ -137,11 +137,11 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private void sendResourcepack() {
-    Bukkit.getOnlinePlayers()
-        .forEach(
-            p ->
-                p.setResourcePack(
-                    attributes.getResourcepackLink(), attributes.getResourcepackHash()));
+    ResourcepackUtilities.forceResourcepackLoad(
+        plugin,
+        Bukkit.getOnlinePlayers(),
+        attributes.getResourcepackLink(),
+        attributes.getResourcepackHash());
   }
 
   private boolean isUrl(@NotNull final String url) {

@@ -22,9 +22,8 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.frame.dither;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.nio.ByteBuffer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The Sierra filters

@@ -33,7 +33,11 @@ import io.github.pulsebeat02.minecraftmedialibrary.frame.player.VideoPlayerConte
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
+import io.github.pulsebeat02.minecraftmedialibrary.utility.ResourcepackUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
@@ -41,10 +45,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.concurrent.CompletableFuture;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
@@ -149,16 +149,15 @@ public final class VideoCommand extends BaseCommand {
                   plugin.getHttpConfiguration().getDaemon().generateUrl(path));
               attributes.setHash(VideoExtractionUtilities.createHashSHA(path));
             })
-        .thenRun(this::sendResourcepackFile)
+        .thenRunAsync(this::sendResourcepackFile)
         .thenRunAsync(
             () -> audience.sendMessage(format(text(("Successfully resumed video %s"), GOLD))));
     return SINGLE_SUCCESS;
   }
 
   public void sendResourcepackFile() {
-    final String url = attributes.getResourcepackUrl();
-    final byte[] hash = attributes.getHash();
-    Bukkit.getOnlinePlayers().forEach(p -> p.setResourcePack(url, hash));
+    ResourcepackUtilities.forceResourcepackLoad(
+        plugin(), Bukkit.getOnlinePlayers(), attributes.getResourcepackUrl(), attributes.getHash());
   }
 
   private boolean mediaNotSpecified(@NotNull final Audience audience) {

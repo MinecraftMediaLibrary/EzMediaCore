@@ -22,11 +22,15 @@
 
 package io.github.pulsebeat02.minecraftmedialibrary.utility;
 
+import io.github.pulsebeat02.minecraftmedialibrary.listener.PlayerResourcepackHandler;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackFormatVersioning;
-import org.jetbrains.annotations.NotNull;
-
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.stream.Collectors;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Special resourcepack utilities used throughout the library and also open to users. Used for
@@ -69,5 +73,21 @@ public final class ResourcepackUtilities {
       Logger.warn(String.format("Resourcepack Icon Not Supported! (%s)", path));
     }
     return name.endsWith(".png");
+  }
+
+  /**
+   * Ensures the client will accept the resourcepack if failed to download.
+   *
+   * @param players the players
+   * @param url the url
+   * @param hash the hash
+   */
+  public static void forceResourcepackLoad(
+      @NotNull final Plugin plugin,
+      @NotNull final Collection<? extends Player> players,
+      @NotNull final String url,
+      final byte @NotNull [] hash) {
+    new PlayerResourcepackHandler(
+        plugin, players.stream().map(Player::getUniqueId).collect(Collectors.toSet()), url, hash);
   }
 }

@@ -1,24 +1,24 @@
 /*............................................................................................
- . Copyright © 2021 Brandon Li                                                               .
- .                                                                                           .
- . Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
- . software and associated documentation files (the “Software”), to deal in the Software     .
- . without restriction, including without limitation the rights to use, copy, modify, merge, .
- . publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
- . persons to whom the Software is furnished to do so, subject to the following conditions:  .
- .                                                                                           .
- . The above copyright notice and this permission notice shall be included in all copies     .
- . or substantial portions of the Software.                                                  .
- .                                                                                           .
- . THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
- .  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
- .   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
- .   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
- .   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
- .   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
- .   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
- .   SOFTWARE.                                                                               .
- ............................................................................................*/
+. Copyright © 2021 Brandon Li                                                               .
+.                                                                                           .
+. Permission is hereby granted, free of charge, to any person obtaining a copy of this      .
+. software and associated documentation files (the “Software”), to deal in the Software     .
+. without restriction, including without limitation the rights to use, copy, modify, merge, .
+. publish, distribute, sublicense, and/or sell copies of the Software, and to permit        .
+. persons to whom the Software is furnished to do so, subject to the following conditions:  .
+.                                                                                           .
+. The above copyright notice and this permission notice shall be included in all copies     .
+. or substantial portions of the Software.                                                  .
+.                                                                                           .
+. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,                           .
+.  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                       .
+.   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                                   .
+.   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS                     .
+.   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN                      .
+.   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN                       .
+.   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                        .
+.   SOFTWARE.                                                                               .
+............................................................................................*/
 
 package io.github.pulsebeat02.minecraftmedialibrary.nms.impl.v1_16_R3;
 
@@ -120,6 +120,30 @@ public class NMSMapPacketIntercepter implements PacketHandler {
     buf.writeInt(time);
     final PacketPlayOutCustomPayload packet =
         new PacketPlayOutCustomPayload(debugMarker, new PacketDataSerializer(buf));
+    if (viewers == null) {
+      for (final UUID uuid : playerConnections.keySet()) {
+        final long val = lastUpdated.getOrDefault(uuid, 0L);
+        if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
+          lastUpdated.put(uuid, System.currentTimeMillis());
+          final PlayerConnection connection = playerConnections.get(uuid);
+          if (connection != null) {
+            connection.sendPacket(packet);
+          }
+        }
+      }
+    } else {
+      for (final UUID uuid : viewers) {
+        final long val = lastUpdated.getOrDefault(uuid, 0L);
+        if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
+          lastUpdated.put(uuid, System.currentTimeMillis());
+          final PlayerConnection connection = playerConnections.get(uuid);
+          if (connection != null) {
+            connection.sendPacket(packet);
+          }
+        }
+      }
+    }
+
     for (final UUID uuid : viewers) {
       playerConnections.get(uuid).sendPacket(packet);
     }
