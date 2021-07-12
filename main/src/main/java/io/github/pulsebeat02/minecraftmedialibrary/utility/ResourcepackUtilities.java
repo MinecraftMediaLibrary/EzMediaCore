@@ -88,6 +88,6 @@ public final class ResourcepackUtilities {
       @NotNull final String url,
       final byte @NotNull [] hash) {
     new PlayerResourcepackHandler(
-        plugin, players.stream().map(Player::getUniqueId).collect(Collectors.toSet()), url, hash);
+        plugin, players.stream().map(Player::getUniqueId).collect(Collectors.toSet()), url, hash).start(plugin);
   }
 }

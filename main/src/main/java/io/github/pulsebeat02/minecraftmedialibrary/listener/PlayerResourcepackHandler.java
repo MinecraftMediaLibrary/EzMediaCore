@@ -67,13 +67,12 @@ public class PlayerResourcepackHandler implements Listener {
       if (player != null) {
         player.setResourcePack(url, hash);
       } else {
-        Logger.info(String.format("Could not set the resourcepack for %s ! (%s)", uuid, url));
+        Logger.info(String.format("Could not set the resourcepack for %s! (%s)", uuid, url));
       }
     }
-    runTimer(plugin);
   }
 
-  private void runTimer(@NotNull final Plugin plugin) {
+  public void start(@NotNull final Plugin plugin) {
     Bukkit.getScheduler()
         .runTaskLater(
             plugin,
@@ -99,8 +98,8 @@ public class PlayerResourcepackHandler implements Listener {
         player.setResourcePack(url, hash);
         break;
       case DECLINED:
-      case ACCEPTED:
       case SUCCESSFULLY_LOADED:
+      case ACCEPTED:
         uuids.remove(uuid);
         if (uuids.isEmpty()) {
           PlayerResourcePackStatusEvent.getHandlerList().unregister(this);

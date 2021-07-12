@@ -1,34 +1,38 @@
 /*.........................................................................................
- . Copyright © 2021 Brandon Li
- .                                                                                        .
- . Permission is hereby granted, free of charge, to any person obtaining a copy of this
- . software and associated documentation files (the “Software”), to deal in the Software
- . without restriction, including without limitation the rights to use, copy, modify, merge,
- . publish, distribute, sublicense, and/or sell copies of the Software, and to permit
- . persons to whom the Software is furnished to do so, subject to the following conditions:
- .
- . The above copyright notice and this permission notice shall be included in all copies
- . or substantial portions of the Software.
- .
- . THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
- . EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- . MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- . NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- . BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- . ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- . CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- .  SOFTWARE.
- .                                                                                        .
- .........................................................................................*/
+. Copyright © 2021 Brandon Li
+.                                                                                        .
+. Permission is hereby granted, free of charge, to any person obtaining a copy of this
+. software and associated documentation files (the “Software”), to deal in the Software
+. without restriction, including without limitation the rights to use, copy, modify, merge,
+. publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+. persons to whom the Software is furnished to do so, subject to the following conditions:
+.
+. The above copyright notice and this permission notice shall be included in all copies
+. or substantial portions of the Software.
+.
+. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+. EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+. MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+. NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+. BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+. ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+. CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.  SOFTWARE.
+.                                                                                        .
+.........................................................................................*/
 
 package io.github.pulsebeat02.minecraftmedialibrary.frame.player.vlc;
 
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.player.FrameCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.player.VideoPlayer;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.player.VideoPlayerContext;
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.RuntimeUtilities;
+import java.nio.ByteBuffer;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.function.Consumer;
 import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -45,12 +49,6 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormat;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCallback;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.RenderCallbackAdapter;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32BufferFormat;
-
-import java.nio.ByteBuffer;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.function.Consumer;
 
 /**
  * The main abstract class for VideoPlayer classes to extend. Frame Callbacks and Video Players MUST
@@ -80,7 +78,8 @@ public abstract class VLCPlayer extends VideoPlayer {
 
   private final VideoSurfaceAdapter adapter;
   private final MinecraftVideoRenderCallback renderCallback;
-  private final Collection<Player> watchers;
+  private final boolean audioSupported;
+  private Collection<Player> watchers;
   private EmbeddedMediaPlayer mediaPlayerComponent;
 
   /**
@@ -109,6 +108,7 @@ public abstract class VLCPlayer extends VideoPlayer {
                 ? new OsxVideoSurfaceAdapter()
                 : new LinuxVideoSurfaceAdapter();
     watchers = new ArrayList<>();
+    audioSupported = RuntimeUtilities.isAudioSupported();
     initializePlayer();
     Logger.info(String.format("Created a VLC Integrated %s Video Player (%s)", type, url));
   }
@@ -171,7 +171,7 @@ public abstract class VLCPlayer extends VideoPlayer {
           .addMediaPlayerEventListener(
               new MediaPlayerEventAdapter() {
                 @Override
-                public void finished(@NotNull final MediaPlayer mediaPlayer) {
+                public void finished(@NotNull final MediaPlayer player) {
                   playAudio(watchers);
                 }
               });
@@ -182,13 +182,13 @@ public abstract class VLCPlayer extends VideoPlayer {
   @Override
   public void start(@NotNull final Collection<? extends Player> players) {
     setPlaying(true);
+    watchers = new ArrayList<>(players);
     final String url = getUrl();
     if (mediaPlayerComponent == null) {
       initializePlayer();
     }
     mediaPlayerComponent.media().play(url);
-    playAudio(players);
-    watchers.addAll(players);
+    playAudio(watchers);
     Logger.info(String.format("Started Playing the Video! (%s)", url));
   }
 
@@ -218,7 +218,7 @@ public abstract class VLCPlayer extends VideoPlayer {
       initializePlayer();
     }
     mediaPlayerComponent.controls().start();
-    playAudio(players);
+    playAudio(watchers);
     Logger.info(String.format("Resumed the Video! (%s)", getUrl()));
   }
 

@@ -23,6 +23,12 @@
 package io.github.pulsebeat02.minecraftmedialibrary.utility;
 
 import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
+import java.util.ArrayList;
+import java.util.List;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Line;
+import javax.sound.sampled.Mixer;
+import javax.sound.sampled.SourceDataLine;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
@@ -47,6 +53,9 @@ public final class RuntimeUtilities {
 
   /** Linux Distribution (If using linux) */
   private static final String LINUX_DISTRIBUTION;
+
+  /** If speaker supported */
+  private static boolean HAS_AUDIO_SUPPORTED;
 
   /** Using MAC */
   private static final boolean MAC;
@@ -122,6 +131,16 @@ public final class RuntimeUtilities {
         }
       }
     }
+
+    final Mixer.Info[] devices = AudioSystem.getMixerInfo();
+    final Line.Info sourceInfo = new Line.Info(SourceDataLine.class);
+    for (final Mixer.Info mixerInfo : devices) {
+      final Mixer mixer = AudioSystem.getMixer(mixerInfo);
+      if (mixer.isLineSupported(sourceInfo)) {
+        HAS_AUDIO_SUPPORTED = true;
+      }
+    }
+
     Logger.info("=========================================");
     Logger.info(" Final Results After Runtime Scanning... ");
     Logger.info("=========================================");
@@ -286,6 +305,15 @@ public final class RuntimeUtilities {
    */
   public static boolean is64bit() {
     return is64bit;
+  }
+
+  /**
+   * Returns whether an audio device is supported.
+   *
+   * @return whether an audio device is supported
+   */
+  public static boolean isAudioSupported() {
+    return HAS_AUDIO_SUPPORTED;
   }
 
   /**

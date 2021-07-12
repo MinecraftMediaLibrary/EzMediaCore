@@ -30,10 +30,13 @@ tasks.withType<ShadowJar> {
     relocate("net.kyori", "io.github.pulsebeat02.deluxemediaplugin.lib.kyori")
     relocate("org.bstats", "io.github.pulsebeat02.deluxemediaplugin.lib.bstats")
     relocate("com.mojang.brigadier", "io.github.pulsebeat02.deluxemediaplugin.lib.brigadier")
-    relocate(
-        "io.github.pulsebeat02.minecraftmedialibrary",
-        "io.github.pulsebeat02.deluxemediaplugin.lib.minecraftmedialibrary"
-    )
+
+//    Temporary solution for debugging issue
+//    relocate(
+//        "io.github.pulsebeat02.minecraftmedialibrary",
+//        "io.github.pulsebeat02.deluxemediaplugin.lib.minecraftmedialibrary"
+//    )
+
     relocate("dev.triumphteam.gui", "io.github.pulsebeat02.deluxemediaplugin.lib.gui")
     relocate("me.mattstudios.util", "io.github.pulsebeat02.deluxemediaplugin.lib.util")
     relocate("me.lucko.commodore", "io.github.pulsebeat02.deluxemediaplugin.lib.commodore")

@@ -39,7 +39,7 @@ public final class VideoCommandAttributes {
   private VideoPlayerContext player;
   private DitherHolder dither;
   private VideoType mode;
-  private Path video;
+  private String video;
   private Path audio;
 
   private boolean youtube;
@@ -86,11 +86,11 @@ public final class VideoCommandAttributes {
     this.player = player;
   }
 
-  public Path getVideo() {
+  public String getVideo() {
     return video;
   }
 
-  public void setVideo(final Path video) {
+  public void setVideoMrl(final String video) {
     this.video = video;
   }
 

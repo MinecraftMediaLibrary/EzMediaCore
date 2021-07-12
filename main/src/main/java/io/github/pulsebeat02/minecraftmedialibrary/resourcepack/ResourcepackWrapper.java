@@ -203,7 +203,6 @@ public class ResourcepackWrapper implements PackWrapper {
     onResourcepackBuild();
     Logger.info("Wrapping Resourcepack...");
     try {
-
       final Path zipFile = Paths.get(path);
       if (Files.notExists(zipFile)) {
         Files.createFile(zipFile);

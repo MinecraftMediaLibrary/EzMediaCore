@@ -55,11 +55,13 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   private final LiteralCommandNode<CommandSender> node;
   private final VideoCommandAttributes attributes;
   private final DeluxeMediaPlugin plugin;
+  private boolean firstLoad;
 
   public VideoLoadCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final VideoCommandAttributes attributes) {
     this.plugin = plugin;
     this.attributes = attributes;
+    firstLoad = true;
     node =
         literal("load")
             .then(argument("mrl", StringArgumentType.greedyString()).executes(this::loadVideo))
@@ -83,8 +85,9 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
         CompletableFuture.runAsync(() -> completion.set(false))
             .thenRunAsync(() -> wrapResourcepack(setAudioFileAttributes(folder, file)))
             .thenRun(this::sendResourcepackFile)
-            .thenRunAsync(() -> sendSuccessfulLoadMessage(audience, mrl))
-            .thenRunAsync(() -> completion.set(true));
+            .thenRun(this::useFirstLoad)
+            .thenRun(() -> sendSuccessfulLoadMessage(audience, mrl))
+            .thenRun(() -> completion.set(true));
       } else if (mrl.startsWith("http")) {
         audience.sendMessage(
             format(text(String.format("Link %s is not a valid Youtube video link!", mrl), RED)));
@@ -97,10 +100,18 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       CompletableFuture.runAsync(() -> completion.set(false))
           .thenRunAsync(() -> wrapResourcepack(setYoutubeAttributes(mrl, folder)))
           .thenRun(this::sendResourcepackFile)
-          .thenRunAsync(() -> sendSuccessfulLoadMessage(audience, mrl))
-          .thenRunAsync(() -> completion.set(true));
+          .thenRun(this::useFirstLoad)
+          .thenRun(() -> sendSuccessfulLoadMessage(audience, mrl))
+          .thenRun(() -> completion.set(true));
     }
     return SINGLE_SUCCESS;
+  }
+
+  private void useFirstLoad() {
+    if (firstLoad) {
+      sendResourcepackFile();
+      firstLoad = false;
+    }
   }
 
   private Path setAudioFileAttributes(@NotNull final String folder, @NotNull final Path file) {
@@ -108,7 +119,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     new FFmpegAudioExtractionHelper(plugin.getEncoderConfiguration().getSettings(), file, audio)
         .extract();
     attributes.setExtractor(null);
-    attributes.setVideo(file);
+    attributes.setVideoMrl(file.toString());
     attributes.setYoutube(false);
     attributes.setAudio(audio);
     return audio;
@@ -121,7 +132,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
             mrl, Paths.get(folder), plugin.getEncoderConfiguration().getSettings());
     extraction.extractAudio();
     attributes.setYoutube(true);
-    attributes.setVideo(extraction.getVideo());
+    attributes.setVideoMrl(extraction.getVideo().toString());
     attributes.setAudio(extraction.getAudio());
     attributes.setExtractor(extraction);
     return extraction;
