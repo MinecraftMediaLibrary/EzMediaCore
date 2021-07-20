@@ -11,6 +11,9 @@
 ![Swag](http://ForTheBadge.com/images/badges/built-with-swag.svg)
 ---
 
+# Please Note
+I am currently rewriting MinecraftMediaLibrary from scratch. More information about the repo where I rewrite it here (it is temporary and I will eventually merge it back into this repo): https://github.com/PulseBeat02/MinecraftMediaLibrary-Rewrite-Temp
+
 ## Introduction
 
 **MinecraftMediaLibrary** is a library written along the Spigot API and net.minecraft.server classes to provide helpful
