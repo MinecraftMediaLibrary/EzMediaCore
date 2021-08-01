@@ -1,4 +1,4 @@
-[![Build Status](https://img.shields.io/circleci/build/github/MinecraftMediaLibrary/EpicMediaLib?style=for-the-badge)](https://app.circleci.com/pipelines/github/MinecraftMediaLibrary/MinecraftMediaLibrary)
+[![Build Status](https://img.shields.io/circleci/build/github/MinecraftMediaLibrary/EpicMediaLib?style=for-the-badge)](https://app.circleci.com/pipelines/github/MinecraftMediaLibrary/EpicMediaLib)
 [![Documentation Status](https://img.shields.io/readthedocs/minecraftmedialibrary-wiki/latest?style=for-the-badge)](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/)
 [![Discord](https://img.shields.io/discord/817501569108017223?style=for-the-badge)](https://discord.gg/qVhhbCWQQV)
 [![Language](https://img.shields.io/badge/Made%20with-Java-1f425f.svg?style=for-the-badge)](https://www.java.com/en/)
@@ -6,15 +6,11 @@
 
 [![Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/PulseBeat02/MinecraftMediaLibrary)
 
-<img src="https://github.com/MinecraftMediaLibrary/EpicMediaLib/tree/dev/logo.gif" alt="drawing" width="1000"/>
+![Icon](https://github.com/MinecraftMediaLibrary/EpicMediaLib/blob/dev/logo.gif)
 
 ![Swag](http://ForTheBadge.com/images/badges/built-with-swag.svg)
+
 ---
-
-# Please Note
-I am currently rewriting EpicMediaLib from scratch. More information about the repo where I rewrite it here 
-(it is temporary and I will eventually merge it back into this repo): https://github.com/PulseBeat02/EpicMediaLib-Rewrite
-
 ## Introduction
 
 **MinecraftMediaLibrary** is a library written along the Spigot API and net.minecraft.server classes to provide helpful
@@ -76,7 +72,7 @@ MinecraftMediaLibrary Dependency:
 
 <dependency>
     <groupId>com.github.pulsebeat02</groupId>
-    <artifactId>minecraftmedialibrary</artifactId>
+    <artifactId>epicmedialib</artifactId>
     <version>master-SNAPSHOT</version>
 </dependency>
 ```
@@ -85,7 +81,7 @@ MinecraftMediaLibrary Dependency:
 
 ```groovy
 dependencies {
-    implementation 'com.github.minecraftmedialibrary:minecraftmedialibrary:master-SNAPSHOT'
+    implementation 'com.github.minecraftmedialibrary:epicmedialib:master-SNAPSHOT'
 }
 ```
 
@@ -93,18 +89,17 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("com.github.minecraftmedialibrary:minecraftmedialibrary:master-SNAPSHOT")
+    implementation("com.github.minecraftmedialibrary:epicmedialib:master-SNAPSHOT")
 }
 ```
 
 ---
 
-Most of the code is documented which can be found [here](https://minecraftmedialibrary.github.io/EpicMediaLib/)
-. For detailed documentation with explanations, visit
+For detailed documentation with explanations, visit
 the [readthedocs page](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/) (which is still in progress).
 
 However, if you want examples, you can take a look
-at [this module](https://github.com/MinecraftMediaLibrary/EpicMediaLib/tree/master/DeluxeMediaPlugin/src/main/java/io/github/pulsebeat02/deluxemediaplugin)
+at [this module](https://github.com/MinecraftMediaLibrary/EpicMediaLib/tree/master/deluxemediaplugin)
 where I wrote comments for every piece of code in the plugin which used the library. It is the plugin I used that
 displayed the video.
 
