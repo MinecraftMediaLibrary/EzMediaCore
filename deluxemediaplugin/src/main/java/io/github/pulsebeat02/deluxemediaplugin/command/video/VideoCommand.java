@@ -195,7 +195,7 @@ public final class VideoCommand extends BaseCommand {
           format(
               text(
                   String.format(
-                      "Starting Video on File: %s", PathUtilities.getName(attributes.getVideo())),
+                      "Starting Video on File: %s", PathUtilities.getName(Paths.get(attributes.getVideo()))),
                   GOLD)));
     }
   }
