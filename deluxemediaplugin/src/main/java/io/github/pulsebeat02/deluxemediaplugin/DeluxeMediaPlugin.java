@@ -31,8 +31,8 @@ import io.github.pulsebeat02.deluxemediaplugin.config.PictureConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.VideoConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.update.PluginUpdateChecker;
 import io.github.pulsebeat02.deluxemediaplugin.utility.CommandUtilities;
-import io.github.pulsebeat02.epicmedialib.LibraryProvider;
-import io.github.pulsebeat02.epicmedialib.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.LibraryProvider;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -71,12 +71,12 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
     log("DeluxeMediaPlugin is Shutting Down");
 
-    log("Shutting Down EpicMediaLib Instance...");
+    log("Shutting Down EzMediaCore Instance...");
     if (library != null) {
       library.shutdown();
     } else {
       logger.severe(
-          "WARNING: EpicMediaLib instance is null... something is fishy going on.");
+          "WARNING: EzMediaCore instance is null... something is fishy going on.");
     }
 
     log("Unregistering Commands");
@@ -121,7 +121,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
       CommandUtilities.ensureInit();
 
-      log("Loading EpicMediaLib Instance...");
+      log("Loading EzMediaCore Instance...");
 
       library = LibraryProvider.builder().plugin(this).build();
 

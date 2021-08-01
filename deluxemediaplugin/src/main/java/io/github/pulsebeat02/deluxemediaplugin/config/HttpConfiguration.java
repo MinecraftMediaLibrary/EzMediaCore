@@ -23,9 +23,9 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.epicmedialib.http.HttpDaemon;
-import io.github.pulsebeat02.epicmedialib.resourcepack.hosting.HttpDaemonSolution;
-import io.github.pulsebeat02.epicmedialib.resourcepack.hosting.HttpServer;
+import io.github.pulsebeat02.ezmediacore.http.HttpDaemon;
+import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpDaemonSolution;
+import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import java.io.IOException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;

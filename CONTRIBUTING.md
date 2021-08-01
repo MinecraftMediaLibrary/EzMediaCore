@@ -1,4 +1,4 @@
-# Contributions to the EpicMediaLib Project
+# Contributions to the EzMediaCore Project
 
 I welcome all contributors! Contributors are awesome. They allow me to realize that I am not the only one that is alone
 working on this project and I have support from other people. Contributing is very easy. You navigate to the Pull Requests
@@ -17,7 +17,7 @@ section and create a new Pull Request there. However, there are some guidelines 
     enough for library standards.
     
 3) Code Formatting
-  - MinecraftMediaLibrary follows the Google Code Format for Java. If that isn't applied to your pull request, I can help
+  - EzMediaCore follows the Google Code Format for Java. If that isn't applied to your pull request, I can help
     apply the format for you. However, if you do it already, I will be super happy :^).
 
 And that's pretty much it! Just follow these rules and you will be contributing in no time. I am super nice for pull requests

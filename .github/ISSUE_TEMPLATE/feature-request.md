@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a feature for EpicMediaLib
+about: Suggest a feature for EzMediaCore
 title: ''
 labels: enhancement
 assignees: ''

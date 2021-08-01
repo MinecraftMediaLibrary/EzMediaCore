@@ -72,7 +72,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   private int loadVideo(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = plugin.audience().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
-    final String folder = String.format("%s/mml/", plugin.getDataFolder().getAbsolutePath());
+    final String folder = String.format("%s/emc/", plugin.getDataFolder().getAbsolutePath());
     final AtomicBoolean completion = attributes.getCompletion();
     audience.sendMessage(
         format(

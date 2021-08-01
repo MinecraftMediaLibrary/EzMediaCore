@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a EpicMediaLib Bug
+about: Report an EzMediaCore Bug
 title: ''
 labels: bug
 assignees: ''
@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 **Basic Information**
-EpicMediaLib Version: (Do not say LATEST, say an exact version)
+EzMediaCore Version: (Do not say LATEST, say an exact version)
 Minecraft Server Version: (Example: 1.16.4)
 Server Type: (Example: Paper)
 

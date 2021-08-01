@@ -23,8 +23,8 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.epicmedialib.extraction.AudioAttributes;
-import io.github.pulsebeat02.epicmedialib.extraction.AudioConfiguration;
+import io.github.pulsebeat02.ezmediacore.extraction.AudioAttributes;
+import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 

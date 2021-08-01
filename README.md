@@ -1,19 +1,19 @@
-[![Build Status](https://img.shields.io/circleci/build/github/MinecraftMediaLibrary/EpicMediaLib?style=for-the-badge)](https://app.circleci.com/pipelines/github/MinecraftMediaLibrary/EpicMediaLib)
+[![Build Status](https://img.shields.io/circleci/build/github/MinecraftMediaLibrary/EzMediaCore?style=for-the-badge)](https://app.circleci.com/pipelines/github/MinecraftMediaLibrary/EzMediaCore)
 [![Documentation Status](https://img.shields.io/readthedocs/minecraftmedialibrary-wiki/latest?style=for-the-badge)](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/)
 [![Discord](https://img.shields.io/discord/817501569108017223?style=for-the-badge)](https://discord.gg/qVhhbCWQQV)
 [![Language](https://img.shields.io/badge/Made%20with-Java-1f425f.svg?style=for-the-badge)](https://www.java.com/en/)
-[![Lines of Code](https://img.shields.io/tokei/lines/github/MinecraftMediaLibrary/EpicMediaLib?style=for-the-badge)](https://github.com/MinecraftMediaLibrary/EpicMediaLib)
+[![Lines of Code](https://img.shields.io/tokei/lines/github/MinecraftMediaLibrary/EzMediaCore?style=for-the-badge)](https://github.com/MinecraftMediaLibrary/EzMediaCore)
 
-[![Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/PulseBeat02/MinecraftMediaLibrary)
+[![Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/MinecraftMediaLibrary/EzMediaCore)
 
-![Icon](https://github.com/MinecraftMediaLibrary/EpicMediaLib/blob/dev/logo.gif)
+<img src="logo.gif" width="500" height="250"/>
 
 ![Swag](http://ForTheBadge.com/images/badges/built-with-swag.svg)
 
 ---
 ## Introduction
 
-**EpicMediaLib** is a library written along the Spigot API and net.minecraft.server classes to provide helpful
+**EzMediaCore** is a library written along the Spigot API and net.minecraft.server classes to provide helpful
 and useful classes for other plugins to take advantage of. One of the most important features perhaps is its ability to
 play **videos** on a Minecraft Spigot server. It uses a very optimized dithering method alongside **VLC Media Player**
 for extra hardware acceleration to play the video at higher frame rates. As a result, rates can reach up to **35** frames 
@@ -64,7 +64,7 @@ repositories {
 
 ---
 
-EpicMediaLib Dependency:
+EzMediaCore Dependency:
 
 **Maven**
 
@@ -72,7 +72,7 @@ EpicMediaLib Dependency:
 
 <dependency>
     <groupId>com.github.pulsebeat02</groupId>
-    <artifactId>epicmedialib</artifactId>
+    <artifactId>ezmediacore</artifactId>
     <version>master-SNAPSHOT</version>
 </dependency>
 ```
@@ -81,7 +81,7 @@ EpicMediaLib Dependency:
 
 ```groovy
 dependencies {
-    implementation 'com.github.minecraftmedialibrary:epicmedialib:master-SNAPSHOT'
+    implementation 'com.github.minecraftmedialibrary:ezmediacore:master-SNAPSHOT'
 }
 ```
 
@@ -89,7 +89,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("com.github.minecraftmedialibrary:epicmedialib:master-SNAPSHOT")
+    implementation("com.github.minecraftmedialibrary:ezmediacore:master-SNAPSHOT")
 }
 ```
 
@@ -99,7 +99,7 @@ For detailed documentation with explanations, visit
 the [readthedocs page](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/) (which is still in progress).
 
 However, if you want examples, you can take a look
-at [this module](https://github.com/MinecraftMediaLibrary/EpicMediaLib/tree/master/deluxemediaplugin)
+at [this module](https://github.com/MinecraftMediaLibrary/EzMediaCore/tree/master/deluxemediaplugin)
 where I wrote comments for every piece of code in the plugin which used the library. It is the plugin I used that
 displayed the video.
 

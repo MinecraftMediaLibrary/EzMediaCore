@@ -23,8 +23,8 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.epicmedialib.MediaLibraryCore;
-import io.github.pulsebeat02.epicmedialib.image.StaticImage;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.image.StaticImage;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImage;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
