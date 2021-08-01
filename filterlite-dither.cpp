@@ -4,7 +4,7 @@
 static jint *color_map;
 static jint *full_color_map;
 
-JNIEXPORT void JNICALL Java_com_github_pulsebeat02_minecraftmedialibrary_natives_NativeFilterLiteDither_setup(JNIEnv *env, jobject current, jintArray color, jintArray full) {
+JNIEXPORT void JNICALL Java_com_github_pulsebeat02_epicmedialib_natives_NativeFilterLiteDither_setup(JNIEnv *env, jobject current, jintArray color, jintArray full) {
     color_map = env -> GetIntArrayElements(color, (jboolean*)true);
     full_color_map = env -> GetIntArrayElements(full, (jboolean*)true);
 }
@@ -18,7 +18,7 @@ int getBestFullColor(const int red, const int green, const int blue) {
     return full_color_map[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
 }
 
-JNIEXPORT void JNICALL Java_com_github_pulsebeat02_minecraftmedialibrary_natives_NativeFilterLiteDither_dither_native(JNIEnv *env, jobject current, jobject buffer, jintArray arr, const jint width) {
+JNIEXPORT void JNICALL Java_com_github_pulsebeat02_epicmedialib_natives_NativeFilterLiteDither_dither_native(JNIEnv *env, jobject current, jobject buffer, jintArray arr, const jint width) {
     jint *array = env -> GetIntArrayElements(arr, (jboolean*)true);
     jsize *height = (jsize*)(size_t)env -> GetArrayLength(arr);
     jbyte *data = (jbyte*)(env -> GetDirectBufferAddress(buffer));

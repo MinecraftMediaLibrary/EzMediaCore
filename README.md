@@ -13,7 +13,7 @@
 ---
 ## Introduction
 
-**MinecraftMediaLibrary** is a library written along the Spigot API and net.minecraft.server classes to provide helpful
+**EpicMediaLib** is a library written along the Spigot API and net.minecraft.server classes to provide helpful
 and useful classes for other plugins to take advantage of. One of the most important features perhaps is its ability to
 play **videos** on a Minecraft Spigot server. It uses a very optimized dithering method alongside **VLC Media Player**
 for extra hardware acceleration to play the video at higher frame rates. As a result, rates can reach up to **35** frames 
@@ -64,7 +64,7 @@ repositories {
 
 ---
 
-MinecraftMediaLibrary Dependency:
+EpicMediaLib Dependency:
 
 **Maven**
 

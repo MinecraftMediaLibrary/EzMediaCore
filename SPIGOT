@@ -1,5 +1,5 @@
 What is Minecraft Media Library?
-MinecraftMediaLibrary is a library intended for media purposes in Minecraft Servers. It is a very concise and robust library which allows developers to perform simple functions, such as:
+EpicMediaLib is a library intended for media purposes in Minecraft Servers. It is a very concise and robust library which allows developers to perform simple functions, such as:
 
 - Display Images on a Minecraft Map
 - Dither Images using Different Algorithms, including many famous algorithms such as Floyd Steinberg Dithering, Filter Lite Dithering, and Bayer Matrix Dithering. A built in default implementation is also provided for those who want simple. These algorithms are very fast and efficient.
@@ -11,12 +11,12 @@ MinecraftMediaLibrary is a library intended for media purposes in Minecraft Serv
 And lastly, perhaps its most useful purpose is its ability to play Videos!
 Yes, you heard me correct. Videos in Minecraft. You may be thinking, well the quality must be horrible and frame rate must be very bad. Unfortunately, Minecraft's Palette is limited by only a selection of colors, so we only have access to a few amount of colors, however, the results are quite surprising.
 
-- MinecraftMediaLibrary has built in support for VLCJ (a Java library for VLC), and JavaCV (a ffmpeg wrapper). These libraries use native languages such as C and C++ to allow very fast frame delivery. Frames can reach up to 35 times per second sometimes or even higher depending on how fast your server can be. In comparison, a smooth animation is one which averages around 24 frames per second. (I am currently working on the JavaCV aspect, should be finished soon!)
+- EpicMediaLib has built in support for VLCJ (a Java library for VLC), and JavaCV (a ffmpeg wrapper). These libraries use native languages such as C and C++ to allow very fast frame delivery. Frames can reach up to 35 times per second sometimes or even higher depending on how fast your server can be. In comparison, a smooth animation is one which averages around 24 frames per second. (I am currently working on the JavaCV aspect, should be finished soon!)
 
 - I am currently documenting this as well on the wiki. Most of the abstract classes have a documentation explaining what each method should do. In the future, I will work on providing documentation for all the classes.
 
 How can I contribute?
-You can go to this Github repository I have linked to see all the code. MinecraftMediaLibrary is open source, meaning that you are allowed to see all the code and contribute by opening issues or pull requests.
+You can go to this Github repository I have linked to see all the code. EpicMediaLib is open source, meaning that you are allowed to see all the code and contribute by opening issues or pull requests.
 
 What are the Terms of Service?
 I ask that you cannot use this in a paid project. The code is being developed still and I want to make a plugin in the near future which uses this library to create an ideal Video Plugin for server owners can use (which will be free). Many developers have worked hard with me to create the dithering algorithms (which is one essential part of this library). If you have any questions or concerns, you can send a private message to me.

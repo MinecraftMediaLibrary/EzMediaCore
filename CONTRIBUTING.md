@@ -1,4 +1,4 @@
-# Contributions to the MinecraftMediaLibrary Project
+# Contributions to the EpicMediaLib Project
 
 I welcome all contributors! Contributors are awesome. They allow me to realize that I am not the only one that is alone
 working on this project and I have support from other people. Contributing is very easy. You navigate to the Pull Requests

@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a feature for MinecraftMediaLibrary
+about: Suggest a feature for EpicMediaLib
 title: ''
 labels: enhancement
 assignees: ''

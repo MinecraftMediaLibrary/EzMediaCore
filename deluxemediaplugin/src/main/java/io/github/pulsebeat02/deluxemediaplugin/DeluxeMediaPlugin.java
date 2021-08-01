@@ -71,12 +71,12 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
     log("DeluxeMediaPlugin is Shutting Down");
 
-    log("Shutting Down MinecraftMediaLibrary Instance...");
+    log("Shutting Down EpicMediaLib Instance...");
     if (library != null) {
       library.shutdown();
     } else {
       logger.severe(
-          "WARNING: MinecraftMediaLibrary instance is null... something is fishy going on.");
+          "WARNING: EpicMediaLib instance is null... something is fishy going on.");
     }
 
     log("Unregistering Commands");
@@ -121,7 +121,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
       CommandUtilities.ensureInit();
 
-      log("Loading MinecraftMediaLibrary Instance...");
+      log("Loading EpicMediaLib Instance...");
 
       library = LibraryProvider.builder().plugin(this).build();
 
