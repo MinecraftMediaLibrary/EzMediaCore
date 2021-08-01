@@ -2,7 +2,7 @@ package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
 import io.github.pulsebeat02.ezmediacore.playlist.Identifier;
 import io.github.pulsebeat02.ezmediacore.playlist.ResourceUrl;
-import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public interface Video extends ResourceUrl, Identifier {
@@ -11,13 +11,13 @@ public interface Video extends ResourceUrl, Identifier {
   String getLiveUrl();
 
   @NotNull
-  Collection<String> getKeywords();
+  List<String> getKeywords();
 
   @NotNull
-  Collection<VideoFormat> getVideoFormats();
+  List<VideoFormat> getVideoFormats();
 
   @NotNull
-  Collection<AudioFormat> getAudioFormats();
+  List<AudioFormat> getAudioFormats();
 
   long getViewCount();
 

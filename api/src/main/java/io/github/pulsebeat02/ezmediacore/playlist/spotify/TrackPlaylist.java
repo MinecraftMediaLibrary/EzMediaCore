@@ -1,12 +1,12 @@
 package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
-import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public interface TrackPlaylist extends SpotifyAlbum, Followable {
 
   @NotNull
-  Collection<PlaylistTrack> getTracks();
+  List<PlaylistTrack> getTracks();
 
   @NotNull
   String getDescription();

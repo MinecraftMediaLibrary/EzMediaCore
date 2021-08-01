@@ -60,4 +60,9 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   public @NotNull Video getVideo() {
     return this.video;
   }
+
+  @Override
+  public @NotNull Path getDownloadPath() {
+    return videoPath;
+  }
 }

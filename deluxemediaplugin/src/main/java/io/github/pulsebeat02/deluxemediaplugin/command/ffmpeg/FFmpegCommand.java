@@ -27,8 +27,8 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
-import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
-import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegCustomCommandExecutor;
+import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegCommandExecutor;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -36,8 +36,8 @@ import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.formatFFmpeg;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.formatFFmpeg;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.TextComponent.ofChildren;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
@@ -46,12 +46,12 @@ import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 public final class FFmpegCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> node;
-  private final FFmpegCustomCommandExecutor ffmpeg;
+  private final FFmpegCommandExecutor ffmpeg;
 
   public FFmpegCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "ffmpeg", executor, "deluxemediaplugin.command.ffmpeg");
-    ffmpeg = new FFmpegCustomCommandExecutor();
+    ffmpeg = new FFmpegCommandExecutor(plugin.library());
     node =
         literal(getName())
             .requires(super::testPermission)
@@ -86,14 +86,14 @@ public final class FFmpegCommand extends BaseCommand {
 
   private int runFFmpegProcess(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = plugin().audience().sender(context.getSource());
-    ffmpeg.executeWithConsumer(s -> audience.sendMessage(formatFFmpeg(text(s))));
+    ffmpeg.executeWithLogging(s -> audience.sendMessage(formatFFmpeg(text(s))));
     audience.sendMessage(format(text("Executed FFmpeg command with arguments!", GOLD)));
     return SINGLE_SUCCESS;
   }
 
   @Override
   public Component usage() {
-    return ChatUtilities.getCommandUsage(
+    return ChatUtils.getCommandUsage(
         ImmutableMap.<String, String>builder()
             .put("/ffmpeg reset", "Reset all arguments in the FFmpeg command")
             .put(

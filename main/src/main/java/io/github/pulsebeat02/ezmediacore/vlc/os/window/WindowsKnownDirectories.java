@@ -4,9 +4,9 @@ import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.WinReg;
 import io.github.pulsebeat02.ezmediacore.analysis.OSType;
 import io.github.pulsebeat02.ezmediacore.vlc.os.WellKnownDirectoryProvider;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class WindowsKnownDirectories implements WellKnownDirectoryProvider {
@@ -17,8 +17,8 @@ public class WindowsKnownDirectories implements WellKnownDirectoryProvider {
   }
 
   @Override
-  public @NotNull Collection<String> getSearchDirectories() {
-    return new HashSet<>(
+  public @NotNull List<String> getSearchDirectories() {
+    return new ArrayList<>(
         Collections.singleton(
             Advapi32Util.registryGetStringValue(
                 WinReg.HKEY_LOCAL_MACHINE, "SOFTWARE\\VideoLAN\\VLC", "InstallDir")));

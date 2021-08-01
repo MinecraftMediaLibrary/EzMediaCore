@@ -28,13 +28,13 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
-import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegCustomCommandExecutor;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegCommandExecutor;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.TextComponent.ofChildren;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
@@ -44,11 +44,10 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
 
   private final LiteralCommandNode<CommandSender> node;
   private final DeluxeMediaPlugin plugin;
-  private final FFmpegCustomCommandExecutor ffmpeg;
+  private final FFmpegCommandExecutor ffmpeg;
 
   public FFmpegAddArgumentCommand(
-      @NotNull final DeluxeMediaPlugin plugin,
-      @NotNull final FFmpegCustomCommandExecutor executor) {
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final FFmpegCommandExecutor executor) {
     this.plugin = plugin;
     ffmpeg = executor;
     node =

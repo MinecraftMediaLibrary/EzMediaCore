@@ -27,7 +27,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
-import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
+import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -37,7 +37,7 @@ import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
@@ -108,7 +108,7 @@ public final class AudioCommand extends BaseCommand {
 
   @Override
   public Component usage() {
-    return ChatUtilities.getCommandUsage(
+    return ChatUtils.getCommandUsage(
         ImmutableMap.<String, String>builder()
             .put("/audio load [url]", "Loads a Youtube Link")
             .put("/audio load [file]", "Loads a specific audio file")

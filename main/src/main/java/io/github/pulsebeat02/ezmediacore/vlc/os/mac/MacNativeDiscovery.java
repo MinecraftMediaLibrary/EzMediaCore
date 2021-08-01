@@ -1,11 +1,11 @@
 package io.github.pulsebeat02.ezmediacore.vlc.os.mac;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.sun.jna.NativeLibrary;
 import io.github.pulsebeat02.ezmediacore.analysis.OSType;
 import io.github.pulsebeat02.ezmediacore.vlc.os.NativeDiscoveryAlgorithm;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 
@@ -21,8 +21,8 @@ public class MacNativeDiscovery implements NativeDiscoveryAlgorithm {
   }
 
   @Override
-  public @NotNull Collection<String> getSearchPatterns() {
-    return ImmutableSet.of("/lib/../plugins");
+  public @NotNull List<String> getSearchPatterns() {
+    return ImmutableList.of("/lib/../plugins");
   }
 
   @Override

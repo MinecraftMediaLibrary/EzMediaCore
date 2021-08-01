@@ -77,7 +77,7 @@ public class HttpConfiguration extends ConfigurationProvider {
     this.enabled = enabled;
   }
 
-  public HttpDaemonSolution getDaemon() {
+  public HttpDaemonSolution getServer() {
     return daemon;
   }
 

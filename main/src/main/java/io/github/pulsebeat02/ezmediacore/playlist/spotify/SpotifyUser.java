@@ -68,8 +68,10 @@ public class SpotifyUser implements User {
   }
 
   @Override
-  public @NotNull Image[] getImages() {
-    return Arrays.stream(this.user.getImages()).map(SpotifyImage::new).toArray(SpotifyImage[]::new);
+  public @NotNull Avatar[] getImages() {
+    return Arrays.stream(this.user.getImages())
+        .map(SpotifyAvatar::new)
+        .toArray(SpotifyAvatar[]::new);
   }
 
   @Override

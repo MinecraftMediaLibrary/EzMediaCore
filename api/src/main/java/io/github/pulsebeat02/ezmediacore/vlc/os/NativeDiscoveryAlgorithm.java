@@ -1,7 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.vlc.os;
 
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public interface NativeDiscoveryAlgorithm extends HostOperator {
@@ -10,7 +10,7 @@ public interface NativeDiscoveryAlgorithm extends HostOperator {
   String getFileExtension();
 
   @NotNull
-  Collection<String> getSearchPatterns();
+  List<String> getSearchPatterns();
 
   @NotNull
   void onLibVlcFound(@NotNull final Path discoveredPath);

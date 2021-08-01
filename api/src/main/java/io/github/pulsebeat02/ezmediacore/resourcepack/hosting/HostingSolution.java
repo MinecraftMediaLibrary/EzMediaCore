@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 public interface HostingSolution {
 
   @NotNull
-  Path createUrl(@NotNull final Path resourcepack);
+  String createUrl(@NotNull final Path resourcepack);
 
   @NotNull
   default String getName() {

@@ -28,9 +28,8 @@ import io.github.pulsebeat02.deluxemediaplugin.config.ConfigurationProvider;
 import io.github.pulsebeat02.deluxemediaplugin.config.EncoderConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.PictureConfiguration;
-import io.github.pulsebeat02.deluxemediaplugin.config.VideoConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.update.PluginUpdateChecker;
-import io.github.pulsebeat02.deluxemediaplugin.utility.CommandUtilities;
+import io.github.pulsebeat02.deluxemediaplugin.utility.CommandUtils;
 import io.github.pulsebeat02.ezmediacore.LibraryProvider;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.util.Arrays;
@@ -46,7 +45,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.TextComponent.ofChildren;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
@@ -63,7 +62,6 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
   private Logger logger;
   private HttpConfiguration httpConfiguration;
   private PictureConfiguration pictureConfiguration;
-  private VideoConfiguration videoConfiguration;
   private EncoderConfiguration encoderConfiguration;
 
   @Override
@@ -75,8 +73,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
     if (library != null) {
       library.shutdown();
     } else {
-      logger.severe(
-          "WARNING: EzMediaCore instance is null... something is fishy going on.");
+      logger.severe("WARNING: EzMediaCore instance is null... something is fishy going on.");
     }
 
     log("Unregistering Commands");
@@ -84,7 +81,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       final Set<BaseCommand> cmds = handler.getCommands();
       if (cmds != null) {
         for (final BaseCommand cmd : handler.getCommands()) {
-          CommandUtilities.unRegisterBukkitCommand(this, cmd);
+          CommandUtils.unRegisterBukkitCommand(this, cmd);
         }
       }
     }
@@ -119,7 +116,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       }
       log(ofChildren(text("Running DeluxeMediaPlugin ", AQUA), text("[CLOSED BETA]", GOLD)));
 
-      CommandUtilities.ensureInit();
+      CommandUtils.ensureInit();
 
       log("Loading EzMediaCore Instance...");
 
@@ -153,10 +150,9 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
     httpConfiguration = new HttpConfiguration(this);
     pictureConfiguration = new PictureConfiguration(this);
-    videoConfiguration = new VideoConfiguration(this);
     encoderConfiguration = new EncoderConfiguration(this);
 
-    Stream.of(httpConfiguration, pictureConfiguration, videoConfiguration, encoderConfiguration)
+    Stream.of(httpConfiguration, pictureConfiguration, encoderConfiguration)
         .forEach(ConfigurationProvider::read);
   }
 
@@ -178,10 +174,6 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
   public PictureConfiguration getPictureConfiguration() {
     return pictureConfiguration;
-  }
-
-  public VideoConfiguration getVideoConfiguration() {
-    return videoConfiguration;
   }
 
   public EncoderConfiguration getEncoderConfiguration() {

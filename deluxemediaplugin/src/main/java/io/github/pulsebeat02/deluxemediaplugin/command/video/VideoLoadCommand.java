@@ -45,7 +45,7 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
@@ -142,7 +142,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     final PackWrapper wrapper = ResourcepackWrapper.of(plugin.library(), audio);
     wrapper.buildResourcePack();
     final Path path = Paths.get(wrapper.getPath());
-    attributes.setResourcepackUrl(plugin.getHttpConfiguration().getDaemon().generateUrl(path));
+    attributes.setResourcepackUrl(plugin.getHttpConfiguration().getServer().generateUrl(path));
     attributes.setHash(VideoExtractionUtilities.createHashSHA(path));
   }
 
@@ -150,7 +150,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     final PackWrapper wrapper = ResourcepackWrapper.of(plugin.library(), extraction);
     wrapper.buildResourcePack();
     attributes.setResourcepackUrl(
-        plugin.getHttpConfiguration().getDaemon().generateUrl(wrapper.getPath()));
+        plugin.getHttpConfiguration().getServer().generateUrl(wrapper.getPath()));
     attributes.setHash(VideoExtractionUtilities.createHashSHA(Paths.get(wrapper.getPath())));
   }
 

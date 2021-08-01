@@ -27,7 +27,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
-import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
+import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegAudioTrimmerHelper;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.player.VideoPlayerContext;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
@@ -47,7 +47,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
@@ -146,7 +146,7 @@ public final class VideoCommand extends BaseCommand {
               wrapper.buildResourcePack();
               final Path path = Paths.get(wrapper.getPath());
               attributes.setResourcepackUrl(
-                  plugin.getHttpConfiguration().getDaemon().generateUrl(path));
+                  plugin.getHttpConfiguration().getServer().generateUrl(path));
               attributes.setHash(VideoExtractionUtilities.createHashSHA(path));
             })
         .thenRunAsync(this::sendResourcepackFile)
@@ -195,14 +195,15 @@ public final class VideoCommand extends BaseCommand {
           format(
               text(
                   String.format(
-                      "Starting Video on File: %s", PathUtilities.getName(Paths.get(attributes.getVideo()))),
+                      "Starting Video on File: %s",
+                      PathUtilities.getName(Paths.get(attributes.getVideo()))),
                   GOLD)));
     }
   }
 
   @Override
   public TextComponent usage() {
-    return ChatUtilities.getCommandUsage(
+    return ChatUtils.getCommandUsage(
         ImmutableMap.<String, String>builder()
             .put("/video", "Lists the current video playing")
             .put("/video play", "Plays the video")

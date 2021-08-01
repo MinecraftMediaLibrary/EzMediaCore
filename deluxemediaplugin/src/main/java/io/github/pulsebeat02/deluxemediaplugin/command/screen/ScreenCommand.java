@@ -28,7 +28,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.gui.ScreenBuilderGui;
-import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
+import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -36,7 +36,7 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
@@ -67,8 +67,7 @@ public final class ScreenCommand extends BaseCommand {
 
   @Override
   public Component usage() {
-    return ChatUtilities.getCommandUsage(
-        ImmutableMap.of("/screen", "Opens the screen building GUI"));
+    return ChatUtils.getCommandUsage(ImmutableMap.of("/screen", "Opens the screen building GUI"));
   }
 
   @Override

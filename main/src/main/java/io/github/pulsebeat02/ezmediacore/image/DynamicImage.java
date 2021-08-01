@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static io.github.pulsebeat02.ezmediacore.decoder.GifDecoder.GifImage;
 
-public class DynamicImage extends ImageProvider
+public class DynamicImage extends Image
     implements io.github.pulsebeat02.ezmediacore.image.GifImage {
 
   private final GifImage image;

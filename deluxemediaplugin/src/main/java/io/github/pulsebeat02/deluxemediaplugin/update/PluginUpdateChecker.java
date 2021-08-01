@@ -27,12 +27,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
-
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
-import static net.kyori.adventure.text.Component.text;
 
 public class PluginUpdateChecker {
 
@@ -59,9 +54,9 @@ public class PluginUpdateChecker {
                       .openStream())) {
             final String update = scanner.next();
             if (plugin.getDescription().getVersion().equalsIgnoreCase(update)) {
-                plugin.log(String.format("There is a new update available! (%s)", update));
+              plugin.log(String.format("There is a new update available! (%s)", update));
             } else {
-                plugin.log("You are currently running the latest version of DeluxeMediaPlugin.");
+              plugin.log("You are currently running the latest version of DeluxeMediaPlugin.");
             }
           } catch (final IOException exception) {
             plugin.log(String.format("Cannot look for updates: %s", exception.getMessage()));

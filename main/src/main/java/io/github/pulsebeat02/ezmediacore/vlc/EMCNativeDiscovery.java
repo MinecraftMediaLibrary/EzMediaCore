@@ -20,13 +20,12 @@ import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.binding.LibC;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 import uk.co.caprica.vlcj.binding.internal.libvlc_instance_t;
-import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 import uk.co.caprica.vlcj.support.version.LibVlcVersion;
 
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_new;
 import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_release;
 
-public class NativeDiscovery implements DiscoveryProvider {
+public class EMCNativeDiscovery implements DiscoveryProvider {
 
   private final MediaLibraryCore core;
   private final NativeDiscoveryAlgorithm algorithm;
@@ -37,7 +36,7 @@ public class NativeDiscovery implements DiscoveryProvider {
 
   private Path path;
 
-  public NativeDiscovery(
+  public EMCNativeDiscovery(
       @NotNull final MediaLibraryCore core,
       @NotNull final NativeDiscoveryAlgorithm algorithm,
       final boolean heuristics) {
@@ -60,7 +59,8 @@ public class NativeDiscovery implements DiscoveryProvider {
     If NativeDiscovery from VLCJ built in finds the binary, use that
     instead.
      */
-    final uk.co.caprica.vlcj.factory.discovery.NativeDiscovery discovery = new uk.co.caprica.vlcj.factory.discovery.NativeDiscovery();
+    final uk.co.caprica.vlcj.factory.discovery.NativeDiscovery discovery =
+        new uk.co.caprica.vlcj.factory.discovery.NativeDiscovery();
     if (discovery.discover()) {
       return Optional.of(Paths.get(discovery.discoveredPath()));
     }

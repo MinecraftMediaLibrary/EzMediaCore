@@ -4,7 +4,7 @@ import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 import javax.sound.sampled.AudioSystem;
@@ -20,7 +20,7 @@ public final class SystemDiagnostics implements Diagnostic {
   private final MediaLibraryCore core;
   private final OperatingSystem system;
   private final CpuArchitecture cpu;
-  private final Collection<Mixer> sound;
+  private final List<Mixer> sound;
   private String vlcDownloadLink;
   private String ffmpegDownloadLink;
 
@@ -51,8 +51,8 @@ public final class SystemDiagnostics implements Diagnostic {
         System.getProperty("os.version"));
   }
 
-  private Collection<Mixer> getMixers() {
-    final Collection<Mixer> mixers = new ArrayList<>();
+  private List<Mixer> getMixers() {
+    final List<Mixer> mixers = new ArrayList<>();
     final Mixer.Info[] devices = AudioSystem.getMixerInfo();
     final Line.Info sourceInfo = new Line.Info(SourceDataLine.class);
     for (final Mixer.Info mixerInfo : devices) {
@@ -186,7 +186,7 @@ public final class SystemDiagnostics implements Diagnostic {
   }
 
   @Override
-  public @NotNull Collection<Mixer> getSound() {
+  public @NotNull List<Mixer> getSound() {
     return this.sound;
   }
 }

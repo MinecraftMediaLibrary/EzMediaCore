@@ -6,5 +6,5 @@ import org.jetbrains.annotations.NotNull;
 public interface ImageResource {
 
   @NotNull
-  Image[] getImages();
+  Avatar[] getImages();
 }

@@ -1,10 +1,10 @@
 package io.github.pulsebeat02.ezmediacore.vlc.os.window;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import io.github.pulsebeat02.ezmediacore.analysis.OSType;
 import io.github.pulsebeat02.ezmediacore.vlc.os.NativeDiscoveryAlgorithm;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class WindowsNativeDiscovery implements NativeDiscoveryAlgorithm {
@@ -19,8 +19,8 @@ public class WindowsNativeDiscovery implements NativeDiscoveryAlgorithm {
   }
 
   @Override
-  public @NotNull Collection<String> getSearchPatterns() {
-    return ImmutableSet.of("");
+  public @NotNull List<String> getSearchPatterns() {
+    return ImmutableList.of("");
   }
 
   @Override

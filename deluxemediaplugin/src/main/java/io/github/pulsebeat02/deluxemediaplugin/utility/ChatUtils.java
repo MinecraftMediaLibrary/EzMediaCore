@@ -42,7 +42,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
 import static net.kyori.adventure.text.format.NamedTextColor.LIGHT_PURPLE;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
-public final class ChatUtilities {
+public final class ChatUtils {
 
   private static final ComponentLike PREFIX;
   private static final ComponentLike EXTERNAL_PROCESS;
@@ -76,8 +76,8 @@ public final class ChatUtilities {
       @NotNull final Audience sender, @NotNull final String str) {
     final String[] dims = str.split(":");
     final String message;
-    final OptionalInt width = ChatUtilities.checkIntegerValidity(dims[0]);
-    final OptionalInt height = ChatUtilities.checkIntegerValidity(dims[1]);
+    final OptionalInt width = ChatUtils.checkIntegerValidity(dims[0]);
+    final OptionalInt height = ChatUtils.checkIntegerValidity(dims[1]);
     if (!width.isPresent()) {
       message = dims[0];
     } else if (!height.isPresent()) {
@@ -119,5 +119,13 @@ public final class ChatUtilities {
     }
     builder.append(text("------------------", AQUA));
     return builder.build();
+  }
+
+  public static void info(@NotNull final Audience audience, final String message) {
+    audience.sendMessage(format(text(message, GOLD)));
+  }
+
+  public static void error(@NotNull final Audience audience, final String message) {
+    audience.sendMessage(format(text(message, RED)));
   }
 }

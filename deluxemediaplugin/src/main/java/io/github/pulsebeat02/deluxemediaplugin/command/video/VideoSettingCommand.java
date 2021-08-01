@@ -31,18 +31,17 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
-import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
+import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.TextComponent.ofChildren;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
@@ -108,7 +107,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
   private int setScreenDimensions(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = plugin.audience().sender(context.getSource());
     final Optional<int[]> optional =
-        ChatUtilities.checkDimensionBoundaries(
+        ChatUtils.checkDimensionBoundaries(
             audience, context.getArgument("screen-dimensions", String.class));
     if (!optional.isPresent()) {
       return SINGLE_SUCCESS;
@@ -131,7 +130,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
   private int setItemframeDimensions(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = plugin.audience().sender(context.getSource());
     final Optional<int[]> optional =
-        ChatUtilities.checkDimensionBoundaries(
+        ChatUtils.checkDimensionBoundaries(
             audience, context.getArgument("itemframe-dimensions", String.class));
     if (!optional.isPresent()) {
       return SINGLE_SUCCESS;

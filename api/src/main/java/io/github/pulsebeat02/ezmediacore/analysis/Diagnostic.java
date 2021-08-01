@@ -1,6 +1,6 @@
 package io.github.pulsebeat02.ezmediacore.analysis;
 
-import java.util.Collection;
+import java.util.List;
 import javax.sound.sampled.Mixer;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,5 +20,5 @@ public interface Diagnostic {
   CpuInfo getCpu();
 
   @NotNull
-  Collection<Mixer> getSound();
+  List<Mixer> getSound();
 }

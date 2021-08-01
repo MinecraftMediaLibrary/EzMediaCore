@@ -27,15 +27,18 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
-import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
-import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
-import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.ResourcepackUtilities;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioExtractor;
+import io.github.pulsebeat02.ezmediacore.playlist.youtube.YoutubeVideoDownloader;
+import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
+import io.github.pulsebeat02.ezmediacore.utility.HashingUtils;
+import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.Bukkit;
@@ -43,10 +46,8 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
-import static net.kyori.adventure.text.format.NamedTextColor.RED;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.error;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.info;
 
 public final class AudioLoadCommand implements CommandSegment.Literal<CommandSender> {
 
@@ -66,54 +67,79 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private int loadAudio(@NotNull final CommandContext<CommandSender> context) {
+
     final Audience audience = plugin.audience().sender(context.getSource());
-    final MediaLibrary library = plugin.library();
+    final MediaLibraryCore library = plugin.library();
     final String mrl = context.getArgument("mrl", String.class);
+
     if (isLoadingSound(audience)) {
       return SINGLE_SUCCESS;
     }
-    audience.sendMessage(
-        format(
-            text(
-                "Attempting to load the audio file... this may take a while depending on the length/quality of the audio.",
-                GOLD)));
+
+    info(
+        audience,
+        "Attempting to load the audio file... this may take a while depending on the length/quality of the audio.");
+
     if (isUrl(mrl)) {
+
       CompletableFuture.runAsync(
-          () ->
-              attributes.setResourcepackAudio(
-                  new YoutubeExtraction(
-                          mrl,
-                          library.getAudioFolder(),
-                          plugin.getEncoderConfiguration().getSettings())
-                      .extractAudio()));
+          () -> {
+            final Path folder = library.getAudioPath();
+            final Path video = folder.resolve("video.mp4");
+            final Path audio = folder.resolve("audio.ogg");
+
+            final YoutubeVideoDownloader downloader = new YoutubeVideoDownloader(mrl, video);
+            downloader.downloadVideo(
+                downloader.getVideo().getVideoFormats().get(0).getQuality(), true);
+
+            final FFmpegAudioExtractor extractor =
+                new FFmpegAudioExtractor(
+                    library, plugin.getEncoderConfiguration().getSettings(), video, audio);
+            extractor.execute();
+
+            attributes.setResourcepackAudio(audio);
+          });
     } else {
+
       final Path file = Paths.get(mrl);
       if (Files.exists(file)) {
         attributes.setResourcepackAudio(file);
       } else {
-        audience.sendMessage(
-            format(
-                text("The mrl specified is not valid! (Must be Youtube Link or Audio File)", RED)));
+        error(audience, "The mrl specified is not valid! (Must be Youtube Link or Audio File)");
         return SINGLE_SUCCESS;
       }
     }
+
     CompletableFuture.runAsync(
             () -> {
               attributes.setCompletion(true);
-              final PackWrapper wrapper =
-                  ResourcepackWrapper.of(library, attributes.getResourcepackAudio());
-              wrapper.buildResourcePack();
-              attributes.setResourcepackLink(
-                  plugin.getHttpConfiguration().getDaemon().getRelativePath(wrapper.getPath()));
-              attributes.setResourcepackHash(
-                  VideoExtractionUtilities.createHashSHA(Paths.get(wrapper.getPath())));
+
+              try {
+                final ResourcepackSoundWrapper wrapper =
+                    new ResourcepackSoundWrapper(
+                        library.getHttpServerPath().resolve("pack.zip"), "", 6);
+                wrapper.addSound(
+                    plugin.getName().toLowerCase(Locale.ROOT), attributes.getResourcepackAudio());
+                wrapper.wrap();
+
+                final Path path = wrapper.getResourcepackFilePath();
+
+                attributes.setResourcepackLink(
+                    plugin.getHttpConfiguration().getServer().createUrl(path));
+
+                attributes.setResourcepackHash(
+                    HashingUtils.getHash(path).getBytes(StandardCharsets.UTF_8));
+
+              } catch (IOException e) {
+                e.printStackTrace();
+              }
+
               sendResourcepack();
-              audience.sendMessage(
-                  format(
-                      text(
-                          String.format(
-                              "Loaded Audio Successfully! (%s)", attributes.getResourcepackLink()),
-                          GOLD)));
+
+              info(
+                  audience,
+                  String.format(
+                      "Loaded Audio Successfully! (%s)", attributes.getResourcepackLink()));
             })
         .whenCompleteAsync((t, throwable) -> attributes.setCompletion(false));
     return SINGLE_SUCCESS;
@@ -122,22 +148,20 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
   private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = plugin.audience().sender(context.getSource());
     if (unloadedResourcepack()) {
-      audience.sendMessage(format(text("Please load a resourcepack first!", RED)));
+      error(audience, "Please load a resourcepack first!");
       return SINGLE_SUCCESS;
     }
     sendResourcepack();
-    audience.sendMessage(
-        format(
-            text(
-                String.format(
-                    "Sent Resourcepack URL! (%s with hash %s)",
-                    attributes.getResourcepackLink(), new String(attributes.getResourcepackHash())),
-                GOLD)));
+    info(
+        audience,
+        String.format(
+            "Sent Resourcepack URL! (%s with hash %s)",
+            attributes.getResourcepackLink(), new String(attributes.getResourcepackHash())));
     return SINGLE_SUCCESS;
   }
 
   private void sendResourcepack() {
-    ResourcepackUtilities.forceResourcepackLoad(
+    ResourcepackUtils.forceResourcepackLoad(
         plugin,
         Bukkit.getOnlinePlayers(),
         attributes.getResourcepackLink(),
@@ -154,11 +178,9 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
 
   private boolean isLoadingSound(@NotNull final Audience audience) {
     if (attributes.getCompletion().get()) {
-      audience.sendMessage(
-          format(
-              text(
-                  "Please wait for the previous audio to extract first before loading another one!",
-                  RED)));
+      error(
+          audience,
+          "Please wait for the previous audio to extract first before loading another one!");
       return true;
     }
     return false;

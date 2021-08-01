@@ -6,8 +6,7 @@ import org.jetbrains.annotations.NotNull;
 public enum RelocationPaths {
   VLCJ("uk{}co{}caprica{}vlcj", "io{}github{}pulsebeat02{}ezmediacore{}lib{}vlcj"),
   VLCJ_NATIVES(
-      "uk{}co{}caprica{}vlcj{}binding",
-      "io{}github{}pulsebeat02{}ezmediacore{}lib{}vlcj{}binding"),
+      "uk{}co{}caprica{}vlcj{}binding", "io{}github{}pulsebeat02{}ezmediacore{}lib{}vlcj{}binding"),
   VLCJ_NATIVE_STREAMS(
       "uk{}co{}caprica{}nativestreams",
       "io{}github{}pulsebeat02{}ezmediacore{}lib{}vlcj{}nativestreams"),

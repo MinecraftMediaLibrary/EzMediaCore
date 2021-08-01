@@ -30,18 +30,22 @@ public class HttpServer implements HttpDaemonSolution {
     this(path, HTTP_SERVER_IP, port, true);
   }
 
-  public HttpServer(@NotNull final String path, final int port, final boolean verbose) throws IOException {
+  public HttpServer(@NotNull final String path, final int port, final boolean verbose)
+      throws IOException {
     this(path, HTTP_SERVER_IP, port, verbose);
   }
 
-  public HttpServer(@NotNull final String path, @NotNull final String ip, final int port, final boolean verbose)
+  public HttpServer(
+      @NotNull final String path, @NotNull final String ip, final int port, final boolean verbose)
       throws IOException {
     this.daemon = new HttpServerDaemon(path, ip, port, verbose);
   }
 
   @Override
-  public @NotNull Path createUrl(@NotNull final Path file) {
-    return this.daemon.getRelativePath(file);
+  public @NotNull String createUrl(@NotNull final Path file) {
+    return String.format(
+        "http://%s:%d/%s",
+        daemon.getAddress(), daemon.getPort(), this.daemon.getRelativePath(file));
   }
 
   @Override

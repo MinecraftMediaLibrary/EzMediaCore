@@ -8,7 +8,7 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class ImageProvider implements MapImage {
+public abstract class Image implements MapImage {
 
   private final MediaLibraryCore core;
   private final EnhancedMapRenderer renderer;
@@ -16,7 +16,7 @@ public abstract class ImageProvider implements MapImage {
   private final int[][] maps;
   private final Path image;
 
-  public ImageProvider(
+  public Image(
       @NotNull final MediaLibraryCore core,
       @NotNull final Path image,
       final int[][] maps,

@@ -24,7 +24,6 @@ package io.github.pulsebeat02.deluxemediaplugin.command.image;
 
 import com.google.common.collect.ImmutableSet;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;

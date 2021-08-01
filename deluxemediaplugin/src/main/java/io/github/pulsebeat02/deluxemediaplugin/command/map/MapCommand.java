@@ -28,8 +28,8 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
-import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.MapUtilities;
+import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+import io.github.pulsebeat02.ezmediacore.utility.MapUtils;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -38,7 +38,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.TextComponent.ofChildren;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
@@ -68,14 +68,14 @@ public final class MapCommand extends BaseCommand {
       return SINGLE_SUCCESS;
     }
     final int id = context.getArgument("id", int.class);
-    ((Player) sender).getInventory().addItem(MapUtilities.getMapFromID(id));
+    ((Player) sender).getInventory().addItem(MapUtils.getMapFromID(id));
     audience.sendMessage(format(ofChildren(text("Gave map with id ", GOLD), text(id, AQUA))));
     return SINGLE_SUCCESS;
   }
 
   @Override
   public Component usage() {
-    return ChatUtilities.getCommandUsage(
+    return ChatUtils.getCommandUsage(
         ImmutableMap.of("/map [id]", "Gives a map to the player with the specific id"));
   }
 

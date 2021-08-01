@@ -63,10 +63,10 @@ public class SpotifyArtist implements Artist {
   }
 
   @Override
-  public @NotNull Image[] getImages() {
+  public @NotNull Avatar[] getImages() {
     return Arrays.stream(this.artist.getImages())
-        .map(SpotifyImage::new)
-        .toArray(SpotifyImage[]::new);
+        .map(SpotifyAvatar::new)
+        .toArray(SpotifyAvatar[]::new);
   }
 
   @Override

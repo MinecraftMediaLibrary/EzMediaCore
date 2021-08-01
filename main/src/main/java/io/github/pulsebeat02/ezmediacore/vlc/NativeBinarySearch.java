@@ -64,14 +64,14 @@ public class NativeBinarySearch implements BinarySearcher {
   }
 
   @NotNull
-  private NativeDiscovery getDiscovery() {
+  private EMCNativeDiscovery getDiscovery() {
     switch (this.type) {
       case MAC:
-        return new NativeDiscovery(this.core, new MacNativeDiscovery(), true);
+        return new EMCNativeDiscovery(this.core, new MacNativeDiscovery(), true);
       case UNIX:
-        return new NativeDiscovery(this.core, new UnixNativeDiscovery(), true);
+        return new EMCNativeDiscovery(this.core, new UnixNativeDiscovery(), true);
       case WINDOWS:
-        return new NativeDiscovery(this.core, new WindowsNativeDiscovery(), false);
+        return new EMCNativeDiscovery(this.core, new WindowsNativeDiscovery(), false);
     }
     throw new AssertionException("Invalid Operating System!");
   }

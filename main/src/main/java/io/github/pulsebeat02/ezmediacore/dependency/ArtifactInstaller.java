@@ -201,7 +201,7 @@ public final class ArtifactInstaller {
 
     if (file.isPresent()) {
       final Path p = file.get();
-      if (HashingUtils.validateDependency(p, dependency)) {
+      if (DependencyUtils.validateDependency(p, dependency)) {
         Logger.info(String.format("SHA1 Hash for File %s Succeeded!", file));
         this.jars.add(p);
       } else {

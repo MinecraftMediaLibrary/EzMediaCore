@@ -24,48 +24,50 @@ package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.image.DynamicImage;
+import io.github.pulsebeat02.ezmediacore.image.Image;
 import io.github.pulsebeat02.ezmediacore.image.StaticImage;
-import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImage;
+import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
-import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.jetbrains.annotations.NotNull;
-
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.jetbrains.annotations.NotNull;
 
 public class PictureConfiguration extends ConfigurationProvider {
 
-  private final Set<StaticImage> images;
+  private final Set<Image> images;
 
   public PictureConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, "configuration/picture.yml");
     images = new HashSet<>();
   }
 
-  public void addPhoto(final int map, @NotNull final Path file, final int width, final int height) {
+  public void addNormalPhoto(
+      final int[][] maps, @NotNull final Path file, final int width, final int height)
+      throws IOException {
     images.add(
-        StaticImage.builder()
-            .map(map)
-            .image(file)
-            .width(width)
-            .height(height)
-            .build(getPlugin().library()));
+        new StaticImage(getPlugin().library(), file, maps, new ImmutableDimension(width, height)));
+  }
+
+  public void addGif(
+      final int[][] maps, @NotNull final Path file, final int width, final int height)
+      throws IOException {
+    images.add(
+        new DynamicImage(getPlugin().library(), file, maps, new ImmutableDimension(width, height)));
   }
 
   @Override
   public void deserialize() {
     final FileConfiguration configuration = getFileConfiguration();
-    for (final StaticImageProxy image : images) {
-      final long key = image.getMap();
-      configuration.set(String.format("%d.location", key), image.getImage().toString());
-      configuration.set(String.format("%d.width", key), image.getWidth());
-      configuration.set(String.format("%d.height", key), image.getHeight());
+    for (final Image image : images) {
+      final Path key = image.getImagePath();
+      configuration.set(String.format("%d.maps", key), image.getMapMatrix());
+      configuration.set(String.format("%d.dimension", key), image.getDimensions());
     }
     saveConfig();
   }
@@ -75,14 +77,12 @@ public class PictureConfiguration extends ConfigurationProvider {
     final FileConfiguration configuration = getFileConfiguration();
     final MediaLibraryCore library = getPlugin().library();
     for (final String key : configuration.getKeys(false)) {
-      final int id = Integer.parseInt(key);
-      final Path file =
-          Paths.get(
-              Objects.requireNonNull(configuration.getString(String.format("%d.location", id))));
-      if (!Files.exists(file)) {
-        Logger.error(String.format("Could not read %s at id %d!", file, id));
+      final Path path = Paths.get(key);
+
+      if (!Files.exists(path)) {
         continue;
       }
+
       final int width = configuration.getInt(String.format("%d.width", id));
       final int height = configuration.getInt(String.format("%d.height", id));
       images.add(

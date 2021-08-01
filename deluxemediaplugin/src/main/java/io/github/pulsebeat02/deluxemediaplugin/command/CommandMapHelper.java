@@ -22,11 +22,10 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command;
 
+import java.lang.reflect.Method;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.CommandMap;
-
-import java.lang.reflect.Method;
 
 public final class CommandMapHelper {
 

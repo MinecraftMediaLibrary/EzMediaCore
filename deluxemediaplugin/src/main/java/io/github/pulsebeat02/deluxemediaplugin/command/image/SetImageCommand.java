@@ -28,25 +28,24 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
-import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities;
-import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
+import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImage;
 import io.github.pulsebeat02.minecraftmedialibrary.image.gif.DynamicImage;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
-import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.ComponentLike;
-import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Set;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.ComponentLike;
+import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtilities.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
@@ -83,7 +82,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
     final String mrl = context.getArgument("mrl", String.class);
     final ComponentLike successful =
         format(text(String.format("Successfully drew image on map %d", id), GOLD));
-    final MediaLibrary library = plugin.library();
+    final MediaLibraryCore library = plugin.library();
     final Set<String> extensions = attributes.getExtensions();
     final int width = attributes.getWidth();
     final int height = attributes.getHeight();
@@ -118,7 +117,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
   private int setDimensions(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = plugin.audience().sender(context.getSource());
     final Optional<int[]> optional =
-        ChatUtilities.checkDimensionBoundaries(audience, context.getArgument("dims", String.class));
+        ChatUtils.checkDimensionBoundaries(audience, context.getArgument("dims", String.class));
     if (!optional.isPresent()) {
       return SINGLE_SUCCESS;
     }
