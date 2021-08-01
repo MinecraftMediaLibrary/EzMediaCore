@@ -6,12 +6,12 @@
 
 [![Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/MinecraftMediaLibrary/EzMediaCore)
 
-<img src="logo.gif" width="500" height="250"/>
-
 ![Swag](http://ForTheBadge.com/images/badges/built-with-swag.svg)
 
 ---
 ## Introduction
+
+<img style="float: right;" src="logo.gif" width="250" height="250"/>
 
 **EzMediaCore** is a library written along the Spigot API and net.minecraft.server classes to provide helpful
 and useful classes for other plugins to take advantage of. One of the most important features perhaps is its ability to
