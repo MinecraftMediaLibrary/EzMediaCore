@@ -31,8 +31,8 @@ import io.github.pulsebeat02.deluxemediaplugin.config.PictureConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.VideoConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.update.PluginUpdateChecker;
 import io.github.pulsebeat02.deluxemediaplugin.utility.CommandUtilities;
-import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.MediaLibraryProvider;
+import io.github.pulsebeat02.epicmedialib.LibraryProvider;
+import io.github.pulsebeat02.epicmedialib.MediaLibraryCore;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -57,7 +57,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
   public static boolean OUTDATED = false;
 
-  private MediaLibrary library;
+  private MediaLibraryCore library;
   private BukkitAudiences audiences;
   private CommandHandler handler;
   private Logger logger;
@@ -95,7 +95,6 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
   @Override
   public void onEnable() {
 
-    // Get the plugin logger
     logger = getLogger();
 
     if (!OUTDATED) {
@@ -123,7 +122,8 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       CommandUtilities.ensureInit();
 
       log("Loading MinecraftMediaLibrary Instance...");
-      library = MediaLibraryProvider.create(this);
+
+      library = LibraryProvider.builder().plugin(this).build();
 
       log("Loading Commands...");
       registerCommands();
@@ -188,7 +188,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
     return encoderConfiguration;
   }
 
-  public MediaLibrary library() {
+  public MediaLibraryCore library() {
     return library;
   }
 

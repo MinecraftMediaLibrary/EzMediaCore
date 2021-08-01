@@ -95,7 +95,7 @@ public abstract class ConfigurationProvider {
 
   abstract void deserialize();
 
-  abstract void serialize();
+  abstract void serialize() throws IOException;
 
   public DeluxeMediaPlugin getPlugin() {
     return plugin;

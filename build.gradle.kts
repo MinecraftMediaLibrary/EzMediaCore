@@ -1,5 +1,5 @@
-description = "minecraftmedialibrary-parent"
-version = "1.4.0"
+group = "io.github.pulsebeat02"
+version = "1.0.0"
 
 plugins {
     java

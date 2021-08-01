@@ -23,18 +23,16 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.minecraftmedialibrary.http.HttpDaemon;
-import io.github.pulsebeat02.minecraftmedialibrary.http.HttpFileDaemonServer;
-import io.github.pulsebeat02.minecraftmedialibrary.http.request.ZipHeader;
-import io.github.pulsebeat02.minecraftmedialibrary.logger.Logger;
-import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpDaemonProvider;
-import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.hosting.HttpServerDaemon;
+import io.github.pulsebeat02.epicmedialib.http.HttpDaemon;
+import io.github.pulsebeat02.epicmedialib.resourcepack.hosting.HttpDaemonSolution;
+import io.github.pulsebeat02.epicmedialib.resourcepack.hosting.HttpServer;
+import java.io.IOException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 public class HttpConfiguration extends ConfigurationProvider {
 
-  private HttpServerDaemon daemon;
+  private HttpDaemonSolution daemon;
   private boolean enabled;
 
   public HttpConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
@@ -45,24 +43,21 @@ public class HttpConfiguration extends ConfigurationProvider {
   public void deserialize() {
     final FileConfiguration configuration = getFileConfiguration();
     configuration.set("enabled", enabled);
-    configuration.set("port", daemon.getPort());
+    configuration.set("port", daemon.getDaemon().getPort());
     final HttpDaemon http = daemon.getDaemon();
     configuration.set(
         "directory",
         getPlugin()
             .getDataFolder()
             .toPath()
-            .relativize(http.getDirectory().toAbsolutePath())
+            .relativize(http.getServerPath().toAbsolutePath())
             .toString());
-    configuration.set(
-        "header",
-        ((HttpFileDaemonServer) http).getZipHeader() == ZipHeader.ZIP ? "ZIP" : "OCTET_STREAM");
     configuration.set("verbose", http.isVerbose());
     saveConfig();
   }
 
   @Override
-  public void serialize() {
+  public void serialize() throws IOException {
     final FileConfiguration configuration = getFileConfiguration();
     final boolean enabled = configuration.getBoolean("enabled");
     final String ip = configuration.getString("ip");
@@ -71,28 +66,18 @@ public class HttpConfiguration extends ConfigurationProvider {
         String.format(
             "%s/%s",
             getPlugin().getDataFolder().getAbsolutePath(), configuration.getString("directory"));
-    final String header = configuration.getString("header");
     final boolean verbose = configuration.getBoolean("verbose");
     if (enabled) {
-      if (ip == null || ip.equals("public")) {
-        daemon = new HttpDaemonProvider(directory, port);
-      } else {
-        daemon = new HttpDaemonProvider(directory, port, ip);
-      }
-      final HttpFileDaemonServer http = (HttpFileDaemonServer) daemon.getDaemon();
-      if (header == null) {
-        Logger.info(
-            "Invalid Header in httpserver.yml! Can only be ZIP or OCTET-STREAM. Resorting to ZIP.");
-      }
-      http.setZipHeader(
-          header == null || header.equals("ZIP") ? ZipHeader.ZIP : ZipHeader.OCTET_STREAM);
-      http.setVerbose(verbose);
+      daemon =
+          ip == null || ip.equals("public")
+              ? new HttpServer(directory, port)
+              : new HttpServer(directory, ip, port, verbose);
       daemon.startServer();
     }
     this.enabled = enabled;
   }
 
-  public HttpServerDaemon getDaemon() {
+  public HttpDaemonSolution getDaemon() {
     return daemon;
   }
 

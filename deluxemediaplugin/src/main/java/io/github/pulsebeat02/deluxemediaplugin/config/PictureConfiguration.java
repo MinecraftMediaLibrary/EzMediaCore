@@ -23,6 +23,8 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import io.github.pulsebeat02.epicmedialib.MediaLibraryCore;
+import io.github.pulsebeat02.epicmedialib.image.StaticImage;
 import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImage;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
@@ -39,7 +41,7 @@ import java.util.Set;
 
 public class PictureConfiguration extends ConfigurationProvider {
 
-  private final Set<StaticImageProxy> images;
+  private final Set<StaticImage> images;
 
   public PictureConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, "configuration/picture.yml");
@@ -71,7 +73,7 @@ public class PictureConfiguration extends ConfigurationProvider {
   @Override
   public void serialize() {
     final FileConfiguration configuration = getFileConfiguration();
-    final MediaLibrary library = getPlugin().library();
+    final MediaLibraryCore library = getPlugin().library();
     for (final String key : configuration.getKeys(false)) {
       final int id = Integer.parseInt(key);
       final Path file =

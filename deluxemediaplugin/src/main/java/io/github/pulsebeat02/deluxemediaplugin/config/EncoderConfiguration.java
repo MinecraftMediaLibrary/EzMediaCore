@@ -23,14 +23,14 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionConfiguration;
-import io.github.pulsebeat02.minecraftmedialibrary.extractor.ExtractionSetting;
+import io.github.pulsebeat02.epicmedialib.extraction.AudioAttributes;
+import io.github.pulsebeat02.epicmedialib.extraction.AudioConfiguration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 public class EncoderConfiguration extends ConfigurationProvider {
 
-  private ExtractionConfiguration settings;
+  private AudioConfiguration settings;
 
   public EncoderConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, "configuration/encoder.yml");
@@ -53,10 +53,10 @@ public class EncoderConfiguration extends ConfigurationProvider {
     final int channels = configuration.getInt("channels");
     final int samplingRate = configuration.getInt("sampling-rate");
     final int volume = configuration.getInt("volume");
-    settings = new ExtractionSetting("libvorbis", bitrate, channels, samplingRate, volume);
+    settings = new AudioAttributes("libvorbis", bitrate, channels, samplingRate, volume);
   }
 
-  public ExtractionConfiguration getSettings() {
+  public AudioConfiguration getSettings() {
     return settings;
   }
 }

@@ -1,34 +1,32 @@
-[![Build Status](https://img.shields.io/circleci/build/github/MinecraftMediaLibrary/MinecraftMediaLibrary?style=for-the-badge)](https://app.circleci.com/pipelines/github/MinecraftMediaLibrary/MinecraftMediaLibrary)
+[![Build Status](https://img.shields.io/circleci/build/github/MinecraftMediaLibrary/EpicMediaLib?style=for-the-badge)](https://app.circleci.com/pipelines/github/MinecraftMediaLibrary/MinecraftMediaLibrary)
 [![Documentation Status](https://img.shields.io/readthedocs/minecraftmedialibrary-wiki/latest?style=for-the-badge)](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/)
 [![Discord](https://img.shields.io/discord/817501569108017223?style=for-the-badge)](https://discord.gg/qVhhbCWQQV)
 [![Language](https://img.shields.io/badge/Made%20with-Java-1f425f.svg?style=for-the-badge)](https://www.java.com/en/)
-[![Lines of Code](https://img.shields.io/tokei/lines/github/MinecraftMediaLibrary/MinecraftMediaLibrary?style=for-the-badge)](https://github.com/MinecraftMediaLibrary/MinecraftMediaLibrary)
+[![Lines of Code](https://img.shields.io/tokei/lines/github/MinecraftMediaLibrary/EpicMediaLib?style=for-the-badge)](https://github.com/MinecraftMediaLibrary/EpicMediaLib)
 
 [![Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/PulseBeat02/MinecraftMediaLibrary)
 
-<img src="https://i.imgur.com/48CJD9j.png" alt="drawing" width="1000"/>
+<img src="https://github.com/MinecraftMediaLibrary/EpicMediaLib/tree/dev/logo.gif" alt="drawing" width="1000"/>
 
 ![Swag](http://ForTheBadge.com/images/badges/built-with-swag.svg)
 ---
 
 # Please Note
-I am currently rewriting MinecraftMediaLibrary from scratch. More information about the repo where I rewrite it here (it is temporary and I will eventually merge it back into this repo): https://github.com/PulseBeat02/MinecraftMediaLibrary-Rewrite-Temp
+I am currently rewriting EpicMediaLib from scratch. More information about the repo where I rewrite it here 
+(it is temporary and I will eventually merge it back into this repo): https://github.com/PulseBeat02/EpicMediaLib-Rewrite
 
 ## Introduction
 
 **MinecraftMediaLibrary** is a library written along the Spigot API and net.minecraft.server classes to provide helpful
 and useful classes for other plugins to take advantage of. One of the most important features perhaps is its ability to
-play **videos** on a Minecraft Spigot server. It uses
-a [very optimized dithering method](https://github.com/MinecraftMediaLibrary/MinecraftMediaLibrary/blob/fdf5d6ad1e936680dd4aa0f372aad065b4f3a28a/MinecraftMediaLibrary-API/src/main/java/com/github/pulsebeat02/minecraftmedialibrary/frame/dither/FilterLiteDither.java#L200)
-along side with
-**VLC Media Player Integration** if necessary to parse the video even quicker. As a result, frames can reach up to **35** 
-times per second at times with very good quality on maps if necessary. In comparison, a *smooth* animation is one
-which is approximately **25** frames. Here is a demo of what it would look like:
+play **videos** on a Minecraft Spigot server. It uses a very optimized dithering method alongside **VLC Media Player**
+for extra hardware acceleration to play the video at higher frame rates. As a result, rates can reach up to **35** frames 
+per second at times with extremely great quality on maps. As a comparison, a *smooth* animation is approximately **25** frames.
+Here is a demo of what video playback looks like:
 
-[![Video Playerback](http://img.youtube.com/vi/9oIns_Kp_sk/0.jpg)](https://www.youtube.com/watch?v=9oIns_Kp_sk&t=30s)
+[![Video Player](http://img.youtube.com/vi/9oIns_Kp_sk/0.jpg)](https://www.youtube.com/watch?v=9oIns_Kp_sk&t=30s)
 
-The plugin takes advantages of maps, entities, and other possible methods to handle video playback. Currently, it uses 
-maps with ids to display the video.
+The plugin takes advantages of maps, entities, scoreboard, and other possible methods to handle video playback.
 
 ## First Steps
 
@@ -101,12 +99,12 @@ dependencies {
 
 ---
 
-Most of the code is documented which can be found [here](https://minecraftmedialibrary.github.io/MinecraftMediaLibrary/)
+Most of the code is documented which can be found [here](https://minecraftmedialibrary.github.io/EpicMediaLib/)
 . For detailed documentation with explanations, visit
 the [readthedocs page](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/) (which is still in progress).
 
 However, if you want examples, you can take a look
-at [this module](https://github.com/MinecraftMediaLibrary/MinecraftMediaLibrary/tree/master/DeluxeMediaPlugin/src/main/java/io/github/pulsebeat02/deluxemediaplugin)
+at [this module](https://github.com/MinecraftMediaLibrary/EpicMediaLib/tree/master/DeluxeMediaPlugin/src/main/java/io/github/pulsebeat02/deluxemediaplugin)
 where I wrote comments for every piece of code in the plugin which used the library. It is the plugin I used that
 displayed the video.
 
@@ -131,9 +129,5 @@ Thanks to [Mishal321](https://github.com/mishal321), they freely gave us a publi
 - [Matt](https://github.com/ipsk) for his [GUI Framework](https://github.com/TriumphTeam/gui/tree/development).
 - And also developers of the libraries I use. Without these libraries, the development would've been a much more
   pain-staking process.
-
-**Please Note**:
-I am not afflicted with Minecraft or Mojang in any way. This is a reminder due to how I have Minecraft in the library's
-name.
-
+- 
 ---
