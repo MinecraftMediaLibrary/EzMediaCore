@@ -31,8 +31,8 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
+import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherSetting;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -173,7 +173,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
     } else {
       audience.sendMessage(
           format(ofChildren(text("Set dither type to ", GOLD), text(algorithm, AQUA))));
-      attributes.setDither(setting.getHolder());
+      attributes.setDither(setting);
     }
     return SINGLE_SUCCESS;
   }

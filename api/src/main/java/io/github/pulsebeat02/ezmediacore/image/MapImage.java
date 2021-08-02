@@ -5,6 +5,7 @@ import io.github.pulsebeat02.ezmediacore.utility.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
 
 public interface MapImage extends LibraryInjectable, Dimension {
@@ -25,4 +26,7 @@ public interface MapImage extends LibraryInjectable, Dimension {
 
   @NotNull
   MapRenderer getRenderer();
+
+  @NotNull
+  UUID getIdentifier();
 }

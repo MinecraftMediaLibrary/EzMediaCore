@@ -6,6 +6,7 @@ import io.github.pulsebeat02.ezmediacore.utility.ImageUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
+import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class Image implements MapImage {
@@ -15,6 +16,7 @@ public abstract class Image implements MapImage {
   private final ImmutableDimension dimension;
   private final int[][] maps;
   private final Path image;
+  private final UUID uuid;
 
   public Image(
       @NotNull final MediaLibraryCore core,
@@ -27,6 +29,7 @@ public abstract class Image implements MapImage {
     this.image = image;
     this.maps = maps;
     this.dimension = dimension;
+    this.uuid = UUID.randomUUID();
   }
 
   @Override
@@ -77,5 +80,10 @@ public abstract class Image implements MapImage {
   @Override
   public @NotNull MapRenderer getRenderer() {
     return this.renderer;
+  }
+
+  @Override
+  public @NotNull UUID getIdentifier() {
+    return uuid;
   }
 }

@@ -22,10 +22,8 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
-import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherHolder;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.dither.DitherSetting;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.player.VideoPlayerContext;
+import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherSetting;
+import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
@@ -35,8 +33,8 @@ public final class VideoCommandAttributes {
   private final AtomicBoolean completion;
 
   private YoutubeExtraction extractor;
-  private VideoPlayerContext player;
-  private DitherHolder dither;
+  private VideoPlayer player;
+  private DitherSetting dither;
   private VideoType mode;
   private String video;
   private Path audio;
@@ -52,7 +50,7 @@ public final class VideoCommandAttributes {
   private byte[] hash;
 
   public VideoCommandAttributes() {
-    dither = DitherSetting.SIERRA_FILTER_LITE_DITHER.getHolder();
+    dither = DitherSetting.FILTER_LITE;
     frameWidth = 5;
     frameHeight = 5;
     screenWidth = 640;
@@ -61,11 +59,11 @@ public final class VideoCommandAttributes {
     mode = VideoType.ITEMFRAME;
   }
 
-  public DitherHolder getDither() {
+  public DitherSetting getDither() {
     return dither;
   }
 
-  public void setDither(final DitherHolder dither) {
+  public void setDither(final DitherSetting dither) {
     this.dither = dither;
   }
 
@@ -77,11 +75,11 @@ public final class VideoCommandAttributes {
     this.extractor = extractor;
   }
 
-  public VideoPlayerContext getPlayer() {
+  public VideoPlayer getPlayer() {
     return player;
   }
 
-  public void setPlayer(final VideoPlayerContext player) {
+  public void setPlayer(final VideoPlayer player) {
     this.player = player;
   }
 

@@ -7,7 +7,7 @@ import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import org.jcodec.codecs.mjpeg.tools.AssertionException;
 import org.jetbrains.annotations.NotNull;
 
-public class VideoBuilder {
+public final class VideoBuilder {
 
   private MediaLibraryCore core;
   private FrameCallback callback;

@@ -30,10 +30,11 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.image.DynamicImage;
+import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
+import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImage;
-import io.github.pulsebeat02.minecraftmedialibrary.image.gif.DynamicImage;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.FileUtilities;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -60,45 +61,49 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final ImageCommandAttributes attributes) {
     this.plugin = plugin;
     this.attributes = attributes;
-    node =
-        literal("set")
+    this.node =
+            this.literal("set")
             .then(
-                literal("map")
+                    this.literal("map")
                     .then(
-                        argument("id", IntegerArgumentType.integer(-2_147_483_647, 2_147_483_647))
+                            this.argument("id", IntegerArgumentType.integer(-2_147_483_647, 2_147_483_647))
                             .then(
-                                argument("mrl", StringArgumentType.greedyString())
+                                    this.argument("mrl", StringArgumentType.greedyString())
                                     .executes(this::setImage))))
             .then(
-                literal("dimensions")
+                    this.literal("dimensions")
                     .then(
-                        argument("dims", StringArgumentType.word()).executes(this::setDimensions)))
+                            this.argument("dims", StringArgumentType.word()).executes(this::setDimensions)))
             .build();
   }
 
   private int setImage(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin.audience().sender(context.getSource());
+    final Audience audience = this.plugin.audience().sender(context.getSource());
     final int id = context.getArgument("id", int.class);
     final String mrl = context.getArgument("mrl", String.class);
     final ComponentLike successful =
         format(text(String.format("Successfully drew image on map %d", id), GOLD));
-    final MediaLibraryCore library = plugin.library();
-    final Set<String> extensions = attributes.getExtensions();
-    final int width = attributes.getWidth();
-    final int height = attributes.getHeight();
-    if (isUrl(mrl)) {
-      final Path img = FileUtilities.downloadImageFile(mrl, plugin.library().getParentFolder());
-      final String name = PathUtilities.getName(img).toLowerCase();
-      if (name.endsWith(".gif")) {
-        new DynamicImage(library, id, img, width, height).drawImage();
-      } else if (extensions.stream().anyMatch(name::endsWith)) {
-        new StaticImage(library, id, img, width, height).drawImage();
+    final MediaLibraryCore library = this.plugin.library();
+    final Set<String> extensions = this.attributes.getExtensions();
+    final int width = this.attributes.getWidth();
+    final int height = this.attributes.getHeight();
+    if (this.isUrl(mrl)) {
+      try {
+        final Path img = FileUtils.downloadImageFile(mrl, this.plugin.library().getLibraryPath());
+        final String name = PathUtils.getName(img).toLowerCase();
+        if (name.endsWith(".gif")) {
+          new DynamicImage(library, id, img, width, height).drawImage();
+        } else if (extensions.stream().anyMatch(name::endsWith)) {
+          new StaticImage(library, id, img, width, height).drawImage();
+        }
+        audience.sendMessage(successful);
+      } catch (final IOException e) {
+        e.printStackTrace();
       }
-      audience.sendMessage(successful);
     } else {
-      final Path img = Paths.get(plugin.getDataFolder().toString()).resolve(mrl);
+      final Path img = Paths.get(this.plugin.getDataFolder().toString()).resolve(mrl);
       if (Files.exists(img)) {
-        final String name = PathUtilities.getName(img).toLowerCase();
+        final String name = PathUtils.getName(img).toLowerCase();
         if (name.endsWith(".gif")) {
           new StaticImage(library, id, img, width, height).drawImage();
         } else if (extensions.stream().anyMatch(name::endsWith)) {
@@ -107,29 +112,28 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
         audience.sendMessage(successful);
       } else {
         audience.sendMessage(
-            format(
-                text(String.format("File %s cannot be found!", PathUtilities.getName(img)), RED)));
+            format(text(String.format("File %s cannot be found!", PathUtils.getName(img)), RED)));
       }
     }
     return 1;
   }
 
   private int setDimensions(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin.audience().sender(context.getSource());
+    final Audience audience = this.plugin.audience().sender(context.getSource());
     final Optional<int[]> optional =
         ChatUtils.checkDimensionBoundaries(audience, context.getArgument("dims", String.class));
     if (!optional.isPresent()) {
       return SINGLE_SUCCESS;
     }
     final int[] dims = optional.get();
-    attributes.setWidth(dims[0]);
-    attributes.setHeight(dims[1]);
+    this.attributes.setWidth(dims[0]);
+    this.attributes.setHeight(dims[1]);
     audience.sendMessage(
         format(
             text(
                 String.format(
                     "Changed itemframe dimensions to %d:%d (width:height)",
-                    attributes.getWidth(), attributes.getHeight()))));
+                        this.attributes.getWidth(), this.attributes.getHeight()))));
     return SINGLE_SUCCESS;
   }
 
@@ -139,6 +143,6 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
 
   @Override
   public @NotNull LiteralCommandNode<CommandSender> node() {
-    return node;
+    return this.node;
   }
 }

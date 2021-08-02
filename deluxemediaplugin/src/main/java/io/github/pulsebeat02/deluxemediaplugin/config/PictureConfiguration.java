@@ -28,6 +28,7 @@ import io.github.pulsebeat02.ezmediacore.image.DynamicImage;
 import io.github.pulsebeat02.ezmediacore.image.Image;
 import io.github.pulsebeat02.ezmediacore.image.StaticImage;
 import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,8 +36,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
+
+import static java.util.Objects.requireNonNull;
 
 public class PictureConfiguration extends ConfigurationProvider {
 
@@ -65,9 +69,13 @@ public class PictureConfiguration extends ConfigurationProvider {
   public void deserialize() {
     final FileConfiguration configuration = getFileConfiguration();
     for (final Image image : images) {
-      final Path key = image.getImagePath();
-      configuration.set(String.format("%d.maps", key), image.getMapMatrix());
-      configuration.set(String.format("%d.dimension", key), image.getDimensions());
+      final UUID uuid = image.getIdentifier();
+      final Path path = image.getImagePath();
+      final int[][] matrix = image.getMapMatrix();
+      final ImmutableDimension dimension = image.getDimensions();
+      configuration.set(String.format("%s.path", uuid), path);
+      configuration.set(String.format("%s.matrix", uuid), matrix);
+      configuration.set(String.format("%s.dimension", uuid), dimension);
     }
     saveConfig();
   }
@@ -77,14 +85,27 @@ public class PictureConfiguration extends ConfigurationProvider {
     final FileConfiguration configuration = getFileConfiguration();
     final MediaLibraryCore library = getPlugin().library();
     for (final String key : configuration.getKeys(false)) {
-      final Path path = Paths.get(key);
+
+      final UUID uuid = UUID.fromString(key);
+      final Path path =
+          Paths.get(requireNonNull(configuration.getString(String.format("%s.path", uuid))));
+      final int[][] matrix = configuration.getIntegerList(String.format("%s.matrix", uuid));
+      final ImmutableDimension dimension =
+          configuration.getSerializable(
+              requireNonNull(configuration.getString(String.format("%s.dimension", uuid))),
+              ImmutableDimension.class);
+
 
       if (!Files.exists(path)) {
         continue;
       }
 
-      final int width = configuration.getInt(String.format("%d.width", id));
-      final int height = configuration.getInt(String.format("%d.height", id));
+      images.add(
+              PathUtils.getName(path).endsWith("gif") ? new StaticImage(library, path, )
+      )
+
+
+
       images.add(
           StaticImage.builder().map(id).image(file).width(width).height(height).build(library));
     }

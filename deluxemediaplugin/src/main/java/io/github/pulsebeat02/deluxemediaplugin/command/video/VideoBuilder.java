@@ -23,8 +23,8 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
-import io.github.pulsebeat02.minecraftmedialibrary.MediaLibrary;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.player.VideoPlayerContext;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.player.VideoPlayerProvider;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.player.callback.BlockHighlightCallback;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.player.callback.ChatCallback;
@@ -37,88 +37,92 @@ import org.jetbrains.annotations.NotNull;
 
 public final class VideoBuilder {
 
-  private final MediaLibrary library;
+  private final MediaLibraryCore library;
   private final VideoCommandAttributes attributes;
 
   public VideoBuilder(
-      @NotNull final MediaLibrary library, @NotNull final VideoCommandAttributes attributes) {
+      @NotNull final MediaLibraryCore library, @NotNull final VideoCommandAttributes attributes) {
     this.library = library;
     this.attributes = attributes;
   }
 
-  public VideoPlayerContext createMapPlayer() {
-    return VideoPlayerProvider.createMapPlayer(
-        library,
-        attributes.getVideo().toString(),
+  public VideoPlayer createMapPlayer() {
+    return VideoBuilder.builder()
+
+
+
+    return VideoBuilder.createMapPlayer(
+            this.library,
+            this.attributes.getVideo().toString(),
         MapDataCallback.builder()
             .viewers(null)
-            .map(attributes.getStartingMap())
-            .itemframeWidth(attributes.getFrameWidth())
-            .itemframeHeight(attributes.getFrameHeight())
-            .videoWidth(attributes.getScreenWidth())
+            .map(this.attributes.getStartingMap())
+            .itemframeWidth(this.attributes.getFrameWidth())
+            .itemframeHeight(this.attributes.getFrameHeight())
+            .videoWidth(this.attributes.getScreenWidth())
             .delay(0)
-            .ditherHolder(attributes.getDither())
-            .build(library),
-        attributes.getScreenWidth(),
-        attributes.getScreenHeight());
+            .ditherHolder(this.attributes.getDither())
+            .build(this.library),
+            this.attributes.getScreenWidth(),
+            this.attributes.getScreenHeight());
   }
 
-  public VideoPlayerContext createEntityPlayer(@NotNull final Player sender) {
+  public VideoPlayer createEntityPlayer(@NotNull final Player sender) {
     return VideoPlayerProvider.createEntityPlayer(
-        library,
-        attributes.getVideo().toString(),
+            this.library,
+            this.attributes.getVideo().toString(),
         EntityCallback.builder()
             .viewers(null)
-            .entityWidth(attributes.getScreenWidth())
-            .entityHeight(attributes.getScreenHeight())
+            .entityWidth(this.attributes.getScreenWidth())
+            .entityHeight(this.attributes.getScreenHeight())
             .delay(40)
             .location(sender.getLocation())
             .type(ScreenEntityType.ARMORSTAND)
-            .build(library),
-        attributes.getScreenWidth(),
-        attributes.getScreenHeight());
+            .build(this.library),
+            this.attributes.getScreenWidth(),
+            this.attributes.getScreenHeight());
   }
 
-  public VideoPlayerContext createChatBoxPlayer() {
+  public VideoPlayer createChatBoxPlayer() {
     return VideoPlayerProvider.createChatPlayer(
-        library,
-        attributes.getVideo().toString(),
+            this.library,
+            this.attributes.getVideo().toString(),
         ChatCallback.builder()
             .viewers(null)
-            .chatWidth(attributes.getScreenWidth())
-            .chatHeight(attributes.getScreenHeight())
+            .chatWidth(this.attributes.getScreenWidth())
+            .chatHeight(this.attributes.getScreenHeight())
             .delay(40)
-            .build(library),
-        attributes.getScreenWidth(),
-        attributes.getScreenHeight());
+            .build(this.library),
+            this.attributes.getScreenWidth(),
+            this.attributes.getScreenHeight());
   }
 
-  public VideoPlayerContext createScoreboardPlayer() {
+  public VideoPlayer createScoreboardPlayer() {
     return VideoPlayerProvider.createScoreboardPlayer(
-        library,
-        attributes.getVideo().toString(),
+            this.library,
+            this.attributes.getVideo().toString(),
         ScoreboardCallback.builder()
             .viewers(null)
-            .scoreboardWidth(attributes.getScreenWidth())
-            .scoreboardHeight(attributes.getScreenHeight())
+            .scoreboardWidth(this.attributes.getScreenWidth())
+            .scoreboardHeight(this.attributes.getScreenHeight())
             .delay(40)
-            .build(library),
-        attributes.getScreenWidth(),
-        attributes.getScreenHeight());
+            .build(this.library),
+            this.attributes.getScreenWidth(),
+            this.attributes.getScreenHeight());
   }
 
-  public VideoPlayerContext createBlockHighlightPlayer(@NotNull final Player sender) {
+  public VideoPlayer createBlockHighlightPlayer(@NotNull final Player sender) {
     return VideoPlayerProvider.createBlockHighlightPlayer(
-        library,
-        attributes.getVideo().toString(),
+            this.library,
+            this.attributes.getVideo().toString(),
         BlockHighlightCallback.builder()
             .viewers(null)
-            .highlightWidth(attributes.getScreenWidth())
-            .highlightHeight(attributes.getScreenHeight())
+            .highlightWidth(this.attributes.getScreenWidth())
+            .highlightHeight(this.attributes.getScreenHeight())
             .delay(40)
             .location(sender.getLocation())
-            .build(library),
-        attributes.getScreenWidth(),
-        attributes.getScreenHeight());
+            .build(this.library),
+            this.attributes.getScreenWidth(),
+            this.attributes.getScreenHeight());
   }
 }

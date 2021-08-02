@@ -37,21 +37,21 @@ import org.jetbrains.annotations.NotNull;
 public abstract class ConfigurationProvider {
 
   private final DeluxeMediaPlugin plugin;
-  private final String fileName;
+  private final String name;
+  private final Path config;
 
-  private final Path configFile;
   private FileConfiguration fileConfiguration;
 
   public ConfigurationProvider(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final String name) {
     this.plugin = plugin;
-    fileName = name;
-    configFile = Paths.get(plugin.getDataFolder().toString()).resolve(fileName);
+    this.name = name;
+    config = Paths.get(plugin.getDataFolder().toString()).resolve(this.name);
   }
 
   public void reloadConfig() {
-    fileConfiguration = YamlConfiguration.loadConfiguration(configFile.toFile());
-    final InputStream defConfigStream = plugin.getResource(fileName);
+    fileConfiguration = YamlConfiguration.loadConfiguration(config.toFile());
+    final InputStream defConfigStream = plugin.getResource(name);
     if (defConfigStream != null) {
       final YamlConfiguration defConfig =
           YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
@@ -67,29 +67,33 @@ public abstract class ConfigurationProvider {
   }
 
   public void saveConfig() {
-    if (fileConfiguration != null && configFile != null) {
+    if (fileConfiguration != null && config != null) {
       try {
-        getConfig().save(configFile.toFile());
+        getConfig().save(config.toFile());
       } catch (final IOException e) {
         plugin
             .getLogger()
-            .log(Level.SEVERE, String.format("Could not save config to %s", configFile), e);
+            .log(Level.SEVERE, String.format("Could not save config to %s", config), e);
       }
     }
   }
 
   public void saveDefaultConfig() {
-    if (!Files.exists(configFile)) {
-      plugin.saveResource(fileName, false);
+    if (!Files.exists(config)) {
+      plugin.saveResource(name, false);
     }
   }
 
   public void read() {
-    if (!Files.exists(configFile)) {
+    if (!Files.exists(config)) {
       saveDefaultConfig();
     }
     getConfig();
-    serialize();
+    try {
+      serialize();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   abstract void deserialize();
@@ -101,11 +105,11 @@ public abstract class ConfigurationProvider {
   }
 
   public String getFileName() {
-    return fileName;
+    return name;
   }
 
   public Path getConfigFile() {
-    return configFile;
+    return config;
   }
 
   public FileConfiguration getFileConfiguration() {

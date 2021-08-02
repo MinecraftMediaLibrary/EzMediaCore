@@ -28,6 +28,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegAudioTrimmerHelper;
 import io.github.pulsebeat02.minecraftmedialibrary.frame.player.VideoPlayerContext;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
@@ -111,12 +112,12 @@ public final class VideoCommand extends BaseCommand {
         break;
     }
     sendPlayInformation(audience);
-    attributes.getPlayer().start(Bukkit.getOnlinePlayers());
+    attributes.getPlayer().setPlayerState(PlayerControls.START);
     return SINGLE_SUCCESS;
   }
 
   private int stopVideo(@NotNull final CommandContext<CommandSender> context) {
-    attributes.getPlayer().stop(Bukkit.getOnlinePlayers());
+    attributes.getPlayer().setPlayerState(PlayerControls.PAUSE);
     plugin()
         .audience()
         .sender(context.getSource())
