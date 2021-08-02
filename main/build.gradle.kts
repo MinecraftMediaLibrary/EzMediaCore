@@ -1,7 +1,7 @@
 dependencies {
 
     compileOnlyApi("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
-    implementation("io.github.slimjar:slimjar:1.2.0")
+    implementation("io.github.slimjar:slimjar:1.2.4")
     compileOnly("uk.co.caprica:vlcj:4.7.1")
     compileOnly("uk.co.caprica:vlcj-natives:4.1.0")
     compileOnly("uk.co.caprica:native-streams:1.0.0")

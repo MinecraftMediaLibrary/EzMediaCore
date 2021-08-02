@@ -29,7 +29,6 @@ import io.github.pulsebeat02.ezmediacore.image.Image;
 import io.github.pulsebeat02.ezmediacore.image.StaticImage;
 import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
-import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,27 +47,29 @@ public class PictureConfiguration extends ConfigurationProvider {
 
   public PictureConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, "configuration/picture.yml");
-    images = new HashSet<>();
+    this.images = new HashSet<>();
   }
 
   public void addNormalPhoto(
       final int[][] maps, @NotNull final Path file, final int width, final int height)
       throws IOException {
-    images.add(
-        new StaticImage(getPlugin().library(), file, maps, new ImmutableDimension(width, height)));
+    this.images.add(
+        new StaticImage(
+            this.getPlugin().library(), file, maps, new ImmutableDimension(width, height)));
   }
 
   public void addGif(
       final int[][] maps, @NotNull final Path file, final int width, final int height)
       throws IOException {
-    images.add(
-        new DynamicImage(getPlugin().library(), file, maps, new ImmutableDimension(width, height)));
+    this.images.add(
+        new DynamicImage(
+            this.getPlugin().library(), file, maps, new ImmutableDimension(width, height)));
   }
 
   @Override
   public void deserialize() {
-    final FileConfiguration configuration = getFileConfiguration();
-    for (final Image image : images) {
+    final FileConfiguration configuration = this.getFileConfiguration();
+    for (final Image image : this.images) {
       final UUID uuid = image.getIdentifier();
       final Path path = image.getImagePath();
       final int[][] matrix = image.getMapMatrix();
@@ -77,41 +78,40 @@ public class PictureConfiguration extends ConfigurationProvider {
       configuration.set(String.format("%s.matrix", uuid), matrix);
       configuration.set(String.format("%s.dimension", uuid), dimension);
     }
-    saveConfig();
+    this.saveConfig();
   }
 
   @Override
-  public void serialize() {
-    final FileConfiguration configuration = getFileConfiguration();
-    final MediaLibraryCore library = getPlugin().library();
+  public void serialize() throws IOException {
+    final FileConfiguration configuration = this.getFileConfiguration();
+    final MediaLibraryCore library = this.getPlugin().library();
     for (final String key : configuration.getKeys(false)) {
+
+      // TODO: 8/1/2021 FIX THIS CAUSE THIS DEF DOESNT WORK LMAO
 
       final UUID uuid = UUID.fromString(key);
       final Path path =
           Paths.get(requireNonNull(configuration.getString(String.format("%s.path", uuid))));
-      final int[][] matrix = configuration.getIntegerList(String.format("%s.matrix", uuid));
+      final int[][] matrix =
+          (int[][]) configuration.get(String.format("%s.matrix", uuid)); // this def doesnt work
       final ImmutableDimension dimension =
-          configuration.getSerializable(
-              requireNonNull(configuration.getString(String.format("%s.dimension", uuid))),
-              ImmutableDimension.class);
-
+          requireNonNull(
+              configuration.getSerializable(
+                  requireNonNull(configuration.getString(String.format("%s.dimension", uuid))),
+                  ImmutableDimension.class));
 
       if (!Files.exists(path)) {
         continue;
       }
 
-      images.add(
-              PathUtils.getName(path).endsWith("gif") ? new StaticImage(library, path, )
-      )
-
-
-
-      images.add(
-          StaticImage.builder().map(id).image(file).width(width).height(height).build(library));
+      this.images.add(
+          PathUtils.getName(path).endsWith("gif")
+              ? new StaticImage(library, path, matrix, dimension)
+              : new DynamicImage(library, path, matrix, dimension));
     }
   }
 
-  public Set<StaticImageProxy> getImages() {
-    return images;
+  public Set<Image> getImages() {
+    return this.images;
   }
 }
