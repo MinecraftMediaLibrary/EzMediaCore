@@ -2,6 +2,7 @@ package io.github.pulsebeat02.ezmediacore.http;
 
 import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.Logger;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipHeader;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipRequest;
 import java.io.IOException;
@@ -9,7 +10,6 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.bukkit.Bukkit;
@@ -23,6 +23,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
     EXECUTOR_SERVICE = Executors.newCachedThreadPool();
   }
 
+  private final MediaLibraryCore core;
   private final Path directory;
   private final String ip;
   private final int port;
@@ -33,11 +34,15 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   private boolean running;
 
   public HttpServerDaemon(
-      @NotNull final String path, @NotNull final String ip, final int port, final boolean verbose)
+      @NotNull final MediaLibraryCore core,
+      @NotNull final Path path,
+      @NotNull final String ip,
+      final int port,
+      final boolean verbose)
       throws IOException {
-
+    this.core = core;
     this.running = true;
-    this.directory = Paths.get(path);
+    this.directory = path;
     this.ip = ip;
     this.port = port;
     this.verbose = verbose;
@@ -62,9 +67,14 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
     Logger.info("========================================");
   }
 
+  public HttpServerDaemon(@NotNull final MediaLibraryCore core, @NotNull final String ip, final int port, final boolean verbose)
+      throws IOException {
+    this(core, core.getHttpServerPath(), ip, port, verbose);
+  }
+
   @Override
   public void start() {
-    onServerStart();
+    this.onServerStart();
     Preconditions.checkState(!Bukkit.isPrimaryThread());
     while (this.running) {
       EXECUTOR_SERVICE.submit(
@@ -77,7 +87,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
 
   @Override
   public void stop() {
-    onServerTermination();
+    this.onServerTermination();
     this.running = false;
     if (!this.socket.isClosed()) {
       try {
@@ -125,5 +135,10 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   @Override
   public void setZipHeader(@NotNull final ZipHeader header) {
     this.header = header;
+  }
+
+  @Override
+  public @NotNull MediaLibraryCore getCore() {
+    return this.core;
   }
 }

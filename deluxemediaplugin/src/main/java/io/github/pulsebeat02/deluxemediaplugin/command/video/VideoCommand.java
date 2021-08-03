@@ -30,12 +30,12 @@ import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioTrimmer;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
+import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
+import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
 import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegAudioTrimmerHelper;
-import io.github.pulsebeat02.minecraftmedialibrary.frame.player.VideoPlayerContext;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
 import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
 import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -167,7 +167,7 @@ public final class VideoCommand extends BaseCommand {
   private void buildResourcepack() {
     final Path audio = this.attributes.getAudio();
     final Path ogg = audio.getParent().resolve("temp.ogg");
-    new FFmpegAudioTrimmer(this.plugin().library(), audio, ogg, this.attributes.getPlayer())
+    new FFmpegAudioTrimmer(this.plugin().library(), audio, ogg, this.attributes.getPlayer());
   }
 
   public void sendResourcepackFile() {
@@ -192,27 +192,21 @@ public final class VideoCommand extends BaseCommand {
   }
 
   private void stopIfPlaying() {
-    final VideoPlayerContext player = this.attributes.getPlayer();
-    if (player != null && player.isPlaying()) {
-      player.stop(Bukkit.getOnlinePlayers());
+    final VideoPlayer player = this.attributes.getPlayer();
+    if (player != null) {
+      if (player.getPlayerState() == PlayerControls.START || player.getPlayerState() == PlayerControls.RESUME) {
+        player.setPlayerState(PlayerControls.PAUSE);
+      }
     }
   }
 
   private void sendPlayInformation(@NotNull final Audience audience) {
     if (this.attributes.isYoutube()) {
-      audience.sendMessage(
-          format(
-              text(
-                  String.format("Starting Video on URL: %s", this.attributes.getExtractor().getUrl()),
-                  GOLD)));
+      gold(audience, String.format("Starting Video on URL: %s", this.attributes.getExtractor().getUrl()));
     } else {
-      audience.sendMessage(
-          format(
-              text(
-                  String.format(
-                      "Starting Video on File: %s",
-                      PathUtilities.getName(Paths.get(this.attributes.getVideo()))),
-                  GOLD)));
+      gold(audience, String.format(
+              "Starting Video on File: %s",
+              PathUtils.getName(Paths.get(this.attributes.getVideo()))));
     }
   }
 

@@ -26,11 +26,11 @@ public final class SystemDiagnostics implements Diagnostic {
 
   public SystemDiagnostics(@NotNull final MediaLibraryCore core) {
     this.core = core;
-    this.cpu = getCpuArchitecture();
-    this.system = getOperatingSystem();
-    this.sound = getMixers();
-    initializeDownloadLinks();
-    debugInformation();
+    this.cpu = this.getCpuArchitecture();
+    this.system = this.getOperatingSystem();
+    this.sound = this.getMixers();
+    this.initializeDownloadLinks();
+    this.debugInformation();
   }
 
   private CpuArchitecture getCpuArchitecture() {
@@ -131,7 +131,6 @@ public final class SystemDiagnostics implements Diagnostic {
     Logger.info("===========================================");
     Logger.info(String.format("Plugin Name: %s", plugin.getName()));
     Logger.info(String.format("Plugin Description: %s", plugin.getDescription()));
-    Logger.info(String.format("HTTP Server Path: %s", this.core.getHttpServerPath()));
     Logger.info(String.format("Library Disabled? %s", this.core.isDisabled()));
     Logger.info(String.format("Library Path: %s", this.core.getLibraryPath()));
     Logger.info(String.format("VLC Path: %s", this.core.getVlcPath()));

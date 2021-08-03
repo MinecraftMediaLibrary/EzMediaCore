@@ -14,8 +14,8 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class Image implements MapImage {
 
-  private final MediaLibraryCore core;
-  private final EnhancedMapRenderer renderer;
+  private transient final MediaLibraryCore core;
+  private transient final EnhancedMapRenderer renderer;
   private final ImmutableDimension dimension;
   private final List<Integer> maps;
   private final Path image;

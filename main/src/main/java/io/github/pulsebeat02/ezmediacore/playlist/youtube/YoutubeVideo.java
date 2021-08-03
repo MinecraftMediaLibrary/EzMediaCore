@@ -5,7 +5,7 @@ import com.github.kiulian.downloader.model.videos.VideoDetails;
 import com.github.kiulian.downloader.model.videos.VideoInfo;
 import io.github.pulsebeat02.ezmediacore.throwable.DeadResourceLinkException;
 import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
-import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,19 +43,19 @@ public class YoutubeVideo implements Video {
   }
 
   @Override
-  public @NotNull Collection<String> getKeywords() {
+  public @NotNull List<String> getKeywords() {
     return this.details.keywords();
   }
 
   @Override
-  public @NotNull Collection<VideoFormat> getVideoFormats() {
+  public @NotNull List<VideoFormat> getVideoFormats() {
     return this.video.videoFormats().stream()
         .map(YoutubeVideoFormat::new)
         .collect(Collectors.toList());
   }
 
   @Override
-  public @NotNull Collection<AudioFormat> getAudioFormats() {
+  public @NotNull List<AudioFormat> getAudioFormats() {
     return this.video.audioFormats().stream()
         .map(YoutubeAudioFormat::new)
         .collect(Collectors.toList());

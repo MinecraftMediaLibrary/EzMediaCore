@@ -27,16 +27,19 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
-import io.github.pulsebeat02.minecraftmedialibrary.extractor.YoutubeExtraction;
-import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegAudioExtractionHelper;
-import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
-import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.PathUtilities;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.ResourcepackUtilities;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioExtractor;
+import io.github.pulsebeat02.ezmediacore.playlist.youtube.YoutubeVideoDownloader;
+import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
+import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
+import io.github.pulsebeat02.ezmediacore.utility.HashingUtils;
+import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
+import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
+import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import net.kyori.adventure.audience.Audience;
@@ -46,6 +49,8 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
@@ -61,97 +66,132 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final VideoCommandAttributes attributes) {
     this.plugin = plugin;
     this.attributes = attributes;
-    firstLoad = true;
-    node =
-        literal("load")
-            .then(argument("mrl", StringArgumentType.greedyString()).executes(this::loadVideo))
-            .then(literal("resourcepack").executes(this::sendResourcepack))
+    this.firstLoad = true;
+    this.node =
+        this.literal("load")
+            .then(this.argument("mrl", StringArgumentType.greedyString()).executes(this::loadVideo))
+            .then(this.literal("resourcepack").executes(this::sendResourcepack))
             .build();
   }
 
   private int loadVideo(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin.audience().sender(context.getSource());
+    final Audience audience = this.plugin.audience().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
-    final String folder = String.format("%s/emc/", plugin.getDataFolder().getAbsolutePath());
-    final AtomicBoolean completion = attributes.getCompletion();
+    final String folder = String.format("%s/emc/", this.plugin.getDataFolder().getAbsolutePath());
+    final AtomicBoolean completion = this.attributes.getCompletion();
     audience.sendMessage(
         format(
             text(
                 "Setting up resourcepack for video... this may take a while depending on the length/quality of the video.",
                 GOLD)));
-    if (!VideoExtractionUtilities.getYoutubeID(mrl).isPresent()) {
+    if (!MediaExtractionUtils.getYoutubeID(mrl).isPresent()) {
       final Path file = Paths.get(mrl);
       if (Files.exists(file)) {
         CompletableFuture.runAsync(() -> completion.set(false))
-            .thenRunAsync(() -> wrapResourcepack(setAudioFileAttributes(folder, file)))
+            .thenRunAsync(
+                () -> this.wrapResourcepack(this.setAudioFileAttributes(Paths.get(mrl), folder)))
             .thenRun(this::sendResourcepackFile)
             .thenRun(this::useFirstLoad)
-            .thenRun(() -> sendSuccessfulLoadMessage(audience, mrl))
+            .thenRun(() -> this.sendSuccessfulLoadMessage(audience, mrl))
             .thenRun(() -> completion.set(true));
       } else if (mrl.startsWith("http")) {
-        audience.sendMessage(
-            format(text(String.format("Link %s is not a valid Youtube video link!", mrl), RED)));
+        red(audience, String.format("Link %s is not a valid Youtube video link!", mrl));
       } else {
-        audience.sendMessage(
-            format(
-                text(String.format("File %s cannot be found!", PathUtilities.getName(file)), RED)));
+        red(audience, String.format("File %s cannot be found!", PathUtils.getName(file)));
       }
     } else {
       CompletableFuture.runAsync(() -> completion.set(false))
-          .thenRunAsync(() -> wrapResourcepack(setYoutubeAttributes(mrl, folder)))
+          .thenRunAsync(
+              () -> this.wrapResourcepack(this.setYoutubeAttributes(Paths.get(folder), mrl)))
           .thenRun(this::sendResourcepackFile)
           .thenRun(this::useFirstLoad)
-          .thenRun(() -> sendSuccessfulLoadMessage(audience, mrl))
+          .thenRun(() -> this.sendSuccessfulLoadMessage(audience, mrl))
           .thenRun(() -> completion.set(true));
     }
     return SINGLE_SUCCESS;
   }
 
   private void useFirstLoad() {
-    if (firstLoad) {
-      sendResourcepackFile();
-      firstLoad = false;
+    if (this.firstLoad) {
+      this.sendResourcepackFile();
+      this.firstLoad = false;
     }
   }
 
-  private Path setAudioFileAttributes(@NotNull final String folder, @NotNull final Path file) {
+  private Path setAudioFileAttributes(@NotNull final Path file, @NotNull final String folder) {
+
     final Path audio = Paths.get(folder, "custom.ogg");
-    new FFmpegAudioExtractionHelper(plugin.getEncoderConfiguration().getSettings(), file, audio)
-        .extract();
-    attributes.setExtractor(null);
-    attributes.setVideoMrl(file.toString());
-    attributes.setYoutube(false);
-    attributes.setAudio(audio);
+    new FFmpegAudioExtractor(
+            this.plugin.library(), this.plugin.getEncoderConfiguration().getSettings(), file, audio)
+        .execute();
+
+    this.attributes.setYoutube(false);
+    this.attributes.setVideoMrl(file.toString());
+    this.attributes.setAudio(audio);
+
     return audio;
   }
 
-  private YoutubeExtraction setYoutubeAttributes(
-      @NotNull final String mrl, @NotNull final String folder) {
-    final YoutubeExtraction extraction =
-        new YoutubeExtraction(
-            mrl, Paths.get(folder), plugin.getEncoderConfiguration().getSettings());
-    extraction.extractAudio();
-    attributes.setYoutube(true);
-    attributes.setVideoMrl(extraction.getVideo().toString());
-    attributes.setAudio(extraction.getAudio());
-    attributes.setExtractor(extraction);
-    return extraction;
+  private FFmpegAudioExtractor setYoutubeAttributes(
+      @NotNull final Path folder, @NotNull final String mrl) {
+
+    final YoutubeVideoDownloader downloader =
+        new YoutubeVideoDownloader(mrl, folder.resolve("video.mp4"));
+    downloader.downloadVideo(downloader.getVideo().getVideoFormats().get(0).getQuality(), true);
+
+    final FFmpegAudioExtractor extractor =
+        new FFmpegAudioExtractor(
+            this.plugin.library(),
+            this.plugin.getEncoderConfiguration().getSettings(),
+            downloader.getDownloadPath(),
+            folder.resolve("audio.ogg"));
+    extractor.execute();
+
+    this.attributes.setYoutube(true);
+    this.attributes.setVideoMrl(mrl);
+    this.attributes.setAudio(extractor.getOutput());
+
+    return extractor;
   }
 
   private void wrapResourcepack(@NotNull final Path audio) {
-    final PackWrapper wrapper = ResourcepackWrapper.of(plugin.library(), audio);
-    wrapper.buildResourcePack();
-    final Path path = Paths.get(wrapper.getPath());
-    attributes.setResourcepackUrl(plugin.getHttpConfiguration().getServer().generateUrl(path));
-    attributes.setHash(VideoExtractionUtilities.createHashSHA(path));
+
+    try {
+
+      final HttpServer daemon = this.plugin.getHttpConfiguration().getServer();
+      final ResourcepackSoundWrapper wrapper =
+          new ResourcepackSoundWrapper(daemon.getDaemon().getServerPath(), "Youtube Audio", 6);
+      wrapper.addSound(this.plugin.getName().toLowerCase(Locale.ROOT), audio);
+      wrapper.wrap();
+
+      final Path path = wrapper.getResourcepackFilePath();
+
+      this.attributes.setResourcepackUrl(daemon.createUrl(path));
+      this.attributes.setHash(HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
+
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
   }
 
-  private void wrapResourcepack(@NotNull final YoutubeExtraction extraction) {
-    final PackWrapper wrapper = ResourcepackWrapper.of(plugin.library(), extraction);
-    wrapper.buildResourcePack();
-    attributes.setResourcepackUrl(
-        plugin.getHttpConfiguration().getServer().generateUrl(wrapper.getPath()));
-    attributes.setHash(VideoExtractionUtilities.createHashSHA(Paths.get(wrapper.getPath())));
+  private void wrapResourcepack(@NotNull final FFmpegAudioExtractor extraction) {
+
+    try {
+
+      final HttpServer daemon = this.plugin.getHttpConfiguration().getServer();
+      final ResourcepackSoundWrapper wrapper =
+          new ResourcepackSoundWrapper(daemon.getDaemon().getServerPath(), "Youtube Audio", 6);
+      wrapper.addSound(this.plugin.getName().toLowerCase(Locale.ROOT), extraction.getOutput());
+      wrapper.wrap();
+
+      final Path path = wrapper.getResourcepackFilePath();
+
+      this.attributes.setResourcepackUrl(daemon.createUrl(path));
+      this.attributes.setHash(HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
+
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
   }
 
   private void sendSuccessfulLoadMessage(
@@ -160,28 +200,34 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin.audience().sender(context.getSource());
-    if (unloadedResourcepack(audience)) {
+
+    final Audience audience = this.plugin.audience().sender(context.getSource());
+
+    if (this.unloadedResourcepack(audience)) {
       return SINGLE_SUCCESS;
     }
-    sendResourcepackFile();
-    audience.sendMessage(
-        format(
-            text(
-                String.format(
-                    "Sent Resourcepack URL! (%s with hash %s)",
-                    attributes.getResourcepackUrl(), new String(attributes.getHash())),
-                GOLD)));
+
+    this.sendResourcepackFile();
+
+    gold(
+        audience,
+        String.format(
+            "Sent Resourcepack URL! (%s with hash %s)",
+            this.attributes.getResourcepackUrl(), new String(this.attributes.getHash())));
+
     return SINGLE_SUCCESS;
   }
 
   private void sendResourcepackFile() {
-    ResourcepackUtilities.forceResourcepackLoad(
-        plugin, Bukkit.getOnlinePlayers(), attributes.getResourcepackUrl(), attributes.getHash());
+    ResourcepackUtils.forceResourcepackLoad(
+        this.plugin,
+        Bukkit.getOnlinePlayers(),
+        this.attributes.getResourcepackUrl(),
+        this.attributes.getHash());
   }
 
   private boolean unloadedResourcepack(@NotNull final Audience audience) {
-    if (attributes.getResourcepackUrl() == null && attributes.getHash() == null) {
+    if (this.attributes.getResourcepackUrl() == null && this.attributes.getHash() == null) {
       audience.sendMessage(
           format(text("Please load a resourcepack before executing this command!", RED)));
       return true;
@@ -191,6 +237,6 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   @Override
   public @NotNull LiteralCommandNode<CommandSender> node() {
-    return node;
+    return this.node;
   }
 }

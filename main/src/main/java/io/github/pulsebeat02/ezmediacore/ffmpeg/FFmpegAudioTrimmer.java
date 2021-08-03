@@ -30,6 +30,14 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
     this.ms = ms;
   }
 
+  public FFmpegAudioTrimmer(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final Path input,
+      @NotNull final String fileName,
+      final long ms) {
+    this(core, input, core.getAudioPath().resolve(fileName), ms);
+  }
+
   private List<String> generateArguments() {
     return new ArrayList<>(
         ImmutableList.<String>builder()

@@ -32,7 +32,6 @@ public final class VideoCommandAttributes {
 
   private final AtomicBoolean completion;
 
-  private YoutubeExtraction extractor;
   private VideoPlayer player;
   private DitherSetting dither;
   private VideoType mode;
@@ -50,33 +49,25 @@ public final class VideoCommandAttributes {
   private byte[] hash;
 
   public VideoCommandAttributes() {
-    dither = DitherSetting.FILTER_LITE;
-    frameWidth = 5;
-    frameHeight = 5;
-    screenWidth = 640;
-    screenHeight = 360;
-    completion = new AtomicBoolean(false);
-    mode = VideoType.ITEMFRAME;
+    this.dither = DitherSetting.FILTER_LITE;
+    this.frameWidth = 5;
+    this.frameHeight = 5;
+    this.screenWidth = 640;
+    this.screenHeight = 360;
+    this.completion = new AtomicBoolean(false);
+    this.mode = VideoType.ITEMFRAME;
   }
 
   public DitherSetting getDither() {
-    return dither;
+    return this.dither;
   }
 
   public void setDither(final DitherSetting dither) {
     this.dither = dither;
   }
 
-  public YoutubeExtraction getExtractor() {
-    return extractor;
-  }
-
-  public void setExtractor(final YoutubeExtraction extractor) {
-    this.extractor = extractor;
-  }
-
   public VideoPlayer getPlayer() {
-    return player;
+    return this.player;
   }
 
   public void setPlayer(final VideoPlayer player) {
@@ -84,7 +75,7 @@ public final class VideoCommandAttributes {
   }
 
   public String getVideo() {
-    return video;
+    return this.video;
   }
 
   public void setVideoMrl(final String video) {
@@ -92,7 +83,7 @@ public final class VideoCommandAttributes {
   }
 
   public boolean isYoutube() {
-    return youtube;
+    return this.youtube;
   }
 
   public void setYoutube(final boolean youtube) {
@@ -100,7 +91,7 @@ public final class VideoCommandAttributes {
   }
 
   public int getFrameWidth() {
-    return frameWidth;
+    return this.frameWidth;
   }
 
   public void setFrameWidth(final int frameWidth) {
@@ -108,7 +99,7 @@ public final class VideoCommandAttributes {
   }
 
   public int getFrameHeight() {
-    return frameHeight;
+    return this.frameHeight;
   }
 
   public void setFrameHeight(final int frameHeight) {
@@ -116,7 +107,7 @@ public final class VideoCommandAttributes {
   }
 
   public int getScreenWidth() {
-    return screenWidth;
+    return this.screenWidth;
   }
 
   public void setScreenWidth(final int screenWidth) {
@@ -124,7 +115,7 @@ public final class VideoCommandAttributes {
   }
 
   public int getScreenHeight() {
-    return screenHeight;
+    return this.screenHeight;
   }
 
   public void setScreenHeight(final int screenHeight) {
@@ -132,7 +123,7 @@ public final class VideoCommandAttributes {
   }
 
   public int getStartingMap() {
-    return startingMap;
+    return this.startingMap;
   }
 
   public void setStartingMap(final int startingMap) {
@@ -140,19 +131,19 @@ public final class VideoCommandAttributes {
   }
 
   public AtomicBoolean getCompletion() {
-    return completion;
+    return this.completion;
   }
 
   public VideoType getVideoType() {
-    return mode;
+    return this.mode;
   }
 
   public void setVideoType(@NotNull final VideoType type) {
-    mode = type;
+    this.mode = type;
   }
 
   public VideoType getMode() {
-    return mode;
+    return this.mode;
   }
 
   public void setMode(final VideoType mode) {
@@ -160,7 +151,7 @@ public final class VideoCommandAttributes {
   }
 
   public String getResourcepackUrl() {
-    return resourcepackUrl;
+    return this.resourcepackUrl;
   }
 
   public void setResourcepackUrl(final String resourcepackUrl) {
@@ -168,7 +159,7 @@ public final class VideoCommandAttributes {
   }
 
   public byte[] getHash() {
-    return hash;
+    return this.hash;
   }
 
   public void setHash(final byte[] hash) {
@@ -176,7 +167,7 @@ public final class VideoCommandAttributes {
   }
 
   public Path getAudio() {
-    return audio;
+    return this.audio;
   }
 
   public void setAudio(final Path audio) {
