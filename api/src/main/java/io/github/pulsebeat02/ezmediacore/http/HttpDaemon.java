@@ -1,10 +1,11 @@
 package io.github.pulsebeat02.ezmediacore.http;
 
+import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
 import java.net.Socket;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-public interface HttpDaemon {
+public interface HttpDaemon extends LibraryInjectable {
 
   void start();
 
@@ -30,6 +31,6 @@ public interface HttpDaemon {
 
   @NotNull
   default Path getRelativePath(@NotNull final Path file) {
-    return getServerPath().relativize(file);
+    return this.getServerPath().relativize(file);
   }
 }

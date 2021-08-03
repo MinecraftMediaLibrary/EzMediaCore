@@ -1,6 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
 import com.github.kiulian.downloader.downloader.request.RequestVideoFileDownload;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.VideoDownloader;
 import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import java.io.File;
@@ -9,34 +10,56 @@ import org.jetbrains.annotations.NotNull;
 
 public class YoutubeVideoDownloader implements VideoDownloader {
 
+  private final MediaLibraryCore core;
   private final YoutubeVideo video;
   private final Path videoPath;
 
-  public YoutubeVideoDownloader(@NotNull final String url, @NotNull final Path videoPath) {
-    this(new YoutubeVideo(url), videoPath);
+  public YoutubeVideoDownloader(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final String url,
+      @NotNull final Path videoPath) {
+    this(core, new YoutubeVideo(url), videoPath);
   }
 
-  public YoutubeVideoDownloader(@NotNull final YoutubeVideo video, @NotNull final Path videoPath) {
+  public YoutubeVideoDownloader(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final YoutubeVideo video,
+      @NotNull final Path videoPath) {
+    this.core = core;
     this.video = video;
     this.videoPath = videoPath;
   }
 
+  public YoutubeVideoDownloader(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final YoutubeVideo video,
+      @NotNull final String fileName) {
+    this(core, video, core.getVideoPath().resolve(fileName));
+  }
+
+  public YoutubeVideoDownloader(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final String url,
+      @NotNull final String fileName) {
+    this(core, url, core.getVideoPath().resolve(fileName));
+  }
+
   @Override
   public void downloadVideo(@NotNull final VideoQuality format, final boolean overwrite) {
-    onStartVideoDownload();
+    this.onStartVideoDownload();
 
     final String name = PathUtils.getName(this.videoPath);
     final String outputDirectory = this.videoPath.getParent().toString();
 
     final RequestVideoFileDownload download =
-        new RequestVideoFileDownload(getFormat(format))
+        new RequestVideoFileDownload(this.getFormat(format))
             .saveTo(new File(outputDirectory))
             .renameTo(name)
             .overwriteIfExists(overwrite);
 
     YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download);
 
-    onFinishVideoDownload();
+    this.onFinishVideoDownload();
   }
 
   private com.github.kiulian.downloader.model.videos.formats.VideoFormat getFormat(
@@ -63,6 +86,11 @@ public class YoutubeVideoDownloader implements VideoDownloader {
 
   @Override
   public @NotNull Path getDownloadPath() {
-    return videoPath;
+    return this.videoPath;
+  }
+
+  @Override
+  public @NotNull MediaLibraryCore getCore() {
+    return this.core;
   }
 }

@@ -23,16 +23,18 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.http.HttpDaemon;
-import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpDaemonSolution;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 public class HttpConfiguration extends ConfigurationProvider {
 
-  private HttpDaemonSolution daemon;
+  private HttpServer daemon;
   private boolean enabled;
 
   public HttpConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
@@ -41,47 +43,50 @@ public class HttpConfiguration extends ConfigurationProvider {
 
   @Override
   public void deserialize() {
-    final FileConfiguration configuration = getFileConfiguration();
-    configuration.set("enabled", enabled);
-    configuration.set("port", daemon.getDaemon().getPort());
-    final HttpDaemon http = daemon.getDaemon();
+    final FileConfiguration configuration = this.getFileConfiguration();
+    configuration.set("enabled", this.enabled);
+    configuration.set("port", this.daemon.getDaemon().getPort());
+    final HttpDaemon http = this.daemon.getDaemon();
     configuration.set(
         "directory",
-        getPlugin()
+        this.getPlugin()
             .getDataFolder()
             .toPath()
             .relativize(http.getServerPath().toAbsolutePath())
             .toString());
     configuration.set("verbose", http.isVerbose());
-    saveConfig();
+    this.saveConfig();
   }
 
   @Override
   public void serialize() throws IOException {
-    final FileConfiguration configuration = getFileConfiguration();
+    final MediaLibraryCore core = this.getPlugin().library();
+    final FileConfiguration configuration = this.getFileConfiguration();
     final boolean enabled = configuration.getBoolean("enabled");
     final String ip = configuration.getString("ip");
     final int port = configuration.getInt("port");
-    final String directory =
-        String.format(
-            "%s/%s",
-            getPlugin().getDataFolder().getAbsolutePath(), configuration.getString("directory"));
+    final Path directory =
+        Paths.get(
+            String.format(
+                "%s/%s",
+                this.getPlugin().getDataFolder().getAbsolutePath(),
+                configuration.getString("directory")));
     final boolean verbose = configuration.getBoolean("verbose");
     if (enabled) {
-      daemon =
+      this.daemon =
           ip == null || ip.equals("public")
-              ? new HttpServer(directory, port)
-              : new HttpServer(directory, ip, port, verbose);
-      daemon.startServer();
+              ? new HttpServer(core, directory, port)
+              : new HttpServer(core, directory, ip, port, verbose);
+      this.daemon.startServer();
     }
     this.enabled = enabled;
   }
 
-  public HttpDaemonSolution getServer() {
-    return daemon;
+  public HttpServer getServer() {
+    return this.daemon;
   }
 
   public boolean isEnabled() {
-    return enabled;
+    return this.enabled;
   }
 }

@@ -1,11 +1,12 @@
 package io.github.pulsebeat02.ezmediacore.extraction;
 
+import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.Video;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.VideoQuality;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-public interface VideoDownloader {
+public interface VideoDownloader extends LibraryInjectable {
 
   void downloadVideo(@NotNull final VideoQuality format, final boolean overwrite);
 

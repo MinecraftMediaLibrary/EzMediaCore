@@ -15,10 +15,6 @@ public class ImmutableDimension implements ConfigurationSerializable {
     this.height = height;
   }
 
-  public static ImmutableDimension deserialize(@NotNull final Map<String, Object> args) {
-    return new ImmutableDimension((int) args.get("width"), (int) args.get("height"));
-  }
-
   public int getWidth() {
     return this.width;
   }
@@ -30,7 +26,7 @@ public class ImmutableDimension implements ConfigurationSerializable {
   @Override
   public @NotNull Map<String, Object> serialize() {
     return ImmutableMap.of(
-        "width", width,
-        "height", height);
+        "width", this.width,
+        "height", this.height);
   }
 }

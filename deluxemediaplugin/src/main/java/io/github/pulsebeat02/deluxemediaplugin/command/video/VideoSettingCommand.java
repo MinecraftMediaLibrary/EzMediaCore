@@ -42,11 +42,11 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.TextComponent.ofChildren;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
-import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
 public final class VideoSettingCommand implements CommandSegment.Literal<CommandSender> {
 
@@ -184,8 +184,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
     final DitherSetting setting = DitherSetting.fromString(algorithm);
 
     if (setting == null) {
-      audience.sendMessage(
-          format(text(String.format("Could not find dither type %s", algorithm), RED)));
+      red(audience, String.format("Could not find dither type %s", algorithm));
     } else {
       audience.sendMessage(
           format(ofChildren(text("Set dither type to ", GOLD), text(algorithm, AQUA))));
@@ -202,7 +201,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
     final VideoType type = VideoType.fromString(mode);
 
     if (type == null) {
-      audience.sendMessage(format(text(String.format("Could not find video mode %s", mode), RED)));
+      red(audience, String.format("Could not find video mode %s", mode));
     } else {
       this.attributes.setVideoType(type);
       audience.sendMessage(format(ofChildren(text("Set video mode to ", GOLD), text(mode, AQUA))));

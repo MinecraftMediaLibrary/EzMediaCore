@@ -1,5 +1,6 @@
 package io.github.pulsebeat02.ezmediacore.resourcepack.hosting;
 
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.http.HttpDaemon;
 import io.github.pulsebeat02.ezmediacore.http.HttpServerDaemon;
 import java.io.BufferedReader;
@@ -24,28 +25,58 @@ public class HttpServer implements HttpDaemonSolution {
     }
   }
 
+  private final MediaLibraryCore core;
   private final HttpDaemon daemon;
 
-  public HttpServer(@NotNull final String path, final int port) throws IOException {
-    this(path, HTTP_SERVER_IP, port, true);
-  }
-
-  public HttpServer(@NotNull final String path, final int port, final boolean verbose)
+  public HttpServer(@NotNull final MediaLibraryCore core, @NotNull final Path path, final int port)
       throws IOException {
-    this(path, HTTP_SERVER_IP, port, verbose);
+    this(core, path, HTTP_SERVER_IP, port, true);
   }
 
   public HttpServer(
-      @NotNull final String path, @NotNull final String ip, final int port, final boolean verbose)
+      @NotNull final MediaLibraryCore core,
+      @NotNull final Path path,
+      final int port,
+      final boolean verbose)
       throws IOException {
-    this.daemon = new HttpServerDaemon(path, ip, port, verbose);
+    this(core, path, HTTP_SERVER_IP, port, verbose);
+  }
+
+  public HttpServer(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final Path path,
+      @NotNull final String ip,
+      final int port,
+      final boolean verbose)
+      throws IOException {
+    this.daemon = new HttpServerDaemon(core, path, ip, port, verbose);
+    this.core = core;
+  }
+
+  public HttpServer(@NotNull final MediaLibraryCore core, final int port) throws IOException {
+    this(core, port, true);
+  }
+
+  public HttpServer(@NotNull final MediaLibraryCore core, final int port, final boolean verbose)
+      throws IOException {
+    this(core, HTTP_SERVER_IP, port, verbose);
+  }
+
+  public HttpServer(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final String ip,
+      final int port,
+      final boolean verbose)
+      throws IOException {
+    this.daemon = new HttpServerDaemon(core, ip, port, verbose);
+    this.core = core;
   }
 
   @Override
   public @NotNull String createUrl(@NotNull final Path file) {
     return String.format(
-        "http://%s:%d/%s",
-        daemon.getAddress(), daemon.getPort(), this.daemon.getRelativePath(file));
+            "https://%s:%d/%s",
+        this.daemon.getAddress(), this.daemon.getPort(), this.daemon.getRelativePath(file));
   }
 
   @Override
@@ -61,5 +92,10 @@ public class HttpServer implements HttpDaemonSolution {
   @Override
   public @NotNull HttpDaemon getDaemon() {
     return this.daemon;
+  }
+
+  @Override
+  public @NotNull MediaLibraryCore getCore() {
+    return this.core;
   }
 }
