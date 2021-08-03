@@ -9,12 +9,17 @@
 ![Swag](http://ForTheBadge.com/images/badges/built-with-swag.svg)
 
 ---
+
+## Update
+I'm currently still developing this library and plugin! I am also looking for any possible developers who want to join me
+and help me test and fix bugs in the library. Join my Discord for status updates about the library and plugin. I am trying 
+my quickest to get the code fixed up and ready for the public.
+
+---
 ## Introduction
 
-<img style="float: right;" src="logo.gif" width="250" height="250"/>
-
-**EzMediaCore** is a library written along the Spigot API and net.minecraft.server classes to provide helpful
-and useful classes for other plugins to take advantage of. One of the most important features perhaps is its ability to
+**EzMediaCore** is a library written from the Bukkit API and NMS classes to provide a helpful framework
+for other plugins to take advantage of. One of the most important features perhaps is its ability to
 play **videos** on a Minecraft Spigot server. It uses a very optimized dithering method alongside **VLC Media Player**
 for extra hardware acceleration to play the video at higher frame rates. As a result, rates can reach up to **35** frames 
 per second at times with extremely great quality on maps. As a comparison, a *smooth* animation is approximately **25** frames.
@@ -33,7 +38,6 @@ Jitpack Repository:
 **Maven**
 
 ```xml
-
 <repositories>
     <repository>
         <id>jitpack.io</id>
@@ -71,8 +75,8 @@ EzMediaCore Dependency:
 ```xml
 
 <dependency>
-    <groupId>com.github.pulsebeat02</groupId>
-    <artifactId>ezmediacore</artifactId>
+    <groupId>com.github.MinecraftMediaLibrary</groupId>
+    <artifactId>EzMediaCore</artifactId>
     <version>master-SNAPSHOT</version>
 </dependency>
 ```
@@ -81,7 +85,7 @@ EzMediaCore Dependency:
 
 ```groovy
 dependencies {
-    implementation 'com.github.minecraftmedialibrary:ezmediacore:master-SNAPSHOT'
+    implementation 'com.github.MinecraftMediaLibrary:EzMediaCore:master-SNAPSHOT'
 }
 ```
 
@@ -89,7 +93,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("com.github.minecraftmedialibrary:ezmediacore:master-SNAPSHOT")
+    implementation("com.github.MinecraftMediaLibrary:EzMediaCore:master-SNAPSHOT")
 }
 ```
 
