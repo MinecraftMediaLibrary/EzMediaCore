@@ -6,7 +6,10 @@ import io.github.pulsebeat02.ezmediacore.utility.ImageUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.UUID;
+import org.bukkit.Bukkit;
+import org.bukkit.map.MapView;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class Image implements MapImage {
@@ -14,18 +17,21 @@ public abstract class Image implements MapImage {
   private final MediaLibraryCore core;
   private final EnhancedMapRenderer renderer;
   private final ImmutableDimension dimension;
-  private final int[][] maps;
+  private final List<Integer> maps;
   private final Path image;
   private final UUID uuid;
 
   public Image(
       @NotNull final MediaLibraryCore core,
       @NotNull final Path image,
-      final int[][] maps,
+      final List<Integer> maps,
       @NotNull final ImmutableDimension dimension) {
-    Preconditions.checkArgument(maps.length >= 1 && maps[0].length >= 1, "Invalid Map Matrix!");
+    Preconditions.checkArgument(maps.size() >= 1, "Invalid Map Matrix!");
+    Preconditions.checkArgument(
+        maps.size() == dimension.getWidth() * dimension.getHeight(),
+        "Maps specified to use doesn't match dimensions (in itemframes) of image!");
     this.core = core;
-    this.renderer = new EnhancedMapRenderer(maps);
+    this.renderer = new EnhancedMapRenderer(dimension, maps);
     this.image = image;
     this.maps = maps;
     this.dimension = dimension;
@@ -37,8 +43,8 @@ public abstract class Image implements MapImage {
 
   @Override
   public @NotNull BufferedImage[][] process(@NotNull BufferedImage image, final boolean resize) {
-    final int itemframeWidth = this.maps.length;
-    final int itemframeHeight = this.maps[0].length;
+    final int itemframeWidth = this.dimension.getWidth();
+    final int itemframeHeight = this.dimension.getHeight();
     final int width = itemframeWidth * 128;
     final int height = itemframeHeight * 128;
     if (resize) {
@@ -58,7 +64,17 @@ public abstract class Image implements MapImage {
   public void onFinishDrawImage() {}
 
   @Override
-  public int[][] getMapMatrix() {
+  public void resetMaps() {
+    for (final int map : this.maps) {
+      final MapView view = Bukkit.getMap(map);
+      if (view != null) {
+        view.getRenderers().clear();
+      }
+    }
+  }
+
+  @Override
+  public @NotNull List<Integer> getMaps() {
     return this.maps;
   }
 
@@ -84,6 +100,6 @@ public abstract class Image implements MapImage {
 
   @Override
   public @NotNull UUID getIdentifier() {
-    return uuid;
+    return this.uuid;
   }
 }

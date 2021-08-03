@@ -15,26 +15,26 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
 
   private final Path input;
   private final Path output;
-  private final long start;
+  private final long ms;
 
   public FFmpegAudioTrimmer(
       @NotNull final MediaLibraryCore core,
       @NotNull final Path input,
       @NotNull final Path output,
-      final long start) {
+      final long ms) {
     super(core);
-    clearArguments();
-    addMultipleArguments(generateArguments());
+    this.clearArguments();
+    this.addMultipleArguments(this.generateArguments());
     this.input = input.toAbsolutePath();
     this.output = output.toAbsolutePath();
-    this.start = start;
+    this.ms = ms;
   }
 
   private List<String> generateArguments() {
     return new ArrayList<>(
         ImmutableList.<String>builder()
-            .add(getCore().getFFmpegPath().toString())
-            .add("-ss", String.valueOf(this.start))
+            .add(this.getCore().getFFmpegPath().toString())
+            .add("-ss", String.format("%d.ms", this.ms))
             .add("-i", this.input.toString(), this.output.toString())
             .build());
   }
@@ -63,7 +63,7 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
 
   @Override
   public long getStartTime() {
-    return this.start;
+    return this.ms;
   }
 
   @Override
@@ -74,7 +74,7 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
     final FFmpegAudioTrimmer extraction = (FFmpegAudioTrimmer) obj;
     return this.input.equals(extraction.getInput())
         && this.output.equals(extraction.getOutput())
-        && this.start == extraction.getStartTime()
+        && this.ms == extraction.getStartTime()
         && super.equals(obj);
   }
 }

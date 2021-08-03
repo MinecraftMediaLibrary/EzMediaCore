@@ -35,10 +35,8 @@ import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
-import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.aqua;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
 
 public final class DitherCommand extends BaseCommand {
 
@@ -47,25 +45,29 @@ public final class DitherCommand extends BaseCommand {
   public DitherCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "dither", executor, "deluxemediaplugin.command.dither");
-    node =
-        literal(getName())
+    this.node =
+        this.literal(this.getName())
             .requires(super::testPermission)
-            .then(literal("list").executes(this::listSettings))
+            .then(this.literal("list").executes(this::listSettings))
             .build();
   }
 
   private int listSettings(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = audience().sender(context.getSource());
-    audience.sendMessage(format(text("Possible Dithering Options", GOLD)));
+
+    final Audience audience = this.audience().sender(context.getSource());
+
+    gold(audience, "Dithering Options ->");
+
     for (final DitherSetting setting : DitherSetting.values()) {
-      audience.sendMessage(text(setting.getName(), AQUA));
+      aqua(audience, setting.getName());
     }
+
     return SINGLE_SUCCESS;
   }
 
   @Override
   public @NotNull LiteralCommandNode<CommandSender> node() {
-    return node;
+    return this.node;
   }
 
   @Override

@@ -39,11 +39,11 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.TextComponent.ofChildren;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
-import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
 public final class MapCommand extends BaseCommand {
 
@@ -51,25 +51,30 @@ public final class MapCommand extends BaseCommand {
 
   public MapCommand(@NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "map", executor, "deluxemediaplugin.command.map", "");
-    node =
-        literal(getName())
+    this.node =
+        this.literal(this.getName())
             .requires(super::testPermission)
             .then(
-                argument("id", IntegerArgumentType.integer(-2_147_483_647, 2_147_483_647))
+                this.argument("id", IntegerArgumentType.integer(-2_147_483_647, 2_147_483_647))
                     .executes(this::giveMap))
             .build();
   }
 
   private int giveMap(@NotNull final CommandContext<CommandSender> context) {
+
     final CommandSender sender = context.getSource();
-    final Audience audience = plugin().audience().sender(sender);
+    final Audience audience = this.plugin().audience().sender(sender);
+    final int id = context.getArgument("id", int.class);
+
     if (!(sender instanceof Player)) {
-      audience.sendMessage(format(text("You must be a player to execute this command!", RED)));
+      red(audience, "You must be a player to execute this command!");
       return SINGLE_SUCCESS;
     }
-    final int id = context.getArgument("id", int.class);
+
     ((Player) sender).getInventory().addItem(MapUtils.getMapFromID(id));
+
     audience.sendMessage(format(ofChildren(text("Gave map with id ", GOLD), text(id, AQUA))));
+
     return SINGLE_SUCCESS;
   }
 
@@ -81,6 +86,6 @@ public final class MapCommand extends BaseCommand {
 
   @Override
   public @NotNull LiteralCommandNode<CommandSender> node() {
-    return node;
+    return this.node;
   }
 }

@@ -31,7 +31,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
       @NotNull final String url,
       final int frameRate) {
     super(core, callback, dimensions, url, frameRate);
-    initializePlayer(0L);
+    this.initializePlayer(0L);
   }
 
   @Override
@@ -40,24 +40,23 @@ public class FFmpegMediaPlayer extends MediaPlayer {
     switch (controls) {
       case START:
         if (this.ffmpeg == null) {
-          initializePlayer(0L);
+          this.initializePlayer(0L);
         }
         this.future = this.ffmpeg.executeAsync();
-        playAudio();
+        this.playAudio();
         this.start = System.currentTimeMillis();
         break;
       case PAUSE:
         if (this.ffmpeg != null) {
           this.future.graceStop();
         }
-        stopAudio();
+        this.stopAudio();
+        this.start = System.currentTimeMillis();
         break;
       case RESUME:
-        final long current = System.currentTimeMillis();
-        initializePlayer(current - this.start);
+        this.initializePlayer(System.currentTimeMillis() - this.start);
         this.future = this.ffmpeg.executeAsync();
-        playAudio();
-        this.start = current;
+        this.playAudio();
         break;
       case RELEASE:
         if (this.ffmpeg != null) {
@@ -70,21 +69,27 @@ public class FFmpegMediaPlayer extends MediaPlayer {
 
   @Override
   public void initializePlayer(final long seconds) {
-    final String url = getUrl();
+    final String url = this.getUrl();
     final Path path = Paths.get(url);
     final long ms = seconds * 1000;
     this.ffmpeg =
-        new FFmpeg(getCore().getFFmpegPath())
+        new FFmpeg(this.getCore().getFFmpegPath())
             .addInput(
                 Files.exists(path)
                     ? UrlInput.fromPath(path).setPosition(ms)
                     : UrlInput.fromUrl(url).setPosition(ms))
             .addOutput(
-                FrameOutput.withConsumer(getFrameConsumer(getCallback(), getDimensions()))
-                    .setFrameRate(getFrameRate())
+                FrameOutput.withConsumer(
+                        this.getFrameConsumer(this.getCallback(), this.getDimensions()))
+                    .setFrameRate(this.getFrameRate())
                     .disableStream(StreamType.AUDIO)
                     .disableStream(StreamType.SUBTITLE)
                     .disableStream(StreamType.DATA));
+  }
+
+  @Override
+  public long getElapsedMilliseconds() {
+    return System.currentTimeMillis() - this.start;
   }
 
   private FrameConsumer getFrameConsumer(

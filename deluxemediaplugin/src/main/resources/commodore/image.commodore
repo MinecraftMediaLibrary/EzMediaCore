@@ -7,9 +7,7 @@ image {
   }
   set {
     map {
-      id brigadier:integer {
-        mrl brigadier:string greedy_phrase;
-      }
+      mrl brigadier:string greedy_phrase;
     }
     dimensions {
       dims brigadier:string single_word;

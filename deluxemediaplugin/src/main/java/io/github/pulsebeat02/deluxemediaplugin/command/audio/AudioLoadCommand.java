@@ -46,8 +46,8 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.error;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.info;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 
 public final class AudioLoadCommand implements CommandSegment.Literal<CommandSender> {
 
@@ -59,126 +59,115 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final AudioCommandAttributes attributes) {
     this.plugin = plugin;
     this.attributes = attributes;
-    node =
-        literal("load")
-            .then(argument("mrl", StringArgumentType.greedyString()).executes(this::loadAudio))
-            .then(literal("resourcepack").executes(this::sendResourcepack))
+    this.node =
+        this.literal("load")
+            .then(this.argument("mrl", StringArgumentType.greedyString()).executes(this::loadAudio))
+            .then(this.literal("resourcepack").executes(this::sendResourcepack))
             .build();
+  }
+
+  private void loadSoundMrl(@NotNull final String mrl) {
+    final MediaLibraryCore core = this.plugin.library();
+    final Path folder = core.getAudioPath();
+    final Path video = folder.resolve("video.mp4");
+    final Path audio = folder.resolve("audio.ogg");
+    final YoutubeVideoDownloader downloader = new YoutubeVideoDownloader(mrl, video);
+    downloader.downloadVideo(downloader.getVideo().getVideoFormats().get(0).getQuality(), true);
+    new FFmpegAudioExtractor(
+            core, this.plugin.getEncoderConfiguration().getSettings(), video, audio)
+        .execute();
+    this.attributes.setAudio(audio);
+  }
+
+  private boolean loadSoundFile(@NotNull final String mrl, @NotNull final Audience audience) {
+    final Path file = Paths.get(mrl);
+    if (Files.exists(file)) {
+      this.attributes.setAudio(file);
+    } else {
+      red(audience, "The mrl specified is not valid! (Must be Youtube Link or Audio File)");
+      return true;
+    }
+    return false;
+  }
+
+  private void buildResourcepack() {
+    this.attributes.setCompletion(false);
+    try {
+      final ResourcepackSoundWrapper wrapper =
+          new ResourcepackSoundWrapper(
+              this.plugin.library().getHttpServerPath().resolve("pack.zip"), "Audio Pack", 6);
+      wrapper.addSound(this.plugin.getName().toLowerCase(Locale.ROOT), this.attributes.getAudio());
+      wrapper.wrap();
+      final Path path = wrapper.getResourcepackFilePath();
+      this.attributes.setLink(this.plugin.getHttpConfiguration().getServer().createUrl(path));
+      this.attributes.setHash(HashingUtils.getHash(path).getBytes(StandardCharsets.UTF_8));
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+    this.attributes.setCompletion(true);
   }
 
   private int loadAudio(@NotNull final CommandContext<CommandSender> context) {
 
-    final Audience audience = plugin.audience().sender(context.getSource());
-    final MediaLibraryCore library = plugin.library();
+    final Audience audience = this.plugin.audience().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
 
-    if (isLoadingSound(audience)) {
+    if (this.isLoadingSound(audience)) {
       return SINGLE_SUCCESS;
     }
 
-    info(
+    gold(
         audience,
         "Attempting to load the audio file... this may take a while depending on the length/quality of the audio.");
 
-    if (isUrl(mrl)) {
-
-      CompletableFuture.runAsync(
-          () -> {
-            final Path folder = library.getAudioPath();
-            final Path video = folder.resolve("video.mp4");
-            final Path audio = folder.resolve("audio.ogg");
-
-            final YoutubeVideoDownloader downloader = new YoutubeVideoDownloader(mrl, video);
-            downloader.downloadVideo(
-                downloader.getVideo().getVideoFormats().get(0).getQuality(), true);
-
-            final FFmpegAudioExtractor extractor =
-                new FFmpegAudioExtractor(
-                    library, plugin.getEncoderConfiguration().getSettings(), video, audio);
-            extractor.execute();
-
-            attributes.setResourcepackAudio(audio);
-          });
-    } else {
-
-      final Path file = Paths.get(mrl);
-      if (Files.exists(file)) {
-        attributes.setResourcepackAudio(file);
-      } else {
-        error(audience, "The mrl specified is not valid! (Must be Youtube Link or Audio File)");
-        return SINGLE_SUCCESS;
-      }
+    if (mrl.startsWith("http")) {
+      CompletableFuture.runAsync(() -> this.loadSoundMrl(mrl));
+    } else if (this.loadSoundFile(mrl, audience)) {
+      return SINGLE_SUCCESS;
     }
 
-    CompletableFuture.runAsync(
-            () -> {
-              attributes.setCompletion(true);
+    CompletableFuture.runAsync(this::buildResourcepack)
+        .thenRunAsync(this::sendResourcepack)
+        .thenRun(
+            () ->
+                gold(
+                    audience,
+                    String.format("Loaded Audio Successfully! (%s)", this.attributes.getLink())));
 
-              try {
-                final ResourcepackSoundWrapper wrapper =
-                    new ResourcepackSoundWrapper(
-                        library.getHttpServerPath().resolve("pack.zip"), "", 6);
-                wrapper.addSound(
-                    plugin.getName().toLowerCase(Locale.ROOT), attributes.getResourcepackAudio());
-                wrapper.wrap();
-
-                final Path path = wrapper.getResourcepackFilePath();
-
-                attributes.setResourcepackLink(
-                    plugin.getHttpConfiguration().getServer().createUrl(path));
-
-                attributes.setResourcepackHash(
-                    HashingUtils.getHash(path).getBytes(StandardCharsets.UTF_8));
-
-              } catch (IOException e) {
-                e.printStackTrace();
-              }
-
-              sendResourcepack();
-
-              info(
-                  audience,
-                  String.format(
-                      "Loaded Audio Successfully! (%s)", attributes.getResourcepackLink()));
-            })
-        .whenCompleteAsync((t, throwable) -> attributes.setCompletion(false));
     return SINGLE_SUCCESS;
   }
 
   private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin.audience().sender(context.getSource());
-    if (unloadedResourcepack()) {
-      error(audience, "Please load a resourcepack first!");
+
+    final Audience audience = this.plugin.audience().sender(context.getSource());
+
+    if (this.attributes.getLink() == null && this.attributes.getHash() == null) {
+      red(audience, "Please load a resourcepack first!");
       return SINGLE_SUCCESS;
     }
-    sendResourcepack();
-    info(
+
+    this.sendResourcepack();
+
+    gold(
         audience,
         String.format(
             "Sent Resourcepack URL! (%s with hash %s)",
-            attributes.getResourcepackLink(), new String(attributes.getResourcepackHash())));
+            this.attributes.getLink(), new String(this.attributes.getHash())));
+
     return SINGLE_SUCCESS;
   }
 
   private void sendResourcepack() {
     ResourcepackUtils.forceResourcepackLoad(
-        plugin,
+        this.plugin,
         Bukkit.getOnlinePlayers(),
-        attributes.getResourcepackLink(),
-        attributes.getResourcepackHash());
-  }
-
-  private boolean isUrl(@NotNull final String url) {
-    return url.startsWith("http");
-  }
-
-  private boolean unloadedResourcepack() {
-    return attributes.getResourcepackLink() == null && attributes.getResourcepackHash() == null;
+        this.attributes.getLink(),
+        this.attributes.getHash());
   }
 
   private boolean isLoadingSound(@NotNull final Audience audience) {
-    if (attributes.getCompletion().get()) {
-      error(
+    if (this.attributes.getCompletion().get()) {
+      red(
           audience,
           "Please wait for the previous audio to extract first before loading another one!");
       return true;
@@ -188,6 +177,6 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
 
   @Override
   public @NotNull LiteralCommandNode<CommandSender> node() {
-    return node;
+    return this.node;
   }
 }

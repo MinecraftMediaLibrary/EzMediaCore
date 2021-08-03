@@ -49,33 +49,36 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
   public FFmpegAddArgumentCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final FFmpegCommandExecutor executor) {
     this.plugin = plugin;
-    ffmpeg = executor;
-    node =
-        literal("add")
+    this.ffmpeg = executor;
+    this.node =
+        this.literal("add")
             .then(
-                argument("arguments", StringArgumentType.greedyString())
+                this.argument("arguments", StringArgumentType.greedyString())
                     .executes(this::addArgument))
             .then(
-                argument("index", IntegerArgumentType.integer())
+                this.argument("index", IntegerArgumentType.integer())
                     .then(
-                        argument("arguments", StringArgumentType.greedyString())
+                        this.argument("arguments", StringArgumentType.greedyString())
                             .executes(this::addIndexArgument)))
             .build();
   }
 
   private int addIndexArgument(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin.audience().sender(context.getSource());
+
+    final Audience audience = this.plugin.audience().sender(context.getSource());
     final String str = context.getArgument("arguments", String.class);
     final int index = context.getArgument("index", int.class);
     final String[] args = str.split(" ");
+
     for (final String arg : args) {
       if (arg.contains("=")) {
         final String[] split = arg.split("=");
-        ffmpeg.addArguments(split[0], split[1], index);
+        this.ffmpeg.addArguments(split[0], split[1], index);
       } else {
-        ffmpeg.addArgument(arg, index);
+        this.ffmpeg.addArgument(arg, index);
       }
     }
+
     audience.sendMessage(
         format(
             ofChildren(
@@ -83,32 +86,37 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
                 text(str, AQUA),
                 text(" to the FFmpeg command at index ", GOLD),
                 text(index, AQUA))));
+
     return SINGLE_SUCCESS;
   }
 
   private int addArgument(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin.audience().sender(context.getSource());
+
+    final Audience audience = this.plugin.audience().sender(context.getSource());
     final String str = context.getArgument("arguments", String.class);
     final String[] arguments = str.split(" ");
+
     for (final String argument : arguments) {
       if (argument.contains("=")) {
         final String[] split = argument.split("=");
-        ffmpeg.addArguments(split[0], split[1]);
+        this.ffmpeg.addArguments(split[0], split[1]);
       } else {
-        ffmpeg.addArgument(argument);
+        this.ffmpeg.addArgument(argument);
       }
     }
+
     audience.sendMessage(
         format(
             ofChildren(
                 text("Added arguments ", GOLD),
                 text(str, AQUA),
                 text(" to the FFmpeg command.", GOLD))));
+
     return SINGLE_SUCCESS;
   }
 
   @Override
   public @NotNull LiteralCommandNode<CommandSender> node() {
-    return node;
+    return this.node;
   }
 }

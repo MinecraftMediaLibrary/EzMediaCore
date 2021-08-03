@@ -32,48 +32,48 @@ public final class AudioCommandAttributes {
   private final AtomicBoolean completion;
   private final String soundKey;
 
-  private Path resourcepackAudio;
-  private String resourcepackLink;
-  private byte[] resourcepackHash;
+  private Path audio;
+  private String link;
+  private byte[] hash;
 
   public AudioCommandAttributes(@NotNull final DeluxeMediaPlugin plugin) {
-    completion = new AtomicBoolean(false);
-    soundKey = plugin.getName().toLowerCase();
+    this.completion = new AtomicBoolean(false);
+    this.soundKey = plugin.getName().toLowerCase();
   }
 
   public AtomicBoolean getCompletion() {
-    return completion;
+    return this.completion;
   }
 
   public void setCompletion(final boolean mode) {
-    completion.set(mode);
+    this.completion.set(mode);
   }
 
   public String getSoundKey() {
-    return soundKey;
+    return this.soundKey;
   }
 
-  public Path getResourcepackAudio() {
-    return resourcepackAudio;
+  public Path getAudio() {
+    return this.audio;
   }
 
-  public void setResourcepackAudio(final Path resourcepackAudio) {
-    this.resourcepackAudio = resourcepackAudio;
+  public void setAudio(final Path audio) {
+    this.audio = audio;
   }
 
-  public String getResourcepackLink() {
-    return resourcepackLink;
+  public String getLink() {
+    return this.link;
   }
 
-  public void setResourcepackLink(final String resourcepackLink) {
-    this.resourcepackLink = resourcepackLink;
+  public void setLink(final String link) {
+    this.link = link;
   }
 
-  public byte[] getResourcepackHash() {
-    return resourcepackHash;
+  public byte[] getHash() {
+    return this.hash;
   }
 
-  public void setResourcepackHash(final byte[] resourcepackHash) {
-    this.resourcepackHash = resourcepackHash;
+  public void setHash(final byte[] hash) {
+    this.hash = hash;
   }
 }

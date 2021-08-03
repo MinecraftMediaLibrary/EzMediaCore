@@ -27,7 +27,7 @@ public class JCodecMediaPlayer extends MediaPlayer {
       @NotNull final String url,
       final int frameRate) {
     super(core, callback, dimensions, url, frameRate);
-    initializePlayer(0L);
+    this.initializePlayer(0L);
   }
 
   @Override
@@ -36,19 +36,19 @@ public class JCodecMediaPlayer extends MediaPlayer {
     switch (controls) {
       case START:
         if (this.grabber == null) {
-          initializePlayer(0L);
+          this.initializePlayer(0L);
         }
         CompletableFuture.runAsync(this::runPlayer);
+        this.start = System.currentTimeMillis();
         break;
       case PAUSE:
-        stopAudio();
+        this.stopAudio();
         this.paused = true;
+        this.start = System.currentTimeMillis();
         break;
       case RESUME:
         this.paused = false;
-        final long current = System.currentTimeMillis();
-        initializePlayer(current - this.start);
-        this.start = current;
+        this.initializePlayer(System.currentTimeMillis() - this.start);
         CompletableFuture.runAsync(this::runPlayer);
         break;
       case RELEASE:
@@ -60,13 +60,13 @@ public class JCodecMediaPlayer extends MediaPlayer {
 
   private void runPlayer() {
 
-    playAudio();
+    this.playAudio();
 
-    final ImmutableDimension dimension = getDimensions();
+    final ImmutableDimension dimension = this.getDimensions();
     final int width = dimension.getWidth();
     final int height = dimension.getHeight();
 
-    playAudio();
+    this.playAudio();
 
     Picture picture;
     while (!this.paused) {
@@ -74,7 +74,7 @@ public class JCodecMediaPlayer extends MediaPlayer {
         if ((picture = this.grabber.getNativeFrame()) == null) {
           break;
         }
-        getCallback()
+        this.getCallback()
             .process(
                 VideoFrameUtils.toBufferedImage(picture)
                     .getRGB(0, 0, width, height, null, 0, width));
@@ -86,14 +86,19 @@ public class JCodecMediaPlayer extends MediaPlayer {
 
   @Override
   public void initializePlayer(final long ms) {
-    final ImmutableDimension dimension = getDimensions();
+    final ImmutableDimension dimension = this.getDimensions();
     this.start = ms;
     try {
-      this.grabber = FrameGrab.createFrameGrab(NIOUtils.readableFileChannel(getUrl()));
+      this.grabber = FrameGrab.createFrameGrab(NIOUtils.readableFileChannel(this.getUrl()));
       this.grabber.seekToSecondPrecise(ms / 1000.0F);
       this.grabber.getMediaInfo().setDim(new Size(dimension.getWidth(), dimension.getHeight()));
     } catch (final IOException | JCodecException e) {
       e.printStackTrace();
     }
+  }
+
+  @Override
+  public long getElapsedMilliseconds() {
+    return System.currentTimeMillis() - this.start;
   }
 }

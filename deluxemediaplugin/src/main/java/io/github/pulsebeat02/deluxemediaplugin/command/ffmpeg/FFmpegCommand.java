@@ -38,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.formatFFmpeg;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.TextComponent.ofChildren;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
@@ -51,43 +52,40 @@ public final class FFmpegCommand extends BaseCommand {
   public FFmpegCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "ffmpeg", executor, "deluxemediaplugin.command.ffmpeg");
-    ffmpeg = new FFmpegCommandExecutor(plugin.library());
-    node =
-        literal(getName())
+    this.ffmpeg = new FFmpegCommandExecutor(plugin.library());
+    this.node =
+        this.literal(this.getName())
             .requires(super::testPermission)
-            .then(literal("reset").executes(this::resetFFmpegCommand))
-            .then(new FFmpegAddArgumentCommand(plugin, ffmpeg).node())
-            .then(new FFmpegRemoveArgumentCommand(plugin, ffmpeg).node())
-            .then(literal("list-arguments").executes(this::listFFmpegArguments))
-            .then(literal("run").executes(this::runFFmpegProcess))
+            .then(this.literal("reset").executes(this::resetFFmpegCommand))
+            .then(new FFmpegAddArgumentCommand(plugin, this.ffmpeg).node())
+            .then(new FFmpegRemoveArgumentCommand(plugin, this.ffmpeg).node())
+            .then(this.literal("list-arguments").executes(this::listFFmpegArguments))
+            .then(this.literal("run").executes(this::runFFmpegProcess))
             .build();
   }
 
   private int resetFFmpegCommand(@NotNull final CommandContext<CommandSender> context) {
-    ffmpeg.clearArguments();
-    plugin()
-        .audience()
-        .sender(context.getSource())
-        .sendMessage(format(text("Reset all FFmpeg arguments!", GOLD)));
+    this.ffmpeg.clearArguments();
+    gold(this.audience().sender(context.getSource()), "Reset all FFmpeg arguments!");
     return SINGLE_SUCCESS;
   }
 
   private int listFFmpegArguments(@NotNull final CommandContext<CommandSender> context) {
-    plugin()
+    this.plugin()
         .audience()
         .sender(context.getSource())
         .sendMessage(
             format(
                 ofChildren(
                     text("Current FFmpeg arguments: ", GOLD),
-                    text(ffmpeg.getArguments().toString(), AQUA))));
+                    text(this.ffmpeg.getArguments().toString(), AQUA))));
     return SINGLE_SUCCESS;
   }
 
   private int runFFmpegProcess(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin().audience().sender(context.getSource());
-    ffmpeg.executeWithLogging(s -> audience.sendMessage(formatFFmpeg(text(s))));
-    audience.sendMessage(format(text("Executed FFmpeg command with arguments!", GOLD)));
+    final Audience audience = this.plugin().audience().sender(context.getSource());
+    this.ffmpeg.executeWithLogging(s -> audience.sendMessage(formatFFmpeg(text(s))));
+    gold(audience, "Executed FFmpeg command!");
     return SINGLE_SUCCESS;
   }
 
@@ -113,6 +111,6 @@ public final class FFmpegCommand extends BaseCommand {
 
   @Override
   public @NotNull LiteralCommandNode<CommandSender> node() {
-    return node;
+    return this.node;
   }
 }

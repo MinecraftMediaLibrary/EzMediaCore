@@ -37,10 +37,8 @@ import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
-import static net.kyori.adventure.text.format.NamedTextColor.RED;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 
 public final class AudioCommand extends BaseCommand {
 
@@ -50,57 +48,65 @@ public final class AudioCommand extends BaseCommand {
   public AudioCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "audio", executor, "deluxemediaplugin.command.audio");
-    attributes = new AudioCommandAttributes(plugin);
-    node =
-        literal(getName())
+    this.attributes = new AudioCommandAttributes(plugin);
+    this.node =
+        this.literal(this.getName())
             .requires(super::testPermission)
-            .then(new AudioLoadCommand(plugin, attributes).node())
-            .then(literal("play").executes(this::playAudio))
-            .then(literal("stop").executes(this::stopAudio))
+            .then(new AudioLoadCommand(plugin, this.attributes).node())
+            .then(this.literal("play").executes(this::playAudio))
+            .then(this.literal("stop").executes(this::stopAudio))
             .build();
   }
 
   private int playAudio(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin().audience().sender(context.getSource());
-    if (checkUnloaded(audience)) {
+
+    final Audience audience = this.plugin().audience().sender(context.getSource());
+
+    if (this.checkUnloaded(audience) || this.checkIncompleteLoad(audience)) {
       return SINGLE_SUCCESS;
     }
-    if (checkIncompleteLoad(audience)) {
-      return SINGLE_SUCCESS;
-    }
+
     Bukkit.getOnlinePlayers()
         .forEach(
             p ->
                 p.playSound(
-                    p.getLocation(), attributes.getSoundKey(), SoundCategory.MUSIC, 100.0F, 1.0F));
-    audience.sendMessage(format(text("Started playing audio!", GOLD)));
+                    p.getLocation(),
+                    this.attributes.getSoundKey(),
+                    SoundCategory.MUSIC,
+                    100.0F,
+                    1.0F));
+
+    gold(audience, "Started playing audio!");
+
     return SINGLE_SUCCESS;
   }
 
   private int stopAudio(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin().audience().sender(context.getSource());
-    if (checkUnloaded(audience)) {
+
+    final Audience audience = this.plugin().audience().sender(context.getSource());
+
+    if (this.checkUnloaded(audience) || this.checkIncompleteLoad(audience)) {
       return SINGLE_SUCCESS;
     }
-    if (checkIncompleteLoad(audience)) {
-      return SINGLE_SUCCESS;
-    }
-    Bukkit.getOnlinePlayers().forEach(p -> p.stopSound(attributes.getSoundKey()));
-    audience.sendMessage(format(text("Stopped playing audio!", RED)));
+
+    Bukkit.getOnlinePlayers().forEach(p -> p.stopSound(this.attributes.getSoundKey()));
+
+    red(audience, "Stopped playing audio!");
+
     return SINGLE_SUCCESS;
   }
 
   private boolean checkUnloaded(@NotNull final Audience audience) {
-    if (attributes.getResourcepackAudio() == null) {
-      audience.sendMessage(format(text("File or URL not specified!", RED)));
+    if (this.attributes.getAudio() == null) {
+      red(audience, "File or URL not specified!");
       return true;
     }
     return false;
   }
 
   private boolean checkIncompleteLoad(@NotNull final Audience audience) {
-    if (!attributes.getCompletion().get()) {
-      audience.sendMessage(format(text("Audio is still processing!", RED)));
+    if (!this.attributes.getCompletion().get()) {
+      red(audience, "Audio is still processing!");
       return true;
     }
     return false;
@@ -120,6 +126,6 @@ public final class AudioCommand extends BaseCommand {
 
   @Override
   public @NotNull LiteralCommandNode<CommandSender> node() {
-    return node;
+    return this.node;
   }
 }

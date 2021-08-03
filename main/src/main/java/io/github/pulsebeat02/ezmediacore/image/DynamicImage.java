@@ -6,6 +6,7 @@ import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,7 +23,7 @@ public class DynamicImage extends Image
   public DynamicImage(
       @NotNull final MediaLibraryCore core,
       @NotNull final Path image,
-      final int[][] maps,
+      @NotNull final List<Integer> maps,
       @NotNull final ImmutableDimension dimension)
       throws IOException {
     super(core, image, maps, dimension);
@@ -32,12 +33,12 @@ public class DynamicImage extends Image
 
   @Override
   public void draw(final boolean resize) throws IOException {
-    onStartDrawImage();
+    this.onStartDrawImage();
     this.future =
         CompletableFuture.runAsync(
             () -> {
               for (; this.frame < this.frameCount; this.frame++) {
-                getRenderer().drawMap(process(this.image.getFrame(this.frame), resize));
+                this.getRenderer().drawMap(this.process(this.image.getFrame(this.frame), resize));
                 try {
                   final int delay = this.image.getDelay(this.frame);
                   Thread.sleep(delay * 10L);
@@ -46,12 +47,12 @@ public class DynamicImage extends Image
                 }
               }
             });
-    onFinishDrawImage();
+    this.onFinishDrawImage();
   }
 
   @Override
   public void stopDrawing() {
-    onStopDrawing();
+    this.onStopDrawing();
     this.future.cancel(true);
   }
 

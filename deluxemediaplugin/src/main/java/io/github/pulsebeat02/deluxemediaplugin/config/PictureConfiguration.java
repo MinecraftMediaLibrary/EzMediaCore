@@ -34,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -51,7 +52,7 @@ public class PictureConfiguration extends ConfigurationProvider {
   }
 
   public void addNormalPhoto(
-      final int[][] maps, @NotNull final Path file, final int width, final int height)
+      final List<Integer> maps, @NotNull final Path file, final int width, final int height)
       throws IOException {
     this.images.add(
         new StaticImage(
@@ -59,7 +60,7 @@ public class PictureConfiguration extends ConfigurationProvider {
   }
 
   public void addGif(
-      final int[][] maps, @NotNull final Path file, final int width, final int height)
+      final List<Integer> maps, @NotNull final Path file, final int width, final int height)
       throws IOException {
     this.images.add(
         new DynamicImage(
@@ -71,12 +72,9 @@ public class PictureConfiguration extends ConfigurationProvider {
     final FileConfiguration configuration = this.getFileConfiguration();
     for (final Image image : this.images) {
       final UUID uuid = image.getIdentifier();
-      final Path path = image.getImagePath();
-      final int[][] matrix = image.getMapMatrix();
-      final ImmutableDimension dimension = image.getDimensions();
-      configuration.set(String.format("%s.path", uuid), path);
-      configuration.set(String.format("%s.matrix", uuid), matrix);
-      configuration.set(String.format("%s.dimension", uuid), dimension);
+      configuration.set(String.format("%s.path", uuid), image.getImagePath());
+      configuration.set(String.format("%s.maps", uuid), image.getMaps());
+      configuration.set(String.format("%s.dimension", uuid), image.getDimensions());
     }
     this.saveConfig();
   }
@@ -86,14 +84,10 @@ public class PictureConfiguration extends ConfigurationProvider {
     final FileConfiguration configuration = this.getFileConfiguration();
     final MediaLibraryCore library = this.getPlugin().library();
     for (final String key : configuration.getKeys(false)) {
-
-      // TODO: 8/1/2021 FIX THIS CAUSE THIS DEF DOESNT WORK LMAO
-
       final UUID uuid = UUID.fromString(key);
       final Path path =
           Paths.get(requireNonNull(configuration.getString(String.format("%s.path", uuid))));
-      final int[][] matrix =
-          (int[][]) configuration.get(String.format("%s.matrix", uuid)); // this def doesnt work
+      final List<Integer> maps = configuration.getIntegerList(String.format("%s.maps", uuid));
       final ImmutableDimension dimension =
           requireNonNull(
               configuration.getSerializable(
@@ -106,8 +100,8 @@ public class PictureConfiguration extends ConfigurationProvider {
 
       this.images.add(
           PathUtils.getName(path).endsWith("gif")
-              ? new StaticImage(library, path, matrix, dimension)
-              : new DynamicImage(library, path, matrix, dimension));
+              ? new StaticImage(library, path, maps, dimension)
+              : new DynamicImage(library, path, maps, dimension));
     }
   }
 

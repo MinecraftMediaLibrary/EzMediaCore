@@ -23,41 +23,41 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.image;
 
 import com.google.common.collect.ImmutableSet;
-import io.github.pulsebeat02.minecraftmedialibrary.image.basic.StaticImageProxy;
+import io.github.pulsebeat02.ezmediacore.image.Image;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 public final class ImageCommandAttributes {
 
-  private final Set<StaticImageProxy> images;
+  private final Set<Image> images;
   private final Set<UUID> listen;
   private final Set<String> extensions;
   private int width;
   private int height;
 
   public ImageCommandAttributes() {
-    images = new HashSet<>();
-    listen = new HashSet<>();
-    extensions = ImmutableSet.of(".png", ".jpg", ".jpeg", ".tif", ".gif");
-    width = 1;
-    height = 1;
+    this.images = new HashSet<>();
+    this.listen = new HashSet<>();
+    this.extensions = ImmutableSet.of(".png", ".jpg", ".jpeg", ".tif", ".gif");
+    this.width = 1;
+    this.height = 1;
   }
 
-  public Set<StaticImageProxy> getImages() {
-    return images;
+  public Set<Image> getImages() {
+    return this.images;
   }
 
   public Set<UUID> getListen() {
-    return listen;
+    return this.listen;
   }
 
   public Set<String> getExtensions() {
-    return extensions;
+    return this.extensions;
   }
 
   public int getWidth() {
-    return width;
+    return this.width;
   }
 
   public void setWidth(final int width) {
@@ -65,7 +65,7 @@ public final class ImageCommandAttributes {
   }
 
   public int getHeight() {
-    return height;
+    return this.height;
   }
 
   public void setHeight(final int height) {

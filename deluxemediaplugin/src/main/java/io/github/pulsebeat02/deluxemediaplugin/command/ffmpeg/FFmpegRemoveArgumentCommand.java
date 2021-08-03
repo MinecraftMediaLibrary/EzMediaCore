@@ -49,21 +49,24 @@ public final class FFmpegRemoveArgumentCommand implements CommandSegment.Literal
   public FFmpegRemoveArgumentCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final FFmpegCommandExecutor executor) {
     this.plugin = plugin;
-    ffmpeg = executor;
-    node =
-        literal("remove")
-            .then(argument("argument", StringArgumentType.word()).executes(this::removeArgument))
+    this.ffmpeg = executor;
+    this.node =
+        this.literal("remove")
             .then(
-                argument("index", IntegerArgumentType.integer())
+                this.argument("argument", StringArgumentType.word()).executes(this::removeArgument))
+            .then(
+                this.argument("index", IntegerArgumentType.integer())
                     .executes(this::removeIndexArgument))
             .build();
   }
 
   private int removeIndexArgument(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin.audience().sender(context.getSource());
+
+    final Audience audience = this.plugin.audience().sender(context.getSource());
     final int index = context.getArgument("index", int.class);
-    final String arg = ffmpeg.getArguments().get(index);
-    ffmpeg.removeArgument(index);
+    final String arg = this.ffmpeg.getArguments().get(index);
+
+    this.ffmpeg.removeArgument(index);
     audience.sendMessage(
         format(
             ofChildren(
@@ -71,24 +74,28 @@ public final class FFmpegRemoveArgumentCommand implements CommandSegment.Literal
                 text(arg, AQUA),
                 text(" from the FFmpeg command at index ", GOLD),
                 text(index, AQUA))));
+
     return SINGLE_SUCCESS;
   }
 
   private int removeArgument(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin.audience().sender(context.getSource());
+
+    final Audience audience = this.plugin.audience().sender(context.getSource());
     final String argument = context.getArgument("argument", String.class);
-    ffmpeg.removeArgument(argument);
+
+    this.ffmpeg.removeArgument(argument);
     audience.sendMessage(
         format(
             ofChildren(
                 text("Removed arguments ", GOLD),
                 text(argument, AQUA),
                 text(" from the FFmpeg command.", GOLD))));
+
     return SINGLE_SUCCESS;
   }
 
   @Override
   public @NotNull LiteralCommandNode<CommandSender> node() {
-    return node;
+    return this.node;
   }
 }

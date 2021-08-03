@@ -36,6 +36,7 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
@@ -47,22 +48,26 @@ public final class ScreenCommand extends BaseCommand {
   public ScreenCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "screen", executor, "deluxemediaplugin.command.screen", "");
-    node =
-        literal(getName())
+    this.node =
+        this.literal(this.getName())
             .requires(super::testPermission)
-            .then(literal("build").executes(this::sendScreenBuilder))
+            .then(this.literal("build").executes(this::sendScreenBuilder))
             .build();
   }
 
   private int sendScreenBuilder(@NotNull final CommandContext<CommandSender> context) {
+
     final CommandSender sender = context.getSource();
-    final Audience audience = plugin().audience().sender(sender);
+    final Audience audience = this.plugin().audience().sender(sender);
+
     if (!(sender instanceof Player)) {
       audience.sendMessage(format(text("You must be a player to execute this command!", RED)));
       return 1;
     }
-    new ScreenBuilderGui(plugin(), (Player) sender);
-    return 1;
+
+    new ScreenBuilderGui(this.plugin(), (Player) sender);
+
+    return SINGLE_SUCCESS;
   }
 
   @Override
@@ -72,6 +77,6 @@ public final class ScreenCommand extends BaseCommand {
 
   @Override
   public @NotNull LiteralCommandNode<CommandSender> node() {
-    return node;
+    return this.node;
   }
 }

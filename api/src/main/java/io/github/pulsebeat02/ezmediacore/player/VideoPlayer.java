@@ -33,4 +33,6 @@ public interface VideoPlayer extends LibraryInjectable, ResourceUrl, Dimension {
 
   @NotNull
   Set<Player> getWatchers();
+
+  long getElapsedMilliseconds();
 }

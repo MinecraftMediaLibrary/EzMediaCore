@@ -121,11 +121,15 @@ public final class ChatUtils {
     return builder.build();
   }
 
-  public static void info(@NotNull final Audience audience, final String message) {
+  public static void gold(@NotNull final Audience audience, final String message) {
     audience.sendMessage(format(text(message, GOLD)));
   }
 
-  public static void error(@NotNull final Audience audience, final String message) {
+  public static void red(@NotNull final Audience audience, final String message) {
     audience.sendMessage(format(text(message, RED)));
+  }
+
+  public static void aqua(@NotNull final Audience audience, final String message) {
+    audience.sendMessage(format(text(message, AQUA)));
   }
 }

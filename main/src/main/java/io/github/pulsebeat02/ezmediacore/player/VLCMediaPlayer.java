@@ -33,13 +33,13 @@ public class VLCMediaPlayer extends MediaPlayer {
       @NotNull final String url,
       final int frameRate) {
     super(core, callback, dimensions, url, frameRate);
-    this.adapter = getAdapter();
+    this.adapter = this.getAdapter();
     this.callback = new MinecraftVideoRenderCallback(this);
-    initializePlayer(0L);
+    this.initializePlayer(0L);
   }
 
   private VideoSurfaceAdapter getAdapter() {
-    switch (getCore().getDiagnostics().getSystem().getOSType()) {
+    switch (this.getCore().getDiagnostics().getSystem().getOSType()) {
       case MAC:
         return new OsxVideoSurfaceAdapter();
       case UNIX:
@@ -56,23 +56,23 @@ public class VLCMediaPlayer extends MediaPlayer {
     switch (controls) {
       case START:
         if (this.player == null) {
-          initializePlayer(0L);
+          this.initializePlayer(0L);
         }
-        this.player.media().play(getUrl());
-        playAudio();
+        this.player.media().play(this.getUrl());
+        this.playAudio();
         break;
       case PAUSE:
         this.player.controls().stop();
-        stopAudio();
+        this.stopAudio();
         break;
       case RESUME:
         if (this.player == null) {
-          initializePlayer(0L);
-          this.player.media().play(getUrl());
+          this.initializePlayer(0L);
+          this.player.media().play(this.getUrl());
         } else {
           this.player.controls().play();
         }
-        playAudio();
+        this.playAudio();
         break;
       case RELEASE:
         this.player.release();
@@ -83,16 +83,21 @@ public class VLCMediaPlayer extends MediaPlayer {
 
   @Override
   public void initializePlayer(final long ms) {
-    this.player = getEmbeddedMediaPlayer();
-    setCallback(this.player);
+    this.player = this.getEmbeddedMediaPlayer();
+    this.setCallback(this.player);
     this.player.audio().setMute(true);
     this.player.controls().setTime(ms);
 
     // TODO: 7/30/2021 resourcepack stuff
   }
 
+  @Override
+  public long getElapsedMilliseconds() {
+    return this.player.status().time();
+  }
+
   private EmbeddedMediaPlayer getEmbeddedMediaPlayer() {
-    final int rate = getFrameRate();
+    final int rate = this.getFrameRate();
     return new MediaPlayerFactory(
             rate != 0 ? new String[] {String.format("--fps-fps=%d", rate)} : new String[] {})
         .mediaPlayers()
@@ -100,18 +105,18 @@ public class VLCMediaPlayer extends MediaPlayer {
   }
 
   private void setCallback(@NotNull final EmbeddedMediaPlayer player) {
-    player.videoSurface().set(getSurface());
+    player.videoSurface().set(this.getSurface());
   }
 
   private CallbackVideoSurface getSurface() {
-    return new CallbackVideoSurface(getBufferCallback(), this.callback, false, this.adapter);
+    return new CallbackVideoSurface(this.getBufferCallback(), this.callback, false, this.adapter);
   }
 
   private BufferFormatCallback getBufferCallback() {
     return new BufferFormatCallback() {
       @Override
       public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {
-        final ImmutableDimension dimension = getDimensions();
+        final ImmutableDimension dimension = VLCMediaPlayer.this.getDimensions();
         return new RV32BufferFormat(dimension.getWidth(), dimension.getHeight());
       }
 

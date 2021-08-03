@@ -58,35 +58,35 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final VideoCommandAttributes attributes) {
     this.plugin = plugin;
     this.attributes = attributes;
-    node =
-        literal("set")
+    this.node =
+        this.literal("set")
             .then(
-                literal("screen-dimension")
+                this.literal("screen-dimension")
                     .then(
-                        argument("screen-dimensions", StringArgumentType.greedyString())
+                        this.argument("screen-dimensions", StringArgumentType.greedyString())
                             .executes(this::setScreenDimensions)))
             .then(
-                literal("itemframe-dimension")
+                this.literal("itemframe-dimension")
                     .then(
-                        argument("itemframe-dimensions", StringArgumentType.greedyString())
+                        this.argument("itemframe-dimensions", StringArgumentType.greedyString())
                             .executes(this::setItemframeDimensions)))
             .then(
-                literal("starting-map")
+                this.literal("starting-map")
                     .then(
-                        argument(
+                        this.argument(
                                 "map-id",
                                 IntegerArgumentType.integer(-2_147_483_647, 2_147_483_647))
                             .executes(this::setStartingMap)))
             .then(
-                literal("dither")
+                this.literal("dither")
                     .then(
-                        argument("dithering-option", StringArgumentType.word())
+                        this.argument("dithering-option", StringArgumentType.word())
                             .suggests(this::suggestDitheringOptions)
                             .executes(this::setDitherMode)))
             .then(
-                literal("mode")
+                this.literal("mode")
                     .then(
-                        argument("video-mode", StringArgumentType.word())
+                        this.argument("video-mode", StringArgumentType.word())
                             .suggests(this::suggestVideoModes)
                             .executes(this::setMode)))
             .build();
@@ -105,94 +105,114 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
   }
 
   private int setScreenDimensions(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin.audience().sender(context.getSource());
+
+    final Audience audience = this.plugin.audience().sender(context.getSource());
     final Optional<int[]> optional =
         ChatUtils.checkDimensionBoundaries(
             audience, context.getArgument("screen-dimensions", String.class));
+
     if (!optional.isPresent()) {
       return SINGLE_SUCCESS;
     }
     final int[] dimensions = optional.get();
-    attributes.setScreenWidth(dimensions[0]);
-    attributes.setScreenHeight(dimensions[1]);
+    this.attributes.setScreenWidth(dimensions[0]);
+    this.attributes.setScreenHeight(dimensions[1]);
+
     audience.sendMessage(
         format(
             ofChildren(
                 text("Set screen dimensions to ", GOLD),
                 text(
                     String.format(
-                        "%d:%d ", attributes.getScreenWidth(), attributes.getScreenHeight()),
+                        "%d:%d ",
+                        this.attributes.getScreenWidth(), this.attributes.getScreenHeight()),
                     AQUA),
                 text("(width:height)", GOLD))));
+
     return SINGLE_SUCCESS;
   }
 
   private int setItemframeDimensions(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin.audience().sender(context.getSource());
+
+    final Audience audience = this.plugin.audience().sender(context.getSource());
     final Optional<int[]> optional =
         ChatUtils.checkDimensionBoundaries(
             audience, context.getArgument("itemframe-dimensions", String.class));
+
     if (!optional.isPresent()) {
       return SINGLE_SUCCESS;
     }
+
     final int[] dims = optional.get();
-    attributes.setFrameWidth(dims[0]);
-    attributes.setFrameHeight(dims[1]);
+    this.attributes.setFrameWidth(dims[0]);
+    this.attributes.setFrameHeight(dims[1]);
+
     audience.sendMessage(
         format(
             ofChildren(
                 text("Set itemframe map dimensions to ", GOLD),
                 text(
                     String.format(
-                        "%s:%s ", attributes.getFrameHeight(), attributes.getFrameWidth()),
+                        "%s:%s ",
+                        this.attributes.getFrameHeight(), this.attributes.getFrameWidth()),
                     AQUA),
                 text("(width:height)", GOLD))));
-    return 1;
+
+    return SINGLE_SUCCESS;
   }
 
   private int setStartingMap(@NotNull final CommandContext<CommandSender> context) {
-    attributes.setStartingMap(context.getArgument("map-id", int.class));
-    plugin
+
+    this.attributes.setStartingMap(context.getArgument("map-id", int.class));
+
+    this.plugin
         .audience()
         .sender(context.getSource())
         .sendMessage(
             format(
                 ofChildren(
                     text("Set starting map id to ", GOLD),
-                    text(attributes.getStartingMap(), AQUA))));
+                    text(this.attributes.getStartingMap(), AQUA))));
+
     return SINGLE_SUCCESS;
   }
 
   private int setDitherMode(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin.audience().sender(context.getSource());
+
+    final Audience audience = this.plugin.audience().sender(context.getSource());
     final String algorithm = context.getArgument("dithering-option", String.class);
     final DitherSetting setting = DitherSetting.fromString(algorithm);
+
     if (setting == null) {
       audience.sendMessage(
           format(text(String.format("Could not find dither type %s", algorithm), RED)));
     } else {
       audience.sendMessage(
           format(ofChildren(text("Set dither type to ", GOLD), text(algorithm, AQUA))));
-      attributes.setDither(setting);
+      this.attributes.setDither(setting);
     }
+
     return SINGLE_SUCCESS;
   }
 
   private int setMode(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = plugin.audience().sender(context.getSource());
+
+    final Audience audience = this.plugin.audience().sender(context.getSource());
     final String mode = context.getArgument("video-mode", String.class);
     final VideoType type = VideoType.fromString(mode);
+
     if (type == null) {
       audience.sendMessage(format(text(String.format("Could not find video mode %s", mode), RED)));
     } else {
-      attributes.setVideoType(type);
+      this.attributes.setVideoType(type);
       audience.sendMessage(format(ofChildren(text("Set video mode to ", GOLD), text(mode, AQUA))));
     }
+
     return SINGLE_SUCCESS;
   }
 
   @Override
   public @NotNull LiteralCommandNode<CommandSender> node() {
-    return node;
+    return this.node;
   }
 }
