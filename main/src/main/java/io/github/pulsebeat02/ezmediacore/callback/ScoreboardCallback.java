@@ -3,14 +3,9 @@ package io.github.pulsebeat02.ezmediacore.callback;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-import java.util.WeakHashMap;
-import java.util.stream.Collectors;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -35,30 +30,29 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
     }
   }
 
-  private final Set<Player> viewers;
+  private final Collection<? extends Player> viewers;
   private final String name;
   private Scoreboard scoreboard;
   private int id;
 
   public ScoreboardCallback(
       @NotNull final MediaLibraryCore core,
-      final UUID[] viewers,
-      final int id,
       @NotNull final ImmutableDimension dimension,
+      @NotNull final Collection<? extends Player> viewers,
+      final int id,
       final int blockWidth,
       final int delay) {
-    super(core, viewers, dimension, blockWidth, delay);
-    this.viewers = Collections.newSetFromMap(new WeakHashMap<>());
-    this.viewers.addAll(Arrays.stream(viewers).map(Bukkit::getPlayer).collect(Collectors.toSet()));
+    super(core, dimension, viewers, blockWidth, delay);
+    this.viewers = viewers;
     this.name = String.format("%s Video Player (%s)", core.getPlugin().getName(), id);
   }
 
   @Override
   public void process(final int[] data) {
     final long time = System.currentTimeMillis();
-    if (time - getLastUpdated() >= getFrameDelay()) {
-      setLastUpdated(time);
-      final ImmutableDimension dimension = getDimensions();
+    if (time - this.getLastUpdated() >= this.getFrameDelay()) {
+      this.setLastUpdated(time);
+      final ImmutableDimension dimension = this.getDimensions();
       final int width = dimension.getWidth();
       final int height = dimension.getHeight();
       if (this.scoreboard == null) {

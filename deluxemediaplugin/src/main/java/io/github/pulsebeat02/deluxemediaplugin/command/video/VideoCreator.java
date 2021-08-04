@@ -30,12 +30,10 @@ import io.github.pulsebeat02.ezmediacore.callback.EntityCallback;
 import io.github.pulsebeat02.ezmediacore.callback.EntityType;
 import io.github.pulsebeat02.ezmediacore.callback.MapCallback;
 import io.github.pulsebeat02.ezmediacore.callback.ScoreboardCallback;
-import io.github.pulsebeat02.ezmediacore.dither.algorithm.FilterLiteDither;
 import io.github.pulsebeat02.ezmediacore.player.VideoFactory;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import java.util.Collection;
-import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,24 +52,17 @@ public final class VideoCreator {
     return VideoFactory.builder()
         .core(this.library)
         .url(this.attributes.getMrl())
-        .dims(
-            new ImmutableDimension(
-                this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
         .callback(
             new MapCallback(
                 this.library,
-                this.getUniqueIDs(viewers),
-                new FilterLiteDither(),
+                ImmutableDimension.of(
+                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+                viewers,
+                this.attributes.getDither().getAlgorithm(),
                 this.attributes.getMap(),
-                new ImmutableDimension(
-                    this.attributes.getFrameWidth(), this.attributes.getFrameHeight()),
                 this.attributes.getPixelWidth(),
                 0))
         .build();
-  }
-
-  private UUID[] getUniqueIDs(@NotNull final Collection<? extends Player> viewers) {
-    return viewers.stream().map(Player::getUniqueId).toArray(UUID[]::new);
   }
 
   public VideoPlayer createEntityPlayer(
@@ -79,18 +70,15 @@ public final class VideoCreator {
     return VideoFactory.builder()
         .core(this.library)
         .url(this.attributes.getMrl())
-        .dims(
-            new ImmutableDimension(
-                this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
         .callback(
             new EntityCallback(
                 this.library,
-                this.getUniqueIDs(viewers),
+                ImmutableDimension.of(
+                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+                viewers,
                 sender.getLocation(),
                 "▉",
                 EntityType.ARMORSTAND,
-                new ImmutableDimension(
-                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
                 this.attributes.getPixelWidth(),
                 20))
         .build();
@@ -100,16 +88,13 @@ public final class VideoCreator {
     return VideoFactory.builder()
         .core(this.library)
         .url(this.attributes.getMrl())
-        .dims(
-            new ImmutableDimension(
-                this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
         .callback(
             new ChatCallback(
                 this.library,
-                this.getUniqueIDs(viewers),
-                "#",
-                new ImmutableDimension(
+                ImmutableDimension.of(
                     this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+                viewers,
+                "#",
                 this.attributes.getPixelWidth(),
                 20))
         .build();
@@ -119,16 +104,13 @@ public final class VideoCreator {
     return VideoFactory.builder()
         .core(this.library)
         .url(this.attributes.getMrl())
-        .dims(
-            new ImmutableDimension(
-                this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
         .callback(
             new ScoreboardCallback(
                 this.library,
-                this.getUniqueIDs(viewers),
-                1080,
-                new ImmutableDimension(
+                ImmutableDimension.of(
                     this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+                viewers,
+                1080,
                 this.attributes.getPixelWidth(),
                 20))
         .build();
@@ -139,16 +121,13 @@ public final class VideoCreator {
     return VideoFactory.builder()
         .core(this.library)
         .url(this.attributes.getMrl())
-        .dims(
-            new ImmutableDimension(
-                this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
         .callback(
             new BlockHighlightCallback(
                 this.library,
-                this.getUniqueIDs(viewers),
-                sender.getLocation(),
-                new ImmutableDimension(
+                ImmutableDimension.of(
                     this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+                viewers,
+                sender.getLocation(),
                 this.attributes.getPixelWidth(),
                 40))
         .build();

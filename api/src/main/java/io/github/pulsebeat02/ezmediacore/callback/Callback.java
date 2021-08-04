@@ -2,12 +2,15 @@ package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
+import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.utility.Dimension;
 import org.jetbrains.annotations.NotNull;
 
 public interface Callback extends LibraryInjectable, Dimension, Viewable {
 
   void process(final int[] data);
+
+  void preparePlayerStateChange(@NotNull final PlayerControls status);
 
   // width in pixels
   int getBlockWidth();

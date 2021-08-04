@@ -3,9 +3,9 @@ package io.github.pulsebeat02.ezmediacore.callback;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
-import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 import net.md_5.bungee.api.ChatColor;
@@ -20,24 +20,24 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
 
   public ChatCallback(
       @NotNull final MediaLibraryCore core,
-      final UUID[] viewers,
-      @NotNull final String character,
       @NotNull final ImmutableDimension dimension,
+      @NotNull final Collection<? extends Player> viewers,
+      @NotNull final String character,
       final int blockWidth,
       final int delay) {
-    super(core, viewers, dimension, blockWidth, delay);
+    super(core, dimension, viewers, blockWidth, delay);
     this.character = character;
     this.players = Collections.newSetFromMap(new WeakHashMap<>());
     this.players.addAll(
-        Arrays.stream(getViewers()).map(Bukkit::getPlayer).collect(Collectors.toList()));
+        Arrays.stream(this.getViewers()).map(Bukkit::getPlayer).collect(Collectors.toList()));
   }
 
   @Override
   public void process(final int[] data) {
     final long time = System.currentTimeMillis();
-    if (time - getLastUpdated() >= getFrameDelay()) {
-      setLastUpdated(time);
-      final ImmutableDimension dimension = getDimensions();
+    if (time - this.getLastUpdated() >= this.getFrameDelay()) {
+      this.setLastUpdated(time);
+      final ImmutableDimension dimension = this.getDimensions();
       final int width = dimension.getWidth();
       final int height = dimension.getHeight();
       for (int y = 0; y < height; ++y) {

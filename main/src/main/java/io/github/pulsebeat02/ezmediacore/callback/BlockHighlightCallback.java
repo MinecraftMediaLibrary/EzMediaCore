@@ -2,8 +2,9 @@ package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
-import java.util.UUID;
+import java.util.Collection;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class BlockHighlightCallback extends FrameCallback
@@ -13,29 +14,29 @@ public class BlockHighlightCallback extends FrameCallback
 
   public BlockHighlightCallback(
       @NotNull final MediaLibraryCore core,
-      final UUID[] viewers,
-      @NotNull final Location location,
       @NotNull final ImmutableDimension dimension,
+      @NotNull final Collection<? extends Player> viewers,
+      @NotNull final Location location,
       final int blockWidth,
       final int delay) {
-    super(core, viewers, dimension, blockWidth, delay);
+    super(core, dimension, viewers, blockWidth, delay);
     this.location = location;
   }
 
   @Override
   public void process(final int[] data) {
     final long time = System.currentTimeMillis();
-    final int delay = getFrameDelay();
-    if (time - getLastUpdated() >= delay) {
-      setLastUpdated(time);
-      final ImmutableDimension dimension = getDimensions();
+    final int delay = this.getFrameDelay();
+    if (time - this.getLastUpdated() >= delay) {
+      this.setLastUpdated(time);
+      final ImmutableDimension dimension = this.getDimensions();
       final int width = dimension.getWidth();
       final int height = dimension.getHeight();
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-          getPacketHandler()
+          this.getPacketHandler()
               .displayDebugMarker(
-                  getViewers(),
+                  this.getViewers(),
                   (int) (this.location.getX() - (width / 2D)) + x,
                   (int) (this.location.getY() + (height / 2D)) - y,
                   (int) this.location.getZ(),

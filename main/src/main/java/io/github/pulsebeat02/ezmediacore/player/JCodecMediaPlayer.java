@@ -20,13 +20,12 @@ public class JCodecMediaPlayer extends MediaPlayer {
   private boolean paused;
   private long start;
 
-  protected JCodecMediaPlayer(
+  JCodecMediaPlayer(
       @NotNull final MediaLibraryCore core,
       @NotNull final FrameCallback callback,
-      @NotNull final ImmutableDimension dimensions,
       @NotNull final String url,
       final int frameRate) {
-    super(core, callback, dimensions, url, frameRate);
+    super(core, callback, url, frameRate);
     this.initializePlayer(0L);
   }
 

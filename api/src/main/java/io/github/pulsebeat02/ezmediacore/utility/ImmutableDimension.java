@@ -10,9 +10,13 @@ public class ImmutableDimension implements ConfigurationSerializable {
   private final int width;
   private final int height;
 
-  public ImmutableDimension(final int width, final int height) {
+  ImmutableDimension(final int width, final int height) {
     this.width = width;
     this.height = height;
+  }
+
+  public static ImmutableDimension of(final int width, final int height) {
+    return new ImmutableDimension(width, height);
   }
 
   public int getWidth() {

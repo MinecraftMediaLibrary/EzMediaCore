@@ -3,7 +3,8 @@ package io.github.pulsebeat02.ezmediacore.callback;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
-import java.util.UUID;
+import java.util.Collection;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class MapCallback extends FrameCallback implements MapCallbackDispatcher {
@@ -13,13 +14,13 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
 
   public MapCallback(
       @NotNull final MediaLibraryCore core,
-      final UUID[] viewers,
+      @NotNull final ImmutableDimension dimension,
+      @NotNull final Collection<? extends Player> viewers,
       final DitherAlgorithm algorithm,
       final int map,
-      @NotNull final ImmutableDimension dimension,
       final int blockWidth,
       final int delay) {
-    super(core, viewers, dimension, blockWidth, delay);
+    super(core, dimension, viewers, blockWidth, delay);
     this.algorithm = algorithm;
     this.map = map;
   }
@@ -27,16 +28,16 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
   @Override
   public void process(final int[] data) {
     final long time = System.currentTimeMillis();
-    final ImmutableDimension dimension = getDimensions();
-    if (time - getLastUpdated() >= getFrameDelay()) {
-      setLastUpdated(time);
-      final int width = getBlockWidth();
-      getPacketHandler()
+    final ImmutableDimension dimension = this.getDimensions();
+    if (time - this.getLastUpdated() >= this.getFrameDelay()) {
+      this.setLastUpdated(time);
+      final int width = this.getBlockWidth();
+      this.getPacketHandler()
           .displayMaps(
-              getViewers(),
+              this.getViewers(),
               this.map,
               dimension.getWidth(),
-              getDimensions().getHeight(),
+              this.getDimensions().getHeight(),
               this.algorithm.ditherIntoMinecraft(data, width),
               width);
     }

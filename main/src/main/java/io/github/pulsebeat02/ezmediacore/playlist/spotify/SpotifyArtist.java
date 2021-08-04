@@ -14,6 +14,7 @@ public class SpotifyArtist implements Artist {
 
   private final com.wrapper.spotify.model_objects.specification.Artist artist;
   private final String url;
+  private final Avatar[] avatars;
 
   public SpotifyArtist(@NotNull final String url)
       throws IOException, ParseException, SpotifyWebApiException {
@@ -25,6 +26,10 @@ public class SpotifyArtist implements Artist {
                     .orElseThrow(() -> new UnknownArtistException(url)))
             .build()
             .execute();
+    this.avatars =
+        Arrays.stream(this.artist.getImages())
+            .map(SpotifyAvatar::new)
+            .toArray(SpotifyAvatar[]::new);
   }
 
   SpotifyArtist(@NotNull final ArtistSimplified simplified)
@@ -64,9 +69,7 @@ public class SpotifyArtist implements Artist {
 
   @Override
   public @NotNull Avatar[] getImages() {
-    return Arrays.stream(this.artist.getImages())
-        .map(SpotifyAvatar::new)
-        .toArray(SpotifyAvatar[]::new);
+    return this.avatars;
   }
 
   @Override

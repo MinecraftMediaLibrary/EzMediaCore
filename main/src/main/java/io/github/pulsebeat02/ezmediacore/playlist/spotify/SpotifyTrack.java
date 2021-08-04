@@ -6,7 +6,7 @@ import io.github.pulsebeat02.ezmediacore.throwable.DeadResourceLinkException;
 import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.hc.core5.http.ParseException;
@@ -16,6 +16,7 @@ public class SpotifyTrack implements Track {
 
   private final com.wrapper.spotify.model_objects.specification.Track track;
   private final String url;
+  private final List<Artist> artists;
 
   public SpotifyTrack(@NotNull final String url)
       throws IOException, ParseException, SpotifyWebApiException {
@@ -27,6 +28,10 @@ public class SpotifyTrack implements Track {
                     .orElseThrow(() -> new DeadResourceLinkException(url)))
             .build()
             .execute();
+    this.artists =
+        Arrays.stream(this.track.getArtists())
+            .map(ThrowingFunction.unchecked(SpotifyArtist::new))
+            .collect(Collectors.toList());
   }
 
   @Override
@@ -40,10 +45,8 @@ public class SpotifyTrack implements Track {
   }
 
   @Override
-  public @NotNull Collection<Artist> getArtists() {
-    return Arrays.stream(this.track.getArtists())
-        .map(ThrowingFunction.unchecked(SpotifyArtist::new))
-        .collect(Collectors.toList());
+  public @NotNull List<Artist> getArtists() {
+    return this.artists;
   }
 
   @Override

@@ -24,13 +24,12 @@ public class FFmpegMediaPlayer extends MediaPlayer {
   private FFmpegResultFuture future;
   private long start;
 
-  protected FFmpegMediaPlayer(
+  FFmpegMediaPlayer(
       @NotNull final MediaLibraryCore core,
       @NotNull final FrameCallback callback,
-      @NotNull final ImmutableDimension dimensions,
       @NotNull final String url,
       final int frameRate) {
-    super(core, callback, dimensions, url, frameRate);
+    super(core, callback, url, frameRate);
     this.initializePlayer(0L);
   }
 

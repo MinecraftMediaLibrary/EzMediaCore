@@ -28,18 +28,18 @@ public abstract class MediaPlayer implements VideoPlayer {
   private final int frameRate;
   private PlayerControls controls;
 
-  protected MediaPlayer(
+  MediaPlayer(
       @NotNull final MediaLibraryCore core,
       @NotNull final FrameCallback callback,
-      @NotNull final ImmutableDimension dimensions,
       @NotNull final String url,
       final int frameRate) {
+    final ImmutableDimension dimension = callback.getDimensions();
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
-    Preconditions.checkArgument(dimensions.getWidth() >= 0, "Width must be above or equal to 0!");
-    Preconditions.checkArgument(dimensions.getHeight() >= 0, "Height must be above or equal to 0!");
+    Preconditions.checkArgument(dimension.getWidth() >= 0, "Width must be above or equal to 0!");
+    Preconditions.checkArgument(dimension.getHeight() >= 0, "Height must be above or equal to 0!");
     this.core = core;
     this.callback = callback;
-    this.dimensions = dimensions;
+    this.dimensions = dimension;
     this.soundKey = core.getPlugin().getName().toLowerCase(Locale.ROOT);
     this.url = url;
     this.frameRate = frameRate;
@@ -67,6 +67,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   public void setPlayerState(@NotNull final PlayerControls controls) {
     this.onPlayerStateChange(controls);
     this.controls = controls;
+    this.callback.preparePlayerStateChange(controls);
   }
 
   @Override

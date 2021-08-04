@@ -6,7 +6,7 @@ import io.github.pulsebeat02.ezmediacore.throwable.UnknownPlaylistException;
 import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.hc.core5.http.ParseException;
@@ -16,6 +16,7 @@ public class SpotifyPlaylist implements TrackPlaylist {
 
   private final Playlist playlist;
   private final String url;
+  private final List<PlaylistTrack> tracks;
 
   public SpotifyPlaylist(@NotNull final String url)
       throws IOException, ParseException, SpotifyWebApiException {
@@ -27,6 +28,10 @@ public class SpotifyPlaylist implements TrackPlaylist {
                     .orElseThrow(() -> new UnknownPlaylistException(url)))
             .build()
             .execute();
+    this.tracks =
+        Arrays.stream(this.playlist.getTracks().getItems())
+            .map(SpotifyPlaylistTrack::new)
+            .collect(Collectors.toList());
   }
 
   @Override
@@ -50,10 +55,8 @@ public class SpotifyPlaylist implements TrackPlaylist {
   }
 
   @Override
-  public @NotNull Collection<PlaylistTrack> getTracks() {
-    return Arrays.stream(this.playlist.getTracks().getItems())
-        .map(SpotifyPlaylistTrack::new)
-        .collect(Collectors.toList());
+  public @NotNull List<PlaylistTrack> getTracks() {
+    return this.tracks;
   }
 
   @Override

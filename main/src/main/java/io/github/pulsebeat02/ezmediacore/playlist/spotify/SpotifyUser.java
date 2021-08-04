@@ -30,6 +30,7 @@ public class SpotifyUser implements User {
 
   private final com.wrapper.spotify.model_objects.specification.User user;
   private final String url;
+  private final Avatar[] avatars;
 
   public SpotifyUser(@NotNull final String url)
       throws IOException, ParseException, SpotifyWebApiException {
@@ -41,11 +42,15 @@ public class SpotifyUser implements User {
                     .orElseThrow(() -> new UnknownPlaylistException(url)))
             .build()
             .execute();
+    this.avatars =
+        Arrays.stream(this.user.getImages()).map(SpotifyAvatar::new).toArray(SpotifyAvatar[]::new);
   }
 
   SpotifyUser(@NotNull final com.wrapper.spotify.model_objects.specification.User user) {
     this.url = user.getUri();
     this.user = user;
+    this.avatars =
+        Arrays.stream(this.user.getImages()).map(SpotifyAvatar::new).toArray(SpotifyAvatar[]::new);
   }
 
   protected static @NotNull BiMap<ProductType, Subscription> getSubscriptionMappings() {
@@ -69,9 +74,7 @@ public class SpotifyUser implements User {
 
   @Override
   public @NotNull Avatar[] getImages() {
-    return Arrays.stream(this.user.getImages())
-        .map(SpotifyAvatar::new)
-        .toArray(SpotifyAvatar[]::new);
+    return this.avatars;
   }
 
   @Override

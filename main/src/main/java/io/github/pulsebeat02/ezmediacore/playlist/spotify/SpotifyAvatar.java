@@ -10,7 +10,7 @@ public final class SpotifyAvatar implements Avatar {
 
   SpotifyAvatar(@NotNull final com.wrapper.spotify.model_objects.specification.Image image) {
     this.image = image;
-    this.dimension = new ImmutableDimension(image.getWidth(), image.getHeight());
+    this.dimension = ImmutableDimension.of(image.getWidth(), image.getHeight());
   }
 
   @Override

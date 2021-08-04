@@ -1,8 +1,9 @@
 package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
-import java.util.UUID;
+import java.util.Collection;
 import java.util.function.Consumer;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
@@ -10,6 +11,7 @@ import org.bukkit.World;
 import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,22 +24,22 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
 
   public EntityCallback(
       @NotNull final MediaLibraryCore core,
-      final UUID[] viewers,
-      @NotNull final Location location,
-      @NotNull final String name,
-      @NotNull final EntityType type,
       @NotNull final ImmutableDimension dimension,
+      @NotNull final Collection<? extends Player> viewers,
+      @NotNull final Location location,
+      @NotNull final String character,
+      @NotNull final EntityType type,
       final int blockWidth,
       final int delay) {
-    super(core, viewers, dimension, blockWidth, delay);
+    super(core, dimension, viewers, blockWidth, delay);
     this.location = location;
     this.type = type;
-    this.name = name;
-    this.entities = getModifiedEntities();
+    this.name = character;
+    this.entities = this.getModifiedEntities();
   }
 
   private Entity[] getModifiedEntities() {
-    final int height = getDimensions().getHeight();
+    final int height = this.getDimensions().getHeight();
     final Entity[] ents = new Entity[height];
     final Location spawn = this.location.clone();
     final World world = spawn.getWorld();
@@ -45,18 +47,18 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
       switch (this.type) {
         case AREA_EFFECT_CLOUD:
           for (int i = height - 1; i >= 0; i--) {
-            ents[i] = getAreaEffectCloud(world, spawn, height);
+            ents[i] = this.getAreaEffectCloud(world, spawn, height);
             spawn.add(0.0, 0.225, 0.0);
           }
           break;
         case ARMORSTAND:
           for (int i = height - 1; i >= 0; i--) {
-            ents[i] = getArmorStand(world, spawn, height);
+            ents[i] = this.getArmorStand(world, spawn, height);
             spawn.add(0.0, 0.225, 0.0);
           }
           break;
         case CUSTOM:
-          final Consumer<ArmorStand> consumer = modifyEntity();
+          final Consumer<ArmorStand> consumer = this.modifyEntity();
           if (consumer == null) {
             throw new AssertionError("Must override the modifyEntity method for custom entity!");
           }
@@ -100,6 +102,25 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
           entity.setGravity(false);
           entity.setCustomName(StringUtils.repeat(this.name, height));
         });
+  }
+
+  @Override
+  public void preparePlayerStateChange(@NotNull final PlayerControls status) {
+    super.preparePlayerStateChange(status);
+    switch (status) {
+      case START:
+      case RELEASE:
+        this.removeEntities();
+        break;
+    }
+  }
+
+  private void removeEntities() {
+    if (this.entities != null) {
+      for (final Entity entity : this.entities) {
+        entity.remove();
+      }
+    }
   }
 
   @Override

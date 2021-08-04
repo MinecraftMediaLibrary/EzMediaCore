@@ -26,13 +26,12 @@ public class VLCMediaPlayer extends MediaPlayer {
 
   private EmbeddedMediaPlayer player;
 
-  protected VLCMediaPlayer(
+  VLCMediaPlayer(
       @NotNull final MediaLibraryCore core,
       @NotNull final FrameCallback callback,
-      @NotNull final ImmutableDimension dimensions,
       @NotNull final String url,
       final int frameRate) {
-    super(core, callback, dimensions, url, frameRate);
+    super(core, callback, url, frameRate);
     this.adapter = this.getAdapter();
     this.callback = new MinecraftVideoRenderCallback(this);
     this.initializePlayer(0L);

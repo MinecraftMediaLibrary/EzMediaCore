@@ -3,8 +3,11 @@ package io.github.pulsebeat02.ezmediacore.callback;
 import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
+import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
+import java.util.Collection;
 import java.util.UUID;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class FrameCallback implements Callback {
@@ -20,8 +23,8 @@ public abstract class FrameCallback implements Callback {
   // core, viewers, pixels in width, pixels in height, block width, and delay between each frame
   public FrameCallback(
       @NotNull final MediaLibraryCore core,
-      final UUID[] viewers,
       @NotNull final ImmutableDimension dimension,
+      @NotNull final Collection<? extends Player> viewers,
       final int blockWidth,
       final int delay) {
     Preconditions.checkArgument(
@@ -31,11 +34,14 @@ public abstract class FrameCallback implements Callback {
     Preconditions.checkArgument(
         delay >= 0, "Delay between frames must be greater than or equal to 0!");
     this.core = core;
-    this.viewers = viewers;
+    this.viewers = viewers.stream().map(Player::getUniqueId).toArray(UUID[]::new);
     this.dimension = dimension;
     this.blockWidth = blockWidth;
     this.delay = delay;
   }
+
+  @Override
+  public void preparePlayerStateChange(@NotNull final PlayerControls status) {}
 
   @Override
   public int getBlockWidth() {
