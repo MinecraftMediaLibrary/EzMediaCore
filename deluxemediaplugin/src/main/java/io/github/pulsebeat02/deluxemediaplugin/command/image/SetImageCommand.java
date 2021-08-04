@@ -30,6 +30,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.image.DynamicImage;
+import io.github.pulsebeat02.ezmediacore.image.Image;
 import io.github.pulsebeat02.ezmediacore.image.StaticImage;
 import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
@@ -112,15 +113,22 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
     }
 
     if (Files.exists(img)) {
+
       final String name = PathUtils.getName(img).toLowerCase();
+      final Image image;
+
       if (name.endsWith(".gif")) {
-        new StaticImage(core, img, maps, new ImmutableDimension(width, height)).draw(true);
+        image = new StaticImage(core, img, maps, new ImmutableDimension(width, height));
       } else if (this.attributes.getExtensions().stream().anyMatch(name::endsWith)) {
-        new DynamicImage(core, img, maps, new ImmutableDimension(width, height)).draw(true);
+        image = new DynamicImage(core, img, maps, new ImmutableDimension(width, height));
       } else {
         red(audience, "The image extension you provided is not supported!");
         return true;
       }
+
+      image.draw(true);
+      this.plugin.getPictureManager().getImages().add(image);
+
     } else {
       red(audience, String.format("File %s cannot be found!", PathUtils.getName(img)));
     }

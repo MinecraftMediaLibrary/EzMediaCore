@@ -59,4 +59,16 @@ public class PersistentPictureManager {
       e.printStackTrace();
     }
   }
+
+  public DeluxeMediaPlugin getPlugin() {
+    return this.plugin;
+  }
+
+  public PersistentImageStorage getStorage() {
+    return this.storage;
+  }
+
+  public List<Image> getImages() {
+    return this.images;
+  }
 }

@@ -1,6 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.listener;
 
 import io.github.pulsebeat02.ezmediacore.Logger;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Bukkit;
@@ -14,20 +15,23 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ForcefulResourcepackListener implements Listener {
 
+  private final MediaLibraryCore core;
   private final Set<UUID> uuids;
   private final String url;
   private final byte[] hash;
 
   public ForcefulResourcepackListener(
-      @NotNull final Plugin plugin,
+      @NotNull final MediaLibraryCore core,
       @NotNull final Set<UUID> uuids,
       @NotNull final String url,
       final byte @NotNull [] hash) {
+    this.core = core;
     this.uuids = uuids;
     this.url = url;
     this.hash = hash;
+    final Plugin plugin = core.getPlugin();
     plugin.getServer().getPluginManager().registerEvents(this, plugin);
-    sendResourcepack();
+    this.sendResourcepack();
   }
 
   private void sendResourcepack() {
@@ -41,7 +45,8 @@ public final class ForcefulResourcepackListener implements Listener {
     }
   }
 
-  public void start(@NotNull final Plugin plugin) {
+  public void start() {
+    final Plugin plugin = this.core.getPlugin();
     new BukkitRunnable() {
       @Override
       public void run() {

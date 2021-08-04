@@ -28,12 +28,14 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+import java.util.function.Consumer;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.SoundCategory;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
@@ -66,15 +68,10 @@ public final class AudioCommand extends BaseCommand {
       return SINGLE_SUCCESS;
     }
 
-    Bukkit.getOnlinePlayers()
-        .forEach(
-            p ->
-                p.playSound(
-                    p.getLocation(),
-                    this.attributes.getSoundKey(),
-                    SoundCategory.MUSIC,
-                    100.0F,
-                    1.0F));
+    this.audioAction(
+        player ->
+            player.playSound(
+                player.getLocation(), this.attributes.getKey(), SoundCategory.MUSIC, 100.0F, 1.0F));
 
     gold(audience, "Started playing audio!");
 
@@ -89,11 +86,15 @@ public final class AudioCommand extends BaseCommand {
       return SINGLE_SUCCESS;
     }
 
-    Bukkit.getOnlinePlayers().forEach(p -> p.stopSound(this.attributes.getSoundKey()));
+    this.audioAction(player -> player.stopSound(this.attributes.getKey()));
 
     red(audience, "Stopped playing audio!");
 
     return SINGLE_SUCCESS;
+  }
+
+  private void audioAction(@NotNull final Consumer<Player> consumer) {
+    Bukkit.getOnlinePlayers().forEach(consumer);
   }
 
   private boolean checkUnloaded(@NotNull final Audience audience) {

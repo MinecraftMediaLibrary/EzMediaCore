@@ -30,15 +30,15 @@ import org.jetbrains.annotations.NotNull;
 public final class AudioCommandAttributes {
 
   private final AtomicBoolean completion;
-  private final String soundKey;
+  private final String key;
 
   private Path audio;
   private String link;
   private byte[] hash;
 
   public AudioCommandAttributes(@NotNull final DeluxeMediaPlugin plugin) {
-    this.completion = new AtomicBoolean(false);
-    this.soundKey = plugin.getName().toLowerCase();
+    this.completion = new AtomicBoolean(true);
+    this.key = plugin.getName().toLowerCase();
   }
 
   public AtomicBoolean getCompletion() {
@@ -49,8 +49,8 @@ public final class AudioCommandAttributes {
     this.completion.set(mode);
   }
 
-  public String getSoundKey() {
-    return this.soundKey;
+  public String getKey() {
+    return this.key;
   }
 
   public Path getAudio() {

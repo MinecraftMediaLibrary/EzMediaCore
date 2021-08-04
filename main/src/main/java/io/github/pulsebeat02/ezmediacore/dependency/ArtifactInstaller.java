@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -53,11 +54,12 @@ public final class ArtifactInstaller {
   public ArtifactInstaller(@NotNull final MediaLibraryCore core)
       throws ReflectiveOperationException, URISyntaxException, NoSuchAlgorithmException,
           IOException {
-    this.factory = ReflectiveJarRelocatorFacadeFactory.create();
     this.jars = new HashSet<>();
     this.hashes = new HashSet<>();
     this.dependencyFolder = core.getDependencyPath();
     this.relocatedFolder = this.dependencyFolder.resolve("relocated");
+    this.factory =
+        ReflectiveJarRelocatorFacadeFactory.create(this.relocatedFolder, Collections.emptyList());
     this.hashFile = this.dependencyFolder.resolve(".relocated-cache");
   }
 

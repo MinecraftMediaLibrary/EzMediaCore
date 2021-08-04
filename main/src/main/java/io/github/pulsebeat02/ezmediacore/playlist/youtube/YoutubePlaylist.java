@@ -14,6 +14,7 @@ public class YoutubePlaylist implements Playlist {
   private final String url;
   private final PlaylistInfo info;
   private final PlaylistDetails details;
+  private final List<Video> videos;
 
   public YoutubePlaylist(@NotNull final String url) {
     this.url = url;
@@ -25,6 +26,10 @@ public class YoutubePlaylist implements Playlist {
                         .orElseThrow(() -> new UnknownPlaylistException(url))))
             .data();
     this.details = this.info.details();
+    this.videos =
+        this.info.videos().parallelStream()
+            .map(link -> new YoutubeVideo(link.videoId()))
+            .collect(Collectors.toList());
   }
 
   @Override
@@ -49,9 +54,7 @@ public class YoutubePlaylist implements Playlist {
 
   @Override
   public @NotNull List<Video> getVideos() {
-    return this.info.videos().parallelStream()
-        .map(url -> new YoutubeVideo(url.videoId()))
-        .collect(Collectors.toList());
+    return this.videos;
   }
 
   @Override

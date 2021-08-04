@@ -23,29 +23,22 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.image;
 
 import com.google.common.collect.ImmutableSet;
-import io.github.pulsebeat02.ezmediacore.image.Image;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 public final class ImageCommandAttributes {
 
-  private final Set<Image> images;
   private final Set<UUID> listen;
   private final Set<String> extensions;
   private int width;
   private int height;
 
   public ImageCommandAttributes() {
-    this.images = new HashSet<>();
     this.listen = new HashSet<>();
     this.extensions = ImmutableSet.of(".png", ".jpg", ".jpeg", ".tif", ".gif");
     this.width = 1;
     this.height = 1;
-  }
-
-  public Set<Image> getImages() {
-    return this.images;
   }
 
   public Set<UUID> getListen() {

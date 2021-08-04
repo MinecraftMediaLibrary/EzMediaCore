@@ -26,7 +26,7 @@ public class VLCMediaPlayer extends MediaPlayer {
 
   private EmbeddedMediaPlayer player;
 
-  public VLCMediaPlayer(
+  protected VLCMediaPlayer(
       @NotNull final MediaLibraryCore core,
       @NotNull final FrameCallback callback,
       @NotNull final ImmutableDimension dimensions,

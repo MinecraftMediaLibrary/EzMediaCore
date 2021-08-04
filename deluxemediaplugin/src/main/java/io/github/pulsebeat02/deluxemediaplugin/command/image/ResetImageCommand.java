@@ -28,6 +28,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.ezmediacore.image.Image;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -77,7 +78,9 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
     final int id = context.getArgument("id", int.class);
 
     final Optional<Image> image =
-        this.attributes.getImages().stream().filter(img -> img.getMaps().contains(id)).findAny();
+        this.plugin.getPictureManager().getImages().stream()
+            .filter(img -> img.getMaps().contains(id))
+            .findAny();
     if (!image.isPresent()) {
       red(audience, "The image you request purge from the map is not loaded!");
       return SINGLE_SUCCESS;
@@ -117,11 +120,13 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
     final Set<UUID> listen = this.attributes.getListen();
 
     if (listen.contains(uuid)) {
+
       event.setCancelled(true);
       final Audience audience = this.plugin.audience().player(p);
+
       if (event.getMessage().equals("YES")) {
-        final Set<Image> images = this.attributes.getImages();
-        this.attributes.getImages().forEach(Image::resetMaps);
+        final List<Image> images = this.plugin.getPictureManager().getImages();
+        images.forEach(Image::resetMaps);
         images.clear();
         red(audience, "Successfully purged all images!");
       } else {

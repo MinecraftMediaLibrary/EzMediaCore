@@ -2,6 +2,7 @@ package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
+import io.github.pulsebeat02.ezmediacore.playlist.youtube.VideoDownloader;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.YoutubeVideoDownloader;
 import java.nio.file.Path;
 import java.util.UUID;
@@ -83,4 +84,14 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
 
   @Override
   public void onFinishAudioExtraction() {}
+
+  @Override
+  public @NotNull VideoDownloader getDownloader() {
+    return this.downloader;
+  }
+
+  @Override
+  public @NotNull AudioExtractor getExtractor() {
+    return this.extractor;
+  }
 }

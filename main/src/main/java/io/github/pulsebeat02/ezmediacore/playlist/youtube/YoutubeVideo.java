@@ -14,6 +14,8 @@ public class YoutubeVideo implements Video {
   private final String url;
   private final VideoInfo video;
   private final VideoDetails details;
+  private final List<VideoFormat> videoFormats;
+  private final List<AudioFormat> audioFormats;
 
   public YoutubeVideo(@NotNull final String url) {
     this.url = url;
@@ -25,6 +27,14 @@ public class YoutubeVideo implements Video {
                         .orElseThrow(() -> new DeadResourceLinkException(url))))
             .data();
     this.details = this.video.details();
+    this.videoFormats =
+        this.video.videoFormats().stream()
+            .map(YoutubeVideoFormat::new)
+            .collect(Collectors.toList());
+    this.audioFormats =
+        this.video.audioFormats().stream()
+            .map(YoutubeAudioFormat::new)
+            .collect(Collectors.toList());
   }
 
   @Override
@@ -49,16 +59,12 @@ public class YoutubeVideo implements Video {
 
   @Override
   public @NotNull List<VideoFormat> getVideoFormats() {
-    return this.video.videoFormats().stream()
-        .map(YoutubeVideoFormat::new)
-        .collect(Collectors.toList());
+    return this.videoFormats;
   }
 
   @Override
   public @NotNull List<AudioFormat> getAudioFormats() {
-    return this.video.audioFormats().stream()
-        .map(YoutubeAudioFormat::new)
-        .collect(Collectors.toList());
+    return this.audioFormats;
   }
 
   @Override

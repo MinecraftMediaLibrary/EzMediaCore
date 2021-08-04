@@ -1,8 +1,10 @@
 package io.github.pulsebeat02.ezmediacore.dither.algorithm;
 
+import com.google.common.collect.ImmutableMap;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
 import java.nio.ByteBuffer;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.COLOR_MAP;
@@ -66,7 +68,7 @@ public class OrderedDither implements DitherAlgorithm {
         break;
     }
     this.correction = 255f / (this.size * this.size);
-    convertToFloat();
+    this.convertToFloat();
   }
 
   public static float[][] getBayerMatrixTwo() {
@@ -82,7 +84,7 @@ public class OrderedDither implements DitherAlgorithm {
   }
 
   private int getBestColorNormal(final int rgb) {
-    return MapPalette.getColor(getBestColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF))
+    return MapPalette.getColor(this.getBestColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF))
         .getRGB();
   }
 
@@ -111,7 +113,7 @@ public class OrderedDither implements DitherAlgorithm {
       for (int x = 0; x < width; x++) {
         final int index = yIndex + x;
         buffer[index] =
-            getBestColorNormal(
+            this.getBestColorNormal(
                 (int)
                     (buffer[index]
                         + this.correction * ((this.matrix[x % this.size][y % this.size] - 0.5))));
@@ -127,7 +129,7 @@ public class OrderedDither implements DitherAlgorithm {
       final int yIndex = y * width;
       for (int x = 0; x < width; x++) {
         data.put(
-            getBestColor(
+            this.getBestColor(
                 (int)
                     (buffer[yIndex + x]
                         + this.correction * ((this.matrix[x % this.size][y % this.size] - 0.5)))));
@@ -155,6 +157,16 @@ public class OrderedDither implements DitherAlgorithm {
   public enum DitherType {
     TWO,
     FOUR,
-    EIGHT
+    EIGHT;
+
+    private static final Map<Integer, DitherType> SIZES;
+
+    static {
+      SIZES = ImmutableMap.of(2, TWO, 4, FOUR, 8, EIGHT);
+    }
+
+    public static DitherType ofKey(final int key) {
+      return SIZES.getOrDefault(key, TWO);
+    }
   }
 }

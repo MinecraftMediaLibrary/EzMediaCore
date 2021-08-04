@@ -24,7 +24,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
   private FFmpegResultFuture future;
   private long start;
 
-  public FFmpegMediaPlayer(
+  protected FFmpegMediaPlayer(
       @NotNull final MediaLibraryCore core,
       @NotNull final FrameCallback callback,
       @NotNull final ImmutableDimension dimensions,

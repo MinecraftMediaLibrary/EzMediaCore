@@ -20,7 +20,7 @@ public class JCodecMediaPlayer extends MediaPlayer {
   private boolean paused;
   private long start;
 
-  public JCodecMediaPlayer(
+  protected JCodecMediaPlayer(
       @NotNull final MediaLibraryCore core,
       @NotNull final FrameCallback callback,
       @NotNull final ImmutableDimension dimensions,

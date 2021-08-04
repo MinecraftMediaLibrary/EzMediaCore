@@ -63,7 +63,7 @@ public final class ChatUtils {
     return ofChildren(PREFIX, space(), message);
   }
 
-  public static @NotNull Component formatFFmpeg(@NotNull final TextComponent message) {
+  public static @NotNull Component ffmpeg(@NotNull final TextComponent message) {
     return ofChildren(EXTERNAL_PROCESS, space(), message);
   }
 
@@ -126,5 +126,9 @@ public final class ChatUtils {
 
   public static void aqua(@NotNull final Audience audience, final String message) {
     audience.sendMessage(format(text(message, AQUA)));
+  }
+
+  public static void external(@NotNull final Audience audience, @NotNull final String message) {
+    audience.sendMessage(ofChildren(EXTERNAL_PROCESS, space(), text(message, GOLD)));
   }
 }

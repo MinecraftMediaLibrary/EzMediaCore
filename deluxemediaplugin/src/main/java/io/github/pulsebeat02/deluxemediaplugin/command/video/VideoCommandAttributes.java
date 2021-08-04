@@ -39,21 +39,23 @@ public final class VideoCommandAttributes {
   private Path audio;
 
   private boolean youtube;
+  private String mrl; // for file resource load video mrl
+  private int map;
+
   private int frameWidth;
   private int frameHeight;
-  private int screenWidth;
-  private int screenHeight;
-  private int startingMap;
+  private int pixelWidth;
+  private int pixelHeight;
 
-  private String resourcepackUrl;
+  private String url; // for resourcepack url
   private byte[] hash;
 
   public VideoCommandAttributes() {
     this.dither = DitherSetting.FILTER_LITE;
     this.frameWidth = 5;
     this.frameHeight = 5;
-    this.screenWidth = 640;
-    this.screenHeight = 360;
+    this.pixelWidth = 640;
+    this.pixelHeight = 360;
     this.completion = new AtomicBoolean(false);
     this.mode = VideoType.ITEMFRAME;
   }
@@ -76,6 +78,10 @@ public final class VideoCommandAttributes {
 
   public String getVideo() {
     return this.video;
+  }
+
+  public void setVideo(final String video) {
+    this.video = video;
   }
 
   public void setVideoMrl(final String video) {
@@ -106,28 +112,28 @@ public final class VideoCommandAttributes {
     this.frameHeight = frameHeight;
   }
 
-  public int getScreenWidth() {
-    return this.screenWidth;
+  public int getPixelWidth() {
+    return this.pixelWidth;
   }
 
-  public void setScreenWidth(final int screenWidth) {
-    this.screenWidth = screenWidth;
+  public void setPixelWidth(final int pixelWidth) {
+    this.pixelWidth = pixelWidth;
   }
 
-  public int getScreenHeight() {
-    return this.screenHeight;
+  public int getPixelHeight() {
+    return this.pixelHeight;
   }
 
-  public void setScreenHeight(final int screenHeight) {
-    this.screenHeight = screenHeight;
+  public void setPixelHeight(final int pixelHeight) {
+    this.pixelHeight = pixelHeight;
   }
 
-  public int getStartingMap() {
-    return this.startingMap;
+  public int getMap() {
+    return this.map;
   }
 
-  public void setStartingMap(final int startingMap) {
-    this.startingMap = startingMap;
+  public void setMap(final int map) {
+    this.map = map;
   }
 
   public AtomicBoolean getCompletion() {
@@ -150,12 +156,12 @@ public final class VideoCommandAttributes {
     this.mode = mode;
   }
 
-  public String getResourcepackUrl() {
-    return this.resourcepackUrl;
+  public String getUrl() {
+    return this.url;
   }
 
-  public void setResourcepackUrl(final String resourcepackUrl) {
-    this.resourcepackUrl = resourcepackUrl;
+  public void setUrl(final String url) {
+    this.url = url;
   }
 
   public byte[] getHash() {
@@ -172,5 +178,13 @@ public final class VideoCommandAttributes {
 
   public void setAudio(final Path audio) {
     this.audio = audio;
+  }
+
+  public String getMrl() {
+    return this.mrl;
+  }
+
+  public void setMrl(final String mrl) {
+    this.mrl = mrl;
   }
 }

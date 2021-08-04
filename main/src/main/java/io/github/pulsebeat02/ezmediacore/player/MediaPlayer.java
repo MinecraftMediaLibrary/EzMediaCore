@@ -28,7 +28,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   private final int frameRate;
   private PlayerControls controls;
 
-  public MediaPlayer(
+  protected MediaPlayer(
       @NotNull final MediaLibraryCore core,
       @NotNull final FrameCallback callback,
       @NotNull final ImmutableDimension dimensions,
@@ -65,7 +65,7 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   @Override
   public void setPlayerState(@NotNull final PlayerControls controls) {
-    onPlayerStateChange(controls);
+    this.onPlayerStateChange(controls);
     this.controls = controls;
   }
 

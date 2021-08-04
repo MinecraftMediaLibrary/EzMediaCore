@@ -38,7 +38,7 @@ public enum VideoType {
     this.name = name;
   }
 
-  public static VideoType fromString(@NotNull final String str) {
+  public static VideoType ofKey(@NotNull final String str) {
     for (final VideoType type : values()) {
       if (type.getName().equals(str)) {
         return type;
@@ -48,6 +48,6 @@ public enum VideoType {
   }
 
   public String getName() {
-    return name;
+    return this.name;
   }
 }

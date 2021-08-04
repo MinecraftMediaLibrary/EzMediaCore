@@ -115,8 +115,8 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
       return SINGLE_SUCCESS;
     }
     final int[] dimensions = optional.get();
-    this.attributes.setScreenWidth(dimensions[0]);
-    this.attributes.setScreenHeight(dimensions[1]);
+    this.attributes.setPixelWidth(dimensions[0]);
+    this.attributes.setPixelHeight(dimensions[1]);
 
     audience.sendMessage(
         format(
@@ -125,7 +125,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
                 text(
                     String.format(
                         "%d:%d ",
-                        this.attributes.getScreenWidth(), this.attributes.getScreenHeight()),
+                        this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
                     AQUA),
                 text("(width:height)", GOLD))));
 
@@ -163,7 +163,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
 
   private int setStartingMap(@NotNull final CommandContext<CommandSender> context) {
 
-    this.attributes.setStartingMap(context.getArgument("map-id", int.class));
+    this.attributes.setMap(context.getArgument("map-id", int.class));
 
     this.plugin
         .audience()
@@ -171,8 +171,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
         .sendMessage(
             format(
                 ofChildren(
-                    text("Set starting map id to ", GOLD),
-                    text(this.attributes.getStartingMap(), AQUA))));
+                    text("Set starting map id to ", GOLD), text(this.attributes.getMap(), AQUA))));
 
     return SINGLE_SUCCESS;
   }
@@ -198,7 +197,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
 
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String mode = context.getArgument("video-mode", String.class);
-    final VideoType type = VideoType.fromString(mode);
+    final VideoType type = VideoType.ofKey(mode);
 
     if (type == null) {
       red(audience, String.format("Could not find video mode %s", mode));

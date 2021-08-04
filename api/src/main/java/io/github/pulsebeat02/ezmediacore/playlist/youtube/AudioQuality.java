@@ -7,7 +7,7 @@ public enum AudioQuality {
   MEDIUM(2),
   HIGH(3);
 
-  private final Integer order;
+  private final int order;
 
   AudioQuality(final int order) {
     this.order = order;

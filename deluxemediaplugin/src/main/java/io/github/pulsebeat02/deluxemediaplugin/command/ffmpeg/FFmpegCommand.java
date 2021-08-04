@@ -36,8 +36,8 @@ import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.ffmpeg;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.formatFFmpeg;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.TextComponent.ofChildren;
@@ -84,7 +84,7 @@ public final class FFmpegCommand extends BaseCommand {
 
   private int runFFmpegProcess(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = this.plugin().audience().sender(context.getSource());
-    this.ffmpeg.executeWithLogging(s -> audience.sendMessage(formatFFmpeg(text(s))));
+    this.ffmpeg.executeWithLogging(s -> audience.sendMessage(ffmpeg(text(s))));
     gold(audience, "Executed FFmpeg command!");
     return SINGLE_SUCCESS;
   }

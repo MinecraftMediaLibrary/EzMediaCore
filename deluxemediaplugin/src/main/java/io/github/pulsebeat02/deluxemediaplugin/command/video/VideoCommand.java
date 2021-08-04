@@ -31,14 +31,16 @@ import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioTrimmer;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
+import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
+import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
+import io.github.pulsebeat02.ezmediacore.utility.HashingUtils;
 import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
-import io.github.pulsebeat02.minecraftmedialibrary.ffmpeg.FFmpegAudioTrimmerHelper;
-import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.PackWrapper;
-import io.github.pulsebeat02.minecraftmedialibrary.resourcepack.ResourcepackWrapper;
-import io.github.pulsebeat02.minecraftmedialibrary.utility.VideoExtractionUtilities;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.TextComponent;
@@ -49,23 +51,23 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.external;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
 public final class VideoCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> node;
   private final VideoCommandAttributes attributes;
-  private final VideoBuilder builder;
+  private final VideoCreator builder;
 
   public VideoCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "video", executor, "deluxemediaplugin.command.video", "");
     this.attributes = new VideoCommandAttributes();
-    this.builder = new VideoBuilder(plugin.library(), this.attributes);
+    this.builder = new VideoCreator(plugin.library(), this.attributes);
     this.node =
         this.literal(this.getName())
             .requires(super::testPermission)
@@ -82,6 +84,7 @@ public final class VideoCommand extends BaseCommand {
     final CommandSender sender = context.getSource();
     final DeluxeMediaPlugin plugin = this.plugin();
     final Audience audience = plugin.audience().sender(sender);
+    final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
 
     if (this.mediaNotSpecified(audience) || this.mediaProcessingIncomplete(audience)) {
       return SINGLE_SUCCESS;
@@ -92,25 +95,26 @@ public final class VideoCommand extends BaseCommand {
     final VideoType type = this.attributes.getVideoType();
     switch (type) {
       case ITEMFRAME:
-        this.attributes.setPlayer(this.builder.createMapPlayer());
+        this.attributes.setPlayer(this.builder.createMapPlayer(players));
         break;
       case ARMOR_STAND:
         if (sender instanceof Player) {
-          this.attributes.setPlayer(this.builder.createEntityPlayer((Player) sender));
+          this.attributes.setPlayer(this.builder.createEntityPlayer((Player) sender, players));
         } else {
           audience.sendMessage(format(text("You must be a player to execute this command!", RED)));
           return SINGLE_SUCCESS;
         }
         break;
       case CHATBOX:
-        this.attributes.setPlayer(this.builder.createChatBoxPlayer());
+        this.attributes.setPlayer(this.builder.createChatBoxPlayer(players));
         break;
       case SCOREBOARD:
-        this.attributes.setPlayer(this.builder.createScoreboardPlayer());
+        this.attributes.setPlayer(this.builder.createScoreboardPlayer(players));
         break;
       case DEBUG_HIGHLIGHTS:
         if (sender instanceof Player) {
-          this.attributes.setPlayer(this.builder.createBlockHighlightPlayer((Player) sender));
+          this.attributes.setPlayer(
+              this.builder.createBlockHighlightPlayer((Player) sender, players));
         } else {
           audience.sendMessage(format(text("You must be a player to execute this command!", RED)));
           return SINGLE_SUCCESS;
@@ -119,6 +123,7 @@ public final class VideoCommand extends BaseCommand {
     }
     this.sendPlayInformation(audience);
     this.attributes.getPlayer().setPlayerState(PlayerControls.START);
+
     return SINGLE_SUCCESS;
   }
 
@@ -142,38 +147,43 @@ public final class VideoCommand extends BaseCommand {
         audience,
         "Setting up resourcepack for resuming... this may take a while depending on how large the audio file is.");
 
-    CompletableFuture.runAsync(
-            () -> {
-              final Path audio = this.attributes.getAudio();
-              final Path temp = this.attributes.getAudio().getParent().resolve("temp.ogg");
-              new FFmpegAudioTrimmerHelper(
-                      audio, temp, this.attributes.getPlayer().getElapsedTime())
-                  .trim();
-              final PackWrapper wrapper = ResourcepackWrapper.of(plugin.library(), temp);
-              wrapper.buildResourcePack();
-              final Path path = Paths.get(wrapper.getPath());
-              this.attributes.setResourcepackUrl(
-                  plugin.getHttpConfiguration().getServer().generateUrl(path));
-              this.attributes.setHash(VideoExtractionUtilities.createHashSHA(path));
-            })
-        .thenRunAsync(this::sendResourcepackFile)
+    CompletableFuture.runAsync(() -> this.buildResourcepack(audience))
         .thenRunAsync(
-            () -> audience.sendMessage(format(text(("Successfully resumed video %s"), GOLD))));
+            () ->
+                ResourcepackUtils.forceResourcepackLoad(
+                    plugin.library(), this.attributes.getUrl(), this.attributes.getHash()))
+        .thenRun(() -> gold(audience, "Resumed the video!"));
     return SINGLE_SUCCESS;
   }
 
-  private void buildResourcepack() {
-    final Path audio = this.attributes.getAudio();
-    final Path ogg = audio.getParent().resolve("temp.ogg");
-    new FFmpegAudioTrimmer(this.plugin().library(), audio, ogg, this.attributes.getPlayer());
-  }
+  private void buildResourcepack(@NotNull final Audience audience) {
 
-  public void sendResourcepackFile() {
-    ResourcepackUtils.forceResourcepackLoad(
-        this.plugin(),
-        Bukkit.getOnlinePlayers(),
-        this.attributes.getResourcepackUrl(),
-        this.attributes.getHash());
+    final DeluxeMediaPlugin plugin = this.plugin();
+
+    try {
+
+      final HttpServer server = plugin.getHttpServer();
+      final Path audio = this.attributes.getAudio();
+      final Path ogg = audio.getParent().resolve("audio.ogg");
+
+      new FFmpegAudioTrimmer(
+              plugin.library(), audio, ogg, this.attributes.getPlayer().getElapsedMilliseconds())
+          .executeAsyncWithLogging((line) -> external(audience, line));
+
+      final ResourcepackSoundWrapper wrapper =
+          new ResourcepackSoundWrapper(
+              server.getDaemon().getServerPath().resolve("pack.zip"), "Video Pack", 6);
+      wrapper.addSound(plugin.getName().toLowerCase(Locale.ROOT), ogg);
+      wrapper.wrap();
+
+      final Path path = wrapper.getResourcepackFilePath();
+      this.attributes.setUrl(server.createUrl(path));
+      this.attributes.setHash(HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
+
+    } catch (final IOException e) {
+      plugin.getLogger().severe("Failed to wrap resourcepack!");
+      e.printStackTrace();
+    }
   }
 
   private boolean mediaNotSpecified(@NotNull final Audience audience) {
@@ -203,16 +213,12 @@ public final class VideoCommand extends BaseCommand {
   }
 
   private void sendPlayInformation(@NotNull final Audience audience) {
+    final String mrl = this.attributes.getMrl();
     if (this.attributes.isYoutube()) {
-      gold(
-          audience,
-          String.format("Starting Video on URL: %s", this.attributes.getExtractor().getUrl()));
+      gold(audience, String.format("Starting Video on URL: %s", mrl));
     } else {
       gold(
-          audience,
-          String.format(
-              "Starting Video on File: %s",
-              PathUtils.getName(Paths.get(this.attributes.getVideo()))));
+          audience, String.format("Starting Video on File: %s", PathUtils.getName(Paths.get(mrl))));
     }
   }
 
