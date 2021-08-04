@@ -23,7 +23,6 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
     EXECUTOR_SERVICE = Executors.newCachedThreadPool();
   }
 
-  private final MediaLibraryCore core;
   private final Path directory;
   private final String ip;
   private final int port;
@@ -34,13 +33,8 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   private boolean running;
 
   public HttpServerDaemon(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Path path,
-      @NotNull final String ip,
-      final int port,
-      final boolean verbose)
+      @NotNull final Path path, @NotNull final String ip, final int port, final boolean verbose)
       throws IOException {
-    this.core = core;
     this.running = true;
     this.directory = path;
     this.ip = ip;
@@ -67,9 +61,13 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
     Logger.info("========================================");
   }
 
-  public HttpServerDaemon(@NotNull final MediaLibraryCore core, @NotNull final String ip, final int port, final boolean verbose)
+  public HttpServerDaemon(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final String ip,
+      final int port,
+      final boolean verbose)
       throws IOException {
-    this(core, core.getHttpServerPath(), ip, port, verbose);
+    this(core.getHttpServerPath(), ip, port, verbose);
   }
 
   @Override
@@ -135,10 +133,5 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   @Override
   public void setZipHeader(@NotNull final ZipHeader header) {
     this.header = header;
-  }
-
-  @Override
-  public @NotNull MediaLibraryCore getCore() {
-    return this.core;
   }
 }

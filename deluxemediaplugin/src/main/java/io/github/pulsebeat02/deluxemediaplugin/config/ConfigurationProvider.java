@@ -23,6 +23,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -42,56 +43,57 @@ public abstract class ConfigurationProvider {
 
   private FileConfiguration fileConfiguration;
 
-  public ConfigurationProvider(
-      @NotNull final DeluxeMediaPlugin plugin, @NotNull final String name) {
+  public ConfigurationProvider(@NotNull final DeluxeMediaPlugin plugin, @NotNull final String name)
+      throws IOException {
     this.plugin = plugin;
     this.name = name;
-    config = Paths.get(plugin.getDataFolder().toString()).resolve(this.name);
+    this.config = Paths.get(plugin.getDataFolder().toString()).resolve(this.name);
+    FileUtils.createFileIfNotExists(this.config);
   }
 
   public void reloadConfig() {
-    fileConfiguration = YamlConfiguration.loadConfiguration(config.toFile());
-    final InputStream defConfigStream = plugin.getResource(name);
+    this.fileConfiguration = YamlConfiguration.loadConfiguration(this.config.toFile());
+    final InputStream defConfigStream = this.plugin.getResource(this.name);
     if (defConfigStream != null) {
       final YamlConfiguration defConfig =
           YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
-      fileConfiguration.setDefaults(defConfig);
+      this.fileConfiguration.setDefaults(defConfig);
     }
   }
 
   public FileConfiguration getConfig() {
-    if (fileConfiguration == null) {
-      reloadConfig();
+    if (this.fileConfiguration == null) {
+      this.reloadConfig();
     }
-    return fileConfiguration;
+    return this.fileConfiguration;
   }
 
   public void saveConfig() {
-    if (fileConfiguration != null && config != null) {
+    if (this.fileConfiguration != null && this.config != null) {
       try {
-        getConfig().save(config.toFile());
+        this.getConfig().save(this.config.toFile());
       } catch (final IOException e) {
-        plugin
+        this.plugin
             .getLogger()
-            .log(Level.SEVERE, String.format("Could not save config to %s", config), e);
+            .log(Level.SEVERE, String.format("Could not save config to %s", this.config), e);
       }
     }
   }
 
   public void saveDefaultConfig() {
-    if (!Files.exists(config)) {
-      plugin.saveResource(name, false);
+    if (!Files.exists(this.config)) {
+      this.plugin.saveResource(this.name, false);
     }
   }
 
   public void read() {
-    if (!Files.exists(config)) {
-      saveDefaultConfig();
+    if (!Files.exists(this.config)) {
+      this.saveDefaultConfig();
     }
-    getConfig();
+    this.getConfig();
     try {
-      serialize();
-    } catch (IOException e) {
+      this.serialize();
+    } catch (final IOException e) {
       e.printStackTrace();
     }
   }
@@ -101,18 +103,18 @@ public abstract class ConfigurationProvider {
   abstract void serialize() throws IOException;
 
   public DeluxeMediaPlugin getPlugin() {
-    return plugin;
+    return this.plugin;
   }
 
   public String getFileName() {
-    return name;
+    return this.name;
   }
 
   public Path getConfigFile() {
-    return config;
+    return this.config;
   }
 
   public FileConfiguration getFileConfiguration() {
-    return fileConfiguration;
+    return this.fileConfiguration;
   }
 }

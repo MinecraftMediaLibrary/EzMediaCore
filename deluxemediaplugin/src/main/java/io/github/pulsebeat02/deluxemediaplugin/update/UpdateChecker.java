@@ -29,17 +29,17 @@ import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 
-public class PluginUpdateChecker {
+public class UpdateChecker {
 
   private final DeluxeMediaPlugin plugin;
   private int resource;
 
-  public PluginUpdateChecker(@NotNull final DeluxeMediaPlugin plugin) {
+  public UpdateChecker(@NotNull final DeluxeMediaPlugin plugin) {
     this.plugin = plugin;
     try {
-      resource = Integer.parseInt("%%__RESOURCE__%%");
+      this.resource = Integer.parseInt("%%__RESOURCE__%%");
     } catch (final NumberFormatException e) {
-      resource = -1;
+      this.resource = -1;
     }
   }
 
@@ -50,16 +50,17 @@ public class PluginUpdateChecker {
               new Scanner(
                   new URL(
                           String.format(
-                              "https://api.spigotmc.org/legacy/update.php?resource=%d", resource))
+                              "https://api.spigotmc.org/legacy/update.php?resource=%d",
+                              this.resource))
                       .openStream())) {
             final String update = scanner.next();
-            if (plugin.getDescription().getVersion().equalsIgnoreCase(update)) {
-              plugin.log(String.format("There is a new update available! (%s)", update));
+            if (this.plugin.getDescription().getVersion().equalsIgnoreCase(update)) {
+              this.plugin.log(String.format("There is a new update available! (%s)", update));
             } else {
-              plugin.log("You are currently running the latest version of DeluxeMediaPlugin.");
+              this.plugin.log("You are currently running the latest version of DeluxeMediaPlugin.");
             }
           } catch (final IOException exception) {
-            plugin.log(String.format("Cannot look for updates: %s", exception.getMessage()));
+            this.plugin.log(String.format("Cannot look for updates: %s", exception.getMessage()));
           }
         });
   }

@@ -5,6 +5,7 @@ import io.github.slimjar.injector.loader.Injectable;
 import io.github.slimjar.resolver.data.DependencyData;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +24,10 @@ public final class JarInjector implements DependencyInjector {
         x -> {
           try {
             injectable.inject(x);
-          } catch (final InvocationTargetException | IllegalAccessException | IOException e) {
+          } catch (final InvocationTargetException
+              | IllegalAccessException
+              | IOException
+              | URISyntaxException e) {
             e.printStackTrace();
           }
         });

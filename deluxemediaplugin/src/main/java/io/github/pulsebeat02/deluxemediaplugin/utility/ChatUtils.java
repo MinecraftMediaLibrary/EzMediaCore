@@ -56,23 +56,18 @@ public final class ChatUtils {
     EXTERNAL_PROCESS =
         text()
             .color(AQUA)
-            .append(
-                text('['),
-                text("DeluxeMediaPlugin External Process", GOLD),
-                text(']'),
-                space(),
-                text("»", GRAY));
+            .append(text('['), text("External Process", GOLD), text(']'), space(), text("»", GRAY));
   }
 
-  public static Component format(@NotNull final TextComponent message) {
+  public static @NotNull Component format(@NotNull final TextComponent message) {
     return ofChildren(PREFIX, space(), message);
   }
 
-  public static Component formatFFmpeg(@NotNull final TextComponent message) {
+  public static @NotNull Component formatFFmpeg(@NotNull final TextComponent message) {
     return ofChildren(EXTERNAL_PROCESS, space(), message);
   }
 
-  public static Optional<int[]> checkDimensionBoundaries(
+  public static @NotNull Optional<int[]> checkDimensionBoundaries(
       @NotNull final Audience sender, @NotNull final String str) {
     final String[] dims = str.split(":");
     final String message;
@@ -97,7 +92,7 @@ public final class ChatUtils {
     return Optional.empty();
   }
 
-  public static OptionalInt checkIntegerValidity(@NotNull final String num) {
+  public static @NotNull OptionalInt checkIntegerValidity(@NotNull final String num) {
     try {
       return OptionalInt.of(Integer.parseInt(num));
     } catch (final NumberFormatException e) {
@@ -105,7 +100,7 @@ public final class ChatUtils {
     }
   }
 
-  public static TextComponent getCommandUsage(@NotNull final Map<String, String> usages) {
+  public static @NotNull TextComponent getCommandUsage(@NotNull final Map<String, String> usages) {
     final TextComponent.Builder builder =
         text().append(text("------------------", AQUA)).append(newline());
     for (final Map.Entry<String, String> entry : usages.entrySet()) {

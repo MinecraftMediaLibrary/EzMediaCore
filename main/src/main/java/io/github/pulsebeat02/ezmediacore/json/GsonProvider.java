@@ -16,10 +16,10 @@ public final class GsonProvider {
   private static final Gson PRETTY;
 
   static {
-    final Map<Class<?>, TypeAdapter<?>> adapters = ImmutableMap.of(
+    final Map<Class<?>, TypeAdapter<?>> adapters =
+        ImmutableMap.of(
             Path.class, new PathAdapter(),
-            UUID.class, new UUIDAdapter()
-    );
+            UUID.class, new UUIDAdapter());
 
     final GsonBuilder builder = new GsonBuilder();
     adapters.forEach(builder::registerTypeAdapter);

@@ -25,32 +25,21 @@ public class HttpServer implements HttpDaemonSolution {
     }
   }
 
-  private final MediaLibraryCore core;
   private final HttpDaemon daemon;
 
-  public HttpServer(@NotNull final MediaLibraryCore core, @NotNull final Path path, final int port)
+  public HttpServer(@NotNull final Path path, final int port) throws IOException {
+    this(path, HTTP_SERVER_IP, port, true);
+  }
+
+  public HttpServer(@NotNull final Path path, final int port, final boolean verbose)
       throws IOException {
-    this(core, path, HTTP_SERVER_IP, port, true);
+    this(path, HTTP_SERVER_IP, port, verbose);
   }
 
   public HttpServer(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Path path,
-      final int port,
-      final boolean verbose)
+      @NotNull final Path path, @NotNull final String ip, final int port, final boolean verbose)
       throws IOException {
-    this(core, path, HTTP_SERVER_IP, port, verbose);
-  }
-
-  public HttpServer(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Path path,
-      @NotNull final String ip,
-      final int port,
-      final boolean verbose)
-      throws IOException {
-    this.daemon = new HttpServerDaemon(core, path, ip, port, verbose);
-    this.core = core;
+    this.daemon = new HttpServerDaemon(path, ip, port, verbose);
   }
 
   public HttpServer(@NotNull final MediaLibraryCore core, final int port) throws IOException {
@@ -69,13 +58,12 @@ public class HttpServer implements HttpDaemonSolution {
       final boolean verbose)
       throws IOException {
     this.daemon = new HttpServerDaemon(core, ip, port, verbose);
-    this.core = core;
   }
 
   @Override
   public @NotNull String createUrl(@NotNull final Path file) {
     return String.format(
-            "https://%s:%d/%s",
+        "https://%s:%d/%s",
         this.daemon.getAddress(), this.daemon.getPort(), this.daemon.getRelativePath(file));
   }
 
@@ -92,10 +80,5 @@ public class HttpServer implements HttpDaemonSolution {
   @Override
   public @NotNull HttpDaemon getDaemon() {
     return this.daemon;
-  }
-
-  @Override
-  public @NotNull MediaLibraryCore getCore() {
-    return this.core;
   }
 }

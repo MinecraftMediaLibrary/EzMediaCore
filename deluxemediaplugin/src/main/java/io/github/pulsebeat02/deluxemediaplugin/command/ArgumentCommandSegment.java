@@ -27,11 +27,6 @@ import org.jetbrains.annotations.NotNull;
 
 public interface ArgumentCommandSegment<S, T> extends CommandSegment<S, ArgumentCommandNode<S, T>> {
 
-  /**
-   * Gets the command node.
-   *
-   * @return command node
-   */
   @Override
   @NotNull
   ArgumentCommandNode<S, T> node();

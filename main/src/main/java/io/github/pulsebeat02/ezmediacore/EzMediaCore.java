@@ -28,6 +28,7 @@ public final class EzMediaCore implements MediaLibraryCore {
   private final Plugin plugin;
   private final LibraryLoader loader;
   private final Diagnostic diagnostics;
+
   private final Path libraryPath;
   private final Path httpServerPath;
   private final Path dependencyPath;

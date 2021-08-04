@@ -39,15 +39,6 @@ public abstract class BaseCommand extends Command implements LiteralCommandSegme
   private final DeluxeMediaPlugin plugin;
   private final BukkitAudiences audience;
 
-  /**
-   * Instantiates a new BaseCommand.
-   *
-   * @param plugin instance
-   * @param name command name
-   * @param executor tab complete executor
-   * @param permission permission for command
-   * @param aliases aliases for command
-   */
   public BaseCommand(
       @NotNull final DeluxeMediaPlugin plugin,
       @NotNull final String name,
@@ -55,53 +46,32 @@ public abstract class BaseCommand extends Command implements LiteralCommandSegme
       @NotNull final String permission,
       @NotNull final String... aliases) {
     super(name);
-    setPermission(permission);
-    setAliases(Arrays.asList(aliases));
+    this.setPermission(permission);
+    this.setAliases(Arrays.asList(aliases));
     this.plugin = plugin;
     this.executor = executor;
-    audience = plugin.audience();
+    this.audience = plugin.audience();
   }
 
-  /**
-   * Returns the correct usage of the command.
-   *
-   * @return usage
-   */
   public abstract Component usage();
 
-  /**
-   * Executes a specific command from a player.
-   *
-   * @param sender who requested to send the command
-   * @param label label of command
-   * @param args arguments of command
-   * @return whether command should show usage or not
-   */
   @Override
   public boolean execute(
       @NotNull final CommandSender sender, @NotNull final String label, final String... args) {
-    return executor.onCommand(sender, this, label, args);
+    return this.executor.onCommand(sender, this, label, args);
   }
 
-  /**
-   * Gets the tab complete for a player. (Uses Object#requireNonNull to get rid of the dumb error)
-   *
-   * @param sender who requested the tab complete
-   * @param label label of command
-   * @param args arguments of tab complete
-   * @return tab completed options
-   */
   @Override
   public @NotNull List<String> tabComplete(
       @NotNull final CommandSender sender, @NotNull final String label, final String... args) {
-    return Objects.requireNonNull(executor.onTabComplete(sender, this, label, args));
+    return Objects.requireNonNull(this.executor.onTabComplete(sender, this, label, args));
   }
 
   public DeluxeMediaPlugin plugin() {
-    return plugin;
+    return this.plugin;
   }
 
   public BukkitAudiences audience() {
-    return audience;
+    return this.audience;
   }
 }

@@ -67,7 +67,7 @@ public final class VideoCommand extends BaseCommand {
     this.attributes = new VideoCommandAttributes();
     this.builder = new VideoBuilder(plugin.library(), this.attributes);
     this.node =
-            this.literal(this.getName())
+        this.literal(this.getName())
             .requires(super::testPermission)
             .then(this.literal("play").executes(this::playVideo))
             .then(this.literal("stop").executes(this::stopVideo))
@@ -142,14 +142,12 @@ public final class VideoCommand extends BaseCommand {
         audience,
         "Setting up resourcepack for resuming... this may take a while depending on how large the audio file is.");
 
-
-
-
     CompletableFuture.runAsync(
             () -> {
               final Path audio = this.attributes.getAudio();
               final Path temp = this.attributes.getAudio().getParent().resolve("temp.ogg");
-              new FFmpegAudioTrimmerHelper(audio, temp, this.attributes.getPlayer().getElapsedTime())
+              new FFmpegAudioTrimmerHelper(
+                      audio, temp, this.attributes.getPlayer().getElapsedTime())
                   .trim();
               final PackWrapper wrapper = ResourcepackWrapper.of(plugin.library(), temp);
               wrapper.buildResourcePack();
@@ -172,7 +170,10 @@ public final class VideoCommand extends BaseCommand {
 
   public void sendResourcepackFile() {
     ResourcepackUtils.forceResourcepackLoad(
-            this.plugin(), Bukkit.getOnlinePlayers(), this.attributes.getResourcepackUrl(), this.attributes.getHash());
+        this.plugin(),
+        Bukkit.getOnlinePlayers(),
+        this.attributes.getResourcepackUrl(),
+        this.attributes.getHash());
   }
 
   private boolean mediaNotSpecified(@NotNull final Audience audience) {
@@ -194,7 +195,8 @@ public final class VideoCommand extends BaseCommand {
   private void stopIfPlaying() {
     final VideoPlayer player = this.attributes.getPlayer();
     if (player != null) {
-      if (player.getPlayerState() == PlayerControls.START || player.getPlayerState() == PlayerControls.RESUME) {
+      if (player.getPlayerState() == PlayerControls.START
+          || player.getPlayerState() == PlayerControls.RESUME) {
         player.setPlayerState(PlayerControls.PAUSE);
       }
     }
@@ -202,9 +204,13 @@ public final class VideoCommand extends BaseCommand {
 
   private void sendPlayInformation(@NotNull final Audience audience) {
     if (this.attributes.isYoutube()) {
-      gold(audience, String.format("Starting Video on URL: %s", this.attributes.getExtractor().getUrl()));
+      gold(
+          audience,
+          String.format("Starting Video on URL: %s", this.attributes.getExtractor().getUrl()));
     } else {
-      gold(audience, String.format(
+      gold(
+          audience,
+          String.format(
               "Starting Video on File: %s",
               PathUtils.getName(Paths.get(this.attributes.getVideo()))));
     }

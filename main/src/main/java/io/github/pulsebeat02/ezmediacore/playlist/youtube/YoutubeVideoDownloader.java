@@ -2,7 +2,6 @@ package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
 import com.github.kiulian.downloader.downloader.request.RequestVideoFileDownload;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.extraction.VideoDownloader;
 import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import java.io.File;
 import java.nio.file.Path;
@@ -10,22 +9,14 @@ import org.jetbrains.annotations.NotNull;
 
 public class YoutubeVideoDownloader implements VideoDownloader {
 
-  private final MediaLibraryCore core;
   private final YoutubeVideo video;
   private final Path videoPath;
 
-  public YoutubeVideoDownloader(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final String url,
-      @NotNull final Path videoPath) {
-    this(core, new YoutubeVideo(url), videoPath);
+  public YoutubeVideoDownloader(@NotNull final String url, @NotNull final Path videoPath) {
+    this(new YoutubeVideo(url), videoPath);
   }
 
-  public YoutubeVideoDownloader(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final YoutubeVideo video,
-      @NotNull final Path videoPath) {
-    this.core = core;
+  public YoutubeVideoDownloader(@NotNull final YoutubeVideo video, @NotNull final Path videoPath) {
     this.video = video;
     this.videoPath = videoPath;
   }
@@ -34,14 +25,15 @@ public class YoutubeVideoDownloader implements VideoDownloader {
       @NotNull final MediaLibraryCore core,
       @NotNull final YoutubeVideo video,
       @NotNull final String fileName) {
-    this(core, video, core.getVideoPath().resolve(fileName));
+    this.video = video;
+    this.videoPath = core.getVideoPath().resolve(fileName);
   }
 
   public YoutubeVideoDownloader(
       @NotNull final MediaLibraryCore core,
       @NotNull final String url,
       @NotNull final String fileName) {
-    this(core, url, core.getVideoPath().resolve(fileName));
+    this(core, new YoutubeVideo(url), fileName);
   }
 
   @Override
@@ -87,10 +79,5 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   @Override
   public @NotNull Path getDownloadPath() {
     return this.videoPath;
-  }
-
-  @Override
-  public @NotNull MediaLibraryCore getCore() {
-    return this.core;
   }
 }

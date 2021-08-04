@@ -41,11 +41,6 @@ public final class CommandMapHelper {
     }
   }
 
-  /**
-   * Uses Reflection to expose and retrieve the CommandMap.
-   *
-   * @return CommandMap map
-   */
   public static CommandMap getCommandMap() {
     try {
       return (CommandMap) GET_COMMAND_MAP_METHOD.invoke(Bukkit.getServer());

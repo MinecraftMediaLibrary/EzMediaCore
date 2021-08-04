@@ -67,10 +67,12 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private void loadSoundMrl(@NotNull final String mrl) {
+
     final MediaLibraryCore core = this.plugin.library();
     final Path folder = core.getAudioPath();
     final Path video = folder.resolve("video.mp4");
     final Path audio = folder.resolve("audio.ogg");
+
     final YoutubeVideoDownloader downloader = new YoutubeVideoDownloader(mrl, video);
     downloader.downloadVideo(downloader.getVideo().getVideoFormats().get(0).getQuality(), true);
     new FFmpegAudioExtractor(

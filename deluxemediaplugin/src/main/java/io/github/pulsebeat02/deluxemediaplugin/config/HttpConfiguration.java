@@ -23,7 +23,6 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.http.HttpDaemon;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import java.io.IOException;
@@ -37,7 +36,7 @@ public class HttpConfiguration extends ConfigurationProvider {
   private HttpServer daemon;
   private boolean enabled;
 
-  public HttpConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
+  public HttpConfiguration(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
     super(plugin, "configuration/httpserver.yml");
   }
 
@@ -60,7 +59,6 @@ public class HttpConfiguration extends ConfigurationProvider {
 
   @Override
   public void serialize() throws IOException {
-    final MediaLibraryCore core = this.getPlugin().library();
     final FileConfiguration configuration = this.getFileConfiguration();
     final boolean enabled = configuration.getBoolean("enabled");
     final String ip = configuration.getString("ip");
@@ -75,8 +73,8 @@ public class HttpConfiguration extends ConfigurationProvider {
     if (enabled) {
       this.daemon =
           ip == null || ip.equals("public")
-              ? new HttpServer(core, directory, port)
-              : new HttpServer(core, directory, ip, port, verbose);
+              ? new HttpServer(directory, port)
+              : new HttpServer(directory, ip, port, verbose);
       this.daemon.startServer();
     }
     this.enabled = enabled;

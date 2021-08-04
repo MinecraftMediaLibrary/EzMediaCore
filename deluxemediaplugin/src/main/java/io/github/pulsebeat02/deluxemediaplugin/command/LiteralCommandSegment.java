@@ -27,11 +27,6 @@ import org.jetbrains.annotations.NotNull;
 
 public interface LiteralCommandSegment<S> extends CommandSegment<S, LiteralCommandNode<S>> {
 
-  /**
-   * Gets the command node.
-   *
-   * @return literal command node.
-   */
   @Override
   @NotNull
   LiteralCommandNode<S> node();

@@ -91,12 +91,12 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
 
   @Override
   public void execute() {
-    executeWithLogging(null);
+    this.executeWithLogging(null);
   }
 
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
-    onBeforeExecution();
+    this.onBeforeExecution();
     final boolean consume = logger != null;
     final ProcessBuilder builder = new ProcessBuilder(this.arguments);
     builder.redirectErrorStream(true);
@@ -118,7 +118,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
       e.printStackTrace();
     }
     this.completion = true;
-    onAfterExecution();
+    this.onAfterExecution();
   }
 
   @Override
@@ -134,13 +134,13 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   @Override
   public @NotNull CompletableFuture<Void> executeAsyncWithLogging(
       @NotNull final Consumer<String> logger) {
-    return CompletableFuture.runAsync(() -> executeWithLogging(logger));
+    return CompletableFuture.runAsync(() -> this.executeWithLogging(logger));
   }
 
   @Override
   public @NotNull CompletableFuture<Void> executeAsyncWithLogging(
       @NotNull final Consumer<String> logger, @NotNull final Executor executor) {
-    return CompletableFuture.runAsync(() -> executeWithLogging(logger), executor);
+    return CompletableFuture.runAsync(() -> this.executeWithLogging(logger), executor);
   }
 
   @Override
@@ -168,7 +168,6 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
     if (!(obj instanceof FFmpegCommandExecutor)) {
       return false;
     }
-    final FFmpegCommandExecutor executor = (FFmpegCommandExecutor) obj;
-    return this.arguments.equals(executor.getArguments()) && this.core.equals(executor.getCore());
+    return this.arguments.equals(((FFmpegCommandExecutor) obj).getArguments());
   }
 }

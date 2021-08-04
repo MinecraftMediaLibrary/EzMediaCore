@@ -21,9 +21,9 @@ public final class RegistrationListener implements Listener {
   }
 
   @EventHandler
-  protected void onPlayerJoin(final PlayerJoinEvent event) {
+  public void onPlayerJoin(final PlayerJoinEvent event) {
     final Player p = event.getPlayer();
-    core.getHandler().registerPlayer(p);
+    this.core.getHandler().registerPlayer(p);
     Logger.info(String.format("Registered Player %s", p.getUniqueId()));
   }
 
@@ -33,9 +33,9 @@ public final class RegistrationListener implements Listener {
    * @param event PlayerQuitEvent event
    */
   @EventHandler
-  protected void onPlayerLeave(final PlayerQuitEvent event) {
+  public void onPlayerLeave(final PlayerQuitEvent event) {
     final Player p = event.getPlayer();
-    core.getHandler().unregisterPlayer(p);
+    this.core.getHandler().unregisterPlayer(p);
     Logger.info(String.format("Unregistered Player %s", p.getUniqueId()));
   }
 }

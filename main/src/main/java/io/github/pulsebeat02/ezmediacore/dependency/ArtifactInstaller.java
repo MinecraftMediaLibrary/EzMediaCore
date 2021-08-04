@@ -63,12 +63,12 @@ public final class ArtifactInstaller {
 
   public void start() {
     try {
-      createFiles();
-      download();
-      relocate();
-      writeHashes();
-      load();
-      delete();
+      this.createFiles();
+      this.download();
+      this.relocate();
+      this.writeHashes();
+      this.load();
+      this.delete();
     } catch (final IOException | InterruptedException e) {
       Logger.info("A serious exception occurred during dependency instantiation!");
       e.printStackTrace();
@@ -89,7 +89,9 @@ public final class ArtifactInstaller {
     EXECUTOR_SERVICE.invokeAll(
         Arrays.stream(DependencyInfo.values())
             .filter(this::requiresDownload)
-            .map(path -> Executors.callable((PrivilegedAction<?>) () -> downloadDependency(path)))
+            .map(
+                path ->
+                    Executors.callable((PrivilegedAction<?>) () -> this.downloadDependency(path)))
             .collect(Collectors.toSet()));
   }
 
@@ -100,7 +102,7 @@ public final class ArtifactInstaller {
 
     EXECUTOR_SERVICE.invokeAll(
         this.jars.stream()
-            .map(path -> Executors.callable(() -> relocateFile(path, this.factory)))
+            .map(path -> Executors.callable(() -> this.relocateFile(path, this.factory)))
             .collect(Collectors.toList()));
   }
 
@@ -129,7 +131,7 @@ public final class ArtifactInstaller {
       for (final Path p : invalid) {
         Logger.warn(
             String.format("Dependency %s has an invalid hash! Downloading dependency again...", p));
-        redownload(p, getDependency(p).orElseThrow(AssertionError::new));
+        this.redownload(p, this.getDependency(p).orElseThrow(AssertionError::new));
       }
     }
 
@@ -210,7 +212,7 @@ public final class ArtifactInstaller {
               String.format(
                   "SHA1 Hash for File %s Failed! Downloading the Dependency Again...", file));
           Files.delete(p);
-          return downloadDependency(dependency);
+          return this.downloadDependency(dependency);
         } catch (final IOException e) {
           e.printStackTrace();
         }
@@ -220,7 +222,7 @@ public final class ArtifactInstaller {
       This should never happen. But if it does, it just retries
       Yeah that is a mess, but its a placeholder for the warning.
        */
-      return downloadDependency(dependency);
+      return this.downloadDependency(dependency);
     }
 
     return file.get();
@@ -243,7 +245,7 @@ public final class ArtifactInstaller {
   private void redownload(@NotNull final Path invalid, @NotNull final DependencyInfo dependency)
       throws IOException {
     Files.delete(invalid);
-    relocateFile(downloadDependency(dependency), this.factory);
+    this.relocateFile(this.downloadDependency(dependency), this.factory);
   }
 
   @NotNull

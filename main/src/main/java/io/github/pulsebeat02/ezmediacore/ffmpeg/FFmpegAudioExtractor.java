@@ -22,8 +22,8 @@ public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements Audio
       @NotNull final Path input,
       @NotNull final Path output) {
     super(core);
-    clearArguments();
-    addMultipleArguments(generateArguments(configuration));
+    this.clearArguments();
+    this.addMultipleArguments(this.generateArguments(configuration));
     this.input = input.toAbsolutePath();
     this.output = output.toAbsolutePath();
   }
@@ -32,7 +32,7 @@ public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements Audio
     final String in = this.input.toString();
     return new ArrayList<>(
         ImmutableList.<String>builder()
-            .add(getCore().getFFmpegPath().toString())
+            .add(this.getCore().getFFmpegPath().toString())
             .add("-f", FilenameUtils.getExtension(in))
             .add("-i", in)
             .add("-vn")
@@ -48,7 +48,7 @@ public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements Audio
 
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
-    addArguments("-y", this.output.toString());
+    this.addArguments("-y", this.output.toString());
     super.executeWithLogging(logger);
   }
 
