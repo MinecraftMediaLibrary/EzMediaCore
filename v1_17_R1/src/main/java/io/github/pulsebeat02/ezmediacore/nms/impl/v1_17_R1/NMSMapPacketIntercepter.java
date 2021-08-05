@@ -151,7 +151,7 @@ public class NMSMapPacketIntercepter implements PacketHandler {
     final int pixH = height << 7;
     final int xOff = (pixW - videoWidth) >> 1;
     final int yOff = (pixH - vidHeight) >> 1;
-    displayMaps(viewers, map, width, height, rgb, videoWidth, xOff, yOff);
+    this.displayMaps(viewers, map, width, height, rgb, videoWidth, xOff, yOff);
   }
 
   @Override
@@ -221,8 +221,9 @@ public class NMSMapPacketIntercepter implements PacketHandler {
 
   @Override
   public Object onPacketInterceptOut(final Player viewer, final Object packet) {
-    if (packet instanceof PacketPlayOutMap && PACKET_DIFFERENTIATION.contains(packet)) {
+    if (PACKET_DIFFERENTIATION.contains(packet)) {
       return packet;
+    } else if (packet instanceof PacketPlayOutMap) {
     }
     return packet;
   }
