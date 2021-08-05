@@ -29,7 +29,7 @@ public record MapInteractionListener(MediaLibraryCore core) implements Listener 
       return;
     }
     if (this.core.getHandler()
-            .isMapRegistered(((MapMeta) Objects.requireNonNull(stack.getItemMeta())).getMapId())) {
+        .isMapRegistered(((MapMeta) Objects.requireNonNull(stack.getItemMeta())).getMapId())) {
       event.setCancelled(true);
     }
   }

@@ -70,19 +70,19 @@ public final class SystemDiagnostics implements Diagnostic {
         case WINDOWS -> {
           Logger.info("Detected Windows 64-bit Operating System");
           this.vlcDownloadLink =
-                  "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/win64/VLC.zip";
+              "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/win64/VLC.zip";
           this.ffmpegDownloadLink =
-                  "https://github.com/a-schild/jave2/raw/master/jave-nativebin-win64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-amd64.exe";
+              "https://github.com/a-schild/jave2/raw/master/jave-nativebin-win64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-amd64.exe";
         }
         case UNIX -> {
           if (this.cpu.getArchitecture().contains("arm")) {
             Logger.info("Detected Linux ARM 64-bit Operating System");
             this.ffmpegDownloadLink =
-                    "https://github.com/a-schild/jave2/raw/master/jave-nativebin-arm64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-aarch64";
+                "https://github.com/a-schild/jave2/raw/master/jave-nativebin-arm64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-aarch64";
           } else {
             Logger.info("Detected Linux AMD/Intel 64-bit Operating System");
             this.ffmpegDownloadLink =
-                    "https://github.com/a-schild/jave2/raw/master/jave-nativebin-linux64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-amd64";
+                "https://github.com/a-schild/jave2/raw/master/jave-nativebin-linux64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-amd64";
           }
           this.vlcDownloadLink = "N/A";
         }
@@ -90,14 +90,14 @@ public final class SystemDiagnostics implements Diagnostic {
           if (this.cpu.getArchitecture().contains("amd")) {
             Logger.info("Detected MacOS Silicon 64-bit Operating System");
             this.vlcDownloadLink =
-                    "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/macos-intel64/VLC.dmg";
+                "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/macos-intel64/VLC.dmg";
           } else {
             Logger.info("Detected MacOS AMD 64-bit Operating System!");
             this.vlcDownloadLink =
-                    "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/macos-arm64/VLC.dmg";
+                "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/macos-arm64/VLC.dmg";
           }
           this.ffmpegDownloadLink =
-                  "https://github.com/a-schild/jave2/raw/master/jave-nativebin-osx64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-x86_64-osx";
+              "https://github.com/a-schild/jave2/raw/master/jave-nativebin-osx64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-x86_64-osx";
         }
       }
     } else {
@@ -108,14 +108,15 @@ public final class SystemDiagnostics implements Diagnostic {
               "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/win32/VLC.zip";
           this.ffmpegDownloadLink =
               "https://github.com/a-schild/jave2/raw/master/jave-nativebin-win32/src/main/resources/ws/schild/jave/nativebin/ffmpeg-x86.exe";
-          }
+        }
         case UNIX -> {
           if (this.cpu.getArchitecture().contains("arm")) {
             Logger.info("Detected Linux ARM 32-bit Operating System");
             this.vlcDownloadLink = "N/A";
             this.ffmpegDownloadLink =
                 "https://github.com/a-schild/jave2/raw/master/jave-nativebin-arm32/src/main/resources/ws/schild/jave/nativebin/ffmpeg-arm";
-          }}
+          }
+        }
       }
     }
   }
@@ -147,8 +148,8 @@ public final class SystemDiagnostics implements Diagnostic {
     Logger.info(
         "Plugins: "
             + Arrays.stream(server.getPluginManager().getPlugins())
-                .map(Plugin::getName)
-                .collect(Collectors.toList()));
+            .map(Plugin::getName)
+            .collect(Collectors.toList()));
     Logger.info("===========================================");
     Logger.info("             SYSTEM INFORMATION            ");
     Logger.info("===========================================");

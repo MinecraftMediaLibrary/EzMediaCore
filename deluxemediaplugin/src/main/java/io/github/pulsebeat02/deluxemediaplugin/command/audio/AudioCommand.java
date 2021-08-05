@@ -22,6 +22,10 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.audio;
 
+import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
+
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -37,10 +41,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-
-import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 
 public final class AudioCommand extends BaseCommand {
 

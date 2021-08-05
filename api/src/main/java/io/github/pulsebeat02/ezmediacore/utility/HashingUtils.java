@@ -11,7 +11,8 @@ import org.jetbrains.annotations.NotNull;
 
 public final class HashingUtils {
 
-  private HashingUtils() {}
+  private HashingUtils() {
+  }
 
   public static Optional<byte[]> createHashSHA(@NotNull final Path file) {
     try {

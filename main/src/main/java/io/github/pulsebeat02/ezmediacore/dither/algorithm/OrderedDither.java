@@ -1,12 +1,12 @@
 package io.github.pulsebeat02.ezmediacore.dither.algorithm;
 
+import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.COLOR_MAP;
+
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
-
-import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.COLOR_MAP;
 
 public class OrderedDither implements DitherAlgorithm {
 
@@ -16,29 +16,29 @@ public class OrderedDither implements DitherAlgorithm {
 
   static {
     BAYER_MATRIX_TWO =
-        new float[][] {
-          {1f, 3f},
-          {4f, 2f},
+        new float[][]{
+            {1f, 3f},
+            {4f, 2f},
         };
 
     BAYER_MATRIX_FOUR =
-        new float[][] {
-          {1f, 9f, 3f, 11f},
-          {13f, 5f, 15f, 7f},
-          {4f, 12f, 2f, 10f},
-          {16f, 8f, 14f, 6f}
+        new float[][]{
+            {1f, 9f, 3f, 11f},
+            {13f, 5f, 15f, 7f},
+            {4f, 12f, 2f, 10f},
+            {16f, 8f, 14f, 6f}
         };
 
     BAYER_MATRIX_EIGHT =
-        new float[][] {
-          {1f, 49f, 13f, 61f, 4f, 52f, 16f, 64f},
-          {33f, 17f, 45f, 29f, 36f, 20f, 48f, 32f},
-          {9f, 57f, 5f, 53f, 12f, 60f, 8f, 56f},
-          {41f, 25f, 37f, 21f, 44f, 28f, 40f, 24f},
-          {3f, 51f, 15f, 63f, 2f, 50f, 14f, 62f},
-          {35f, 19f, 47f, 31f, 34f, 18f, 46f, 30f},
-          {11f, 59f, 7f, 55f, 10f, 58f, 6f, 54f},
-          {43f, 27f, 39f, 23f, 42f, 26f, 38f, 22f}
+        new float[][]{
+            {1f, 49f, 13f, 61f, 4f, 52f, 16f, 64f},
+            {33f, 17f, 45f, 29f, 36f, 20f, 48f, 32f},
+            {9f, 57f, 5f, 53f, 12f, 60f, 8f, 56f},
+            {41f, 25f, 37f, 21f, 44f, 28f, 40f, 24f},
+            {3f, 51f, 15f, 63f, 2f, 50f, 14f, 62f},
+            {35f, 19f, 47f, 31f, 34f, 18f, 46f, 30f},
+            {11f, 59f, 7f, 55f, 10f, 58f, 6f, 54f},
+            {43f, 27f, 39f, 23f, 42f, 26f, 38f, 22f}
         };
   }
 

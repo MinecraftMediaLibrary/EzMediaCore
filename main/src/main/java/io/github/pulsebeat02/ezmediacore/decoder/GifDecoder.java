@@ -1,5 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.decoder;
 
+import static java.lang.System.arraycopy;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -9,9 +11,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.System.arraycopy;
-
-/** Stolen directly from https://github.com/DhyanB/Open-Imaging */
+/**
+ * Stolen directly from https://github.com/DhyanB/Open-Imaging
+ */
 public final class GifDecoder {
 
   public static GifImage read(final byte[] in) throws IOException {
@@ -33,9 +35,9 @@ public final class GifDecoder {
           }
           switch (in[pos + 1] & 0xFF) {
             case 0xFE -> // Comment extension
-                    pos = readTextExtension(in, pos);
+                pos = readTextExtension(in, pos);
             case 0xFF -> // Application extension
-                    pos = readAppExt(img, in, pos);
+                pos = readAppExt(img, in, pos);
             case 0x01 -> { // Plain text extension
               frame = null; // End of current frame
               pos = readTextExtension(in, pos);
@@ -230,6 +232,7 @@ public final class GifDecoder {
   }
 
   static final class BitReader {
+
     private int bitPos; // Next bit to read
     private int numBits; // Number of bits to read
     private int bitMask; // Used to kill unwanted higher bits
@@ -261,6 +264,7 @@ public final class GifDecoder {
   }
 
   static final class CodeTable {
+
     private final int[][] tbl; // Map codes to list of colors
     private int initTableSize; // Number of colors +2 for CLEAR + EOI
     private int initCodeSize; // Initial code size
@@ -304,8 +308,8 @@ public final class GifDecoder {
       for (int c = numColors - 1; c >= 0; c--) {
         this.tbl[c][0] = activeColTbl[c]; // Translated color
       } // A gap may follow with no colors assigned if numCols < CLEAR
-      this.tbl[fr.clearCode] = new int[] {fr.clearCode}; // CLEAR
-      this.tbl[fr.endOfInfoCode] = new int[] {fr.endOfInfoCode}; // EOI
+      this.tbl[fr.clearCode] = new int[]{fr.clearCode}; // CLEAR
+      this.tbl[fr.endOfInfoCode] = new int[]{fr.endOfInfoCode}; // EOI
       // Locate transparent color in code table and set to 0
       if (fr.transpColFlag && fr.transpColIndex < numColors) {
         this.tbl[fr.transpColIndex][0] = 0;
@@ -314,6 +318,7 @@ public final class GifDecoder {
   }
 
   static final class GifFrame {
+
     // Graphic control extension (optional)
     // Disposal: 0=NO_ACTION, 1=NO_DISPOSAL, 2=RESTORE_BG, 3=RESTORE_PREV
     private int disposalMethod; // 0-3 as above, 4-7 undefined
@@ -342,6 +347,7 @@ public final class GifDecoder {
   }
 
   public static final class GifImage {
+
     private final List<GifFrame> frames = new ArrayList<>(64);
     private final BitReader bits = new BitReader();
     private final CodeTable codes = new CodeTable();

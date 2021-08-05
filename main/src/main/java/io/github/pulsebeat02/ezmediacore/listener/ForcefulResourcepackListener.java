@@ -18,10 +18,10 @@ public record ForcefulResourcepackListener(MediaLibraryCore core,
                                            byte[] hash) implements Listener {
 
   public ForcefulResourcepackListener(
-          @NotNull final MediaLibraryCore core,
-          @NotNull final Set<UUID> uuids,
-          @NotNull final String url,
-          final byte @NotNull [] hash) {
+      @NotNull final MediaLibraryCore core,
+      @NotNull final Set<UUID> uuids,
+      @NotNull final String url,
+      final byte @NotNull [] hash) {
     this.core = core;
     this.uuids = uuids;
     this.url = url;
@@ -49,8 +49,8 @@ public record ForcefulResourcepackListener(MediaLibraryCore core,
       public void run() {
         if (!ForcefulResourcepackListener.this.uuids.isEmpty()) {
           Logger.info(
-                  "Could not force all players to load resourcepack! (%s)".formatted(
-                          ForcefulResourcepackListener.this.uuids));
+              "Could not force all players to load resourcepack! (%s)".formatted(
+                  ForcefulResourcepackListener.this.uuids));
           PlayerResourcePackStatusEvent.getHandlerList().unregister(plugin);
         }
       }

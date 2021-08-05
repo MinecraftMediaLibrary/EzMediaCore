@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore.entity;
+package io.github.pulsebeat02.ezmediacore.callback.entity;
 
 import java.lang.reflect.Method;
 import java.util.Collection;

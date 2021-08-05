@@ -22,6 +22,14 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.image;
 
+import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.TextComponent.ofChildren;
+import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
+import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
+
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -40,14 +48,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.jetbrains.annotations.NotNull;
-
-import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.TextComponent.ofChildren;
-import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
-import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
 public final class ResetImageCommand implements CommandSegment.Literal<CommandSender>, Listener {
 

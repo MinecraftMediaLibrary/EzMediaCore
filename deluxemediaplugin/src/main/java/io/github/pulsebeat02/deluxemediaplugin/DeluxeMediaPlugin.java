@@ -22,6 +22,13 @@
 
 package io.github.pulsebeat02.deluxemediaplugin;
 
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.TextComponent.ofChildren;
+import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
+import static net.kyori.adventure.text.format.NamedTextColor.BLUE;
+import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
+
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandHandler;
 import io.github.pulsebeat02.deluxemediaplugin.config.EncoderConfiguration;
@@ -44,13 +51,6 @@ import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
-
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.TextComponent.ofChildren;
-import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
-import static net.kyori.adventure.text.format.NamedTextColor.BLUE;
-import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
 public final class DeluxeMediaPlugin extends JavaPlugin {
 
@@ -82,10 +82,10 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
     this.checkUpdates();
     this.log("Finished DeluxeMediaPlugin!");
     this.log("""
-            Hello %%__USER__%%! Thank you for purchasing DeluxeMediaPlugin. For identifier purposes, this
-             is your purchace identification code: %%__NONCE__%% - Enjoy using the plugin, and ask for
-             support at my Discord! (https://discord.gg/MgqRKvycMC)
-            """);
+        Hello %%__USER__%%! Thank you for purchasing DeluxeMediaPlugin. For identifier purposes, this
+         is your purchace identification code: %%__NONCE__%% - Enjoy using the plugin, and ask for
+         support at my Discord! (https://discord.gg/MgqRKvycMC)
+        """);
   }
 
   private void startMetrics() {

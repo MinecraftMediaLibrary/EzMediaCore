@@ -1,6 +1,6 @@
 package io.github.pulsebeat02.ezmediacore.image;
 
-import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import org.bukkit.Bukkit;

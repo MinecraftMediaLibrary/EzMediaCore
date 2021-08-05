@@ -8,10 +8,9 @@ import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
-import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,11 +24,10 @@ public class FFmpegMediaPlayer extends MediaPlayer {
   private long start;
 
   FFmpegMediaPlayer(
-      @NotNull final MediaLibraryCore core,
       @NotNull final FrameCallback callback,
       @NotNull final String url,
       final int frameRate) {
-    super(core, callback, url, frameRate);
+    super(callback, url, frameRate);
     this.initializePlayer(0L);
   }
 
@@ -96,7 +94,8 @@ public class FFmpegMediaPlayer extends MediaPlayer {
     final int width = dimension.getWidth();
     return new FrameConsumer() {
       @Override
-      public void consumeStreams(final List<Stream> streams) {}
+      public void consumeStreams(final List<Stream> streams) {
+      }
 
       @Override
       public void consume(final Frame frame) {

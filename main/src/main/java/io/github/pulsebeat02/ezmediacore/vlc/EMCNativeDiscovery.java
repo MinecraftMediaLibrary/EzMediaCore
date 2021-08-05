@@ -1,5 +1,8 @@
 package io.github.pulsebeat02.ezmediacore.vlc;
 
+import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_new;
+import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_release;
+
 import com.sun.jna.NativeLibrary;
 import com.sun.jna.StringArray;
 import io.github.pulsebeat02.ezmediacore.Logger;
@@ -21,9 +24,6 @@ import uk.co.caprica.vlcj.binding.LibC;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 import uk.co.caprica.vlcj.binding.internal.libvlc_instance_t;
 import uk.co.caprica.vlcj.support.version.LibVlcVersion;
-
-import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_new;
-import static uk.co.caprica.vlcj.binding.LibVlc.libvlc_release;
 
 public class EMCNativeDiscovery implements DiscoveryProvider {
 

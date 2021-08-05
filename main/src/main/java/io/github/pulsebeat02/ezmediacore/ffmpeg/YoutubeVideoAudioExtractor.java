@@ -41,7 +41,8 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   }
 
   @Override
-  public void execute() {}
+  public void execute() {
+  }
 
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
@@ -80,10 +81,12 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   }
 
   @Override
-  public void onStartAudioExtraction() {}
+  public void onStartAudioExtraction() {
+  }
 
   @Override
-  public void onFinishAudioExtraction() {}
+  public void onFinishAudioExtraction() {
+  }
 
   @Override
   public @NotNull VideoDownloader getDownloader() {

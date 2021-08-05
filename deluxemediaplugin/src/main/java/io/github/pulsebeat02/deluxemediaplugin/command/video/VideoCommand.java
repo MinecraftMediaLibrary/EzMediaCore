@@ -22,6 +22,13 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
+import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.external;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.NamedTextColor.RED;
+
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -49,13 +56,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-
-import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.external;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
 public final class VideoCommand extends BaseCommand {
 
@@ -167,7 +167,7 @@ public final class VideoCommand extends BaseCommand {
       final Path ogg = audio.getParent().resolve("audio.ogg");
 
       new FFmpegAudioTrimmer(
-              plugin.library(), audio, ogg, this.attributes.getPlayer().getElapsedMilliseconds())
+          plugin.library(), audio, ogg, this.attributes.getPlayer().getElapsedMilliseconds())
           .executeAsyncWithLogging((line) -> external(audience, line));
 
       final ResourcepackSoundWrapper wrapper =

@@ -66,10 +66,12 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   }
 
   @Override
-  public void onStartVideoDownload() {}
+  public void onStartVideoDownload() {
+  }
 
   @Override
-  public void onFinishVideoDownload() {}
+  public void onFinishVideoDownload() {
+  }
 
   @Override
   public @NotNull Video getVideo() {

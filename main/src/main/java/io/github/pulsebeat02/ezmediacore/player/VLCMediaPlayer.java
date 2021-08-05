@@ -1,8 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.player;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
-import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -26,11 +25,10 @@ public class VLCMediaPlayer extends MediaPlayer {
   private EmbeddedMediaPlayer player;
 
   VLCMediaPlayer(
-      @NotNull final MediaLibraryCore core,
       @NotNull final FrameCallback callback,
       @NotNull final String url,
       final int frameRate) {
-    super(core, callback, url, frameRate);
+    super(callback, url, frameRate);
     this.adapter = this.getAdapter();
     this.callback = new MinecraftVideoRenderCallback(this);
     this.initializePlayer(0L);
@@ -93,7 +91,7 @@ public class VLCMediaPlayer extends MediaPlayer {
   private EmbeddedMediaPlayer getEmbeddedMediaPlayer() {
     final int rate = this.getFrameRate();
     return new MediaPlayerFactory(
-            rate != 0 ? new String[] {"--fps-fps=%d".formatted(rate)} : new String[] {})
+        rate != 0 ? new String[]{"--fps-fps=%d".formatted(rate)} : new String[]{})
         .mediaPlayers()
         .newEmbeddedMediaPlayer();
   }
@@ -115,7 +113,8 @@ public class VLCMediaPlayer extends MediaPlayer {
       }
 
       @Override
-      public void allocatedBuffers(final ByteBuffer[] buffers) {}
+      public void allocatedBuffers(final ByteBuffer[] buffers) {
+      }
     };
   }
 

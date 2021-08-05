@@ -13,7 +13,8 @@ public final class PluginUsageTips {
     MAJOR_VERSION = Integer.parseInt(JAVA_VERSION.split("\\.")[1]);
   }
 
-  private PluginUsageTips() {}
+  private PluginUsageTips() {
+  }
 
   public static String getJavaVersion() {
     return JAVA_VERSION;
@@ -29,11 +30,11 @@ public final class PluginUsageTips {
   public static void sendPacketCompressionTip() {
     if (Bukkit.getOnlineMode()) {
       Logger.warn(
+          """
+              Setting the value "network-compression-threshold", to -1 in the server.properties
+               file may lead to improved performance of video players for servers that aren't proxy
+               servers.
               """
-                      Setting the value "network-compression-threshold", to -1 in the server.properties
-                       file may lead to improved performance of video players for servers that aren't proxy
-                       servers.
-                      """
       );
     }
   }

@@ -30,9 +30,10 @@ import io.github.pulsebeat02.ezmediacore.callback.EntityCallback;
 import io.github.pulsebeat02.ezmediacore.callback.EntityType;
 import io.github.pulsebeat02.ezmediacore.callback.MapCallback;
 import io.github.pulsebeat02.ezmediacore.callback.ScoreboardCallback;
+import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.VideoFactory;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
-import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import java.util.Collection;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -41,93 +42,88 @@ public record VideoCreator(MediaLibraryCore library,
                            VideoCommandAttributes attributes) {
 
   public VideoCreator(
-          @NotNull final MediaLibraryCore library, @NotNull final VideoCommandAttributes attributes) {
+      @NotNull final MediaLibraryCore library, @NotNull final VideoCommandAttributes attributes) {
     this.library = library;
     this.attributes = attributes;
   }
 
   public VideoPlayer createMapPlayer(@NotNull final Collection<? extends Player> viewers) {
     return VideoFactory.builder()
-            .core(this.library)
-            .url(this.attributes.getMrl())
-            .callback(
-                    new MapCallback(
-                            this.library,
-                            ImmutableDimension.of(
-                                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
-                            viewers,
-                            this.attributes.getDither().getAlgorithm(),
-                            this.attributes.getMap(),
-                            this.attributes.getPixelWidth(),
-                            0))
-            .build();
+        .url(this.attributes.getMrl())
+        .callback(
+            new MapCallback(
+                this.library,
+                Dimension.of(
+                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+                viewers,
+                this.attributes.getDither().getAlgorithm(),
+                this.attributes.getMap(),
+                this.attributes.getFrameWidth(),
+                0))
+        .build();
   }
 
   public VideoPlayer createEntityPlayer(
-          @NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
+      @NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
     return VideoFactory.builder()
-            .core(this.library)
-            .url(this.attributes.getMrl())
-            .callback(
-                    new EntityCallback(
-                            this.library,
-                            ImmutableDimension.of(
-                                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
-                            viewers,
-                            sender.getLocation(),
-                            "▉",
-                            EntityType.ARMORSTAND,
-                            this.attributes.getPixelWidth(),
-                            20))
-            .build();
+        .url(this.attributes.getMrl())
+        .callback(
+            new EntityCallback(
+                this.library,
+                Dimension.of(
+                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+                viewers,
+                sender.getLocation(),
+                NamedEntityString.NORMAL_SQUARE,
+                EntityType.ARMORSTAND,
+                this.attributes.getFrameWidth(),
+                20))
+        .build();
   }
 
   public VideoPlayer createChatBoxPlayer(@NotNull final Collection<? extends Player> viewers) {
     return VideoFactory.builder()
-            .core(this.library)
-            .url(this.attributes.getMrl())
-            .callback(
-                    new ChatCallback(
-                            this.library,
-                            ImmutableDimension.of(
-                                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
-                            viewers,
-                            "#",
-                            this.attributes.getPixelWidth(),
-                            20))
-            .build();
+        .url(this.attributes.getMrl())
+        .callback(
+            new ChatCallback(
+                this.library,
+                Dimension.of(
+                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+                viewers,
+                NamedEntityString.NORMAL_SQUARE,
+                this.attributes.getFrameWidth(),
+                20))
+        .build();
   }
 
   public VideoPlayer createScoreboardPlayer(@NotNull final Collection<? extends Player> viewers) {
     return VideoFactory.builder()
-            .core(this.library)
-            .url(this.attributes.getMrl())
-            .callback(
-                    new ScoreboardCallback(
-                            this.library,
-                            ImmutableDimension.of(
-                                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
-                            viewers,
-                            1080,
-                            this.attributes.getPixelWidth(),
-                            20))
-            .build();
+        .url(this.attributes.getMrl())
+        .callback(
+            new ScoreboardCallback(
+                this.library,
+                Dimension.of(
+                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+                viewers,
+                1080,
+                this.attributes.getFrameWidth(),
+                20))
+        .build();
   }
 
   public VideoPlayer createBlockHighlightPlayer(
-          @NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
+      @NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
     return VideoFactory.builder()
-            .core(this.library)
-            .url(this.attributes.getMrl())
-            .callback(
-                    new BlockHighlightCallback(
-                            this.library,
-                            ImmutableDimension.of(
-                                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
-                            viewers,
-                            sender.getLocation(),
-                            this.attributes.getPixelWidth(),
-                            40))
-            .build();
+        .url(this.attributes.getMrl())
+        .callback(
+            new BlockHighlightCallback(
+                this.library,
+                Dimension.of(
+                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+                viewers,
+                sender.getLocation(),
+                this.attributes.getFrameWidth(),
+                40))
+        .build();
   }
 }

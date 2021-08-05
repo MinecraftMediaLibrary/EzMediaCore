@@ -34,7 +34,8 @@ public final class VideoFrameUtils {
     CONVERSION = new RgbToBgr();
   }
 
-  private VideoFrameUtils() {}
+  private VideoFrameUtils() {
+  }
 
   @NotNull
   public static Optional<int[]> getBuffer(@NotNull final Path image) {

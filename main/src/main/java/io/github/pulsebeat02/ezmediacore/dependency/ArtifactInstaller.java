@@ -55,7 +55,7 @@ public final class ArtifactInstaller {
 
   public ArtifactInstaller(@NotNull final MediaLibraryCore core)
       throws ReflectiveOperationException, URISyntaxException, NoSuchAlgorithmException,
-          IOException {
+      IOException {
     this.jars = new HashSet<>();
     this.hashes = new HashSet<>();
     this.dependencyFolder = core.getDependencyPath();
@@ -102,7 +102,8 @@ public final class ArtifactInstaller {
 
   public void relocate() throws InterruptedException {
 
-    Logger.info("Preparing to relocate %d dependencies (%s)".formatted( this.jars.size(), this.jars));
+    Logger.info(
+        "Preparing to relocate %d dependencies (%s)".formatted(this.jars.size(), this.jars));
 
     EXECUTOR_SERVICE.invokeAll(
         this.jars.stream()
@@ -132,16 +133,17 @@ public final class ArtifactInstaller {
 
     if (!invalid.isEmpty()) {
       for (final Path p : invalid) {
-        Logger.warn("Dependency %s has an invalid hash! Downloading dependency again...".formatted(p));
+        Logger.warn(
+            "Dependency %s has an invalid hash! Downloading dependency again...".formatted(p));
         this.redownload(p, this.getDependency(p).orElseThrow(AssertionError::new));
       }
     }
 
     new JarLoader(
-            Files.walk(this.relocatedFolder, 1)
-                .filter(Files::isRegularFile)
-                .filter(path -> PathUtils.getName(path).endsWith(".jar"))
-                .collect(Collectors.toList()))
+        Files.walk(this.relocatedFolder, 1)
+            .filter(Files::isRegularFile)
+            .filter(path -> PathUtils.getName(path).endsWith(".jar"))
+            .collect(Collectors.toList()))
         .inject();
   }
 
@@ -190,12 +192,13 @@ public final class ArtifactInstaller {
           file = Optional.of(DependencyUtils.downloadJitpackDependency(dependency, path));
         }
         default -> throw new IllegalStateException(
-                "Specified Repository URL Doesn't Exist! (Not Maven/Jitpack)");
+            "Specified Repository URL Doesn't Exist! (Not Maven/Jitpack)");
       }
     } catch (final IOException e) {
       file = Optional.empty();
       Logger.info(
-              "Cannot Resolve Dependency! (Artifact: %s | Repository URL: %s)".formatted(artifact, resolution.getUrl()));
+          "Cannot Resolve Dependency! (Artifact: %s | Repository URL: %s)".formatted(artifact,
+              resolution.getUrl()));
       e.printStackTrace();
     }
 
@@ -207,7 +210,7 @@ public final class ArtifactInstaller {
       } else {
         try {
           Logger.info(
-                  "SHA1 Hash for File %s Failed! Downloading the Dependency Again...".formatted(file));
+              "SHA1 Hash for File %s Failed! Downloading the Dependency Again...".formatted(file));
           Files.delete(p);
           return this.downloadDependency(dependency);
         } catch (final IOException e) {

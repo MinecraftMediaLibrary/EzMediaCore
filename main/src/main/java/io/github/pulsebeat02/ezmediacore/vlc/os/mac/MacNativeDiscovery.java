@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 
 public class MacNativeDiscovery implements NativeDiscoveryAlgorithm {
+
   @Override
   public @NotNull OSType getOperatingSystem() {
     return OSType.MAC;

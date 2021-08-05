@@ -1,5 +1,6 @@
 package io.github.pulsebeat02.ezmediacore.entity;
 
+import io.github.pulsebeat02.ezmediacore.callback.entity.EntityCommandMutatorHelper;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;

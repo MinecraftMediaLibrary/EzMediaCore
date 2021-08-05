@@ -87,7 +87,7 @@ public class FileRequestHandler implements FileRequest {
     this.daemon.onClientConnection(this.client);
     boolean flag = false;
     try (final BufferedReader in =
-            new BufferedReader(new InputStreamReader(this.client.getInputStream(), "8859_1"));
+        new BufferedReader(new InputStreamReader(this.client.getInputStream(), "8859_1"));
         final OutputStream out = this.client.getOutputStream();
         final PrintWriter pout = new PrintWriter(new OutputStreamWriter(out, "8859_1"), true)) {
       final InetAddress address = this.client.getInetAddress();

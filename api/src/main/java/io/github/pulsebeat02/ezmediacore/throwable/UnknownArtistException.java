@@ -4,6 +4,7 @@ import java.io.Serial;
 import org.jetbrains.annotations.NotNull;
 
 public final class UnknownArtistException extends LibraryException {
+
   @Serial
   private static final long serialVersionUID = 888269687137805842L;
 

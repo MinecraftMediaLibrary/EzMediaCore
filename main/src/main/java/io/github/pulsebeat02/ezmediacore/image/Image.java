@@ -2,8 +2,8 @@ package io.github.pulsebeat02.ezmediacore.image;
 
 import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
 import io.github.pulsebeat02.ezmediacore.utility.ImageUtils;
-import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.List;
@@ -39,7 +39,8 @@ public abstract class Image implements MapImage {
   }
 
   @Override
-  public void onStartDrawImage() {}
+  public void onStartDrawImage() {
+  }
 
   @Override
   public @NotNull BufferedImage[][] process(@NotNull BufferedImage image, final boolean resize) {
@@ -61,7 +62,8 @@ public abstract class Image implements MapImage {
   }
 
   @Override
-  public void onFinishDrawImage() {}
+  public void onFinishDrawImage() {
+  }
 
   @Override
   public void resetMaps() {

@@ -1,12 +1,12 @@
 package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
-import io.github.pulsebeat02.ezmediacore.utility.Dimension;
 import org.jetbrains.annotations.NotNull;
 
-public interface Callback extends LibraryInjectable, Dimension, Viewable {
+public interface Callback extends LibraryInjectable, Dimensional, Viewable {
 
   void process(final int[] data);
 

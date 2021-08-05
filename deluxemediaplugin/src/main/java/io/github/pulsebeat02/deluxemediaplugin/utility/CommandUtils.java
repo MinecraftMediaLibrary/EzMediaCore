@@ -39,9 +39,9 @@ public final class CommandUtils {
     knownCommands =
         (HashMap<String, Command>)
             (getPrivateField(
-                    (getPrivateField(Bukkit.getServer().getPluginManager(), "commandMap")
-                        .orElseThrow(AssertionError::new)),
-                    "knownCommands")
+                (getPrivateField(Bukkit.getServer().getPluginManager(), "commandMap")
+                    .orElseThrow(AssertionError::new)),
+                "knownCommands")
                 .orElseThrow(AssertionError::new));
   }
 

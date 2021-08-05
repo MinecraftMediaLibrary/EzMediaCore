@@ -45,7 +45,8 @@ public final class ArchiveUtils {
     ARCHIVE_EXTENSIONS = Set.of("zip", "deb", "rpm", "txz", "xz", "tgz", "gz", "ar", "cpio");
   }
 
-  private ArchiveUtils() {}
+  private ArchiveUtils() {
+  }
 
   public static void decompressArchive(@NotNull final Path file, @NotNull final Path result) {
     final String name = PathUtils.getName(file);
@@ -95,7 +96,7 @@ public final class ArchiveUtils {
       final Path current = queue.remove();
       currentFolder =
           Paths.get(
-                  "%s/%s".formatted(
+              "%s/%s".formatted(
                   currentFolder.toAbsolutePath(), getFileName(PathUtils.getName(current))));
       decompressArchive(current, currentFolder);
       if (!current.toAbsolutePath().toString().equals(file.toAbsolutePath().toString())) {
@@ -150,12 +151,12 @@ public final class ArchiveUtils {
       return "tar gz";
     } else if (name.endsWith(".tar.zst") || name.endsWith("eopkg")) {
       Logger.warn("""
-              Hello user, please read this error carefully: Your computer seems to be using
-               KAOS Linux or Solus Linux. The extract for these Linuxes is either a .tar.zst file or an
-               .eopkg file, which is yet not supported by the plugin yet. The archive has been downloaded
-               in the /vlc folder, and it is required by you to extract the file in order to get the VLC
-               libraries. This is a required step, and VLCJ will not run if you do not perform this step.
-              """);
+          Hello user, please read this error carefully: Your computer seems to be using
+           KAOS Linux or Solus Linux. The extract for these Linuxes is either a .tar.zst file or an
+           .eopkg file, which is yet not supported by the plugin yet. The archive has been downloaded
+           in the /vlc folder, and it is required by you to extract the file in order to get the VLC
+           libraries. This is a required step, and VLCJ will not run if you do not perform this step.
+          """);
     }
     throw new UnsupportedOperationException(
         "Cannot find Archive Extension for File! (%s)".formatted(name));

@@ -22,6 +22,14 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
+import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.external;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.NamedTextColor.RED;
+
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -45,14 +53,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
-
-import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.external;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
 public final class VideoLoadCommand implements CommandSegment.Literal<CommandSender> {
 
@@ -133,7 +133,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
     final Path audio = Paths.get(folder, "custom.ogg");
     new FFmpegAudioExtractor(
-            this.plugin.library(), this.plugin.getAudioConfiguration(), file, audio)
+        this.plugin.library(), this.plugin.getAudioConfiguration(), file, audio)
         .execute();
 
     this.attributes.setYoutube(false);

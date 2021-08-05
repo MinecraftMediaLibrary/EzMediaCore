@@ -1,13 +1,13 @@
 package io.github.pulsebeat02.ezmediacore.dither.algorithm;
 
+import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.COLOR_MAP;
+import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.FULL_COLOR_MAP;
+import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.PALETTE;
+
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import org.jetbrains.annotations.NotNull;
-
-import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.COLOR_MAP;
-import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.FULL_COLOR_MAP;
-import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.PALETTE;
 
 /**
  * What a piece of optimization; Performs incredibly fast Minecraft color conversion and dithering.

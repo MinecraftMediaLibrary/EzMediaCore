@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
 public interface SilentInstallationProvider extends LibraryInjectable, VLCBinaryInstallation {
+
   @NotNull
   Path getDirectory();
 

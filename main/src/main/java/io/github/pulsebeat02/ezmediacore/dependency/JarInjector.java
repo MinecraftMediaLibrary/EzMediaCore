@@ -12,18 +12,18 @@ import org.jetbrains.annotations.NotNull;
 
 public record JarInjector(Collection<URL> dependencies) implements DependencyInjector {
 
-    @Override
-    public void inject(@NotNull final Injectable injectable, @NotNull final DependencyData data) {
-        this.dependencies.forEach(
-                x -> {
-                    try {
-                        injectable.inject(x);
-                    } catch (final InvocationTargetException
-                            | IllegalAccessException
-                            | IOException
-                            | URISyntaxException e) {
-                        e.printStackTrace();
-                    }
-                });
-    }
+  @Override
+  public void inject(@NotNull final Injectable injectable, @NotNull final DependencyData data) {
+    this.dependencies.forEach(
+        x -> {
+          try {
+            injectable.inject(x);
+          } catch (final InvocationTargetException
+              | IllegalAccessException
+              | IOException
+              | URISyntaxException e) {
+            e.printStackTrace();
+          }
+        });
+  }
 }

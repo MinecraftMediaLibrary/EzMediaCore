@@ -1,8 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.player;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
-import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
 import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -21,11 +20,10 @@ public class JCodecMediaPlayer extends MediaPlayer {
   private long start;
 
   JCodecMediaPlayer(
-      @NotNull final MediaLibraryCore core,
       @NotNull final FrameCallback callback,
       @NotNull final String url,
       final int frameRate) {
-    super(core, callback, url, frameRate);
+    super(callback, url, frameRate);
     this.initializePlayer(0L);
   }
 
@@ -75,9 +73,9 @@ public class JCodecMediaPlayer extends MediaPlayer {
             break;
           }
           this.getCallback()
-                  .process(
-                          VideoFrameUtils.toBufferedImage(picture)
-                                  .getRGB(0, 0, width, height, null, 0, width));
+              .process(
+                  VideoFrameUtils.toBufferedImage(picture)
+                      .getRGB(0, 0, width, height, null, 0, width));
         } catch (final IOException e) {
           e.printStackTrace();
         }

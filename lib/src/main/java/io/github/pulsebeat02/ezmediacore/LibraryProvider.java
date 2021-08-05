@@ -27,7 +27,8 @@ public final class LibraryProvider {
   private Path audioPath;
   private Path videoPath;
 
-  LibraryProvider() {}
+  LibraryProvider() {
+  }
 
   public static LibraryProvider builder() {
     return new LibraryProvider();

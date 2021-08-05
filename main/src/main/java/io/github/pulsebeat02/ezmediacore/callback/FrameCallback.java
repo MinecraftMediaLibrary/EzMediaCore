@@ -2,9 +2,9 @@ package io.github.pulsebeat02.ezmediacore.callback;
 
 import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
-import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import java.util.Collection;
 import java.util.UUID;
 import org.bukkit.entity.Player;
@@ -41,7 +41,8 @@ public abstract class FrameCallback implements Callback {
   }
 
   @Override
-  public void preparePlayerStateChange(@NotNull final PlayerControls status) {}
+  public void preparePlayerStateChange(@NotNull final PlayerControls status) {
+  }
 
   @Override
   public int getBlockWidth() {

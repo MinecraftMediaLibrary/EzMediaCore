@@ -1,7 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
 import java.util.Collection;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

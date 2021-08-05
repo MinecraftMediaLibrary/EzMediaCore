@@ -1,6 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
-import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
 import org.jetbrains.annotations.NotNull;
 
 public final class SpotifyAvatar implements Avatar {
@@ -10,7 +11,7 @@ public final class SpotifyAvatar implements Avatar {
 
   SpotifyAvatar(@NotNull final com.wrapper.spotify.model_objects.specification.Image image) {
     this.image = image;
-    this.dimension = ImmutableDimension.of(image.getWidth(), image.getHeight());
+    this.dimension = Dimension.of(image.getWidth(), image.getHeight());
   }
 
   @Override

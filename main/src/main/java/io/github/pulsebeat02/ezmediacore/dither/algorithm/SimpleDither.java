@@ -1,10 +1,10 @@
 package io.github.pulsebeat02.ezmediacore.dither.algorithm;
 
+import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.COLOR_MAP;
+
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
 import java.nio.ByteBuffer;
-
-import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.COLOR_MAP;
 
 public class SimpleDither implements DitherAlgorithm {
 

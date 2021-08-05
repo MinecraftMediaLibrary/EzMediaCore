@@ -70,13 +70,17 @@ public class DitherLookupUtil {
     return FULL_COLOR_MAP;
   }
 
-  /** Init. */
-  public static void init() {}
+  /**
+   * Init.
+   */
+  public static void init() {
+  }
 }
 
 final class LoadRed extends RecursiveTask<byte[]> {
 
-  @Serial private static final long serialVersionUID = -6408377810782246185L;
+  @Serial
+  private static final long serialVersionUID = -6408377810782246185L;
   private final int r;
   private final int[] palette;
 
@@ -105,7 +109,8 @@ final class LoadRed extends RecursiveTask<byte[]> {
 
 final class LoadGreen extends RecursiveTask<byte[]> {
 
-  @Serial private static final long serialVersionUID = -1221290051151782146L;
+  @Serial
+  private static final long serialVersionUID = -1221290051151782146L;
   private final int r;
   private final int g;
   private final int[] palette;
@@ -134,7 +139,8 @@ final class LoadGreen extends RecursiveTask<byte[]> {
 
 final class LoadBlue extends RecursiveTask<Byte> {
 
-  @Serial private static final long serialVersionUID = 5331764784578439634L;
+  @Serial
+  private static final long serialVersionUID = 5331764784578439634L;
   private final int r, g, b;
   private final int[] palette;
 

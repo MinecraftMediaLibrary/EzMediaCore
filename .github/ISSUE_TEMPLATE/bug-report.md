@@ -1,9 +1,6 @@
 ---
-name: Bug Report
-about: Report an EzMediaCore Bug
-title: ''
-labels: bug
-assignees: ''
+name: Bug Report about: Report an EzMediaCore Bug title: ''
+labels: bug assignees: ''
 
 ---
 

@@ -2,13 +2,13 @@ package io.github.pulsebeat02.ezmediacore.player;
 
 import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
 import io.github.pulsebeat02.ezmediacore.playlist.ResourceUrl;
-import io.github.pulsebeat02.ezmediacore.utility.Dimension;
 import java.util.Set;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public interface VideoPlayer extends LibraryInjectable, ResourceUrl, Dimension {
+public interface VideoPlayer extends LibraryInjectable, ResourceUrl, Dimensional {
 
   @NotNull
   Callback getCallback();

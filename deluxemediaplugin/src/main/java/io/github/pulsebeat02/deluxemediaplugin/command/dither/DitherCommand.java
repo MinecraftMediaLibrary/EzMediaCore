@@ -22,6 +22,10 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.dither;
 
+import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.aqua;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
+
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -33,10 +37,6 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
-
-import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.aqua;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
 
 public final class DitherCommand extends BaseCommand {
 

@@ -1,8 +1,8 @@
-package io.github.pulsebeat02.ezmediacore.utility;
+package io.github.pulsebeat02.ezmediacore.dimension;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface Dimension {
+public interface Dimensional {
 
   @NotNull
   ImmutableDimension getDimensions();

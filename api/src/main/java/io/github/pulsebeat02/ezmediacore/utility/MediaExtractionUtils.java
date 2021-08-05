@@ -13,7 +13,8 @@ public final class MediaExtractionUtils {
     YOUTUBE_ID_PATTERN = Pattern.compile("(?<=youtu.be/|watch\\?v=|/videos/|embed)[^#]*");
   }
 
-  private MediaExtractionUtils() {}
+  private MediaExtractionUtils() {
+  }
 
   /**
    * Extracts id from Youtube URL.

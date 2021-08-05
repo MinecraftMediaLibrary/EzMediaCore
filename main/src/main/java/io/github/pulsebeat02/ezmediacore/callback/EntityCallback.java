@@ -1,8 +1,9 @@
 package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.callback.entity.EntityCallbackDispatcher;
+import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
-import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import java.util.Collection;
 import java.util.function.Consumer;
 import org.apache.commons.lang.StringUtils;
@@ -126,7 +127,8 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
   }
 
   @Override
-  public void process(final int[] data) {}
+  public void process(final int[] data) {
+  }
 
   @Override
   public @NotNull Entity[] getEntities() {

@@ -22,6 +22,10 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.image;
 
+import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
+
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -29,11 +33,11 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.image.DynamicImage;
 import io.github.pulsebeat02.ezmediacore.image.Image;
 import io.github.pulsebeat02.ezmediacore.image.StaticImage;
 import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
-import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,10 +50,6 @@ import net.kyori.adventure.audience.Audience;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
-
-import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 
 public final class SetImageCommand implements CommandSegment.Literal<CommandSender> {
 
@@ -118,9 +118,9 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
       final Image image;
 
       if (name.endsWith(".gif")) {
-        image = new StaticImage(core, img, maps, ImmutableDimension.of(width, height));
+        image = new StaticImage(core, img, maps, Dimension.of(width, height));
       } else if (this.attributes.getExtensions().stream().anyMatch(name::endsWith)) {
-        image = new DynamicImage(core, img, maps, ImmutableDimension.of(width, height));
+        image = new DynamicImage(core, img, maps, Dimension.of(width, height));
       } else {
         red(audience, "The image extension you provided is not supported!");
         return true;

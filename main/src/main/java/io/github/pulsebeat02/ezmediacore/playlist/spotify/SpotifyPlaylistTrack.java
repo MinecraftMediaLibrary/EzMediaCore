@@ -4,10 +4,10 @@ import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public record SpotifyPlaylistTrack(
-        com.wrapper.spotify.model_objects.specification.PlaylistTrack track) implements PlaylistTrack {
+    com.wrapper.spotify.model_objects.specification.PlaylistTrack track) implements PlaylistTrack {
 
   public SpotifyPlaylistTrack(
-          @NotNull final com.wrapper.spotify.model_objects.specification.PlaylistTrack track) {
+      @NotNull final com.wrapper.spotify.model_objects.specification.PlaylistTrack track) {
     this.track = track;
   }
 

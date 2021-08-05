@@ -83,7 +83,8 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   }
 
   @Override
-  public void onServerStart() {}
+  public void onServerStart() {
+  }
 
   @Override
   public void stop() {
@@ -99,13 +100,16 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   }
 
   @Override
-  public void onServerTermination() {}
+  public void onServerTermination() {
+  }
 
   @Override
-  public void onClientConnection(@NotNull final Socket client) {}
+  public void onClientConnection(@NotNull final Socket client) {
+  }
 
   @Override
-  public void onRequestFailure(@NotNull final Socket client) {}
+  public void onRequestFailure(@NotNull final Socket client) {
+  }
 
   @Override
   public boolean isVerbose() {

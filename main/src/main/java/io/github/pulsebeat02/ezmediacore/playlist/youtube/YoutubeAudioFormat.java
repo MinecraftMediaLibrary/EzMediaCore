@@ -1,10 +1,5 @@
 package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import java.util.Map;
-import org.jetbrains.annotations.NotNull;
-
 import static com.github.kiulian.downloader.model.videos.quality.AudioQuality.high;
 import static com.github.kiulian.downloader.model.videos.quality.AudioQuality.low;
 import static com.github.kiulian.downloader.model.videos.quality.AudioQuality.medium;
@@ -16,32 +11,37 @@ import static io.github.pulsebeat02.ezmediacore.playlist.youtube.AudioQuality.ME
 import static io.github.pulsebeat02.ezmediacore.playlist.youtube.AudioQuality.NOAUDIO;
 import static io.github.pulsebeat02.ezmediacore.playlist.youtube.AudioQuality.UNKNOWN;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+
 public record YoutubeAudioFormat(
-        com.github.kiulian.downloader.model.videos.formats.AudioFormat format) implements AudioFormat {
+    com.github.kiulian.downloader.model.videos.formats.AudioFormat format) implements AudioFormat {
 
   private static final BiMap<
-          com.github.kiulian.downloader.model.videos.quality.AudioQuality, AudioQuality>
-          AUDIO_FORMATS;
+      com.github.kiulian.downloader.model.videos.quality.AudioQuality, AudioQuality>
+      AUDIO_FORMATS;
 
   static {
     AUDIO_FORMATS =
-            HashBiMap.create(
-                    Map.of(
-                            unknown, UNKNOWN,
-                            noAudio, NOAUDIO,
-                            low, LOW,
-                            medium, MEDIUM,
-                            high, HIGH));
+        HashBiMap.create(
+            Map.of(
+                unknown, UNKNOWN,
+                noAudio, NOAUDIO,
+                low, LOW,
+                medium, MEDIUM,
+                high, HIGH));
   }
 
   public YoutubeAudioFormat(
-          @NotNull final com.github.kiulian.downloader.model.videos.formats.AudioFormat format) {
+      @NotNull final com.github.kiulian.downloader.model.videos.formats.AudioFormat format) {
     this.format = format;
   }
 
   static @NotNull
   BiMap<
-          com.github.kiulian.downloader.model.videos.quality.AudioQuality, AudioQuality>
+      com.github.kiulian.downloader.model.videos.quality.AudioQuality, AudioQuality>
   getAudioMappings() {
     return AUDIO_FORMATS;
   }

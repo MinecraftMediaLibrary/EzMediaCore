@@ -1,11 +1,11 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
 import io.github.pulsebeat02.ezmediacore.image.DynamicImage;
 import io.github.pulsebeat02.ezmediacore.image.Image;
 import io.github.pulsebeat02.ezmediacore.image.StaticImage;
 import io.github.pulsebeat02.ezmediacore.persistent.PersistentImageStorage;
-import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;

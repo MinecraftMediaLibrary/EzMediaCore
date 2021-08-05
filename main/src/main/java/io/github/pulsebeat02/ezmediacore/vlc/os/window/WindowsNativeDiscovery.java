@@ -7,6 +7,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class WindowsNativeDiscovery implements NativeDiscoveryAlgorithm {
+
   @Override
   public @NotNull OSType getOperatingSystem() {
     return OSType.WINDOWS;
@@ -23,5 +24,6 @@ public class WindowsNativeDiscovery implements NativeDiscoveryAlgorithm {
   }
 
   @Override
-  public void onLibVlcFound(@NotNull final Path discoveredPath) {}
+  public void onLibVlcFound(@NotNull final Path discoveredPath) {
+  }
 }

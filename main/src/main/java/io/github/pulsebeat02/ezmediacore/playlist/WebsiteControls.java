@@ -24,23 +24,30 @@ public class WebsiteControls implements WebPlayerControls {
   }
 
   @Override
-  public void skipSong() {}
+  public void skipSong() {
+  }
 
   @Override
-  public void previousSong() {}
+  public void previousSong() {
+  }
 
   @Override
-  public void pauseSong() {}
+  public void pauseSong() {
+  }
 
   @Override
-  public void resumeSong() {}
+  public void resumeSong() {
+  }
 
   @Override
-  public void seekToTime(final int seconds) {}
+  public void seekToTime(final int seconds) {
+  }
 
   @Override
-  public void randomize() {}
+  public void randomize() {
+  }
 
   @Override
-  public void loopMode(final boolean mode) {}
+  public void loopMode(final boolean mode) {
+  }
 }

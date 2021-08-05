@@ -17,7 +17,8 @@ import org.jetbrains.annotations.NotNull;
 
 public final class FileUtils {
 
-  private FileUtils() {}
+  private FileUtils() {
+  }
 
   @NotNull
   public static Path downloadImageFile(@NotNull final String url, @NotNull final Path path)

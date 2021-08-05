@@ -6,6 +6,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class UnixKnownDirectories implements WellKnownDirectoryProvider {
+
   @Override
   public @NotNull OSType getOperatingSystem() {
     return OSType.UNIX;

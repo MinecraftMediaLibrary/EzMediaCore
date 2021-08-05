@@ -28,7 +28,8 @@ public final class ServerPropertyUtils {
     }
   }
 
-  private ServerPropertyUtils() {}
+  private ServerPropertyUtils() {
+  }
 
   public static void savePropertiesFile() {
     try {
@@ -52,7 +53,9 @@ public final class ServerPropertyUtils {
     return null;
   }
 
-  /** An enum storing the possible server properties you can change. */
+  /**
+   * An enum storing the possible server properties you can change.
+   */
   public enum ServerProperty {
     SPAWN_PROTECTION("spawn-protection"),
     SERVER_NAME("server-name"),

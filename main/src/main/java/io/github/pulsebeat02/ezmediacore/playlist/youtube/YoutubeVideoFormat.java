@@ -1,11 +1,5 @@
 package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
-import java.util.Map;
-import org.jetbrains.annotations.NotNull;
-
 import static com.github.kiulian.downloader.model.videos.quality.VideoQuality.hd1080;
 import static com.github.kiulian.downloader.model.videos.quality.VideoQuality.hd1440;
 import static com.github.kiulian.downloader.model.videos.quality.VideoQuality.hd2160;
@@ -32,10 +26,17 @@ import static io.github.pulsebeat02.ezmediacore.playlist.youtube.VideoQuality.TI
 import static io.github.pulsebeat02.ezmediacore.playlist.youtube.VideoQuality.UNKNOWN;
 import static java.util.Map.entry;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+
 public final class YoutubeVideoFormat implements VideoFormat {
 
   private static final BiMap<
-          com.github.kiulian.downloader.model.videos.quality.VideoQuality, VideoQuality>
+      com.github.kiulian.downloader.model.videos.quality.VideoQuality, VideoQuality>
       VIDEO_FORMATS;
 
   static {
@@ -62,12 +63,12 @@ public final class YoutubeVideoFormat implements VideoFormat {
   YoutubeVideoFormat(
       @NotNull final com.github.kiulian.downloader.model.videos.formats.VideoFormat format) {
     this.format = format;
-    this.dimension = ImmutableDimension.of(format.width(), format.height());
+    this.dimension = Dimension.of(format.width(), format.height());
   }
 
   static @NotNull BiMap<
-          com.github.kiulian.downloader.model.videos.quality.VideoQuality, VideoQuality>
-      getVideoFormatMappings() {
+      com.github.kiulian.downloader.model.videos.quality.VideoQuality, VideoQuality>
+  getVideoFormatMappings() {
     return VIDEO_FORMATS;
   }
 

@@ -22,6 +22,11 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.audio;
 
+import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.external;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
+
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -42,11 +47,6 @@ import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
-
-import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.external;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 
 public final class AudioLoadCommand implements CommandSegment.Literal<CommandSender> {
 

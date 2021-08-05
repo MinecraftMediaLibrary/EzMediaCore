@@ -1,16 +1,16 @@
 package io.github.pulsebeat02.ezmediacore.image;
 
+import static io.github.pulsebeat02.ezmediacore.decoder.GifDecoder.GifImage;
+
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.decoder.GifDecoder;
-import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
-
-import static io.github.pulsebeat02.ezmediacore.decoder.GifDecoder.GifImage;
 
 public class DynamicImage extends Image
     implements io.github.pulsebeat02.ezmediacore.image.GifImage {
@@ -57,7 +57,8 @@ public class DynamicImage extends Image
   }
 
   @Override
-  public void onStopDrawing() {}
+  public void onStopDrawing() {
+  }
 
   @Override
   public int getCurrentFrame() {
