@@ -33,7 +33,10 @@ public record DependencyLoader(MediaLibraryCore core) implements LibraryLoader {
 
   private void installFFmpeg() {
     try {
-      new FFmpegInstaller(this.core).start();
+      final FFmpegInstaller installer = new FFmpegInstaller(this.core);
+      installer.start();
+
+      this.core.setFFmpegPath(installer.getExecutable());
     } catch (final IOException e) {
       e.printStackTrace();
     }

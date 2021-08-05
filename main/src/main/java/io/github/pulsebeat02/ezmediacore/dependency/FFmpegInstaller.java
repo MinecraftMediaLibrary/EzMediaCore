@@ -30,7 +30,7 @@ public final class FFmpegInstaller {
     this.core = core;
     final Path path = core.getDependencyPath();
     this.folder = path.resolve("ffmpeg");
-    this.hashFile = path.resolve(".relocated-cache");
+    this.hashFile = this.folder.resolve(".ffmpeg-cache");
   }
 
   public void start() throws IOException {
@@ -42,7 +42,7 @@ public final class FFmpegInstaller {
 
   private void createFiles() throws IOException {
     Files.createDirectories(this.folder);
-    if (!FileUtils.createFileIfNotExists(this.hashFile)) {
+    if (!FileUtils.createIfNotExists(this.hashFile)) {
       this.hash = FileUtils.getFirstLine(this.hashFile);
     }
   }
@@ -65,7 +65,7 @@ public final class FFmpegInstaller {
     final OSType type = diagnostic.getSystem().getOSType();
     final String url = diagnostic.getFFmpegUrl();
     final Path download = this.folder.resolve(FilenameUtils.getName(new URL(url).getPath()));
-    FileUtils.createFileIfNotExists(download);
+    FileUtils.createIfNotExists(download);
 
     DependencyUtils.downloadFile(download, url);
     if (type == OSType.MAC || type == OSType.UNIX) {
@@ -77,8 +77,11 @@ public final class FFmpegInstaller {
   }
 
   private Optional<Path> detectExecutable(@NotNull final Path folder) throws IOException {
-    try (final Stream<Path> files = Files.walk(folder)) {
-      return files.filter(path -> HashingUtils.getHash(path).equals(this.hash)).findAny();
+    try (final Stream<Path> files = Files.walk(folder, 1)) {
+      return files
+          .filter(Files::isRegularFile)
+          .filter(path -> HashingUtils.getHash(path).equals(this.hash))
+          .findAny();
     }
   }
 

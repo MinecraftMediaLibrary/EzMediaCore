@@ -56,23 +56,27 @@ public final class EzMediaCore implements MediaLibraryCore {
       @Nullable final Path imagePath,
       @Nullable final Path audioPath,
       @Nullable final Path videoPath) {
+
     this.plugin = plugin;
     this.libraryPath =
-        libraryPath == null ? plugin.getDataFolder().toPath().resolve("emc") : libraryPath;
-    this.dependencyPath = dependencyPath == null ? libraryPath.resolve("libs") : dependencyPath;
-    this.httpServerPath = httpServerPath == null ? libraryPath.resolve("http") : httpServerPath;
-    this.vlcPath = vlcPath == null ? dependencyPath.resolve("vlc") : vlcPath;
-    this.imagePath = imagePath == null ? libraryPath.resolve("image") : imagePath;
-    this.audioPath = audioPath == null ? libraryPath.resolve("audio") : audioPath;
-    this.videoPath = videoPath == null ? libraryPath.resolve("video") : videoPath;
+        (libraryPath == null ? plugin.getDataFolder().toPath().resolve("emc") : libraryPath);
+    this.dependencyPath =
+        (dependencyPath == null ? this.libraryPath.resolve("libs") : dependencyPath);
+    this.httpServerPath =
+        (httpServerPath == null ? this.libraryPath.resolve("http") : httpServerPath);
+    this.vlcPath = (vlcPath == null ? this.dependencyPath.resolve("vlc") : vlcPath);
+    this.imagePath = (imagePath == null ? this.libraryPath.resolve("image") : imagePath);
+    this.audioPath = (audioPath == null ? this.libraryPath.resolve("audio") : audioPath);
+    this.videoPath = (videoPath == null ? this.libraryPath.resolve("video") : videoPath);
+
+    Logger.init(this);
+
     this.diagnostics = new SystemDiagnostics(this);
-    this.loader = loader == null ? new DependencyLoader(this) : loader;
+    this.loader = (loader == null ? new DependencyLoader(this) : loader);
   }
 
   @Override
   public void initialize() throws ExecutionException, InterruptedException {
-
-    Logger.init(this);
 
     Stream.of(
             this.libraryPath,

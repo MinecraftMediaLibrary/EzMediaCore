@@ -22,7 +22,7 @@ public class PersistentPictureManager {
   public PersistentPictureManager(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
     this.plugin = plugin;
     this.storage =
-        new PersistentImageStorage(plugin.getDataFolder().toPath().resolve("pictures.yml"));
+        new PersistentImageStorage(plugin.getDataFolder().toPath().resolve("pictures.json"));
     this.images = this.storage.deserialize();
   }
 

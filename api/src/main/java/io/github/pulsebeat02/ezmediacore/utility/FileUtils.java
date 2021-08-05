@@ -40,7 +40,7 @@ public final class FileUtils {
     }
   }
 
-  public static boolean createFileIfNotExists(@NotNull final Path file) throws IOException {
+  public static boolean createIfNotExists(@NotNull final Path file) throws IOException {
     if (Files.notExists(file)) {
       Files.createFile(file);
       return true;

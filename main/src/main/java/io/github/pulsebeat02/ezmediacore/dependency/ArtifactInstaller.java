@@ -21,7 +21,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -86,7 +85,7 @@ public final class ArtifactInstaller {
   public void createFiles() throws IOException {
     Files.createDirectories(this.dependencyFolder);
     Files.createDirectories(this.relocatedFolder);
-    if (!FileUtils.createFileIfNotExists(this.hashFile)) {
+    if (!FileUtils.createIfNotExists(this.hashFile)) {
       try (final Stream<String> stream = Files.lines(this.hashFile)) {
         stream.forEach(this.hashes::add);
       }
@@ -97,9 +96,7 @@ public final class ArtifactInstaller {
     EXECUTOR_SERVICE.invokeAll(
         Arrays.stream(DependencyInfo.values())
             .filter(this::requiresDownload)
-            .map(
-                path ->
-                    Executors.callable((PrivilegedAction<?>) () -> this.downloadDependency(path)))
+            .map(path -> Executors.callable(() -> this.downloadDependency(path), null))
             .collect(Collectors.toSet()));
   }
 
@@ -127,7 +124,7 @@ public final class ArtifactInstaller {
     Logger.info("Preparing to load %d dependencies (%s)".formatted(this.jars.size(), this.jars));
 
     final Set<Path> invalid =
-        Files.walk(this.relocatedFolder)
+        Files.walk(this.relocatedFolder, 1)
             .filter(Files::isRegularFile)
             .filter(path -> PathUtils.getName(path).endsWith(".jar"))
             .filter(path -> !this.hashes.contains(HashingUtils.getHash(path)))
@@ -141,7 +138,7 @@ public final class ArtifactInstaller {
     }
 
     new JarLoader(
-            Files.walk(this.relocatedFolder)
+            Files.walk(this.relocatedFolder, 1)
                 .filter(Files::isRegularFile)
                 .filter(path -> PathUtils.getName(path).endsWith(".jar"))
                 .collect(Collectors.toList()))
@@ -159,10 +156,10 @@ public final class ArtifactInstaller {
   }
 
   private boolean requiresDownload(@NotNull final DependencyInfo dependency) {
-    try (final Stream<Path> paths = Files.walk(this.relocatedFolder)) {
+    try (final Stream<Path> paths = Files.walk(this.relocatedFolder, 1)) {
       return paths
           .filter(Files::isRegularFile)
-          .anyMatch(
+          .noneMatch(
               path -> {
                 final String name = PathUtils.getName(path);
                 return name.contains(dependency.getArtifact())

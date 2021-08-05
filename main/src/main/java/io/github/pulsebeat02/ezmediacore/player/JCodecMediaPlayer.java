@@ -67,20 +67,23 @@ public class JCodecMediaPlayer extends MediaPlayer {
 
     this.playAudio();
 
-    Picture picture;
-    while (!this.paused) {
-      try {
-        if ((picture = this.grabber.getNativeFrame()) == null) {
-          break;
+    CompletableFuture.runAsync(() -> {
+      Picture picture;
+      while (!this.paused) {
+        try {
+          if ((picture = this.grabber.getNativeFrame()) == null) {
+            break;
+          }
+          this.getCallback()
+                  .process(
+                          VideoFrameUtils.toBufferedImage(picture)
+                                  .getRGB(0, 0, width, height, null, 0, width));
+        } catch (final IOException e) {
+          e.printStackTrace();
         }
-        this.getCallback()
-            .process(
-                VideoFrameUtils.toBufferedImage(picture)
-                    .getRGB(0, 0, width, height, null, 0, width));
-      } catch (final IOException e) {
-        e.printStackTrace();
       }
-    }
+    });
+
   }
 
   @Override

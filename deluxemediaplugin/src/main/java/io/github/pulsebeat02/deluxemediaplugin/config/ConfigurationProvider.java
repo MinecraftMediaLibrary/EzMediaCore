@@ -48,7 +48,7 @@ public abstract class ConfigurationProvider {
     this.plugin = plugin;
     this.name = name;
     this.config = Paths.get(plugin.getDataFolder().toString()).resolve(this.name);
-    FileUtils.createFileIfNotExists(this.config);
+    FileUtils.createIfNotExists(this.config);
   }
 
   public void reloadConfig() {

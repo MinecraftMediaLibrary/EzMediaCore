@@ -1,6 +1,5 @@
 package io.github.pulsebeat02.ezmediacore.http;
 
-import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipHeader;
@@ -10,9 +9,9 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 public class HttpServerDaemon implements HttpDaemon, ZipRequest {
@@ -73,11 +72,14 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   @Override
   public void start() {
     this.onServerStart();
-    Preconditions.checkState(!Bukkit.isPrimaryThread());
-    while (this.running) {
-      EXECUTOR_SERVICE.submit(
-          () -> new FileRequestHandler(this, this.socket, this.header).handleIncomingRequest());
-    }
+    CompletableFuture.runAsync(
+        () -> {
+          while (this.running) {
+            EXECUTOR_SERVICE.submit(
+                () ->
+                    new FileRequestHandler(this, this.socket, this.header).handleIncomingRequest());
+          }
+        });
   }
 
   @Override

@@ -24,16 +24,6 @@ public final class PluginUsageTips {
   }
 
   public static void sendWarningMessage() {
-    if (MAJOR_VERSION < 16) {
-      Logger.warn(
-              """
-                      EzMediaCore has made a full transition to Java 16! The library is incompatible
-                       with your current version. Consider upgrading your Java version or else the
-                       plugin using the library will be incompatible. For more information surrounding
-                       this, please visit https://papermc.io/forums/t/java-11-mc-1-17-and-paper/5615.
-                      """
-      );
-    }
   }
 
   public static void sendPacketCompressionTip() {

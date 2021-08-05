@@ -86,7 +86,8 @@ public final class YoutubeVideoFormat implements VideoFormat {
     return VIDEO_FORMATS.get(this.format.videoQuality());
   }
 
-  @NotNull com.github.kiulian.downloader.model.videos.formats.VideoFormat getFormat() {
+  @NotNull
+  com.github.kiulian.downloader.model.videos.formats.VideoFormat getFormat() {
     return this.format;
   }
 

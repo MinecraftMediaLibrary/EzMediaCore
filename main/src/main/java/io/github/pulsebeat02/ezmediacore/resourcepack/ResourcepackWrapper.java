@@ -94,7 +94,7 @@ public class ResourcepackWrapper implements PackWrapper {
     try (final ZipOutputStream out =
         new ZipOutputStream(new FileOutputStream(this.path.toFile()))) {
 
-      FileUtils.createFileIfNotExists(this.path);
+      FileUtils.createIfNotExists(this.path);
       this.addFile("pack.mcmeta", this.getPackMcmeta().getBytes());
 
       if (this.icon != null) {

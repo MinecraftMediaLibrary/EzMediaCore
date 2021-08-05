@@ -1,5 +1,6 @@
 package io.github.pulsebeat02.ezmediacore;
 
+import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -15,10 +16,8 @@ public final class Logger {
   public static void init(@NotNull final MediaLibraryCore core) {
     LOG_FILE = core.getLibraryPath().resolve("emc.log");
     try {
-      Files.createDirectories(LOG_FILE);
-      if (Files.notExists(LOG_FILE)) {
-        Files.createFile(LOG_FILE);
-      }
+      Files.createDirectories(LOG_FILE.getParent());
+      FileUtils.createIfNotExists(LOG_FILE);
       LOGGER = new PrintWriter(new FileWriter(LOG_FILE.toFile()), true);
     } catch (final IOException e) {
       e.printStackTrace();

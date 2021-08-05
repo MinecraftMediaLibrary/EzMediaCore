@@ -26,8 +26,8 @@ public final class SystemDiagnostics implements Diagnostic {
 
   public SystemDiagnostics(@NotNull final MediaLibraryCore core) {
     this.core = core;
-    this.cpu = this.getCpuArchitecture();
     this.system = this.getOperatingSystem();
+    this.cpu = this.getCpuArchitecture();
     this.sound = this.getMixers();
     this.initializeDownloadLinks();
     this.debugInformation();
