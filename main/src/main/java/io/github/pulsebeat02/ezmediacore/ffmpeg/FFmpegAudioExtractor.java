@@ -1,6 +1,5 @@
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
-import com.google.common.collect.ImmutableList;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import java.nio.file.Path;
@@ -31,19 +30,27 @@ public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements Audio
   private List<String> generateArguments(@NotNull final AudioConfiguration configuration) {
     final String in = this.input.toString();
     return new ArrayList<>(
-        ImmutableList.<String>builder()
-            .add(this.getCore().getFFmpegPath().toString())
-            .add("-f", FilenameUtils.getExtension(in))
-            .add("-i", in)
-            .add("-vn")
-            .add("-acodec", "libvorbis")
-            .add("-ab", String.valueOf(configuration.getBitrate()))
-            .add("-ac", String.valueOf(configuration.getChannels()))
-            .add("-ar", String.valueOf(configuration.getSamplingRate()))
-            .add("-vol", String.valueOf(configuration.getVolume()))
-            .add("-ss", String.valueOf(configuration.getStartTime()))
-            .add("-f", FilenameUtils.getExtension(this.output.toString()))
-            .build());
+        List.of(
+            this.getCore().getFFmpegPath().toString(),
+            "-f",
+            FilenameUtils.getExtension(in),
+            "-i",
+            in,
+            "-vn",
+            "-acodec",
+            "libvorbis",
+            "-ab",
+            String.valueOf(configuration.getBitrate()),
+            "-ac",
+            String.valueOf(configuration.getChannels()),
+            "-ar",
+            String.valueOf(configuration.getSamplingRate()),
+            "-vol",
+            String.valueOf(configuration.getVolume()),
+            "-ss",
+            String.valueOf(configuration.getStartTime()),
+            "-f",
+            FilenameUtils.getExtension(this.output.toString())));
   }
 
   @Override
@@ -64,10 +71,9 @@ public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements Audio
 
   @Override
   public boolean equals(final Object obj) {
-    if (!(obj instanceof FFmpegAudioExtractor)) {
+    if (!(obj instanceof final FFmpegAudioExtractor extraction)) {
       return false;
     }
-    final FFmpegAudioExtractor extraction = (FFmpegAudioExtractor) obj;
     return this.input.equals(extraction.getInput())
         && this.output.equals(extraction.getOutput())
         && super.equals(obj);

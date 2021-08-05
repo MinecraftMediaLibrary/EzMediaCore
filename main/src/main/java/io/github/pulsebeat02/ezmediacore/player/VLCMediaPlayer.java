@@ -5,7 +5,6 @@ import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
 import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
-import org.jcodec.codecs.mjpeg.tools.AssertionException;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
@@ -38,33 +37,29 @@ public class VLCMediaPlayer extends MediaPlayer {
   }
 
   private VideoSurfaceAdapter getAdapter() {
-    switch (this.getCore().getDiagnostics().getSystem().getOSType()) {
-      case MAC:
-        return new OsxVideoSurfaceAdapter();
-      case UNIX:
-        return new LinuxVideoSurfaceAdapter();
-      case WINDOWS:
-        return new WindowsVideoSurfaceAdapter();
-    }
-    throw new AssertionException("Invalid Operating System!");
+    return switch (this.getCore().getDiagnostics().getSystem().getOSType()) {
+      case MAC -> new OsxVideoSurfaceAdapter();
+      case UNIX -> new LinuxVideoSurfaceAdapter();
+      case WINDOWS -> new WindowsVideoSurfaceAdapter();
+    };
   }
 
   @Override
   public void setPlayerState(@NotNull final PlayerControls controls) {
     super.setPlayerState(controls);
     switch (controls) {
-      case START:
+      case START -> {
         if (this.player == null) {
           this.initializePlayer(0L);
         }
         this.player.media().play(this.getUrl());
         this.playAudio();
-        break;
-      case PAUSE:
+      }
+      case PAUSE -> {
         this.player.controls().stop();
         this.stopAudio();
-        break;
-      case RESUME:
+      }
+      case RESUME -> {
         if (this.player == null) {
           this.initializePlayer(0L);
           this.player.media().play(this.getUrl());
@@ -72,11 +67,11 @@ public class VLCMediaPlayer extends MediaPlayer {
           this.player.controls().play();
         }
         this.playAudio();
-        break;
-      case RELEASE:
+      }
+      case RELEASE -> {
         this.player.release();
         this.player = null;
-        break;
+      }
     }
   }
 
@@ -98,7 +93,7 @@ public class VLCMediaPlayer extends MediaPlayer {
   private EmbeddedMediaPlayer getEmbeddedMediaPlayer() {
     final int rate = this.getFrameRate();
     return new MediaPlayerFactory(
-            rate != 0 ? new String[] {String.format("--fps-fps=%d", rate)} : new String[] {})
+            rate != 0 ? new String[] {"--fps-fps=%d".formatted(rate)} : new String[] {})
         .mediaPlayers()
         .newEmbeddedMediaPlayer();
   }

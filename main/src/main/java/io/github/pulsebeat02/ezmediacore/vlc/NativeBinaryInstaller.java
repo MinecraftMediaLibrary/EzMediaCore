@@ -7,7 +7,6 @@ import io.github.pulsebeat02.ezmediacore.vlc.os.unix.SilentUnixInstallation;
 import io.github.pulsebeat02.ezmediacore.vlc.os.window.SilentWindowsInstallation;
 import java.io.IOException;
 import java.nio.file.Path;
-import org.jcodec.codecs.mjpeg.tools.AssertionException;
 import org.jetbrains.annotations.NotNull;
 
 public class NativeBinaryInstaller implements BinaryInstaller {
@@ -17,7 +16,7 @@ public class NativeBinaryInstaller implements BinaryInstaller {
 
   public NativeBinaryInstaller(@NotNull final MediaLibraryCore core) {
     this.core = core;
-    this.provider = getInstallation();
+    this.provider = this.getInstallation();
   }
 
   public NativeBinaryInstaller(
@@ -28,15 +27,11 @@ public class NativeBinaryInstaller implements BinaryInstaller {
 
   private SilentInstallationProvider getInstallation() {
     final Path path = this.core.getVlcPath();
-    switch (this.core.getDiagnostics().getSystem().getOSType()) {
-      case MAC:
-        return new SilentMacInstallation(this.core, path);
-      case UNIX:
-        return new SilentUnixInstallation(this.core, path);
-      case WINDOWS:
-        return new SilentWindowsInstallation(this.core, path);
-    }
-    throw new AssertionException("Invalid Operating System!");
+    return switch (this.core.getDiagnostics().getSystem().getOSType()) {
+      case MAC -> new SilentMacInstallation(this.core, path);
+      case UNIX -> new SilentUnixInstallation(this.core, path);
+      case WINDOWS -> new SilentWindowsInstallation(this.core, path);
+    };
   }
 
   @Override

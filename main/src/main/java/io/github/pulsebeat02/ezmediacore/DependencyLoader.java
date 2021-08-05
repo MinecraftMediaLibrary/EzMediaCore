@@ -10,26 +10,25 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.jetbrains.annotations.NotNull;
 
-public class DependencyLoader implements LibraryLoader {
-
-  private final MediaLibraryCore core;
+public record DependencyLoader(MediaLibraryCore core) implements LibraryLoader {
 
   public DependencyLoader(@NotNull final MediaLibraryCore core) {
     this.core = core;
   }
 
   @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public @NotNull
+  MediaLibraryCore getCore() {
     return this.core;
   }
 
   @Override
   public void start() throws ExecutionException, InterruptedException {
     CompletableFuture.allOf(
-            CompletableFuture.runAsync(this::installFFmpeg),
-            CompletableFuture.runAsync(this::installDependencies)
-                .thenRunAsync(() -> new VLCBinaryLocator(this.core, this.core.getVlcPath())))
-        .get();
+                    CompletableFuture.runAsync(this::installFFmpeg),
+                    CompletableFuture.runAsync(this::installDependencies)
+                            .thenRunAsync(() -> new VLCBinaryLocator(this.core, this.core.getVlcPath())))
+            .get();
   }
 
   private void installFFmpeg() {
@@ -44,9 +43,9 @@ public class DependencyLoader implements LibraryLoader {
     try {
       new ArtifactInstaller(this.core).start();
     } catch (final IOException
-        | ReflectiveOperationException
-        | URISyntaxException
-        | NoSuchAlgorithmException e) {
+            | ReflectiveOperationException
+            | URISyntaxException
+            | NoSuchAlgorithmException e) {
       e.printStackTrace();
     }
   }

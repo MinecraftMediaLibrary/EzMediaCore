@@ -18,9 +18,8 @@ public final class RequestUtils {
     final JsonObject obj =
         JsonParser.parseString(
                 getResult(
-                    String.format(
-                        "https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&order=relevance&q=%s&key=%s",
-                        keyword.replace(" ", "+"), apiKey)))
+                    "https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&order=relevance&q=%s&key=%s"
+                        .formatted(keyword.replace(" ", "+"), apiKey)))
             .getAsJsonObject()
             .getAsJsonArray("items")
             .get(0)

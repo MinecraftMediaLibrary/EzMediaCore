@@ -13,18 +13,15 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
-public final class ForcefulResourcepackListener implements Listener {
-
-  private final MediaLibraryCore core;
-  private final Set<UUID> uuids;
-  private final String url;
-  private final byte[] hash;
+public record ForcefulResourcepackListener(MediaLibraryCore core,
+                                           Set<UUID> uuids, String url,
+                                           byte[] hash) implements Listener {
 
   public ForcefulResourcepackListener(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Set<UUID> uuids,
-      @NotNull final String url,
-      final byte @NotNull [] hash) {
+          @NotNull final MediaLibraryCore core,
+          @NotNull final Set<UUID> uuids,
+          @NotNull final String url,
+          final byte @NotNull [] hash) {
     this.core = core;
     this.uuids = uuids;
     this.url = url;
@@ -40,7 +37,7 @@ public final class ForcefulResourcepackListener implements Listener {
       if (player != null) {
         player.setResourcePack(this.url, this.hash);
       } else {
-        Logger.info(String.format("Could not set the resourcepack for %s! (%s)", uuid, this.url));
+        Logger.info("Could not set the resourcepack for %s! (%s)".formatted(uuid, this.url));
       }
     }
   }
@@ -52,9 +49,8 @@ public final class ForcefulResourcepackListener implements Listener {
       public void run() {
         if (!ForcefulResourcepackListener.this.uuids.isEmpty()) {
           Logger.info(
-              String.format(
-                  "Could not force all players to load resourcepack! (%s)",
-                  ForcefulResourcepackListener.this.uuids));
+                  "Could not force all players to load resourcepack! (%s)".formatted(
+                          ForcefulResourcepackListener.this.uuids));
           PlayerResourcePackStatusEvent.getHandlerList().unregister(plugin);
         }
       }
@@ -69,17 +65,13 @@ public final class ForcefulResourcepackListener implements Listener {
       return;
     }
     switch (event.getStatus()) {
-      case FAILED_DOWNLOAD:
-        player.setResourcePack(this.url, this.hash);
-        break;
-      case DECLINED:
-      case SUCCESSFULLY_LOADED:
-      case ACCEPTED:
+      case FAILED_DOWNLOAD -> player.setResourcePack(this.url, this.hash);
+      case DECLINED, SUCCESSFULLY_LOADED, ACCEPTED -> {
         this.uuids.remove(uuid);
         if (this.uuids.isEmpty()) {
           PlayerResourcePackStatusEvent.getHandlerList().unregister(this);
         }
-        break;
+      }
     }
   }
 }

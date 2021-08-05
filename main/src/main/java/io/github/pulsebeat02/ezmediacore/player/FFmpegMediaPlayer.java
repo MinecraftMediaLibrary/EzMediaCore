@@ -37,32 +37,32 @@ public class FFmpegMediaPlayer extends MediaPlayer {
   public void setPlayerState(@NotNull final PlayerControls controls) {
     super.setPlayerState(controls);
     switch (controls) {
-      case START:
+      case START -> {
         if (this.ffmpeg == null) {
           this.initializePlayer(0L);
         }
         this.future = this.ffmpeg.executeAsync();
         this.playAudio();
         this.start = System.currentTimeMillis();
-        break;
-      case PAUSE:
+      }
+      case PAUSE -> {
         if (this.ffmpeg != null) {
           this.future.graceStop();
         }
         this.stopAudio();
         this.start = System.currentTimeMillis();
-        break;
-      case RESUME:
+      }
+      case RESUME -> {
         this.initializePlayer(System.currentTimeMillis() - this.start);
         this.future = this.ffmpeg.executeAsync();
         this.playAudio();
-        break;
-      case RELEASE:
+      }
+      case RELEASE -> {
         if (this.ffmpeg != null) {
           this.future.graceStop();
           this.future = null;
         }
-        break;
+      }
     }
   }
 

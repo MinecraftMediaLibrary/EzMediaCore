@@ -163,19 +163,19 @@ public final class ScreenBuilderGui {
 
     final GuiItem widthItem =
         ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
-            .name(text(String.format("Screen Width (%d Blocks)", this.width), GOLD))
+            .name(text("Screen Width (%d Blocks)".formatted(this.width), GOLD))
             .asGuiItem();
     this.gui.setItem(22, widthItem);
 
     final GuiItem heightItem =
         ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
-            .name(text(String.format("Screen Height (%d Blocks)", this.height), GOLD))
+            .name(text("Screen Height (%d Blocks)".formatted(this.height), GOLD))
             .asGuiItem();
     this.gui.setItem(24, heightItem);
 
     final GuiItem idItem =
         ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
-            .name(text(String.format("Starting Map ID (%d)", this.id), GOLD))
+            .name(text("Starting Map ID (%d)".formatted(this.id), GOLD))
             .asGuiItem();
     this.gui.setItem(26, idItem);
   }
@@ -184,7 +184,7 @@ public final class ScreenBuilderGui {
     return ItemBuilder.from(
             SkullCreator.itemFromBase64(
                 "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWNkYjhmNDM2NTZjMDZjNGU4NjgzZTJlNjM0MWI0NDc5ZjE1N2Y0ODA4MmZlYTRhZmYwOWIzN2NhM2M2OTk1YiJ9fX0="))
-        .name(text(String.format("Increase %s by One", data), GREEN))
+        .name(text("Increase %s by One".formatted(data), GREEN))
         .build();
   }
 
@@ -192,7 +192,7 @@ public final class ScreenBuilderGui {
     return ItemBuilder.from(
             SkullCreator.itemFromBase64(
                 "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjFlMWU3MzBjNzcyNzljOGUyZTE1ZDhiMjcxYTExN2U1ZTJjYTkzZDI1YzhiZTNhMDBjYzkyYTAwY2MwYmI4NSJ9fX0="))
-        .name(text(String.format("Decrease %s by One", data), RED))
+        .name(text("Decrease %s by One".formatted(data), RED))
         .build();
   }
 }

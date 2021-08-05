@@ -32,7 +32,7 @@ public class DynamicImage extends Image
   }
 
   @Override
-  public void draw(final boolean resize) throws IOException {
+  public void draw(final boolean resize) {
     this.onStartDrawImage();
     this.future =
         CompletableFuture.runAsync(

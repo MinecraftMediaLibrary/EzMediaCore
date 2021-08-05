@@ -58,9 +58,9 @@ public final class CommandHandler implements TabExecutor {
 
   public CommandHandler(@NotNull final DeluxeMediaPlugin plugin) {
     this.plugin = plugin;
-    dispatcher = new CommandDispatcher<>();
-    rootNode = dispatcher.getRoot();
-    commands =
+    this.dispatcher = new CommandDispatcher<>();
+    this.rootNode = this.dispatcher.getRoot();
+    this.commands =
         ImmutableSet.of(
             new ImageCommand(plugin, this),
             new DitherCommand(plugin, this),
@@ -72,14 +72,14 @@ public final class CommandHandler implements TabExecutor {
     final CommandMap commandMap = CommandMapHelper.getCommandMap();
     final Commodore commodore =
         CommodoreProvider.isSupported() ? CommodoreProvider.getCommodore(plugin) : null;
-    for (final BaseCommand command : commands) {
-      rootNode.addChild(command.node());
+    for (final BaseCommand command : this.commands) {
+      this.rootNode.addChild(command.node());
       commandMap.register(plugin.getName(), command);
       try {
         if (commodore != null) {
           commodore.register(
               CommodoreFileFormat.parse(
-                  plugin.getResource(String.format("commodore/%s.commodore", command.getName()))));
+                  plugin.getResource("commodore/%s.commodore".formatted(command.getName()))));
         }
       } catch (final IOException e) {
         e.printStackTrace();
@@ -102,11 +102,11 @@ public final class CommandHandler implements TabExecutor {
       @NotNull final Command command,
       @NotNull final String label,
       final String @NotNull [] args) {
-    final Audience audience = plugin.audience().sender(sender);
+    final Audience audience = this.plugin.audience().sender(sender);
     try {
-      dispatcher.execute(
-          dispatcher.parse(
-              String.format("%s %s", command.getName(), String.join(" ", args).trim()), sender));
+      this.dispatcher.execute(
+          this.dispatcher.parse(
+              "%s %s".formatted(command.getName(), String.join(" ", args).trim()), sender));
     } catch (final CommandSyntaxException exception) {
       audience.sendMessage(((BaseCommand) command).usage());
     }
@@ -128,10 +128,10 @@ public final class CommandHandler implements TabExecutor {
       @NotNull final Command command,
       @NotNull final String alias,
       final String @NotNull [] args) {
-    return dispatcher
+    return this.dispatcher
         .getCompletionSuggestions(
-            dispatcher.parse(
-                String.format("%s %s", command.getName(), String.join(" ", args)), sender))
+            this.dispatcher.parse(
+                "%s %s".formatted(command.getName(), String.join(" ", args)), sender))
         .join()
         .getList()
         .stream()
@@ -145,7 +145,7 @@ public final class CommandHandler implements TabExecutor {
    * @return dispatcher
    */
   public CommandDispatcher<CommandSender> getDispatcher() {
-    return dispatcher;
+    return this.dispatcher;
   }
 
   /**
@@ -154,7 +154,7 @@ public final class CommandHandler implements TabExecutor {
    * @return root node
    */
   public RootCommandNode<CommandSender> getRootNode() {
-    return rootNode;
+    return this.rootNode;
   }
 
   /**
@@ -163,6 +163,6 @@ public final class CommandHandler implements TabExecutor {
    * @return commands
    */
   public Set<BaseCommand> getCommands() {
-    return commands;
+    return this.commands;
   }
 }

@@ -33,27 +33,27 @@ public class JCodecMediaPlayer extends MediaPlayer {
   public void setPlayerState(@NotNull final PlayerControls controls) {
     super.setPlayerState(controls);
     switch (controls) {
-      case START:
+      case START -> {
         if (this.grabber == null) {
           this.initializePlayer(0L);
         }
         CompletableFuture.runAsync(this::runPlayer);
         this.start = System.currentTimeMillis();
-        break;
-      case PAUSE:
+      }
+      case PAUSE -> {
         this.stopAudio();
         this.paused = true;
         this.start = System.currentTimeMillis();
-        break;
-      case RESUME:
+      }
+      case RESUME -> {
         this.paused = false;
         this.initializePlayer(System.currentTimeMillis() - this.start);
         CompletableFuture.runAsync(this::runPlayer);
-        break;
-      case RELEASE:
+      }
+      case RELEASE -> {
         this.paused = false;
         this.grabber = null;
-        break;
+      }
     }
   }
 

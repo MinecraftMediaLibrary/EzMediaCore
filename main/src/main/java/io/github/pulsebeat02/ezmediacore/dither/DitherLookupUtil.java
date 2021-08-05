@@ -3,6 +3,7 @@ package io.github.pulsebeat02.ezmediacore.dither;
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.annotation.Author;
 import java.awt.Color;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RecursiveTask;
@@ -24,7 +25,7 @@ public class DitherLookupUtil {
         final Color color = MapPalette.getColor((byte) i);
         colors.add(color.getRGB());
       } catch (final IndexOutOfBoundsException e) {
-        Logger.info(String.format("Captured %d colors!", i - 1));
+        Logger.info("Captured %d colors!".formatted(i - 1));
         break;
       }
     }
@@ -53,9 +54,8 @@ public class DitherLookupUtil {
     }
 
     Logger.info(
-        String.format(
-            "Initial lookup table initialized in %s ms",
-            (System.nanoTime() - start) / 1_000_000.0));
+        "Initial lookup table initialized in %s ms"
+            .formatted((System.nanoTime() - start) / 1_000_000.0));
   }
 
   public static int[] getPALETTE() {
@@ -76,9 +76,9 @@ public class DitherLookupUtil {
 
 final class LoadRed extends RecursiveTask<byte[]> {
 
-  private static final long serialVersionUID = -6408377810782246185L;
-  protected final int r;
-  protected final int[] palette;
+  @Serial private static final long serialVersionUID = -6408377810782246185L;
+  private final int r;
+  private final int[] palette;
 
   LoadRed(final int[] palette, final int r) {
     this.r = r;
@@ -105,10 +105,10 @@ final class LoadRed extends RecursiveTask<byte[]> {
 
 final class LoadGreen extends RecursiveTask<byte[]> {
 
-  private static final long serialVersionUID = -1221290051151782146L;
-  protected final int r;
-  protected final int g;
-  protected final int[] palette;
+  @Serial private static final long serialVersionUID = -1221290051151782146L;
+  private final int r;
+  private final int g;
+  private final int[] palette;
 
   LoadGreen(final int[] palette, final int r, final int g) {
     this.r = r;
@@ -134,9 +134,9 @@ final class LoadGreen extends RecursiveTask<byte[]> {
 
 final class LoadBlue extends RecursiveTask<Byte> {
 
-  private static final long serialVersionUID = 5331764784578439634L;
-  protected final int r, g, b;
-  protected final int[] palette;
+  @Serial private static final long serialVersionUID = 5331764784578439634L;
+  private final int r, g, b;
+  private final int[] palette;
 
   LoadBlue(final int[] palette, final int r, final int g, final int b) {
     this.r = r;

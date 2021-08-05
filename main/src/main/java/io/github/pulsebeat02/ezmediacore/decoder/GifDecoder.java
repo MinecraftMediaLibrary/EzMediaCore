@@ -32,25 +32,22 @@ public final class GifDecoder {
             throw new IOException("Unexpected end of file.");
           }
           switch (in[pos + 1] & 0xFF) {
-            case 0xFE: // Comment extension
-              pos = readTextExtension(in, pos);
-              break;
-            case 0xFF: // Application extension
-              pos = readAppExt(img, in, pos);
-              break;
-            case 0x01: // Plain text extension
+            case 0xFE -> // Comment extension
+                    pos = readTextExtension(in, pos);
+            case 0xFF -> // Application extension
+                    pos = readAppExt(img, in, pos);
+            case 0x01 -> { // Plain text extension
               frame = null; // End of current frame
               pos = readTextExtension(in, pos);
-              break;
-            case 0xF9: // Graphic control extension
+            }
+            case 0xF9 -> { // Graphic control extension
               if (frame == null) {
                 frame = new GifFrame();
                 img.frames.add(frame);
               }
               pos = readGraphicControlExt(frame, in, pos);
-              break;
-            default:
-              throw new IOException("Unknown extension at " + pos);
+            }
+            default -> throw new IOException("Unknown extension at " + pos);
           }
           break;
         case 0x2C: // Image descriptor
@@ -444,9 +441,9 @@ public final class GifDecoder {
       // Determine the color table that will be active for this frame
       final int[] activeColTbl = fr.hasLocColTbl ? fr.localColTbl : this.globalColTbl;
       // Get pixels from data stream
-      int[] pixels = decode(fr, activeColTbl);
+      int[] pixels = this.decode(fr, activeColTbl);
       if (fr.interlaceFlag) {
-        pixels = deinterlace(pixels, fr); // Rearrange pixel lines
+        pixels = this.deinterlace(pixels, fr); // Rearrange pixel lines
       }
       // Create image of type 2=ARGB for frame area
       final BufferedImage frame = new BufferedImage(fr.w, fr.h, 2);
@@ -516,7 +513,7 @@ public final class GifDecoder {
         for (int i = 0; i <= index; i++) {
           fr = this.frames.get(i);
           if (fr.img == null) {
-            drawFrame(fr);
+            this.drawFrame(fr);
           }
         }
       }

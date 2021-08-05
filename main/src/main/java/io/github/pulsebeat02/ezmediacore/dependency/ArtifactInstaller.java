@@ -10,11 +10,14 @@ import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import io.github.slimjar.relocation.RelocationRule;
 import io.github.slimjar.relocation.facade.JarRelocatorFacadeFactory;
 import io.github.slimjar.relocation.facade.ReflectiveJarRelocatorFacadeFactory;
+import io.github.slimjar.resolver.data.Repository;
+import io.github.slimjar.resolver.mirrors.SimpleMirrorSelector;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
@@ -59,7 +62,10 @@ public final class ArtifactInstaller {
     this.dependencyFolder = core.getDependencyPath();
     this.relocatedFolder = this.dependencyFolder.resolve("relocated");
     this.factory =
-        ReflectiveJarRelocatorFacadeFactory.create(this.relocatedFolder, Collections.emptyList());
+        ReflectiveJarRelocatorFacadeFactory.create(
+            this.relocatedFolder,
+            Collections.singleton(
+                new Repository(new URL(SimpleMirrorSelector.DEFAULT_CENTRAL_MIRROR_URL))));
     this.hashFile = this.dependencyFolder.resolve(".relocated-cache");
   }
 
@@ -99,8 +105,7 @@ public final class ArtifactInstaller {
 
   public void relocate() throws InterruptedException {
 
-    Logger.info(
-        String.format("Preparing to relocate %d dependencies (%s)", this.jars.size(), this.jars));
+    Logger.info("Preparing to relocate %d dependencies (%s)".formatted( this.jars.size(), this.jars));
 
     EXECUTOR_SERVICE.invokeAll(
         this.jars.stream()
@@ -119,8 +124,7 @@ public final class ArtifactInstaller {
 
   public void load() throws IOException {
 
-    Logger.info(
-        String.format("Preparing to load %d dependencies (%s)", this.jars.size(), this.jars));
+    Logger.info("Preparing to load %d dependencies (%s)".formatted(this.jars.size(), this.jars));
 
     final Set<Path> invalid =
         Files.walk(this.relocatedFolder)
@@ -131,8 +135,7 @@ public final class ArtifactInstaller {
 
     if (!invalid.isEmpty()) {
       for (final Path p : invalid) {
-        Logger.warn(
-            String.format("Dependency %s has an invalid hash! Downloading dependency again...", p));
+        Logger.warn("Dependency %s has an invalid hash! Downloading dependency again...".formatted(p));
         this.redownload(p, this.getDependency(p).orElseThrow(AssertionError::new));
       }
     }
@@ -148,8 +151,7 @@ public final class ArtifactInstaller {
   public void delete() {
 
     Logger.info(
-        String.format(
-            "Preparing to delete %d stale dependencies (%s)", this.jars.size(), this.jars));
+        "Preparing to delete %d stale dependencies (%s)".formatted(this.jars.size(), this.jars));
 
     this.jars.forEach(ThrowingConsumer.unchecked(Files::delete, "Could not delete dependency!"));
 
@@ -182,37 +184,33 @@ public final class ArtifactInstaller {
     Optional<Path> file;
     try {
       switch (resolution) {
-        case MAVEN:
-          Logger.info(String.format("Checking Maven Central Repository for %s", artifact));
+        case MAVEN -> {
+          Logger.info("Checking Maven Central Repository for %s".formatted(artifact));
           file = Optional.of(DependencyUtils.downloadMavenDependency(dependency, path));
-          break;
-        case JITPACK:
-          Logger.info(String.format("Checking Jitpack Central Repository for %s", artifact));
+        }
+        case JITPACK -> {
+          Logger.info("Checking Jitpack Central Repository for %s".formatted(artifact));
           file = Optional.of(DependencyUtils.downloadJitpackDependency(dependency, path));
-          break;
-        default:
-          throw new IllegalStateException(
-              "Specified Repository URL Doesn't Exist! (Not Maven/Jitpack)");
+        }
+        default -> throw new IllegalStateException(
+                "Specified Repository URL Doesn't Exist! (Not Maven/Jitpack)");
       }
     } catch (final IOException e) {
       file = Optional.empty();
       Logger.info(
-          String.format(
-              "Cannot Resolve Dependency! (Artifact: %s | Repository URL: %s)",
-              artifact, resolution.getUrl()));
+              "Cannot Resolve Dependency! (Artifact: %s | Repository URL: %s)".formatted(artifact, resolution.getUrl()));
       e.printStackTrace();
     }
 
     if (file.isPresent()) {
       final Path p = file.get();
       if (DependencyUtils.validateDependency(p, dependency)) {
-        Logger.info(String.format("SHA1 Hash for File %s Succeeded!", file));
+        Logger.info("SHA1 Hash for File %s Succeeded!".formatted(file));
         this.jars.add(p);
       } else {
         try {
           Logger.info(
-              String.format(
-                  "SHA1 Hash for File %s Failed! Downloading the Dependency Again...", file));
+                  "SHA1 Hash for File %s Failed! Downloading the Dependency Again...".formatted(file));
           Files.delete(p);
           return this.downloadDependency(dependency);
         } catch (final IOException e) {

@@ -1,6 +1,5 @@
 package io.github.pulsebeat02.ezmediacore.vlc.os.window;
 
-import com.google.common.collect.ImmutableList;
 import io.github.pulsebeat02.ezmediacore.analysis.OSType;
 import io.github.pulsebeat02.ezmediacore.vlc.os.NativeDiscoveryAlgorithm;
 import java.nio.file.Path;
@@ -20,9 +19,9 @@ public class WindowsNativeDiscovery implements NativeDiscoveryAlgorithm {
 
   @Override
   public @NotNull List<String> getSearchPatterns() {
-    return ImmutableList.of("");
+    return List.of("");
   }
 
   @Override
-  public @NotNull void onLibVlcFound(@NotNull final Path discoveredPath) {}
+  public void onLibVlcFound(@NotNull final Path discoveredPath) {}
 }

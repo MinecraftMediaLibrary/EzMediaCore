@@ -11,7 +11,7 @@ public final class SpotifyProvider {
     SPOTIFY_API = new SpotifyApi.Builder().setAccessToken(accessToken).build();
   }
 
-  protected static SpotifyApi getSpotifyApi() {
+  static SpotifyApi getSpotifyApi() {
     return SPOTIFY_API;
   }
 }

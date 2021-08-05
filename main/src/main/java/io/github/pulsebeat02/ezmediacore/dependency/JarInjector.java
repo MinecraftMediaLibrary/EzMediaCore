@@ -10,26 +10,20 @@ import java.net.URL;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-public final class JarInjector implements DependencyInjector {
+public record JarInjector(Collection<URL> dependencies) implements DependencyInjector {
 
-  private final Collection<URL> dependencies;
-
-  JarInjector(final Collection<URL> dependencies) {
-    this.dependencies = dependencies;
-  }
-
-  @Override
-  public void inject(@NotNull final Injectable injectable, @NotNull final DependencyData data) {
-    this.dependencies.forEach(
-        x -> {
-          try {
-            injectable.inject(x);
-          } catch (final InvocationTargetException
-              | IllegalAccessException
-              | IOException
-              | URISyntaxException e) {
-            e.printStackTrace();
-          }
-        });
-  }
+    @Override
+    public void inject(@NotNull final Injectable injectable, @NotNull final DependencyData data) {
+        this.dependencies.forEach(
+                x -> {
+                    try {
+                        injectable.inject(x);
+                    } catch (final InvocationTargetException
+                            | IllegalAccessException
+                            | IOException
+                            | URISyntaxException e) {
+                        e.printStackTrace();
+                    }
+                });
+    }
 }

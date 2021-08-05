@@ -75,7 +75,7 @@ public abstract class ConfigurationProvider {
       } catch (final IOException e) {
         this.plugin
             .getLogger()
-            .log(Level.SEVERE, String.format("Could not save config to %s", this.config), e);
+            .log(Level.SEVERE, "Could not save config to %s".formatted(this.config), e);
       }
     }
   }

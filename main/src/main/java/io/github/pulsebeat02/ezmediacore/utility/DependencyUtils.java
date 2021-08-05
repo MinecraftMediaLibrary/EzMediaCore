@@ -104,12 +104,12 @@ public final class DependencyUtils {
    */
   @NotNull
   public static String getDependencyUrl(@NotNull final DependencyInfo dependency) {
-    return String.format(
-        "%s/%s/%s/%s/",
-        dependency.getResolution().getUrl(),
-        dependency.getGroup().replaceAll("\\.", "/"),
-        dependency.getArtifact(),
-        dependency.getVersion());
+    return "%s/%s/%s/%s/"
+        .formatted(
+            dependency.getResolution().getUrl(),
+            dependency.getGroup().replaceAll("\\.", "/"),
+            dependency.getArtifact(),
+            dependency.getVersion());
   }
 
   /**
@@ -132,7 +132,7 @@ public final class DependencyUtils {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(artifactId), "Artifact ID cannot be empty!");
     Preconditions.checkArgument(!Strings.isNullOrEmpty(version), "Version cannot be empty!");
     Preconditions.checkArgument(!Strings.isNullOrEmpty(base), "Base URL cannot be empty or null!");
-    return String.format("%s/%s/%s/%s/", base, groupId.replaceAll("\\.", "/"), artifactId, version);
+    return "%s/%s/%s/%s/".formatted(base, groupId.replaceAll("\\.", "/"), artifactId, version);
   }
 
   /**
@@ -150,10 +150,9 @@ public final class DependencyUtils {
       @NotNull final String link,
       @NotNull final String parent)
       throws IOException {
-    final String file =
-        String.format("%s-%s.jar", dependency.getArtifact(), dependency.getVersion());
+    final String file = "%s-%s.jar".formatted(dependency.getArtifact(), dependency.getVersion());
     final String url = link + file;
-    return downloadFile(Paths.get(String.format("%s/%s", parent, file)), url);
+    return downloadFile(Paths.get("%s/%s".formatted(parent, file)), url);
   }
 
   /**
@@ -173,10 +172,9 @@ public final class DependencyUtils {
       @NotNull final String parent,
       @NotNull final LongConsumer consumer)
       throws IOException {
-    final String file =
-        String.format("%s-%s.jar", dependency.getArtifact(), dependency.getVersion());
+    final String file = "%s-%s.jar".formatted(dependency.getArtifact(), dependency.getVersion());
     final String url = link + file;
-    return downloadFile(Paths.get(String.format("%s/%s", parent, file)), url, consumer);
+    return downloadFile(Paths.get("%s/%s".formatted(parent, file)), url, consumer);
   }
 
   /**
@@ -198,7 +196,7 @@ public final class DependencyUtils {
       @NotNull final String parent,
       @NotNull final Repositories resolution)
       throws IOException {
-    final String file = String.format("%s-%s.jar", artifactId, version);
+    final String file = "%s-%s.jar".formatted(artifactId, version);
     final String url = getDependencyUrl(groupId, artifactId, version, resolution.getUrl()) + file;
     return downloadFile(Paths.get(parent, file), url);
   }
@@ -224,9 +222,9 @@ public final class DependencyUtils {
       @NotNull final Repositories resolution,
       @NotNull final LongConsumer consumer)
       throws IOException {
-    final String file = String.format("%s-%s.jar", artifactId, version);
+    final String file = "%s-%s.jar".formatted(artifactId, version);
     final String url = getDependencyUrl(groupId, artifactId, version, resolution.getUrl()) + file;
-    return downloadFile(Paths.get(String.format("%s/%s", parent, file)), url, consumer);
+    return downloadFile(Paths.get("%s/%s".formatted(parent, file)), url, consumer);
   }
 
   @NotNull
@@ -336,9 +334,11 @@ public final class DependencyUtils {
       @NotNull final String artifactId,
       @NotNull final String version,
       @NotNull final String base) {
-    return String.format(
-        "%s%s-%s.jar.sha1",
-        DependencyUtils.getDependencyUrl(groupId, artifactId, version, base), artifactId, version);
+    return "%s%s-%s.jar.sha1"
+        .formatted(
+            DependencyUtils.getDependencyUrl(groupId, artifactId, version, base),
+            artifactId,
+            version);
   }
 
   /**
@@ -349,11 +349,11 @@ public final class DependencyUtils {
    */
   @NotNull
   public static String getDependencyHashUrl(@NotNull final DependencyInfo dependency) {
-    return String.format(
-        "%s%s-%s.jar.sha1",
-        DependencyUtils.getDependencyUrl(dependency),
-        dependency.getArtifact(),
-        dependency.getVersion());
+    return "%s%s-%s.jar.sha1"
+        .formatted(
+            DependencyUtils.getDependencyUrl(dependency),
+            dependency.getArtifact(),
+            dependency.getVersion());
   }
 
   public static long getFileSize(@NotNull final String url) throws IOException {

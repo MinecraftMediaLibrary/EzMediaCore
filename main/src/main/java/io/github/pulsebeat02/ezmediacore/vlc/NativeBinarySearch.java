@@ -18,7 +18,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.jcodec.codecs.mjpeg.tools.AssertionException;
 import org.jetbrains.annotations.NotNull;
 
 public class NativeBinarySearch implements BinarySearcher {
@@ -35,8 +34,8 @@ public class NativeBinarySearch implements BinarySearcher {
     this.core = core;
     this.type = core.getDiagnostics().getSystem().getOSType();
     this.search = search;
-    this.provider = getDiscovery();
-    this.directories = getDirectories();
+    this.provider = this.getDiscovery();
+    this.directories = this.getDirectories();
   }
 
   public NativeBinarySearch(
@@ -47,33 +46,25 @@ public class NativeBinarySearch implements BinarySearcher {
     this.type = core.getDiagnostics().getSystem().getOSType();
     this.search = search;
     this.provider = custom;
-    this.directories = getDirectories();
+    this.directories = this.getDirectories();
   }
 
   @NotNull
   private Collection<WellKnownDirectoryProvider> getDirectories() {
-    switch (this.type) {
-      case MAC:
-        return new ArrayList<>(Collections.singleton(new MacKnownDirectories()));
-      case UNIX:
-        return new ArrayList<>(Collections.singleton(new UnixKnownDirectories()));
-      case WINDOWS:
-        return new ArrayList<>(Collections.singleton(new WindowsKnownDirectories()));
-    }
-    throw new AssertionException("Invalid Operating System!");
+    return new ArrayList<>(Collections.singleton(switch (this.type) {
+      case MAC -> new MacKnownDirectories();
+      case UNIX -> new UnixKnownDirectories();
+      case WINDOWS -> new WindowsKnownDirectories();
+    }));
   }
 
   @NotNull
   private EMCNativeDiscovery getDiscovery() {
-    switch (this.type) {
-      case MAC:
-        return new EMCNativeDiscovery(this.core, new MacNativeDiscovery(), true);
-      case UNIX:
-        return new EMCNativeDiscovery(this.core, new UnixNativeDiscovery(), true);
-      case WINDOWS:
-        return new EMCNativeDiscovery(this.core, new WindowsNativeDiscovery(), false);
-    }
-    throw new AssertionException("Invalid Operating System!");
+    return switch (this.type) {
+      case MAC -> new EMCNativeDiscovery(this.core, new MacNativeDiscovery(), true);
+      case UNIX -> new EMCNativeDiscovery(this.core, new UnixNativeDiscovery(), true);
+      case WINDOWS -> new EMCNativeDiscovery(this.core, new WindowsNativeDiscovery(), false);
+    };
   }
 
   @Override
@@ -103,7 +94,7 @@ public class NativeBinarySearch implements BinarySearcher {
       return Optional.of(this.path);
     }
 
-    final List<String> paths = getSearchDirectories();
+    final List<String> paths = this.getSearchDirectories();
     paths.add(this.search.toString());
 
     for (final String path : paths) {

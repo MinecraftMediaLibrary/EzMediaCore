@@ -55,9 +55,9 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
     Logger.info("========================================");
     Logger.info("           Started HTTP Server:         ");
     Logger.info("========================================");
-    Logger.info(String.format("IP Address: %s", ip));
-    Logger.info(String.format("Port: %d", port));
-    Logger.info(String.format("Directory: %s", path));
+    Logger.info("IP Address: %s".formatted(ip));
+    Logger.info("Port: %d".formatted(port));
+    Logger.info("Directory: %s".formatted(path));
     Logger.info("========================================");
   }
 

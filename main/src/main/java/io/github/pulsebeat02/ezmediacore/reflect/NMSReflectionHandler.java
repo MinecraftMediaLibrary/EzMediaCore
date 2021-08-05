@@ -18,12 +18,11 @@ public final class NMSReflectionHandler {
   @NotNull
   public static Optional<PacketHandler> getNewPacketHandlerInstance() {
     try {
-      Logger.info(String.format("Loading NMS Class for Version %s", VERSION));
+      Logger.info("Loading NMS Class for Version %s".formatted(VERSION));
       final Class<?> clazz =
           Class.forName(
-              String.format(
-                  "io.github.pulsebeat02.ezmediacore.nms.impl.%s.NMSMapPacketIntercepter",
-                  VERSION));
+              "io.github.pulsebeat02.ezmediacore.nms.impl.%s.NMSMapPacketIntercepter"
+                  .formatted(VERSION));
       return Optional.of((PacketHandler) clazz.getDeclaredConstructor().newInstance());
     } catch (final ClassNotFoundException
         | InstantiationException
@@ -31,9 +30,8 @@ public final class NMSReflectionHandler {
         | NoSuchMethodException
         | InvocationTargetException e) {
       Logger.error(
-          String.format(
-              "The Server Version you are using (%s) is not yet supported by EzMediaCore! Shutting down due to the Fatal Error",
-              VERSION));
+          "The Server Version you are using (%s) is not yet supported by EzMediaCore! Shutting down due to the Fatal Error"
+              .formatted(VERSION));
       return Optional.empty();
     }
   }

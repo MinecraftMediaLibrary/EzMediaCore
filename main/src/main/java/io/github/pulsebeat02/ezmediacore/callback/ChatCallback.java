@@ -46,7 +46,7 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
         for (int x = 0; x < width; ++x) {
           final int rgb = data[width * y + x];
           if (before != rgb) {
-            msg.append(ChatColor.of("#" + String.format("%08x", rgb).substring(2)));
+            msg.append(ChatColor.of("#" + "%08x".formatted(rgb).substring(2)));
           }
           msg.append(this.character);
           before = rgb;

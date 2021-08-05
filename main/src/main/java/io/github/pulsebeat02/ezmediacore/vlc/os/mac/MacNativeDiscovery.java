@@ -1,6 +1,5 @@
 package io.github.pulsebeat02.ezmediacore.vlc.os.mac;
 
-import com.google.common.collect.ImmutableList;
 import com.sun.jna.NativeLibrary;
 import io.github.pulsebeat02.ezmediacore.analysis.OSType;
 import io.github.pulsebeat02.ezmediacore.vlc.os.NativeDiscoveryAlgorithm;
@@ -22,11 +21,11 @@ public class MacNativeDiscovery implements NativeDiscoveryAlgorithm {
 
   @Override
   public @NotNull List<String> getSearchPatterns() {
-    return ImmutableList.of("/lib/../plugins");
+    return List.of("/lib/../plugins");
   }
 
   @Override
-  public @NotNull void onLibVlcFound(@NotNull final Path discoveredPath) {
+  public void onLibVlcFound(@NotNull final Path discoveredPath) {
     NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcCoreLibraryName(), discoveredPath.toString());
     NativeLibrary.getInstance(RuntimeUtil.getLibVlcCoreLibraryName());
   }

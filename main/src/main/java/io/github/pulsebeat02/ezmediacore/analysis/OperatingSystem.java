@@ -18,7 +18,7 @@ public final class OperatingSystem implements OperatingSystemInfo {
     this.osName = osName;
     this.type = type;
     this.version = version;
-    this.linuxDistro = type == OSType.UNIX ? retrieveLinuxDistribution() : "";
+    this.linuxDistro = type == OSType.UNIX ? this.retrieveLinuxDistribution() : "";
   }
 
   private String retrieveLinuxDistribution() {
@@ -60,8 +60,7 @@ public final class OperatingSystem implements OperatingSystemInfo {
 
   @Override
   public String toString() {
-    return String.format(
-        "{os=%s,type=%s,linux-distro=%s}",
-        this.osName, this.type.name().toLowerCase(Locale.ROOT), this.linuxDistro);
+    return "{os=%s,type=%s,linux-distro=%s}"
+        .formatted(this.osName, this.type.name().toLowerCase(Locale.ROOT), this.linuxDistro);
   }
 }

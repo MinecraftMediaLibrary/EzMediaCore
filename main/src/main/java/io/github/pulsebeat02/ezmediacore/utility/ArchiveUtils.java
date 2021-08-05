@@ -22,7 +22,6 @@
 
 package io.github.pulsebeat02.ezmediacore.utility;
 
-import com.google.common.collect.ImmutableSet;
 import io.github.pulsebeat02.ezmediacore.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -43,8 +42,7 @@ public final class ArchiveUtils {
   private static final Set<String> ARCHIVE_EXTENSIONS;
 
   static {
-    ARCHIVE_EXTENSIONS =
-        ImmutableSet.of("zip", "deb", "rpm", "txz", "xz", "tgz", "gz", "ar", "cpio");
+    ARCHIVE_EXTENSIONS = Set.of("zip", "deb", "rpm", "txz", "xz", "tgz", "gz", "ar", "cpio");
   }
 
   private ArchiveUtils() {}
@@ -97,21 +95,20 @@ public final class ArchiveUtils {
       final Path current = queue.remove();
       currentFolder =
           Paths.get(
-              String.format(
-                  "%s/%s",
+                  "%s/%s".formatted(
                   currentFolder.toAbsolutePath(), getFileName(PathUtils.getName(current))));
       decompressArchive(current, currentFolder);
       if (!current.toAbsolutePath().toString().equals(file.toAbsolutePath().toString())) {
         try {
           Files.delete(current);
-          Logger.info(String.format("Deleted Zip: %s successfully", current.getFileName()));
+          Logger.info("Deleted Zip: %s successfully".formatted(current.getFileName()));
         } catch (final IOException e) {
           Logger.info(
-              String.format("Failed to Deleted Zip: %s successfully", current.getFileName()));
+              "Failed to Deleted Zip: %s successfully".formatted(current.getFileName()));
           e.printStackTrace();
         }
       } else {
-        Logger.error(String.format("Could not delete Zip: %s!", current.getFileName()));
+        Logger.error("Could not delete Zip: %s!".formatted(current.getFileName()));
       }
       final int before = queue.size();
       queue.addAll(containsArchiveExtension(currentFolder));
@@ -152,15 +149,16 @@ public final class ArchiveUtils {
     } else if (name.endsWith("tgz") || name.endsWith(".tar.gz")) {
       return "tar gz";
     } else if (name.endsWith(".tar.zst") || name.endsWith("eopkg")) {
-      Logger.warn(
-          "Hello user, please read this error carefully: Your computer seems to be using "
-              + "KAOS Linux or Solus Linux. The extract for these Linuxes is either a .tar.zst file or an "
-              + ".eopkg file, which is yet not supported by the plugin yet. The archive has been downloaded "
-              + "in the /vlc folder, and it is required by you to extract the file in order to get the VLC "
-              + "libraries. This is a required step, and VLCJ will not run if you do not perform this step.");
+      Logger.warn("""
+              Hello user, please read this error carefully: Your computer seems to be using
+               KAOS Linux or Solus Linux. The extract for these Linuxes is either a .tar.zst file or an
+               .eopkg file, which is yet not supported by the plugin yet. The archive has been downloaded
+               in the /vlc folder, and it is required by you to extract the file in order to get the VLC
+               libraries. This is a required step, and VLCJ will not run if you do not perform this step.
+              """);
     }
     throw new UnsupportedOperationException(
-        String.format("Cannot find Archive Extension for File! (%s)", name));
+        "Cannot find Archive Extension for File! (%s)".formatted(name));
   }
 
   @NotNull

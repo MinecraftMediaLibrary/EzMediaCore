@@ -115,10 +115,9 @@ public final class Reflection {
         field.setAccessible(true);
 
         // A function for retrieving a specific field value
-        return new FieldAccessor<T>() {
+        return new FieldAccessor<>() {
 
           @Override
-          @SuppressWarnings("unchecked")
           public T get(final Object target) {
             try {
               return (T) field.get(target);
@@ -150,7 +149,7 @@ public final class Reflection {
       return getField(target.getSuperclass(), name, fieldType, index);
     }
 
-    throw new IllegalArgumentException(String.format("Cannot find field with type %s", fieldType));
+    throw new IllegalArgumentException("Cannot find field with type %s".formatted(fieldType));
   }
 
   /**
@@ -208,7 +207,7 @@ public final class Reflection {
           try {
             return method.invoke(target, arguments);
           } catch (final Exception e) {
-            throw new RuntimeException(String.format("Cannot invoke method %s", method), e);
+            throw new RuntimeException("Cannot invoke method %s".formatted(method), e);
           }
         };
       }
@@ -220,7 +219,7 @@ public final class Reflection {
     }
 
     throw new IllegalStateException(
-        String.format("Unable to find method %s (%s).", methodName, Arrays.asList(params)));
+        "Unable to find method %s (%s).".formatted(methodName, Arrays.asList(params)));
   }
 
   /**
@@ -255,15 +254,14 @@ public final class Reflection {
           try {
             return constructor.newInstance(arguments);
           } catch (final Exception e) {
-            throw new RuntimeException(
-                String.format("Cannot invoke constructor %s", constructor), e);
+            throw new RuntimeException("Cannot invoke constructor %s".formatted(constructor), e);
           }
         };
       }
     }
 
     throw new IllegalStateException(
-        String.format("Unable to find constructor for %s (%s).", clazz, Arrays.asList(params)));
+        "Unable to find constructor for %s (%s).".formatted(clazz, Arrays.asList(params)));
   }
 
   /**
@@ -278,9 +276,7 @@ public final class Reflection {
    * @return The class.
    */
   public static Class<Object> getUntypedClass(final String lookupName) {
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    final Class<Object> clazz = (Class) getClass(lookupName);
-    return clazz;
+    return (Class<Object>) getClass(lookupName);
   }
 
   /**
@@ -324,7 +320,7 @@ public final class Reflection {
    * @return the Minecraft class.
    */
   public static Class<?> getMinecraftClass(final String name) {
-    return getCanonicalClass(String.format("%s.%s", NMS_PREFIX, name));
+    return getCanonicalClass("%s.%s".formatted(NMS_PREFIX, name));
   }
 
   /**
@@ -335,7 +331,7 @@ public final class Reflection {
    * @return the CraftBukkit class.
    */
   public static Class<?> getCraftBukkitClass(final String name) {
-    return getCanonicalClass(String.format("%s.%s", OBC_PREFIX, name));
+    return getCanonicalClass("%s.%s".formatted(OBC_PREFIX, name));
   }
 
   /**
@@ -348,7 +344,7 @@ public final class Reflection {
     try {
       return Class.forName(canonicalName);
     } catch (final ClassNotFoundException e) {
-      throw new IllegalArgumentException(String.format("Cannot find %s", canonicalName), e);
+      throw new IllegalArgumentException("Cannot find %s".formatted(canonicalName), e);
     }
   }
 
@@ -359,7 +355,7 @@ public final class Reflection {
    * @return The expanded string.
    */
   private static String expandVariables(final String name) {
-    final StringBuffer output = new StringBuffer();
+    final StringBuilder output = new StringBuilder();
     final Matcher matcher = MATCH_VARIABLE.matcher(name);
 
     while (matcher.find()) {
@@ -374,7 +370,7 @@ public final class Reflection {
       } else if ("version".equalsIgnoreCase(variable)) {
         replacement = VERSION;
       } else {
-        throw new IllegalArgumentException(String.format("Unknown variable: %s", variable));
+        throw new IllegalArgumentException("Unknown variable: %s".formatted(variable));
       }
 
       // Assume the expanded variables are all packages, and append a dot

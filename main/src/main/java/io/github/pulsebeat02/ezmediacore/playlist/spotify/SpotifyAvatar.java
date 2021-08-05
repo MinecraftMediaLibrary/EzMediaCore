@@ -18,7 +18,7 @@ public final class SpotifyAvatar implements Avatar {
     return this.image.getUrl();
   }
 
-  protected @NotNull com.wrapper.spotify.model_objects.specification.Image getImage() {
+  @NotNull com.wrapper.spotify.model_objects.specification.Image getImage() {
     return this.image;
   }
 

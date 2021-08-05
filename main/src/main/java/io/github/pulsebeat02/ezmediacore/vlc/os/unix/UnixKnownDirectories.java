@@ -1,6 +1,5 @@
 package io.github.pulsebeat02.ezmediacore.vlc.os.unix;
 
-import com.google.common.collect.ImmutableList;
 import io.github.pulsebeat02.ezmediacore.analysis.OSType;
 import io.github.pulsebeat02.ezmediacore.vlc.os.WellKnownDirectoryProvider;
 import java.util.List;
@@ -14,7 +13,7 @@ public class UnixKnownDirectories implements WellKnownDirectoryProvider {
 
   @Override
   public @NotNull List<String> getSearchDirectories() {
-    return ImmutableList.of(
+    return List.of(
         "/usr/lib/x86_64-linux-gnu",
         "/usr/lib64",
         "/usr/local/lib64",

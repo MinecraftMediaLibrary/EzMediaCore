@@ -12,9 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
 import org.jetbrains.annotations.NotNull;
 
-public final class MapInteractionListener implements Listener {
-
-  private final MediaLibraryCore core;
+public record MapInteractionListener(MediaLibraryCore core) implements Listener {
 
   public MapInteractionListener(@NotNull final MediaLibraryCore core) {
     this.core = core;
@@ -30,8 +28,8 @@ public final class MapInteractionListener implements Listener {
     if (stack.getType() != Material.FILLED_MAP) {
       return;
     }
-    if (core.getHandler()
-        .isMapRegistered(((MapMeta) Objects.requireNonNull(stack.getItemMeta())).getMapId())) {
+    if (this.core.getHandler()
+            .isMapRegistered(((MapMeta) Objects.requireNonNull(stack.getItemMeta())).getMapId())) {
       event.setCancelled(true);
     }
   }

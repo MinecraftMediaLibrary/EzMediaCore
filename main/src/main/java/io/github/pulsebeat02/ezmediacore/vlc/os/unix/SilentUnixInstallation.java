@@ -20,7 +20,7 @@ public class SilentUnixInstallation extends SilentInstallation {
   }
 
   @Override
-  public void downloadBinaries() throws IOException, InterruptedException {}
+  public void downloadBinaries() {}
 
   @Override
   public void loadNativeBinaries() throws IOException {

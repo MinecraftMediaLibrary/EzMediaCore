@@ -111,7 +111,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
         ChatUtils.checkDimensionBoundaries(
             audience, context.getArgument("screen-dimensions", String.class));
 
-    if (!optional.isPresent()) {
+    if (optional.isEmpty()) {
       return SINGLE_SUCCESS;
     }
     final int[] dimensions = optional.get();
@@ -123,9 +123,9 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
             ofChildren(
                 text("Set screen dimensions to ", GOLD),
                 text(
-                    String.format(
-                        "%d:%d ",
-                        this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+                    "%d:%d "
+                        .formatted(
+                            this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
                     AQUA),
                 text("(width:height)", GOLD))));
 
@@ -139,7 +139,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
         ChatUtils.checkDimensionBoundaries(
             audience, context.getArgument("itemframe-dimensions", String.class));
 
-    if (!optional.isPresent()) {
+    if (optional.isEmpty()) {
       return SINGLE_SUCCESS;
     }
 
@@ -152,9 +152,9 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
             ofChildren(
                 text("Set itemframe map dimensions to ", GOLD),
                 text(
-                    String.format(
-                        "%s:%s ",
-                        this.attributes.getFrameHeight(), this.attributes.getFrameWidth()),
+                    "%s:%s "
+                        .formatted(
+                            this.attributes.getFrameHeight(), this.attributes.getFrameWidth()),
                     AQUA),
                 text("(width:height)", GOLD))));
 
@@ -183,7 +183,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
     final DitherSetting setting = DitherSetting.fromString(algorithm);
 
     if (setting == null) {
-      red(audience, String.format("Could not find dither type %s", algorithm));
+      red(audience, "Could not find dither type %s".formatted(algorithm));
     } else {
       audience.sendMessage(
           format(ofChildren(text("Set dither type to ", GOLD), text(algorithm, AQUA))));
@@ -200,7 +200,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
     final VideoType type = VideoType.ofKey(mode);
 
     if (type == null) {
-      red(audience, String.format("Could not find video mode %s", mode));
+      red(audience, "Could not find video mode %s".formatted(mode));
     } else {
       this.attributes.setVideoType(type);
       audience.sendMessage(format(ofChildren(text("Set video mode to ", GOLD), text(mode, AQUA))));

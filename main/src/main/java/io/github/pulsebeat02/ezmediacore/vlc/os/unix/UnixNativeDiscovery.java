@@ -1,6 +1,5 @@
 package io.github.pulsebeat02.ezmediacore.vlc.os.unix;
 
-import com.google.common.collect.ImmutableList;
 import io.github.pulsebeat02.ezmediacore.analysis.OSType;
 import io.github.pulsebeat02.ezmediacore.vlc.os.NativeDiscoveryAlgorithm;
 import java.nio.file.Path;
@@ -21,9 +20,9 @@ public class UnixNativeDiscovery implements NativeDiscoveryAlgorithm {
 
   @Override
   public @NotNull List<String> getSearchPatterns() {
-    return ImmutableList.of("/vlc/plugins", "/plugins");
+    return List.of("/vlc/plugins", "/plugins");
   }
 
   @Override
-  public @NotNull void onLibVlcFound(@NotNull final Path discoveredPath) {}
+  public void onLibVlcFound(@NotNull final Path discoveredPath) {}
 }

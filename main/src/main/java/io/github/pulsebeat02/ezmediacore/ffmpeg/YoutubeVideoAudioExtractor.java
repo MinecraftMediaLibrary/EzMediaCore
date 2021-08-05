@@ -23,7 +23,7 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
       @NotNull final Path output) {
-    this.tempVideoPath = core.getVideoPath().resolve(String.format("%s.mp4", UUID.randomUUID()));
+    this.tempVideoPath = core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID()));
     this.downloader = new YoutubeVideoDownloader(url, this.tempVideoPath);
     this.extractor = new FFmpegAudioExtractor(core, configuration, this.tempVideoPath, output);
   }
@@ -33,7 +33,7 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
       @NotNull final String fileName) {
-    this.tempVideoPath = core.getVideoPath().resolve(String.format("%s.mp4", UUID.randomUUID()));
+    this.tempVideoPath = core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID()));
     this.downloader = new YoutubeVideoDownloader(url, this.tempVideoPath);
     this.extractor =
         new FFmpegAudioExtractor(

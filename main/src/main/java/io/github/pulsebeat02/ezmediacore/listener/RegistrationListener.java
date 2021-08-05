@@ -10,9 +10,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-public final class RegistrationListener implements Listener {
-
-  private final MediaLibraryCore core;
+public record RegistrationListener(MediaLibraryCore core) implements Listener {
 
   public RegistrationListener(@NotNull final MediaLibraryCore core) {
     this.core = core;
@@ -24,7 +22,7 @@ public final class RegistrationListener implements Listener {
   public void onPlayerJoin(final PlayerJoinEvent event) {
     final Player p = event.getPlayer();
     this.core.getHandler().registerPlayer(p);
-    Logger.info(String.format("Registered Player %s", p.getUniqueId()));
+    Logger.info("Registered Player %s".formatted(p.getUniqueId()));
   }
 
   /**
@@ -36,6 +34,6 @@ public final class RegistrationListener implements Listener {
   public void onPlayerLeave(final PlayerQuitEvent event) {
     final Player p = event.getPlayer();
     this.core.getHandler().unregisterPlayer(p);
-    Logger.info(String.format("Unregistered Player %s", p.getUniqueId()));
+    Logger.info("Unregistered Player %s".formatted(p.getUniqueId()));
   }
 }

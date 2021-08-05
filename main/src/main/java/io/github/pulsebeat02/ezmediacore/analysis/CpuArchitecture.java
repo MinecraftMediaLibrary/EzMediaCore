@@ -2,10 +2,7 @@ package io.github.pulsebeat02.ezmediacore.analysis;
 
 import org.jetbrains.annotations.NotNull;
 
-public final class CpuArchitecture implements CpuInfo {
-
-  private final String architecture;
-  private final boolean bits64;
+public record CpuArchitecture(String architecture, boolean bits64) implements CpuInfo {
 
   public CpuArchitecture(@NotNull final String architecture, final boolean bits64) {
     this.architecture = architecture;
@@ -13,7 +10,8 @@ public final class CpuArchitecture implements CpuInfo {
   }
 
   @Override
-  public @NotNull String getArchitecture() {
+  public @NotNull
+  String getArchitecture() {
     return this.architecture;
   }
 
@@ -24,6 +22,6 @@ public final class CpuArchitecture implements CpuInfo {
 
   @Override
   public String toString() {
-    return String.format("{arch=%s,64bits=%s}", this.architecture, this.bits64);
+    return "{arch=%s,64bits=%s}".formatted(this.architecture, this.bits64);
   }
 }

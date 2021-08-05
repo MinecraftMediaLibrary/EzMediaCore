@@ -215,10 +215,9 @@ public final class VideoCommand extends BaseCommand {
   private void sendPlayInformation(@NotNull final Audience audience) {
     final String mrl = this.attributes.getMrl();
     if (this.attributes.isYoutube()) {
-      gold(audience, String.format("Starting Video on URL: %s", mrl));
+      gold(audience, "Starting Video on URL: %s".formatted(mrl));
     } else {
-      gold(
-          audience, String.format("Starting Video on File: %s", PathUtils.getName(Paths.get(mrl))));
+      gold(audience, "Starting Video on File: %s".formatted(PathUtils.getName(Paths.get(mrl))));
     }
   }
 

@@ -47,14 +47,14 @@ public class ResourcepackWrapper implements PackWrapper {
     }
     if (icon != null && !ResourcepackUtils.validateResourcepackIcon(icon)) {
       throw new InvalidPackResourceException(
-          String.format("Invalid Pack Icon! Must be PNG (%s)", PathUtils.getName(icon)));
+          "Invalid Pack Icon! Must be PNG (%s)".formatted(PathUtils.getName(icon)));
     }
   }
 
   @Override
   public void wrap() throws IOException {
-    onPackStartWrap();
-    internalWrap();
+    this.onPackStartWrap();
+    this.internalWrap();
 
     //    try (final ZipOutputStream out =
     //        new ZipOutputStream(new FileOutputStream(this.path.toFile()))) {
@@ -84,7 +84,7 @@ public class ResourcepackWrapper implements PackWrapper {
     //      }
     //    }
 
-    onPackFinishWrap();
+    this.onPackFinishWrap();
   }
 
   @Override
@@ -95,7 +95,7 @@ public class ResourcepackWrapper implements PackWrapper {
         new ZipOutputStream(new FileOutputStream(this.path.toFile()))) {
 
       FileUtils.createFileIfNotExists(this.path);
-      this.addFile("pack.mcmeta", getPackMcmeta().getBytes());
+      this.addFile("pack.mcmeta", this.getPackMcmeta().getBytes());
 
       if (this.icon != null) {
         this.addFile("pack.png", this.icon);

@@ -141,9 +141,8 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
             () ->
                 gold(
                     audience,
-                    String.format(
-                        "Loaded Resourcepack Successfully! (URL: %s, Hash: %s)",
-                        url, new String(hash))));
+                    "Loaded Resourcepack Successfully! (URL: %s, Hash: %s)"
+                        .formatted(url, new String(hash))));
 
     return SINGLE_SUCCESS;
   }
@@ -162,7 +161,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
 
     ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), url, hash);
 
-    gold(audience, String.format("Sent Resourcepack! (URL: %s, Hash: %s)", url, new String(hash)));
+    gold(audience, "Sent Resourcepack! (URL: %s, Hash: %s)".formatted(url, new String(hash)));
 
     return SINGLE_SUCCESS;
   }

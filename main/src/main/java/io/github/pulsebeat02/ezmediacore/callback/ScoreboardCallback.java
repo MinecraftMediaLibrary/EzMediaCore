@@ -44,7 +44,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
       final int delay) {
     super(core, dimension, viewers, blockWidth, delay);
     this.viewers = viewers;
-    this.name = String.format("%s Video Player (%s)", core.getPlugin().getName(), id);
+    this.name = "%s Video Player (%s)".formatted(core.getPlugin().getName(), id);
   }
 
   @Override
@@ -76,7 +76,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
         for (int x = 0; x < width; ++x) {
           final int rgb = data[width * y + x];
           if (before != rgb) {
-            msg.append(ChatColor.of("#" + String.format("%08x", rgb).substring(2)));
+            msg.append(ChatColor.of("#" + "%08x".formatted(rgb).substring(2)));
           }
           msg.append("\u2588");
           before = rgb;

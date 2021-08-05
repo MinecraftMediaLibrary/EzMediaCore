@@ -2,7 +2,7 @@ package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 import static com.github.kiulian.downloader.model.videos.quality.AudioQuality.high;
@@ -16,33 +16,33 @@ import static io.github.pulsebeat02.ezmediacore.playlist.youtube.AudioQuality.ME
 import static io.github.pulsebeat02.ezmediacore.playlist.youtube.AudioQuality.NOAUDIO;
 import static io.github.pulsebeat02.ezmediacore.playlist.youtube.AudioQuality.UNKNOWN;
 
-public final class YoutubeAudioFormat implements AudioFormat {
+public record YoutubeAudioFormat(
+        com.github.kiulian.downloader.model.videos.formats.AudioFormat format) implements AudioFormat {
 
   private static final BiMap<
           com.github.kiulian.downloader.model.videos.quality.AudioQuality, AudioQuality>
-      AUDIO_FORMATS;
+          AUDIO_FORMATS;
 
   static {
     AUDIO_FORMATS =
-        HashBiMap.create(
-            ImmutableMap.of(
-                unknown, UNKNOWN,
-                noAudio, NOAUDIO,
-                low, LOW,
-                medium, MEDIUM,
-                high, HIGH));
+            HashBiMap.create(
+                    Map.of(
+                            unknown, UNKNOWN,
+                            noAudio, NOAUDIO,
+                            low, LOW,
+                            medium, MEDIUM,
+                            high, HIGH));
   }
 
-  private final com.github.kiulian.downloader.model.videos.formats.AudioFormat format;
-
-  YoutubeAudioFormat(
-      @NotNull final com.github.kiulian.downloader.model.videos.formats.AudioFormat format) {
+  public YoutubeAudioFormat(
+          @NotNull final com.github.kiulian.downloader.model.videos.formats.AudioFormat format) {
     this.format = format;
   }
 
-  protected static @NotNull BiMap<
+  static @NotNull
+  BiMap<
           com.github.kiulian.downloader.model.videos.quality.AudioQuality, AudioQuality>
-      getAudioMappings() {
+  getAudioMappings() {
     return AUDIO_FORMATS;
   }
 
@@ -57,7 +57,8 @@ public final class YoutubeAudioFormat implements AudioFormat {
   }
 
   @Override
-  public @NotNull AudioQuality getAudioQuality() {
+  public @NotNull
+  AudioQuality getAudioQuality() {
     return AUDIO_FORMATS.get(this.format.audioQuality());
   }
 }

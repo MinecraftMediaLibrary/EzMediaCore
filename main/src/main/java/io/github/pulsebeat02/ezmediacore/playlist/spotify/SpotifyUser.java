@@ -2,7 +2,6 @@ package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.google.common.collect.ImmutableMap;
 import com.wrapper.spotify.enums.ProductType;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import io.github.pulsebeat02.ezmediacore.throwable.UnknownPlaylistException;
@@ -20,7 +19,7 @@ public class SpotifyUser implements User {
   static {
     SUBSCRIPTIONS =
         HashBiMap.create(
-            ImmutableMap.of(
+            Map.of(
                 ProductType.BASIC_DESKTOP, Subscription.BASIC_DESKTOP,
                 ProductType.DAYPASS, Subscription.DAYPASS,
                 ProductType.FREE, Subscription.FREE,

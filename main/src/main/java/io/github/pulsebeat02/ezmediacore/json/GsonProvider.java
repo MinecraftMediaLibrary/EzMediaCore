@@ -1,6 +1,5 @@
 package io.github.pulsebeat02.ezmediacore.json;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
@@ -17,7 +16,7 @@ public final class GsonProvider {
 
   static {
     final Map<Class<?>, TypeAdapter<?>> adapters =
-        ImmutableMap.of(
+        Map.of(
             Path.class, new PathAdapter(),
             UUID.class, new UUIDAdapter());
 

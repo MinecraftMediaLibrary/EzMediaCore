@@ -24,22 +24,27 @@ public final class PluginUsageTips {
   }
 
   public static void sendWarningMessage() {
-    if (MAJOR_VERSION < 11) {
+    if (MAJOR_VERSION < 16) {
       Logger.warn(
-          "EzMediaCore is moving towards a newer Java Version (Java 11) \n"
-              + "Please switch as soon as possible before the library will be incompatible \n"
-              + "with your server. If you want to read more information surrounding this, \n"
-              + "you may want to take a look here at "
-              + "https://papermc.io/forums/t/java-11-mc-1-17-and-paper/5615");
+              """
+                      EzMediaCore has made a full transition to Java 16! The library is incompatible
+                       with your current version. Consider upgrading your Java version or else the
+                       plugin using the library will be incompatible. For more information surrounding
+                       this, please visit https://papermc.io/forums/t/java-11-mc-1-17-and-paper/5615.
+                      """
+      );
     }
   }
 
   public static void sendPacketCompressionTip() {
     if (Bukkit.getOnlineMode()) {
-      Logger.info(
-          "Setting the property network-compression-threshold in server.properties to -1 could "
-              + "lead to a significant improvement of performance for servers that aren't proxy"
-              + " servers.");
+      Logger.warn(
+              """
+                      Setting the value "network-compression-threshold", to -1 in the server.properties
+                       file may lead to improved performance of video players for servers that aren't proxy
+                       servers.
+                      """
+      );
     }
   }
 }

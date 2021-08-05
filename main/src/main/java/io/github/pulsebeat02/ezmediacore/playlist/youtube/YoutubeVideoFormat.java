@@ -2,8 +2,8 @@ package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.google.common.collect.ImmutableMap;
 import io.github.pulsebeat02.ezmediacore.utility.ImmutableDimension;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 import static com.github.kiulian.downloader.model.videos.quality.VideoQuality.hd1080;
@@ -30,6 +30,7 @@ import static io.github.pulsebeat02.ezmediacore.playlist.youtube.VideoQuality.NO
 import static io.github.pulsebeat02.ezmediacore.playlist.youtube.VideoQuality.SMALL;
 import static io.github.pulsebeat02.ezmediacore.playlist.youtube.VideoQuality.TINY;
 import static io.github.pulsebeat02.ezmediacore.playlist.youtube.VideoQuality.UNKNOWN;
+import static java.util.Map.entry;
 
 public final class YoutubeVideoFormat implements VideoFormat {
 
@@ -40,22 +41,19 @@ public final class YoutubeVideoFormat implements VideoFormat {
   static {
     VIDEO_FORMATS =
         HashBiMap.create(
-            ImmutableMap
-                .<com.github.kiulian.downloader.model.videos.quality.VideoQuality, VideoQuality>
-                    builder()
-                .put(unknown, UNKNOWN)
-                .put(noVideo, NO_VIDEO)
-                .put(tiny, TINY)
-                .put(small, SMALL)
-                .put(medium, MEDIUM)
-                .put(large, LARGE)
-                .put(hd720, HD720)
-                .put(hd1080, HD1080)
-                .put(hd1440, HD1440)
-                .put(hd2160, HD2160)
-                .put(hd2880p, HD2880P)
-                .put(highres, HIGH_RES)
-                .build());
+            Map.ofEntries(
+                entry(unknown, UNKNOWN),
+                entry(noVideo, NO_VIDEO),
+                entry(tiny, TINY),
+                entry(small, SMALL),
+                entry(medium, MEDIUM),
+                entry(large, LARGE),
+                entry(hd720, HD720),
+                entry(hd1080, HD1080),
+                entry(hd1440, HD1440),
+                entry(hd2160, HD2160),
+                entry(hd2880p, HD2880P),
+                entry(highres, HIGH_RES)));
   }
 
   private final com.github.kiulian.downloader.model.videos.formats.VideoFormat format;
@@ -64,10 +62,10 @@ public final class YoutubeVideoFormat implements VideoFormat {
   YoutubeVideoFormat(
       @NotNull final com.github.kiulian.downloader.model.videos.formats.VideoFormat format) {
     this.format = format;
-    this.dimension = new ImmutableDimension(format.width(), format.height());
+    this.dimension = ImmutableDimension.of(format.width(), format.height());
   }
 
-  protected static @NotNull BiMap<
+  static @NotNull BiMap<
           com.github.kiulian.downloader.model.videos.quality.VideoQuality, VideoQuality>
       getVideoFormatMappings() {
     return VIDEO_FORMATS;
@@ -88,7 +86,7 @@ public final class YoutubeVideoFormat implements VideoFormat {
     return VIDEO_FORMATS.get(this.format.videoQuality());
   }
 
-  protected @NotNull com.github.kiulian.downloader.model.videos.formats.VideoFormat getFormat() {
+  @NotNull com.github.kiulian.downloader.model.videos.formats.VideoFormat getFormat() {
     return this.format;
   }
 

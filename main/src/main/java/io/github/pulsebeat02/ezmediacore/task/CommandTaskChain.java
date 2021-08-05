@@ -76,8 +76,7 @@ public class CommandTaskChain {
    * @throws IOException if an error occurred while receiving output
    */
   public void run() throws IOException, InterruptedException {
-    Logger.info(
-        String.format("Command Chain Information (Thread: %d)", Thread.currentThread().getId()));
+    Logger.info("Command Chain Information (Thread: %d)".formatted(Thread.currentThread().getId()));
     for (final Map.Entry<CommandTask, Boolean> entry : this.chain.entrySet()) {
       Logger.info(String.join(" ", entry.getKey().getCommand()));
     }
@@ -90,9 +89,8 @@ public class CommandTaskChain {
               try {
                 task.run();
                 Logger.info(
-                    String.format(
-                        "Task Command: %s Result: %s",
-                        String.join(" ", task.getCommand()), task.getResult()));
+                    "Task Command: %s Result: %s"
+                        .formatted(String.join(" ", task.getCommand()), task.getResult()));
               } catch (final IOException e) {
                 e.printStackTrace();
               }
@@ -101,9 +99,8 @@ public class CommandTaskChain {
         task.run();
         if (task.getProcess().waitFor() == 0) {
           Logger.info(
-              String.format(
-                  "Task Command: %s Result: %s",
-                  String.join(" ", task.getCommand()), task.getResult()));
+              "Task Command: %s Result: %s"
+                  .formatted(String.join(" ", task.getCommand()), task.getResult()));
         } else {
           Logger.info("An exception has occurred!");
         }

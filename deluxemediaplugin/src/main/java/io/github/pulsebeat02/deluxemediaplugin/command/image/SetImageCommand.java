@@ -97,7 +97,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
       e.printStackTrace();
     }
 
-    gold(audience, String.format("Successfully drew image with mrl %s", mrl));
+    gold(audience, "Successfully drew image with mrl %s".formatted(mrl));
 
     return SINGLE_SUCCESS;
   }
@@ -118,9 +118,9 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
       final Image image;
 
       if (name.endsWith(".gif")) {
-        image = new StaticImage(core, img, maps, new ImmutableDimension(width, height));
+        image = new StaticImage(core, img, maps, ImmutableDimension.of(width, height));
       } else if (this.attributes.getExtensions().stream().anyMatch(name::endsWith)) {
-        image = new DynamicImage(core, img, maps, new ImmutableDimension(width, height));
+        image = new DynamicImage(core, img, maps, ImmutableDimension.of(width, height));
       } else {
         red(audience, "The image extension you provided is not supported!");
         return true;
@@ -130,7 +130,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
       this.plugin.getPictureManager().getImages().add(image);
 
     } else {
-      red(audience, String.format("File %s cannot be found!", PathUtils.getName(img)));
+      red(audience, "File %s cannot be found!".formatted(PathUtils.getName(img)));
     }
 
     return false;
@@ -142,7 +142,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
     final Optional<int[]> optional =
         ChatUtils.checkDimensionBoundaries(audience, context.getArgument("dims", String.class));
 
-    if (!optional.isPresent()) {
+    if (optional.isEmpty()) {
       return SINGLE_SUCCESS;
     }
 
@@ -152,9 +152,8 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
 
     gold(
         audience,
-        String.format(
-            "Changed itemframe dimensions to %d:%d (width:height)",
-            this.attributes.getWidth(), this.attributes.getHeight()));
+        "Changed itemframe dimensions to %d:%d (width:height)"
+            .formatted(this.attributes.getWidth(), this.attributes.getHeight()));
 
     return SINGLE_SUCCESS;
   }

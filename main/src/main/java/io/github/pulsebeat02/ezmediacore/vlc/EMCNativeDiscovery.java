@@ -31,7 +31,6 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
   private final NativeDiscoveryAlgorithm algorithm;
   private final OSType type;
   private final String keyword;
-  private final String extension;
   private final boolean heuristics;
 
   private Path path;
@@ -43,8 +42,8 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
     this.core = core;
     this.algorithm = algorithm;
     this.type = core.getDiagnostics().getSystem().getOSType();
-    this.extension = algorithm.getFileExtension();
-    this.keyword = String.format("libvlc.%s", this.extension);
+    final String extension = algorithm.getFileExtension();
+    this.keyword = "libvlc.%s".formatted(extension);
     this.heuristics = heuristics;
   }
 
@@ -69,7 +68,7 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
       throw new IOException("Folder doesn't exist!");
     }
 
-    final Queue<Path> files = getPriorityQueue();
+    final Queue<Path> files = this.getPriorityQueue();
     files.add(directory);
 
     boolean plugins = false;
@@ -89,8 +88,8 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
           for (final String pattern : this.algorithm.getSearchPatterns()) {
             final Path extended = seek.resolve(pattern);
             if (Files.exists(extended)) {
-              Logger.info(String.format("Found VLC plugins path: %s", extended));
-              setVLCPluginPath(extended);
+              Logger.info("Found VLC plugins path: %s".formatted(extended));
+              this.setVLCPluginPath(extended);
               plugins = true;
             }
           }
@@ -108,12 +107,12 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
         if (!libvlc && name.equals(this.keyword)) {
 
           this.path = seek.getParent();
-          Logger.info(String.format("Found VLC libvlc folder path: %s", this.path));
+          Logger.info("Found VLC LibVLC folder path: %s".formatted(this.path));
 
           NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), this.path.toString());
           this.algorithm.onLibVlcFound(this.path);
 
-          if (loadLibVLCLibrary()) {
+          if (this.loadLibVLCLibrary()) {
             Logger.info("Successfully loaded LibVLC library binary!");
           } else {
             throw new AssertionError(
@@ -151,7 +150,7 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
     final String pluginPath = "VLC_PLUGIN_PATH";
     if (env == null || env.length() == 0) {
       if (this.type == OSType.WINDOWS) {
-        LibC.INSTANCE._putenv(String.format("%s=%s", pluginPath, path));
+        LibC.INSTANCE._putenv("%s=%s".formatted(pluginPath, path));
       } else {
         LibC.INSTANCE.setenv(pluginPath, path.toString(), 1);
       }

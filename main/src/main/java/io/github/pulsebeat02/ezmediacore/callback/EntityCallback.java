@@ -108,10 +108,7 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
   public void preparePlayerStateChange(@NotNull final PlayerControls status) {
     super.preparePlayerStateChange(status);
     switch (status) {
-      case START:
-      case RELEASE:
-        this.removeEntities();
-        break;
+      case START, RELEASE -> this.removeEntities();
     }
   }
 

@@ -77,14 +77,14 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
-    final String folder = String.format("%s/emc/", this.plugin.getDataFolder().getAbsolutePath());
+    final String folder = "%s/emc/".formatted(this.plugin.getDataFolder().getAbsolutePath());
     final AtomicBoolean completion = this.attributes.getCompletion();
 
     gold(
         audience,
         "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.");
 
-    if (!MediaExtractionUtils.getYoutubeID(mrl).isPresent()) {
+    if (MediaExtractionUtils.getYoutubeID(mrl).isEmpty()) {
       final Path file = Paths.get(mrl);
       if (Files.exists(file)) {
         CompletableFuture.runAsync(() -> completion.set(false))
@@ -93,9 +93,9 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
             .thenRun(this::useFirstLoad)
             .thenRun(() -> completion.set(true));
       } else if (mrl.startsWith("http")) {
-        red(audience, String.format("Link %s is not a valid Youtube video link!", mrl));
+        red(audience, "Link %s is not a valid Youtube video link!".formatted(mrl));
       } else {
-        red(audience, String.format("File %s cannot be found!", PathUtils.getName(file)));
+        red(audience, "File %s cannot be found!".formatted(PathUtils.getName(file)));
       }
     } else {
       CompletableFuture.runAsync(() -> completion.set(false))
@@ -111,7 +111,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
     this.attributes.setMrl(mrl);
 
-    gold(audience, String.format("Successfully loaded video %s", mrl));
+    gold(audience, "Successfully loaded video %s".formatted(mrl));
 
     return SINGLE_SUCCESS;
   }
@@ -194,7 +194,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
     ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), url, hash);
 
-    gold(audience, String.format("Sent Resourcepack! (URL: %s, Hash: %s)", url, new String(hash)));
+    gold(audience, "Sent Resourcepack! (URL: %s, Hash: %s)".formatted(url, new String(hash)));
 
     return SINGLE_SUCCESS;
   }

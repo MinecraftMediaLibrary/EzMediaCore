@@ -64,11 +64,12 @@ public class FileRequestHandler implements FileRequest {
   @Override
   public @NotNull String createHeader(@NotNull final Path file) {
     try {
-      return String.format(
-          "HTTP/1.0 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nDate: %s GMT\r\nServer: HttpDaemon\r\nUser-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n",
-          this.header.getHeader(),
-          Files.size(file),
-          new SimpleDateFormat("dd MMM yyyy HH:mm:ss").format(Calendar.getInstance().getTime()));
+      return "HTTP/1.0 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nDate: %s GMT\r\nServer: HttpDaemon\r\nUser-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n"
+          .formatted(
+              this.header.getHeader(),
+              Files.size(file),
+              new SimpleDateFormat("dd MMM yyyy HH:mm:ss")
+                  .format(Calendar.getInstance().getTime()));
     } catch (final IOException e) {
       this.daemon.onRequestFailure(this.client);
       Logger.info(e.getMessage());
@@ -91,18 +92,18 @@ public class FileRequestHandler implements FileRequest {
         final PrintWriter pout = new PrintWriter(new OutputStreamWriter(out, "8859_1"), true)) {
       final InetAddress address = this.client.getInetAddress();
       String request = in.readLine();
-      verbose(String.format("Received request '%s' from %s", request, address.toString()));
+      this.verbose("Received request '%s' from %s".formatted(request, address.toString()));
       final Matcher get = MATCHER.matcher(request);
       if (get.matches()) {
         request = get.group(1);
-        final Path result = requestFileCallback(request);
-        verbose(String.format("Request '%s' is being served to %s", request, address));
+        final Path result = this.requestFileCallback(request);
+        this.verbose("Request '%s' is being served to %s".formatted(request, address));
         try {
-          out.write(createHeader(result).getBytes(StandardCharsets.UTF_8));
+          out.write(this.createHeader(result).getBytes(StandardCharsets.UTF_8));
           try (final WritableByteChannel channel = Channels.newChannel(out)) {
             FileChannel.open(result).transferTo(0, Long.MAX_VALUE, channel);
           }
-          verbose(String.format("Successfully served '%s' to %s", request, address));
+          this.verbose("Successfully served '%s' to %s".formatted(request, address));
         } catch (final FileNotFoundException e) {
           flag = true;
           pout.println("HTTP/1.0 404 Object Not Found");
@@ -114,7 +115,7 @@ public class FileRequestHandler implements FileRequest {
       this.client.close();
     } catch (final IOException e) {
       flag = true;
-      verbose(String.format("I/O error %s", e));
+      this.verbose("I/O error %s".formatted(e));
     }
     if (flag) {
       this.daemon.onRequestFailure(this.client);

@@ -23,7 +23,7 @@ public final class FileUtils {
   public static Path downloadImageFile(@NotNull final String url, @NotNull final Path path)
       throws IOException {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be null or empty!");
-    final String filePath = String.format("%s/%s.png", path, UUID.randomUUID());
+    final String filePath = "%s/%s.png".formatted(path, UUID.randomUUID());
     try (final InputStream in = new URL(url).openStream()) {
       Files.copy(in, Paths.get(filePath));
     }

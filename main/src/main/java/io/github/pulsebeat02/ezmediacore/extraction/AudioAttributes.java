@@ -19,12 +19,12 @@ public class AudioAttributes implements AudioConfiguration {
       final int channels,
       final int samplingRate,
       final int volume) {
-    Preconditions.checkArgument(start >= 0, String.format("Invalid Start Time! (%d)", start));
-    Preconditions.checkArgument(bitrate > 0, String.format("Invalid Bitrate! (%d)", bitrate));
-    Preconditions.checkArgument(channels > 0, String.format("Invalid Channels! (%d)", channels));
+    Preconditions.checkArgument(start >= 0, "Invalid Start Time! (%d)".formatted(start));
+    Preconditions.checkArgument(bitrate > 0, "Invalid Bitrate! (%d)".formatted(bitrate));
+    Preconditions.checkArgument(channels > 0, "Invalid Channels! (%d)".formatted(channels));
     Preconditions.checkArgument(
-        samplingRate > 0, String.format("Invalid Sampling Rate! (%d)", samplingRate));
-    Preconditions.checkArgument(volume >= 0, String.format("Invalid Volume! (%d)", volume));
+        samplingRate > 0, "Invalid Sampling Rate! (%d)".formatted(samplingRate));
+    Preconditions.checkArgument(volume >= 0, "Invalid Volume! (%d)".formatted(volume));
     this.start = start;
     this.codec = codec;
     this.bitrate = bitrate;
@@ -44,10 +44,9 @@ public class AudioAttributes implements AudioConfiguration {
 
   @Override
   public boolean equals(final Object obj) {
-    if (!(obj instanceof AudioAttributes)) {
+    if (!(obj instanceof final AudioAttributes setting)) {
       return false;
     }
-    final AudioAttributes setting = (AudioAttributes) obj;
     return setting.getBitrate() == this.bitrate
         && setting.getChannels() == this.channels
         && setting.getSamplingRate() == this.samplingRate

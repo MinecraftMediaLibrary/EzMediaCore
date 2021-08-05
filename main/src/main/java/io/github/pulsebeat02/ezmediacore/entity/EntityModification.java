@@ -1,6 +1,5 @@
 package io.github.pulsebeat02.ezmediacore.entity;
 
-import com.google.common.collect.ImmutableSet;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
@@ -21,20 +20,19 @@ public class EntityModification<T extends Entity> implements EntityCommandMutato
    * @param clazz the entity type
    */
   public EntityModification(@NotNull final Class<?> clazz) {
-    entityClass = clazz;
-    methods = getProperMethods();
-    validArguments =
-        ImmutableSet.<Class<?>>builder()
-            .add(byte.class)
-            .add(short.class)
-            .add(int.class)
-            .add(long.class)
-            .add(float.class)
-            .add(double.class)
-            .add(boolean.class)
-            .add(char.class)
-            .add(String.class)
-            .build();
+    this.entityClass = clazz;
+    this.methods = this.getProperMethods();
+    this.validArguments =
+        Set.of(
+            byte.class,
+            short.class,
+            int.class,
+            long.class,
+            float.class,
+            double.class,
+            boolean.class,
+            char.class,
+            String.class);
   }
 
   /**
@@ -44,10 +42,10 @@ public class EntityModification<T extends Entity> implements EntityCommandMutato
    */
   private Map<String, Method> getProperMethods() {
     final Map<String, Method> methods = new HashMap<>();
-    for (final Method method : entityClass.getDeclaredMethods()) {
+    for (final Method method : this.entityClass.getDeclaredMethods()) {
       final Class<?>[] args = method.getParameterTypes();
       final String name = method.getName();
-      if (name.startsWith("get") && args.length == 1 && validArguments.contains(args[0])) {
+      if (name.startsWith("get") && args.length == 1 && this.validArguments.contains(args[0])) {
         methods.put(name, method);
       }
     }
@@ -56,32 +54,32 @@ public class EntityModification<T extends Entity> implements EntityCommandMutato
 
   @Override
   public boolean invokeGetter(
-      @NotNull T entity, @NotNull String methodName, @NotNull Object argument) {
+      @NotNull final T entity, @NotNull final String methodName, @NotNull final Object argument) {
     return false;
   }
 
   @Override
   public @NotNull Class<?> getEntityClass() {
-    return entityClass;
+    return this.entityClass;
   }
 
   @Override
   public @NotNull Map<String, Method> getMethodMap() {
-    return methods;
+    return this.methods;
   }
 
   @Override
   public @NotNull Set<Class<?>> getValidArguments() {
-    return validArguments;
+    return this.validArguments;
   }
 
   @Override
   public @NotNull Collection<Method> getRawMethods() {
-    return methods.values();
+    return this.methods.values();
   }
 
   @Override
   public @NotNull Collection<String> getMethodNames() {
-    return methods.keySet();
+    return this.methods.keySet();
   }
 }

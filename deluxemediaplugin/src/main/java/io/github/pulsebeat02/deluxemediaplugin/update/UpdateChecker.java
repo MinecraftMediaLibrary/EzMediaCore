@@ -49,18 +49,17 @@ public class UpdateChecker {
           try (final Scanner scanner =
               new Scanner(
                   new URL(
-                          String.format(
-                              "https://api.spigotmc.org/legacy/update.php?resource=%d",
-                              this.resource))
+                          "https://api.spigotmc.org/legacy/update.php?resource=%d"
+                              .formatted(this.resource))
                       .openStream())) {
             final String update = scanner.next();
             if (this.plugin.getDescription().getVersion().equalsIgnoreCase(update)) {
-              this.plugin.log(String.format("There is a new update available! (%s)", update));
+              this.plugin.log("There is a new update available! (%s)".formatted(update));
             } else {
               this.plugin.log("You are currently running the latest version of DeluxeMediaPlugin.");
             }
           } catch (final IOException exception) {
-            this.plugin.log(String.format("Cannot look for updates: %s", exception.getMessage()));
+            this.plugin.log("Cannot look for updates: %s".formatted(exception.getMessage()));
           }
         });
   }

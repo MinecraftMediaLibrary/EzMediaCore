@@ -34,10 +34,10 @@ public final class FFmpegInstaller {
   }
 
   public void start() throws IOException {
-    createFiles();
-    download();
-    writeHashes();
-    Logger.info(String.format("FFmpeg Path: %s", this.executable));
+    this.createFiles();
+    this.download();
+    this.writeHashes();
+    Logger.info("FFmpeg Path: %s".formatted(this.executable));
   }
 
   private void createFiles() throws IOException {
@@ -55,7 +55,7 @@ public final class FFmpegInstaller {
 
   private void download() throws IOException {
 
-    final Optional<Path> optional = detectExecutable(this.folder);
+    final Optional<Path> optional = this.detectExecutable(this.folder);
     if (optional.isPresent()) {
       this.executable = optional.get();
       return;

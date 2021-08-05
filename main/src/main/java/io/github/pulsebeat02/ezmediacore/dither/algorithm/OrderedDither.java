@@ -1,6 +1,5 @@
 package io.github.pulsebeat02.ezmediacore.dither.algorithm;
 
-import com.google.common.collect.ImmutableMap;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
 import java.nio.ByteBuffer;
@@ -51,21 +50,21 @@ public class OrderedDither implements DitherAlgorithm {
 
   public OrderedDither(@NotNull final DitherType type) {
     switch (type) {
-      case TWO:
+      case TWO -> {
         this.matrix = BAYER_MATRIX_TWO;
         this.size = 2;
         this.multiplicative = 0.25f;
-        break;
-      case FOUR:
+      }
+      case FOUR -> {
         this.matrix = BAYER_MATRIX_FOUR;
         this.size = 4;
         this.multiplicative = 0.0625f;
-        break;
-      case EIGHT:
+      }
+      case EIGHT -> {
         this.matrix = BAYER_MATRIX_EIGHT;
         this.size = 8;
         this.multiplicative = 0.015625f;
-        break;
+      }
     }
     this.correction = 255f / (this.size * this.size);
     this.convertToFloat();
@@ -162,7 +161,7 @@ public class OrderedDither implements DitherAlgorithm {
     private static final Map<Integer, DitherType> SIZES;
 
     static {
-      SIZES = ImmutableMap.of(2, TWO, 4, FOUR, 8, EIGHT);
+      SIZES = Map.of(2, TWO, 4, FOUR, 8, EIGHT);
     }
 
     public static DitherType ofKey(final int key) {

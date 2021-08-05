@@ -1,6 +1,5 @@
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
-import com.google.common.collect.ImmutableList;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -40,11 +39,13 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
 
   private List<String> generateArguments() {
     return new ArrayList<>(
-        ImmutableList.<String>builder()
-            .add(this.getCore().getFFmpegPath().toString())
-            .add("-ss", String.format("%d.ms", this.ms))
-            .add("-i", this.input.toString(), this.output.toString())
-            .build());
+        List.of(
+            this.getCore().getFFmpegPath().toString(),
+            "-ss",
+            "%d.ms".formatted(this.ms),
+            "-i",
+            this.input.toString(),
+            this.output.toString()));
   }
 
   @Override
@@ -76,10 +77,9 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
 
   @Override
   public boolean equals(final Object obj) {
-    if (!(obj instanceof FFmpegAudioTrimmer)) {
+    if (!(obj instanceof final FFmpegAudioTrimmer extraction)) {
       return false;
     }
-    final FFmpegAudioTrimmer extraction = (FFmpegAudioTrimmer) obj;
     return this.input.equals(extraction.getInput())
         && this.output.equals(extraction.getOutput())
         && this.ms == extraction.getStartTime()
