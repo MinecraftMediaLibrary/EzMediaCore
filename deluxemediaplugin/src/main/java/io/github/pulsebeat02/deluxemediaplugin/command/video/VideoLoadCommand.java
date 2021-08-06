@@ -48,6 +48,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
@@ -157,7 +158,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
           this.plugin.getAudioConfiguration(),
           mrl,
           folder.resolve("audio.ogg"));
-      extractor.executeAsyncWithLogging((line) -> external(audience, line));
+      extractor.executeAsyncWithLogging((line) -> external(audience, line)).get();
 
       this.attributes.setYoutube(true);
       this.attributes.setVideoMrl(mrl);
@@ -165,8 +166,8 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
       return extractor;
 
-    } catch (final IOException e) {
-      throw new AssertionError("Error extracting audio!");
+    } catch (final ExecutionException | InterruptedException | IOException e) {
+      throw new AssertionError("Couldn't extract audio file!");
     }
 
   }
@@ -177,7 +178,8 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
       final HttpServer daemon = this.plugin.getHttpServer();
       final ResourcepackSoundWrapper wrapper =
-          new ResourcepackSoundWrapper(daemon.getDaemon().getServerPath(), "Youtube Audio", 6);
+          new ResourcepackSoundWrapper(
+              daemon.getDaemon().getServerPath().resolve("resourcepack.zip"), "Youtube Audio", 6);
       wrapper.addSound(this.plugin.getName().toLowerCase(Locale.ROOT), audio);
       wrapper.wrap();
 

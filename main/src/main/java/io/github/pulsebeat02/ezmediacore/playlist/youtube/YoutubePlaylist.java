@@ -5,6 +5,7 @@ import com.github.kiulian.downloader.model.playlist.PlaylistDetails;
 import com.github.kiulian.downloader.model.playlist.PlaylistInfo;
 import io.github.pulsebeat02.ezmediacore.throwable.UnknownPlaylistException;
 import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
+import io.github.pulsebeat02.ezmediacore.utility.ResponseUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -18,13 +19,11 @@ public class YoutubePlaylist implements Playlist {
 
   public YoutubePlaylist(@NotNull final String url) {
     this.url = url;
-    this.info =
-        YoutubeProvider.getYoutubeDownloader()
+    this.info = ResponseUtils.getResponseResult(YoutubeProvider.getYoutubeDownloader()
             .getPlaylistInfo(
-                new RequestPlaylistInfo(
-                    MediaExtractionUtils.getYoutubeID(url)
-                        .orElseThrow(() -> new UnknownPlaylistException(url))))
-            .data();
+                new RequestPlaylistInfo(MediaExtractionUtils.getYoutubeID(url)
+                    .orElseThrow(() -> new UnknownPlaylistException(url)))))
+        .orElseThrow(AssertionError::new);
     this.details = this.info.details();
     this.videos =
         this.info.videos().parallelStream()

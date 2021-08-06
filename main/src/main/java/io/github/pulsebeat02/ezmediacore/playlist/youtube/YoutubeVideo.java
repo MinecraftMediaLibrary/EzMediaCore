@@ -5,6 +5,7 @@ import com.github.kiulian.downloader.model.videos.VideoDetails;
 import com.github.kiulian.downloader.model.videos.VideoInfo;
 import io.github.pulsebeat02.ezmediacore.throwable.DeadResourceLinkException;
 import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
+import io.github.pulsebeat02.ezmediacore.utility.ResponseUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -19,13 +20,11 @@ public class YoutubeVideo implements Video {
 
   public YoutubeVideo(@NotNull final String url) {
     this.url = url;
-    this.video =
-        YoutubeProvider.getYoutubeDownloader()
+    this.video = ResponseUtils.getResponseResult(YoutubeProvider.getYoutubeDownloader()
             .getVideoInfo(
-                new RequestVideoInfo(
-                    MediaExtractionUtils.getYoutubeID(url)
-                        .orElseThrow(() -> new DeadResourceLinkException(url))))
-            .data();
+                new RequestVideoInfo(MediaExtractionUtils.getYoutubeID(url)
+                    .orElseThrow(() -> new DeadResourceLinkException(url)))))
+        .orElseThrow(AssertionError::new);
     this.details = this.video.details();
     this.videoFormats =
         this.video.videoFormats().stream()

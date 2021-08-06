@@ -3,6 +3,7 @@ package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 import com.github.kiulian.downloader.downloader.request.RequestVideoFileDownload;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
+import io.github.pulsebeat02.ezmediacore.utility.ResponseUtils;
 import java.nio.file.Path;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +49,9 @@ public class YoutubeVideoDownloader implements VideoDownloader {
             .renameTo(name)
             .overwriteIfExists(overwrite);
 
-    YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download);
+    ResponseUtils.getResponseResult(
+            YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download))
+        .orElseThrow(AssertionError::new);
 
     this.onFinishVideoDownload();
   }
