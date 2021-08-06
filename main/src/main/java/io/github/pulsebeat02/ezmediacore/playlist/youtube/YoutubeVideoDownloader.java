@@ -3,8 +3,8 @@ package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 import com.github.kiulian.downloader.downloader.request.RequestVideoFileDownload;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
-import java.io.File;
 import java.nio.file.Path;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class YoutubeVideoDownloader implements VideoDownloader {
@@ -40,12 +40,11 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   public void downloadVideo(@NotNull final VideoQuality format, final boolean overwrite) {
     this.onStartVideoDownload();
 
-    final String name = PathUtils.getName(this.videoPath);
-    final String outputDirectory = this.videoPath.getParent().toString();
+    final String name = FilenameUtils.removeExtension(PathUtils.getName(this.videoPath));
 
     final RequestVideoFileDownload download =
         new RequestVideoFileDownload(this.getFormat(format))
-            .saveTo(new File(outputDirectory))
+            .saveTo(this.videoPath.getParent().toFile())
             .renameTo(name)
             .overwriteIfExists(overwrite);
 

@@ -12,7 +12,6 @@ import io.github.pulsebeat02.ezmediacore.vlc.os.window.WindowsKnownDirectories;
 import io.github.pulsebeat02.ezmediacore.vlc.os.window.WindowsNativeDiscovery;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -98,7 +97,7 @@ public class NativeBinarySearch implements BinarySearcher {
     paths.add(this.search.toString());
 
     for (final String path : paths) {
-      final Optional<Path> results = this.provider.discover(Paths.get(path));
+      final Optional<Path> results = this.provider.discover(Path.of(path));
       if (results.isPresent()) {
         this.path = results.get();
         return Optional.of(this.path);

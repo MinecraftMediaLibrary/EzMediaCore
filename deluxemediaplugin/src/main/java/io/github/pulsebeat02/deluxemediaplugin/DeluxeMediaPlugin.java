@@ -83,7 +83,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
     this.log("Finished DeluxeMediaPlugin!");
     this.log("""
         Hello %%__USER__%%! Thank you for purchasing DeluxeMediaPlugin. For identifier purposes, this
-         is your purchace identification code: %%__NONCE__%% - Enjoy using the plugin, and ask for
+         is your purchase identification code: %%__NONCE__%% - Enjoy using the plugin, and ask for
          support at my Discord! (https://discord.gg/MgqRKvycMC)
         """);
   }

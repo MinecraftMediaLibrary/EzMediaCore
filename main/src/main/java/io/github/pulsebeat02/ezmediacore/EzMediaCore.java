@@ -119,6 +119,7 @@ public final class EzMediaCore implements MediaLibraryCore {
 
     PluginUsageTips.sendWarningMessage();
     PluginUsageTips.sendPacketCompressionTip();
+
   }
 
   @Override

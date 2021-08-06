@@ -2,6 +2,7 @@ package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,12 +20,12 @@ public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements Audio
       @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final Path input,
-      @NotNull final Path output) {
+      @NotNull final Path output) throws IOException {
     super(core);
-    this.clearArguments();
-    this.addMultipleArguments(this.generateArguments(configuration));
     this.input = input.toAbsolutePath();
     this.output = output.toAbsolutePath();
+    this.clearArguments();
+    this.addMultipleArguments(this.generateArguments(configuration));
   }
 
   private List<String> generateArguments(@NotNull final AudioConfiguration configuration) {

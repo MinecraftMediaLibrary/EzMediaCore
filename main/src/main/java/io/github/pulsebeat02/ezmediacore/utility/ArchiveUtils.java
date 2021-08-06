@@ -26,7 +26,6 @@ import io.github.pulsebeat02.ezmediacore.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -95,7 +94,7 @@ public final class ArchiveUtils {
     while (!queue.isEmpty()) {
       final Path current = queue.remove();
       currentFolder =
-          Paths.get(
+          Path.of(
               "%s/%s".formatted(
                   currentFolder.toAbsolutePath(), getFileName(PathUtils.getName(current))));
       decompressArchive(current, currentFolder);

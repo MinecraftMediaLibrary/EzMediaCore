@@ -42,7 +42,6 @@ import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -87,7 +86,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
       if (this.drawImage(
           mrl.startsWith("http")
               ? FileUtils.downloadImageFile(mrl, this.plugin.library().getLibraryPath())
-              : Paths.get(mrl),
+              : Path.of(mrl),
           audience,
           width,
           height)) {

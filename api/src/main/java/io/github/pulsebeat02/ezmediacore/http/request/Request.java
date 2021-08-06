@@ -4,7 +4,7 @@ import java.net.Socket;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-public interface Request {
+public interface Request extends Runnable {
 
   @NotNull
   String createHeader(@NotNull final Path file);

@@ -4,6 +4,7 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.VideoDownloader;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.YoutubeVideoDownloader;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -22,7 +23,7 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
       @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
-      @NotNull final Path output) {
+      @NotNull final Path output) throws IOException {
     this.tempVideoPath = core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID()));
     this.downloader = new YoutubeVideoDownloader(url, this.tempVideoPath);
     this.extractor = new FFmpegAudioExtractor(core, configuration, this.tempVideoPath, output);
@@ -32,12 +33,8 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
       @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
-      @NotNull final String fileName) {
-    this.tempVideoPath = core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID()));
-    this.downloader = new YoutubeVideoDownloader(url, this.tempVideoPath);
-    this.extractor =
-        new FFmpegAudioExtractor(
-            core, configuration, this.tempVideoPath, core.getAudioPath().resolve(fileName));
+      @NotNull final String fileName) throws IOException {
+    this(core, configuration, url, core.getAudioPath().resolve(fileName));
   }
 
   @Override

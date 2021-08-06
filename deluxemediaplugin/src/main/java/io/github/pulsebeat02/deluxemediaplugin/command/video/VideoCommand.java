@@ -45,7 +45,6 @@ import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
@@ -217,7 +216,7 @@ public final class VideoCommand extends BaseCommand {
     if (this.attributes.isYoutube()) {
       gold(audience, "Starting Video on URL: %s".formatted(mrl));
     } else {
-      gold(audience, "Starting Video on File: %s".formatted(PathUtils.getName(Paths.get(mrl))));
+      gold(audience, "Starting Video on File: %s".formatted(PathUtils.getName(Path.of(mrl))));
     }
   }
 

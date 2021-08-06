@@ -27,7 +27,7 @@ public record DependencyLoader(MediaLibraryCore core) implements LibraryLoader {
     CompletableFuture.allOf(
             CompletableFuture.runAsync(this::installFFmpeg),
             CompletableFuture.runAsync(this::installDependencies)
-                .thenRunAsync(() -> new VLCBinaryLocator(this.core, this.core.getVlcPath())))
+                .thenRunAsync(this::checkVLC))
         .get();
   }
 
@@ -35,7 +35,6 @@ public record DependencyLoader(MediaLibraryCore core) implements LibraryLoader {
     try {
       final FFmpegInstaller installer = new FFmpegInstaller(this.core);
       installer.start();
-
       this.core.setFFmpegPath(installer.getExecutable());
     } catch (final IOException e) {
       e.printStackTrace();
@@ -49,6 +48,14 @@ public record DependencyLoader(MediaLibraryCore core) implements LibraryLoader {
         | ReflectiveOperationException
         | URISyntaxException
         | NoSuchAlgorithmException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void checkVLC() {
+    try {
+      new VLCBinaryLocator(this.core, this.core.getVlcPath()).locate();
+    } catch (final IOException | InterruptedException e) {
       e.printStackTrace();
     }
   }

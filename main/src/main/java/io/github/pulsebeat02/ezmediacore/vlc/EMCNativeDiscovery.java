@@ -14,7 +14,6 @@ import io.github.pulsebeat02.ezmediacore.vlc.os.NativeDiscoveryAlgorithm;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -23,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.binding.LibC;
 import uk.co.caprica.vlcj.binding.RuntimeUtil;
 import uk.co.caprica.vlcj.binding.internal.libvlc_instance_t;
+import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 import uk.co.caprica.vlcj.support.version.LibVlcVersion;
 
 public class EMCNativeDiscovery implements DiscoveryProvider {
@@ -58,10 +58,9 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
     If NativeDiscovery from VLCJ built in finds the binary, use that
     instead.
      */
-    final uk.co.caprica.vlcj.factory.discovery.NativeDiscovery discovery =
-        new uk.co.caprica.vlcj.factory.discovery.NativeDiscovery();
+    final NativeDiscovery discovery = new NativeDiscovery();
     if (discovery.discover()) {
-      return Optional.of(Paths.get(discovery.discoveredPath()));
+      return Optional.of(Path.of(discovery.discoveredPath()));
     }
 
     if (Files.notExists(directory)) {

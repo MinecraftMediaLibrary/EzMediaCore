@@ -33,7 +33,6 @@ public abstract class PersistentObject<T> implements SerializableComponent<T> {
   }
 
   private void createFile() throws IOException {
-    final Path path = this.getStorageFile();
-    FileUtils.createIfNotExists(path);
+    FileUtils.createIfNotExists(this.getStorageFile());
   }
 }

@@ -8,7 +8,6 @@ import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
 import io.github.pulsebeat02.ezmediacore.vlc.os.SilentInstallation;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 
 public class SilentMacInstallation extends SilentInstallation {
@@ -26,34 +25,34 @@ public class SilentMacInstallation extends SilentInstallation {
   @Override
   public void downloadBinaries() throws IOException, InterruptedException {
 
-    final Path directory = getDirectory();
+    final Path directory = this.getDirectory();
     final Path dmg = directory.resolve("VLC.dmg");
-    final Path disk = Paths.get("/Volumes/VLC media player");
+    final Path disk = Path.of("/Volumes/VLC media player");
     final Path app = directory.resolve("VLC.app");
 
-    FileUtils.copyURLToFile(getCore().getDiagnostics().getVlcUrl(), dmg);
+    FileUtils.copyURLToFile(this.getCore().getDiagnostics().getVlcUrl(), dmg);
 
-    if (mountDiskImage(dmg) != 0) {
+    if (this.mountDiskImage(dmg) != 0) {
       throw new RuntimeException("A severe I/O error has occurred. Could not mount disk file!");
     }
     Logger.info("Successfully mounted disk!");
 
     org.apache.commons.io.FileUtils.copyDirectory(disk.resolve("VLC.app").toFile(), app.toFile());
 
-    if (changePermissions(app) != 0) {
+    if (this.changePermissions(app) != 0) {
       throw new RuntimeException(
           "A severe permission error has occurred. Could not change permissions of VLC application!");
     }
     Logger.info("Successfully changed permissions for application!");
 
-    if (unmountDiskImage(disk) != 0) {
+    if (this.unmountDiskImage(disk) != 0) {
       throw new RuntimeException("A severe I/O error has occurred. Could not unmount disk file!");
     }
     Logger.info("Successfully unmounted disk!");
 
-    deleteArchive(dmg);
+    this.deleteArchive(dmg);
 
-    loadNativeBinaries();
+    this.loadNativeBinaries();
   }
 
   @Override

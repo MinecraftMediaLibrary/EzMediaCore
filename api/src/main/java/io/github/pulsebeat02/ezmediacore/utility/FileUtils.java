@@ -11,7 +11,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,9 +25,9 @@ public final class FileUtils {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be null or empty!");
     final String filePath = "%s/%s.png".formatted(path, UUID.randomUUID());
     try (final InputStream in = new URL(url).openStream()) {
-      Files.copy(in, Paths.get(filePath));
+      Files.copy(in, Path.of(filePath));
     }
-    return Paths.get(filePath);
+    return Path.of(filePath);
   }
 
   public static void createFile(@NotNull final Path file) throws IOException {

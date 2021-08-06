@@ -29,7 +29,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.logging.Level;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -47,7 +46,7 @@ public abstract class ConfigurationProvider {
       throws IOException {
     this.plugin = plugin;
     this.name = name;
-    this.config = Paths.get(plugin.getDataFolder().toString()).resolve(this.name);
+    this.config = Path.of(plugin.getDataFolder().toString()).resolve(this.name);
     FileUtils.createIfNotExists(this.config);
   }
 

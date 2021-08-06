@@ -11,7 +11,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
@@ -36,19 +35,20 @@ public class FileRequestHandler implements FileRequest {
   private final HttpServerDaemon daemon;
   private final ZipHeader header;
 
-  private Socket client;
+  private final Socket client;
 
   public FileRequestHandler(
       @NotNull final HttpServerDaemon daemon,
-      @NotNull final ServerSocket client,
+      @NotNull final Socket client,
       final ZipHeader header) {
     this.daemon = daemon;
-    try {
-      this.client = client.accept();
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
+    this.client = client;
     this.header = header;
+  }
+
+  @Override
+  public void run() {
+    this.handleIncomingRequest();
   }
 
   @Override

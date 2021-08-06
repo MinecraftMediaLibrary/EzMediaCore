@@ -35,11 +35,12 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ArtifactInstaller {
 
-  private static final ExecutorService EXECUTOR_SERVICE;
+  private static final ExecutorService DOWNLOAD_THREAD_POOL;
   private static final List<RelocationRule> RELOCATION_RULES;
 
   static {
-    EXECUTOR_SERVICE = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    DOWNLOAD_THREAD_POOL = Executors.newFixedThreadPool(
+        Runtime.getRuntime().availableProcessors() / 4);
     RELOCATION_RULES =
         Arrays.stream(RelocationPaths.values())
             .map(RelocationPaths::getRelocation)
@@ -93,7 +94,7 @@ public final class ArtifactInstaller {
   }
 
   public void download() throws InterruptedException {
-    EXECUTOR_SERVICE.invokeAll(
+    DOWNLOAD_THREAD_POOL.invokeAll(
         Arrays.stream(DependencyInfo.values())
             .filter(this::requiresDownload)
             .map(path -> Executors.callable(() -> this.downloadDependency(path), null))
@@ -105,7 +106,7 @@ public final class ArtifactInstaller {
     Logger.info(
         "Preparing to relocate %d dependencies (%s)".formatted(this.jars.size(), this.jars));
 
-    EXECUTOR_SERVICE.invokeAll(
+    DOWNLOAD_THREAD_POOL.invokeAll(
         this.jars.stream()
             .map(path -> Executors.callable(() -> this.relocateFile(path, this.factory)))
             .collect(Collectors.toList()));

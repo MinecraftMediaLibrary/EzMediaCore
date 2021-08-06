@@ -37,7 +37,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.LongConsumer;
@@ -153,7 +152,7 @@ public final class DependencyUtils {
       throws IOException {
     final String file = "%s-%s.jar".formatted(dependency.getArtifact(), dependency.getVersion());
     final String url = link + file;
-    return downloadFile(Paths.get("%s/%s".formatted(parent, file)), url);
+    return downloadFile(Path.of("%s/%s".formatted(parent, file)), url);
   }
 
   /**
@@ -175,7 +174,7 @@ public final class DependencyUtils {
       throws IOException {
     final String file = "%s-%s.jar".formatted(dependency.getArtifact(), dependency.getVersion());
     final String url = link + file;
-    return downloadFile(Paths.get("%s/%s".formatted(parent, file)), url, consumer);
+    return downloadFile(Path.of("%s/%s".formatted(parent, file)), url, consumer);
   }
 
   /**
@@ -199,7 +198,7 @@ public final class DependencyUtils {
       throws IOException {
     final String file = "%s-%s.jar".formatted(artifactId, version);
     final String url = getDependencyUrl(groupId, artifactId, version, resolution.getUrl()) + file;
-    return downloadFile(Paths.get(parent, file), url);
+    return downloadFile(Path.of(parent, file), url);
   }
 
   /**
@@ -225,7 +224,7 @@ public final class DependencyUtils {
       throws IOException {
     final String file = "%s-%s.jar".formatted(artifactId, version);
     final String url = getDependencyUrl(groupId, artifactId, version, resolution.getUrl()) + file;
-    return downloadFile(Paths.get("%s/%s".formatted(parent, file)), url, consumer);
+    return downloadFile(Path.of("%s/%s".formatted(parent, file)), url, consumer);
   }
 
   @NotNull

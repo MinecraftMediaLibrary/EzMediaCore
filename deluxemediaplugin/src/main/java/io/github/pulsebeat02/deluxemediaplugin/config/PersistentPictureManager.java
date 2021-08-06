@@ -8,12 +8,21 @@ import io.github.pulsebeat02.ezmediacore.image.StaticImage;
 import io.github.pulsebeat02.ezmediacore.persistent.PersistentImageStorage;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 public class PersistentPictureManager {
+
+  private static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE;
+
+  static {
+    SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
+  }
 
   private final DeluxeMediaPlugin plugin;
   private final PersistentImageStorage storage;
@@ -23,16 +32,12 @@ public class PersistentPictureManager {
     this.plugin = plugin;
     this.storage =
         new PersistentImageStorage(plugin.getDataFolder().toPath().resolve("pictures.json"));
-    this.images = this.storage.deserialize();
+    final List<Image> images = this.storage.deserialize();
+    this.images = images == null ? new ArrayList<>() : images;
   }
 
   public void startTask() {
-    new BukkitRunnable() {
-      @Override
-      public void run() {
-        PersistentPictureManager.this.save();
-      }
-    }.runTaskTimerAsynchronously(this.plugin, 0L, 6000L);
+    SCHEDULED_EXECUTOR_SERVICE.scheduleAtFixedRate(this::save, 0, 5, TimeUnit.MINUTES);
   }
 
   public void addPhoto(

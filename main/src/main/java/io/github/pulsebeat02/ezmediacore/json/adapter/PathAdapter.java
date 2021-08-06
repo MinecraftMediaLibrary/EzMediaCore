@@ -5,7 +5,6 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 
 public final class PathAdapter extends TypeAdapter<Path> {
@@ -28,6 +27,6 @@ public final class PathAdapter extends TypeAdapter<Path> {
       }
     }
     in.close();
-    return Paths.get(path);
+    return Path.of(path);
   }
 }

@@ -4,18 +4,26 @@ import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
-public record ForcefulResourcepackListener(MediaLibraryCore core,
+public record ForcefulResourcepackListener(@NotNull MediaLibraryCore core,
                                            Set<UUID> uuids, String url,
                                            byte[] hash) implements Listener {
+
+  private static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE;
+
+  static {
+    SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
+  }
 
   public ForcefulResourcepackListener(
       @NotNull final MediaLibraryCore core,
@@ -43,18 +51,14 @@ public record ForcefulResourcepackListener(MediaLibraryCore core,
   }
 
   public void start() {
-    final Plugin plugin = this.core.getPlugin();
-    new BukkitRunnable() {
-      @Override
-      public void run() {
-        if (!ForcefulResourcepackListener.this.uuids.isEmpty()) {
-          Logger.info(
-              "Could not force all players to load resourcepack! (%s)".formatted(
-                  ForcefulResourcepackListener.this.uuids));
-          PlayerResourcePackStatusEvent.getHandlerList().unregister(plugin);
-        }
+    SCHEDULED_EXECUTOR_SERVICE.schedule(() -> {
+      if (!ForcefulResourcepackListener.this.uuids.isEmpty()) {
+        Logger.info(
+            "Could not force all players to load resourcepack! (%s)".formatted(
+                ForcefulResourcepackListener.this.uuids));
+        PlayerResourcePackStatusEvent.getHandlerList().unregister(this.core.getPlugin());
       }
-    }.runTaskLater(plugin, 6000L);
+    }, 5, TimeUnit.MINUTES);
   }
 
   @EventHandler

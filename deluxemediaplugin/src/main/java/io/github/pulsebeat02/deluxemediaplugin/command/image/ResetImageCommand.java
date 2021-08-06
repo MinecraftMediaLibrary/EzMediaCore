@@ -81,7 +81,7 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
         this.plugin.getPictureManager().getImages().stream()
             .filter(img -> img.getMaps().contains(id))
             .findAny();
-    if (!image.isPresent()) {
+    if (image.isEmpty()) {
       red(audience, "The image you request purge from the map is not loaded!");
       return SINGLE_SUCCESS;
     }

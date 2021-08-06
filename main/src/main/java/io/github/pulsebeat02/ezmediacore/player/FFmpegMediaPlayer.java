@@ -13,7 +13,6 @@ import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
 import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,7 +66,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
   @Override
   public void initializePlayer(final long seconds) {
     final String url = this.getUrl();
-    final Path path = Paths.get(url);
+    final Path path = Path.of(url);
     final long ms = seconds * 1000;
     this.ffmpeg =
         new FFmpeg(this.getCore().getFFmpegPath())

@@ -2,7 +2,6 @@ package io.github.pulsebeat02.ezmediacore.utility;
 
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 
 public final class PathUtils {
@@ -30,7 +29,7 @@ public final class PathUtils {
    */
   public static boolean isValidPath(@NotNull final String path) {
     try {
-      Paths.get(path);
+      Path.of(path);
     } catch (final InvalidPathException | NullPointerException ex) {
       return false;
     }

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 
 public class HttpServer implements HttpDaemonSolution {
@@ -69,7 +70,7 @@ public class HttpServer implements HttpDaemonSolution {
 
   @Override
   public void startServer() {
-    this.daemon.start();
+    CompletableFuture.runAsync(this.daemon::start);
   }
 
   @Override

@@ -46,7 +46,6 @@ import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -85,13 +84,14 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
         "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.");
 
     if (MediaExtractionUtils.getYoutubeID(mrl).isEmpty()) {
-      final Path file = Paths.get(mrl);
+      final Path file = Path.of(mrl);
       if (Files.exists(file)) {
         CompletableFuture.runAsync(() -> completion.set(false))
             .thenRunAsync(
-                () -> this.wrapResourcepack(this.setAudioFileAttributes(Paths.get(mrl), folder)))
+                () -> this.wrapResourcepack(this.setAudioFileAttributes(Path.of(mrl), folder)))
             .thenRun(this::useFirstLoad)
-            .thenRun(() -> completion.set(true));
+            .thenRun(() -> completion.set(true))
+            .thenRun(() -> gold(audience, "Successfully loaded video %s".formatted(mrl)));
       } else if (mrl.startsWith("http")) {
         red(audience, "Link %s is not a valid Youtube video link!".formatted(mrl));
       } else {
@@ -102,16 +102,15 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
           .thenRunAsync(
               () ->
                   this.wrapResourcepack(
-                      this.setYoutubeAttributes(audience, Paths.get(folder), mrl)
+                      this.setYoutubeAttributes(audience, Path.of(folder), mrl)
                           .getExtractor()
                           .getOutput()))
           .thenRun(this::useFirstLoad)
-          .thenRun(() -> completion.set(true));
+          .thenRun(() -> completion.set(true))
+          .thenRun(() -> gold(audience, "Successfully loaded Youtube video %s".formatted(mrl)));
     }
 
     this.attributes.setMrl(mrl);
-
-    gold(audience, "Successfully loaded video %s".formatted(mrl));
 
     return SINGLE_SUCCESS;
   }
@@ -131,10 +130,15 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   private Path setAudioFileAttributes(@NotNull final Path file, @NotNull final String folder) {
 
-    final Path audio = Paths.get(folder, "custom.ogg");
-    new FFmpegAudioExtractor(
-        this.plugin.library(), this.plugin.getAudioConfiguration(), file, audio)
-        .execute();
+    final Path audio = Path.of(folder, "custom.ogg");
+
+    try {
+      new FFmpegAudioExtractor(
+          this.plugin.library(), this.plugin.getAudioConfiguration(), file, audio)
+          .execute();
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
 
     this.attributes.setYoutube(false);
     this.attributes.setVideoMrl(file.toString());
@@ -146,19 +150,25 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   private YoutubeVideoAudioExtractor setYoutubeAttributes(
       @NotNull final Audience audience, @NotNull final Path folder, @NotNull final String mrl) {
 
-    final YoutubeVideoAudioExtractor extractor =
-        new YoutubeVideoAudioExtractor(
-            this.plugin.library(),
-            this.plugin.getAudioConfiguration(),
-            mrl,
-            folder.resolve("audio.ogg"));
-    extractor.executeAsyncWithLogging((line) -> external(audience, line));
+    try {
 
-    this.attributes.setYoutube(true);
-    this.attributes.setVideoMrl(mrl);
-    this.attributes.setAudio(extractor.getExtractor().getOutput());
+      final YoutubeVideoAudioExtractor extractor = new YoutubeVideoAudioExtractor(
+          this.plugin.library(),
+          this.plugin.getAudioConfiguration(),
+          mrl,
+          folder.resolve("audio.ogg"));
+      extractor.executeAsyncWithLogging((line) -> external(audience, line));
 
-    return extractor;
+      this.attributes.setYoutube(true);
+      this.attributes.setVideoMrl(mrl);
+      this.attributes.setAudio(extractor.getExtractor().getOutput());
+
+      return extractor;
+
+    } catch (final IOException e) {
+      throw new AssertionError("Error extracting audio!");
+    }
+
   }
 
   private void wrapResourcepack(@NotNull final Path audio) {

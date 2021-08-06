@@ -27,7 +27,6 @@ import io.github.pulsebeat02.ezmediacore.http.HttpDaemon;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,7 +63,7 @@ public class HttpConfiguration extends ConfigurationProvider {
     final String ip = configuration.getString("ip");
     final int port = configuration.getInt("port");
     final Path directory =
-        Paths.get(
+        Path.of(
             "%s/%s"
                 .formatted(
                     this.getPlugin().getDataFolder().getAbsolutePath(),

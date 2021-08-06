@@ -9,17 +9,16 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 
 public class HttpServerDaemon implements HttpDaemon, ZipRequest {
 
-  private static final ExecutorService EXECUTOR_SERVICE;
+  private static final ExecutorService REQUEST_EXECUTOR;
 
   static {
-    EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+    REQUEST_EXECUTOR = Executors.newCachedThreadPool();
   }
 
   private final Path directory;
@@ -72,14 +71,13 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   @Override
   public void start() {
     this.onServerStart();
-    CompletableFuture.runAsync(
-        () -> {
-          while (this.running) {
-            EXECUTOR_SERVICE.submit(
-                () ->
-                    new FileRequestHandler(this, this.socket, this.header).handleIncomingRequest());
-          }
-        });
+    while (this.running) {
+      try {
+        REQUEST_EXECUTOR.submit(new FileRequestHandler(this, this.socket.accept(), this.header));
+      } catch (final IOException e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   @Override

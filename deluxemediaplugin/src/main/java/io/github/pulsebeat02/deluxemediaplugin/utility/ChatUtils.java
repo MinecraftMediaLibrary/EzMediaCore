@@ -73,9 +73,9 @@ public final class ChatUtils {
     final String message;
     final OptionalInt width = ChatUtils.checkIntegerValidity(dims[0]);
     final OptionalInt height = ChatUtils.checkIntegerValidity(dims[1]);
-    if (!width.isPresent()) {
+    if (width.isEmpty()) {
       message = dims[0];
-    } else if (!height.isPresent()) {
+    } else if (height.isEmpty()) {
       message = dims[1];
     } else {
       return Optional.of(new int[]{width.getAsInt(), height.getAsInt()});

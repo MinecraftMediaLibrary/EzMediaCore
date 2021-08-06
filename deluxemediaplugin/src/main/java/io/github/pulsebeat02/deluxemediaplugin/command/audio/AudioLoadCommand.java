@@ -41,7 +41,6 @@ import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.audience.Audience;
@@ -65,7 +64,8 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
             .build();
   }
 
-  private void loadSoundMrl(@NotNull final Audience audience, @NotNull final String mrl) {
+  private void loadSoundMrl(@NotNull final Audience audience, @NotNull final String mrl)
+      throws IOException {
 
     final MediaLibraryCore core = this.plugin.library();
     final Path audio = core.getAudioPath().resolve("audio.ogg");
@@ -77,7 +77,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private boolean loadSoundFile(@NotNull final String mrl, @NotNull final Audience audience) {
-    final Path file = Paths.get(mrl);
+    final Path file = Path.of(mrl);
     if (Files.exists(file)) {
       this.attributes.setAudio(file);
     } else {
@@ -126,7 +126,13 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
         "Attempting to load the audio file... this may take a while depending on the length/quality of the audio.");
 
     if (mrl.startsWith("http")) {
-      CompletableFuture.runAsync(() -> this.loadSoundMrl(audience, mrl));
+      CompletableFuture.runAsync(() -> {
+        try {
+          this.loadSoundMrl(audience, mrl);
+        } catch (final IOException e) {
+          e.printStackTrace();
+        }
+      });
     } else if (this.loadSoundFile(mrl, audience)) {
       return SINGLE_SUCCESS;
     }

@@ -73,7 +73,7 @@ public class ResourcepackWrapper implements PackWrapper {
     //
     //      final ZipEntry soundFile = new ZipEntry("assets/minecraft/sounds/audio.ogg");
     //      out.putNextEntry(soundFile);
-    //      out.write(Files.readAllBytes(Paths.get(this.audio.toString())));
+    //      out.write(Files.readAllBytes(Path.of(this.audio.toString())));
     //      out.closeEntry();
     //
     //      if (this.icon != null && Files.exists(this.icon)) {
@@ -90,7 +90,7 @@ public class ResourcepackWrapper implements PackWrapper {
   @Override
   public void internalWrap() throws IOException {
 
-    Logger.error("Wrapping the Resourcepack");
+    Logger.info("Wrapping the Resourcepack");
     try (final ZipOutputStream out =
         new ZipOutputStream(new FileOutputStream(this.path.toFile()))) {
 

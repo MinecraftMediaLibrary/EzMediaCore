@@ -43,11 +43,12 @@ Jitpack Repository:
 **Maven**
 
 ```xml
+
 <repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
+  <repository>
+    <id>jitpack.io</id>
+    <url>https://jitpack.io</url>
+  </repository>
 </repositories>
 ```
 
@@ -80,9 +81,9 @@ EzMediaCore Dependency:
 ```xml
 
 <dependency>
-    <groupId>com.github.MinecraftMediaLibrary</groupId>
-    <artifactId>EzMediaCore</artifactId>
-    <version>master-SNAPSHOT</version>
+  <groupId>com.github.MinecraftMediaLibrary</groupId>
+  <artifactId>EzMediaCore</artifactId>
+  <version>master-SNAPSHOT</version>
 </dependency>
 ```
 
