@@ -84,7 +84,7 @@ public class SpotifyPlaylist implements TrackPlaylist {
     return this.playlist.getExternalUrls().getExternalUrls();
   }
 
-  protected @NotNull Playlist getPlaylist() {
+  @NotNull Playlist getPlaylist() {
     return this.playlist;
   }
 }

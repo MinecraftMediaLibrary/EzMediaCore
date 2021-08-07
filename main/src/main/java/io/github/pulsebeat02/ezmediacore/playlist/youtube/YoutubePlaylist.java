@@ -66,11 +66,11 @@ public class YoutubePlaylist implements Playlist {
     return this.details.viewCount();
   }
 
-  protected @NotNull PlaylistInfo getPlaylistInfo() {
+  @NotNull PlaylistInfo getPlaylistInfo() {
     return this.info;
   }
 
-  protected @NotNull PlaylistDetails getPlaylistDetails() {
+  @NotNull PlaylistDetails getPlaylistDetails() {
     return this.details;
   }
 }

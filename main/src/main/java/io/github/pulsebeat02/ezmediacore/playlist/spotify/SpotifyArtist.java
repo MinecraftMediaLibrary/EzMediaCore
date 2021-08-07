@@ -77,7 +77,7 @@ public class SpotifyArtist implements Artist {
     return this.url;
   }
 
-  protected @NotNull com.wrapper.spotify.model_objects.specification.Artist getArtist() {
+  @NotNull com.wrapper.spotify.model_objects.specification.Artist getArtist() {
     return this.artist;
   }
 }

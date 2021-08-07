@@ -2,6 +2,8 @@ package io.github.pulsebeat02.ezmediacore.analysis;
 
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegDownloadPortal;
+import io.github.pulsebeat02.ezmediacore.vlc.VLCDownloadPortal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,8 +23,9 @@ public final class SystemDiagnostics implements Diagnostic {
   private final OperatingSystem system;
   private final CpuArchitecture cpu;
   private final List<Mixer> sound;
-  private String vlcDownloadLink;
-  private String ffmpegDownloadLink;
+  private FFmpegDownloadPortal ffmpegDownloadLink;
+  private VLCDownloadPortal vlcDownloadLink;
+
 
   public SystemDiagnostics(@NotNull final MediaLibraryCore core) {
     this.core = core;
@@ -69,52 +72,42 @@ public final class SystemDiagnostics implements Diagnostic {
       switch (this.system.getOSType()) {
         case WINDOWS -> {
           Logger.info("Detected Windows 64-bit Operating System");
-          this.vlcDownloadLink =
-              "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/win64/VLC.zip";
-          this.ffmpegDownloadLink =
-              "https://github.com/a-schild/jave2/raw/master/jave-nativebin-win64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-amd64.exe";
+          this.vlcDownloadLink = VLCDownloadPortal.WIN_64;
+          this.ffmpegDownloadLink = FFmpegDownloadPortal.WIN_64;
         }
         case UNIX -> {
           if (this.cpu.getArchitecture().contains("arm")) {
             Logger.info("Detected Linux ARM 64-bit Operating System");
-            this.ffmpegDownloadLink =
-                "https://github.com/a-schild/jave2/raw/master/jave-nativebin-arm64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-aarch64";
+            this.ffmpegDownloadLink = FFmpegDownloadPortal.UNIX_ARM_64;
           } else {
             Logger.info("Detected Linux AMD/Intel 64-bit Operating System");
-            this.ffmpegDownloadLink =
-                "https://github.com/a-schild/jave2/raw/master/jave-nativebin-linux64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-amd64";
+            this.ffmpegDownloadLink = FFmpegDownloadPortal.UNIX_AMD_INTEL_64;
           }
-          this.vlcDownloadLink = "N/A";
+          this.vlcDownloadLink = VLCDownloadPortal.NA;
         }
         case MAC -> {
           if (this.cpu.getArchitecture().contains("amd")) {
             Logger.info("Detected MacOS Silicon 64-bit Operating System");
-            this.vlcDownloadLink =
-                "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/macos-intel64/VLC.dmg";
+            this.vlcDownloadLink = VLCDownloadPortal.MAC_SILICON_64;
           } else {
             Logger.info("Detected MacOS AMD 64-bit Operating System!");
-            this.vlcDownloadLink =
-                "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/macos-arm64/VLC.dmg";
+            this.vlcDownloadLink = VLCDownloadPortal.MAC_AMD_64;
           }
-          this.ffmpegDownloadLink =
-              "https://github.com/a-schild/jave2/raw/master/jave-nativebin-osx64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-x86_64-osx";
+          this.ffmpegDownloadLink = FFmpegDownloadPortal.MAC_64;
         }
       }
     } else {
       switch (this.system.getOSType()) {
         case WINDOWS -> {
           Logger.info("Detected Windows 32-bit Operating System");
-          this.vlcDownloadLink =
-              "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/win32/VLC.zip";
-          this.ffmpegDownloadLink =
-              "https://github.com/a-schild/jave2/raw/master/jave-nativebin-win32/src/main/resources/ws/schild/jave/nativebin/ffmpeg-x86.exe";
+          this.vlcDownloadLink = VLCDownloadPortal.WIN_32;
+          this.ffmpegDownloadLink = FFmpegDownloadPortal.WIN_32;
         }
         case UNIX -> {
           if (this.cpu.getArchitecture().contains("arm")) {
             Logger.info("Detected Linux ARM 32-bit Operating System");
-            this.vlcDownloadLink = "N/A";
-            this.ffmpegDownloadLink =
-                "https://github.com/a-schild/jave2/raw/master/jave-nativebin-arm32/src/main/resources/ws/schild/jave/nativebin/ffmpeg-arm";
+            this.vlcDownloadLink = VLCDownloadPortal.NA;
+            this.ffmpegDownloadLink = FFmpegDownloadPortal.UNIX_ARM_32;
           }
         }
       }
@@ -167,12 +160,12 @@ public final class SystemDiagnostics implements Diagnostic {
 
   @Override
   public @NotNull String getFFmpegUrl() {
-    return this.ffmpegDownloadLink;
+    return this.ffmpegDownloadLink.getUrl();
   }
 
   @Override
   public @NotNull String getVlcUrl() {
-    return this.vlcDownloadLink;
+    return this.vlcDownloadLink.getUrl();
   }
 
   @Override

@@ -84,7 +84,7 @@ public class SpotifyTrack implements Track {
     return this.url;
   }
 
-  protected @NotNull com.wrapper.spotify.model_objects.specification.Track getTrack() {
+  @NotNull com.wrapper.spotify.model_objects.specification.Track getTrack() {
     return this.track;
   }
 }

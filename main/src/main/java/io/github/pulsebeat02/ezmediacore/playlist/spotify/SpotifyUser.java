@@ -52,7 +52,7 @@ public class SpotifyUser implements User {
         Arrays.stream(this.user.getImages()).map(SpotifyAvatar::new).toArray(SpotifyAvatar[]::new);
   }
 
-  protected static @NotNull BiMap<ProductType, Subscription> getSubscriptionMappings() {
+  static @NotNull BiMap<ProductType, Subscription> getSubscriptionMappings() {
     return SUBSCRIPTIONS;
   }
 
@@ -96,7 +96,7 @@ public class SpotifyUser implements User {
     return SUBSCRIPTIONS.get(this.user.getProduct());
   }
 
-  protected @NotNull com.wrapper.spotify.model_objects.specification.User getUser() {
+  @NotNull com.wrapper.spotify.model_objects.specification.User getUser() {
     return this.user;
   }
 }
