@@ -3,8 +3,6 @@
 [![Discord](https://img.shields.io/discord/817501569108017223?style=for-the-badge)](https://discord.gg/qVhhbCWQQV)
 [![Language](https://img.shields.io/badge/Made%20with-Java-1f425f.svg?style=for-the-badge)](https://www.java.com/en/)
 
-[![Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/MinecraftMediaLibrary/EzMediaCore)
-
 ![Swag](http://ForTheBadge.com/images/badges/built-with-swag.svg)
 
 ---
@@ -36,23 +34,12 @@ video playback.
 
 ## First Steps
 
----
+### Prerequisites
 
-Jitpack Repository:
+- **Java 16** is required
+- Only Minecraft versions **1.16.5** and **1.17** supported
 
-**Maven**
-
-```xml
-
-<repositories>
-  <repository>
-    <id>jitpack.io</id>
-    <url>https://jitpack.io</url>
-  </repository>
-</repositories>
-```
-
-**Gradle (Groovy)**
+Add the following to your build.gradle configuration:
 
 ```groovy
 repositories {
@@ -62,44 +49,9 @@ repositories {
 }
 ```
 
-**Gradle (Kotlin)**
-
-```kotlin
-repositories {
-    maven {
-        url("https://jitpack.io")
-    }
-}
-```
-
----
-
-EzMediaCore Dependency:
-
-**Maven**
-
-```xml
-
-<dependency>
-  <groupId>com.github.MinecraftMediaLibrary</groupId>
-  <artifactId>EzMediaCore</artifactId>
-  <version>master-SNAPSHOT</version>
-</dependency>
-```
-
-**Gradle (Groovy)**
-
 ```groovy
 dependencies {
     implementation 'com.github.MinecraftMediaLibrary:EzMediaCore:master-SNAPSHOT'
-}
-```
-
-**Gradle (Kotlin)**
-
-```kotlin
-dependencies {
-    implementation("com.github.MinecraftMediaLibrary:EzMediaCore:master-SNAPSHOT")
 }
 ```
 
@@ -107,7 +59,7 @@ dependencies {
 
 For detailed documentation with explanations, visit
 the [readthedocs page](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/) (which is still
-in progress).
+in progress). It is currently outdated, and requires some rewriting.
 
 However, if you want examples, you can take a look
 at [this module](https://github.com/MinecraftMediaLibrary/EzMediaCore/tree/master/deluxemediaplugin)
@@ -133,8 +85,7 @@ testing server!
   Also the plugin too.
 - [Conclure](https://github.com/Conclure) for helping me migrate from maven to gradle.
 - [Yugi](https://github.com/Vshnv) for helping me
-  setup [Slimjar](https://github.com/SlimJar/slimjar) and allowing support for futuristic Java
-  versions.
+  setup [Slimjar](https://github.com/SlimJar/slimjar).
 - [Matt](https://github.com/ipsk) for
   his [GUI Framework](https://github.com/TriumphTeam/gui/tree/development).
 - And also developers of the libraries I use. Without these libraries, the development would've been
