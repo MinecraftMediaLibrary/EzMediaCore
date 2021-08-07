@@ -22,10 +22,10 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
       @NotNull final Path output,
       final long ms) {
     super(core);
-    this.clearArguments();
-    this.addMultipleArguments(this.generateArguments());
     this.input = input.toAbsolutePath();
     this.output = output.toAbsolutePath();
+    this.clearArguments();
+    this.addMultipleArguments(this.generateArguments());
     this.ms = ms;
   }
 

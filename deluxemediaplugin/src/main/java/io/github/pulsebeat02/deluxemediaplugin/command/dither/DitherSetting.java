@@ -22,7 +22,7 @@ public enum DitherSetting {
   static {
     maps = new HashMap<>();
     for (final DitherSetting setting : DitherSetting.values()) {
-      maps.put(setting.name, setting);
+      maps.put(setting.name(), setting);
     }
   }
 
@@ -34,7 +34,7 @@ public enum DitherSetting {
     this.algorithm = algorithm;
   }
 
-  public static DitherSetting fromString(@NotNull final String key) {
+  public static DitherSetting ofKey(@NotNull final String key) {
     return maps.get(key);
   }
 

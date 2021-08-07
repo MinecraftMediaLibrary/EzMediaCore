@@ -180,7 +180,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
 
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String algorithm = context.getArgument("dithering-option", String.class);
-    final DitherSetting setting = DitherSetting.fromString(algorithm);
+    final DitherSetting setting = DitherSetting.ofKey(algorithm);
 
     if (setting == null) {
       red(audience, "Could not find dither type %s".formatted(algorithm));

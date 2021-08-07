@@ -51,21 +51,22 @@ public class VLCMediaPlayer extends MediaPlayer {
         if (this.player == null) {
           this.initializePlayer(0L);
         }
-        this.player.media().play(this.getUrl());
         this.playAudio();
+        this.player.media().play(this.getUrl());
       }
       case PAUSE -> {
-        this.player.controls().stop();
         this.stopAudio();
+        this.player.controls().stop();
       }
       case RESUME -> {
         if (this.player == null) {
           this.initializePlayer(0L);
+          this.playAudio(); // twice to avoid lag
           this.player.media().play(this.getUrl());
         } else {
+          this.playAudio();
           this.player.controls().play();
         }
-        this.playAudio();
       }
       case RELEASE -> {
         this.player.release();

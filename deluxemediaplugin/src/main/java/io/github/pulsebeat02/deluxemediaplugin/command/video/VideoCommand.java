@@ -44,6 +44,7 @@ import io.github.pulsebeat02.ezmediacore.utility.HashingUtils;
 import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Locale;
@@ -163,21 +164,27 @@ public final class VideoCommand extends BaseCommand {
 
       final HttpServer server = plugin.getHttpServer();
       final Path audio = this.attributes.getAudio();
-      final Path ogg = audio.getParent().resolve("audio.ogg");
+      final Path ogg = audio.getParent().resolve("trimmed.ogg");
+      final long ms = this.attributes.getPlayer().getElapsedMilliseconds();
+
+      plugin.log("Resuming Video at %s Milliseconds!".formatted(ms));
 
       new FFmpegAudioTrimmer(
-          plugin.library(), audio, ogg, this.attributes.getPlayer().getElapsedMilliseconds())
+          plugin.library(), audio, ogg, ms)
           .executeAsyncWithLogging((line) -> external(audience, line));
 
       final ResourcepackSoundWrapper wrapper =
           new ResourcepackSoundWrapper(
-              server.getDaemon().getServerPath().resolve("pack.zip"), "Video Pack", 6);
+              server.getDaemon().getServerPath().resolve("resourcepack.zip"), "Video Pack", 6);
       wrapper.addSound(plugin.getName().toLowerCase(Locale.ROOT), ogg);
       wrapper.wrap();
 
       final Path path = wrapper.getResourcepackFilePath();
       this.attributes.setUrl(server.createUrl(path));
       this.attributes.setHash(HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
+
+      Files.delete(audio);
+      Files.move(ogg, ogg.resolveSibling("audio.ogg"));
 
     } catch (final IOException e) {
       plugin.getLogger().severe("Failed to wrap resourcepack!");
