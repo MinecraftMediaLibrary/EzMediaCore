@@ -74,9 +74,27 @@ public final class VideoCommand extends BaseCommand {
             .then(this.literal("play").executes(this::playVideo))
             .then(this.literal("stop").executes(this::stopVideo))
             .then(this.literal("resume").executes(this::resumeVideo))
+            .then(this.literal("destroy").executes(this::destroyVideo))
             .then(new VideoLoadCommand(plugin, this.attributes).node())
             .then(new VideoSettingCommand(plugin, this.attributes).node())
             .build();
+  }
+
+  private int destroyVideo(@NotNull final CommandContext<CommandSender> context) {
+
+    final Audience audience = this.plugin().audience().sender(context.getSource());
+
+    if (this.mediaNotSpecified(audience) || this.mediaProcessingIncomplete(audience)) {
+      return SINGLE_SUCCESS;
+    }
+
+    this.stopIfPlaying();
+
+    this.attributes.getPlayer().setPlayerState(PlayerControls.RELEASE);
+
+    gold(audience, "Successfully destroyed the current video!");
+
+    return SINGLE_SUCCESS;
   }
 
   private int playVideo(@NotNull final CommandContext<CommandSender> context) {

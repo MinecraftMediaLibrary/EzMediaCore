@@ -154,7 +154,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
                 text(
                     "%s:%s "
                         .formatted(
-                            this.attributes.getFrameHeight(), this.attributes.getFrameWidth()),
+                            this.attributes.getFrameWidth(), this.attributes.getFrameHeight()),
                     AQUA),
                 text("(width:height)", GOLD))));
 

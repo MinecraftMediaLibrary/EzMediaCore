@@ -109,7 +109,7 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
   public void preparePlayerStateChange(@NotNull final PlayerControls status) {
     super.preparePlayerStateChange(status);
     switch (status) {
-      case START, RELEASE -> this.removeEntities();
+      case RELEASE -> this.removeEntities();
     }
   }
 
@@ -128,6 +128,12 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
 
   @Override
   public void process(final int[] data) {
+    final long time = System.currentTimeMillis();
+    if (time - this.getLastUpdated() >= this.getFrameDelay()) {
+      this.setLastUpdated(time);
+      this.getPacketHandler()
+          .displayEntities(this.getViewers(), this.entities, data, this.getDimensions().getWidth());
+    }
   }
 
   @Override

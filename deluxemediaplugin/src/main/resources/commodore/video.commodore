@@ -2,6 +2,7 @@ video {
   play;
   stop;
   resume;
+  destroy;
   load {
     resourcepack;
     mrl brigadier:string greedy_phrase;

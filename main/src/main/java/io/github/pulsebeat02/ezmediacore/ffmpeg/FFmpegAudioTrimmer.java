@@ -4,13 +4,24 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTrimmer {
+
+  private static final SimpleDateFormat TIME_FORMATTER;
+
+  // HOURS:MINUTES:SECONDS.MILLISECONDS
+  //  XX  :   XX  :  XX   .    XXX
+
+  static {
+    TIME_FORMATTER = new SimpleDateFormat("HH:mm:ss.SSS");
+  }
 
   private final Path input;
   private final Path output;
@@ -38,14 +49,13 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
   }
 
   private List<String> generateArguments() {
-    return new ArrayList<>(
-        List.of(
-            this.getCore().getFFmpegPath().toString(),
-            "-ss",
-            "%d.ms".formatted(this.ms),
-            "-i",
-            this.input.toString(),
-            this.output.toString()));
+    return new ArrayList<>(List.of(
+        this.getCore().getFFmpegPath().toString(),
+        "-ss", TIME_FORMATTER.format(new Date(this.ms)),
+        "-to", "99:99:99.999",
+        "-i", this.input.toString(),
+        this.output.toString()
+    ));
   }
 
   @Override

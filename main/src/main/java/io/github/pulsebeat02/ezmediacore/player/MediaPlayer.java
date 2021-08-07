@@ -82,14 +82,14 @@ public abstract class MediaPlayer implements VideoPlayer {
   @Override
   public void playAudio() {
     for (final Player player : this.watchers) {
-      player.playSound(player.getLocation(), this.soundKey, SoundCategory.MUSIC, 100.0F, 1.0F);
+      player.playSound(player.getLocation(), this.soundKey, SoundCategory.MASTER, 100.0F, 1.0F);
     }
   }
 
   @Override
   public void stopAudio() {
     for (final Player player : this.watchers) {
-      player.stopSound(this.soundKey, SoundCategory.MUSIC);
+      player.stopSound(this.soundKey, SoundCategory.MASTER);
     }
   }
 
