@@ -10,6 +10,9 @@ public final class YoutubeProvider {
     YOUTUBE_DOWNLOADER = new YoutubeDownloader();
   }
 
+  private YoutubeProvider() {
+  }
+
   static YoutubeDownloader getYoutubeDownloader() {
     return YOUTUBE_DOWNLOADER;
   }

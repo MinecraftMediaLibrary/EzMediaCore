@@ -5,6 +5,7 @@ import static io.github.pulsebeat02.ezmediacore.decoder.GifDecoder.GifImage;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.decoder.GifDecoder;
 import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -40,13 +41,12 @@ public class DynamicImage extends Image
               for (; this.frame < this.frameCount; this.frame++) {
                 this.getRenderer().drawMap(this.process(this.image.getFrame(this.frame), resize));
                 try {
-                  final int delay = this.image.getDelay(this.frame);
-                  Thread.sleep(delay * 10L);
+                  Thread.sleep(this.image.getDelay(this.frame) * 10L);
                 } catch (final InterruptedException e) {
                   e.printStackTrace();
                 }
               }
-            });
+            }, ExecutorProvider.MAP_UPDATE_POOL);
     this.onFinishDrawImage();
   }
 

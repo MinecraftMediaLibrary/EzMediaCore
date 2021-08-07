@@ -2,10 +2,9 @@ package io.github.pulsebeat02.ezmediacore.listener;
 
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -18,12 +17,6 @@ import org.jetbrains.annotations.NotNull;
 public record ForcefulResourcepackListener(@NotNull MediaLibraryCore core,
                                            Set<UUID> uuids, String url,
                                            byte[] hash) implements Listener {
-
-  private static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE;
-
-  static {
-    SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
-  }
 
   public ForcefulResourcepackListener(
       @NotNull final MediaLibraryCore core,
@@ -51,7 +44,7 @@ public record ForcefulResourcepackListener(@NotNull MediaLibraryCore core,
   }
 
   public void start() {
-    SCHEDULED_EXECUTOR_SERVICE.schedule(() -> {
+    ExecutorProvider.SCHEDULED_EXECUTOR_SERVICE.schedule(() -> {
       if (!ForcefulResourcepackListener.this.uuids.isEmpty()) {
         Logger.info(
             "Could not force all players to load resourcepack! (%s)".formatted(

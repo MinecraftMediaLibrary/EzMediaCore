@@ -7,6 +7,9 @@ public final class SpotifyProvider {
 
   private static SpotifyApi SPOTIFY_API;
 
+  private SpotifyProvider() {
+  }
+
   public static void initialize(@NotNull final String accessToken) {
     SPOTIFY_API = new SpotifyApi.Builder().setAccessToken(accessToken).build();
   }

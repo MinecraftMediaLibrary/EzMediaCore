@@ -35,12 +35,9 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ArtifactInstaller {
 
-  private static final ExecutorService DOWNLOAD_THREAD_POOL;
   private static final List<RelocationRule> RELOCATION_RULES;
 
   static {
-    DOWNLOAD_THREAD_POOL = Executors.newFixedThreadPool(
-        Runtime.getRuntime().availableProcessors() / 4);
     RELOCATION_RULES =
         Arrays.stream(RelocationPaths.values())
             .map(RelocationPaths::getRelocation)
@@ -48,6 +45,7 @@ public final class ArtifactInstaller {
   }
 
   private final JarRelocatorFacadeFactory factory;
+  private final ExecutorService service;
   private final Set<Path> jars;
   private final Set<String> hashes;
   private final Path dependencyFolder;
@@ -57,8 +55,6 @@ public final class ArtifactInstaller {
   public ArtifactInstaller(@NotNull final MediaLibraryCore core)
       throws ReflectiveOperationException, URISyntaxException, NoSuchAlgorithmException,
       IOException {
-    this.jars = new HashSet<>();
-    this.hashes = new HashSet<>();
     this.dependencyFolder = core.getDependencyPath();
     this.relocatedFolder = this.dependencyFolder.resolve("relocated");
     this.factory =
@@ -66,6 +62,9 @@ public final class ArtifactInstaller {
             this.relocatedFolder,
             Collections.singleton(
                 new Repository(new URL(SimpleMirrorSelector.DEFAULT_CENTRAL_MIRROR_URL))));
+    this.service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    this.jars = new HashSet<>();
+    this.hashes = new HashSet<>();
     this.hashFile = this.dependencyFolder.resolve(".relocated-cache");
   }
 
@@ -77,13 +76,14 @@ public final class ArtifactInstaller {
       this.writeHashes();
       this.load();
       this.delete();
+      this.shutdown();
     } catch (final IOException | InterruptedException e) {
       Logger.info("A serious exception occurred during dependency instantiation!");
       e.printStackTrace();
     }
   }
 
-  public void createFiles() throws IOException {
+  private void createFiles() throws IOException {
     Files.createDirectories(this.dependencyFolder);
     Files.createDirectories(this.relocatedFolder);
     if (!FileUtils.createIfNotExists(this.hashFile)) {
@@ -93,26 +93,26 @@ public final class ArtifactInstaller {
     }
   }
 
-  public void download() throws InterruptedException {
-    DOWNLOAD_THREAD_POOL.invokeAll(
+  private void download() throws InterruptedException {
+    this.service.invokeAll(
         Arrays.stream(DependencyInfo.values())
             .filter(this::requiresDownload)
             .map(path -> Executors.callable(() -> this.downloadDependency(path), null))
             .collect(Collectors.toSet()));
   }
 
-  public void relocate() throws InterruptedException {
+  private void relocate() throws InterruptedException {
 
     Logger.info(
         "Preparing to relocate %d dependencies (%s)".formatted(this.jars.size(), this.jars));
 
-    DOWNLOAD_THREAD_POOL.invokeAll(
+    this.service.invokeAll(
         this.jars.stream()
             .map(path -> Executors.callable(() -> this.relocateFile(path, this.factory)))
             .collect(Collectors.toList()));
   }
 
-  public void writeHashes() throws IOException {
+  private void writeHashes() throws IOException {
 
     Logger.info("Recording relocated JAR hashes");
 
@@ -121,7 +121,7 @@ public final class ArtifactInstaller {
     }
   }
 
-  public void load() throws IOException {
+  private void load() throws IOException {
 
     Logger.info("Preparing to load %d dependencies (%s)".formatted(this.jars.size(), this.jars));
 
@@ -148,7 +148,7 @@ public final class ArtifactInstaller {
         .inject();
   }
 
-  public void delete() {
+  private void delete() {
 
     Logger.info(
         "Preparing to delete %d stale dependencies (%s)".formatted(this.jars.size(), this.jars));
@@ -156,6 +156,10 @@ public final class ArtifactInstaller {
     this.jars.forEach(ThrowingConsumer.unchecked(Files::delete, "Could not delete dependency!"));
 
     this.jars.clear();
+  }
+
+  private void shutdown() {
+    this.service.shutdownNow();
   }
 
   private boolean requiresDownload(@NotNull final DependencyInfo dependency) {

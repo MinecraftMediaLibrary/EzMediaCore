@@ -2,6 +2,7 @@ package io.github.pulsebeat02.ezmediacore.http;
 
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipHeader;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipRequest;
 import java.io.IOException;
@@ -9,17 +10,9 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 
 public class HttpServerDaemon implements HttpDaemon, ZipRequest {
-
-  private static final ExecutorService REQUEST_EXECUTOR;
-
-  static {
-    REQUEST_EXECUTOR = Executors.newCachedThreadPool();
-  }
 
   private final Path directory;
   private final String ip;
@@ -73,7 +66,8 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
     this.onServerStart();
     while (this.running) {
       try {
-        REQUEST_EXECUTOR.submit(new FileRequestHandler(this, this.socket.accept(), this.header));
+        ExecutorProvider.HTTP_REQUEST_POOL.submit(
+            new FileRequestHandler(this, this.socket.accept(), this.header));
       } catch (final IOException e) {
         e.printStackTrace();
       }

@@ -23,6 +23,7 @@
 package io.github.pulsebeat02.ezmediacore.task;
 
 import io.github.pulsebeat02.ezmediacore.Logger;
+import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -98,7 +99,7 @@ public class CommandTaskChain {
               } catch (final IOException e) {
                 e.printStackTrace();
               }
-            });
+            }, ExecutorProvider.EXTERNAL_PROCESS_POOL);
       } else {
         task.run();
         if (task.getProcess().waitFor() == 0) {

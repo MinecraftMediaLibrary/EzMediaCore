@@ -6,7 +6,6 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
 import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
-import io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
@@ -18,10 +17,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class MediaPlayer implements VideoPlayer {
-
-  static {
-    DitherLookupUtil.init();
-  }
 
   private final MediaLibraryCore core;
   private final FrameCallback callback;

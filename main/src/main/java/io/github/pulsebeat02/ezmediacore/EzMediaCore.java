@@ -2,6 +2,7 @@ package io.github.pulsebeat02.ezmediacore;
 
 import io.github.pulsebeat02.ezmediacore.analysis.Diagnostic;
 import io.github.pulsebeat02.ezmediacore.analysis.SystemDiagnostics;
+import io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil;
 import io.github.pulsebeat02.ezmediacore.listener.RegistrationListener;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.reflect.NMSReflectionHandler;
@@ -24,6 +25,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class EzMediaCore implements MediaLibraryCore {
+
+  static {
+    DitherLookupUtil.init();
+  }
 
   private final Plugin plugin;
   private final LibraryLoader loader;
