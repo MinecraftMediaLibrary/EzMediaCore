@@ -15,7 +15,7 @@ public final class ExecutorProvider {
     SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
     HTTP_REQUEST_POOL = Executors.newCachedThreadPool();
     MAP_UPDATE_POOL = Executors.newCachedThreadPool();
-    EXTERNAL_PROCESS_POOL = Executors.newFixedThreadPool(1);
+    EXTERNAL_PROCESS_POOL = Executors.newSingleThreadExecutor();
   }
 
   private ExecutorProvider() {
