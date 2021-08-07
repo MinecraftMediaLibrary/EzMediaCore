@@ -76,12 +76,8 @@ public final class VideoCommandAttributes {
     this.player = player;
   }
 
-  public String getVideo() {
+  public String getVideoMrl() {
     return this.video;
-  }
-
-  public void setVideo(final String video) {
-    this.video = video;
   }
 
   public void setVideoMrl(final String video) {

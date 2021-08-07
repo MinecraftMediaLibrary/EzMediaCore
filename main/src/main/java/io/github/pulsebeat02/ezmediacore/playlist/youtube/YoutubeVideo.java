@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 public class YoutubeVideo implements Video {
 
   private final String url;
+  private final String id;
   private final VideoInfo video;
   private final VideoDetails details;
   private final List<VideoFormat> videoFormats;
@@ -20,11 +21,9 @@ public class YoutubeVideo implements Video {
 
   public YoutubeVideo(@NotNull final String url) {
     this.url = url;
-    this.video = ResponseUtils.getResponseResult(YoutubeProvider.getYoutubeDownloader()
-            .getVideoInfo(
-                new RequestVideoInfo(MediaExtractionUtils.getYoutubeID(url)
-                    .orElseThrow(() -> new DeadResourceLinkException(url)))))
-        .orElseThrow(AssertionError::new);
+    this.id = MediaExtractionUtils.getYoutubeID(url)
+        .orElseThrow(() -> new DeadResourceLinkException(url));
+    this.video = this.getVideoResponse();
     this.details = this.video.details();
     this.videoFormats =
         this.video.videoFormats().stream()
@@ -34,6 +33,11 @@ public class YoutubeVideo implements Video {
         this.video.audioFormats().stream()
             .map(YoutubeAudioFormat::new)
             .collect(Collectors.toList());
+  }
+
+  private VideoInfo getVideoResponse() {
+    return ResponseUtils.getResponseResult(YoutubeProvider.getYoutubeDownloader()
+        .getVideoInfo(new RequestVideoInfo(this.id))).orElseGet(this::getVideoResponse);
   }
 
   @Override

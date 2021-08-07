@@ -13,23 +13,28 @@ import org.jetbrains.annotations.NotNull;
 public class YoutubePlaylist implements Playlist {
 
   private final String url;
+  private final String id;
   private final PlaylistInfo info;
   private final PlaylistDetails details;
   private final List<Video> videos;
 
   public YoutubePlaylist(@NotNull final String url) {
     this.url = url;
-    this.info = ResponseUtils.getResponseResult(YoutubeProvider.getYoutubeDownloader()
-            .getPlaylistInfo(
-                new RequestPlaylistInfo(MediaExtractionUtils.getYoutubeID(url)
-                    .orElseThrow(() -> new UnknownPlaylistException(url)))))
-        .orElseThrow(AssertionError::new);
+    this.id = MediaExtractionUtils.getYoutubeID(url)
+        .orElseThrow(() -> new UnknownPlaylistException(url));
+    this.info = this.getPlaylistResponse();
     this.details = this.info.details();
     this.videos =
         this.info.videos().parallelStream()
             .map(link -> new YoutubeVideo(link.videoId()))
             .collect(Collectors.toList());
   }
+
+  private PlaylistInfo getPlaylistResponse() {
+    return ResponseUtils.getResponseResult(YoutubeProvider.getYoutubeDownloader()
+        .getPlaylistInfo(new RequestPlaylistInfo(this.id))).orElseGet(this::getPlaylistResponse);
+  }
+
 
   @Override
   public @NotNull String getAuthor() {

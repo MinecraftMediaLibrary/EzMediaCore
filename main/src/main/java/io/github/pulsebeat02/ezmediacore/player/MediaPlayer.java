@@ -6,9 +6,9 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
 import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Locale;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.stream.Collectors;
@@ -18,6 +18,10 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class MediaPlayer implements VideoPlayer {
+
+  static {
+    DitherLookupUtil.init();
+  }
 
   private final MediaLibraryCore core;
   private final FrameCallback callback;
@@ -30,16 +34,18 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   MediaPlayer(
       @NotNull final FrameCallback callback,
+      @NotNull final ImmutableDimension pixelDimension,
       @NotNull final String url,
       final int frameRate) {
-    final ImmutableDimension dimension = callback.getDimensions();
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
-    Preconditions.checkArgument(dimension.getWidth() >= 0, "Width must be above or equal to 0!");
-    Preconditions.checkArgument(dimension.getHeight() >= 0, "Height must be above or equal to 0!");
+    Preconditions.checkArgument(pixelDimension.getWidth() >= 0,
+        "Width must be above or equal to 0!");
+    Preconditions.checkArgument(pixelDimension.getHeight() >= 0,
+        "Height must be above or equal to 0!");
     this.core = callback.getCore();
     this.callback = callback;
-    this.dimensions = dimension;
-    this.soundKey = this.core.getPlugin().getName().toLowerCase(Locale.ROOT);
+    this.dimensions = pixelDimension;
+    this.soundKey = "emc";
     this.url = url;
     this.frameRate = frameRate;
     this.watchers = Collections.newSetFromMap(new WeakHashMap<>());

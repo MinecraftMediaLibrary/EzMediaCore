@@ -186,7 +186,7 @@ public final class VideoCommand extends BaseCommand {
   }
 
   private boolean mediaNotSpecified(@NotNull final Audience audience) {
-    if (this.attributes.getVideo() == null && !this.attributes.isYoutube()) {
+    if (this.attributes.getVideoMrl() == null && !this.attributes.isYoutube()) {
       audience.sendMessage(format(text("File and URL not specified yet!", RED)));
       return true;
     }
@@ -212,7 +212,7 @@ public final class VideoCommand extends BaseCommand {
   }
 
   private void sendPlayInformation(@NotNull final Audience audience) {
-    final String mrl = this.attributes.getMrl();
+    final String mrl = this.attributes.getVideoMrl();
     if (this.attributes.isYoutube()) {
       gold(audience, "Starting Video on URL: %s".formatted(mrl));
     } else {

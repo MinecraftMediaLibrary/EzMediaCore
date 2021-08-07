@@ -111,8 +111,6 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
           .thenRun(() -> gold(audience, "Successfully loaded Youtube video %s".formatted(mrl)));
     }
 
-    this.attributes.setMrl(mrl);
-
     return SINGLE_SUCCESS;
   }
 
@@ -142,7 +140,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     }
 
     this.attributes.setYoutube(false);
-    this.attributes.setVideoMrl(file.toString());
+    this.attributes.setVideoMrl(file.toAbsolutePath().toString());
     this.attributes.setAudio(audio);
 
     return audio;
@@ -161,8 +159,9 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       extractor.executeAsyncWithLogging((line) -> external(audience, line)).get();
 
       this.attributes.setYoutube(true);
-      this.attributes.setVideoMrl(mrl);
-      this.attributes.setAudio(extractor.getExtractor().getOutput());
+      this.attributes.setVideoMrl(
+          extractor.getDownloader().getDownloadPath().toAbsolutePath().toString());
+      this.attributes.setAudio(extractor.getExtractor().getOutput().toAbsolutePath());
 
       return extractor;
 

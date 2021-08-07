@@ -41,19 +41,19 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   public void downloadVideo(@NotNull final VideoQuality format, final boolean overwrite) {
     this.onStartVideoDownload();
 
-    final String name = FilenameUtils.removeExtension(PathUtils.getName(this.videoPath));
-
-    final RequestVideoFileDownload download =
-        new RequestVideoFileDownload(this.getFormat(format))
-            .saveTo(this.videoPath.getParent().toFile())
-            .renameTo(name)
-            .overwriteIfExists(overwrite);
-
-    ResponseUtils.getResponseResult(
-            YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download))
-        .orElseThrow(AssertionError::new);
+    this.internalDownload(new RequestVideoFileDownload(this.getFormat(format))
+        .saveTo(this.videoPath.getParent().toFile())
+        .renameTo(FilenameUtils.removeExtension(PathUtils.getName(this.videoPath)))
+        .overwriteIfExists(overwrite));
 
     this.onFinishVideoDownload();
+  }
+
+  private void internalDownload(@NotNull final RequestVideoFileDownload download) {
+    if (ResponseUtils.getResponseResult(
+        YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download)).isEmpty()) {
+      this.internalDownload(download);
+    }
   }
 
   private com.github.kiulian.downloader.model.videos.formats.VideoFormat getFormat(

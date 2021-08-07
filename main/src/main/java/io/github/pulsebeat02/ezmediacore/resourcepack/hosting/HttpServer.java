@@ -63,7 +63,7 @@ public class HttpServer implements HttpDaemonSolution {
 
   @Override
   public @NotNull String createUrl(@NotNull final Path file) {
-    return "https://%s:%d/%s"
+    return "http://%s:%d/%s"
         .formatted(
             this.daemon.getAddress(), this.daemon.getPort(), this.daemon.getRelativePath(file));
   }

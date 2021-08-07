@@ -120,10 +120,6 @@ public class NMSMapPacketIntercepter implements PacketHandler {
         }
       }
     }
-
-    for (final UUID uuid : viewers) {
-      this.playerConnections.get(uuid).sendPacket(packet);
-    }
   }
 
   @Override

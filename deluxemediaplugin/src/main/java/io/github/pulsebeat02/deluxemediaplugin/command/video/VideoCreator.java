@@ -49,24 +49,24 @@ public record VideoCreator(MediaLibraryCore library,
 
   public VideoPlayer createMapPlayer(@NotNull final Collection<? extends Player> viewers) {
     return VideoFactory.builder()
-        .url(this.attributes.getMrl())
+        .url(this.attributes.getVideoMrl())
         .callback(
             new MapCallback(
                 this.library,
-                Dimension.of(
-                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+                Dimension.of(this.attributes.getFrameWidth(), this.attributes.getFrameHeight()),
                 viewers,
                 this.attributes.getDither().getAlgorithm(),
                 this.attributes.getMap(),
-                this.attributes.getFrameWidth(),
+                this.attributes.getPixelWidth(),
                 0))
+        .dims(Dimension.of(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
         .build();
   }
 
   public VideoPlayer createEntityPlayer(
       @NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
     return VideoFactory.builder()
-        .url(this.attributes.getMrl())
+        .url(this.attributes.getVideoMrl())
         .callback(
             new EntityCallback(
                 this.library,
@@ -78,12 +78,13 @@ public record VideoCreator(MediaLibraryCore library,
                 EntityType.ARMORSTAND,
                 this.attributes.getFrameWidth(),
                 20))
+        .dims(Dimension.of(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
         .build();
   }
 
   public VideoPlayer createChatBoxPlayer(@NotNull final Collection<? extends Player> viewers) {
     return VideoFactory.builder()
-        .url(this.attributes.getMrl())
+        .url(this.attributes.getVideoMrl())
         .callback(
             new ChatCallback(
                 this.library,
@@ -93,12 +94,13 @@ public record VideoCreator(MediaLibraryCore library,
                 NamedEntityString.NORMAL_SQUARE,
                 this.attributes.getFrameWidth(),
                 20))
+        .dims(Dimension.of(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
         .build();
   }
 
   public VideoPlayer createScoreboardPlayer(@NotNull final Collection<? extends Player> viewers) {
     return VideoFactory.builder()
-        .url(this.attributes.getMrl())
+        .url(this.attributes.getVideoMrl())
         .callback(
             new ScoreboardCallback(
                 this.library,
@@ -108,13 +110,14 @@ public record VideoCreator(MediaLibraryCore library,
                 1080,
                 this.attributes.getFrameWidth(),
                 20))
+        .dims(Dimension.of(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
         .build();
   }
 
   public VideoPlayer createBlockHighlightPlayer(
       @NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
     return VideoFactory.builder()
-        .url(this.attributes.getMrl())
+        .url(this.attributes.getVideoMrl())
         .callback(
             new BlockHighlightCallback(
                 this.library,
@@ -124,6 +127,7 @@ public record VideoCreator(MediaLibraryCore library,
                 sender.getLocation(),
                 this.attributes.getFrameWidth(),
                 40))
+        .dims(Dimension.of(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
         .build();
   }
 }

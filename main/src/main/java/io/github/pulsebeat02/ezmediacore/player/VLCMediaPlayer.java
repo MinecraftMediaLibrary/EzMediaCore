@@ -26,9 +26,10 @@ public class VLCMediaPlayer extends MediaPlayer {
 
   VLCMediaPlayer(
       @NotNull final FrameCallback callback,
+      @NotNull final ImmutableDimension pixelDimension,
       @NotNull final String url,
       final int frameRate) {
-    super(callback, url, frameRate);
+    super(callback, pixelDimension, url, frameRate);
     this.adapter = this.getAdapter();
     this.callback = new MinecraftVideoRenderCallback(this);
     this.initializePlayer(0L);

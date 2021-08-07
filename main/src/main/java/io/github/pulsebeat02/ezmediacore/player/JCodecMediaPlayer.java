@@ -21,9 +21,10 @@ public class JCodecMediaPlayer extends MediaPlayer {
 
   JCodecMediaPlayer(
       @NotNull final FrameCallback callback,
+      @NotNull final ImmutableDimension pixelDimension,
       @NotNull final String url,
       final int frameRate) {
-    super(callback, url, frameRate);
+    super(callback, pixelDimension, url, frameRate);
     this.initializePlayer(0L);
   }
 
