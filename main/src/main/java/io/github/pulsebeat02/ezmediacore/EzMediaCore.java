@@ -26,10 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 public final class EzMediaCore implements MediaLibraryCore {
 
-  static {
-    DitherLookupUtil.init();
-  }
-
   private final Plugin plugin;
   private final LibraryLoader loader;
   private final Diagnostic diagnostics;
@@ -121,6 +117,8 @@ public final class EzMediaCore implements MediaLibraryCore {
     }
 
     this.loader.start();
+
+    DitherLookupUtil.init();
 
     PluginUsageTips.sendWarningMessage();
     PluginUsageTips.sendPacketCompressionTip();
