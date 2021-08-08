@@ -97,7 +97,7 @@ public class NMSMapPacketIntercepter implements PacketHandler {
     buf.writeInt(time);
     final PacketPlayOutCustomPayload packet =
         new PacketPlayOutCustomPayload(this.debugMarker, new PacketDataSerializer(buf));
-t    if (viewers == null) {
+    if (viewers == null) {
       for (final UUID uuid : this.playerConnections.keySet()) {
         final long val = this.lastUpdated.getOrDefault(uuid, 0L);
         if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
