@@ -1,7 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.player;
 
 import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -21,7 +21,7 @@ public class JCodecMediaPlayer extends MediaPlayer {
 
   JCodecMediaPlayer(
       @NotNull final FrameCallback callback,
-      @NotNull final ImmutableDimension pixelDimension,
+      @NotNull final Dimension pixelDimension,
       @NotNull final String url,
       final int frameRate) {
     super(callback, pixelDimension, url, frameRate);
@@ -61,9 +61,9 @@ public class JCodecMediaPlayer extends MediaPlayer {
 
     this.playAudio();
 
-    final ImmutableDimension dimension = this.getDimensions();
-    final int width = dimension.width();
-    final int height = dimension.height();
+    final Dimension dimension = this.getDimensions();
+    final int width = dimension.getWidth();
+    final int height = dimension.getHeight();
 
     this.playAudio();
 
@@ -88,12 +88,12 @@ public class JCodecMediaPlayer extends MediaPlayer {
 
   @Override
   public void initializePlayer(final long ms) {
-    final ImmutableDimension dimension = this.getDimensions();
+    final Dimension dimension = this.getDimensions();
     this.start = ms;
     try {
       this.grabber = FrameGrab.createFrameGrab(NIOUtils.readableFileChannel(this.getUrl()));
       this.grabber.seekToSecondPrecise(ms / 1000.0F);
-      this.grabber.getMediaInfo().setDim(new Size(dimension.width(), dimension.height()));
+      this.grabber.getMediaInfo().setDim(new Size(dimension.getWidth(), dimension.getHeight()));
     } catch (final IOException | JCodecException e) {
       e.printStackTrace();
     }

@@ -5,7 +5,7 @@ import com.google.common.base.Strings;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
@@ -20,7 +20,7 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   private final MediaLibraryCore core;
   private final FrameCallback callback;
-  private final ImmutableDimension dimensions;
+  private final Dimension dimensions;
   private final Set<Player> watchers;
   private final String soundKey;
   private final String url;
@@ -29,15 +29,15 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   MediaPlayer(
       @NotNull final FrameCallback callback,
-      @NotNull final ImmutableDimension pixelDimension,
+      @NotNull final Dimension pixelDimension,
       @NotNull final String url,
       final int frameRate) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
-    Preconditions.checkArgument(pixelDimension.width() >= 0,
+    Preconditions.checkArgument(pixelDimension.getWidth() >= 0,
         "Width must be above or equal to 0!");
-    Preconditions.checkArgument(pixelDimension.height() >= 0,
+    Preconditions.checkArgument(pixelDimension.getHeight() >= 0,
         "Height must be above or equal to 0!");
-    this.core = callback.core();
+    this.core = callback.getCore();
     this.callback = callback;
     this.dimensions = pixelDimension;
     this.soundKey = "emc";
@@ -99,12 +99,12 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public @NotNull ImmutableDimension getDimensions() {
+  public @NotNull Dimension getDimensions() {
     return this.dimensions;
   }
 
   @Override
-  public @NotNull MediaLibraryCore core() {
+  public @NotNull MediaLibraryCore getCore() {
     return this.core;
   }
 

@@ -35,7 +35,7 @@ public class NativeBinaryInstaller implements BinaryInstaller {
   }
 
   @Override
-  public @NotNull MediaLibraryCore core() {
+  public @NotNull MediaLibraryCore getCore() {
     return this.core;
   }
 

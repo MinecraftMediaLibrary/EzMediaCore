@@ -69,7 +69,7 @@ public final class SystemDiagnostics implements Diagnostic {
   }
 
   private void initializeDownloadLinks() {
-    if (this.cpu.bits64()) {
+    if (this.cpu.isBits64()) {
       switch (this.system.getOSType()) {
         case WINDOWS -> {
           Logger.info("Detected Windows 64-bit Operating System");
@@ -77,7 +77,7 @@ public final class SystemDiagnostics implements Diagnostic {
           this.ffmpegDownloadLink = FFmpegDownloadPortal.WIN_64;
         }
         case UNIX -> {
-          if (this.cpu.architecture().contains("arm")) {
+          if (this.cpu.getArchitecture().contains("arm")) {
             Logger.info("Detected Linux ARM 64-bit Operating System");
             this.ffmpegDownloadLink = FFmpegDownloadPortal.UNIX_ARM_64;
           } else {
@@ -87,7 +87,7 @@ public final class SystemDiagnostics implements Diagnostic {
           this.vlcDownloadLink = VLCDownloadPortal.NA;
         }
         case MAC -> {
-          if (this.cpu.architecture().contains("amd")) {
+          if (this.cpu.getArchitecture().contains("amd")) {
             Logger.info("Detected MacOS Silicon 64-bit Operating System");
             this.vlcDownloadLink = VLCDownloadPortal.MAC_SILICON_64;
           } else {
@@ -106,7 +106,7 @@ public final class SystemDiagnostics implements Diagnostic {
           this.ffmpegDownloadLink = FFmpegDownloadPortal.WIN_32;
         }
         case UNIX -> {
-          if (this.cpu.architecture().contains("arm")) {
+          if (this.cpu.getArchitecture().contains("arm")) {
             Logger.info("Detected Linux ARM 32-bit Operating System");
             this.vlcDownloadLink = VLCDownloadPortal.NA;
             this.ffmpegDownloadLink = FFmpegDownloadPortal.UNIX_ARM_32;
@@ -152,7 +152,7 @@ public final class SystemDiagnostics implements Diagnostic {
     Logger.info("Operating System: %s".formatted(this.system.getOSName()));
     Logger.info("Version: %s".formatted(this.system.getVersion()));
     Logger.info("Linux Distribution: %s".formatted(this.system.getLinuxDistribution()));
-    Logger.info("CPU Architecture: %s".formatted(this.cpu.architecture()));
+    Logger.info("CPU Architecture: %s".formatted(this.cpu.getArchitecture()));
     Logger.info("===========================================");
     Logger.info("             INSTALLATION LINKS            ");
     Logger.info("===========================================");

@@ -1,7 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.util.Collection;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -14,7 +14,7 @@ public class BlockHighlightCallback extends FrameCallback
 
   public BlockHighlightCallback(
       @NotNull final MediaLibraryCore core,
-      @NotNull final ImmutableDimension dimension,
+      @NotNull final Dimension dimension,
       @NotNull final Collection<? extends Player> viewers,
       @NotNull final Location location,
       final int blockWidth,
@@ -29,9 +29,9 @@ public class BlockHighlightCallback extends FrameCallback
     final int delay = this.getFrameDelay();
     if (time - this.getLastUpdated() >= delay) {
       this.setLastUpdated(time);
-      final ImmutableDimension dimension = this.getDimensions();
-      final int width = dimension.width();
-      final int height = dimension.height();
+      final Dimension dimension = this.getDimensions();
+      final int width = dimension.getWidth();
+      final int height = dimension.getHeight();
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
           this.getPacketHandler()

@@ -32,7 +32,7 @@ public class SilentWindowsInstallation extends SilentInstallation {
     final Path folder = this.getDirectory();
     final Path archive = folder.resolve("VLC.zip");
 
-    FileUtils.copyURLToFile(this.core().getDiagnostics().getVlcUrl(), archive);
+    FileUtils.copyURLToFile(this.getCore().getDiagnostics().getVlcUrl(), archive);
     Logger.info("Successfully downloaded archived binaries.");
 
     ArchiveUtils.decompressArchive(archive, folder);

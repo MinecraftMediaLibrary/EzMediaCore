@@ -1,7 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import java.util.Collection;
 import org.bukkit.entity.Player;
@@ -14,7 +14,7 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
 
   public MapCallback(
       @NotNull final MediaLibraryCore core,
-      @NotNull final ImmutableDimension dimension,
+      @NotNull final Dimension dimension,
       @NotNull final Collection<? extends Player> viewers,
       final DitherAlgorithm algorithm,
       final int map,
@@ -28,7 +28,7 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
   @Override
   public void process(final int[] data) {
     final long time = System.currentTimeMillis();
-    final ImmutableDimension dimension = this.getDimensions();
+    final Dimension dimension = this.getDimensions();
     if (time - this.getLastUpdated() >= this.getFrameDelay()) {
       this.setLastUpdated(time);
       final int width = this.getBlockWidth();
@@ -36,8 +36,8 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
           .displayMaps(
               this.getViewers(),
               this.map,
-              dimension.width(),
-              dimension.height(),
+              dimension.getWidth(),
+              dimension.getHeight(),
               this.algorithm.ditherIntoMinecraft(data, width),
               width);
     }

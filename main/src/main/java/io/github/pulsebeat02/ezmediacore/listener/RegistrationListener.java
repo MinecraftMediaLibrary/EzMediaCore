@@ -1,5 +1,6 @@
 package io.github.pulsebeat02.ezmediacore.listener;
 
+import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import org.bukkit.entity.Player;
@@ -10,7 +11,9 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-public record RegistrationListener(MediaLibraryCore core) implements Listener {
+public class RegistrationListener implements LibraryInjectable, Listener {
+
+  private final MediaLibraryCore core;
 
   public RegistrationListener(@NotNull final MediaLibraryCore core) {
     this.core = core;
@@ -35,5 +38,10 @@ public record RegistrationListener(MediaLibraryCore core) implements Listener {
     final Player p = event.getPlayer();
     this.core.getHandler().unregisterPlayer(p);
     Logger.info("Unregistered Player %s".formatted(p.getUniqueId()));
+  }
+
+  @Override
+  public @NotNull MediaLibraryCore getCore() {
+    return this.core;
   }
 }

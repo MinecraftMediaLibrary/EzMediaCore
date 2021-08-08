@@ -35,7 +35,7 @@ public abstract class SilentInstallation implements SilentInstallationProvider {
   }
 
   @Override
-  public @NotNull MediaLibraryCore core() {
+  public @NotNull MediaLibraryCore getCore() {
     return this.core;
   }
 
@@ -52,6 +52,6 @@ public abstract class SilentInstallation implements SilentInstallationProvider {
 
   @Override
   public void loadNativeBinaries() throws IOException {
-    new NativeBinarySearch(this.core(), this.getInstallationPath()).search();
+    new NativeBinarySearch(this.getCore(), this.getInstallationPath()).search();
   }
 }

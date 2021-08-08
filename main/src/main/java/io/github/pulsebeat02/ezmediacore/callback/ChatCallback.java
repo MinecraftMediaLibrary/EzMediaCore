@@ -1,7 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,7 +20,7 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
 
   public ChatCallback(
       @NotNull final MediaLibraryCore core,
-      @NotNull final ImmutableDimension dimension,
+      @NotNull final Dimension dimension,
       @NotNull final Collection<? extends Player> viewers,
       @NotNull final String character,
       final int blockWidth,
@@ -37,9 +37,9 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
     final long time = System.currentTimeMillis();
     if (time - this.getLastUpdated() >= this.getFrameDelay()) {
       this.setLastUpdated(time);
-      final ImmutableDimension dimension = this.getDimensions();
-      final int width = dimension.width();
-      final int height = dimension.height();
+      final Dimension dimension = this.getDimensions();
+      final int width = dimension.getWidth();
+      final int height = dimension.getHeight();
       for (int y = 0; y < height; ++y) {
         int before = -1;
         final StringBuilder msg = new StringBuilder();

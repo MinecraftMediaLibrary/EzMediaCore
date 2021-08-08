@@ -14,9 +14,12 @@ import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-public record ForcefulResourcepackListener(@NotNull MediaLibraryCore core,
-                                           Set<UUID> uuids, String url,
-                                           byte[] hash) implements Listener {
+public class ForcefulResourcepackListener implements Listener {
+
+  private final MediaLibraryCore core;
+  private final Set<UUID> uuids;
+  private final String url;
+  private final byte[] hash;
 
   public ForcefulResourcepackListener(
       @NotNull final MediaLibraryCore core,
@@ -71,5 +74,21 @@ public record ForcefulResourcepackListener(@NotNull MediaLibraryCore core,
       }
       default -> throw new IllegalArgumentException("Invalid resourcepack status!");
     }
+  }
+
+  public MediaLibraryCore getCore() {
+    return this.core;
+  }
+
+  public Set<UUID> getUuids() {
+    return this.uuids;
+  }
+
+  public String getUrl() {
+    return this.url;
+  }
+
+  public byte[] getHash() {
+    return this.hash;
   }
 }

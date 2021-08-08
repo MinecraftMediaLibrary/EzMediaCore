@@ -10,7 +10,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.jetbrains.annotations.NotNull;
 
-public record DependencyLoader(MediaLibraryCore core) implements LibraryLoader {
+public class DependencyLoader implements LibraryLoader {
+
+  private final MediaLibraryCore core;
 
   public DependencyLoader(@NotNull final MediaLibraryCore core) {
     this.core = core;
@@ -52,5 +54,10 @@ public record DependencyLoader(MediaLibraryCore core) implements LibraryLoader {
     } catch (final IOException | InterruptedException e) {
       e.printStackTrace();
     }
+  }
+
+  @Override
+  public @NotNull MediaLibraryCore getCore() {
+    return this.core;
   }
 }

@@ -2,7 +2,7 @@ package io.github.pulsebeat02.ezmediacore.image;
 
 import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.utility.ImageUtils;
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
@@ -16,7 +16,7 @@ public abstract class Image implements MapImage {
 
   private final transient MediaLibraryCore core;
   private final transient EnhancedMapRenderer renderer;
-  private final ImmutableDimension dimension;
+  private final Dimension dimension;
   private final List<Integer> maps;
   private final Path image;
   private final UUID uuid;
@@ -25,10 +25,10 @@ public abstract class Image implements MapImage {
       @NotNull final MediaLibraryCore core,
       @NotNull final Path image,
       final List<Integer> maps,
-      @NotNull final ImmutableDimension dimension) {
+      @NotNull final Dimension dimension) {
     Preconditions.checkArgument(maps.size() >= 1, "Invalid Map Matrix!");
     Preconditions.checkArgument(
-        maps.size() == dimension.width() * dimension.height(),
+        maps.size() == dimension.getWidth() * dimension.getHeight(),
         "Maps specified to use doesn't match dimensions (in itemframes) of image!");
     this.core = core;
     this.renderer = new EnhancedMapRenderer(dimension, maps);
@@ -44,8 +44,8 @@ public abstract class Image implements MapImage {
 
   @Override
   public @NotNull BufferedImage[][] process(@NotNull BufferedImage image, final boolean resize) {
-    final int itemframeWidth = this.dimension.width();
-    final int itemframeHeight = this.dimension.height();
+    final int itemframeWidth = this.dimension.getWidth();
+    final int itemframeHeight = this.dimension.getHeight();
     final int width = itemframeWidth * 128;
     final int height = itemframeHeight * 128;
     if (resize) {
@@ -86,12 +86,12 @@ public abstract class Image implements MapImage {
   }
 
   @Override
-  public @NotNull ImmutableDimension getDimensions() {
+  public @NotNull Dimension getDimensions() {
     return this.dimension;
   }
 
   @Override
-  public @NotNull MediaLibraryCore core() {
+  public @NotNull MediaLibraryCore getCore() {
     return this.core;
   }
 

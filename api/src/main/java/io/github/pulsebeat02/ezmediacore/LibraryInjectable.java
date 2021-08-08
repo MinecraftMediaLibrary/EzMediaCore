@@ -5,5 +5,5 @@ import org.jetbrains.annotations.NotNull;
 public interface LibraryInjectable {
 
   @NotNull
-  MediaLibraryCore core();
+  MediaLibraryCore getCore();
 }

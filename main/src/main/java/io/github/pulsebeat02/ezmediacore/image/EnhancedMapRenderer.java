@@ -1,6 +1,6 @@
 package io.github.pulsebeat02.ezmediacore.image;
 
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import org.bukkit.Bukkit;
@@ -14,9 +14,9 @@ public class EnhancedMapRenderer implements MapRenderer {
   private final MapView[][] maps;
 
   public EnhancedMapRenderer(
-      @NotNull final ImmutableDimension dimension, @NotNull final List<Integer> maps) {
-    final int length = dimension.height();
-    final int width = dimension.width();
+      @NotNull final Dimension dimension, @NotNull final List<Integer> maps) {
+    final int length = dimension.getHeight();
+    final int width = dimension.getWidth();
     this.maps = new MapView[length][width];
     int count = 0;
     for (int i = 0; i < length; i++) {

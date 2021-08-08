@@ -10,7 +10,13 @@ import java.net.URL;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-public record JarInjector(Collection<URL> dependencies) implements DependencyInjector {
+public class JarInjector implements DependencyInjector {
+
+  private final Collection<URL> dependencies;
+
+  public JarInjector(@NotNull final Collection<URL> dependencies) {
+    this.dependencies = dependencies;
+  }
 
   @Override
   public void inject(@NotNull final Injectable injectable, @NotNull final DependencyData data) {

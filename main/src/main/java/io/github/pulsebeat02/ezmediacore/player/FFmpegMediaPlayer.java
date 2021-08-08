@@ -10,7 +10,7 @@ import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -24,7 +24,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
 
   FFmpegMediaPlayer(
       @NotNull final FrameCallback callback,
-      @NotNull final ImmutableDimension pixelDimension,
+      @NotNull final Dimension pixelDimension,
       @NotNull final String url,
       final int frameRate) {
     super(callback, pixelDimension, url, frameRate);
@@ -71,7 +71,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
     final Path path = Path.of(url);
     final long ms = seconds * 1000;
     this.ffmpeg =
-        new FFmpeg(this.core().getFFmpegPath())
+        new FFmpeg(this.getCore().getFFmpegPath())
             .addInput(
                 Files.exists(path)
                     ? UrlInput.fromPath(path).setPosition(ms)
@@ -91,8 +91,8 @@ public class FFmpegMediaPlayer extends MediaPlayer {
   }
 
   private FrameConsumer getFrameConsumer(
-      final Callback callback, final ImmutableDimension dimension) {
-    final int width = dimension.width();
+      final Callback callback, final Dimension dimension) {
+    final int width = dimension.getWidth();
     return new FrameConsumer() {
       @Override
       public void consumeStreams(final List<Stream> streams) {
@@ -104,7 +104,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
           return;
         }
         callback.process(
-            frame.getImage().getRGB(0, 0, width, dimension.height(), null, 0, width));
+            frame.getImage().getRGB(0, 0, width, dimension.getHeight(), null, 0, width));
       }
     };
   }

@@ -188,7 +188,7 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
   }
 
   @Override
-  public @NotNull MediaLibraryCore core() {
+  public @NotNull MediaLibraryCore getCore() {
     return this.core;
   }
 }

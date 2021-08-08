@@ -85,7 +85,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public @NotNull MediaLibraryCore core() {
+  public @NotNull MediaLibraryCore getCore() {
     return this.core;
   }
 

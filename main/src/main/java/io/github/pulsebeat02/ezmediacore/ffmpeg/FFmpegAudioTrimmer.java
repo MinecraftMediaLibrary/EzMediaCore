@@ -41,7 +41,7 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
 
   private List<String> generateArguments() {
     return new ArrayList<>(List.of(
-        this.core().getFFmpegPath().toString(),
+        this.getCore().getFFmpegPath().toString(),
         "-ss", FormatterProvider.FFMPEG_TIME_FORMATTER.format(new Date(this.ms)),
         "-to", "99:99:99.999",
         "-i", this.input.toString(),

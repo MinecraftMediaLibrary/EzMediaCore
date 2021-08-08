@@ -14,9 +14,8 @@ import io.netty.channel.Channel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.stream.Stream;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -79,7 +78,7 @@ public final class EzMediaCore implements MediaLibraryCore {
   @Override
   public void initialize() throws ExecutionException, InterruptedException {
 
-    Stream.of(
+    Set.of(
             this.libraryPath,
             this.dependencyPath,
             this.httpServerPath,
@@ -88,11 +87,7 @@ public final class EzMediaCore implements MediaLibraryCore {
             this.audioPath,
             this.videoPath)
         .forEach(
-            ThrowingConsumer.unchecked(
-                Files::createDirectories,
-                this.plugin.getLogger(),
-                Level.SEVERE,
-                "[EzMediaCore]: A severe I/O exception occurred while trying to create library folders!"));
+            ThrowingConsumer.unchecked(Files::createDirectories));
 
     this.registrationListener = new RegistrationListener(this);
 

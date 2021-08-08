@@ -1,5 +1,6 @@
 package io.github.pulsebeat02.ezmediacore.listener;
 
+import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.util.Objects;
 import org.bukkit.Material;
@@ -12,7 +13,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
 import org.jetbrains.annotations.NotNull;
 
-public record MapInteractionListener(MediaLibraryCore core) implements Listener {
+public class MapInteractionListener implements LibraryInjectable, Listener {
+
+  private final MediaLibraryCore core;
 
   public MapInteractionListener(@NotNull final MediaLibraryCore core) {
     this.core = core;
@@ -32,5 +35,10 @@ public record MapInteractionListener(MediaLibraryCore core) implements Listener 
         .isMapRegistered(((MapMeta) Objects.requireNonNull(stack.getItemMeta())).getMapId())) {
       event.setCancelled(true);
     }
+  }
+
+  @Override
+  public @NotNull MediaLibraryCore getCore() {
+    return this.core;
   }
 }

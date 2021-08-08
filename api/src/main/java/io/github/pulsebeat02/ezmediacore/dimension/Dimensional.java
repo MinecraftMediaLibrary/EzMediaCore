@@ -5,5 +5,5 @@ import org.jetbrains.annotations.NotNull;
 public interface Dimensional {
 
   @NotNull
-  ImmutableDimension getDimensions();
+  Dimension getDimensions();
 }

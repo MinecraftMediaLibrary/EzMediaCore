@@ -99,25 +99,22 @@ public class NMSMapPacketIntercepter implements PacketHandler {
         new PacketPlayOutCustomPayload(this.debugMarker, new PacketDataSerializer(buf));
     if (viewers == null) {
       for (final UUID uuid : this.playerConnections.keySet()) {
-        final long val = this.lastUpdated.getOrDefault(uuid, 0L);
-        if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
-          this.lastUpdated.put(uuid, System.currentTimeMillis());
-          final PlayerConnection connection = this.playerConnections.get(uuid);
-          if (connection != null) {
-            connection.sendPacket(packet);
-          }
-        }
+        this.sendPacket(packet, uuid);
       }
     } else {
       for (final UUID uuid : viewers) {
-        final long val = this.lastUpdated.getOrDefault(uuid, 0L);
-        if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
-          this.lastUpdated.put(uuid, System.currentTimeMillis());
-          final PlayerConnection connection = this.playerConnections.get(uuid);
-          if (connection != null) {
-            connection.sendPacket(packet);
-          }
-        }
+        this.sendPacket(packet, uuid);
+      }
+    }
+  }
+
+  private void sendPacket(final PacketPlayOutCustomPayload packet, final UUID uuid) {
+    final long val = this.lastUpdated.getOrDefault(uuid, 0L);
+    if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
+      this.lastUpdated.put(uuid, System.currentTimeMillis());
+      final PlayerConnection connection = this.playerConnections.get(uuid);
+      if (connection != null) {
+        connection.sendPacket(packet);
       }
     }
   }

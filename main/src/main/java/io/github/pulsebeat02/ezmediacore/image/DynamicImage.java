@@ -4,7 +4,7 @@ import static io.github.pulsebeat02.ezmediacore.decoder.GifDecoder.GifImage;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.decoder.GifDecoder;
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,7 +25,7 @@ public class DynamicImage extends Image
       @NotNull final MediaLibraryCore core,
       @NotNull final Path image,
       @NotNull final List<Integer> maps,
-      @NotNull final ImmutableDimension dimension)
+      @NotNull final Dimension dimension)
       throws IOException {
     super(core, image, maps, dimension);
     this.image = GifDecoder.read(new FileInputStream(image.toFile()));

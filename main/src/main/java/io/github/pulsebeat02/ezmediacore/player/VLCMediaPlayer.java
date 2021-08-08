@@ -1,7 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.player;
 
 import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +26,7 @@ public class VLCMediaPlayer extends MediaPlayer {
 
   VLCMediaPlayer(
       @NotNull final FrameCallback callback,
-      @NotNull final ImmutableDimension pixelDimension,
+      @NotNull final Dimension pixelDimension,
       @NotNull final String url,
       final int frameRate) {
     super(callback, pixelDimension, url, frameRate);
@@ -36,7 +36,7 @@ public class VLCMediaPlayer extends MediaPlayer {
   }
 
   private VideoSurfaceAdapter getAdapter() {
-    return switch (this.core().getDiagnostics().getSystem().getOSType()) {
+    return switch (this.getCore().getDiagnostics().getSystem().getOSType()) {
       case MAC -> new OsxVideoSurfaceAdapter();
       case UNIX -> new LinuxVideoSurfaceAdapter();
       case WINDOWS -> new WindowsVideoSurfaceAdapter();
@@ -111,8 +111,8 @@ public class VLCMediaPlayer extends MediaPlayer {
     return new BufferFormatCallback() {
       @Override
       public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {
-        final ImmutableDimension dimension = VLCMediaPlayer.this.getDimensions();
-        return new RV32BufferFormat(dimension.width(), dimension.height());
+        final Dimension dimension = VLCMediaPlayer.this.getDimensions();
+        return new RV32BufferFormat(dimension.getWidth(), dimension.getHeight());
       }
 
       @Override
@@ -126,7 +126,7 @@ public class VLCMediaPlayer extends MediaPlayer {
     private final Consumer<int[]> callback;
 
     public MinecraftVideoRenderCallback(@NotNull final VLCMediaPlayer player) {
-      super(new int[player.getDimensions().width() * player.getDimensions().height()]);
+      super(new int[player.getDimensions().getWidth() * player.getDimensions().getHeight()]);
       this.callback = player.getCallback()::process;
     }
 

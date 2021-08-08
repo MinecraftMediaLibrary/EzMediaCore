@@ -2,7 +2,7 @@ package io.github.pulsebeat02.ezmediacore.callback;
 
 import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import java.util.Collection;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 public abstract class FrameCallback implements Callback {
 
   private final MediaLibraryCore core;
-  private final ImmutableDimension dimension;
+  private final Dimension dimension;
   private final UUID[] viewers;
   private final int blockWidth;
 
@@ -23,14 +23,14 @@ public abstract class FrameCallback implements Callback {
   // core, viewers, pixels in width, pixels in height, block width, and delay between each frame
   public FrameCallback(
       @NotNull final MediaLibraryCore core,
-      @NotNull final ImmutableDimension dimension,
+      @NotNull final Dimension dimension,
       @NotNull final Collection<? extends Player> viewers,
       final int blockWidth,
       final int delay) {
     Preconditions.checkArgument(
-        dimension.width() >= 0, "Width must be greater than or equal to 0!");
+        dimension.getWidth() >= 0, "Width must be greater than or equal to 0!");
     Preconditions.checkArgument(
-        dimension.height() >= 0, "Height must be greater than or equal to 0!");
+        dimension.getHeight() >= 0, "Height must be greater than or equal to 0!");
     Preconditions.checkArgument(
         delay >= 0, "Delay between frames must be greater than or equal to 0!");
     this.core = core;
@@ -65,7 +65,7 @@ public abstract class FrameCallback implements Callback {
   }
 
   @Override
-  public @NotNull MediaLibraryCore core() {
+  public @NotNull MediaLibraryCore getCore() {
     return this.core;
   }
 
@@ -80,7 +80,7 @@ public abstract class FrameCallback implements Callback {
   }
 
   @Override
-  public @NotNull ImmutableDimension getDimensions() {
+  public @NotNull Dimension getDimensions() {
     return this.dimension;
   }
 }

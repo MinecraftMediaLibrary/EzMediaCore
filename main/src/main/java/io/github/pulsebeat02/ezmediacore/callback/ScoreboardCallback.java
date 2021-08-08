@@ -1,7 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Map;
@@ -37,7 +37,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
 
   public ScoreboardCallback(
       @NotNull final MediaLibraryCore core,
-      @NotNull final ImmutableDimension dimension,
+      @NotNull final Dimension dimension,
       @NotNull final Collection<? extends Player> viewers,
       final int id,
       final int blockWidth,
@@ -52,9 +52,9 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
     final long time = System.currentTimeMillis();
     if (time - this.getLastUpdated() >= this.getFrameDelay()) {
       this.setLastUpdated(time);
-      final ImmutableDimension dimension = this.getDimensions();
-      final int width = dimension.width();
-      final int height = dimension.height();
+      final Dimension dimension = this.getDimensions();
+      final int width = dimension.getWidth();
+      final int height = dimension.getHeight();
       if (this.scoreboard == null) {
         this.scoreboard = Objects.requireNonNull(Bukkit.getScoreboardManager()).getNewScoreboard();
         final Objective objective =

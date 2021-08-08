@@ -29,7 +29,6 @@ import static java.util.Map.entry;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -58,7 +57,7 @@ public final class YoutubeVideoFormat implements VideoFormat {
   }
 
   private final com.github.kiulian.downloader.model.videos.formats.VideoFormat format;
-  private final ImmutableDimension dimension;
+  private final Dimension dimension;
 
   YoutubeVideoFormat(
       @NotNull final com.github.kiulian.downloader.model.videos.formats.VideoFormat format) {
@@ -93,7 +92,7 @@ public final class YoutubeVideoFormat implements VideoFormat {
   }
 
   @Override
-  public @NotNull ImmutableDimension getDimensions() {
+  public @NotNull Dimension getDimensions() {
     return this.dimension;
   }
 }

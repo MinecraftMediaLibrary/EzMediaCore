@@ -2,7 +2,7 @@ package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.entity.EntityCallbackDispatcher;
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import java.util.Collection;
 import java.util.function.Consumer;
@@ -25,7 +25,7 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
 
   public EntityCallback(
       @NotNull final MediaLibraryCore core,
-      @NotNull final ImmutableDimension dimension,
+      @NotNull final Dimension dimension,
       @NotNull final Collection<? extends Player> viewers,
       @NotNull final Location location,
       @NotNull final String character,
@@ -40,7 +40,7 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
   }
 
   private Entity[] getModifiedEntities() {
-    final int height = this.getDimensions().height();
+    final int height = this.getDimensions().getHeight();
     final Entity[] ents = new Entity[height];
     final Location spawn = this.location.clone();
     final World world = spawn.getWorld();
@@ -133,7 +133,7 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
     if (time - this.getLastUpdated() >= this.getFrameDelay()) {
       this.setLastUpdated(time);
       this.getPacketHandler()
-          .displayEntities(this.getViewers(), this.entities, data, this.getDimensions().width());
+          .displayEntities(this.getViewers(), this.entities, data, this.getDimensions().getWidth());
     }
   }
 

@@ -78,7 +78,6 @@ public record VideoCreator(MediaLibraryCore library,
                 EntityType.ARMORSTAND,
                 this.attributes.getFrameWidth(),
                 20))
-        .dims(Dimension.of(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
         .build();
   }
 
@@ -94,7 +93,6 @@ public record VideoCreator(MediaLibraryCore library,
                 NamedEntityString.NORMAL_SQUARE,
                 this.attributes.getFrameWidth(),
                 20))
-        .dims(Dimension.of(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
         .build();
   }
 
@@ -110,7 +108,6 @@ public record VideoCreator(MediaLibraryCore library,
                 1080,
                 this.attributes.getFrameWidth(),
                 20))
-        .dims(Dimension.of(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
         .build();
   }
 
@@ -127,7 +124,6 @@ public record VideoCreator(MediaLibraryCore library,
                 sender.getLocation(),
                 this.attributes.getFrameWidth(),
                 40))
-        .dims(Dimension.of(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
         .build();
   }
 }

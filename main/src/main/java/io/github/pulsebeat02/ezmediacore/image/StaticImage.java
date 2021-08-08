@@ -1,7 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.image;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -17,7 +17,7 @@ public class StaticImage extends Image implements MapImage {
       @NotNull final MediaLibraryCore core,
       @NotNull final Path image,
       @NotNull final List<Integer> maps,
-      @NotNull final ImmutableDimension dimension)
+      @NotNull final Dimension dimension)
       throws IOException {
     super(core, image, maps, dimension);
     this.image = ImageIO.read(image.toFile());
