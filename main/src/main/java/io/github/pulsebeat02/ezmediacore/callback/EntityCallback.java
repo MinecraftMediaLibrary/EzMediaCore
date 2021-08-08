@@ -46,19 +46,19 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
     final World world = spawn.getWorld();
     if (world != null) {
       switch (this.type) {
-        case AREA_EFFECT_CLOUD:
+        case AREA_EFFECT_CLOUD -> {
           for (int i = height - 1; i >= 0; i--) {
             ents[i] = this.getAreaEffectCloud(world, spawn, height);
             spawn.add(0.0, 0.225, 0.0);
           }
-          break;
-        case ARMORSTAND:
+        }
+        case ARMORSTAND -> {
           for (int i = height - 1; i >= 0; i--) {
             ents[i] = this.getArmorStand(world, spawn, height);
             spawn.add(0.0, 0.225, 0.0);
           }
-          break;
-        case CUSTOM:
+        }
+        case CUSTOM -> {
           final Consumer<ArmorStand> consumer = this.modifyEntity();
           if (consumer == null) {
             throw new AssertionError("Must override the modifyEntity method for custom entity!");
@@ -68,7 +68,8 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
             ents[i] = armorstand;
             spawn.add(0.0, 0.225, 0.0);
           }
-          break;
+        }
+        default -> throw new IllegalArgumentException("Entity type not valid!");
       }
     }
     return ents;
@@ -108,8 +109,8 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
   @Override
   public void preparePlayerStateChange(@NotNull final PlayerControls status) {
     super.preparePlayerStateChange(status);
-    switch (status) {
-      case RELEASE -> this.removeEntities();
+    if (status == PlayerControls.RELEASE) {
+      this.removeEntities();
     }
   }
 

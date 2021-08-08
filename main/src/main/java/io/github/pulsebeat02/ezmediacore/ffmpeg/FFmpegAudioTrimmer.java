@@ -75,15 +75,4 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
   public long getStartTime() {
     return this.ms;
   }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (!(obj instanceof final FFmpegAudioTrimmer extraction)) {
-      return false;
-    }
-    return this.input.equals(extraction.getInput())
-        && this.output.equals(extraction.getOutput())
-        && this.ms == extraction.getStartTime()
-        && super.equals(obj);
-  }
 }

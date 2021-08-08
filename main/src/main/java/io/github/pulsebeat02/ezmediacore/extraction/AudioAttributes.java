@@ -43,17 +43,6 @@ public class AudioAttributes implements AudioConfiguration {
   }
 
   @Override
-  public boolean equals(final Object obj) {
-    if (!(obj instanceof final AudioAttributes setting)) {
-      return false;
-    }
-    return setting.getBitrate() == this.bitrate
-        && setting.getChannels() == this.channels
-        && setting.getSamplingRate() == this.samplingRate
-        && setting.getVolume() == this.volume;
-  }
-
-  @Override
   public int getBitrate() {
     return this.bitrate;
   }

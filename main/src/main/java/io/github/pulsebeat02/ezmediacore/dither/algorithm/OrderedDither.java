@@ -44,9 +44,9 @@ public class OrderedDither implements DitherAlgorithm {
 
   private final float correction;
 
-  private float[][] matrix;
-  private float multiplicative;
-  private int size;
+  private final float[][] matrix;
+  private final float multiplicative;
+  private final int size;
 
   public OrderedDither(@NotNull final DitherType type) {
     switch (type) {
@@ -65,6 +65,7 @@ public class OrderedDither implements DitherAlgorithm {
         this.size = 8;
         this.multiplicative = 0.015625f;
       }
+      default -> throw new IllegalArgumentException("Invalid dimension matrix!");
     }
     this.correction = 255f / (this.size * this.size);
     this.convertToFloat();

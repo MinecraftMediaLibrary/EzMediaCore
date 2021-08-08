@@ -69,14 +69,4 @@ public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements Audio
   public @NotNull Path getOutput() {
     return this.output;
   }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (!(obj instanceof final FFmpegAudioExtractor extraction)) {
-      return false;
-    }
-    return this.input.equals(extraction.getInput())
-        && this.output.equals(extraction.getOutput())
-        && super.equals(obj);
-  }
 }

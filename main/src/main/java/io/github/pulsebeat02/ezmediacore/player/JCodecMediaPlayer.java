@@ -53,6 +53,7 @@ public class JCodecMediaPlayer extends MediaPlayer {
         this.paused = false;
         this.grabber = null;
       }
+      default -> throw new IllegalArgumentException("Player state is invalid!");
     }
   }
 

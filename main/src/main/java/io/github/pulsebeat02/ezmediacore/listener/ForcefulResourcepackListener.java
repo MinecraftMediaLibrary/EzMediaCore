@@ -69,6 +69,7 @@ public record ForcefulResourcepackListener(@NotNull MediaLibraryCore core,
           PlayerResourcePackStatusEvent.getHandlerList().unregister(this);
         }
       }
+      default -> throw new IllegalArgumentException("Invalid resourcepack status!");
     }
   }
 }

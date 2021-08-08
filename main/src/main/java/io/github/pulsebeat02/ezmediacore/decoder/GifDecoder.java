@@ -410,7 +410,7 @@ public final class GifDecoder {
           }
           this.codes.add(prevValsAndK); // Previous indices + K
         }
-      } catch (final ArrayIndexOutOfBoundsException e) {
+      } catch (final ArrayIndexOutOfBoundsException ignored) {
       }
       return out;
     }

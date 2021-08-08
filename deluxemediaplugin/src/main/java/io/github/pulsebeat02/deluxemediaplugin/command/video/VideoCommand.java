@@ -112,24 +112,24 @@ public final class VideoCommand extends BaseCommand {
 
     final VideoType type = this.attributes.getVideoType();
     switch (type) {
-      case ITEMFRAME:
+      case ITEMFRAME -> {
         this.attributes.setPlayer(this.builder.createMapPlayer(players));
-        break;
-      case ARMOR_STAND:
+      }
+      case ARMOR_STAND -> {
         if (sender instanceof Player) {
           this.attributes.setPlayer(this.builder.createEntityPlayer((Player) sender, players));
         } else {
           audience.sendMessage(format(text("You must be a player to execute this command!", RED)));
           return SINGLE_SUCCESS;
         }
-        break;
-      case CHATBOX:
+      }
+      case CHATBOX -> {
         this.attributes.setPlayer(this.builder.createChatBoxPlayer(players));
-        break;
-      case SCOREBOARD:
+      }
+      case SCOREBOARD -> {
         this.attributes.setPlayer(this.builder.createScoreboardPlayer(players));
-        break;
-      case DEBUG_HIGHLIGHTS:
+      }
+      case DEBUG_HIGHLIGHTS -> {
         if (sender instanceof Player) {
           this.attributes.setPlayer(
               this.builder.createBlockHighlightPlayer((Player) sender, players));
@@ -137,7 +137,8 @@ public final class VideoCommand extends BaseCommand {
           audience.sendMessage(format(text("You must be a player to execute this command!", RED)));
           return SINGLE_SUCCESS;
         }
-        break;
+      }
+      default -> throw new IllegalArgumentException("Illegal video mode!");
     }
     this.sendPlayInformation(audience);
     this.attributes.getPlayer().setPlayerState(PlayerControls.START);

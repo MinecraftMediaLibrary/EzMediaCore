@@ -25,7 +25,6 @@ package io.github.pulsebeat02.ezmediacore.task;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -56,7 +55,7 @@ public class CommandTask {
       throws IOException {
     this.command = command;
     if (runOnCreation) {
-      run();
+      this.run();
     }
   }
 
@@ -76,7 +75,7 @@ public class CommandTask {
    */
   public void run() throws IOException {
     this.process = RUNTIME.exec(this.command);
-    getOutput();
+    this.getOutput();
   }
 
   /**
@@ -94,21 +93,6 @@ public class CommandTask {
     }
     br.close();
     this.result = output.toString();
-  }
-
-  /**
-   * Checks the two objects to see if they are equal. If obj is an instance of CommandTask, it
-   * checks if the argument arrays are equal.
-   *
-   * @param obj the other object
-   * @return whether the command arguments are equal or not
-   */
-  @Override
-  public boolean equals(final Object obj) {
-    if (!(obj instanceof CommandTask)) {
-      return false;
-    }
-    return Arrays.equals(this.command, ((CommandTask) obj).getCommand());
   }
 
   /**

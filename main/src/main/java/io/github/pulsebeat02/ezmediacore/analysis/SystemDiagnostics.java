@@ -3,6 +3,7 @@ package io.github.pulsebeat02.ezmediacore.analysis;
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegDownloadPortal;
+import io.github.pulsebeat02.ezmediacore.throwable.UnsupportedPlatformException;
 import io.github.pulsebeat02.ezmediacore.vlc.VLCDownloadPortal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -95,6 +96,7 @@ public final class SystemDiagnostics implements Diagnostic {
           }
           this.ffmpegDownloadLink = FFmpegDownloadPortal.MAC_64;
         }
+        default -> throw new UnsupportedPlatformException("UNKNOWN");
       }
     } else {
       switch (this.system.getOSType()) {
@@ -110,6 +112,7 @@ public final class SystemDiagnostics implements Diagnostic {
             this.ffmpegDownloadLink = FFmpegDownloadPortal.UNIX_ARM_32;
           }
         }
+        default -> throw new UnsupportedPlatformException("UNKNOWN");
       }
     }
   }

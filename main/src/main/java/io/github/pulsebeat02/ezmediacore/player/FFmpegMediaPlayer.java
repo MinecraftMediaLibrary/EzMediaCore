@@ -61,6 +61,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
           this.future = null;
         }
       }
+      default -> throw new IllegalArgumentException("Player state is invalid!");
     }
   }
 

@@ -112,18 +112,4 @@ public class CommandTaskChain {
       }
     }
   }
-
-  /**
-   * Checks if the CommandTaskChain is equivalent to another object using Map#equals.
-   *
-   * @param obj the other object
-   * @return whether the two maps for each CommandTaskChain are equal
-   */
-  @Override
-  public boolean equals(final Object obj) {
-    if (!(obj instanceof CommandTaskChain)) {
-      return false;
-    }
-    return this.chain.equals(((CommandTaskChain) obj).getChain());
-  }
 }

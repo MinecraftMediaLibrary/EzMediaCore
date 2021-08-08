@@ -72,6 +72,7 @@ public class VLCMediaPlayer extends MediaPlayer {
         this.player.release();
         this.player = null;
       }
+      default -> throw new IllegalArgumentException("Player state is invalid!");
     }
   }
 

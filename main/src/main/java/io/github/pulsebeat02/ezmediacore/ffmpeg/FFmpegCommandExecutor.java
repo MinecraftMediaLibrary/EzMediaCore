@@ -164,12 +164,4 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   public void clearArguments() {
     this.arguments.clear();
   }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (!(obj instanceof FFmpegCommandExecutor)) {
-      return false;
-    }
-    return this.arguments.equals(((FFmpegCommandExecutor) obj).getArguments());
-  }
 }
