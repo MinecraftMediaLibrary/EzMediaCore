@@ -28,7 +28,7 @@ public abstract class Image implements MapImage {
       @NotNull final ImmutableDimension dimension) {
     Preconditions.checkArgument(maps.size() >= 1, "Invalid Map Matrix!");
     Preconditions.checkArgument(
-        maps.size() == dimension.getWidth() * dimension.getHeight(),
+        maps.size() == dimension.width() * dimension.height(),
         "Maps specified to use doesn't match dimensions (in itemframes) of image!");
     this.core = core;
     this.renderer = new EnhancedMapRenderer(dimension, maps);
@@ -44,8 +44,8 @@ public abstract class Image implements MapImage {
 
   @Override
   public @NotNull BufferedImage[][] process(@NotNull BufferedImage image, final boolean resize) {
-    final int itemframeWidth = this.dimension.getWidth();
-    final int itemframeHeight = this.dimension.getHeight();
+    final int itemframeWidth = this.dimension.width();
+    final int itemframeHeight = this.dimension.height();
     final int width = itemframeWidth * 128;
     final int height = itemframeHeight * 128;
     if (resize) {
@@ -91,7 +91,7 @@ public abstract class Image implements MapImage {
   }
 
   @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public @NotNull MediaLibraryCore core() {
     return this.core;
   }
 

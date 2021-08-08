@@ -44,7 +44,7 @@ public class VLCBinaryLocator implements BinaryLocator {
   }
 
   @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public @NotNull MediaLibraryCore core() {
     return this.core;
   }
 

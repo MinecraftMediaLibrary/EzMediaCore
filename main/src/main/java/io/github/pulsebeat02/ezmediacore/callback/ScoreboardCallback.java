@@ -53,8 +53,8 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
     if (time - this.getLastUpdated() >= this.getFrameDelay()) {
       this.setLastUpdated(time);
       final ImmutableDimension dimension = this.getDimensions();
-      final int width = dimension.getWidth();
-      final int height = dimension.getHeight();
+      final int width = dimension.width();
+      final int height = dimension.height();
       if (this.scoreboard == null) {
         this.scoreboard = Objects.requireNonNull(Bukkit.getScoreboardManager()).getNewScoreboard();
         final Objective objective =

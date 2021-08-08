@@ -33,11 +33,11 @@ public abstract class MediaPlayer implements VideoPlayer {
       @NotNull final String url,
       final int frameRate) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
-    Preconditions.checkArgument(pixelDimension.getWidth() >= 0,
+    Preconditions.checkArgument(pixelDimension.width() >= 0,
         "Width must be above or equal to 0!");
-    Preconditions.checkArgument(pixelDimension.getHeight() >= 0,
+    Preconditions.checkArgument(pixelDimension.height() >= 0,
         "Height must be above or equal to 0!");
-    this.core = callback.getCore();
+    this.core = callback.core();
     this.callback = callback;
     this.dimensions = pixelDimension;
     this.soundKey = "emc";
@@ -104,7 +104,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public @NotNull MediaLibraryCore core() {
     return this.core;
   }
 

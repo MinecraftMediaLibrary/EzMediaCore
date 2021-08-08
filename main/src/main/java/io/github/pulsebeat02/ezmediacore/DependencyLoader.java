@@ -17,12 +17,6 @@ public record DependencyLoader(MediaLibraryCore core) implements LibraryLoader {
   }
 
   @Override
-  public @NotNull
-  MediaLibraryCore getCore() {
-    return this.core;
-  }
-
-  @Override
   public void start() throws ExecutionException, InterruptedException {
     CompletableFuture.allOf(
             CompletableFuture.runAsync(this::installFFmpeg),

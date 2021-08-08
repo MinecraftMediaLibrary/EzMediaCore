@@ -15,8 +15,8 @@ public class EnhancedMapRenderer implements MapRenderer {
 
   public EnhancedMapRenderer(
       @NotNull final ImmutableDimension dimension, @NotNull final List<Integer> maps) {
-    final int length = dimension.getHeight();
-    final int width = dimension.getWidth();
+    final int length = dimension.height();
+    final int width = dimension.width();
     this.maps = new MapView[length][width];
     int count = 0;
     for (int i = 0; i < length; i++) {

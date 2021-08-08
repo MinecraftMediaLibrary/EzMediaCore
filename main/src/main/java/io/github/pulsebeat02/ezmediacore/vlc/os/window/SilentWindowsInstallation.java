@@ -29,24 +29,24 @@ public class SilentWindowsInstallation extends SilentInstallation {
 
     Logger.info("No VLC binary found on machine, installing Windows binaries.");
 
-    final Path folder = getDirectory();
+    final Path folder = this.getDirectory();
     final Path archive = folder.resolve("VLC.zip");
 
-    FileUtils.copyURLToFile(getCore().getDiagnostics().getVlcUrl(), archive);
+    FileUtils.copyURLToFile(this.core().getDiagnostics().getVlcUrl(), archive);
     Logger.info("Successfully downloaded archived binaries.");
 
     ArchiveUtils.decompressArchive(archive, folder);
     Logger.info("Successfully extracted archived binaries.");
 
-    setInstallationPath(folder.resolve("vlc-3.0.12"));
-    deleteArchive(archive);
-    loadNativeBinaries();
+    this.setInstallationPath(folder.resolve("vlc-3.0.12"));
+    this.deleteArchive(archive);
+    this.loadNativeBinaries();
   }
 
   @Override
   public void loadNativeBinaries() throws IOException {
     NativeLibrary.addSearchPath(
-        RuntimeUtil.getLibVlcLibraryName(), getInstallationPath().toString());
+        RuntimeUtil.getLibVlcLibraryName(), this.getInstallationPath().toString());
     super.loadNativeBinaries();
   }
 }

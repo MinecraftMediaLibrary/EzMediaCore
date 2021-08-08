@@ -30,7 +30,7 @@ public class SilentMacInstallation extends SilentInstallation {
     final Path disk = Path.of("/Volumes/VLC media player");
     final Path app = directory.resolve("VLC.app");
 
-    FileUtils.copyURLToFile(this.getCore().getDiagnostics().getVlcUrl(), dmg);
+    FileUtils.copyURLToFile(this.core().getDiagnostics().getVlcUrl(), dmg);
 
     if (this.mountDiskImage(dmg) != 0) {
       throw new RuntimeException("A severe I/O error has occurred. Could not mount disk file!");

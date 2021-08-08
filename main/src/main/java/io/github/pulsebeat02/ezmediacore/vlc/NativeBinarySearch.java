@@ -125,7 +125,7 @@ public class NativeBinarySearch implements BinarySearcher {
   }
 
   @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public @NotNull MediaLibraryCore core() {
     return this.core;
   }
 }

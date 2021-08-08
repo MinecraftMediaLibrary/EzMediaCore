@@ -36,7 +36,7 @@ public class VLCMediaPlayer extends MediaPlayer {
   }
 
   private VideoSurfaceAdapter getAdapter() {
-    return switch (this.getCore().getDiagnostics().getSystem().getOSType()) {
+    return switch (this.core().getDiagnostics().getSystem().getOSType()) {
       case MAC -> new OsxVideoSurfaceAdapter();
       case UNIX -> new LinuxVideoSurfaceAdapter();
       case WINDOWS -> new WindowsVideoSurfaceAdapter();
@@ -112,7 +112,7 @@ public class VLCMediaPlayer extends MediaPlayer {
       @Override
       public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {
         final ImmutableDimension dimension = VLCMediaPlayer.this.getDimensions();
-        return new RV32BufferFormat(dimension.getWidth(), dimension.getHeight());
+        return new RV32BufferFormat(dimension.width(), dimension.height());
       }
 
       @Override
@@ -126,7 +126,7 @@ public class VLCMediaPlayer extends MediaPlayer {
     private final Consumer<int[]> callback;
 
     public MinecraftVideoRenderCallback(@NotNull final VLCMediaPlayer player) {
-      super(new int[player.getDimensions().getWidth() * player.getDimensions().getHeight()]);
+      super(new int[player.getDimensions().width() * player.getDimensions().height()]);
       this.callback = player.getCallback()::process;
     }
 

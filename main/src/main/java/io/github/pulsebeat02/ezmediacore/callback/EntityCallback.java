@@ -40,7 +40,7 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
   }
 
   private Entity[] getModifiedEntities() {
-    final int height = this.getDimensions().getHeight();
+    final int height = this.getDimensions().height();
     final Entity[] ents = new Entity[height];
     final Location spawn = this.location.clone();
     final World world = spawn.getWorld();
@@ -133,7 +133,7 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
     if (time - this.getLastUpdated() >= this.getFrameDelay()) {
       this.setLastUpdated(time);
       this.getPacketHandler()
-          .displayEntities(this.getViewers(), this.entities, data, this.getDimensions().getWidth());
+          .displayEntities(this.getViewers(), this.entities, data, this.getDimensions().width());
     }
   }
 

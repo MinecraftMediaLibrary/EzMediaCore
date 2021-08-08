@@ -38,8 +38,8 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
     if (time - this.getLastUpdated() >= this.getFrameDelay()) {
       this.setLastUpdated(time);
       final ImmutableDimension dimension = this.getDimensions();
-      final int width = dimension.getWidth();
-      final int height = dimension.getHeight();
+      final int width = dimension.width();
+      final int height = dimension.height();
       for (int y = 0; y < height; ++y) {
         int before = -1;
         final StringBuilder msg = new StringBuilder();

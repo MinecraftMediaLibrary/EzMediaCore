@@ -10,18 +10,7 @@ public record CpuArchitecture(String architecture, boolean bits64) implements Cp
   }
 
   @Override
-  public @NotNull
-  String getArchitecture() {
-    return this.architecture;
-  }
-
-  @Override
-  public boolean isBits64() {
-    return this.bits64;
-  }
-
-  @Override
   public String toString() {
-    return "{arch=%s,64bits=%s}".formatted(this.architecture, this.bits64);
+    return "[arch=%s,64bits=%s]".formatted(this.architecture, this.bits64);
   }
 }

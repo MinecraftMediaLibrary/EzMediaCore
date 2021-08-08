@@ -7,14 +7,6 @@ import org.jetbrains.annotations.NotNull;
 
 public record ImmutableDimension(int width, int height) implements ConfigurationSerializable {
 
-  public int getWidth() {
-    return this.width;
-  }
-
-  public int getHeight() {
-    return this.height;
-  }
-
   @Override
   public @NotNull
   Map<String, Object> serialize() {

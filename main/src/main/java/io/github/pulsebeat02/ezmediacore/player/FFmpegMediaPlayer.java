@@ -71,7 +71,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
     final Path path = Path.of(url);
     final long ms = seconds * 1000;
     this.ffmpeg =
-        new FFmpeg(this.getCore().getFFmpegPath())
+        new FFmpeg(this.core().getFFmpegPath())
             .addInput(
                 Files.exists(path)
                     ? UrlInput.fromPath(path).setPosition(ms)
@@ -92,7 +92,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
 
   private FrameConsumer getFrameConsumer(
       final Callback callback, final ImmutableDimension dimension) {
-    final int width = dimension.getWidth();
+    final int width = dimension.width();
     return new FrameConsumer() {
       @Override
       public void consumeStreams(final List<Stream> streams) {
@@ -104,7 +104,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
           return;
         }
         callback.process(
-            frame.getImage().getRGB(0, 0, width, dimension.getHeight(), null, 0, width));
+            frame.getImage().getRGB(0, 0, width, dimension.height(), null, 0, width));
       }
     };
   }

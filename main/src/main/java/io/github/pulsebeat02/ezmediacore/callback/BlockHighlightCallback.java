@@ -30,8 +30,8 @@ public class BlockHighlightCallback extends FrameCallback
     if (time - this.getLastUpdated() >= delay) {
       this.setLastUpdated(time);
       final ImmutableDimension dimension = this.getDimensions();
-      final int width = dimension.getWidth();
-      final int height = dimension.getHeight();
+      final int width = dimension.width();
+      final int height = dimension.height();
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
           this.getPacketHandler()

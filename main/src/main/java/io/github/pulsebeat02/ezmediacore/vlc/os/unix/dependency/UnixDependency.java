@@ -13,16 +13,4 @@ record UnixDependency(String name,
     this.url = url;
     this.dependencies = dependencies;
   }
-
-  public String getName() {
-    return this.name;
-  }
-
-  public String getUrl() {
-    return this.url;
-  }
-
-  public Set<UnixDependency> getDependencies() {
-    return this.dependencies;
-  }
 }

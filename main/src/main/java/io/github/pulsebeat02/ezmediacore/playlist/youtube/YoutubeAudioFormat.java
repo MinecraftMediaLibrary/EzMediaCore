@@ -16,8 +16,7 @@ import com.google.common.collect.HashBiMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-public record YoutubeAudioFormat(
-    com.github.kiulian.downloader.model.videos.formats.AudioFormat format) implements AudioFormat {
+public class YoutubeAudioFormat implements AudioFormat {
 
   private static final BiMap<
       com.github.kiulian.downloader.model.videos.quality.AudioQuality, AudioQuality>
@@ -33,6 +32,8 @@ public record YoutubeAudioFormat(
                 medium, MEDIUM,
                 high, HIGH));
   }
+
+  private final com.github.kiulian.downloader.model.videos.formats.AudioFormat format;
 
   public YoutubeAudioFormat(
       @NotNull final com.github.kiulian.downloader.model.videos.formats.AudioFormat format) {

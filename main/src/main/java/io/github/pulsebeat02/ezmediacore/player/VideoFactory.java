@@ -46,7 +46,7 @@ public final class VideoFactory {
 
   public MediaPlayer build() {
     Objects.requireNonNull(this.callback);
-    final MediaLibraryCore core = this.callback.getCore();
+    final MediaLibraryCore core = this.callback.core();
     return switch (this.option) {
       case NOT_SPECIFIED -> switch (core.getDiagnostics().getSystem().getOSType()) {
         case MAC, WINDOWS -> new VLCMediaPlayer(this.callback, this.dims, this.url, this.rate);

@@ -62,8 +62,8 @@ public class JCodecMediaPlayer extends MediaPlayer {
     this.playAudio();
 
     final ImmutableDimension dimension = this.getDimensions();
-    final int width = dimension.getWidth();
-    final int height = dimension.getHeight();
+    final int width = dimension.width();
+    final int height = dimension.height();
 
     this.playAudio();
 
@@ -93,7 +93,7 @@ public class JCodecMediaPlayer extends MediaPlayer {
     try {
       this.grabber = FrameGrab.createFrameGrab(NIOUtils.readableFileChannel(this.getUrl()));
       this.grabber.seekToSecondPrecise(ms / 1000.0F);
-      this.grabber.getMediaInfo().setDim(new Size(dimension.getWidth(), dimension.getHeight()));
+      this.grabber.getMediaInfo().setDim(new Size(dimension.width(), dimension.height()));
     } catch (final IOException | JCodecException e) {
       e.printStackTrace();
     }

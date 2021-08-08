@@ -3,8 +3,9 @@ package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
-public record SpotifyPlaylistTrack(
-    com.wrapper.spotify.model_objects.specification.PlaylistTrack track) implements PlaylistTrack {
+public class SpotifyPlaylistTrack implements PlaylistTrack {
+
+  private final com.wrapper.spotify.model_objects.specification.PlaylistTrack track;
 
   public SpotifyPlaylistTrack(
       @NotNull final com.wrapper.spotify.model_objects.specification.PlaylistTrack track) {

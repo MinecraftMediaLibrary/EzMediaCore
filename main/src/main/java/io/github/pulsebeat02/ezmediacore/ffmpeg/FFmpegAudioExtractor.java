@@ -32,7 +32,7 @@ public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements Audio
     final String in = this.input.toString();
     return new ArrayList<>(
         List.of(
-            this.getCore().getFFmpegPath().toString(),
+            this.core().getFFmpegPath().toString(),
             "-f",
             FilenameUtils.getExtension(in),
             "-i",

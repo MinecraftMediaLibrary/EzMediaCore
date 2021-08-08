@@ -14,12 +14,12 @@ public interface CpuInfo {
    * @return the architecture of the CPU
    */
   @NotNull
-  String getArchitecture();
+  String architecture();
 
   /**
    * Returns whether the CPU uses 64 bits.
    *
    * @return true if the CPU uses 64 bits, false otherwise
    */
-  boolean isBits64();
+  boolean bits64();
 }

@@ -36,8 +36,8 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
           .displayMaps(
               this.getViewers(),
               this.map,
-              dimension.getWidth(),
-              dimension.getHeight(),
+              dimension.width(),
+              dimension.height(),
               this.algorithm.ditherIntoMinecraft(data, width),
               width);
     }

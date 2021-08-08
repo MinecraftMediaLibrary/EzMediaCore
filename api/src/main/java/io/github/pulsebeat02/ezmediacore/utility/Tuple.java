@@ -9,16 +9,4 @@ public record Tuple<A, B, C>(A a, B b, C c) {
     this.b = b;
     this.c = c;
   }
-
-  public A getA() {
-    return this.a;
-  }
-
-  public B getB() {
-    return this.b;
-  }
-
-  public C getC() {
-    return this.c;
-  }
 }
