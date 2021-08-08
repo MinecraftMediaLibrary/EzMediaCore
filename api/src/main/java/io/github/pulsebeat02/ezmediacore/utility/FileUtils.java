@@ -48,6 +48,14 @@ public final class FileUtils {
     return false;
   }
 
+  public static boolean createFolderIfNotExists(@NotNull final Path file) throws IOException {
+    if (Files.notExists(file)) {
+      Files.createDirectory(file);
+      return true;
+    }
+    return false;
+  }
+
   public static void copyURLToFile(@NotNull final String url, @NotNull final Path path) {
     try (final ReadableByteChannel in = Channels.newChannel(new URL(url).openStream());
         final FileChannel channel = new FileOutputStream(path.toString()).getChannel()) {

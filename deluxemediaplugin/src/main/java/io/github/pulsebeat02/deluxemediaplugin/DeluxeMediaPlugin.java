@@ -40,6 +40,8 @@ import io.github.pulsebeat02.ezmediacore.LibraryProvider;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
+import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
+import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -134,6 +136,9 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
   private void loadPersistentData() {
 
     try {
+
+      Set.of(this.getDataFolder().toPath().resolve("configuration")).forEach(
+          ThrowingConsumer.unchecked(FileUtils::createFolderIfNotExists));
 
       final HttpConfiguration http = new HttpConfiguration(this);
       final EncoderConfiguration configuration = new EncoderConfiguration(this);

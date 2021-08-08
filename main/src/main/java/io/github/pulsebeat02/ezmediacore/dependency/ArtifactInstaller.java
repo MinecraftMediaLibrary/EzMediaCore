@@ -153,7 +153,7 @@ public final class ArtifactInstaller {
     Logger.info(
         "Preparing to delete %d stale dependencies (%s)".formatted(this.jars.size(), this.jars));
 
-    this.jars.forEach(ThrowingConsumer.unchecked(Files::delete, "Could not delete dependency!"));
+    this.jars.forEach(ThrowingConsumer.unchecked(Files::delete));
 
     this.jars.clear();
   }
