@@ -11,6 +11,7 @@ import org.jcodec.common.io.NIOUtils;
 import org.jcodec.common.model.Picture;
 import org.jcodec.common.model.Size;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class JCodecMediaPlayer extends MediaPlayer {
 
@@ -23,8 +24,9 @@ public class JCodecMediaPlayer extends MediaPlayer {
       @NotNull final FrameCallback callback,
       @NotNull final Dimension pixelDimension,
       @NotNull final String url,
-      final int frameRate) {
-    super(callback, pixelDimension, url, frameRate);
+      @Nullable final String key,
+      final int fps) {
+    super(callback, pixelDimension, url, key, fps);
     this.initializePlayer(0L);
   }
 
@@ -51,7 +53,9 @@ public class JCodecMediaPlayer extends MediaPlayer {
       }
       case RELEASE -> {
         this.paused = false;
-        this.grabber = null;
+        if (this.grabber != null) {
+          this.grabber = null;
+        }
       }
       default -> throw new IllegalArgumentException("Player state is invalid!");
     }

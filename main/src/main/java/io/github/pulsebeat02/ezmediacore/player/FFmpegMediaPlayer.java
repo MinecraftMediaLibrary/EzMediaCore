@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FFmpegMediaPlayer extends MediaPlayer {
 
@@ -26,8 +27,9 @@ public class FFmpegMediaPlayer extends MediaPlayer {
       @NotNull final FrameCallback callback,
       @NotNull final Dimension pixelDimension,
       @NotNull final String url,
-      final int frameRate) {
-    super(callback, pixelDimension, url, frameRate);
+      @Nullable final String key,
+      final int fps) {
+    super(callback, pixelDimension, url, key, fps);
     this.initializePlayer(0L);
   }
 

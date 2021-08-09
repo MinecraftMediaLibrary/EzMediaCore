@@ -5,6 +5,7 @@ import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.CallbackVideoSurface;
@@ -28,8 +29,9 @@ public class VLCMediaPlayer extends MediaPlayer {
       @NotNull final FrameCallback callback,
       @NotNull final Dimension pixelDimension,
       @NotNull final String url,
-      final int frameRate) {
-    super(callback, pixelDimension, url, frameRate);
+      @Nullable final String key,
+      final int fps) {
+    super(callback, pixelDimension, url, key, fps);
     this.adapter = this.getAdapter();
     this.callback = new MinecraftVideoRenderCallback(this);
     this.initializePlayer(0L);
@@ -69,8 +71,10 @@ public class VLCMediaPlayer extends MediaPlayer {
         }
       }
       case RELEASE -> {
-        this.player.release();
-        this.player = null;
+        if (this.player != null) {
+          this.player.release();
+          this.player = null;
+        }
       }
       default -> throw new IllegalArgumentException("Player state is invalid!");
     }
@@ -82,8 +86,6 @@ public class VLCMediaPlayer extends MediaPlayer {
     this.setCallback(this.player);
     this.player.audio().setMute(true);
     this.player.controls().setTime(ms);
-
-    // TODO: 7/30/2021 resourcepack stuff
   }
 
   @Override

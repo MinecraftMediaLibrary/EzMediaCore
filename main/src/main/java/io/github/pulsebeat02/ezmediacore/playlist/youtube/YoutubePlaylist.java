@@ -8,6 +8,7 @@ import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResponseUtils;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jcodec.codecs.mjpeg.tools.AssertionException;
 import org.jetbrains.annotations.NotNull;
 
 public class YoutubePlaylist implements Playlist {
@@ -22,7 +23,7 @@ public class YoutubePlaylist implements Playlist {
     this.url = url;
     this.id = MediaExtractionUtils.getYoutubeID(url)
         .orElseThrow(() -> new UnknownPlaylistException(url));
-    this.info = this.getPlaylistResponse();
+    this.info = this.getPlaylistResponse(0);
     this.details = this.info.details();
     this.videos =
         this.info.videos().parallelStream()
@@ -30,11 +31,17 @@ public class YoutubePlaylist implements Playlist {
             .collect(Collectors.toList());
   }
 
-  private PlaylistInfo getPlaylistResponse() {
+  private PlaylistInfo getPlaylistResponse(final int tries) {
+    if (tries == 10) {
+      throw new AssertionException("Request failure with video ID %s! Please try again.".formatted(
+          this.id));
+    }
+    final int num = tries + 1;
     return ResponseUtils.getResponseResult(YoutubeProvider.getYoutubeDownloader()
-        .getPlaylistInfo(new RequestPlaylistInfo(this.id))).orElseGet(this::getPlaylistResponse);
+            .getPlaylistInfo(new RequestPlaylistInfo(this.id)))
+        .orElseGet(() -> this.getPlaylistResponse(
+            num));
   }
-
 
   @Override
   public @NotNull String getAuthor() {

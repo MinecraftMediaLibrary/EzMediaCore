@@ -8,6 +8,7 @@ import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResponseUtils;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jcodec.codecs.mjpeg.tools.AssertionException;
 import org.jetbrains.annotations.NotNull;
 
 public class YoutubeVideo implements Video {
@@ -23,7 +24,7 @@ public class YoutubeVideo implements Video {
     this.url = url;
     this.id = MediaExtractionUtils.getYoutubeID(url)
         .orElseThrow(() -> new DeadResourceLinkException(url));
-    this.video = this.getVideoResponse();
+    this.video = this.getVideoResponse(0);
     this.details = this.video.details();
     this.videoFormats =
         this.video.videoFormats().stream()
@@ -35,9 +36,14 @@ public class YoutubeVideo implements Video {
             .collect(Collectors.toList());
   }
 
-  private VideoInfo getVideoResponse() {
+  private VideoInfo getVideoResponse(final int tries) {
+    if (tries == 10) {
+      throw new AssertionException("Request failure with video ID %s! Please try again.".formatted(
+          this.id));
+    }
+    final int num = tries + 1;
     return ResponseUtils.getResponseResult(YoutubeProvider.getYoutubeDownloader()
-        .getVideoInfo(new RequestVideoInfo(this.id))).orElseGet(this::getVideoResponse);
+        .getVideoInfo(new RequestVideoInfo(this.id))).orElseGet(() -> this.getVideoResponse(num));
   }
 
   @Override

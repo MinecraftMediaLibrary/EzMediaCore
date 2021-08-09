@@ -13,6 +13,7 @@ public final class VideoFactory {
   private Dimension dims;
   private VideoPlayerOption option = VideoPlayerOption.NOT_SPECIFIED;
   private String url;
+  private String key;
   private int rate = 25;
 
   public static VideoFactory builder() {
@@ -44,18 +45,23 @@ public final class VideoFactory {
     return this;
   }
 
+  public VideoFactory soundKey(@NotNull final String key) {
+    this.key = key;
+    return this;
+  }
+
   public MediaPlayer build() {
     Objects.requireNonNull(this.callback);
     final MediaLibraryCore core = this.callback.getCore();
     final Dimension dims = this.dims == null ? this.callback.getDimensions() : this.dims;
     return switch (this.option) {
       case NOT_SPECIFIED -> switch (core.getDiagnostics().getSystem().getOSType()) {
-        case MAC, WINDOWS -> new VLCMediaPlayer(this.callback, dims, this.url, this.rate);
-        case UNIX -> new FFmpegMediaPlayer(this.callback, dims, this.url, this.rate);
+        case MAC, WINDOWS -> new VLCMediaPlayer(this.callback, dims, this.url, this.key, this.rate);
+        case UNIX -> new FFmpegMediaPlayer(this.callback, dims, this.url, this.key, this.rate);
       };
-      case VLC -> new VLCMediaPlayer(this.callback, dims, this.url, this.rate);
-      case FFMPEG -> new FFmpegMediaPlayer(this.callback, dims, this.url, this.rate);
-      case JCODEC -> new JCodecMediaPlayer(this.callback, dims, this.url, this.rate);
+      case VLC -> new VLCMediaPlayer(this.callback, dims, this.url, this.key, this.rate);
+      case FFMPEG -> new FFmpegMediaPlayer(this.callback, dims, this.url, this.key, this.rate);
+      case JCODEC -> new JCodecMediaPlayer(this.callback, dims, this.url, this.key, this.rate);
     };
   }
 }
