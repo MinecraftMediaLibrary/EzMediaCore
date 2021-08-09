@@ -23,7 +23,6 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -47,7 +46,6 @@ public abstract class ConfigurationProvider {
     this.plugin = plugin;
     this.name = name;
     this.config = Path.of(plugin.getDataFolder().toString()).resolve(this.name);
-    FileUtils.createIfNotExists(this.config);
   }
 
   public void reloadConfig() {

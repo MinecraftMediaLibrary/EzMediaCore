@@ -97,8 +97,6 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
       }
       return null;
     });
-
-
   }
 
   @Override
