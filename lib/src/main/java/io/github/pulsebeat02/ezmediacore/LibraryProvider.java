@@ -1,5 +1,6 @@
 package io.github.pulsebeat02.ezmediacore;
 
+import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
 import java.lang.ref.WeakReference;
 import java.nio.file.Path;
 import java.util.Map;
@@ -26,6 +27,7 @@ public final class LibraryProvider {
   private Path imagePath;
   private Path audioPath;
   private Path videoPath;
+  private SpotifyClient client;
 
   LibraryProvider() {
   }
@@ -100,6 +102,11 @@ public final class LibraryProvider {
     return this;
   }
 
+  public LibraryProvider spotifyClient(@NotNull final SpotifyClient client) {
+    this.client = client;
+    return this;
+  }
+
   public MediaLibraryCore build() {
     final MediaLibraryCore core =
         new EzMediaCore(
@@ -111,7 +118,8 @@ public final class LibraryProvider {
             this.vlcPath,
             this.imagePath,
             this.audioPath,
-            this.videoPath);
+            this.videoPath,
+            this.client);
     instantiated.put(this.plugin, new WeakReference<>(core));
     return core;
   }

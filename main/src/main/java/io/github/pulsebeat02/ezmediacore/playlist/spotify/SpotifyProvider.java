@@ -10,8 +10,9 @@ public final class SpotifyProvider {
   private SpotifyProvider() {
   }
 
-  public static void initialize(@NotNull final String accessToken) {
-    SPOTIFY_API = new SpotifyApi.Builder().setAccessToken(accessToken).build();
+  public static void initialize(@NotNull final SpotifyClient client) {
+    SPOTIFY_API = new SpotifyApi.Builder().setClientId(client.getClientID())
+        .setClientSecret(client.getClientSecret()).build();
   }
 
   static SpotifyApi getSpotifyApi() {

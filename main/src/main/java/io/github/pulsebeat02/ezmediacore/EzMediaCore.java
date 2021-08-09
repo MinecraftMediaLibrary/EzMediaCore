@@ -5,8 +5,10 @@ import io.github.pulsebeat02.ezmediacore.analysis.SystemDiagnostics;
 import io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil;
 import io.github.pulsebeat02.ezmediacore.listener.RegistrationListener;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
+import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
 import io.github.pulsebeat02.ezmediacore.reflect.NMSReflectionHandler;
 import io.github.pulsebeat02.ezmediacore.reflect.TinyProtocol;
+import io.github.pulsebeat02.ezmediacore.search.StringSearch;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import io.github.pulsebeat02.ezmediacore.throwable.LibraryException;
 import io.github.pulsebeat02.ezmediacore.utility.PluginUsageTips;
@@ -37,13 +39,15 @@ public final class EzMediaCore implements MediaLibraryCore {
   private final Path audioPath;
   private final Path videoPath;
 
+  private final SpotifyClient spotifyClient;
+
   private PacketHandler handler;
   private Listener registrationListener;
   private Path ffmpegExecutable;
   private boolean disabled;
 
   EzMediaCore(@NotNull final Plugin plugin) {
-    this(plugin, null, null, null, null, null, null, null, null);
+    this(plugin, null, null, null, null, null, null, null, null, null);
   }
 
   EzMediaCore(
@@ -55,7 +59,8 @@ public final class EzMediaCore implements MediaLibraryCore {
       @Nullable final Path vlcPath,
       @Nullable final Path imagePath,
       @Nullable final Path audioPath,
-      @Nullable final Path videoPath) {
+      @Nullable final Path videoPath,
+      @Nullable final SpotifyClient client) {
 
     this.plugin = plugin;
     this.libraryPath =
@@ -68,6 +73,7 @@ public final class EzMediaCore implements MediaLibraryCore {
     this.imagePath = (imagePath == null ? this.libraryPath.resolve("image") : imagePath);
     this.audioPath = (audioPath == null ? this.libraryPath.resolve("audio") : audioPath);
     this.videoPath = (videoPath == null ? this.libraryPath.resolve("video") : videoPath);
+    this.spotifyClient = client;
 
     Logger.init(this);
 
@@ -114,10 +120,11 @@ public final class EzMediaCore implements MediaLibraryCore {
     this.loader.start();
 
     DitherLookupUtil.init();
+    StringSearch.init();
 
     PluginUsageTips.sendWarningMessage();
     PluginUsageTips.sendPacketCompressionTip();
-
+    PluginUsageTips.sendSpotifyWarningMessage(this);
   }
 
   @Override
@@ -201,6 +208,11 @@ public final class EzMediaCore implements MediaLibraryCore {
   @Override
   public @NotNull LibraryLoader getLibraryLoader() {
     return this.loader;
+  }
+
+  @Override
+  public @Nullable SpotifyClient getSpotifyClient() {
+    return this.spotifyClient;
   }
 
   @Override

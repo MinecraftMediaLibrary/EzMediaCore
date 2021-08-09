@@ -1,7 +1,11 @@
 package io.github.pulsebeat02.ezmediacore.utility;
 
 import io.github.pulsebeat02.ezmediacore.Logger;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
+import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyProvider;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
 
 public final class PluginUsageTips {
 
@@ -38,4 +42,19 @@ public final class PluginUsageTips {
       );
     }
   }
+
+  public static void sendSpotifyWarningMessage(@NotNull final MediaLibraryCore core) {
+    final SpotifyClient client = core.getSpotifyClient();
+    if (client == null) {
+      Logger.warn(
+          """
+              Spotify API Client ID and Client Secret not specified! You will not be able
+               to use any Spotify related features.
+              """
+      );
+    } else {
+      SpotifyProvider.initialize(client);
+    }
+  }
+
 }
