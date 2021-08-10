@@ -19,7 +19,7 @@ include the ability to render **videos** on a Spigot server. It uses optimized d
 hardware acceleration, and native code to speed up the process. The library takes advantage of   
 **VLC Media Player**, a speedy, universal program that plays all sorts of media for users.
 
-<iframe style="float: right;" width="560" height="315" src="https://www.youtube.com/embed/CtlHGgGXHvs" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top: 160px; left: 0px;"></iframe>
+[![Example Media Player](https://res.cloudinary.com/marcomontalbano/image/upload/v1628561191/video_to_markdown/images/youtube--CtlHGgGXHvs-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://www.youtube.com/watch?v=CtlHGgGXHvs "Example Media Player")
 
 Frame rates may reach up to **35**, at times with extremely great quality. As a comparison, a 
 *smooth* animation is approximately **25** frames. The library is capable of playing media in all
