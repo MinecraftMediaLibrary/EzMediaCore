@@ -16,7 +16,7 @@
 **EzMediaCore** is a library written in Java using the Bukkit API and NMS classes to provide a
 helpful tool for other media plugins to take advantage of. One of the most fascinating features 
 include the ability to render **videos** on a Spigot server. It uses optimized dithering algorithms, 
-hardware acceleration, and native code to speed up the process. The library takes advantage of   
+hardware acceleration, and native code to speed up the process. The library takes advantage of 
 **VLC Media Player**, a speedy, universal program that plays all sorts of media for users.
 
 [![Example Media Player](https://res.cloudinary.com/marcomontalbano/image/upload/v1628561191/video_to_markdown/images/youtube--CtlHGgGXHvs-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://www.youtube.com/watch?v=CtlHGgGXHvs "Example Media Player")
@@ -64,8 +64,8 @@ for examples on how to use the library. It is the plugin I used that displayed t
 
 ### Public Testing Server
 
-Thanks to [Mishal321](https://github.com/mishal321), they freely gave us a public test server.  
-[Join our Discord server](https://discord.gg/qVhhbCWQQV) and you are able to access the IP to the  
+Thanks to [Mishal321](https://github.com/mishal321), they freely gave us a public test server. 
+[Join our Discord server](https://discord.gg/qVhhbCWQQV) and you are able to access the IP to the 
 testing server!
 
 ---
@@ -73,20 +73,14 @@ testing server!
 ### Contributors/Acknowledgements
 
 - [BananaPuncher714](https://github.com/BananaPuncher714)
-  and [Jetp250](https://github.com/jetp250)  
-  for helping lead the spark for the project, as well as code the Floyd-Steinberg implementation
-  in  
-  Java.
+  and [Jetp250](https://github.com/jetp250) for helping lead the spark for the project, as well as 
+  code the Floyd-Steinberg implementation in Java.
 - [Emilyy](https://github.com/emilyy-dev) for helping me with asynchronous tasks and
-  implementation.  
-  Also the plugin too.
+  implementation.
 - [Conclure](https://github.com/Conclure) for helping me migrate from maven to gradle.
-- [Yugi](https://github.com/Vshnv) for helping me  
-  setup [Slimjar](https://github.com/SlimJar/slimjar).
-- [Matt](https://github.com/ipsk) for  
-  his [GUI Framework](https://github.com/TriumphTeam/gui/tree/development).
-- And also developers of the libraries I use. Without these libraries, the development would've
-  been  
+- [Yugi](https://github.com/Vshnv) for helping me setup [Slimjar](https://github.com/SlimJar/slimjar).
+- [Matt](https://github.com/ipsk) for his [GUI Framework](https://github.com/TriumphTeam/gui/tree/development).
+- And also developers of the libraries I use. Without these libraries, the development would've been 
   a much more pain-staking process.
 
 ---
