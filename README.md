@@ -1,95 +1,98 @@
-[![Build Status](https://img.shields.io/circleci/build/github/MinecraftMediaLibrary/EzMediaCore?style=for-the-badge)](https://app.circleci.com/pipelines/github/MinecraftMediaLibrary/EzMediaCore)
-[![Code Coverage](https://img.shields.io/codefactor/grade/github/MinecraftMediaLibrary/EzMediaCore?style=for-the-badge)](https://www.codefactor.io/repository/github/minecraftmedialibrary/ezmediacore)
-[![Documentation Status](https://img.shields.io/readthedocs/minecraftmedialibrary-wiki/latest?style=for-the-badge)](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/)
-[![Discord](https://img.shields.io/discord/817501569108017223?style=for-the-badge)](https://discord.gg/qVhhbCWQQV)
+[![Build Status](https://img.shields.io/circleci/build/github/MinecraftMediaLibrary/EzMediaCore?style=for-the-badge)](https://app.circleci.com/pipelines/github/MinecraftMediaLibrary/EzMediaCore)  
+[![Code Coverage](https://img.shields.io/codefactor/grade/github/MinecraftMediaLibrary/EzMediaCore?style=for-the-badge)](https://www.codefactor.io/repository/github/minecraftmedialibrary/ezmediacore)  
+[![Documentation Status](https://img.shields.io/readthedocs/minecraftmedialibrary-wiki/latest?style=for-the-badge)](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/)  
+[![Discord](https://img.shields.io/discord/817501569108017223?style=for-the-badge)](https://discord.gg/qVhhbCWQQV)  
 [![Language](https://img.shields.io/badge/Made%20with-Java-1f425f.svg?style=for-the-badge)](https://www.java.com/en/)
 
 ![Swag](http://ForTheBadge.com/images/badges/built-with-swag.svg)
 
 ---
 
-## Update
+## News
 
-I'm currently still developing this library and plugin! I am also looking for any possible
-developers who want to join me and help me test and fix bugs in the library. Join my Discord for
-status updates about the library and plugin. I am trying my quickest to get the code fixed up and
-ready for the public.
+- Notice of 8/10/21. I am traveling to a camp and stay there with 10 days, with limited connection
+  and use of electronics. As a result, I won't be able to code for the next amount of days. I will 
+  be back at 8/21/21. Thank you for reading this notice.
+- I am looking for developers! If you are looking to help me develop this project, feel free to join
+  the Discord (which can be accessed by clicking the Chat badge above), and reaching out to me. This 
+  is a very big project, and I try to put as much effort to it!
+
+---  
+
+**EzMediaCore** is a library written in Java using the Bukkit API and NMS classes to provide a
+helpful tool for other media plugins to take advantage of. One of the most fascinating features 
+include the ability to render **videos** on a Spigot server. It uses optimized dithering algorithms, 
+hardware acceleration, and native code to speed up the process. The library takes advantage of   
+**VLC Media Player**, a speedy, universal program that plays all sorts of media for users.
+
+<iframe style="float: right;" width="560" height="315" src="https://www.youtube.com/embed/CtlHGgGXHvs" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top: 160px; left: 0px;"></iframe>
+
+Frame rates may reach up to **35**, at times with extremely great quality. As a comparison, a 
+*smooth* animation is approximately **25** frames. The library is capable of playing media in all
+sorts of ways, such as maps, entities, chat, scoreboards, debug markers.
 
 ---
-
-## Introduction
-
-**EzMediaCore** is a library written from the Bukkit API and NMS classes to provide a helpful
-framework for other plugins to take advantage of. One of the most important features perhaps is its
-ability to play **videos** on a Minecraft Spigot server. It uses a very optimized dithering method
-alongside **VLC Media Player**
-for extra hardware acceleration to play the video at higher frame rates. As a result, rates can
-reach up to **35** frames per second at times with extremely great quality on maps. As a comparison,
-a *smooth* animation is approximately **25** frames. Here is a demo of what video playback looks
-like:
-
-[![Video Player](http://img.youtube.com/vi/9oIns_Kp_sk/0.jpg)](https://www.youtube.com/watch?v=9oIns_Kp_sk&t=30s)
-
-The plugin takes advantages of maps, entities, scoreboard, and other possible methods to handle
-video playback.
-
-## First Steps
 
 ### Prerequisites
 
-- **Java 16** is required
-- Only Minecraft versions **1.16.5** and **1.17** supported
+- Java 16
+- Minecraft versions **1.16.5** and **1.17** supported
 
 Add the following to your build.gradle configuration:
 
-```groovy
-repositories {
-    maven {
-        url 'https://jitpack.io'
-    }
-}
+```groovy  
+repositories {  
+    maven {  
+        url 'https://jitpack.io'  
+    }  
+}  
+```  
+
+```groovy  
+dependencies {  
+    implementation 'com.github.MinecraftMediaLibrary:EzMediaCore:master-SNAPSHOT'  
+}  
 ```
 
-```groovy
-dependencies {
-    implementation 'com.github.MinecraftMediaLibrary:EzMediaCore:master-SNAPSHOT'
-}
-```
-
----
-
-For detailed documentation with explanations, visit
-the [readthedocs page](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/) (which is still
-in progress). It is currently outdated, and requires some rewriting.
-
-However, if you want examples, you can take a look
+Take a look
 at [this module](https://github.com/MinecraftMediaLibrary/EzMediaCore/tree/master/deluxemediaplugin)
-where I wrote comments for every piece of code in the plugin which used the library. It is the
-plugin I used that displayed the video.
+for examples on how to use the library. It is the plugin I used that displayed the video.
 
 ---
 
-## We Have a Public Server!
+### Building Locally
 
-Thanks to [Mishal321](https://github.com/mishal321), they freely gave us a public test server.
-[Join our Discord server](https://discord.gg/qVhhbCWQQV) and you are able to access the IP to the
+1) Clone the [repository](https://github.com/MinecraftMediaLibrary/EzMediaCore) by using the
+   following Git link: `https://github.com/MinecraftMediaLibrary/EzMediaCore.git`
+2) Run `gradle shadowJar` on the parent project to build a jar for the plugin.
+
+---
+
+### Public Testing Server
+
+Thanks to [Mishal321](https://github.com/mishal321), they freely gave us a public test server.  
+[Join our Discord server](https://discord.gg/qVhhbCWQQV) and you are able to access the IP to the  
 testing server!
 
 ---
 
-## Contributors/Acknowledgements
+### Contributors/Acknowledgements
 
-- [BananaPuncher714](https://github.com/BananaPuncher714) and [Jetp250](https://github.com/jetp250)
-  for helping lead the spark for the project, as well as code the Floyd-Steinberg implementation in
+- [BananaPuncher714](https://github.com/BananaPuncher714)
+  and [Jetp250](https://github.com/jetp250)  
+  for helping lead the spark for the project, as well as code the Floyd-Steinberg implementation
+  in  
   Java.
-- [Emilyy](https://github.com/emilyy-dev) for helping me with asynchronous tasks and implementation.
+- [Emilyy](https://github.com/emilyy-dev) for helping me with asynchronous tasks and
+  implementation.  
   Also the plugin too.
 - [Conclure](https://github.com/Conclure) for helping me migrate from maven to gradle.
-- [Yugi](https://github.com/Vshnv) for helping me
+- [Yugi](https://github.com/Vshnv) for helping me  
   setup [Slimjar](https://github.com/SlimJar/slimjar).
-- [Matt](https://github.com/ipsk) for
+- [Matt](https://github.com/ipsk) for  
   his [GUI Framework](https://github.com/TriumphTeam/gui/tree/development).
-- And also developers of the libraries I use. Without these libraries, the development would've been
+- And also developers of the libraries I use. Without these libraries, the development would've
+  been  
   a much more pain-staking process.
 
 ---

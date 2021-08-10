@@ -256,6 +256,7 @@ public class NMSMapPacketIntercepter implements PacketHandler {
     if (packet instanceof PacketPlayOutMinimap) {
       return ((PacketPlayOutMinimap) packet).packet;
     }
+
     return packet;
   }
 

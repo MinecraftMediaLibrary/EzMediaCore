@@ -84,31 +84,31 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
         audience,
         "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.");
 
+    completion.set(false);
+
     if (MediaExtractionUtils.getYoutubeID(mrl).isEmpty()) {
       final Path file = Path.of(mrl);
       if (Files.exists(file)) {
-        CompletableFuture.runAsync(() -> completion.set(false))
-            .thenRunAsync(
+        CompletableFuture.runAsync(
                 () -> this.wrapResourcepack(this.setAudioFileAttributes(Path.of(mrl), folder)))
             .thenRun(this::useFirstLoad)
-            .thenRun(() -> completion.set(true))
-            .thenRun(() -> gold(audience, "Successfully loaded video %s".formatted(mrl)));
+            .thenRun(() -> gold(audience, "Successfully loaded file %s".formatted(mrl)))
+            .whenComplete((result, exception) -> completion.set(true));
       } else if (mrl.startsWith("http")) {
         red(audience, "Link %s is not a valid Youtube video link!".formatted(mrl));
       } else {
         red(audience, "File %s cannot be found!".formatted(PathUtils.getName(file)));
       }
     } else {
-      CompletableFuture.runAsync(() -> completion.set(false))
-          .thenRunAsync(
+      CompletableFuture.runAsync(
               () ->
                   this.wrapResourcepack(
                       this.setYoutubeAttributes(audience, Path.of(folder), mrl)
                           .getExtractor()
                           .getOutput()))
-          .thenRun(this::useFirstLoad)
-          .thenRun(() -> completion.set(true))
-          .thenRun(() -> gold(audience, "Successfully loaded Youtube video %s".formatted(mrl)));
+          .thenRunAsync(this::useFirstLoad)
+          .thenRun(() -> gold(audience, "Successfully loaded Youtube video %s".formatted(mrl)))
+          .whenComplete((result, exception) -> completion.set(true));
     }
 
     return SINGLE_SUCCESS;
@@ -183,13 +183,14 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       wrapper.wrap();
 
       final Path path = wrapper.getResourcepackFilePath();
-
       this.attributes.setUrl(daemon.createUrl(path));
       this.attributes.setHash(HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
 
     } catch (final IOException e) {
+      this.plugin.getLogger().severe("Failed to wrap resourcepack!");
       e.printStackTrace();
     }
+
   }
 
   private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {

@@ -3,7 +3,7 @@ package io.github.pulsebeat02.ezmediacore.vlc.os.unix.dependency;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
-public enum VLCDependencyDictionary {
+public enum VLCDependency {
 
   LIBA52(of("liba52", "https://liba52.sourceforge.io/files/a52dec-0.7.4.tar.gz", Set.of())),
   LIBMAD(of("libmad",
@@ -27,7 +27,7 @@ public enum VLCDependencyDictionary {
 
   LIBSDL(of("libsdl", "http://www.libsdl.org/release/SDL2-2.0.14.tar.gz", Set.of())),
   LIBDVDCSS(of("libdvdcss",
-      "https://code.videolan.org/videolan/libdvdcss/-/archive/master/libdvdcss-master.tar.gz",
+      "https://github.com/MinecraftMediaLibrary/VLC-Compile-Dependencies/raw/main/libdvdcss-master.tar.gz",
       Set.of())),
   LIBDVDNAV(of("libdvdnav",
       "https://download.videolan.org/pub/videolan/libdvdnav/6.1.1/libdvdnav-6.1.1.tar.bz2",
@@ -49,7 +49,7 @@ public enum VLCDependencyDictionary {
 
   private final UnixDependency dependency;
 
-  VLCDependencyDictionary(@NotNull final UnixDependency dependency) {
+  VLCDependency(@NotNull final UnixDependency dependency) {
     this.dependency = dependency;
   }
 

@@ -6,6 +6,8 @@ import io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil;
 import io.github.pulsebeat02.ezmediacore.listener.RegistrationListener;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
+import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyProvider;
+import io.github.pulsebeat02.ezmediacore.playlist.youtube.YoutubeProvider;
 import io.github.pulsebeat02.ezmediacore.reflect.NMSReflectionHandler;
 import io.github.pulsebeat02.ezmediacore.reflect.TinyProtocol;
 import io.github.pulsebeat02.ezmediacore.search.StringSearch;
@@ -24,6 +26,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import uk.co.caprica.nativestreams.NativeStreams;
 
 public final class EzMediaCore implements MediaLibraryCore {
 
@@ -42,13 +45,10 @@ public final class EzMediaCore implements MediaLibraryCore {
   private final SpotifyClient spotifyClient;
 
   private PacketHandler handler;
+  private NativeStreams streams;
   private Listener registrationListener;
   private Path ffmpegExecutable;
   private boolean disabled;
-
-  EzMediaCore(@NotNull final Plugin plugin) {
-    this(plugin, null, null, null, null, null, null, null, null, null);
-  }
 
   EzMediaCore(
       @NotNull final Plugin plugin,
@@ -83,7 +83,16 @@ public final class EzMediaCore implements MediaLibraryCore {
 
   @Override
   public void initialize() throws ExecutionException, InterruptedException {
+    this.registrationListener = new RegistrationListener(this);
+    this.createFolders();
+    this.getPacketInstance();
+    this.loader.start();
+    this.initializeStream();
+    this.initializeProviders();
+    this.sendUsageTips();
+  }
 
+  private void createFolders() {
     Set.of(
             this.libraryPath,
             this.dependencyPath,
@@ -94,9 +103,9 @@ public final class EzMediaCore implements MediaLibraryCore {
             this.videoPath)
         .forEach(
             ThrowingConsumer.unchecked(Files::createDirectories));
+  }
 
-    this.registrationListener = new RegistrationListener(this);
-
+  private void getPacketInstance() {
     final Optional<PacketHandler> optional = NMSReflectionHandler.getNewPacketHandlerInstance();
     if (optional.isPresent()) {
       this.handler = optional.orElseThrow(AssertionError::new);
@@ -116,12 +125,21 @@ public final class EzMediaCore implements MediaLibraryCore {
     } else {
       throw new LibraryException("Unsupported library version! Only supports 1.16.5 - 1.17!");
     }
+  }
 
-    this.loader.start();
+  private void initializeStream() {
+//    final String logger = Logger.getLoggerPath().toString();
+//    this.streams = new NativeStreams(logger, logger);
+  }
 
+  private void initializeProviders() {
     DitherLookupUtil.init();
     StringSearch.init();
+    SpotifyProvider.initialize(this);
+    YoutubeProvider.initialize(this);
+  }
 
+  private void sendUsageTips() {
     PluginUsageTips.sendWarningMessage();
     PluginUsageTips.sendPacketCompressionTip();
     PluginUsageTips.sendSpotifyWarningMessage(this);
@@ -131,6 +149,7 @@ public final class EzMediaCore implements MediaLibraryCore {
   public void shutdown() {
     Logger.info("Shutting Down");
     this.disabled = true;
+//    this.streams.release();
     HandlerList.unregisterAll(this.registrationListener);
     Logger.info("Good Bye! :(");
   }

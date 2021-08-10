@@ -1,6 +1,8 @@
 package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
 import com.github.kiulian.downloader.YoutubeDownloader;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import org.jetbrains.annotations.NotNull;
 
 public final class YoutubeProvider {
 
@@ -11,6 +13,9 @@ public final class YoutubeProvider {
   }
 
   private YoutubeProvider() {
+  }
+
+  public static void initialize(@NotNull final MediaLibraryCore core) {
   }
 
   static YoutubeDownloader getYoutubeDownloader() {

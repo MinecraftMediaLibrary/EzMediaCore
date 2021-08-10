@@ -4,8 +4,8 @@ import org.jetbrains.annotations.NotNull;
 
 public enum DependencyInfo {
   VLCJ("uk{}co{}caprica", "vlcj", "4{}7{}1", Repositories.MAVEN),
-  VLCJ_NATIVES("uk{}co{}caprica", "vlcj-natives", "4{}1{}0", Repositories.MAVEN),
-  VLCJ_NATIVE_STREAMS("uk{}co{}caprica", "native-streams", "1{}0{}0", Repositories.MAVEN),
+  VLCJ_NATIVES("uk{}co{}caprica", "vlcj-natives", "4{}5{}0", Repositories.MAVEN),
+  VLCJ_NATIVE_STREAMS("uk{}co{}caprica", "native-streams", "2{}0{}0", Repositories.MAVEN),
   YOUTUBE_DOWNLOADER(
       "com{}github{}sealedtx", "java-youtube-downloader", "3{}0{}1", Repositories.JITPACK),
   JAVE_CORE("ws{}schild", "jave-core", "3{}1{}1", Repositories.MAVEN),

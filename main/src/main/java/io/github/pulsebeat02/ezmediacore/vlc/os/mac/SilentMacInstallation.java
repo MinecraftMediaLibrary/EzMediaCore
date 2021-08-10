@@ -4,7 +4,7 @@ import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.analysis.OSType;
 import io.github.pulsebeat02.ezmediacore.task.CommandTask;
-import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
+import io.github.pulsebeat02.ezmediacore.utility.DependencyUtils;
 import io.github.pulsebeat02.ezmediacore.vlc.os.SilentInstallation;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -30,7 +30,7 @@ public class SilentMacInstallation extends SilentInstallation {
     final Path disk = Path.of("/Volumes/VLC media player");
     final Path app = directory.resolve("VLC.app");
 
-    FileUtils.copyURLToFile(this.getCore().getDiagnostics().getVlcUrl(), dmg);
+    DependencyUtils.downloadFile(dmg, this.getCore().getDiagnostics().getVlcUrl());
 
     if (this.mountDiskImage(dmg) != 0) {
       throw new RuntimeException("A severe I/O error has occurred. Could not mount disk file!");
