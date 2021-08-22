@@ -4,9 +4,6 @@
 
 ## News
 
-- Notice of 8/10/21. I am traveling to a camp and stay there with 10 days, with limited connection
-  and use of electronics. As a result, I won't be able to code for the next amount of days. I will 
-  be back at 8/21/21. Thank you for reading this notice.
 - I am looking for developers! If you are looking to help me develop this project, feel free to join
   the Discord (which can be accessed by clicking the Chat badge above), and reaching out to me. This 
   is a very big project, and I try to put as much effort to it!
