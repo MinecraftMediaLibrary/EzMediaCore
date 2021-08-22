@@ -1,21 +1,31 @@
 package io.github.pulsebeat02.ezmediacore.utility;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
 public final class MediaExtractionUtils {
 
+  private static final LoadingCache<String, Optional<String>> CACHED_RESULT;
   private static final Pattern YOUTUBE_ID_PATTERN;
   private static final String YOUTUBE_SEARCH_URL;
   private static final String SEARCH_KEYWORD;
 
   static {
+    CACHED_RESULT =
+        Caffeine.newBuilder().executor(ExecutorProvider.CACHED_RESULT_POOL)
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .softValues().build(MediaExtractionUtils::getFirstResultVideoInternal);
     YOUTUBE_ID_PATTERN = Pattern.compile("(?<=youtu.be/|watch\\?v=|/videos/|embed)[^#]*");
     YOUTUBE_SEARCH_URL = "https://www.youtube.com/results?search_query=%s";
     SEARCH_KEYWORD = "videoId";
@@ -57,7 +67,12 @@ public final class MediaExtractionUtils {
   }
 
   @NotNull
-  public static Optional<String> getFirstResultVideo(@NotNull final String query)
+  public static Optional<String> getFirstResultVideo(@NotNull final String query) {
+    return CACHED_RESULT.get(query.trim().toLowerCase(Locale.ROOT));
+  }
+
+  @NotNull
+  private static Optional<String> getFirstResultVideoInternal(@NotNull final String query)
       throws IOException {
     try (final InputStream in = new URL(YOUTUBE_SEARCH_URL.formatted(
         query.replaceAll(" ", "+"))).openStream()) {
