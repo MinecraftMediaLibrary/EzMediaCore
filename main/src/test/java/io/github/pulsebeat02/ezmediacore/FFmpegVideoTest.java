@@ -6,20 +6,20 @@ import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
-import java.awt.Component;
-import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.Serial;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 
 public class FFmpegVideoTest {
 
   private final JFrame window;
+  private JLabel label;
   private FFmpeg ffmpeg;
 
   public FFmpegVideoTest(@NotNull final String binary, @NotNull final String input)
@@ -45,7 +45,9 @@ public class FFmpegVideoTest {
             FrameOutput.withConsumer(
                 this.getFrameConsumer(img -> {
                   this.window.getContentPane().removeAll();
-                  this.window.add(new ImageFrame(img));
+                  this.window.add(new JLabel("", new ImageIcon(img), JLabel.CENTER));
+                  this.window.repaint();
+                  this.window.revalidate();
                 })));
   }
 
@@ -58,29 +60,30 @@ public class FFmpegVideoTest {
 
       @Override
       public void consume(final Frame frame) {
-        if (frame == null) {
-          return;
-        }
         callback.accept(frame.getImage());
       }
     };
   }
 
-  protected static class ImageFrame extends Component {
-
-    @Serial
-    private static final long serialVersionUID = 5417763373891009288L;
-
-    private final BufferedImage image;
-
-    public ImageFrame(final BufferedImage image) {
-      this.image = image;
-    }
-
-    @Override
-    public void paint(@NotNull final Graphics graphics) {
-      graphics.drawImage(this.image, 0, 0, null);
-    }
-  }
+//  protected class ImageFrame {
+//
+//    @Serial
+//    private static final long serialVersionUID = 5417763373891009288L;
+//
+//    private final BufferedImage image;
+//
+//    public ImageFrame(final BufferedImage image) {
+//      this.image = image;
+//    }
+//
+//    @Override
+//    public void paint(@NotNull final Graphics graphics) {
+//      final Container container = FFmpegVideoTest.this.window.getContentPane();
+//      container.removeAll();
+//      container.add(new )
+//
+//      graphics.drawImage(this.image, 0, 0, null);
+//    }
+//  }
 
 }
