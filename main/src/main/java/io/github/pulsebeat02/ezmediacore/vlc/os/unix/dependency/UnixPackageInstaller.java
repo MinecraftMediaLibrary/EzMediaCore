@@ -2,6 +2,7 @@ package io.github.pulsebeat02.ezmediacore.vlc.os.unix.dependency;
 
 import io.github.pulsebeat02.ezmediacore.utility.ArchiveUtils;
 import io.github.pulsebeat02.ezmediacore.utility.DependencyUtils;
+import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -30,6 +31,7 @@ public class UnixPackageInstaller {
     try {
       this.download();
       this.extract();
+      this.shutdown();
     } catch (final InterruptedException e) {
       e.printStackTrace();
     }
@@ -54,9 +56,15 @@ public class UnixPackageInstaller {
 
   private void extract() throws InterruptedException {
     this.service.invokeAll(this.archives.stream().map(
-        path -> Executors.callable(() -> ArchiveUtils.recursiveExtraction(path, path.getParent()),
+        path -> Executors.callable(() -> ArchiveUtils.decompressArchive(path,
+                path.getParent().resolve(FilenameUtils.removeExtension(
+                    PathUtils.getName(path)))),
             null)).collect(
         Collectors.toSet()));
+  }
+
+  private void shutdown() {
+    this.service.shutdownNow();
   }
 
 }

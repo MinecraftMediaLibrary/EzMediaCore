@@ -41,7 +41,7 @@ public enum VLCDependency {
   LIBOPENSLP(of("libopenslp",
       "http://sourceforge.net/projects/openslp/files/2.0.0/2.0.0%20Release/openslp-2.0.0.tar.gz",
       Set.of())),
-  LIVEMEDA(
+  LIVEMEDIA(
       of("liveMedia", "http://www.live555.com/liveMedia/public/live555-latest.tar.gz", Set.of())),
   MATROSKA(
       of("matroska", "https://github.com/Matroska-Org/libmatroska/archive/refs/heads/master.zip",

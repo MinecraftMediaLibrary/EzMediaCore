@@ -41,7 +41,7 @@ public final class ArchiveUtils {
   private static final Set<String> ARCHIVE_EXTENSIONS;
 
   static {
-    ARCHIVE_EXTENSIONS = Set.of("zip", "deb", "rpm", "txz", "xz", "tgz", "gz", "ar", "cpio");
+    ARCHIVE_EXTENSIONS = Set.of("zip", "deb", "rpm", "txz", "xz", "tgz", "gz", "ar", "cpio", "bz2");
   }
 
   private ArchiveUtils() {
@@ -101,14 +101,9 @@ public final class ArchiveUtils {
       if (!current.toAbsolutePath().toString().equals(file.toAbsolutePath().toString())) {
         try {
           Files.delete(current);
-          Logger.info("Deleted Zip: %s successfully".formatted(current.getFileName()));
         } catch (final IOException e) {
-          Logger.info(
-              "Failed to Deleted Zip: %s successfully".formatted(current.getFileName()));
           e.printStackTrace();
         }
-      } else {
-        Logger.error("Could not delete Zip: %s!".formatted(current.getFileName()));
       }
       final int before = queue.size();
       queue.addAll(containsArchiveExtension(currentFolder));
