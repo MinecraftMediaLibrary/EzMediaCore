@@ -49,7 +49,7 @@ package io.github.pulsebeat02.ezmediacore.search;
  * http://citeseer.ist.psu.edu/navarro98bitparallel.html
  * </a>
  */
-class BNDM extends StringSearch {
+public class BNDM extends StringSearch {
 
   /**
    * Pre-processing of the pattern. The pattern may not exceed 32 bytes in length. If it does,
