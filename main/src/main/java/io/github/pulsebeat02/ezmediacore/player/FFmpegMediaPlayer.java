@@ -14,13 +14,19 @@ import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.Raster;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class FFmpegMediaPlayer extends MediaPlayer {
 
@@ -29,7 +35,6 @@ public class FFmpegMediaPlayer extends MediaPlayer {
   private long start;
 
   private boolean audio;
-  private long last;
 
   FFmpegMediaPlayer(
       @NotNull final FrameCallback callback,
@@ -78,6 +83,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
   @Override
   public void initializePlayer(final long seconds) {
 
+    final Dimension dimension = getDimensions();
     final String url = this.getUrl();
     final Path path = Path.of(url);
     final long ms = seconds * 1000;
@@ -104,7 +110,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
                     .setFrameRate(this.getFrameRate())
                     .disableStream(StreamType.AUDIO)
                     .disableStream(StreamType.SUBTITLE)
-                    .disableStream(StreamType.DATA));
+                    .disableStream(StreamType.DATA)).addArguments("-vf", "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()));
   }
 
   @Override
@@ -122,24 +128,84 @@ public class FFmpegMediaPlayer extends MediaPlayer {
 
       @Override
       public void consume(final Frame frame) {
+
         if (frame == null) {
           return;
         }
+
         final BufferedImage image = frame.getImage();
         if (image == null) {
           return;
         }
+
+        long before = System.currentTimeMillis();
+
         callback.process(image.getRGB(0, 0, width, dimension.getHeight(), null, 0, width));
+
         try {
-          Thread.sleep(delay);
+          long wait = delay - (System.currentTimeMillis() - before) - 1;
+          if (wait <= 0) {
+            return; // go to next frame because too delayed
+          }
+          Thread.sleep(wait);
         } catch (final InterruptedException e) {
           e.printStackTrace();
         }
+
         if (FFmpegMediaPlayer.this.audio) {
           FFmpegMediaPlayer.this.playAudio();
           FFmpegMediaPlayer.this.audio = false;
         }
       }
     };
+  }
+
+  // working on method
+  public int[] getRGBFast(@NotNull final BufferedImage image) {
+
+    final int width = image.getWidth();
+    final int height = image.getHeight();
+    final int[] array = new int[width * height];
+    final Raster raster = image.getRaster();
+    final ColorModel model = image.getColorModel();
+    final int nbands = raster.getNumBands();
+
+    final Object data = switch (raster.getDataBuffer().getDataType()) {
+      case DataBuffer.TYPE_BYTE -> new byte[nbands];
+      case DataBuffer.TYPE_USHORT -> new short[nbands];
+      case DataBuffer.TYPE_INT -> new int[nbands];
+      case DataBuffer.TYPE_FLOAT -> new float[nbands];
+      case DataBuffer.TYPE_DOUBLE -> new double[nbands];
+      default -> throw new IllegalArgumentException("Unknown data buffer type!");
+    };
+
+    final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    final int tasks = (height / 64) + 1;
+    for (int task = 0; task < tasks; task++) {
+      final int startingY = task * 64;
+      executor.submit(() -> {
+        int offset = width * startingY;
+        int index;
+        for (int y = startingY; y < height; y++, offset += width) {
+          index = offset;
+          for (int x = 0; x < width; x++) {
+            array[index++] = model.getRGB(raster.getDataElements(x, y, data));
+          }
+        }
+      });
+    }
+
+
+//    Old Loop (Synchronous)
+//    int offset = 0;
+//    int index;
+//    for (int y = 0; y < height; y++, offset += width) {
+//      index = offset;
+//      for (int x = 0; x < width; x++) {
+//        array[index++] = model.getRGB(raster.getDataElements(x, y, data));
+//      }
+//    }
+
+    return array;
   }
 }
