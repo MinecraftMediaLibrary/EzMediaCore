@@ -1,18 +1,22 @@
 package io.github.pulsebeat02.ezmediacore.utility;
 
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.awt.AlphaComposite;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.OptionalInt;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.FileImageInputStream;
@@ -190,4 +194,32 @@ public final class VideoFrameUtils {
       dstOff += dstStride;
     }
   }
+
+  public static OptionalInt getFrameRate(@NotNull final MediaLibraryCore core,
+      @NotNull final Path video)
+      throws IOException {
+    return getFrameRate(core.getFFmpegPath(), video);
+  }
+
+  public static OptionalInt getFrameRate(@NotNull final Path binary, @NotNull final Path video)
+      throws IOException {
+    try (final BufferedReader r = new BufferedReader(new InputStreamReader(
+        new ProcessBuilder(binary.toString(), "-i", video.toString()).start()
+            .getErrorStream()))) { // ffmpeg always thinks its an error
+      String line;
+      while (true) {
+        line = r.readLine();
+        if (line == null) {
+          break;
+        }
+        if (line.contains(" fps")) {
+          final int fpsIndex = line.indexOf(" fps");
+          return OptionalInt.of(Integer.parseInt(
+              line.substring(line.lastIndexOf(",", fpsIndex) + 1, fpsIndex).trim()));
+        }
+      }
+    }
+    return OptionalInt.empty();
+  }
+
 }

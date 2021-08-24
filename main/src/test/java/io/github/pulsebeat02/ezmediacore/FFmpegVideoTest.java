@@ -6,6 +6,7 @@ import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
+import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -19,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 public class FFmpegVideoTest {
 
   private final JFrame window;
-  private JLabel label;
   private FFmpeg ffmpeg;
 
   public FFmpegVideoTest(@NotNull final String binary, @NotNull final String input)
@@ -27,6 +27,7 @@ public class FFmpegVideoTest {
     this.window = new JFrame("Example Video");
     this.window.setSize(1024, 2048);
     this.window.setVisible(true);
+    this.window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     this.init(Path.of(binary), Path.of(input), 0L);
     this.ffmpeg.execute();
   }
@@ -37,18 +38,29 @@ public class FFmpegVideoTest {
         "C:\\Users\\Brandon Li\\Desktop\\video.mp4");
   }
 
-  private void init(@NotNull final Path path, @NotNull final Path input, final long ms) {
+  private void init(@NotNull final Path path, @NotNull final Path input, final long ms)
+      throws IOException {
+    final int delay = 1000 / VideoFrameUtils.getFrameRate(path, input).orElse(30);
     this.ffmpeg = new FFmpeg(path)
         .addInput(
             UrlInput.fromPath(input).setPosition(ms))
         .addOutput(
             FrameOutput.withConsumer(
                 this.getFrameConsumer(img -> {
+                  if (img == null) {
+                    return;
+                  }
                   this.window.getContentPane().removeAll();
                   this.window.add(new JLabel("", new ImageIcon(img), JLabel.CENTER));
                   this.window.repaint();
                   this.window.revalidate();
-                })));
+                  try {
+                    Thread.sleep(delay);
+                  } catch (final InterruptedException e) {
+                    e.printStackTrace();
+                  }
+                })))
+    ;
   }
 
   private FrameConsumer getFrameConsumer(
@@ -60,30 +72,12 @@ public class FFmpegVideoTest {
 
       @Override
       public void consume(final Frame frame) {
+        if (frame == null) {
+          return;
+        }
         callback.accept(frame.getImage());
       }
     };
   }
-
-//  protected class ImageFrame {
-//
-//    @Serial
-//    private static final long serialVersionUID = 5417763373891009288L;
-//
-//    private final BufferedImage image;
-//
-//    public ImageFrame(final BufferedImage image) {
-//      this.image = image;
-//    }
-//
-//    @Override
-//    public void paint(@NotNull final Graphics graphics) {
-//      final Container container = FFmpegVideoTest.this.window.getContentPane();
-//      container.removeAll();
-//      container.add(new )
-//
-//      graphics.drawImage(this.image, 0, 0, null);
-//    }
-//  }
 
 }
