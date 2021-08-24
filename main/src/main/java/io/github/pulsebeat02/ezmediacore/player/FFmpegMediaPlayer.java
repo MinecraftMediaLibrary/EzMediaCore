@@ -18,15 +18,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.DataBuffer;
-import java.awt.image.Raster;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
 
 public class FFmpegMediaPlayer extends MediaPlayer {
 
@@ -162,50 +158,12 @@ public class FFmpegMediaPlayer extends MediaPlayer {
 
   // working on method
   public int[] getRGBFast(@NotNull final BufferedImage image) {
-
     final int width = image.getWidth();
     final int height = image.getHeight();
-    final int[] array = new int[width * height];
-    final Raster raster = image.getRaster();
-    final ColorModel model = image.getColorModel();
-    final int nbands = raster.getNumBands();
-
-    final Object data = switch (raster.getDataBuffer().getDataType()) {
-      case DataBuffer.TYPE_BYTE -> new byte[nbands];
-      case DataBuffer.TYPE_USHORT -> new short[nbands];
-      case DataBuffer.TYPE_INT -> new int[nbands];
-      case DataBuffer.TYPE_FLOAT -> new float[nbands];
-      case DataBuffer.TYPE_DOUBLE -> new double[nbands];
-      default -> throw new IllegalArgumentException("Unknown data buffer type!");
-    };
-
-    final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-    final int tasks = (height / 64) + 1;
-    for (int task = 0; task < tasks; task++) {
-      final int startingY = task * 64;
-      executor.submit(() -> {
-        int offset = width * startingY;
-        int index;
-        for (int y = startingY; y < height; y++, offset += width) {
-          index = offset;
-          for (int x = 0; x < width; x++) {
-            array[index++] = model.getRGB(raster.getDataElements(x, y, data));
-          }
-        }
-      });
-    }
-
-
-//    Old Loop (Synchronous)
-//    int offset = 0;
-//    int index;
-//    for (int y = 0; y < height; y++, offset += width) {
-//      index = offset;
-//      for (int x = 0; x < width; x++) {
-//        array[index++] = model.getRGB(raster.getDataElements(x, y, data));
-//      }
-//    }
-
-    return array;
+    final int[] rgb = new int[width * height];
+    IntStream.range(0, width / 64 + (width % 64 == 0 ? 0 : 1))
+            .parallel()
+            .forEach(chunk -> image.getRGB(chunk * 64, 0, 64, height, rgb, 0, 64));
+    return rgb;
   }
 }
