@@ -8,9 +8,14 @@ import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
+import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
+import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -22,6 +27,9 @@ public class FFmpegMediaPlayer extends MediaPlayer {
   private FFmpeg ffmpeg;
   private FFmpegResultFuture future;
   private long start;
+
+  private boolean audio;
+  private long last;
 
   FFmpegMediaPlayer(
       @NotNull final FrameCallback callback,
@@ -41,9 +49,9 @@ public class FFmpegMediaPlayer extends MediaPlayer {
         if (this.ffmpeg == null) {
           this.initializePlayer(0L);
         }
-        this.future = this.ffmpeg.executeAsync();
-        this.playAudio();
+        this.future = this.ffmpeg.executeAsync(ExecutorProvider.FFMPEG_VIDEO_PLAYER);
         this.start = System.currentTimeMillis();
+        this.audio = true;
       }
       case PAUSE -> {
         if (this.ffmpeg != null) {
@@ -54,8 +62,8 @@ public class FFmpegMediaPlayer extends MediaPlayer {
       }
       case RESUME -> {
         this.initializePlayer(System.currentTimeMillis() - this.start);
-        this.future = this.ffmpeg.executeAsync();
-        this.playAudio();
+        this.future = this.ffmpeg.executeAsync(ExecutorProvider.FFMPEG_VIDEO_PLAYER);
+        this.audio = true;
       }
       case RELEASE -> {
         if (this.ffmpeg != null) {
@@ -69,9 +77,21 @@ public class FFmpegMediaPlayer extends MediaPlayer {
 
   @Override
   public void initializePlayer(final long seconds) {
+
     final String url = this.getUrl();
     final Path path = Path.of(url);
     final long ms = seconds * 1000;
+    int delay;
+
+    try {
+      delay = 1000 / VideoFrameUtils.getFrameRate(this.getCallback().getCore(), path).orElse(30);
+    } catch (final IOException e) {
+      Logger.error(
+          "A severe error occurred with extracting the fps of a video! Resorting to 30 fps!");
+      delay = 30;
+      e.printStackTrace();
+    }
+
     this.ffmpeg =
         new FFmpeg(this.getCore().getFFmpegPath())
             .addInput(
@@ -80,7 +100,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
                     : UrlInput.fromUrl(url).setPosition(ms))
             .addOutput(
                 FrameOutput.withConsumer(
-                        this.getFrameConsumer(this.getCallback(), this.getDimensions()))
+                        this.getFrameConsumer(this.getCallback(), this.getDimensions(), delay))
                     .setFrameRate(this.getFrameRate())
                     .disableStream(StreamType.AUDIO)
                     .disableStream(StreamType.SUBTITLE)
@@ -93,7 +113,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
   }
 
   private FrameConsumer getFrameConsumer(
-      final Callback callback, final Dimension dimension) {
+      final Callback callback, final Dimension dimension, final int delay) {
     final int width = dimension.getWidth();
     return new FrameConsumer() {
       @Override
@@ -105,8 +125,20 @@ public class FFmpegMediaPlayer extends MediaPlayer {
         if (frame == null) {
           return;
         }
-        callback.process(
-            frame.getImage().getRGB(0, 0, width, dimension.getHeight(), null, 0, width));
+        final BufferedImage image = frame.getImage();
+        if (image == null) {
+          return;
+        }
+        callback.process(image.getRGB(0, 0, width, dimension.getHeight(), null, 0, width));
+        try {
+          Thread.sleep(delay);
+        } catch (final InterruptedException e) {
+          e.printStackTrace();
+        }
+        if (FFmpegMediaPlayer.this.audio) {
+          FFmpegMediaPlayer.this.playAudio();
+          FFmpegMediaPlayer.this.audio = false;
+        }
       }
     };
   }

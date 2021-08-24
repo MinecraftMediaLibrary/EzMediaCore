@@ -86,6 +86,7 @@ tasks.withType<ShadowJar> {
     relocate("com.github.kokorin", "io.github.pulsebeat02.ezmediacore.lib.kokorin")
     relocate("io.github.slimjar", "io.github.pulsebeat02.ezmediacore.lib.slimjar")
     relocate("org.jcodec", "io.github.pulsebeat02.ezmediacore.lib.jcodec")
+    relocate("com.github.benmanes.caffeine", "io.github.pulsebeat02.ezmediacore.lib.caffeine")
 }
 
 task<Wrapper>("wrapper") {

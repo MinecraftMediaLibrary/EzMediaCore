@@ -12,6 +12,7 @@ public final class ExecutorProvider {
   public static final ExecutorService MAP_UPDATE_POOL;
   public static final ExecutorService EXTERNAL_PROCESS_POOL;
   public static final ExecutorService CACHED_RESULT_POOL;
+  public static final ExecutorService FFMPEG_VIDEO_PLAYER;
 
   static {
     SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
@@ -19,6 +20,7 @@ public final class ExecutorProvider {
     MAP_UPDATE_POOL = Executors.newCachedThreadPool();
     EXTERNAL_PROCESS_POOL = Executors.newSingleThreadExecutor();
     CACHED_RESULT_POOL = new ForkJoinPool();
+    FFMPEG_VIDEO_PLAYER = Executors.newSingleThreadExecutor();
   }
 
   private ExecutorProvider() {
