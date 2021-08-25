@@ -24,6 +24,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.VideoPlayerOption;
 import io.github.pulsebeat02.ezmediacore.callback.BlockHighlightCallback;
 import io.github.pulsebeat02.ezmediacore.callback.ChatCallback;
 import io.github.pulsebeat02.ezmediacore.callback.EntityCallback;
@@ -61,6 +62,7 @@ public record VideoCreator(MediaLibraryCore library,
                 0))
         .dims(Dimension.of(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
         .soundKey("emc")
+        .mode(VideoPlayerOption.FFMPEG)
         .build();
   }
 

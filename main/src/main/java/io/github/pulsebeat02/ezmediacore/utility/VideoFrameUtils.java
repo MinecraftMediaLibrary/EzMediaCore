@@ -8,7 +8,6 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
@@ -17,6 +16,7 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.stream.IntStream;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.FileImageInputStream;
@@ -28,7 +28,6 @@ import org.jcodec.scale.ColorUtil;
 import org.jcodec.scale.RgbToBgr;
 import org.jcodec.scale.Transform;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class VideoFrameUtils {
 
@@ -70,15 +69,12 @@ public final class VideoFrameUtils {
     return buffer.array();
   }
 
-  @Nullable
-  public static BufferedImage toBufferedImage(final byte @NotNull [] array) {
-    final ByteArrayInputStream bis = new ByteArrayInputStream(array);
-    try {
-      return ImageIO.read(bis);
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
-    return null;
+  public static @NotNull BufferedImage toBufferedImage(final byte @NotNull [] array,
+      final int width, final int height) {
+    final BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+    final byte[] arr = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+    System.arraycopy(array, 0, arr, 0, arr.length);
+    return image;
   }
 
   @NotNull
@@ -220,6 +216,24 @@ public final class VideoFrameUtils {
       }
     }
     return OptionalInt.empty();
+  }
+
+  public static int[] getRGBParallel(@NotNull final BufferedImage image) {
+    final int width = image.getWidth();
+    final int height = image.getHeight();
+    final int[] rgb = new int[width * height];
+    final int num = width / 64;
+    IntStream.range(0, num + (width % 64 == 0 ? 0 : 1))
+        .parallel()
+        .forEach(chunk -> {
+          final int pixel = chunk << 6;
+          if (chunk == num) {
+            image.getRGB(pixel, 0, width - num * 64, height, rgb, pixel, width);
+          } else {
+            image.getRGB(pixel, 0, 64, height, rgb, pixel, width);
+          }
+        });
+    return rgb;
   }
 
 }
