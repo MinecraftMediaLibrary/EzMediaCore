@@ -29,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
 public class FFmpegMediaPlayer extends MediaPlayer {
 
   private final Queue<int[]> frames;
+  private final long delay;
 
   private FFmpeg ffmpeg;
   private FFmpegResultFuture future;
@@ -45,6 +46,15 @@ public class FFmpegMediaPlayer extends MediaPlayer {
     super(callback, pixelDimension, url, key, fps);
     this.frames = new ArrayBlockingQueue<>(fps);
     this.initializePlayer(0L);
+    long deferred = 30;
+    try {
+      deferred = 1000 / VideoFrameUtils.getFrameRate(this.getCallback().getCore(), Path.of(url)).orElse(30);
+    } catch (final IOException e) {
+      Logger.error(
+              "A severe error occurred with extracting the fps of a video! Resorting to 30 fps!");
+      e.printStackTrace();
+    }
+    this.delay = deferred;
   }
 
   @Override
@@ -55,9 +65,8 @@ public class FFmpegMediaPlayer extends MediaPlayer {
         if (this.ffmpeg == null) {
           this.initializePlayer(0L);
         }
-        this.future = this.ffmpeg.executeAsync(ExecutorProvider.FFMPEG_VIDEO_PLAYER);
+        this.play();
         this.start = System.currentTimeMillis();
-        this.audio = true;
       }
       case PAUSE -> {
         if (this.ffmpeg != null) {
@@ -68,8 +77,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
       }
       case RESUME -> {
         this.initializePlayer(System.currentTimeMillis() - this.start);
-        this.future = this.ffmpeg.executeAsync(ExecutorProvider.FFMPEG_VIDEO_PLAYER);
-        this.audio = true;
+        this.play();
       }
       case RELEASE -> {
         if (this.ffmpeg != null) {
@@ -88,16 +96,6 @@ public class FFmpegMediaPlayer extends MediaPlayer {
     final String url = this.getUrl();
     final Path path = Path.of(url);
     final long ms = seconds * 1000;
-    int delay;
-
-    try {
-      delay = 1000 / VideoFrameUtils.getFrameRate(this.getCallback().getCore(), path).orElse(30);
-    } catch (final IOException e) {
-      Logger.error(
-          "A severe error occurred with extracting the fps of a video! Resorting to 30 fps!");
-      delay = 30;
-      e.printStackTrace();
-    }
 
     this.ffmpeg =
         new FFmpeg(this.getCore().getFFmpegPath())
@@ -111,7 +109,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
                     .disableStream(StreamType.AUDIO)
                     .disableStream(StreamType.SUBTITLE)
                     .disableStream(StreamType.DATA)
-                     .setFrameRate(getFrameRate()))
+                    .setFrameRate(getFrameRate()))
             .addArguments("-vf",
                 "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()));
   }
@@ -158,18 +156,20 @@ public class FFmpegMediaPlayer extends MediaPlayer {
     };
   }
 
-  private void play(final long wait) {
+  private void play() {
+    this.future = this.ffmpeg.executeAsync(ExecutorProvider.FFMPEG_VIDEO_PLAYER);
+    this.audio = true;
     final Callback callback = this.getCallback();
     CompletableFuture.runAsync(() -> {
-      while (!frames.isEmpty()) {
+      while (!future.isDone()) {
         callback.process(frames.poll());
         try {
-          Thread.sleep(wait);
+          Thread.sleep(delay);
         } catch (InterruptedException e) {
           e.printStackTrace();
         }
       }
-    });
+    }, ExecutorProvider.FFMPEG_VIDEO_PLAYER);
   }
 
 
