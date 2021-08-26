@@ -1,13 +1,14 @@
 package io.github.pulsebeat02.ezmediacore.resourcepack.hosting;
 
-import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
+
+import java.net.MalformedURLException;
 
 @FunctionalInterface
 public interface HostingSolution {
 
   @NotNull
-  String createUrl(@NotNull final Path resourcepack);
+  String createUrl(@NotNull final String input);
 
   @NotNull
   default String getName() {

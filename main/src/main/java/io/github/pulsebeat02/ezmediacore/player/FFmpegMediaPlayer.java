@@ -14,6 +14,9 @@ import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,9 +25,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class FFmpegMediaPlayer extends MediaPlayer {
 
@@ -110,7 +110,8 @@ public class FFmpegMediaPlayer extends MediaPlayer {
                     .setFrameRate(this.getFrameRate())
                     .disableStream(StreamType.AUDIO)
                     .disableStream(StreamType.SUBTITLE)
-                    .disableStream(StreamType.DATA))
+                    .disableStream(StreamType.DATA)
+                     .setFrameRate(getFrameRate()))
             .addArguments("-vf",
                 "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()));
   }

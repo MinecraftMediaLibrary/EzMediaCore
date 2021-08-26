@@ -62,10 +62,15 @@ public class HttpServer implements HttpDaemonSolution {
   }
 
   @Override
-  public @NotNull String createUrl(@NotNull final Path file) {
+  public @NotNull String createUrl(@NotNull final String file) {
     return "http://%s:%d/%s"
         .formatted(
-            this.daemon.getAddress(), this.daemon.getPort(), this.daemon.getRelativePath(file));
+            this.daemon.getAddress(), this.daemon.getPort(), this.daemon.getRelativePath(Path.of(file)));
+  }
+
+  @Override
+  public @NotNull String createUrl(@NotNull final Path path) {
+    return createUrl(path.toString());
   }
 
   @Override
@@ -82,4 +87,6 @@ public class HttpServer implements HttpDaemonSolution {
   public @NotNull HttpDaemon getDaemon() {
     return this.daemon;
   }
+
+
 }
