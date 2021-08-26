@@ -4,6 +4,7 @@ version = "1.0.0"
 plugins {
     java
     `java-library`
+    id("com.github.hierynomus.license-base") version "0.16.1"
 }
 
 subprojects {
@@ -17,6 +18,13 @@ subprojects {
 
     tasks.withType<JavaCompile> {
         options.encoding = "UTF-8"
+    }
+
+    license {
+        header = rootProject.file("header.txt")
+        encoding = "UTF-8"
+        mapping("java", "SLASHSTAR_STYLE")
+        include("**/*.java")
     }
 
     repositories {

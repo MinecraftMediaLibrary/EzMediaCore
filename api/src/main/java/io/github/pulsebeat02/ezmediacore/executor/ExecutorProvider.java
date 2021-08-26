@@ -20,7 +20,7 @@ public final class ExecutorProvider {
     MAP_UPDATE_POOL = Executors.newCachedThreadPool();
     EXTERNAL_PROCESS_POOL = Executors.newSingleThreadExecutor();
     CACHED_RESULT_POOL = new ForkJoinPool();
-    FFMPEG_VIDEO_PLAYER = Executors.newSingleThreadExecutor();
+    FFMPEG_VIDEO_PLAYER = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
   }
 
   private ExecutorProvider() {

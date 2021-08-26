@@ -19,15 +19,21 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CompletableFuture;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FFmpegMediaPlayer extends MediaPlayer {
 
+  private final Queue<int[]> frames;
+
   private FFmpeg ffmpeg;
   private FFmpegResultFuture future;
+  private int[] previous;
   private long start;
-
   private boolean audio;
 
   FFmpegMediaPlayer(
@@ -37,6 +43,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
       @Nullable final String key,
       final int fps) {
     super(callback, pixelDimension, url, key, fps);
+    this.frames = new ArrayBlockingQueue<>(fps);
     this.initializePlayer(0L);
   }
 
@@ -99,8 +106,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
                     ? UrlInput.fromPath(path).setPosition(ms)
                     : UrlInput.fromUrl(url).setPosition(ms))
             .addOutput(
-                FrameOutput.withConsumer(
-                        this.getFrameConsumer(this.getCallback(), delay))
+                FrameOutput.withConsumer(this.getFrameConsumer())
                     .setFrameRate(this.getFrameRate())
                     .disableStream(StreamType.AUDIO)
                     .disableStream(StreamType.SUBTITLE)
@@ -114,8 +120,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
     return System.currentTimeMillis() - this.start;
   }
 
-  private FrameConsumer getFrameConsumer(
-      final Callback callback, final int delay) {
+  private FrameConsumer getFrameConsumer() {
     return new FrameConsumer() {
       @Override
       public void consumeStreams(final List<Stream> streams) {
@@ -133,19 +138,15 @@ public class FFmpegMediaPlayer extends MediaPlayer {
           return;
         }
 
-        final long before = System.currentTimeMillis();
+        previous = VideoFrameUtils.getRGBParallel(image);
 
-        // original slow method -> callback.process(image.getRGB(0, 0, width, dimension.getHeight(), null, 0, width));
-        callback.process(VideoFrameUtils.getRGBParallel(image));
-
-        try {
-          final long wait = delay - (System.currentTimeMillis() - before);
-          if (wait <= 0) {
-            return; // go to next frame because too delayed
+        while (frames.size() <= 1) {
+          try {
+            Thread.sleep(5);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
           }
-          Thread.sleep(wait + 3);
-        } catch (final InterruptedException e) {
-          e.printStackTrace();
+          frames.add(previous);
         }
 
         if (FFmpegMediaPlayer.this.audio) {
@@ -154,6 +155,20 @@ public class FFmpegMediaPlayer extends MediaPlayer {
         }
       }
     };
+  }
+
+  private void play(final long wait) {
+    final Callback callback = this.getCallback();
+    CompletableFuture.runAsync(() -> {
+      while (!frames.isEmpty()) {
+        callback.process(frames.poll());
+        try {
+          Thread.sleep(wait);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    });
   }
 
 
