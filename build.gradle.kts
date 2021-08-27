@@ -10,6 +10,7 @@ plugins {
 subprojects {
 
     apply(plugin = "java-library")
+    apply(plugin = "com.github.hierynomus.license-base")
 
     java {
         sourceCompatibility = JavaVersion.VERSION_16
@@ -24,7 +25,7 @@ subprojects {
         header = rootProject.file("header.txt")
         encoding = "UTF-8"
         mapping("java", "SLASHSTAR_STYLE")
-        include("**/*.java")
+        includes(listOf("**/*.java", "**/*.kts"))
     }
 
     repositories {

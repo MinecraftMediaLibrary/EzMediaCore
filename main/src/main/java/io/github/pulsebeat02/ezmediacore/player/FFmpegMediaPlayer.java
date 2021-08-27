@@ -1,3 +1,26 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2021 Brandon Li
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package io.github.pulsebeat02.ezmediacore.player;
 
 import com.github.kokorin.jaffree.StreamType;
@@ -8,53 +31,39 @@ import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
-import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FFmpegMediaPlayer extends MediaPlayer {
 
-  private final Queue<int[]> frames;
+  private final ArrayBlockingQueue<int[]> frames;
   private final long delay;
 
   private FFmpeg ffmpeg;
   private FFmpegResultFuture future;
-  private int[] previous;
   private long start;
-  private boolean audio;
 
   FFmpegMediaPlayer(
-      @NotNull final FrameCallback callback,
+      @NotNull final Callback callback,
       @NotNull final Dimension pixelDimension,
+      final int bufferSize,
       @NotNull final String url,
       @Nullable final String key,
       final int fps) {
     super(callback, pixelDimension, url, key, fps);
-    this.frames = new ArrayBlockingQueue<>(fps);
+    this.frames = new ArrayBlockingQueue<>(bufferSize * fps);
     this.initializePlayer(0L);
-    long deferred = 30;
-    try {
-      deferred = 1000 / VideoFrameUtils.getFrameRate(this.getCallback().getCore(), Path.of(url)).orElse(30);
-    } catch (final IOException e) {
-      Logger.error(
-              "A severe error occurred with extracting the fps of a video! Resorting to 30 fps!");
-      e.printStackTrace();
-    }
-    this.delay = deferred;
+    this.delay = 1000L / fps;
   }
 
   @Override
@@ -65,6 +74,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
         if (this.ffmpeg == null) {
           this.initializePlayer(0L);
         }
+        this.stopAudio();
         this.play();
         this.start = System.currentTimeMillis();
       }
@@ -109,7 +119,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
                     .disableStream(StreamType.AUDIO)
                     .disableStream(StreamType.SUBTITLE)
                     .disableStream(StreamType.DATA)
-                    .setFrameRate(getFrameRate()))
+                    .setFrameRate(this.getFrameRate()))
             .addArguments("-vf",
                 "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()));
   }
@@ -137,39 +147,33 @@ public class FFmpegMediaPlayer extends MediaPlayer {
           return;
         }
 
-        previous = VideoFrameUtils.getRGBParallel(image);
-
-        while (frames.size() <= 1) {
+        while (FFmpegMediaPlayer.this.frames.remainingCapacity() <= 1) {
           try {
             Thread.sleep(5);
-          } catch (InterruptedException e) {
+          } catch (final InterruptedException e) {
             e.printStackTrace();
           }
-          frames.add(previous);
         }
 
-        if (FFmpegMediaPlayer.this.audio) {
-          FFmpegMediaPlayer.this.playAudio();
-          FFmpegMediaPlayer.this.audio = false;
-        }
+        FFmpegMediaPlayer.this.frames.add(VideoFrameUtils.getRGBParallel(image));
       }
     };
   }
 
   private void play() {
     this.future = this.ffmpeg.executeAsync(ExecutorProvider.FFMPEG_VIDEO_PLAYER);
-    this.audio = true;
     final Callback callback = this.getCallback();
     CompletableFuture.runAsync(() -> {
-      while (!future.isDone()) {
-        callback.process(frames.poll());
+      while (!this.future.isDone()) {
         try {
-          Thread.sleep(delay);
-        } catch (InterruptedException e) {
+          callback.process(this.frames.take());
+          Thread.sleep(FFmpegMediaPlayer.this.delay);
+        } catch (final InterruptedException e) {
           e.printStackTrace();
         }
       }
     }, ExecutorProvider.FFMPEG_VIDEO_PLAYER);
+    this.playAudio();
   }
 
 

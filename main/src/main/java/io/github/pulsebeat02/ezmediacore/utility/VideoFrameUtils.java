@@ -1,3 +1,26 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2021 Brandon Li
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package io.github.pulsebeat02.ezmediacore.utility;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
@@ -222,15 +245,15 @@ public final class VideoFrameUtils {
     final int width = image.getWidth();
     final int height = image.getHeight();
     final int[] rgb = new int[width * height];
-    final int num = width / 64;
-    IntStream.range(0, num + (width % 64 == 0 ? 0 : 1))
+    final int num = width >> 5;
+    IntStream.range(0, num + ((width & 31) == 0 ? 0 : 1))
         .parallel()
         .forEach(chunk -> {
-          final int pixel = chunk << 6;
+          final int pixel = chunk << 5;
           if (chunk == num) {
-            image.getRGB(pixel, 0, width - num * 64, height, rgb, pixel, width);
+            image.getRGB(pixel, 0, width - (num << 5), height, rgb, pixel, width);
           } else {
-            image.getRGB(pixel, 0, 64, height, rgb, pixel, width);
+            image.getRGB(pixel, 0, 32, height, rgb, pixel, width);
           }
         });
     return rgb;
