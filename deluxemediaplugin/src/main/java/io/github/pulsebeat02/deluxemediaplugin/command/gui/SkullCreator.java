@@ -47,9 +47,10 @@ package io.github.pulsebeat02.deluxemediaplugin.command.gui;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Base64;
@@ -77,7 +78,7 @@ public final class SkullCreator {
   private static boolean warningPosted = false;
   // some reflection stuff to be used when setting a skull's profile
   private static Field blockProfileField;
-  private static Method metaSetProfileMethod;
+  private static MethodHandle metaSetProfileMethod;
   private static Field metaProfileField;
 
   private SkullCreator() {
@@ -299,11 +300,13 @@ public final class SkullCreator {
   private static void mutateItemMeta(final SkullMeta meta, final String b64) {
     try {
       if (metaSetProfileMethod == null) {
-        metaSetProfileMethod = meta.getClass().getDeclaredMethod("setProfile", GameProfile.class);
-        metaSetProfileMethod.setAccessible(true);
+        metaSetProfileMethod = MethodHandles.publicLookup()
+            .findVirtual(meta.getClass(), "setProfile",
+                MethodType.methodType(void.class, GameProfile.class));
       }
       metaSetProfileMethod.invoke(meta, makeProfile(b64));
-    } catch (final NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+    } catch (final Throwable throwable) {
+
       // if in an older API where there is no setProfile method,
       // we set the profile field directly.
       try {
@@ -316,6 +319,8 @@ public final class SkullCreator {
       } catch (final NoSuchFieldException | IllegalAccessException ex2) {
         ex2.printStackTrace();
       }
+
+
     }
   }
 

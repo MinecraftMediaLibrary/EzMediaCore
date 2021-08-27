@@ -56,14 +56,14 @@ public class FFmpegMediaPlayer extends MediaPlayer {
   FFmpegMediaPlayer(
       @NotNull final Callback callback,
       @NotNull final Dimension pixelDimension,
-      final int bufferSize,
+      final int buffer,
       @NotNull final String url,
       @Nullable final String key,
       final int fps) {
     super(callback, pixelDimension, url, key, fps);
-    this.frames = new ArrayBlockingQueue<>(bufferSize * fps);
-    this.initializePlayer(0L);
+    this.frames = new ArrayBlockingQueue<>(buffer * fps);
     this.delay = 1000L / fps;
+    this.initializePlayer(0L);
   }
 
   @Override
@@ -149,7 +149,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
 
         while (FFmpegMediaPlayer.this.frames.remainingCapacity() <= 1) {
           try {
-            Thread.sleep(5);
+            Thread.sleep(10);
           } catch (final InterruptedException e) {
             e.printStackTrace();
           }
@@ -161,18 +161,18 @@ public class FFmpegMediaPlayer extends MediaPlayer {
   }
 
   private void play() {
-    this.future = this.ffmpeg.executeAsync(ExecutorProvider.FFMPEG_VIDEO_PLAYER);
+    this.future = this.ffmpeg.executeAsync(ExecutorProvider.SHARED_VIDEO_PLAYER);
     final Callback callback = this.getCallback();
     CompletableFuture.runAsync(() -> {
       while (!this.future.isDone()) {
         try {
           callback.process(this.frames.take());
-          Thread.sleep(FFmpegMediaPlayer.this.delay);
+          Thread.sleep(FFmpegMediaPlayer.this.delay - 20);
         } catch (final InterruptedException e) {
           e.printStackTrace();
         }
       }
-    }, ExecutorProvider.FFMPEG_VIDEO_PLAYER);
+    }, ExecutorProvider.SHARED_VIDEO_PLAYER);
     this.playAudio();
   }
 

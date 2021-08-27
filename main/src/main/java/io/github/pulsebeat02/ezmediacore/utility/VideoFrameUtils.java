@@ -38,7 +38,7 @@ import java.nio.IntBuffer;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.OptionalInt;
+import java.util.OptionalDouble;
 import java.util.stream.IntStream;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -54,14 +54,65 @@ import org.jetbrains.annotations.NotNull;
 
 public final class VideoFrameUtils {
 
-  private static final RgbToBgr CONVERSION;
-
-  static {
-    CONVERSION = new RgbToBgr();
-  }
-
   private VideoFrameUtils() {
   }
+
+  public static int[] toResizedColorArray(@NotNull final Picture frame,
+      @NotNull final io.github.pulsebeat02.ezmediacore.dimension.Dimension dimension) {
+    return getRGBParallel(resizeImage(toBufferedImage(frame), dimension.getWidth(),
+        dimension.getHeight()));
+  }
+
+  public static BufferedImage toBufferedImage(Picture src) {
+    final ColorSpace space = src.getColor();
+    if (space != ColorSpace.BGR) {
+      final Picture bgr = Picture.createCropped(src.getWidth(), src.getHeight(), ColorSpace.BGR,
+          src.getCrop());
+      if (space == ColorSpace.RGB) {
+        new RgbToBgr().transform(src, bgr);
+      } else {
+        final Transform transform = ColorUtil.getTransform(space, ColorSpace.RGB);
+        transform.transform(src, bgr);
+        new RgbToBgr().transform(bgr, bgr);
+      }
+      src = bgr;
+    }
+    final BufferedImage dst = new BufferedImage(src.getCroppedWidth(), src.getCroppedHeight(),
+        BufferedImage.TYPE_3BYTE_BGR);
+    if (src.getCrop() == null) {
+      toBufferedImage(src, dst);
+    } else {
+      toBufferedImageCropped(src, dst);
+    }
+    return dst;
+  }
+
+  public static void toBufferedImage(final Picture src, final BufferedImage dst) {
+    final byte[] data = ((DataBufferByte) dst.getRaster().getDataBuffer()).getData();
+    final byte[] srcData = src.getPlaneData(0);
+    for (int i = 0; i < data.length; i++) {
+      data[i] = (byte) (srcData[i] + 128);
+    }
+  }
+
+  private static void toBufferedImageCropped(final Picture src, final BufferedImage dst) {
+    final byte[] data = ((DataBufferByte) dst.getRaster().getDataBuffer()).getData();
+    final byte[] srcData = src.getPlaneData(0);
+    final int dstWidth = dst.getWidth();
+    final int srcWidth = src.getWidth();
+    final int dstStride = (dstWidth << 1) + dstWidth;
+    final int srcStride = (srcWidth << 1) + srcWidth;
+    for (int line = 0, srcOff = 0, dstOff = 0; line < dst.getHeight(); line++) {
+      for (int id = dstOff, is = srcOff; id < dstOff + dstStride; id++, is++) {
+        data[id] = (byte) (srcData[is] + 128);
+        data[id++] = (byte) (srcData[is++] + 128);
+        data[id++] = (byte) (srcData[is++] + 128);
+      }
+      srcOff += srcStride;
+      dstOff += dstStride;
+    }
+  }
+
 
   @NotNull
   public static Optional<int[]> getBuffer(@NotNull final Path image) {
@@ -166,61 +217,13 @@ public final class VideoFrameUtils {
     throw new IOException("Not a known image file: " + file.toAbsolutePath());
   }
 
-  public static BufferedImage toBufferedImage(Picture src) {
-    if (src.getColor() != ColorSpace.BGR) {
-      final Picture bgr =
-          Picture.createCropped(src.getWidth(), src.getHeight(), ColorSpace.BGR, src.getCrop());
-      if (src.getColor() == ColorSpace.RGB) {
-        CONVERSION.transform(src, bgr);
-      } else {
-        final Transform transform = ColorUtil.getTransform(src.getColor(), ColorSpace.RGB);
-        transform.transform(src, bgr);
-        CONVERSION.transform(bgr, bgr);
-      }
-      src = bgr;
-    }
-    final BufferedImage dst =
-        new BufferedImage(
-            src.getCroppedWidth(), src.getCroppedHeight(), BufferedImage.TYPE_3BYTE_BGR);
-    if (src.getCrop() == null) {
-      toBufferedImage(src, dst);
-    } else {
-      toCroppedBufferedImage(src, dst);
-    }
-    return dst;
-  }
-
-  public static void toBufferedImage(final Picture src, final BufferedImage dst) {
-    final byte[] data = ((DataBufferByte) dst.getRaster().getDataBuffer()).getData();
-    final byte[] srcData = src.getPlaneData(0);
-    for (int i = 0; i < data.length; i++) {
-      data[i] = (byte) (srcData[i] + 128);
-    }
-  }
-
-  public static void toCroppedBufferedImage(final Picture src, final BufferedImage dst) {
-    final byte[] data = ((DataBufferByte) dst.getRaster().getDataBuffer()).getData();
-    final byte[] srcData = src.getPlaneData(0);
-    final int dstStride = dst.getWidth() * 3;
-    final int srcStride = src.getWidth() * 3;
-    for (int line = 0, srcOff = 0, dstOff = 0; line < dst.getHeight(); line++) {
-      for (int id = dstOff, is = srcOff; id < dstOff + dstStride; id += 3, is += 3) {
-        data[id] = (byte) (srcData[is] + 128);
-        data[id + 1] = (byte) (srcData[is + 1] + 128);
-        data[id + 2] = (byte) (srcData[is + 2] + 128);
-      }
-      srcOff += srcStride;
-      dstOff += dstStride;
-    }
-  }
-
-  public static OptionalInt getFrameRate(@NotNull final MediaLibraryCore core,
+  public static OptionalDouble getFrameRate(@NotNull final MediaLibraryCore core,
       @NotNull final Path video)
       throws IOException {
     return getFrameRate(core.getFFmpegPath(), video);
   }
 
-  public static OptionalInt getFrameRate(@NotNull final Path binary, @NotNull final Path video)
+  public static OptionalDouble getFrameRate(@NotNull final Path binary, @NotNull final Path video)
       throws IOException {
     try (final BufferedReader r = new BufferedReader(new InputStreamReader(
         new ProcessBuilder(binary.toString(), "-i", video.toString()).start()
@@ -233,12 +236,12 @@ public final class VideoFrameUtils {
         }
         if (line.contains(" fps")) {
           final int fpsIndex = line.indexOf(" fps");
-          return OptionalInt.of(Integer.parseInt(
+          return OptionalDouble.of(Double.parseDouble(
               line.substring(line.lastIndexOf(",", fpsIndex) + 1, fpsIndex).trim()));
         }
       }
     }
-    return OptionalInt.empty();
+    return OptionalDouble.empty();
   }
 
   public static int[] getRGBParallel(@NotNull final BufferedImage image) {

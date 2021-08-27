@@ -25,8 +25,10 @@ package io.github.pulsebeat02.ezmediacore.player;
 
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
 import java.io.IOException;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import org.jcodec.api.FrameGrab;
 import org.jcodec.api.JCodecException;
@@ -38,8 +40,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class JCodecMediaPlayer extends MediaPlayer {
 
-  private FrameGrab grabber;
+  private final ArrayBlockingQueue<int[]> frames;
+  private final long delay;
 
+  private FrameGrab grabber;
   private boolean paused;
   private long start;
 
@@ -52,6 +56,8 @@ public class JCodecMediaPlayer extends MediaPlayer {
       final int fps) {
     super(callback, pixelDimension, url, key, fps);
     this.initializePlayer(0L);
+    this.frames = new ArrayBlockingQueue<>(buffer * fps);
+    this.delay = 1000L / fps;
   }
 
   @Override
@@ -62,7 +68,8 @@ public class JCodecMediaPlayer extends MediaPlayer {
         if (this.grabber == null) {
           this.initializePlayer(0L);
         }
-        CompletableFuture.runAsync(this::runPlayer);
+        this.paused = false;
+        this.play();
         this.start = System.currentTimeMillis();
       }
       case PAUSE -> {
@@ -71,9 +78,9 @@ public class JCodecMediaPlayer extends MediaPlayer {
         this.start = System.currentTimeMillis();
       }
       case RESUME -> {
-        this.paused = false;
         this.initializePlayer(System.currentTimeMillis() - this.start);
-        CompletableFuture.runAsync(this::runPlayer);
+        this.paused = false;
+        this.play();
       }
       case RELEASE -> {
         this.paused = false;
@@ -90,28 +97,48 @@ public class JCodecMediaPlayer extends MediaPlayer {
     this.playAudio();
 
     final Dimension dimension = this.getDimensions();
-    final int width = dimension.getWidth();
-    final int height = dimension.getHeight();
-
-    this.playAudio();
-
     CompletableFuture.runAsync(() -> {
-      Picture picture;
+      Picture frame;
       while (!this.paused) {
+
         try {
-          if ((picture = this.grabber.getNativeFrame()) == null) {
+
+          if ((frame = this.grabber.getNativeFrame()) == null) {
             break;
           }
-          this.getCallback()
-              .process(
-                  VideoFrameUtils.toBufferedImage(picture)
-                      .getRGB(0, 0, width, height, null, 0, width));
+
+          while (JCodecMediaPlayer.this.frames.remainingCapacity() <= 1) {
+            try {
+              Thread.sleep(5);
+            } catch (final InterruptedException e) {
+              e.printStackTrace();
+            }
+          }
+
+          JCodecMediaPlayer.this.frames.add(VideoFrameUtils.toResizedColorArray(frame, dimension));
+
         } catch (final IOException e) {
           e.printStackTrace();
         }
+
       }
     });
+  }
 
+  private void play() {
+    CompletableFuture.runAsync(this::runPlayer);
+    final Callback callback = this.getCallback();
+    CompletableFuture.runAsync(() -> {
+      while (!this.paused) {
+        try {
+          callback.process(this.frames.take());
+          Thread.sleep(JCodecMediaPlayer.this.delay);
+        } catch (final InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    }, ExecutorProvider.SHARED_VIDEO_PLAYER);
+    this.playAudio();
   }
 
   @Override

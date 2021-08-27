@@ -110,8 +110,8 @@ public class VideoFactory {
   public void calculateFrameRate() {
     if (this.rate == -1) {
       try {
-        this.rate = VideoFrameUtils.getFrameRate(this.callback.getCore(), Path.of(this.url))
-            .orElse(30);
+        this.rate = (int) VideoFrameUtils.getFrameRate(this.callback.getCore(), Path.of(this.url))
+            .orElse(30.0);
       } catch (final IOException e) {
         Logger.info("Unable to calculate default frame rate for video! (%s)".formatted(this.url));
         e.printStackTrace();

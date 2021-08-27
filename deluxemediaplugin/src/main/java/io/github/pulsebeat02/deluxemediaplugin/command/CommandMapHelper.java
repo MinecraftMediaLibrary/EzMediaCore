@@ -45,30 +45,32 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command;
 
-import java.lang.reflect.Method;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import org.bukkit.Bukkit;
-import org.bukkit.Server;
-import org.bukkit.command.CommandMap;
+import org.bukkit.command.SimpleCommandMap;
 
 public final class CommandMapHelper {
 
-  private static final Method GET_COMMAND_MAP_METHOD;
+  private static final MethodHandle GET_COMMAND_MAP_METHOD;
 
   static {
     try {
-      final Class<? extends Server> craftServerClass = Bukkit.getServer().getClass();
-      GET_COMMAND_MAP_METHOD = craftServerClass.getDeclaredMethod("getCommandMap");
-      GET_COMMAND_MAP_METHOD.setAccessible(true);
-    } catch (final ReflectiveOperationException exception) {
-      throw new RuntimeException(exception);
+      GET_COMMAND_MAP_METHOD = MethodHandles.publicLookup()
+          .findVirtual(Bukkit.getServer().getClass(), "getCommandMap", MethodType.methodType(
+              SimpleCommandMap.class));
+    } catch (final NoSuchMethodException | IllegalAccessException e) {
+      throw new RuntimeException(e);
     }
   }
 
-  public static CommandMap getCommandMap() {
+  public static SimpleCommandMap getCommandMap() {
     try {
-      return (CommandMap) GET_COMMAND_MAP_METHOD.invoke(Bukkit.getServer());
-    } catch (final ReflectiveOperationException exception) {
-      throw new RuntimeException(exception);
+      return (SimpleCommandMap) GET_COMMAND_MAP_METHOD.invoke(Bukkit.getServer());
+    } catch (final Throwable t) {
+      t.printStackTrace();
     }
+    throw new AssertionError("Unable to retrieve command map and register commands!");
   }
 }
