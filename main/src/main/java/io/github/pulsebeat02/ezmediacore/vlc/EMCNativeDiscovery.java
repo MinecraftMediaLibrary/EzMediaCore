@@ -87,7 +87,7 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
     }
 
     if (Files.notExists(directory)) {
-      throw new IOException("Folder doesn't exist!");
+      return Optional.empty();
     }
 
     final Queue<Path> files = this.getPriorityQueue();
