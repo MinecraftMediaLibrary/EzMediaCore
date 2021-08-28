@@ -33,7 +33,7 @@ import java.net.URL;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-public class JarInjector implements DependencyInjector {
+public final class JarInjector implements DependencyInjector {
 
   private final Collection<URL> dependencies;
 

@@ -52,7 +52,7 @@ import java.io.IOException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-public class EncoderConfiguration extends ConfigurationProvider {
+public final class EncoderConfiguration extends ConfigurationProvider {
 
   private AudioConfiguration settings;
 

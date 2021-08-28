@@ -34,7 +34,7 @@ import java.util.concurrent.RecursiveTask;
 @Author(
     authors = {"PulseBeat_02", "BananaPuncher714", "jetp250"},
     emails = {"brandonli2006ma@gmail.com", "banana@aaaaahhhhhhh.com", "github.com/jetp250"})
-public class DitherLookupUtil {
+public final class DitherLookupUtil {
 
   public static final int[] PALETTE;
   public static final byte[] COLOR_MAP = new byte[128 * 128 * 128];

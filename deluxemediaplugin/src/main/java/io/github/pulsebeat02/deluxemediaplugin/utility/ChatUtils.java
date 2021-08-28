@@ -45,6 +45,16 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.utility;
 
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.TextComponent;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
+
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.newline;
 import static net.kyori.adventure.text.Component.space;
@@ -55,15 +65,6 @@ import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
 import static net.kyori.adventure.text.format.NamedTextColor.LIGHT_PURPLE;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.OptionalInt;
-import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.ComponentLike;
-import net.kyori.adventure.text.TextComponent;
-import org.jetbrains.annotations.NotNull;
 
 public final class ChatUtils {
 
@@ -81,6 +82,8 @@ public final class ChatUtils {
             .color(AQUA)
             .append(text('['), text("External Process", GOLD), text(']'), space(), text("»", GRAY));
   }
+
+  private ChatUtils() {}
 
   public static @NotNull Component format(@NotNull final TextComponent message) {
     return ofChildren(PREFIX, space(), message);
@@ -101,7 +104,7 @@ public final class ChatUtils {
     } else if (height.isEmpty()) {
       message = dims[1];
     } else {
-      return Optional.of(new int[]{width.getAsInt(), height.getAsInt()});
+      return Optional.of(new int[] {width.getAsInt(), height.getAsInt()});
     }
     sender.sendMessage(
         text()

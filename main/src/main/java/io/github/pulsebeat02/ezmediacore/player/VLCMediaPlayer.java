@@ -41,7 +41,7 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCall
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.RenderCallbackAdapter;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32BufferFormat;
 
-public class VLCMediaPlayer extends MediaPlayer {
+public final class VLCMediaPlayer extends MediaPlayer {
 
   private final VideoSurfaceAdapter adapter;
   private final MinecraftVideoRenderCallback callback;

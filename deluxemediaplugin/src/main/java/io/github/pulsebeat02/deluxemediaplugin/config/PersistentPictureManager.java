@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import org.jetbrains.annotations.NotNull;
 
-public class PersistentPictureManager {
+public final class PersistentPictureManager {
 
   private static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE;
 

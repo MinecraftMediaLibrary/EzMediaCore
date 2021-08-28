@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.extraction;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
-public class AudioAttributes implements AudioConfiguration {
+public final class AudioAttributes implements AudioConfiguration {
 
   private String codec;
   private int start;

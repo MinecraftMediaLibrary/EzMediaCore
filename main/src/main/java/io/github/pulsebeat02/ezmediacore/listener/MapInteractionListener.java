@@ -36,7 +36,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
 import org.jetbrains.annotations.NotNull;
 
-public class MapInteractionListener implements LibraryInjectable, Listener {
+public final class MapInteractionListener implements LibraryInjectable, Listener {
 
   private final MediaLibraryCore core;
 

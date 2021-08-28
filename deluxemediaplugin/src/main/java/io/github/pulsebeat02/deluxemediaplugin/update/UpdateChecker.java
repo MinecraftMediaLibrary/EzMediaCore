@@ -52,7 +52,7 @@ import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 
-public class UpdateChecker {
+public final class UpdateChecker {
 
   private final DeluxeMediaPlugin plugin;
   private int resource;

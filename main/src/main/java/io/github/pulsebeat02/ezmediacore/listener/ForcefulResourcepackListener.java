@@ -37,7 +37,7 @@ import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-public class ForcefulResourcepackListener implements Listener {
+public final class ForcefulResourcepackListener implements Listener {
 
   private final MediaLibraryCore core;
   private final Set<UUID> uuids;

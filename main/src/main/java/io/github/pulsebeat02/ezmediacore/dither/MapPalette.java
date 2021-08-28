@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.dither;
 import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 
-public class MapPalette {
+public final class MapPalette {
 
   public static final Color[] colors =
       new Color[]{

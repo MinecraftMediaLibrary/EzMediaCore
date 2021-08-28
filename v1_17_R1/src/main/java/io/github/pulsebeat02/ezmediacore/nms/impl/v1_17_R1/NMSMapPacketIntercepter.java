@@ -50,7 +50,7 @@ import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
-public class NMSMapPacketIntercepter implements PacketHandler {
+public final class NMSMapPacketIntercepter implements PacketHandler {
 
   public static final int PACKET_THRESHOLD_MS = 0;
   private static final Set<Object> PACKET_DIFFERENTIATION;

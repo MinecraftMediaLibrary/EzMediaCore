@@ -53,7 +53,7 @@ import java.nio.file.Path;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-public class HttpConfiguration extends ConfigurationProvider {
+public final class HttpConfiguration extends ConfigurationProvider {
 
   private HttpServer daemon;
   private boolean enabled;

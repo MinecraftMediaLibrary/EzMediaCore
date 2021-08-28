@@ -45,15 +45,16 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FFmpegMediaPlayer extends MediaPlayer {
+public final class FFmpegMediaPlayer extends MediaPlayer {
 
   private final ArrayBlockingQueue<int[]> frames;
   private final long delay;
+  private final int buffer;
 
   private long start;
   private volatile FFmpeg ffmpeg;
   private volatile FFmpegResultFuture future;
-  private volatile CompletableFuture<Void> frameRenderer;
+  private volatile CompletableFuture<Void> framePlayer;
   private volatile CompletableFuture<Void> audioPlayer;
   private volatile boolean firstFrame;
 
@@ -65,6 +66,7 @@ public class FFmpegMediaPlayer extends MediaPlayer {
       @Nullable final String key,
       final int fps) {
     super(callback, pixelDimension, url, key, fps);
+    this.buffer = buffer;
     this.frames = new ArrayBlockingQueue<>(buffer * fps);
     this.delay = 1000L / fps;
     this.firstFrame = false;
@@ -85,12 +87,10 @@ public class FFmpegMediaPlayer extends MediaPlayer {
 
   @Override
   public void initializePlayer(final long seconds) {
-
     final Dimension dimension = this.getDimensions();
     final String url = this.getUrl();
     final Path path = Path.of(url);
     final long ms = seconds * 1000;
-
     this.ffmpeg =
         new FFmpeg(this.getCore().getFFmpegPath())
             .addInput(
@@ -164,7 +164,16 @@ public class FFmpegMediaPlayer extends MediaPlayer {
   }
 
   private void play(@NotNull final PlayerControls controls) {
+    setupPlayer(controls);
+    CompletableFuture.runAsync(() -> {
+      this.future = updateFFmpegPlayer();
+      this.delayFrames();
+      this.audioPlayer = updateAudioPlayer();
+      this.framePlayer = updateVideoPlayer();
+    });
+  }
 
+  private void setupPlayer(@NotNull final PlayerControls controls) {
     if (controls == PlayerControls.START) {
       this.stopAudio();
       if (this.ffmpeg == null) {
@@ -174,52 +183,55 @@ public class FFmpegMediaPlayer extends MediaPlayer {
     } else if (controls == PlayerControls.RESUME) {
       this.initializePlayer(System.currentTimeMillis() - this.start);
     }
+  }
 
-    final Callback callback = this.getCallback();
-
+  private FFmpegResultFuture updateFFmpegPlayer() {
     if (this.future != null && !this.future.isDone()) {
       this.future.stop(true);
     }
-    this.future = this.ffmpeg.executeAsync(ExecutorProvider.SHARED_VIDEO_PLAYER);
-
-    CompletableFuture.runAsync(() -> {
-
-      try {
-        TimeUnit.MILLISECONDS.sleep(
-            (long) this.getFrameRate() << 1); // allow frames to load first to get headstart
-      } catch (final InterruptedException e) {
-        e.printStackTrace();
-      }
-
-      if (this.audioPlayer != null && !this.audioPlayer.isDone()) {
-        this.audioPlayer.cancel(true);
-      }
-      this.audioPlayer = CompletableFuture.runAsync(() -> {
-        while (true) {
-          if (this.firstFrame) {
-            this.playAudio();
-            this.firstFrame = false;
-            break;
-          }
-        }
-      }, ExecutorProvider.SHARED_VIDEO_PLAYER);
-
-      if (this.frameRenderer != null && !this.frameRenderer.isDone()) {
-        this.frameRenderer.cancel(true);
-      }
-      this.frameRenderer = CompletableFuture.runAsync(() -> {
-        while (!this.future.isDone()) {
-          try {
-            callback.process(this.frames.take());
-            TimeUnit.MILLISECONDS.sleep(this.delay - 7);
-          } catch (final InterruptedException e) {
-            e.printStackTrace();
-          }
-        }
-      }, ExecutorProvider.SHARED_VIDEO_PLAYER);
-    });
-
-
+    return this.ffmpeg.executeAsync(ExecutorProvider.SHARED_VIDEO_PLAYER);
   }
+
+  private void delayFrames() {
+    int target = (buffer * getFrameRate()) >> 1;
+    while (true) {
+      if (frames.size() == target) { // block until frame size met
+        break;
+      }
+    }
+  }
+
+  private CompletableFuture<Void> updateAudioPlayer() {
+    if (this.audioPlayer != null && !this.audioPlayer.isDone()) {
+      this.audioPlayer.cancel(true);
+    }
+    return CompletableFuture.runAsync(() -> {
+      while (true) {
+        if (this.firstFrame) {
+          this.playAudio();
+          this.firstFrame = false;
+          break;
+        }
+      }
+    }, ExecutorProvider.SHARED_VIDEO_PLAYER);
+  }
+
+  private CompletableFuture<Void> updateVideoPlayer() {
+    final Callback callback = this.getCallback();
+    if (this.framePlayer != null && !this.framePlayer.isDone()) {
+      this.framePlayer.cancel(true);
+    }
+    return CompletableFuture.runAsync(() -> {
+      while (!this.future.isDone()) {
+        try {
+          callback.process(this.frames.take());
+          TimeUnit.MILLISECONDS.sleep(this.delay - 7);
+        } catch (final InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    }, ExecutorProvider.SHARED_VIDEO_PLAYER);
+  }
+
 
 }
