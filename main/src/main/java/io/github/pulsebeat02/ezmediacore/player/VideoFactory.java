@@ -40,7 +40,7 @@ public class VideoFactory {
   private Dimension dims;
   private String url;
   private String key;
-  private int rate = -1;
+  private int rate = 25;
 
   public static VLCMediaFactory vlc() {
     return new VLCMediaFactory();
@@ -68,6 +68,7 @@ public class VideoFactory {
     return this;
   }
 
+  // set to -1 for default
   public VideoFactory frameRate(final int rate) {
     this.rate = rate;
     return this;
