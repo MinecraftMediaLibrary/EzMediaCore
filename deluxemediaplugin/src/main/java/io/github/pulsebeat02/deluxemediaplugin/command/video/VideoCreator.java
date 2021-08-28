@@ -71,7 +71,7 @@ public record VideoCreator(MediaLibraryCore library,
   }
 
   public VideoPlayer createMapPlayer(@NotNull final Collection<? extends Player> viewers) {
-    return VideoFactory.ffmpeg()
+    return VideoFactory.unspecified()
         .url(this.attributes.getVideoMrl())
         .callback(
             new MapCallback(

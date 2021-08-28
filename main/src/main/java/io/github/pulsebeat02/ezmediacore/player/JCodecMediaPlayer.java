@@ -30,6 +30,7 @@ import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
 import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.jcodec.api.FrameGrab;
 import org.jcodec.api.JCodecException;
 import org.jcodec.common.io.NIOUtils;
@@ -46,6 +47,9 @@ public class JCodecMediaPlayer extends MediaPlayer {
   private FrameGrab grabber;
   private boolean paused;
   private long start;
+  private volatile CompletableFuture<Void> frameRenderer;
+  private volatile CompletableFuture<Void> audioPlayer;
+  private volatile boolean firstFrame;
 
   JCodecMediaPlayer(
       @NotNull final Callback callback,
@@ -109,7 +113,7 @@ public class JCodecMediaPlayer extends MediaPlayer {
 
           while (JCodecMediaPlayer.this.frames.remainingCapacity() <= 1) {
             try {
-              Thread.sleep(5);
+              TimeUnit.MILLISECONDS.sleep(5);
             } catch (final InterruptedException e) {
               e.printStackTrace();
             }
@@ -126,19 +130,47 @@ public class JCodecMediaPlayer extends MediaPlayer {
   }
 
   private void play() {
-    CompletableFuture.runAsync(this::runPlayer);
+
     final Callback callback = this.getCallback();
+
+    CompletableFuture.runAsync(this::runPlayer);
+
     CompletableFuture.runAsync(() -> {
-      while (!this.paused) {
-        try {
-          callback.process(this.frames.take());
-          Thread.sleep(JCodecMediaPlayer.this.delay);
-        } catch (final InterruptedException e) {
-          e.printStackTrace();
-        }
+
+      try {
+        TimeUnit.MILLISECONDS.sleep(
+            (long) this.getFrameRate() << 2); // allow frames to load first to get headstart
+      } catch (final InterruptedException e) {
+        e.printStackTrace();
       }
-    }, ExecutorProvider.SHARED_VIDEO_PLAYER);
-    this.playAudio();
+
+      if (this.audioPlayer != null && !this.audioPlayer.isDone()) {
+        this.audioPlayer.cancel(true);
+      }
+      this.audioPlayer = CompletableFuture.runAsync(() -> {
+        while (true) {
+          if (this.firstFrame) {
+            this.playAudio();
+            this.firstFrame = false;
+            break;
+          }
+        }
+      }, ExecutorProvider.SHARED_VIDEO_PLAYER);
+
+      if (this.frameRenderer != null && !this.frameRenderer.isDone()) {
+        this.frameRenderer.cancel(true);
+      }
+      this.frameRenderer = CompletableFuture.runAsync(() -> {
+        while (!this.paused) {
+          try {
+            callback.process(this.frames.take());
+            TimeUnit.MILLISECONDS.sleep(JCodecMediaPlayer.this.delay - 6);
+          } catch (final InterruptedException e) {
+            e.printStackTrace();
+          }
+        }
+      }, ExecutorProvider.SHARED_VIDEO_PLAYER);
+    });
   }
 
   @Override

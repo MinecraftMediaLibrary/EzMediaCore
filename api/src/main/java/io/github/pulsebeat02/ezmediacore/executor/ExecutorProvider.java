@@ -43,7 +43,7 @@ public final class ExecutorProvider {
     MAP_UPDATE_POOL = Executors.newCachedThreadPool();
     EXTERNAL_PROCESS_POOL = Executors.newSingleThreadExecutor();
     SHARED_RESULT_POOL = new ForkJoinPool();
-    SHARED_VIDEO_PLAYER = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    SHARED_VIDEO_PLAYER = Executors.newFixedThreadPool(8);
   }
 
   private ExecutorProvider() {

@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
 public class DynamicImage extends Image
@@ -64,7 +65,7 @@ public class DynamicImage extends Image
               for (; this.frame < this.frameCount; this.frame++) {
                 this.getRenderer().drawMap(this.process(this.image.getFrame(this.frame), resize));
                 try {
-                  Thread.sleep(this.image.getDelay(this.frame) * 10L);
+                  TimeUnit.MILLISECONDS.sleep(this.image.getDelay(this.frame) * 10L);
                 } catch (final InterruptedException e) {
                   e.printStackTrace();
                 }

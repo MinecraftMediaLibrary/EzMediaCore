@@ -41,6 +41,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,9 +50,12 @@ public class FFmpegMediaPlayer extends MediaPlayer {
   private final ArrayBlockingQueue<int[]> frames;
   private final long delay;
 
-  private FFmpeg ffmpeg;
-  private FFmpegResultFuture future;
   private long start;
+  private volatile FFmpeg ffmpeg;
+  private volatile FFmpegResultFuture future;
+  private volatile CompletableFuture<Void> frameRenderer;
+  private volatile CompletableFuture<Void> audioPlayer;
+  private volatile boolean firstFrame;
 
   FFmpegMediaPlayer(
       @NotNull final Callback callback,
@@ -63,38 +67,18 @@ public class FFmpegMediaPlayer extends MediaPlayer {
     super(callback, pixelDimension, url, key, fps);
     this.frames = new ArrayBlockingQueue<>(buffer * fps);
     this.delay = 1000L / fps;
+    this.firstFrame = false;
     this.initializePlayer(0L);
   }
 
   @Override
   public void setPlayerState(@NotNull final PlayerControls controls) {
     super.setPlayerState(controls);
+    this.firstFrame = false;
     switch (controls) {
-      case START -> {
-        if (this.ffmpeg == null) {
-          this.initializePlayer(0L);
-        }
-        this.stopAudio();
-        this.play();
-        this.start = System.currentTimeMillis();
-      }
-      case PAUSE -> {
-        if (this.ffmpeg != null) {
-          this.future.graceStop();
-        }
-        this.stopAudio();
-        this.start = System.currentTimeMillis();
-      }
-      case RESUME -> {
-        this.initializePlayer(System.currentTimeMillis() - this.start);
-        this.play();
-      }
-      case RELEASE -> {
-        if (this.ffmpeg != null) {
-          this.future.graceStop();
-          this.future = null;
-        }
-      }
+      case START, RESUME -> this.play(controls);
+      case PAUSE -> this.pause();
+      case RELEASE -> this.release();
       default -> throw new IllegalArgumentException("Player state is invalid!");
     }
   }
@@ -147,9 +131,13 @@ public class FFmpegMediaPlayer extends MediaPlayer {
           return;
         }
 
+        if (!FFmpegMediaPlayer.this.firstFrame) {
+          FFmpegMediaPlayer.this.firstFrame = true;
+        }
+
         while (FFmpegMediaPlayer.this.frames.remainingCapacity() <= 1) {
           try {
-            Thread.sleep(10);
+            TimeUnit.MILLISECONDS.sleep(5);
           } catch (final InterruptedException e) {
             e.printStackTrace();
           }
@@ -160,21 +148,78 @@ public class FFmpegMediaPlayer extends MediaPlayer {
     };
   }
 
-  private void play() {
-    this.future = this.ffmpeg.executeAsync(ExecutorProvider.SHARED_VIDEO_PLAYER);
-    final Callback callback = this.getCallback();
-    CompletableFuture.runAsync(() -> {
-      while (!this.future.isDone()) {
-        try {
-          callback.process(this.frames.take());
-          Thread.sleep(FFmpegMediaPlayer.this.delay - 20);
-        } catch (final InterruptedException e) {
-          e.printStackTrace();
-        }
-      }
-    }, ExecutorProvider.SHARED_VIDEO_PLAYER);
-    this.playAudio();
+  private void release() {
+    if (this.ffmpeg != null) {
+      this.future.graceStop();
+      this.future = null;
+    }
   }
 
+  private void pause() {
+    if (this.ffmpeg != null) {
+      this.future.graceStop();
+    }
+    this.stopAudio();
+    this.start = System.currentTimeMillis();
+  }
+
+  private void play(@NotNull final PlayerControls controls) {
+
+    if (controls == PlayerControls.START) {
+      this.stopAudio();
+      if (this.ffmpeg == null) {
+        this.initializePlayer(0L);
+      }
+      this.start = 0L;
+    } else if (controls == PlayerControls.RESUME) {
+      this.initializePlayer(System.currentTimeMillis() - this.start);
+    }
+
+    final Callback callback = this.getCallback();
+
+    if (this.future != null && !this.future.isDone()) {
+      this.future.stop(true);
+    }
+    this.future = this.ffmpeg.executeAsync(ExecutorProvider.SHARED_VIDEO_PLAYER);
+
+    CompletableFuture.runAsync(() -> {
+
+      try {
+        TimeUnit.MILLISECONDS.sleep(
+            (long) this.getFrameRate() << 1); // allow frames to load first to get headstart
+      } catch (final InterruptedException e) {
+        e.printStackTrace();
+      }
+
+      if (this.audioPlayer != null && !this.audioPlayer.isDone()) {
+        this.audioPlayer.cancel(true);
+      }
+      this.audioPlayer = CompletableFuture.runAsync(() -> {
+        while (true) {
+          if (this.firstFrame) {
+            this.playAudio();
+            this.firstFrame = false;
+            break;
+          }
+        }
+      }, ExecutorProvider.SHARED_VIDEO_PLAYER);
+
+      if (this.frameRenderer != null && !this.frameRenderer.isDone()) {
+        this.frameRenderer.cancel(true);
+      }
+      this.frameRenderer = CompletableFuture.runAsync(() -> {
+        while (!this.future.isDone()) {
+          try {
+            callback.process(this.frames.take());
+            TimeUnit.MILLISECONDS.sleep(this.delay - 7);
+          } catch (final InterruptedException e) {
+            e.printStackTrace();
+          }
+        }
+      }, ExecutorProvider.SHARED_VIDEO_PLAYER);
+    });
+
+
+  }
 
 }

@@ -11,6 +11,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -40,7 +41,7 @@ public class FFmpegVideoTest {
 
   private void init(@NotNull final Path path, @NotNull final Path input, final long ms)
       throws IOException {
-    final int delay = 1000 / VideoFrameUtils.getFrameRate(path, input).orElse(30);
+    final int delay = (int) (1000 / VideoFrameUtils.getFrameRate(path, input).orElse(30));
     this.ffmpeg = new FFmpeg(path)
         .addInput(
             UrlInput.fromPath(input).setPosition(ms))
@@ -55,7 +56,7 @@ public class FFmpegVideoTest {
                   this.window.repaint();
                   this.window.revalidate();
                   try {
-                    Thread.sleep(delay);
+                    TimeUnit.MILLISECONDS.sleep(delay);
                   } catch (final InterruptedException e) {
                     e.printStackTrace();
                   }
