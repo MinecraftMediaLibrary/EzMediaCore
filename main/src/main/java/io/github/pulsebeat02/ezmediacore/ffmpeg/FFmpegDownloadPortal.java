@@ -27,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 
 public enum FFmpegDownloadPortal {
 
+  // https://github.com/eugeneware/ffmpeg-static
+
   WIN_64(
       "https://github.com/a-schild/jave2/raw/master/jave-nativebin-win64/src/main/resources/ws/schild/jave/nativebin/ffmpeg-amd64.exe"),
   UNIX_ARM_64(

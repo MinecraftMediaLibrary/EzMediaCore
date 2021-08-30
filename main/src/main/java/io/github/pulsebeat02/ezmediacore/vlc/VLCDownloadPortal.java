@@ -28,18 +28,25 @@ import org.jetbrains.annotations.NotNull;
 public enum VLCDownloadPortal {
 
   WIN_64(
-      "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/win64/VLC.zip"),
+      "https://get.videolan.org/vlc/%VLC_VERSION%/win64/vlc-%VLC_VERSION%-win64.zip"), // https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/win64/VLC.zip
   MAC_SILICON_64(
-      "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/macos-intel64/VLC.dmg"),
+      "https://get.videolan.org/vlc/%VLC_VERSION%/macosx/vlc-%VLC_VERSION%-intel64.dmg"), // https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/macos-intel64/VLC.dmg
   MAC_AMD_64(
-      "https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/macos-arm64/VLC.dmg"),
-  WIN_32("https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/win32/VLC.zip"),
+      "https://get.videolan.org/vlc/%VLC_VERSION%/macosx/vlc-%VLC_VERSION%-arm64.dmg"), // https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/macos-arm64/VLC.dmg
+  WIN_32(
+      "https://get.videolan.org/vlc/%VLC_VERSION%/win32/vlc-%VLC_VERSION%-win32.zip"), // https://github.com/MinecraftMediaLibrary/VLC-Release-Mirror/raw/master/win32/VLC.zip
   NA("");
+
+  public static final String VLC_VERSION;
+
+  static {
+    VLC_VERSION = "3.0.16";
+  }
 
   private final String url;
 
   VLCDownloadPortal(@NotNull final String url) {
-    this.url = url;
+    this.url = url.replaceAll("%VLC_VERSION%", "3.0.16");
   }
 
   public String getUrl() {
