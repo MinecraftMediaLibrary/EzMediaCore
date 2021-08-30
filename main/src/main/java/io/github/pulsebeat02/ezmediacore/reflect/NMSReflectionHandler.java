@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class NMSReflectionHandler {
 
-  public static final String VERSION;
+  private static final String VERSION;
 
   static {
     VERSION = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
@@ -57,5 +57,9 @@ public final class NMSReflectionHandler {
               .formatted(VERSION));
       return Optional.empty();
     }
+  }
+
+  public static String getVersion() {
+    return VERSION;
   }
 }

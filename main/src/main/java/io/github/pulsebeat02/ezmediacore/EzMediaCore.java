@@ -32,19 +32,14 @@ import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyProvider;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.YoutubeProvider;
 import io.github.pulsebeat02.ezmediacore.reflect.NMSReflectionHandler;
-import io.github.pulsebeat02.ezmediacore.reflect.TinyProtocol;
 import io.github.pulsebeat02.ezmediacore.search.StringSearch;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
-import io.github.pulsebeat02.ezmediacore.throwable.LibraryException;
 import io.github.pulsebeat02.ezmediacore.utility.PluginUsageTips;
-import io.netty.channel.Channel;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.IntStream;
-import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
@@ -131,25 +126,8 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void getPacketInstance() {
-    final Optional<PacketHandler> optional = NMSReflectionHandler.getNewPacketHandlerInstance();
-    if (optional.isPresent()) {
-      this.handler = optional.orElseThrow(AssertionError::new);
-      new TinyProtocol(this.plugin) {
-        @Override
-        public Object onPacketOutAsync(
-            final Player player, final Channel channel, final Object packet) {
-          return EzMediaCore.this.handler.onPacketInterceptOut(player, packet);
-        }
-
-        @Override
-        public Object onPacketInAsync(
-            final Player player, final Channel channel, final Object packet) {
-          return EzMediaCore.this.handler.onPacketInterceptIn(player, packet);
-        }
-      };
-    } else {
-      throw new LibraryException("Unsupported library version! Only supports 1.16.5 - 1.17!");
-    }
+    this.handler = NMSReflectionHandler.getNewPacketHandlerInstance()
+        .orElseThrow(AssertionError::new);
   }
 
   private void initializeStream() {

@@ -26,6 +26,11 @@ package io.github.pulsebeat02.ezmediacore.nms.impl.v1_17_R1;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPromise;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,20 +54,33 @@ import org.bukkit.craftbukkit.v1_17_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 public final class NMSMapPacketIntercepter implements PacketHandler {
 
-  public static final int PACKET_THRESHOLD_MS = 0;
+  private static final int PACKET_THRESHOLD_MS;
   private static final Set<Object> PACKET_DIFFERENTIATION;
 
   static {
+    PACKET_THRESHOLD_MS = 0;
     PACKET_DIFFERENTIATION = Collections.newSetFromMap(new WeakHashMap<>());
   }
 
-  private final Map<UUID, PlayerConnection> playerConnections = new ConcurrentHashMap<>();
-  private final Map<UUID, Long> lastUpdated = new ConcurrentHashMap<>();
-  private final Set<Integer> maps = new TreeSet<>();
-  private final MinecraftKey debugMarker = new MinecraftKey("debug/game_test_add_marker");
+  private final Map<UUID, Channel> channels;
+  private final Map<UUID, PlayerConnection> connections;
+  private final Map<UUID, Long> lastUpdated;
+  private final Set<Integer> maps;
+  private final MinecraftKey debugMarker;
+  private final String handlerName;
+
+  public NMSMapPacketIntercepter() {
+    this.channels = new ConcurrentHashMap<>();
+    this.connections = new ConcurrentHashMap<>();
+    this.lastUpdated = new ConcurrentHashMap<>();
+    this.maps = new TreeSet<>();
+    this.debugMarker = new MinecraftKey("debug/game_test_add_marker");
+    this.handlerName = "ezmediacore_handler_1171";
+  }
 
   @Override
   public void displayDebugMarker(
@@ -79,7 +97,7 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
     final PacketPlayOutCustomPayload packet =
         new PacketPlayOutCustomPayload(this.debugMarker, new PacketDataSerializer(buf));
     for (final UUID uuid : viewers) {
-      this.playerConnections.get(uuid).sendPacket(packet);
+      this.connections.get(uuid).sendPacket(packet);
     }
   }
 
@@ -135,11 +153,11 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
       }
     }
     if (viewers == null) {
-      for (final UUID uuid : this.playerConnections.keySet()) {
+      for (final UUID uuid : this.connections.keySet()) {
         final long val = this.lastUpdated.getOrDefault(uuid, 0L);
         if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
           this.lastUpdated.put(uuid, System.currentTimeMillis());
-          final PlayerConnection connection = this.playerConnections.get(uuid);
+          final PlayerConnection connection = this.connections.get(uuid);
           for (final PacketPlayOutMap packet : packetArray) {
             connection.sendPacket(packet);
           }
@@ -150,7 +168,7 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
         final long val = this.lastUpdated.getOrDefault(uuid, 0L);
         if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
           this.lastUpdated.put(uuid, System.currentTimeMillis());
-          final PlayerConnection connection = this.playerConnections.get(uuid);
+          final PlayerConnection connection = this.connections.get(uuid);
           if (connection != null) {
             for (final PacketPlayOutMap packet : packetArray) {
               connection.sendPacket(packet);
@@ -199,15 +217,15 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
       PACKET_DIFFERENTIATION.add(packet);
     }
     if (viewers == null) {
-      for (final UUID uuid : this.playerConnections.keySet()) {
-        final PlayerConnection connection = this.playerConnections.get(uuid);
+      for (final UUID uuid : this.connections.keySet()) {
+        final PlayerConnection connection = this.connections.get(uuid);
         for (final PacketPlayOutEntityMetadata packet : packets) {
           connection.sendPacket(packet);
         }
       }
     } else {
       for (final UUID uuid : viewers) {
-        final PlayerConnection connection = this.playerConnections.get(uuid);
+        final PlayerConnection connection = this.connections.get(uuid);
         if (connection != null) {
           for (final PacketPlayOutEntityMetadata packet : packets) {
             connection.sendPacket(packet);
@@ -218,13 +236,32 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
   }
 
   @Override
-  public void registerPlayer(final Player player) {
-    this.playerConnections.put(player.getUniqueId(), ((CraftPlayer) player).getHandle().b);
+  public void injectPlayer(@NotNull final Player player) {
+    final PlayerConnection conn = ((CraftPlayer) player).getHandle().b;
+    final Channel channel = conn.a.k;
+    if (channel != null) {
+      this.channels.put(player.getUniqueId(), channel);
+      final ChannelPipeline pipeline = channel.pipeline();
+      if (pipeline.get(this.handlerName) != null) {
+        pipeline.remove(this.handlerName);
+      }
+      pipeline
+          .addBefore("packet_handler", this.handlerName, new PacketInterceptor(player));
+    }
+    this.connections.put(player.getUniqueId(), conn);
   }
 
   @Override
-  public void unregisterPlayer(final Player player) {
-    this.playerConnections.remove(player.getUniqueId());
+  public void uninjectPlayer(@NotNull final Player player) {
+    final Channel channel = ((CraftPlayer) player).getHandle().b.a.k;
+    this.channels.remove(player.getUniqueId());
+    if (channel != null) {
+      final ChannelPipeline pipeline = channel.pipeline();
+      if (pipeline.get(this.handlerName) != null) {
+        pipeline.remove(this.handlerName);
+      }
+    }
+    this.connections.remove(player.getUniqueId());
   }
 
   @Override
@@ -254,5 +291,32 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
   @Override
   public Object onPacketInterceptIn(final Player viewer, final Object packet) {
     return packet;
+  }
+
+  private class PacketInterceptor extends ChannelDuplexHandler {
+
+    public volatile Player player;
+
+    private PacketInterceptor(final Player player) {
+      this.player = player;
+    }
+
+    @Override
+    public void channelRead(@NotNull final ChannelHandlerContext ctx, Object msg) throws Exception {
+      msg = NMSMapPacketIntercepter.this.onPacketInterceptIn(this.player, msg);
+      if (msg != null) {
+        super.channelRead(ctx, msg);
+      }
+    }
+
+    @Override
+    public void write(@NotNull final ChannelHandlerContext ctx, Object msg,
+        @NotNull final ChannelPromise promise)
+        throws Exception {
+      msg = NMSMapPacketIntercepter.this.onPacketInterceptOut(this.player, msg);
+      if (msg != null) {
+        super.write(ctx, msg, promise);
+      }
+    }
   }
 }

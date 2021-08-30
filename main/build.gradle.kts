@@ -44,6 +44,9 @@ dependencies {
     testImplementation("net.dv8tion:JDA:4.3.0_277")
     testImplementation("com.github.ben-manes.caffeine:caffeine:3.0.3")
 
+    testImplementation("com.mpatric:mp3agic:0.9.1")
+    testImplementation("com.github.kevinsawicki:http-request:6.0")
+
     api(project(":api"))
     api(project(":v1_16_R3"))
     api(project(":v1_17_R1"))

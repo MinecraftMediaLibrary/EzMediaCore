@@ -60,6 +60,7 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioExtractor;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.YoutubeVideoAudioExtractor;
+import io.github.pulsebeat02.ezmediacore.resourcepack.PackFormat;
 import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.utility.HashingUtils;
@@ -201,7 +202,8 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       final HttpServer daemon = this.plugin.getHttpServer();
       final ResourcepackSoundWrapper wrapper =
           new ResourcepackSoundWrapper(
-              daemon.getDaemon().getServerPath().resolve("resourcepack.zip"), "Youtube Audio", 6);
+              daemon.getDaemon().getServerPath().resolve("resourcepack.zip"), "Youtube Audio",
+              PackFormat.getCurrentFormat().getId());
       wrapper.addSound(this.plugin.getName().toLowerCase(Locale.ROOT), audio);
       wrapper.wrap();
 

@@ -77,9 +77,9 @@ public interface PacketHandler {
   void displayEntities(
       final UUID[] viewers, final Entity[] entities, final int[] data, final int width);
 
-  void registerPlayer(@NotNull final Player player);
+  void injectPlayer(@NotNull final Player player);
 
-  void unregisterPlayer(@NotNull final Player player);
+  void uninjectPlayer(@NotNull final Player player);
 
   boolean isMapRegistered(final int id);
 

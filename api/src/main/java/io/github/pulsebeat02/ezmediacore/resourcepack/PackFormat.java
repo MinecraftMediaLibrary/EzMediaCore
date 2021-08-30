@@ -23,18 +23,31 @@
  */
 package io.github.pulsebeat02.ezmediacore.resourcepack;
 
+import java.util.Map;
+import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
+
 public enum PackFormat {
-  VER_115(5),
-  VER_1151(5),
-  VER_1152(5),
-  VER_1161(6),
-  VER_1162(6),
-  VER_1163(6),
-  VER_1164(6),
+
   VER_1165(6),
   VER_117(7),
   VER_1171(7),
   VER_UNKNOWN(-1);
+
+  private static final String VERSION;
+  private static final Map<String, PackFormat> KEYS;
+
+  static {
+    VERSION = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3]
+        .replaceAll("_", "")
+        .replaceAll("R", "")
+        .replaceAll("v", "");
+    KEYS = Map.of(
+        "1165", VER_1165,
+        "117", VER_117,
+        "1171", VER_1171
+    );
+  }
 
   private final int id;
 
@@ -42,7 +55,12 @@ public enum PackFormat {
     this.id = id;
   }
 
+  @NotNull
+  public static PackFormat getCurrentFormat() {
+    return KEYS.get(VERSION);
+  }
+
   public int getId() {
-    return id;
+    return this.id;
   }
 }

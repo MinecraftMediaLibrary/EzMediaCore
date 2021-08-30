@@ -47,13 +47,12 @@ package io.github.pulsebeat02.deluxemediaplugin.utility;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
-import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.jetbrains.annotations.NotNull;
-
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Optional;
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.jetbrains.annotations.NotNull;
 
 public final class CommandUtils {
 
@@ -63,13 +62,14 @@ public final class CommandUtils {
     knownCommands =
         (HashMap<String, Command>)
             (getPrivateField(
-                    (getPrivateField(Bukkit.getServer().getPluginManager(), "commandMap")
-                        .orElseThrow(AssertionError::new)),
-                    "knownCommands")
+                (getPrivateField(Bukkit.getServer().getPluginManager(), "commandMap")
+                    .orElseThrow(AssertionError::new)),
+                "knownCommands")
                 .orElseThrow(AssertionError::new));
   }
 
-  private CommandUtils() {}
+  private CommandUtils() {
+  }
 
   public static void unRegisterBukkitCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final BaseCommand cmd) {
