@@ -1,6 +1,6 @@
 version: 2.1
-orbs:
-  discord: teka23/discord@0.0.1
+#orbs:
+#  discord: teka23/discord@0.0.1
 jobs:
   build:
     docker:
@@ -24,7 +24,7 @@ jobs:
       - run: ./gradlew shadowJar
       - store_artifacts:
           path: deluxemediaplugin/build/libs/DeluxeMediaPlugin-all.jar
-      - discord/notify:
-          color: '4383476'
-          message: https://$CIRCLE_BUILD_NUM-331827979-gh.circle-artifacts.com/0/deluxemediaplugin/build/libs/DeluxeMediaPlugin-all.jar
-          webhook: https://discord.com/api/webhooks/881704224302432297/PhoEp-BHv2NoZMRCmtYhgwwl4GQbBHVupgJYYQ7NNHzzPMEiLvyMwILNMODDKmayn42Y
+#      - discord/notify:
+#          color: '4383476'
+#          message: https://$CIRCLE_BUILD_NUM-331827979-gh.circle-artifacts.com/0/deluxemediaplugin/build/libs/DeluxeMediaPlugin-all.jar
+#          webhook: https://discord.com/api/webhooks/881704224302432297/PhoEp-BHv2NoZMRCmtYhgwwl4GQbBHVupgJYYQ7NNHzzPMEiLvyMwILNMODDKmayn42Y
