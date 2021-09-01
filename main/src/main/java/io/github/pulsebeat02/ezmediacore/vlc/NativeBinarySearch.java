@@ -46,16 +46,23 @@ public class NativeBinarySearch implements BinarySearcher {
 
   private final MediaLibraryCore core;
   private final OSType type;
-  private final Path search;
   private final DiscoveryProvider provider;
   private final Collection<WellKnownDirectoryProvider> directories;
 
+  private Path search;
   private Path path;
 
   public NativeBinarySearch(@NotNull final MediaLibraryCore core, @NotNull final Path search) {
     this.core = core;
     this.type = core.getDiagnostics().getSystem().getOSType();
     this.search = search;
+    this.provider = this.getDiscovery();
+    this.directories = this.getDirectories();
+  }
+
+  public NativeBinarySearch(@NotNull final MediaLibraryCore core) {
+    this.core = core;
+    this.type = core.getDiagnostics().getSystem().getOSType();
     this.provider = this.getDiscovery();
     this.directories = this.getDirectories();
   }
@@ -117,7 +124,9 @@ public class NativeBinarySearch implements BinarySearcher {
     }
 
     final List<String> paths = this.getSearchDirectories();
-    paths.add(this.search.toString());
+    if (this.search != null) {
+      paths.add(this.search.toString());
+    }
 
     for (final String path : paths) {
       final Optional<Path> optional = this.provider.discover(Path.of(path));
@@ -127,7 +136,7 @@ public class NativeBinarySearch implements BinarySearcher {
       }
     }
 
-    Logger.info(path == null ? "VLC path is invalid!" : "VLC path is valid!");
+    Logger.info(this.path == null ? "VLC path is invalid!" : "VLC path is valid!");
 
     return Optional.ofNullable(this.path);
   }

@@ -29,6 +29,7 @@ import io.github.pulsebeat02.ezmediacore.vlc.NativeBinarySearch;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,8 +50,8 @@ public abstract class SilentInstallation implements SilentInstallationProvider {
   }
 
   @Override
-  public @NotNull Path getInstallationPath() {
-    return this.installation;
+  public @NotNull Optional<Path> getInstallationPath() {
+    return Optional.ofNullable(this.installation);
   }
 
   @Override
@@ -76,6 +77,6 @@ public abstract class SilentInstallation implements SilentInstallationProvider {
 
   @Override
   public void loadNativeBinaries() throws IOException {
-    new NativeBinarySearch(this.getCore(), this.getInstallationPath()).search();
+    new NativeBinarySearch(this.getCore(), this.installation).search();
   }
 }

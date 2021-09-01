@@ -25,7 +25,8 @@ package io.github.pulsebeat02.ezmediacore.vlc.os;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import org.jetbrains.annotations.Nullable;
+import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 
 public interface VLCBinaryInstallation extends HostOperator {
 
@@ -33,6 +34,6 @@ public interface VLCBinaryInstallation extends HostOperator {
 
   void loadNativeBinaries() throws IOException;
 
-  @Nullable
-  Path getInstallationPath();
+  @NotNull
+  Optional<Path> getInstallationPath();
 }

@@ -55,7 +55,7 @@ public final class PathUtils {
     return Files.exists(Path.of(path));
   }
 
-  public static String getName(@NotNull final Path path) {
+  public static @NotNull String getName(@NotNull final Path path) {
     return path.getFileName().toString();
   }
 }

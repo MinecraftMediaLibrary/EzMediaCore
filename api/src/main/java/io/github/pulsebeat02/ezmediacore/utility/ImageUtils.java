@@ -32,7 +32,7 @@ public final class ImageUtils {
 
   private ImageUtils() {}
 
-  public static BufferedImage resize(
+  public static @NotNull BufferedImage resize(
       @NotNull final BufferedImage img, final int width, final int height) {
     final BufferedImage resized = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     final Graphics2D g2d = resized.createGraphics();

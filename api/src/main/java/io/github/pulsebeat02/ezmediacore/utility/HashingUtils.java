@@ -83,7 +83,7 @@ public final class HashingUtils {
    * @return the hexadecimal String
    */
   @NotNull
-  public static String toHexString(final byte[] bytes) {
+  public static String toHexString(final byte @NotNull [] bytes) {
     final StringBuilder hexString = new StringBuilder();
     for (final byte b : bytes) {
       final String hex = Integer.toHexString(0xFF & b);
