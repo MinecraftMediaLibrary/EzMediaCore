@@ -43,7 +43,9 @@ public class SilentUnixInstallation extends SilentInstallation {
   }
 
   @Override
-  public void downloadBinaries() {}
+  public void downloadBinaries() {
+    setInstallationPath(null);
+  }
 
   @Override
   public void loadNativeBinaries() throws IOException {

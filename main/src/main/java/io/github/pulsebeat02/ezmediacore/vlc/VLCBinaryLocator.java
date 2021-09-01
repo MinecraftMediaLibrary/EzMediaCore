@@ -76,7 +76,7 @@ public class VLCBinaryLocator implements BinaryLocator {
     final Optional<Path> search = this.searcher.search();
     if (search.isEmpty()) {
       this.installer.download();
-      return Optional.of(this.installer.getProvider().getInstallationPath());
+      return Optional.ofNullable(this.installer.getProvider().getInstallationPath());
     }
     return search;
   }

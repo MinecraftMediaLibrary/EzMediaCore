@@ -24,7 +24,6 @@
 package io.github.pulsebeat02.ezmediacore.utility;
 
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
