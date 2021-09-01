@@ -57,9 +57,12 @@ public final class CommandMapHelper {
 
   static {
     try {
-      GET_COMMAND_MAP_METHOD = MethodHandles.publicLookup()
-          .findVirtual(Bukkit.getServer().getClass(), "getCommandMap", MethodType.methodType(
-              SimpleCommandMap.class));
+      GET_COMMAND_MAP_METHOD =
+          MethodHandles.publicLookup()
+              .findVirtual(
+                  Bukkit.getServer().getClass(),
+                  "getCommandMap",
+                  MethodType.methodType(SimpleCommandMap.class));
     } catch (final NoSuchMethodException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }

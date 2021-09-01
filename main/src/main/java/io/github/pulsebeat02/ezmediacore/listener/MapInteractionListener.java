@@ -54,7 +54,8 @@ public final class MapInteractionListener implements LibraryInjectable, Listener
     if (stack.getType() != Material.FILLED_MAP) {
       return;
     }
-    if (this.core.getHandler()
+    if (this.core
+        .getHandler()
         .isMapRegistered(((MapMeta) Objects.requireNonNull(stack.getItemMeta())).getMapId())) {
       event.setCancelled(true);
     }

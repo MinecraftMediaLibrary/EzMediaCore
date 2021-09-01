@@ -52,8 +52,7 @@ public final class LibraryProvider {
   private Path videoPath;
   private SpotifyClient client;
 
-  LibraryProvider() {
-  }
+  LibraryProvider() {}
 
   public static LibraryProvider builder() {
     return new LibraryProvider();

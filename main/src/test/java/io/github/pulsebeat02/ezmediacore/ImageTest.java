@@ -14,15 +14,16 @@ import javax.swing.JLabel;
 public class ImageTest {
 
   public static void main(final String[] args) throws IOException {
-    final BufferedImage image = ImageIO.read(
-        new URL(
-            "https://image.shutterstock.com/image-photo/word-example-written-on-magnifying-260nw-1883859943.jpg"));
+    final BufferedImage image =
+        ImageIO.read(
+            new URL(
+                "https://image.shutterstock.com/image-photo/word-example-written-on-magnifying-260nw-1883859943.jpg"));
     final int[] rgb = VideoFrameUtils.getRGBParallel(image);
-    final int[] original = image.getRGB(0, 0, image.getWidth(), image.getHeight(),
-        null, 0, image.getWidth());
+    final int[] original =
+        image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
 
-    final BufferedImage after = VideoFrameUtils.getBufferedImage(rgb, image.getWidth(),
-        image.getHeight());
+    final BufferedImage after =
+        VideoFrameUtils.getBufferedImage(rgb, image.getWidth(), image.getHeight());
     final JFrame frame = new JFrame();
     final Container container = frame.getContentPane();
     container.setLayout(new FlowLayout());
@@ -31,14 +32,13 @@ public class ImageTest {
     frame.pack();
     frame.setVisible(true);
 
-//    System.out.println(Arrays.toString(rgb));
-//    for (int i = 0; i < rgb.length; i++) {
-//      final int color = rgb[i];
-//      final int old = original[i];
-//      if (color != old) {
-//        System.out.printf("Index: %d mismatch [%d,%d]%n", i, color, old);
-//      }
-//    }
+    //    System.out.println(Arrays.toString(rgb));
+    //    for (int i = 0; i < rgb.length; i++) {
+    //      final int color = rgb[i];
+    //      final int old = original[i];
+    //      if (color != old) {
+    //        System.out.printf("Index: %d mismatch [%d,%d]%n", i, color, old);
+    //      }
+    //    }
   }
-
 }

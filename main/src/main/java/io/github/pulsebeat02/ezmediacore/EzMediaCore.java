@@ -121,20 +121,18 @@ public final class EzMediaCore implements MediaLibraryCore {
             this.imagePath,
             this.audioPath,
             this.videoPath)
-        .forEach(
-            ThrowingConsumer.unchecked(Files::createDirectories));
+        .forEach(ThrowingConsumer.unchecked(Files::createDirectories));
   }
 
   private void getPacketInstance() {
-    this.handler = NMSReflectionHandler.getNewPacketHandlerInstance()
-        .orElseThrow(AssertionError::new);
+    this.handler =
+        NMSReflectionHandler.getNewPacketHandlerInstance().orElseThrow(AssertionError::new);
   }
 
   private void initializeStream() {
-    IntStream.range(0, 5).parallel().forEach(key -> {
-    }); // jump start int stream
-//    final String logger = Logger.getLoggerPath().toString();
-//    this.streams = new NativeStreams(logger, logger);
+    IntStream.range(0, 5).parallel().forEach(key -> {}); // jump start int stream
+    //    final String logger = Logger.getLoggerPath().toString();
+    //    this.streams = new NativeStreams(logger, logger);
   }
 
   private void initializeProviders() {
@@ -154,7 +152,7 @@ public final class EzMediaCore implements MediaLibraryCore {
   public void shutdown() {
     Logger.info("Shutting Down");
     this.disabled = true;
-//    this.streams.release();
+    //    this.streams.release();
     HandlerList.unregisterAll(this.registrationListener);
     Logger.info("Good Bye! :(");
   }

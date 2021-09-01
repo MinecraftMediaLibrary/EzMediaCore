@@ -88,7 +88,7 @@ public final class ArtifactInstaller {
     this.service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     this.jars = new HashSet<>();
     this.hashes = new HashSet<>();
-    this.hashFile = this.dependencyFolder.resolve(".relocated-cache");
+    this.hashFile = this.dependencyFolder.resolve(".relocated-hash");
   }
 
   public void start() {

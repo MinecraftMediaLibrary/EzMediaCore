@@ -38,5 +38,6 @@ public interface EntityCallbackDispatcher extends Callback, Locatable {
   @NotNull
   String getStringName();
 
-  @Nullable <T> Consumer<T> modifyEntity();
+  @Nullable
+  <T> Consumer<T> modifyEntity();
 }

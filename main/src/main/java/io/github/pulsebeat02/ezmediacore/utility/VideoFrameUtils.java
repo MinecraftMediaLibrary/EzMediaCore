@@ -54,20 +54,20 @@ import org.jetbrains.annotations.NotNull;
 
 public final class VideoFrameUtils {
 
-  private VideoFrameUtils() {
-  }
+  private VideoFrameUtils() {}
 
-  public static int[] toResizedColorArray(@NotNull final Picture frame,
+  public static int[] toResizedColorArray(
+      @NotNull final Picture frame,
       @NotNull final io.github.pulsebeat02.ezmediacore.dimension.Dimension dimension) {
-    return getRGBParallel(resizeImage(toBufferedImage(frame), dimension.getWidth(),
-        dimension.getHeight()));
+    return getRGBParallel(
+        resizeImage(toBufferedImage(frame), dimension.getWidth(), dimension.getHeight()));
   }
 
   public static BufferedImage toBufferedImage(Picture src) {
     final ColorSpace space = src.getColor();
     if (space != ColorSpace.BGR) {
-      final Picture bgr = Picture.createCropped(src.getWidth(), src.getHeight(), ColorSpace.BGR,
-          src.getCrop());
+      final Picture bgr =
+          Picture.createCropped(src.getWidth(), src.getHeight(), ColorSpace.BGR, src.getCrop());
       if (space == ColorSpace.RGB) {
         new RgbToBgr().transform(src, bgr);
       } else {
@@ -77,8 +77,9 @@ public final class VideoFrameUtils {
       }
       src = bgr;
     }
-    final BufferedImage dst = new BufferedImage(src.getCroppedWidth(), src.getCroppedHeight(),
-        BufferedImage.TYPE_3BYTE_BGR);
+    final BufferedImage dst =
+        new BufferedImage(
+            src.getCroppedWidth(), src.getCroppedHeight(), BufferedImage.TYPE_3BYTE_BGR);
     if (src.getCrop() == null) {
       toBufferedImage(src, dst);
     } else {
@@ -113,7 +114,6 @@ public final class VideoFrameUtils {
     }
   }
 
-
   @NotNull
   public static Optional<int[]> getBuffer(@NotNull final Path image) {
     try {
@@ -143,8 +143,8 @@ public final class VideoFrameUtils {
     return buffer.array();
   }
 
-  public static @NotNull BufferedImage toBufferedImage(final byte @NotNull [] array,
-      final int width, final int height) {
+  public static @NotNull BufferedImage toBufferedImage(
+      final byte @NotNull [] array, final int width, final int height) {
     final BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
     final byte[] arr = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
     System.arraycopy(array, 0, arr, 0, arr.length);
@@ -217,17 +217,19 @@ public final class VideoFrameUtils {
     throw new IOException("Not a known image file: " + file.toAbsolutePath());
   }
 
-  public static OptionalDouble getFrameRate(@NotNull final MediaLibraryCore core,
-      @NotNull final Path video)
-      throws IOException {
+  public static OptionalDouble getFrameRate(
+      @NotNull final MediaLibraryCore core, @NotNull final Path video) throws IOException {
     return getFrameRate(core.getFFmpegPath(), video);
   }
 
   public static OptionalDouble getFrameRate(@NotNull final Path binary, @NotNull final Path video)
       throws IOException {
-    try (final BufferedReader r = new BufferedReader(new InputStreamReader(
-        new ProcessBuilder(binary.toString(), "-i", video.toString()).start()
-            .getErrorStream()))) { // ffmpeg always thinks its an error
+    try (final BufferedReader r =
+        new BufferedReader(
+            new InputStreamReader(
+                new ProcessBuilder(binary.toString(), "-i", video.toString())
+                    .start()
+                    .getErrorStream()))) { // ffmpeg always thinks its an error
       String line;
       while (true) {
         line = r.readLine();
@@ -236,8 +238,9 @@ public final class VideoFrameUtils {
         }
         if (line.contains(" fps")) {
           final int fpsIndex = line.indexOf(" fps");
-          return OptionalDouble.of(Double.parseDouble(
-              line.substring(line.lastIndexOf(",", fpsIndex) + 1, fpsIndex).trim()));
+          return OptionalDouble.of(
+              Double.parseDouble(
+                  line.substring(line.lastIndexOf(",", fpsIndex) + 1, fpsIndex).trim()));
         }
       }
     }
@@ -251,15 +254,15 @@ public final class VideoFrameUtils {
     final int num = width >> 5;
     IntStream.range(0, num + ((width & 31) == 0 ? 0 : 1))
         .parallel()
-        .forEach(chunk -> {
-          final int pixel = chunk << 5;
-          if (chunk == num) {
-            image.getRGB(pixel, 0, width - (num << 5), height, rgb, pixel, width);
-          } else {
-            image.getRGB(pixel, 0, 32, height, rgb, pixel, width);
-          }
-        });
+        .forEach(
+            chunk -> {
+              final int pixel = chunk << 5;
+              if (chunk == num) {
+                image.getRGB(pixel, 0, width - (num << 5), height, rgb, pixel, width);
+              } else {
+                image.getRGB(pixel, 0, 32, height, rgb, pixel, width);
+              }
+            });
     return rgb;
   }
-
 }

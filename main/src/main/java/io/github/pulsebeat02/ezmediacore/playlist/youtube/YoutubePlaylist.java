@@ -44,8 +44,8 @@ public class YoutubePlaylist implements Playlist {
 
   public YoutubePlaylist(@NotNull final String url) {
     this.url = url;
-    this.id = MediaExtractionUtils.getYoutubeID(url)
-        .orElseThrow(() -> new UnknownPlaylistException(url));
+    this.id =
+        MediaExtractionUtils.getYoutubeID(url).orElseThrow(() -> new UnknownPlaylistException(url));
     this.info = this.getPlaylistResponse(0);
     this.details = this.info.details();
     this.videos =
@@ -56,14 +56,14 @@ public class YoutubePlaylist implements Playlist {
 
   private PlaylistInfo getPlaylistResponse(final int tries) {
     if (tries == 10) {
-      throw new AssertionException("Request failure with video ID %s! Please try again.".formatted(
-          this.id));
+      throw new AssertionException(
+          "Request failure with video ID %s! Please try again.".formatted(this.id));
     }
     final int num = tries + 1;
-    return ResponseUtils.getResponseResult(YoutubeProvider.getYoutubeDownloader()
-            .getPlaylistInfo(new RequestPlaylistInfo(this.id)))
-        .orElseGet(() -> this.getPlaylistResponse(
-            num));
+    return ResponseUtils.getResponseResult(
+            YoutubeProvider.getYoutubeDownloader()
+                .getPlaylistInfo(new RequestPlaylistInfo(this.id)))
+        .orElseGet(() -> this.getPlaylistResponse(num));
   }
 
   @Override
@@ -96,11 +96,13 @@ public class YoutubePlaylist implements Playlist {
     return this.details.viewCount();
   }
 
-  @NotNull PlaylistInfo getPlaylistInfo() {
+  @NotNull
+  PlaylistInfo getPlaylistInfo() {
     return this.info;
   }
 
-  @NotNull PlaylistDetails getPlaylistDetails() {
+  @NotNull
+  PlaylistDetails getPlaylistDetails() {
     return this.details;
   }
 }

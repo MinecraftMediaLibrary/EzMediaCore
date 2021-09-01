@@ -37,5 +37,4 @@ public interface Downloader {
 
   @NotNull
   Path getDownloadPath();
-
 }

@@ -10,5 +10,4 @@ public class YoutubeRequestTest {
     System.out.println(MediaExtractionUtils.getFirstResultVideo("despacito").get());
     System.out.println("Time: " + (System.currentTimeMillis() - time));
   }
-
 }

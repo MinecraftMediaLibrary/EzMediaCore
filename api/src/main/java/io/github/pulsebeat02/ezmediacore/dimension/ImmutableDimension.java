@@ -38,8 +38,7 @@ public class ImmutableDimension implements Dimension {
   }
 
   @Override
-  public @NotNull
-  Map<String, Object> serialize() {
+  public @NotNull Map<String, Object> serialize() {
     return ImmutableMap.of(
         "width", this.width,
         "height", this.height);

@@ -47,9 +47,11 @@ public final class MediaExtractionUtils {
   static {
     try {
       CACHED_RESULT =
-          Caffeine.newBuilder().executor(ExecutorProvider.SHARED_RESULT_POOL)
+          Caffeine.newBuilder()
+              .executor(ExecutorProvider.SHARED_RESULT_POOL)
               .expireAfterAccess(10, TimeUnit.MINUTES)
-              .softValues().build(MediaExtractionUtils::getFirstResultVideoInternal);
+              .softValues()
+              .build(MediaExtractionUtils::getFirstResultVideoInternal);
     } catch (final Throwable t) {
       System.out.println("D");
       throw t;
@@ -59,8 +61,7 @@ public final class MediaExtractionUtils {
     SEARCH_KEYWORD = "videoId";
   }
 
-  private MediaExtractionUtils() {
-  }
+  private MediaExtractionUtils() {}
 
   /**
    * Extracts id from Youtube URL.
@@ -102,8 +103,8 @@ public final class MediaExtractionUtils {
   @NotNull
   private static Optional<String> getFirstResultVideoInternal(@NotNull final String query)
       throws IOException {
-    try (final InputStream in = new URL(YOUTUBE_SEARCH_URL.formatted(
-        query.replaceAll(" ", "+"))).openStream()) {
+    try (final InputStream in =
+        new URL(YOUTUBE_SEARCH_URL.formatted(query.replaceAll(" ", "+"))).openStream()) {
       final String content = new String(in.readAllBytes(), StandardCharsets.UTF_8);
       final int start = FastStringUtils.fastQuerySearch(content, SEARCH_KEYWORD) + 10;
       return Optional.of(content.substring(start, content.indexOf('"', start)));

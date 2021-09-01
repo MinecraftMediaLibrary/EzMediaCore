@@ -43,7 +43,8 @@ public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements Audio
       @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final Path input,
-      @NotNull final Path output) throws IOException {
+      @NotNull final Path output)
+      throws IOException {
     super(core);
     this.input = input.toAbsolutePath();
     this.output = output.toAbsolutePath();

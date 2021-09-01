@@ -46,7 +46,5 @@ public final class ExecutorProvider {
     SHARED_VIDEO_PLAYER = Executors.newFixedThreadPool(8);
   }
 
-  private ExecutorProvider() {
-  }
-
+  private ExecutorProvider() {}
 }

@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.vlc;
 
+import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.analysis.OSType;
 import io.github.pulsebeat02.ezmediacore.vlc.os.DiscoveryProvider;
@@ -33,7 +34,6 @@ import io.github.pulsebeat02.ezmediacore.vlc.os.unix.UnixKnownDirectories;
 import io.github.pulsebeat02.ezmediacore.vlc.os.unix.UnixNativeDiscovery;
 import io.github.pulsebeat02.ezmediacore.vlc.os.window.WindowsKnownDirectories;
 import io.github.pulsebeat02.ezmediacore.vlc.os.window.WindowsNativeDiscovery;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -83,9 +83,9 @@ public class NativeBinarySearch implements BinarySearcher {
   @NotNull
   private EMCNativeDiscovery getDiscovery() {
     return switch (this.type) {
-      case MAC -> new EMCNativeDiscovery(this.core, new MacNativeDiscovery(), true);
-      case UNIX -> new EMCNativeDiscovery(this.core, new UnixNativeDiscovery(), true);
-      case WINDOWS -> new EMCNativeDiscovery(this.core, new WindowsNativeDiscovery(), false);
+      case MAC -> new EMCNativeDiscovery(this.core, new MacNativeDiscovery());
+      case UNIX -> new EMCNativeDiscovery(this.core, new UnixNativeDiscovery());
+      case WINDOWS -> new EMCNativeDiscovery(this.core, new WindowsNativeDiscovery());
     };
   }
 
@@ -110,7 +110,7 @@ public class NativeBinarySearch implements BinarySearcher {
   }
 
   @Override
-  public Optional<Path> search() throws IOException {
+  public Optional<Path> search() {
 
     if (this.path != null) {
       return Optional.of(this.path);
@@ -120,17 +120,19 @@ public class NativeBinarySearch implements BinarySearcher {
     paths.add(this.search.toString());
 
     for (final String path : paths) {
-      final Optional<Path> results = this.provider.discover(Path.of(path));
-      if (results.isPresent()) {
-        this.path = results.get();
-        return Optional.of(this.path);
+      final Optional<Path> optional = this.provider.discover(Path.of(path));
+      if (optional.isPresent()) {
+        this.path = optional.get();
+        break;
       }
     }
 
-    return Optional.empty();
+    Logger.info(path == null ? "VLC path is invalid!" : "VLC path is valid!");
+
+    return Optional.ofNullable(this.path);
   }
 
-  private List<String> getSearchDirectories() {
+  private @NotNull List<String> getSearchDirectories() {
     final List<String> paths = new ArrayList<>();
     for (final WellKnownDirectoryProvider directory : this.directories) {
       paths.addAll(directory.getSearchDirectories());

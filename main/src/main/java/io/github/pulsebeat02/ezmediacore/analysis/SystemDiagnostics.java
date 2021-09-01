@@ -110,9 +110,9 @@ public final class SystemDiagnostics implements Diagnostic {
           this.vlcDownloadLink = VLCDownloadPortal.NA;
         }
         case MAC -> {
-          if (this.cpu.getArchitecture().contains("amd")) {
-            Logger.info("Detected MacOS Silicon 64-bit Operating System");
-            this.vlcDownloadLink = VLCDownloadPortal.MAC_SILICON_64;
+          if (this.cpu.getArchitecture().contains("arm")) {
+            Logger.info("Detected MacOS ARM 64-bit Operating System");
+            this.vlcDownloadLink = VLCDownloadPortal.MAC_ARM_64;
           } else {
             Logger.info("Detected MacOS AMD 64-bit Operating System!");
             this.vlcDownloadLink = VLCDownloadPortal.MAC_AMD_64;

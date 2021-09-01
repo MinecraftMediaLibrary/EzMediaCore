@@ -30,5 +30,4 @@ public interface VideoDownloader extends Downloader {
 
   @NotNull
   Video getVideo();
-
 }

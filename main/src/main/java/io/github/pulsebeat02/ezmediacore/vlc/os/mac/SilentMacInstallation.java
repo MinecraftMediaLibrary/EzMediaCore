@@ -27,7 +27,7 @@ import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.analysis.OSType;
 import io.github.pulsebeat02.ezmediacore.task.CommandTask;
-import io.github.pulsebeat02.ezmediacore.utility.DependencyUtils;
+import io.github.pulsebeat02.ezmediacore.vlc.VLCBinaryChecksum;
 import io.github.pulsebeat02.ezmediacore.vlc.os.SilentInstallation;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -53,7 +53,8 @@ public class SilentMacInstallation extends SilentInstallation {
     final Path disk = Path.of("/Volumes/VLC media player");
     final Path app = directory.resolve("VLC.app");
 
-    DependencyUtils.downloadFile(dmg, this.getCore().getDiagnostics().getVlcUrl());
+    new VLCBinaryChecksum(this.getCore().getDiagnostics().getVlcUrl(), dmg).downloadFile();
+    Logger.info("Successfully downloaded DMG file!");
 
     if (this.mountDiskImage(dmg) != 0) {
       throw new RuntimeException("A severe I/O error has occurred. Could not mount disk file!");
@@ -61,6 +62,7 @@ public class SilentMacInstallation extends SilentInstallation {
     Logger.info("Successfully mounted disk!");
 
     org.apache.commons.io.FileUtils.copyDirectory(disk.resolve("VLC.app").toFile(), app.toFile());
+    Logger.info("Successfully moved VLC app folder!");
 
     if (this.changePermissions(app) != 0) {
       throw new RuntimeException(
@@ -73,8 +75,8 @@ public class SilentMacInstallation extends SilentInstallation {
     }
     Logger.info("Successfully unmounted disk!");
 
+    this.setInstallationPath(app);
     this.deleteArchive(dmg);
-
     this.loadNativeBinaries();
   }
 
@@ -86,7 +88,7 @@ public class SilentMacInstallation extends SilentInstallation {
   private int mountDiskImage(@NotNull final Path dmg) throws IOException, InterruptedException {
 
     final CommandTask t =
-        new CommandTask(new String[]{"/usr/bin/hdiutil", "attach", dmg.toString()}, true);
+        new CommandTask(new String[] {"/usr/bin/hdiutil", "attach", dmg.toString()}, true);
 
     Logger.info("============= DMG INFORMATION =============");
     Logger.info(t.getResult());
@@ -98,7 +100,7 @@ public class SilentMacInstallation extends SilentInstallation {
   private int unmountDiskImage(@NotNull final Path path) throws IOException, InterruptedException {
 
     final CommandTask t =
-        new CommandTask(new String[]{"diskutil", "unmount", path.toString()}, true);
+        new CommandTask(new String[] {"diskutil", "unmount", path.toString()}, true);
 
     Logger.info("=========== UNMOUNT INFORMATION ===========");
     Logger.info(t.getResult());
@@ -108,7 +110,7 @@ public class SilentMacInstallation extends SilentInstallation {
   }
 
   private int changePermissions(@NotNull final Path path) throws IOException, InterruptedException {
-    return new CommandTask(new String[]{"chmod", "-R", "755", path.toString()}, true)
+    return new CommandTask(new String[] {"chmod", "-R", "755", path.toString()}, true)
         .getProcess()
         .waitFor();
   }

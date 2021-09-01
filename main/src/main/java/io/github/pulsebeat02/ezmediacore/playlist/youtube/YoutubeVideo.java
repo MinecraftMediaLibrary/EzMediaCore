@@ -45,8 +45,9 @@ public class YoutubeVideo implements Video {
 
   public YoutubeVideo(@NotNull final String url) {
     this.url = url;
-    this.id = MediaExtractionUtils.getYoutubeID(url)
-        .orElseThrow(() -> new DeadResourceLinkException(url));
+    this.id =
+        MediaExtractionUtils.getYoutubeID(url)
+            .orElseThrow(() -> new DeadResourceLinkException(url));
     this.video = this.getVideoResponse(0);
     this.details = this.video.details();
     this.videoFormats =
@@ -61,12 +62,13 @@ public class YoutubeVideo implements Video {
 
   private VideoInfo getVideoResponse(final int tries) {
     if (tries == 10) {
-      throw new AssertionException("Request failure with video ID %s! Please try again.".formatted(
-          this.id));
+      throw new AssertionException(
+          "Request failure with video ID %s! Please try again.".formatted(this.id));
     }
     final int num = tries + 1;
-    return ResponseUtils.getResponseResult(YoutubeProvider.getYoutubeDownloader()
-        .getVideoInfo(new RequestVideoInfo(this.id))).orElseGet(() -> this.getVideoResponse(num));
+    return ResponseUtils.getResponseResult(
+            YoutubeProvider.getYoutubeDownloader().getVideoInfo(new RequestVideoInfo(this.id)))
+        .orElseGet(() -> this.getVideoResponse(num));
   }
 
   @Override
@@ -114,7 +116,8 @@ public class YoutubeVideo implements Video {
     return this.details.isLiveContent();
   }
 
-  @NotNull VideoInfo getVideoInfo() {
+  @NotNull
+  VideoInfo getVideoInfo() {
     return this.video;
   }
 }

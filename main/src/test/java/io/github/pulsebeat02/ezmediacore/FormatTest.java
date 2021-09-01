@@ -10,5 +10,4 @@ public class FormatTest {
     final SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss.SSS");
     System.out.println(formatter.format(date));
   }
-
 }

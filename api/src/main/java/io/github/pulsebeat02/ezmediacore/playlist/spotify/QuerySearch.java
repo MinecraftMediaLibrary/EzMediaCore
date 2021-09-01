@@ -28,12 +28,12 @@ import org.jetbrains.annotations.NotNull;
 
 public interface QuerySearch {
 
-  @NotNull Video getYoutubeVideo();
+  @NotNull
+  Video getYoutubeVideo();
 
   @NotNull
   String getSearchQuery();
 
   @NotNull
   Track getTrack();
-
 }

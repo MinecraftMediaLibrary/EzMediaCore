@@ -94,7 +94,10 @@ public final class AudioCommand extends BaseCommand {
     this.audioAction(
         player ->
             player.playSound(
-                player.getLocation(), this.attributes.getKey(), SoundCategory.MASTER, 100.0F,
+                player.getLocation(),
+                this.attributes.getKey(),
+                SoundCategory.MASTER,
+                100.0F,
                 1.0F));
 
     gold(audience, "Started playing audio!");

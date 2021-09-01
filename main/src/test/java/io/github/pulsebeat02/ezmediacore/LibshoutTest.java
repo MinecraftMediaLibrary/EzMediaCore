@@ -9,5 +9,4 @@ public class LibshoutTest {
     final Jlibshout jlibshout = new Jlibshout("localhost", 8030, "/jshout");
     jlibshout.pushMp3(new File("C:\\bestsongever.mp3"));
   }
-
 }

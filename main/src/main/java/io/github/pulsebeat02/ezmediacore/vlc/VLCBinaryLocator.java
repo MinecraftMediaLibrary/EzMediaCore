@@ -73,14 +73,11 @@ public class VLCBinaryLocator implements BinaryLocator {
 
   @Override
   public @NotNull Optional<Path> locate() throws IOException, InterruptedException {
-
     final Optional<Path> search = this.searcher.search();
     if (search.isEmpty()) {
       this.installer.download();
-      final Path path = this.installer.getProvider().getInstallationPath();
-      return path == null ? Optional.empty() : Optional.of(path);
+      return Optional.of(this.installer.getProvider().getInstallationPath());
     }
-
     return search;
   }
 

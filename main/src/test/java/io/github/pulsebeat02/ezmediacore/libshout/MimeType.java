@@ -6,7 +6,10 @@ package io.github.pulsebeat02.ezmediacore.libshout;
  * @author caorong
  */
 public enum MimeType {
-  mp3("audio/mpeg"), ogg("application/ogg"), audioWebm("audio/webm"), videoWebm("video/webm");
+  mp3("audio/mpeg"),
+  ogg("application/ogg"),
+  audioWebm("audio/webm"),
+  videoWebm("video/webm");
 
   private final String contentType;
 

@@ -174,8 +174,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
     ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), url, hash);
     gold(
         audience,
-        "Loaded Resourcepack Successfully! (URL: %s, Hash: %s)"
-            .formatted(url, new String(hash)));
+        "Loaded Resourcepack Successfully! (URL: %s, Hash: %s)".formatted(url, new String(hash)));
   }
 
   private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {

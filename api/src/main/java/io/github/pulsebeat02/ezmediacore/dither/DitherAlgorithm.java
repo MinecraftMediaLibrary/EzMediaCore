@@ -30,6 +30,5 @@ public interface DitherAlgorithm {
 
   ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width);
 
-  default void dither(final int[] buffer, final int width) {
-  }
+  default void dither(final int[] buffer, final int width) {}
 }

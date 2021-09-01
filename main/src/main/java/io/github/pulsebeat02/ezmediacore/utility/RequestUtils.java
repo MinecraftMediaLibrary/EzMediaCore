@@ -34,8 +34,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class RequestUtils {
 
-  private RequestUtils() {
-  }
+  private RequestUtils() {}
 
   public static String getSearchedVideos(
       @NotNull final String apiKey, @NotNull final String keyword) {
@@ -68,5 +67,10 @@ public final class RequestUtils {
       e.printStackTrace();
     }
     return result.toString();
+  }
+
+  public static String getParentUrl(@NotNull final String link) {
+    int index = link.lastIndexOf('/');
+    return index > 0 ? "%s/".formatted(link.substring(0, index)) : "/";
   }
 }

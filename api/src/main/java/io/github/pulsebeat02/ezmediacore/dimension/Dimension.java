@@ -43,5 +43,4 @@ public interface Dimension extends ConfigurationSerializable {
   int getWidth();
 
   int getHeight();
-
 }

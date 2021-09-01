@@ -39,12 +39,13 @@ public class SpotifyQuerySearch implements QuerySearch {
   private final YoutubeVideo video;
   private final String query;
 
-  public SpotifyQuerySearch(@NotNull final Track track) throws IOException {
+  public SpotifyQuerySearch(@NotNull final Track track) {
     this.track = track;
     final String query = "%s %s".formatted(track.getName(), track.getArtists().get(0));
-    this.video = new YoutubeVideo(MediaExtractionUtils.getFirstResultVideo(
-        query).orElseThrow(
-        () -> new DeadResourceLinkException(track.getId())));
+    this.video =
+        new YoutubeVideo(
+            MediaExtractionUtils.getFirstResultVideo(query)
+                .orElseThrow(() -> new DeadResourceLinkException(track.getId())));
     this.query = query;
   }
 

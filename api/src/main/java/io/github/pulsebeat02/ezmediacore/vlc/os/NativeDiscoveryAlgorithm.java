@@ -35,6 +35,5 @@ public interface NativeDiscoveryAlgorithm extends HostOperator {
   @NotNull
   List<String> getSearchPatterns();
 
-  @NotNull
   void onLibVlcFound(@NotNull final Path discoveredPath);
 }

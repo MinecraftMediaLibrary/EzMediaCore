@@ -45,8 +45,7 @@ public class DependencyLoader implements LibraryLoader {
   public void start() throws ExecutionException, InterruptedException {
     CompletableFuture.allOf(
             CompletableFuture.runAsync(this::installFFmpeg),
-            CompletableFuture.runAsync(this::installDependencies)
-                .thenRunAsync(this::checkVLC))
+            CompletableFuture.runAsync(this::installDependencies).thenRunAsync(this::checkVLC))
         .get();
   }
 

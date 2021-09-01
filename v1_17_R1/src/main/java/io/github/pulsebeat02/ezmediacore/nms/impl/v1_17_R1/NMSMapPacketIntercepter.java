@@ -245,8 +245,7 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
       if (pipeline.get(this.handlerName) != null) {
         pipeline.remove(this.handlerName);
       }
-      pipeline
-          .addBefore("packet_handler", this.handlerName, new PacketInterceptor(player));
+      pipeline.addBefore("packet_handler", this.handlerName, new PacketInterceptor(player));
     }
     this.connections.put(player.getUniqueId(), conn);
   }
@@ -310,8 +309,8 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
     }
 
     @Override
-    public void write(@NotNull final ChannelHandlerContext ctx, Object msg,
-        @NotNull final ChannelPromise promise)
+    public void write(
+        @NotNull final ChannelHandlerContext ctx, Object msg, @NotNull final ChannelPromise promise)
         throws Exception {
       msg = NMSMapPacketIntercepter.this.onPacketInterceptOut(this.player, msg);
       if (msg != null) {

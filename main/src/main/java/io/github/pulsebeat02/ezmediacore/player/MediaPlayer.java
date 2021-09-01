@@ -58,10 +58,10 @@ public abstract class MediaPlayer implements VideoPlayer {
       @Nullable final String key,
       final int fps) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
-    Preconditions.checkArgument(pixelDimension.getWidth() >= 0,
-        "Width must be above or equal to 0!");
-    Preconditions.checkArgument(pixelDimension.getHeight() >= 0,
-        "Height must be above or equal to 0!");
+    Preconditions.checkArgument(
+        pixelDimension.getWidth() >= 0, "Width must be above or equal to 0!");
+    Preconditions.checkArgument(
+        pixelDimension.getHeight() >= 0, "Height must be above or equal to 0!");
     this.core = callback.getCore();
     this.callback = callback;
     this.dimensions = pixelDimension;
@@ -97,14 +97,13 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void onPlayerStateChange(@NotNull final PlayerControls status) {
-  }
+  public void onPlayerStateChange(@NotNull final PlayerControls status) {}
 
   @Override
   public void playAudio() {
     this.watchers.forEach(
-        player -> player.playSound(player.getLocation(), this.key, SoundCategory.MASTER, 100.0F,
-            1.0F));
+        player ->
+            player.playSound(player.getLocation(), this.key, SoundCategory.MASTER, 100.0F, 1.0F));
   }
 
   @Override

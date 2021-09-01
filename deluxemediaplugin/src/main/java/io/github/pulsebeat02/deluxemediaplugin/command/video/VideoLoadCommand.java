@@ -157,7 +157,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
     try {
       new FFmpegAudioExtractor(
-          this.plugin.library(), this.plugin.getAudioConfiguration(), file, audio)
+              this.plugin.library(), this.plugin.getAudioConfiguration(), file, audio)
           .execute();
     } catch (final IOException e) {
       e.printStackTrace();
@@ -175,11 +175,12 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
     try {
 
-      final YoutubeVideoAudioExtractor extractor = new YoutubeVideoAudioExtractor(
-          this.plugin.library(),
-          this.plugin.getAudioConfiguration(),
-          mrl,
-          folder.resolve("audio.ogg"));
+      final YoutubeVideoAudioExtractor extractor =
+          new YoutubeVideoAudioExtractor(
+              this.plugin.library(),
+              this.plugin.getAudioConfiguration(),
+              mrl,
+              folder.resolve("audio.ogg"));
       extractor.executeAsyncWithLogging((line) -> external(audience, line)).get();
 
       this.attributes.setYoutube(true);
@@ -192,7 +193,6 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     } catch (final ExecutionException | InterruptedException | IOException e) {
       throw new AssertionError("Couldn't extract audio file!");
     }
-
   }
 
   private void wrapResourcepack(@NotNull final Path audio) {
@@ -202,7 +202,8 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       final HttpServer daemon = this.plugin.getHttpServer();
       final ResourcepackSoundWrapper wrapper =
           new ResourcepackSoundWrapper(
-              daemon.getDaemon().getServerPath().resolve("resourcepack.zip"), "Youtube Audio",
+              daemon.getDaemon().getServerPath().resolve("resourcepack.zip"),
+              "Youtube Audio",
               PackFormat.getCurrentFormat().getId());
       wrapper.addSound(this.plugin.getName().toLowerCase(Locale.ROOT), audio);
       wrapper.wrap();
@@ -215,7 +216,6 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       this.plugin.getLogger().severe("Failed to wrap resourcepack!");
       e.printStackTrace();
     }
-
   }
 
   private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {

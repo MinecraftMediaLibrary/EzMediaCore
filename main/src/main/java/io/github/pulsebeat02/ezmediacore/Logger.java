@@ -82,10 +82,12 @@ public final class Logger {
    * @param line to print
    */
   private static synchronized void directPrint(@NotNull final String line) {
-    CompletableFuture.runAsync(() -> {
-      LOGGER.write(line);
-      LOGGER.flush();
-    }, ExecutorProvider.SHARED_RESULT_POOL);
+    CompletableFuture.runAsync(
+        () -> {
+          LOGGER.write(line);
+          LOGGER.flush();
+        },
+        ExecutorProvider.SHARED_RESULT_POOL);
   }
 
   /**

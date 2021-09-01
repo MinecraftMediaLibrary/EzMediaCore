@@ -7,6 +7,7 @@ plugins {
 repositories {
     maven("https://repo.mattstudios.me/artifactory/public/")
     maven("https://libraries.minecraft.net/")
+    mavenCentral()
 }
 
 dependencies {
@@ -20,7 +21,7 @@ dependencies {
     implementation("me.lucko:commodore:1.10")
     compileOnly("com.mojang:authlib:1.5.25")
     compileOnly("org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT")
-    compileOnly("org.jetbrains:annotations:21.0.1")
+    compileOnly("org.jetbrains:annotations:22.0.0")
 }
 
 tasks.withType<ShadowJar> {
@@ -35,8 +36,8 @@ tasks.withType<ShadowJar> {
     relocate("uk.co.caprica.vlcj", "io.github.pulsebeat02.ezmediacore.lib.vlcj")
     relocate("uk.co.caprica.vlcj.binding", "io.github.pulsebeat02.ezmediacore.lib.vlcj.binding")
     relocate(
-        "uk.co.caprica.nativestreams",
-        "io.github.pulsebeat02.ezmediacore.lib.vlcj.nativestreams"
+            "uk.co.caprica.nativestreams",
+            "io.github.pulsebeat02.ezmediacore.lib.vlcj.nativestreams"
     )
     relocate("com.github.kiulian.downloader", "io.github.pulsebeat02.ezmediacore.lib.youtube")
     relocate("ws.schild.jave", "io.github.pulsebeat02.ezmediacore.lib.jave")

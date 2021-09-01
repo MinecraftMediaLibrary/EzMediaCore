@@ -119,7 +119,8 @@ public class SpotifyUser implements User {
     return SUBSCRIPTIONS.get(this.user.getProduct());
   }
 
-  @NotNull com.wrapper.spotify.model_objects.specification.User getUser() {
+  @NotNull
+  com.wrapper.spotify.model_objects.specification.User getUser() {
     return this.user;
   }
 }

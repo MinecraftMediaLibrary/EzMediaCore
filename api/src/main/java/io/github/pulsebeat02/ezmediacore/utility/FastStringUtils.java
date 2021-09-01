@@ -35,20 +35,19 @@ public final class FastStringUtils {
     STRING_SEARCHER = new BNDM();
   }
 
-  private FastStringUtils() {
-  }
+  private FastStringUtils() {}
 
   public static int fastQuerySearch(@NotNull final String content, @NotNull final String target) {
     return STRING_SEARCHER.searchString(content, target);
   }
 
-  public static int fastQuerySearch(@NotNull final String content, @NotNull final String target,
-      final int after) {
+  public static int fastQuerySearch(
+      @NotNull final String content, @NotNull final String target, final int after) {
     return STRING_SEARCHER.searchString(content, after, target);
   }
 
-  public static int fastQuerySearch(@NotNull final String content, @NotNull final String target,
-      final int start, final int end) {
+  public static int fastQuerySearch(
+      @NotNull final String content, @NotNull final String target, final int start, final int end) {
     return STRING_SEARCHER.searchString(content, start, end, target);
   }
 
@@ -60,8 +59,8 @@ public final class FastStringUtils {
     return STRING_SEARCHER.searchBytes(content, after, target);
   }
 
-  public static int fastQuerySearch(final byte[] content, final byte[] target, final int start,
-      final int end) {
+  public static int fastQuerySearch(
+      final byte[] content, final byte[] target, final int start, final int end) {
     return STRING_SEARCHER.searchBytes(content, start, end, target);
   }
 
@@ -73,8 +72,8 @@ public final class FastStringUtils {
     return STRING_SEARCHER.searchChars(content, after, target);
   }
 
-  public static int fastQuerySearch(final char[] content, final char[] target, final int start,
-      final int end) {
+  public static int fastQuerySearch(
+      final char[] content, final char[] target, final int start, final int end) {
     return STRING_SEARCHER.searchChars(content, start, end, target);
   }
 }

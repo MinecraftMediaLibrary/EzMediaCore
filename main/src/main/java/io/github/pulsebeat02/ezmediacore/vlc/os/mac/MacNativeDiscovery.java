@@ -45,12 +45,14 @@ public class MacNativeDiscovery implements NativeDiscoveryAlgorithm {
 
   @Override
   public @NotNull List<String> getSearchPatterns() {
-    return List.of("/lib/../plugins");
+    // /lib/../plugins
+    return List.of("");
   }
 
   @Override
   public void onLibVlcFound(@NotNull final Path discoveredPath) {
-    NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcCoreLibraryName(), discoveredPath.toString());
-    NativeLibrary.getInstance(RuntimeUtil.getLibVlcCoreLibraryName());
+    final String name = RuntimeUtil.getLibVlcCoreLibraryName();
+    NativeLibrary.addSearchPath(name, discoveredPath.toString());
+    NativeLibrary.getInstance(name);
   }
 }

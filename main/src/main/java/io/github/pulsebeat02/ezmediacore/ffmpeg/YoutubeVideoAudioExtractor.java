@@ -46,7 +46,8 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
       @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
-      @NotNull final Path output) throws IOException {
+      @NotNull final Path output)
+      throws IOException {
     this.tempVideoPath = core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID()));
     this.downloader = new YoutubeVideoDownloader(url, this.tempVideoPath);
     this.extractor = new FFmpegAudioExtractor(core, configuration, this.tempVideoPath, output);
@@ -56,13 +57,13 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
       @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
-      @NotNull final String fileName) throws IOException {
+      @NotNull final String fileName)
+      throws IOException {
     this(core, configuration, url, core.getAudioPath().resolve(fileName));
   }
 
   @Override
-  public void execute() {
-  }
+  public void execute() {}
 
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
@@ -101,12 +102,10 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   }
 
   @Override
-  public void onStartAudioExtraction() {
-  }
+  public void onStartAudioExtraction() {}
 
   @Override
-  public void onFinishAudioExtraction() {
-  }
+  public void onFinishAudioExtraction() {}
 
   @Override
   public @NotNull VideoDownloader getDownloader() {

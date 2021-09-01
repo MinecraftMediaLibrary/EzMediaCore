@@ -26,7 +26,6 @@ package io.github.pulsebeat02.ezmediacore.dimension;
 import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.of;
 import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.square;
 
-
 public final class ChatDimension {
 
   public static final Dimension X1_1;
@@ -55,7 +54,5 @@ public final class ChatDimension {
     X16_92 = of(16, 92);
   }
 
-  private ChatDimension() {
-  }
-
+  private ChatDimension() {}
 }

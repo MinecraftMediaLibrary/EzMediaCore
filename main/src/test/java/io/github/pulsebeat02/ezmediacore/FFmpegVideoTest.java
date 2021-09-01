@@ -42,34 +42,32 @@ public class FFmpegVideoTest {
   private void init(@NotNull final Path path, @NotNull final Path input, final long ms)
       throws IOException {
     final int delay = (int) (1000 / VideoFrameUtils.getFrameRate(path, input).orElse(30));
-    this.ffmpeg = new FFmpeg(path)
-        .addInput(
-            UrlInput.fromPath(input).setPosition(ms))
-        .addOutput(
-            FrameOutput.withConsumer(
-                this.getFrameConsumer(img -> {
-                  if (img == null) {
-                    return;
-                  }
-                  this.window.getContentPane().removeAll();
-                  this.window.add(new JLabel("", new ImageIcon(img), JLabel.CENTER));
-                  this.window.repaint();
-                  this.window.revalidate();
-                  try {
-                    TimeUnit.MILLISECONDS.sleep(delay);
-                  } catch (final InterruptedException e) {
-                    e.printStackTrace();
-                  }
-                })))
-    ;
+    this.ffmpeg =
+        new FFmpeg(path)
+            .addInput(UrlInput.fromPath(input).setPosition(ms))
+            .addOutput(
+                FrameOutput.withConsumer(
+                    this.getFrameConsumer(
+                        img -> {
+                          if (img == null) {
+                            return;
+                          }
+                          this.window.getContentPane().removeAll();
+                          this.window.add(new JLabel("", new ImageIcon(img), JLabel.CENTER));
+                          this.window.repaint();
+                          this.window.revalidate();
+                          try {
+                            TimeUnit.MILLISECONDS.sleep(delay);
+                          } catch (final InterruptedException e) {
+                            e.printStackTrace();
+                          }
+                        })));
   }
 
-  private FrameConsumer getFrameConsumer(
-      final Consumer<BufferedImage> callback) {
+  private FrameConsumer getFrameConsumer(final Consumer<BufferedImage> callback) {
     return new FrameConsumer() {
       @Override
-      public void consumeStreams(final List<Stream> streams) {
-      }
+      public void consumeStreams(final List<Stream> streams) {}
 
       @Override
       public void consume(final Frame frame) {
@@ -80,5 +78,4 @@ public class FFmpegVideoTest {
       }
     };
   }
-
 }

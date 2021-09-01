@@ -65,16 +65,18 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   @Override
   public void downloadVideo(@NotNull final VideoQuality format, final boolean overwrite) {
     this.onStartVideoDownload();
-    this.internalDownload(new RequestVideoFileDownload(this.getFormat(format))
-        .saveTo(this.videoPath.getParent().toFile())
-        .renameTo(FilenameUtils.removeExtension(PathUtils.getName(this.videoPath)))
-        .overwriteIfExists(overwrite));
+    this.internalDownload(
+        new RequestVideoFileDownload(this.getFormat(format))
+            .saveTo(this.videoPath.getParent().toFile())
+            .renameTo(FilenameUtils.removeExtension(PathUtils.getName(this.videoPath)))
+            .overwriteIfExists(overwrite));
     this.onFinishVideoDownload();
   }
 
   private void internalDownload(@NotNull final RequestVideoFileDownload download) {
     if (ResponseUtils.getResponseResult(
-        YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download)).isEmpty()) {
+            YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download))
+        .isEmpty()) {
       this.internalDownload(download);
     }
   }
@@ -91,13 +93,10 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   }
 
   @Override
-  public void onStartVideoDownload() {
-  }
+  public void onStartVideoDownload() {}
 
   @Override
-  public void onFinishVideoDownload() {
-  }
-
+  public void onFinishVideoDownload() {}
 
   @Override
   public @NotNull Path getDownloadPath() {

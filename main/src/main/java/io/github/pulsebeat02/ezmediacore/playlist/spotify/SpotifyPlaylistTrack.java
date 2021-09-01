@@ -36,14 +36,12 @@ public class SpotifyPlaylistTrack implements PlaylistTrack {
   }
 
   @Override
-  public @NotNull
-  Date getDateAdded() {
+  public @NotNull Date getDateAdded() {
     return this.track.getAddedAt();
   }
 
   @Override
-  public @NotNull
-  User getWhoAdded() {
+  public @NotNull User getWhoAdded() {
     return new SpotifyUser(this.track.getAddedBy());
   }
 
@@ -53,8 +51,7 @@ public class SpotifyPlaylistTrack implements PlaylistTrack {
   }
 
   @NotNull
-  com.wrapper.spotify.model_objects.specification.PlaylistTrack
-  getPlaylistTrack() {
+  com.wrapper.spotify.model_objects.specification.PlaylistTrack getPlaylistTrack() {
     return this.track;
   }
 }

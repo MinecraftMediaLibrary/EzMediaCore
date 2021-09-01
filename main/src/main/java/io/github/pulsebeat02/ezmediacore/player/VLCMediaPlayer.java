@@ -119,7 +119,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
   private EmbeddedMediaPlayer getEmbeddedMediaPlayer() {
     final int rate = this.getFrameRate();
     return new MediaPlayerFactory(
-        rate != 0 ? new String[]{"--fps-fps=%d".formatted(rate)} : new String[]{})
+        rate != 0 ? new String[]{"sout=\"#transcode{fps=%d}\"".formatted(rate)} : new String[]{})
         .mediaPlayers()
         .newEmbeddedMediaPlayer();
   }

@@ -31,14 +31,16 @@ public final class SpotifyProvider {
 
   private static SpotifyApi SPOTIFY_API;
 
-  private SpotifyProvider() {
-  }
+  private SpotifyProvider() {}
 
   public static void initialize(@NotNull final MediaLibraryCore core) {
     final SpotifyClient client = core.getSpotifyClient();
     if (client != null) {
-      SPOTIFY_API = new SpotifyApi.Builder().setClientId(client.getClientID())
-          .setClientSecret(client.getClientSecret()).build();
+      SPOTIFY_API =
+          new SpotifyApi.Builder()
+              .setClientId(client.getClientID())
+              .setClientSecret(client.getClientSecret())
+              .build();
     }
   }
 

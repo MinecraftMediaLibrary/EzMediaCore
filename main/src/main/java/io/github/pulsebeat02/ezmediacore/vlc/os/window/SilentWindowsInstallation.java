@@ -28,7 +28,7 @@ import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.analysis.OSType;
 import io.github.pulsebeat02.ezmediacore.utility.ArchiveUtils;
-import io.github.pulsebeat02.ezmediacore.utility.DependencyUtils;
+import io.github.pulsebeat02.ezmediacore.vlc.VLCBinaryChecksum;
 import io.github.pulsebeat02.ezmediacore.vlc.VLCDownloadPortal;
 import io.github.pulsebeat02.ezmediacore.vlc.os.SilentInstallation;
 import java.io.IOException;
@@ -49,19 +49,18 @@ public class SilentWindowsInstallation extends SilentInstallation {
   }
 
   @Override
-  public void downloadBinaries() throws IOException, InterruptedException {
+  public void downloadBinaries() throws IOException {
 
     Logger.info("No VLC binary found on machine, installing Windows binaries.");
 
     final Path folder = this.getDirectory();
     final Path archive = folder.resolve("VLC.zip");
 
-    DependencyUtils.downloadFile(archive, this.getCore().getDiagnostics().getVlcUrl());
-
-    Logger.info("Successfully downloaded archived binaries.");
+    new VLCBinaryChecksum(this.getCore().getDiagnostics().getVlcUrl(), archive).downloadFile();
+    Logger.info("Successfully downloaded archived binaries!");
 
     ArchiveUtils.decompressArchive(archive, folder);
-    Logger.info("Successfully extracted archived binaries.");
+    Logger.info("Successfully extracted archived binaries!");
 
     this.setInstallationPath(folder.resolve("vlc-%s".formatted(VLCDownloadPortal.VLC_VERSION)));
     this.deleteArchive(archive);

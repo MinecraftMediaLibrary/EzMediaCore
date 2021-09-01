@@ -32,7 +32,9 @@ class UnixDependency {
   private final String url;
   private final Set<UnixDependency> dependencies;
 
-  UnixDependency(@NotNull final String name, @NotNull final String url,
+  UnixDependency(
+      @NotNull final String name,
+      @NotNull final String url,
       @NotNull final Set<UnixDependency> dependencies) {
     this.name = name;
     this.url = url;

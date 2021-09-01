@@ -75,51 +75,54 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
 
   @Override
   public void process(final int[] data) {
-    TaskUtils.sync(this.getCore(), (Callable<Void>) () -> {
-      final long time = System.currentTimeMillis();
-      if (time - this.getLastUpdated() >= this.getFrameDelay()) {
-        this.setLastUpdated(time);
-        final Dimension dimension = this.getDimensions();
-        final int width = dimension.getWidth();
-        final int height = dimension.getHeight();
-        if (this.scoreboard == null) {
-          final ScoreboardManager manager = Bukkit.getScoreboardManager();
-          if (manager == null) {
-            throw new AssertionException("No worlds are loaded!");
-          }
-          this.scoreboard = manager.getNewScoreboard();
-          final Objective objective =
-              this.scoreboard.registerNewObjective("rd-" + this.id++, "dummy", this.name);
-          objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-          for (int i = 0; i < height; i++) {
-            final Team team = this.scoreboard.registerNewTeam("SLOT_" + i);
-            final String entry = COLORS[i].toString();
-            team.addEntry(entry);
-            objective.getScore(entry).setScore(15 - i);
-          }
-        }
-        for (final Player player : this.viewers) {
-          player.setScoreboard(this.scoreboard);
-        }
-        for (int y = 0; y < height; ++y) {
-          int before = -1;
-          final StringBuilder msg = new StringBuilder();
-          for (int x = 0; x < width; ++x) {
-            final int rgb = data[width * y + x];
-            if (before != rgb) {
-              msg.append(ChatColor.of("#" + "%08x".formatted(rgb).substring(2)));
-            }
-            msg.append("\u2588");
-            before = rgb;
-          }
-          final Team team = this.scoreboard.getTeam("SLOT_" + y);
-          if (team != null) {
-            team.setSuffix(msg.toString());
-          }
-        }
-      }
-      return null;
-    });
+    TaskUtils.sync(
+        this.getCore(),
+        (Callable<Void>)
+            () -> {
+              final long time = System.currentTimeMillis();
+              if (time - this.getLastUpdated() >= this.getFrameDelay()) {
+                this.setLastUpdated(time);
+                final Dimension dimension = this.getDimensions();
+                final int width = dimension.getWidth();
+                final int height = dimension.getHeight();
+                if (this.scoreboard == null) {
+                  final ScoreboardManager manager = Bukkit.getScoreboardManager();
+                  if (manager == null) {
+                    throw new AssertionException("No worlds are loaded!");
+                  }
+                  this.scoreboard = manager.getNewScoreboard();
+                  final Objective objective =
+                      this.scoreboard.registerNewObjective("rd-" + this.id++, "dummy", this.name);
+                  objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+                  for (int i = 0; i < height; i++) {
+                    final Team team = this.scoreboard.registerNewTeam("SLOT_" + i);
+                    final String entry = COLORS[i].toString();
+                    team.addEntry(entry);
+                    objective.getScore(entry).setScore(15 - i);
+                  }
+                }
+                for (final Player player : this.viewers) {
+                  player.setScoreboard(this.scoreboard);
+                }
+                for (int y = 0; y < height; ++y) {
+                  int before = -1;
+                  final StringBuilder msg = new StringBuilder();
+                  for (int x = 0; x < width; ++x) {
+                    final int rgb = data[width * y + x];
+                    if (before != rgb) {
+                      msg.append(ChatColor.of("#" + "%08x".formatted(rgb).substring(2)));
+                    }
+                    msg.append("\u2588");
+                    before = rgb;
+                  }
+                  final Team team = this.scoreboard.getTeam("SLOT_" + y);
+                  if (team != null) {
+                    team.setSuffix(msg.toString());
+                  }
+                }
+              }
+              return null;
+            });
   }
 
   @Override

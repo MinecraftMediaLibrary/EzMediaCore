@@ -8,5 +8,4 @@ public class UnixPackageTest {
   public static void main(final String[] args) {
     new UnixPackageInstaller(Path.of(System.getProperty("user.dir")).resolve("test")).start();
   }
-
 }

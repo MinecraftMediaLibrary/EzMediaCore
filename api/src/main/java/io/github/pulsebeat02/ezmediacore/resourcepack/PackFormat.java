@@ -28,7 +28,6 @@ import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 public enum PackFormat {
-
   VER_1165(6),
   VER_117(7),
   VER_1171(7),
@@ -38,15 +37,20 @@ public enum PackFormat {
   private static final Map<String, PackFormat> KEYS;
 
   static {
-    VERSION = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3]
-        .replaceAll("_", "")
-        .replaceAll("R", "")
-        .replaceAll("v", "");
-    KEYS = Map.of(
-        "1165", VER_1165,
-        "117", VER_117,
-        "1171", VER_1171
-    );
+    VERSION =
+        Bukkit.getServer()
+            .getClass()
+            .getPackage()
+            .getName()
+            .split("\\.")[3]
+            .replaceAll("_", "")
+            .replaceAll("R", "")
+            .replaceAll("v", "");
+    KEYS =
+        Map.of(
+            "1165", VER_1165,
+            "117", VER_117,
+            "1171", VER_1171);
   }
 
   private final int id;

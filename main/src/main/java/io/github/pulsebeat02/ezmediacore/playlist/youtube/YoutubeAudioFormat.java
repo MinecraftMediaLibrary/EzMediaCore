@@ -42,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 public class YoutubeAudioFormat implements AudioFormat {
 
   private static final BiMap<
-      com.github.kiulian.downloader.model.videos.quality.AudioQuality, AudioQuality>
+          com.github.kiulian.downloader.model.videos.quality.AudioQuality, AudioQuality>
       AUDIO_FORMATS;
 
   static {
@@ -63,10 +63,9 @@ public class YoutubeAudioFormat implements AudioFormat {
     this.format = format;
   }
 
-  static @NotNull
-  BiMap<
-      com.github.kiulian.downloader.model.videos.quality.AudioQuality, AudioQuality>
-  getAudioMappings() {
+  static @NotNull BiMap<
+          com.github.kiulian.downloader.model.videos.quality.AudioQuality, AudioQuality>
+      getAudioMappings() {
     return AUDIO_FORMATS;
   }
 
@@ -81,8 +80,7 @@ public class YoutubeAudioFormat implements AudioFormat {
   }
 
   @Override
-  public @NotNull
-  AudioQuality getAudioQuality() {
+  public @NotNull AudioQuality getAudioQuality() {
     return AUDIO_FORMATS.get(this.format.audioQuality());
   }
 }

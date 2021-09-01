@@ -53,9 +53,14 @@ public class Jlibshout {
     this("source", "hackme", targetHost, targetPort, mounter, mimeType);
   }
 
-  public Jlibshout(final String user, final String password, final String targetHost,
-      final int targetPort, final String mounter,
-      final MimeType mimeType) throws Exception {
+  public Jlibshout(
+      final String user,
+      final String password,
+      final String targetHost,
+      final int targetPort,
+      final String mounter,
+      final MimeType mimeType)
+      throws Exception {
     this.user = user;
     this.password = password;
     this.targetHost = targetHost;
@@ -87,8 +92,10 @@ public class Jlibshout {
 
       // send an HTTP request to the web server
       out.println(String.format("SOURCE %s HTTP/1.0", this.mounter));
-      out.println(String.format("Authorization: Basic %s", HttpRequest.Base64.encode(
-          this.user + ":" + this.password)));
+      out.println(
+          String.format(
+              "Authorization: Basic %s",
+              HttpRequest.Base64.encode(this.user + ":" + this.password)));
       out.println("User-Agent: libshout/2.3.1");
       out.println(String.format("Content-Type: %s", this.mimeType.getContentType()));
       out.println(String.format("ice-name: %s", this.iceName));
@@ -118,8 +125,8 @@ public class Jlibshout {
 
   /**
    * push mp3 with sleep 32 4kb/s 64 8kb/s
-   * <p/>
-   * unaccurate version
+   *
+   * <p>unaccurate version
    *
    * @param mp3
    * @throws FileNotFoundException
@@ -171,18 +178,21 @@ public class Jlibshout {
 
   /**
    * push 'live' http stream support mp3, ogg, webm etc without sync
-   * <p/>
-   * sync is dependence on source stream
-   * <p/>
-   * this method will block until exception or reach EOF
-   * <p/>
-   * <p/>
-   * about buffersize is 8k e.g mp3 64kbit/s => 8kb/s => sleep time may be 1s will be just in time
-   * <p/>
-   * maybe throw:
-   * <p/>
-   * ReadStreamEx (404), sourceStreamIOEx
-   * <p/>
+   *
+   * <p>sync is dependence on source stream
+   *
+   * <p>this method will block until exception or reach EOF
+   *
+   * <p>
+   *
+   * <p>about buffersize is 8k e.g mp3 64kbit/s => 8kb/s => sleep time may be 1s will be just in
+   * time
+   *
+   * <p>maybe throw:
+   *
+   * <p>ReadStreamEx (404), sourceStreamIOEx
+   *
+   * <p>
    *
    * @param url source live http stream url
    */

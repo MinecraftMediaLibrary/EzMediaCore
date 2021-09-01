@@ -53,7 +53,7 @@ public final class FFmpegInstaller {
     this.core = core;
     final Path path = core.getDependencyPath();
     this.folder = path.resolve("ffmpeg");
-    this.hashFile = this.folder.resolve(".ffmpeg-cache");
+    this.hashFile = this.folder.resolve(".ffmpeg-hash");
   }
 
   public void start() throws IOException {

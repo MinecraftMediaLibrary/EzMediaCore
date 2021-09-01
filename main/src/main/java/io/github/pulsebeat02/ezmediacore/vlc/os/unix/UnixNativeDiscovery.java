@@ -47,6 +47,5 @@ public class UnixNativeDiscovery implements NativeDiscoveryAlgorithm {
   }
 
   @Override
-  public void onLibVlcFound(@NotNull final Path discoveredPath) {
-  }
+  public void onLibVlcFound(@NotNull final Path discoveredPath) {}
 }

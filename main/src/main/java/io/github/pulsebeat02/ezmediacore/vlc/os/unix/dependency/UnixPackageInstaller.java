@@ -63,31 +63,44 @@ public class UnixPackageInstaller {
   private void download() throws InterruptedException {
     this.service.invokeAll(
         Arrays.stream(VLCDependency.values())
-            .map(dependency -> Executors.callable(() -> {
-                  final String url = dependency.getDependency().getUrl();
-                  try {
-                    this.archives.add(DependencyUtils.downloadFile(
-                        this.directory.resolve(
-                            dependency.getDependency().getName() + "." + FilenameUtils.getExtension(
-                                new URL(url).getPath())), url));
-                  } catch (final IOException e) {
-                    e.printStackTrace();
-                  }
-                }, null)
-            ).collect(Collectors.toSet()));
+            .map(
+                dependency ->
+                    Executors.callable(
+                        () -> {
+                          final String url = dependency.getDependency().getUrl();
+                          try {
+                            this.archives.add(
+                                DependencyUtils.downloadFile(
+                                    this.directory.resolve(
+                                        dependency.getDependency().getName()
+                                            + "."
+                                            + FilenameUtils.getExtension(new URL(url).getPath())),
+                                    url));
+                          } catch (final IOException e) {
+                            e.printStackTrace();
+                          }
+                        },
+                        null))
+            .collect(Collectors.toSet()));
   }
 
   private void extract() throws InterruptedException {
-    this.service.invokeAll(this.archives.stream().map(
-        path -> Executors.callable(() -> ArchiveUtils.decompressArchive(path,
-                path.getParent().resolve(FilenameUtils.removeExtension(
-                    PathUtils.getName(path)))),
-            null)).collect(
-        Collectors.toSet()));
+    this.service.invokeAll(
+        this.archives.stream()
+            .map(
+                path ->
+                    Executors.callable(
+                        () ->
+                            ArchiveUtils.decompressArchive(
+                                path,
+                                path.getParent()
+                                    .resolve(
+                                        FilenameUtils.removeExtension(PathUtils.getName(path)))),
+                        null))
+            .collect(Collectors.toSet()));
   }
 
   private void shutdown() {
     this.service.shutdownNow();
   }
-
 }
