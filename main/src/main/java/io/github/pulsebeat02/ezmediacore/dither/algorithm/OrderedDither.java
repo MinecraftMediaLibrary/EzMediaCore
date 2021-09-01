@@ -94,15 +94,15 @@ public class OrderedDither implements DitherAlgorithm {
     this.convertToFloat();
   }
 
-  public static float[][] getBayerMatrixTwo() {
+  public static @NotNull float[][] getBayerMatrixTwo() {
     return BAYER_MATRIX_TWO;
   }
 
-  public static float[][] getBayerMatrixFour() {
+  public static @NotNull float[][] getBayerMatrixFour() {
     return BAYER_MATRIX_FOUR;
   }
 
-  public static float[][] getBayerMatrixEight() {
+  public static @NotNull float[][] getBayerMatrixEight() {
     return BAYER_MATRIX_EIGHT;
   }
 
@@ -129,7 +129,7 @@ public class OrderedDither implements DitherAlgorithm {
   }
 
   @Override
-  public void dither(final int[] buffer, final int width) {
+  public void dither(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     for (int y = 0; y < height; y++) {
       final int yIndex = y * width;
@@ -145,7 +145,7 @@ public class OrderedDither implements DitherAlgorithm {
   }
 
   @Override
-  public ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width) {
+  public ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     final ByteBuffer data = ByteBuffer.allocate(buffer.length);
     for (int y = 0; y < height; y++) {
@@ -161,7 +161,7 @@ public class OrderedDither implements DitherAlgorithm {
     return data;
   }
 
-  public float[][] getMatrix() {
+  public @NotNull float[][] getMatrix() {
     return this.matrix;
   }
 

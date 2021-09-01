@@ -99,7 +99,7 @@ public final class FFmpegInstaller {
     this.hash = HashingUtils.getHash(this.executable);
   }
 
-  private Optional<Path> detectExecutable(@NotNull final Path folder) throws IOException {
+  private @NotNull Optional<Path> detectExecutable(@NotNull final Path folder) throws IOException {
     try (final Stream<Path> files = Files.walk(folder, 1)) {
       return files
           .filter(Files::isRegularFile)

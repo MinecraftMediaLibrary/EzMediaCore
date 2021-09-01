@@ -96,7 +96,7 @@ public final class AudioAttributes implements AudioConfiguration {
   }
 
   @Override
-  public String getCodec() {
+  public @NotNull String getCodec() {
     return this.codec;
   }
 

@@ -24,12 +24,14 @@
 package io.github.pulsebeat02.ezmediacore.sneaky;
 
 import java.util.function.BiConsumer;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 public interface ThrowingBiConsumer<T1, T2, EX extends Exception> {
 
-  static <T, U> BiConsumer<T, U> unchecked(
+  @Contract(pure = true)
+  static <T, U> @NotNull BiConsumer<T, U> unchecked(
       @NotNull final ThrowingBiConsumer<? super T, ? super U, ?> consumer) {
     return (arg1, arg2) -> {
       try {
@@ -40,7 +42,8 @@ public interface ThrowingBiConsumer<T1, T2, EX extends Exception> {
     };
   }
 
-  static <T, U> BiConsumer<T, U> sneaky(
+  @Contract(pure = true)
+  static <T, U> @NotNull BiConsumer<T, U> sneaky(
       @NotNull final ThrowingBiConsumer<? super T, ? super U, ?> consumer) {
     return (arg1, arg2) -> {
       try {

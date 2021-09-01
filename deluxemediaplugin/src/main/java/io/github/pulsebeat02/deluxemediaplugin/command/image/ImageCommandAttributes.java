@@ -49,6 +49,7 @@ import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.jetbrains.annotations.NotNull;
 
 public final class ImageCommandAttributes {
 
@@ -64,11 +65,11 @@ public final class ImageCommandAttributes {
     this.height = 1;
   }
 
-  public Set<UUID> getListen() {
+  public @NotNull Set<UUID> getListen() {
     return this.listen;
   }
 
-  public Set<String> getExtensions() {
+  public @NotNull Set<String> getExtensions() {
     return this.extensions;
   }
 

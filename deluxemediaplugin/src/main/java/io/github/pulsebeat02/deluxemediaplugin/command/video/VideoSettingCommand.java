@@ -115,13 +115,13 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
             .build();
   }
 
-  private CompletableFuture<Suggestions> suggestDitheringOptions(
+  private @NotNull CompletableFuture<Suggestions> suggestDitheringOptions(
       final CommandContext<CommandSender> context, final SuggestionsBuilder builder) {
     Arrays.stream(DitherSetting.values()).forEach(x -> builder.suggest(x.name()));
     return builder.buildFuture();
   }
 
-  private CompletableFuture<Suggestions> suggestVideoModes(
+  private @NotNull CompletableFuture<Suggestions> suggestVideoModes(
       final CommandContext<CommandSender> context, final SuggestionsBuilder builder) {
     Arrays.stream(VideoType.values()).forEach(x -> builder.suggest(x.getName()));
     return builder.buildFuture();
@@ -220,12 +220,12 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
 
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String mode = context.getArgument("video-mode", String.class);
-    final VideoType type = VideoType.ofKey(mode);
+    final Optional<VideoType> type = VideoType.ofKey(mode);
 
-    if (type == null) {
+    if (type.isPresent()) {
       red(audience, "Could not find video mode %s".formatted(mode));
     } else {
-      this.attributes.setVideoType(type);
+      this.attributes.setVideoType(type.get());
       audience.sendMessage(format(ofChildren(text("Set video mode to ", GOLD), text(mode, AQUA))));
     }
 

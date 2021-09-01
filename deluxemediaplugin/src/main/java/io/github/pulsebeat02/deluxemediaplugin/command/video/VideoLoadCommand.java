@@ -151,7 +151,8 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
         this.plugin.library(), this.attributes.getUrl(), this.attributes.getHash());
   }
 
-  private Path setAudioFileAttributes(@NotNull final Path file, @NotNull final String folder) {
+  private @NotNull Path setAudioFileAttributes(
+      @NotNull final Path file, @NotNull final String folder) {
 
     final Path audio = Path.of(folder, "custom.ogg");
 
@@ -170,7 +171,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     return audio;
   }
 
-  private YoutubeVideoAudioExtractor setYoutubeAttributes(
+  private @NotNull YoutubeVideoAudioExtractor setYoutubeAttributes(
       @NotNull final Audience audience, @NotNull final Path folder, @NotNull final String mrl) {
 
     try {

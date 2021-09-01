@@ -32,6 +32,7 @@ import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Objects;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class VideoFactory {
@@ -42,19 +43,23 @@ public class VideoFactory {
   private String key;
   private int rate = 25;
 
-  public static VLCMediaFactory vlc() {
+  @Contract(value = " -> new", pure = true)
+  public static @NotNull VLCMediaFactory vlc() {
     return new VLCMediaFactory();
   }
 
-  public static FFmpegMediaFactory ffmpeg() {
+  @Contract(value = " -> new", pure = true)
+  public static @NotNull FFmpegMediaFactory ffmpeg() {
     return new FFmpegMediaFactory();
   }
 
-  public static JCodecMediaFactory jcodec() {
+  @Contract(value = " -> new", pure = true)
+  public static @NotNull JCodecMediaFactory jcodec() {
     return new JCodecMediaFactory();
   }
 
-  public static VideoFactory unspecified() {
+  @Contract(value = " -> new", pure = true)
+  public static @NotNull VideoFactory unspecified() {
     return new VideoFactory();
   }
 
@@ -104,7 +109,8 @@ public class VideoFactory {
     }
   }
 
-  private MediaPlayer vlcOption() {
+  @Contract(" -> new")
+  private @NotNull MediaPlayer vlcOption() {
     return new VLCMediaPlayer(this.callback, this.dims, this.url, this.key, this.rate);
   }
 
@@ -143,8 +149,9 @@ public class VideoFactory {
 
   public static final class VLCMediaFactory extends VideoFactory {
 
+    @Contract(" -> new")
     @Override
-    public MediaPlayer build() {
+    public @NotNull MediaPlayer build() {
       return new VLCMediaPlayer(this.getCallback(), this.getDims(),
           this.getUrl(),
           this.getKey(), this.getRate());
@@ -160,8 +167,9 @@ public class VideoFactory {
       return this;
     }
 
+    @Contract(" -> new")
     @Override
-    public MediaPlayer build() {
+    public @NotNull MediaPlayer build() {
       super.init();
       return new FFmpegMediaPlayer(this.getCallback(), this.getDims(),
           this.bufferSize, this.getUrl(),
@@ -178,8 +186,9 @@ public class VideoFactory {
       return this;
     }
 
+    @Contract(" -> new")
     @Override
-    public MediaPlayer build() {
+    public @NotNull MediaPlayer build() {
       super.init();
       return new JCodecMediaPlayer(this.getCallback(), this.getDims(),
           this.bufferSize, this.getUrl(),

@@ -26,7 +26,9 @@ package io.github.pulsebeat02.ezmediacore.playlist;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 public class WebsiteControls implements WebPlayerControls {
 
@@ -37,11 +39,12 @@ public class WebsiteControls implements WebPlayerControls {
 
   public WebsiteControls(final String url, @NotNull final PlaylistType type) {
     this.url = url;
-    this.songs = getSongs();
+    this.songs = this.getSongs();
     this.type = type;
   }
 
-  private List<String> getSongs() {
+  @Contract(pure = true)
+  private @NotNull @Unmodifiable List<String> getSongs() {
     // TODO: 7/30/2021 get songs from spotify using some api
     return Collections.emptyList();
   }

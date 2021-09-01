@@ -102,7 +102,7 @@ public final class HttpConfiguration extends ConfigurationProvider {
     this.enabled = enabled;
   }
 
-  public HttpServer getServer() {
+  public @NotNull HttpServer getServer() {
     return this.daemon;
   }
 

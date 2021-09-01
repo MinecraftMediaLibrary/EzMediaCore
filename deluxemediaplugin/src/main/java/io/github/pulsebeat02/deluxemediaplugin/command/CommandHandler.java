@@ -167,6 +167,7 @@ public final class CommandHandler implements TabExecutor {
    *
    * @return dispatcher
    */
+  @NotNull
   public CommandDispatcher<CommandSender> getDispatcher() {
     return this.dispatcher;
   }
@@ -176,6 +177,7 @@ public final class CommandHandler implements TabExecutor {
    *
    * @return root node
    */
+  @NotNull
   public RootCommandNode<CommandSender> getRootNode() {
     return this.rootNode;
   }
@@ -185,6 +187,7 @@ public final class CommandHandler implements TabExecutor {
    *
    * @return commands
    */
+  @NotNull
   public Set<BaseCommand> getCommands() {
     return this.commands;
   }

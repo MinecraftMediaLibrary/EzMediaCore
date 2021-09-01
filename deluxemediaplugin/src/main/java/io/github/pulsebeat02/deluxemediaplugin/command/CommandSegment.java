@@ -61,10 +61,12 @@ public interface CommandSegment<S, N extends CommandNode<S>> {
   @NotNull
   N node();
 
+  @NotNull
   default LiteralArgumentBuilder<S> literal(final String name) {
     return LiteralArgumentBuilder.literal(name);
   }
 
+  @NotNull
   default <T> RequiredArgumentBuilder<S, T> argument(
       final String name, final ArgumentType<T> type) {
     return RequiredArgumentBuilder.argument(name, type);

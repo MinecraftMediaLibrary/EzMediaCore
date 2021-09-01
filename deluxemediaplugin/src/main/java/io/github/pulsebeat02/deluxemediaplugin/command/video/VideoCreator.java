@@ -70,7 +70,7 @@ public record VideoCreator(MediaLibraryCore library,
     this.attributes = attributes;
   }
 
-  public VideoPlayer createMapPlayer(@NotNull final Collection<? extends Player> viewers) {
+  public @NotNull VideoPlayer createMapPlayer(@NotNull final Collection<? extends Player> viewers) {
     return VideoFactory.unspecified()
         .url(this.attributes.getVideoMrl())
         .callback(
@@ -87,7 +87,7 @@ public record VideoCreator(MediaLibraryCore library,
         .build();
   }
 
-  public VideoPlayer createEntityPlayer(
+  public @NotNull VideoPlayer createEntityPlayer(
       @NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
     return VideoFactory.unspecified()
         .url(this.attributes.getVideoMrl())
@@ -106,7 +106,7 @@ public record VideoCreator(MediaLibraryCore library,
         .build();
   }
 
-  public VideoPlayer createChatBoxPlayer(@NotNull final Collection<? extends Player> viewers) {
+  public @NotNull VideoPlayer createChatBoxPlayer(@NotNull final Collection<? extends Player> viewers) {
     return VideoFactory.unspecified()
         .url(this.attributes.getVideoMrl())
         .callback(
@@ -122,7 +122,7 @@ public record VideoCreator(MediaLibraryCore library,
         .build();
   }
 
-  public VideoPlayer createScoreboardPlayer(@NotNull final Collection<? extends Player> viewers) {
+  public @NotNull VideoPlayer createScoreboardPlayer(@NotNull final Collection<? extends Player> viewers) {
     return VideoFactory.unspecified()
         .url(this.attributes.getVideoMrl())
         .callback(
@@ -138,7 +138,7 @@ public record VideoCreator(MediaLibraryCore library,
         .build();
   }
 
-  public VideoPlayer createBlockHighlightPlayer(
+  public @NotNull VideoPlayer createBlockHighlightPlayer(
       @NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
     return VideoFactory.unspecified()
         .url(this.attributes.getVideoMrl())

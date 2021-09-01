@@ -51,6 +51,8 @@ package io.github.pulsebeat02.ezmediacore.search;
  *
  */
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * An implementation of the Backwards Non-deterministic DAWG (Directed acyclic word graph) Matching
  * algorithm by Gonzalo Navarro and Mathieu Raffinot. See "A Bit-Parallel Approach to Suffix
@@ -78,8 +80,8 @@ public class BNDM extends StringSearch {
    * an <code>int</code> array which is serializable.
    */
   @Override
-  public Object processBytes(final byte[] pattern) {
-    final int end = pattern.length < 32 ? pattern.length : 32;
+  public Object processBytes(final byte @NotNull [] pattern) {
+    final int end = Math.min(pattern.length, 32);
 
     final int[] b = new int[256];
 
@@ -97,8 +99,8 @@ public class BNDM extends StringSearch {
    * {@link CharIntMap} which is serializable.
    */
   @Override
-  public Object processChars(final char[] pattern) {
-    final int end = pattern.length < 32 ? pattern.length : 32;
+  public Object processChars(final char @NotNull [] pattern) {
+    final int end = Math.min(pattern.length, 32);
 
     final CharIntMap b = this.createCharIntMap(pattern, end, 0);
 
@@ -116,11 +118,11 @@ public class BNDM extends StringSearch {
       final byte[] text,
       final int textStart,
       final int textEnd,
-      final byte[] pattern,
+      final byte @NotNull [] pattern,
       final Object processed) {
 
     final int[] t = (int[]) processed;
-    final int l = pattern.length < 32 ? pattern.length : 32;
+    final int l = Math.min(pattern.length, 32);
 
     int d, j, pos, last;
     pos = textStart;
@@ -150,11 +152,11 @@ public class BNDM extends StringSearch {
       final char[] text,
       final int textStart,
       final int textEnd,
-      final char[] pattern,
+      final char @NotNull [] pattern,
       final Object processed) {
 
     final CharIntMap b = (CharIntMap) processed;
-    final int l = pattern.length < 32 ? pattern.length : 32;
+    final int l = Math.min(pattern.length, 32);
 
     int d, j, pos, last;
     pos = textStart;

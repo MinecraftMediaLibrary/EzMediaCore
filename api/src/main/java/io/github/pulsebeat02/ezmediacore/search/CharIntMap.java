@@ -56,6 +56,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Arrays;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The CharIntMap is a collection to save <code>char</code> to <code>int</code> mappings in. The
@@ -217,7 +218,7 @@ public class CharIntMap implements Externalizable {
    * @see #toStringBuffer(StringBuffer)
    */
   @Override
-  public final String toString() {
+  public @NotNull final String toString() {
     return this.toStringBuffer(null).toString();
   }
 
@@ -276,7 +277,7 @@ public class CharIntMap implements Externalizable {
    * @see java.io.Externalizable#readExternal(java.io.ObjectInput)
    */
   @Override
-  public void readExternal(final ObjectInput in) throws IOException {
+  public void readExternal(@NotNull final ObjectInput in) throws IOException {
     final int l = in.readInt();
     if (l > 0) {
       this.array = new int[l];

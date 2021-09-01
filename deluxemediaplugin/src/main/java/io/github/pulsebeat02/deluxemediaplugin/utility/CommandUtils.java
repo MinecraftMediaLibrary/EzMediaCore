@@ -85,7 +85,7 @@ public final class CommandUtils {
     }
   }
 
-  private static Optional<Object> getPrivateField(
+  private static @NotNull Optional<Object> getPrivateField(
       @NotNull final Object object, @NotNull final String field) {
     try {
       final Class<?> clazz = object.getClass();

@@ -40,7 +40,7 @@ public final class UUIDAdapter extends TypeAdapter<UUID> {
   }
 
   @Override
-  public UUID read(@NotNull final JsonReader in) throws IOException {
+  public @NotNull UUID read(@NotNull final JsonReader in) throws IOException {
     in.beginObject();
     String id = "";
     while (in.hasNext()) {

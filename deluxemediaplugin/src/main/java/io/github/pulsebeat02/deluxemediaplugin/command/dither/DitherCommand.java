@@ -94,7 +94,7 @@ public final class DitherCommand extends BaseCommand {
   }
 
   @Override
-  public Component usage() {
+  public @NotNull Component usage() {
     return ChatUtils.getCommandUsage(
         ImmutableMap.of("/dither list", "References all possible dithering options to choose"));
   }

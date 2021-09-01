@@ -50,6 +50,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import org.bukkit.Bukkit;
 import org.bukkit.command.SimpleCommandMap;
+import org.jetbrains.annotations.NotNull;
 
 public final class CommandMapHelper {
 
@@ -68,7 +69,7 @@ public final class CommandMapHelper {
     }
   }
 
-  public static SimpleCommandMap getCommandMap() {
+  public static @NotNull SimpleCommandMap getCommandMap() {
     try {
       return (SimpleCommandMap) GET_COMMAND_MAP_METHOD.invoke(Bukkit.getServer());
     } catch (final Throwable t) {

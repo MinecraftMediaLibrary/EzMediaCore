@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,7 +63,8 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
     this(core, input, core.getAudioPath().resolve(fileName), ms);
   }
 
-  private List<String> generateArguments() {
+  @Contract(" -> new")
+  private @NotNull List<String> generateArguments() {
     return new ArrayList<>(
         List.of(
             this.getCore().getFFmpegPath().toString(),

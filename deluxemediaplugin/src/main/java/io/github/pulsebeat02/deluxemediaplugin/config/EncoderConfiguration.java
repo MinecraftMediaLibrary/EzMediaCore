@@ -80,7 +80,7 @@ public final class EncoderConfiguration extends ConfigurationProvider {
     this.settings = new AudioAttributes("libvorbis", bitrate, channels, samplingRate, volume);
   }
 
-  public AudioConfiguration getSettings() {
+  public @NotNull AudioConfiguration getSettings() {
     return this.settings;
   }
 }

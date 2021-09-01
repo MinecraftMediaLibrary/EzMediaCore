@@ -62,7 +62,7 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
     this.entities = this.getModifiedEntities();
   }
 
-  private Entity[] getModifiedEntities() {
+  private Entity @NotNull [] getModifiedEntities() {
     final int height = this.getDimensions().getHeight();
     final Entity[] ents = new Entity[height];
     final Location spawn = this.location.clone();
@@ -98,7 +98,7 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
     return ents;
   }
 
-  private Entity getAreaEffectCloud(final World world, final Location location, final int height) {
+  private @NotNull Entity getAreaEffectCloud(@NotNull final World world, final Location location, final int height) {
     return world.spawn(
         location,
         AreaEffectCloud.class,

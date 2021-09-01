@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +55,8 @@ public final class LibraryProvider {
 
   LibraryProvider() {}
 
-  public static LibraryProvider builder() {
+  @Contract(value = " -> new", pure = true)
+  public static @NotNull LibraryProvider builder() {
     return new LibraryProvider();
   }
 
@@ -129,7 +131,7 @@ public final class LibraryProvider {
     return this;
   }
 
-  public MediaLibraryCore build() {
+  public @NotNull MediaLibraryCore build() {
     final MediaLibraryCore core =
         new EzMediaCore(
             this.plugin,

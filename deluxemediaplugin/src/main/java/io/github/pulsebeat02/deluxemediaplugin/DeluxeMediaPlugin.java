@@ -193,23 +193,23 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
     this.handler = new CommandHandler(this);
   }
 
-  public PersistentPictureManager getPictureManager() {
+  public @NotNull PersistentPictureManager getPictureManager() {
     return this.manager;
   }
 
-  public AudioConfiguration getAudioConfiguration() {
+  public @NotNull AudioConfiguration getAudioConfiguration() {
     return this.audioConfiguration;
   }
 
-  public HttpServer getHttpServer() {
+  public @NotNull HttpServer getHttpServer() {
     return this.server;
   }
 
-  public MediaLibraryCore library() {
+  public @NotNull MediaLibraryCore library() {
     return this.library;
   }
 
-  public BukkitAudiences audience() {
+  public @NotNull BukkitAudiences audience() {
     return this.audiences;
   }
 }

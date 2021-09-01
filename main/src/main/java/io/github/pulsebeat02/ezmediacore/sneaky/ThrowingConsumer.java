@@ -24,12 +24,15 @@
 package io.github.pulsebeat02.ezmediacore.sneaky;
 
 import java.util.function.Consumer;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 public interface ThrowingConsumer<T, E extends Exception> {
 
-  static <T> Consumer<T> unchecked(@NotNull final ThrowingConsumer<? super T, ?> consumer) {
+  @Contract(pure = true)
+  static <T> @NotNull Consumer<T> unchecked(
+      @NotNull final ThrowingConsumer<? super T, ?> consumer) {
     return t -> {
       try {
         consumer.accept(t);
@@ -39,7 +42,8 @@ public interface ThrowingConsumer<T, E extends Exception> {
     };
   }
 
-  static <T> Consumer<T> sneaky(@NotNull final ThrowingConsumer<? super T, ?> consumer) {
+  @Contract(pure = true)
+  static <T> @NotNull Consumer<T> sneaky(@NotNull final ThrowingConsumer<? super T, ?> consumer) {
     return t -> {
       try {
         consumer.accept(t);

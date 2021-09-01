@@ -30,6 +30,7 @@ import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.PALETTE;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -44,7 +45,7 @@ public class FloydDither implements DitherAlgorithm {
   }
 
   private byte getBestColorIncludingTransparent(final int rgb) {
-    return (rgb >>> 24 & 0xFF) == 0 ? 0 : getBestColor(rgb);
+    return (rgb >>> 24 & 0xFF) == 0 ? 0 : this.getBestColor(rgb);
   }
 
   private byte getBestColor(final int rgb) {
@@ -60,21 +61,22 @@ public class FloydDither implements DitherAlgorithm {
     return FULL_COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
   }
 
-  private byte[] simplify(final int[] buffer) {
+  @Contract(pure = true)
+  private byte @NotNull [] simplify(final int @NotNull [] buffer) {
     final byte[] map = new byte[buffer.length];
     for (int index = 0; index < buffer.length; index++) {
       final int rgb = buffer[index];
       final int red = rgb >> 16 & 0xFF;
       final int green = rgb >> 8 & 0xFF;
       final int blue = rgb & 0xFF;
-      final byte ptr = getBestColor(red, green, blue);
+      final byte ptr = this.getBestColor(red, green, blue);
       map[index] = ptr;
     }
     return map;
   }
 
   @Override
-  public void dither(final int[] buffer, final int width) {
+  public void dither(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;
@@ -97,7 +99,7 @@ public class FloydDither implements DitherAlgorithm {
           red = (red += buf1[bufferIndex++]) > 255 ? 255 : red < 0 ? 0 : red;
           green = (green += buf1[bufferIndex++]) > 255 ? 255 : green < 0 ? 0 : green;
           blue = (blue += buf1[bufferIndex++]) > 255 ? 255 : blue < 0 ? 0 : blue;
-          final int closest = getBestFullColor(red, green, blue);
+          final int closest = this.getBestFullColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
@@ -138,7 +140,7 @@ public class FloydDither implements DitherAlgorithm {
           blue = (blue += buf1[bufferIndex--]) > 255 ? 255 : blue < 0 ? 0 : blue;
           green = (green += buf1[bufferIndex--]) > 255 ? 255 : green < 0 ? 0 : green;
           red = (red += buf1[bufferIndex--]) > 255 ? 255 : red < 0 ? 0 : red;
-          final int closest = getBestFullColor(red, green, blue);
+          final int closest = this.getBestFullColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
@@ -169,7 +171,7 @@ public class FloydDither implements DitherAlgorithm {
   }
 
   @Override
-  public ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width) {
+  public ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;
@@ -193,7 +195,7 @@ public class FloydDither implements DitherAlgorithm {
           red = (red += buf1[bufferIndex++]) > 255 ? 255 : red < 0 ? 0 : red;
           green = (green += buf1[bufferIndex++]) > 255 ? 255 : green < 0 ? 0 : green;
           blue = (blue += buf1[bufferIndex++]) > 255 ? 255 : blue < 0 ? 0 : blue;
-          final int closest = getBestFullColor(red, green, blue);
+          final int closest = this.getBestFullColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
@@ -217,7 +219,7 @@ public class FloydDither implements DitherAlgorithm {
               buf2[bufferIndex + 2] = (int) (0.0625 * delta_b);
             }
           }
-          data.put(index, getBestColor(closest));
+          data.put(index, this.getBestColor(closest));
         }
       } else {
         int bufferIndex = width + (width << 1) - 1;
@@ -234,7 +236,7 @@ public class FloydDither implements DitherAlgorithm {
           blue = (blue += buf1[bufferIndex--]) > 255 ? 255 : blue < 0 ? 0 : blue;
           green = (green += buf1[bufferIndex--]) > 255 ? 255 : green < 0 ? 0 : green;
           red = (red += buf1[bufferIndex--]) > 255 ? 255 : red < 0 ? 0 : red;
-          final int closest = getBestFullColor(red, green, blue);
+          final int closest = this.getBestFullColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
@@ -258,14 +260,14 @@ public class FloydDither implements DitherAlgorithm {
               buf2[bufferIndex - 2] = (int) (0.0625 * delta_r);
             }
           }
-          data.put(index, getBestColor(closest));
+          data.put(index, this.getBestColor(closest));
         }
       }
     }
     return data;
   }
 
-  private int[] getRGBArray(@NotNull final BufferedImage image) {
+  private @NotNull int[] getRGBArray(@NotNull final BufferedImage image) {
     return image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
   }
 }

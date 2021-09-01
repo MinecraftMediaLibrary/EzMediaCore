@@ -102,7 +102,7 @@ public final class MapCommand extends BaseCommand {
   }
 
   @Override
-  public Component usage() {
+  public @NotNull Component usage() {
     return ChatUtils.getCommandUsage(
         ImmutableMap.of("/map [id]", "Gives a map to the player with the specific id"));
   }

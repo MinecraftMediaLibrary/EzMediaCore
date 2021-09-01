@@ -46,6 +46,8 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
+import java.util.Arrays;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 public enum VideoType {
@@ -61,13 +63,8 @@ public enum VideoType {
     this.name = name;
   }
 
-  public static VideoType ofKey(@NotNull final String str) {
-    for (final VideoType type : values()) {
-      if (type.getName().equals(str)) {
-        return type;
-      }
-    }
-    return null;
+  public static @NotNull Optional<VideoType> ofKey(@NotNull final String str) {
+    return Arrays.stream(values()).filter(type -> type.getName().equals(str)).findFirst();
   }
 
   public String getName() {

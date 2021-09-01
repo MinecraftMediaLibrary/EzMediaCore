@@ -56,6 +56,8 @@ import java.lang.reflect.Modifier;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The base class for pattern matching algorithm implementations. Most implementations do not
@@ -543,7 +545,9 @@ public abstract class StringSearch {
    * @return a CharIntMap, never <code>null</code>
    * @see CharIntMap#CharIntMap(int, char, int)
    */
-  protected final CharIntMap createCharIntMap(final char[] pattern, final int defaultValue) {
+  @Contract("_, _ -> new")
+  protected @NotNull final CharIntMap createCharIntMap(
+      final char[] pattern, final int defaultValue) {
     return this.createCharIntMap(pattern, pattern.length, defaultValue);
   }
 
@@ -557,7 +561,8 @@ public abstract class StringSearch {
    * @return a CharIntMap, never <code>null</code>
    * @see CharIntMap#CharIntMap(int, char, int)
    */
-  protected final CharIntMap createCharIntMap(
+  @Contract("_, _, _ -> new")
+  protected @NotNull final CharIntMap createCharIntMap(
       final char[] pattern, final int patternEnd, final int defaultValue) {
     char min = Character.MAX_VALUE;
     char max = Character.MIN_VALUE;
@@ -596,12 +601,12 @@ public abstract class StringSearch {
      * StringSearch instance.
      */
     int searchString(
-        final String text,
+        @NotNull final String text,
         final int textStart,
         final int textEnd,
-        final String pattern,
+        @NotNull final String pattern,
         final Object processed,
-        final StringSearch instance) {
+        @NotNull final StringSearch instance) {
 
       return instance.searchChars(
           text.toCharArray(), textStart, textEnd, pattern.toCharArray(), processed);
@@ -609,11 +614,11 @@ public abstract class StringSearch {
 
     /** Searches a pattern inside a text, using the given StringSearch instance. */
     int searchString(
-        final String text,
+        @NotNull final String text,
         final int textStart,
         final int textEnd,
-        final String pattern,
-        final StringSearch instance) {
+        @NotNull final String pattern,
+        @NotNull final StringSearch instance) {
 
       return instance.searchChars(text.toCharArray(), textStart, textEnd, pattern.toCharArray());
     }
@@ -623,12 +628,12 @@ public abstract class StringSearch {
      * instance.
      */
     int[] searchString(
-        final String text,
+        @NotNull final String text,
         final int textStart,
         final int textEnd,
-        final String pattern,
+        @NotNull final String pattern,
         final int k,
-        final MismatchSearch instance) {
+        @NotNull final MismatchSearch instance) {
 
       return instance.searchChars(text.toCharArray(), textStart, textEnd, pattern.toCharArray(), k);
     }
@@ -638,13 +643,13 @@ public abstract class StringSearch {
      * using the given MismatchSearch instance.
      */
     int[] searchString(
-        final String text,
+        @NotNull final String text,
         final int textStart,
         final int textEnd,
-        final String pattern,
+        @NotNull final String pattern,
         final Object processed,
         final int k,
-        final MismatchSearch instance) {
+        @NotNull final MismatchSearch instance) {
 
       return instance.searchChars(
           text.toCharArray(), textStart, textEnd, pattern.toCharArray(), processed, k);
@@ -656,7 +661,7 @@ public abstract class StringSearch {
      * @param s the String, may not be <code>null</code>
      * @return char[]
      */
-    char[] getChars(final String s) {
+    char[] getChars(@NotNull final String s) {
       return s.toCharArray();
     }
   }
@@ -683,12 +688,12 @@ public abstract class StringSearch {
 
     @Override
     int searchString(
-        final String text,
+        @NotNull final String text,
         final int textStart,
         final int textEnd,
-        final String pattern,
+        @NotNull final String pattern,
         final Object processed,
-        final StringSearch instance) {
+        @NotNull final StringSearch instance) {
 
       final int l = text.length();
       if (l > crossover) {
@@ -709,11 +714,11 @@ public abstract class StringSearch {
     /** */
     @Override
     int searchString(
-        final String text,
+        @NotNull final String text,
         final int textStart,
         final int textEnd,
-        final String pattern,
-        final StringSearch instance) {
+        @NotNull final String pattern,
+        @NotNull final StringSearch instance) {
 
       final int l = text.length();
       if (l > crossover) {
@@ -731,12 +736,12 @@ public abstract class StringSearch {
     /** */
     @Override
     int[] searchString(
-        final String text,
+        @NotNull final String text,
         final int textStart,
         final int textEnd,
-        final String pattern,
+        @NotNull final String pattern,
         final int k,
-        final MismatchSearch instance) {
+        @NotNull final MismatchSearch instance) {
 
       final int l = text.length();
       if (l > crossover) {
@@ -759,13 +764,13 @@ public abstract class StringSearch {
     /** */
     @Override
     int[] searchString(
-        final String text,
+        @NotNull final String text,
         final int textStart,
         final int textEnd,
-        final String pattern,
+        @NotNull final String pattern,
         final Object processed,
         final int k,
-        final MismatchSearch instance) {
+        @NotNull final MismatchSearch instance) {
 
       final int l = text.length();
       if (l > crossover) {
@@ -791,7 +796,7 @@ public abstract class StringSearch {
      * field is 0 and the "count" field is equal to the String's length.
      */
     @Override
-    char[] getChars(final String s) {
+    char[] getChars(@NotNull final String s) {
       final int l = s.length();
       if (l > crossover) {
         try {

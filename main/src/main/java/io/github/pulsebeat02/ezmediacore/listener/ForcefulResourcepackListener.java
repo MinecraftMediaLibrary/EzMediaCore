@@ -81,7 +81,7 @@ public final class ForcefulResourcepackListener implements Listener {
   }
 
   @EventHandler
-  public void onResourcepackStatus(final PlayerResourcePackStatusEvent event) {
+  public void onResourcepackStatus(@NotNull final PlayerResourcePackStatusEvent event) {
     final Player player = event.getPlayer();
     final UUID uuid = player.getUniqueId();
     if (!this.uuids.contains(uuid)) {

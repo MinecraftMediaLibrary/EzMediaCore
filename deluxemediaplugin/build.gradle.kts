@@ -36,8 +36,8 @@ tasks.withType<ShadowJar> {
     relocate("uk.co.caprica.vlcj", "io.github.pulsebeat02.ezmediacore.lib.vlcj")
     relocate("uk.co.caprica.vlcj.binding", "io.github.pulsebeat02.ezmediacore.lib.vlcj.binding")
     relocate(
-            "uk.co.caprica.nativestreams",
-            "io.github.pulsebeat02.ezmediacore.lib.vlcj.nativestreams"
+        "uk.co.caprica.nativestreams",
+        "io.github.pulsebeat02.ezmediacore.lib.vlcj.nativestreams"
     )
     relocate("com.github.kiulian.downloader", "io.github.pulsebeat02.ezmediacore.lib.youtube")
     relocate("ws.schild.jave", "io.github.pulsebeat02.ezmediacore.lib.jave")

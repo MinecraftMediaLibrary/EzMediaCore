@@ -36,7 +36,7 @@ public final class RequestUtils {
 
   private RequestUtils() {}
 
-  public static String getSearchedVideos(
+  public static @NotNull String getSearchedVideos(
       @NotNull final String apiKey, @NotNull final String keyword) {
     final JsonObject obj =
         JsonParser.parseString(
@@ -51,7 +51,7 @@ public final class RequestUtils {
     return "";
   }
 
-  public static String getResult(@NotNull final String link) {
+  public static @NotNull String getResult(@NotNull final String link) {
     final StringBuilder result = new StringBuilder();
     try {
       final URL url = new URL(link);
@@ -70,7 +70,7 @@ public final class RequestUtils {
   }
 
   public static String getParentUrl(@NotNull final String link) {
-    int index = link.lastIndexOf('/');
+    final int index = link.lastIndexOf('/');
     return index > 0 ? "%s/".formatted(link.substring(0, index)) : "/";
   }
 }

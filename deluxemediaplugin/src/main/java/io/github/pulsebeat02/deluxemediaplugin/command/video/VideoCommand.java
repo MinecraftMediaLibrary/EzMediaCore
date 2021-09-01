@@ -270,7 +270,7 @@ public final class VideoCommand extends BaseCommand {
   }
 
   @Override
-  public TextComponent usage() {
+  public @NotNull TextComponent usage() {
     return ChatUtils.getCommandUsage(
         ImmutableMap.<String, String>builder()
             .put("/video", "Lists the current video playing")

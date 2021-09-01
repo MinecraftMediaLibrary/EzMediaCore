@@ -50,7 +50,7 @@ publishing {
     repositories {
         maven {
             url = if (version.toString()
-                            .endsWith("SNAPSHOT")
+                    .endsWith("SNAPSHOT")
             ) uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") else uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
             setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2")
             credentials {
@@ -62,8 +62,8 @@ publishing {
     signing {
         val publishing: PublishingExtension by project
         useInMemoryPgpKeys(
-                System.getenv("SIGNING_KEY") ?: return@signing,
-                System.getenv("SIGNING_PASSWORD") ?: return@signing
+            System.getenv("SIGNING_KEY") ?: return@signing,
+            System.getenv("SIGNING_PASSWORD") ?: return@signing
         )
         sign(publishing.publications)
     }
@@ -73,8 +73,8 @@ tasks.withType<ShadowJar> {
     relocate("uk.co.caprica.vlcj", "io.github.pulsebeat02.ezmediacore.lib.vlcj")
     relocate("uk.co.caprica.vlcj.binding", "io.github.pulsebeat02.ezmediacore.lib.vlcj.binding")
     relocate(
-            "uk.co.caprica.nativestreams",
-            "io.github.pulsebeat02.ezmediacore.lib.vlcj.nativestreams"
+        "uk.co.caprica.nativestreams",
+        "io.github.pulsebeat02.ezmediacore.lib.vlcj.nativestreams"
     )
     relocate("com.github.kiulian.downloader", "io.github.pulsebeat02.ezmediacore.lib.youtube")
     relocate("ws.schild.jave", "io.github.pulsebeat02.ezmediacore.lib.jave")

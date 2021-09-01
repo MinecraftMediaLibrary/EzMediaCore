@@ -39,6 +39,7 @@ import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public final class SystemDiagnostics implements Diagnostic {
@@ -60,7 +61,8 @@ public final class SystemDiagnostics implements Diagnostic {
     this.debugInformation();
   }
 
-  private CpuArchitecture getCpuArchitecture() {
+  @Contract(" -> new")
+  private @NotNull CpuArchitecture getCpuArchitecture() {
     return new CpuArchitecture(
         System.getProperty("os.arch").toLowerCase(Locale.ROOT),
         this.system.getOSType() == OSType.WINDOWS
@@ -68,7 +70,7 @@ public final class SystemDiagnostics implements Diagnostic {
             : System.getProperty("os.arch").contains("64"));
   }
 
-  private OperatingSystem getOperatingSystem() {
+  private @NotNull OperatingSystem getOperatingSystem() {
     final String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
     return new OperatingSystem(
         os,
@@ -78,7 +80,7 @@ public final class SystemDiagnostics implements Diagnostic {
         System.getProperty("os.version"));
   }
 
-  private List<Mixer> getMixers() {
+  private @NotNull List<Mixer> getMixers() {
     final List<Mixer> mixers = new ArrayList<>();
     final Mixer.Info[] devices = AudioSystem.getMixerInfo();
     final Line.Info sourceInfo = new Line.Info(SourceDataLine.class);

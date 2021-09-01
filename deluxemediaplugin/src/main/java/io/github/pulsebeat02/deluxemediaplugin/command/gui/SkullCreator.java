@@ -64,6 +64,7 @@ import org.bukkit.block.Skull;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A library for the Bukkit API to create player skulls from names, base64 strings, and texture
@@ -87,7 +88,7 @@ public final class SkullCreator {
   /**
    * Creates a player skull, should work in both legacy and new Bukkit APIs.
    */
-  public static ItemStack createSkull() {
+  public static @NotNull ItemStack createSkull() {
     checkLegacy();
 
     try {
@@ -104,7 +105,7 @@ public final class SkullCreator {
    * @return The head of the Player.
    * @deprecated names don't make for good identifiers.
    */
-  public static ItemStack itemFromName(final String name) {
+  public static @NotNull ItemStack itemFromName(final String name) {
     return itemWithName(createSkull(), name);
   }
 
@@ -114,7 +115,7 @@ public final class SkullCreator {
    * @param id The Player's UUID.
    * @return The head of the Player.
    */
-  public static ItemStack itemFromUuid(final UUID id) {
+  public static @NotNull ItemStack itemFromUuid(final UUID id) {
     return itemWithUuid(createSkull(), id);
   }
 
@@ -124,7 +125,7 @@ public final class SkullCreator {
    * @param url The Mojang URL.
    * @return The head of the Player.
    */
-  public static ItemStack itemFromUrl(final String url) {
+  public static @NotNull ItemStack itemFromUrl(final String url) {
     return itemWithUrl(createSkull(), url);
   }
 
@@ -134,7 +135,7 @@ public final class SkullCreator {
    * @param base64 The Mojang URL.
    * @return The head of the Player.
    */
-  public static ItemStack itemFromBase64(final String base64) {
+  public static @Nullable ItemStack itemFromBase64(final String base64) {
     return itemWithBase64(createSkull(), base64);
   }
 
@@ -147,7 +148,7 @@ public final class SkullCreator {
    * @deprecated names don't make for good identifiers.
    */
   @Deprecated
-  public static ItemStack itemWithName(@NotNull final ItemStack item, @NotNull final String name) {
+  public static @NotNull ItemStack itemWithName(@NotNull final ItemStack item, @NotNull final String name) {
     final SkullMeta meta = Objects.requireNonNull((SkullMeta) item.getItemMeta());
     meta.setOwner(name);
     item.setItemMeta(meta);
@@ -162,7 +163,7 @@ public final class SkullCreator {
    * @param id   The Player's UUID.
    * @return The head of the Player.
    */
-  public static ItemStack itemWithUuid(@NotNull final ItemStack item, @NotNull final UUID id) {
+  public static @NotNull ItemStack itemWithUuid(@NotNull final ItemStack item, @NotNull final UUID id) {
     final SkullMeta meta = Objects.requireNonNull((SkullMeta) item.getItemMeta());
     meta.setOwningPlayer(Bukkit.getOfflinePlayer(id));
     item.setItemMeta(meta);
@@ -188,7 +189,7 @@ public final class SkullCreator {
    * @param base64 The base64 string containing the texture.
    * @return The head with a custom texture.
    */
-  public static ItemStack itemWithBase64(
+  public static @Nullable ItemStack itemWithBase64(
       @NotNull final ItemStack item, @NotNull final String base64) {
     if (!(item.getItemMeta() instanceof final SkullMeta meta)) {
       return null;
@@ -249,7 +250,7 @@ public final class SkullCreator {
     state.update(false, false);
   }
 
-  private static void setToSkull(final Block block) {
+  private static void setToSkull(final @NotNull Block block) {
     checkLegacy();
 
     try {
@@ -262,7 +263,7 @@ public final class SkullCreator {
     }
   }
 
-  private static String urlToBase64(final String url) {
+  private static @NotNull String urlToBase64(final String url) {
 
     final URI actualUrl;
     try {
@@ -274,7 +275,7 @@ public final class SkullCreator {
     return Base64.getEncoder().encodeToString(toEncode.getBytes());
   }
 
-  private static GameProfile makeProfile(final String b64) {
+  private static @NotNull GameProfile makeProfile(final @NotNull String b64) {
     // random uuid based on the b64 string
     final UUID id =
         new UUID(

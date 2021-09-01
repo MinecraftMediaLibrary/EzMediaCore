@@ -63,7 +63,7 @@ public class EntityModification<T extends Entity> implements EntityCommandMutato
    *
    * @return the map containing the method names and actual methods itself
    */
-  private Map<String, Method> getProperMethods() {
+  private @NotNull Map<String, Method> getProperMethods() {
     final Map<String, Method> methods = new HashMap<>();
     for (final Method method : this.entityClass.getDeclaredMethods()) {
       final Class<?>[] args = method.getParameterTypes();

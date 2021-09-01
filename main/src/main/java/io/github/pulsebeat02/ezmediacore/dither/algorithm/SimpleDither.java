@@ -28,29 +28,30 @@ import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.COLOR_MA
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
 import java.nio.ByteBuffer;
+import org.jetbrains.annotations.NotNull;
 
 public class SimpleDither implements DitherAlgorithm {
 
   @Override
-  public void dither(final int[] buffer, final int width) {
+  public void dither(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     for (int y = 0; y < height; y++) {
       final int yIndex = y * width;
       for (int x = 0; x < width; x++) {
         final int index = yIndex + x;
-        buffer[index] = getBestColorNormal(buffer[index]);
+        buffer[index] = this.getBestColorNormal(buffer[index]);
       }
     }
   }
 
   @Override
-  public ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width) {
+  public ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     final ByteBuffer data = ByteBuffer.allocate(buffer.length);
     for (int y = 0; y < height; y++) {
       final int yIndex = y * width;
       for (int x = 0; x < width; x++) {
-        data.put(getBestColor(buffer[yIndex + x]));
+        data.put(this.getBestColor(buffer[yIndex + x]));
       }
     }
     return data;
@@ -66,7 +67,7 @@ public class SimpleDither implements DitherAlgorithm {
   }
 
   private int getBestColorNormal(final int rgb) {
-    return MapPalette.getColor(getBestColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF))
+    return MapPalette.getColor(this.getBestColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF))
         .getRGB();
   }
 }

@@ -141,7 +141,7 @@ public final class AudioCommand extends BaseCommand {
   }
 
   @Override
-  public Component usage() {
+  public @NotNull Component usage() {
     return ChatUtils.getCommandUsage(
         ImmutableMap.<String, String>builder()
             .put("/audio load [url]", "Loads a Youtube Link")

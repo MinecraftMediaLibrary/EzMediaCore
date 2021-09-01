@@ -44,7 +44,7 @@ public final class OperatingSystem implements OperatingSystemInfo {
     this.linuxDistro = type == OSType.UNIX ? this.retrieveLinuxDistribution() : "";
   }
 
-  private String retrieveLinuxDistribution() {
+  private @NotNull String retrieveLinuxDistribution() {
     final String[] cmd = {"/bin/sh", "-c", "cat /etc/*-release"};
     final StringBuilder concat = new StringBuilder();
     try {

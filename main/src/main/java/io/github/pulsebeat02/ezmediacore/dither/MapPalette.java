@@ -181,6 +181,7 @@ public final class MapPalette {
     return new Color(r, g, b);
   }
 
+  @NotNull
   public static Color getColor(final byte val) {
     return colors[val];
   }

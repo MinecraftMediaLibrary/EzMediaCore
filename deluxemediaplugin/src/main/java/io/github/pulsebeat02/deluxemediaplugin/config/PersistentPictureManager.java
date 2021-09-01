@@ -88,15 +88,15 @@ public final class PersistentPictureManager {
     }
   }
 
-  public DeluxeMediaPlugin getPlugin() {
+  public @NotNull DeluxeMediaPlugin getPlugin() {
     return this.plugin;
   }
 
-  public PersistentImageStorage getStorage() {
+  public @NotNull PersistentImageStorage getStorage() {
     return this.storage;
   }
 
-  public List<Image> getImages() {
+  public @NotNull List<Image> getImages() {
     return this.images;
   }
 }

@@ -27,6 +27,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
@@ -116,7 +117,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
     return this.player.status().time();
   }
 
-  private EmbeddedMediaPlayer getEmbeddedMediaPlayer() {
+  private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer() {
     final int rate = this.getFrameRate();
     return new MediaPlayerFactory(
         rate != 0 ? new String[]{"sout=\"#transcode{fps=%d}\"".formatted(rate)} : new String[]{})
@@ -128,11 +129,13 @@ public final class VLCMediaPlayer extends MediaPlayer {
     player.videoSurface().set(this.getSurface());
   }
 
-  private CallbackVideoSurface getSurface() {
+  @Contract(" -> new")
+  private @NotNull CallbackVideoSurface getSurface() {
     return new CallbackVideoSurface(this.getBufferCallback(), this.callback, false, this.adapter);
   }
 
-  private BufferFormatCallback getBufferCallback() {
+  @Contract(value = " -> new", pure = true)
+  private @NotNull BufferFormatCallback getBufferCallback() {
     return new BufferFormatCallback() {
       @Override
       public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {

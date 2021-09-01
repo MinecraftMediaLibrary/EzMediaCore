@@ -53,24 +53,16 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.LongConsumer;
-import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -266,49 +258,6 @@ public final class DependencyUtils {
         final FileChannel channel = new FileOutputStream(p.toFile()).getChannel()) {
       channel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
     }
-    return p;
-  }
-
-  @NotNull
-  public static Path downloadVLCFile(@NotNull final Path p, @NotNull final String url)
-      throws IOException {
-    final String hash = getVLCHash(url);
-    final Path file = downloadFile(p, url);
-    if (!HashingUtils.getHash(file).equals(hash)) {
-      return downloadVLCFile(p, url);
-    }
-    return file;
-  }
-
-  private static String getVLCHash(@NotNull final String url) throws IOException {
-    return RequestUtils.getResult(
-            "%s%s.sha1"
-                .formatted(
-                    RequestUtils.getParentUrl(url), FilenameUtils.getName(new URL(url).getPath())))
-        .substring(0, 40);
-  }
-
-  @NotNull
-  public static Path downloadFileWithHeader(@NotNull final Path p, @NotNull final String url)
-      throws IOException, InterruptedException {
-
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
-
-    final HttpClient client = HttpClient.newHttpClient();
-    final HttpRequest request =
-        HttpRequest.newBuilder()
-            .GET()
-            .header("Accept", "application/json")
-            .uri(URI.create(url))
-            .build();
-
-    final HttpResponse<InputStream> response =
-        client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-
-    try (final InputStream in = response.body()) {
-      Files.copy(in, p, StandardCopyOption.REPLACE_EXISTING);
-    }
-
     return p;
   }
 

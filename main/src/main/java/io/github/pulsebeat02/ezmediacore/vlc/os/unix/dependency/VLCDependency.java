@@ -24,6 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.vlc.os.unix.dependency;
 
 import java.util.Set;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public enum VLCDependency {
@@ -86,7 +87,8 @@ public enum VLCDependency {
     this.dependency = dependency;
   }
 
-  private static UnixDependency of(
+  @Contract(value = "_, _, _ -> new", pure = true)
+  private static @NotNull UnixDependency of(
       @NotNull final String name,
       @NotNull final String url,
       @NotNull final Set<UnixDependency> dependencies) {

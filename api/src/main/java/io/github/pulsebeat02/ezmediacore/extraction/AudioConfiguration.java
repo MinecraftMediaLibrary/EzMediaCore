@@ -39,6 +39,7 @@ public interface AudioConfiguration {
 
   void setSamplingRate(final int samplingRate);
 
+  @NotNull
   String getCodec();
 
   void setCodec(@NotNull final String codec);

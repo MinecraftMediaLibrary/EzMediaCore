@@ -30,6 +30,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RecursiveTask;
+import org.jetbrains.annotations.NotNull;
 
 @Author(
     authors = {"PulseBeat_02", "BananaPuncher714", "jetp250"},
@@ -109,7 +110,7 @@ final class LoadRed extends RecursiveTask<byte[]> {
   }
 
   @Override
-  protected byte[] compute() {
+  protected byte @NotNull [] compute() {
     final List<LoadGreen> greenSub = new ArrayList<>(128);
     for (int g = 0; g < 256; g += 2) {
       final LoadGreen green = new LoadGreen(this.palette, this.r, g);
@@ -140,7 +141,7 @@ final class LoadGreen extends RecursiveTask<byte[]> {
   }
 
   @Override
-  protected byte[] compute() {
+  protected byte @NotNull [] compute() {
     final List<LoadBlue> blueSub = new ArrayList<>(128);
     for (int b = 0; b < 256; b += 2) {
       final LoadBlue blue = new LoadBlue(this.palette, this.r, this.g, b);

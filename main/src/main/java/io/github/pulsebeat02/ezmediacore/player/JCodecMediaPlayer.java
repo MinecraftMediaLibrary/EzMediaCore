@@ -126,21 +126,21 @@ public final class JCodecMediaPlayer extends MediaPlayer {
     CompletableFuture.runAsync(() -> {
       CompletableFuture.runAsync(this::runPlayer);
       this.delayFrames();
-      this.audioPlayer = updateAudioPlayer();
-      this.framePlayer = updateFramePlayer();
+      this.audioPlayer = this.updateAudioPlayer();
+      this.framePlayer = this.updateFramePlayer();
     });
   }
 
   private void delayFrames() {
-    int target = (buffer * getFrameRate()) >> 1;
+    final int target = (this.buffer * this.getFrameRate()) >> 1;
     while (true) {
-      if (frames.size() == target) { // block until frame size met
+      if (this.frames.size() == target) { // block until frame size met
         break;
       }
     }
   }
 
-  private CompletableFuture<Void> updateAudioPlayer() {
+  private @NotNull CompletableFuture<Void> updateAudioPlayer() {
     if (this.audioPlayer != null && !this.audioPlayer.isDone()) {
       this.audioPlayer.cancel(true);
     }
@@ -155,8 +155,8 @@ public final class JCodecMediaPlayer extends MediaPlayer {
     }, ExecutorProvider.SHARED_VIDEO_PLAYER);
   }
 
-  private CompletableFuture<Void> updateFramePlayer() {
-    final Callback callback = getCallback();
+  private @NotNull CompletableFuture<Void> updateFramePlayer() {
+    final Callback callback = this.getCallback();
     if (this.framePlayer != null && !this.framePlayer.isDone()) {
       this.framePlayer.cancel(true);
     }

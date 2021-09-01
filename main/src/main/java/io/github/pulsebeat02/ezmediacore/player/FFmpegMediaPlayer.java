@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -113,7 +114,8 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
     return System.currentTimeMillis() - this.start;
   }
 
-  private FrameConsumer getFrameConsumer() {
+  @Contract(value = " -> new", pure = true)
+  private @NotNull FrameConsumer getFrameConsumer() {
     return new FrameConsumer() {
       @Override
       public void consumeStreams(final List<Stream> streams) {
@@ -164,12 +166,12 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
   }
 
   private void play(@NotNull final PlayerControls controls) {
-    setupPlayer(controls);
+    this.setupPlayer(controls);
     CompletableFuture.runAsync(() -> {
-      this.future = updateFFmpegPlayer();
+      this.future = this.updateFFmpegPlayer();
       this.delayFrames();
-      this.audioPlayer = updateAudioPlayer();
-      this.framePlayer = updateVideoPlayer();
+      this.audioPlayer = this.updateAudioPlayer();
+      this.framePlayer = this.updateVideoPlayer();
     });
   }
 
@@ -193,15 +195,15 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
   }
 
   private void delayFrames() {
-    int target = (buffer * getFrameRate()) >> 1;
+    final int target = (this.buffer * this.getFrameRate()) >> 1;
     while (true) {
-      if (frames.size() == target) { // block until frame size met
+      if (this.frames.size() == target) { // block until frame size met
         break;
       }
     }
   }
 
-  private CompletableFuture<Void> updateAudioPlayer() {
+  private @NotNull CompletableFuture<Void> updateAudioPlayer() {
     if (this.audioPlayer != null && !this.audioPlayer.isDone()) {
       this.audioPlayer.cancel(true);
     }
@@ -216,7 +218,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
     }, ExecutorProvider.SHARED_VIDEO_PLAYER);
   }
 
-  private CompletableFuture<Void> updateVideoPlayer() {
+  private @NotNull CompletableFuture<Void> updateVideoPlayer() {
     final Callback callback = this.getCallback();
     if (this.framePlayer != null && !this.framePlayer.isDone()) {
       this.framePlayer.cancel(true);

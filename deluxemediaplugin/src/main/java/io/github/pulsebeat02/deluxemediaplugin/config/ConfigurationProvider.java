@@ -122,19 +122,19 @@ public abstract class ConfigurationProvider {
 
   abstract void serialize() throws IOException;
 
-  public DeluxeMediaPlugin getPlugin() {
+  public @NotNull DeluxeMediaPlugin getPlugin() {
     return this.plugin;
   }
 
-  public String getFileName() {
+  public @NotNull String getFileName() {
     return this.name;
   }
 
-  public Path getConfigFile() {
+  public @NotNull Path getConfigFile() {
     return this.config;
   }
 
-  public FileConfiguration getFileConfiguration() {
+  public @NotNull FileConfiguration getFileConfiguration() {
     return this.fileConfiguration;
   }
 }

@@ -63,8 +63,8 @@ public final class ImageCommand extends BaseCommand {
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "image", executor, "deluxemediaplugin.command.image");
     final ImageCommandAttributes attributes = new ImageCommandAttributes();
-    node =
-        literal(getName())
+    this.node =
+        this.literal(this.getName())
             .requires(super::testPermission)
             .then(new ResetImageCommand(plugin, attributes).node())
             .then(new SetImageCommand(plugin, attributes).node())
@@ -72,7 +72,7 @@ public final class ImageCommand extends BaseCommand {
   }
 
   @Override
-  public Component usage() {
+  public @NotNull Component usage() {
     return ChatUtils.getCommandUsage(
         ImmutableMap.of(
             "/image", "Lists the proper usage of the command",
@@ -82,6 +82,6 @@ public final class ImageCommand extends BaseCommand {
 
   @Override
   public @NotNull LiteralCommandNode<CommandSender> node() {
-    return node;
+    return this.node;
   }
 }

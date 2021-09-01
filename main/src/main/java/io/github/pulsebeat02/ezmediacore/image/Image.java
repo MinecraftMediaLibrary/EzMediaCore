@@ -47,7 +47,7 @@ public abstract class Image implements MapImage {
   public Image(
       @NotNull final MediaLibraryCore core,
       @NotNull final Path image,
-      final List<Integer> maps,
+      @NotNull final List<Integer> maps,
       @NotNull final Dimension dimension) {
     Preconditions.checkArgument(maps.size() >= 1, "Invalid Map Matrix!");
     Preconditions.checkArgument(

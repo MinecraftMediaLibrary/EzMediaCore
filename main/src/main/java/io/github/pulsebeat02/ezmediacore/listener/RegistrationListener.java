@@ -45,7 +45,7 @@ public final class RegistrationListener implements LibraryInjectable, Listener {
   }
 
   @EventHandler
-  public void onPlayerJoin(final PlayerJoinEvent event) {
+  public void onPlayerJoin(@NotNull final PlayerJoinEvent event) {
     final Player p = event.getPlayer();
     this.core.getHandler().injectPlayer(p);
     Logger.info("Registered Player %s".formatted(p.getUniqueId()));
@@ -57,7 +57,7 @@ public final class RegistrationListener implements LibraryInjectable, Listener {
    * @param event PlayerQuitEvent event
    */
   @EventHandler
-  public void onPlayerLeave(final PlayerQuitEvent event) {
+  public void onPlayerLeave(@NotNull final PlayerQuitEvent event) {
     final Player p = event.getPlayer();
     this.core.getHandler().uninjectPlayer(p);
     Logger.info("Unregistered Player %s".formatted(p.getUniqueId()));

@@ -83,7 +83,7 @@ public final class VideoCommandAttributes {
     this.mode = VideoType.ITEMFRAME;
   }
 
-  public DitherSetting getDither() {
+  public @NotNull DitherSetting getDither() {
     return this.dither;
   }
 
@@ -91,19 +91,19 @@ public final class VideoCommandAttributes {
     this.dither = dither;
   }
 
-  public VideoPlayer getPlayer() {
+  public @NotNull VideoPlayer getPlayer() {
     return this.player;
   }
 
-  public void setPlayer(final VideoPlayer player) {
+  public void setPlayer(@NotNull final VideoPlayer player) {
     this.player = player;
   }
 
-  public String getVideoMrl() {
+  public @NotNull String getVideoMrl() {
     return this.video;
   }
 
-  public void setVideoMrl(final String video) {
+  public void setVideoMrl(@NotNull final String video) {
     this.video = video;
   }
 
@@ -155,11 +155,11 @@ public final class VideoCommandAttributes {
     this.map = map;
   }
 
-  public AtomicBoolean getCompletion() {
+  public @NotNull AtomicBoolean getCompletion() {
     return this.completion;
   }
 
-  public VideoType getVideoType() {
+  public @NotNull VideoType getVideoType() {
     return this.mode;
   }
 
@@ -167,43 +167,43 @@ public final class VideoCommandAttributes {
     this.mode = type;
   }
 
-  public VideoType getMode() {
+  public @NotNull VideoType getMode() {
     return this.mode;
   }
 
-  public void setMode(final VideoType mode) {
+  public void setMode(@NotNull final VideoType mode) {
     this.mode = mode;
   }
 
-  public String getUrl() {
+  public @NotNull String getUrl() {
     return this.url;
   }
 
-  public void setUrl(final String url) {
+  public void setUrl(@NotNull final String url) {
     this.url = url;
   }
 
-  public byte[] getHash() {
+  public byte @NotNull [] getHash() {
     return this.hash;
   }
 
-  public void setHash(final byte[] hash) {
+  public void setHash(final byte @NotNull [] hash) {
     this.hash = hash;
   }
 
-  public Path getAudio() {
+  public @NotNull Path getAudio() {
     return this.audio;
   }
 
-  public void setAudio(final Path audio) {
+  public void setAudio(@NotNull final Path audio) {
     this.audio = audio;
   }
 
-  public String getMrl() {
+  public @NotNull String getMrl() {
     return this.mrl;
   }
 
-  public void setMrl(final String mrl) {
+  public void setMrl(@NotNull final String mrl) {
     this.mrl = mrl;
   }
 }

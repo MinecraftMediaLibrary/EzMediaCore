@@ -40,7 +40,7 @@ public final class PathAdapter extends TypeAdapter<Path> {
   }
 
   @Override
-  public Path read(@NotNull final JsonReader in) throws IOException {
+  public @NotNull Path read(@NotNull final JsonReader in) throws IOException {
     in.beginObject();
     String path = "";
     while (in.hasNext()) {

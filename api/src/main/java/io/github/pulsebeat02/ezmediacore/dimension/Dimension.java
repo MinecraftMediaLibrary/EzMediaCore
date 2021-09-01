@@ -24,19 +24,23 @@
 package io.github.pulsebeat02.ezmediacore.dimension;
 
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public interface Dimension extends ConfigurationSerializable {
 
-  static Dimension of(final int width, final int height) {
+  @Contract(value = "_, _ -> new", pure = true)
+  static @NotNull Dimension of(final int width, final int height) {
     return new ImmutableDimension(width, height);
   }
 
-  static Dimension square(final int side) {
+  @Contract(value = "_ -> new", pure = true)
+  static @NotNull Dimension square(final int side) {
     return of(side, side);
   }
 
-  static Dimension inverse(@NotNull final Dimension dimension) {
+  @Contract("_ -> new")
+  static @NotNull Dimension inverse(@NotNull final Dimension dimension) {
     return of(dimension.getHeight(), dimension.getWidth());
   }
 

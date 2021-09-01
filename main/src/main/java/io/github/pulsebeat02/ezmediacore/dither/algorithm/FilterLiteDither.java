@@ -28,6 +28,7 @@ import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.FULL_COL
 
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import java.nio.ByteBuffer;
+import org.jetbrains.annotations.NotNull;
 
 public class FilterLiteDither implements DitherAlgorithm {
 
@@ -38,7 +39,7 @@ public class FilterLiteDither implements DitherAlgorithm {
    * @author PulseBeat_02
    */
   @Override
-  public void dither(final int[] buffer, final int width) {
+  public void dither(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;
@@ -75,7 +76,7 @@ public class FilterLiteDither implements DitherAlgorithm {
           red = (red += buf1[bufferIndex++]) > 255 ? 255 : red < 0 ? 0 : red;
           green = (green += buf1[bufferIndex++]) > 255 ? 255 : green < 0 ? 0 : green;
           blue = (blue += buf1[bufferIndex++]) > 255 ? 255 : blue < 0 ? 0 : blue;
-          final int closest = getBestFullColor(red, green, blue);
+          final int closest = this.getBestFullColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
@@ -109,7 +110,7 @@ public class FilterLiteDither implements DitherAlgorithm {
           blue = (blue += buf1[bufferIndex--]) > 255 ? 255 : blue < 0 ? 0 : blue;
           green = (green += buf1[bufferIndex--]) > 255 ? 255 : green < 0 ? 0 : green;
           red = (red += buf1[bufferIndex--]) > 255 ? 255 : red < 0 ? 0 : red;
-          final int closest = getBestFullColor(red, green, blue);
+          final int closest = this.getBestFullColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
@@ -135,7 +136,7 @@ public class FilterLiteDither implements DitherAlgorithm {
   }
 
   @Override
-  public ByteBuffer ditherIntoMinecraft(final int[] buffer, final int width) {
+  public ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;
@@ -157,7 +158,7 @@ public class FilterLiteDither implements DitherAlgorithm {
           red = (red += buf1[bufferIndex++]) > 255 ? 255 : red < 0 ? 0 : red;
           green = (green += buf1[bufferIndex++]) > 255 ? 255 : green < 0 ? 0 : green;
           blue = (blue += buf1[bufferIndex++]) > 255 ? 255 : blue < 0 ? 0 : blue;
-          final int closest = getBestFullColor(red, green, blue);
+          final int closest = this.getBestFullColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
@@ -176,7 +177,7 @@ public class FilterLiteDither implements DitherAlgorithm {
             buf2[bufferIndex - 2] = delta_g >> 2;
             buf2[bufferIndex - 1] = delta_b >> 2;
           }
-          data.put(index, getBestColor(closest));
+          data.put(index, this.getBestColor(closest));
         }
       } else {
         int bufferIndex = width + (width << 1) - 1;
@@ -191,7 +192,7 @@ public class FilterLiteDither implements DitherAlgorithm {
           blue = (blue += buf1[bufferIndex--]) > 255 ? 255 : blue < 0 ? 0 : blue;
           green = (green += buf1[bufferIndex--]) > 255 ? 255 : green < 0 ? 0 : green;
           red = (red += buf1[bufferIndex--]) > 255 ? 255 : red < 0 ? 0 : red;
-          final int closest = getBestFullColor(red, green, blue);
+          final int closest = this.getBestFullColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
@@ -210,7 +211,7 @@ public class FilterLiteDither implements DitherAlgorithm {
             buf2[bufferIndex + 2] = delta_g >> 2;
             buf2[bufferIndex + 1] = delta_r >> 2;
           }
-          data.put(index, getBestColor(closest));
+          data.put(index, this.getBestColor(closest));
         }
       }
     }

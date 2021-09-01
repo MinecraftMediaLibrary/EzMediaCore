@@ -203,7 +203,7 @@ public final class ScreenBuilderGui {
     this.gui.setItem(26, idItem);
   }
 
-  private ItemStack getIncreaseArrow(@NotNull final String data) {
+  private @NotNull ItemStack getIncreaseArrow(@NotNull final String data) {
     return ItemBuilder.from(
             SkullCreator.itemFromBase64(
                 "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWNkYjhmNDM2NTZjMDZjNGU4NjgzZTJlNjM0MWI0NDc5ZjE1N2Y0ODA4MmZlYTRhZmYwOWIzN2NhM2M2OTk1YiJ9fX0="))
@@ -211,7 +211,7 @@ public final class ScreenBuilderGui {
         .build();
   }
 
-  private ItemStack getDecreaseArrow(@NotNull final String data) {
+  private @NotNull ItemStack getDecreaseArrow(@NotNull final String data) {
     return ItemBuilder.from(
             SkullCreator.itemFromBase64(
                 "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjFlMWU3MzBjNzcyNzljOGUyZTE1ZDhiMjcxYTExN2U1ZTJjYTkzZDI1YzhiZTNhMDBjYzkyYTAwY2MwYmI4NSJ9fX0="))

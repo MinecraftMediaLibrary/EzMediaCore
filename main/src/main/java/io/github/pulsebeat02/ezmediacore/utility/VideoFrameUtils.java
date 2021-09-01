@@ -56,14 +56,14 @@ public final class VideoFrameUtils {
 
   private VideoFrameUtils() {}
 
-  public static int[] toResizedColorArray(
+  public static int @NotNull [] toResizedColorArray(
       @NotNull final Picture frame,
       @NotNull final io.github.pulsebeat02.ezmediacore.dimension.Dimension dimension) {
     return getRGBParallel(
         resizeImage(toBufferedImage(frame), dimension.getWidth(), dimension.getHeight()));
   }
 
-  public static BufferedImage toBufferedImage(Picture src) {
+  public static @NotNull BufferedImage toBufferedImage(@NotNull Picture src) {
     final ColorSpace space = src.getColor();
     if (space != ColorSpace.BGR) {
       final Picture bgr =
@@ -88,7 +88,7 @@ public final class VideoFrameUtils {
     return dst;
   }
 
-  public static void toBufferedImage(final Picture src, final BufferedImage dst) {
+  public static void toBufferedImage(@NotNull final Picture src, @NotNull final BufferedImage dst) {
     final byte[] data = ((DataBufferByte) dst.getRaster().getDataBuffer()).getData();
     final byte[] srcData = src.getPlaneData(0);
     for (int i = 0; i < data.length; i++) {
@@ -96,7 +96,8 @@ public final class VideoFrameUtils {
     }
   }
 
-  private static void toBufferedImageCropped(final Picture src, final BufferedImage dst) {
+  private static void toBufferedImageCropped(
+      @NotNull final Picture src, @NotNull final BufferedImage dst) {
     final byte[] data = ((DataBufferByte) dst.getRaster().getDataBuffer()).getData();
     final byte[] srcData = src.getPlaneData(0);
     final int dstWidth = dst.getWidth();
@@ -153,7 +154,7 @@ public final class VideoFrameUtils {
 
   @NotNull
   private static BufferedImage resizeBufferedImage(
-      @NotNull final BufferedImage originalImage, final Dimension dim) {
+      @NotNull final BufferedImage originalImage, @NotNull final Dimension dim) {
     final int type = BufferedImage.TYPE_INT_ARGB;
     final BufferedImage resizedImage = new BufferedImage(dim.width, dim.height, type);
     final Graphics2D g = resizedImage.createGraphics();
@@ -247,7 +248,7 @@ public final class VideoFrameUtils {
     return OptionalDouble.empty();
   }
 
-  public static int[] getRGBParallel(@NotNull final BufferedImage image) {
+  public static int @NotNull [] getRGBParallel(@NotNull final BufferedImage image) {
     final int width = image.getWidth();
     final int height = image.getHeight();
     final int[] rgb = new int[width * height];

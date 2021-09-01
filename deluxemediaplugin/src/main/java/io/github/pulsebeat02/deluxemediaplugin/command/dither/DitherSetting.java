@@ -57,15 +57,15 @@ public enum DitherSetting {
     this.algorithm = algorithm;
   }
 
-  public static DitherSetting ofKey(@NotNull final String key) {
+  public static @NotNull DitherSetting ofKey(@NotNull final String key) {
     return maps.get(key);
   }
 
-  public String getName() {
+  public @NotNull String getName() {
     return this.name;
   }
 
-  public DitherAlgorithm getAlgorithm() {
+  public @NotNull DitherAlgorithm getAlgorithm() {
     return this.algorithm;
   }
 }

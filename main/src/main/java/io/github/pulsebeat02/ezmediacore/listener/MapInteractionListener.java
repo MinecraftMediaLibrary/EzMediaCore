@@ -45,7 +45,7 @@ public final class MapInteractionListener implements LibraryInjectable, Listener
   }
 
   @EventHandler
-  public void onPlayerInteract(final HangingBreakByEntityEvent event) {
+  public void onPlayerInteract(@NotNull final HangingBreakByEntityEvent event) {
     final Hanging hanging = event.getEntity();
     if (!(hanging instanceof ItemFrame)) {
       return;

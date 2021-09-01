@@ -25,12 +25,14 @@ package io.github.pulsebeat02.ezmediacore.sneaky;
 
 import java.util.Optional;
 import java.util.function.Function;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 public interface ThrowingFunction<T, R, E extends Exception> {
 
-  static <T, R> Function<T, Optional<R>> lifted(
+  @Contract(pure = true)
+  static <T, R> @NotNull Function<T, Optional<R>> lifted(
       @NotNull final ThrowingFunction<? super T, ? extends R, ?> function) {
     return t -> {
       try {
@@ -41,7 +43,8 @@ public interface ThrowingFunction<T, R, E extends Exception> {
     };
   }
 
-  static <T, R> Function<T, R> unchecked(
+  @Contract(pure = true)
+  static <T, R> @NotNull Function<T, R> unchecked(
       @NotNull final ThrowingFunction<? super T, ? extends R, ?> function) {
     return t -> {
       try {
@@ -68,7 +71,7 @@ public interface ThrowingFunction<T, R, E extends Exception> {
   default Function<T, Optional<R>> lift() {
     return t -> {
       try {
-        return Optional.ofNullable(apply(t));
+        return Optional.ofNullable(this.apply(t));
       } catch (final Exception e) {
         return Optional.empty();
       }

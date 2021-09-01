@@ -64,7 +64,7 @@ public final class AudioCommandAttributes {
     this.key = plugin.getName().toLowerCase();
   }
 
-  public AtomicBoolean getCompletion() {
+  public @NotNull AtomicBoolean getCompletion() {
     return this.completion;
   }
 
@@ -72,31 +72,31 @@ public final class AudioCommandAttributes {
     this.completion.set(mode);
   }
 
-  public String getKey() {
+  public @NotNull String getKey() {
     return this.key;
   }
 
-  public Path getAudio() {
+  public @NotNull Path getAudio() {
     return this.audio;
   }
 
-  public void setAudio(final Path audio) {
+  public void setAudio(@NotNull final Path audio) {
     this.audio = audio;
   }
 
-  public String getLink() {
+  public @NotNull String getLink() {
     return this.link;
   }
 
-  public void setLink(final String link) {
+  public void setLink(@NotNull final String link) {
     this.link = link;
   }
 
-  public byte[] getHash() {
+  public byte @NotNull [] getHash() {
     return this.hash;
   }
 
-  public void setHash(final byte[] hash) {
+  public void setHash(final byte @NotNull [] hash) {
     this.hash = hash;
   }
 }
