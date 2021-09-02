@@ -39,6 +39,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.server.v1_16_R3.ChatComponentText;
 import net.minecraft.server.v1_16_R3.ChatHexColor;
@@ -62,12 +63,14 @@ import org.jetbrains.annotations.NotNull;
 public final class NMSMapPacketIntercepter implements PacketHandler {
 
   private static final int PACKET_THRESHOLD_MS;
+  private static final Set<Object> PACKET_DIFFERENTIATION;
   private static final Field[] MAP_FIELDS;
   private static Field METADATA_ID;
   private static Field METADATA_ITEMS;
 
   static {
     PACKET_THRESHOLD_MS = 0;
+    PACKET_DIFFERENTIATION = Collections.newSetFromMap(new WeakHashMap<>());
     MAP_FIELDS = new Field[10];
     try {
       MAP_FIELDS[0] = PacketPlayOutMap.class.getDeclaredField("a");
@@ -216,6 +219,7 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
           exception.printStackTrace();
         }
         packetArray[arrIndex++] = packet;
+        PACKET_DIFFERENTIATION.add(packet);
       }
     }
     if (viewers == null) {
@@ -294,9 +298,10 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
 
   @Override
   public Object onPacketInterceptOut(final Player viewer, final Object packet) {
-    if (packet instanceof PacketPlayOutMinimap) {
-      return ((PacketPlayOutMinimap) packet).packet;
-    }
+//    if (PACKET_DIFFERENTIATION.contains(packet)) {
+//      // some logic
+//      return packet;
+//    }
     return packet;
   }
 
@@ -347,15 +352,6 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
   @Override
   public void unregisterMap(final int id) {
     this.maps.remove(id);
-  }
-
-  private static class PacketPlayOutMinimap extends PacketPlayOutMap {
-
-    protected final PacketPlayOutMap packet;
-
-    protected PacketPlayOutMinimap(final PacketPlayOutMap packet) {
-      this.packet = packet;
-    }
   }
 
   private class PacketInterceptor extends ChannelDuplexHandler {

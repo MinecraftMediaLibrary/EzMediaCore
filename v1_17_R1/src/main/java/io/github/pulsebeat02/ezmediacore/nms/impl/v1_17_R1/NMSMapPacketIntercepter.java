@@ -213,8 +213,8 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
       }
       final PacketPlayOutEntityMetadata packet =
           new PacketPlayOutEntityMetadata(entity.getId(), new DataWatcher(entity), false);
+
       packets[i] = packet;
-      PACKET_DIFFERENTIATION.add(packet);
     }
     if (viewers == null) {
       for (final UUID uuid : this.connections.keySet()) {
@@ -280,6 +280,10 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
 
   @Override
   public Object onPacketInterceptOut(final Player viewer, final Object packet) {
+//    if (PACKET_DIFFERENTIATION.contains(packet)) {
+//      // some logic
+//      return packet;
+//    }
     return packet;
   }
 
