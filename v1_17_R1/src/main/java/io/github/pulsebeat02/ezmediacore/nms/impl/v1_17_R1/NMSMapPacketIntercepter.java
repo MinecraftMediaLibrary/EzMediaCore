@@ -280,10 +280,6 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
 
   @Override
   public Object onPacketInterceptOut(final Player viewer, final Object packet) {
-    if (PACKET_DIFFERENTIATION.contains(packet)) {
-      return packet;
-    } else if (packet instanceof PacketPlayOutMap) {
-    }
     return packet;
   }
 

@@ -1,8 +1,8 @@
 jdk:
-  - openjdk9
+  - openjdk16
 before_install:
   - wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
-  - ls ~/.m2/repository/org/spigotmc/spigot/1.16.5-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.16.5 >> /dev/null 2>&1
-  - ls ~/.m2/repository/org/spigotmc/spigot/1.17-R0.1-SNAPSHOT >> /dev/null 2>&1 || java -jar BuildTools.jar --rev 1.17 >> /dev/null 2>&1
+  - java -jar BuildTools.jar --rev 1.16.5
+  - java -jar BuildTools.jar --rev 1.17.1
 install:
   - ./gradlew shadowJar

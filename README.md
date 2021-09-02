@@ -1,15 +1,5 @@
 [![Build Status](https://img.shields.io/circleci/build/github/MinecraftMediaLibrary/EzMediaCore?style=for-the-badge)](https://app.circleci.com/pipelines/github/MinecraftMediaLibrary/EzMediaCore) [![Code Coverage](https://img.shields.io/codefactor/grade/github/MinecraftMediaLibrary/EzMediaCore?style=for-the-badge)](https://www.codefactor.io/repository/github/minecraftmedialibrary/ezmediacore) [![Dependency Status](https://img.shields.io/librariesio/github/MinecraftMediaLibrary/EzMediaCore?style=for-the-badge)](https://libraries.io/github/MinecraftMediaLibrary/EzMediaCore) [![Documentation Status](https://img.shields.io/readthedocs/minecraftmedialibrary-wiki/latest?style=for-the-badge)](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/) [![Discord](https://img.shields.io/discord/817501569108017223?style=for-the-badge)](https://discord.gg/qVhhbCWQQV) [![Language](https://img.shields.io/badge/Made%20with-Java-1f425f.svg?style=for-the-badge)](https://www.java.com/en/)
 
----
-
-## News
-
-- I am looking for developers! If you are looking to help me develop this project, feel free to join
-  the Discord (which can be accessed by clicking the Chat badge above), and reaching out to me. This
-  is a very big project, and I try to put as much effort to it!
-
----  
-
 **EzMediaCore** is a library written in Java using the Bukkit API and NMS classes to provide a
 helpful tool for other media plugins to take advantage of. One of the most fascinating features
 include the ability to render **videos** on a Spigot server. It uses optimized dithering algorithms,
@@ -74,6 +64,7 @@ testing server!
   code the Floyd-Steinberg implementation in Java.
 - [Emilyy](https://github.com/emilyy-dev) for helping me with asynchronous tasks and implementation.
 - [Conclure](https://github.com/Conclure) for helping me migrate from maven to gradle.
+- [Mishal321](https://github.com/mishal321), for allowing us to use his testing server.
 - [Yugi](https://github.com/Vshnv) for helping me
   setup [Slimjar](https://github.com/SlimJar/slimjar).
 - [Matt](https://github.com/ipsk) for
