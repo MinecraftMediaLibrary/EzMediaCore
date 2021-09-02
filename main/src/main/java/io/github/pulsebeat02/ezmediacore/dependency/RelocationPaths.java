@@ -33,20 +33,36 @@ public enum RelocationPaths {
   VLCJ_NATIVE_STREAMS(
       "uk{}co{}caprica{}nativestreams",
       "io{}github{}pulsebeat02{}ezmediacore{}lib{}vlcj{}nativestreams"),
+
   YOUTUBE_DOWNLOADER(
       "com{}github{}kiulian{}downloader", "io{}github{}pulsebeat02{}ezmediacore{}lib{}youtube"),
+  FAST_JSON("com{}alibaba{}fastjson", "io{}github{}pulsebeat02{}ezmediacore{}lib{}fastjson"),
+
   JAVE_CORE("ws{}schild{}jave", "io{}github{}pulsebeat02{}ezmediacore{}lib{}jave"),
+  JAFFREE("com{}github{}kokorin", "io{}github{}pulsebeat02{}ezmediacore{}lib{}kokorin"),
+  JCODEC("org{}jcodec", "io{}github{}pulsebeat02{}ezmediacore{}lib{}jcodec"),
+
   COMMONS_COMPRESSION(
       "org{}apache{}commons{}compress", "io{}github{}pulsebeat02{}ezmediacore{}lib{}compress"),
   COMPRESSION(
       "org{}rauschig{}jarchivelib", "io{}github{}pulsebeat02{}ezmediacore{}lib{}jarchivelib"),
   XZ("org{}tukaani.xz", "io{}github{}pulsebeat02{}ezmediacore{}lib{}xz"),
-  FAST_JSON("com{}alibaba{}fastjson", "io{}github{}pulsebeat02{}ezmediacore{}lib{}fastjson"),
+
   SPOTIFY("com{}wrapper{}spotify", "io{}github{}pulsebeat02{}ezmediacore{}lib{}spotify"),
-  JAFFREE("com{}github{}kokorin", "io{}github{}pulsebeat02{}ezmediacore{}lib{}kokorin"),
-  JCODEC("org{}jcodec", "io{}github{}pulsebeat02{}ezmediacore{}lib{}jcodec"),
+
   CAFFEINE(
-      "com{}github{}benmanes{}caffeine", "io{}github{}pulsebeat02{}ezmediacore{}lib{}caffeine");
+      "com{}github{}benmanes{}caffeine", "io{}github{}pulsebeat02{}ezmediacore{}lib{}caffeine"),
+
+  JDA("net{}dv8tion{}jda", "io{}github{}pulsebeat02{}ezmediacore{}lib{}jda"),
+  TROVE4J("gnu{}trove", "io{}github{}pulsebeat02{}ezmediacore{}lib{}trove"),
+  JACKSON_DATABIND(
+      "com{}fasterxml{}jackson{}databind", "io{}github{}pulsebeat02{}ezmediacore{}lib{}jackson"),
+
+  LAVAPLAYER(
+      "com{}sedmelluq{}discord{}lavaplayer",
+      "io{}github{}pulsebeat02{}ezmediacore{}lib{}lavaplayer"),
+  JSOUP("org{}jsoup", "io{}github{}pulsebeat02{}ezmediacore{}lib{}jsoup"),
+  BASE64("net{}iharder", "io{}github{}pulsebeat02{}base64");
 
   private final RelocationRule relocation;
 

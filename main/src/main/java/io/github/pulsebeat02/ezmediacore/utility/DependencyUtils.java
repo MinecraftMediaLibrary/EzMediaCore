@@ -80,7 +80,7 @@ public final class DependencyUtils {
   private DependencyUtils() {}
 
   /**
-   * Download Maven Dependency.
+   * Downloads dependency.
    *
    * @param dependency the dependency
    * @param parent the parent
@@ -88,21 +88,7 @@ public final class DependencyUtils {
    * @throws IOException the io exception
    */
   @NotNull
-  public static Path downloadMavenDependency(
-      @NotNull final DependencyInfo dependency, @NotNull final String parent) throws IOException {
-    return downloadFile(dependency, getRepoUrl(dependency), parent);
-  }
-
-  /**
-   * Download Jitpack Dependency.
-   *
-   * @param dependency the dependency
-   * @param parent the parent
-   * @return the file
-   * @throws IOException the io exception
-   */
-  @NotNull
-  public static Path downloadJitpackDependency(
+  public static Path downloadDependency(
       @NotNull final DependencyInfo dependency, @NotNull final String parent) throws IOException {
     return downloadFile(dependency, getRepoUrl(dependency), parent);
   }

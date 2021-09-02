@@ -211,17 +211,13 @@ public final class ArtifactInstaller {
     Optional<Path> file;
     try {
       switch (resolution) {
-        case MAVEN -> {
-          Logger.info("Checking Maven Central Repository for %s".formatted(artifact));
-          file = Optional.of(DependencyUtils.downloadMavenDependency(dependency, path));
-        }
-        case JITPACK -> {
-          Logger.info("Checking Jitpack Central Repository for %s".formatted(artifact));
-          file = Optional.of(DependencyUtils.downloadJitpackDependency(dependency, path));
-        }
+        case MAVEN -> Logger.info("Checking Maven Central Repository for %s".formatted(artifact));
+        case JITPACK -> Logger.info("Checking Jitpack Central Repository for %s".formatted(artifact));
+        case JDA -> Logger.info("Checking JDA Central Repository for %s".formatted(artifact));
         default -> throw new IllegalStateException(
             "Specified Repository URL Doesn't Exist! (Not Maven/Jitpack)");
       }
+      file = Optional.of(DependencyUtils.downloadDependency(dependency, path));
     } catch (final IOException e) {
       file = Optional.empty();
       Logger.info(

@@ -27,7 +27,8 @@ import org.jetbrains.annotations.NotNull;
 
 public enum Repositories {
   MAVEN("https://repo1.maven.org/maven2"),
-  JITPACK("https://jitpack.io");
+  JITPACK("https://jitpack.io"),
+  JDA("https://m2.dv8tion.net/releases");
 
   private final String url;
 

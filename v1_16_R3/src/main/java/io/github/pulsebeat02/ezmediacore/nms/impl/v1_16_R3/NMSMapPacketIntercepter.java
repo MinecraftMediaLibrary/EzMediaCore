@@ -266,8 +266,11 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
       final PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata();
       try {
         METADATA_ID.set(packet, ((CraftEntity) entities[i]).getHandle().getId());
-        METADATA_ITEMS.set(packet, Collections.singletonList(new DataWatcher.Item<>(
-            new DataWatcherObject<>(2, DataWatcherRegistry.f), Optional.of(component))));
+        METADATA_ITEMS.set(
+            packet,
+            Collections.singletonList(
+                new DataWatcher.Item<>(
+                    new DataWatcherObject<>(2, DataWatcherRegistry.f), Optional.of(component))));
       } catch (final IllegalArgumentException | IllegalAccessException e) {
         e.printStackTrace();
       }
@@ -294,10 +297,10 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
 
   @Override
   public Object onPacketInterceptOut(final Player viewer, final Object packet) {
-//    if (PACKET_DIFFERENTIATION.contains(packet)) {
-//      // some logic
-//      return packet;
-//    }
+    //    if (PACKET_DIFFERENTIATION.contains(packet)) {
+    //      // some logic
+    //      return packet;
+    //    }
     return packet;
   }
 
