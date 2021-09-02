@@ -46,7 +46,7 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
-import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,6 +57,18 @@ public enum VideoType {
   DEBUG_HIGHLIGHTS("debug-highlights"),
   SCOREBOARD("scoreboard");
 
+  private static final Map<String, VideoType> KEYS;
+
+  static {
+    KEYS =
+        Map.of(
+            "ITEMFRAME", ITEMFRAME,
+            "ARMOR_STAND", ARMOR_STAND,
+            "CHATBOX", CHATBOX,
+            "DEBUG_HIGHLIGHTS", DEBUG_HIGHLIGHTS,
+            "SCOREBOARD", SCOREBOARD);
+  }
+
   private final String name;
 
   VideoType(@NotNull final String name) {
@@ -64,7 +76,7 @@ public enum VideoType {
   }
 
   public static @NotNull Optional<VideoType> ofKey(@NotNull final String str) {
-    return Arrays.stream(values()).filter(type -> type.getName().equals(str)).findFirst();
+    return Optional.ofNullable(KEYS.get(str));
   }
 
   public String getName() {
