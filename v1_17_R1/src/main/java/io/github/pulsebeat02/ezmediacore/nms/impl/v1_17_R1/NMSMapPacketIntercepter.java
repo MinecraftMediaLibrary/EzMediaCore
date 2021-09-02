@@ -31,10 +31,12 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelPromise;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -47,6 +49,9 @@ import net.minecraft.network.protocol.game.PacketPlayOutCustomPayload;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutMap;
 import net.minecraft.network.syncher.DataWatcher;
+import net.minecraft.network.syncher.DataWatcher.Item;
+import net.minecraft.network.syncher.DataWatcherObject;
+import net.minecraft.network.syncher.DataWatcherRegistry;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.world.level.saveddata.maps.WorldMap;
@@ -60,10 +65,17 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
 
   private static final int PACKET_THRESHOLD_MS;
   private static final Set<Object> PACKET_DIFFERENTIATION;
+  private static Field METADATA_ITEMS;
 
   static {
     PACKET_THRESHOLD_MS = 0;
     PACKET_DIFFERENTIATION = Collections.newSetFromMap(new WeakHashMap<>());
+    try {
+      METADATA_ITEMS = PacketPlayOutEntityMetadata.class.getDeclaredField("b");
+      METADATA_ITEMS.setAccessible(true);
+    } catch (final NoSuchFieldException e) {
+      e.printStackTrace();
+    }
   }
 
   private final Map<UUID, Channel> channels;
@@ -203,7 +215,6 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
     final PacketPlayOutEntityMetadata[] packets = new PacketPlayOutEntityMetadata[maxHeight];
     int index = 0;
     for (int i = 0; i < maxHeight; i++) {
-      final net.minecraft.world.entity.Entity entity = ((CraftEntity) entities[i]).getHandle();
       final ChatComponentText component = new ChatComponentText("");
       for (int x = 0; x < width; x++) {
         final int c = data[index++];
@@ -212,8 +223,17 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
         component.addSibling(p);
       }
       final PacketPlayOutEntityMetadata packet =
-          new PacketPlayOutEntityMetadata(entity.getId(), new DataWatcher(entity), false);
-
+          new PacketPlayOutEntityMetadata(
+              ((CraftEntity) entities[i]).getHandle().getId(), new DataWatcher(null), false);
+      try {
+        METADATA_ITEMS.set(
+            packet,
+            Collections.singletonList(
+                new Item<>(
+                    new DataWatcherObject<>(2, DataWatcherRegistry.f), Optional.of(component))));
+      } catch (final IllegalArgumentException | IllegalAccessException e) {
+        e.printStackTrace();
+      }
       packets[i] = packet;
     }
     if (viewers == null) {
@@ -280,10 +300,10 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
 
   @Override
   public Object onPacketInterceptOut(final Player viewer, final Object packet) {
-//    if (PACKET_DIFFERENTIATION.contains(packet)) {
-//      // some logic
-//      return packet;
-//    }
+    //    if (PACKET_DIFFERENTIATION.contains(packet)) {
+    //      // some logic
+    //      return packet;
+    //    }
     return packet;
   }
 

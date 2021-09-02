@@ -46,7 +46,6 @@ import net.minecraft.server.v1_16_R3.ChatHexColor;
 import net.minecraft.server.v1_16_R3.DataWatcher;
 import net.minecraft.server.v1_16_R3.DataWatcherObject;
 import net.minecraft.server.v1_16_R3.DataWatcherRegistry;
-import net.minecraft.server.v1_16_R3.IChatBaseComponent;
 import net.minecraft.server.v1_16_R3.MapIcon;
 import net.minecraft.server.v1_16_R3.MinecraftKey;
 import net.minecraft.server.v1_16_R3.PacketDataSerializer;
@@ -257,7 +256,6 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
     final PacketPlayOutEntityMetadata[] packets = new PacketPlayOutEntityMetadata[maxHeight];
     int index = 0;
     for (int i = 0; i < maxHeight; i++) {
-      final int id = ((CraftEntity) entities[i]).getHandle().getId();
       final ChatComponentText component = new ChatComponentText("");
       for (int x = 0; x < width; x++) {
         final int c = data[index++];
@@ -265,13 +263,11 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
         p.setChatModifier(p.getChatModifier().setColor(ChatHexColor.a(c & 0xFFFFFF)));
         component.addSibling(p);
       }
-      final DataWatcher.Item<Optional<IChatBaseComponent>> item =
-          new DataWatcher.Item<>(
-              new DataWatcherObject<>(2, DataWatcherRegistry.f), Optional.of(component));
       final PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata();
       try {
-        METADATA_ID.set(packet, id);
-        METADATA_ITEMS.set(packet, Collections.singletonList(item));
+        METADATA_ID.set(packet, ((CraftEntity) entities[i]).getHandle().getId());
+        METADATA_ITEMS.set(packet, Collections.singletonList(new DataWatcher.Item<>(
+            new DataWatcherObject<>(2, DataWatcherRegistry.f), Optional.of(component))));
       } catch (final IllegalArgumentException | IllegalAccessException e) {
         e.printStackTrace();
       }
