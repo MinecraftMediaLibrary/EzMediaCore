@@ -30,6 +30,7 @@ import io.github.pulsebeat02.ezmediacore.dither.algorithm.OrderedDither;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.SimpleDither;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 public enum DitherSetting {
@@ -57,8 +58,8 @@ public enum DitherSetting {
     this.algorithm = algorithm;
   }
 
-  public static @NotNull DitherSetting ofKey(@NotNull final String key) {
-    return maps.get(key);
+  public static @NotNull Optional<DitherSetting> ofKey(@NotNull final String key) {
+    return Optional.ofNullable(maps.get(key));
   }
 
   public @NotNull String getName() {
