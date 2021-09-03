@@ -41,7 +41,7 @@ public class VideoFactory {
   private Dimension dims;
   private String url;
   private String key;
-  private int rate = 25;
+  private int rate = 30;
 
   @Contract(value = " -> new", pure = true)
   public static @NotNull VLCMediaFactory vlc() {
