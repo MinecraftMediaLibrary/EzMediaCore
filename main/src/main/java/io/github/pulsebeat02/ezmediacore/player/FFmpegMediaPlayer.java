@@ -151,7 +151,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
   }
 
   private void release() {
-    if (this.ffmpeg != null) {
+    if (this.ffmpeg != null && this.future != null) {
       this.future.graceStop();
       this.future = null;
     }

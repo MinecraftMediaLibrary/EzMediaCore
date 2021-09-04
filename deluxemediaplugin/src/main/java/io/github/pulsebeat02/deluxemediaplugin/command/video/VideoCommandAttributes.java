@@ -50,6 +50,7 @@ import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class VideoCommandAttributes {
 
@@ -91,7 +92,7 @@ public final class VideoCommandAttributes {
     this.dither = dither;
   }
 
-  public @NotNull VideoPlayer getPlayer() {
+  public VideoPlayer getPlayer() {
     return this.player;
   }
 
@@ -99,7 +100,7 @@ public final class VideoCommandAttributes {
     this.player = player;
   }
 
-  public @NotNull String getVideoMrl() {
+  public @Nullable String getVideoMrl() {
     return this.video;
   }
 
