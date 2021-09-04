@@ -1,3 +1,4 @@
 map {
   id brigadier:integer;
+  ids brigadier:string greedy_phrase;
 }

@@ -55,6 +55,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
@@ -66,6 +67,8 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 
 public final class MapCommand extends BaseCommand {
@@ -80,6 +83,9 @@ public final class MapCommand extends BaseCommand {
             .then(
                 this.argument("id", IntegerArgumentType.integer(-2_147_483_647, 2_147_483_647))
                     .executes(this::giveMap))
+            .then(
+                this.argument("ids", StringArgumentType.greedyString())
+                    .executes(this::giveMultipleMaps))
             .build();
   }
 
@@ -101,10 +107,60 @@ public final class MapCommand extends BaseCommand {
     return SINGLE_SUCCESS;
   }
 
+  private int giveMultipleMaps(@NotNull final CommandContext<CommandSender> context) {
+
+    final CommandSender sender = context.getSource();
+    final Audience audience = this.plugin().audience().sender(sender);
+    final String[] bits = context.getArgument("ids", String.class).split("-");
+
+    final int start;
+    final int end;
+    try {
+      start = Integer.parseInt(bits[0]);
+      end = Integer.parseInt(bits[1]);
+    } catch (final NumberFormatException e) {
+      red(audience, "Invalid format! Must follow [starting-id]-[ending-id]");
+      return SINGLE_SUCCESS;
+    }
+
+    if (!(sender instanceof final Player player)) {
+      red(audience, "You must be a player to execute this command!");
+      return SINGLE_SUCCESS;
+    }
+
+    final PlayerInventory inventory = player.getInventory();
+    boolean noSpace = false;
+    for (int id = start; id <= end; id++) {
+      final ItemStack stack = MapUtils.getMapFromID(id);
+      if (inventory.firstEmpty() == -1) {
+        noSpace = true;
+      }
+      if (noSpace) {
+        player.getWorld().dropItem(player.getLocation(), stack);
+      } else {
+        inventory.addItem(stack);
+      }
+    }
+
+    audience.sendMessage(
+        format(
+            ofChildren(
+                text("Gave maps between IDs ", GOLD),
+                text(start, AQUA),
+                text(" and ", GOLD),
+                text(end, AQUA))));
+
+    return SINGLE_SUCCESS;
+  }
+
   @Override
   public @NotNull Component usage() {
     return ChatUtils.getCommandUsage(
-        ImmutableMap.of("/map [id]", "Gives a map to the player with the specific id"));
+        ImmutableMap.of(
+            "/map [id]",
+            "Gives a map to the player with the specific id",
+            "/map [starting-id]-[ending-id]",
+            "Gives all maps between starting-id to ending-id (inclusive)"));
   }
 
   @Override
