@@ -87,7 +87,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
       case RESUME -> {
         if (this.player == null) {
           this.initializePlayer(0L);
-          this.playAudio(); // twice to avoid lag
+          this.playAudio();
           this.player.media().play(this.getUrl());
         } else {
           this.playAudio();
@@ -108,6 +108,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
   public void initializePlayer(final long ms) {
     this.player = this.getEmbeddedMediaPlayer();
     this.setCallback(this.player);
+    this.player.media().prepare(this.getUrl());
     this.player.audio().setMute(true);
     this.player.controls().setTime(ms);
   }

@@ -129,6 +129,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
       throws IOException {
 
     final MediaLibraryCore core = this.plugin.library();
+
     final List<Integer> maps = new ArrayList<>();
     for (int i = 0; i < width * height; i++) {
       maps.add(Bukkit.getServer().createMap(Bukkit.getWorld("world")).getId());
