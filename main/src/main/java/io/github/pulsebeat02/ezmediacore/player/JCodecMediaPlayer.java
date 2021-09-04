@@ -119,7 +119,7 @@ public final class JCodecMediaPlayer extends MediaPlayer {
           e.printStackTrace();
         }
       }
-    });
+    }, ExecutorProvider.ENCODER_HANDLER);
   }
 
   private void play() {
@@ -152,7 +152,7 @@ public final class JCodecMediaPlayer extends MediaPlayer {
           break;
         }
       }
-    }, ExecutorProvider.SHARED_VIDEO_PLAYER);
+    }, ExecutorProvider.AUDIO_HANDLER);
   }
 
   private @NotNull CompletableFuture<Void> updateFramePlayer() {
@@ -169,7 +169,7 @@ public final class JCodecMediaPlayer extends MediaPlayer {
           e.printStackTrace();
         }
       }
-    }, ExecutorProvider.SHARED_VIDEO_PLAYER);
+    }, ExecutorProvider.FRAME_HANDLER);
   }
 
 
