@@ -68,7 +68,6 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   @Override
   public void downloadVideo(@NotNull final VideoQuality format, final boolean overwrite) {
     this.onStartVideoDownload();
-
     if (!this.cancelled) {
       this.internalDownload(
           new RequestVideoFileDownload(this.getFormat(format))
@@ -80,7 +79,6 @@ public class SpotifyTrackDownloader implements TrackDownloader {
         this.onDownloadFailure();
       }
     }
-
     this.onFinishVideoDownload();
   }
 

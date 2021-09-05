@@ -75,19 +75,16 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   @Override
   public void downloadVideo(@NotNull final VideoQuality format, final boolean overwrite) {
     this.onStartVideoDownload();
-
     if (!this.cancelled) {
       this.internalDownload(
           new RequestVideoFileDownload(this.getFormat(format))
               .saveTo(this.videoPath.getParent().toFile())
               .renameTo(FilenameUtils.removeExtension(PathUtils.getName(this.videoPath)))
               .overwriteIfExists(overwrite));
-
       if (Files.notExists(this.videoPath)) {
         this.onDownloadFailure();
       }
     }
-
     this.onFinishVideoDownload();
   }
 

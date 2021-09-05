@@ -17,7 +17,7 @@ dependencies {
     implementation("org.bstats:bstats-bukkit:2.2.1")
     implementation("com.mojang:brigadier:1.0.18")
     implementation("net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT")
-    implementation("dev.triumphteam:triumph-gui:3.0.0-SNAPSHOT")
+    implementation("com.github.stefvanschie.inventoryframework:IF:0.10.2")
     implementation("me.lucko:commodore:1.10")
     compileOnly("com.mojang:authlib:1.5.25")
     compileOnly("org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT")
@@ -29,7 +29,7 @@ tasks.withType<ShadowJar> {
     relocate("net.kyori", "io.github.pulsebeat02.deluxemediaplugin.lib.kyori")
     relocate("org.bstats", "io.github.pulsebeat02.deluxemediaplugin.lib.bstats")
     relocate("com.mojang.brigadier", "io.github.pulsebeat02.deluxemediaplugin.lib.brigadier")
-    relocate("dev.triumphteam.gui", "io.github.pulsebeat02.deluxemediaplugin.lib.gui")
+    relocate("com.github.stefvanschie.inventoryframework", "io.github.pulsebeat02.deluxemediaplugin.lib.inventoryframework")
     relocate("me.mattstudios.util", "io.github.pulsebeat02.deluxemediaplugin.lib.util")
     relocate("me.lucko.commodore", "io.github.pulsebeat02.deluxemediaplugin.lib.commodore")
 

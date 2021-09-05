@@ -47,6 +47,7 @@ package io.github.pulsebeat02.deluxemediaplugin.command.gui;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import io.github.pulsebeat02.deluxemediaplugin.command.screen.SkullException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -55,6 +56,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -64,7 +66,6 @@ import org.bukkit.block.Skull;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A library for the Bukkit API to create player skulls from names, base64 strings, and texture
@@ -90,7 +91,6 @@ public final class SkullCreator {
    */
   public static @NotNull ItemStack createSkull() {
     checkLegacy();
-
     try {
       return new ItemStack(Material.valueOf("PLAYER_HEAD"));
     } catch (final IllegalArgumentException e) {
@@ -135,8 +135,8 @@ public final class SkullCreator {
    * @param base64 The Mojang URL.
    * @return The head of the Player.
    */
-  public static @Nullable ItemStack itemFromBase64(final String base64) {
-    return itemWithBase64(createSkull(), base64);
+  public static @NotNull ItemStack itemFromBase64(final String base64) {
+    return itemWithBase64(createSkull(), base64).orElseThrow(() -> new SkullException(base64));
   }
 
   /**
@@ -180,8 +180,9 @@ public final class SkullCreator {
    * @param url  The URL of the Mojang skin.
    * @return The head associated with the URL.
    */
-  public static ItemStack itemWithUrl(@NotNull final ItemStack item, @NotNull final String url) {
-    return itemWithBase64(item, urlToBase64(url));
+  public static @NotNull ItemStack itemWithUrl(@NotNull final ItemStack item, @NotNull final String url) {
+    final String base64 = urlToBase64(url);
+    return itemWithBase64(item, base64).orElseThrow(() -> new SkullException(base64));
   }
 
   /**
@@ -191,15 +192,15 @@ public final class SkullCreator {
    * @param base64 The base64 string containing the texture.
    * @return The head with a custom texture.
    */
-  public static @Nullable ItemStack itemWithBase64(
+  public static Optional<ItemStack> itemWithBase64(
       @NotNull final ItemStack item, @NotNull final String base64) {
     if (!(item.getItemMeta() instanceof final SkullMeta meta)) {
-      return null;
+      return Optional.empty();
     }
     mutateItemMeta(meta, base64);
     item.setItemMeta(meta);
 
-    return item;
+    return Optional.of(item);
   }
 
   /**
@@ -254,7 +255,6 @@ public final class SkullCreator {
 
   private static void setToSkull(final @NotNull Block block) {
     checkLegacy();
-
     try {
       block.setType(Material.valueOf("PLAYER_HEAD"), false);
     } catch (final IllegalArgumentException e) {

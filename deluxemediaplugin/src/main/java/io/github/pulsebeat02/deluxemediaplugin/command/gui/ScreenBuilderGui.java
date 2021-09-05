@@ -52,12 +52,12 @@ import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.GREEN;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
-import dev.triumphteam.gui.guis.Gui;
-import dev.triumphteam.gui.guis.GuiItem;
+import com.github.stefvanschie.inventoryframework.adventuresupport.ComponentHolder;
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.ezmediacore.utility.MapUtils;
-import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -67,7 +67,8 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ScreenBuilderGui {
 
-  private final Gui gui;
+  private final ChestGui gui;
+  private final StaticPane pane;
   private final Player viewer;
   private final DeluxeMediaPlugin plugin;
   private Material material;
@@ -75,88 +76,87 @@ public final class ScreenBuilderGui {
   private int height;
   private int id;
 
-  public ScreenBuilderGui(@NotNull final DeluxeMediaPlugin pl, @NotNull final Player player) {
-    this.gui = Gui.gui().rows(6).title(text("Choose Screen Size", GOLD)).create();
-    this.plugin = pl;
+  public ScreenBuilderGui(@NotNull final DeluxeMediaPlugin plugin, @NotNull final Player player) {
+    this.gui = new ChestGui(5, ComponentHolder.of(text("Choose Screen Size", GOLD)));
+    this.pane = new StaticPane(9, 5);
+    this.plugin = plugin;
+    this.material = Material.OAK_PLANKS;
     this.viewer = player;
     this.width = 5;
     this.height = 5;
     this.id = 0;
-    CompletableFuture.runAsync(this::initialize);
-    this.gui.open(player);
+    this.initialize();
+    this.gui.show(player);
   }
 
   private void initialize() {
-
-    this.gui.setDefaultClickAction(x -> x.setCancelled(true));
-
-    final GuiItem increaseWidth = new GuiItem(this.getIncreaseArrow("Width"));
-    increaseWidth.setAction(
-        x -> {
-          this.width++;
-          this.update();
-        });
-
-    final GuiItem decreaseWidth = new GuiItem(this.getDecreaseArrow("Width"));
-    increaseWidth.setAction(
-        x -> {
-          this.width--;
-          this.update();
-        });
-
-    final GuiItem increaseHeight = new GuiItem(this.getIncreaseArrow("Height"));
-    increaseHeight.setAction(
-        x -> {
-          this.height++;
-          this.update();
-        });
-
-    final GuiItem decreaseHeight = new GuiItem(this.getDecreaseArrow("Height"));
-    decreaseHeight.setAction(
-        x -> {
-          this.height--;
-          this.update();
-        });
-
-    final GuiItem increaseID = new GuiItem(this.getIncreaseArrow("Map ID"));
-    increaseID.setAction(
-        x -> {
-          this.id++;
-          this.update();
-        });
-
-    final GuiItem decreaseID = new GuiItem(this.getDecreaseArrow("Map ID"));
-    decreaseID.setAction(
-        x -> {
-          this.id--;
-          this.update();
-        });
-
+    this.gui.setOnGlobalClick(x -> x.setCancelled(true));
+    final GuiItem increaseWidth =
+        new GuiItem(
+            this.getIncreaseArrow("Width"),
+            x -> {
+              this.width++;
+              this.update();
+            });
+    final GuiItem decreaseWidth =
+        new GuiItem(
+            this.getDecreaseArrow("Width"),
+            x -> {
+              this.width--;
+              this.update();
+            });
+    final GuiItem increaseHeight =
+        new GuiItem(
+            this.getIncreaseArrow("Height"),
+            x -> {
+              this.height++;
+              this.update();
+            });
+    final GuiItem decreaseHeight =
+        new GuiItem(
+            this.getDecreaseArrow("Height"),
+            x -> {
+              this.height--;
+              this.update();
+            });
+    final GuiItem increaseID =
+        new GuiItem(
+            this.getIncreaseArrow("Map ID"),
+            x -> {
+              this.id++;
+              this.update();
+            });
+    final GuiItem decreaseID =
+        new GuiItem(
+            this.getDecreaseArrow("Map ID"),
+            x -> {
+              this.id--;
+              this.update();
+            });
     final GuiItem buildScreen =
         ItemBuilder.from(Material.LIME_STAINED_GLASS_PANE)
             .name(text("Build Screen", GREEN))
-            .asGuiItem();
-    buildScreen.setAction(
-        x -> {
-          this.viewer.closeInventory();
-          MapUtils.buildMapScreen(this.viewer, this.material, this.width, this.height, this.id);
-          this.plugin
-              .audience()
-              .sender(this.viewer)
-              .sendMessage(format(text("Successfully built your new screen!", GREEN)));
-          this.viewer.playSound(this.viewer.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 10, 1);
-        });
-    this.gui.setItem(50, buildScreen);
-
-    this.gui.setItem(12, increaseWidth);
-    this.gui.setItem(30, decreaseWidth);
-
-    this.gui.setItem(14, increaseHeight);
-    this.gui.setItem(32, decreaseHeight);
-
-    this.gui.setItem(16, increaseID);
-    this.gui.setItem(34, decreaseID);
-
+            .action(
+                x -> {
+                  this.viewer.closeInventory();
+                  MapUtils.buildMapScreen(
+                      this.viewer, this.material, this.width, this.height, this.id);
+                  this.plugin
+                      .audience()
+                      .sender(this.viewer)
+                      .sendMessage(format(text("Successfully built your new screen!", GREEN)));
+                  this.viewer.playSound(
+                      this.viewer.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 10, 1);
+                })
+            .build();
+    this.pane.addItem(buildScreen, 2, 8);
+    this.pane.addItem(increaseWidth, 1, 1);
+    this.pane.addItem(decreaseWidth, 3, 1);
+    this.pane.addItem(increaseHeight, 1, 4);
+    this.pane.addItem(decreaseHeight, 3, 3);
+    this.pane.addItem(increaseID, 1, 5);
+    this.pane.addItem(decreaseID, 3, 5);
+    this.gui.addPane(this.pane);
     this.update();
   }
 
@@ -167,7 +167,7 @@ public final class ScreenBuilderGui {
             .name(
                 TextComponent.ofChildren(
                     text("Material - ", GOLD), text(this.material.toString(), AQUA)))
-            .asGuiItem();
+            .build();
     materialItem.setAction(
         x -> {
           final ItemStack stack = x.getCursor();
@@ -175,32 +175,34 @@ public final class ScreenBuilderGui {
             return;
           }
           this.material = stack.getType();
-          materialItem.setItemStack(
+          this.pane.addItem(
               ItemBuilder.from(this.material)
                   .name(
                       TextComponent.ofChildren(
                           text("Material - ", GOLD), text(this.material.toString(), AQUA)))
-                  .build());
+                  .build(),
+              2,
+              1);
         });
-    this.gui.setItem(19, materialItem);
+    this.pane.addItem(materialItem, 2, 1);
 
     final GuiItem widthItem =
         ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
             .name(text("Screen Width (%d Blocks)".formatted(this.width), GOLD))
-            .asGuiItem();
-    this.gui.setItem(22, widthItem);
+            .build();
+    this.pane.addItem(widthItem, 2, 4);
 
     final GuiItem heightItem =
         ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
             .name(text("Screen Height (%d Blocks)".formatted(this.height), GOLD))
-            .asGuiItem();
-    this.gui.setItem(24, heightItem);
+            .build();
+    this.pane.addItem(heightItem, 0, 6);
 
     final GuiItem idItem =
         ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
             .name(text("Starting Map ID (%d)".formatted(this.id), GOLD))
-            .asGuiItem();
-    this.gui.setItem(26, idItem);
+            .build();
+    this.pane.addItem(idItem, 2, 8);
   }
 
   private @NotNull ItemStack getIncreaseArrow(@NotNull final String data) {
@@ -208,7 +210,7 @@ public final class ScreenBuilderGui {
             SkullCreator.itemFromBase64(
                 "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWNkYjhmNDM2NTZjMDZjNGU4NjgzZTJlNjM0MWI0NDc5ZjE1N2Y0ODA4MmZlYTRhZmYwOWIzN2NhM2M2OTk1YiJ9fX0="))
         .name(text("Increase %s by One".formatted(data), GREEN))
-        .build();
+        .buildWithoutAction();
   }
 
   private @NotNull ItemStack getDecreaseArrow(@NotNull final String data) {
@@ -216,6 +218,6 @@ public final class ScreenBuilderGui {
             SkullCreator.itemFromBase64(
                 "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjFlMWU3MzBjNzcyNzljOGUyZTE1ZDhiMjcxYTExN2U1ZTJjYTkzZDI1YzhiZTNhMDBjYzkyYTAwY2MwYmI4NSJ9fX0="))
         .name(text("Decrease %s by One".formatted(data), RED))
-        .build();
+        .buildWithoutAction();
   }
 }
