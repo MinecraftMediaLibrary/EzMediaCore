@@ -30,6 +30,8 @@ import io.github.pulsebeat02.ezmediacore.analysis.OSType;
 import io.github.pulsebeat02.ezmediacore.vlc.os.WellKnownDirectoryProvider;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import uk.co.caprica.vlcj.support.version.LibVlcVersion;
+import uk.co.caprica.vlcj.support.version.Version;
 
 public class WindowsKnownDirectories implements WellKnownDirectoryProvider {
 
@@ -41,11 +43,20 @@ public class WindowsKnownDirectories implements WellKnownDirectoryProvider {
   @Override
   public @NotNull List<String> getSearchDirectories() {
     try {
-      return List.of(
+      final String directory =
           Advapi32Util.registryGetStringValue(
-              WinReg.HKEY_LOCAL_MACHINE, "SOFTWARE\\VideoLAN\\VLC", "InstallDir"));
-    } catch (final Win32Exception exception) {
-      return List.of();
+              WinReg.HKEY_LOCAL_MACHINE, "SOFTWARE\\VideoLAN\\VLC", "InstallDir");
+      final String ver =
+          Advapi32Util.registryGetStringValue(
+              WinReg.HKEY_LOCAL_MACHINE, "SOFTWARE\\VideoLAN\\VLC", "Version");
+      if (directory.isEmpty() || ver.isEmpty()) {
+        return List.of();
+      }
+      if (new Version(ver).atLeast(LibVlcVersion.requiredVersion)) {
+        return List.of(directory);
+      }
+    } catch (final Win32Exception ignored) {
     }
+    return List.of();
   }
 }
