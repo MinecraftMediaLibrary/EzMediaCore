@@ -51,6 +51,7 @@ public class PersistentImageStorage extends PersistentObject<Image> {
     return GsonProvider.getSimple()
         .fromJson(
             Files.newBufferedReader(this.getStorageFile()),
-            new TypeToken<List<Image>>() {}.getType());
+            new TypeToken<List<Image>>() {
+            }.getType());
   }
 }

@@ -142,7 +142,8 @@ public final class GifDecoder {
     return i;
   }
 
-  static int readGraphicControlExt(@NotNull final GifFrame fr, final byte @NotNull [] in, final int i) {
+  static int readGraphicControlExt(@NotNull final GifFrame fr, final byte @NotNull [] in,
+      final int i) {
     fr.disposalMethod = (in[i + 3] & 0b00011100) >>> 2; // Bits 4-2
     fr.transpColFlag = (in[i + 3] & 1) == 1; // Bit 0
     fr.delay = in[i + 4] & 0xFF | (in[i + 5] & 0xFF) << 8; // 16 bit LSB
@@ -231,7 +232,8 @@ public final class GifDecoder {
     return ++i;
   }
 
-  static int readLogicalScreenDescriptor(@NotNull final GifImage img, final byte @NotNull [] in, final int i) {
+  static int readLogicalScreenDescriptor(@NotNull final GifImage img, final byte @NotNull [] in,
+      final int i) {
     img.w = in[i] & 0xFF | (in[i + 1] & 0xFF) << 8; // 16 bit, LSB 1st
     img.h = in[i + 2] & 0xFF | (in[i + 3] & 0xFF) << 8; // 16 bit
     img.wh = img.w * img.h;
@@ -325,7 +327,8 @@ public final class GifDecoder {
       return this.codeSize;
     }
 
-    private void init(@NotNull final GifFrame fr, final int @NotNull [] activeColTbl, final BitReader br) {
+    private void init(@NotNull final GifFrame fr, final int @NotNull [] activeColTbl,
+        final BitReader br) {
       this.br = br;
       final int numColors = activeColTbl.length;
       this.initCodeSize = fr.firstCodeSize;

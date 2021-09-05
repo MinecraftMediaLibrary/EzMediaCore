@@ -21,17 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.throwable;
+package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
-import java.io.Serial;
-import org.jetbrains.annotations.NotNull;
+public interface Cancellable {
 
-public final class InvalidPackResourceException extends LibraryException {
+  boolean isCancelled();
 
-  @Serial
-  private static final long serialVersionUID = 1682368011870345638L;
+  void onDownloadCancellation();
 
-  public InvalidPackResourceException(@NotNull final String message) {
-    super("Resourcepack Exception: %s".formatted(message));
-  }
 }

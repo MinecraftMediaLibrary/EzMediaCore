@@ -98,7 +98,8 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
     return ents;
   }
 
-  private @NotNull Entity getAreaEffectCloud(@NotNull final World world, final Location location, final int height) {
+  private @NotNull Entity getAreaEffectCloud(@NotNull final World world, final Location location,
+      final int height) {
     return world.spawn(
         location,
         AreaEffectCloud.class,

@@ -212,7 +212,8 @@ public final class ArtifactInstaller {
     try {
       switch (resolution) {
         case MAVEN -> Logger.info("Checking Maven Central Repository for %s".formatted(artifact));
-        case JITPACK -> Logger.info("Checking Jitpack Central Repository for %s".formatted(artifact));
+        case JITPACK -> Logger.info(
+            "Checking Jitpack Central Repository for %s".formatted(artifact));
         case JDA -> Logger.info("Checking JDA Central Repository for %s".formatted(artifact));
         default -> throw new IllegalStateException(
             "Specified Repository URL Doesn't Exist! (Not Maven/Jitpack)");

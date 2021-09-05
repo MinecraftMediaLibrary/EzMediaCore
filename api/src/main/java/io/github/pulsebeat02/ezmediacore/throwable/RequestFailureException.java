@@ -26,12 +26,12 @@ package io.github.pulsebeat02.ezmediacore.throwable;
 import java.io.Serial;
 import org.jetbrains.annotations.NotNull;
 
-public final class InvalidPackResourceException extends LibraryException {
+public class RequestFailureException extends LibraryException {
 
   @Serial
-  private static final long serialVersionUID = 1682368011870345638L;
+  private static final long serialVersionUID = 6437787548576716445L;
 
-  public InvalidPackResourceException(@NotNull final String message) {
-    super("Resourcepack Exception: %s".formatted(message));
+  public RequestFailureException(@NotNull final String message) {
+    super(message);
   }
 }

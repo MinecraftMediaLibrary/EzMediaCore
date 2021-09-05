@@ -5,6 +5,7 @@ video {
   destroy;
   load {
     resourcepack;
+    cancel-download;
     mrl brigadier:string greedy_phrase;
   }
   set {

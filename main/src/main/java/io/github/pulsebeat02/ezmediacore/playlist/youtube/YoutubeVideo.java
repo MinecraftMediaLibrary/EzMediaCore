@@ -27,11 +27,11 @@ import com.github.kiulian.downloader.downloader.request.RequestVideoInfo;
 import com.github.kiulian.downloader.model.videos.VideoDetails;
 import com.github.kiulian.downloader.model.videos.VideoInfo;
 import io.github.pulsebeat02.ezmediacore.throwable.DeadResourceLinkException;
+import io.github.pulsebeat02.ezmediacore.throwable.RequestFailureException;
 import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResponseUtils;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.jcodec.codecs.mjpeg.tools.AssertionException;
 import org.jetbrains.annotations.NotNull;
 
 public class YoutubeVideo implements Video {
@@ -62,8 +62,8 @@ public class YoutubeVideo implements Video {
 
   private VideoInfo getVideoResponse(final int tries) {
     if (tries == 10) {
-      throw new AssertionException(
-          "Request failure with video ID %s! Please try again.".formatted(this.id));
+      throw new RequestFailureException(
+          "Failed to retrieve video information from url %s!".formatted(this.url));
     }
     final int num = tries + 1;
     return ResponseUtils.getResponseResult(

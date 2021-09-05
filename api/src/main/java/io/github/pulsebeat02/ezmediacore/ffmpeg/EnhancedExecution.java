@@ -46,4 +46,8 @@ public interface EnhancedExecution {
   @NotNull
   CompletableFuture<Void> executeAsyncWithLogging(
       @NotNull final Consumer<String> logger, @NotNull final Executor executor);
+
+  void cancelProcess();
+
+  boolean isCancelled();
 }

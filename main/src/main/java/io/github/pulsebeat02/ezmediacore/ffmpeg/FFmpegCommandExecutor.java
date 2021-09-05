@@ -41,12 +41,15 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
 
   private final MediaLibraryCore core;
   private final List<String> arguments;
+  private Process process;
   private boolean completion;
+  private boolean cancelled;
 
   public FFmpegCommandExecutor(@NotNull final MediaLibraryCore core) {
     this.core = core;
     this.arguments = new ArrayList<>();
     this.arguments.add(core.getFFmpegPath().toString());
+    this.cancelled = false;
   }
 
   @Override
@@ -120,25 +123,28 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
     this.onBeforeExecution();
-    final boolean consume = logger != null;
-    final ProcessBuilder builder = new ProcessBuilder(this.arguments);
-    builder.redirectErrorStream(true);
-    try {
-      final Process p = builder.start();
-      try (final BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-        String line;
-        while (true) {
-          line = r.readLine();
-          if (line == null) {
-            break;
-          }
-          if (consume) {
-            logger.accept(line);
+    if (!this.cancelled) {
+      final boolean consume = logger != null;
+      final ProcessBuilder builder = new ProcessBuilder(this.arguments);
+      builder.redirectErrorStream(true);
+      try {
+        this.process = builder.start();
+        try (final BufferedReader r = new BufferedReader(
+            new InputStreamReader(this.process.getInputStream()))) {
+          String line;
+          while (true) {
+            line = r.readLine();
+            if (line == null) {
+              break;
+            }
+            if (consume) {
+              logger.accept(line);
+            }
           }
         }
+      } catch (final IOException e) {
+        e.printStackTrace();
       }
-    } catch (final IOException e) {
-      e.printStackTrace();
     }
     this.completion = true;
     this.onAfterExecution();
@@ -167,14 +173,34 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public void onBeforeExecution() {}
+  public void cancelProcess() {
+    this.cancelled = true;
+    if (this.process != null) {
+      this.process.destroy();
+    }
+  }
 
   @Override
-  public void onAfterExecution() {}
+  public boolean isCancelled() {
+    return this.cancelled;
+  }
+
+  @Override
+  public void onBeforeExecution() {
+  }
+
+  @Override
+  public void onAfterExecution() {
+  }
 
   @Override
   public boolean isCompleted() {
     return this.completion;
+  }
+
+  @Override
+  public @NotNull Process getProcess() {
+    return this.process;
   }
 
   public @NotNull List<String> getArguments() {

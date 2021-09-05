@@ -23,11 +23,12 @@
  */
 package io.github.pulsebeat02.ezmediacore.playlist;
 
+import io.github.pulsebeat02.ezmediacore.playlist.youtube.Cancellable;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.VideoQuality;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-public interface Downloader {
+public interface Downloader extends Cancellable {
 
   void downloadVideo(@NotNull final VideoQuality format, final boolean overwrite);
 
@@ -35,6 +36,11 @@ public interface Downloader {
 
   void onFinishVideoDownload();
 
+  void onDownloadFailure();
+
+  void cancelDownload();
+
   @NotNull
   Path getDownloadPath();
+
 }

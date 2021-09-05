@@ -55,5 +55,6 @@ public final class PixelDimension {
     X3840_2160 = of(3840, 2160);
   }
 
-  private PixelDimension() {}
+  private PixelDimension() {
+  }
 }
