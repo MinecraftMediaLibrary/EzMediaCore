@@ -151,7 +151,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
   }
 
   private void release() {
-    if (this.ffmpeg != null) {
+    if (this.ffmpeg != null && this.future != null) {
       this.future.graceStop();
       this.future = null;
     }
@@ -191,7 +191,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
     if (this.future != null && !this.future.isDone()) {
       this.future.stop(true);
     }
-    return this.ffmpeg.executeAsync(ExecutorProvider.SHARED_VIDEO_PLAYER);
+    return this.ffmpeg.executeAsync(ExecutorProvider.ENCODER_HANDLER);
   }
 
   private void delayFrames() {
@@ -215,7 +215,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
           break;
         }
       }
-    }, ExecutorProvider.SHARED_VIDEO_PLAYER);
+    }, ExecutorProvider.AUDIO_HANDLER);
   }
 
   private @NotNull CompletableFuture<Void> updateVideoPlayer() {
@@ -232,7 +232,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
           e.printStackTrace();
         }
       }
-    }, ExecutorProvider.SHARED_VIDEO_PLAYER);
+    }, ExecutorProvider.FRAME_HANDLER);
   }
 
 

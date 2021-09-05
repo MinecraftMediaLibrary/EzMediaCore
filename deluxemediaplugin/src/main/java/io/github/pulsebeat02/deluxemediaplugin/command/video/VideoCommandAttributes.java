@@ -94,7 +94,7 @@ public final class VideoCommandAttributes {
     this.dither = dither;
   }
 
-  public @NotNull VideoPlayer getPlayer() {
+  public VideoPlayer getPlayer() {
     return this.player;
   }
 
@@ -102,7 +102,7 @@ public final class VideoCommandAttributes {
     this.player = player;
   }
 
-  public @NotNull String getVideoMrl() {
+  public @Nullable String getVideoMrl() {
     return this.video;
   }
 

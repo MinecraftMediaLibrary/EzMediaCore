@@ -49,6 +49,7 @@ import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.external;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
@@ -106,15 +107,12 @@ public final class VideoCommand extends BaseCommand {
   private int destroyVideo(@NotNull final CommandContext<CommandSender> context) {
 
     final Audience audience = this.plugin().audience().sender(context.getSource());
-
     if (this.mediaNotSpecified(audience) || this.mediaProcessingIncomplete(audience)) {
       return SINGLE_SUCCESS;
     }
 
     this.stopIfPlaying();
-
     this.attributes.getPlayer().setPlayerState(PlayerControls.RELEASE);
-
     gold(audience, "Successfully destroyed the current video!");
 
     return SINGLE_SUCCESS;
@@ -126,7 +124,6 @@ public final class VideoCommand extends BaseCommand {
     final DeluxeMediaPlugin plugin = this.plugin();
     final Audience audience = plugin.audience().sender(sender);
     final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
-
     if (this.mediaNotSpecified(audience) || this.mediaProcessingIncomplete(audience)) {
       return SINGLE_SUCCESS;
     }
@@ -135,9 +132,7 @@ public final class VideoCommand extends BaseCommand {
 
     final VideoType type = this.attributes.getVideoType();
     switch (type) {
-      case ITEMFRAME -> {
-        this.attributes.setPlayer(this.builder.createMapPlayer(players));
-      }
+      case ITEMFRAME -> this.attributes.setPlayer(this.builder.createMapPlayer(players));
       case ARMOR_STAND -> {
         if (sender instanceof Player) {
           this.attributes.setPlayer(this.builder.createEntityPlayer((Player) sender, players));
@@ -146,12 +141,8 @@ public final class VideoCommand extends BaseCommand {
           return SINGLE_SUCCESS;
         }
       }
-      case CHATBOX -> {
-        this.attributes.setPlayer(this.builder.createChatBoxPlayer(players));
-      }
-      case SCOREBOARD -> {
-        this.attributes.setPlayer(this.builder.createScoreboardPlayer(players));
-      }
+      case CHATBOX -> this.attributes.setPlayer(this.builder.createChatBoxPlayer(players));
+      case SCOREBOARD -> this.attributes.setPlayer(this.builder.createScoreboardPlayer(players));
       case DEBUG_HIGHLIGHTS -> {
         if (sender instanceof Player) {
           this.attributes.setPlayer(
@@ -170,8 +161,14 @@ public final class VideoCommand extends BaseCommand {
   }
 
   private int stopVideo(@NotNull final CommandContext<CommandSender> context) {
+
+    final Audience audience = this.audience().sender(context.getSource());
+    if (this.mediaNotSpecified(audience) || this.mediaProcessingIncomplete(audience)) {
+      return SINGLE_SUCCESS;
+    }
     this.attributes.getPlayer().setPlayerState(PlayerControls.PAUSE);
-    gold(this.audience().sender(context.getSource()), "Stopped the video!");
+    gold(audience, "Stopped the video!");
+
     return SINGLE_SUCCESS;
   }
 
@@ -236,7 +233,7 @@ public final class VideoCommand extends BaseCommand {
 
   private boolean mediaNotSpecified(@NotNull final Audience audience) {
     if (this.attributes.getVideoMrl() == null && !this.attributes.isYoutube()) {
-      audience.sendMessage(format(text("File and URL not specified yet!", RED)));
+      red(audience, "File and URL not specified yet!");
       return true;
     }
     return false;
@@ -244,7 +241,7 @@ public final class VideoCommand extends BaseCommand {
 
   private boolean mediaProcessingIncomplete(@NotNull final Audience audience) {
     if (!this.attributes.getCompletion().get()) {
-      audience.sendMessage(format(text("The video is still being processed!", RED)));
+      red(audience, "The video is still being processed!");
       return true;
     }
     return false;
@@ -262,10 +259,12 @@ public final class VideoCommand extends BaseCommand {
 
   private void sendPlayInformation(@NotNull final Audience audience) {
     final String mrl = this.attributes.getVideoMrl();
-    if (this.attributes.isYoutube()) {
-      gold(audience, "Starting Video on URL: %s".formatted(mrl));
-    } else {
-      gold(audience, "Starting Video on File: %s".formatted(PathUtils.getName(Path.of(mrl))));
+    if (mrl != null) {
+      if (this.attributes.isYoutube()) {
+        gold(audience, "Starting Video on URL: %s".formatted(mrl));
+      } else {
+        gold(audience, "Starting Video on File: %s".formatted(PathUtils.getName(Path.of(mrl))));
+      }
     }
   }
 
