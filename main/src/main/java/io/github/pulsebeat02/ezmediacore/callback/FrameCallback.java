@@ -64,7 +64,8 @@ public abstract class FrameCallback implements Callback {
   }
 
   @Override
-  public void preparePlayerStateChange(@NotNull final PlayerControls status) {}
+  public void preparePlayerStateChange(@NotNull final PlayerControls status) {
+  }
 
   @Override
   public int getBlockWidth() {

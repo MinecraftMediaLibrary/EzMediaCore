@@ -218,7 +218,8 @@ public class CharIntMap implements Externalizable {
    * @see #toStringBuffer(StringBuffer)
    */
   @Override
-  public @NotNull final String toString() {
+  public @NotNull
+  final String toString() {
     return this.toStringBuffer(null).toString();
   }
 

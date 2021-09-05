@@ -82,7 +82,8 @@ public final class ChatUtils {
             .append(text('['), text("External Process", GOLD), text(']'), space(), text("»", GRAY));
   }
 
-  private ChatUtils() {}
+  private ChatUtils() {
+  }
 
   public static @NotNull Component format(@NotNull final TextComponent message) {
     return ofChildren(PREFIX, space(), message);
@@ -103,7 +104,7 @@ public final class ChatUtils {
     } else if (height.isEmpty()) {
       message = dims[1];
     } else {
-      return Optional.of(new int[] {width.getAsInt(), height.getAsInt()});
+      return Optional.of(new int[]{width.getAsInt(), height.getAsInt()});
     }
     sender.sendMessage(
         text()

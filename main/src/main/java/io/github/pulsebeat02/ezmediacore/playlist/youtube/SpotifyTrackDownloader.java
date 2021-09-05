@@ -33,6 +33,7 @@ import io.github.pulsebeat02.ezmediacore.playlist.spotify.TrackDownloader;
 import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResponseUtils;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 import org.apache.commons.io.FilenameUtils;
@@ -44,12 +45,14 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   private final SpotifyQuerySearch searcher;
   private final Track track;
   private final Path videoPath;
+  private boolean cancelled;
 
   public SpotifyTrackDownloader(@NotNull final Track track, @NotNull final Path videoPath)
       throws IOException {
     this.searcher = new SpotifyQuerySearch(track);
     this.track = track;
     this.videoPath = videoPath;
+    this.cancelled = false;
   }
 
   public SpotifyTrackDownloader(@NotNull final String url, @NotNull final Path videoPath)
@@ -65,18 +68,26 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   @Override
   public void downloadVideo(@NotNull final VideoQuality format, final boolean overwrite) {
     this.onStartVideoDownload();
-    this.internalDownload(
-        new RequestVideoFileDownload(this.getFormat(format))
-            .saveTo(this.videoPath.getParent().toFile())
-            .renameTo(FilenameUtils.removeExtension(PathUtils.getName(this.videoPath)))
-            .overwriteIfExists(overwrite));
+
+    if (!this.cancelled) {
+      this.internalDownload(
+          new RequestVideoFileDownload(this.getFormat(format))
+              .saveTo(this.videoPath.getParent().toFile())
+              .renameTo(FilenameUtils.removeExtension(PathUtils.getName(this.videoPath)))
+              .overwriteIfExists(overwrite));
+
+      if (Files.notExists(this.videoPath)) {
+        this.onDownloadFailure();
+      }
+    }
+
     this.onFinishVideoDownload();
   }
 
   private void internalDownload(@NotNull final RequestVideoFileDownload download) {
     if (ResponseUtils.getResponseResult(
             YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download))
-        .isEmpty()) {
+        .isEmpty() && !this.cancelled) {
       this.internalDownload(download);
     }
   }
@@ -93,10 +104,12 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   }
 
   @Override
-  public void onStartVideoDownload() {}
+  public void onStartVideoDownload() {
+  }
 
   @Override
-  public void onFinishVideoDownload() {}
+  public void onFinishVideoDownload() {
+  }
 
   @Override
   public @NotNull Path getDownloadPath() {
@@ -111,5 +124,24 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   @Override
   public @NotNull QuerySearch getSearcher() {
     return this.searcher;
+  }
+
+  @Override
+  public void cancelDownload() {
+    this.onDownloadCancellation();
+    this.cancelled = true;
+  }
+
+  @Override
+  public boolean isCancelled() {
+    return this.cancelled;
+  }
+
+  @Override
+  public void onDownloadCancellation() {
+  }
+
+  @Override
+  public void onDownloadFailure() {
   }
 }

@@ -83,6 +83,8 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   private final LiteralCommandNode<CommandSender> node;
   private final VideoCommandAttributes attributes;
   private final DeluxeMediaPlugin plugin;
+  private CompletableFuture<Void> downloadTask;
+  private volatile boolean cancelled;
   private boolean firstLoad;
 
   public VideoLoadCommand(
@@ -94,7 +96,24 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
         this.literal("load")
             .then(this.argument("mrl", StringArgumentType.greedyString()).executes(this::loadVideo))
             .then(this.literal("resourcepack").executes(this::sendResourcepack))
+            .then(this.literal("cancel-download").executes(this::cancelDownload))
             .build();
+  }
+
+  private int cancelDownload(@NotNull final CommandContext<CommandSender> context) {
+    final Audience audience = this.plugin.audience().sender(context.getSource());
+    final YoutubeVideoAudioExtractor extractor = this.attributes.getExtractor();
+    if (extractor != null) {
+      this.cancelled = true;
+      extractor.cancelProcess();
+      this.downloadTask.cancel(true);
+      this.attributes.setExtractor(null);
+      this.downloadTask = null;
+      gold(audience, "Successfully cancelled the Youtube download!");
+    } else {
+      red(audience, "You haven't downloaded a Youtube video yet!");
+    }
+    return SINGLE_SUCCESS;
   }
 
   private int loadVideo(@NotNull final CommandContext<CommandSender> context) {
@@ -124,25 +143,36 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
         red(audience, "File %s cannot be found!".formatted(PathUtils.getName(file)));
       }
     } else {
-      CompletableFuture.runAsync(
+      this.downloadTask = CompletableFuture.runAsync(
               () ->
                   this.wrapResourcepack(
                       this.setYoutubeAttributes(audience, Path.of(folder), mrl)
                           .getExtractor()
                           .getOutput()))
           .thenRunAsync(this::useFirstLoad)
-          .thenRun(() -> gold(audience, "Successfully loaded Youtube video %s".formatted(mrl)))
-          .whenComplete((result, exception) -> completion.set(true));
+          .thenRun(() -> this.sendCompletionMessage(audience, mrl))
+          .whenComplete((result, exception) -> {
+            completion.set(true);
+            this.cancelled = false;
+          });
     }
 
     return SINGLE_SUCCESS;
   }
 
+  private void sendCompletionMessage(@NotNull final Audience audience, @NotNull final String mrl) {
+    if (!this.cancelled) {
+      gold(audience, "Successfully loaded Youtube video %s".formatted(mrl));
+    }
+  }
+
   private void useFirstLoad() {
-    this.loadResourcepack();
-    if (this.firstLoad) {
+    if (!this.cancelled) {
       this.loadResourcepack();
-      this.firstLoad = false;
+      if (this.firstLoad) {
+        this.loadResourcepack();
+        this.firstLoad = false;
+      }
     }
   }
 
@@ -156,15 +186,17 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
     final Path audio = Path.of(folder, "custom.ogg");
 
+    this.attributes.setYoutube(false);
+    this.attributes.setExtractor(null);
+
     try {
       new FFmpegAudioExtractor(
-              this.plugin.library(), this.plugin.getAudioConfiguration(), file, audio)
+          this.plugin.library(), this.plugin.getAudioConfiguration(), file, audio)
           .execute();
     } catch (final IOException e) {
       e.printStackTrace();
     }
 
-    this.attributes.setYoutube(false);
     this.attributes.setVideoMrl(file.toAbsolutePath().toString());
     this.attributes.setAudio(audio);
 
@@ -182,6 +214,9 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
               this.plugin.getAudioConfiguration(),
               mrl,
               folder.resolve("audio.ogg"));
+
+      this.attributes.setExtractor(extractor);
+
       extractor.executeAsyncWithLogging((line) -> external(audience, line)).get();
 
       this.attributes.setYoutube(true);

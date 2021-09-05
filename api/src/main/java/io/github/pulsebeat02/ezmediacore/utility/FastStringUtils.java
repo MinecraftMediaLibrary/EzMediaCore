@@ -35,7 +35,8 @@ public final class FastStringUtils {
     STRING_SEARCHER = new BNDM();
   }
 
-  private FastStringUtils() {}
+  private FastStringUtils() {
+  }
 
   public static int fastQuerySearch(@NotNull final String content, @NotNull final String target) {
     return STRING_SEARCHER.searchString(content, target);

@@ -148,7 +148,8 @@ public final class SkullCreator {
    * @deprecated names don't make for good identifiers.
    */
   @Deprecated
-  public static @NotNull ItemStack itemWithName(@NotNull final ItemStack item, @NotNull final String name) {
+  public static @NotNull ItemStack itemWithName(@NotNull final ItemStack item,
+      @NotNull final String name) {
     final SkullMeta meta = Objects.requireNonNull((SkullMeta) item.getItemMeta());
     meta.setOwner(name);
     item.setItemMeta(meta);
@@ -163,7 +164,8 @@ public final class SkullCreator {
    * @param id   The Player's UUID.
    * @return The head of the Player.
    */
-  public static @NotNull ItemStack itemWithUuid(@NotNull final ItemStack item, @NotNull final UUID id) {
+  public static @NotNull ItemStack itemWithUuid(@NotNull final ItemStack item,
+      @NotNull final UUID id) {
     final SkullMeta meta = Objects.requireNonNull((SkullMeta) item.getItemMeta());
     meta.setOwningPlayer(Bukkit.getOfflinePlayer(id));
     item.setItemMeta(meta);

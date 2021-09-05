@@ -26,6 +26,7 @@ package io.github.pulsebeat02.ezmediacore.ffmpeg;
 import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface FFmpegArgumentPreparation extends LibraryInjectable, EnhancedExecution {
 
@@ -61,4 +62,7 @@ public interface FFmpegArgumentPreparation extends LibraryInjectable, EnhancedEx
   void onAfterExecution();
 
   boolean isCompleted();
+
+  @Nullable
+  Process getProcess();
 }

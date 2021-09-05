@@ -45,7 +45,7 @@ for examples on how to use the library. It is the plugin I used that displayed t
 
 1) Clone the [repository](https://github.com/MinecraftMediaLibrary/EzMediaCore) by using the
    following Git link: `https://github.com/MinecraftMediaLibrary/EzMediaCore.git`
-2) Run `gradle shadowJar` on the parent project to build a jar for the plugin.
+2) Run `gradlew shadowJar` on the parent project to build a jar for the plugin.
 
 ---
 

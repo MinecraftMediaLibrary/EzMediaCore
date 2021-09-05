@@ -41,6 +41,7 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   private final YoutubeVideoDownloader downloader;
   private final FFmpegAudioExtractor extractor;
   private final Path tempVideoPath;
+  private boolean cancelled;
 
   public YoutubeVideoAudioExtractor(
       @NotNull final MediaLibraryCore core,
@@ -51,6 +52,7 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
     this.tempVideoPath = core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID()));
     this.downloader = new YoutubeVideoDownloader(url, this.tempVideoPath);
     this.extractor = new FFmpegAudioExtractor(core, configuration, this.tempVideoPath, output);
+    this.cancelled = false;
   }
 
   public YoutubeVideoAudioExtractor(
@@ -63,20 +65,28 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   }
 
   @Override
-  public void execute() {}
+  public void execute() {
+  }
 
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
+
+    this.onStartAudioExtraction();
+
     final boolean log = logger != null;
     if (log) {
       logger.accept("Downloading Video...");
     }
+
     this.downloader.downloadVideo(
         this.downloader.getVideo().getVideoFormats().get(0).getQuality(), true);
+
     if (log) {
       logger.accept("Finished downloading Video");
     }
     this.extractor.executeWithLogging(logger);
+
+    this.onFinishAudioExtraction();
   }
 
   @Override
@@ -102,10 +112,20 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   }
 
   @Override
-  public void onStartAudioExtraction() {}
+  public void cancelProcess() {
+    this.onDownloadCancellation();
+    this.cancelled = true;
+    this.downloader.cancelDownload();
+    this.extractor.cancelProcess();
+  }
 
   @Override
-  public void onFinishAudioExtraction() {}
+  public void onStartAudioExtraction() {
+  }
+
+  @Override
+  public void onFinishAudioExtraction() {
+  }
 
   @Override
   public @NotNull VideoDownloader getDownloader() {
@@ -115,5 +135,15 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   @Override
   public @NotNull AudioExtractor getExtractor() {
     return this.extractor;
+  }
+
+  @Override
+  public boolean isCancelled() {
+    return this.cancelled;
+  }
+
+  @Override
+  public void onDownloadCancellation() {
+
   }
 }
