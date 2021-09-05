@@ -95,6 +95,7 @@ public final class ForcefulResourcepackListener implements Listener {
           PlayerResourcePackStatusEvent.getHandlerList().unregister(this);
         }
       }
+      case ACCEPTED -> {}
       default -> throw new IllegalArgumentException("Invalid resourcepack status!");
     }
   }
