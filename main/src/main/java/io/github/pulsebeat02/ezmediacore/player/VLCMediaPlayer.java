@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.player.base.AudioApi;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.CallbackVideoSurface;
 import uk.co.caprica.vlcj.player.embedded.videosurface.LinuxVideoSurfaceAdapter;
@@ -77,8 +78,8 @@ public final class VLCMediaPlayer extends MediaPlayer {
         if (this.player == null) {
           this.initializePlayer(0L);
         }
-        this.playAudio();
         this.player.media().play(this.getUrl());
+        this.playAudio();
       }
       case PAUSE -> {
         this.stopAudio();
@@ -87,12 +88,11 @@ public final class VLCMediaPlayer extends MediaPlayer {
       case RESUME -> {
         if (this.player == null) {
           this.initializePlayer(0L);
-          this.playAudio();
           this.player.media().play(this.getUrl());
         } else {
-          this.playAudio();
           this.player.controls().play();
         }
+        this.playAudio();
       }
       case RELEASE -> {
         if (this.player != null) {
@@ -106,11 +106,26 @@ public final class VLCMediaPlayer extends MediaPlayer {
 
   @Override
   public void initializePlayer(final long ms) {
+
     this.player = this.getEmbeddedMediaPlayer();
-    this.setCallback(this.player);
     this.player.media().prepare(this.getUrl());
-    this.player.audio().setMute(true);
     this.player.controls().setTime(ms);
+
+    final AudioApi audio = this.player.audio();
+    if (!audio.isMute()) {
+      audio.setMute(true);
+    }
+
+//    final ControlsApi controls = this.player.controls();
+//    controls.play();
+//    try {
+//      TimeUnit.MILLISECONDS.sleep(150); // pre-buffer frames
+//    } catch (final InterruptedException e) {
+//      e.printStackTrace();
+//    }
+//    controls.stop();
+
+    this.setCallback(this.player);
   }
 
   @Override
@@ -121,7 +136,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer() {
     final int rate = this.getFrameRate();
     return new MediaPlayerFactory(
-        rate != 0 ? new String[]{"sout=\"#transcode{fps=%d}\"".formatted(rate)} : new String[]{})
+        rate != 0 ? new String[]{"sout=\"#transcode{fps=%d}\"".formatted(rate), "--no-audio"} : new String[]{})
         .mediaPlayers()
         .newEmbeddedMediaPlayer();
   }

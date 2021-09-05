@@ -89,13 +89,12 @@ public final class ForcefulResourcepackListener implements Listener {
     }
     switch (event.getStatus()) {
       case FAILED_DOWNLOAD -> player.setResourcePack(this.url, this.hash);
-      case DECLINED, SUCCESSFULLY_LOADED -> {
+      case ACCEPTED, DECLINED, SUCCESSFULLY_LOADED -> {
         this.uuids.remove(uuid);
         if (this.uuids.isEmpty()) {
           PlayerResourcePackStatusEvent.getHandlerList().unregister(this);
         }
       }
-      case ACCEPTED -> {}
       default -> throw new IllegalArgumentException("Invalid resourcepack status!");
     }
   }
