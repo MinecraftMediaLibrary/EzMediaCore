@@ -180,7 +180,8 @@ public final class SkullCreator {
    * @param url  The URL of the Mojang skin.
    * @return The head associated with the URL.
    */
-  public static @NotNull ItemStack itemWithUrl(@NotNull final ItemStack item, @NotNull final String url) {
+  public static @NotNull ItemStack itemWithUrl(@NotNull final ItemStack item,
+      @NotNull final String url) {
     final String base64 = urlToBase64(url);
     return itemWithBase64(item, base64).orElseThrow(() -> new SkullException(base64));
   }

@@ -29,7 +29,10 @@ tasks.withType<ShadowJar> {
     relocate("net.kyori", "io.github.pulsebeat02.deluxemediaplugin.lib.kyori")
     relocate("org.bstats", "io.github.pulsebeat02.deluxemediaplugin.lib.bstats")
     relocate("com.mojang.brigadier", "io.github.pulsebeat02.deluxemediaplugin.lib.brigadier")
-    relocate("com.github.stefvanschie.inventoryframework", "io.github.pulsebeat02.deluxemediaplugin.lib.inventoryframework")
+    relocate(
+        "com.github.stefvanschie.inventoryframework",
+        "io.github.pulsebeat02.deluxemediaplugin.lib.inventoryframework"
+    )
     relocate("me.mattstudios.util", "io.github.pulsebeat02.deluxemediaplugin.lib.util")
     relocate("me.lucko.commodore", "io.github.pulsebeat02.deluxemediaplugin.lib.commodore")
 

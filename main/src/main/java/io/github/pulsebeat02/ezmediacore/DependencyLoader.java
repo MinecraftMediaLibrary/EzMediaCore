@@ -74,6 +74,9 @@ public class DependencyLoader implements LibraryLoader {
     try {
       this.core.setVLCStatus(
           new VLCBinaryLocator(this.core, this.core.getVlcPath()).locate().isPresent());
+      if (this.core.isVLCSupported()) {
+        new NativePluginLoader(this.core).executePhantomPlayers();
+      }
     } catch (final IOException | InterruptedException e) {
       e.printStackTrace();
     }

@@ -116,15 +116,6 @@ public final class VLCMediaPlayer extends MediaPlayer {
       audio.setMute(true);
     }
 
-//    final ControlsApi controls = this.player.controls();
-//    controls.play();
-//    try {
-//      TimeUnit.MILLISECONDS.sleep(150); // pre-buffer frames
-//    } catch (final InterruptedException e) {
-//      e.printStackTrace();
-//    }
-//    controls.stop();
-
     this.setCallback(this.player);
   }
 
@@ -136,7 +127,8 @@ public final class VLCMediaPlayer extends MediaPlayer {
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer() {
     final int rate = this.getFrameRate();
     return new MediaPlayerFactory(
-        rate != 0 ? new String[]{"sout=\"#transcode{fps=%d}\"".formatted(rate), "--no-audio"} : new String[]{})
+        rate != 0 ? new String[]{"sout=\"#transcode{fps=%d}\"".formatted(rate), "--no-audio"}
+            : new String[]{})
         .mediaPlayers()
         .newEmbeddedMediaPlayer();
   }

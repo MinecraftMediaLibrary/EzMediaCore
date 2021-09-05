@@ -1,3 +1,26 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2021 Brandon Li
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package io.github.pulsebeat02.deluxemediaplugin.command.gui;
 
 import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacyAmpersand;
@@ -27,6 +50,15 @@ public class ItemBuilder {
   private final ItemStack is;
   private Consumer<InventoryClickEvent> action;
 
+  /**
+   * Create a new ItemBuilder over an existing itemstack.
+   *
+   * @param is The itemstack to create the ItemBuilder over.
+   */
+  ItemBuilder(@NotNull final ItemStack is) {
+    this.is = is;
+  }
+
   public static ItemBuilder from(@NotNull final Material material) {
     return from(material, 1);
   }
@@ -37,15 +69,6 @@ public class ItemBuilder {
 
   public static ItemBuilder from(@NotNull final ItemStack stack) {
     return new ItemBuilder(stack);
-  }
-
-  /**
-   * Create a new ItemBuilder over an existing itemstack.
-   *
-   * @param is The itemstack to create the ItemBuilder over.
-   */
-  ItemBuilder(@NotNull final ItemStack is) {
-    this.is = is;
   }
 
   /**
@@ -166,7 +189,7 @@ public class ItemBuilder {
    * Add a lore line.
    *
    * @param line The lore line to add.
-   * @param pos The index of where to put it.
+   * @param pos  The index of where to put it.
    */
   public @NotNull ItemBuilder lore(@NotNull final Component line, final int pos) {
     final ItemMeta im = this.is.getItemMeta();

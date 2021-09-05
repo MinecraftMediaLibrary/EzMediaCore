@@ -21,32 +21,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.deluxemediaplugin.command.screen;
+package io.github.pulsebeat02.ezmediacore;
 
-import java.io.Serial;
+import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
+import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.player.base.MediaPlayer;
+import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
+import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 
-public class SkullException extends AssertionError {
+public class NativePluginLoader {
 
-  @Serial
-  private static final long serialVersionUID = 2394089956129784304L;
+  private final MediaLibraryCore core;
 
-  public SkullException(@NotNull final String message) {
-    super("Invalid Skull Base64 %s!".formatted(message));
+  public NativePluginLoader(@NotNull final MediaLibraryCore core) {
+    this.core = core;
   }
 
-  @Override
-  public synchronized Throwable getCause() {
-    return this;
+  public void executePhantomPlayers() {
+    // loads all necessary VLC plugins before actual playback occurs
+    CompletableFuture.runAsync(() -> {
+      final EmbeddedMediaPlayer player = new MediaPlayerFactory("--no-video")
+          .mediaPlayers()
+          .newEmbeddedMediaPlayer();
+      player.videoSurface().attachVideoSurface();
+      player.media().play(
+          "https://github.com/MinecraftMediaLibrary/EzMediaCore/raw/master/vlc-prerender.mp4");
+      player.events().addMediaPlayerEventListener(new MediaPlayerEventAdapter() {
+        @Override
+        public void finished(final MediaPlayer mediaPlayer) {
+          player.release();
+        }
+      });
+    });
   }
 
-  @Override
-  public synchronized Throwable initCause(@NotNull final Throwable cause) {
-    return this;
-  }
-
-  @Override
-  public synchronized Throwable fillInStackTrace() {
-    return this;
-  }
 }
