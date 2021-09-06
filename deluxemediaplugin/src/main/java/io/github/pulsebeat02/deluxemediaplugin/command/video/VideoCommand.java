@@ -111,8 +111,7 @@ public final class VideoCommand extends BaseCommand {
       return SINGLE_SUCCESS;
     }
 
-    this.stopIfPlaying();
-    this.attributes.getPlayer().setPlayerState(PlayerControls.RELEASE);
+    this.releaseIfPlaying();
     gold(audience, "Successfully destroyed the current video!");
 
     return SINGLE_SUCCESS;
@@ -128,7 +127,7 @@ public final class VideoCommand extends BaseCommand {
       return SINGLE_SUCCESS;
     }
 
-    this.stopIfPlaying();
+    this.releaseIfPlaying();
 
     final VideoType type = this.attributes.getVideoType();
     switch (type) {
@@ -247,13 +246,10 @@ public final class VideoCommand extends BaseCommand {
     return false;
   }
 
-  private void stopIfPlaying() {
+  private void releaseIfPlaying() {
     final VideoPlayer player = this.attributes.getPlayer();
     if (player != null) {
-      if (player.getPlayerState() == PlayerControls.START
-          || player.getPlayerState() == PlayerControls.RESUME) {
-        player.setPlayerState(PlayerControls.PAUSE);
-      }
+        player.setPlayerState(PlayerControls.RELEASE);
     }
   }
 
