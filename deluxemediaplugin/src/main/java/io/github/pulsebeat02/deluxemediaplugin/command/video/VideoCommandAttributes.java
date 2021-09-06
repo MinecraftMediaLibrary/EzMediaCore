@@ -46,7 +46,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherSetting;
-import io.github.pulsebeat02.ezmediacore.ffmpeg.YoutubeVideoAudioExtractor;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -63,7 +63,7 @@ public final class VideoCommandAttributes {
   private String video;
   private Path audio;
 
-  private YoutubeVideoAudioExtractor extractor;
+  private EnhancedExecution extractor;
   private boolean youtube;
   private String mrl; // for file resource load video mrl
   private int map;
@@ -210,11 +210,11 @@ public final class VideoCommandAttributes {
     this.mrl = mrl;
   }
 
-  public YoutubeVideoAudioExtractor getExtractor() {
+  public EnhancedExecution getExtractor() {
     return this.extractor;
   }
 
-  public void setExtractor(final YoutubeVideoAudioExtractor extractor) {
+  public void setExtractor(final EnhancedExecution extractor) {
     this.extractor = extractor;
   }
 }

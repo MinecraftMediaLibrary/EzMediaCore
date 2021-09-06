@@ -28,5 +28,4 @@ public interface Cancellable {
   boolean isCancelled();
 
   void onDownloadCancellation();
-
 }

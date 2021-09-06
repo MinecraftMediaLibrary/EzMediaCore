@@ -129,8 +129,8 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
       builder.redirectErrorStream(true);
       try {
         this.process = builder.start();
-        try (final BufferedReader r = new BufferedReader(
-            new InputStreamReader(this.process.getInputStream()))) {
+        try (final BufferedReader r =
+            new BufferedReader(new InputStreamReader(this.process.getInputStream()))) {
           String line;
           while (true) {
             line = r.readLine();
@@ -186,12 +186,10 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public void onBeforeExecution() {
-  }
+  public void onBeforeExecution() {}
 
   @Override
-  public void onAfterExecution() {
-  }
+  public void onAfterExecution() {}
 
   @Override
   public boolean isCompleted() {

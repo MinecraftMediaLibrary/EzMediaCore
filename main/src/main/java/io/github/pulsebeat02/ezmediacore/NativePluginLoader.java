@@ -23,37 +23,32 @@
  */
 package io.github.pulsebeat02.ezmediacore;
 
-import java.util.concurrent.CompletableFuture;
-import org.jetbrains.annotations.NotNull;
+import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
+import java.util.concurrent.TimeUnit;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
-import uk.co.caprica.vlcj.player.base.MediaPlayer;
-import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 
 public class NativePluginLoader {
 
-  private final MediaLibraryCore core;
-
-  public NativePluginLoader(@NotNull final MediaLibraryCore core) {
-    this.core = core;
-  }
+  public NativePluginLoader() {}
 
   public void executePhantomPlayers() {
     // loads all necessary VLC plugins before actual playback occurs
-    CompletableFuture.runAsync(() -> {
-      final EmbeddedMediaPlayer player = new MediaPlayerFactory("--no-video")
-          .mediaPlayers()
-          .newEmbeddedMediaPlayer();
-      player.videoSurface().attachVideoSurface();
-      player.media().play(
-          "https://github.com/MinecraftMediaLibrary/EzMediaCore/raw/master/vlc-prerender.mp4");
-      player.events().addMediaPlayerEventListener(new MediaPlayerEventAdapter() {
-        @Override
-        public void finished(final MediaPlayer mediaPlayer) {
+    final MediaPlayerFactory factory = new MediaPlayerFactory("--no-video", "--no-audio");
+    final EmbeddedMediaPlayer player = factory.mediaPlayers().newEmbeddedMediaPlayer();
+    player
+        .media()
+        .play("https://github.com/MinecraftMediaLibrary/EzMediaCore/raw/master/vlc-prerender.mp4");
+    ExecutorProvider.SCHEDULED_EXECUTOR_SERVICE.schedule(
+        () -> {
+          player
+              .controls()
+              .stop(); // we can do this because the player tries to keep up with time, and the
+          // video is 1 second
           player.release();
-        }
-      });
-    });
+          factory.release();
+        },
+        2L,
+        TimeUnit.SECONDS);
   }
-
 }

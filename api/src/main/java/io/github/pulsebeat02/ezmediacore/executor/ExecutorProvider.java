@@ -52,6 +52,5 @@ public final class ExecutorProvider {
     FRAME_HANDLER = Executors.newCachedThreadPool();
   }
 
-  private ExecutorProvider() {
-  }
+  private ExecutorProvider() {}
 }

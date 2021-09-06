@@ -15,5 +15,4 @@ public class VLCWindowsRegistryTest {
     System.out.println(directory);
     System.out.println(ver);
   }
-
 }

@@ -43,8 +43,7 @@ public class SpotifyTrack implements Track {
 
   private com.wrapper.spotify.model_objects.specification.Track track;
 
-  public SpotifyTrack(@NotNull final String url)
-      throws IOException {
+  public SpotifyTrack(@NotNull final String url) throws IOException {
     this.url = url;
     try {
       this.track =

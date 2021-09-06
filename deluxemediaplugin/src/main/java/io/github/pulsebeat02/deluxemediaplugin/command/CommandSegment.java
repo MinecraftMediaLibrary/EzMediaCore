@@ -73,17 +73,11 @@ public interface CommandSegment<S, N extends CommandNode<S>> {
   }
 
   @FunctionalInterface
-  interface Root<S> extends CommandSegment<S, RootCommandNode<S>> {
-
-  }
+  interface Root<S> extends CommandSegment<S, RootCommandNode<S>> {}
 
   @FunctionalInterface
-  interface Literal<S> extends CommandSegment<S, LiteralCommandNode<S>> {
-
-  }
+  interface Literal<S> extends CommandSegment<S, LiteralCommandNode<S>> {}
 
   @FunctionalInterface
-  interface Argument<S, T> extends CommandSegment<S, ArgumentCommandNode<S, T>> {
-
-  }
+  interface Argument<S, T> extends CommandSegment<S, ArgumentCommandNode<S, T>> {}
 }

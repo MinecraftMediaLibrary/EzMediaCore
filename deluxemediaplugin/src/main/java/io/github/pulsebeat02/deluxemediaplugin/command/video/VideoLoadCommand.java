@@ -58,6 +58,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioExtractor;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.SpotifyTrackExtractor;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.YoutubeVideoAudioExtractor;
@@ -82,15 +83,13 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   private final LiteralCommandNode<CommandSender> node;
   private final VideoCommandAttributes attributes;
   private final DeluxeMediaPlugin plugin;
-  private CompletableFuture<Void> downloadTask;
+  private CompletableFuture<Void> task;
   private volatile boolean cancelled;
-  private boolean firstLoad;
 
   public VideoLoadCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final VideoCommandAttributes attributes) {
     this.plugin = plugin;
     this.attributes = attributes;
-    this.firstLoad = true;
     this.node =
         this.literal("load")
             .then(this.argument("mrl", StringArgumentType.greedyString()).executes(this::loadVideo))
@@ -101,16 +100,16 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   private int cancelDownload(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = this.plugin.audience().sender(context.getSource());
-    final YoutubeVideoAudioExtractor extractor = this.attributes.getExtractor();
+    final EnhancedExecution extractor = this.attributes.getExtractor();
     if (extractor != null) {
       this.cancelled = true;
       extractor.cancelProcess();
-      this.downloadTask.cancel(true);
+      this.task.cancel(true);
       this.attributes.setExtractor(null);
-      this.downloadTask = null;
-      gold(audience, "Successfully cancelled the Youtube download!");
+      this.task = null;
+      gold(audience, "Successfully cancelled the video loading process!");
     } else {
-      red(audience, "You haven't downloaded a Youtube video yet!");
+      red(audience, "You aren't loading a video!");
     }
     return SINGLE_SUCCESS;
   }
@@ -135,22 +134,20 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
         "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.");
 
     switch (type.get()) {
-      case LOCAL_FILE -> CompletableFuture.runAsync(
+      case LOCAL_FILE -> this.task = CompletableFuture.runAsync(
               () -> this.wrapResourcepack(this.prepareLocalFileVideo(audience, Path.of(mrl), folder)))
-          .thenRunAsync(() -> this.afterExecution(audience, mrl));
-      case YOUTUBE -> this.downloadTask = CompletableFuture.runAsync(
+          .thenRunAsync(() -> this.afterDownloadExecutionFinish(audience, mrl));
+      case YOUTUBE -> this.task = CompletableFuture.runAsync(
               () ->
                   this.wrapResourcepack(
-                      this.prepareYoutubeVideo(audience, Path.of(folder), mrl)
-                          .getExtractor()
-                          .getOutput()))
+                      this.prepareYoutubeVideo(audience, Path.of(folder), mrl)))
           .thenRunAsync(() -> this.afterDownloadExecutionFinish(audience, mrl));
-      case SPOTIFY -> this.downloadTask = CompletableFuture.runAsync(
+      case SPOTIFY -> this.task = CompletableFuture.runAsync(
               () ->
                   this.wrapResourcepack(
                       this.prepareSpotifyLink(audience, Path.of(folder), mrl)))
           .thenRunAsync(() -> this.afterDownloadExecutionFinish(audience, mrl));
-      case DIRECT_URL -> this.downloadTask = CompletableFuture.runAsync(
+      case DIRECT_URL -> this.task = CompletableFuture.runAsync(
               () ->
                   this.wrapResourcepack(
                       this.prepareDirectLink(audience, Path.of(folder), mrl)))
@@ -160,14 +157,9 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     return SINGLE_SUCCESS;
   }
 
-  private void afterExecution(@NotNull final Audience audience, @NotNull final String mrl) {
-    this.useFirstLoad();
-    this.sendCompletionMessage(audience, mrl);
-  }
-
   private void afterDownloadExecutionFinish(@NotNull final Audience audience,
       @NotNull final String mrl) {
-    this.afterExecution(audience, mrl);
+    this.sendCompletionMessage(audience, mrl);
     this.attributes.getCompletion().set(true);
     this.cancelled = false;
   }
@@ -178,30 +170,16 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     }
   }
 
-  private void useFirstLoad() {
-    if (!this.cancelled) {
-      this.loadResourcepack();
-      if (this.firstLoad) {
-        this.loadResourcepack();
-        this.firstLoad = false;
-      }
-    }
-  }
-
-  private void loadResourcepack() {
-    ResourcepackUtils.forceResourcepackLoad(
-        this.plugin.library(), this.attributes.getUrl(), this.attributes.getHash());
-  }
-
   private @NotNull Path prepareLocalFileVideo(@NotNull final Audience audience,
       @NotNull final Path file, @NotNull final String folder) {
     try {
       final Path audio = Path.of(folder, "local.ogg");
       this.attributes.setYoutube(false);
       this.attributes.setExtractor(null);
-      new FFmpegAudioExtractor(
-          this.plugin.library(), this.plugin.getAudioConfiguration(), file, audio)
-          .executeAsyncWithLogging((line) -> external(audience, line)).get();
+      final FFmpegAudioExtractor extractor = new FFmpegAudioExtractor(
+          this.plugin.library(), this.plugin.getAudioConfiguration(), file, audio);
+      this.attributes.setExtractor(extractor);
+      extractor.executeAsyncWithLogging((line) -> external(audience, line)).get();
       this.attributes.setVideoMrl(file.toAbsolutePath().toString());
       this.attributes.setAudio(audio);
       return audio;
@@ -212,7 +190,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     }
   }
 
-  private @NotNull YoutubeVideoAudioExtractor prepareYoutubeVideo(
+  private @NotNull Path prepareYoutubeVideo(
       @NotNull final Audience audience, @NotNull final Path folder, @NotNull final String mrl) {
     try {
       this.attributes.setYoutube(true);
@@ -227,7 +205,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       this.attributes.setVideoMrl(
           extractor.getDownloader().getDownloadPath().toAbsolutePath().toString());
       this.attributes.setAudio(extractor.getExtractor().getOutput().toAbsolutePath());
-      return extractor;
+      return extractor.getExtractor().getOutput();
     } catch (final ExecutionException | InterruptedException | IOException e) {
       this.plugin.getLogger().severe("Failed to extract audio file!");
       e.printStackTrace();
@@ -244,6 +222,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       final SpotifyTrackExtractor downloader = new SpotifyTrackExtractor(this.plugin.library(),
           this.plugin.getAudioConfiguration(), mrl,
           audio);
+      this.attributes.setExtractor(downloader);
       downloader.executeAsyncWithLogging((line) -> external(audience, line)).get();
       this.attributes.setVideoMrl(downloader.getTrackDownloader().getDownloadPath().toString());
       this.attributes.setAudio(downloader.getYoutubeExtractor().getExtractor().getOutput());
@@ -258,8 +237,10 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   private @NotNull Path prepareDirectLink(@NotNull final Audience audience,
       @NotNull final Path folder, @NotNull final String mrl) {
     try {
-      return this.prepareLocalFileVideo(audience, folder,
-          DependencyUtils.downloadFile(folder.resolve("temp.mp4"), mrl).toString());
+      gold(audience, "Downloading video from direct link...");
+      final Path video = DependencyUtils.downloadFile(folder.resolve("temp.mp4"), mrl);
+      gold(audience, "Finished downloading video from direct link!");
+      return this.prepareLocalFileVideo(audience, video, folder.toString());
     } catch (final IOException e) {
       this.plugin.getLogger().severe("Failed to extract audio file!");
       e.printStackTrace();

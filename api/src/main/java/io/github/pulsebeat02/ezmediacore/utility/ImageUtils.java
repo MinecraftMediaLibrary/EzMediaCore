@@ -30,8 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ImageUtils {
 
-  private ImageUtils() {
-  }
+  private ImageUtils() {}
 
   public static @NotNull BufferedImage resize(
       @NotNull final BufferedImage img, final int width, final int height) {

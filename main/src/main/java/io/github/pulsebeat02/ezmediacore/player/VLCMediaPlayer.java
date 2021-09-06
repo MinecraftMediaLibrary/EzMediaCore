@@ -48,6 +48,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
   private final VideoSurfaceAdapter adapter;
   private final MinecraftVideoRenderCallback callback;
 
+  private MediaPlayerFactory factory;
   private EmbeddedMediaPlayer player;
 
   VLCMediaPlayer(
@@ -96,7 +97,12 @@ public final class VLCMediaPlayer extends MediaPlayer {
       }
       case RELEASE -> {
         if (this.player != null) {
+          this.player.controls().stop();
           this.player.release();
+          this.player = null;
+        }
+        if (this.factory != null) {
+          this.factory.release();
           this.player = null;
         }
       }
@@ -126,11 +132,10 @@ public final class VLCMediaPlayer extends MediaPlayer {
 
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer() {
     final int rate = this.getFrameRate();
-    return new MediaPlayerFactory(
+    this.factory = new MediaPlayerFactory(
         rate != 0 ? new String[]{"sout=\"#transcode{fps=%d}\"".formatted(rate), "--no-audio"}
-            : new String[]{})
-        .mediaPlayers()
-        .newEmbeddedMediaPlayer();
+            : new String[]{});
+    return this.factory.mediaPlayers().newEmbeddedMediaPlayer();
   }
 
   private void setCallback(@NotNull final EmbeddedMediaPlayer player) {

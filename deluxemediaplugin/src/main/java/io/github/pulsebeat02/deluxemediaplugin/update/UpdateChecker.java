@@ -72,8 +72,8 @@ public final class UpdateChecker {
           try (final Scanner scanner =
               new Scanner(
                   new URL(
-                      "https://api.spigotmc.org/legacy/update.php?resource=%d"
-                          .formatted(this.resource))
+                          "https://api.spigotmc.org/legacy/update.php?resource=%d"
+                              .formatted(this.resource))
                       .openStream())) {
             final String update = scanner.next();
             if (this.plugin.getDescription().getVersion().equalsIgnoreCase(update)) {

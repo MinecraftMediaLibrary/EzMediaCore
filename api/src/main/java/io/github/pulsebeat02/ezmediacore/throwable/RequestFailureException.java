@@ -28,8 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class RequestFailureException extends LibraryException {
 
-  @Serial
-  private static final long serialVersionUID = 6437787548576716445L;
+  @Serial private static final long serialVersionUID = 6437787548576716445L;
 
   public RequestFailureException(@NotNull final String message) {
     super(message);

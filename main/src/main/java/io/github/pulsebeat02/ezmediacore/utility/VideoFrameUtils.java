@@ -54,8 +54,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class VideoFrameUtils {
 
-  private VideoFrameUtils() {
-  }
+  private VideoFrameUtils() {}
 
   public static int @NotNull [] toResizedColorArray(
       @NotNull final Picture frame,

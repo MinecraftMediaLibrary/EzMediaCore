@@ -30,8 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class CollectionUtils {
 
-  private CollectionUtils() {
-  }
+  private CollectionUtils() {}
 
   @NotNull
   public static <K, V> Multimap<K, V> createMultiMap(

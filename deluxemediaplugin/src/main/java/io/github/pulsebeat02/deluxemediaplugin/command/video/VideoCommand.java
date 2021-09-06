@@ -286,10 +286,10 @@ public final class VideoCommand extends BaseCommand {
             .put("/video set dither [algorithm]", "Sets the specific algorithm for dithering")
             .put(
                 "/video set starting-map [id]",
-                "Sets the starting map id from id to id + 25. (For example 0 - 24)")
+                "Sets the starting map id from id to id to the Length * Width. (For example 0 - 24 for 5x5 display if you put 0)")
             .put(
                 "/video set mode [mode]",
-                "Sets whether the video should be entity clouds or itemframes")
+                "Sets the video mode")
             .build());
   }
 

@@ -15,5 +15,4 @@ public interface SpotifyAudioExtractor extends EnhancedExecution, Cancellable {
 
   @NotNull
   YoutubeAudioExtractor getYoutubeExtractor();
-
 }

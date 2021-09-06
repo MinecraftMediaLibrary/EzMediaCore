@@ -18,10 +18,12 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
   private final YoutubeVideoAudioExtractor extractor;
   private boolean cancelled;
 
-  public SpotifyTrackExtractor(@NotNull final MediaLibraryCore core,
+  public SpotifyTrackExtractor(
+      @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
-      @NotNull final Path output) throws IOException {
+      @NotNull final Path output)
+      throws IOException {
     this.downloader = new SpotifyTrackDownloader(url, output);
     this.extractor = new YoutubeVideoAudioExtractor(core, configuration, url, output);
   }
@@ -83,6 +85,8 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
   public void cancelProcess() {
     this.onDownloadCancellation();
     this.cancelled = true;
+    this.downloader.cancelDownload();
+    this.extractor.cancelProcess();
   }
 
   @Override
@@ -91,16 +95,13 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
   }
 
   @Override
-  public void onDownloadCancellation() {
-  }
+  public void onDownloadCancellation() {}
 
   @Override
-  public void onStartAudioExtraction() {
-  }
+  public void onStartAudioExtraction() {}
 
   @Override
-  public void onFinishAudioExtraction() {
-  }
+  public void onFinishAudioExtraction() {}
 
   @Override
   public @NotNull TrackDownloader getTrackDownloader() {

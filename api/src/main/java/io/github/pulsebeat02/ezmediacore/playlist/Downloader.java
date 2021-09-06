@@ -42,5 +42,4 @@ public interface Downloader extends Cancellable {
 
   @NotNull
   Path getDownloadPath();
-
 }

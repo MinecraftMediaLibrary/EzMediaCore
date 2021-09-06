@@ -9,11 +9,9 @@ import java.io.Serial;
  */
 public class BadFileException extends Exception {
 
-  @Serial
-  private static final long serialVersionUID = -8935110974026120897L;
+  @Serial private static final long serialVersionUID = -8935110974026120897L;
 
-  public BadFileException() {
-  }
+  public BadFileException() {}
 
   public BadFileException(final String message) {
     super(message);

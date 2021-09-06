@@ -61,8 +61,7 @@ public final class MediaExtractionUtils {
     SEARCH_KEYWORD = "videoId";
   }
 
-  private MediaExtractionUtils() {
-  }
+  private MediaExtractionUtils() {}
 
   /**
    * Extracts id from Youtube URL.
@@ -87,6 +86,9 @@ public final class MediaExtractionUtils {
    */
   @NotNull
   public static Optional<String> getSpotifyID(@NotNull final String url) {
+    if (!url.contains("spotify")) {
+      return Optional.empty();
+    }
     final String[] split = url.split("\\?")[0].split("/");
     final String id = split[split.length - 1];
     if (id.isEmpty()) {
