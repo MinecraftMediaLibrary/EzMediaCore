@@ -66,26 +66,22 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
 
   @Override
   public void execute() {
+    this.executeWithLogging(null);
   }
 
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
-
     this.onStartAudioExtraction();
-
     final boolean log = logger != null;
     if (log) {
       logger.accept("Downloading Video...");
     }
-
     this.downloader.downloadVideo(
         this.downloader.getVideo().getVideoFormats().get(0).getQuality(), true);
-
     if (log) {
       logger.accept("Finished downloading Video");
     }
     this.extractor.executeWithLogging(logger);
-
     this.onFinishAudioExtraction();
   }
 

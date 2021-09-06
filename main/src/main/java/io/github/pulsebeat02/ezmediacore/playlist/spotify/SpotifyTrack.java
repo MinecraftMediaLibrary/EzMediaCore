@@ -24,6 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
+import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingFunction;
 import io.github.pulsebeat02.ezmediacore.throwable.DeadResourceLinkException;
 import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
@@ -37,20 +38,26 @@ import org.jetbrains.annotations.NotNull;
 
 public class SpotifyTrack implements Track {
 
-  private final com.wrapper.spotify.model_objects.specification.Track track;
   private final String url;
   private final List<Artist> artists;
 
+  private com.wrapper.spotify.model_objects.specification.Track track;
+
   public SpotifyTrack(@NotNull final String url)
-      throws IOException, ParseException, SpotifyWebApiException {
+      throws IOException {
     this.url = url;
-    this.track =
-        SpotifyProvider.getSpotifyApi()
-            .getTrack(
-                MediaExtractionUtils.getSpotifyID(url)
-                    .orElseThrow(() -> new DeadResourceLinkException(url)))
-            .build()
-            .execute();
+    try {
+      this.track =
+          SpotifyProvider.getSpotifyApi()
+              .getTrack(
+                  MediaExtractionUtils.getSpotifyID(url)
+                      .orElseThrow(() -> new DeadResourceLinkException(url)))
+              .build()
+              .execute();
+    } catch (final SpotifyWebApiException | ParseException e) {
+      Logger.info("Failed to retrieve information from Spotify link!");
+      e.printStackTrace();
+    }
     this.artists =
         Arrays.stream(this.track.getArtists())
             .map(ThrowingFunction.unchecked(SpotifyArtist::new))

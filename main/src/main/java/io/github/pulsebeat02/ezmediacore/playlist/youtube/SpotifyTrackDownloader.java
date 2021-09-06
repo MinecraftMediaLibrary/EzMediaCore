@@ -24,7 +24,6 @@
 package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
 import com.github.kiulian.downloader.downloader.request.RequestVideoFileDownload;
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.QuerySearch;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyTrack;
@@ -37,7 +36,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.NotNull;
 
 public class SpotifyTrackDownloader implements TrackDownloader {
@@ -56,12 +54,12 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   }
 
   public SpotifyTrackDownloader(@NotNull final String url, @NotNull final Path videoPath)
-      throws IOException, ParseException, SpotifyWebApiException {
+      throws IOException {
     this(new SpotifyTrack(url), videoPath);
   }
 
   public SpotifyTrackDownloader(@NotNull final MediaLibraryCore core, @NotNull final String url)
-      throws IOException, ParseException, SpotifyWebApiException {
+      throws IOException {
     this(new SpotifyTrack(url), core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID())));
   }
 

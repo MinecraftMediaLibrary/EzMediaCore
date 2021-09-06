@@ -59,21 +59,20 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioExtractor;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.SpotifyTrackExtractor;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.YoutubeVideoAudioExtractor;
 import io.github.pulsebeat02.ezmediacore.resourcepack.PackFormat;
 import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
+import io.github.pulsebeat02.ezmediacore.utility.DependencyUtils;
 import io.github.pulsebeat02.ezmediacore.utility.HashingUtils;
-import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
-import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -121,48 +120,61 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
     final String folder = "%s/emc/".formatted(this.plugin.getDataFolder().getAbsolutePath());
-    final AtomicBoolean completion = this.attributes.getCompletion();
+
+    this.attributes.getCompletion().set(false);
+
+    final Optional<MRLType> type = MRLType.getType(mrl);
+    if (type.isEmpty()) {
+      red(audience,
+          "Invalid MRL link! Does not follow a Spotify/Youtube/Local File/Direct Link pattern!");
+      return SINGLE_SUCCESS;
+    }
 
     gold(
         audience,
         "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.");
 
-    completion.set(false);
-
-    if (MediaExtractionUtils.getYoutubeID(mrl).isEmpty()) {
-      final Path file = Path.of(mrl);
-      if (Files.exists(file)) {
-        CompletableFuture.runAsync(
-                () -> this.wrapResourcepack(this.setAudioFileAttributes(Path.of(mrl), folder)))
-            .thenRun(this::useFirstLoad)
-            .thenRun(() -> gold(audience, "Successfully loaded file %s".formatted(mrl)))
-            .whenComplete((result, exception) -> completion.set(true));
-      } else if (mrl.startsWith("http")) {
-        red(audience, "Link %s is not a valid Youtube video link!".formatted(mrl));
-      } else {
-        red(audience, "File %s cannot be found!".formatted(PathUtils.getName(file)));
-      }
-    } else {
-      this.downloadTask = CompletableFuture.runAsync(
+    switch (type.get()) {
+      case LOCAL_FILE -> CompletableFuture.runAsync(
+              () -> this.wrapResourcepack(this.prepareLocalFileVideo(audience, Path.of(mrl), folder)))
+          .thenRunAsync(() -> this.afterExecution(audience, mrl));
+      case YOUTUBE -> this.downloadTask = CompletableFuture.runAsync(
               () ->
                   this.wrapResourcepack(
-                      this.setYoutubeAttributes(audience, Path.of(folder), mrl)
+                      this.prepareYoutubeVideo(audience, Path.of(folder), mrl)
                           .getExtractor()
                           .getOutput()))
-          .thenRunAsync(this::useFirstLoad)
-          .thenRun(() -> this.sendCompletionMessage(audience, mrl))
-          .whenComplete((result, exception) -> {
-            completion.set(true);
-            this.cancelled = false;
-          });
+          .thenRunAsync(() -> this.afterDownloadExecutionFinish(audience, mrl));
+      case SPOTIFY -> this.downloadTask = CompletableFuture.runAsync(
+              () ->
+                  this.wrapResourcepack(
+                      this.prepareSpotifyLink(audience, Path.of(folder), mrl)))
+          .thenRunAsync(() -> this.afterDownloadExecutionFinish(audience, mrl));
+      case DIRECT_URL -> this.downloadTask = CompletableFuture.runAsync(
+              () ->
+                  this.wrapResourcepack(
+                      this.prepareDirectLink(audience, Path.of(folder), mrl)))
+          .thenRunAsync(() -> this.afterDownloadExecutionFinish(audience, mrl));
     }
 
     return SINGLE_SUCCESS;
   }
 
+  private void afterExecution(@NotNull final Audience audience, @NotNull final String mrl) {
+    this.useFirstLoad();
+    this.sendCompletionMessage(audience, mrl);
+  }
+
+  private void afterDownloadExecutionFinish(@NotNull final Audience audience,
+      @NotNull final String mrl) {
+    this.afterExecution(audience, mrl);
+    this.attributes.getCompletion().set(true);
+    this.cancelled = false;
+  }
+
   private void sendCompletionMessage(@NotNull final Audience audience, @NotNull final String mrl) {
     if (!this.cancelled) {
-      gold(audience, "Successfully loaded Youtube video %s".formatted(mrl));
+      gold(audience, "Successfully loaded video %s".formatted(mrl));
     }
   }
 
@@ -181,60 +193,82 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
         this.plugin.library(), this.attributes.getUrl(), this.attributes.getHash());
   }
 
-  private @NotNull Path setAudioFileAttributes(
+  private @NotNull Path prepareLocalFileVideo(@NotNull final Audience audience,
       @NotNull final Path file, @NotNull final String folder) {
-
-    final Path audio = Path.of(folder, "custom.ogg");
-
-    this.attributes.setYoutube(false);
-    this.attributes.setExtractor(null);
-
     try {
+      final Path audio = Path.of(folder, "local.ogg");
+      this.attributes.setYoutube(false);
+      this.attributes.setExtractor(null);
       new FFmpegAudioExtractor(
           this.plugin.library(), this.plugin.getAudioConfiguration(), file, audio)
-          .execute();
-    } catch (final IOException e) {
+          .executeAsyncWithLogging((line) -> external(audience, line)).get();
+      this.attributes.setVideoMrl(file.toAbsolutePath().toString());
+      this.attributes.setAudio(audio);
+      return audio;
+    } catch (final IOException | ExecutionException | InterruptedException e) {
+      this.plugin.getLogger().severe("Failed to extract audio file!");
       e.printStackTrace();
+      throw new AssertionError("Unable to create audio from local video!");
     }
-
-    this.attributes.setVideoMrl(file.toAbsolutePath().toString());
-    this.attributes.setAudio(audio);
-
-    return audio;
   }
 
-  private @NotNull YoutubeVideoAudioExtractor setYoutubeAttributes(
+  private @NotNull YoutubeVideoAudioExtractor prepareYoutubeVideo(
       @NotNull final Audience audience, @NotNull final Path folder, @NotNull final String mrl) {
-
     try {
-
+      this.attributes.setYoutube(true);
       final YoutubeVideoAudioExtractor extractor =
           new YoutubeVideoAudioExtractor(
               this.plugin.library(),
               this.plugin.getAudioConfiguration(),
               mrl,
-              folder.resolve("audio.ogg"));
-
+              folder.resolve("yt.ogg"));
       this.attributes.setExtractor(extractor);
-
       extractor.executeAsyncWithLogging((line) -> external(audience, line)).get();
-
-      this.attributes.setYoutube(true);
       this.attributes.setVideoMrl(
           extractor.getDownloader().getDownloadPath().toAbsolutePath().toString());
       this.attributes.setAudio(extractor.getExtractor().getOutput().toAbsolutePath());
-
       return extractor;
-
     } catch (final ExecutionException | InterruptedException | IOException e) {
-      throw new AssertionError("Couldn't extract audio file!");
+      this.plugin.getLogger().severe("Failed to extract audio file!");
+      e.printStackTrace();
+      throw new AssertionError("Unable to create audio from Youtube video!");
+    }
+  }
+
+  private @NotNull Path prepareSpotifyLink(@NotNull final Audience audience,
+      @NotNull final Path folder, @NotNull final String mrl) {
+    try {
+      this.attributes.setExtractor(null);
+      this.attributes.setYoutube(false);
+      final Path audio = folder.resolve("spotify.ogg");
+      final SpotifyTrackExtractor downloader = new SpotifyTrackExtractor(this.plugin.library(),
+          this.plugin.getAudioConfiguration(), mrl,
+          audio);
+      downloader.executeAsyncWithLogging((line) -> external(audience, line)).get();
+      this.attributes.setVideoMrl(downloader.getTrackDownloader().getDownloadPath().toString());
+      this.attributes.setAudio(downloader.getYoutubeExtractor().getExtractor().getOutput());
+      return audio;
+    } catch (final ExecutionException | InterruptedException | IOException e) {
+      this.plugin.getLogger().severe("Failed to extract audio file!");
+      e.printStackTrace();
+      throw new AssertionError("Unable to create audio from Spotify video!");
+    }
+  }
+
+  private @NotNull Path prepareDirectLink(@NotNull final Audience audience,
+      @NotNull final Path folder, @NotNull final String mrl) {
+    try {
+      return this.prepareLocalFileVideo(audience, folder,
+          DependencyUtils.downloadFile(folder.resolve("temp.mp4"), mrl).toString());
+    } catch (final IOException e) {
+      this.plugin.getLogger().severe("Failed to extract audio file!");
+      e.printStackTrace();
+      throw new AssertionError("Unable to create audio from direct link!");
     }
   }
 
   private void wrapResourcepack(@NotNull final Path audio) {
-
     try {
-
       final HttpServer daemon = this.plugin.getHttpServer();
       final ResourcepackSoundWrapper wrapper =
           new ResourcepackSoundWrapper(
@@ -243,11 +277,9 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
               PackFormat.getCurrentFormat().getId());
       wrapper.addSound(this.plugin.getName().toLowerCase(Locale.ROOT), audio);
       wrapper.wrap();
-
       final Path path = wrapper.getResourcepackFilePath();
       this.attributes.setUrl(daemon.createUrl(path));
       this.attributes.setHash(HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
-
     } catch (final IOException e) {
       this.plugin.getLogger().severe("Failed to wrap resourcepack!");
       e.printStackTrace();
@@ -255,20 +287,14 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {
-
     final Audience audience = this.plugin.audience().sender(context.getSource());
-
     if (this.unloadedResourcepack(audience)) {
       return SINGLE_SUCCESS;
     }
-
     final String url = this.attributes.getUrl();
     final byte[] hash = this.attributes.getHash();
-
     ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), url, hash);
-
     gold(audience, "Sent Resourcepack! (URL: %s, Hash: %s)".formatted(url, new String(hash)));
-
     return SINGLE_SUCCESS;
   }
 
