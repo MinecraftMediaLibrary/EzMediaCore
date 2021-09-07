@@ -34,7 +34,8 @@ import org.jetbrains.annotations.NotNull;
 
 public final class RequestUtils {
 
-  private RequestUtils() {}
+  private RequestUtils() {
+  }
 
   public static @NotNull String getSearchedVideos(
       @NotNull final String apiKey, @NotNull final String keyword) {

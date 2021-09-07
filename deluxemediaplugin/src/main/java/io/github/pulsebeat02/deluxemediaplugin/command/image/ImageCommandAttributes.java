@@ -45,7 +45,6 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.image;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -54,23 +53,17 @@ import org.jetbrains.annotations.NotNull;
 public final class ImageCommandAttributes {
 
   private final Set<UUID> listen;
-  private final Set<String> extensions;
   private int width;
   private int height;
 
   public ImageCommandAttributes() {
     this.listen = new HashSet<>();
-    this.extensions = ImmutableSet.of(".png", ".jpg", ".jpeg", ".tif", ".gif");
     this.width = 1;
     this.height = 1;
   }
 
   public @NotNull Set<UUID> getListen() {
     return this.listen;
-  }
-
-  public @NotNull Set<String> getExtensions() {
-    return this.extensions;
   }
 
   public int getWidth() {

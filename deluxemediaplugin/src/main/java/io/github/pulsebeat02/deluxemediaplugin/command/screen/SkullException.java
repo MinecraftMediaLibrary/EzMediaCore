@@ -28,7 +28,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class SkullException extends AssertionError {
 
-  @Serial private static final long serialVersionUID = 2394089956129784304L;
+  @Serial
+  private static final long serialVersionUID = 2394089956129784304L;
 
   public SkullException(@NotNull final String message) {
     super("Invalid Skull Base64 %s!".formatted(message));

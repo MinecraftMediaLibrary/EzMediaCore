@@ -186,10 +186,12 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public void onBeforeExecution() {}
+  public void onBeforeExecution() {
+  }
 
   @Override
-  public void onAfterExecution() {}
+  public void onAfterExecution() {
+  }
 
   @Override
   public boolean isCompleted() {

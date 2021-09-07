@@ -21,55 +21,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.deluxemediaplugin.command.video;
+package io.github.pulsebeat02.deluxemediaplugin.command.image;
 
-import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
-import java.net.MalformedURLException;
-import java.net.URL;
+import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.Set;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-public enum MRLType {
-  SPOTIFY,
-  YOUTUBE,
+public enum ImageMrlType {
+
   LOCAL_FILE,
-  DIRECT_URL;
+  DIRECT_LINK;
 
-  public static Optional<MRLType> getType(@NotNull final String mrl) {
-    return isMrlYoutube(mrl)
-        ? Optional.of(YOUTUBE)
-        : isMrlSpotify(mrl)
-            ? Optional.of(SPOTIFY)
-            : isMrlLocalPath(mrl)
-                ? Optional.of(LOCAL_FILE)
-                : isMrlDirectUrl(mrl) ? Optional.of(DIRECT_URL) : Optional.empty();
+  public static final Set<String> EXTENSIONS;
+
+  static {
+    EXTENSIONS = Set.of("png", "jpg", "jpeg", "tif", "gif");
   }
 
-  public static boolean isMrlYoutube(@NotNull final String mrl) {
-    return MediaExtractionUtils.getYoutubeID(mrl).isPresent();
+  public static Optional<ImageMrlType> getType(@NotNull final String mrl) {
+    return isMrlLocalFile(mrl) ? Optional.of(LOCAL_FILE)
+        : isMrlDirectLink(mrl) ? Optional.of(DIRECT_LINK) : Optional.empty();
   }
 
-  public static boolean isMrlLocalPath(@NotNull final String mrl) {
+  private static boolean isMrlLocalFile(@NotNull final String mrl) {
     try {
-      return Files.exists(Path.of(mrl));
+      final Path path = Path.of(mrl);
+      if (Files.notExists(path)) {
+        return false;
+      }
+      return matchesFileType(PathUtils.getName(path));
     } catch (final InvalidPathException e) {
       return false;
     }
   }
 
-  public static boolean isMrlSpotify(@NotNull final String mrl) {
-    return MediaExtractionUtils.getSpotifyID(mrl).isPresent();
+  private static boolean isMrlDirectLink(@NotNull final String mrl) {
+    return mrl.startsWith("http") && matchesFileType(mrl);
   }
 
-  public static boolean isMrlDirectUrl(@NotNull final String mrl) {
-    try {
-      new URL(mrl);
-    } catch (final MalformedURLException e) {
-      return false;
-    }
-    return mrl.endsWith(".mp4");
+  private static boolean matchesFileType(@NotNull final String mrl) {
+    return EXTENSIONS.stream()
+        .anyMatch(extension -> StringUtils.endsWithIgnoreCase(mrl, extension));
   }
+
 }

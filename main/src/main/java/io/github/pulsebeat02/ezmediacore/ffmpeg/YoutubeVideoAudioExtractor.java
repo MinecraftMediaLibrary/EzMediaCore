@@ -116,10 +116,12 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   }
 
   @Override
-  public void onStartAudioExtraction() {}
+  public void onStartAudioExtraction() {
+  }
 
   @Override
-  public void onFinishAudioExtraction() {}
+  public void onFinishAudioExtraction() {
+  }
 
   @Override
   public @NotNull VideoDownloader getDownloader() {
@@ -137,5 +139,6 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   }
 
   @Override
-  public void onDownloadCancellation() {}
+  public void onDownloadCancellation() {
+  }
 }

@@ -70,7 +70,7 @@ public class CommandTask {
   /**
    * Instantiates a CommandTask.
    *
-   * @param command command
+   * @param command       command
    * @param runOnCreation whether it should be ran instantly
    * @throws IOException if the command isn't valid (when ran instantly)
    */

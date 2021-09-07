@@ -118,13 +118,16 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
   }
 
   @Override
-  public void onDownloadCancellation() {}
+  public void onDownloadCancellation() {
+  }
 
   @Override
-  public void onStartAudioExtraction() {}
+  public void onStartAudioExtraction() {
+  }
 
   @Override
-  public void onFinishAudioExtraction() {}
+  public void onFinishAudioExtraction() {
+  }
 
   @Override
   public @NotNull TrackDownloader getTrackDownloader() {

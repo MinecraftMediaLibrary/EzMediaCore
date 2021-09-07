@@ -30,7 +30,8 @@ import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 
 public class NativePluginLoader {
 
-  public NativePluginLoader() {}
+  public NativePluginLoader() {
+  }
 
   public void executePhantomPlayers() {
     // loads all necessary VLC plugins before actual playback occurs

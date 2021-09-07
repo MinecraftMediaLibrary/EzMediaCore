@@ -32,7 +32,8 @@ import org.jetbrains.annotations.Nullable;
 
 public final class ResourceUtils {
 
-  private ResourceUtils() {}
+  private ResourceUtils() {
+  }
 
   @NotNull
   public static String getFileContents(@NotNull final String name) throws IOException {

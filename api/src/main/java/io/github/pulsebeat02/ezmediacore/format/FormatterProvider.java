@@ -33,5 +33,6 @@ public final class FormatterProvider {
     FFMPEG_TIME_FORMATTER = new SimpleDateFormat("HH:mm:ss.SSS");
   }
 
-  private FormatterProvider() {}
+  private FormatterProvider() {
+  }
 }

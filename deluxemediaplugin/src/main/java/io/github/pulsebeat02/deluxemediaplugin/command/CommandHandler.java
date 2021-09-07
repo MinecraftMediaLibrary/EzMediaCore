@@ -45,7 +45,6 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command;
 
-import com.google.common.collect.ImmutableSet;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestion;
@@ -84,7 +83,7 @@ public final class CommandHandler implements TabExecutor {
     this.dispatcher = new CommandDispatcher<>();
     this.rootNode = this.dispatcher.getRoot();
     this.commands =
-        ImmutableSet.of(
+        Set.of(
             new ImageCommand(plugin, this),
             new DitherCommand(plugin, this),
             new VideoCommand(plugin, this),
@@ -113,10 +112,10 @@ public final class CommandHandler implements TabExecutor {
   /**
    * CommandHandler to read input and execute other commands.
    *
-   * @param sender command sender
+   * @param sender  command sender
    * @param command command sent
-   * @param label label of command
-   * @param args arguments for command
+   * @param label   label of command
+   * @param args    arguments for command
    * @return whether the command usage should be showed up.
    */
   @Override
@@ -139,10 +138,10 @@ public final class CommandHandler implements TabExecutor {
   /**
    * Tab handler to handle tab completer.
    *
-   * @param sender command sender
+   * @param sender  command sender
    * @param command current command
-   * @param alias aliases of command
-   * @param args arguments of the command
+   * @param alias   aliases of command
+   * @param args    arguments of the command
    * @return list of options.
    */
   @Override

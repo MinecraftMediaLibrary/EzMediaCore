@@ -39,13 +39,14 @@ import org.jetbrains.annotations.NotNull;
 
 public final class FileUtils {
 
-  private FileUtils() {}
+  private FileUtils() {
+  }
 
   @NotNull
-  public static Path downloadImageFile(@NotNull final String url, @NotNull final Path path)
+  public static Path downloadImageFile(@NotNull final String url, @NotNull final Path folder)
       throws IOException {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be null or empty!");
-    final String filePath = "%s/%s.png".formatted(path, UUID.randomUUID());
+    final String filePath = "%s/%s.png".formatted(folder, UUID.randomUUID());
     try (final InputStream in = new URL(url).openStream()) {
       Files.copy(in, Path.of(filePath));
     }

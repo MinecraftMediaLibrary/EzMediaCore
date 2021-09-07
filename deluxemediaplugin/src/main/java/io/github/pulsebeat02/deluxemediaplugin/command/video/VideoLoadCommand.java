@@ -122,7 +122,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
     this.attributes.getCompletion().set(false);
 
-    final Optional<MRLType> type = MRLType.getType(mrl);
+    final Optional<VideoMRLType> type = VideoMRLType.getType(mrl);
     if (type.isEmpty()) {
       red(audience,
           "Invalid MRL link! Does not follow a Spotify/Youtube/Local File/Direct Link pattern!");
@@ -152,6 +152,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
                   this.wrapResourcepack(
                       this.prepareDirectLink(audience, Path.of(folder), mrl)))
           .thenRunAsync(() -> this.afterDownloadExecutionFinish(audience, mrl));
+      default -> throw new IllegalArgumentException("Illegal video type!");
     }
 
     return SINGLE_SUCCESS;

@@ -10,7 +10,7 @@ image {
       mrl brigadier:string greedy_phrase;
     }
     dimensions {
-      dims brigadier:string single_word;
+      dims brigadier:string greedy_phrase;
     }
   }
 }

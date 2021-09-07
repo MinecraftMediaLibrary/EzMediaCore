@@ -53,12 +53,16 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 
-/** Constructs a chain of commands to be executed accordingly. */
+/**
+ * Constructs a chain of commands to be executed accordingly.
+ */
 public class CommandTaskChain {
 
   private final Map<CommandTask, Boolean> chain;
 
-  /** Instantiates a new CommandTaskChain */
+  /**
+   * Instantiates a new CommandTaskChain
+   */
   public CommandTaskChain() {
     this.chain = new LinkedHashMap<>();
   }
