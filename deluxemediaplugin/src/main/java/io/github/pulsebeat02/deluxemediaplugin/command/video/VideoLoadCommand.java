@@ -51,7 +51,13 @@ import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.event.ClickEvent.runCommand;
+import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
+import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
+import static net.kyori.adventure.text.format.Style.style;
+import static net.kyori.adventure.text.format.TextDecoration.BOLD;
+import static net.kyori.adventure.text.format.TextDecoration.UNDERLINED;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -70,15 +76,33 @@ import io.github.pulsebeat02.ezmediacore.utility.HashingUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public final class VideoLoadCommand implements CommandSegment.Literal<CommandSender> {
+
+  private static final TextComponent RESOURCEPACK_MESSAGE;
+  private static final TextComponent HOVER_MESSAGE;
+
+  static {
+    HOVER_MESSAGE = Component.text("Click to get the resourcepack!", GOLD);
+    RESOURCEPACK_MESSAGE = Component.text()
+        .append(text("Loaded resourcepack for all players! Click ", GOLD))
+        .append(text("this message",
+            style(AQUA, BOLD, UNDERLINED, runCommand("/video load resourcepack"),
+                HOVER_MESSAGE.asHoverEvent())))
+        .append(text(" to retrieve the resourcepack", GOLD)).build();
+  }
 
   private final LiteralCommandNode<CommandSender> node;
   private final VideoCommandAttributes attributes;
@@ -167,6 +191,9 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   private void sendCompletionMessage(@NotNull final Audience audience, @NotNull final String mrl) {
     if (!this.cancelled) {
+      ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), Bukkit.getOnlinePlayers(),
+          this.attributes.getUrl(), this.attributes.getHash());
+      // this.plugin.audience().players().sendMessage(RESOURCEPACK_MESSAGE);
       gold(audience, "Successfully loaded video %s".formatted(mrl));
     }
   }
@@ -269,15 +296,28 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = this.plugin.audience().sender(context.getSource());
+    final CommandSender sender = context.getSource();
+    final Audience audience = this.plugin.audience().sender(sender);
     if (this.unloadedResourcepack(audience)) {
+      return SINGLE_SUCCESS;
+    }
+    if (this.isPlayer(audience, sender)) {
       return SINGLE_SUCCESS;
     }
     final String url = this.attributes.getUrl();
     final byte[] hash = this.attributes.getHash();
-    ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), url, hash);
+    ResourcepackUtils.forceResourcepackLoad(this.plugin.library(),
+        Collections.singleton((Player) sender), url, hash);
     gold(audience, "Sent Resourcepack! (URL: %s, Hash: %s)".formatted(url, new String(hash)));
     return SINGLE_SUCCESS;
+  }
+
+  private boolean isPlayer(@NotNull final Audience audience, @NotNull final CommandSender sender) {
+    if (!(sender instanceof Player)) {
+      return false;
+    }
+    red(audience, "You must be a player to execute this command!");
+    return true;
   }
 
   private boolean unloadedResourcepack(@NotNull final Audience audience) {

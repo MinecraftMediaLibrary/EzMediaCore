@@ -37,12 +37,16 @@ public final class Logger {
 
   private static PrintWriter LOGGER;
   private static Path LOG_FILE;
+  private static Path VLC_LOG_FILE;
 
   public static void init(@NotNull final MediaLibraryCore core) {
-    LOG_FILE = core.getLibraryPath().resolve("emc.log");
+    final Path path = core.getLibraryPath();
+    LOG_FILE = path.resolve("emc.log");
+    VLC_LOG_FILE = path.resolve("vlc.log");
     try {
       Files.createDirectories(LOG_FILE.getParent());
       FileUtils.createIfNotExists(LOG_FILE);
+      FileUtils.createIfNotExists(VLC_LOG_FILE);
       LOGGER = new PrintWriter(new FileWriter(LOG_FILE.toFile()), true);
     } catch (final IOException e) {
       e.printStackTrace();
@@ -97,5 +101,14 @@ public final class Logger {
    */
   public static Path getLoggerPath() {
     return LOG_FILE;
+  }
+
+  /**
+   * Gets the File associated with the VLC Logger file.
+   *
+   * @return the log file
+   */
+  public static Path getVlcLoggerPath() {
+    return VLC_LOG_FILE;
   }
 }

@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.nio.ByteBuffer;
@@ -133,8 +134,11 @@ public final class VLCMediaPlayer extends MediaPlayer {
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer() {
     final int rate = this.getFrameRate();
     this.factory = new MediaPlayerFactory(
-        rate != 0 ? new String[]{"sout=\"#transcode{fps=%d}\"".formatted(rate), "--no-audio"}
+        rate != 0 ? new String[]{"sout=\"#transcode{fps=%d}\"".formatted(rate), "--no-audio",
+            "--file-logging", "--logfile=%s".formatted(
+            Logger.getVlcLoggerPath())}
             : new String[]{});
+
     return this.factory.mediaPlayers().newEmbeddedMediaPlayer();
   }
 

@@ -35,7 +35,9 @@ public class NativePluginLoader {
 
   public void executePhantomPlayers() {
     // loads all necessary VLC plugins before actual playback occurs
-    final MediaPlayerFactory factory = new MediaPlayerFactory("--no-video", "--no-audio");
+    final MediaPlayerFactory factory = new MediaPlayerFactory("--no-video", "--no-audio",
+        "--file-logging", "--logfile=%s".formatted(
+        Logger.getVlcLoggerPath()));
     final EmbeddedMediaPlayer player = factory.mediaPlayers().newEmbeddedMediaPlayer();
     player
         .media()

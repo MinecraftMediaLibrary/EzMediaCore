@@ -17,6 +17,7 @@ dependencies {
     implementation("org.bstats:bstats-bukkit:2.2.1")
     implementation("com.mojang:brigadier:1.0.18")
     implementation("net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT")
+    implementation("net.kyori:adventure-api:4.9.0")
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.2")
     implementation("me.lucko:commodore:1.10")
     compileOnly("com.mojang:authlib:1.5.25")
