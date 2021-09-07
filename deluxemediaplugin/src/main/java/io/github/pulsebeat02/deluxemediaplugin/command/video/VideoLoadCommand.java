@@ -314,10 +314,10 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   private boolean isPlayer(@NotNull final Audience audience, @NotNull final CommandSender sender) {
     if (!(sender instanceof Player)) {
-      return false;
+      red(audience, "You must be a player to execute this command!");
+      return true;
     }
-    red(audience, "You must be a player to execute this command!");
-    return true;
+    return false;
   }
 
   private boolean unloadedResourcepack(@NotNull final Audience audience) {
