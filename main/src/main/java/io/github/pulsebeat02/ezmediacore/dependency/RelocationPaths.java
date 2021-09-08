@@ -30,15 +30,11 @@ public enum RelocationPaths {
   VLCJ("uk{}co{}caprica{}vlcj", "io{}github{}pulsebeat02{}ezmediacore{}lib{}vlcj"),
   VLCJ_NATIVES(
       "uk{}co{}caprica{}vlcj{}binding", "io{}github{}pulsebeat02{}ezmediacore{}lib{}vlcj{}binding"),
-  VLCJ_NATIVE_STREAMS(
-      "uk{}co{}caprica{}nativestreams",
-      "io{}github{}pulsebeat02{}ezmediacore{}lib{}vlcj{}nativestreams"),
 
   YOUTUBE_DOWNLOADER(
       "com{}github{}kiulian{}downloader", "io{}github{}pulsebeat02{}ezmediacore{}lib{}youtube"),
   FAST_JSON("com{}alibaba{}fastjson", "io{}github{}pulsebeat02{}ezmediacore{}lib{}fastjson"),
 
-  JAVE_CORE("ws{}schild{}jave", "io{}github{}pulsebeat02{}ezmediacore{}lib{}jave"),
   JAFFREE("com{}github{}kokorin", "io{}github{}pulsebeat02{}ezmediacore{}lib{}kokorin"),
   JCODEC("org{}jcodec", "io{}github{}pulsebeat02{}ezmediacore{}lib{}jcodec"),
 

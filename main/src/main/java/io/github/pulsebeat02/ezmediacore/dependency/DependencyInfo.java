@@ -28,13 +28,11 @@ import org.jetbrains.annotations.NotNull;
 public enum DependencyInfo {
   VLCJ("uk{}co{}caprica", "vlcj", "4{}7{}1", Repositories.MAVEN),
   VLCJ_NATIVES("uk{}co{}caprica", "vlcj-natives", "4{}5{}0", Repositories.MAVEN),
-  VLCJ_NATIVE_STREAMS("uk{}co{}caprica", "native-streams", "2{}0{}0", Repositories.MAVEN),
 
   YOUTUBE_DOWNLOADER(
       "com{}github{}sealedtx", "java-youtube-downloader", "3{}0{}1", Repositories.JITPACK),
   FAST_JSON("com{}alibaba", "fastjson", "1{}2{}78", Repositories.MAVEN),
 
-  JAVE_CORE("ws{}schild", "jave-core", "3{}1{}1", Repositories.MAVEN),
   JAFFREE("com{}github{}kokorin{}jaffree", "jaffree", "2021{}05{}31", Repositories.MAVEN),
   JCODEC("org{}jcodec", "jcodec", "0{}2{}5", Repositories.MAVEN),
 
