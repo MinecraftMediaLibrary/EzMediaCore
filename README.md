@@ -6,7 +6,7 @@ include the ability to render **videos** on a Spigot server. It uses optimized d
 hardware acceleration, and native code to speed up the process. The library takes advantage of
 **VLC Media Player**, a speedy, universal program that plays all sorts of media for users.
 
-[![Example Media Player](https://res.cloudinary.com/marcomontalbano/image/upload/v1628561191/video_to_markdown/images/youtube--CtlHGgGXHvs-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://www.youtube.com/watch?v=CtlHGgGXHvs "Example Media Player")
+![Video Player](https://github.com/MinecraftMediaLibrary/EzMediaCore/raw/master/example-playback.mp4)
 
 Frame rates may reach up to **35**, at times with extremely great quality. As a comparison, a
 *smooth* animation is approximately **25** frames. The library is capable of playing media in all
@@ -60,17 +60,23 @@ testing server!
 
 ### Contributors/Acknowledgements
 
-- [BananaPuncher714](https://github.com/BananaPuncher714)
-  and [Jetp250](https://github.com/jetp250) for helping lead the spark for the project, as well as
-  code the Floyd-Steinberg implementation in Java.
+- [BananaPuncher714](https://github.com/BananaPuncher714) for creating MinecraftVideo, leading the 
+spark, and also providing a Floyd Steinberg dithering implementation.
+- [Jetp250](https://github.com/jetp250) for a fast dithering table class.
 - [Emilyy](https://github.com/emilyy-dev) for helping me with asynchronous tasks and implementation.
-- [Conclure](https://github.com/Conclure) for helping me migrate from maven to gradle.
+- [Conclure](https://github.com/Conclure) for helping me migrate from maven to gradle and overall
+big API improvements.
+- [itxfrosty](https://github.com/itxfrosty) for helping me develop a Discord bot to play music.
+- [Rouge_Ram](https://rogueram.xyz/index.html) for developing a Discord bot to use in the Pulse
+Development Server.
 - [Mishal321](https://github.com/mishal321), for allowing us to use his testing server.
-- [Yugi](https://github.com/Vshnv) for helping me
-  setup [Slimjar](https://github.com/SlimJar/slimjar).
-- [Matt](https://github.com/ipsk) for
-  his [GUI Framework](https://github.com/TriumphTeam/gui/tree/development).
-- And also developers of the libraries I use. Without these libraries, the development would've been
-  a much more pain-staking process.
-
+- [Yugi](https://github.com/Vshnv) for helping me setup 
+[Slimjar](https://github.com/SlimJar/slimjar).
+- And also developers of the most important libraries I use, including:
+  - [VLCJ](https://github.com/caprica/vlcj) made by [caprica](https://github.com/caprica).
+  - [VLC Media Player](https://www.videolan.org/vlc/) for native backend support.
+  - [Jaffree](https://github.com/kokorin/Jaffree) made by [kokorin](https://github.com/kokorin)
+  for allowing the library to use the NUT container provided by FFmpeg.
+  - [FFmpeg](https://www.ffmpeg.org/) for native encoding related operations and backend support.
+  
 ---
