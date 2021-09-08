@@ -49,8 +49,9 @@ package io.github.pulsebeat02.deluxemediaplugin.command.video;
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
+import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.TextComponent.ofChildren;
+import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
@@ -143,7 +144,8 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
 
     audience.sendMessage(
         format(
-            ofChildren(
+            join(
+                noSeparators(),
                 text("Set screen dimensions to ", GOLD),
                 text(
                     "%d:%d "
@@ -172,7 +174,8 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
 
     audience.sendMessage(
         format(
-            ofChildren(
+            join(
+                noSeparators(),
                 text("Set itemframe map dimensions to ", GOLD),
                 text(
                     "%s:%s "
@@ -193,8 +196,10 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
         .sender(context.getSource())
         .sendMessage(
             format(
-                ofChildren(
-                    text("Set starting map id to ", GOLD), text(this.attributes.getMap(), AQUA))));
+                join(
+                    noSeparators(),
+                    text("Set starting map id to ", GOLD),
+                    text(this.attributes.getMap(), AQUA))));
 
     return SINGLE_SUCCESS;
   }
@@ -210,7 +215,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
     } else {
       this.attributes.setDither(setting.get());
       audience.sendMessage(
-          format(ofChildren(text("Set dither type to ", GOLD), text(algorithm, AQUA))));
+          format(join(noSeparators(), text("Set dither type to ", GOLD), text(algorithm, AQUA))));
     }
 
     return SINGLE_SUCCESS;
@@ -226,7 +231,8 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
       red(audience, "Could not find video mode %s".formatted(mode));
     } else {
       this.attributes.setVideoType(type.get());
-      audience.sendMessage(format(ofChildren(text("Set video mode to ", GOLD), text(mode, AQUA))));
+      audience.sendMessage(
+          format(join(noSeparators(), text("Set video mode to ", GOLD), text(mode, AQUA))));
     }
 
     return SINGLE_SUCCESS;

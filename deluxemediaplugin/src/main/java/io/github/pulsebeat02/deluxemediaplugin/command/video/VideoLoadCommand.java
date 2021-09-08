@@ -80,7 +80,6 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -90,15 +89,13 @@ import org.jetbrains.annotations.NotNull;
 public final class VideoLoadCommand implements CommandSegment.Literal<CommandSender> {
 
   private static final TextComponent RESOURCEPACK_MESSAGE;
-  private static final TextComponent HOVER_MESSAGE;
 
   static {
-    HOVER_MESSAGE = Component.text("Click to get the resourcepack!", GOLD);
-    RESOURCEPACK_MESSAGE = Component.text()
+    RESOURCEPACK_MESSAGE = text()
         .append(text("Loaded resourcepack for all players! Click ", GOLD))
         .append(text("this message",
             style(AQUA, BOLD, UNDERLINED, runCommand("/video load resourcepack"),
-                HOVER_MESSAGE.asHoverEvent())))
+                text("Click to get the resourcepack!", GOLD).asHoverEvent())))
         .append(text(" to retrieve the resourcepack", GOLD)).build();
   }
 

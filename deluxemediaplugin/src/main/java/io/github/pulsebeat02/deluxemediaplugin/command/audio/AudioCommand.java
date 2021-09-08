@@ -49,12 +49,12 @@ import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+import java.util.Map;
 import java.util.function.Consumer;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -143,13 +143,12 @@ public final class AudioCommand extends BaseCommand {
   @Override
   public @NotNull Component usage() {
     return ChatUtils.getCommandUsage(
-        ImmutableMap.<String, String>builder()
-            .put("/audio load [url]", "Loads a Youtube Link")
-            .put("/audio load [file]", "Loads a specific audio file")
-            .put("/audio load resourcepack", "Loads the past resourcepack used for the audio")
-            .put("/audio play", "Plays the audio to players")
-            .put("/audio stop", "Stops the audio")
-            .build());
+        Map.of(
+            "/audio load [url]", "Loads a Youtube Link",
+            "/audio load [file]", "Loads a specific audio file",
+            "/audio load resourcepack", "Loads the past resourcepack used for the audio",
+            "/audio play", "Plays the audio to players",
+            "/audio stop", "Stops the audio"));
   }
 
   @Override

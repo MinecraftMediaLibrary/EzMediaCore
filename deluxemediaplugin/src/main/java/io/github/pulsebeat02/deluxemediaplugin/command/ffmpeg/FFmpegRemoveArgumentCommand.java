@@ -47,8 +47,9 @@ package io.github.pulsebeat02.deluxemediaplugin.command.ffmpeg;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
+import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.TextComponent.ofChildren;
+import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
@@ -92,7 +93,8 @@ public final class FFmpegRemoveArgumentCommand implements CommandSegment.Literal
     this.ffmpeg.removeArgument(index);
     audience.sendMessage(
         format(
-            ofChildren(
+            join(
+                noSeparators(),
                 text("Removed arguments ", GOLD),
                 text(arg, AQUA),
                 text(" from the FFmpeg command at index ", GOLD),
@@ -109,7 +111,8 @@ public final class FFmpegRemoveArgumentCommand implements CommandSegment.Literal
     this.ffmpeg.removeArgument(argument);
     audience.sendMessage(
         format(
-            ofChildren(
+            join(
+                noSeparators(),
                 text("Removed arguments ", GOLD),
                 text(argument, AQUA),
                 text(" from the FFmpeg command.", GOLD))));

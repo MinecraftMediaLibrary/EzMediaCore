@@ -50,13 +50,13 @@ import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.gui.ScreenBuilderGui;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+import java.util.Map;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -95,7 +95,7 @@ public final class ScreenCommand extends BaseCommand {
 
   @Override
   public @NotNull Component usage() {
-    return ChatUtils.getCommandUsage(ImmutableMap.of("/screen", "Opens the screen building GUI"));
+    return ChatUtils.getCommandUsage(Map.of("/screen", "Opens the screen building GUI"));
   }
 
   @Override

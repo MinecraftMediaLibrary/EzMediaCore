@@ -45,11 +45,11 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.image;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+import java.util.Map;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -74,7 +74,7 @@ public final class ImageCommand extends BaseCommand {
   @Override
   public @NotNull Component usage() {
     return ChatUtils.getCommandUsage(
-        ImmutableMap.of(
+        Map.of(
             "/image", "Lists the proper usage of the command",
             "/image purge all", "Purges all loaded images onto maps",
             "/image purge map [id]", "Purges a specific map on an id",

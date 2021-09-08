@@ -48,12 +48,12 @@ package io.github.pulsebeat02.deluxemediaplugin.command.map;
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
+import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.TextComponent.ofChildren;
+import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -62,6 +62,7 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.utility.MapUtils;
+import java.util.Map;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -102,7 +103,8 @@ public final class MapCommand extends BaseCommand {
 
     ((Player) sender).getInventory().addItem(MapUtils.getMapFromID(id));
 
-    audience.sendMessage(format(ofChildren(text("Gave map with id ", GOLD), text(id, AQUA))));
+    audience.sendMessage(format(join(
+        noSeparators(), text("Gave map with id ", GOLD), text(id, AQUA))));
 
     return SINGLE_SUCCESS;
   }
@@ -144,7 +146,8 @@ public final class MapCommand extends BaseCommand {
 
     audience.sendMessage(
         format(
-            ofChildren(
+            join(
+                noSeparators(),
                 text("Gave maps between IDs ", GOLD),
                 text(start, AQUA),
                 text(" and ", GOLD),
@@ -156,7 +159,7 @@ public final class MapCommand extends BaseCommand {
   @Override
   public @NotNull Component usage() {
     return ChatUtils.getCommandUsage(
-        ImmutableMap.of(
+        Map.of(
             "/map [id]",
             "Gives a map to the player with the specific id",
             "/map [starting-id]-[ending-id]",

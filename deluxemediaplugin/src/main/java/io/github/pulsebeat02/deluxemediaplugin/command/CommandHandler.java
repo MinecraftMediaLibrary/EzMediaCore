@@ -55,6 +55,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.ffmpeg.FFmpegCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.image.ImageCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.map.MapCommand;
+import io.github.pulsebeat02.deluxemediaplugin.command.plugin.PluginCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.screen.ScreenCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommand;
 import java.io.IOException;
@@ -90,7 +91,8 @@ public final class CommandHandler implements TabExecutor {
             new AudioCommand(plugin, this),
             new MapCommand(plugin, this),
             new ScreenCommand(plugin, this),
-            new FFmpegCommand(plugin, this));
+            new FFmpegCommand(plugin, this),
+            new PluginCommand(plugin, this));
     final CommandMap commandMap = CommandMapHelper.getCommandMap();
     final Commodore commodore =
         CommodoreProvider.isSupported() ? CommodoreProvider.getCommodore(plugin) : null;

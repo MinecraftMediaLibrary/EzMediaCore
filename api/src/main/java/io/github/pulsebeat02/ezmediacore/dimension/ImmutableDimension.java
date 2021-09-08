@@ -23,7 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.dimension;
 
-import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,7 +38,7 @@ public class ImmutableDimension implements Dimension {
 
   @Override
   public @NotNull Map<String, Object> serialize() {
-    return ImmutableMap.of(
+    return Map.of(
         "width", this.width,
         "height", this.height);
   }

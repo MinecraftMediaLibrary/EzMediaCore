@@ -49,7 +49,7 @@ import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.newline;
 import static net.kyori.adventure.text.Component.space;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.TextComponent.ofChildren;
+import static net.kyori.adventure.text.JoinConfiguration.separator;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
@@ -82,15 +82,14 @@ public final class ChatUtils {
             .append(text('['), text("External Process", GOLD), text(']'), space(), text("»", GRAY));
   }
 
-  private ChatUtils() {
+  private ChatUtils() {}
+
+  public static @NotNull Component format(@NotNull final Component message) {
+    return join(separator(space()), PREFIX, message);
   }
 
-  public static @NotNull Component format(@NotNull final TextComponent message) {
-    return ofChildren(PREFIX, space(), message);
-  }
-
-  public static @NotNull Component ffmpeg(@NotNull final TextComponent message) {
-    return ofChildren(EXTERNAL_PROCESS, space(), message);
+  public static @NotNull Component ffmpeg(@NotNull final Component message) {
+    return join(separator(space()), EXTERNAL_PROCESS, message);
   }
 
   public static @NotNull Optional<int[]> checkDimensionBoundaries(
@@ -104,7 +103,7 @@ public final class ChatUtils {
     } else if (height.isEmpty()) {
       message = dims[1];
     } else {
-      return Optional.of(new int[]{width.getAsInt(), height.getAsInt()});
+      return Optional.of(new int[] {width.getAsInt(), height.getAsInt()});
     }
     sender.sendMessage(
         text()
@@ -132,7 +131,7 @@ public final class ChatUtils {
     for (final Map.Entry<String, String> entry : usages.entrySet()) {
       builder.append(
           join(
-              space(),
+              separator(space()),
               text(entry.getKey(), LIGHT_PURPLE),
               text("-", GOLD),
               text(entry.getValue(), AQUA),
@@ -155,6 +154,6 @@ public final class ChatUtils {
   }
 
   public static void external(@NotNull final Audience audience, @NotNull final String message) {
-    audience.sendMessage(ofChildren(EXTERNAL_PROCESS, space(), text(message, GOLD)));
+    audience.sendMessage(join(separator(space()), EXTERNAL_PROCESS, text(message, GOLD)));
   }
 }

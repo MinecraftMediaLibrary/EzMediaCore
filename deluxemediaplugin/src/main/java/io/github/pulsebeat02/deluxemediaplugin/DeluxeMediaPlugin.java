@@ -46,8 +46,9 @@
 package io.github.pulsebeat02.deluxemediaplugin;
 
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
+import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.TextComponent.ofChildren;
+import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.BLUE;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
@@ -93,7 +94,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
     this.logger = this.getLogger();
     this.audiences = BukkitAudiences.create(this);
     this.printLogo();
-    this.log(ofChildren(text("Running DeluxeMediaPlugin ", AQUA), text("[CLOSED BETA]", GOLD)));
+    this.log(join(noSeparators(), text("Running DeluxeMediaPlugin ", AQUA), text("[CLOSED BETA]", GOLD)));
     try {
       this.library = LibraryProvider.builder().plugin(this).build();
       this.library.initialize();

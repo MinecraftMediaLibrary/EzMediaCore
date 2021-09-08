@@ -46,7 +46,9 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.gui;
 
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
+import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.GREEN;
@@ -58,7 +60,6 @@ import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.ezmediacore.utility.MapUtils;
-import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -165,8 +166,10 @@ public final class ScreenBuilderGui {
     final GuiItem materialItem =
         ItemBuilder.from(this.material)
             .name(
-                TextComponent.ofChildren(
-                    text("Material - ", GOLD), text(this.material.toString(), AQUA)))
+                join(
+                    noSeparators(),
+                    text("Material - ", GOLD),
+                    text(this.material.toString(), AQUA)))
             .build();
     materialItem.setAction(
         x -> {
@@ -178,8 +181,10 @@ public final class ScreenBuilderGui {
           this.pane.addItem(
               ItemBuilder.from(this.material)
                   .name(
-                      TextComponent.ofChildren(
-                          text("Material - ", GOLD), text(this.material.toString(), AQUA)))
+                      join(
+                          noSeparators(),
+                          text("Material - ", GOLD),
+                          text(this.material.toString(), AQUA)))
                   .build(),
               2,
               1);

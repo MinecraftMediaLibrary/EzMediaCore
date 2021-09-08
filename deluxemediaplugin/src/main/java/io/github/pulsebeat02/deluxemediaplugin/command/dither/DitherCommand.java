@@ -49,12 +49,12 @@ import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.aqua;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+import java.util.Map;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -96,6 +96,6 @@ public final class DitherCommand extends BaseCommand {
   @Override
   public @NotNull Component usage() {
     return ChatUtils.getCommandUsage(
-        ImmutableMap.of("/dither list", "References all possible dithering options to choose"));
+        Map.of("/dither list", "References all possible dithering options to choose"));
   }
 }

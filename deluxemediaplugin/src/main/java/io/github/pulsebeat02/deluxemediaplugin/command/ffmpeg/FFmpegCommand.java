@@ -49,18 +49,19 @@ import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.ffmpeg;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
+import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.TextComponent.ofChildren;
+import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegCommandExecutor;
+import java.util.Map;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -99,7 +100,8 @@ public final class FFmpegCommand extends BaseCommand {
         .sender(context.getSource())
         .sendMessage(
             format(
-                ofChildren(
+                join(
+                    noSeparators(),
                     text("Current FFmpeg arguments: ", GOLD),
                     text(this.ffmpeg.getArguments().toString(), AQUA))));
     return SINGLE_SUCCESS;
@@ -115,21 +117,21 @@ public final class FFmpegCommand extends BaseCommand {
   @Override
   public Component usage() {
     return ChatUtils.getCommandUsage(
-        ImmutableMap.<String, String>builder()
-            .put("/ffmpeg reset", "Reset all arguments in the FFmpeg command")
-            .put(
-                "/ffmpeg add [key=value] [key=value] ...",
-                "Adds the arguments to the end of the FFmpeg command")
-            .put(
-                "/ffmpeg add [index] [key=value] [key=value] ...",
-                "Adds the arguments to the specified index of the FFmpeg command")
-            .put(
-                "/ffmpeg remove [key=value]",
-                "Removes the specified argument from the FFmpeg command")
-            .put("/ffmpeg remove [index]", "Removes the specified argument at the index")
-            .put("/ffmpeg list-arguments", "Lists all arguments of the FFmpeg command")
-            .put("/ffmpeg run", "Runes the FFmpeg command")
-            .build());
+        Map.of(
+            "/ffmpeg reset",
+            "Reset all arguments in the FFmpeg command",
+            "/ffmpeg add [key=value] [key=value] ...",
+            "Adds the arguments to the end of the FFmpeg command",
+            "/ffmpeg add [index] [key=value] [key=value] ...",
+            "Adds the arguments to the specified index of the FFmpeg command",
+            "/ffmpeg remove [key=value]",
+            "Removes the specified argument from the FFmpeg command",
+            "/ffmpeg remove [index]",
+            "Removes the specified argument at the index",
+            "/ffmpeg list-arguments",
+            "Lists all arguments of the FFmpeg command",
+            "/ffmpeg run",
+            "Runes the FFmpeg command"));
   }
 
   @Override

@@ -2,6 +2,6 @@ name: DeluxeMediaPlugin
 main: io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin
 api-version: 1.16
 load: STARTUP
-authors: [ PulseBeat_02 ]
+authors: [ PulseBeat_02, itxfrosty ]
 version: 1.0.0
 description: Play Media in Minecraft

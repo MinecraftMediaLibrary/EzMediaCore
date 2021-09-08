@@ -50,10 +50,10 @@ import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.external
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
+import static java.util.Map.entry;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
@@ -72,6 +72,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.TextComponent;
@@ -269,26 +270,19 @@ public final class VideoCommand extends BaseCommand {
   @Override
   public @NotNull TextComponent usage() {
     return ChatUtils.getCommandUsage(
-        ImmutableMap.<String, String>builder()
-            .put("/video", "Lists the current video playing")
-            .put("/video play", "Plays the video")
-            .put("/video stop", "Stops the video")
-            .put("/video load [url]", "Loads a Youtube link")
-            .put("/video load [file]", "Loads a specific video file")
-            .put("/video load cancel-download", "Cancels the Youtube download")
-            .put("/video load resourcepack", "Loads the past resourcepack used for the video")
-            .put("/video set screen-dimension [width:height]", "Sets the resolution of the screen")
-            .put(
-                "/video set itemframe-dimension [width:height]",
-                "Sets the proper itemframe dimension of the screen")
-            .put("/video set dither [algorithm]", "Sets the specific algorithm for dithering")
-            .put(
-                "/video set starting-map [id]",
-                "Sets the starting map id from id to id to the Length * Width. (For example 0 - 24 for 5x5 display if you put 0)")
-            .put(
-                "/video set mode [mode]",
-                "Sets the video mode")
-            .build());
+        Map.ofEntries(
+            entry("/video", "Lists the current video playing"),
+            entry("/video play", "Plays the video"),
+            entry("/video stop", "Stops the video"),
+            entry("/video load [url]", "Loads a Youtube link"),
+            entry("/video load [file]", "Loads a specific video file"),
+            entry("/video load cancel-download", "Cancels the Youtube download"),
+            entry("/video load resourcepack", "Loads the past resourcepack used for the video"),
+            entry("/video set screen-dimension [width:height]", "Sets the resolution of the screen"),
+            entry("/video set itemframe-dimension [width:height]","Sets the proper itemframe dimension of the screen"),
+            entry("/video set dither [algorithm]", "Sets the specific algorithm for dithering"),
+            entry("/video set starting-map [id]", "Sets the starting map id from id to id to the Length * Width. (For example 0 - 24 for 5x5 display if you put 0)"),
+            entry("/video set mode [mode]", "Sets the video mode")));
   }
 
   @Override

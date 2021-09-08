@@ -48,8 +48,9 @@ package io.github.pulsebeat02.deluxemediaplugin.command.image;
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
+import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.TextComponent.ofChildren;
+import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
@@ -112,7 +113,11 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
     image.get().resetMaps();
 
     audience.sendMessage(
-        format(ofChildren(text("Successfully purged all maps with id ", GOLD), text(id, AQUA))));
+        format(
+            join(
+                noSeparators(),
+                text("Successfully purged all maps with id ", GOLD),
+                text(id, AQUA))));
 
     return SINGLE_SUCCESS;
   }

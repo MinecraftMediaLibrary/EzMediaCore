@@ -47,8 +47,9 @@ package io.github.pulsebeat02.deluxemediaplugin.command.ffmpeg;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
+import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.TextComponent.ofChildren;
+import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
@@ -104,7 +105,8 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
 
     audience.sendMessage(
         format(
-            ofChildren(
+            join(
+                noSeparators(),
                 text("Added arguments ", GOLD),
                 text(str, AQUA),
                 text(" to the FFmpeg command at index ", GOLD),
@@ -130,7 +132,8 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
 
     audience.sendMessage(
         format(
-            ofChildren(
+            join(
+                noSeparators(),
                 text("Added arguments ", GOLD),
                 text(str, AQUA),
                 text(" to the FFmpeg command.", GOLD))));

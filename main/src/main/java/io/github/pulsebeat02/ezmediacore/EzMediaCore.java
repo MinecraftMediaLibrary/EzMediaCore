@@ -45,7 +45,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import uk.co.caprica.nativestreams.NativeStreams;
 
 public final class EzMediaCore implements MediaLibraryCore {
 
@@ -64,7 +63,6 @@ public final class EzMediaCore implements MediaLibraryCore {
   private final SpotifyClient spotifyClient;
 
   private PacketHandler handler;
-  private NativeStreams streams;
   private Listener registrationListener;
   private Path ffmpegExecutable;
   private boolean vlcSupported;
@@ -130,8 +128,7 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void initializeStream() {
-    IntStream.range(0, 5).parallel().forEach(key -> {
-    }); // jump start int stream
+    IntStream.range(0, 5).parallel().forEach(key -> {}); // jump start int stream
   }
 
   private void initializeProviders() {
