@@ -87,10 +87,8 @@ public final class HttpConfiguration extends ConfigurationProvider {
     final int port = configuration.getInt("port");
     final Path directory =
         Path.of(
-            "%s/%s"
-                .formatted(
-                    this.getPlugin().getDataFolder().getAbsolutePath(),
-                    configuration.getString("directory")));
+            this.getPlugin().getDataFolder().getAbsolutePath(),
+            configuration.getString("directory"));
     final boolean verbose = configuration.getBoolean("verbose");
     if (enabled) {
       this.daemon =
