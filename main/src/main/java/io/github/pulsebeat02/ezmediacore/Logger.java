@@ -25,7 +25,6 @@ package io.github.pulsebeat02.ezmediacore;
 
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -36,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 public final class Logger {
 
   private static PrintWriter LOGGER;
+  private static PrintWriter VLC_LOGGER;
   private static Path LOG_FILE;
   private static Path VLC_LOG_FILE;
 
@@ -47,7 +47,8 @@ public final class Logger {
       Files.createDirectories(LOG_FILE.getParent());
       FileUtils.createIfNotExists(LOG_FILE);
       FileUtils.createIfNotExists(VLC_LOG_FILE);
-      LOGGER = new PrintWriter(new FileWriter(LOG_FILE.toFile()), true);
+      LOGGER = new PrintWriter(Files.newBufferedWriter(LOG_FILE), true);
+      VLC_LOGGER = new PrintWriter(Files.newBufferedWriter(VLC_LOG_FILE), true);
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -90,6 +91,20 @@ public final class Logger {
         () -> {
           LOGGER.write(line);
           LOGGER.flush();
+        },
+        ExecutorProvider.SHARED_RESULT_POOL);
+  }
+
+  /**
+   * Directly prints the following line into VLC.
+   *
+   * @param line to print
+   */
+  public static synchronized void directPrintVLC(@NotNull final String line) {
+    CompletableFuture.runAsync(
+        () -> {
+          VLC_LOGGER.write(line);
+          VLC_LOGGER.flush();
         },
         ExecutorProvider.SHARED_RESULT_POOL);
   }

@@ -32,6 +32,8 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.log.LogLevel;
+import uk.co.caprica.vlcj.log.NativeLog;
 import uk.co.caprica.vlcj.player.base.AudioApi;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.CallbackVideoSurface;
@@ -51,6 +53,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
 
   private MediaPlayerFactory factory;
   private EmbeddedMediaPlayer player;
+  private NativeLog logger;
 
   VLCMediaPlayer(
       @NotNull final Callback callback,
@@ -96,17 +99,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
         }
         this.playAudio();
       }
-      case RELEASE -> {
-        if (this.player != null) {
-          this.player.controls().stop();
-          this.player.release();
-          this.player = null;
-        }
-        if (this.factory != null) {
-          this.factory.release();
-          this.player = null;
-        }
-      }
+      case RELEASE -> this.releaseAll();
       default -> throw new IllegalArgumentException("Player state is invalid!");
     }
   }
@@ -132,14 +125,41 @@ public final class VLCMediaPlayer extends MediaPlayer {
   }
 
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer() {
-    final int rate = this.getFrameRate();
-    this.factory = new MediaPlayerFactory(
-        rate != 0 ? new String[]{"sout=\"#transcode{fps=%d}\"".formatted(rate), "--no-audio",
-            "--file-logging", "--logfile=%s".formatted(
-            Logger.getVlcLoggerPath())}
-            : new String[]{});
+    if (this.player == null || this.factory == null || this.logger == null) { // just in case something is null
+      this.releaseAll();
+      final int rate = this.getFrameRate();
+      this.factory = new MediaPlayerFactory(
+          rate != 0 ? new String[]{"sout=\"#transcode{fps=%d}\"".formatted(rate), "--no-audio"}
+              : new String[]{});
+      final NativeLog logger = this.factory.application().newLog();
+      if (logger == null) { // ignore this warning as its intellij being dumb with native bindings
+        Logger.info("VLC Native Logger not available on this platform!");
+      } else {
+        logger.setLevel(LogLevel.DEBUG);
+        logger.addLogListener(
+            (level, module, file, line, name, header, id, message) ->
+                Logger.directPrintVLC(
+                    "[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message)));
+      }
+      return this.factory.mediaPlayers().newEmbeddedMediaPlayer();
+    }
+    return this.player;
+  }
 
-    return this.factory.mediaPlayers().newEmbeddedMediaPlayer();
+  private void releaseAll() {
+    if (this.player != null) {
+      this.player.controls().stop();
+      this.player.release();
+      this.player = null;
+    }
+    if (this.factory != null) {
+      this.factory.release();
+      this.player = null;
+    }
+    if (this.logger != null) {
+      this.logger.release();
+      this.logger = null;
+    }
   }
 
   private void setCallback(@NotNull final EmbeddedMediaPlayer player) {

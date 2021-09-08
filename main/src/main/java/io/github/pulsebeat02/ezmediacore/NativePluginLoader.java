@@ -23,35 +23,65 @@
  */
 package io.github.pulsebeat02.ezmediacore;
 
-import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CountDownLatch;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.log.LogLevel;
+import uk.co.caprica.vlcj.log.NativeLog;
+import uk.co.caprica.vlcj.player.base.MediaPlayer;
+import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 
 public class NativePluginLoader {
 
-  public NativePluginLoader() {
-  }
+  public NativePluginLoader() {}
 
   public void executePhantomPlayers() {
+
     // loads all necessary VLC plugins before actual playback occurs
-    final MediaPlayerFactory factory = new MediaPlayerFactory("--no-video", "--no-audio",
-        "--file-logging", "--logfile=%s".formatted(
-        Logger.getVlcLoggerPath()));
+
+    final MediaPlayerFactory factory = new MediaPlayerFactory("--no-video", "--no-audio");
     final EmbeddedMediaPlayer player = factory.mediaPlayers().newEmbeddedMediaPlayer();
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    final NativeLog logger = factory.application().newLog();
+    if (logger == null) { // ignore this warning as its intellij being dumb with native bindings
+      Logger.info("VLC Native Logger not available on this platform!");
+      return;
+    } else {
+      logger.setLevel(LogLevel.DEBUG);
+      logger.addLogListener(
+          (level, module, file, line, name, header, id, message) ->
+              Logger.directPrintVLC(
+                  "[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message)));
+    }
+
+    player
+        .events()
+        .addMediaPlayerEventListener(
+            new MediaPlayerEventAdapter() {
+              @Override
+              public void finished(final MediaPlayer mediaPlayer) {
+                latch.countDown();
+              }
+
+              @Override
+              public void error(final MediaPlayer mediaPlayer) {
+                latch.countDown();
+              }
+            });
+
     player
         .media()
         .play("https://github.com/MinecraftMediaLibrary/EzMediaCore/raw/master/vlc-prerender.mp4");
-    ExecutorProvider.SCHEDULED_EXECUTOR_SERVICE.schedule(
-        () -> {
-          player
-              .controls()
-              .stop(); // we can do this because the player tries to keep up with time, and the
-          // video is 1 second
-          player.release();
-          factory.release();
-        },
-        2L,
-        TimeUnit.SECONDS);
+
+    try {
+      latch.await();
+    } catch (final InterruptedException e) {
+      e.printStackTrace();
+    }
+
+    logger.release();
+    player.release();
+    factory.release();
   }
 }
