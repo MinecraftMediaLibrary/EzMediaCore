@@ -6,7 +6,7 @@ include the ability to render **videos** on a Spigot server. It uses optimized d
 hardware acceleration, and native code to speed up the process. The library takes advantage of
 **VLC Media Player**, a speedy, universal program that plays all sorts of media for users.
 
-![Video Player](https://github.com/MinecraftMediaLibrary/EzMediaCore/raw/master/example-playback.mp4)
+https://user-images.githubusercontent.com/40838203/132433665-a675fc35-e31f-4044-a960-ce46a8fb7df5.mp4
 
 Frame rates may reach up to **35**, at times with extremely great quality. As a comparison, a
 *smooth* animation is approximately **25** frames. The library is capable of playing media in all
