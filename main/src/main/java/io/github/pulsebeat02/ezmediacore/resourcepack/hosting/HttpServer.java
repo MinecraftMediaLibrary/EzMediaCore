@@ -41,7 +41,7 @@ public class HttpServer implements HttpDaemonSolution {
   static {
     try (final BufferedReader in =
         new BufferedReader(
-            new InputStreamReader(new URL("https://checkip.amazonaws.com").openStream()))) {
+            new InputStreamReader(new URL("https://myexternalip.com/raw").openStream()))) {
       HTTP_SERVER_IP = in.readLine();
     } catch (final IOException e) {
       HTTP_SERVER_IP = "127.0.0.1"; // fallback ip

@@ -53,6 +53,9 @@ public final class VLCMediaPlayer extends MediaPlayer {
 
   private MediaPlayerFactory factory;
   private EmbeddedMediaPlayer player;
+  private CallbackVideoSurface surface;
+  private BufferFormatCallback format;
+
   private NativeLog logger;
 
   VLCMediaPlayer(
@@ -160,6 +163,8 @@ public final class VLCMediaPlayer extends MediaPlayer {
       this.logger.release();
       this.logger = null;
     }
+    this.surface = null;
+    this.format = null;
   }
 
   private void setCallback(@NotNull final EmbeddedMediaPlayer player) {
@@ -168,22 +173,29 @@ public final class VLCMediaPlayer extends MediaPlayer {
 
   @Contract(" -> new")
   private @NotNull CallbackVideoSurface getSurface() {
-    return new CallbackVideoSurface(this.getBufferCallback(), this.callback, false, this.adapter);
+    if (this.surface != null) {
+      return this.surface;
+    }
+    this.surface = new CallbackVideoSurface(this.getBufferCallback(), this.callback, false, this.adapter);
+    return this.surface;
   }
 
   @Contract(value = " -> new", pure = true)
   private @NotNull BufferFormatCallback getBufferCallback() {
-    return new BufferFormatCallback() {
+    if (this.format != null) {
+      return this.format;
+    }
+    final Dimension dimension = VLCMediaPlayer.this.getDimensions();
+    this.format = new BufferFormatCallback() {
       @Override
       public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {
-        final Dimension dimension = VLCMediaPlayer.this.getDimensions();
         return new RV32BufferFormat(dimension.getWidth(), dimension.getHeight());
       }
-
       @Override
       public void allocatedBuffers(final ByteBuffer[] buffers) {
       }
     };
+    return this.format;
   }
 
   private static class MinecraftVideoRenderCallback extends RenderCallbackAdapter {
