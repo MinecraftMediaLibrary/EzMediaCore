@@ -83,8 +83,8 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
   }
 
   @Override
-  public void executeAsync() {
-    CompletableFuture.runAsync(this::execute);
+  public CompletableFuture<Void> executeAsync() {
+    return CompletableFuture.runAsync(this::execute);
   }
 
   @Override

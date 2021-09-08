@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
+import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -140,6 +141,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
             if (consume) {
               logger.accept(line);
             }
+            Logger.directPrintFFmpeg(line);
           }
         }
       } catch (final IOException e) {
@@ -151,8 +153,8 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public void executeAsync() {
-    CompletableFuture.runAsync(this::execute);
+  public CompletableFuture<Void> executeAsync() {
+    return CompletableFuture.runAsync(this::execute);
   }
 
   @Override

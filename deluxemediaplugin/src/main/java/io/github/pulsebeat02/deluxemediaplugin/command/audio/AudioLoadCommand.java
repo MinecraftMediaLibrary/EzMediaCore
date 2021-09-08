@@ -46,7 +46,6 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.audio;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.external;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 
@@ -88,14 +87,14 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
             .build();
   }
 
-  private void loadSoundMrl(@NotNull final Audience audience, @NotNull final String mrl) {
+  private void loadSoundMrl(@NotNull final String mrl) {
 
     final MediaLibraryCore core = this.plugin.library();
     final Path audio = core.getAudioPath().resolve("audio.ogg");
 
     try {
       new YoutubeVideoAudioExtractor(core, this.plugin.getAudioConfiguration(), mrl, audio)
-          .executeAsyncWithLogging((line) -> external(audience, line));
+          .executeAsync();
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -156,7 +155,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
     completion.set(false);
 
     if (mrl.startsWith("http")) {
-      CompletableFuture.runAsync(() -> this.loadSoundMrl(audience, mrl));
+      CompletableFuture.runAsync(() -> this.loadSoundMrl(mrl));
     } else if (this.loadSoundFile(mrl, audience)) {
       return SINGLE_SUCCESS;
     }

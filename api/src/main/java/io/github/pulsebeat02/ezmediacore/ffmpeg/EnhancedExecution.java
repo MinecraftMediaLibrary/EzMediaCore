@@ -35,7 +35,7 @@ public interface EnhancedExecution {
 
   void executeWithLogging(@Nullable final Consumer<String> logger);
 
-  void executeAsync();
+  CompletableFuture<Void> executeAsync();
 
   @NotNull
   CompletableFuture<Void> executeAsync(@NotNull final Executor executor);
