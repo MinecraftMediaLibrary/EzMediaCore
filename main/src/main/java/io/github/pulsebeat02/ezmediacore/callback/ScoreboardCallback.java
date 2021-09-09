@@ -27,7 +27,6 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.utility.TaskUtils;
 import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import net.md_5.bungee.api.ChatColor;
@@ -56,21 +55,18 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
     }
   }
 
-  private final Collection<? extends Player> viewers;
   private final String name;
   private Scoreboard scoreboard;
   private int id;
 
-  public ScoreboardCallback(
+  ScoreboardCallback(
       @NotNull final MediaLibraryCore core,
+      @NotNull final Viewers viewers,
       @NotNull final Dimension dimension,
-      @NotNull final Collection<? extends Player> viewers,
-      final int id,
-      final int blockWidth,
-      final int delay) {
-    super(core, dimension, viewers, blockWidth, delay);
-    this.viewers = viewers;
-    this.name = "%s Video Player (%s)".formatted(core.getPlugin().getName(), id);
+      @NotNull final DelayConfiguration delay,
+      @NotNull final Identifier<Integer> id) {
+    super(core, viewers, dimension, delay);
+    this.name = "%s Video Player (%s)".formatted(core.getPlugin().getName(), id.getValue());
   }
 
   @Override
@@ -80,7 +76,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
         (Callable<Void>)
             () -> {
               final long time = System.currentTimeMillis();
-              if (time - this.getLastUpdated() >= this.getFrameDelay()) {
+              if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
                 this.setLastUpdated(time);
                 final Dimension dimension = this.getDimensions();
                 final int width = dimension.getWidth();
@@ -101,7 +97,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
                     objective.getScore(entry).setScore(15 - i);
                   }
                 }
-                for (final Player player : this.viewers) {
+                for (final Player player : this.getWatchers().getPlayers()) {
                   player.setScoreboard(this.scoreboard);
                 }
                 for (int y = 0; y < height; ++y) {

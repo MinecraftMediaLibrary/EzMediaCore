@@ -25,12 +25,11 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.BlockHighlightCallback;
-import io.github.pulsebeat02.ezmediacore.callback.ChatCallback;
-import io.github.pulsebeat02.ezmediacore.callback.EntityCallback;
+import io.github.pulsebeat02.ezmediacore.callback.CallbackFactory;
+import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.EntityType;
-import io.github.pulsebeat02.ezmediacore.callback.MapCallback;
-import io.github.pulsebeat02.ezmediacore.callback.ScoreboardCallback;
+import io.github.pulsebeat02.ezmediacore.callback.Identifier;
+import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
@@ -54,14 +53,14 @@ public record VideoCreator(MediaLibraryCore library,
 		return VideoFactory.unspecified()
 				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
-						new MapCallback(
-								this.library,
-								Dimension.ofDimension(this.attributes.getFrameWidth(), this.attributes.getFrameHeight()),
-								viewers,
-								this.attributes.getDither().getAlgorithm(),
-								this.attributes.getMap(),
-								this.attributes.getPixelWidth(),
-								0))
+						CallbackFactory.map()
+								.algorithm(this.attributes.getDither().getAlgorithm())
+								.blockWidth(this.attributes.getPixelWidth())
+								.map(Identifier.ofIdentifier(0))
+								.dims(Dimension.ofDimension(this.attributes.getFrameWidth(), this.attributes.getFrameHeight()))
+								.viewers(Viewers.ofPlayers(viewers))
+								.delay(DelayConfiguration.DELAY_0_MS)
+								.build(this.library))
 				.dims(Dimension.ofDimension(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
 				.soundKey(SoundKey.ofSound("emc"))
 				.build();
@@ -72,16 +71,15 @@ public record VideoCreator(MediaLibraryCore library,
 		return VideoFactory.unspecified()
 				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
-						new EntityCallback(
-								this.library,
-								Dimension.ofDimension(
-										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
-								viewers,
-								sender.getLocation(),
-								NamedEntityString.NORMAL_SQUARE,
-								EntityType.ARMORSTAND,
-								this.attributes.getFrameWidth(),
-								20))
+						CallbackFactory.entity()
+								.character(NamedEntityString.NORMAL_SQUARE)
+								.type(EntityType.ARMORSTAND)
+								.location(sender.getLocation())
+								.dims(Dimension.ofDimension(
+										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
+								.viewers(Viewers.ofPlayers(viewers))
+								.delay(DelayConfiguration.DELAY_20_MS)
+								.build(this.library))
 				.soundKey(SoundKey.ofSound("emc"))
 				.build();
 	}
@@ -91,14 +89,13 @@ public record VideoCreator(MediaLibraryCore library,
 		return VideoFactory.unspecified()
 				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
-						new ChatCallback(
-								this.library,
-								Dimension.ofDimension(
-										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
-								viewers,
-								NamedEntityString.NORMAL_SQUARE,
-								this.attributes.getFrameWidth(),
-								20))
+						CallbackFactory.chat()
+								.character(NamedEntityString.NORMAL_SQUARE)
+								.dims(Dimension.ofDimension(
+										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
+								.viewers(Viewers.ofPlayers(viewers))
+								.delay(DelayConfiguration.ofDelay(20))
+								.build(this.library))
 				.soundKey(SoundKey.ofSound("emc"))
 				.build();
 	}
@@ -108,14 +105,13 @@ public record VideoCreator(MediaLibraryCore library,
 		return VideoFactory.unspecified()
 				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
-						new ScoreboardCallback(
-								this.library,
-								Dimension.ofDimension(
-										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
-								viewers,
-								1080,
-								this.attributes.getFrameWidth(),
-								20))
+						CallbackFactory.scoreboard()
+								.id(Identifier.ofIdentifier(1080))
+								.dims(Dimension.ofDimension(
+										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
+								.viewers(Viewers.ofPlayers(viewers))
+								.delay(DelayConfiguration.DELAY_20_MS)
+								.build(this.library))
 				.soundKey(SoundKey.ofSound("emc"))
 				.build();
 	}
@@ -125,14 +121,12 @@ public record VideoCreator(MediaLibraryCore library,
 		return VideoFactory.unspecified()
 				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
-						new BlockHighlightCallback(
-								this.library,
-								Dimension.ofDimension(
-										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
-								viewers,
-								sender.getLocation(),
-								this.attributes.getFrameWidth(),
-								40))
+						CallbackFactory.blockHighlight()
+								.location(sender.getLocation())
+								.dims(Dimension.ofDimension(
+										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
+								.delay(DelayConfiguration.ofDelay(40))
+								.build(this.library))
 				.soundKey(SoundKey.ofSound("emc"))
 				.build();
 	}

@@ -32,6 +32,7 @@ import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
@@ -61,12 +62,13 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
 
   FFmpegMediaPlayer(
       @NotNull final Callback callback,
+      @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
       @NotNull final BufferConfiguration buffer,
       @NotNull final MrlConfiguration url,
       @Nullable final SoundKey key,
       @NotNull final FrameConfiguration fps) {
-    super(callback, pixelDimension, url, key, fps);
+    super(callback, viewers, pixelDimension, url, key, fps);
     final int num = fps.getFps();
     this.buffer = buffer;
     this.frames = new ArrayBlockingQueue<>(buffer.getBuffer() * num);

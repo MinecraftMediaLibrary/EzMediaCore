@@ -26,38 +26,38 @@ package io.github.pulsebeat02.ezmediacore.callback;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
-import java.util.Collection;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class MapCallback extends FrameCallback implements MapCallbackDispatcher {
 
   private final DitherAlgorithm algorithm;
   private final int map;
+  private final int blockWidth;
 
-  public MapCallback(
+  MapCallback(
       @NotNull final MediaLibraryCore core,
+      @NotNull final Viewers viewers,
       @NotNull final Dimension dimension,
-      @NotNull final Collection<? extends Player> viewers,
-      final DitherAlgorithm algorithm,
-      final int map,
-      final int blockWidth,
-      final int delay) {
-    super(core, dimension, viewers, blockWidth, delay);
+      @NotNull final DitherAlgorithm algorithm,
+      @NotNull final Identifier<Integer> map,
+      @NotNull final DelayConfiguration delay,
+      final int blockWidth) {
+    super(core, viewers, dimension, delay);
     this.algorithm = algorithm;
-    this.map = map;
+    this.map = map.getValue();
+    this.blockWidth = blockWidth;
   }
 
   @Override
   public void process(final int[] data) {
     final long time = System.currentTimeMillis();
     final Dimension dimension = this.getDimensions();
-    if (time - this.getLastUpdated() >= this.getFrameDelay()) {
+    if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
       this.setLastUpdated(time);
-      final int width = this.getBlockWidth();
+      final int width = this.blockWidth;
       this.getPacketHandler()
           .displayMaps(
-              this.getViewers(),
+              this.getWatchers().getViewers(),
               this.map,
               dimension.getWidth(),
               dimension.getHeight(),

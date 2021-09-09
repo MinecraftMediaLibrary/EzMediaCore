@@ -21,40 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.player;
 
-import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
-import io.github.pulsebeat02.ezmediacore.callback.Callback;
-import io.github.pulsebeat02.ezmediacore.callback.Viewable;
-import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
+package io.github.pulsebeat02.ezmediacore.callback;
+
 import org.jetbrains.annotations.NotNull;
 
-public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
+public final class Identifier<T> {
 
-  void initializePlayer(final long ms);
+  private final T value;
 
-  void setPlayerState(@NotNull final PlayerControls controls);
+  Identifier(@NotNull final T value) {
+    this.value = value;
+  }
 
-  void onPlayerStateChange(@NotNull final PlayerControls status);
+  public static <T> Identifier<T> ofIdentifier(@NotNull final T value) {
+    return new Identifier<>(value);
+  }
 
-  void playAudio();
-
-  void stopAudio();
-
-  @NotNull
-  Callback getCallback();
-
-  @NotNull
-  MrlConfiguration getMrlConfiguration();
-
-  @NotNull
-  FrameConfiguration getFrameConfiguration();
-
-  @NotNull
-  SoundKey getSoundKey();
-
-  @NotNull
-  PlayerControls getPlayerState();
-
-  long getElapsedMilliseconds();
+  public T getValue() {
+    return this.value;
+  }
 }

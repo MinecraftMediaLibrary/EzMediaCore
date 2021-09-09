@@ -28,38 +28,31 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
-import java.util.Collection;
-import java.util.UUID;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class FrameCallback implements Callback {
 
   private final MediaLibraryCore core;
+  private final DelayConfiguration delay;
   private final Dimension dimension;
-  private final UUID[] viewers;
-  private final int blockWidth;
-
-  private final int delay;
+  private final Viewers viewers;
   private long lastUpdated;
 
   // core, viewers, pixels in width, pixels in height, block width, and delay between each frame
-  public FrameCallback(
+  FrameCallback(
       @NotNull final MediaLibraryCore core,
+      @NotNull final Viewers viewers,
       @NotNull final Dimension dimension,
-      @NotNull final Collection<? extends Player> viewers,
-      final int blockWidth,
-      final int delay) {
+      @NotNull final DelayConfiguration delay) {
     Preconditions.checkArgument(
         dimension.getWidth() >= 0, "Width must be greater than or equal to 0!");
     Preconditions.checkArgument(
         dimension.getHeight() >= 0, "Height must be greater than or equal to 0!");
     Preconditions.checkArgument(
-        delay >= 0, "Delay between frames must be greater than or equal to 0!");
+        delay.getDelay() >= 0, "Delay between frames must be greater than or equal to 0!");
     this.core = core;
-    this.viewers = viewers.stream().map(Player::getUniqueId).toArray(UUID[]::new);
+    this.viewers = viewers;
     this.dimension = dimension;
-    this.blockWidth = blockWidth;
     this.delay = delay;
   }
 
@@ -67,12 +60,7 @@ public abstract class FrameCallback implements Callback {
   public void preparePlayerStateChange(@NotNull final PlayerControls status) {}
 
   @Override
-  public int getBlockWidth() {
-    return this.blockWidth;
-  }
-
-  @Override
-  public int getFrameDelay() {
+  public @NotNull DelayConfiguration getDelayConfiguration() {
     return this.delay;
   }
 
@@ -97,7 +85,7 @@ public abstract class FrameCallback implements Callback {
   }
 
   @Override
-  public @NotNull UUID[] getViewers() {
+  public @NotNull Viewers getWatchers() {
     return this.viewers;
   }
 

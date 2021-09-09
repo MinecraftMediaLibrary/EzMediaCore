@@ -21,40 +21,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.player;
 
-import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
-import io.github.pulsebeat02.ezmediacore.callback.Callback;
-import io.github.pulsebeat02.ezmediacore.callback.Viewable;
-import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
+package io.github.pulsebeat02.ezmediacore.callback;
+
 import org.jetbrains.annotations.NotNull;
 
-public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
+public final class DelayConfiguration {
 
-  void initializePlayer(final long ms);
+  public static final DelayConfiguration DELAY_0_MS;
+  public static final DelayConfiguration DELAY_5_MS;
+  public static final DelayConfiguration DELAY_10_MS;
+  public static final DelayConfiguration DELAY_15_MS;
+  public static final DelayConfiguration DELAY_20_MS;
 
-  void setPlayerState(@NotNull final PlayerControls controls);
+  static {
+    DELAY_0_MS = ofDelay(0);
+    DELAY_5_MS = ofDelay(5);
+    DELAY_10_MS = ofDelay(10);
+    DELAY_15_MS = ofDelay(15);
+    DELAY_20_MS = ofDelay(20);
+  }
 
-  void onPlayerStateChange(@NotNull final PlayerControls status);
+  private final int delay;
 
-  void playAudio();
+  DelayConfiguration(final int delay) {
+    this.delay = delay;
+  }
 
-  void stopAudio();
+  public static @NotNull DelayConfiguration ofDelay(final int delay) {
+    return new DelayConfiguration(delay);
+  }
 
-  @NotNull
-  Callback getCallback();
+  public static @NotNull DelayConfiguration ofDelay(@NotNull final Number delay) {
+    return ofDelay((int) delay);
+  }
 
-  @NotNull
-  MrlConfiguration getMrlConfiguration();
-
-  @NotNull
-  FrameConfiguration getFrameConfiguration();
-
-  @NotNull
-  SoundKey getSoundKey();
-
-  @NotNull
-  PlayerControls getPlayerState();
-
-  long getElapsedMilliseconds();
+  public int getDelay() {
+    return this.delay;
+  }
 }

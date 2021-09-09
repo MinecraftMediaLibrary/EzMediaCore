@@ -25,6 +25,7 @@ package io.github.pulsebeat02.ezmediacore.player;
 
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
@@ -60,11 +61,12 @@ public final class VLCMediaPlayer extends MediaPlayer {
 
   VLCMediaPlayer(
       @NotNull final Callback callback,
+      @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
       @NotNull final MrlConfiguration url,
       @Nullable final SoundKey key,
       @NotNull final FrameConfiguration fps) {
-    super(callback, pixelDimension, url, key, fps);
+    super(callback, viewers, pixelDimension, url, key, fps);
     this.adapter = this.getAdapter();
     this.callback = new MinecraftVideoRenderCallback(this);
     this.initializePlayer(0L);
@@ -81,12 +83,13 @@ public final class VLCMediaPlayer extends MediaPlayer {
   @Override
   public void setPlayerState(@NotNull final PlayerControls controls) {
     super.setPlayerState(controls);
+    final MrlConfiguration configuration = this.getMrlConfiguration();
     switch (controls) {
       case START -> {
         if (this.player == null) {
           this.initializePlayer(0L);
         }
-        this.player.media().play(this.getMrlConfiguration().toString());
+        this.player.media().play(configuration.getMrl());
         this.playAudio();
       }
       case PAUSE -> {
@@ -96,7 +99,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
       case RESUME -> {
         if (this.player == null) {
           this.initializePlayer(0L);
-          this.player.media().play(this.getMrlConfiguration().toString());
+          this.player.media().play(configuration.getMrl());
         } else {
           this.player.controls().play();
         }
@@ -111,7 +114,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
   public void initializePlayer(final long ms) {
 
     this.player = this.getEmbeddedMediaPlayer();
-    this.player.media().prepare(this.getMrlConfiguration().toString());
+    this.player.media().prepare(this.getMrlConfiguration().getMrl());
     this.player.controls().setTime(ms);
 
     final AudioApi audio = this.player.audio();

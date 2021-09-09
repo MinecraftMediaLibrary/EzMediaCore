@@ -54,7 +54,8 @@ public class PluginCommand extends BaseCommand {
   static {
     PLUGIN_INFORMATION =
         text()
-            .append(text("⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻", GOLD))
+            .append(text("-----------------------------------", GOLD))
+            .append(newline())
             .append(text("Plugin: ", GOLD, BOLD))
             .append(text("DeluxeMediaPlugin", AQUA))
             .append(newline())
@@ -87,7 +88,8 @@ public class PluginCommand extends BaseCommand {
                         BOLD,
                         openUrl("https://discord.gg/AqK5dKdUZe"),
                         text("Click for Discord Server", GOLD).asHoverEvent())))
-            .append(text("⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻", GOLD))
+            .append(newline())
+            .append(text("-----------------------------------", GOLD))
             .append()
             .build();
   }
@@ -115,7 +117,7 @@ public class PluginCommand extends BaseCommand {
   @Override
   public @NotNull Component usage() {
     return ChatUtils.getCommandUsage(
-        Map.of("/deluxemediaplugin", "Displays information about the plugin"));
+        Map.of("/deluxemediaplugin info", "Displays information about the plugin"));
   }
 
   @Override

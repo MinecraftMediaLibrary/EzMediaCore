@@ -167,7 +167,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 		if (!this.cancelled) {
 			ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), Bukkit.getOnlinePlayers(),
 					this.attributes.getUrl(), this.attributes.getHash());
-			// this.plugin.audience().players().sendMessage(RESOURCEPACK_MESSAGE);
+			this.plugin.audience().players().sendMessage(RESOURCEPACK_MESSAGE);
 			gold(audience, "Successfully loaded video %s".formatted(mrl));
 		}
 	}

@@ -103,7 +103,7 @@ public class VideoFactory {
       }
       case UNIX -> {
         return core.isVLCSupported() ? this.vlcOption()
-            : new FFmpegMediaPlayer(this.callback, this.dims, BufferConfiguration.BUFFER_10, this.mrl, this.key, this.rate);
+            : new FFmpegMediaPlayer(this.callback, this.callback.getWatchers(), this.dims, BufferConfiguration.BUFFER_10, this.mrl, this.key, this.rate);
       }
       default -> throw new UnsupportedPlatformException("Unknown");
     }
@@ -111,7 +111,7 @@ public class VideoFactory {
 
   @Contract(" -> new")
   private @NotNull MediaPlayer vlcOption() {
-    return new VLCMediaPlayer(this.callback, this.dims, this.mrl, this.key, this.rate);
+    return new VLCMediaPlayer(this.callback, this.callback.getWatchers(), this.dims, this.mrl, this.key, this.rate);
   }
 
   public void calculateFrameRate() {
@@ -152,7 +152,8 @@ public class VideoFactory {
     @Contract(" -> new")
     @Override
     public @NotNull MediaPlayer build() {
-      return new VLCMediaPlayer(this.getCallback(), this.getDims(),
+      final Callback callback = this.getCallback();
+      return new VLCMediaPlayer(callback, callback.getWatchers(), this.getDims(),
           this.getMrl(),
           this.getKey(), this.getRate());
     }
@@ -162,7 +163,7 @@ public class VideoFactory {
 
     private BufferConfiguration bufferSize = BufferConfiguration.BUFFER_15;
 
-    public VideoFactory buffer(@NotNull final BufferConfiguration bufferSize) {
+    public @NotNull VideoFactory buffer(@NotNull final BufferConfiguration bufferSize) {
       this.bufferSize = bufferSize;
       return this;
     }
@@ -171,7 +172,8 @@ public class VideoFactory {
     @Override
     public @NotNull MediaPlayer build() {
       super.init();
-      return new FFmpegMediaPlayer(this.getCallback(), this.getDims(),
+      final Callback callback = this.getCallback();
+      return new FFmpegMediaPlayer(callback, callback.getWatchers(), this.getDims(),
           this.bufferSize, this.getMrl(),
           this.getKey(), this.getRate());
     }
@@ -181,7 +183,7 @@ public class VideoFactory {
 
     private BufferConfiguration bufferSize = BufferConfiguration.BUFFER_15;
 
-    public VideoFactory buffer(@NotNull final BufferConfiguration bufferSize) {
+    public @NotNull VideoFactory buffer(@NotNull final BufferConfiguration bufferSize) {
       this.bufferSize = bufferSize;
       return this;
     }
@@ -190,11 +192,11 @@ public class VideoFactory {
     @Override
     public @NotNull MediaPlayer build() {
       super.init();
-      return new JCodecMediaPlayer(this.getCallback(), this.getDims(),
+      final Callback callback = this.getCallback();
+      return new JCodecMediaPlayer(callback, callback.getWatchers(), this.getDims(),
           this.bufferSize, this.getMrl(),
           this.getKey(), this.getRate());
     }
   }
-
 
 }

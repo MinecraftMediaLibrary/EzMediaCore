@@ -29,20 +29,18 @@ import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import org.jetbrains.annotations.NotNull;
 
-public interface Callback extends LibraryInjectable, Dimensional, Viewable {
+public interface Callback extends LibraryInjectable, Viewable, Dimensional {
 
   void process(final int[] data);
 
   void preparePlayerStateChange(@NotNull final PlayerControls status);
 
-  // width in pixels
-  int getBlockWidth();
-
-  int getFrameDelay();
-
   long getLastUpdated();
 
   void setLastUpdated(long lastUpdated);
+
+  @NotNull
+  DelayConfiguration getDelayConfiguration();
 
   @NotNull
   PacketHandler getPacketHandler();

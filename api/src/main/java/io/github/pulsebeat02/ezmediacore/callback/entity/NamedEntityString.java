@@ -23,25 +23,41 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.entity;
 
-public class NamedEntityString {
+import org.jetbrains.annotations.NotNull;
 
-  public static final String DASH;
-  public static final String HYPHEN;
-  public static final String PERIOD;
+public final class NamedEntityString {
 
-  public static final String TINY_SQUARE;
-  public static final String NORMAL_SQUARE;
-  public static final String VERTICAL_RECTANGLE;
-  public static final String HORIZONTAL_RECTANGLE;
+  public static final NamedEntityString DASH;
+  public static final NamedEntityString HYPHEN;
+  public static final NamedEntityString PERIOD;
+
+  public static final NamedEntityString TINY_SQUARE;
+  public static final NamedEntityString NORMAL_SQUARE;
+  public static final NamedEntityString VERTICAL_RECTANGLE;
+  public static final NamedEntityString HORIZONTAL_RECTANGLE;
 
   static {
-    DASH = "-";
-    HYPHEN = "—";
-    PERIOD = ".";
+    DASH = ofString("-");
+    HYPHEN = ofString("—");
+    PERIOD = ofString(".");
 
-    TINY_SQUARE = "■";
-    NORMAL_SQUARE = "■";
-    VERTICAL_RECTANGLE = "█";
-    HORIZONTAL_RECTANGLE = "▬";
+    TINY_SQUARE = ofString("■");
+    NORMAL_SQUARE = ofString("■");
+    VERTICAL_RECTANGLE = ofString("█");
+    HORIZONTAL_RECTANGLE = ofString("▬");
+  }
+
+  public @NotNull String getName() {
+    return this.name;
+  }
+
+  private final String name;
+
+  NamedEntityString(@NotNull final String name) {
+    this.name = name;
+  }
+
+  public static @NotNull NamedEntityString ofString(@NotNull final String name) {
+    return new NamedEntityString(name);
   }
 }

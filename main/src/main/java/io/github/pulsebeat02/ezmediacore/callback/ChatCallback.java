@@ -24,41 +24,30 @@
 package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-import java.util.WeakHashMap;
-import java.util.stream.Collectors;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class ChatCallback extends FrameCallback implements ChatCallbackDispatcher {
 
-  private final Set<Player> players;
-  private final String character;
+  private final NamedEntityString character;
 
-  public ChatCallback(
+  ChatCallback(
       @NotNull final MediaLibraryCore core,
+      @NotNull final Viewers viewers,
       @NotNull final Dimension dimension,
-      @NotNull final Collection<? extends Player> viewers,
-      @NotNull final String character,
-      final int blockWidth,
-      final int delay) {
-    super(core, dimension, viewers, blockWidth, delay);
+      @NotNull final NamedEntityString character,
+      @NotNull final DelayConfiguration delay) {
+    super(core, viewers, dimension, delay);
     this.character = character;
-    this.players = Collections.newSetFromMap(new WeakHashMap<>());
-    this.players.addAll(
-        Arrays.stream(this.getViewers()).map(Bukkit::getPlayer).collect(Collectors.toList()));
   }
 
   @Override
   public void process(final int[] data) {
     final long time = System.currentTimeMillis();
-    if (time - this.getLastUpdated() >= this.getFrameDelay()) {
+    if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
       this.setLastUpdated(time);
       final Dimension dimension = this.getDimensions();
       final int width = dimension.getWidth();
@@ -71,10 +60,10 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
           if (before != rgb) {
             msg.append(ChatColor.of("#" + "%08x".formatted(rgb).substring(2)));
           }
-          msg.append(this.character);
+          msg.append(this.character.getName());
           before = rgb;
         }
-        for (final Player player : this.players) {
+        for (final Player player : this.getWatchers().getPlayers()) {
           player.sendMessage(msg.toString());
         }
       }
@@ -82,7 +71,7 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
   }
 
   @Override
-  public @NotNull String getChatCharacter() {
+  public @NotNull NamedEntityString getChatCharacter() {
     return this.character;
   }
 }

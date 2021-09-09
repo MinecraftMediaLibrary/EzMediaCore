@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.dimension;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-public class ImmutableDimension implements Dimension {
+public final class ImmutableDimension implements Dimension {
 
   private final int width;
   private final int height;

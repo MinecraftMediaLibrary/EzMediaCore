@@ -25,9 +25,9 @@ package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.entity.EntityCallbackDispatcher;
+import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
-import java.util.Collection;
 import java.util.function.Consumer;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
@@ -35,7 +35,6 @@ import org.bukkit.World;
 import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,18 +43,17 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
   private final EntityType type;
   private final Entity[] entities;
   private final Location location;
-  private final String name;
+  private final NamedEntityString name;
 
-  public EntityCallback(
+  EntityCallback(
       @NotNull final MediaLibraryCore core,
+      @NotNull final Viewers viewers,
       @NotNull final Dimension dimension,
-      @NotNull final Collection<? extends Player> viewers,
       @NotNull final Location location,
-      @NotNull final String character,
+      @NotNull final NamedEntityString character,
       @NotNull final EntityType type,
-      final int blockWidth,
-      final int delay) {
-    super(core, dimension, viewers, blockWidth, delay);
+      @NotNull final DelayConfiguration delay) {
+    super(core, viewers, dimension, delay);
     this.location = location;
     this.type = type;
     this.name = character;
@@ -112,7 +110,7 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
           entity.setRadiusPerTick(0);
           entity.setReapplicationDelay(0);
           entity.setCustomNameVisible(true);
-          entity.setCustomName(StringUtils.repeat(this.name, height));
+          entity.setCustomName(StringUtils.repeat(this.name.getName(), height));
           entity.setGravity(false);
         });
   }
@@ -126,7 +124,7 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
           entity.setVisible(false);
           entity.setCustomNameVisible(true);
           entity.setGravity(false);
-          entity.setCustomName(StringUtils.repeat(this.name, height));
+          entity.setCustomName(StringUtils.repeat(this.name.getName(), height));
         });
   }
 
@@ -154,10 +152,10 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
   @Override
   public void process(final int[] data) {
     final long time = System.currentTimeMillis();
-    if (time - this.getLastUpdated() >= this.getFrameDelay()) {
+    if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
       this.setLastUpdated(time);
       this.getPacketHandler()
-          .displayEntities(this.getViewers(), this.entities, data, this.getDimensions().getWidth());
+          .displayEntities(this.getWatchers().getViewers(), this.entities, data, this.getDimensions().getWidth());
     }
   }
 
@@ -167,7 +165,7 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
   }
 
   @Override
-  public @NotNull String getStringName() {
+  public @NotNull NamedEntityString getStringName() {
     return this.name;
   }
 
