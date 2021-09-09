@@ -62,12 +62,14 @@ import io.github.pulsebeat02.ezmediacore.image.Image;
 import io.github.pulsebeat02.ezmediacore.image.StaticImage;
 import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
 import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -75,101 +77,101 @@ import org.jetbrains.annotations.NotNull;
 
 public final class SetImageCommand implements CommandSegment.Literal<CommandSender> {
 
-  private final LiteralCommandNode<CommandSender> node;
-  private final ImageCommandAttributes attributes;
-  private final DeluxeMediaPlugin plugin;
+	private final LiteralCommandNode<CommandSender> node;
+	private final ImageCommandAttributes attributes;
+	private final DeluxeMediaPlugin plugin;
 
-  public SetImageCommand(
-      @NotNull final DeluxeMediaPlugin plugin, @NotNull final ImageCommandAttributes attributes) {
-    this.plugin = plugin;
-    this.attributes = attributes;
-    this.node =
-        this.literal("set")
-            .then(
-                this.literal("map")
-                    .then(
-                        this.argument("mrl", StringArgumentType.greedyString())
-                            .executes(this::setImage)))
-            .then(
-                this.literal("dimensions")
-                    .then(
-                        this.argument("dims", StringArgumentType.greedyString())
-                            .executes(this::setDimensions)))
-            .build();
-  }
+	public SetImageCommand(
+			@NotNull final DeluxeMediaPlugin plugin, @NotNull final ImageCommandAttributes attributes) {
+		this.plugin = plugin;
+		this.attributes = attributes;
+		this.node =
+				this.literal("set")
+						.then(
+								this.literal("map")
+										.then(
+												this.argument("mrl", StringArgumentType.greedyString())
+														.executes(this::setImage)))
+						.then(
+								this.literal("dimensions")
+										.then(
+												this.argument("dims", StringArgumentType.greedyString())
+														.executes(this::setDimensions)))
+						.build();
+	}
 
-  private int setImage(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = this.plugin.audience().sender(context.getSource());
-    final String mrl = context.getArgument("mrl", String.class);
-    final int width = this.attributes.getWidth();
-    final int height = this.attributes.getHeight();
-    final Optional<ImageMrlType> optional = ImageMrlType.getType(mrl);
-    if (optional.isEmpty()) {
-      red(audience,
-          "Image doesn't match any supported extensions! (%s)".formatted(ImageMrlType.EXTENSIONS));
-      return SINGLE_SUCCESS;
-    }
-    gold(audience, "Loading image...");
-    final ImageMrlType type = optional.get();
-    CompletableFuture.runAsync(() -> {
-      try {
-        switch (type) {
-          case LOCAL_FILE -> this.drawImage(Path.of(mrl), width, height);
-          case DIRECT_LINK -> this.drawImage(
-              FileUtils.downloadImageFile(mrl, this.plugin.library().getLibraryPath()),
-              width, height);
-          default -> throw new IllegalArgumentException("Illegal image type!");
-        }
-        gold(audience, "Successfully drew image with mrl %s".formatted(mrl));
-      } catch (final IOException e) {
-        this.plugin.getLogger().severe("Failed to set image file!");
-        e.printStackTrace();
-      }
-    });
-    return SINGLE_SUCCESS;
-  }
+	private int setImage(@NotNull final CommandContext<CommandSender> context) {
+		final Audience audience = this.plugin.audience().sender(context.getSource());
+		final String mrl = context.getArgument("mrl", String.class);
+		final int width = this.attributes.getWidth();
+		final int height = this.attributes.getHeight();
+		final Optional<ImageMrlType> optional = ImageMrlType.getType(mrl);
+		if (optional.isEmpty()) {
+			red(audience,
+					"Image doesn't match any supported extensions! (%s)".formatted(ImageMrlType.EXTENSIONS));
+			return SINGLE_SUCCESS;
+		}
+		gold(audience, "Loading image...");
+		final ImageMrlType type = optional.get();
+		CompletableFuture.runAsync(() -> {
+			try {
+				switch (type) {
+					case LOCAL_FILE -> this.drawImage(Path.of(mrl), width, height);
+					case DIRECT_LINK -> this.drawImage(
+							FileUtils.downloadImageFile(mrl, this.plugin.library().getLibraryPath()),
+							width, height);
+					default -> throw new IllegalArgumentException("Illegal image type!");
+				}
+				gold(audience, "Successfully drew image with mrl %s".formatted(mrl));
+			} catch (final IOException e) {
+				this.plugin.getLogger().severe("Failed to set image file!");
+				e.printStackTrace();
+			}
+		});
+		return SINGLE_SUCCESS;
+	}
 
-  private void drawImage(
-      @NotNull final Path img,
-      final int width, final int height)
-      throws IOException {
-    final MediaLibraryCore core = this.plugin.library();
-    final List<Integer> maps = this.getMapsFromDimension(width, height);
-    final String name = PathUtils.getName(img).toLowerCase();
-    final Image image =
-        name.endsWith("gif") ? new DynamicImage(core, img, maps, Dimension.of(width, height)) :
-            new StaticImage(core, img, maps, Dimension.of(width, height));
-    image.draw(true);
-    this.plugin.getPictureManager().getImages().add(image);
-  }
+	private void drawImage(
+			@NotNull final Path img,
+			final int width, final int height)
+			throws IOException {
+		final MediaLibraryCore core = this.plugin.library();
+		final List<Integer> maps = this.getMapsFromDimension(width, height);
+		final String name = PathUtils.getName(img).toLowerCase();
+		final Image image =
+				name.endsWith("gif") ? new DynamicImage(core, img, maps, Dimension.of(width, height)) :
+						new StaticImage(core, img, maps, Dimension.of(width, height));
+		image.draw(true);
+		this.plugin.getPictureManager().getImages().add(image);
+	}
 
-  private List<Integer> getMapsFromDimension(final int width, final int height) {
-    final List<Integer> maps = new ArrayList<>();
-    for (int i = 0; i < width * height; i++) {
-      maps.add(Bukkit.getServer().createMap(Bukkit.getWorld("world")).getId());
-    }
-    return maps;
-  }
+	private List<Integer> getMapsFromDimension(final int width, final int height) {
+		final List<Integer> maps = new ArrayList<>();
+		for (int i = 0; i < width * height; i++) {
+			maps.add(Bukkit.getServer().createMap(Bukkit.getWorld("world")).getId());
+		}
+		return maps;
+	}
 
-  private int setDimensions(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = this.plugin.audience().sender(context.getSource());
-    final Optional<int[]> optional =
-        ChatUtils.checkDimensionBoundaries(audience, context.getArgument("dims", String.class));
-    if (optional.isEmpty()) {
-      return SINGLE_SUCCESS;
-    }
-    final int[] dims = optional.get();
-    this.attributes.setWidth(dims[0]);
-    this.attributes.setHeight(dims[1]);
-    gold(
-        audience,
-        "Changed itemframe dimensions to %d:%d (width:height)"
-            .formatted(this.attributes.getWidth(), this.attributes.getHeight()));
-    return SINGLE_SUCCESS;
-  }
+	private int setDimensions(@NotNull final CommandContext<CommandSender> context) {
+		final Audience audience = this.plugin.audience().sender(context.getSource());
+		final Optional<int[]> optional =
+				ChatUtils.checkDimensionBoundaries(audience, context.getArgument("dims", String.class));
+		if (optional.isEmpty()) {
+			return SINGLE_SUCCESS;
+		}
+		final int[] dims = optional.get();
+		this.attributes.setWidth(dims[0]);
+		this.attributes.setHeight(dims[1]);
+		gold(
+				audience,
+				"Changed itemframe dimensions to %d:%d (width:height)"
+						.formatted(this.attributes.getWidth(), this.attributes.getHeight()));
+		return SINGLE_SUCCESS;
+	}
 
-  @Override
-  public @NotNull LiteralCommandNode<CommandSender> node() {
-    return this.node;
-  }
+	@Override
+	public @NotNull LiteralCommandNode<CommandSender> node() {
+		return this.node;
+	}
 }

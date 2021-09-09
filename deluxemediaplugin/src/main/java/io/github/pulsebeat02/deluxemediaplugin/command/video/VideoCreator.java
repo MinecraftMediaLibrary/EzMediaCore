@@ -57,103 +57,105 @@ import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.VideoFactory;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
+
 import java.util.Collection;
+
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public record VideoCreator(MediaLibraryCore library,
-                           VideoCommandAttributes attributes) {
+						   VideoCommandAttributes attributes) {
 
-  public VideoCreator(
-      @NotNull final MediaLibraryCore library, @NotNull final VideoCommandAttributes attributes) {
-    this.library = library;
-    this.attributes = attributes;
-  }
+	public VideoCreator(
+			@NotNull final MediaLibraryCore library, @NotNull final VideoCommandAttributes attributes) {
+		this.library = library;
+		this.attributes = attributes;
+	}
 
-  public @NotNull VideoPlayer createMapPlayer(@NotNull final Collection<? extends Player> viewers) {
-    return VideoFactory.unspecified()
-        .url(this.attributes.getVideoMrl())
-        .callback(
-            new MapCallback(
-                this.library,
-                Dimension.of(this.attributes.getFrameWidth(), this.attributes.getFrameHeight()),
-                viewers,
-                this.attributes.getDither().getAlgorithm(),
-                this.attributes.getMap(),
-                this.attributes.getPixelWidth(),
-                0))
-        .dims(Dimension.of(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
-        .soundKey("emc")
-        .build();
-  }
+	public @NotNull VideoPlayer createMapPlayer(@NotNull final Collection<? extends Player> viewers) {
+		return VideoFactory.unspecified()
+				.url(this.attributes.getVideoMrl())
+				.callback(
+						new MapCallback(
+								this.library,
+								Dimension.of(this.attributes.getFrameWidth(), this.attributes.getFrameHeight()),
+								viewers,
+								this.attributes.getDither().getAlgorithm(),
+								this.attributes.getMap(),
+								this.attributes.getPixelWidth(),
+								0))
+				.dims(Dimension.of(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
+				.soundKey("emc")
+				.build();
+	}
 
-  public @NotNull VideoPlayer createEntityPlayer(
-      @NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
-    return VideoFactory.unspecified()
-        .url(this.attributes.getVideoMrl())
-        .callback(
-            new EntityCallback(
-                this.library,
-                Dimension.of(
-                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
-                viewers,
-                sender.getLocation(),
-                NamedEntityString.NORMAL_SQUARE,
-                EntityType.ARMORSTAND,
-                this.attributes.getFrameWidth(),
-                20))
-        .soundKey("emc")
-        .build();
-  }
+	public @NotNull VideoPlayer createEntityPlayer(
+			@NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
+		return VideoFactory.unspecified()
+				.url(this.attributes.getVideoMrl())
+				.callback(
+						new EntityCallback(
+								this.library,
+								Dimension.of(
+										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+								viewers,
+								sender.getLocation(),
+								NamedEntityString.NORMAL_SQUARE,
+								EntityType.ARMORSTAND,
+								this.attributes.getFrameWidth(),
+								20))
+				.soundKey("emc")
+				.build();
+	}
 
-  public @NotNull VideoPlayer createChatBoxPlayer(
-      @NotNull final Collection<? extends Player> viewers) {
-    return VideoFactory.unspecified()
-        .url(this.attributes.getVideoMrl())
-        .callback(
-            new ChatCallback(
-                this.library,
-                Dimension.of(
-                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
-                viewers,
-                NamedEntityString.NORMAL_SQUARE,
-                this.attributes.getFrameWidth(),
-                20))
-        .soundKey("emc")
-        .build();
-  }
+	public @NotNull VideoPlayer createChatBoxPlayer(
+			@NotNull final Collection<? extends Player> viewers) {
+		return VideoFactory.unspecified()
+				.url(this.attributes.getVideoMrl())
+				.callback(
+						new ChatCallback(
+								this.library,
+								Dimension.of(
+										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+								viewers,
+								NamedEntityString.NORMAL_SQUARE,
+								this.attributes.getFrameWidth(),
+								20))
+				.soundKey("emc")
+				.build();
+	}
 
-  public @NotNull VideoPlayer createScoreboardPlayer(
-      @NotNull final Collection<? extends Player> viewers) {
-    return VideoFactory.unspecified()
-        .url(this.attributes.getVideoMrl())
-        .callback(
-            new ScoreboardCallback(
-                this.library,
-                Dimension.of(
-                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
-                viewers,
-                1080,
-                this.attributes.getFrameWidth(),
-                20))
-        .soundKey("emc")
-        .build();
-  }
+	public @NotNull VideoPlayer createScoreboardPlayer(
+			@NotNull final Collection<? extends Player> viewers) {
+		return VideoFactory.unspecified()
+				.url(this.attributes.getVideoMrl())
+				.callback(
+						new ScoreboardCallback(
+								this.library,
+								Dimension.of(
+										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+								viewers,
+								1080,
+								this.attributes.getFrameWidth(),
+								20))
+				.soundKey("emc")
+				.build();
+	}
 
-  public @NotNull VideoPlayer createBlockHighlightPlayer(
-      @NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
-    return VideoFactory.unspecified()
-        .url(this.attributes.getVideoMrl())
-        .callback(
-            new BlockHighlightCallback(
-                this.library,
-                Dimension.of(
-                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
-                viewers,
-                sender.getLocation(),
-                this.attributes.getFrameWidth(),
-                40))
-        .soundKey("emc")
-        .build();
-  }
+	public @NotNull VideoPlayer createBlockHighlightPlayer(
+			@NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
+		return VideoFactory.unspecified()
+				.url(this.attributes.getVideoMrl())
+				.callback(
+						new BlockHighlightCallback(
+								this.library,
+								Dimension.of(
+										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
+								viewers,
+								sender.getLocation(),
+								this.attributes.getFrameWidth(),
+								40))
+				.soundKey("emc")
+				.build();
+	}
 }

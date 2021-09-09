@@ -46,95 +46,97 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.logging.Level;
+
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class ConfigurationProvider {
 
-  private final DeluxeMediaPlugin plugin;
-  private final String name;
-  private final Path config;
+	private final DeluxeMediaPlugin plugin;
+	private final String name;
+	private final Path config;
 
-  private FileConfiguration fileConfiguration;
+	private FileConfiguration fileConfiguration;
 
-  public ConfigurationProvider(@NotNull final DeluxeMediaPlugin plugin, @NotNull final String name)
-      throws IOException {
-    this.plugin = plugin;
-    this.name = name;
-    this.config = Path.of(plugin.getDataFolder().toString()).resolve(this.name);
-  }
+	public ConfigurationProvider(@NotNull final DeluxeMediaPlugin plugin, @NotNull final String name)
+			throws IOException {
+		this.plugin = plugin;
+		this.name = name;
+		this.config = Path.of(plugin.getDataFolder().toString()).resolve(this.name);
+	}
 
-  public void reloadConfig() {
-    this.fileConfiguration = YamlConfiguration.loadConfiguration(this.config.toFile());
-    final InputStream defConfigStream = this.plugin.getResource(this.name);
-    if (defConfigStream != null) {
-      final YamlConfiguration defConfig =
-          YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
-      this.fileConfiguration.setDefaults(defConfig);
-    }
-  }
+	public void reloadConfig() {
+		this.fileConfiguration = YamlConfiguration.loadConfiguration(this.config.toFile());
+		final InputStream defConfigStream = this.plugin.getResource(this.name);
+		if (defConfigStream != null) {
+			final YamlConfiguration defConfig =
+					YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
+			this.fileConfiguration.setDefaults(defConfig);
+		}
+	}
 
-  public FileConfiguration getConfig() {
-    if (this.fileConfiguration == null) {
-      this.reloadConfig();
-    }
-    return this.fileConfiguration;
-  }
+	public FileConfiguration getConfig() {
+		if (this.fileConfiguration == null) {
+			this.reloadConfig();
+		}
+		return this.fileConfiguration;
+	}
 
-  public void saveConfig() {
-    if (this.fileConfiguration != null && this.config != null) {
-      try {
-        this.getConfig().save(this.config.toFile());
-      } catch (final IOException e) {
-        this.plugin
-            .getLogger()
-            .log(Level.SEVERE, "Could not save config to %s".formatted(this.config), e);
-      }
-    }
-  }
+	public void saveConfig() {
+		if (this.fileConfiguration != null && this.config != null) {
+			try {
+				this.getConfig().save(this.config.toFile());
+			} catch (final IOException e) {
+				this.plugin
+						.getLogger()
+						.log(Level.SEVERE, "Could not save config to %s".formatted(this.config), e);
+			}
+		}
+	}
 
-  public void saveDefaultConfig() {
-    if (!Files.exists(this.config)) {
-      this.plugin.saveResource(this.name, false);
-    }
-  }
+	public void saveDefaultConfig() {
+		if (!Files.exists(this.config)) {
+			this.plugin.saveResource(this.name, false);
+		}
+	}
 
-  public void read() {
-    if (!Files.exists(this.config)) {
-      this.saveDefaultConfig();
-    }
-    this.getConfig();
-    try {
-      this.serialize();
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
-  }
+	public void read() {
+		if (!Files.exists(this.config)) {
+			this.saveDefaultConfig();
+		}
+		this.getConfig();
+		try {
+			this.serialize();
+		} catch (final IOException e) {
+			e.printStackTrace();
+		}
+	}
 
-  abstract void deserialize();
+	abstract void deserialize();
 
-  abstract void serialize() throws IOException;
+	abstract void serialize() throws IOException;
 
-  public @NotNull DeluxeMediaPlugin getPlugin() {
-    return this.plugin;
-  }
+	public @NotNull DeluxeMediaPlugin getPlugin() {
+		return this.plugin;
+	}
 
-  public @NotNull String getFileName() {
-    return this.name;
-  }
+	public @NotNull String getFileName() {
+		return this.name;
+	}
 
-  public @NotNull Path getConfigFile() {
-    return this.config;
-  }
+	public @NotNull Path getConfigFile() {
+		return this.config;
+	}
 
-  public @NotNull FileConfiguration getFileConfiguration() {
-    return this.fileConfiguration;
-  }
+	public @NotNull FileConfiguration getFileConfiguration() {
+		return this.fileConfiguration;
+	}
 }

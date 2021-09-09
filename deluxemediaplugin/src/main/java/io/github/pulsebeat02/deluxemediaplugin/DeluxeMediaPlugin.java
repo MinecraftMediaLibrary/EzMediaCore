@@ -55,9 +55,11 @@ import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandHandler;
+import io.github.pulsebeat02.deluxemediaplugin.config.BotConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.EncoderConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.PersistentPictureManager;
+import io.github.pulsebeat02.deluxemediaplugin.discord.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.update.UpdateChecker;
 import io.github.pulsebeat02.deluxemediaplugin.utility.CommandUtils;
 import io.github.pulsebeat02.ezmediacore.LibraryProvider;
@@ -78,6 +80,8 @@ import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import javax.security.auth.login.LoginException;
+
 public final class DeluxeMediaPlugin extends JavaPlugin {
 
   private MediaLibraryCore library;
@@ -88,6 +92,9 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
   private PersistentPictureManager manager;
   private AudioConfiguration audioConfiguration;
   private HttpServer server;
+
+  private MediaBot mediaBot;
+  private BotConfiguration botConfiguration;
 
   @Override
   public void onEnable() {
@@ -106,6 +113,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
     this.registerCommands();
     this.startMetrics();
     this.checkUpdates();
+	this.loadBot();
     this.log("Finished DeluxeMediaPlugin!");
     this.log("""
         Hello %%__USER__%%! Thank you for purchasing DeluxeMediaPlugin. For identifier purposes, this
@@ -166,9 +174,11 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
       final HttpConfiguration http = new HttpConfiguration(this);
       final EncoderConfiguration configuration = new EncoderConfiguration(this);
+      botConfiguration = new BotConfiguration(this);
 
       http.read();
       configuration.read();
+      botConfiguration.read();
 
       this.server = http.getServer();
       this.audioConfiguration = configuration.getSettings();
@@ -180,6 +190,19 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
       this.logger.severe("A severe issue occurred while reading data from configuration files!");
       e.printStackTrace();
     }
+  }
+
+  private void loadBot() {
+  	try {
+
+  		if (this.botConfiguration.getConfig().getString("token") == null) {
+			this.logger.severe("A severe issue occurred while starting the bot. Please check the token!");
+		}
+
+  		mediaBot = new MediaBot(this.botConfiguration.getConfig().getString("token"));
+	} catch (LoginException | InterruptedException e) {
+		this.logger.severe("A severe issue occurred while starting the bot. Please check the token!");
+	}
   }
 
   public void log(@NotNull final String line) {
@@ -204,6 +227,10 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 
   public @NotNull HttpServer getHttpServer() {
     return this.server;
+  }
+
+  public @NotNull MediaBot getMediaBot() {
+  	return this.mediaBot;
   }
 
   public @NotNull MediaLibraryCore library() {

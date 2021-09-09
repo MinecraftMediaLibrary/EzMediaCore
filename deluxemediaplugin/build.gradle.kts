@@ -20,6 +20,8 @@ dependencies {
     implementation("net.kyori:adventure-api:4.9.0")
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.2")
     implementation("me.lucko:commodore:1.10")
+    implementation("net.dv8tion:JDA:4.3.0_310")
+    implementation("com.sedmelluq:lavaplayer:1.3.78")
     compileOnly("com.mojang:authlib:1.5.25")
     compileOnly("org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT")
     compileOnly("org.jetbrains:annotations:22.0.0")

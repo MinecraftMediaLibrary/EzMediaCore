@@ -48,39 +48,41 @@ package io.github.pulsebeat02.deluxemediaplugin.config;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioAttributes;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
+
 import java.io.IOException;
+
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 public final class EncoderConfiguration extends ConfigurationProvider {
 
-  private AudioConfiguration settings;
+	private AudioConfiguration settings;
 
-  public EncoderConfiguration(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
-    super(plugin, "configuration/encoder.yml");
-  }
+	public EncoderConfiguration(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
+		super(plugin, "configuration/encoder.yml");
+	}
 
-  @Override
-  void deserialize() {
-    final FileConfiguration configuration = this.getFileConfiguration();
-    configuration.set("bitrate", this.settings.getBitrate());
-    configuration.set("channels", this.settings.getChannels());
-    configuration.set("sampling-rate", this.settings.getSamplingRate());
-    configuration.set("volume", this.settings.getVolume());
-    this.saveConfig();
-  }
+	@Override
+	void deserialize() {
+		final FileConfiguration configuration = this.getFileConfiguration();
+		configuration.set("bitrate", this.settings.getBitrate());
+		configuration.set("channels", this.settings.getChannels());
+		configuration.set("sampling-rate", this.settings.getSamplingRate());
+		configuration.set("volume", this.settings.getVolume());
+		this.saveConfig();
+	}
 
-  @Override
-  void serialize() {
-    final FileConfiguration configuration = this.getFileConfiguration();
-    final int bitrate = configuration.getInt("bitrate");
-    final int channels = configuration.getInt("channels");
-    final int samplingRate = configuration.getInt("sampling-rate");
-    final int volume = configuration.getInt("volume");
-    this.settings = new AudioAttributes("libvorbis", bitrate, channels, samplingRate, volume);
-  }
+	@Override
+	void serialize() {
+		final FileConfiguration configuration = this.getFileConfiguration();
+		final int bitrate = configuration.getInt("bitrate");
+		final int channels = configuration.getInt("channels");
+		final int samplingRate = configuration.getInt("sampling-rate");
+		final int volume = configuration.getInt("volume");
+		this.settings = new AudioAttributes("libvorbis", bitrate, channels, samplingRate, volume);
+	}
 
-  public @NotNull AudioConfiguration getSettings() {
-    return this.settings;
-  }
+	public @NotNull AudioConfiguration getSettings() {
+		return this.settings;
+	}
 }
