@@ -4,6 +4,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.entities.Guild;
+import org.jetbrains.annotations.NotNull;
 
 /** Stolen from itxfrosty Music bot. */
 public class TrackScheduler extends AudioEventAdapter {
@@ -12,7 +13,10 @@ public class TrackScheduler extends AudioEventAdapter {
   private final AudioPlayer audioPlayer;
   private final MusicManager musicManager;
 
-  public TrackScheduler(final MusicManager musicManager, AudioPlayer player, Guild guild) {
+  public TrackScheduler(
+      @NotNull final MusicManager musicManager,
+      @NotNull final AudioPlayer player,
+      @NotNull final Guild guild) {
     this.musicManager = musicManager;
     this.audioPlayer = player;
     this.guild = guild;
@@ -23,18 +27,22 @@ public class TrackScheduler extends AudioEventAdapter {
    *
    * @param track Track to Queue.
    */
-  public void queueSong(AudioTrack track) {
-    if (audioPlayer.getPlayingTrack() == null) audioPlayer.playTrack(track);
+  public void queueSong(@NotNull final AudioTrack track) {
+    if (this.audioPlayer.getPlayingTrack() == null) {
+      this.audioPlayer.playTrack(track);
+    }
   }
 
   /** Clear's Audio Queue. */
   public void clearQueue() {
-    audioPlayer.stopTrack();
+    this.audioPlayer.stopTrack();
   }
 
   /** Skips Song. */
   public void skip() {
-    audioPlayer.getPlayingTrack().setPosition(audioPlayer.getPlayingTrack().getDuration());
+    this.audioPlayer
+        .getPlayingTrack()
+        .setPosition(this.audioPlayer.getPlayingTrack().getDuration());
   }
 
   /**
@@ -43,7 +51,7 @@ public class TrackScheduler extends AudioEventAdapter {
    * @return If Paused.
    */
   public boolean isPaused() {
-    return audioPlayer.isPaused();
+    return this.audioPlayer.isPaused();
   }
 
   /**
@@ -51,8 +59,8 @@ public class TrackScheduler extends AudioEventAdapter {
    *
    * @param paused Pause or not.
    */
-  public void setPaused(boolean paused) {
-    audioPlayer.setPaused(paused);
+  public void setPaused(final boolean paused) {
+    this.audioPlayer.setPaused(paused);
   }
 
   /**
@@ -60,15 +68,15 @@ public class TrackScheduler extends AudioEventAdapter {
    *
    * @param volume Volume to set Audio player.
    */
-  public void setVolume(int volume) {
-    audioPlayer.setVolume(volume);
+  public void setVolume(final int volume) {
+    this.audioPlayer.setVolume(volume);
   }
 
-  public AudioPlayer getAudioPlayer() {
-    return audioPlayer;
+  public @NotNull AudioPlayer getAudioPlayer() {
+    return this.audioPlayer;
   }
 
-  public MusicManager getMusicManager() {
-    return musicManager;
+  public @NotNull MusicManager getMusicManager() {
+    return this.musicManager;
   }
 }

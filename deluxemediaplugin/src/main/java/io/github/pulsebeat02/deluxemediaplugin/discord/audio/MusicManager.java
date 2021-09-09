@@ -7,25 +7,26 @@ import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import java.util.HashMap;
+import java.util.Map;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.managers.AudioManager;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public class MusicManager {
 
-  private final AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-
-  public final Map<Long, MusicSendHandler> musicGuildManager = new HashMap<>();
+  private final AudioPlayerManager playerManager;
+  public final Map<Long, MusicSendHandler> musicGuildManager;
 
   public MusicManager() {
-    AudioSourceManagers.registerRemoteSources(playerManager);
-    AudioSourceManagers.registerLocalSource(playerManager);
+    this.playerManager = new DefaultAudioPlayerManager();
+    this.musicGuildManager = new HashMap<>();
+    AudioSourceManagers.registerRemoteSources(this.playerManager);
+    AudioSourceManagers.registerLocalSource(this.playerManager);
   }
 
   /**
@@ -34,15 +35,14 @@ public class MusicManager {
    * @param voiceChannel Voice Channel.
    * @param guild Guild.
    */
-  public void joinVoiceChannel(VoiceChannel voiceChannel, Guild guild) {
-    AudioManager audio = guild.getAudioManager();
-
+  public void joinVoiceChannel(
+      @NotNull final VoiceChannel voiceChannel, @NotNull final Guild guild) {
+    final AudioManager audio = guild.getAudioManager();
     if (audio.getSendingHandler() == null) {
-      musicGuildManager.putIfAbsent(
-          guild.getIdLong(), new MusicSendHandler(this, playerManager.createPlayer(), guild));
-      audio.setSendingHandler(musicGuildManager.get(guild.getIdLong()));
+      this.musicGuildManager.putIfAbsent(
+          guild.getIdLong(), new MusicSendHandler(this, this.playerManager.createPlayer(), guild));
+      audio.setSendingHandler(this.musicGuildManager.get(guild.getIdLong()));
     }
-
     audio.openAudioConnection(voiceChannel);
   }
 
@@ -51,9 +51,9 @@ public class MusicManager {
    *
    * @param guild Guild
    */
-  public void leaveVoiceChannel(Guild guild) {
+  public void leaveVoiceChannel(@NotNull final Guild guild) {
     guild.getAudioManager().closeAudioConnection();
-    musicGuildManager.get(guild.getIdLong()).getTrackScheduler().clearQueue();
+    this.musicGuildManager.get(guild.getIdLong()).getTrackScheduler().clearQueue();
   }
 
   /**
@@ -64,19 +64,31 @@ public class MusicManager {
    * @param channel Channel to send message.
    * @param guild Guild.
    */
-  public void addTrack(User user, String url, MessageChannel channel, Guild guild) {
-    playerManager.loadItem(
+  public void addTrack(
+      @NotNull final User user,
+      @NotNull final String url,
+      @NotNull final MessageChannel channel,
+      @NotNull final Guild guild) {
+    this.playerManager.loadItem(
         url,
         new AudioLoadResultHandler() {
           @Override
-          public void trackLoaded(AudioTrack audioTrack) {
-            musicGuildManager.get(guild.getIdLong()).getTrackScheduler().queueSong(audioTrack);
+          public void trackLoaded(final AudioTrack audioTrack) {
+            MusicManager.this
+                .musicGuildManager
+                .get(guild.getIdLong())
+                .getTrackScheduler()
+                .queueSong(audioTrack);
           }
 
           @Override
-          public void playlistLoaded(AudioPlaylist audioPlaylist) {
-            for (AudioTrack track : audioPlaylist.getTracks()) {
-              musicGuildManager.get(guild.getIdLong()).getTrackScheduler().queueSong(track);
+          public void playlistLoaded(final AudioPlaylist audioPlaylist) {
+            for (final AudioTrack track : audioPlaylist.getTracks()) {
+              MusicManager.this
+                  .musicGuildManager
+                  .get(guild.getIdLong())
+                  .getTrackScheduler()
+                  .queueSong(track);
             }
           }
 
@@ -89,7 +101,7 @@ public class MusicManager {
           }
 
           @Override
-          public void loadFailed(FriendlyException e) {
+          public void loadFailed(final FriendlyException e) {
             channel
                 .sendMessageEmbeds(new EmbedBuilder().setDescription("An error occurred!").build())
                 .queue();
@@ -97,7 +109,7 @@ public class MusicManager {
         });
   }
 
-  public Map<Long, MusicSendHandler> getMusicGuildManager() {
-    return musicGuildManager;
+  public @NotNull Map<Long, MusicSendHandler> getMusicGuildManager() {
+    return this.musicGuildManager;
   }
 }

@@ -48,13 +48,11 @@ package io.github.pulsebeat02.deluxemediaplugin.config;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioAttributes;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
-
 import java.io.IOException;
-
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-public final class EncoderConfiguration extends ConfigurationProvider {
+public final class EncoderConfiguration extends ConfigurationProvider<AudioConfiguration> {
 
   private AudioConfiguration settings;
 
@@ -82,7 +80,8 @@ public final class EncoderConfiguration extends ConfigurationProvider {
     this.settings = new AudioAttributes("libvorbis", bitrate, channels, samplingRate, volume);
   }
 
-  public @NotNull AudioConfiguration getSettings() {
+  @Override
+  public @NotNull AudioConfiguration getSerializedValue() {
     return this.settings;
   }
 }

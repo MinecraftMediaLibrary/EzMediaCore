@@ -68,21 +68,17 @@ import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
-
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
-
-import javax.security.auth.login.LoginException;
 
 public final class DeluxeMediaPlugin extends JavaPlugin {
 
@@ -94,9 +90,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 	private PersistentPictureManager manager;
 	private AudioConfiguration audioConfiguration;
 	private HttpServer server;
-
 	private MediaBot mediaBot;
-	private BotConfiguration botConfiguration;
 
 	@Override
 	public void onEnable() {
@@ -115,7 +109,6 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 		this.registerCommands();
 		this.startMetrics();
 		this.checkUpdates();
-		this.loadBot();
 		this.log("Finished DeluxeMediaPlugin!");
 		this.log("""
 				Hello %%__USER__%%! Thank you for purchasing DeluxeMediaPlugin. For identifier purposes, this
@@ -158,11 +151,9 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 		}
 		if (this.handler != null) {
 			final Set<BaseCommand> cmds = this.handler.getCommands();
-			if (cmds != null) {
 				for (final BaseCommand cmd : this.handler.getCommands()) {
 					CommandUtils.unRegisterBukkitCommand(this, cmd);
 				}
-			}
 		}
 		this.log("Good Bye!");
 	}
@@ -174,36 +165,23 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 			Set.of(this.getDataFolder().toPath().resolve("configuration")).forEach(
 					ThrowingConsumer.unchecked(FileUtils::createFolderIfNotExists));
 
-			final HttpConfiguration http = new HttpConfiguration(this);
-			final EncoderConfiguration configuration = new EncoderConfiguration(this);
-			botConfiguration = new BotConfiguration(this);
+			final HttpConfiguration httpConfiguration = new HttpConfiguration(this);
+			final EncoderConfiguration encoderConfiguration = new EncoderConfiguration(this);
+			final BotConfiguration botConfiguration = new BotConfiguration(this);
 
-			http.read();
-			configuration.read();
+			httpConfiguration.read();
+			encoderConfiguration.read();
 			botConfiguration.read();
 
-			this.server = http.getServer();
-			this.audioConfiguration = configuration.getSettings();
+			this.server = httpConfiguration.getSerializedValue();
+			this.audioConfiguration = encoderConfiguration.getSerializedValue();
+			this.mediaBot = botConfiguration.getSerializedValue();
 			this.manager = new PersistentPictureManager(this);
-
 			this.manager.startTask();
 
 		} catch (final IOException e) {
 			this.logger.severe("A severe issue occurred while reading data from configuration files!");
 			e.printStackTrace();
-		}
-	}
-
-	private void loadBot() {
-		try {
-
-			if (this.botConfiguration.getConfig().getString("token") == null) {
-				this.logger.severe("A severe issue occurred while starting the bot. Please check the token!");
-			}
-
-			mediaBot = new MediaBot(this.botConfiguration.getConfig().getString("token"));
-		} catch (LoginException | InterruptedException e) {
-			this.logger.severe("A severe issue occurred while starting the bot. Please check the token!");
 		}
 	}
 

@@ -48,14 +48,12 @@ package io.github.pulsebeat02.deluxemediaplugin.config;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.ezmediacore.http.HttpDaemon;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
-
 import java.io.IOException;
 import java.nio.file.Path;
-
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-public final class HttpConfiguration extends ConfigurationProvider {
+public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
 
   private HttpServer daemon;
   private boolean enabled;
@@ -102,7 +100,8 @@ public final class HttpConfiguration extends ConfigurationProvider {
     this.enabled = enabled;
   }
 
-  public @NotNull HttpServer getServer() {
+  @Override
+  public @NotNull HttpServer getSerializedValue() {
     return this.daemon;
   }
 

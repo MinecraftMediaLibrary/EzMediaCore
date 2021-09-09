@@ -46,19 +46,18 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.logging.Level;
-
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class ConfigurationProvider {
+public abstract class ConfigurationProvider<T> {
 
   private final DeluxeMediaPlugin plugin;
   private final String name;
@@ -123,6 +122,8 @@ public abstract class ConfigurationProvider {
   abstract void deserialize();
 
   abstract void serialize() throws IOException;
+
+  abstract @Nullable T getSerializedValue();
 
   public @NotNull DeluxeMediaPlugin getPlugin() {
     return this.plugin;

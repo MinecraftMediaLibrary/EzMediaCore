@@ -1,15 +1,13 @@
 package io.github.pulsebeat02.deluxemediaplugin.discord;
 
 import io.github.pulsebeat02.deluxemediaplugin.discord.audio.MusicManager;
+import javax.security.auth.login.LoginException;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
-import org.apache.logging.log4j.core.Logger;
 import org.jetbrains.annotations.NotNull;
-
-import javax.security.auth.login.LoginException;
 
 public class MediaBot {
 
@@ -17,26 +15,23 @@ public class MediaBot {
   private final JDABuilder jdaBuilder;
   private final MusicManager musicManager;
 
-  public MediaBot(String token) throws LoginException, InterruptedException {
-    jdaBuilder = JDABuilder.createDefault(token);
-
-    jdaBuilder.setStatus(OnlineStatus.ONLINE);
-    jdaBuilder.setMemberCachePolicy(MemberCachePolicy.ALL);
-    jdaBuilder.enableIntents(
+  public MediaBot(@NotNull final String token) throws LoginException, InterruptedException {
+    this.jdaBuilder = JDABuilder.createDefault(token);
+    this.jdaBuilder.setStatus(OnlineStatus.ONLINE);
+    this.jdaBuilder.setMemberCachePolicy(MemberCachePolicy.ALL);
+    this.jdaBuilder.enableIntents(
         GatewayIntent.GUILD_MEMBERS,
         GatewayIntent.GUILD_MESSAGES,
         GatewayIntent.GUILD_MESSAGE_REACTIONS);
-
-    jda = jdaBuilder.build().awaitReady();
-
-    musicManager = new MusicManager();
+    this.jda = this.jdaBuilder.build().awaitReady();
+    this.musicManager = new MusicManager();
   }
 
-  public @NotNull JDA getJda() {
+  public @NotNull JDA getJDA() {
     return this.jda;
   }
 
-  public @NotNull JDABuilder getJdaBuilder() {
+  public @NotNull JDABuilder getJDABuilder() {
     return this.jdaBuilder;
   }
 
