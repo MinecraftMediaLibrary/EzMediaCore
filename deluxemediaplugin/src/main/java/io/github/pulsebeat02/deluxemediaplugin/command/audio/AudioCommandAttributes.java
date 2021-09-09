@@ -54,51 +54,51 @@ import org.jetbrains.annotations.NotNull;
 
 public final class AudioCommandAttributes {
 
-	private final AtomicBoolean completion;
-	private final String key;
+  private final AtomicBoolean completion;
+  private final String key;
 
-	private Path audio;
-	private String link;
-	private byte[] hash;
+  private Path audio;
+  private String link;
+  private byte[] hash;
 
-	public AudioCommandAttributes(@NotNull final DeluxeMediaPlugin plugin) {
-		this.completion = new AtomicBoolean(true);
-		this.key = plugin.getName().toLowerCase();
-	}
+  public AudioCommandAttributes(@NotNull final DeluxeMediaPlugin plugin) {
+    this.completion = new AtomicBoolean(true);
+    this.key = plugin.getName().toLowerCase();
+  }
 
-	public @NotNull AtomicBoolean getCompletion() {
-		return this.completion;
-	}
+  public @NotNull AtomicBoolean getCompletion() {
+    return this.completion;
+  }
 
-	public void setCompletion(final boolean mode) {
-		this.completion.set(mode);
-	}
+  public void setCompletion(final boolean mode) {
+    this.completion.set(mode);
+  }
 
-	public @NotNull String getKey() {
-		return this.key;
-	}
+  public @NotNull String getKey() {
+    return this.key;
+  }
 
-	public @NotNull Path getAudio() {
-		return this.audio;
-	}
+  public @NotNull Path getAudio() {
+    return this.audio;
+  }
 
-	public void setAudio(@NotNull final Path audio) {
-		this.audio = audio;
-	}
+  public void setAudio(@NotNull final Path audio) {
+    this.audio = audio;
+  }
 
-	public @NotNull String getLink() {
-		return this.link;
-	}
+  public @NotNull String getLink() {
+    return this.link;
+  }
 
-	public void setLink(@NotNull final String link) {
-		this.link = link;
-	}
+  public void setLink(@NotNull final String link) {
+    this.link = link;
+  }
 
-	public byte @NotNull [] getHash() {
-		return this.hash;
-	}
+  public byte @NotNull [] getHash() {
+    return this.hash;
+  }
 
-	public void setHash(final byte @NotNull [] hash) {
-		this.hash = hash;
-	}
+  public void setHash(final byte @NotNull [] hash) {
+    this.hash = hash;
+  }
 }

@@ -56,36 +56,36 @@ import org.jetbrains.annotations.NotNull;
 
 public final class UpdateChecker {
 
-	private final DeluxeMediaPlugin plugin;
-	private int resource;
+  private final DeluxeMediaPlugin plugin;
+  private int resource;
 
-	public UpdateChecker(@NotNull final DeluxeMediaPlugin plugin) {
-		this.plugin = plugin;
-		try {
-			this.resource = Integer.parseInt("%%__RESOURCE__%%");
-		} catch (final NumberFormatException e) {
-			this.resource = -1;
-		}
-	}
+  public UpdateChecker(@NotNull final DeluxeMediaPlugin plugin) {
+    this.plugin = plugin;
+    try {
+      this.resource = Integer.parseInt("%%__RESOURCE__%%");
+    } catch (final NumberFormatException e) {
+      this.resource = -1;
+    }
+  }
 
-	public void check() {
-		CompletableFuture.runAsync(
-				() -> {
-					try (final Scanner scanner =
-								 new Scanner(
-										 new URL(
-												 "https://api.spigotmc.org/legacy/update.php?resource=%d"
-														 .formatted(this.resource))
-												 .openStream())) {
-						final String update = scanner.next();
-						if (this.plugin.getDescription().getVersion().equalsIgnoreCase(update)) {
-							this.plugin.log("There is a new update available! (%s)".formatted(update));
-						} else {
-							this.plugin.log("You are currently running the latest version of DeluxeMediaPlugin.");
-						}
-					} catch (final IOException exception) {
-						this.plugin.log("Cannot look for updates: %s".formatted(exception.getMessage()));
-					}
-				});
-	}
+  public void check() {
+    CompletableFuture.runAsync(
+        () -> {
+          try (final Scanner scanner =
+              new Scanner(
+                  new URL(
+                          "https://api.spigotmc.org/legacy/update.php?resource=%d"
+                              .formatted(this.resource))
+                      .openStream())) {
+            final String update = scanner.next();
+            if (this.plugin.getDescription().getVersion().equalsIgnoreCase(update)) {
+              this.plugin.log("There is a new update available! (%s)".formatted(update));
+            } else {
+              this.plugin.log("You are currently running the latest version of DeluxeMediaPlugin.");
+            }
+          } catch (final IOException exception) {
+            this.plugin.log("Cannot look for updates: %s".formatted(exception.getMessage()));
+          }
+        });
+  }
 }

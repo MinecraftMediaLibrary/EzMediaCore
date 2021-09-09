@@ -43,62 +43,62 @@ import org.jetbrains.annotations.NotNull;
 
 public final class PersistentPictureManager {
 
-	private static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE;
+  private static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE;
 
-	static {
-		SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
-	}
+  static {
+    SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
+  }
 
-	private final DeluxeMediaPlugin plugin;
-	private final PersistentImageStorage storage;
-	private final List<Image> images;
+  private final DeluxeMediaPlugin plugin;
+  private final PersistentImageStorage storage;
+  private final List<Image> images;
 
-	public PersistentPictureManager(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
-		this.plugin = plugin;
-		this.storage =
-				new PersistentImageStorage(plugin.getDataFolder().toPath().resolve("pictures.json"));
-		final List<Image> images = this.storage.deserialize();
-		this.images = images == null ? new ArrayList<>() : images;
-	}
+  public PersistentPictureManager(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
+    this.plugin = plugin;
+    this.storage =
+        new PersistentImageStorage(plugin.getDataFolder().toPath().resolve("pictures.json"));
+    final List<Image> images = this.storage.deserialize();
+    this.images = images == null ? new ArrayList<>() : images;
+  }
 
-	public void startTask() {
-		SCHEDULED_EXECUTOR_SERVICE.scheduleAtFixedRate(this::save, 0, 5, TimeUnit.MINUTES);
-	}
+  public void startTask() {
+    SCHEDULED_EXECUTOR_SERVICE.scheduleAtFixedRate(this::save, 0, 5, TimeUnit.MINUTES);
+  }
 
-	public void addPhoto(
-			final List<Integer> maps,
-			@NotNull final Path file,
-			@NotNull final ImmutableDimension dimension)
-			throws IOException {
-		this.images.add(new StaticImage(this.plugin.library(), file, maps, dimension));
-	}
+  public void addPhoto(
+      final List<Integer> maps,
+      @NotNull final Path file,
+      @NotNull final ImmutableDimension dimension)
+      throws IOException {
+    this.images.add(new StaticImage(this.plugin.library(), file, maps, dimension));
+  }
 
-	public void addGif(
-			final List<Integer> maps,
-			@NotNull final Path file,
-			@NotNull final ImmutableDimension dimension)
-			throws IOException {
-		this.images.add(new DynamicImage(this.plugin.library(), file, maps, dimension));
-	}
+  public void addGif(
+      final List<Integer> maps,
+      @NotNull final Path file,
+      @NotNull final ImmutableDimension dimension)
+      throws IOException {
+    this.images.add(new DynamicImage(this.plugin.library(), file, maps, dimension));
+  }
 
-	public void save() {
-		try {
-			this.storage.serialize(this.images);
-		} catch (final IOException e) {
-			this.plugin.getLogger().log(Level.SEVERE, "There was an issue saving images!");
-			e.printStackTrace();
-		}
-	}
+  public void save() {
+    try {
+      this.storage.serialize(this.images);
+    } catch (final IOException e) {
+      this.plugin.getLogger().log(Level.SEVERE, "There was an issue saving images!");
+      e.printStackTrace();
+    }
+  }
 
-	public @NotNull DeluxeMediaPlugin getPlugin() {
-		return this.plugin;
-	}
+  public @NotNull DeluxeMediaPlugin getPlugin() {
+    return this.plugin;
+  }
 
-	public @NotNull PersistentImageStorage getStorage() {
-		return this.storage;
-	}
+  public @NotNull PersistentImageStorage getStorage() {
+    return this.storage;
+  }
 
-	public @NotNull List<Image> getImages() {
-		return this.images;
-	}
+  public @NotNull List<Image> getImages() {
+    return this.images;
+  }
 }

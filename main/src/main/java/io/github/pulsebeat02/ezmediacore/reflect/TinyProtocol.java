@@ -235,9 +235,7 @@ public abstract class TinyProtocol {
         };
   }
 
-  /**
-   * Register bukkit events.
-   */
+  /** Register bukkit events. */
   private void registerBukkitEvents() {
     this.listener =
         new Listener() {
@@ -334,8 +332,8 @@ public abstract class TinyProtocol {
    * <p>Note that this is not executed on the main thread.
    *
    * @param receiver - the receiving player, NULL for early login/status packets.
-   * @param channel  - the channel that received the packet. Never NULL.
-   * @param packet   - the packet being sent.
+   * @param channel - the channel that received the packet. Never NULL.
+   * @param packet - the packet being sent.
    * @return The packet to send instead, or NULL to cancel the transmission.
    */
   public Object onPacketOutAsync(
@@ -348,9 +346,9 @@ public abstract class TinyProtocol {
    *
    * <p>Use {@link Channel#remoteAddress()} to get the remote address of the client.
    *
-   * @param sender  - the player that sent the packet, NULL for early login/status packets.
+   * @param sender - the player that sent the packet, NULL for early login/status packets.
    * @param channel - channel that received the packet. Never NULL.
-   * @param packet  - the packet being received.
+   * @param packet - the packet being received.
    * @return The packet to recieve instead, or NULL to cancel.
    */
   public Object onPacketInAsync(final Player sender, final Channel channel, final Object packet) {
@@ -377,7 +375,7 @@ public abstract class TinyProtocol {
    * packet.
    *
    * @param channel - client identified by a channel.
-   * @param packet  - the packet to send.
+   * @param packet - the packet to send.
    */
   public void sendPacket(final Channel channel, final Object packet) {
     channel.pipeline().writeAndFlush(packet);
@@ -403,7 +401,7 @@ public abstract class TinyProtocol {
    * packet.
    *
    * @param channel - client identified by a channel.
-   * @param packet  - the packet that will be received by the server.
+   * @param packet - the packet that will be received by the server.
    */
   public void receivePacket(final Channel channel, final Object packet) {
     channel.pipeline().context("encoder").fireChannelRead(packet);
@@ -493,7 +491,7 @@ public abstract class TinyProtocol {
   /**
    * Retrieve the netty channel for async purposes
    *
-   * @param uuid             The uuid of the player
+   * @param uuid The uuid of the player
    * @param playerConnection PlayerConnection object
    * @return The Netty channel
    */
@@ -558,9 +556,7 @@ public abstract class TinyProtocol {
     return channel.pipeline().get(this.handlerName) != null;
   }
 
-  /**
-   * Cease listening for packets. This is called automatically when your plugin is disabled.
-   */
+  /** Cease listening for packets. This is called automatically when your plugin is disabled. */
   public final void close() {
     if (!this.closed) {
       this.closed = true;

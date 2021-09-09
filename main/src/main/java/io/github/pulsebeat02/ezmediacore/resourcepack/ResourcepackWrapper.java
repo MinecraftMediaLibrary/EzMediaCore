@@ -134,12 +134,10 @@ public class ResourcepackWrapper implements PackWrapper {
   }
 
   @Override
-  public void onPackStartWrap() {
-  }
+  public void onPackStartWrap() {}
 
   @Override
-  public void onPackFinishWrap() {
-  }
+  public void onPackFinishWrap() {}
 
   @Override
   public void addFile(@NotNull final String path, @NotNull final Path file) throws IOException {

@@ -13,31 +13,34 @@ import javax.security.auth.login.LoginException;
 
 public class MediaBot {
 
-	private final JDA jda;
-	private final JDABuilder jdaBuilder;
-	private final MusicManager musicManager;
+  private final JDA jda;
+  private final JDABuilder jdaBuilder;
+  private final MusicManager musicManager;
 
-	public MediaBot(String token) throws LoginException, InterruptedException {
-		jdaBuilder = JDABuilder.createDefault(token);
+  public MediaBot(String token) throws LoginException, InterruptedException {
+    jdaBuilder = JDABuilder.createDefault(token);
 
-		jdaBuilder.setStatus(OnlineStatus.ONLINE);
-		jdaBuilder.setMemberCachePolicy(MemberCachePolicy.ALL);
-		jdaBuilder.enableIntents(GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS);
+    jdaBuilder.setStatus(OnlineStatus.ONLINE);
+    jdaBuilder.setMemberCachePolicy(MemberCachePolicy.ALL);
+    jdaBuilder.enableIntents(
+        GatewayIntent.GUILD_MEMBERS,
+        GatewayIntent.GUILD_MESSAGES,
+        GatewayIntent.GUILD_MESSAGE_REACTIONS);
 
-		jda = jdaBuilder.build().awaitReady();
+    jda = jdaBuilder.build().awaitReady();
 
-		musicManager = new MusicManager();
-	}
+    musicManager = new MusicManager();
+  }
 
-	public @NotNull JDA getJda() {
-		return this.jda;
-	}
+  public @NotNull JDA getJda() {
+    return this.jda;
+  }
 
-	public @NotNull JDABuilder getJdaBuilder() {
-		return this.jdaBuilder;
-	}
+  public @NotNull JDABuilder getJdaBuilder() {
+    return this.jdaBuilder;
+  }
 
-	public @NotNull MusicManager getMusicManager() {
-		return this.musicManager;
-	}
+  public @NotNull MusicManager getMusicManager() {
+    return this.musicManager;
+  }
 }

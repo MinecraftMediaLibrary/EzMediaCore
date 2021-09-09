@@ -66,62 +66,62 @@ import org.jetbrains.annotations.NotNull;
 
 public final class FFmpegRemoveArgumentCommand implements CommandSegment.Literal<CommandSender> {
 
-	private final LiteralCommandNode<CommandSender> node;
-	private final DeluxeMediaPlugin plugin;
-	private final FFmpegCommandExecutor ffmpeg;
+  private final LiteralCommandNode<CommandSender> node;
+  private final DeluxeMediaPlugin plugin;
+  private final FFmpegCommandExecutor ffmpeg;
 
-	public FFmpegRemoveArgumentCommand(
-			@NotNull final DeluxeMediaPlugin plugin, @NotNull final FFmpegCommandExecutor executor) {
-		this.plugin = plugin;
-		this.ffmpeg = executor;
-		this.node =
-				this.literal("remove")
-						.then(
-								this.argument("argument", StringArgumentType.word()).executes(this::removeArgument))
-						.then(
-								this.argument("index", IntegerArgumentType.integer())
-										.executes(this::removeIndexArgument))
-						.build();
-	}
+  public FFmpegRemoveArgumentCommand(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final FFmpegCommandExecutor executor) {
+    this.plugin = plugin;
+    this.ffmpeg = executor;
+    this.node =
+        this.literal("remove")
+            .then(
+                this.argument("argument", StringArgumentType.word()).executes(this::removeArgument))
+            .then(
+                this.argument("index", IntegerArgumentType.integer())
+                    .executes(this::removeIndexArgument))
+            .build();
+  }
 
-	private int removeIndexArgument(@NotNull final CommandContext<CommandSender> context) {
+  private int removeIndexArgument(@NotNull final CommandContext<CommandSender> context) {
 
-		final Audience audience = this.plugin.audience().sender(context.getSource());
-		final int index = context.getArgument("index", int.class);
-		final String arg = this.ffmpeg.getArguments().get(index);
+    final Audience audience = this.plugin.audience().sender(context.getSource());
+    final int index = context.getArgument("index", int.class);
+    final String arg = this.ffmpeg.getArguments().get(index);
 
-		this.ffmpeg.removeArgument(index);
-		audience.sendMessage(
-				format(
-						join(
-								noSeparators(),
-								text("Removed arguments ", GOLD),
-								text(arg, AQUA),
-								text(" from the FFmpeg command at index ", GOLD),
-								text(index, AQUA))));
+    this.ffmpeg.removeArgument(index);
+    audience.sendMessage(
+        format(
+            join(
+                noSeparators(),
+                text("Removed arguments ", GOLD),
+                text(arg, AQUA),
+                text(" from the FFmpeg command at index ", GOLD),
+                text(index, AQUA))));
 
-		return SINGLE_SUCCESS;
-	}
+    return SINGLE_SUCCESS;
+  }
 
-	private int removeArgument(@NotNull final CommandContext<CommandSender> context) {
+  private int removeArgument(@NotNull final CommandContext<CommandSender> context) {
 
-		final Audience audience = this.plugin.audience().sender(context.getSource());
-		final String argument = context.getArgument("argument", String.class);
+    final Audience audience = this.plugin.audience().sender(context.getSource());
+    final String argument = context.getArgument("argument", String.class);
 
-		this.ffmpeg.removeArgument(argument);
-		audience.sendMessage(
-				format(
-						join(
-								noSeparators(),
-								text("Removed arguments ", GOLD),
-								text(argument, AQUA),
-								text(" from the FFmpeg command.", GOLD))));
+    this.ffmpeg.removeArgument(argument);
+    audience.sendMessage(
+        format(
+            join(
+                noSeparators(),
+                text("Removed arguments ", GOLD),
+                text(argument, AQUA),
+                text(" from the FFmpeg command.", GOLD))));
 
-		return SINGLE_SUCCESS;
-	}
+    return SINGLE_SUCCESS;
+  }
 
-	@Override
-	public @NotNull LiteralCommandNode<CommandSender> node() {
-		return this.node;
-	}
+  @Override
+  public @NotNull LiteralCommandNode<CommandSender> node() {
+    return this.node;
+  }
 }

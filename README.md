@@ -60,23 +60,23 @@ testing server!
 
 ### Contributors/Acknowledgements
 
-- [BananaPuncher714](https://github.com/BananaPuncher714) for creating MinecraftVideo, leading the 
-spark, and also providing a Floyd Steinberg dithering implementation.
+- [BananaPuncher714](https://github.com/BananaPuncher714) for creating MinecraftVideo, leading the
+  spark, and also providing a Floyd Steinberg dithering implementation.
 - [Jetp250](https://github.com/jetp250) for a fast dithering table class.
 - [Emilyy](https://github.com/emilyy-dev) for helping me with asynchronous tasks and implementation.
 - [Conclure](https://github.com/Conclure) for helping me migrate from maven to gradle and overall
-big API improvements.
+  big API improvements.
 - [itxfrosty](https://github.com/itxfrosty) for helping me develop a Discord bot to play music.
 - [Rouge_Ram](https://rogueram.xyz/index.html) for developing a Discord bot to use in the Pulse
-Development Server.
+  Development Server.
 - [Mishal321](https://github.com/mishal321), for allowing us to use his testing server.
-- [Yugi](https://github.com/Vshnv) for helping me setup 
-[Slimjar](https://github.com/SlimJar/slimjar).
+- [Yugi](https://github.com/Vshnv) for helping me setup
+  [Slimjar](https://github.com/SlimJar/slimjar).
 - And also developers of the most important libraries I use, including:
-  - [VLCJ](https://github.com/caprica/vlcj) made by [caprica](https://github.com/caprica).
-  - [VLC Media Player](https://www.videolan.org/vlc/) for native backend support.
-  - [Jaffree](https://github.com/kokorin/Jaffree) made by [kokorin](https://github.com/kokorin)
-  for allowing the library to use the NUT container provided by FFmpeg.
-  - [FFmpeg](https://www.ffmpeg.org/) for native encoding related operations and backend support.
-  
+    - [VLCJ](https://github.com/caprica/vlcj) made by [caprica](https://github.com/caprica).
+    - [VLC Media Player](https://www.videolan.org/vlc/) for native backend support.
+    - [Jaffree](https://github.com/kokorin/Jaffree) made by [kokorin](https://github.com/kokorin)
+      for allowing the library to use the NUT container provided by FFmpeg.
+    - [FFmpeg](https://www.ffmpeg.org/) for native encoding related operations and backend support.
+
 ---

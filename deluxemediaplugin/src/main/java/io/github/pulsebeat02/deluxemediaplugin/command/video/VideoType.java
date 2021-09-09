@@ -52,35 +52,35 @@ import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 public enum VideoType {
-	ITEMFRAME("itemframe-maps"),
-	ARMOR_STAND("armorstands"),
-	CHATBOX("chatbox"),
-	DEBUG_HIGHLIGHTS("debug-highlights"),
-	SCOREBOARD("scoreboard");
+  ITEMFRAME("itemframe-maps"),
+  ARMOR_STAND("armorstands"),
+  CHATBOX("chatbox"),
+  DEBUG_HIGHLIGHTS("debug-highlights"),
+  SCOREBOARD("scoreboard");
 
-	private static final Map<String, VideoType> KEYS;
+  private static final Map<String, VideoType> KEYS;
 
-	static {
-		KEYS =
-				Map.of(
-						"ITEMFRAME", ITEMFRAME,
-						"ARMOR_STAND", ARMOR_STAND,
-						"CHATBOX", CHATBOX,
-						"DEBUG_HIGHLIGHTS", DEBUG_HIGHLIGHTS,
-						"SCOREBOARD", SCOREBOARD);
-	}
+  static {
+    KEYS =
+        Map.of(
+            "ITEMFRAME", ITEMFRAME,
+            "ARMOR_STAND", ARMOR_STAND,
+            "CHATBOX", CHATBOX,
+            "DEBUG_HIGHLIGHTS", DEBUG_HIGHLIGHTS,
+            "SCOREBOARD", SCOREBOARD);
+  }
 
-	private final String name;
+  private final String name;
 
-	VideoType(@NotNull final String name) {
-		this.name = name;
-	}
+  VideoType(@NotNull final String name) {
+    this.name = name;
+  }
 
-	public static @NotNull Optional<VideoType> ofKey(@NotNull final String str) {
-		return Optional.ofNullable(KEYS.get(str));
-	}
+  public static @NotNull Optional<VideoType> ofKey(@NotNull final String str) {
+    return Optional.ofNullable(KEYS.get(str));
+  }
 
-	public String getName() {
-		return this.name;
-	}
+  public String getName() {
+    return this.name;
+  }
 }

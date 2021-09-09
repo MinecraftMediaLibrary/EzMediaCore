@@ -72,72 +72,72 @@ import org.jetbrains.annotations.NotNull;
 
 public final class FFmpegCommand extends BaseCommand {
 
-	private final LiteralCommandNode<CommandSender> node;
-	private final FFmpegCommandExecutor ffmpeg;
+  private final LiteralCommandNode<CommandSender> node;
+  private final FFmpegCommandExecutor ffmpeg;
 
-	public FFmpegCommand(
-			@NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
-		super(plugin, "ffmpeg", executor, "deluxemediaplugin.command.ffmpeg");
-		this.ffmpeg = new FFmpegCommandExecutor(plugin.library());
-		this.node =
-				this.literal(this.getName())
-						.requires(super::testPermission)
-						.then(this.literal("reset").executes(this::resetFFmpegCommand))
-						.then(new FFmpegAddArgumentCommand(plugin, this.ffmpeg).node())
-						.then(new FFmpegRemoveArgumentCommand(plugin, this.ffmpeg).node())
-						.then(this.literal("list-arguments").executes(this::listFFmpegArguments))
-						.then(this.literal("run").executes(this::runFFmpegProcess))
-						.build();
-	}
+  public FFmpegCommand(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
+    super(plugin, "ffmpeg", executor, "deluxemediaplugin.command.ffmpeg");
+    this.ffmpeg = new FFmpegCommandExecutor(plugin.library());
+    this.node =
+        this.literal(this.getName())
+            .requires(super::testPermission)
+            .then(this.literal("reset").executes(this::resetFFmpegCommand))
+            .then(new FFmpegAddArgumentCommand(plugin, this.ffmpeg).node())
+            .then(new FFmpegRemoveArgumentCommand(plugin, this.ffmpeg).node())
+            .then(this.literal("list-arguments").executes(this::listFFmpegArguments))
+            .then(this.literal("run").executes(this::runFFmpegProcess))
+            .build();
+  }
 
-	private int resetFFmpegCommand(@NotNull final CommandContext<CommandSender> context) {
-		this.ffmpeg.clearArguments();
-		gold(this.audience().sender(context.getSource()), "Reset all FFmpeg arguments!");
-		return SINGLE_SUCCESS;
-	}
+  private int resetFFmpegCommand(@NotNull final CommandContext<CommandSender> context) {
+    this.ffmpeg.clearArguments();
+    gold(this.audience().sender(context.getSource()), "Reset all FFmpeg arguments!");
+    return SINGLE_SUCCESS;
+  }
 
-	private int listFFmpegArguments(@NotNull final CommandContext<CommandSender> context) {
-		this.plugin()
-				.audience()
-				.sender(context.getSource())
-				.sendMessage(
-						format(
-								join(
-										noSeparators(),
-										text("Current FFmpeg arguments: ", GOLD),
-										text(this.ffmpeg.getArguments().toString(), AQUA))));
-		return SINGLE_SUCCESS;
-	}
+  private int listFFmpegArguments(@NotNull final CommandContext<CommandSender> context) {
+    this.plugin()
+        .audience()
+        .sender(context.getSource())
+        .sendMessage(
+            format(
+                join(
+                    noSeparators(),
+                    text("Current FFmpeg arguments: ", GOLD),
+                    text(this.ffmpeg.getArguments().toString(), AQUA))));
+    return SINGLE_SUCCESS;
+  }
 
-	private int runFFmpegProcess(@NotNull final CommandContext<CommandSender> context) {
-		final Audience audience = this.plugin().audience().sender(context.getSource());
-		this.ffmpeg.executeWithLogging(s -> audience.sendMessage(ffmpeg(text(s))));
-		gold(audience, "Executed FFmpeg command!");
-		return SINGLE_SUCCESS;
-	}
+  private int runFFmpegProcess(@NotNull final CommandContext<CommandSender> context) {
+    final Audience audience = this.plugin().audience().sender(context.getSource());
+    this.ffmpeg.executeWithLogging(s -> audience.sendMessage(ffmpeg(text(s))));
+    gold(audience, "Executed FFmpeg command!");
+    return SINGLE_SUCCESS;
+  }
 
-	@Override
-	public Component usage() {
-		return ChatUtils.getCommandUsage(
-				Map.of(
-						"/ffmpeg reset",
-						"Reset all arguments in the FFmpeg command",
-						"/ffmpeg add [key=value] [key=value] ...",
-						"Adds the arguments to the end of the FFmpeg command",
-						"/ffmpeg add [index] [key=value] [key=value] ...",
-						"Adds the arguments to the specified index of the FFmpeg command",
-						"/ffmpeg remove [key=value]",
-						"Removes the specified argument from the FFmpeg command",
-						"/ffmpeg remove [index]",
-						"Removes the specified argument at the index",
-						"/ffmpeg list-arguments",
-						"Lists all arguments of the FFmpeg command",
-						"/ffmpeg run",
-						"Runes the FFmpeg command"));
-	}
+  @Override
+  public Component usage() {
+    return ChatUtils.getCommandUsage(
+        Map.of(
+            "/ffmpeg reset",
+            "Reset all arguments in the FFmpeg command",
+            "/ffmpeg add [key=value] [key=value] ...",
+            "Adds the arguments to the end of the FFmpeg command",
+            "/ffmpeg add [index] [key=value] [key=value] ...",
+            "Adds the arguments to the specified index of the FFmpeg command",
+            "/ffmpeg remove [key=value]",
+            "Removes the specified argument from the FFmpeg command",
+            "/ffmpeg remove [index]",
+            "Removes the specified argument at the index",
+            "/ffmpeg list-arguments",
+            "Lists all arguments of the FFmpeg command",
+            "/ffmpeg run",
+            "Runes the FFmpeg command"));
+  }
 
-	@Override
-	public @NotNull LiteralCommandNode<CommandSender> node() {
-		return this.node;
-	}
+  @Override
+  public @NotNull LiteralCommandNode<CommandSender> node() {
+    return this.node;
+  }
 }

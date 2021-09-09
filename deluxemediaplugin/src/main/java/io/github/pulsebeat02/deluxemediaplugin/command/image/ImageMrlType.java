@@ -35,40 +35,39 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 public enum ImageMrlType {
+  LOCAL_FILE,
+  DIRECT_LINK;
 
-	LOCAL_FILE,
-	DIRECT_LINK;
+  public static final Set<String> EXTENSIONS;
 
-	public static final Set<String> EXTENSIONS;
+  static {
+    EXTENSIONS = Set.of("png", "jpg", "jpeg", "tif", "gif");
+  }
 
-	static {
-		EXTENSIONS = Set.of("png", "jpg", "jpeg", "tif", "gif");
-	}
+  public static Optional<ImageMrlType> getType(@NotNull final String mrl) {
+    return isMrlLocalFile(mrl)
+        ? Optional.of(LOCAL_FILE)
+        : isMrlDirectLink(mrl) ? Optional.of(DIRECT_LINK) : Optional.empty();
+  }
 
-	public static Optional<ImageMrlType> getType(@NotNull final String mrl) {
-		return isMrlLocalFile(mrl) ? Optional.of(LOCAL_FILE)
-				: isMrlDirectLink(mrl) ? Optional.of(DIRECT_LINK) : Optional.empty();
-	}
+  private static boolean isMrlLocalFile(@NotNull final String mrl) {
+    try {
+      final Path path = Path.of(mrl);
+      if (Files.notExists(path)) {
+        return false;
+      }
+      return matchesFileType(PathUtils.getName(path));
+    } catch (final InvalidPathException e) {
+      return false;
+    }
+  }
 
-	private static boolean isMrlLocalFile(@NotNull final String mrl) {
-		try {
-			final Path path = Path.of(mrl);
-			if (Files.notExists(path)) {
-				return false;
-			}
-			return matchesFileType(PathUtils.getName(path));
-		} catch (final InvalidPathException e) {
-			return false;
-		}
-	}
+  private static boolean isMrlDirectLink(@NotNull final String mrl) {
+    return mrl.startsWith("http") && matchesFileType(mrl);
+  }
 
-	private static boolean isMrlDirectLink(@NotNull final String mrl) {
-		return mrl.startsWith("http") && matchesFileType(mrl);
-	}
-
-	private static boolean matchesFileType(@NotNull final String mrl) {
-		return EXTENSIONS.stream()
-				.anyMatch(extension -> StringUtils.endsWithIgnoreCase(mrl, extension));
-	}
-
+  private static boolean matchesFileType(@NotNull final String mrl) {
+    return EXTENSIONS.stream()
+        .anyMatch(extension -> StringUtils.endsWithIgnoreCase(mrl, extension));
+  }
 }

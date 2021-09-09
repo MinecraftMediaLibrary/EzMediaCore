@@ -67,8 +67,7 @@ public class FFmpegVideoTest {
   private FrameConsumer getFrameConsumer(final Consumer<BufferedImage> callback) {
     return new FrameConsumer() {
       @Override
-      public void consumeStreams(final List<Stream> streams) {
-      }
+      public void consumeStreams(final List<Stream> streams) {}
 
       @Override
       public void consume(final Frame frame) {

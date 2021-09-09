@@ -57,56 +57,56 @@ import org.jetbrains.annotations.NotNull;
 
 public final class HttpConfiguration extends ConfigurationProvider {
 
-	private HttpServer daemon;
-	private boolean enabled;
+  private HttpServer daemon;
+  private boolean enabled;
 
-	public HttpConfiguration(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
-		super(plugin, "configuration/httpserver.yml");
-	}
+  public HttpConfiguration(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
+    super(plugin, "configuration/httpserver.yml");
+  }
 
-	@Override
-	public void deserialize() {
-		final FileConfiguration configuration = this.getFileConfiguration();
-		configuration.set("enabled", this.enabled);
-		configuration.set("port", this.daemon.getDaemon().getPort());
-		final HttpDaemon http = this.daemon.getDaemon();
-		configuration.set(
-				"directory",
-				this.getPlugin()
-						.getDataFolder()
-						.toPath()
-						.relativize(http.getServerPath().toAbsolutePath())
-						.toString());
-		configuration.set("verbose", http.isVerbose());
-		this.saveConfig();
-	}
+  @Override
+  public void deserialize() {
+    final FileConfiguration configuration = this.getFileConfiguration();
+    configuration.set("enabled", this.enabled);
+    configuration.set("port", this.daemon.getDaemon().getPort());
+    final HttpDaemon http = this.daemon.getDaemon();
+    configuration.set(
+        "directory",
+        this.getPlugin()
+            .getDataFolder()
+            .toPath()
+            .relativize(http.getServerPath().toAbsolutePath())
+            .toString());
+    configuration.set("verbose", http.isVerbose());
+    this.saveConfig();
+  }
 
-	@Override
-	public void serialize() throws IOException {
-		final FileConfiguration configuration = this.getFileConfiguration();
-		final boolean enabled = configuration.getBoolean("enabled");
-		final String ip = configuration.getString("ip");
-		final int port = configuration.getInt("port");
-		final Path directory =
-				Path.of(
-						this.getPlugin().getDataFolder().getAbsolutePath(),
-						configuration.getString("directory"));
-		final boolean verbose = configuration.getBoolean("verbose");
-		if (enabled) {
-			this.daemon =
-					ip == null || ip.equals("public")
-							? new HttpServer(directory, port)
-							: new HttpServer(directory, ip, port, verbose);
-			this.daemon.startServer();
-		}
-		this.enabled = enabled;
-	}
+  @Override
+  public void serialize() throws IOException {
+    final FileConfiguration configuration = this.getFileConfiguration();
+    final boolean enabled = configuration.getBoolean("enabled");
+    final String ip = configuration.getString("ip");
+    final int port = configuration.getInt("port");
+    final Path directory =
+        Path.of(
+            this.getPlugin().getDataFolder().getAbsolutePath(),
+            configuration.getString("directory"));
+    final boolean verbose = configuration.getBoolean("verbose");
+    if (enabled) {
+      this.daemon =
+          ip == null || ip.equals("public")
+              ? new HttpServer(directory, port)
+              : new HttpServer(directory, ip, port, verbose);
+      this.daemon.startServer();
+    }
+    this.enabled = enabled;
+  }
 
-	public @NotNull HttpServer getServer() {
-		return this.daemon;
-	}
+  public @NotNull HttpServer getServer() {
+    return this.daemon;
+  }
 
-	public boolean isEnabled() {
-		return this.enabled;
-	}
+  public boolean isEnabled() {
+    return this.enabled;
+  }
 }

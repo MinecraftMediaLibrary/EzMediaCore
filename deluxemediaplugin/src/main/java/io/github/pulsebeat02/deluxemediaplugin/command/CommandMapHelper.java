@@ -55,27 +55,27 @@ import org.jetbrains.annotations.NotNull;
 
 public final class CommandMapHelper {
 
-	private static final MethodHandle GET_COMMAND_MAP_METHOD;
+  private static final MethodHandle GET_COMMAND_MAP_METHOD;
 
-	static {
-		try {
-			GET_COMMAND_MAP_METHOD =
-					MethodHandles.publicLookup()
-							.findVirtual(
-									Bukkit.getServer().getClass(),
-									"getCommandMap",
-									MethodType.methodType(SimpleCommandMap.class));
-		} catch (final NoSuchMethodException | IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
-	}
+  static {
+    try {
+      GET_COMMAND_MAP_METHOD =
+          MethodHandles.publicLookup()
+              .findVirtual(
+                  Bukkit.getServer().getClass(),
+                  "getCommandMap",
+                  MethodType.methodType(SimpleCommandMap.class));
+    } catch (final NoSuchMethodException | IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
-	public static @NotNull SimpleCommandMap getCommandMap() {
-		try {
-			return (SimpleCommandMap) GET_COMMAND_MAP_METHOD.invoke(Bukkit.getServer());
-		} catch (final Throwable t) {
-			t.printStackTrace();
-		}
-		throw new AssertionError("Unable to retrieve command map and register commands!");
-	}
+  public static @NotNull SimpleCommandMap getCommandMap() {
+    try {
+      return (SimpleCommandMap) GET_COMMAND_MAP_METHOD.invoke(Bukkit.getServer());
+    } catch (final Throwable t) {
+      t.printStackTrace();
+    }
+    throw new AssertionError("Unable to retrieve command map and register commands!");
+  }
 }

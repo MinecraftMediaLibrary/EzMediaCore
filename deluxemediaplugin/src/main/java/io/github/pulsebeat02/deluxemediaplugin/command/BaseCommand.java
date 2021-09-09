@@ -60,43 +60,43 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class BaseCommand extends Command implements LiteralCommandSegment<CommandSender> {
 
-	protected final TabExecutor executor;
-	private final DeluxeMediaPlugin plugin;
-	private final BukkitAudiences audience;
+  protected final TabExecutor executor;
+  private final DeluxeMediaPlugin plugin;
+  private final BukkitAudiences audience;
 
-	public BaseCommand(
-			@NotNull final DeluxeMediaPlugin plugin,
-			@NotNull final String name,
-			@NotNull final TabExecutor executor,
-			@NotNull final String permission,
-			@NotNull final String... aliases) {
-		super(name);
-		this.setPermission(permission);
-		this.setAliases(Arrays.asList(aliases));
-		this.plugin = plugin;
-		this.executor = executor;
-		this.audience = plugin.audience();
-	}
+  public BaseCommand(
+      @NotNull final DeluxeMediaPlugin plugin,
+      @NotNull final String name,
+      @NotNull final TabExecutor executor,
+      @NotNull final String permission,
+      @NotNull final String... aliases) {
+    super(name);
+    this.setPermission(permission);
+    this.setAliases(Arrays.asList(aliases));
+    this.plugin = plugin;
+    this.executor = executor;
+    this.audience = plugin.audience();
+  }
 
-	public abstract Component usage();
+  public abstract Component usage();
 
-	@Override
-	public boolean execute(
-			@NotNull final CommandSender sender, @NotNull final String label, final String... args) {
-		return this.executor.onCommand(sender, this, label, args);
-	}
+  @Override
+  public boolean execute(
+      @NotNull final CommandSender sender, @NotNull final String label, final String... args) {
+    return this.executor.onCommand(sender, this, label, args);
+  }
 
-	@Override
-	public @NotNull List<String> tabComplete(
-			@NotNull final CommandSender sender, @NotNull final String label, final String... args) {
-		return Objects.requireNonNull(this.executor.onTabComplete(sender, this, label, args));
-	}
+  @Override
+  public @NotNull List<String> tabComplete(
+      @NotNull final CommandSender sender, @NotNull final String label, final String... args) {
+    return Objects.requireNonNull(this.executor.onTabComplete(sender, this, label, args));
+  }
 
-	public DeluxeMediaPlugin plugin() {
-		return this.plugin;
-	}
+  public DeluxeMediaPlugin plugin() {
+    return this.plugin;
+  }
 
-	public BukkitAudiences audience() {
-		return this.audience;
-	}
+  public BukkitAudiences audience() {
+    return this.audience;
+  }
 }

@@ -29,10 +29,11 @@ import org.jetbrains.annotations.NotNull;
 
 public final class PathUtils {
 
-  private PathUtils() {
-  }
+  private PathUtils() {}
 
   /**
+   *
+   *
    * <pre>
    * Checks if a string is a valid path.
    * Null safe.

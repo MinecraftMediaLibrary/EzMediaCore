@@ -82,8 +82,8 @@ public class SpotifyTrackDownloader implements TrackDownloader {
 
   private void internalDownload(@NotNull final RequestVideoFileDownload download) {
     if (ResponseUtils.getResponseResult(
-            YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download))
-        .isEmpty()
+                YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download))
+            .isEmpty()
         && !this.cancelled) {
       this.internalDownload(download);
     }
@@ -101,12 +101,10 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   }
 
   @Override
-  public void onStartVideoDownload() {
-  }
+  public void onStartVideoDownload() {}
 
   @Override
-  public void onFinishVideoDownload() {
-  }
+  public void onFinishVideoDownload() {}
 
   @Override
   public @NotNull Path getDownloadPath() {
@@ -135,10 +133,8 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   }
 
   @Override
-  public void onDownloadCancellation() {
-  }
+  public void onDownloadCancellation() {}
 
   @Override
-  public void onDownloadFailure() {
-  }
+  public void onDownloadFailure() {}
 }

@@ -35,8 +35,7 @@ import org.jetbrains.annotations.NotNull;
 public interface Diagnostic {
 
   /**
-   * Debugs the information into the Logger class the library uses to debug information for
-   * clients.
+   * Debugs the information into the Logger class the library uses to debug information for clients.
    */
   void debugInformation();
 

@@ -69,92 +69,92 @@ import org.jetbrains.annotations.NotNull;
 
 public final class AudioCommand extends BaseCommand {
 
-	private final LiteralCommandNode<CommandSender> node;
-	private final AudioCommandAttributes attributes;
+  private final LiteralCommandNode<CommandSender> node;
+  private final AudioCommandAttributes attributes;
 
-	public AudioCommand(
-			@NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
-		super(plugin, "audio", executor, "deluxemediaplugin.command.audio");
-		this.attributes = new AudioCommandAttributes(plugin);
-		this.node =
-				this.literal(this.getName())
-						.requires(super::testPermission)
-						.then(new AudioLoadCommand(plugin, this.attributes).node())
-						.then(this.literal("play").executes(this::playAudio))
-						.then(this.literal("stop").executes(this::stopAudio))
-						.build();
-	}
+  public AudioCommand(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
+    super(plugin, "audio", executor, "deluxemediaplugin.command.audio");
+    this.attributes = new AudioCommandAttributes(plugin);
+    this.node =
+        this.literal(this.getName())
+            .requires(super::testPermission)
+            .then(new AudioLoadCommand(plugin, this.attributes).node())
+            .then(this.literal("play").executes(this::playAudio))
+            .then(this.literal("stop").executes(this::stopAudio))
+            .build();
+  }
 
-	private int playAudio(@NotNull final CommandContext<CommandSender> context) {
+  private int playAudio(@NotNull final CommandContext<CommandSender> context) {
 
-		final Audience audience = this.plugin().audience().sender(context.getSource());
+    final Audience audience = this.plugin().audience().sender(context.getSource());
 
-		if (this.checkUnloaded(audience) || this.checkIncompleteLoad(audience)) {
-			return SINGLE_SUCCESS;
-		}
+    if (this.checkUnloaded(audience) || this.checkIncompleteLoad(audience)) {
+      return SINGLE_SUCCESS;
+    }
 
-		this.audioAction(
-				player ->
-						player.playSound(
-								player.getLocation(),
-								this.attributes.getKey(),
-								SoundCategory.MASTER,
-								100.0F,
-								1.0F));
+    this.audioAction(
+        player ->
+            player.playSound(
+                player.getLocation(),
+                this.attributes.getKey(),
+                SoundCategory.MASTER,
+                100.0F,
+                1.0F));
 
-		gold(audience, "Started playing audio!");
+    gold(audience, "Started playing audio!");
 
-		return SINGLE_SUCCESS;
-	}
+    return SINGLE_SUCCESS;
+  }
 
-	private int stopAudio(@NotNull final CommandContext<CommandSender> context) {
+  private int stopAudio(@NotNull final CommandContext<CommandSender> context) {
 
-		final Audience audience = this.plugin().audience().sender(context.getSource());
+    final Audience audience = this.plugin().audience().sender(context.getSource());
 
-		if (this.checkUnloaded(audience) || this.checkIncompleteLoad(audience)) {
-			return SINGLE_SUCCESS;
-		}
+    if (this.checkUnloaded(audience) || this.checkIncompleteLoad(audience)) {
+      return SINGLE_SUCCESS;
+    }
 
-		this.audioAction(player -> player.stopSound(this.attributes.getKey()));
+    this.audioAction(player -> player.stopSound(this.attributes.getKey()));
 
-		red(audience, "Stopped playing audio!");
+    red(audience, "Stopped playing audio!");
 
-		return SINGLE_SUCCESS;
-	}
+    return SINGLE_SUCCESS;
+  }
 
-	private void audioAction(@NotNull final Consumer<Player> consumer) {
-		Bukkit.getOnlinePlayers().forEach(consumer);
-	}
+  private void audioAction(@NotNull final Consumer<Player> consumer) {
+    Bukkit.getOnlinePlayers().forEach(consumer);
+  }
 
-	private boolean checkUnloaded(@NotNull final Audience audience) {
-		if (this.attributes.getAudio() == null) {
-			red(audience, "File or URL not specified!");
-			return true;
-		}
-		return false;
-	}
+  private boolean checkUnloaded(@NotNull final Audience audience) {
+    if (this.attributes.getAudio() == null) {
+      red(audience, "File or URL not specified!");
+      return true;
+    }
+    return false;
+  }
 
-	private boolean checkIncompleteLoad(@NotNull final Audience audience) {
-		if (!this.attributes.getCompletion().get()) {
-			red(audience, "Audio is still processing!");
-			return true;
-		}
-		return false;
-	}
+  private boolean checkIncompleteLoad(@NotNull final Audience audience) {
+    if (!this.attributes.getCompletion().get()) {
+      red(audience, "Audio is still processing!");
+      return true;
+    }
+    return false;
+  }
 
-	@Override
-	public @NotNull Component usage() {
-		return ChatUtils.getCommandUsage(
-				Map.of(
-						"/audio load [url]", "Loads a Youtube Link",
-						"/audio load [file]", "Loads a specific audio file",
-						"/audio load resourcepack", "Loads the past resourcepack used for the audio",
-						"/audio play", "Plays the audio to players",
-						"/audio stop", "Stops the audio"));
-	}
+  @Override
+  public @NotNull Component usage() {
+    return ChatUtils.getCommandUsage(
+        Map.of(
+            "/audio load [url]", "Loads a Youtube Link",
+            "/audio load [file]", "Loads a specific audio file",
+            "/audio load resourcepack", "Loads the past resourcepack used for the audio",
+            "/audio play", "Plays the audio to players",
+            "/audio stop", "Stops the audio"));
+  }
 
-	@Override
-	public @NotNull LiteralCommandNode<CommandSender> node() {
-		return this.node;
-	}
+  @Override
+  public @NotNull LiteralCommandNode<CommandSender> node() {
+    return this.node;
+  }
 }

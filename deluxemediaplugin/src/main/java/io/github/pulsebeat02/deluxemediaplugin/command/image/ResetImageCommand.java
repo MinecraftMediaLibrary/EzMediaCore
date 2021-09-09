@@ -77,97 +77,97 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ResetImageCommand implements CommandSegment.Literal<CommandSender>, Listener {
 
-	private final LiteralCommandNode<CommandSender> node;
-	private final ImageCommandAttributes attributes;
-	private final DeluxeMediaPlugin plugin;
+  private final LiteralCommandNode<CommandSender> node;
+  private final ImageCommandAttributes attributes;
+  private final DeluxeMediaPlugin plugin;
 
-	public ResetImageCommand(
-			@NotNull final DeluxeMediaPlugin plugin, @NotNull final ImageCommandAttributes attributes) {
-		this.plugin = plugin;
-		this.attributes = attributes;
-		this.node =
-				this.literal("purge")
-						.then(
-								this.literal("map")
-										.then(
-												this.argument(
-														"id", IntegerArgumentType.integer(-2_147_483_647, 2_147_483_647))
-														.executes(this::purgeMap)))
-						.then(this.literal("all").executes(this::purgeAllMaps))
-						.build();
-		Bukkit.getPluginManager().registerEvents(this, plugin);
-	}
+  public ResetImageCommand(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final ImageCommandAttributes attributes) {
+    this.plugin = plugin;
+    this.attributes = attributes;
+    this.node =
+        this.literal("purge")
+            .then(
+                this.literal("map")
+                    .then(
+                        this.argument(
+                                "id", IntegerArgumentType.integer(-2_147_483_647, 2_147_483_647))
+                            .executes(this::purgeMap)))
+            .then(this.literal("all").executes(this::purgeAllMaps))
+            .build();
+    Bukkit.getPluginManager().registerEvents(this, plugin);
+  }
 
-	private int purgeMap(@NotNull final CommandContext<CommandSender> context) {
+  private int purgeMap(@NotNull final CommandContext<CommandSender> context) {
 
-		final Audience audience = this.plugin.audience().sender(context.getSource());
-		final int id = context.getArgument("id", int.class);
+    final Audience audience = this.plugin.audience().sender(context.getSource());
+    final int id = context.getArgument("id", int.class);
 
-		final Optional<Image> image =
-				this.plugin.getPictureManager().getImages().stream()
-						.filter(img -> img.getMaps().contains(id))
-						.findAny();
-		if (image.isEmpty()) {
-			red(audience, "The image you request purge from the map is not loaded!");
-			return SINGLE_SUCCESS;
-		}
+    final Optional<Image> image =
+        this.plugin.getPictureManager().getImages().stream()
+            .filter(img -> img.getMaps().contains(id))
+            .findAny();
+    if (image.isEmpty()) {
+      red(audience, "The image you request purge from the map is not loaded!");
+      return SINGLE_SUCCESS;
+    }
 
-		image.get().resetMaps();
+    image.get().resetMaps();
 
-		audience.sendMessage(
-				format(
-						join(
-								noSeparators(),
-								text("Successfully purged all maps with id ", GOLD),
-								text(id, AQUA))));
+    audience.sendMessage(
+        format(
+            join(
+                noSeparators(),
+                text("Successfully purged all maps with id ", GOLD),
+                text(id, AQUA))));
 
-		return SINGLE_SUCCESS;
-	}
+    return SINGLE_SUCCESS;
+  }
 
-	private int purgeAllMaps(@NotNull final CommandContext<CommandSender> context) {
+  private int purgeAllMaps(@NotNull final CommandContext<CommandSender> context) {
 
-		final CommandSender sender = context.getSource();
-		final Audience audience = this.plugin.audience().sender(sender);
-		if (!(sender instanceof Player)) {
-			red(audience, "You must be a player to execute this command!");
-			return SINGLE_SUCCESS;
-		}
+    final CommandSender sender = context.getSource();
+    final Audience audience = this.plugin.audience().sender(sender);
+    if (!(sender instanceof Player)) {
+      red(audience, "You must be a player to execute this command!");
+      return SINGLE_SUCCESS;
+    }
 
-		this.attributes.getListen().add(((Player) sender).getUniqueId());
+    this.attributes.getListen().add(((Player) sender).getUniqueId());
 
-		red(
-				audience,
-				"Are you sure you want to purge all maps? Type YES (all caps) if you would like to continue...");
+    red(
+        audience,
+        "Are you sure you want to purge all maps? Type YES (all caps) if you would like to continue...");
 
-		return SINGLE_SUCCESS;
-	}
+    return SINGLE_SUCCESS;
+  }
 
-	@EventHandler
-	public void onPlayerChat(final AsyncPlayerChatEvent event) {
+  @EventHandler
+  public void onPlayerChat(final AsyncPlayerChatEvent event) {
 
-		final Player p = event.getPlayer();
-		final UUID uuid = p.getUniqueId();
-		final Set<UUID> listen = this.attributes.getListen();
+    final Player p = event.getPlayer();
+    final UUID uuid = p.getUniqueId();
+    final Set<UUID> listen = this.attributes.getListen();
 
-		if (listen.contains(uuid)) {
+    if (listen.contains(uuid)) {
 
-			event.setCancelled(true);
-			final Audience audience = this.plugin.audience().player(p);
+      event.setCancelled(true);
+      final Audience audience = this.plugin.audience().player(p);
 
-			if (event.getMessage().equals("YES")) {
-				final List<Image> images = this.plugin.getPictureManager().getImages();
-				images.forEach(Image::resetMaps);
-				images.clear();
-				red(audience, "Successfully purged all images!");
-			} else {
-				red(audience, "Cancelled purge of all images!");
-			}
-			listen.remove(uuid);
-		}
-	}
+      if (event.getMessage().equals("YES")) {
+        final List<Image> images = this.plugin.getPictureManager().getImages();
+        images.forEach(Image::resetMaps);
+        images.clear();
+        red(audience, "Successfully purged all images!");
+      } else {
+        red(audience, "Cancelled purge of all images!");
+      }
+      listen.remove(uuid);
+    }
+  }
 
-	@Override
-	public @NotNull LiteralCommandNode<CommandSender> node() {
-		return this.node;
-	}
+  @Override
+  public @NotNull LiteralCommandNode<CommandSender> node() {
+    return this.node;
+  }
 }

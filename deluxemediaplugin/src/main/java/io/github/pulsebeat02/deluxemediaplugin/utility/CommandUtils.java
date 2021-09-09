@@ -58,53 +58,52 @@ import org.jetbrains.annotations.NotNull;
 
 public final class CommandUtils {
 
-	private static final HashMap<String, Command> knownCommands;
+  private static final HashMap<String, Command> knownCommands;
 
-	static {
-		knownCommands =
-				(HashMap<String, Command>)
-						(getPrivateField(
-								(getPrivateField(Bukkit.getServer().getPluginManager(), "commandMap")
-										.orElseThrow(AssertionError::new)),
-								"knownCommands")
-								.orElseThrow(AssertionError::new));
-	}
+  static {
+    knownCommands =
+        (HashMap<String, Command>)
+            (getPrivateField(
+                    (getPrivateField(Bukkit.getServer().getPluginManager(), "commandMap")
+                        .orElseThrow(AssertionError::new)),
+                    "knownCommands")
+                .orElseThrow(AssertionError::new));
+  }
 
-	private CommandUtils() {
-	}
+  private CommandUtils() {}
 
-	public static void unRegisterBukkitCommand(
-			@NotNull final DeluxeMediaPlugin plugin, @NotNull final BaseCommand cmd) {
-		try {
-			knownCommands.remove(cmd.getName());
-			for (final String alias : cmd.getAliases()) {
-				if (knownCommands.containsKey(alias)
-						&& knownCommands.get(alias).toString().contains(plugin.getName())) {
-					knownCommands.remove(alias);
-				}
-			}
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
-	}
+  public static void unRegisterBukkitCommand(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final BaseCommand cmd) {
+    try {
+      knownCommands.remove(cmd.getName());
+      for (final String alias : cmd.getAliases()) {
+        if (knownCommands.containsKey(alias)
+            && knownCommands.get(alias).toString().contains(plugin.getName())) {
+          knownCommands.remove(alias);
+        }
+      }
+    } catch (final Exception e) {
+      e.printStackTrace();
+    }
+  }
 
-	private static @NotNull Optional<Object> getPrivateField(
-			@NotNull final Object object, @NotNull final String field) {
-		try {
-			final Class<?> clazz = object.getClass();
-			final Field objectField =
-					field.equals("commandMap")
-							? clazz.getDeclaredField(field)
-							: field.equals("knownCommands")
-							? clazz.getSuperclass().getDeclaredField(field)
-							: clazz.getDeclaredField(field);
-			objectField.setAccessible(true);
-			final Object result = objectField.get(object);
-			objectField.setAccessible(false);
-			return Optional.of(result);
-		} catch (final NoSuchFieldException | IllegalAccessException e) {
-			e.printStackTrace();
-		}
-		return Optional.empty();
-	}
+  private static @NotNull Optional<Object> getPrivateField(
+      @NotNull final Object object, @NotNull final String field) {
+    try {
+      final Class<?> clazz = object.getClass();
+      final Field objectField =
+          field.equals("commandMap")
+              ? clazz.getDeclaredField(field)
+              : field.equals("knownCommands")
+                  ? clazz.getSuperclass().getDeclaredField(field)
+                  : clazz.getDeclaredField(field);
+      objectField.setAccessible(true);
+      final Object result = objectField.get(object);
+      objectField.setAccessible(false);
+      return Optional.of(result);
+    } catch (final NoSuchFieldException | IllegalAccessException e) {
+      e.printStackTrace();
+    }
+    return Optional.empty();
+  }
 }

@@ -90,8 +90,8 @@ public class YoutubeVideoDownloader implements VideoDownloader {
 
   private void internalDownload(@NotNull final RequestVideoFileDownload download) {
     if (ResponseUtils.getResponseResult(
-            YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download))
-        .isEmpty()
+                YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download))
+            .isEmpty()
         && !this.cancelled) {
       this.internalDownload(download);
     }
@@ -109,16 +109,13 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   }
 
   @Override
-  public void onStartVideoDownload() {
-  }
+  public void onStartVideoDownload() {}
 
   @Override
-  public void onFinishVideoDownload() {
-  }
+  public void onFinishVideoDownload() {}
 
   @Override
-  public void onDownloadFailure() {
-  }
+  public void onDownloadFailure() {}
 
   @Override
   public void cancelDownload() {
@@ -142,6 +139,5 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   }
 
   @Override
-  public void onDownloadCancellation() {
-  }
+  public void onDownloadCancellation() {}
 }

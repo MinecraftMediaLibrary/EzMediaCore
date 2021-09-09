@@ -25,79 +25,79 @@ import org.jetbrains.annotations.NotNull;
 
 public class PluginCommand extends BaseCommand {
 
-	private final LiteralCommandNode<CommandSender> node;
+  private final LiteralCommandNode<CommandSender> node;
 
-	private static final TextComponent PLUGIN_INFORMATION;
+  private static final TextComponent PLUGIN_INFORMATION;
 
-	static {
-		PLUGIN_INFORMATION =
-				text()
-						.append(text("⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻", GOLD))
-						.append(text("Plugin: ", GOLD, BOLD))
-						.append(text("DeluxeMediaPlugin", AQUA))
-						.append(newline())
-						.append(text("Authors: ", GOLD, BOLD))
-						.append(
-								text(
-										"PulseBeat_02",
-										style(
-												AQUA,
-												text("PulseBeat_02's Github", GOLD).asHoverEvent(),
-												openUrl("https://github.com/PulseBeat02"))))
-						.append(text(", ", GOLD))
-						.append(
-								text(
-										"itxfrosty",
-										style(
-												AQUA,
-												text("itxfrosty's Github", GOLD).asHoverEvent(),
-												openUrl("https://github.com/itxfrosty"))))
-						.append(newline())
-						.append(text("Version: ", GOLD, BOLD))
-						.append(text("BETA Release", AQUA))
-						.append(newline())
-						.append(newline())
-						.append(
-								text(
-										"Click for Support Server",
-										style(
-												GOLD,
-												BOLD,
-												openUrl("https://discord.gg/AqK5dKdUZe"),
-												text("Click for Discord Server", GOLD).asHoverEvent())))
-						.append(text("⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻", GOLD))
-						.append()
-						.build();
-	}
+  static {
+    PLUGIN_INFORMATION =
+        text()
+            .append(text("⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻", GOLD))
+            .append(text("Plugin: ", GOLD, BOLD))
+            .append(text("DeluxeMediaPlugin", AQUA))
+            .append(newline())
+            .append(text("Authors: ", GOLD, BOLD))
+            .append(
+                text(
+                    "PulseBeat_02",
+                    style(
+                        AQUA,
+                        text("PulseBeat_02's Github", GOLD).asHoverEvent(),
+                        openUrl("https://github.com/PulseBeat02"))))
+            .append(text(", ", GOLD))
+            .append(
+                text(
+                    "itxfrosty",
+                    style(
+                        AQUA,
+                        text("itxfrosty's Github", GOLD).asHoverEvent(),
+                        openUrl("https://github.com/itxfrosty"))))
+            .append(newline())
+            .append(text("Version: ", GOLD, BOLD))
+            .append(text("BETA Release", AQUA))
+            .append(newline())
+            .append(newline())
+            .append(
+                text(
+                    "Click for Support Server",
+                    style(
+                        GOLD,
+                        BOLD,
+                        openUrl("https://discord.gg/AqK5dKdUZe"),
+                        text("Click for Discord Server", GOLD).asHoverEvent())))
+            .append(text("⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻", GOLD))
+            .append()
+            .build();
+  }
 
-	public PluginCommand(
-			@NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
-		super(
-				plugin,
-				"deluxemediaplugin",
-				executor,
-				"deluxemediaplugin.command.deluxemediaplugin",
-				"dmp");
-		this.node =
-				this.literal(this.getName())
-						.requires(super::testPermission)
-						.then(this.literal("info").executes(this::sendInformation))
-						.build();
-	}
+  public PluginCommand(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
+    super(
+        plugin,
+        "deluxemediaplugin",
+        executor,
+        "deluxemediaplugin.command.deluxemediaplugin",
+        "dmp");
+    this.node =
+        this.literal(this.getName())
+            .requires(super::testPermission)
+            .then(this.literal("info").executes(this::sendInformation))
+            .build();
+  }
 
-	private int sendInformation(@NotNull final CommandContext<CommandSender> context) {
-		this.plugin().audience().sender(context.getSource()).sendMessage(PLUGIN_INFORMATION);
-		return SINGLE_SUCCESS;
-	}
+  private int sendInformation(@NotNull final CommandContext<CommandSender> context) {
+    this.plugin().audience().sender(context.getSource()).sendMessage(PLUGIN_INFORMATION);
+    return SINGLE_SUCCESS;
+  }
 
-	@Override
-	public @NotNull Component usage() {
-		return ChatUtils.getCommandUsage(
-				Map.of("/deluxemediaplugin", "Displays information about the plugin"));
-	}
+  @Override
+  public @NotNull Component usage() {
+    return ChatUtils.getCommandUsage(
+        Map.of("/deluxemediaplugin", "Displays information about the plugin"));
+  }
 
-	@Override
-	public @NotNull LiteralCommandNode<CommandSender> node() {
-		return this.node;
-	}
+  @Override
+  public @NotNull LiteralCommandNode<CommandSender> node() {
+    return this.node;
+  }
 }

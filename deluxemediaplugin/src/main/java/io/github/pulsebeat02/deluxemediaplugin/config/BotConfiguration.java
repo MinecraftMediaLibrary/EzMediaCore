@@ -8,21 +8,20 @@ import java.io.IOException;
 
 public final class BotConfiguration extends ConfigurationProvider {
 
-	public BotConfiguration(@NotNull DeluxeMediaPlugin plugin) throws IOException {
-		super(plugin, "configuration/bot.yml");
-	}
+  public BotConfiguration(@NotNull DeluxeMediaPlugin plugin) throws IOException {
+    super(plugin, "configuration/bot.yml");
+  }
 
-	@Override
-	void deserialize() {
-		final FileConfiguration configuration = this.getFileConfiguration();
-		configuration.set("token", "");
+  @Override
+  void deserialize() {
+    final FileConfiguration configuration = this.getFileConfiguration();
+    configuration.set("token", "");
 
-		this.saveConfig();
-	}
+    this.saveConfig();
+  }
 
-	@Override
-	void serialize() throws IOException {
-		final FileConfiguration configuration = this.getFileConfiguration();
-
-	}
+  @Override
+  void serialize() throws IOException {
+    final FileConfiguration configuration = this.getFileConfiguration();
+  }
 }

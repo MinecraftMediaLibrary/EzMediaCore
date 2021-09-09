@@ -9,11 +9,9 @@ import java.io.Serial;
  */
 public class ReadStreamException extends RuntimeException {
 
-  @Serial
-  private static final long serialVersionUID = 3531880196344252231L;
+  @Serial private static final long serialVersionUID = 3531880196344252231L;
 
-  public ReadStreamException() {
-  }
+  public ReadStreamException() {}
 
   public ReadStreamException(final int code) {
     super("source stream code is " + code);

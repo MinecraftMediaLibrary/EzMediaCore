@@ -77,14 +77,13 @@ public final class DependencyUtils {
     ARTIFACT_HASHES = new HashMap<>();
   }
 
-  private DependencyUtils() {
-  }
+  private DependencyUtils() {}
 
   /**
    * Downloads dependency.
    *
    * @param dependency the dependency
-   * @param parent     the parent
+   * @param parent the parent
    * @return the file
    * @throws IOException the io exception
    */
@@ -124,10 +123,10 @@ public final class DependencyUtils {
   /**
    * Constructs dependency URL directly based on parameters.
    *
-   * @param groupId    the group id
+   * @param groupId the group id
    * @param artifactId the artifact id
-   * @param version    the version
-   * @param base       the base
+   * @param version the version
+   * @param base the base
    * @return the dependency url
    */
   @NotNull
@@ -148,8 +147,8 @@ public final class DependencyUtils {
    * Download dependency file.
    *
    * @param dependency the dependency
-   * @param link       the link
-   * @param parent     the parent
+   * @param link the link
+   * @param parent the parent
    * @return the file
    * @throws IOException the io exception
    */
@@ -168,9 +167,9 @@ public final class DependencyUtils {
    * Download dependency file with consumer.
    *
    * @param dependency the dependency
-   * @param link       the link
-   * @param parent     the parent
-   * @param consumer   the consumer
+   * @param link the link
+   * @param parent the parent
+   * @param consumer the consumer
    * @return the file
    * @throws IOException the io exception
    */
@@ -189,10 +188,10 @@ public final class DependencyUtils {
   /**
    * Download dependency file.
    *
-   * @param groupId    the group id
+   * @param groupId the group id
    * @param artifactId the artifact id
-   * @param version    the version
-   * @param parent     the parent
+   * @param version the version
+   * @param parent the parent
    * @param resolution the resolution
    * @return the file
    * @throws IOException the io exception
@@ -213,11 +212,11 @@ public final class DependencyUtils {
   /**
    * Download dependency file with consumer.
    *
-   * @param groupId    the group id
+   * @param groupId the group id
    * @param artifactId the artifact id
-   * @param version    the version
-   * @param parent     the parent
-   * @param consumer   the consumer
+   * @param version the version
+   * @param parent the parent
+   * @param consumer the consumer
    * @param resolution the resolution
    * @return the file
    * @throws IOException the io exception
@@ -241,7 +240,7 @@ public final class DependencyUtils {
       throws IOException {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
     try (final ReadableByteChannel readableByteChannel =
-        Channels.newChannel(new URL(url).openStream());
+            Channels.newChannel(new URL(url).openStream());
         final FileChannel channel = new FileOutputStream(p.toFile()).getChannel()) {
       channel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
     }
@@ -268,7 +267,7 @@ public final class DependencyUtils {
   /**
    * Checks if the hash of the file matches the dependency.
    *
-   * @param file       the file
+   * @param file the file
    * @param dependency the dependency
    * @return checks that the hash of the file matches the dependency
    */
@@ -291,10 +290,10 @@ public final class DependencyUtils {
   /**
    * Gets the dependency hash from an artifact.
    *
-   * @param groupId    the group id
+   * @param groupId the group id
    * @param artifactId the artifact id
-   * @param version    the version
-   * @param base       the base
+   * @param version the version
+   * @param base the base
    * @return the hash
    */
   @NotNull
@@ -331,10 +330,10 @@ public final class DependencyUtils {
   /**
    * Gets the dependency hash url for an artifact.
    *
-   * @param groupId    the group id
+   * @param groupId the group id
    * @param artifactId the artifact id
-   * @param version    the version
-   * @param base       the base
+   * @param version the version
+   * @param base the base
    * @return the url
    */
   @NotNull
