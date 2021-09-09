@@ -21,6 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package io.github.pulsebeat02.deluxemediaplugin.command.dither;
 
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
@@ -28,11 +29,9 @@ import io.github.pulsebeat02.ezmediacore.dither.algorithm.FilterLiteDither;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.FloydDither;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.OrderedDither;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.SimpleDither;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
 import org.jetbrains.annotations.NotNull;
 
 public enum DitherSetting {

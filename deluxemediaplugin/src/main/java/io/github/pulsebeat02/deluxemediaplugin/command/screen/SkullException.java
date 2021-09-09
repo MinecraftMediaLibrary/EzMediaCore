@@ -21,10 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package io.github.pulsebeat02.deluxemediaplugin.command.screen;
 
 import java.io.Serial;
-
 import org.jetbrains.annotations.NotNull;
 
 public class SkullException extends AssertionError {
