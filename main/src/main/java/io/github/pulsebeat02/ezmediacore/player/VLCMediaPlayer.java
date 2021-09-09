@@ -61,9 +61,9 @@ public final class VLCMediaPlayer extends MediaPlayer {
   VLCMediaPlayer(
       @NotNull final Callback callback,
       @NotNull final Dimension pixelDimension,
-      @NotNull final String url,
-      @Nullable final String key,
-      final int fps) {
+      @NotNull final MrlConfiguration url,
+      @Nullable final SoundKey key,
+      @NotNull final FrameConfiguration fps) {
     super(callback, pixelDimension, url, key, fps);
     this.adapter = this.getAdapter();
     this.callback = new MinecraftVideoRenderCallback(this);
@@ -86,7 +86,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
         if (this.player == null) {
           this.initializePlayer(0L);
         }
-        this.player.media().play(this.getUrl());
+        this.player.media().play(this.getMrlConfiguration().toString());
         this.playAudio();
       }
       case PAUSE -> {
@@ -96,7 +96,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
       case RESUME -> {
         if (this.player == null) {
           this.initializePlayer(0L);
-          this.player.media().play(this.getUrl());
+          this.player.media().play(this.getMrlConfiguration().toString());
         } else {
           this.player.controls().play();
         }
@@ -111,7 +111,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
   public void initializePlayer(final long ms) {
 
     this.player = this.getEmbeddedMediaPlayer();
-    this.player.media().prepare(this.getUrl());
+    this.player.media().prepare(this.getMrlConfiguration().toString());
     this.player.controls().setTime(ms);
 
     final AudioApi audio = this.player.audio();
@@ -130,7 +130,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer() {
     if (this.player == null || this.factory == null || this.logger == null) { // just in case something is null
       this.releaseAll();
-      final int rate = this.getFrameRate();
+      final int rate = this.getFrameConfiguration().getFps();
       this.factory = new MediaPlayerFactory(
           rate != 0 ? new String[]{"sout=\"#transcode{fps=%d}\"".formatted(rate), "--no-audio"}
               : new String[]{});

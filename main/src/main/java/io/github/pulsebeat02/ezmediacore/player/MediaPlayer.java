@@ -44,20 +44,23 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   private final MediaLibraryCore core;
   private final Callback callback;
-  private final Dimension dimensions;
+
   private final Set<Player> watchers;
-  private final String key;
-  private final String url;
-  private final int fps;
+  private final Dimension dimensions;
+  private final SoundKey key;
+  private final MrlConfiguration url;
+  private final FrameConfiguration fps;
+
   private PlayerControls controls;
 
   MediaPlayer(
       @NotNull final Callback callback,
       @NotNull final Dimension pixelDimension,
-      @NotNull final String url,
-      @Nullable final String key,
-      final int fps) {
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be empty or null!");
+      @NotNull final MrlConfiguration url,
+      @Nullable final SoundKey key,
+      @NotNull final FrameConfiguration fps) {
+    Preconditions.checkArgument(
+        !Strings.isNullOrEmpty(url.getMrl()), "URL cannot be empty or null!");
     Preconditions.checkArgument(
         pixelDimension.getWidth() >= 0, "Width must be above or equal to 0!");
     Preconditions.checkArgument(
@@ -66,7 +69,9 @@ public abstract class MediaPlayer implements VideoPlayer {
     this.callback = callback;
     this.dimensions = pixelDimension;
     this.key =
-        key == null ? callback.getCore().getPlugin().getName().toLowerCase(Locale.ROOT) : key;
+        key == null
+            ? SoundKey.ofSound(callback.getCore().getPlugin().getName().toLowerCase(Locale.ROOT))
+            : key;
     this.url = url;
     this.fps = fps;
     this.watchers = Collections.newSetFromMap(new WeakHashMap<>());
@@ -80,7 +85,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public @NotNull String getSoundKey() {
+  public @NotNull SoundKey getSoundKey() {
     return this.key;
   }
 
@@ -103,23 +108,24 @@ public abstract class MediaPlayer implements VideoPlayer {
   public void playAudio() {
     this.watchers.forEach(
         player ->
-            player.playSound(player.getLocation(), this.key, SoundCategory.MASTER, 100.0F, 1.0F));
+            player.playSound(
+                player.getLocation(), this.key.getName(), SoundCategory.MASTER, 100.0F, 1.0F));
   }
 
   @Override
   public void stopAudio() {
     for (final Player player : this.watchers) {
-      player.stopSound(this.key, SoundCategory.MASTER);
+      player.stopSound(this.key.getName(), SoundCategory.MASTER);
     }
   }
 
   @Override
-  public int getFrameRate() {
+  public @NotNull FrameConfiguration getFrameConfiguration() {
     return this.fps;
   }
 
   @Override
-  public @NotNull String getUrl() {
+  public @NotNull MrlConfiguration getMrlConfiguration() {
     return this.url;
   }
 

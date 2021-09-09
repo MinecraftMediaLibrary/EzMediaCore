@@ -26,21 +26,13 @@ package io.github.pulsebeat02.ezmediacore.player;
 import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
-import io.github.pulsebeat02.ezmediacore.playlist.ResourceUrl;
 import java.util.Set;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public interface VideoPlayer extends LibraryInjectable, ResourceUrl, Dimensional {
+public interface VideoPlayer extends LibraryInjectable, Dimensional {
 
-  @NotNull
-  Callback getCallback();
-
-  @NotNull
-  String getSoundKey();
-
-  @NotNull
-  PlayerControls getPlayerState();
+  void initializePlayer(final long ms);
 
   void setPlayerState(@NotNull final PlayerControls controls);
 
@@ -50,9 +42,20 @@ public interface VideoPlayer extends LibraryInjectable, ResourceUrl, Dimensional
 
   void stopAudio();
 
-  int getFrameRate();
+  @NotNull
+  Callback getCallback();
 
-  void initializePlayer(final long ms);
+  @NotNull
+  MrlConfiguration getMrlConfiguration();
+
+  @NotNull
+  FrameConfiguration getFrameConfiguration();
+
+  @NotNull
+  SoundKey getSoundKey();
+
+  @NotNull
+  PlayerControls getPlayerState();
 
   @NotNull
   Set<Player> getWatchers();

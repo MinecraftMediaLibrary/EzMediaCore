@@ -33,6 +33,8 @@ import io.github.pulsebeat02.ezmediacore.callback.MapCallback;
 import io.github.pulsebeat02.ezmediacore.callback.ScoreboardCallback;
 import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
+import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.VideoFactory;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import java.util.Collection;
@@ -50,29 +52,29 @@ public record VideoCreator(MediaLibraryCore library,
 
 	public @NotNull VideoPlayer createMapPlayer(@NotNull final Collection<? extends Player> viewers) {
 		return VideoFactory.unspecified()
-				.url(this.attributes.getVideoMrl())
+				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
 						new MapCallback(
 								this.library,
-								Dimension.of(this.attributes.getFrameWidth(), this.attributes.getFrameHeight()),
+								Dimension.ofDimension(this.attributes.getFrameWidth(), this.attributes.getFrameHeight()),
 								viewers,
 								this.attributes.getDither().getAlgorithm(),
 								this.attributes.getMap(),
 								this.attributes.getPixelWidth(),
 								0))
-				.dims(Dimension.of(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
-				.soundKey("emc")
+				.dims(Dimension.ofDimension(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
+				.soundKey(SoundKey.ofSound("emc"))
 				.build();
 	}
 
 	public @NotNull VideoPlayer createEntityPlayer(
 			@NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
 		return VideoFactory.unspecified()
-				.url(this.attributes.getVideoMrl())
+				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
 						new EntityCallback(
 								this.library,
-								Dimension.of(
+								Dimension.ofDimension(
 										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
 								viewers,
 								sender.getLocation(),
@@ -80,58 +82,58 @@ public record VideoCreator(MediaLibraryCore library,
 								EntityType.ARMORSTAND,
 								this.attributes.getFrameWidth(),
 								20))
-				.soundKey("emc")
+				.soundKey(SoundKey.ofSound("emc"))
 				.build();
 	}
 
 	public @NotNull VideoPlayer createChatBoxPlayer(
 			@NotNull final Collection<? extends Player> viewers) {
 		return VideoFactory.unspecified()
-				.url(this.attributes.getVideoMrl())
+				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
 						new ChatCallback(
 								this.library,
-								Dimension.of(
+								Dimension.ofDimension(
 										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
 								viewers,
 								NamedEntityString.NORMAL_SQUARE,
 								this.attributes.getFrameWidth(),
 								20))
-				.soundKey("emc")
+				.soundKey(SoundKey.ofSound("emc"))
 				.build();
 	}
 
 	public @NotNull VideoPlayer createScoreboardPlayer(
 			@NotNull final Collection<? extends Player> viewers) {
 		return VideoFactory.unspecified()
-				.url(this.attributes.getVideoMrl())
+				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
 						new ScoreboardCallback(
 								this.library,
-								Dimension.of(
+								Dimension.ofDimension(
 										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
 								viewers,
 								1080,
 								this.attributes.getFrameWidth(),
 								20))
-				.soundKey("emc")
+				.soundKey(SoundKey.ofSound("emc"))
 				.build();
 	}
 
 	public @NotNull VideoPlayer createBlockHighlightPlayer(
 			@NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
 		return VideoFactory.unspecified()
-				.url(this.attributes.getVideoMrl())
+				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
 						new BlockHighlightCallback(
 								this.library,
-								Dimension.of(
+								Dimension.ofDimension(
 										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
 								viewers,
 								sender.getLocation(),
 								this.attributes.getFrameWidth(),
 								40))
-				.soundKey("emc")
+				.soundKey(SoundKey.ofSound("emc"))
 				.build();
 	}
 }

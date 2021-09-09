@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.dimension;
 
-import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.of;
+import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.ofDimension;
 import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.square;
 
 public final class FrameDimension {
@@ -41,15 +41,15 @@ public final class FrameDimension {
 
   static {
     X1_1 = square(1);
-    X1_2 = of(1, 2);
+    X1_2 = ofDimension(1, 2);
     X3_3 = square(3);
-    X3_5 = of(3, 5);
+    X3_5 = ofDimension(3, 5);
     X5_5 = square(5);
-    X6_10 = of(6, 10);
+    X6_10 = ofDimension(6, 10);
 
-    X8_14 = of(8, 14);
-    X8_18 = of(8, 18);
-    X10_14 = of(10, 14);
+    X8_14 = ofDimension(8, 14);
+    X8_18 = ofDimension(8, 18);
+    X10_14 = ofDimension(10, 14);
   }
 
   private FrameDimension() {}

@@ -116,8 +116,8 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
 		final List<Integer> maps = this.getMapsFromDimension(width, height);
 		final String name = PathUtils.getName(img).toLowerCase();
 		final Image image =
-				name.endsWith("gif") ? new DynamicImage(core, img, maps, Dimension.of(width, height)) :
-						new StaticImage(core, img, maps, Dimension.of(width, height));
+				name.endsWith("gif") ? new DynamicImage(core, img, maps, Dimension.ofDimension(width, height)) :
+						new StaticImage(core, img, maps, Dimension.ofDimension(width, height));
 		image.draw(true);
 		this.plugin.getPictureManager().getImages().add(image);
 	}

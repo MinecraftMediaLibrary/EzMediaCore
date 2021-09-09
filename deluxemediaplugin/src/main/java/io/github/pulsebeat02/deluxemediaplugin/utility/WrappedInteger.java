@@ -20,17 +20,17 @@ public class WrappedInteger {
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull WrappedInteger of(@NotNull final Number number) {
+  public static @NotNull WrappedInteger ofNumber(@NotNull final Number number) {
     return new WrappedInteger(number);
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull WrappedInteger of(final int number) {
+  public static @NotNull WrappedInteger ofInteger(final int number) {
     return new WrappedInteger(number);
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull WrappedInteger of(@NotNull final String string) {
+  public static @NotNull WrappedInteger ofString(@NotNull final String string) {
     return new WrappedInteger(string);
   }
 

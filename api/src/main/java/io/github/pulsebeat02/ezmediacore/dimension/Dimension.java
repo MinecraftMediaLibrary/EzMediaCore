@@ -30,18 +30,18 @@ import org.jetbrains.annotations.NotNull;
 public interface Dimension extends ConfigurationSerializable {
 
   @Contract(value = "_, _ -> new", pure = true)
-  static @NotNull Dimension of(final int width, final int height) {
+  static @NotNull Dimension ofDimension(final int width, final int height) {
     return new ImmutableDimension(width, height);
   }
 
   @Contract(value = "_ -> new", pure = true)
   static @NotNull Dimension square(final int side) {
-    return of(side, side);
+    return ofDimension(side, side);
   }
 
   @Contract("_ -> new")
   static @NotNull Dimension inverse(@NotNull final Dimension dimension) {
-    return of(dimension.getHeight(), dimension.getWidth());
+    return ofDimension(dimension.getHeight(), dimension.getWidth());
   }
 
   int getWidth();

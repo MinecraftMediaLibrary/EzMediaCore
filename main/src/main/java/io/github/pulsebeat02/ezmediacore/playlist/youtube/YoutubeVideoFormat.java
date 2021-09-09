@@ -85,7 +85,7 @@ public final class YoutubeVideoFormat implements VideoFormat {
   YoutubeVideoFormat(
       @NotNull final com.github.kiulian.downloader.model.videos.formats.VideoFormat format) {
     this.format = format;
-    this.dimension = Dimension.of(format.width(), format.height());
+    this.dimension = Dimension.ofDimension(format.width(), format.height());
   }
 
   static @NotNull BiMap<

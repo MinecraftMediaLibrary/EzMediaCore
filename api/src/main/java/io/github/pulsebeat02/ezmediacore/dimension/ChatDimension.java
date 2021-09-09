@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.dimension;
 
-import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.of;
+import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.ofDimension;
 import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.square;
 
 public final class ChatDimension {
@@ -42,16 +42,16 @@ public final class ChatDimension {
 
   static {
     X1_1 = square(1);
-    X2_8 = of(2, 8);
-    X4_16 = of(4, 16);
-    X8_16 = of(8, 16);
-    X8_32 = of(8, 32);
+    X2_8 = ofDimension(2, 8);
+    X4_16 = ofDimension(4, 16);
+    X8_16 = ofDimension(8, 16);
+    X8_32 = ofDimension(8, 32);
 
-    X12_48 = of(12, 48);
-    X16_48 = of(16, 48);
-    X16_64 = of(16, 64);
-    X16_80 = of(16, 80);
-    X16_92 = of(16, 92);
+    X12_48 = ofDimension(12, 48);
+    X16_48 = ofDimension(16, 48);
+    X16_64 = ofDimension(16, 64);
+    X16_80 = ofDimension(16, 80);
+    X16_92 = ofDimension(16, 92);
   }
 
   private ChatDimension() {}

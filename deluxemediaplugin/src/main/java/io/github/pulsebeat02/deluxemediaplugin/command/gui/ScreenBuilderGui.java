@@ -65,9 +65,9 @@ public final class ScreenBuilderGui {
     this.plugin = plugin;
     this.material = Material.OAK_PLANKS;
     this.viewer = player;
-    this.width = WrappedInteger.of(5);
-    this.height = WrappedInteger.of(5);
-    this.id = WrappedInteger.of(0);
+    this.width = WrappedInteger.ofInteger(5);
+    this.height = WrappedInteger.ofInteger(5);
+    this.id = WrappedInteger.ofInteger(0);
     this.initialize();
     this.gui.show(player);
   }

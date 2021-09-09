@@ -49,8 +49,8 @@ import org.jetbrains.annotations.Nullable;
 public final class FFmpegMediaPlayer extends MediaPlayer {
 
   private final ArrayBlockingQueue<int[]> frames;
+  private final BufferConfiguration buffer;
   private final long delay;
-  private final int buffer;
 
   private long start;
   private volatile FFmpeg ffmpeg;
@@ -62,14 +62,15 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
   FFmpegMediaPlayer(
       @NotNull final Callback callback,
       @NotNull final Dimension pixelDimension,
-      final int buffer,
-      @NotNull final String url,
-      @Nullable final String key,
-      final int fps) {
+      @NotNull final BufferConfiguration buffer,
+      @NotNull final MrlConfiguration url,
+      @Nullable final SoundKey key,
+      @NotNull final FrameConfiguration fps) {
     super(callback, pixelDimension, url, key, fps);
+    final int num = fps.getFps();
     this.buffer = buffer;
-    this.frames = new ArrayBlockingQueue<>(buffer * fps);
-    this.delay = 1000L / fps;
+    this.frames = new ArrayBlockingQueue<>(buffer.getBuffer() * num);
+    this.delay = 1000L / num;
     this.firstFrame = false;
     this.initializePlayer(0L);
   }
@@ -89,7 +90,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
   @Override
   public void initializePlayer(final long seconds) {
     final Dimension dimension = this.getDimensions();
-    final String url = this.getUrl();
+    final String url = this.getMrlConfiguration().getMrl();
     final Path path = Path.of(url);
     final long ms = seconds * 1000;
     this.ffmpeg =
@@ -100,11 +101,11 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
                     : UrlInput.fromUrl(url).setPosition(ms))
             .addOutput(
                 FrameOutput.withConsumer(this.getFrameConsumer())
-                    .setFrameRate(this.getFrameRate())
+                    .setFrameRate(this.getFrameConfiguration().getFps())
                     .disableStream(StreamType.AUDIO)
                     .disableStream(StreamType.SUBTITLE)
                     .disableStream(StreamType.DATA)
-                    .setFrameRate(this.getFrameRate()))
+                    .setFrameRate(this.getFrameConfiguration().getFps()))
             .addArguments("-vf",
                 "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()));
   }
@@ -195,7 +196,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
   }
 
   private void delayFrames() {
-    final int target = (this.buffer * this.getFrameRate()) >> 1;
+    final int target = (this.buffer.getBuffer() * this.getFrameConfiguration().getFps()) >> 1;
     while (true) {
       if (this.frames.size() == target) { // block until frame size met
         break;

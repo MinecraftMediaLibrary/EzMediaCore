@@ -42,8 +42,8 @@ import org.jetbrains.annotations.Nullable;
 public final class JCodecMediaPlayer extends MediaPlayer {
 
   private final ArrayBlockingQueue<int[]> frames;
+  private final BufferConfiguration buffer;
   private final long delay;
-  private final int buffer;
 
   private FrameGrab grabber;
   private boolean paused;
@@ -55,14 +55,15 @@ public final class JCodecMediaPlayer extends MediaPlayer {
   JCodecMediaPlayer(
       @NotNull final Callback callback,
       @NotNull final Dimension pixelDimension,
-      final int buffer,
-      @NotNull final String url,
-      @Nullable final String key,
-      final int fps) {
+      @NotNull final BufferConfiguration buffer,
+      @NotNull final MrlConfiguration url,
+      @Nullable final SoundKey key,
+      @NotNull final FrameConfiguration fps) {
     super(callback, pixelDimension, url, key, fps);
+    final int num = fps.getFps();
     this.buffer = buffer;
-    this.frames = new ArrayBlockingQueue<>(buffer * fps);
-    this.delay = 1000L / fps;
+    this.frames = new ArrayBlockingQueue<>(buffer.getBuffer() * num);
+    this.delay = 1000L / num;
     this.initializePlayer(0L);
   }
 
@@ -132,7 +133,7 @@ public final class JCodecMediaPlayer extends MediaPlayer {
   }
 
   private void delayFrames() {
-    final int target = (this.buffer * this.getFrameRate()) >> 1;
+    final int target = (this.buffer.getBuffer() * this.getFrameConfiguration().getFps()) >> 1;
     while (true) {
       if (this.frames.size() == target) { // block until frame size met
         break;
@@ -178,7 +179,7 @@ public final class JCodecMediaPlayer extends MediaPlayer {
     final Dimension dimension = this.getDimensions();
     this.start = ms;
     try {
-      this.grabber = FrameGrab.createFrameGrab(NIOUtils.readableFileChannel(this.getUrl()));
+      this.grabber = FrameGrab.createFrameGrab(NIOUtils.readableFileChannel(this.getMrlConfiguration().getMrl()));
       this.grabber.seekToSecondPrecise(ms / 1000.0F);
       this.grabber.getMediaInfo().setDim(new Size(dimension.getWidth(), dimension.getHeight()));
     } catch (final IOException | JCodecException e) {
