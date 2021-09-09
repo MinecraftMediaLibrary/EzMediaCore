@@ -45,16 +45,7 @@ public enum DependencyInfo {
 
   SPOTIFY("se{}michaelthelin{}spotify", "spotify-web-api-java", "6{}5{}4", Repositories.MAVEN),
 
-  CAFFEINE("com{}github{}ben-manes{}caffeine", "caffeine", "3{}0{}3", Repositories.MAVEN),
-
-  JDA("net{}dv8tion", "JDA", "4{}3{}0_277", Repositories.JDA),
-  TROVE4J("net{}sf{}trove4j", "trove4j", "3{}0{}3", Repositories.MAVEN),
-  JACKSON_DATABIND(
-      "com{}fasterxml{}jackson{}core", "jackson-databind", "2{}13{}0-rc2", Repositories.MAVEN),
-
-  LAVAPLAYER("com{}sedmelluq", "lavaplayer", "1{}3{}78", Repositories.JDA),
-  JSOUP("org{}jsoup", "jsoup", "1{}14{}2", Repositories.MAVEN),
-  BASE64("net{}iharder", "base64", "2{}3{}9", Repositories.MAVEN);
+  CAFFEINE("com{}github{}ben-manes{}caffeine", "caffeine", "3{}0{}3", Repositories.MAVEN);
 
   private final String group;
   private final String artifact;

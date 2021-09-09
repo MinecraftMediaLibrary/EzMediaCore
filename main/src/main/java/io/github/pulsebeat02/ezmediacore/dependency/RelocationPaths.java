@@ -47,18 +47,7 @@ public enum RelocationPaths {
   SPOTIFY("com{}wrapper{}spotify", "io{}github{}pulsebeat02{}ezmediacore{}lib{}spotify"),
 
   CAFFEINE(
-      "com{}github{}benmanes{}caffeine", "io{}github{}pulsebeat02{}ezmediacore{}lib{}caffeine"),
-
-  JDA("net{}dv8tion{}jda", "io{}github{}pulsebeat02{}ezmediacore{}lib{}jda"),
-  TROVE4J("gnu{}trove", "io{}github{}pulsebeat02{}ezmediacore{}lib{}trove"),
-  JACKSON_DATABIND(
-      "com{}fasterxml{}jackson{}databind", "io{}github{}pulsebeat02{}ezmediacore{}lib{}jackson"),
-
-  LAVAPLAYER(
-      "com{}sedmelluq{}discord{}lavaplayer",
-      "io{}github{}pulsebeat02{}ezmediacore{}lib{}lavaplayer"),
-  JSOUP("org{}jsoup", "io{}github{}pulsebeat02{}ezmediacore{}lib{}jsoup"),
-  BASE64("net{}iharder", "io{}github{}pulsebeat02{}ezmediacore{}lib{}base64");
+      "com{}github{}benmanes{}caffeine", "io{}github{}pulsebeat02{}ezmediacore{}lib{}caffeine");
 
   private final RelocationRule relocation;
 

@@ -55,11 +55,5 @@ tasks.withType<ShadowJar> {
     relocate("io.github.slimjar", "io.github.pulsebeat02.ezmediacore.lib.slimjar")
     relocate("org.jcodec", "io.github.pulsebeat02.ezmediacore.lib.jcodec")
     relocate("com.github.benmanes.caffeine", "io.github.pulsebeat02.ezmediacore.lib.caffeine")
-    relocate("net.dv8tion.jda", "io.github.pulsebeat02.ezmediacore.lib.jda")
-    relocate("gnu.trove", "io.github.pulsebeat02.ezmediacore.lib.trove")
-    relocate("com.fasterxml.jackson.databind", "io.github.pulsebeat02.ezmediacore.lib.jackson")
-    relocate("com.sedmelluq.discord.lavaplayer", "io.github.pulsebeat02.ezmediacore.lib.lavaplayer")
-    relocate("org.jsoup", "io.github.pulsebeat02.ezmediacore.lib.jsoup")
-    relocate("net.iharder", "io.github.pulsebeat02.ezmediacore.lib.base64")
 }
 
