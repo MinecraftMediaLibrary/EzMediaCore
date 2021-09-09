@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package io.github.pulsebeat02.deluxemediaplugin.command.screen;
+package io.github.pulsebeat02.deluxemediaplugin.command.gui;
 
 import java.io.Serial;
 import org.jetbrains.annotations.NotNull;

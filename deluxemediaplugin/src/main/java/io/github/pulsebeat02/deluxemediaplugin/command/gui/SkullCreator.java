@@ -26,7 +26,6 @@ package io.github.pulsebeat02.deluxemediaplugin.command.gui;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import io.github.pulsebeat02.deluxemediaplugin.command.screen.SkullException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
