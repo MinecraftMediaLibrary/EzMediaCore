@@ -54,29 +54,19 @@ import io.github.pulsebeat02.ezmediacore.utility.HashingUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public final class VideoLoadCommand implements CommandSegment.Literal<CommandSender> {
-
-	private static final TextComponent RESOURCEPACK_MESSAGE;
-
-	static {
-		RESOURCEPACK_MESSAGE = text()
-				.append(text("Loaded resourcepack for all players! Click ", GOLD))
-				.append(text("this message",
-						style(AQUA, BOLD, UNDERLINED, runCommand("/video load resourcepack"),
-								text("Click to get the resourcepack!", GOLD).asHoverEvent())))
-				.append(text(" to retrieve the resourcepack", GOLD)).build();
-	}
 
 	private final LiteralCommandNode<CommandSender> node;
 	private final VideoCommandAttributes attributes;
@@ -91,7 +81,9 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 		this.node =
 				this.literal("load")
 						.then(this.argument("mrl", StringArgumentType.greedyString()).executes(this::loadVideo))
-						.then(this.literal("resourcepack").executes(this::sendResourcepack))
+						.then(this.literal("resourcepack")
+								.then(this.argument("targets", StringArgumentType.greedyString())
+										.executes(this::sendResourcepack)))
 						.then(this.literal("cancel-download").executes(this::cancelDownload))
 						.build();
 	}
@@ -167,7 +159,13 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 		if (!this.cancelled) {
 			ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), Bukkit.getOnlinePlayers(),
 					this.attributes.getUrl(), this.attributes.getHash());
-			this.plugin.audience().players().sendMessage(RESOURCEPACK_MESSAGE);
+			Bukkit.getOnlinePlayers().parallelStream().forEach(player -> this.plugin.audience().player(player).sendMessage(
+			text()
+					.append(text("Loaded resourcepack for all players! Click ", GOLD))
+					.append(text("this message",
+							style(AQUA, BOLD, UNDERLINED, runCommand("/video load resourcepack %s".formatted(player.getName())),
+									text("Click to get the resourcepack!", GOLD).asHoverEvent())))
+					.append(text(" to retrieve the resourcepack", GOLD)).build()));
 			gold(audience, "Successfully loaded video %s".formatted(mrl));
 		}
 	}
@@ -269,8 +267,14 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 	}
 
 	private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {
+
 		final CommandSender sender = context.getSource();
 		final Audience audience = this.plugin.audience().sender(sender);
+		final String targets = context.getArgument("targets", String.class);
+		final List<Entity> entities = this.plugin.getServer().selectEntities(sender, targets);
+		if (this.checkNonPlayer(audience, entities)) {
+			return SINGLE_SUCCESS;
+		}
 		if (this.unloadedResourcepack(audience)) {
 			return SINGLE_SUCCESS;
 		}
@@ -280,9 +284,17 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 		final String url = this.attributes.getUrl();
 		final byte[] hash = this.attributes.getHash();
 		ResourcepackUtils.forceResourcepackLoad(this.plugin.library(),
-				Collections.singleton((Player) sender), url, hash);
+				entities.stream().map(entity -> (Player) entity).collect(Collectors.toSet()), url, hash);
 		gold(audience, "Sent Resourcepack! (URL: %s, Hash: %s)".formatted(url, new String(hash)));
 		return SINGLE_SUCCESS;
+	}
+
+	private boolean checkNonPlayer(@NotNull final Audience audience, @NotNull final List<Entity> entities) {
+		if (entities.parallelStream().anyMatch(entity -> !(entity instanceof Player))) {
+			red(audience, "The target selector you chose contains entities that aren't players!");
+			return true;
+		}
+		return false;
 	}
 
 	private boolean isPlayer(@NotNull final Audience audience, @NotNull final CommandSender sender) {

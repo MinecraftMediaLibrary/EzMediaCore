@@ -4,7 +4,9 @@ video {
   resume;
   destroy;
   load {
-    resourcepack;
+    resourcepack {
+      targets brigadier:string greedy_phrase;
+    }
     cancel-download;
     mrl brigadier:string greedy_phrase;
   }

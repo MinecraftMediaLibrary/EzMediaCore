@@ -256,7 +256,7 @@ public final class VideoCommand extends BaseCommand {
 						entry("/video load [url]", "Loads a Youtube link"),
 						entry("/video load [file]", "Loads a specific video file"),
 						entry("/video load cancel-download", "Cancels the Youtube download"),
-						entry("/video load resourcepack", "Loads the past resourcepack used for the video"),
+						entry("/video load resourcepack [target selector]", "Loads the past resourcepack made for the video"),
 						entry("/video set screen-dimension [width:height]", "Sets the resolution of the screen"),
 						entry("/video set itemframe-dimension [width:height]", "Sets the proper itemframe dimension of the screen"),
 						entry("/video set dither [algorithm]", "Sets the specific algorithm for dithering"),
