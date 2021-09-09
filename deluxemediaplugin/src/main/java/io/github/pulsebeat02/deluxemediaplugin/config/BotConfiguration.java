@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-public final class BotConfiguration extends ConfigurationProvider{
+public final class BotConfiguration extends ConfigurationProvider {
 
 	public BotConfiguration(@NotNull DeluxeMediaPlugin plugin) throws IOException {
 		super(plugin, "configuration/bot.yml");
@@ -15,7 +15,7 @@ public final class BotConfiguration extends ConfigurationProvider{
 	@Override
 	void deserialize() {
 		final FileConfiguration configuration = this.getFileConfiguration();
-		configuration.set("token","");
+		configuration.set("token", "");
 
 		this.saveConfig();
 	}

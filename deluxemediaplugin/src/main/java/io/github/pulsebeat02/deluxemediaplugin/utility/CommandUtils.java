@@ -47,9 +47,11 @@ package io.github.pulsebeat02.deluxemediaplugin.utility;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
+
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Optional;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.jetbrains.annotations.NotNull;

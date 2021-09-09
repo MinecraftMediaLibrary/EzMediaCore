@@ -37,5 +37,7 @@ public class MediaBot {
 		return this.jdaBuilder;
 	}
 
-	public @NotNull MusicManager getMusicManager() { return this.musicManager; }
+	public @NotNull MusicManager getMusicManager() {
+		return this.musicManager;
+	}
 }

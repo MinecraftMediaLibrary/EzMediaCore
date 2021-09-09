@@ -62,7 +62,9 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.utility.MapUtils;
+
 import java.util.Map;
+
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -74,100 +76,100 @@ import org.jetbrains.annotations.NotNull;
 
 public final class MapCommand extends BaseCommand {
 
-  private final LiteralCommandNode<CommandSender> node;
+	private final LiteralCommandNode<CommandSender> node;
 
-  public MapCommand(@NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
-    super(plugin, "map", executor, "deluxemediaplugin.command.map", "");
-    this.node =
-        this.literal(this.getName())
-            .requires(super::testPermission)
-            .then(
-                this.argument("id", IntegerArgumentType.integer(-2_147_483_647, 2_147_483_647))
-                    .executes(this::giveMap))
-            .then(
-                this.argument("ids", StringArgumentType.greedyString())
-                    .executes(this::giveMultipleMaps))
-            .build();
-  }
+	public MapCommand(@NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
+		super(plugin, "map", executor, "deluxemediaplugin.command.map", "");
+		this.node =
+				this.literal(this.getName())
+						.requires(super::testPermission)
+						.then(
+								this.argument("id", IntegerArgumentType.integer(-2_147_483_647, 2_147_483_647))
+										.executes(this::giveMap))
+						.then(
+								this.argument("ids", StringArgumentType.greedyString())
+										.executes(this::giveMultipleMaps))
+						.build();
+	}
 
-  private int giveMap(@NotNull final CommandContext<CommandSender> context) {
+	private int giveMap(@NotNull final CommandContext<CommandSender> context) {
 
-    final CommandSender sender = context.getSource();
-    final Audience audience = this.plugin().audience().sender(sender);
-    final int id = context.getArgument("id", int.class);
+		final CommandSender sender = context.getSource();
+		final Audience audience = this.plugin().audience().sender(sender);
+		final int id = context.getArgument("id", int.class);
 
-    if (!(sender instanceof Player)) {
-      red(audience, "You must be a player to execute this command!");
-      return SINGLE_SUCCESS;
-    }
+		if (!(sender instanceof Player)) {
+			red(audience, "You must be a player to execute this command!");
+			return SINGLE_SUCCESS;
+		}
 
-    ((Player) sender).getInventory().addItem(MapUtils.getMapFromID(id));
+		((Player) sender).getInventory().addItem(MapUtils.getMapFromID(id));
 
-    audience.sendMessage(format(join(
-        noSeparators(), text("Gave map with id ", GOLD), text(id, AQUA))));
+		audience.sendMessage(format(join(
+				noSeparators(), text("Gave map with id ", GOLD), text(id, AQUA))));
 
-    return SINGLE_SUCCESS;
-  }
+		return SINGLE_SUCCESS;
+	}
 
-  private int giveMultipleMaps(@NotNull final CommandContext<CommandSender> context) {
+	private int giveMultipleMaps(@NotNull final CommandContext<CommandSender> context) {
 
-    final CommandSender sender = context.getSource();
-    final Audience audience = this.plugin().audience().sender(sender);
-    final String[] bits = context.getArgument("ids", String.class).split("-");
+		final CommandSender sender = context.getSource();
+		final Audience audience = this.plugin().audience().sender(sender);
+		final String[] bits = context.getArgument("ids", String.class).split("-");
 
-    final int start;
-    final int end;
-    try {
-      start = Integer.parseInt(bits[0]);
-      end = Integer.parseInt(bits[1]);
-    } catch (final NumberFormatException e) {
-      red(audience, "Invalid format! Must follow [starting-id]-[ending-id]");
-      return SINGLE_SUCCESS;
-    }
+		final int start;
+		final int end;
+		try {
+			start = Integer.parseInt(bits[0]);
+			end = Integer.parseInt(bits[1]);
+		} catch (final NumberFormatException e) {
+			red(audience, "Invalid format! Must follow [starting-id]-[ending-id]");
+			return SINGLE_SUCCESS;
+		}
 
-    if (!(sender instanceof final Player player)) {
-      red(audience, "You must be a player to execute this command!");
-      return SINGLE_SUCCESS;
-    }
+		if (!(sender instanceof final Player player)) {
+			red(audience, "You must be a player to execute this command!");
+			return SINGLE_SUCCESS;
+		}
 
-    final PlayerInventory inventory = player.getInventory();
-    boolean noSpace = false;
-    for (int id = start; id <= end; id++) {
-      final ItemStack stack = MapUtils.getMapFromID(id);
-      if (inventory.firstEmpty() == -1) {
-        noSpace = true;
-      }
-      if (noSpace) {
-        player.getWorld().dropItem(player.getLocation(), stack);
-      } else {
-        inventory.addItem(stack);
-      }
-    }
+		final PlayerInventory inventory = player.getInventory();
+		boolean noSpace = false;
+		for (int id = start; id <= end; id++) {
+			final ItemStack stack = MapUtils.getMapFromID(id);
+			if (inventory.firstEmpty() == -1) {
+				noSpace = true;
+			}
+			if (noSpace) {
+				player.getWorld().dropItem(player.getLocation(), stack);
+			} else {
+				inventory.addItem(stack);
+			}
+		}
 
-    audience.sendMessage(
-        format(
-            join(
-                noSeparators(),
-                text("Gave maps between IDs ", GOLD),
-                text(start, AQUA),
-                text(" and ", GOLD),
-                text(end, AQUA))));
+		audience.sendMessage(
+				format(
+						join(
+								noSeparators(),
+								text("Gave maps between IDs ", GOLD),
+								text(start, AQUA),
+								text(" and ", GOLD),
+								text(end, AQUA))));
 
-    return SINGLE_SUCCESS;
-  }
+		return SINGLE_SUCCESS;
+	}
 
-  @Override
-  public @NotNull Component usage() {
-    return ChatUtils.getCommandUsage(
-        Map.of(
-            "/map [id]",
-            "Gives a map to the player with the specific id",
-            "/map [starting-id]-[ending-id]",
-            "Gives all maps between starting-id to ending-id (inclusive)"));
-  }
+	@Override
+	public @NotNull Component usage() {
+		return ChatUtils.getCommandUsage(
+				Map.of(
+						"/map [id]",
+						"Gives a map to the player with the specific id",
+						"/map [starting-id]-[ending-id]",
+						"Gives all maps between starting-id to ending-id (inclusive)"));
+	}
 
-  @Override
-  public @NotNull LiteralCommandNode<CommandSender> node() {
-    return this.node;
-  }
+	@Override
+	public @NotNull LiteralCommandNode<CommandSender> node() {
+		return this.node;
+	}
 }

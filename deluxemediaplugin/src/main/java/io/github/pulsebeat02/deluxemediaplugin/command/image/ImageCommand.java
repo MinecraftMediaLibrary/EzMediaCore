@@ -49,7 +49,9 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+
 import java.util.Map;
+
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -57,33 +59,33 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ImageCommand extends BaseCommand {
 
-  private final LiteralCommandNode<CommandSender> node;
+	private final LiteralCommandNode<CommandSender> node;
 
-  public ImageCommand(
-      @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
-    super(plugin, "image", executor, "deluxemediaplugin.command.image");
-    final ImageCommandAttributes attributes = new ImageCommandAttributes();
-    this.node =
-        this.literal(this.getName())
-            .requires(super::testPermission)
-            .then(new ResetImageCommand(plugin, attributes).node())
-            .then(new SetImageCommand(plugin, attributes).node())
-            .build();
-  }
+	public ImageCommand(
+			@NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
+		super(plugin, "image", executor, "deluxemediaplugin.command.image");
+		final ImageCommandAttributes attributes = new ImageCommandAttributes();
+		this.node =
+				this.literal(this.getName())
+						.requires(super::testPermission)
+						.then(new ResetImageCommand(plugin, attributes).node())
+						.then(new SetImageCommand(plugin, attributes).node())
+						.build();
+	}
 
-  @Override
-  public @NotNull Component usage() {
-    return ChatUtils.getCommandUsage(
-        Map.of(
-            "/image", "Lists the proper usage of the command",
-            "/image purge all", "Purges all loaded images onto maps",
-            "/image purge map [id]", "Purges a specific map on an id",
-            "/image set map [file]", "Sets an image from a local file",
-            "/image set map [url]", "Downloads and sets an image from a url"));
-  }
+	@Override
+	public @NotNull Component usage() {
+		return ChatUtils.getCommandUsage(
+				Map.of(
+						"/image", "Lists the proper usage of the command",
+						"/image purge all", "Purges all loaded images onto maps",
+						"/image purge map [id]", "Purges a specific map on an id",
+						"/image set map [file]", "Sets an image from a local file",
+						"/image set map [url]", "Downloads and sets an image from a url"));
+	}
 
-  @Override
-  public @NotNull LiteralCommandNode<CommandSender> node() {
-    return this.node;
-  }
+	@Override
+	public @NotNull LiteralCommandNode<CommandSender> node() {
+		return this.node;
+	}
 }

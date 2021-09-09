@@ -56,7 +56,9 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.gui.ScreenBuilderGui;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+
 import java.util.Map;
+
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -66,40 +68,40 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ScreenCommand extends BaseCommand {
 
-  private final LiteralCommandNode<CommandSender> node;
+	private final LiteralCommandNode<CommandSender> node;
 
-  public ScreenCommand(
-      @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
-    super(plugin, "screen", executor, "deluxemediaplugin.command.screen", "");
-    this.node =
-        this.literal(this.getName())
-            .requires(super::testPermission)
-            .then(this.literal("build").executes(this::sendScreenBuilder))
-            .build();
-  }
+	public ScreenCommand(
+			@NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
+		super(plugin, "screen", executor, "deluxemediaplugin.command.screen", "");
+		this.node =
+				this.literal(this.getName())
+						.requires(super::testPermission)
+						.then(this.literal("build").executes(this::sendScreenBuilder))
+						.build();
+	}
 
-  private int sendScreenBuilder(@NotNull final CommandContext<CommandSender> context) {
+	private int sendScreenBuilder(@NotNull final CommandContext<CommandSender> context) {
 
-    final CommandSender sender = context.getSource();
-    final Audience audience = this.plugin().audience().sender(sender);
+		final CommandSender sender = context.getSource();
+		final Audience audience = this.plugin().audience().sender(sender);
 
-    if (!(sender instanceof Player)) {
-      audience.sendMessage(format(text("You must be a player to execute this command!", RED)));
-      return 1;
-    }
+		if (!(sender instanceof Player)) {
+			audience.sendMessage(format(text("You must be a player to execute this command!", RED)));
+			return 1;
+		}
 
-    new ScreenBuilderGui(this.plugin(), (Player) sender);
+		new ScreenBuilderGui(this.plugin(), (Player) sender);
 
-    return SINGLE_SUCCESS;
-  }
+		return SINGLE_SUCCESS;
+	}
 
-  @Override
-  public @NotNull Component usage() {
-    return ChatUtils.getCommandUsage(Map.of("/screen", "Opens the screen building GUI"));
-  }
+	@Override
+	public @NotNull Component usage() {
+		return ChatUtils.getCommandUsage(Map.of("/screen", "Opens the screen building GUI"));
+	}
 
-  @Override
-  public @NotNull LiteralCommandNode<CommandSender> node() {
-    return this.node;
-  }
+	@Override
+	public @NotNull LiteralCommandNode<CommandSender> node() {
+		return this.node;
+	}
 }

@@ -68,12 +68,14 @@ import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
+
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
@@ -84,160 +86,160 @@ import javax.security.auth.login.LoginException;
 
 public final class DeluxeMediaPlugin extends JavaPlugin {
 
-  private MediaLibraryCore library;
-  private BukkitAudiences audiences;
-  private CommandHandler handler;
-  private Logger logger;
+	private MediaLibraryCore library;
+	private BukkitAudiences audiences;
+	private CommandHandler handler;
+	private Logger logger;
 
-  private PersistentPictureManager manager;
-  private AudioConfiguration audioConfiguration;
-  private HttpServer server;
+	private PersistentPictureManager manager;
+	private AudioConfiguration audioConfiguration;
+	private HttpServer server;
 
-  private MediaBot mediaBot;
-  private BotConfiguration botConfiguration;
+	private MediaBot mediaBot;
+	private BotConfiguration botConfiguration;
 
-  @Override
-  public void onEnable() {
-    this.logger = this.getLogger();
-    this.audiences = BukkitAudiences.create(this);
-    this.printLogo();
-    this.log(join(noSeparators(), text("Running DeluxeMediaPlugin ", AQUA), text("[CLOSED BETA]", GOLD)));
-    try {
-      this.library = LibraryProvider.builder().plugin(this).build();
-      this.library.initialize();
-    } catch (final ExecutionException | InterruptedException e) {
-      this.log("There was a severe issue while loading the EzMediaCore instance!");
-      e.printStackTrace();
-    }
-    this.loadPersistentData();
-    this.registerCommands();
-    this.startMetrics();
-    this.checkUpdates();
-	this.loadBot();
-    this.log("Finished DeluxeMediaPlugin!");
-    this.log("""
-        Hello %%__USER__%%! Thank you for purchasing DeluxeMediaPlugin. For identifier purposes, this
-         is your purchase identification code: %%__NONCE__%% - Enjoy using the plugin, and ask for
-         support at my Discord! (https://discord.gg/MgqRKvycMC)
-        """);
-  }
+	@Override
+	public void onEnable() {
+		this.logger = this.getLogger();
+		this.audiences = BukkitAudiences.create(this);
+		this.printLogo();
+		this.log(join(noSeparators(), text("Running DeluxeMediaPlugin ", AQUA), text("[CLOSED BETA]", GOLD)));
+		try {
+			this.library = LibraryProvider.builder().plugin(this).build();
+			this.library.initialize();
+		} catch (final ExecutionException | InterruptedException e) {
+			this.log("There was a severe issue while loading the EzMediaCore instance!");
+			e.printStackTrace();
+		}
+		this.loadPersistentData();
+		this.registerCommands();
+		this.startMetrics();
+		this.checkUpdates();
+		this.loadBot();
+		this.log("Finished DeluxeMediaPlugin!");
+		this.log("""
+				Hello %%__USER__%%! Thank you for purchasing DeluxeMediaPlugin. For identifier purposes, this
+				 is your purchase identification code: %%__NONCE__%% - Enjoy using the plugin, and ask for
+				 support at my Discord! (https://discord.gg/MgqRKvycMC)
+				""");
+	}
 
-  private void startMetrics() {
-    new Metrics(this, 10229);
-  }
+	private void startMetrics() {
+		new Metrics(this, 10229);
+	}
 
-  private void checkUpdates() {
-    new UpdateChecker(this).check();
-  }
+	private void checkUpdates() {
+		new UpdateChecker(this).check();
+	}
 
-  private void printLogo() {
-    final List<String> logo =
-        Arrays.asList(
-            " _____       _                __  __          _ _       _____  _             _       ",
-            " |  __ \\     | |              |  \\/  |        | (_)     |  __ \\| |           (_)      ",
-            " | |  | | ___| |_   ___  _____| \\  / | ___  __| |_  __ _| |__) | |_   _  __ _ _ _ __  ",
-            " | |  | |/ _ \\ | | | \\ \\/ / _ \\ |\\/| |/ _ \\/ _` | |/ _` |  ___/| | | | |/ _` | | '_ \\ ",
-            " | |__| |  __/ | |_| |>  <  __/ |  | |  __/ (_| | | (_| | |    | | |_| | (_| | | | | |",
-            " |_____/ \\___|_|\\__,_/_/\\_\\___|_|  |_|\\___|\\__,_|_|\\__,_|_|    |_|\\__,_|\\__, |_|_| |_|",
-            "                                                                         __/ |        ",
-            "                                                                        |___/         ");
-    for (final String line : logo) {
-      this.audiences.console().sendMessage(text(line, BLUE));
-    }
-  }
+	private void printLogo() {
+		final List<String> logo =
+				Arrays.asList(
+						" _____       _                __  __          _ _       _____  _             _       ",
+						" |  __ \\     | |              |  \\/  |        | (_)     |  __ \\| |           (_)      ",
+						" | |  | | ___| |_   ___  _____| \\  / | ___  __| |_  __ _| |__) | |_   _  __ _ _ _ __  ",
+						" | |  | |/ _ \\ | | | \\ \\/ / _ \\ |\\/| |/ _ \\/ _` | |/ _` |  ___/| | | | |/ _` | | '_ \\ ",
+						" | |__| |  __/ | |_| |>  <  __/ |  | |  __/ (_| | | (_| | |    | | |_| | (_| | | | | |",
+						" |_____/ \\___|_|\\__,_/_/\\_\\___|_|  |_|\\___|\\__,_|_|\\__,_|_|    |_|\\__,_|\\__, |_|_| |_|",
+						"                                                                         __/ |        ",
+						"                                                                        |___/         ");
+		for (final String line : logo) {
+			this.audiences.console().sendMessage(text(line, BLUE));
+		}
+	}
 
-  @Override
-  public void onDisable() {
-    this.log("DeluxeMediaPlugin is Shutting Down");
-    if (this.library != null) {
-      this.library.shutdown();
-    } else {
-      this.logger.severe("[ERROR]: EzMediaCore instance is null... something is fishy going on.");
-    }
-    if (this.handler != null) {
-      final Set<BaseCommand> cmds = this.handler.getCommands();
-      if (cmds != null) {
-        for (final BaseCommand cmd : this.handler.getCommands()) {
-          CommandUtils.unRegisterBukkitCommand(this, cmd);
-        }
-      }
-    }
-    this.log("Good Bye!");
-  }
+	@Override
+	public void onDisable() {
+		this.log("DeluxeMediaPlugin is Shutting Down");
+		if (this.library != null) {
+			this.library.shutdown();
+		} else {
+			this.logger.severe("[ERROR]: EzMediaCore instance is null... something is fishy going on.");
+		}
+		if (this.handler != null) {
+			final Set<BaseCommand> cmds = this.handler.getCommands();
+			if (cmds != null) {
+				for (final BaseCommand cmd : this.handler.getCommands()) {
+					CommandUtils.unRegisterBukkitCommand(this, cmd);
+				}
+			}
+		}
+		this.log("Good Bye!");
+	}
 
-  private void loadPersistentData() {
+	private void loadPersistentData() {
 
-    try {
+		try {
 
-      Set.of(this.getDataFolder().toPath().resolve("configuration")).forEach(
-          ThrowingConsumer.unchecked(FileUtils::createFolderIfNotExists));
+			Set.of(this.getDataFolder().toPath().resolve("configuration")).forEach(
+					ThrowingConsumer.unchecked(FileUtils::createFolderIfNotExists));
 
-      final HttpConfiguration http = new HttpConfiguration(this);
-      final EncoderConfiguration configuration = new EncoderConfiguration(this);
-      botConfiguration = new BotConfiguration(this);
+			final HttpConfiguration http = new HttpConfiguration(this);
+			final EncoderConfiguration configuration = new EncoderConfiguration(this);
+			botConfiguration = new BotConfiguration(this);
 
-      http.read();
-      configuration.read();
-      botConfiguration.read();
+			http.read();
+			configuration.read();
+			botConfiguration.read();
 
-      this.server = http.getServer();
-      this.audioConfiguration = configuration.getSettings();
-      this.manager = new PersistentPictureManager(this);
+			this.server = http.getServer();
+			this.audioConfiguration = configuration.getSettings();
+			this.manager = new PersistentPictureManager(this);
 
-      this.manager.startTask();
+			this.manager.startTask();
 
-    } catch (final IOException e) {
-      this.logger.severe("A severe issue occurred while reading data from configuration files!");
-      e.printStackTrace();
-    }
-  }
+		} catch (final IOException e) {
+			this.logger.severe("A severe issue occurred while reading data from configuration files!");
+			e.printStackTrace();
+		}
+	}
 
-  private void loadBot() {
-  	try {
+	private void loadBot() {
+		try {
 
-  		if (this.botConfiguration.getConfig().getString("token") == null) {
+			if (this.botConfiguration.getConfig().getString("token") == null) {
+				this.logger.severe("A severe issue occurred while starting the bot. Please check the token!");
+			}
+
+			mediaBot = new MediaBot(this.botConfiguration.getConfig().getString("token"));
+		} catch (LoginException | InterruptedException e) {
 			this.logger.severe("A severe issue occurred while starting the bot. Please check the token!");
 		}
-
-  		mediaBot = new MediaBot(this.botConfiguration.getConfig().getString("token"));
-	} catch (LoginException | InterruptedException e) {
-		this.logger.severe("A severe issue occurred while starting the bot. Please check the token!");
 	}
-  }
 
-  public void log(@NotNull final String line) {
-    this.audiences.console().sendMessage(format(text(line)));
-  }
+	public void log(@NotNull final String line) {
+		this.audiences.console().sendMessage(format(text(line)));
+	}
 
-  public void log(@NotNull final Component line) {
-    this.audiences.console().sendMessage(line);
-  }
+	public void log(@NotNull final Component line) {
+		this.audiences.console().sendMessage(line);
+	}
 
-  private void registerCommands() {
-    this.handler = new CommandHandler(this);
-  }
+	private void registerCommands() {
+		this.handler = new CommandHandler(this);
+	}
 
-  public @NotNull PersistentPictureManager getPictureManager() {
-    return this.manager;
-  }
+	public @NotNull PersistentPictureManager getPictureManager() {
+		return this.manager;
+	}
 
-  public @NotNull AudioConfiguration getAudioConfiguration() {
-    return this.audioConfiguration;
-  }
+	public @NotNull AudioConfiguration getAudioConfiguration() {
+		return this.audioConfiguration;
+	}
 
-  public @NotNull HttpServer getHttpServer() {
-    return this.server;
-  }
+	public @NotNull HttpServer getHttpServer() {
+		return this.server;
+	}
 
-  public @NotNull MediaBot getMediaBot() {
-  	return this.mediaBot;
-  }
+	public @NotNull MediaBot getMediaBot() {
+		return this.mediaBot;
+	}
 
-  public @NotNull MediaLibraryCore library() {
-    return this.library;
-  }
+	public @NotNull MediaLibraryCore library() {
+		return this.library;
+	}
 
-  public @NotNull BukkitAudiences audience() {
-    return this.audiences;
-  }
+	public @NotNull BukkitAudiences audience() {
+		return this.audiences;
+	}
 }

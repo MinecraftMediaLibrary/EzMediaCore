@@ -18,8 +18,8 @@ public class MusicSendHandler implements AudioSendHandler {
 	 * MusicSendHandler Public Constructor.
 	 *
 	 * @param musicManager MusicManager Class.
-	 * @param audioPlayer AudioPlayer.
-	 * @param guild Current Guild.
+	 * @param audioPlayer  AudioPlayer.
+	 * @param guild        Current Guild.
 	 */
 	public MusicSendHandler(final MusicManager musicManager, AudioPlayer audioPlayer, Guild guild) {
 		this.audioPlayer = audioPlayer;

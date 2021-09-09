@@ -54,7 +54,9 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+
 import java.util.Map;
+
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -63,39 +65,39 @@ import org.jetbrains.annotations.NotNull;
 
 public final class DitherCommand extends BaseCommand {
 
-  private final LiteralCommandNode<CommandSender> node;
+	private final LiteralCommandNode<CommandSender> node;
 
-  public DitherCommand(
-      @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
-    super(plugin, "dither", executor, "deluxemediaplugin.command.dither");
-    this.node =
-        this.literal(this.getName())
-            .requires(super::testPermission)
-            .then(this.literal("list").executes(this::listSettings))
-            .build();
-  }
+	public DitherCommand(
+			@NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
+		super(plugin, "dither", executor, "deluxemediaplugin.command.dither");
+		this.node =
+				this.literal(this.getName())
+						.requires(super::testPermission)
+						.then(this.literal("list").executes(this::listSettings))
+						.build();
+	}
 
-  private int listSettings(@NotNull final CommandContext<CommandSender> context) {
+	private int listSettings(@NotNull final CommandContext<CommandSender> context) {
 
-    final Audience audience = this.audience().sender(context.getSource());
+		final Audience audience = this.audience().sender(context.getSource());
 
-    gold(audience, "Dithering Options ->");
+		gold(audience, "Dithering Options ->");
 
-    for (final DitherSetting setting : DitherSetting.values()) {
-      aqua(audience, setting.getName());
-    }
+		for (final DitherSetting setting : DitherSetting.values()) {
+			aqua(audience, setting.getName());
+		}
 
-    return SINGLE_SUCCESS;
-  }
+		return SINGLE_SUCCESS;
+	}
 
-  @Override
-  public @NotNull LiteralCommandNode<CommandSender> node() {
-    return this.node;
-  }
+	@Override
+	public @NotNull LiteralCommandNode<CommandSender> node() {
+		return this.node;
+	}
 
-  @Override
-  public @NotNull Component usage() {
-    return ChatUtils.getCommandUsage(
-        Map.of("/dither list", "References all possible dithering options to choose"));
-  }
+	@Override
+	public @NotNull Component usage() {
+		return ChatUtils.getCommandUsage(
+				Map.of("/dither list", "References all possible dithering options to choose"));
+	}
 }

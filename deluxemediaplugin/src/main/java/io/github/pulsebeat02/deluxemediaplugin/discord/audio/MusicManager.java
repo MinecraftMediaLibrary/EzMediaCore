@@ -32,7 +32,7 @@ public class MusicManager {
 	 * Join's Voice Chanel and set's log channel.
 	 *
 	 * @param voiceChannel Voice Channel.
-	 * @param guild Guild.
+	 * @param guild        Guild.
 	 */
 	public void joinVoiceChannel(VoiceChannel voiceChannel, Guild guild) {
 		AudioManager audio = guild.getAudioManager();
@@ -57,10 +57,11 @@ public class MusicManager {
 
 	/**
 	 * Adds track.
-	 * @param user User to issued the adding of the track.
-	 * @param url Load's Song.
+	 *
+	 * @param user    User to issued the adding of the track.
+	 * @param url     Load's Song.
 	 * @param channel Channel to send message.
-	 * @param guild Guild.
+	 * @param guild   Guild.
 	 */
 	public void addTrack(User user, String url, MessageChannel channel, Guild guild) {
 		playerManager.loadItem(url, new AudioLoadResultHandler() {
