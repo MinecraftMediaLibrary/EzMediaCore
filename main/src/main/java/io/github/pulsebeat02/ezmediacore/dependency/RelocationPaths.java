@@ -58,7 +58,7 @@ public enum RelocationPaths {
       "com{}sedmelluq{}discord{}lavaplayer",
       "io{}github{}pulsebeat02{}ezmediacore{}lib{}lavaplayer"),
   JSOUP("org{}jsoup", "io{}github{}pulsebeat02{}ezmediacore{}lib{}jsoup"),
-  BASE64("net{}iharder", "io{}github{}pulsebeat02{}base64");
+  BASE64("net{}iharder", "io{}github{}pulsebeat02{}ezmediacore{}lib{}base64");
 
   private final RelocationRule relocation;
 

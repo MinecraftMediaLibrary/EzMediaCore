@@ -60,6 +60,6 @@ tasks.withType<ShadowJar> {
     relocate("com.fasterxml.jackson.databind", "io.github.pulsebeat02.ezmediacore.lib.jackson")
     relocate("com.sedmelluq.discord.lavaplayer", "io.github.pulsebeat02.ezmediacore.lib.lavaplayer")
     relocate("org.jsoup", "io.github.pulsebeat02.ezmediacore.lib.jsoup")
-    relocate("net.iharder", "io.github.pulsebeat02.base64")
+    relocate("net.iharder", "io.github.pulsebeat02.ezmediacore.lib.base64")
 }
 
