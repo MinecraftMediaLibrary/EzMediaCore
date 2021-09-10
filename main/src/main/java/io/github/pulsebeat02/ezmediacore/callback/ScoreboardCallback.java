@@ -38,6 +38,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 import org.jcodec.codecs.mjpeg.tools.AssertionException;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class ScoreboardCallback extends FrameCallback implements ScoreboardCallbackDispatcher {
@@ -129,5 +130,45 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
   @Override
   public int getScoreboardId() {
     return 0;
+  }
+
+  public static final class Builder extends CallbackBuilder {
+
+    Builder() {}
+
+    private Identifier<Integer> id;
+
+    @Contract("_ -> this")
+    @Override
+    public @NotNull Builder delay(@NotNull final DelayConfiguration delay) {
+      super.delay(delay);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public @NotNull Builder dims(@NotNull final Dimension dims) {
+      super.dims(dims);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public @NotNull Builder viewers(@NotNull final Viewers viewers) {
+      super.viewers(viewers);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    public @NotNull Builder id(@NotNull final Identifier<Integer> id) {
+      this.id = id;
+      return this;
+    }
+
+    @Override
+    public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
+      return new ScoreboardCallback(
+          core, this.getViewers(), this.getDims(), this.getDelay(), this.id);
+    }
   }
 }

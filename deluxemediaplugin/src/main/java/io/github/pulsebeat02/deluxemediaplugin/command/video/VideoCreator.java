@@ -25,7 +25,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.CallbackFactory;
+import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.EntityType;
 import io.github.pulsebeat02.ezmediacore.callback.Identifier;
@@ -34,7 +34,7 @@ import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
-import io.github.pulsebeat02.ezmediacore.player.VideoFactory;
+import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import java.util.Collection;
 import org.bukkit.entity.Player;
@@ -50,10 +50,10 @@ public record VideoCreator(MediaLibraryCore library,
 	}
 
 	public @NotNull VideoPlayer createMapPlayer(@NotNull final Collection<? extends Player> viewers) {
-		return VideoFactory.unspecified()
+		return VideoBuilder.unspecified()
 				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
-						CallbackFactory.map()
+						CallbackBuilder.map()
 								.algorithm(this.attributes.getDither().getAlgorithm())
 								.blockWidth(this.attributes.getPixelWidth())
 								.map(Identifier.ofIdentifier(0))
@@ -68,10 +68,10 @@ public record VideoCreator(MediaLibraryCore library,
 
 	public @NotNull VideoPlayer createEntityPlayer(
 			@NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
-		return VideoFactory.unspecified()
+		return VideoBuilder.unspecified()
 				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
-						CallbackFactory.entity()
+						CallbackBuilder.entity()
 								.character(NamedEntityString.NORMAL_SQUARE)
 								.type(EntityType.ARMORSTAND)
 								.location(sender.getLocation())
@@ -86,10 +86,10 @@ public record VideoCreator(MediaLibraryCore library,
 
 	public @NotNull VideoPlayer createChatBoxPlayer(
 			@NotNull final Collection<? extends Player> viewers) {
-		return VideoFactory.unspecified()
+		return VideoBuilder.unspecified()
 				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
-						CallbackFactory.chat()
+						CallbackBuilder.chat()
 								.character(NamedEntityString.NORMAL_SQUARE)
 								.dims(Dimension.ofDimension(
 										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
@@ -102,10 +102,10 @@ public record VideoCreator(MediaLibraryCore library,
 
 	public @NotNull VideoPlayer createScoreboardPlayer(
 			@NotNull final Collection<? extends Player> viewers) {
-		return VideoFactory.unspecified()
+		return VideoBuilder.unspecified()
 				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
-						CallbackFactory.scoreboard()
+						CallbackBuilder.scoreboard()
 								.id(Identifier.ofIdentifier(1080))
 								.dims(Dimension.ofDimension(
 										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
@@ -118,10 +118,10 @@ public record VideoCreator(MediaLibraryCore library,
 
 	public @NotNull VideoPlayer createBlockHighlightPlayer(
 			@NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
-		return VideoFactory.unspecified()
+		return VideoBuilder.unspecified()
 				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
-						CallbackFactory.blockHighlight()
+						CallbackBuilder.blockHighlight()
 								.location(sender.getLocation())
 								.dims(Dimension.ofDimension(
 										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))

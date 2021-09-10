@@ -37,8 +37,8 @@ subprojects {
         maven("https://repo.codemc.org/repository/maven-public")
         maven("https://libraries.minecraft.net")
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
-        maven("https://repo.vshnv.tech/")
         maven("https://papermc.io/repo/repository/maven-public/")
         maven("https://m2.dv8tion.net/releases")
+        maven("https://repo.vshnv.tech/releases/")
     }
 }

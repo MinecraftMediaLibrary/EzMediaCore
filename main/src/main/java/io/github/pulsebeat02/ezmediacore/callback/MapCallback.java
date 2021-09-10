@@ -26,6 +26,8 @@ package io.github.pulsebeat02.ezmediacore.callback;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
+import io.github.pulsebeat02.ezmediacore.dither.algorithm.FloydDither;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class MapCallback extends FrameCallback implements MapCallbackDispatcher {
@@ -74,5 +76,66 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
   @Override
   public @NotNull DitherAlgorithm getAlgorithm() {
     return this.algorithm;
+  }
+
+  public static final class Builder extends CallbackBuilder {
+
+    Builder() {
+    }
+
+    private DitherAlgorithm algorithm = new FloydDither();
+    private Identifier<Integer> map = Identifier.ofIdentifier(0);
+    private int blockWidth;
+
+    @Contract("_ -> this")
+    @Override
+    public @NotNull Builder delay(@NotNull final DelayConfiguration delay) {
+      super.delay(delay);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public @NotNull Builder dims(@NotNull final Dimension dims) {
+      super.dims(dims);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public @NotNull Builder viewers(@NotNull final Viewers viewers) {
+      super.viewers(viewers);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    public @NotNull Builder algorithm(@NotNull final DitherAlgorithm algorithm) {
+      this.algorithm = algorithm;
+      return this;
+    }
+
+    @Contract("_ -> this")
+    public @NotNull Builder map(@NotNull final Identifier<Integer> id) {
+      this.map = id;
+      return this;
+    }
+
+    @Contract("_ -> this")
+    public @NotNull Builder blockWidth(final int blockWidth) {
+      this.blockWidth = blockWidth;
+      return this;
+    }
+
+    @Override
+    public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
+      return new MapCallback(
+          core,
+          this.getViewers(),
+          this.getDims(),
+          this.algorithm,
+          this.map,
+          this.getDelay(),
+          this.blockWidth);
+    }
   }
 }

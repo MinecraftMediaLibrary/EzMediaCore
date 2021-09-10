@@ -47,7 +47,10 @@ import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
+import io.github.slimjar.app.builder.ApplicationBuilder;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -74,6 +77,12 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		this.logger = this.getLogger();
+		try {
+			ApplicationBuilder.appending("DeluxeMediaPlugin").build();
+		} catch (final IOException | ReflectiveOperationException | URISyntaxException | NoSuchAlgorithmException e) {
+			this.logger.severe("A serious issue occured while loading dependencies!");
+			e.printStackTrace();
+		}
 		this.audiences = BukkitAudiences.create(this);
 		this.printLogo();
 		this.log(join(noSeparators(), text("Running DeluxeMediaPlugin ", AQUA), text("[CLOSED BETA]", GOLD)));

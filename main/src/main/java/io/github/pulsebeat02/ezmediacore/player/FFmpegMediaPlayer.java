@@ -238,5 +238,63 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
     }, ExecutorProvider.FRAME_HANDLER);
   }
 
+  public static final class Builder extends VideoBuilder {
+
+    Builder() {
+    }
+
+    private BufferConfiguration bufferSize = BufferConfiguration.BUFFER_15;
+
+    @Contract("_ -> this")
+    @Override
+    public Builder callback(@NotNull final Callback callback) {
+      super.callback(callback);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder mrl(@NotNull final MrlConfiguration mrl) {
+      super.mrl(mrl);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder frameRate(@NotNull final FrameConfiguration rate) {
+      super.frameRate(rate);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder dims(@NotNull final Dimension dims) {
+      super.dims(dims);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder soundKey(@NotNull final SoundKey key) {
+      super.soundKey(key);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    public @NotNull VideoBuilder buffer(@NotNull final BufferConfiguration bufferSize) {
+      this.bufferSize = bufferSize;
+      return this;
+    }
+
+    @Contract(" -> new")
+    @Override
+    public @NotNull MediaPlayer build() {
+      super.init();
+      final Callback callback = this.getCallback();
+      return new FFmpegMediaPlayer(callback, callback.getWatchers(), this.getDims(),
+          this.bufferSize, this.getMrl(),
+          this.getKey(), this.getRate());
+    }
+  }
 
 }

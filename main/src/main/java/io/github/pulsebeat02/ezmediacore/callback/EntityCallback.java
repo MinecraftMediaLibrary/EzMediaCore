@@ -35,6 +35,7 @@ import org.bukkit.World;
 import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -172,5 +173,66 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
   @Override
   public @NotNull Location getLocation() {
     return this.location;
+  }
+
+  public static final class Builder extends CallbackBuilder {
+
+    Builder() {
+    }
+
+    private NamedEntityString character = NamedEntityString.NORMAL_SQUARE;
+    private Location location;
+    private EntityType type = EntityType.ARMORSTAND;
+
+    @Contract("_ -> this")
+    @Override
+    public @NotNull Builder delay(@NotNull final DelayConfiguration delay) {
+      super.delay(delay);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public @NotNull Builder dims(@NotNull final Dimension dims) {
+      super.dims(dims);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public @NotNull Builder viewers(@NotNull final Viewers viewers) {
+      super.viewers(viewers);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    public @NotNull Builder location(@NotNull final Location location) {
+      this.location = location;
+      return this;
+    }
+
+    @Contract("_ -> this")
+    public @NotNull Builder character(@NotNull final NamedEntityString character) {
+      this.character = character;
+      return this;
+    }
+
+    @Contract("_ -> this")
+    public @NotNull Builder type(@NotNull final EntityType type) {
+      this.type = type;
+      return this;
+    }
+
+    @Override
+    public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
+      return new EntityCallback(
+          core,
+          this.getViewers(),
+          this.getDims(),
+          this.location,
+          this.character,
+          this.type,
+          this.getDelay());
+    }
   }
 }

@@ -216,4 +216,54 @@ public final class VLCMediaPlayer extends MediaPlayer {
       this.callback.accept(buffer);
     }
   }
+
+  public static final class Builder extends VideoBuilder {
+
+    Builder() {
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder callback(@NotNull final Callback callback) {
+      super.callback(callback);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder mrl(@NotNull final MrlConfiguration mrl) {
+      super.mrl(mrl);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder frameRate(@NotNull final FrameConfiguration rate) {
+      super.frameRate(rate);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder dims(@NotNull final Dimension dims) {
+      super.dims(dims);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder soundKey(@NotNull final SoundKey key) {
+      super.soundKey(key);
+      return this;
+    }
+
+    @Contract(" -> new")
+    @Override
+    public @NotNull MediaPlayer build() {
+      final Callback callback = this.getCallback();
+      return new VLCMediaPlayer(callback, callback.getWatchers(), this.getDims(),
+          this.getMrl(),
+          this.getKey(), this.getRate());
+    }
+  }
 }

@@ -28,6 +28,7 @@ import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class ChatCallback extends FrameCallback implements ChatCallbackDispatcher {
@@ -74,4 +75,46 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
   public @NotNull NamedEntityString getChatCharacter() {
     return this.character;
   }
+
+  public static final class Builder extends CallbackBuilder {
+
+    Builder() {
+    }
+
+    private NamedEntityString character = NamedEntityString.NORMAL_SQUARE;
+
+    @Contract("_ -> this")
+    @Override
+    public @NotNull Builder delay(@NotNull final DelayConfiguration delay) {
+      super.delay(delay);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public @NotNull Builder dims(@NotNull final Dimension dims) {
+      super.dims(dims);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public @NotNull Builder viewers(@NotNull final Viewers viewers) {
+      super.viewers(viewers);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    public @NotNull Builder character(@NotNull final NamedEntityString character) {
+      this.character = character;
+      return this;
+    }
+
+    @Override
+    public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
+      return new ChatCallback(
+          core, this.getViewers(), this.getDims(), this.character, this.getDelay());
+    }
+  }
+
 }

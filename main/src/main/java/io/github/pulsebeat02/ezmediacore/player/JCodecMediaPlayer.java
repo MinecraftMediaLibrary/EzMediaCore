@@ -37,6 +37,7 @@ import org.jcodec.api.JCodecException;
 import org.jcodec.common.io.NIOUtils;
 import org.jcodec.common.model.Picture;
 import org.jcodec.common.model.Size;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -192,5 +193,64 @@ public final class JCodecMediaPlayer extends MediaPlayer {
   @Override
   public long getElapsedMilliseconds() {
     return System.currentTimeMillis() - this.start;
+  }
+
+  public static final class Builder extends VideoBuilder {
+
+    Builder() {
+    }
+
+    private BufferConfiguration bufferSize = BufferConfiguration.BUFFER_15;
+
+    @Contract("_ -> this")
+    @Override
+    public Builder callback(@NotNull final Callback callback) {
+      super.callback(callback);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder mrl(@NotNull final MrlConfiguration mrl) {
+      super.mrl(mrl);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder frameRate(@NotNull final FrameConfiguration rate) {
+      super.frameRate(rate);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder dims(@NotNull final Dimension dims) {
+      super.dims(dims);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder soundKey(@NotNull final SoundKey key) {
+      super.soundKey(key);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    public @NotNull Builder buffer(@NotNull final BufferConfiguration bufferSize) {
+      this.bufferSize = bufferSize;
+      return this;
+    }
+
+    @Contract(" -> new")
+    @Override
+    public @NotNull MediaPlayer build() {
+      super.init();
+      final Callback callback = this.getCallback();
+      return new JCodecMediaPlayer(callback, callback.getWatchers(), this.getDims(),
+          this.bufferSize, this.getMrl(),
+          this.getKey(), this.getRate());
+    }
   }
 }

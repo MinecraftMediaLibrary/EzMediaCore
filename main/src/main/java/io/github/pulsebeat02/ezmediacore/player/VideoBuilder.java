@@ -27,6 +27,7 @@ import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import io.github.pulsebeat02.ezmediacore.player.JCodecMediaPlayer.Builder;
 import io.github.pulsebeat02.ezmediacore.throwable.UnsupportedPlatformException;
 import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
 import java.io.IOException;
@@ -35,7 +36,7 @@ import java.util.Objects;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public class VideoFactory {
+public class VideoBuilder {
 
   private Callback callback;
   private Dimension dims;
@@ -44,47 +45,47 @@ public class VideoFactory {
   private FrameConfiguration rate = FrameConfiguration.FPS_30;
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull VLCMediaFactory vlc() {
-    return new VLCMediaFactory();
+  public static @NotNull VLCMediaPlayer.Builder vlc() {
+    return new VLCMediaPlayer.Builder();
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull FFmpegMediaFactory ffmpeg() {
-    return new FFmpegMediaFactory();
+  public static @NotNull FFmpegMediaPlayer.Builder ffmpeg() {
+    return new FFmpegMediaPlayer.Builder();
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull JCodecMediaFactory jcodec() {
-    return new JCodecMediaFactory();
+  public static @NotNull JCodecMediaPlayer.Builder jcodec() {
+    return new Builder();
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull VideoFactory unspecified() {
-    return new VideoFactory();
+  public static @NotNull VideoBuilder unspecified() {
+    return new VideoBuilder();
   }
 
-  public VideoFactory callback(@NotNull final Callback callback) {
+  public VideoBuilder callback(@NotNull final Callback callback) {
     this.callback = callback;
     return this;
   }
 
-  public VideoFactory mrl(@NotNull final MrlConfiguration mrl) {
+  public VideoBuilder mrl(@NotNull final MrlConfiguration mrl) {
     this.mrl = mrl;
     return this;
   }
 
   // set to -1 for default
-  public VideoFactory frameRate(@NotNull final FrameConfiguration rate) {
+  public VideoBuilder frameRate(@NotNull final FrameConfiguration rate) {
     this.rate = rate;
     return this;
   }
 
-  public VideoFactory dims(@NotNull final Dimension dims) {
+  public VideoBuilder dims(@NotNull final Dimension dims) {
     this.dims = dims;
     return this;
   }
 
-  public VideoFactory soundKey(@NotNull final SoundKey key) {
+  public VideoBuilder soundKey(@NotNull final SoundKey key) {
     this.key = key;
     return this;
   }
@@ -146,57 +147,4 @@ public class VideoFactory {
   public FrameConfiguration getRate() {
     return this.rate;
   }
-
-  public static final class VLCMediaFactory extends VideoFactory {
-
-    @Contract(" -> new")
-    @Override
-    public @NotNull MediaPlayer build() {
-      final Callback callback = this.getCallback();
-      return new VLCMediaPlayer(callback, callback.getWatchers(), this.getDims(),
-          this.getMrl(),
-          this.getKey(), this.getRate());
-    }
-  }
-
-  public static final class FFmpegMediaFactory extends VideoFactory {
-
-    private BufferConfiguration bufferSize = BufferConfiguration.BUFFER_15;
-
-    public @NotNull VideoFactory buffer(@NotNull final BufferConfiguration bufferSize) {
-      this.bufferSize = bufferSize;
-      return this;
-    }
-
-    @Contract(" -> new")
-    @Override
-    public @NotNull MediaPlayer build() {
-      super.init();
-      final Callback callback = this.getCallback();
-      return new FFmpegMediaPlayer(callback, callback.getWatchers(), this.getDims(),
-          this.bufferSize, this.getMrl(),
-          this.getKey(), this.getRate());
-    }
-  }
-
-  public static final class JCodecMediaFactory extends VideoFactory {
-
-    private BufferConfiguration bufferSize = BufferConfiguration.BUFFER_15;
-
-    public @NotNull VideoFactory buffer(@NotNull final BufferConfiguration bufferSize) {
-      this.bufferSize = bufferSize;
-      return this;
-    }
-
-    @Contract(" -> new")
-    @Override
-    public @NotNull MediaPlayer build() {
-      super.init();
-      final Callback callback = this.getCallback();
-      return new JCodecMediaPlayer(callback, callback.getWatchers(), this.getDims(),
-          this.bufferSize, this.getMrl(),
-          this.getKey(), this.getRate());
-    }
-  }
-
 }
