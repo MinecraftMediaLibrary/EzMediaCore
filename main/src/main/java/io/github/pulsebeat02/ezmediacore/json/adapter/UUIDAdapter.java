@@ -26,6 +26,7 @@ package io.github.pulsebeat02.ezmediacore.json.adapter;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import io.github.pulsebeat02.ezmediacore.utility.FastUUIDUtils;
 import java.io.IOException;
 import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
@@ -50,6 +51,6 @@ public final class UUIDAdapter extends TypeAdapter<UUID> {
       }
     }
     in.close();
-    return UUID.fromString(id);
+    return FastUUIDUtils.parseUUID(id);
   }
 }
