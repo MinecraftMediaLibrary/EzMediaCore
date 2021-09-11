@@ -1,7 +1,7 @@
 dependencies {
 
     compileOnlyApi("org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
-    implementation("io.github.slimjar:slimjar:1.2.4")
+    implementation("io.github.slimjar:slimjar:1.2.6")
     compileOnly("uk.co.caprica:vlcj:4.7.1")
     compileOnly("uk.co.caprica:vlcj-natives:4.5.0")
     compileOnly("com.github.sealedtx:java-youtube-downloader:3.0.1")

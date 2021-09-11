@@ -25,12 +25,14 @@ package io.github.pulsebeat02.ezmediacore.dependency;
 
 import io.github.slimjar.injector.DependencyInjector;
 import io.github.slimjar.injector.loader.Injectable;
+import io.github.slimjar.resolver.ResolutionResult;
 import io.github.slimjar.resolver.data.DependencyData;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public final class JarInjector implements DependencyInjector {
@@ -42,7 +44,8 @@ public final class JarInjector implements DependencyInjector {
   }
 
   @Override
-  public void inject(@NotNull final Injectable injectable, @NotNull final DependencyData data) {
+  public void inject(@NotNull final Injectable injectable, @NotNull final DependencyData data,
+      @NotNull final Map<String, ResolutionResult> var3) {
     this.dependencies.forEach(
         x -> {
           try {
