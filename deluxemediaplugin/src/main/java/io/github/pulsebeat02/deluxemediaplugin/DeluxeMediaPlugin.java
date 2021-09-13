@@ -31,6 +31,7 @@ import static net.kyori.adventure.text.JoinConfiguration.separator;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.BLUE;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
+import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandHandler;
@@ -81,19 +82,26 @@ public final class DeluxeMediaPlugin {
 		this.logger = this.plugin.getLogger();
 		this.audiences = BukkitAudiences.create(this.plugin);
 		this.printLogo();
-		this.log(join(separator(text(" ")), text("Running DeluxeMediaPlugin", AQUA), text("[CLOSED BETA]", GOLD)));
+		this.log(join(separator(text(" ")), text("Running DeluxeMediaPlugin", AQUA), text("[BETA]", GOLD), text("1.0.0", AQUA)));
+		this.log("Loading MinecraftMediaLibrary instance... this may take a minute depending on your server!");
 		try {
 			this.library = LibraryProvider.builder().plugin(this.plugin).build();
 			this.library.initialize();
 		} catch (final ExecutionException | InterruptedException e) {
-			this.log("There was a severe issue while loading the EzMediaCore instance!");
+			this.log(text("There was a severe issue while loading the EzMediaCore instance!", RED));
 			e.printStackTrace();
+			this.plugin.getServer().getPluginManager().disablePlugin(this.plugin);
+			return;
 		}
+		this.log("Finished loading MinecraftMediaLibrary instance!");
 		this.loadPersistentData();
+		this.log("Finished loading persistent data!");
 		this.registerCommands();
+		this.log("Finished registering plugin commands!");
 		this.startMetrics();
+		this.log("Finished loading Metrics data!");
 		this.checkUpdates();
-		this.log("Finished DeluxeMediaPlugin!");
+		this.log("Finished loading DeluxeMediaPlugin!");
 		this.log("""
 				Hello %%__USER__%%! Thank you for purchasing DeluxeMediaPlugin. For identifier purposes, this
 				 is your purchase identification code: %%__NONCE__%% - Enjoy using the plugin, and ask for
@@ -126,18 +134,19 @@ public final class DeluxeMediaPlugin {
 	}
 
 	public void disable() {
-		this.log("DeluxeMediaPlugin is Shutting Down");
+		this.log("DeluxeMediaPlugin is shutting down!");
 		if (this.library != null) {
 			this.library.shutdown();
+			this.log("Successfully shutdown MinecraftMediaLibrary instance!");
 		} else {
-			this.logger.severe("[ERROR]: EzMediaCore instance is null... something is fishy going on.");
+			this.log(text("EzMediaCore instance is null... something fishy is going on.", RED));
 		}
 		if (this.handler != null) {
 				for (final BaseCommand cmd : this.handler.getCommands()) {
 					CommandUtils.unRegisterBukkitCommand(this, cmd);
 				}
 		}
-		this.log("Good Bye!");
+		this.log("Good Bye :(");
 	}
 
 	private void loadPersistentData() {
@@ -165,15 +174,15 @@ public final class DeluxeMediaPlugin {
 	}
 
 	public void log(@NotNull final String line) {
-		this.audiences.console().sendMessage(format(text(line)));
-	}
-
-	public @NotNull JavaPlugin getBootstrap() {
-		return this.plugin;
+		this.log(format(text(line)));
 	}
 
 	public void log(@NotNull final Component line) {
 		this.audiences.console().sendMessage(line);
+	}
+
+	public @NotNull JavaPlugin getBootstrap() {
+		return this.plugin;
 	}
 
 	private void registerCommands() {
