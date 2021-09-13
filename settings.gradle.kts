@@ -5,8 +5,7 @@ include("v1_17_R1")
 include("v1_16_R3")
 include("main")
 include("lib")
-include("deluxemediaplugin:bootstrap")
-include("deluxemediaplugin:application")
+include("deluxemediaplugin")
 
 findProject("api")?.name = "ezmediacore-api"
 findProject("v1_17_R1")?.name = "v1_17_R1"

@@ -4,9 +4,24 @@ plugins {
 }
 
 dependencies {
+
     compileOnly("org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT")
-    implementation(project(":deluxemediaplugin:application"))
+
     implementation("io.github.slimjar:slimjar:1.2.6")
+    implementation(project(":api"))
+    implementation(project(":main"))
+    implementation(project(":lib"))
+
+    slim("org.bstats:bstats-bukkit:2.2.1")
+    slim("com.mojang:brigadier:1.0.18")
+    slim("net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT")
+    slim("net.kyori:adventure-api:4.9.0")
+    slim("com.github.stefvanschie.inventoryframework:IF:0.10.2")
+    slim("me.lucko:commodore:1.10")
+    slim("net.dv8tion:JDA:4.3.0_310")
+    slim("com.sedmelluq:lavaplayer:1.3.78")
+    slim("com.mojang:authlib:1.5.25")
+
 }
 
 tasks {
@@ -20,8 +35,7 @@ tasks {
         rename("plugin.json", "plugin.yml")
     }
 
-    shadowJar {
-        archiveBaseName.set("DeluxeMediaPlugin")
+    slimJar {
         relocate("net.kyori", "io.github.pulsebeat02.deluxemediaplugin.lib.kyori")
         relocate("org.bstats", "io.github.pulsebeat02.deluxemediaplugin.lib.bstats")
         relocate("com.mojang.brigadier", "io.github.pulsebeat02.deluxemediaplugin.lib.brigadier")
@@ -31,8 +45,10 @@ tasks {
         )
         relocate("me.mattstudios.util", "io.github.pulsebeat02.deluxemediaplugin.lib.util")
         relocate("me.lucko.commodore", "io.github.pulsebeat02.deluxemediaplugin.lib.commodore")
+    }
 
-        // patterns due to being in the same module
+    shadowJar {
+        archiveBaseName.set("DeluxeMediaPlugin")
         relocate("uk.co.caprica.vlcj", "io.github.pulsebeat02.ezmediacore.lib.vlcj")
         relocate("uk.co.caprica.vlcj.binding", "io.github.pulsebeat02.ezmediacore.lib.vlcj.binding")
         relocate(
@@ -51,4 +67,5 @@ tasks {
         relocate("org.jcodec", "io.github.pulsebeat02.ezmediacore.lib.jcodec")
         relocate("com.github.benmanes.caffeine", "io.github.pulsebeat02.ezmediacore.lib.caffeine")
     }
+
 }

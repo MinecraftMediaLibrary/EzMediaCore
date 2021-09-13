@@ -58,13 +58,11 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
       try {
         this.bot = new MediaBot(token);
       } catch (final LoginException | InterruptedException e) {
-        loader
-            .getLogger()
-            .severe("A severe issue occurred while starting the bot. Please check the token!");
+        plugin.log("A severe issue occurred while starting the bot. Please check the token!");
         e.printStackTrace();
       }
     } else {
-      loader.getLogger().info("Bot token for Discord bot not provided! Proceeding to disable bot!");
+      plugin.log("Bot token for Discord bot not provided! Proceeding to disable bot!");
     }
   }
 

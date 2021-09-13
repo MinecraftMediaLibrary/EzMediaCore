@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,12 +50,12 @@ import org.jetbrains.annotations.Nullable;
 public final class FFmpegMediaPlayer extends MediaPlayer {
 
   private final ArrayBlockingQueue<int[]> frames;
-  private final BiConsumer<Frame, List<Stream>> frameWatchDog;
+  // private final BiConsumer<Frame, List<Stream>> frameWatchDog;
   private final BufferConfiguration buffer;
   private final long delay;
 
   private long start;
-  volatile long presentationTimeStamp;
+  // volatile long presentationTimeStamp;
   private volatile FFmpeg ffmpeg;
   private volatile FFmpegResultFuture future;
   private volatile CompletableFuture<Void> framePlayer;
@@ -75,24 +74,24 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
     final int num = fps.getFps();
     this.buffer = buffer;
     this.frames = new ArrayBlockingQueue<>(buffer.getBuffer() * num);
-    this.frameWatchDog = (frame, streams) -> {
-      for (final Stream stream : streams) {
-        if (stream.getId() == frame.getStreamId()) {
-          final long pts = frame.getPts();
-          final long timebase = 1 / stream.getTimebase();
-          final double ptsTime = pts * timebase;
-          final double remainder = ptsTime - this.presentationTimeStamp;
-          if (remainder > timebase) {
-            final int toSkip = (int) (remainder / timebase);
-            for (int i = 0; i < toSkip; i++) {
-              this.frames.remove();
-            }
-          }
-          break;
-        }
-      }
-    };
-    this.presentationTimeStamp = 0L;
+//    this.frameWatchDog = (frame, streams) -> {
+//      for (final Stream stream : streams) {
+//        if (stream.getId() == frame.getStreamId()) {
+//          final long pts = frame.getPts();
+//          final long timebase = 1 / stream.getTimebase();
+//          final double ptsTime = pts * timebase;
+//          final double remainder = ptsTime - this.presentationTimeStamp;
+//          if (remainder > timebase) {
+//            final int toSkip = (int) (remainder / timebase);
+//            for (int i = 0; i < toSkip; i++) {
+//              this.frames.remove();
+//            }
+//          }
+//          break;
+//        }
+//      }
+//    };
+//    this.presentationTimeStamp = 0L;
     this.delay = 1000L / num;
     this.firstFrame = false;
     this.initializePlayer(0L);
@@ -161,8 +160,8 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
           return;
         }
 
-        FFmpegMediaPlayer.this.presentationTimeStamp = System.currentTimeMillis() - FFmpegMediaPlayer.this.start;
-        FFmpegMediaPlayer.this.frameWatchDog.accept(frame, this.streams);
+//        FFmpegMediaPlayer.this.presentationTimeStamp = System.currentTimeMillis() - FFmpegMediaPlayer.this.start;
+//        FFmpegMediaPlayer.this.frameWatchDog.accept(frame, this.streams);
 
         if (!FFmpegMediaPlayer.this.firstFrame) {
           FFmpegMediaPlayer.this.firstFrame = true;
