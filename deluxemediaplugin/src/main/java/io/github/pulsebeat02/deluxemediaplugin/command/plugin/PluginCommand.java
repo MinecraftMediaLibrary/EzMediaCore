@@ -47,8 +47,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class PluginCommand extends BaseCommand {
 
-  private final LiteralCommandNode<CommandSender> node;
-
   private static final TextComponent PLUGIN_INFORMATION;
 
   static {
@@ -93,6 +91,8 @@ public class PluginCommand extends BaseCommand {
             .append()
             .build();
   }
+
+  private final LiteralCommandNode<CommandSender> node;
 
   public PluginCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {

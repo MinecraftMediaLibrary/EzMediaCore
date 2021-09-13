@@ -47,6 +47,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 public final class AudioLoadCommand implements CommandSegment.Literal<CommandSender> {
@@ -93,27 +94,22 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private void wrapResourcepack() {
-
     this.attributes.setCompletion(false);
-
+    final JavaPlugin loader = this.plugin.getBootstrap();
     try {
-
       final HttpServer daemon = this.plugin.getHttpServer();
       final ResourcepackSoundWrapper wrapper =
           new ResourcepackSoundWrapper(
               daemon.getDaemon().getServerPath().resolve("resourcepack.zip"), "Audio Pack", 6);
-      wrapper.addSound(this.plugin.getName().toLowerCase(Locale.ROOT), this.attributes.getAudio());
+      wrapper.addSound(loader.getName().toLowerCase(Locale.ROOT), this.attributes.getAudio());
       wrapper.wrap();
-
       final Path path = wrapper.getResourcepackFilePath();
       this.attributes.setLink(daemon.createUrl(path));
       this.attributes.setHash(HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
-
     } catch (final IOException e) {
-      this.plugin.getLogger().severe("Failed to wrap resourcepack!");
+      loader.getLogger().severe("Failed to wrap resourcepack!");
       e.printStackTrace();
     }
-
     this.attributes.setCompletion(true);
   }
 

@@ -59,6 +59,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 public final class VideoCommand extends BaseCommand {
@@ -175,37 +176,29 @@ public final class VideoCommand extends BaseCommand {
 	}
 
 	private void buildResourcepack(@NotNull final Audience audience) {
-
 		final DeluxeMediaPlugin plugin = this.plugin();
-
+		final JavaPlugin loader = plugin.getBootstrap();
 		try {
-
 			final HttpServer server = plugin.getHttpServer();
 			final Path audio = this.attributes.getAudio();
 			final Path ogg = audio.getParent().resolve("trimmed.ogg");
 			final long ms = this.attributes.getPlayer().getElapsedMilliseconds();
-
 			plugin.log("Resuming Video at %s Milliseconds!".formatted(ms));
-
 			new FFmpegAudioTrimmer(
 					plugin.library(), audio, ogg, ms)
 					.executeAsyncWithLogging((line) -> external(audience, line));
-
 			final ResourcepackSoundWrapper wrapper =
 					new ResourcepackSoundWrapper(
 							server.getDaemon().getServerPath().resolve("resourcepack.zip"), "Video Pack", 6);
-			wrapper.addSound(plugin.getName().toLowerCase(Locale.ROOT), ogg);
+			wrapper.addSound(loader.getName().toLowerCase(Locale.ROOT), ogg);
 			wrapper.wrap();
-
 			final Path path = wrapper.getResourcepackFilePath();
 			this.attributes.setUrl(server.createUrl(path));
 			this.attributes.setHash(HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
-
 			Files.delete(audio);
 			Files.move(ogg, ogg.resolveSibling("audio.ogg"));
-
 		} catch (final IOException e) {
-			plugin.getLogger().severe("Failed to wrap resourcepack!");
+			loader.getLogger().severe("Failed to wrap resourcepack!");
 			e.printStackTrace();
 		}
 	}

@@ -55,7 +55,7 @@ public final class UpdateChecker {
                               .formatted(this.resource))
                       .openStream())) {
             final String update = scanner.next();
-            if (this.plugin.getDescription().getVersion().equalsIgnoreCase(update)) {
+            if (this.plugin.getBootstrap().getDescription().getVersion().equalsIgnoreCase(update)) {
               this.plugin.log("There is a new update available! (%s)".formatted(update));
             } else {
               this.plugin.log("You are currently running the latest version of DeluxeMediaPlugin.");

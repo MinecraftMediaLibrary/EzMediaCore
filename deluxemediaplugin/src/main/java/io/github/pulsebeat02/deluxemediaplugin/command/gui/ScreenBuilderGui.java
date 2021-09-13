@@ -53,11 +53,10 @@ public final class ScreenBuilderGui {
   private final StaticPane pane;
   private final Player viewer;
   private final DeluxeMediaPlugin plugin;
-  private Material material;
-
   private final WrappedInteger width;
   private final WrappedInteger height;
   private final WrappedInteger id;
+  private Material material;
 
   public ScreenBuilderGui(@NotNull final DeluxeMediaPlugin plugin, @NotNull final Player player) {
     this.gui = new ChestGui(5, ComponentHolder.of(text("Choose Screen Size", GOLD)));

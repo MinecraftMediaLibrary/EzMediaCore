@@ -50,6 +50,7 @@ public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
     configuration.set(
         "directory",
         this.getPlugin()
+            .getBootstrap()
             .getDataFolder()
             .toPath()
             .relativize(http.getServerPath().toAbsolutePath())
@@ -66,7 +67,7 @@ public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
     final int port = configuration.getInt("port");
     final Path directory =
         Path.of(
-            this.getPlugin().getDataFolder().getAbsolutePath(),
+            this.getPlugin().getBootstrap().getDataFolder().getAbsolutePath(),
             configuration.getString("directory"));
     final boolean verbose = configuration.getBoolean("verbose");
     if (enabled) {

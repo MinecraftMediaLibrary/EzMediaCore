@@ -42,8 +42,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class MusicManager {
 
-  private final AudioPlayerManager playerManager;
   public final Map<Long, MusicSendHandler> musicGuildManager;
+  private final AudioPlayerManager playerManager;
 
   public MusicManager() {
     this.playerManager = new DefaultAudioPlayerManager();

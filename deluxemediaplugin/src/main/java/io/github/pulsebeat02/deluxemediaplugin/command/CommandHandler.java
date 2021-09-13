@@ -49,6 +49,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 public final class CommandHandler implements TabExecutor {
@@ -72,17 +73,18 @@ public final class CommandHandler implements TabExecutor {
             new ScreenCommand(plugin, this),
             new FFmpegCommand(plugin, this),
             new PluginCommand(plugin, this));
+    final JavaPlugin loader = plugin.getBootstrap();
     final CommandMap commandMap = CommandMapHelper.getCommandMap();
     final Commodore commodore =
-        CommodoreProvider.isSupported() ? CommodoreProvider.getCommodore(plugin) : null;
+        CommodoreProvider.isSupported() ? CommodoreProvider.getCommodore(loader) : null;
     for (final BaseCommand command : this.commands) {
       this.rootNode.addChild(command.node());
-      commandMap.register(plugin.getName(), command);
+      commandMap.register(loader.getName(), command);
       try {
         if (commodore != null) {
           commodore.register(
               CommodoreFileFormat.parse(
-                  plugin.getResource("commodore/%s.commodore".formatted(command.getName()))));
+                  loader.getResource("commodore/%s.commodore".formatted(command.getName()))));
         }
       } catch (final IOException e) {
         e.printStackTrace();

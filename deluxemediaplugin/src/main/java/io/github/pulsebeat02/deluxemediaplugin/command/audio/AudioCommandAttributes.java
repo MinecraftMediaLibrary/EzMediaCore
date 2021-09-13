@@ -40,7 +40,7 @@ public final class AudioCommandAttributes {
 
   public AudioCommandAttributes(@NotNull final DeluxeMediaPlugin plugin) {
     this.completion = new AtomicBoolean(true);
-    this.key = plugin.getName().toLowerCase();
+    this.key = plugin.getBootstrap().getName().toLowerCase();
   }
 
   public @NotNull AtomicBoolean getCompletion() {

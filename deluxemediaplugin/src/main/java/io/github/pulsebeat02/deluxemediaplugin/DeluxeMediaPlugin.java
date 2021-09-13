@@ -27,7 +27,7 @@ package io.github.pulsebeat02.deluxemediaplugin;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
+import static net.kyori.adventure.text.JoinConfiguration.separator;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.BLUE;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
@@ -59,7 +59,9 @@ import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-public final class DeluxeMediaPlugin extends JavaPlugin {
+public final class DeluxeMediaPlugin {
+
+	private final JavaPlugin plugin;
 
 	private MediaLibraryCore library;
 	private BukkitAudiences audiences;
@@ -71,14 +73,17 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 	private HttpServer server;
 	private MediaBot mediaBot;
 
-	@Override
-	public void onEnable() {
-		this.logger = this.getLogger();
-		this.audiences = BukkitAudiences.create(this);
+	public DeluxeMediaPlugin(@NotNull final JavaPlugin plugin) {
+		this.plugin = plugin;
+	}
+
+	public void enable() {
+		this.logger = this.plugin.getLogger();
+		this.audiences = BukkitAudiences.create(this.plugin);
 		this.printLogo();
-		this.log(join(noSeparators(), text("Running DeluxeMediaPlugin ", AQUA), text("[CLOSED BETA]", GOLD)));
+		this.log(join(separator(text(" ")), text("Running DeluxeMediaPlugin", AQUA), text("[CLOSED BETA]", GOLD)));
 		try {
-			this.library = LibraryProvider.builder().plugin(this).build();
+			this.library = LibraryProvider.builder().plugin(this.plugin).build();
 			this.library.initialize();
 		} catch (final ExecutionException | InterruptedException e) {
 			this.log("There was a severe issue while loading the EzMediaCore instance!");
@@ -97,7 +102,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 	}
 
 	private void startMetrics() {
-		new Metrics(this, 10229);
+		new Metrics(this.plugin, 10229);
 	}
 
 	private void checkUpdates() {
@@ -120,8 +125,7 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 		}
 	}
 
-	@Override
-	public void onDisable() {
+	public void disable() {
 		this.log("DeluxeMediaPlugin is Shutting Down");
 		if (this.library != null) {
 			this.library.shutdown();
@@ -129,7 +133,6 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 			this.logger.severe("[ERROR]: EzMediaCore instance is null... something is fishy going on.");
 		}
 		if (this.handler != null) {
-			final Set<BaseCommand> cmds = this.handler.getCommands();
 				for (final BaseCommand cmd : this.handler.getCommands()) {
 					CommandUtils.unRegisterBukkitCommand(this, cmd);
 				}
@@ -138,34 +141,35 @@ public final class DeluxeMediaPlugin extends JavaPlugin {
 	}
 
 	private void loadPersistentData() {
-
 		try {
-
-			Set.of(this.getDataFolder().toPath().resolve("configuration")).forEach(
+			Set.of(this.plugin.getDataFolder().toPath().resolve("configuration")).forEach(
 					ThrowingConsumer.unchecked(FileUtils::createFolderIfNotExists));
-
 			final HttpConfiguration httpConfiguration = new HttpConfiguration(this);
 			final EncoderConfiguration encoderConfiguration = new EncoderConfiguration(this);
 			final BotConfiguration botConfiguration = new BotConfiguration(this);
-
 			httpConfiguration.read();
 			encoderConfiguration.read();
 			botConfiguration.read();
-
 			this.server = httpConfiguration.getSerializedValue();
 			this.audioConfiguration = encoderConfiguration.getSerializedValue();
 			this.mediaBot = botConfiguration.getSerializedValue();
 			this.manager = new PersistentPictureManager(this);
 			this.manager.startTask();
-
 		} catch (final IOException e) {
 			this.logger.severe("A severe issue occurred while reading data from configuration files!");
 			e.printStackTrace();
 		}
 	}
 
+	public void load() {
+	}
+
 	public void log(@NotNull final String line) {
 		this.audiences.console().sendMessage(format(text(line)));
+	}
+
+	public @NotNull JavaPlugin getBootstrap() {
+		return this.plugin;
 	}
 
 	public void log(@NotNull final Component line) {

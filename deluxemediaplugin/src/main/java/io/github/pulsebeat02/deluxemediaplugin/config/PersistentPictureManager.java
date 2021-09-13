@@ -38,6 +38,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 public final class PersistentPictureManager {
@@ -49,13 +50,15 @@ public final class PersistentPictureManager {
   }
 
   private final DeluxeMediaPlugin plugin;
+  private final JavaPlugin loader;
   private final PersistentImageStorage storage;
   private final List<Image> images;
 
   public PersistentPictureManager(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
     this.plugin = plugin;
+    this.loader = plugin.getBootstrap();
     this.storage =
-        new PersistentImageStorage(plugin.getDataFolder().toPath().resolve("pictures.json"));
+        new PersistentImageStorage(this.loader.getDataFolder().toPath().resolve("pictures.json"));
     final List<Image> images = this.storage.deserialize();
     this.images = images == null ? new ArrayList<>() : images;
   }
@@ -84,7 +87,7 @@ public final class PersistentPictureManager {
     try {
       this.storage.serialize(this.images);
     } catch (final IOException e) {
-      this.plugin.getLogger().log(Level.SEVERE, "There was an issue saving images!");
+      this.loader.getLogger().log(Level.SEVERE, "There was an issue saving images!");
       e.printStackTrace();
     }
   }

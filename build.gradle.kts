@@ -17,8 +17,17 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_16
     }
 
-    tasks.withType<JavaCompile> {
-        options.encoding = "UTF-8"
+    tasks {
+        compileJava {
+            options.encoding = "UTF-8"
+        }
+    }
+
+    sourceSets {
+        main {
+            java.srcDir("src/main/java")
+            resources.srcDir("src/main/resources")
+        }
     }
 
     license {
@@ -28,7 +37,12 @@ subprojects {
         includes(listOf("**/*.java", "**/*.kts"))
     }
 
+    dependencies {
+        compileOnly("org.jetbrains:annotations:22.0.0")
+    }
+
     repositories {
+        mavenCentral()
         mavenLocal()
         maven("https://repo.maven.apache.org/maven2/")
         maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
@@ -40,5 +54,6 @@ subprojects {
         maven("https://papermc.io/repo/repository/maven-public/")
         maven("https://m2.dv8tion.net/releases")
         maven("https://repo.vshnv.tech/releases/")
+        maven("https://repo.mattstudios.me/artifactory/public/")
     }
 }

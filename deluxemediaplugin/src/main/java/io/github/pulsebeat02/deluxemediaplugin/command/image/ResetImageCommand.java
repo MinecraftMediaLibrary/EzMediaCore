@@ -72,7 +72,7 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
                             .executes(this::purgeMap)))
             .then(this.literal("all").executes(this::purgeAllMaps))
             .build();
-    Bukkit.getPluginManager().registerEvents(this, plugin);
+    Bukkit.getPluginManager().registerEvents(this, plugin.getBootstrap());
   }
 
   private int purgeMap(@NotNull final CommandContext<CommandSender> context) {

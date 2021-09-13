@@ -101,7 +101,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
 				}
 				gold(audience, "Successfully drew image with mrl %s".formatted(mrl));
 			} catch (final IOException e) {
-				this.plugin.getLogger().severe("Failed to set image file!");
+				this.plugin.getBootstrap().getLogger().severe("Failed to set image file!");
 				e.printStackTrace();
 			}
 		});

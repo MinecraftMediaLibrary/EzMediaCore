@@ -33,12 +33,14 @@ import java.nio.file.Path;
 import java.util.logging.Level;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class ConfigurationProvider<T> {
 
   private final DeluxeMediaPlugin plugin;
+  private final JavaPlugin loader;
   private final String name;
   private final Path config;
 
@@ -48,12 +50,13 @@ public abstract class ConfigurationProvider<T> {
       throws IOException {
     this.plugin = plugin;
     this.name = name;
-    this.config = Path.of(plugin.getDataFolder().toString()).resolve(this.name);
+    this.loader = plugin.getBootstrap();
+    this.config = this.loader.getDataFolder().toPath().resolve(this.name);
   }
 
   public void reloadConfig() {
     this.fileConfiguration = YamlConfiguration.loadConfiguration(this.config.toFile());
-    final InputStream defConfigStream = this.plugin.getResource(this.name);
+    final InputStream defConfigStream = this.loader.getResource(this.name);
     if (defConfigStream != null) {
       final YamlConfiguration defConfig =
           YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
@@ -73,7 +76,7 @@ public abstract class ConfigurationProvider<T> {
       try {
         this.getConfig().save(this.config.toFile());
       } catch (final IOException e) {
-        this.plugin
+        this.loader
             .getLogger()
             .log(Level.SEVERE, "Could not save config to %s".formatted(this.config), e);
       }
@@ -82,7 +85,7 @@ public abstract class ConfigurationProvider<T> {
 
   public void saveDefaultConfig() {
     if (!Files.exists(this.config)) {
-      this.plugin.saveResource(this.name, false);
+      this.loader.saveResource(this.name, false);
     }
   }
 

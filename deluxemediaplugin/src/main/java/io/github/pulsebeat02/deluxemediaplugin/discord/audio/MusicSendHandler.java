@@ -34,9 +34,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class MusicSendHandler implements AudioSendHandler {
 
-  private AudioFrame audioFrame;
   private final AudioPlayer audioPlayer;
   private final TrackScheduler trackScheduler;
+  private AudioFrame audioFrame;
 
   /**
    * MusicSendHandler Public Constructor.

@@ -64,6 +64,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 public final class VideoLoadCommand implements CommandSegment.Literal<CommandSender> {
@@ -108,7 +109,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
 		final Audience audience = this.plugin.audience().sender(context.getSource());
 		final String mrl = context.getArgument("mrl", String.class);
-		final String folder = "%s/emc/".formatted(this.plugin.getDataFolder().getAbsolutePath());
+		final String folder = "%s/emc/".formatted(this.plugin.getBootstrap().getDataFolder().getAbsolutePath());
 
 		this.attributes.getCompletion().set(false);
 
@@ -184,7 +185,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 			this.attributes.setAudio(audio);
 			return audio;
 		} catch (final IOException e) {
-			this.plugin.getLogger().severe("Failed to extract audio file!");
+			this.plugin.getBootstrap().getLogger().severe("Failed to extract audio file!");
 			e.printStackTrace();
 			throw new AssertionError("Unable to create audio from local video!");
 		}
@@ -207,7 +208,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 			this.attributes.setAudio(extractor.getExtractor().getOutput().toAbsolutePath());
 			return extractor.getExtractor().getOutput();
 		} catch (final IOException e) {
-			this.plugin.getLogger().severe("Failed to extract audio file!");
+			this.plugin.getBootstrap().getLogger().severe("Failed to extract audio file!");
 			e.printStackTrace();
 			throw new AssertionError("Unable to create audio from Youtube video!");
 		}
@@ -227,7 +228,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 			this.attributes.setAudio(downloader.getYoutubeExtractor().getExtractor().getOutput());
 			return audio;
 		} catch (final IOException e) {
-			this.plugin.getLogger().severe("Failed to extract audio file!");
+			this.plugin.getBootstrap().getLogger().severe("Failed to extract audio file!");
 			e.printStackTrace();
 			throw new AssertionError("Unable to create audio from Spotify video!");
 		}
@@ -241,13 +242,14 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 			gold(audience, "Finished downloading video from direct link!");
 			return this.prepareLocalFileVideo(video, folder.toString());
 		} catch (final IOException e) {
-			this.plugin.getLogger().severe("Failed to extract audio file!");
+			this.plugin.getBootstrap().getLogger().severe("Failed to extract audio file!");
 			e.printStackTrace();
 			throw new AssertionError("Unable to create audio from direct link!");
 		}
 	}
 
 	private void wrapResourcepack(@NotNull final Path audio) {
+		final JavaPlugin bootstrap = this.plugin.getBootstrap();
 		try {
 			final HttpServer daemon = this.plugin.getHttpServer();
 			final ResourcepackSoundWrapper wrapper =
@@ -255,23 +257,22 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 							daemon.getDaemon().getServerPath().resolve("resourcepack.zip"),
 							"Youtube Audio",
 							PackFormat.getCurrentFormat().getId());
-			wrapper.addSound(this.plugin.getName().toLowerCase(Locale.ROOT), audio);
+			wrapper.addSound(bootstrap.getName().toLowerCase(Locale.ROOT), audio);
 			wrapper.wrap();
 			final Path path = wrapper.getResourcepackFilePath();
 			this.attributes.setUrl(daemon.createUrl(path));
 			this.attributes.setHash(HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
 		} catch (final IOException e) {
-			this.plugin.getLogger().severe("Failed to wrap resourcepack!");
+			bootstrap.getLogger().severe("Failed to wrap resourcepack!");
 			e.printStackTrace();
 		}
 	}
 
 	private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {
-
 		final CommandSender sender = context.getSource();
 		final Audience audience = this.plugin.audience().sender(sender);
 		final String targets = context.getArgument("targets", String.class);
-		final List<Entity> entities = this.plugin.getServer().selectEntities(sender, targets);
+		final List<Entity> entities = this.plugin.getBootstrap().getServer().selectEntities(sender, targets);
 		if (this.checkNonPlayer(audience, entities)) {
 			return SINGLE_SUCCESS;
 		}

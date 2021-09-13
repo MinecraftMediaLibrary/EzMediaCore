@@ -7,7 +7,6 @@ dependencies {
     compileOnly("com.github.sealedtx:java-youtube-downloader:3.0.1")
     compileOnly("io.netty:netty-all:5.0.0.Alpha2")
     compileOnly("com.mojang:authlib:1.5.25")
-    compileOnly("org.jetbrains:annotations:22.0.0")
     compileOnly("com.github.pulsebeat02:jarchivelib:master-SNAPSHOT")
     compileOnly("org.tukaani:xz:1.9")
     compileOnly("com.alibaba:fastjson:1.2.78")

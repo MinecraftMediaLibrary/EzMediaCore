@@ -55,7 +55,7 @@ public final class CommandUtils {
       knownCommands.remove(cmd.getName());
       for (final String alias : cmd.getAliases()) {
         if (knownCommands.containsKey(alias)
-            && knownCommands.get(alias).toString().contains(plugin.getName())) {
+            && knownCommands.get(alias).toString().contains(plugin.getBootstrap().getName())) {
           knownCommands.remove(alias);
         }
       }
