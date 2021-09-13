@@ -37,7 +37,7 @@ public enum DependencyInfo {
   JCODEC("org{}jcodec", "jcodec", "0{}2{}5", Repositories.MAVEN),
 
   COMMONS_COMPRESSION("org{}apache{}commons", "commons-compress", "1{}20", Repositories.MAVEN),
-  COMPRESSION("com{}github{}PulseBeat02", "jarchivelib", "master-SNAPSHOT", Repositories.JITPACK),
+  COMPRESSION("com{}github{}MinecraftMediaLibrary", "jarchivelib", "v1.4.0", Repositories.JITPACK),
   XZ("org{}tukaani", "xz", "1{}9", Repositories.MAVEN),
 
   JNA("net{}java{}dev{}jna", "jna", "5{}9{}0", Repositories.MAVEN),
