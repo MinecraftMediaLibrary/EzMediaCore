@@ -26,6 +26,7 @@ package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
@@ -91,19 +92,58 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
                         this.argument("video-mode", StringArgumentType.word())
                             .suggests(this::suggestVideoModes)
                             .executes(this::setMode)))
+            .then(
+                this.literal("audio-output")
+                    .then(
+                        this.argument("audio-type", StringArgumentType.word())
+                            .suggests(this::suggestAudioOutputs)
+                            .executes(this::setAudioOutput)))
             .build();
   }
 
   private @NotNull CompletableFuture<Suggestions> suggestDitheringOptions(
-      final CommandContext<CommandSender> context, final SuggestionsBuilder builder) {
+      final CommandContext<CommandSender> context, final @NotNull SuggestionsBuilder builder) {
     Arrays.stream(DitherSetting.values()).forEach(x -> builder.suggest(x.name()));
     return builder.buildFuture();
   }
 
   private @NotNull CompletableFuture<Suggestions> suggestVideoModes(
-      final CommandContext<CommandSender> context, final SuggestionsBuilder builder) {
+      final CommandContext<CommandSender> context, final @NotNull SuggestionsBuilder builder) {
     Arrays.stream(VideoType.values()).forEach(x -> builder.suggest(x.name()));
     return builder.buildFuture();
+  }
+
+  private @NotNull CompletableFuture<Suggestions> suggestAudioOutputs(
+      final CommandContext<CommandSender> context, final @NotNull SuggestionsBuilder builder) {
+    Arrays.stream(AudioOutputType.values()).forEach(x -> builder.suggest(x.name()));
+    return builder.buildFuture();
+  }
+
+  private int setAudioOutput(@NotNull final CommandContext<CommandSender> context) {
+
+    final Audience audience = this.plugin.audience().sender(context.getSource());
+    final String argument = context.getArgument("audio-type", String.class);
+    final Optional<AudioOutputType> optional = AudioOutputType.ofKey(argument);
+    if (optional.isEmpty()) {
+      red(audience, "Could not find audio type %s".formatted(argument));
+      return SINGLE_SUCCESS;
+    }
+
+    switch (optional.get()) {
+      case RESOURCEPACK -> this.attributes.setAudioOutputType(AudioOutputType.RESOURCEPACK);
+      case DISCORD -> {
+        if (this.plugin.getMediaBot() == null) {
+          red(audience, "Discord token provided in bot.yml is invalid!");
+          return SINGLE_SUCCESS;
+        }
+        this.attributes.setAudioOutputType(AudioOutputType.DISCORD);
+      }
+      default -> throw new IllegalArgumentException("Audio type is invalid!");
+    }
+
+    gold(audience, "Succesfully set the audio type to %s" + argument);
+
+    return SINGLE_SUCCESS;
   }
 
   private int setScreenDimensions(@NotNull final CommandContext<CommandSender> context) {
@@ -112,10 +152,10 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
     final Optional<int[]> optional =
         ChatUtils.checkDimensionBoundaries(
             audience, context.getArgument("screen-dimensions", String.class));
-
     if (optional.isEmpty()) {
       return SINGLE_SUCCESS;
     }
+
     final int[] dimensions = optional.get();
     this.attributes.setPixelWidth(dimensions[0]);
     this.attributes.setPixelHeight(dimensions[1]);

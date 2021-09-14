@@ -59,6 +59,7 @@ import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class DeluxeMediaPlugin {
 
@@ -201,7 +202,7 @@ public final class DeluxeMediaPlugin {
 		return this.server;
 	}
 
-	public @NotNull MediaBot getMediaBot() {
+	public @Nullable MediaBot getMediaBot() {
 		return this.mediaBot;
 	}
 

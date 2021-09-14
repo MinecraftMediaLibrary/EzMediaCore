@@ -30,6 +30,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +46,9 @@ public abstract class MediaPlayer implements VideoPlayer {
   private final SoundKey key;
   private final MrlConfiguration url;
   private final FrameConfiguration fps;
+
+  private Runnable playAudio;
+  private Runnable stopAudio;
 
   private PlayerControls controls;
 
@@ -71,6 +75,24 @@ public abstract class MediaPlayer implements VideoPlayer {
     this.url = url;
     this.fps = fps;
     this.viewers = viewers;
+    this.playAudio =
+        () ->
+            this.viewers
+                .getPlayers()
+                .forEach(
+                    player ->
+                        player.playSound(
+                            player.getLocation(),
+                            this.key.getName(),
+                            SoundCategory.MASTER,
+                            100.0F,
+                            1.0F));
+    this.stopAudio =
+        () -> {
+          for (final Player player : this.viewers.getPlayers()) {
+            player.stopSound(this.key.getName(), SoundCategory.MASTER);
+          }
+        };
   }
 
   @Override
@@ -100,19 +122,12 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   @Override
   public void playAudio() {
-    this.viewers
-        .getPlayers()
-        .forEach(
-            player ->
-                player.playSound(
-                    player.getLocation(), this.key.getName(), SoundCategory.MASTER, 100.0F, 1.0F));
+    CompletableFuture.runAsync(this::playAudio);
   }
 
   @Override
   public void stopAudio() {
-    for (final Player player : this.viewers.getPlayers()) {
-      player.stopSound(this.key.getName(), SoundCategory.MASTER);
-    }
+    CompletableFuture.runAsync(this::stopAudio);
   }
 
   @Override
@@ -138,5 +153,15 @@ public abstract class MediaPlayer implements VideoPlayer {
   @Override
   public @NotNull Viewers getWatchers() {
     return this.viewers;
+  }
+
+  @Override
+  public void setCustomAudioPlayback(@NotNull final Runnable runnable) {
+    this.playAudio = runnable;
+  }
+
+  @Override
+  public void setCustomAudioStopper(@NotNull final Runnable runnable) {
+    this.stopAudio = runnable;
   }
 }

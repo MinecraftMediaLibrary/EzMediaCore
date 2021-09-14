@@ -38,6 +38,7 @@ public final class VideoCommandAttributes {
 
   private VideoPlayer player;
   private DitherSetting dither;
+  private AudioOutputType audioOutputType;
   private VideoType mode;
   private String video;
   private Path audio;
@@ -195,5 +196,13 @@ public final class VideoCommandAttributes {
 
   public void setExtractor(final EnhancedExecution extractor) {
     this.extractor = extractor;
+  }
+
+  public AudioOutputType getAudioOutputType() {
+    return this.audioOutputType;
+  }
+
+  public void setAudioOutputType(@NotNull final AudioOutputType audioOutputType) {
+    this.audioOutputType = audioOutputType;
   }
 }

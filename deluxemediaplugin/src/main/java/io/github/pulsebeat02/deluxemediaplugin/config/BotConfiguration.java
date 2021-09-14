@@ -29,7 +29,6 @@ import io.github.pulsebeat02.deluxemediaplugin.discord.MediaBot;
 import java.io.IOException;
 import javax.security.auth.login.LoginException;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +50,6 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
   @Override
   void serialize() throws IOException {
     final DeluxeMediaPlugin plugin = this.getPlugin();
-    final JavaPlugin loader = plugin.getBootstrap();
     final FileConfiguration configuration = this.getFileConfiguration();
     final String token = configuration.getString("token");
     if (token != null) {

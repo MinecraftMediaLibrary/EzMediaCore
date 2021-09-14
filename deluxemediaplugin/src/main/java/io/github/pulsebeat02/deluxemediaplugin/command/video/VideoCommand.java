@@ -37,6 +37,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
+import io.github.pulsebeat02.deluxemediaplugin.discord.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioTrimmer;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
@@ -52,10 +53,12 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.SoundCategory;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
@@ -135,6 +138,22 @@ public final class VideoCommand extends BaseCommand {
 			default -> throw new IllegalArgumentException("Illegal video mode!");
 		}
 		this.sendPlayInformation(audience);
+
+		final VideoPlayer player = this.attributes.getPlayer();
+		switch (this.attributes.getAudioOutputType()) {
+			case RESOURCEPACK -> player.setCustomAudioPlayback(() -> {
+				final Set<Player> viewers = player.getWatchers().getPlayers();
+				final String sound = player.getSoundKey().getName();
+				for (final Player p : viewers) {
+					p.playSound(p.getLocation(), sound, SoundCategory.MASTER, 100.0F, 1.0F);
+				}
+			});
+			case DISCORD -> {
+				final MediaBot bot = plugin.getMediaBot();
+				
+			}
+		}
+
 		this.attributes.getPlayer().setPlayerState(PlayerControls.START);
 
 		return SINGLE_SUCCESS;

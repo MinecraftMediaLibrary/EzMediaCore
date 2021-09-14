@@ -33,6 +33,10 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
   void initializePlayer(final long ms);
 
+  void setCustomAudioPlayback(@NotNull final Runnable runnable);
+
+  void setCustomAudioStopper(@NotNull final Runnable runnable);
+
   void setPlayerState(@NotNull final PlayerControls controls);
 
   void onPlayerStateChange(@NotNull final PlayerControls status);

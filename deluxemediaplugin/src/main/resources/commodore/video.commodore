@@ -26,5 +26,8 @@ video {
     mode {
       video-mode brigadier:string single_word;
     }
+    audio-output {
+      audio-type brigadier:string single_word;
+    }
   }
 }
