@@ -37,6 +37,11 @@ import io.github.pulsebeat02.ezmediacore.vlc.os.NativeDiscoveryAlgorithm;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -79,14 +84,14 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
 
     try {
       final CompletableFuture<Boolean> plugins =
-          CompletableFuture.supplyAsync(() -> locatePluginsFolder(directory));
+          CompletableFuture.supplyAsync(() -> this.locatePluginsFolder(directory));
       final CompletableFuture<Boolean> libvlc =
-          CompletableFuture.supplyAsync(() -> locateLibVLC(directory));
+          CompletableFuture.supplyAsync(() -> this.locateLibVLC(directory));
       if (plugins.get() && libvlc.get()) {
         this.loadVLC();
         return Optional.of(directory);
       }
-    } catch (InterruptedException | ExecutionException e) {
+    } catch (final InterruptedException | ExecutionException e) {
       e.printStackTrace();
     }
 
@@ -99,7 +104,7 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
           stream.filter(path -> PathUtils.getName(path).equals("plugins")).findFirst();
       if (plugins.isPresent()) {
         final Path path = plugins.get();
-        for (String pattern : this.algorithm.getSearchPatterns()) {
+        for (final String pattern : this.algorithm.getSearchPatterns()) {
           final Path extended = path.resolve(pattern);
           if (Files.exists(extended)) {
             Logger.info("Found VLC Plugins path at %s".formatted(extended));
@@ -108,7 +113,7 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
           }
         }
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       e.printStackTrace();
     }
     return false;
@@ -116,7 +121,7 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
 
   private boolean locateLibVLC(@NotNull final Path directory) {
     try (final Stream<Path> stream = Files.walk(directory).parallel()) {
-      final String keyword = getKeyword();
+      final String keyword = this.getKeyword();
       final Optional<Path> libvlc =
           stream.filter(path -> PathUtils.getName(path).equals(keyword)).findFirst();
       if (libvlc.isPresent()) {
@@ -126,7 +131,7 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
         this.algorithm.onLibVlcFound(path);
         return true;
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       e.printStackTrace();
     }
     return false;
@@ -154,7 +159,8 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
 
   private boolean loadLibVLCLibrary() {
     try {
-      final libvlc_instance_t instance = libvlc_new(0, new StringArray(new String[0]));
+      final libvlc_instance_t instance =
+          libvlc_new(0, new StringArray(new String[] {"--reset-plugins-cache"}));
       if (instance != null) {
         libvlc_release(instance);
         final LibVlcVersion version = new LibVlcVersion();
@@ -168,6 +174,17 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
     } catch (final UnsatisfiedLinkError e) {
       e.printStackTrace();
     }
+    return false;
+  }
+
+  private boolean resetPluginCache() {
+    final Calendar c = new GregorianCalendar();
+    c.setTime(Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+    if (c.get(Calendar.DAY_OF_MONTH) == 1) {
+      Logger.info("Resetting plugin cache! (Monthly reset)");
+      return true;
+    }
+    Logger.info("Plugin cache up to date!");
     return false;
   }
 
