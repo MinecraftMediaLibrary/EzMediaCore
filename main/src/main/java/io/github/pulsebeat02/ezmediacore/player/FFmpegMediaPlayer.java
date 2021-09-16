@@ -188,7 +188,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
   }
 
   private void pause() {
-    if (this.ffmpeg != null) {
+    if (this.future != null) {
       this.future.graceStop();
     }
     this.stopAudio();
