@@ -32,7 +32,6 @@ import io.github.pulsebeat02.ezmediacore.callback.Identifier;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
@@ -51,7 +50,6 @@ public record VideoCreator(MediaLibraryCore library,
 
 	public @NotNull VideoPlayer createMapPlayer(@NotNull final Collection<? extends Player> viewers) {
 		return VideoBuilder.unspecified()
-				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
 						CallbackBuilder.map()
 								.algorithm(this.attributes.getDither().getAlgorithm())
@@ -69,7 +67,6 @@ public record VideoCreator(MediaLibraryCore library,
 	public @NotNull VideoPlayer createEntityPlayer(
 			@NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
 		return VideoBuilder.unspecified()
-				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
 						CallbackBuilder.entity()
 								.character(NamedEntityString.NORMAL_SQUARE)
@@ -87,7 +84,6 @@ public record VideoCreator(MediaLibraryCore library,
 	public @NotNull VideoPlayer createChatBoxPlayer(
 			@NotNull final Collection<? extends Player> viewers) {
 		return VideoBuilder.unspecified()
-				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
 						CallbackBuilder.chat()
 								.character(NamedEntityString.NORMAL_SQUARE)
@@ -103,7 +99,6 @@ public record VideoCreator(MediaLibraryCore library,
 	public @NotNull VideoPlayer createScoreboardPlayer(
 			@NotNull final Collection<? extends Player> viewers) {
 		return VideoBuilder.unspecified()
-				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
 						CallbackBuilder.scoreboard()
 								.id(Identifier.ofIdentifier(1080))
@@ -119,7 +114,6 @@ public record VideoCreator(MediaLibraryCore library,
 	public @NotNull VideoPlayer createBlockHighlightPlayer(
 			@NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
 		return VideoBuilder.unspecified()
-				.mrl(MrlConfiguration.ofMrl(this.attributes.getVideoMrl()))
 				.callback(
 						CallbackBuilder.blockHighlight()
 								.location(sender.getLocation())

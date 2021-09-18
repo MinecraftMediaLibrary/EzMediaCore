@@ -35,6 +35,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
+import io.github.pulsebeat02.ezmediacore.utility.ArgumentUtils;
 import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
@@ -47,12 +48,12 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class FFmpegMediaPlayer extends MediaPlayer {
+public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlayer {
 
-  private final ArrayBlockingQueue<int[]> frames;
+  private ArrayBlockingQueue<int[]> frames;
   // private final BiConsumer<Frame, List<Stream>> frameWatchDog;
-  private final BufferConfiguration buffer;
-  private final long delay;
+  private BufferConfiguration buffer;
+  private long delay;
 
   private long start;
   // volatile long presentationTimeStamp;
@@ -67,13 +68,10 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
       @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
       @NotNull final BufferConfiguration buffer,
-      @NotNull final MrlConfiguration url,
       @Nullable final SoundKey key,
       @NotNull final FrameConfiguration fps) {
-    super(callback, viewers, pixelDimension, url, key, fps);
-    final int num = fps.getFps();
+    super(callback, viewers, pixelDimension, key, fps);
     this.buffer = buffer;
-    this.frames = new ArrayBlockingQueue<>(buffer.getBuffer() * num);
 //    this.frameWatchDog = (frame, streams) -> {
 //      for (final Stream stream : streams) {
 //        if (stream.getId() == frame.getStreamId()) {
@@ -92,17 +90,40 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
 //      }
 //    };
 //    this.presentationTimeStamp = 0L;
-    this.delay = 1000L / num;
-    this.firstFrame = false;
+    this.modifyPlayerAttributes();
     this.initializePlayer(0L);
   }
 
   @Override
-  public void setPlayerState(@NotNull final PlayerControls controls) {
+  public void setBufferConfiguration(@NotNull final BufferConfiguration configuration) {
+    this.buffer = configuration;
+    this.modifyPlayerAttributes();
+  }
+
+  @Override
+  public @NotNull BufferConfiguration getBufferConfiguration() {
+    return this.buffer;
+  }
+
+  private void modifyPlayerAttributes() {
+    final int fps = this.getFrameConfiguration().getFps();
+    this.frames = new ArrayBlockingQueue<>(this.buffer.getBuffer() * fps);
+    this.delay = 1000L / fps;
+    this.firstFrame = false;
+  }
+
+  @Override
+  public void setDimensions(@NotNull final Dimension dimensions) {
+    super.setDimensions(dimensions);
+    this.modifyPlayerAttributes();
+  }
+
+  @Override
+  public void setPlayerState(@NotNull final PlayerControls controls, @NotNull final Object... arguments) {
     super.setPlayerState(controls);
     this.firstFrame = false;
     switch (controls) {
-      case START, RESUME -> this.play(controls);
+      case START, RESUME -> this.play(controls, arguments);
       case PAUSE -> this.pause();
       case RELEASE -> this.release();
       default -> throw new IllegalArgumentException("Player state is invalid!");
@@ -110,7 +131,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
   }
 
   @Override
-  public void initializePlayer(final long seconds) {
+  public void initializePlayer(final long seconds, @NotNull final Object... arguments) {
     final Dimension dimension = this.getDimensions();
     final String url = this.getMrlConfiguration().getMrl();
     final Path path = Path.of(url);
@@ -130,6 +151,9 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
                     .setFrameRate(this.getFrameConfiguration().getFps()))
             .addArguments("-vf",
                 "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()));
+    for (int i = 1; i < arguments.length; i++) {
+      this.ffmpeg.addArgument(arguments[i].toString());
+    }
   }
 
   @Override
@@ -195,8 +219,8 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
     this.start = System.currentTimeMillis();
   }
 
-  private void play(@NotNull final PlayerControls controls) {
-    this.setupPlayer(controls);
+  private void play(@NotNull final PlayerControls controls, @NotNull final Object... arguments) {
+    this.setupPlayer(controls, arguments);
     CompletableFuture.runAsync(() -> {
       this.future = this.updateFFmpegPlayer();
       this.delayFrames();
@@ -205,7 +229,8 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
     });
   }
 
-  private void setupPlayer(@NotNull final PlayerControls controls) {
+  private void setupPlayer(@NotNull final PlayerControls controls, @NotNull final Object... arguments) {
+    this.setMrlConfiguration(ArgumentUtils.checkPlayerArguments(arguments));
     if (controls == PlayerControls.START) {
       this.stopAudio();
       if (this.ffmpeg == null) {
@@ -281,13 +306,6 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
 
     @Contract("_ -> this")
     @Override
-    public Builder mrl(@NotNull final MrlConfiguration mrl) {
-      super.mrl(mrl);
-      return this;
-    }
-
-    @Contract("_ -> this")
-    @Override
     public Builder frameRate(@NotNull final FrameConfiguration rate) {
       super.frameRate(rate);
       return this;
@@ -319,7 +337,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer {
       super.init();
       final Callback callback = this.getCallback();
       return new FFmpegMediaPlayer(callback, callback.getWatchers(), this.getDims(),
-          this.bufferSize, this.getMrl(),
+          this.bufferSize,
           this.getKey(), this.getRate());
     }
   }

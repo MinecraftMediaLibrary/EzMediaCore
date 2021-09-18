@@ -24,7 +24,6 @@
 package io.github.pulsebeat02.ezmediacore.player;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
@@ -36,17 +35,20 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Unfortunately, due to JNA issues, this class must be mutable and there can only be one instance.
+ */
 public abstract class MediaPlayer implements VideoPlayer {
 
   private final MediaLibraryCore core;
-  private final Callback callback;
+  private FrameConfiguration fps;
+  private Viewers viewers;
 
-  private final Viewers viewers;
-  private final Dimension dimensions;
-  private final SoundKey key;
-  private final MrlConfiguration url;
-  private final FrameConfiguration fps;
+  private Callback callback;
+  private Dimension dimensions;
+  private SoundKey key;
 
+  private MrlConfiguration mrl;
   private Runnable playAudio;
   private Runnable stopAudio;
 
@@ -56,11 +58,8 @@ public abstract class MediaPlayer implements VideoPlayer {
       @NotNull final Callback callback,
       @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
-      @NotNull final MrlConfiguration url,
       @Nullable final SoundKey key,
       @NotNull final FrameConfiguration fps) {
-    Preconditions.checkArgument(
-        !Strings.isNullOrEmpty(url.getMrl()), "URL cannot be empty or null!");
     Preconditions.checkArgument(
         pixelDimension.getWidth() >= 0, "Width must be above or equal to 0!");
     Preconditions.checkArgument(
@@ -72,7 +71,6 @@ public abstract class MediaPlayer implements VideoPlayer {
         key == null
             ? SoundKey.ofSound(callback.getCore().getPlugin().getName().toLowerCase(Locale.ROOT))
             : key;
-    this.url = url;
     this.fps = fps;
     this.viewers = viewers;
     this.playAudio =
@@ -111,7 +109,8 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void setPlayerState(@NotNull final PlayerControls controls) {
+  public void setPlayerState(
+      @NotNull final PlayerControls controls, @NotNull final Object... arguments) {
     this.onPlayerStateChange(controls);
     this.controls = controls;
     this.callback.preparePlayerStateChange(controls);
@@ -122,12 +121,12 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   @Override
   public void playAudio() {
-    CompletableFuture.runAsync(this::playAudio);
+    CompletableFuture.runAsync(this.playAudio);
   }
 
   @Override
   public void stopAudio() {
-    CompletableFuture.runAsync(this::stopAudio);
+    CompletableFuture.runAsync(this.stopAudio);
   }
 
   @Override
@@ -136,8 +135,13 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
+  public void setMrlConfiguration(@NotNull final MrlConfiguration configuration) {
+    this.mrl = configuration;
+  }
+
+  @Override
   public @NotNull MrlConfiguration getMrlConfiguration() {
-    return this.url;
+    return this.mrl;
   }
 
   @Override
@@ -163,5 +167,30 @@ public abstract class MediaPlayer implements VideoPlayer {
   @Override
   public void setCustomAudioStopper(@NotNull final Runnable runnable) {
     this.stopAudio = runnable;
+  }
+
+  @Override
+  public void setCallback(@NotNull final Callback callback) {
+    this.callback = callback;
+  }
+
+  @Override
+  public void setDimensions(@NotNull final Dimension dimensions) {
+    this.dimensions = dimensions;
+  }
+
+  @Override
+  public void setSoundKey(@NotNull final SoundKey key) {
+    this.key = key;
+  }
+
+  @Override
+  public void setViewers(@NotNull final Viewers viewers) {
+    this.viewers = viewers;
+  }
+
+  @Override
+  public void setFrameConfiguration(@NotNull final FrameConfiguration configuration) {
+    this.fps = configuration;
   }
 }

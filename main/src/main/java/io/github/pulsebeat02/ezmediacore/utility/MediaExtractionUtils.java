@@ -25,11 +25,14 @@ package io.github.pulsebeat02.ezmediacore.utility;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
+import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -112,5 +115,11 @@ public final class MediaExtractionUtils {
       final int start = FastStringUtils.fastQuerySearch(content, SEARCH_KEYWORD) + 10;
       return Optional.of(content.substring(start, content.indexOf('"', start)));
     }
+  }
+
+  @NotNull
+  public static FrameConfiguration getFrameConfiguration(
+      @NotNull final MediaLibraryCore core, @NotNull final Path path) throws IOException {
+    return FrameConfiguration.ofFps(VideoFrameUtils.getFrameRate(core, path).orElseThrow());
   }
 }

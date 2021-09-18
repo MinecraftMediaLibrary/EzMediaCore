@@ -26,24 +26,38 @@ package io.github.pulsebeat02.ezmediacore.player;
 import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewable;
+import io.github.pulsebeat02.ezmediacore.callback.Viewers;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
 import org.jetbrains.annotations.NotNull;
 
 public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
-  void initializePlayer(final long ms);
+  void initializePlayer(final long ms, @NotNull final Object... arguments);
+
+  void playAudio();
+
+  void stopAudio();
 
   void setCustomAudioPlayback(@NotNull final Runnable runnable);
 
   void setCustomAudioStopper(@NotNull final Runnable runnable);
 
-  void setPlayerState(@NotNull final PlayerControls controls);
+  void setPlayerState(@NotNull final PlayerControls controls, @NotNull final Object... arguments);
+
+  void setMrlConfiguration(@NotNull final MrlConfiguration configuration);
+
+  void setCallback(@NotNull final Callback callback);
+
+  void setDimensions(@NotNull final Dimension dimensions);
+
+  void setSoundKey(@NotNull final SoundKey key);
+
+  void setViewers(@NotNull final Viewers viewers);
+
+  void setFrameConfiguration(@NotNull final FrameConfiguration configuration);
 
   void onPlayerStateChange(@NotNull final PlayerControls status);
-
-  void playAudio();
-
-  void stopAudio();
 
   @NotNull
   Callback getCallback();

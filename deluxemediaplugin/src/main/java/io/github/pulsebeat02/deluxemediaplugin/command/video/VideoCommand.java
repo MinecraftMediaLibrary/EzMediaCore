@@ -40,6 +40,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.discord.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioTrimmer;
+import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
@@ -154,7 +155,7 @@ public final class VideoCommand extends BaseCommand {
 			}
 		}
 
-		this.attributes.getPlayer().setPlayerState(PlayerControls.START);
+		this.attributes.getPlayer().setPlayerState(PlayerControls.START, MrlConfiguration.ofMrl(this.attributes.getVideoMrl()));
 
 		return SINGLE_SUCCESS;
 	}
