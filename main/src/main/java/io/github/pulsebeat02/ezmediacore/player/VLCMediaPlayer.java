@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import com.sun.jna.Pointer;
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
@@ -36,6 +37,7 @@ import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.log.LogLevel;
 import uk.co.caprica.vlcj.log.NativeLog;
 import uk.co.caprica.vlcj.player.base.AudioApi;
+import uk.co.caprica.vlcj.player.base.callback.AudioCallbackAdapter;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.CallbackVideoSurface;
 import uk.co.caprica.vlcj.player.embedded.videosurface.LinuxVideoSurfaceAdapter;
@@ -49,8 +51,9 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32Buffe
 
 public final class VLCMediaPlayer extends MediaPlayer {
 
-  private final VideoSurfaceAdapter adapter;
-  private final MinecraftVideoRenderCallback callback;
+  private VideoSurfaceAdapter adapter;
+  private MinecraftVideoRenderCallback frameCallback;
+  private MinecraftAudioCallback audioCallback;
 
   private MediaPlayerFactory factory;
   private EmbeddedMediaPlayer player;
@@ -67,12 +70,26 @@ public final class VLCMediaPlayer extends MediaPlayer {
       @Nullable final SoundKey key,
       @NotNull final FrameConfiguration fps) {
     super(callback, viewers, pixelDimension, url, key, fps);
-    this.adapter = this.getAdapter();
-    this.callback = new MinecraftVideoRenderCallback(this);
+    this.frameCallback = new MinecraftVideoRenderCallback(this);
+    this.audioCallback = new MinecraftAudioCallback(this);
     this.initializePlayer(0L);
   }
 
-  private VideoSurfaceAdapter getAdapter() {
+  VLCMediaPlayer(
+      @NotNull final Callback callback,
+      @NotNull final Viewers viewers,
+      @NotNull final Dimension pixelDimension,
+      @NotNull final MrlConfiguration url,
+      @Nullable final SoundKey key,
+      @NotNull final FrameConfiguration fps,
+      @Nullable final Consumer<byte[]> audioConsumer,
+      @Nullable final Consumer<int[]> frameConsumer) {
+    this(callback, viewers, pixelDimension, url, key, fps);
+    this.audioCallback = new MinecraftAudioCallback(audioConsumer);
+    this.frameCallback = frameConsumer == null ? new MinecraftVideoRenderCallback(this) : frameConsumer;
+  }
+
+  private VideoSurfaceAdapter getAudioCallback() {
     return switch (this.getCore().getDiagnostics().getSystem().getOSType()) {
       case MAC -> new OsxVideoSurfaceAdapter();
       case UNIX -> new LinuxVideoSurfaceAdapter();
@@ -172,6 +189,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
 
   private void setCallback(@NotNull final EmbeddedMediaPlayer player) {
     player.videoSurface().set(this.getSurface());
+    player.audio().callback("S16N", 44100, 2, );
   }
 
   @Contract(" -> new")
@@ -179,7 +197,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
     if (this.surface != null) {
       return this.surface;
     }
-    this.surface = new CallbackVideoSurface(this.getBufferCallback(), this.callback, false, this.adapter);
+    this.surface = new CallbackVideoSurface(this.getBufferCallback(), this.frameCallback, false, this.audioCallback);
     return this.surface;
   }
 
@@ -214,6 +232,20 @@ public final class VLCMediaPlayer extends MediaPlayer {
     protected void onDisplay(
         final uk.co.caprica.vlcj.player.base.MediaPlayer mediaPlayer, final int[] buffer) {
       this.callback.accept(buffer);
+    }
+  }
+
+  private static class MinecraftAudioCallback extends AudioCallbackAdapter {
+
+    private final Consumer<byte[]> samples;
+
+    public MinecraftAudioCallback(@NotNull final Consumer<byte[]> samples) {
+      this.samples = samples;
+    }
+
+    @Override
+    public void play(@NotNull final uk.co.caprica.vlcj.player.base.MediaPlayer mediaPlayer, @NotNull final Pointer samples, final int sampleCount, final long pts) {
+      this.samples.accept(samples.getByteArray(0, sampleCount << 2));
     }
   }
 
