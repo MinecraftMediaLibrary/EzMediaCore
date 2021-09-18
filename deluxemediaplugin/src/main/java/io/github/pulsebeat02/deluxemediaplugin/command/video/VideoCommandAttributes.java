@@ -58,6 +58,7 @@ public final class VideoCommandAttributes {
 
   public VideoCommandAttributes() {
     this.dither = DitherSetting.FILTER_LITE;
+    this.audioOutputType = AudioOutputType.RESOURCEPACK;
     this.frameWidth = 5;
     this.frameHeight = 5;
     this.pixelWidth = 640;

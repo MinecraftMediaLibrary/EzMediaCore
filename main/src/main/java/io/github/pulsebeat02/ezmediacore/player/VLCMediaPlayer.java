@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import com.sun.jna.Pointer;
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
@@ -36,6 +37,7 @@ import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.log.LogLevel;
 import uk.co.caprica.vlcj.log.NativeLog;
 import uk.co.caprica.vlcj.player.base.AudioApi;
+import uk.co.caprica.vlcj.player.base.callback.AudioCallbackAdapter;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.CallbackVideoSurface;
 import uk.co.caprica.vlcj.player.embedded.videosurface.LinuxVideoSurfaceAdapter;
@@ -49,15 +51,15 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32Buffe
 
 public final class VLCMediaPlayer extends MediaPlayer {
 
-  private final VideoSurfaceAdapter adapter;
-  private final MinecraftVideoRenderCallback callback;
+  private static VideoSurfaceAdapter adapter;
+  private static MinecraftVideoRenderCallback videoCallback;
+  private static MinecraftAudioCallback audioCallback;
+  private static CallbackVideoSurface surface;
+  private static BufferFormatCallback bufferFormatCallback;
 
-  private MediaPlayerFactory factory;
-  private EmbeddedMediaPlayer player;
-  private CallbackVideoSurface surface;
-  private BufferFormatCallback format;
-
-  private NativeLog logger;
+  private static MediaPlayerFactory factory;
+  private static EmbeddedMediaPlayer player;
+  private static NativeLog logger;
 
   VLCMediaPlayer(
       @NotNull final Callback callback,
@@ -68,8 +70,9 @@ public final class VLCMediaPlayer extends MediaPlayer {
       @NotNull final FrameConfiguration fps) {
     super(callback, viewers, pixelDimension, url, key, fps);
     this.adapter = this.getAdapter();
-    this.callback = new MinecraftVideoRenderCallback(this);
+    this.videoCallback = new MinecraftVideoRenderCallback(this);
     this.initializePlayer(0L);
+    this.setCustomVideoAdapter(this.getCallback()::process);
   }
 
   private VideoSurfaceAdapter getAdapter() {
@@ -122,7 +125,6 @@ public final class VLCMediaPlayer extends MediaPlayer {
       audio.setMute(true);
     }
 
-    this.setCallback(this.player);
   }
 
   @Override
@@ -131,7 +133,8 @@ public final class VLCMediaPlayer extends MediaPlayer {
   }
 
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer() {
-    if (this.player == null || this.factory == null || this.logger == null) { // just in case something is null
+    if (this.player == null || this.factory == null
+        || this.logger == null) { // just in case something is null
       this.releaseAll();
       final int rate = this.getFrameConfiguration().getFps();
       this.factory = new MediaPlayerFactory(
@@ -167,38 +170,45 @@ public final class VLCMediaPlayer extends MediaPlayer {
       this.logger = null;
     }
     this.surface = null;
-    this.format = null;
-  }
-
-  private void setCallback(@NotNull final EmbeddedMediaPlayer player) {
-    player.videoSurface().set(this.getSurface());
   }
 
   @Contract(" -> new")
   private @NotNull CallbackVideoSurface getSurface() {
-    if (this.surface != null) {
-      return this.surface;
+    if (this.surface == null) {
+      this.surface = new CallbackVideoSurface(this.getBufferCallback(), this.videoCallback, false,
+          this.adapter);
     }
-    this.surface = new CallbackVideoSurface(this.getBufferCallback(), this.callback, false, this.adapter);
     return this.surface;
   }
 
   @Contract(value = " -> new", pure = true)
   private @NotNull BufferFormatCallback getBufferCallback() {
-    if (this.format != null) {
-      return this.format;
+    if (bufferFormatCallback == null) {
+      final Dimension dimension = VLCMediaPlayer.this.getDimensions();
+      final BufferFormatCallback callback = new BufferFormatCallback() {
+        @Override
+        public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {
+          return new RV32BufferFormat(dimension.getWidth(), dimension.getHeight());
+        }
+
+        @Override
+        public void allocatedBuffers(final ByteBuffer[] buffers) {
+        }
+      };
+      this.bufferFormatCallback = callback;
     }
-    final Dimension dimension = VLCMediaPlayer.this.getDimensions();
-    this.format = new BufferFormatCallback() {
-      @Override
-      public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {
-        return new RV32BufferFormat(dimension.getWidth(), dimension.getHeight());
-      }
-      @Override
-      public void allocatedBuffers(final ByteBuffer[] buffers) {
-      }
-    };
-    return this.format;
+    return bufferFormatCallback;
+  }
+
+  public void setCustomVideoAdapter(@NotNull final Consumer<int[]> pixels) {
+    this.videoCallback = new MinecraftVideoRenderCallback(this, pixels);
+    this.player.videoSurface().set(this.getSurface());
+  }
+
+  public void setCustomAudioAdapter(@NotNull final Consumer<byte[]> audio, final int blockSize,
+      @NotNull final String format, final int rate, final int channels) {
+    this.audioCallback = new MinecraftAudioCallback(audio, blockSize);
+    this.player.audio().callback(format, rate, channels, this.audioCallback);
   }
 
   private static class MinecraftVideoRenderCallback extends RenderCallbackAdapter {
@@ -210,10 +220,34 @@ public final class VLCMediaPlayer extends MediaPlayer {
       this.callback = player.getCallback()::process;
     }
 
+    public MinecraftVideoRenderCallback(@NotNull final VLCMediaPlayer player,
+        @NotNull final Consumer<int[]> consumer) {
+      super(new int[player.getDimensions().getWidth() * player.getDimensions().getHeight()]);
+      this.callback = consumer;
+    }
+
     @Override
     protected void onDisplay(
         final uk.co.caprica.vlcj.player.base.MediaPlayer mediaPlayer, final int[] buffer) {
       this.callback.accept(buffer);
+    }
+  }
+
+  private static class MinecraftAudioCallback extends AudioCallbackAdapter {
+
+    private final Consumer<byte[]> callback;
+    private final int blockSize;
+
+    public MinecraftAudioCallback(@NotNull final Consumer<byte[]> consumer, final int blockSize) {
+      this.callback = consumer;
+      this.blockSize = blockSize;
+    }
+
+    @Override
+    public void play(final uk.co.caprica.vlcj.player.base.MediaPlayer mediaPlayer,
+        final Pointer samples,
+        final int sampleCount, final long pts) {
+      this.callback.accept(samples.getByteArray(0, sampleCount * this.blockSize));
     }
   }
 

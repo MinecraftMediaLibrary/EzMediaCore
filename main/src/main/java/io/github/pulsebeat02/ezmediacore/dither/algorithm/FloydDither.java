@@ -30,6 +30,7 @@ import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.PALETTE;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
+import java.util.stream.IntStream;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -81,7 +82,7 @@ public class FloydDither implements DitherAlgorithm {
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;
     final int[][] dither_buffer = new int[2][width + width << 1];
-    for (int y = 0; y < height; y++) {
+    IntStream.range(0, height).parallel().forEach(y -> {
       final boolean hasNextY = y < heightMinus;
       final int yIndex = y * width;
       if ((y & 0x1) == 0) {
@@ -167,7 +168,7 @@ public class FloydDither implements DitherAlgorithm {
           buffer[index] = closest;
         }
       }
-    }
+    });
   }
 
   @Override
@@ -177,7 +178,7 @@ public class FloydDither implements DitherAlgorithm {
     final int heightMinus = height - 1;
     final int[][] dither_buffer = new int[2][width + width << 1];
     final ByteBuffer data = ByteBuffer.allocate(buffer.length);
-    for (int y = 0; y < height; y++) {
+    IntStream.range(0, height).parallel().forEach(y -> {
       final boolean hasNextY = y < heightMinus;
       final int yIndex = y * width;
       if ((y & 0x1) == 0) {
@@ -263,7 +264,7 @@ public class FloydDither implements DitherAlgorithm {
           data.put(index, this.getBestColor(closest));
         }
       }
-    }
+    });
     return data;
   }
 
