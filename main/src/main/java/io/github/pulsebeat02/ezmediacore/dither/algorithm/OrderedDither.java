@@ -29,6 +29,7 @@ import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 
 public class OrderedDither implements DitherAlgorithm {
@@ -131,7 +132,7 @@ public class OrderedDither implements DitherAlgorithm {
   @Override
   public void dither(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
-    for (int y = 0; y < height; y++) {
+    IntStream.range(0, height).parallel().forEach(y -> {
       final int yIndex = y * width;
       for (int x = 0; x < width; x++) {
         final int index = yIndex + x;
@@ -141,14 +142,14 @@ public class OrderedDither implements DitherAlgorithm {
                     (buffer[index]
                         + this.correction * ((this.matrix[x % this.size][y % this.size] - 0.5))));
       }
-    }
+    });
   }
 
   @Override
   public ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     final ByteBuffer data = ByteBuffer.allocate(buffer.length);
-    for (int y = 0; y < height; y++) {
+    IntStream.range(0, height).parallel().forEach(y -> {
       final int yIndex = y * width;
       for (int x = 0; x < width; x++) {
         data.put(
@@ -157,7 +158,7 @@ public class OrderedDither implements DitherAlgorithm {
                     (buffer[yIndex + x]
                         + this.correction * ((this.matrix[x % this.size][y % this.size] - 0.5)))));
       }
-    }
+    });
     return data;
   }
 
