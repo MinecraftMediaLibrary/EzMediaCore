@@ -32,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class SimpleDither implements DitherAlgorithm {
 
+  SimpleDither() {}
+
   @Override
   public void dither(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
@@ -45,7 +47,7 @@ public class SimpleDither implements DitherAlgorithm {
   }
 
   @Override
-  public ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
+  public @NotNull ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     final ByteBuffer data = ByteBuffer.allocate(buffer.length);
     for (int y = 0; y < height; y++) {

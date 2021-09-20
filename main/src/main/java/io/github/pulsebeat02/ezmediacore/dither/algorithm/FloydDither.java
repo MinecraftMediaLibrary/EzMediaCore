@@ -40,6 +40,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class FloydDither implements DitherAlgorithm {
 
+  FloydDither() {}
+
   private int getColorFromMinecraftPalette(final byte val) {
     return PALETTE[(val + 256) % 256];
   }
@@ -171,7 +173,7 @@ public class FloydDither implements DitherAlgorithm {
   }
 
   @Override
-  public ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
+  public @NotNull ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;

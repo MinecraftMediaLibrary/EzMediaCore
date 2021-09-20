@@ -71,7 +71,7 @@ public class OrderedDither implements DitherAlgorithm {
   private final float multiplicative;
   private final int size;
 
-  public OrderedDither(@NotNull final DitherType type) {
+  OrderedDither(@NotNull final DitherType type) {
     switch (type) {
       case TWO -> {
         this.matrix = BAYER_MATRIX_TWO;
@@ -145,7 +145,7 @@ public class OrderedDither implements DitherAlgorithm {
   }
 
   @Override
-  public ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
+  public @NotNull ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     final ByteBuffer data = ByteBuffer.allocate(buffer.length);
     for (int y = 0; y < height; y++) {

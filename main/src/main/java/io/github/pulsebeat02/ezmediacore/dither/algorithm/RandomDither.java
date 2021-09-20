@@ -12,12 +12,12 @@ public class RandomDither implements DitherAlgorithm {
 
   private final ThreadLocalRandom random;
 
-  public RandomDither() {
+  RandomDither() {
     this.random = ThreadLocalRandom.current();
   }
 
   @Override
-  public ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
+  public @NotNull ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     final ByteBuffer data = ByteBuffer.allocate(buffer.length);
     for (int y = 0; y < height; y++) {

@@ -188,7 +188,7 @@ public class BNDM extends StringSearch {
    * @param two the second <code>char</code>
    * @return the smaller <code>char</code>
    */
-  protected final char min(final char one, final char two) {
+  final char min(final char one, final char two) {
     return one < two ? one : two;
   }
 
@@ -199,7 +199,7 @@ public class BNDM extends StringSearch {
    * @param two the second <code>char</code>
    * @return the larger <code>char</code>
    */
-  protected final char max(final char one, final char two) {
+  final char max(final char one, final char two) {
     return one > two ? one : two;
   }
 }

@@ -36,10 +36,12 @@ import java.util.List;
 public final class DitherLookupUtil {
 
   public static final int[] PALETTE;
-  public static final byte[] COLOR_MAP = new byte[128 * 128 * 128];
-  public static final int[] FULL_COLOR_MAP = new int[128 * 128 * 128];
+  public static final byte[] COLOR_MAP;
+  public static final int[] FULL_COLOR_MAP;
 
   static {
+    COLOR_MAP = new byte[128 * 128 * 128];
+    FULL_COLOR_MAP = new int[128 * 128 * 128];
     final List<Integer> colors = new ArrayList<>();
     final long start = System.nanoTime();
     for (int i = 0; i < 256; ++i) {
@@ -95,4 +97,3 @@ public final class DitherLookupUtil {
   /** Init. */
   public static void init() {}
 }
-

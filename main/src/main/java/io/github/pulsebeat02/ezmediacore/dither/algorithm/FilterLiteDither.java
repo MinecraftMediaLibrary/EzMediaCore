@@ -32,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class FilterLiteDither implements DitherAlgorithm {
 
+  FilterLiteDither() {}
+
   /**
    * Performs Filter Lite Dithering at a more optimized pace while giving similar results to Floyd
    * Steinberg Dithering.
@@ -136,7 +138,7 @@ public class FilterLiteDither implements DitherAlgorithm {
   }
 
   @Override
-  public ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
+  public @NotNull ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;

@@ -145,7 +145,7 @@ public abstract class StringSearch {
    * Constructor for StringSearch. Note that it is not required to create multiple instances of an
    * algorithm. This constructor does nothing.
    */
-  protected StringSearch() {
+  StringSearch() {
     super();
   }
 
@@ -546,7 +546,7 @@ public abstract class StringSearch {
    * @see CharIntMap#CharIntMap(int, char, int)
    */
   @Contract("_, _ -> new")
-  protected @NotNull final CharIntMap createCharIntMap(
+  @NotNull final CharIntMap createCharIntMap(
       final char[] pattern, final int defaultValue) {
     return this.createCharIntMap(pattern, pattern.length, defaultValue);
   }
@@ -562,7 +562,8 @@ public abstract class StringSearch {
    * @see CharIntMap#CharIntMap(int, char, int)
    */
   @Contract("_, _, _ -> new")
-  protected @NotNull final CharIntMap createCharIntMap(
+  @NotNull
+  final CharIntMap createCharIntMap(
       final char[] pattern, final int patternEnd, final int defaultValue) {
     char min = Character.MAX_VALUE;
     char max = Character.MIN_VALUE;
@@ -579,7 +580,7 @@ public abstract class StringSearch {
    * @param idx the <code>byte</code>
    * @return <code>int</code>
    */
-  protected final int index(final byte idx) {
+  final int index(final byte idx) {
     /* Much faster in IBM, see com.eaio.stringsearch.performanceTest.Index. */
     /* And MUCH faster in Sun, too. */
     return idx & 0x000000ff;

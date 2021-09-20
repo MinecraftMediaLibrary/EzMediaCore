@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class BaseCommand extends Command implements LiteralCommandSegment<CommandSender> {
 
-  protected final TabExecutor executor;
+  private final TabExecutor executor;
   private final DeluxeMediaPlugin plugin;
   private final BukkitAudiences audience;
 

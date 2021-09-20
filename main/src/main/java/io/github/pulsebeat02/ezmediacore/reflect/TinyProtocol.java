@@ -141,8 +141,8 @@ public abstract class TinyProtocol {
   private final List<Channel> serverChannels = Lists.newArrayList();
   // Current handler name
   private final String handlerName;
-  protected volatile boolean closed;
-  protected Plugin plugin;
+  private volatile boolean closed;
+  private final Plugin plugin;
   private Listener listener;
   // List of network markers
   private List<Object> networkManagers;
@@ -416,7 +416,7 @@ public abstract class TinyProtocol {
    *
    * @return A unique channel handler name.
    */
-  protected String getHandlerName() {
+  String getHandlerName() {
     return "tiny-%s-%d".formatted(this.plugin.getName(), ID.incrementAndGet());
   }
 
