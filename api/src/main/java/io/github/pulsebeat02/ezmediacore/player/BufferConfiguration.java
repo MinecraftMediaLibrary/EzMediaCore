@@ -59,4 +59,18 @@ public final class BufferConfiguration {
   public int getBuffer() {
     return this.buffer;
   }
+
+  @Contract(pure = true)
+  @Override
+  public @NotNull String toString() {
+    return "{buffer=%d}".formatted(this.buffer);
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (!(obj instanceof BufferConfiguration)) {
+      return false;
+    }
+    return ((BufferConfiguration) obj).buffer == this.buffer;
+  }
 }

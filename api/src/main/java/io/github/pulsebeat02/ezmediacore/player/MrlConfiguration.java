@@ -64,4 +64,18 @@ public final class MrlConfiguration {
   public @NotNull String getMrl() {
     return this.mrl;
   }
+
+  @Contract(pure = true)
+  @Override
+  public @NotNull String toString() {
+    return "{mrl=%s}".formatted(this.mrl);
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (!(obj instanceof MrlConfiguration)) {
+      return false;
+    }
+    return ((MrlConfiguration) obj).mrl.equals(this.mrl);
+  }
 }

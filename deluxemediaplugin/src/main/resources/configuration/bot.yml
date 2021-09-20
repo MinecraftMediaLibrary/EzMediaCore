@@ -2,3 +2,9 @@
 
 # Discord Bot Account Token.
 token:
+
+# Guild Identifier
+guild-id:
+
+# Voice Channel Identifier
+voice-chat-id:

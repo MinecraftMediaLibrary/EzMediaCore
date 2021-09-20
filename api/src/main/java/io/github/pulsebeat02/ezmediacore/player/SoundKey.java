@@ -48,4 +48,18 @@ public final class SoundKey {
   public @NotNull String getName() {
     return this.name;
   }
+
+  @Contract(pure = true)
+  @Override
+  public @NotNull String toString() {
+    return "{namespaced-key=%s}".formatted(this.name);
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (!(obj instanceof SoundKey)) {
+      return false;
+    }
+    return ((SoundKey) obj).name.equals(this.name);
+  }
 }

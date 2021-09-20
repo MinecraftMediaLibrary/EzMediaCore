@@ -63,4 +63,18 @@ public final class FrameConfiguration {
   public int getFps() {
     return this.fps;
   }
+
+  @Contract(pure = true)
+  @Override
+  public @NotNull String toString() {
+    return "{fps=%s}".formatted(this.fps);
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (!(obj instanceof FrameConfiguration)) {
+      return false;
+    }
+    return ((FrameConfiguration) obj).fps == this.fps;
+  }
 }
