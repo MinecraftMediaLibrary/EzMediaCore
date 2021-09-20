@@ -29,9 +29,7 @@ public class MediaCommandListener {
     final String prefix = this.bot.getPrefix();
     if (message.startsWith(prefix)) {
       final String[] content = message.substring(prefix.length() - 1).split(" ");
-      this.commands
-          .get(content[0])
-          .execute(ArrayUtils.trimOneDimensionalArray(content, 1, content.length));
+      this.commands.get(content[0]).execute(ArrayUtils.trim(content, 1, content.length));
     }
   }
 

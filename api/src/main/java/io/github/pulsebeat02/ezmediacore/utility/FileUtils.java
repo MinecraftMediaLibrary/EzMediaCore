@@ -41,9 +41,8 @@ public final class FileUtils {
 
   private FileUtils() {}
 
-  @NotNull
-  public static Path downloadImageFile(@NotNull final String url, @NotNull final Path folder)
-      throws IOException {
+  public static @NotNull Path downloadImageFile(
+      @NotNull final String url, @NotNull final Path folder) throws IOException {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be null or empty!");
     final String filePath = "%s/%s.png".formatted(folder, UUID.randomUUID());
     try (final InputStream in = new URL(url).openStream()) {
@@ -87,7 +86,7 @@ public final class FileUtils {
     }
   }
 
-  public static String getFirstLine(@NotNull final Path file) throws IOException {
+  public static @NotNull String getFirstLine(@NotNull final Path file) throws IOException {
     return Files.lines(file).findFirst().orElseThrow(AssertionError::new);
   }
 }

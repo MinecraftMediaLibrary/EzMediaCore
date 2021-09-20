@@ -43,7 +43,29 @@ public interface ThrowingConsumer<T, E extends Exception> {
   }
 
   @Contract(pure = true)
+  static <T> @NotNull Consumer<T> unchecked(@NotNull final Consumer<? super T> consumer) {
+    return t -> {
+      try {
+        consumer.accept(t);
+      } catch (final Throwable e) {
+        throw new RuntimeException(e);
+      }
+    };
+  }
+
+  @Contract(pure = true)
   static <T> @NotNull Consumer<T> sneaky(@NotNull final ThrowingConsumer<? super T, ?> consumer) {
+    return t -> {
+      try {
+        consumer.accept(t);
+      } catch (final Exception e) {
+        SneakyThrowUtil.sneakyThrow(e);
+      }
+    };
+  }
+
+  @Contract(pure = true)
+  static <T> @NotNull Consumer<T> sneaky(@NotNull final Consumer<? super T> consumer) {
     return t -> {
       try {
         consumer.accept(t);
