@@ -28,6 +28,7 @@ import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.FilterLiteDither;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.FloydDither;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.OrderedDither;
+import io.github.pulsebeat02.ezmediacore.dither.algorithm.RandomDither;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.SimpleDither;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,6 +41,7 @@ public enum DitherSetting {
   ORDERED_DITHER_2("Ordered Matrix (2x2)", new OrderedDither(OrderedDither.DitherType.TWO)),
   ORDERED_DITHER_4("Ordered Matrix (4x4)", new OrderedDither(OrderedDither.DitherType.FOUR)),
   ORDERED_DITHER_8("Ordered Matrix (8x8)", new OrderedDither(OrderedDither.DitherType.EIGHT)),
+  RANDOM_DITHER("Random Dithering", new RandomDither()),
   SIMPLE_DITHER("Standard Dithering", new SimpleDither());
 
   private static final Map<String, DitherSetting> maps;
