@@ -29,6 +29,8 @@ import javax.security.auth.login.LoginException;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import org.jetbrains.annotations.NotNull;
@@ -36,30 +38,52 @@ import org.jetbrains.annotations.NotNull;
 public class MediaBot {
 
   private final JDA jda;
-  private final JDABuilder jdaBuilder;
+  private final Guild guild;
+  private final VoiceChannel channel;
   private final MusicManager musicManager;
+  private String prefix;
 
-  public MediaBot(@NotNull final String token) throws LoginException, InterruptedException {
-    this.jdaBuilder = JDABuilder.createDefault(token);
-    this.jdaBuilder.setStatus(OnlineStatus.ONLINE);
-    this.jdaBuilder.setMemberCachePolicy(MemberCachePolicy.ALL);
-    this.jdaBuilder.enableIntents(
-        GatewayIntent.GUILD_MEMBERS,
-        GatewayIntent.GUILD_MESSAGES,
-        GatewayIntent.GUILD_MESSAGE_REACTIONS);
-    this.jda = this.jdaBuilder.build().awaitReady();
-    this.musicManager = new MusicManager();
+  public MediaBot(
+      @NotNull final String token, @NotNull final String guild, @NotNull final String voicechannel)
+      throws LoginException, InterruptedException {
+    this.jda =
+        JDABuilder.createDefault(token)
+            .setStatus(OnlineStatus.ONLINE)
+            .setMemberCachePolicy(MemberCachePolicy.ALL)
+            .enableIntents(
+                GatewayIntent.GUILD_MEMBERS,
+                GatewayIntent.GUILD_MESSAGES,
+                GatewayIntent.GUILD_MESSAGE_REACTIONS)
+            .addEventListeners(new MediaCommandListener(this))
+            .build()
+            .awaitReady();
+    this.guild = this.jda.getGuildById(guild);
+    this.channel = this.jda.getVoiceChannelById(voicechannel);
+    this.musicManager = new MusicManager(this);
+    this.prefix = "d!";
   }
 
   public @NotNull JDA getJDA() {
     return this.jda;
   }
 
-  public @NotNull JDABuilder getJDABuilder() {
-    return this.jdaBuilder;
-  }
-
   public @NotNull MusicManager getMusicManager() {
     return this.musicManager;
+  }
+
+  public @NotNull Guild getGuild() {
+    return this.guild;
+  }
+
+  public @NotNull VoiceChannel getChannel() {
+    return this.channel;
+  }
+
+  public @NotNull String getPrefix() {
+    return this.prefix;
+  }
+
+  public void setPrefix(@NotNull final String prefix) {
+    this.prefix = prefix;
   }
 }

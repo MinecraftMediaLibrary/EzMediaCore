@@ -30,51 +30,47 @@ import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import io.github.pulsebeat02.deluxemediaplugin.discord.MediaBot;
 import java.util.HashMap;
 import java.util.Map;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.jetbrains.annotations.NotNull;
 
 public class MusicManager {
 
+  private final MediaBot bot;
   public final Map<Long, MusicSendHandler> musicGuildManager;
   private final AudioPlayerManager playerManager;
 
-  public MusicManager() {
+  public MusicManager(@NotNull final MediaBot bot) {
+    this.bot = bot;
     this.playerManager = new DefaultAudioPlayerManager();
     this.musicGuildManager = new HashMap<>();
     AudioSourceManagers.registerRemoteSources(this.playerManager);
     AudioSourceManagers.registerLocalSource(this.playerManager);
   }
 
-  /**
-   * Join's Voice Chanel and set's log channel.
-   *
-   * @param voiceChannel Voice Channel.
-   * @param guild Guild.
-   */
-  public void joinVoiceChannel(
-      @NotNull final VoiceChannel voiceChannel, @NotNull final Guild guild) {
+  /** Join's Voice Chanel and set's log channel. */
+  public void joinVoiceChannel() {
+    final Guild guild = this.bot.getGuild();
+    final long id = guild.getIdLong();
+    final VoiceChannel voiceChannel = this.bot.getChannel();
     final AudioManager audio = guild.getAudioManager();
     if (audio.getSendingHandler() == null) {
       this.musicGuildManager.putIfAbsent(
-          guild.getIdLong(), new MusicSendHandler(this, this.playerManager.createPlayer(), guild));
-      audio.setSendingHandler(this.musicGuildManager.get(guild.getIdLong()));
+          id, new MusicSendHandler(this.bot, this, this.playerManager.createPlayer()));
+      audio.setSendingHandler(this.musicGuildManager.get(id));
     }
     audio.openAudioConnection(voiceChannel);
   }
 
-  /**
-   * Leave's Voice Channel.
-   *
-   * @param guild Guild
-   */
-  public void leaveVoiceChannel(@NotNull final Guild guild) {
+  /** Leave's Voice Channel. */
+  public void leaveVoiceChannel() {
+    final Guild guild = this.bot.getGuild();
     guild.getAudioManager().closeAudioConnection();
     this.musicGuildManager.get(guild.getIdLong()).getTrackScheduler().clearQueue();
   }
@@ -82,16 +78,11 @@ public class MusicManager {
   /**
    * Adds track.
    *
-   * @param user User to issued the adding of the track.
    * @param url Load's Song.
    * @param channel Channel to send message.
-   * @param guild Guild.
    */
-  public void addTrack(
-      @NotNull final User user,
-      @NotNull final String url,
-      @NotNull final MessageChannel channel,
-      @NotNull final Guild guild) {
+  public void addTrack(@NotNull final MessageChannel channel, @NotNull final String url) {
+    final Guild guild = this.bot.getGuild();
     this.playerManager.loadItem(
         url,
         new AudioLoadResultHandler() {
@@ -134,5 +125,13 @@ public class MusicManager {
 
   public @NotNull Map<Long, MusicSendHandler> getMusicGuildManager() {
     return this.musicGuildManager;
+  }
+
+  public @NotNull MediaBot getBot() {
+    return this.bot;
+  }
+
+  public @NotNull AudioPlayerManager getPlayerManager() {
+    return this.playerManager;
   }
 }

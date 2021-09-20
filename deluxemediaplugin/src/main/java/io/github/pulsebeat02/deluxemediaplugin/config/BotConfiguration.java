@@ -24,9 +24,14 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.NamedTextColor.RED;
+
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.discord.MediaBot;
 import java.io.IOException;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.security.auth.login.LoginException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -51,16 +56,39 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
   void serialize() throws IOException {
     final DeluxeMediaPlugin plugin = this.getPlugin();
     final FileConfiguration configuration = this.getFileConfiguration();
-    final String token = configuration.getString("token");
-    if (token != null) {
+    final AtomicBoolean invalid = new AtomicBoolean(false);
+    final String token =
+        Objects.requireNonNullElseGet(
+            configuration.getString("token"),
+            () -> {
+              plugin.log("Bot token not specified in bot.yml!");
+              invalid.set(true);
+              return null;
+            });
+    final String guild =
+        Objects.requireNonNullElseGet(
+            configuration.getString("guild-id"),
+            () -> {
+              plugin.log("Guild token not specified in bot.yml!");
+              invalid.set(true);
+              return null;
+            });
+    final String voicechannel =
+        Objects.requireNonNullElseGet(
+            configuration.getString("voice-chat-id"),
+            () -> {
+              plugin.log("Voice Chat Identifier not specified in bot.yml!");
+              invalid.set(true);
+              return null;
+            });
+    if (invalid.get()) {
       try {
-        this.bot = new MediaBot(token);
+        this.bot = new MediaBot(token, guild, voicechannel);
       } catch (final LoginException | InterruptedException e) {
-        plugin.log("A severe issue occurred while starting the bot. Please check the token!");
+        plugin.log(
+            text("A severe issue occurred while starting the bot. Please check the token!", RED));
         e.printStackTrace();
       }
-    } else {
-      plugin.log("Bot token for Discord bot not provided! Proceeding to disable bot!");
     }
   }
 

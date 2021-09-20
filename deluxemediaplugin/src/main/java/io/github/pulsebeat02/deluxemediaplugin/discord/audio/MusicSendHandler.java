@@ -26,10 +26,10 @@ package io.github.pulsebeat02.deluxemediaplugin.discord.audio;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.playback.AudioFrame;
+import io.github.pulsebeat02.deluxemediaplugin.discord.MediaBot;
 import java.nio.ByteBuffer;
 import javax.annotation.Nullable;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
-import net.dv8tion.jda.api.entities.Guild;
 import org.jetbrains.annotations.NotNull;
 
 public class MusicSendHandler implements AudioSendHandler {
@@ -43,14 +43,13 @@ public class MusicSendHandler implements AudioSendHandler {
    *
    * @param musicManager MusicManager Class.
    * @param audioPlayer AudioPlayer.
-   * @param guild Current Guild.
    */
   public MusicSendHandler(
+      @NotNull final MediaBot bot,
       @NotNull final MusicManager musicManager,
-      @NotNull final AudioPlayer audioPlayer,
-      @NotNull final Guild guild) {
+      @NotNull final AudioPlayer audioPlayer) {
     this.audioPlayer = audioPlayer;
-    this.trackScheduler = new TrackScheduler(musicManager, audioPlayer, guild);
+    this.trackScheduler = new TrackScheduler(bot, musicManager, audioPlayer);
     audioPlayer.addListener(this.trackScheduler);
   }
 

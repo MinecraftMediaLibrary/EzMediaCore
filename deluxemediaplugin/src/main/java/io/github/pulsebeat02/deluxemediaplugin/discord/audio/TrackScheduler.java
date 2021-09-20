@@ -27,23 +27,23 @@ package io.github.pulsebeat02.deluxemediaplugin.discord.audio;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import net.dv8tion.jda.api.entities.Guild;
+import io.github.pulsebeat02.deluxemediaplugin.discord.MediaBot;
 import org.jetbrains.annotations.NotNull;
 
 /** Stolen from itxfrosty Music bot. */
 public class TrackScheduler extends AudioEventAdapter {
 
-  private final Guild guild;
+  private final MediaBot bot;
   private final AudioPlayer audioPlayer;
   private final MusicManager musicManager;
 
   public TrackScheduler(
+      @NotNull final MediaBot bot,
       @NotNull final MusicManager musicManager,
-      @NotNull final AudioPlayer player,
-      @NotNull final Guild guild) {
+      @NotNull final AudioPlayer player) {
+    this.bot = bot;
     this.musicManager = musicManager;
     this.audioPlayer = player;
-    this.guild = guild;
   }
 
   /**
