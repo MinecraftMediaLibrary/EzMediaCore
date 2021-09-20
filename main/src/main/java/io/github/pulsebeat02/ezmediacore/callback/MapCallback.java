@@ -27,7 +27,6 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithmType;
-import io.github.pulsebeat02.ezmediacore.dither.algorithm.FloydDither;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -81,7 +80,7 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
 
   public static final class Builder extends CallbackBuilder {
 
-    private DitherAlgorithm algorithm = new FloydDither();
+    private DitherAlgorithm algorithm = DitherAlgorithmType.FILTER_LITE.getAlgorithm();
     private Identifier<Integer> map = Identifier.ofIdentifier(0);
     private int blockWidth;
 

@@ -25,12 +25,12 @@ public final class ArrayUtils {
 
   public static <T> void parallelSneaky(
       final T @NotNull [] array, @NotNull final Consumer<T> consumer) {
-    stream(array).parallel().forEach(ThrowingConsumer.sneaky(consumer));
+    stream(array).parallel().forEach(ThrowingConsumer.sneakyConsumer(consumer));
   }
 
   public static <T> void parallelUnchecked(
       final T @NotNull [] array, @NotNull final Consumer<T> consumer) {
-    stream(array).parallel().forEach(ThrowingConsumer.unchecked(consumer));
+    stream(array).parallel().forEach(ThrowingConsumer.uncheckedConsumer(consumer));
   }
 
   public static <T> @NotNull List<T> list(final T @NotNull [] array) {
