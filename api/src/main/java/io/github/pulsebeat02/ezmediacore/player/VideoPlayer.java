@@ -45,31 +45,31 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
   void setPlayerState(@NotNull final PlayerControls controls, @NotNull final Object... arguments);
 
-  void setMrlConfiguration(@NotNull final MrlConfiguration configuration);
-
-  void setCallback(@NotNull final Callback callback);
-
   void setDimensions(@NotNull final Dimension dimensions);
 
-  void setSoundKey(@NotNull final SoundKey key);
-
   void setViewers(@NotNull final Viewers viewers);
-
-  void setFrameConfiguration(@NotNull final FrameConfiguration configuration);
 
   void onPlayerStateChange(@NotNull final PlayerControls status);
 
   @NotNull
   Callback getCallback();
 
+  void setCallback(@NotNull final Callback callback);
+
   @NotNull
   MrlConfiguration getMrlConfiguration();
+
+  void setMrlConfiguration(@NotNull final MrlConfiguration configuration);
 
   @NotNull
   FrameConfiguration getFrameConfiguration();
 
+  void setFrameConfiguration(@NotNull final FrameConfiguration configuration);
+
   @NotNull
   SoundKey getSoundKey();
+
+  void setSoundKey(@NotNull final SoundKey key);
 
   @NotNull
   PlayerControls getPlayerState();

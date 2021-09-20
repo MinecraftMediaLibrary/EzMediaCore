@@ -80,12 +80,10 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
 
   public static final class Builder extends CallbackBuilder {
 
-    Builder() {
-    }
-
     private DitherAlgorithm algorithm = new FloydDither();
     private Identifier<Integer> map = Identifier.ofIdentifier(0);
     private int blockWidth;
+    Builder() {}
 
     @Contract("_ -> this")
     @Override

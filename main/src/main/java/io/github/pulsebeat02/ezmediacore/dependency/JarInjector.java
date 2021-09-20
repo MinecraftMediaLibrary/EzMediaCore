@@ -44,7 +44,9 @@ public final class JarInjector implements DependencyInjector {
   }
 
   @Override
-  public void inject(@NotNull final Injectable injectable, @NotNull final DependencyData data,
+  public void inject(
+      @NotNull final Injectable injectable,
+      @NotNull final DependencyData data,
       @NotNull final Map<String, ResolutionResult> var3) {
     this.dependencies.forEach(
         x -> {

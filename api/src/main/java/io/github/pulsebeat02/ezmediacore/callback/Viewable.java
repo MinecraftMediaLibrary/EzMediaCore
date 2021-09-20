@@ -29,5 +29,4 @@ public interface Viewable {
 
   @NotNull
   Viewers getWatchers();
-
 }

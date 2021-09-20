@@ -2,7 +2,10 @@
   "name": "DeluxeMediaPlugin",
   "version": "1.0.0",
   "description": "Play media in Minecraft!",
-  "authors": ["PulseBeat02", "itxfrosty"],
+  "authors": [
+    "PulseBeat02",
+    "itxfrosty"
+  ],
   "api-version": "1.16",
   "main": "io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPluginBootstrap",
   "load": "STARTUP"

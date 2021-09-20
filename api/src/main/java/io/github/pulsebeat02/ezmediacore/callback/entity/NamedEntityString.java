@@ -47,10 +47,6 @@ public final class NamedEntityString {
     HORIZONTAL_RECTANGLE = ofString("▬");
   }
 
-  public @NotNull String getName() {
-    return this.name;
-  }
-
   private final String name;
 
   NamedEntityString(@NotNull final String name) {
@@ -59,5 +55,9 @@ public final class NamedEntityString {
 
   public static @NotNull NamedEntityString ofString(@NotNull final String name) {
     return new NamedEntityString(name);
+  }
+
+  public @NotNull String getName() {
+    return this.name;
   }
 }

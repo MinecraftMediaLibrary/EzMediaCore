@@ -122,6 +122,12 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
   private int setAudioOutput(@NotNull final CommandContext<CommandSender> context) {
 
     final Audience audience = this.plugin.audience().sender(context.getSource());
+
+    if (VideoCommandAttributes.TEMPORARY_PLACEHOLDER) {
+      audience.sendMessage(text("Unfortunately, DeluxeMediaPlugin hasn't programmed other audio outputs yet. Stay tuned. We are working very hard to add new audio outputs!"));
+      return SINGLE_SUCCESS;
+    }
+
     final String argument = context.getArgument("audio-type", String.class);
     final Optional<AudioOutputType> optional = AudioOutputType.ofKey(argument);
     if (optional.isEmpty()) {

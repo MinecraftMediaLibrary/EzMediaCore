@@ -177,12 +177,11 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
 
   public static final class Builder extends CallbackBuilder {
 
-    Builder() {
-    }
-
     private NamedEntityString character = NamedEntityString.NORMAL_SQUARE;
     private Location location;
     private EntityType type = EntityType.ARMORSTAND;
+    Builder() {
+    }
 
     @Contract("_ -> this")
     @Override

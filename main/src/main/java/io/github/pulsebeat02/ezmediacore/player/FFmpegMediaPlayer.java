@@ -95,14 +95,14 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
   }
 
   @Override
-  public void setBufferConfiguration(@NotNull final BufferConfiguration configuration) {
-    this.buffer = configuration;
-    this.modifyPlayerAttributes();
+  public @NotNull BufferConfiguration getBufferConfiguration() {
+    return this.buffer;
   }
 
   @Override
-  public @NotNull BufferConfiguration getBufferConfiguration() {
-    return this.buffer;
+  public void setBufferConfiguration(@NotNull final BufferConfiguration configuration) {
+    this.buffer = configuration;
+    this.modifyPlayerAttributes();
   }
 
   private void modifyPlayerAttributes() {
@@ -292,10 +292,10 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
 
   public static final class Builder extends VideoBuilder {
 
+    private BufferConfiguration bufferSize = BufferConfiguration.BUFFER_15;
+
     Builder() {
     }
-
-    private BufferConfiguration bufferSize = BufferConfiguration.BUFFER_15;
 
     @Contract("_ -> this")
     @Override

@@ -42,8 +42,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class MusicManager {
 
-  private final MediaBot bot;
   public final Map<Long, MusicSendHandler> musicGuildManager;
+  private final MediaBot bot;
   private final AudioPlayerManager playerManager;
 
   public MusicManager(@NotNull final MediaBot bot) {

@@ -28,7 +28,6 @@ import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.COLOR_MA
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
 import java.nio.ByteBuffer;
-import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 
 public class SimpleDither implements DitherAlgorithm {
@@ -36,25 +35,25 @@ public class SimpleDither implements DitherAlgorithm {
   @Override
   public void dither(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
-    IntStream.range(0, height).parallel().forEach(y -> {
+    for (int y = 0; y < height; y++) {
       final int yIndex = y * width;
       for (int x = 0; x < width; x++) {
         final int index = yIndex + x;
         buffer[index] = this.getBestColorNormal(buffer[index]);
       }
-    });
+    }
   }
 
   @Override
   public ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     final ByteBuffer data = ByteBuffer.allocate(buffer.length);
-    IntStream.range(0, height).parallel().forEach(y -> {
+    for (int y = 0; y < height; y++) {
       final int yIndex = y * width;
       for (int x = 0; x < width; x++) {
         data.put(this.getBestColor(buffer[yIndex + x]));
       }
-    });
+    }
     return data;
   }
 

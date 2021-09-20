@@ -34,6 +34,12 @@ import org.jetbrains.annotations.Nullable;
 
 public final class VideoCommandAttributes {
 
+  public static final boolean TEMPORARY_PLACEHOLDER;
+
+  static {
+    TEMPORARY_PLACEHOLDER = true;
+  }
+
   private final AtomicBoolean completion;
 
   private VideoPlayer player;

@@ -28,7 +28,6 @@ import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.FULL_COL
 
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import java.nio.ByteBuffer;
-import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 
 public class FilterLiteDither implements DitherAlgorithm {
@@ -61,7 +60,7 @@ public class FilterLiteDither implements DitherAlgorithm {
 
      */
 
-    IntStream.range(0, height).parallel().forEach(y -> {
+    for (int y = 0; y < height; y++) {
       final boolean hasNextY = y < heightMinus;
       final int yIndex = y * width;
       if ((y & 0x1) == 0) {
@@ -133,7 +132,7 @@ public class FilterLiteDither implements DitherAlgorithm {
           buffer[index] = closest;
         }
       }
-    });
+    }
   }
 
   @Override
@@ -143,7 +142,7 @@ public class FilterLiteDither implements DitherAlgorithm {
     final int heightMinus = height - 1;
     final int[][] dither_buffer = new int[2][width << 2];
     final ByteBuffer data = ByteBuffer.allocate(buffer.length);
-    IntStream.range(0, height).parallel().forEach(y -> {
+    for (int y = 0; y < height; y++) {
       final boolean hasNextY = y < heightMinus;
       final int yIndex = y * width;
       if ((y & 0x1) == 0) {
@@ -215,7 +214,7 @@ public class FilterLiteDither implements DitherAlgorithm {
           data.put(index, this.getBestColor(closest));
         }
       }
-    });
+    }
     return data;
   }
 

@@ -99,8 +99,18 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
+  public void setCallback(@NotNull final Callback callback) {
+    this.callback = callback;
+  }
+
+  @Override
   public @NotNull SoundKey getSoundKey() {
     return this.key;
+  }
+
+  @Override
+  public void setSoundKey(@NotNull final SoundKey key) {
+    this.key = key;
   }
 
   @Override
@@ -135,8 +145,8 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void setMrlConfiguration(@NotNull final MrlConfiguration configuration) {
-    this.mrl = configuration;
+  public void setFrameConfiguration(@NotNull final FrameConfiguration configuration) {
+    this.fps = configuration;
   }
 
   @Override
@@ -145,8 +155,18 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
+  public void setMrlConfiguration(@NotNull final MrlConfiguration configuration) {
+    this.mrl = configuration;
+  }
+
+  @Override
   public @NotNull Dimension getDimensions() {
     return this.dimensions;
+  }
+
+  @Override
+  public void setDimensions(@NotNull final Dimension dimensions) {
+    this.dimensions = dimensions;
   }
 
   @Override
@@ -170,27 +190,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void setCallback(@NotNull final Callback callback) {
-    this.callback = callback;
-  }
-
-  @Override
-  public void setDimensions(@NotNull final Dimension dimensions) {
-    this.dimensions = dimensions;
-  }
-
-  @Override
-  public void setSoundKey(@NotNull final SoundKey key) {
-    this.key = key;
-  }
-
-  @Override
   public void setViewers(@NotNull final Viewers viewers) {
     this.viewers = viewers;
-  }
-
-  @Override
-  public void setFrameConfiguration(@NotNull final FrameConfiguration configuration) {
-    this.fps = configuration;
   }
 }

@@ -36,6 +36,31 @@ public abstract class CallbackBuilder {
   private Dimension dims;
   private Viewers viewers = Viewers.onlinePlayers();
 
+  @Contract(value = " -> new", pure = true)
+  public static @NotNull BlockHighlightCallback.Builder blockHighlight() {
+    return new BlockHighlightCallback.Builder();
+  }
+
+  @Contract(value = " -> new", pure = true)
+  public static @NotNull ChatCallback.Builder chat() {
+    return new ChatCallback.Builder();
+  }
+
+  @Contract(value = " -> new", pure = true)
+  public static @NotNull EntityCallback.Builder entity() {
+    return new EntityCallback.Builder();
+  }
+
+  @Contract(value = " -> new", pure = true)
+  public static @NotNull MapCallback.Builder map() {
+    return new MapCallback.Builder();
+  }
+
+  @Contract(value = " -> new", pure = true)
+  public static @NotNull ScoreboardCallback.Builder scoreboard() {
+    return new Builder();
+  }
+
   @Contract("_ -> this")
   public @NotNull CallbackBuilder delay(@NotNull final DelayConfiguration delay) {
     this.delay = delay;
@@ -67,29 +92,4 @@ public abstract class CallbackBuilder {
   }
 
   public abstract @NotNull FrameCallback build(@NotNull final MediaLibraryCore core);
-
-  @Contract(value = " -> new", pure = true)
-  public static @NotNull BlockHighlightCallback.Builder blockHighlight() {
-    return new BlockHighlightCallback.Builder();
-  }
-
-  @Contract(value = " -> new", pure = true)
-  public static @NotNull ChatCallback.Builder chat() {
-    return new ChatCallback.Builder();
-  }
-
-  @Contract(value = " -> new", pure = true)
-  public static @NotNull EntityCallback.Builder entity() {
-    return new EntityCallback.Builder();
-  }
-
-  @Contract(value = " -> new", pure = true)
-  public static @NotNull MapCallback.Builder map() {
-    return new MapCallback.Builder();
-  }
-
-  @Contract(value = " -> new", pure = true)
-  public static @NotNull ScoreboardCallback.Builder scoreboard() {
-    return new Builder();
-  }
 }

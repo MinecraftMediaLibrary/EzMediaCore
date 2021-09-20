@@ -249,6 +249,56 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     this.modifyPlayerAttributes();
   }
 
+  public static final class Builder extends VideoBuilder {
+
+    private Object[] arguments = {};
+
+    Builder() {
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder callback(@NotNull final Callback callback) {
+      super.callback(callback);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder frameRate(@NotNull final FrameConfiguration rate) {
+      super.frameRate(rate);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder dims(@NotNull final Dimension dims) {
+      super.dims(dims);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder soundKey(@NotNull final SoundKey key) {
+      super.soundKey(key);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    public Builder args(@NotNull final Object... arguments) {
+      this.arguments = arguments;
+      return this;
+    }
+
+    @Contract(" -> new")
+    @Override
+    public @NotNull MediaPlayer build() {
+      final Callback callback = this.getCallback();
+      return new VLCMediaPlayer(callback, callback.getWatchers(),  this.getDims(), this.getKey(), this.getRate(),
+            this.arguments);
+    }
+  }
+
   private class MinecraftVideoRenderCallback extends RenderCallbackAdapter {
 
     private final Consumer<int[]> callback;
@@ -302,56 +352,6 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
 
     public int getBlockSize() {
       return this.blockSize;
-    }
-  }
-
-  public static final class Builder extends VideoBuilder {
-
-    private Object[] arguments = {};
-
-    Builder() {
-    }
-
-    @Contract("_ -> this")
-    @Override
-    public Builder callback(@NotNull final Callback callback) {
-      super.callback(callback);
-      return this;
-    }
-
-    @Contract("_ -> this")
-    @Override
-    public Builder frameRate(@NotNull final FrameConfiguration rate) {
-      super.frameRate(rate);
-      return this;
-    }
-
-    @Contract("_ -> this")
-    @Override
-    public Builder dims(@NotNull final Dimension dims) {
-      super.dims(dims);
-      return this;
-    }
-
-    @Contract("_ -> this")
-    @Override
-    public Builder soundKey(@NotNull final SoundKey key) {
-      super.soundKey(key);
-      return this;
-    }
-
-    @Contract("_ -> this")
-    public Builder args(@NotNull final Object... arguments) {
-      this.arguments = arguments;
-      return this;
-    }
-
-    @Contract(" -> new")
-    @Override
-    public @NotNull MediaPlayer build() {
-      final Callback callback = this.getCallback();
-      return new VLCMediaPlayer(callback, callback.getWatchers(),  this.getDims(), this.getKey(), this.getRate(),
-            this.arguments);
     }
   }
 }

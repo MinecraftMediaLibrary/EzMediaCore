@@ -78,10 +78,9 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
 
   public static final class Builder extends CallbackBuilder {
 
-    Builder() {
-    }
-
     private NamedEntityString character = NamedEntityString.NORMAL_SQUARE;
+
+    Builder() {}
 
     @Contract("_ -> this")
     @Override
@@ -116,5 +115,4 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
           core, this.getViewers(), this.getDims(), this.character, this.getDelay());
     }
   }
-
 }

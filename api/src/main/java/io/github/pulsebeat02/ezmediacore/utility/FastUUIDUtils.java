@@ -67,6 +67,10 @@ import org.jetbrains.annotations.NotNull;
 public class FastUUIDUtils {
 
   private static final boolean USE_JDK_UUID_TO_STRING;
+  private static final int UUID_STRING_LENGTH = 36;
+  private static final char[] HEX_DIGITS =
+      new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+  private static final long[] HEX_VALUES = new long[128];
 
   static {
     int majorVersion = 0;
@@ -79,13 +83,6 @@ public class FastUUIDUtils {
     }
     USE_JDK_UUID_TO_STRING = majorVersion >= 9;
   }
-
-  private static final int UUID_STRING_LENGTH = 36;
-
-  private static final char[] HEX_DIGITS =
-      new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-
-  private static final long[] HEX_VALUES = new long[128];
 
   static {
     Arrays.fill(HEX_VALUES, -1);
