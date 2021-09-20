@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore;
 
 import io.github.pulsebeat02.ezmediacore.analysis.Diagnostic;
 import io.github.pulsebeat02.ezmediacore.analysis.SystemDiagnostics;
-import io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil;
+import io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil;
 import io.github.pulsebeat02.ezmediacore.listener.RegistrationListener;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;

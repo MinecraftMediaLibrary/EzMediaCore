@@ -25,6 +25,7 @@ package io.github.pulsebeat02.ezmediacore.player;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Objects;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -77,5 +78,10 @@ public final class MrlConfiguration {
       return false;
     }
     return ((MrlConfiguration) obj).mrl.equals(this.mrl);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.mrl);
   }
 }

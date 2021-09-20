@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import java.util.Objects;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,5 +73,10 @@ public final class BufferConfiguration {
       return false;
     }
     return ((BufferConfiguration) obj).buffer == this.buffer;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.buffer);
   }
 }

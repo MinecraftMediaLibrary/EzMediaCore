@@ -23,9 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore.dither.algorithm;
 
-import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.COLOR_MAP;
-import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.FULL_COLOR_MAP;
-import static io.github.pulsebeat02.ezmediacore.dither.DitherLookupUtil.PALETTE;
+import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.COLOR_MAP;
+import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.FULL_COLOR_MAP;
+import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.PALETTE;
 
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import java.awt.image.BufferedImage;

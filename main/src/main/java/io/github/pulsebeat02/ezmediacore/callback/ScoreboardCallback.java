@@ -109,7 +109,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
                     if (before != rgb) {
                       msg.append(ChatColor.of("#" + "%08x".formatted(rgb).substring(2)));
                     }
-                    msg.append("\u2588");
+                    msg.append("█");
                     before = rgb;
                   }
                   final Team team = this.scoreboard.getTeam("SLOT_" + y);

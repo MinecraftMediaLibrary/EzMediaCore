@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import java.util.Objects;
 import org.bukkit.Sound;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -61,5 +62,10 @@ public final class SoundKey {
       return false;
     }
     return ((SoundKey) obj).name.equals(this.name);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.name);
   }
 }

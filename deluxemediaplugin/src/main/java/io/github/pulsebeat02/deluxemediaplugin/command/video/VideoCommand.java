@@ -153,6 +153,7 @@ public final class VideoCommand extends BaseCommand {
 				final MediaBot bot = plugin.getMediaBot();
 				
 			}
+			default -> throw new IllegalArgumentException("Illegal Audio Output!");
 		}
 
 		this.attributes.getPlayer().setPlayerState(PlayerControls.START, MrlConfiguration.ofMrl(this.attributes.getVideoMrl()));
