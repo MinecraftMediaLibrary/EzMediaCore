@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.jcodec.common.Preconditions;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,14 +57,11 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32Buffe
 
 public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlayer {
 
-  private static VLCMediaPlayer VLC_PLAYER_INSTANCE;
-
   private final VideoSurfaceAdapter adapter;
   private BufferFormatCallback bufferFormatCallback;
   private MinecraftVideoRenderCallback videoCallback;
   private MinecraftAudioCallback audioCallback;
   private CallbackVideoSurface surface;
-
   private MediaPlayerFactory factory;
   private EmbeddedMediaPlayer player;
   private NativeLog logger;
@@ -96,24 +94,22 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     switch (controls) {
       case START -> {
         this.setMrlConfiguration(ArgumentUtils.checkPlayerArguments(arguments));
-        final EmbeddedMediaPlayer player = VLC_PLAYER_INSTANCE.player;
-        if (player == null) {
+        if (this.player == null) {
           this.initializePlayer(0L, this.getProperArguments(arguments));
         }
-        VLC_PLAYER_INSTANCE.player.media().play(this.getMrlConfiguration().getMrl());
+        this.player.media().play(this.getMrlConfiguration().getMrl());
         this.playAudio();
       }
       case PAUSE -> {
         this.stopAudio();
-        VLC_PLAYER_INSTANCE.player.controls().stop();
+        this.player.controls().stop();
       }
       case RESUME -> {
-        final EmbeddedMediaPlayer player = VLC_PLAYER_INSTANCE.player;
-        if (VLC_PLAYER_INSTANCE.player == null) {
+        if (this.player == null) {
           this.initializePlayer(0L);
-          VLC_PLAYER_INSTANCE.player.media().play(this.getMrlConfiguration().getMrl());
+          this.player.media().play(this.getMrlConfiguration().getMrl());
         } else {
-          player.controls().play();
+          this.player.controls().play();
         }
         this.playAudio();
       }
@@ -132,26 +128,21 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
 
   @Override
   public void initializePlayer(final long ms, @NotNull final Object... arguments) {
-    final EmbeddedMediaPlayer player =  this.getEmbeddedMediaPlayer(
+    this.player = this.getEmbeddedMediaPlayer(
         Arrays.stream(arguments).collect(Collectors.toList()));
-    if (VLCMediaPlayer.VLC_PLAYER_INSTANCE.player == null) {
-      this.player = player;
-    } else {
-      VLCMediaPlayer.VLC_PLAYER_INSTANCE.player = player;
-    }
-    VLCMediaPlayer.VLC_PLAYER_INSTANCE.player.controls().setTime(ms);
+    this.player.controls().setTime(ms);
   }
 
   @Override
   public long getElapsedMilliseconds() {
-    return VLC_PLAYER_INSTANCE.player.status().time();
+    return this.player.status().time();
   }
 
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer(
       @NotNull final Collection<Object> arguments) {
-    if (VLC_PLAYER_INSTANCE == null || VLC_PLAYER_INSTANCE.player == null
-        || VLC_PLAYER_INSTANCE.factory == null
-        || VLC_PLAYER_INSTANCE.logger == null) { // just in case something is null;
+    if (this.player == null
+        || this.factory == null
+        || this.logger == null) { // just in case something is null;
       this.factory = new MediaPlayerFactory(this.constructArguments(arguments));
       final NativeLog logger = this.factory.application().newLog();
       if (logger == null) { // ignore this warning as its intellij being dumb with native bindings
@@ -162,10 +153,11 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
             (level, module, file, line, name, header, id, message) ->
                 Logger.directPrintVLC(
                     "[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message)));
+        this.logger = logger;
       }
       return this.factory.mediaPlayers().newEmbeddedMediaPlayer();
     }
-    return VLC_PLAYER_INSTANCE.player;
+    return this.player;
   }
 
   private @NotNull List<String> constructArguments(@NotNull final Collection<Object> arguments) {
@@ -182,29 +174,25 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   }
 
   private void releaseAll() {
-    final EmbeddedMediaPlayer player = VLC_PLAYER_INSTANCE.player;
-    if (player != null) {
-      player.controls().stop();
-      player.release();
-      VLC_PLAYER_INSTANCE.player = null;
-    }
-    if (this.factory != null) {
-      this.factory.release();
-      VLC_PLAYER_INSTANCE.player = null;
-    }
     if (this.logger != null) {
       this.logger.release();
       this.logger = null;
     }
-    this.surface = null;
+    if (this.player != null) {
+      this.player.controls().stop();
+      this.player.release();
+      this.player = null;
+    }
+    if (this.factory != null) {
+      this.factory.release();
+      this.player = null;
+    }
   }
 
   @Contract(" -> new")
   private @NotNull CallbackVideoSurface getSurface() {
-    if (this.surface == null) {
-      this.surface = new CallbackVideoSurface(this.getBufferCallback(), this.videoCallback, false,
+    this.surface = new CallbackVideoSurface(this.getBufferCallback(), this.videoCallback, false,
           this.adapter);
-    }
     return this.surface;
   }
 
@@ -228,15 +216,21 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
 
   @Override
   public void setCustomVideoAdapter(@NotNull final Consumer<int[]> pixels) {
-    this.videoCallback = new MinecraftVideoRenderCallback(this, pixels);
-    VLC_PLAYER_INSTANCE.player.videoSurface().set(this.getSurface());
+    this.checkIfReleased();
+    this.videoCallback = new MinecraftVideoRenderCallback(pixels);
+    this.player.videoSurface().set(this.getSurface());
   }
 
   @Override
   public void setCustomAudioAdapter(@NotNull final Consumer<byte[]> audio, final int blockSize,
       @NotNull final String format, final int rate, final int channels) {
+    this.checkIfReleased();
     this.audioCallback = new MinecraftAudioCallback(audio, blockSize);
-    VLC_PLAYER_INSTANCE.player.audio().callback(format, rate, channels, this.audioCallback);
+    this.player.audio().callback(format, rate, channels, this.audioCallback);
+  }
+
+  private void checkIfReleased() {
+    Preconditions.checkArgument(this.player != null, "Cannot modify player after being released!");
   }
 
   private void modifyPlayerAttributes() {
@@ -255,42 +249,39 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     this.modifyPlayerAttributes();
   }
 
-  /**
-   * The callback function for this class must be static because if it is GCed, the native resources
-   * will not be able to find the JVM object to send the frame data to, leading to a JVM crash.
-   */
-  private static class MinecraftVideoRenderCallback extends RenderCallbackAdapter {
+  private class MinecraftVideoRenderCallback extends RenderCallbackAdapter {
 
-    private static Consumer<int[]> callback;
+    private final Consumer<int[]> callback;
 
-    public MinecraftVideoRenderCallback(@NotNull final VLCMediaPlayer player) {
-      this(player, player.getCallback()::process);
+    public MinecraftVideoRenderCallback() {
+      this(VLCMediaPlayer.super.getCallback()::process);
     }
 
-    public MinecraftVideoRenderCallback(@NotNull final VLCMediaPlayer player,
-        @NotNull final Consumer<int[]> consumer) {
-      super(new int[player.getDimensions().getWidth() * player.getDimensions().getHeight()]);
-      callback = consumer;
+    public MinecraftVideoRenderCallback(@NotNull final Consumer<int[]> consumer) {
+      super(new int[VLCMediaPlayer.super.getDimensions().getWidth() * VLCMediaPlayer.super.getDimensions().getHeight()]);
+      this.callback = consumer;
     }
 
     @Override
     protected void onDisplay(
         final uk.co.caprica.vlcj.player.base.MediaPlayer mediaPlayer, final int[] buffer) {
-      callback.accept(buffer);
+      this.callback.accept(buffer);
+    }
+
+    public @NotNull Consumer<int[]> getCallback() {
+      return this.callback;
     }
   }
 
-  /**
-   * The callback function for this class must be static because if it is GCed, the native resources
-   * will not be able to find the JVM object to send the audio data to, leading to a JVM crash.
-   */
-  private static class MinecraftAudioCallback extends AudioCallbackAdapter {
+  private class MinecraftAudioCallback extends AudioCallbackAdapter {
 
-    private static Consumer<byte[]> callback;
+    private final Consumer<byte[]> callback;
+    private final Viewers viewers;
     private final int blockSize;
 
     public MinecraftAudioCallback(@NotNull final Consumer<byte[]> consumer, final int blockSize) {
-      callback = consumer;
+      this.callback = consumer;
+      this.viewers = VLCMediaPlayer.super.getWatchers();
       this.blockSize = blockSize;
     }
 
@@ -298,7 +289,19 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     public void play(final uk.co.caprica.vlcj.player.base.MediaPlayer mediaPlayer,
         final Pointer samples,
         final int sampleCount, final long pts) {
-      callback.accept(samples.getByteArray(0, sampleCount * this.blockSize));
+      this.callback.accept(samples.getByteArray(0, sampleCount * this.blockSize));
+    }
+
+    public @NotNull Consumer<byte[]> getCallback() {
+      return this.callback;
+    }
+
+    public @NotNull Viewers getViewers() {
+      return this.viewers;
+    }
+
+    public int getBlockSize() {
+      return this.blockSize;
     }
   }
 
@@ -343,35 +346,12 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
       return this;
     }
 
-    /**
-     * The reason why we have to make the VLC player instance mutable is due to hard references. By
-     * default, JNA requires all native resources to have a strong reference, so they won't be
-     * garbage collected. That way, the JVM won't crash when native resources try to interact with a
-     * JVM object that doesn't exist. Therefore, as hideous as it sounds, we must use a mutable
-     * static object to maintain such a hard reference. I hope to find a better solution to solve
-     * this in the future.
-     *
-     * @return the video player
-     */
     @Contract(" -> new")
     @Override
     public @NotNull MediaPlayer build() {
       final Callback callback = this.getCallback();
-      final Viewers viewers = callback.getWatchers();
-      final Dimension dims = this.getDims();
-      final SoundKey key = this.getKey();
-      final FrameConfiguration rate = this.getRate();
-      if (VLC_PLAYER_INSTANCE == null) {
-        VLC_PLAYER_INSTANCE = new VLCMediaPlayer(callback, viewers, dims, key, rate,
+      return new VLCMediaPlayer(callback, callback.getWatchers(),  this.getDims(), this.getKey(), this.getRate(),
             this.arguments);
-      } else {
-        VLC_PLAYER_INSTANCE.setCallback(callback);
-        VLC_PLAYER_INSTANCE.setViewers(viewers);
-        VLC_PLAYER_INSTANCE.setDimensions(dims);
-        VLC_PLAYER_INSTANCE.setSoundKey(key);
-        VLC_PLAYER_INSTANCE.setFrameConfiguration(rate);
-      }
-      return VLC_PLAYER_INSTANCE;
     }
   }
 }
