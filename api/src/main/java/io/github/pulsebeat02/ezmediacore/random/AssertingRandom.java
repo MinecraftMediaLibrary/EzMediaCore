@@ -12,22 +12,19 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class AssertingRandom extends Random {
 
-  @Serial
-  private static final long serialVersionUID = -1552213382473062718L;
+  @Serial private static final long serialVersionUID = -1552213382473062718L;
+  /** Enable paranoid mode when assertions are enabled. */
+  private static final boolean assertionsEnabled = AssertingRandom.class.desiredAssertionStatus();
   private final Random delegate;
   private final WeakReference<Thread> ownerRef;
   private final String ownerName;
   private final StackTraceElement[] allocationStack;
-
   /**
    * Track out-of-context use of this {@link Random} instance. This introduces memory barriers and
    * scheduling side-effects but there's no other way to do it in any other way and sharing randoms
    * across threads or test cases is very bad and worth tracking.
    */
   private volatile boolean valid = true;
-
-  /** Enable paranoid mode when assertions are enabled. */
-  private static final boolean assertionsEnabled = AssertingRandom.class.desiredAssertionStatus();
 
   /**
    * Creates an instance to be used by <code>owner</code> thread and delegating to <code>delegate
@@ -41,6 +38,22 @@ public final class AssertingRandom extends Random {
     this.ownerRef = new WeakReference<>(owner);
     this.ownerName = owner.toString();
     this.allocationStack = Thread.currentThread().getStackTrace();
+  }
+
+  /**
+   * @return Return <code>true</code> if this class is verifying sharing and lifecycle assertions.
+   * @see "https://github.com/randomizedtesting/randomizedtesting/issues/234"
+   */
+  public static boolean isVerifying() {
+    return assertionsEnabled;
+  }
+
+  @Contract(value = " -> new", pure = true)
+  static @NotNull RuntimeException noSetSeed() {
+    return new RuntimeException(
+        "Class prevents changing the seed of its random generators to assure repeatability"
+            + " of tests. If you need a mutable instance of Random, create a new (local) instance,"
+            + " preferably with the initial seed aquired from this Random instance.");
   }
 
   @Override
@@ -166,22 +179,6 @@ public final class AssertingRandom extends Random {
   protected Object clone() throws CloneNotSupportedException {
     this.checkValid();
     throw new CloneNotSupportedException("Don't clone test Randoms.");
-  }
-
-  /**
-   * @return Return <code>true</code> if this class is verifying sharing and lifecycle assertions.
-   * @see "https://github.com/randomizedtesting/randomizedtesting/issues/234"
-   */
-  public static boolean isVerifying() {
-    return assertionsEnabled;
-  }
-
-  @Contract(value = " -> new", pure = true)
-  static @NotNull RuntimeException noSetSeed() {
-    return new RuntimeException(
-        "Class prevents changing the seed of its random generators to assure repeatability"
-            + " of tests. If you need a mutable instance of Random, create a new (local) instance,"
-            + " preferably with the initial seed aquired from this Random instance.");
   }
 
   // Overriding this has side effects on the GC; let's not be paranoid.

@@ -1,8 +1,8 @@
-package io.github.pulsebeat02.ezmediacore.youtubedl;
+package io.github.pulsebeat02.ezmediacore.jlibdl;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class Thumbnail {
 
@@ -14,11 +14,11 @@ public final class Thumbnail {
   @Expose
   private String url;
 
-  public @NotNull String getId() {
+  public @Nullable String getId() {
     return this.id;
   }
 
-  public @NotNull String getUrl() {
+  public @Nullable String getUrl() {
     return this.url;
   }
 }

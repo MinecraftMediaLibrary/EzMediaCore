@@ -25,14 +25,27 @@ package io.github.pulsebeat02.ezmediacore.utility;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.github.pulsebeat02.ezmediacore.jlibdl.Format;
+import io.github.pulsebeat02.ezmediacore.jlibdl.JLibDL;
+import io.github.pulsebeat02.ezmediacore.jlibdl.MediaInfo;
+import io.github.pulsebeat02.ezmediacore.jlibdl.YoutubeDLRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
+import org.apache.commons.compress.utils.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class RequestUtils {
+
+  private static final JLibDL JLIBDL;
+
+  static {
+    JLIBDL = new JLibDL();
+  }
 
   private RequestUtils() {}
 
@@ -69,8 +82,67 @@ public final class RequestUtils {
     return result.toString();
   }
 
-  public static String getParentUrl(@NotNull final String link) {
+  public static @NotNull String getParentUrl(@NotNull final String link) {
     final int index = link.lastIndexOf('/');
     return index > 0 ? "%s/".formatted(link.substring(0, index)) : "/";
+  }
+
+  public static @NotNull List<String> getVideoURLs(@NotNull final String url)
+      throws IOException, InterruptedException {
+    final YoutubeDLRequest request = JLIBDL.request(url);
+    if (!validFormats(request)) {
+      return List.of();
+    }
+    return List.copyOf(getFormats(request, true));
+  }
+
+  public static @NotNull List<String> getAudioURLs(@NotNull final String url)
+      throws IOException, InterruptedException {
+    final YoutubeDLRequest request = JLIBDL.request(url);
+    if (!validFormats(request)) {
+      return List.of();
+    }
+    return List.copyOf(getFormats(request, false));
+  }
+
+  private static @NotNull List<String> getFormats(
+      @NotNull final YoutubeDLRequest request, final boolean video) {
+    final List<String> urls = Lists.newArrayList();
+    for (final Format format : request.getInfo().getFormats()) {
+      if (format == null) {
+        continue;
+      }
+      final String vcodec = format.getVcodec();
+      final String acodec = format.getAcodec();
+      String url = null;
+      if (video) {
+        if (acodec != null && acodec.equals("none")) {
+          url = format.getUrl();
+        }
+      } else {
+        if (vcodec != null && vcodec.equals("none")) {
+          url = format.getUrl();
+        }
+      }
+      if (url != null) {
+        urls.add(url);
+      }
+    }
+    return urls;
+  }
+
+  private static boolean validFormats(@Nullable final YoutubeDLRequest request) {
+    if (request == null) {
+      return false;
+    }
+    final MediaInfo info = request.getInfo();
+    if (info == null) {
+      return false;
+    }
+    final List<Format> formats = info.getFormats();
+    if (formats == null || formats.size() < 1) {
+      return false;
+    }
+    return true;
   }
 }

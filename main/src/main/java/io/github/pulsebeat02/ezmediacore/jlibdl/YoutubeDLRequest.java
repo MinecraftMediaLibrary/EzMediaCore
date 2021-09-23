@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore.youtubedl;
+package io.github.pulsebeat02.ezmediacore.jlibdl;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
@@ -8,7 +8,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class YoutubeDLRequest {
 
@@ -30,7 +30,7 @@ public final class YoutubeDLRequest {
   @Expose
   private String url;
 
-  static YoutubeDLRequest request(@NotNull final String url)
+  static @Nullable YoutubeDLRequest request(@Nullable final String url)
       throws IOException, InterruptedException {
     return GSON.fromJson(
         HTTP_CLIENT
@@ -41,11 +41,11 @@ public final class YoutubeDLRequest {
         YoutubeDLRequest.class);
   }
 
-  public @NotNull MediaInfo getInfo() {
+  public @Nullable MediaInfo getInfo() {
     return this.info;
   }
 
-  public @NotNull String getUrl() {
+  public @Nullable String getUrl() {
     return this.url;
   }
 }

@@ -1,8 +1,8 @@
-package io.github.pulsebeat02.ezmediacore.youtubedl;
+package io.github.pulsebeat02.ezmediacore.jlibdl;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class FormatHttpHeaders {
 
@@ -26,23 +26,23 @@ public final class FormatHttpHeaders {
   @Expose
   private String userAgent;
 
-  public @NotNull String getAccept() {
+  public @Nullable String getAccept() {
     return this.accept;
   }
 
-  public @NotNull String getAcceptCharset() {
+  public @Nullable String getAcceptCharset() {
     return this.acceptCharset;
   }
 
-  public @NotNull String getAcceptEncoding() {
+  public @Nullable String getAcceptEncoding() {
     return this.acceptEncoding;
   }
 
-  public @NotNull String getAcceptLanguage() {
+  public @Nullable String getAcceptLanguage() {
     return this.acceptLanguage;
   }
 
-  public @NotNull String getUserAgent() {
+  public @Nullable String getUserAgent() {
     return this.userAgent;
   }
 }

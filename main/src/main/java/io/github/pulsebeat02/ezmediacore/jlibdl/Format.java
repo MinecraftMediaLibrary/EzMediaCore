@@ -1,8 +1,8 @@
-package io.github.pulsebeat02.ezmediacore.youtubedl;
+package io.github.pulsebeat02.ezmediacore.jlibdl;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class Format {
 
@@ -62,19 +62,19 @@ public final class Format {
   @Expose
   private int width;
 
-  public @NotNull String getAcodec() {
+  public @Nullable String getAcodec() {
     return this.acodec;
   }
 
-  public @NotNull String getExt() {
+  public @Nullable String getExt() {
     return this.ext;
   }
 
-  public @NotNull String getFormat() {
+  public @Nullable String getFormat() {
     return this.format;
   }
 
-  public @NotNull String getFormatId() {
+  public @Nullable String getFormatId() {
     return this.formatId;
   }
 
@@ -82,19 +82,19 @@ public final class Format {
     return this.fps;
   }
 
-  public @NotNull FormatHttpHeaders getHttpHeaders() {
+  public @Nullable FormatHttpHeaders getHttpHeaders() {
     return this.httpHeaders;
   }
 
-  public @NotNull String getManifestUrl() {
+  public @Nullable String getManifestUrl() {
     return this.manifestUrl;
   }
 
-  public @NotNull Object getPreference() {
+  public @Nullable Object getPreference() {
     return this.preference;
   }
 
-  public @NotNull String getProtocol() {
+  public @Nullable String getProtocol() {
     return this.protocol;
   }
 
@@ -102,11 +102,11 @@ public final class Format {
     return this.tbr;
   }
 
-  public @NotNull String getUrl() {
+  public @Nullable String getUrl() {
     return this.url;
   }
 
-  public @NotNull String getVcodec() {
+  public @Nullable String getVcodec() {
     return this.vcodec;
   }
 

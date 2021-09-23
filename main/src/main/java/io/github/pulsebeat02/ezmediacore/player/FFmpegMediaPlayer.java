@@ -121,6 +121,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
   @Override
   public void setPlayerState(@NotNull final PlayerControls controls, @NotNull final Object... arguments) {
     super.setPlayerState(controls);
+    CompletableFuture.runAsync(() -> {
     this.firstFrame = false;
     switch (controls) {
       case START, RESUME -> this.play(controls, arguments);
@@ -128,6 +129,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
       case RELEASE -> this.release();
       default -> throw new IllegalArgumentException("Player state is invalid!");
     }
+    });
   }
 
   @Override
@@ -230,16 +232,16 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
   }
 
   private void setupPlayer(@NotNull final PlayerControls controls, @NotNull final Object... arguments) {
-    this.setMrlConfiguration(ArgumentUtils.checkPlayerArguments(arguments));
-    if (controls == PlayerControls.START) {
-      this.stopAudio();
-      if (this.ffmpeg == null) {
-        this.initializePlayer(0L);
+      this.setMrlConfiguration(ArgumentUtils.retrievePlayerArguments(arguments));
+      if (controls == PlayerControls.START) {
+        this.stopAudio();
+        if (this.ffmpeg == null) {
+          this.initializePlayer(0L);
+        }
+        this.start = 0L;
+      } else if (controls == PlayerControls.RESUME) {
+        this.initializePlayer(System.currentTimeMillis() - this.start);
       }
-      this.start = 0L;
-    } else if (controls == PlayerControls.RESUME) {
-      this.initializePlayer(System.currentTimeMillis() - this.start);
-    }
   }
 
   private FFmpegResultFuture updateFFmpegPlayer() {
