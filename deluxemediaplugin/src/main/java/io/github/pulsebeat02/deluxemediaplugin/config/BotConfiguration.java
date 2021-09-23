@@ -63,7 +63,7 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
             () -> {
               plugin.log("Bot token not specified in bot.yml!");
               invalid.set(true);
-              return "";
+              return "null";
             });
     final String guild =
         Objects.requireNonNullElseGet(
@@ -71,7 +71,7 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
             () -> {
               plugin.log("Guild token not specified in bot.yml!");
               invalid.set(true);
-              return "";
+              return "null";
             });
     final String voicechannel =
         Objects.requireNonNullElseGet(
@@ -79,7 +79,7 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
             () -> {
               plugin.log("Voice Chat Identifier not specified in bot.yml!");
               invalid.set(true);
-              return "";
+              return "null";
             });
     if (invalid.get()) {
       try {
