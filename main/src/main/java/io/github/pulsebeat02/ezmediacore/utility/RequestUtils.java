@@ -27,6 +27,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.jlibdl.Format;
 import io.github.pulsebeat02.ezmediacore.jlibdl.JLibDL;
@@ -124,17 +125,17 @@ public final class RequestUtils {
   public static @NotNull List<String> getVideoURLs(@NotNull final String url) {
     final Optional<YoutubeDLRequest> optional = validatePrimaryRequest(url);
     if (optional.isEmpty()) {
-      return List.of();
+      return List.of(url);
     }
-    return List.copyOf(getFormats(optional.get(), true));
+    return List.copyOf(getFormats(optional.get(), url, true));
   }
 
   public static @NotNull @Unmodifiable List<String> getAudioURLs(@NotNull final String url) {
     final Optional<YoutubeDLRequest> optional = validatePrimaryRequest(url);
     if (optional.isEmpty()) {
-      return List.of();
+      return List.of(url);
     }
-    return List.copyOf(getFormats(optional.get(), false));
+    return List.copyOf(getFormats(optional.get(), url, false));
   }
 
   private static @NotNull Optional<YoutubeDLRequest> validatePrimaryRequest(
@@ -151,7 +152,7 @@ public final class RequestUtils {
   }
 
   private static @NotNull List<String> getFormats(
-      @NotNull final YoutubeDLRequest request, final boolean video) {
+      @NotNull final YoutubeDLRequest request, @NotNull final String mrl, final boolean video) {
     final List<String> urls = Lists.newArrayList();
     for (final Format format : request.getInfo().getFormats()) {
       if (format == null) {
@@ -172,6 +173,12 @@ public final class RequestUtils {
       if (url != null) {
         urls.add(url);
       }
+    }
+    if (urls.size() == 0) {
+      Logger.info(
+          "youtube-dl could not recognize MRL %s! Adding to List for possible execution."
+              .formatted(mrl));
+      urls.add(mrl);
     }
     return urls;
   }

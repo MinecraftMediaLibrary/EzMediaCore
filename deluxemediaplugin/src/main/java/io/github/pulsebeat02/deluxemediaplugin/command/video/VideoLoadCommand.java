@@ -50,20 +50,22 @@ import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.utility.DependencyUtils;
 import io.github.pulsebeat02.ezmediacore.utility.HashingUtils;
+import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 public final class VideoLoadCommand implements CommandSegment.Literal<CommandSender> {
@@ -108,95 +110,99 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   private int loadVideo(@NotNull final CommandContext<CommandSender> context) {
 
-    final JavaPlugin bootstrap = this.plugin.getBootstrap();
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
-    final String folder =
-        "%s/emc/".formatted(this.plugin.getBootstrap().getDataFolder().getAbsolutePath());
-    final MrlConfiguration configuration = MrlConfiguration.ofMrl(mrl);
+    final Path folder = this.plugin.getBootstrap().getDataFolder().toPath().resolve("emc");
+    final AtomicBoolean successful = new AtomicBoolean(true);
 
+    CompletableFuture.runAsync(
+            () -> {
+              try {
+                if (this.checkStream(audience, mrl)) {
+                  successful.set(false);
+                  return;
+                }
+                this.attributes.getCompletion().set(false);
+                gold(
+                    audience,
+                    "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.");
+                this.attributes.setVideoMrl(MrlConfiguration.ofMrl(mrl));
+                final Optional<Path> download = this.downloadMrl(audience, folder, mrl);
+                if (download.isEmpty()) {
+                  this.plugin.getBootstrap().getLogger().severe("Failed to download video!");
+                  successful.set(false);
+                  return;
+                }
+                this.loadAndSendResourcepack(folder, download.get());
+              } catch (final IOException e) {
+                this.plugin.getBootstrap().getLogger().severe("Failed to load video!");
+                e.printStackTrace();
+              }
+            })
+        .thenRun(
+            () -> {
+              if (successful.get()) {
+                this.afterDownloadExecutionFinish(audience, mrl);
+              }
+            });
+
+    return SINGLE_SUCCESS;
+  }
+
+  private void loadAndSendResourcepack(@NotNull final Path folder, @NotNull final Path download)
+      throws IOException {
+    final HttpServer daemon = this.plugin.getHttpServer();
+    final FFmpegAudioExtractor extractor =
+        new FFmpegAudioExtractor(
+            this.plugin.library(),
+            this.plugin.getAudioConfiguration(),
+            download,
+            folder.resolve("output.ogg"));
+    this.attributes.setExtractor(extractor);
+    extractor.execute();
+    final ResourcepackSoundWrapper wrapper =
+        new ResourcepackSoundWrapper(
+            daemon.getDaemon().getServerPath().resolve("resourcepack.zip"),
+            "Video Audio",
+            PackFormat.getCurrentFormat().getId());
+    wrapper.addSound(
+        this.plugin.getBootstrap().getName().toLowerCase(Locale.ROOT), extractor.getOutput());
+    wrapper.wrap();
+    final Path path = wrapper.getResourcepackFilePath();
+    this.attributes.setOggMrl(MrlConfiguration.ofMrl(path));
+    this.attributes.setResourcepackUrl(daemon.createUrl(path));
+    this.attributes.setResourcepackHash(
+        HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
+  }
+
+  private @NotNull Optional<Path> downloadMrl(
+      @NotNull final Audience audience, @NotNull final Path folder, @NotNull final String mrl)
+      throws IOException {
+    final Path downloadPath;
+    if (PathUtils.isValidPath(mrl)) {
+      downloadPath = Path.of(mrl);
+    } else {
+      final List<String> videoMrls = RequestUtils.getVideoURLs(mrl);
+      if (videoMrls.isEmpty()) {
+        red(audience, "Invalid MRL link! Not supported!");
+        return Optional.empty();
+      }
+      downloadPath = DependencyUtils.downloadFile(folder.resolve("media.mp4"), videoMrls.get(0));
+    }
+    return Optional.of(downloadPath);
+  }
+
+  private boolean checkStream(@NotNull final Audience audience, @NotNull final String mrl) {
     if (RequestUtils.isStream(mrl)) {
       if (this.attributes.getAudioOutputType() != AudioOutputType.DISCORD) {
         red(
             audience,
             "You cannot play streams without using Discord or a dynamic audio player with audio. Proceeding to play without audio.");
-        this.attributes.setVideoMrl(configuration);
-        return SINGLE_SUCCESS;
+        this.attributes.setVideoMrl(MrlConfiguration.ofMrl(mrl));
+        return true;
       }
     }
-
-    this.attributes.getCompletion().set(false);
-
-    final List<String> videoMrls = RequestUtils.getVideoURLs(mrl);
-    if (videoMrls.isEmpty()) {
-      red(audience, "Invalid MRL link! Not supported!");
-      return SINGLE_SUCCESS;
-    }
-
-    gold(
-        audience,
-        "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.");
-
-    this.attributes.setVideoMrl(configuration);
-
-    CompletableFuture.runAsync(
-            () -> {
-              try {
-                final Path base = Path.of(folder);
-                final HttpServer daemon = this.plugin.getHttpServer();
-                final String changedMrl = videoMrls.get(0);
-                final Path download =
-                    DependencyUtils.downloadFile(base.resolve("media.mp4"), changedMrl);
-                final FFmpegAudioExtractor extractor =
-                    new FFmpegAudioExtractor(
-                        this.plugin.library(),
-                        this.plugin.getAudioConfiguration(),
-                        download,
-                        base.resolve("output.ogg"));
-                this.attributes.setExtractor(extractor);
-                extractor.execute();
-                final ResourcepackSoundWrapper wrapper =
-                    new ResourcepackSoundWrapper(
-                        daemon.getDaemon().getServerPath().resolve("resourcepack.zip"),
-                        "Video Audio",
-                        PackFormat.getCurrentFormat().getId());
-                wrapper.addSound(
-                    bootstrap.getName().toLowerCase(Locale.ROOT), extractor.getOutput());
-                wrapper.wrap();
-                final Path path = wrapper.getResourcepackFilePath();
-                this.attributes.setResourcepackUrl(daemon.createUrl(path));
-                this.attributes.setResourcepackHash(
-                    HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
-              } catch (final IOException e) {
-                this.plugin.getBootstrap().getLogger().severe("Failed to load video!!");
-                e.printStackTrace();
-              }
-            })
-        .thenRun(() -> this.afterDownloadExecutionFinish(audience, mrl));
-
-    //		switch (type.get()) {
-    //			case LOCAL_FILE -> this.task = CompletableFuture.runAsync(
-    //					() -> this.wrapResourcepack(this.prepareLocalFileVideo(Path.of(mrl), folder)))
-    //					.thenRunAsync(() -> this.afterDownloadExecutionFinish(audience, mrl));
-    //			case YOUTUBE -> this.task = CompletableFuture.runAsync(
-    //					() ->
-    //							this.wrapResourcepack(
-    //									this.prepareYoutubeVideo(Path.of(folder), mrl)))
-    //					.thenRunAsync(() -> this.afterDownloadExecutionFinish(audience, mrl));
-    //			case SPOTIFY -> this.task = CompletableFuture.runAsync(
-    //					() ->
-    //							this.wrapResourcepack(
-    //									this.prepareSpotifyLink(Path.of(folder), mrl)))
-    //					.thenRunAsync(() -> this.afterDownloadExecutionFinish(audience, mrl));
-    //			case DIRECT_URL -> this.task = CompletableFuture.runAsync(
-    //					() ->
-    //							this.wrapResourcepack(
-    //									this.prepareDirectLink(audience, Path.of(folder), mrl)))
-    //					.thenRunAsync(() -> this.afterDownloadExecutionFinish(audience, mrl));
-    //			default -> throw new IllegalArgumentException("Illegal video type!");
-    //		}
-
-    return SINGLE_SUCCESS;
+    return false;
   }
 
   private void afterDownloadExecutionFinish(
@@ -239,84 +245,6 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       gold(audience, "Successfully loaded video %s".formatted(mrl));
     }
   }
-
-  //  private @NotNull Path prepareLocalFileVideo(
-  //      @NotNull final Path file, @NotNull final String folder) {
-  //    try {
-  //      final Path audio = Path.of(folder, "local.ogg");
-  //      this.attributes.setExtractor(null);
-  //      final FFmpegAudioExtractor extractor =
-  //          new FFmpegAudioExtractor(
-  //              this.plugin.library(), this.plugin.getAudioConfiguration(), file, audio);
-  //      this.attributes.setExtractor(extractor);
-  //      extractor.execute();
-  //      this.attributes.setVideoMrl(file.toAbsolutePath().toString());
-  //      this.attributes.setAudio(audio);
-  //      return audio;
-  //    } catch (final IOException e) {
-  //      this.plugin.getBootstrap().getLogger().severe("Failed to extract audio file!");
-  //      e.printStackTrace();
-  //      throw new AssertionError("Unable to create audio from local video!");
-  //    }
-  //  }
-  //
-  //  private @NotNull Path prepareYoutubeVideo(@NotNull final Path folder, @NotNull final String
-  // mrl) {
-  //    try {
-  //      this.attributes.setYoutube(true);
-  //      final YoutubeVideoAudioExtractor extractor =
-  //          new YoutubeVideoAudioExtractor(
-  //              this.plugin.library(),
-  //              this.plugin.getAudioConfiguration(),
-  //              mrl,
-  //              folder.resolve("yt.ogg"));
-  //      this.attributes.setExtractor(extractor);
-  //      extractor.execute();
-  //      this.attributes.setVideoMrl(
-  //          extractor.getDownloader().getDownloadPath().toAbsolutePath().toString());
-  //      this.attributes.setAudio(extractor.getExtractor().getOutput().toAbsolutePath());
-  //      return extractor.getExtractor().getOutput();
-  //    } catch (final IOException e) {
-  //      this.plugin.getBootstrap().getLogger().severe("Failed to extract audio file!");
-  //      e.printStackTrace();
-  //      throw new AssertionError("Unable to create audio from Youtube video!");
-  //    }
-  //  }
-  //
-  //  private @NotNull Path prepareSpotifyLink(@NotNull final Path folder, @NotNull final String
-  // mrl) {
-  //    try {
-  //      this.attributes.setExtractor(null);
-  //      this.attributes.setYoutube(false);
-  //      final Path audio = folder.resolve("spotify.ogg");
-  //      final SpotifyTrackExtractor downloader =
-  //          new SpotifyTrackExtractor(
-  //              this.plugin.library(), this.plugin.getAudioConfiguration(), mrl, audio);
-  //      this.attributes.setExtractor(downloader);
-  //      downloader.execute();
-  //      this.attributes.setVideoMrl(downloader.getTrackDownloader().getDownloadPath().toString());
-  //      this.attributes.setAudio(downloader.getYoutubeExtractor().getExtractor().getOutput());
-  //      return audio;
-  //    } catch (final IOException e) {
-  //      this.plugin.getBootstrap().getLogger().severe("Failed to extract audio file!");
-  //      e.printStackTrace();
-  //      throw new AssertionError("Unable to create audio from Spotify video!");
-  //    }
-  //  }
-  //
-  //  private @NotNull Path prepareDirectLink(
-  //      @NotNull final Audience audience, @NotNull final Path folder, @NotNull final String mrl) {
-  //    try {
-  //      gold(audience, "Downloading video from direct link...");
-  //      final Path video = DependencyUtils.downloadFile(folder.resolve("temp.mp4"), mrl);
-  //      gold(audience, "Finished downloading video from direct link!");
-  //      return this.prepareLocalFileVideo(video, folder.toString());
-  //    } catch (final IOException e) {
-  //      this.plugin.getBootstrap().getLogger().severe("Failed to extract audio file!");
-  //      e.printStackTrace();
-  //      throw new AssertionError("Unable to create audio from direct link!");
-  //    }
-  //  }
 
   private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();

@@ -49,6 +49,7 @@ public final class VideoCommandAttributes {
 
   private MrlConfiguration videoMrl;
   private MrlConfiguration oggMrl;
+  private boolean stream;
 
   private EnhancedExecution extractor;
 
@@ -195,5 +196,9 @@ public final class VideoCommandAttributes {
 
   public void setOggMrl(final MrlConfiguration oggMrl) {
     this.oggMrl = oggMrl;
+  }
+
+  public boolean isStream() {
+    return this.stream;
   }
 }
