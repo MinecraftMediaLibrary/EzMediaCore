@@ -57,9 +57,14 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
   void setCallback(@NotNull final Callback callback);
 
   @NotNull
-  MrlConfiguration getMrlConfiguration();
+  MrlConfiguration getDirectVideoMrl();
 
-  void setMrlConfiguration(@NotNull final MrlConfiguration configuration);
+  void setDirectVideoMrl(@NotNull final MrlConfiguration configuration);
+
+  @NotNull
+  MrlConfiguration getDirectAudioMrl();
+
+  void setDirectAudioMrl(@NotNull final MrlConfiguration configuration);
 
   @NotNull
   FrameConfiguration getFrameConfiguration();

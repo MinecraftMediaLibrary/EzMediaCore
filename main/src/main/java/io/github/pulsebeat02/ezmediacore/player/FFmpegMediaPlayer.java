@@ -135,7 +135,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
   @Override
   public void initializePlayer(final long seconds, @NotNull final Object... arguments) {
     final Dimension dimension = this.getDimensions();
-    final String url = this.getMrlConfiguration().getMrl();
+    final String url = this.getDirectVideoMrl().getMrl();
     final Path path = Path.of(url);
     final long ms = seconds * 1000;
     this.ffmpeg =
@@ -232,7 +232,8 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
   }
 
   private void setupPlayer(@NotNull final PlayerControls controls, @NotNull final Object... arguments) {
-      this.setMrlConfiguration(ArgumentUtils.retrievePlayerArguments(arguments));
+    this.setDirectVideoMrl(ArgumentUtils.retrieveDirectVideo(arguments));
+    this.setDirectAudioMrl(ArgumentUtils.retrieveDirectAudio(arguments));
       if (controls == PlayerControls.START) {
         this.stopAudio();
         if (this.ffmpeg == null) {

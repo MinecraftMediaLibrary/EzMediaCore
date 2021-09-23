@@ -95,11 +95,12 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     CompletableFuture.runAsync(() -> {
     switch (controls) {
       case START -> {
-        this.setMrlConfiguration(ArgumentUtils.retrievePlayerArguments(arguments));
+        this.setDirectVideoMrl(ArgumentUtils.retrieveDirectVideo(arguments));
+        this.setDirectAudioMrl(ArgumentUtils.retrieveDirectAudio(arguments));
         if (this.player == null) {
           this.initializePlayer(0L, this.getProperArguments(arguments));
         }
-        this.player.media().play(this.getMrlConfiguration().getMrl());
+        this.player.media().play(this.getDirectVideoMrl().getMrl());
         this.playAudio();
       }
       case PAUSE -> {
@@ -109,7 +110,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
       case RESUME -> {
         if (this.player == null) {
           this.initializePlayer(0L);
-          this.player.media().play(this.getMrlConfiguration().getMrl());
+          this.player.media().play(this.getDirectVideoMrl().getMrl());
         } else {
           this.player.controls().play();
         }

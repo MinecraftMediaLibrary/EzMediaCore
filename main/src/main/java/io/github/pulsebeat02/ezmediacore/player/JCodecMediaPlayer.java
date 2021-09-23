@@ -92,7 +92,8 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
     CompletableFuture.runAsync(() -> {
     switch (controls) {
       case START -> CompletableFuture.runAsync(() -> {
-        this.setMrlConfiguration(ArgumentUtils.retrievePlayerArguments(arguments));
+        this.setDirectVideoMrl(ArgumentUtils.retrieveDirectVideo(arguments));
+        this.setDirectAudioMrl(ArgumentUtils.retrieveDirectAudio(arguments));
         if (this.grabber == null) {
           this.initializePlayer(0L);
         }
@@ -201,7 +202,7 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
     final Dimension dimension = this.getDimensions();
     this.start = ms;
     try {
-      this.grabber = FrameGrab.createFrameGrab(NIOUtils.readableFileChannel(this.getMrlConfiguration().getMrl()));
+      this.grabber = FrameGrab.createFrameGrab(NIOUtils.readableFileChannel(this.getDirectVideoMrl().getMrl()));
       this.grabber.seekToSecondPrecise(ms / 1000.0F);
       this.grabber.getMediaInfo().setDim(new Size(dimension.getWidth(), dimension.getHeight()));
     } catch (final IOException | JCodecException e) {

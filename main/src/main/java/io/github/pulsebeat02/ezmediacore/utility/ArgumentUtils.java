@@ -25,8 +25,6 @@ package io.github.pulsebeat02.ezmediacore.utility;
 
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
-import io.github.pulsebeat02.ezmediacore.throwable.InvalidMRLException;
-import java.io.IOException;
 import java.util.List;
 import org.jcodec.common.Preconditions;
 import org.jetbrains.annotations.NotNull;
@@ -36,27 +34,41 @@ public final class ArgumentUtils {
 
   private ArgumentUtils() {}
 
-  public static @NotNull MrlConfiguration retrievePlayerArguments(
+  public static @NotNull MrlConfiguration retrieveDirectVideo(
       @NotNull final Object @Nullable [] arguments) {
+    final MrlConfiguration configuration = (MrlConfiguration) checkPreconditions(arguments);
+    final String url = configuration.getMrl();
+    final List<String> list = RequestUtils.getVideoURLs(url);
+    if (list.isEmpty()) {
+      Logger.info("Extracted Video MRL: %s".formatted(url));
+      return configuration;
+    }
+    final String use = list.get(0);
+    Logger.info("Extracted Video MRL (youtube-dl): %s".formatted(use));
+    return MrlConfiguration.ofMrl(use);
+  }
+
+  public static @NotNull MrlConfiguration retrieveDirectAudio(
+      @NotNull final Object @Nullable [] arguments) {
+    final MrlConfiguration configuration = (MrlConfiguration) checkPreconditions(arguments);
+    final String url = configuration.getMrl();
+    final List<String> list = RequestUtils.getAudioURLs(url);
+    if (list.isEmpty()) {
+      Logger.info("Extracted Audio MRL: %s".formatted(url));
+      return configuration;
+    }
+    final String use = list.get(0);
+    Logger.info("Extracted Audio MRL (youtube-dl): %s".formatted(use));
+    return MrlConfiguration.ofMrl(use);
+  }
+
+  private static @NotNull Object checkPreconditions(@NotNull final Object @Nullable [] arguments) {
     Preconditions.checkArgument(arguments != null, "Arguments cannot be null!");
     Preconditions.checkArgument(
         arguments.length > 0, "Invalid argument length! Must have at least 1!");
     final Object mrl = arguments[0];
     Preconditions.checkArgument(
         mrl instanceof MrlConfiguration, "Invalid MRL type! Must be a MrlConfiguration!");
-    final MrlConfiguration configuration = (MrlConfiguration) mrl;
-    final String url = configuration.getMrl();
-    try {
-      final List<String> list = RequestUtils.getVideoURLs(url);
-      if (list.isEmpty()) {
-        throw new InvalidMRLException(url);
-      }
-      final String use = list.get(0);
-      Logger.info("Extracted URL (youtube-dl): %s".formatted(use));
-      return MrlConfiguration.ofMrl(use);
-    } catch (final IOException | InterruptedException ignored) {
-    }
-    Logger.info("Extracted URL: %s".formatted(url));
-    return configuration;
+    return mrl;
   }
 }

@@ -48,7 +48,8 @@ public abstract class MediaPlayer implements VideoPlayer {
   private Dimension dimensions;
   private SoundKey key;
 
-  private MrlConfiguration mrl;
+  private MrlConfiguration directVideo;
+  private MrlConfiguration directAudio;
   private Runnable playAudio;
   private Runnable stopAudio;
 
@@ -150,16 +151,6 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public @NotNull MrlConfiguration getMrlConfiguration() {
-    return this.mrl;
-  }
-
-  @Override
-  public void setMrlConfiguration(@NotNull final MrlConfiguration configuration) {
-    this.mrl = configuration;
-  }
-
-  @Override
   public @NotNull Dimension getDimensions() {
     return this.dimensions;
   }
@@ -192,5 +183,25 @@ public abstract class MediaPlayer implements VideoPlayer {
   @Override
   public void setViewers(@NotNull final Viewers viewers) {
     this.viewers = viewers;
+  }
+
+  @Override
+  public @NotNull MrlConfiguration getDirectVideoMrl() {
+    return this.directVideo;
+  }
+
+  @Override
+  public void setDirectVideoMrl(@NotNull final MrlConfiguration videoMrl) {
+    this.directVideo = videoMrl;
+  }
+
+  @Override
+  public @NotNull MrlConfiguration getDirectAudioMrl() {
+    return this.directAudio;
+  }
+
+  @Override
+  public void setDirectAudioMrl(@NotNull final MrlConfiguration audioMrl) {
+    this.directAudio = audioMrl;
   }
 }

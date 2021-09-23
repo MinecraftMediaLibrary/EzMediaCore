@@ -26,8 +26,8 @@ package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherSetting;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
+import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
-import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,12 +46,12 @@ public final class VideoCommandAttributes {
   private DitherSetting dither;
   private AudioOutputType audioOutputType;
   private VideoType mode;
-  private String video;
-  private Path audio;
+
+  private MrlConfiguration videoMrl;
+  private MrlConfiguration oggMrl;
 
   private EnhancedExecution extractor;
-  private boolean youtube;
-  private String mrl; // for file resource load video mrl
+
   private int map;
 
   private int frameWidth;
@@ -59,8 +59,8 @@ public final class VideoCommandAttributes {
   private int pixelWidth;
   private int pixelHeight;
 
-  private String url; // for resourcepack url
-  private byte[] hash;
+  private String resourcepackUrl; // for resourcepack url
+  private byte[] resourcepackHash;
 
   public VideoCommandAttributes() {
     this.dither = DitherSetting.FILTER_LITE;
@@ -87,22 +87,6 @@ public final class VideoCommandAttributes {
 
   public void setPlayer(@NotNull final VideoPlayer player) {
     this.player = player;
-  }
-
-  public @Nullable String getVideoMrl() {
-    return this.video;
-  }
-
-  public void setVideoMrl(@NotNull final String video) {
-    this.video = video;
-  }
-
-  public boolean isYoutube() {
-    return this.youtube;
-  }
-
-  public void setYoutube(final boolean youtube) {
-    this.youtube = youtube;
   }
 
   public int getFrameWidth() {
@@ -165,36 +149,20 @@ public final class VideoCommandAttributes {
     this.mode = mode;
   }
 
-  public @Nullable String getUrl() {
-    return this.url;
+  public @Nullable String getResourcepackUrl() {
+    return this.resourcepackUrl;
   }
 
-  public void setUrl(@NotNull final String url) {
-    this.url = url;
+  public void setResourcepackUrl(@NotNull final String resourcepackUrl) {
+    this.resourcepackUrl = resourcepackUrl;
   }
 
-  public byte @Nullable [] getHash() {
-    return this.hash;
+  public byte @Nullable [] getResourcepackHash() {
+    return this.resourcepackHash;
   }
 
-  public void setHash(final byte @NotNull [] hash) {
-    this.hash = hash;
-  }
-
-  public @NotNull Path getAudio() {
-    return this.audio;
-  }
-
-  public void setAudio(@NotNull final Path audio) {
-    this.audio = audio;
-  }
-
-  public @NotNull String getMrl() {
-    return this.mrl;
-  }
-
-  public void setMrl(@NotNull final String mrl) {
-    this.mrl = mrl;
+  public void setResourcepackHash(final byte @NotNull [] resourcepackHash) {
+    this.resourcepackHash = resourcepackHash;
   }
 
   public EnhancedExecution getExtractor() {
@@ -211,5 +179,21 @@ public final class VideoCommandAttributes {
 
   public void setAudioOutputType(@NotNull final AudioOutputType audioOutputType) {
     this.audioOutputType = audioOutputType;
+  }
+
+  public MrlConfiguration getVideoMrl() {
+    return this.videoMrl;
+  }
+
+  public void setVideoMrl(final MrlConfiguration videoMrl) {
+    this.videoMrl = videoMrl;
+  }
+
+  public MrlConfiguration getOggMrl() {
+    return this.oggMrl;
+  }
+
+  public void setOggMrl(final MrlConfiguration oggMrl) {
+    this.oggMrl = oggMrl;
   }
 }

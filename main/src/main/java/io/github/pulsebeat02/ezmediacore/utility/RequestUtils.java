@@ -23,8 +23,11 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.jlibdl.Format;
 import io.github.pulsebeat02.ezmediacore.jlibdl.JLibDL;
 import io.github.pulsebeat02.ezmediacore.jlibdl.MediaInfo;
@@ -35,15 +38,25 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.compress.utils.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 public final class RequestUtils {
 
+  private static final LoadingCache<String, Optional<YoutubeDLRequest>> CACHED_RESULT;
   private static final JLibDL JLIBDL;
 
   static {
+    CACHED_RESULT =
+        Caffeine.newBuilder()
+            .executor(ExecutorProvider.SHARED_RESULT_POOL)
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .softValues()
+            .build(RequestUtils::getRequestInternal);
     JLIBDL = new JLibDL();
   }
 
@@ -87,22 +100,54 @@ public final class RequestUtils {
     return index > 0 ? "%s/".formatted(link.substring(0, index)) : "/";
   }
 
-  public static @NotNull List<String> getVideoURLs(@NotNull final String url)
-      throws IOException, InterruptedException {
-    final YoutubeDLRequest request = JLIBDL.request(url);
-    if (!validFormats(request)) {
-      return List.of();
+  public static boolean isStream(@NotNull final String url) {
+
+    final YoutubeDLRequest request;
+    try {
+      request = JLIBDL.request(url);
+    } catch (final IOException | InterruptedException e) {
+      return false;
     }
-    return List.copyOf(getFormats(request, true));
+
+    if (request == null) {
+      return false;
+    }
+
+    final MediaInfo info = request.getInfo();
+    if (info == null) {
+      return false;
+    }
+
+    return info.isLive();
   }
 
-  public static @NotNull List<String> getAudioURLs(@NotNull final String url)
-      throws IOException, InterruptedException {
-    final YoutubeDLRequest request = JLIBDL.request(url);
-    if (!validFormats(request)) {
+  public static @NotNull List<String> getVideoURLs(@NotNull final String url) {
+    final Optional<YoutubeDLRequest> optional = validatePrimaryRequest(url);
+    if (optional.isEmpty()) {
       return List.of();
     }
-    return List.copyOf(getFormats(request, false));
+    return List.copyOf(getFormats(optional.get(), true));
+  }
+
+  public static @NotNull @Unmodifiable List<String> getAudioURLs(@NotNull final String url) {
+    final Optional<YoutubeDLRequest> optional = validatePrimaryRequest(url);
+    if (optional.isEmpty()) {
+      return List.of();
+    }
+    return List.copyOf(getFormats(optional.get(), false));
+  }
+
+  private static @NotNull Optional<YoutubeDLRequest> validatePrimaryRequest(
+      @NotNull final String url) {
+    final Optional<YoutubeDLRequest> optional = CACHED_RESULT.get(url);
+    if (optional.isEmpty()) {
+      return Optional.empty();
+    }
+    final YoutubeDLRequest request = optional.get();
+    if (!validFormats(request)) {
+      return Optional.empty();
+    }
+    return Optional.of(request);
   }
 
   private static @NotNull List<String> getFormats(
@@ -116,11 +161,11 @@ public final class RequestUtils {
       final String acodec = format.getAcodec();
       String url = null;
       if (video) {
-        if (acodec != null && acodec.equals("none")) {
+        if (vcodec != null && !vcodec.equals("none")) {
           url = format.getUrl();
         }
       } else {
-        if (vcodec != null && vcodec.equals("none")) {
+        if (acodec != null && !acodec.equals("none")) {
           url = format.getUrl();
         }
       }
@@ -140,9 +185,11 @@ public final class RequestUtils {
       return false;
     }
     final List<Format> formats = info.getFormats();
-    if (formats == null || formats.size() < 1) {
-      return false;
-    }
-    return true;
+    return formats != null && formats.size() >= 1;
+  }
+
+  private static @NotNull Optional<YoutubeDLRequest> getRequestInternal(@NotNull final String url)
+      throws IOException, InterruptedException {
+    return Optional.ofNullable(JLIBDL.request(url));
   }
 }

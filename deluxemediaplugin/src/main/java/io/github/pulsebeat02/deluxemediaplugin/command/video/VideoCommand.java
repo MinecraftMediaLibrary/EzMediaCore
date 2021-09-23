@@ -46,7 +46,6 @@ import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.utility.HashingUtils;
-import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -130,7 +129,7 @@ public final class VideoCommand extends BaseCommand {
 			case DEBUG_HIGHLIGHTS -> {
 				if (sender instanceof Player) {
 					this.attributes.setPlayer(
-							this.builder.createBlockHighlightPlayer((Player) sender, players));
+							this.builder.createBlockHighlightPlayer((Player) sender));
 				} else {
 					audience.sendMessage(format(text("You must be a player to execute this command!", RED)));
 					return SINGLE_SUCCESS;
@@ -156,7 +155,7 @@ public final class VideoCommand extends BaseCommand {
 			default -> throw new IllegalArgumentException("Illegal Audio Output!");
 		}
 
-		this.attributes.getPlayer().setPlayerState(PlayerControls.START, MrlConfiguration.ofMrl(this.attributes.getVideoMrl()));
+		this.attributes.getPlayer().setPlayerState(PlayerControls.START, this.attributes.getVideoMrl());
 
 		return SINGLE_SUCCESS;
 	}
@@ -191,7 +190,7 @@ public final class VideoCommand extends BaseCommand {
 				.thenRunAsync(
 						() ->
 								ResourcepackUtils.forceResourcepackLoad(
-										plugin.library(), this.attributes.getUrl(), this.attributes.getHash()))
+										plugin.library(), this.attributes.getResourcepackUrl(), this.attributes.getResourcepackHash()))
 				.thenRun(() -> gold(audience, "Resumed the video!"));
 		return SINGLE_SUCCESS;
 	}
@@ -201,7 +200,7 @@ public final class VideoCommand extends BaseCommand {
 		final JavaPlugin loader = plugin.getBootstrap();
 		try {
 			final HttpServer server = plugin.getHttpServer();
-			final Path audio = this.attributes.getAudio();
+			final Path audio = Path.of(this.attributes.getOggMrl().getMrl());
 			final Path ogg = audio.getParent().resolve("trimmed.ogg");
 			final long ms = this.attributes.getPlayer().getElapsedMilliseconds();
 			plugin.log("Resuming Video at %s Milliseconds!".formatted(ms));
@@ -214,8 +213,8 @@ public final class VideoCommand extends BaseCommand {
 			wrapper.addSound(loader.getName().toLowerCase(Locale.ROOT), ogg);
 			wrapper.wrap();
 			final Path path = wrapper.getResourcepackFilePath();
-			this.attributes.setUrl(server.createUrl(path));
-			this.attributes.setHash(HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
+			this.attributes.setResourcepackUrl(server.createUrl(path));
+			this.attributes.setResourcepackHash(HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
 			Files.delete(audio);
 			Files.move(ogg, ogg.resolveSibling("audio.ogg"));
 		} catch (final IOException e) {
@@ -225,8 +224,8 @@ public final class VideoCommand extends BaseCommand {
 	}
 
 	private boolean mediaNotSpecified(@NotNull final Audience audience) {
-		if (this.attributes.getVideoMrl() == null && !this.attributes.isYoutube()) {
-			red(audience, "File and URL not specified yet!");
+		if (this.attributes.getVideoMrl() == null) {
+			red(audience, "Video not loaded!");
 			return true;
 		}
 		return false;
@@ -234,7 +233,7 @@ public final class VideoCommand extends BaseCommand {
 
 	private boolean mediaProcessingIncomplete(@NotNull final Audience audience) {
 		if (!this.attributes.getCompletion().get()) {
-			red(audience, "The video is still being processed!");
+			red(audience, "Video is still processing!");
 			return true;
 		}
 		return false;
@@ -250,13 +249,9 @@ public final class VideoCommand extends BaseCommand {
 	}
 
 	private void sendPlayInformation(@NotNull final Audience audience) {
-		final String mrl = this.attributes.getVideoMrl();
+		final MrlConfiguration mrl = this.attributes.getVideoMrl();
 		if (mrl != null) {
-			if (this.attributes.isYoutube()) {
-				gold(audience, "Starting Video on URL: %s".formatted(mrl));
-			} else {
-				gold(audience, "Starting Video on File: %s".formatted(PathUtils.getName(Path.of(mrl))));
-			}
+			gold(audience, "Starting Video on MRL %s".formatted(mrl.getMrl()));
 		}
 	}
 
