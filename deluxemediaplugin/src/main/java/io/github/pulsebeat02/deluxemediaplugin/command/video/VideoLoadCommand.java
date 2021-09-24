@@ -48,7 +48,6 @@ import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.resourcepack.PackFormat;
 import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
-import io.github.pulsebeat02.ezmediacore.utility.DependencyUtils;
 import io.github.pulsebeat02.ezmediacore.utility.HashingUtils;
 import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
@@ -118,14 +117,14 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     CompletableFuture.runAsync(
             () -> {
               try {
+                gold(
+                    audience,
+                    "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.");
                 if (this.checkStream(audience, mrl)) {
                   successful.set(false);
                   return;
                 }
                 this.attributes.getCompletion().set(false);
-                gold(
-                    audience,
-                    "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.");
                 this.attributes.setVideoMrl(MrlConfiguration.ofMrl(mrl));
                 final Optional<Path> download = this.downloadMrl(audience, folder, mrl);
                 if (download.isEmpty()) {
@@ -134,7 +133,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
                   return;
                 }
                 this.loadAndSendResourcepack(folder, download.get());
-              } catch (final IOException e) {
+              } catch (final IOException | InterruptedException e) {
                 this.plugin.getBootstrap().getLogger().severe("Failed to load video!");
                 e.printStackTrace();
               }
@@ -151,25 +150,25 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   private void loadAndSendResourcepack(@NotNull final Path folder, @NotNull final Path download)
       throws IOException {
+
+    final Path oggOutput = folder.resolve("output.ogg");
     final HttpServer daemon = this.plugin.getHttpServer();
     final FFmpegAudioExtractor extractor =
         new FFmpegAudioExtractor(
-            this.plugin.library(),
-            this.plugin.getAudioConfiguration(),
-            download,
-            folder.resolve("output.ogg"));
+            this.plugin.library(), this.plugin.getAudioConfiguration(), download, oggOutput);
     this.attributes.setExtractor(extractor);
     extractor.execute();
+
     final ResourcepackSoundWrapper wrapper =
         new ResourcepackSoundWrapper(
             daemon.getDaemon().getServerPath().resolve("resourcepack.zip"),
-            "Video Audio",
+            "Audio Resourcepack",
             PackFormat.getCurrentFormat().getId());
-    wrapper.addSound(
-        this.plugin.getBootstrap().getName().toLowerCase(Locale.ROOT), extractor.getOutput());
+    wrapper.addSound(this.plugin.getBootstrap().getName().toLowerCase(Locale.ROOT), oggOutput);
     wrapper.wrap();
+    this.attributes.setOggMrl(MrlConfiguration.ofMrl(oggOutput));
+
     final Path path = wrapper.getResourcepackFilePath();
-    this.attributes.setOggMrl(MrlConfiguration.ofMrl(path));
     this.attributes.setResourcepackUrl(daemon.createUrl(path));
     this.attributes.setResourcepackHash(
         HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
@@ -177,17 +176,17 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   private @NotNull Optional<Path> downloadMrl(
       @NotNull final Audience audience, @NotNull final Path folder, @NotNull final String mrl)
-      throws IOException {
+      throws IOException, InterruptedException {
     final Path downloadPath;
     if (PathUtils.isValidPath(mrl)) {
       downloadPath = Path.of(mrl);
     } else {
-      final List<String> videoMrls = RequestUtils.getVideoURLs(mrl);
+      final List<String> videoMrls = RequestUtils.getAudioURLs(mrl);
       if (videoMrls.isEmpty()) {
         red(audience, "Invalid MRL link! Not supported!");
         return Optional.empty();
       }
-      downloadPath = DependencyUtils.downloadFile(folder.resolve("media.mp4"), videoMrls.get(0));
+      downloadPath = RequestUtils.downloadFile(folder.resolve("temp-audio"), videoMrls.get(0));
     }
     return Optional.of(downloadPath);
   }

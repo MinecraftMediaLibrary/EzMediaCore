@@ -30,7 +30,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,15 +52,13 @@ public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements Audio
     this.addMultipleArguments(this.generateArguments(configuration));
   }
 
-  private List<String> generateArguments(@NotNull final AudioConfiguration configuration) {
-    final String in = this.input.toString();
+  @Contract("_ -> new")
+  private @NotNull List<String> generateArguments(@NotNull final AudioConfiguration configuration) {
     return new ArrayList<>(
         List.of(
             this.getCore().getFFmpegPath().toString(),
-            "-f",
-            FilenameUtils.getExtension(in),
             "-i",
-            in,
+            this.input.toString(),
             "-vn",
             "-acodec",
             "libvorbis",
@@ -74,13 +72,12 @@ public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements Audio
             String.valueOf(configuration.getVolume()),
             "-ss",
             String.valueOf(configuration.getStartTime()),
-            "-f",
-            FilenameUtils.getExtension(this.output.toString())));
+            "-y"));
   }
 
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
-    this.addArguments("-y", this.output.toString());
+    this.addArgument(this.output.toString());
     super.executeWithLogging(logger);
   }
 

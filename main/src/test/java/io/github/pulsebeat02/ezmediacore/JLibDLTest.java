@@ -3,6 +3,7 @@ package io.github.pulsebeat02.ezmediacore;
 import io.github.pulsebeat02.ezmediacore.jlibdl.JLibDL;
 import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
 import java.io.IOException;
+import java.util.List;
 
 public class JLibDLTest {
 
@@ -21,8 +22,12 @@ public class JLibDLTest {
     // video -> https://youtu.be/DHYcRU50yM0
     // stream -> https://www.youtube.com/watch?v=5qap5aO4i9A
     final String url = "https://youtu.be/DHYcRU50yM0";
-    System.out.println(RequestUtils.getVideoURLs(url).get(0));
-    System.out.println(RequestUtils.getAudioURLs(url).get(0));
-    System.out.println(RequestUtils.isStream(url));
+    final boolean stream = RequestUtils.isStream(url);
+    final List<String> videoUrls = RequestUtils.getVideoURLs(url);
+    final List<String> audioUrls = RequestUtils.getAudioURLs(url);
+    System.out.printf("Stream? %s%n", stream ? "YES" : "NO");
+    System.out.println(videoUrls.get(0));
+    System.out.println(audioUrls.get(0));
+    System.out.println(RequestUtils.getResult(audioUrls.get(0)));
   }
 }

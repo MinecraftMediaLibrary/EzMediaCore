@@ -37,19 +37,27 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpClient.Version;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.compress.utils.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
 
 public final class RequestUtils {
 
   private static final LoadingCache<String, Optional<YoutubeDLRequest>> CACHED_RESULT;
   private static final JLibDL JLIBDL;
+  private static final HttpClient HTTP_CLIENT;
 
   static {
     CACHED_RESULT =
@@ -59,6 +67,12 @@ public final class RequestUtils {
             .softValues()
             .build(RequestUtils::getRequestInternal);
     JLIBDL = new JLibDL();
+    HTTP_CLIENT =
+        HttpClient.newBuilder()
+            .version(Version.HTTP_1_1)
+            .followRedirects(Redirect.NORMAL)
+            .connectTimeout(Duration.ofSeconds(20))
+            .build();
   }
 
   private RequestUtils() {}
@@ -130,12 +144,19 @@ public final class RequestUtils {
     return List.copyOf(getFormats(optional.get(), url, true));
   }
 
-  public static @NotNull @Unmodifiable List<String> getAudioURLs(@NotNull final String url) {
+  public static @NotNull List<String> getAudioURLs(@NotNull final String url) {
     final Optional<YoutubeDLRequest> optional = validatePrimaryRequest(url);
     if (optional.isEmpty()) {
       return List.of(url);
     }
     return List.copyOf(getFormats(optional.get(), url, false));
+  }
+
+  public static @NotNull Path downloadFile(@NotNull final Path path, @NotNull final String url)
+      throws IOException, InterruptedException {
+    return HTTP_CLIENT
+        .send(HttpRequest.newBuilder().uri(URI.create(url)).build(), BodyHandlers.ofFile(path))
+        .body();
   }
 
   private static @NotNull Optional<YoutubeDLRequest> validatePrimaryRequest(
