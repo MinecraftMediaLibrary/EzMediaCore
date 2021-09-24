@@ -1,6 +1,6 @@
 package io.github.pulsebeat02.deluxemediaplugin.discord;
 
-import com.google.common.collect.ImmutableMap;
+import io.github.pulsebeat02.deluxemediaplugin.discord.command.ConnectAudioCommand;
 import io.github.pulsebeat02.deluxemediaplugin.discord.command.DiscordBaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.discord.command.PlayAudioCommand;
 import io.github.pulsebeat02.deluxemediaplugin.discord.command.StopAudioCommand;
@@ -23,7 +23,8 @@ public class MediaCommandListener {
   public MediaCommandListener(@NotNull final MediaBot bot) {
     this.bot = bot;
     this.commands =
-        ImmutableMap.of(
+        Map.of(
+            "connect", new ConnectAudioCommand(bot),
             "play", new PlayAudioCommand(bot),
             "stop", new StopAudioCommand(bot));
   }
@@ -45,19 +46,20 @@ public class MediaCommandListener {
                     .build())
             .queue();
       }
-      final String[] content = message.substring(prefix.length() - 1).split(" ");
-      this.commands.get(content[0]).execute(msg, ArrayUtils.trim(content, 1, content.length));
+      final String[] content = message.substring(prefix.length()).split(" ");
+      final DiscordBaseCommand command = this.commands.get(content[0]);
+      if (command != null) {
+        command.execute(msg, ArrayUtils.trim(content, 1, content.length));
+      }
     }
   }
 
   private boolean canExecuteCommand(@NotNull final User user) {
     final Member member = this.bot.getGuild().getMember(user);
     if (member != null) {
-      if (member.isOwner()
+      return member.isOwner()
           || member.hasPermission(Permission.ADMINISTRATOR)
-          || member.getRoles().stream().anyMatch(role -> role.getName().equalsIgnoreCase("DJ"))) {
-        return true;
-      }
+          || member.getRoles().stream().anyMatch(role -> role.getName().equalsIgnoreCase("DJ"));
     }
     return false;
   }

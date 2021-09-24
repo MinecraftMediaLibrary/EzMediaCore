@@ -106,7 +106,7 @@ public class MusicManager {
             channel
                 .sendMessageEmbeds(
                     new EmbedBuilder()
-                        .setTitle(info.title)
+                        .setTitle(info.title, info.uri)
                         .addField("Author", info.author, false)
                         .addField(
                             "Playtime Length",
@@ -131,7 +131,7 @@ public class MusicManager {
             channel
                 .sendMessageEmbeds(
                     new EmbedBuilder()
-                        .setTitle(audioPlaylist.getName())
+                        .setTitle(audioPlaylist.getName(), url)
                         .addField(
                             "Playtime Length", HOURS_MINUTES_SECONDS.format(new Date(ms)), false)
                         .build())
@@ -144,7 +144,7 @@ public class MusicManager {
                 .sendMessageEmbeds(
                     new EmbedBuilder()
                         .setTitle("Media Error")
-                        .setDescription("Could not find song!")
+                        .setDescription("Could not find song %s!".formatted(url))
                         .build())
                 .queue();
           }

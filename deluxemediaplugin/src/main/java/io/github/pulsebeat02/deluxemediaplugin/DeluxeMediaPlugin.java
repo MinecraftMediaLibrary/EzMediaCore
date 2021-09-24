@@ -147,6 +147,9 @@ public final class DeluxeMediaPlugin {
 					CommandUtils.unRegisterBukkitCommand(this, cmd);
 				}
 		}
+		if (this.mediaBot != null) {
+			this.mediaBot.getJDA().shutdown();
+		}
 		this.log("Good Bye :(");
 	}
 
