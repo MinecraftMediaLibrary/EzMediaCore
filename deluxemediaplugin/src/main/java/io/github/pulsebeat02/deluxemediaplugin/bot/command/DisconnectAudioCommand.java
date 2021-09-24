@@ -21,52 +21,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package io.github.pulsebeat02.deluxemediaplugin.bot.command;
 
-package io.github.pulsebeat02.ezmediacore.jlibdl;
-
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
+import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
+import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
+import java.util.Set;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class MediaHttpHeaders {
+public class DisconnectAudioCommand extends DiscordBaseCommand {
 
-  @SerializedName("Accept")
-  @Expose
-  private String accept;
-
-  @SerializedName("Accept-Charset")
-  @Expose
-  private String acceptCharset;
-
-  @SerializedName("Accept-Encoding")
-  @Expose
-  private String acceptEncoding;
-
-  @SerializedName("Accept-Language")
-  @Expose
-  private String acceptLanguage;
-
-  @SerializedName("User-Agent")
-  @Expose
-  private String userAgent;
-
-  public @Nullable String getAccept() {
-    return this.accept;
+  public DisconnectAudioCommand(@NotNull final MediaBot bot) {
+    super(bot, "disconnect", Set.of());
   }
 
-  public @Nullable String getAcceptCharset() {
-    return this.acceptCharset;
-  }
-
-  public @Nullable String getAcceptEncoding() {
-    return this.acceptEncoding;
-  }
-
-  public @Nullable String getAcceptLanguage() {
-    return this.acceptLanguage;
-  }
-
-  public @Nullable String getUserAgent() {
-    return this.userAgent;
+  @Override
+  public boolean execute(@NotNull final Message executor, final String @Nullable [] arguments) {
+    final MusicManager manager = this.getBot().getMusicManager();
+    manager.leaveVoiceChannel();
+    executor
+        .getChannel()
+        .sendMessageEmbeds(
+            new EmbedBuilder()
+                .setTitle("Audio Voice Channel Connection")
+                .setDescription("Left voice channel!")
+                .build())
+        .queue();
+    return true;
   }
 }

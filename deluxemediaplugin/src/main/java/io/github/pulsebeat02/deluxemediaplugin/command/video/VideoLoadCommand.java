@@ -117,13 +117,14 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     CompletableFuture.runAsync(
             () -> {
               try {
-                gold(
-                    audience,
-                    "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.");
+                gold(audience, "Initializing and reading media...");
                 if (this.checkStream(audience, mrl)) {
                   successful.set(false);
                   return;
                 }
+                gold(
+                    audience,
+                    "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.");
                 this.attributes.getCompletion().set(false);
                 this.attributes.setVideoMrl(MrlConfiguration.ofMrl(mrl));
                 final Optional<Path> download = this.downloadMrl(audience, folder, mrl);
@@ -197,9 +198,13 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
         red(
             audience,
             "You cannot play streams without using Discord or a dynamic audio player with audio. Proceeding to play without audio.");
-        this.attributes.setVideoMrl(MrlConfiguration.ofMrl(mrl));
-        return true;
+      } else {
+        gold(audience, "Successfully loaded stream %s!".formatted(mrl));
       }
+      this.attributes.getCompletion().set(true);
+      this.cancelled = false;
+      this.attributes.setVideoMrl(MrlConfiguration.ofMrl(mrl));
+      return true;
     }
     return false;
   }

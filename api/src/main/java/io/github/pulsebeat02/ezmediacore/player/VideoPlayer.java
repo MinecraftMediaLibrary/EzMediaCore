@@ -29,6 +29,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Viewable;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
 public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
@@ -39,7 +40,7 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
   void stopAudio();
 
-  void setCustomAudioPlayback(@NotNull final Runnable runnable);
+  void setCustomAudioPlayback(@NotNull final Consumer<MrlConfiguration> runnable);
 
   void setCustomAudioStopper(@NotNull final Runnable runnable);
 

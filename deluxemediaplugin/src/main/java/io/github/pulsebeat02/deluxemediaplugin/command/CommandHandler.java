@@ -30,6 +30,7 @@ import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.tree.RootCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.audio.AudioCommand;
+import io.github.pulsebeat02.deluxemediaplugin.command.discord.DiscordCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.ffmpeg.FFmpegCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.image.ImageCommand;
@@ -72,7 +73,8 @@ public final class CommandHandler implements TabExecutor {
             new MapCommand(plugin, this),
             new ScreenCommand(plugin, this),
             new FFmpegCommand(plugin, this),
-            new PluginCommand(plugin, this));
+            new PluginCommand(plugin, this),
+            new DiscordCommand(plugin, this));
     final JavaPlugin loader = plugin.getBootstrap();
     final CommandMap commandMap = CommandMapHelper.getCommandMap();
     final Commodore commodore =

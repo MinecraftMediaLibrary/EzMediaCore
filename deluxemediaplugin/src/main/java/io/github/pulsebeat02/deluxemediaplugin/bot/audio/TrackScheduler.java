@@ -22,12 +22,12 @@
  * SOFTWARE.
  */
 
-package io.github.pulsebeat02.deluxemediaplugin.discord.audio;
+package io.github.pulsebeat02.deluxemediaplugin.bot.audio;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import io.github.pulsebeat02.deluxemediaplugin.discord.MediaBot;
+import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import org.jetbrains.annotations.NotNull;
 
 /** Stolen from itxfrosty Music bot. */

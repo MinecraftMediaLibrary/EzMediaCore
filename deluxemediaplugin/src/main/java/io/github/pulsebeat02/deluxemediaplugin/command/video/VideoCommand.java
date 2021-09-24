@@ -35,9 +35,11 @@ import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
+import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
-import io.github.pulsebeat02.deluxemediaplugin.discord.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioTrimmer;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
@@ -141,20 +143,27 @@ public final class VideoCommand extends BaseCommand {
 
 		final VideoPlayer player = this.attributes.getPlayer();
 		switch (this.attributes.getAudioOutputType()) {
-			case RESOURCEPACK -> player.setCustomAudioPlayback(() -> {
+			case RESOURCEPACK -> player.setCustomAudioPlayback((mrl) -> {
 				final Set<Player> viewers = player.getWatchers().getPlayers();
 				final String sound = player.getSoundKey().getName();
 				for (final Player p : viewers) {
 					p.playSound(p.getLocation(), sound, SoundCategory.MASTER, 100.0F, 1.0F);
 				}
 			});
-			case DISCORD -> {
+			case DISCORD -> player.setCustomAudioPlayback((mrl) -> {
 				final MediaBot bot = plugin.getMediaBot();
-				
-			}
+				if (bot != null) {
+					final MusicManager manager = bot.getMusicManager();
+					manager.joinVoiceChannel();
+					try {
+						manager.addTrack(mrl.getMrl());
+					} catch (final FriendlyException exception) { // some formats not accepted
+						manager.addTrack(this.attributes.getVideoMrl().getMrl());
+					}
+				}
+			});
 			default -> throw new IllegalArgumentException("Illegal Audio Output!");
 		}
-
 		this.attributes.getPlayer().setPlayerState(PlayerControls.START, this.attributes.getVideoMrl());
 
 		return SINGLE_SUCCESS;
@@ -270,7 +279,8 @@ public final class VideoCommand extends BaseCommand {
 						entry("/video set itemframe-dimension [width:height]", "Sets the proper itemframe dimension of the screen"),
 						entry("/video set dither [algorithm]", "Sets the specific algorithm for dithering"),
 						entry("/video set starting-map [id]", "Sets the starting map id from id to id to the Length * Width. (For example 0 - 24 for 5x5 display if you put 0)"),
-						entry("/video set mode [mode]", "Sets the video mode")));
+						entry("/video set mode [mode]", "Sets the video mode"),
+						entry("/video set audio-output [output-type]", "Sets the preferable output type")));
 	}
 
 	@Override

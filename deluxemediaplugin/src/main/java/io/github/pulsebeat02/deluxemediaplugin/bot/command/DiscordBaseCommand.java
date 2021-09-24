@@ -21,52 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package io.github.pulsebeat02.deluxemediaplugin.bot.command;
 
-package io.github.pulsebeat02.ezmediacore.jlibdl;
-
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
+import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
+import java.util.Collection;
+import net.dv8tion.jda.api.entities.Message;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class MediaHttpHeaders {
+public abstract class DiscordBaseCommand {
 
-  @SerializedName("Accept")
-  @Expose
-  private String accept;
+  private final MediaBot bot;
+  private final String command;
+  private final Collection<DiscordBaseCommand> subcommands;
 
-  @SerializedName("Accept-Charset")
-  @Expose
-  private String acceptCharset;
-
-  @SerializedName("Accept-Encoding")
-  @Expose
-  private String acceptEncoding;
-
-  @SerializedName("Accept-Language")
-  @Expose
-  private String acceptLanguage;
-
-  @SerializedName("User-Agent")
-  @Expose
-  private String userAgent;
-
-  public @Nullable String getAccept() {
-    return this.accept;
+  public DiscordBaseCommand(
+      @NotNull final MediaBot bot,
+      @NotNull final String command,
+      @NotNull final Collection<DiscordBaseCommand> subcommands) {
+    this.bot = bot;
+    this.command = command;
+    this.subcommands = subcommands;
   }
 
-  public @Nullable String getAcceptCharset() {
-    return this.acceptCharset;
+  public abstract boolean execute(
+      @NotNull final Message executor, final String @Nullable [] arguments);
+
+  public @NotNull String getCommand() {
+    return this.command;
   }
 
-  public @Nullable String getAcceptEncoding() {
-    return this.acceptEncoding;
+  public @NotNull Collection<DiscordBaseCommand> getArguments() {
+    return this.subcommands;
   }
 
-  public @Nullable String getAcceptLanguage() {
-    return this.acceptLanguage;
-  }
-
-  public @Nullable String getUserAgent() {
-    return this.userAgent;
+  public @NotNull MediaBot getBot() {
+    return this.bot;
   }
 }

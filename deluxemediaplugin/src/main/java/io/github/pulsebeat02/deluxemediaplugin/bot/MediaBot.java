@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-package io.github.pulsebeat02.deluxemediaplugin.discord;
+package io.github.pulsebeat02.deluxemediaplugin.bot;
 
-import io.github.pulsebeat02.deluxemediaplugin.discord.audio.MusicManager;
+import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
 import javax.security.auth.login.LoginException;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;

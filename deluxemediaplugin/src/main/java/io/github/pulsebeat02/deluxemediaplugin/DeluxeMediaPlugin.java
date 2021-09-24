@@ -33,13 +33,13 @@ import static net.kyori.adventure.text.format.NamedTextColor.BLUE;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
+import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandHandler;
 import io.github.pulsebeat02.deluxemediaplugin.config.BotConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.EncoderConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.PersistentPictureManager;
-import io.github.pulsebeat02.deluxemediaplugin.discord.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.update.UpdateChecker;
 import io.github.pulsebeat02.deluxemediaplugin.utility.CommandUtils;
 import io.github.pulsebeat02.ezmediacore.LibraryProvider;
