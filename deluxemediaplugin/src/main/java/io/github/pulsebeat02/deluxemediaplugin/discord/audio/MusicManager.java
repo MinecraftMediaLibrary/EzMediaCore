@@ -30,7 +30,10 @@ import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import io.github.pulsebeat02.deluxemediaplugin.discord.MediaBot;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -42,7 +45,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class MusicManager {
 
-  public final Map<Long, MusicSendHandler> musicGuildManager;
+  private static final SimpleDateFormat HOURS_MINUTES_SECONDS;
+
+  static {
+    HOURS_MINUTES_SECONDS = new SimpleDateFormat("mm:ss:SSS");
+  }
+
+  private final Map<Long, MusicSendHandler> musicGuildManager;
   private final MediaBot bot;
   private final AudioPlayerManager playerManager;
 
@@ -88,36 +97,67 @@ public class MusicManager {
         new AudioLoadResultHandler() {
           @Override
           public void trackLoaded(final AudioTrack audioTrack) {
+            final AudioTrackInfo info = audioTrack.getInfo();
             MusicManager.this
                 .musicGuildManager
                 .get(guild.getIdLong())
                 .getTrackScheduler()
                 .queueSong(audioTrack);
+            channel
+                .sendMessageEmbeds(
+                    new EmbedBuilder()
+                        .setTitle(info.title)
+                        .addField("Author", info.author, false)
+                        .addField(
+                            "Playtime Length",
+                            HOURS_MINUTES_SECONDS.format(new Date(info.length)),
+                            false)
+                        .addField("Stream", info.isStream ? "Yes" : "No", false)
+                        .build())
+                .queue();
           }
 
           @Override
           public void playlistLoaded(final AudioPlaylist audioPlaylist) {
+            long ms = 0;
             for (final AudioTrack track : audioPlaylist.getTracks()) {
               MusicManager.this
                   .musicGuildManager
                   .get(guild.getIdLong())
                   .getTrackScheduler()
                   .queueSong(track);
+              ms += track.getInfo().length;
             }
+            channel
+                .sendMessageEmbeds(
+                    new EmbedBuilder()
+                        .setTitle(audioPlaylist.getName())
+                        .addField(
+                            "Playtime Length", HOURS_MINUTES_SECONDS.format(new Date(ms)), false)
+                        .build())
+                .queue();
           }
 
           @Override
           public void noMatches() {
             channel
                 .sendMessageEmbeds(
-                    new EmbedBuilder().setDescription("Could not find song!").build())
+                    new EmbedBuilder()
+                        .setTitle("Media Error")
+                        .setDescription("Could not find song!")
+                        .build())
                 .queue();
           }
 
           @Override
           public void loadFailed(final FriendlyException e) {
             channel
-                .sendMessageEmbeds(new EmbedBuilder().setDescription("An error occurred!").build())
+                .sendMessageEmbeds(
+                    new EmbedBuilder()
+                        .setTitle("Severe Player Error Occurred!")
+                        .setDescription(
+                            "An error occurred! Check console for possible exceptions or warnings.")
+                        .build())
                 .queue();
           }
         });
