@@ -41,8 +41,8 @@ import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
-import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioExtractor;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioTrimmer;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegMediaStreamer;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
@@ -60,7 +60,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
@@ -163,6 +162,7 @@ public final class VideoCommand extends BaseCommand {
     final String mrl = this.attributes.getVideoMrl().getMrl();
     if (this.attributes.getAudioOutputType() == AudioOutputType.DISCORD) {
       CompletableFuture.runAsync(() -> {
+
         final MediaBot bot = plugin.getMediaBot();
         final MusicManager manager = bot.getMusicManager();
         manager.destroyTrack();
@@ -170,24 +170,21 @@ public final class VideoCommand extends BaseCommand {
         if (process != null) {
           process.cancelProcess();
         }
-        final String audio = plugin.getBootstrap().getDataFolder().toPath().resolve("emc")
-            .toAbsolutePath()
-            .resolve("stream.ogg").toString();
-        final FFmpegAudioExtractor extractor = new FFmpegAudioExtractor(
+
+        final String url = "udp://localhost:1234/audio.ogg";
+        final FFmpegMediaStreamer extractor = new FFmpegMediaStreamer(
             player.getCore(),
             plugin.getAudioConfiguration(),
             RequestUtils.getAudioURLs(mrl).get(0),
-            audio);
+            url);
         this.attributes.setStreamExtractor(extractor);
         extractor.executeAsync();
-        try {
-          TimeUnit.SECONDS.sleep(5); // make ffmpeg process enough frames
-        } catch (final InterruptedException e) {
-          e.printStackTrace();
-        }
+
         manager.joinVoiceChannel();
-        manager.addTrack(audio);
+        manager.addTrack(url);
+
         this.attributes.getPlayer().setPlayerState(PlayerControls.START, mrl);
+
       });
     } else {
       this.attributes.getPlayer().setPlayerState(PlayerControls.START, mrl);
@@ -227,6 +224,10 @@ public final class VideoCommand extends BaseCommand {
     final MediaBot bot = this.plugin().getMediaBot();
     if (bot != null) {
       bot.getMusicManager().pauseTrack();
+      final EnhancedExecution process = this.attributes.getStreamExtractor();
+      if (process != null) {
+        process.cancelProcess();
+      }
     }
 
     this.attributes.getPlayer().setPlayerState(PlayerControls.PAUSE);
