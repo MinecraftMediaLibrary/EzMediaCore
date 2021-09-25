@@ -207,8 +207,7 @@ public final class VideoCommandAttributes {
     return this.streamExtractor;
   }
 
-  public void setStreamExtractor(
-      final EnhancedExecution streamExtractor) {
+  public void setStreamExtractor(final EnhancedExecution streamExtractor) {
     this.streamExtractor = streamExtractor;
   }
 }

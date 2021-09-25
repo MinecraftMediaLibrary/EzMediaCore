@@ -139,6 +139,13 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
         }
         this.attributes.setAudioOutputType(AudioOutputType.DISCORD);
       }
+      case HTTP -> {
+        if (this.plugin.getHttpAudioServer() == null) {
+          red(audience, "HTTP audio information provided in httpaudio.yml is invalid!");
+          return SINGLE_SUCCESS;
+        }
+        this.attributes.setAudioOutputType(AudioOutputType.HTTP);
+      }
       default -> throw new IllegalArgumentException("Audio type is invalid!");
     }
 

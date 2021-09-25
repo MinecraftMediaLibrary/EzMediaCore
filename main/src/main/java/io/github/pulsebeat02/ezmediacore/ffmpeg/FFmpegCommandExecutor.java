@@ -175,7 +175,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public void cancelProcess() {
+  public void close() {
     this.cancelled = true;
     if (this.process != null) {
       this.process.destroyForcibly();

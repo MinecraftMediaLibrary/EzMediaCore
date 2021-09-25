@@ -39,8 +39,10 @@ import io.github.pulsebeat02.deluxemediaplugin.command.CommandHandler;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
 import io.github.pulsebeat02.deluxemediaplugin.config.BotConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.EncoderConfiguration;
+import io.github.pulsebeat02.deluxemediaplugin.config.HttpAudioConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.PersistentPictureManager;
+import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
 import io.github.pulsebeat02.deluxemediaplugin.update.UpdateChecker;
 import io.github.pulsebeat02.deluxemediaplugin.utility.CommandUtils;
 import io.github.pulsebeat02.ezmediacore.LibraryProvider;
@@ -76,6 +78,7 @@ public final class DeluxeMediaPlugin {
   private AudioConfiguration audioConfiguration;
   private HttpServer server;
   private MediaBot mediaBot;
+  private ServerInfo httpAudioServer;
 
   private VideoCommandAttributes attributes;
 
@@ -141,7 +144,7 @@ public final class DeluxeMediaPlugin {
     }
   }
 
-  public void disable() {
+  public void disable() throws Exception {
     this.log("DeluxeMediaPlugin is shutting down!");
 
     if (this.library != null) {
@@ -163,12 +166,12 @@ public final class DeluxeMediaPlugin {
 
     final EnhancedExecution extractor = this.attributes.getExtractor();
     if (extractor != null) {
-      extractor.cancelProcess();
+      extractor.close();
     }
 
     final EnhancedExecution streamExtractor = this.attributes.getStreamExtractor();
     if (streamExtractor != null) {
-      streamExtractor.cancelProcess();
+      streamExtractor.close();
     }
 
     this.log("Good Bye :(");
@@ -181,12 +184,15 @@ public final class DeluxeMediaPlugin {
       final HttpConfiguration httpConfiguration = new HttpConfiguration(this);
       final EncoderConfiguration encoderConfiguration = new EncoderConfiguration(this);
       final BotConfiguration botConfiguration = new BotConfiguration(this);
+      final HttpAudioConfiguration audioConfiguration = new HttpAudioConfiguration(this);
       httpConfiguration.read();
       encoderConfiguration.read();
       botConfiguration.read();
+      audioConfiguration.read();
       this.server = httpConfiguration.getSerializedValue();
       this.audioConfiguration = encoderConfiguration.getSerializedValue();
       this.mediaBot = botConfiguration.getSerializedValue();
+      this.httpAudioServer = audioConfiguration.getSerializedValue();
       this.manager = new PersistentPictureManager(this);
       this.manager.startTask();
     } catch (final IOException e) {
@@ -238,12 +244,16 @@ public final class DeluxeMediaPlugin {
     return this.audiences;
   }
 
-  public VideoCommandAttributes getAttributes() {
+  public @NotNull VideoCommandAttributes getAttributes() {
     return this.attributes;
   }
 
   public void setAttributes(
       @NotNull final VideoCommandAttributes attributes) {
     this.attributes = attributes;
+  }
+
+  public @NotNull ServerInfo getHttpAudioServer() {
+    return this.httpAudioServer;
   }
 }

@@ -96,7 +96,11 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     final EnhancedExecution extractor = this.attributes.getExtractor();
     if (extractor != null) {
       this.cancelled = true;
-      extractor.cancelProcess();
+      try {
+        extractor.close();
+      } catch (final Exception e) {
+        e.printStackTrace();
+      }
       this.task.cancel(true);
       this.attributes.setExtractor(null);
       this.task = null;
@@ -194,7 +198,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   private boolean checkStream(@NotNull final Audience audience, @NotNull final String mrl) {
     if (RequestUtils.isStream(mrl)) {
-      if (this.attributes.getAudioOutputType() != AudioOutputType.DISCORD) {
+      if (this.attributes.getAudioOutputType() == AudioOutputType.RESOURCEPACK) {
         red(
             audience,
             "You cannot play streams without using Discord or a dynamic audio player with audio. Proceeding to play without audio.");

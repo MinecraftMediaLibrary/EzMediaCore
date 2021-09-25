@@ -21,22 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.deluxemediaplugin.bot.audio;
+package io.github.pulsebeat02.ezmediacore.rtp;
 
-import java.nio.ByteBuffer;
-import net.dv8tion.jda.api.audio.AudioSendHandler;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
-public class AudioByteHandler implements AudioSendHandler {
+public enum RTPDownloadPortal {
+  WIN_AMD_64(
+      "https://github.com/aler9/rtsp-simple-server/releases/download/v0.17.3/rtsp-simple-server_v0.17.3_windows_amd64.zip"),
+  UNIX_AMD_64(
+      "https://github.com/aler9/rtsp-simple-server/releases/download/v0.17.3/rtsp-simple-server_v0.17.3_linux_amd64.tar.gz"),
+  UNIX_ARM_64(
+      "https://github.com/aler9/rtsp-simple-server/releases/download/v0.17.3/rtsp-simple-server_v0.17.3_linux_arm64v8.tar.gz"),
+  MAC_64(
+      "https://github.com/aler9/rtsp-simple-server/releases/download/v0.17.3/rtsp-simple-server_v0.17.3_darwin_amd64.tar.gz");
 
-  @Override
-  public boolean canProvide() {
-    return false;
+  private final String url;
+
+  RTPDownloadPortal(@NotNull final String url) {
+    this.url = url;
   }
 
-  @Nullable
-  @Override
-  public ByteBuffer provide20MsAudio() {
-    return null;
+  public String getUrl() {
+    return this.url;
   }
 }

@@ -22,5 +22,5 @@ directory: "emc/http"
 header: "ZIP"
 
 # This sets whether the HTTP Server should log connections of the resourcepack.
-# Recommended to be set on as it is useful information.
+# Recommended being set to true as it is useful information.
 verbose: true

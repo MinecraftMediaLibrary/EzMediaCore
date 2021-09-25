@@ -21,43 +21,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.ffmpeg;
+package io.github.pulsebeat02.ezmediacore.rtp;
 
+import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
-import io.github.pulsebeat02.ezmediacore.playlist.spotify.TrackDownloader;
-import io.github.pulsebeat02.ezmediacore.playlist.youtube.SpotifyTrackDownloader;
+import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Path;
+import java.io.InputStreamReader;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
+public class RTPStreamingServer implements StreamingServer {
 
-  private final SpotifyTrackDownloader downloader;
-  private final YoutubeVideoAudioExtractor extractor;
+  private final MediaLibraryCore core;
+  private final String ip;
+  private final int hlsPort;
+  private Process process;
   private boolean cancelled;
 
-  public SpotifyTrackExtractor(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final AudioConfiguration configuration,
-      @NotNull final String url,
-      @NotNull final Path output)
-      throws IOException {
-    this.downloader = new SpotifyTrackDownloader(url, output);
-    this.extractor = new YoutubeVideoAudioExtractor(core, configuration, url, output);
+  public RTPStreamingServer(@NotNull final MediaLibraryCore core) {
+    this(core, HttpServer.HTTP_SERVER_IP, 8888);
   }
 
-  public SpotifyTrackExtractor(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final AudioConfiguration configuration,
-      @NotNull final String url,
-      @NotNull final String fileName)
-      throws IOException {
-    this(core, configuration, url, core.getAudioPath().resolve(fileName));
+  public RTPStreamingServer(@NotNull final MediaLibraryCore core, @NotNull final String url) {
+    this(core, url, 8888);
+  }
+
+  public RTPStreamingServer(@NotNull final MediaLibraryCore core, final int port) {
+    this(core, HttpServer.HTTP_SERVER_IP, port);
+  }
+
+  public RTPStreamingServer(
+      @NotNull final MediaLibraryCore core, @NotNull final String ip, final int hlsPort) {
+    this.core = core;
+    this.ip = ip;
+    this.hlsPort = hlsPort;
   }
 
   @Override
@@ -67,19 +70,32 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
 
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
-    this.onStartAudioExtraction();
-    final boolean log = logger != null;
-    if (log) {
-      logger.accept("Downloading Video...");
+    if (!this.cancelled) {
+      final boolean consume = logger != null;
+      final ProcessBuilder builder = new ProcessBuilder(this.core.getRTPPath().toString());
+      final Map<String, String> env = builder.environment();
+      env.put("RTSP_HLSADDRESS", "%s:%s".formatted(this.ip, this.hlsPort));
+      builder.redirectErrorStream(true);
+      try {
+        this.process = builder.start();
+        try (final BufferedReader r =
+            new BufferedReader(new InputStreamReader(this.process.getInputStream()))) {
+          String line;
+          while (true) {
+            line = r.readLine();
+            if (line == null) {
+              break;
+            }
+            if (consume) {
+              logger.accept(line);
+            }
+            Logger.directPrintRtp(line);
+          }
+        }
+      } catch (final IOException e) {
+        e.printStackTrace();
+      }
     }
-    this.downloader.downloadVideo(
-        this.downloader.getSearcher().getYoutubeVideo().getVideoFormats().get(0).getQuality(),
-        true);
-    if (log) {
-      logger.accept("Finished downloading Video");
-    }
-    this.extractor.executeWithLogging(logger);
-    this.onFinishAudioExtraction();
   }
 
   @Override
@@ -106,10 +122,10 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
 
   @Override
   public void close() {
-    this.onDownloadCancellation();
     this.cancelled = true;
-    this.downloader.cancelDownload();
-    this.extractor.close();
+    if (this.process != null) {
+      this.process.destroyForcibly();
+    }
   }
 
   @Override
@@ -118,21 +134,7 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
   }
 
   @Override
-  public void onDownloadCancellation() {}
-
-  @Override
-  public void onStartAudioExtraction() {}
-
-  @Override
-  public void onFinishAudioExtraction() {}
-
-  @Override
-  public @NotNull TrackDownloader getTrackDownloader() {
-    return this.downloader;
-  }
-
-  @Override
-  public @NotNull YoutubeAudioExtractor getYoutubeExtractor() {
-    return this.extractor;
+  public @NotNull String getAddress() {
+    return this.ip;
   }
 }

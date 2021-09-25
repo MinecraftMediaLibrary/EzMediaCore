@@ -21,22 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.deluxemediaplugin.bot.audio;
+package io.github.pulsebeat02.deluxemediaplugin.config;
 
-import java.nio.ByteBuffer;
-import net.dv8tion.jda.api.audio.AudioSendHandler;
-import org.jetbrains.annotations.Nullable;
+import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
+import org.jetbrains.annotations.NotNull;
 
-public class AudioByteHandler implements AudioSendHandler {
+public class ServerInfo {
 
-  @Override
-  public boolean canProvide() {
-    return false;
+  private final String ip;
+  private final int port;
+
+  public ServerInfo(@NotNull final String ip, final int port) {
+    this.ip = ip;
+    this.port = port;
   }
 
-  @Nullable
-  @Override
-  public ByteBuffer provide20MsAudio() {
-    return null;
+  public ServerInfo(final int port) {
+    this.ip = HttpServer.HTTP_SERVER_IP;
+    this.port = port;
+  }
+
+  public @NotNull String getIp() {
+    return this.ip;
+  }
+
+  public int getPort() {
+    return this.port;
   }
 }

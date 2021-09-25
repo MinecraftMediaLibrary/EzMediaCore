@@ -29,7 +29,7 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface EnhancedExecution {
+public interface EnhancedExecution extends AutoCloseable {
 
   void execute();
 
@@ -46,8 +46,6 @@ public interface EnhancedExecution {
   @NotNull
   CompletableFuture<Void> executeAsyncWithLogging(
       @NotNull final Consumer<String> logger, @NotNull final Executor executor);
-
-  void cancelProcess();
 
   boolean isCancelled();
 }

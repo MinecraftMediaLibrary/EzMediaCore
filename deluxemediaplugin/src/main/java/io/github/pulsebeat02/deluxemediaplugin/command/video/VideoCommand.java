@@ -31,7 +31,13 @@ import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 import static java.util.Map.entry;
 import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.event.ClickEvent.openUrl;
+import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
+import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
+import static net.kyori.adventure.text.format.Style.style;
+import static net.kyori.adventure.text.format.TextDecoration.BOLD;
+import static net.kyori.adventure.text.format.TextDecoration.UNDERLINED;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -39,6 +45,7 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
+import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioTrimmer;
@@ -48,7 +55,6 @@ import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
-import io.github.pulsebeat02.ezmediacore.utility.FastStringUtils;
 import io.github.pulsebeat02.ezmediacore.utility.HashingUtils;
 import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
@@ -154,63 +160,65 @@ public final class VideoCommand extends BaseCommand {
           p.playSound(p.getLocation(), sound, SoundCategory.MASTER, 100.0F, 1.0F);
         }
       });
-      case DISCORD -> player.setCustomAudioPlayback((mrl) -> {
+      case DISCORD, HTTP -> player.setCustomAudioPlayback((mrl) -> {
       });
       default -> throw new IllegalArgumentException("Illegal Audio Output!");
     }
 
-    final String mrl = this.attributes.getVideoMrl().getMrl();
-    if (this.attributes.getAudioOutputType() == AudioOutputType.DISCORD) {
-      CompletableFuture.runAsync(() -> {
+    final EnhancedExecution process = this.attributes.getStreamExtractor();
+    if (process != null) {
+      try {
+        process.close();
+      } catch (final Exception e) {
+        e.printStackTrace();
+      }
+    }
 
+    final String mrl = this.attributes.getVideoMrl().getMrl();
+    switch (this.attributes.getAudioOutputType()) {
+      case DISCORD -> {
         final MediaBot bot = plugin.getMediaBot();
         final MusicManager manager = bot.getMusicManager();
         manager.destroyTrack();
-        final EnhancedExecution process = this.attributes.getStreamExtractor();
-        if (process != null) {
-          process.cancelProcess();
-        }
-
-        final String url = "udp://localhost:1234/audio.ogg";
-        final FFmpegMediaStreamer extractor = new FFmpegMediaStreamer(
-            player.getCore(),
-            plugin.getAudioConfiguration(),
-            RequestUtils.getAudioURLs(mrl).get(0),
-            url);
-        this.attributes.setStreamExtractor(extractor);
-        extractor.executeAsync();
-
         manager.joinVoiceChannel();
-        manager.addTrack(url);
-
+        //manager.addTrack(url);
+        this.attributes.getPlayer().setPlayerState(PlayerControls.START, this.attributes.getVideoMrl());
+      }
+      case HTTP -> {
+        final ServerInfo info = plugin.getHttpAudioServer();
+        final FFmpegMediaStreamer streamer = new FFmpegMediaStreamer(
+            plugin.library(), plugin.getAudioConfiguration(), RequestUtils.getAudioURLs(this.attributes.getVideoMrl().getMrl()).get(0), info.getIp(), info.getPort());
+        this.attributes.setStreamExtractor(streamer);
+        streamer.executeAsync();
+        Bukkit.getOnlinePlayers().parallelStream()
+            .forEach(
+                p ->
+                    plugin
+                        .audience()
+                        .player(p)
+                        .sendMessage(
+                            text()
+                                .append(text("Click ", GOLD))
+                                .append(
+                                    text(
+                                        "this message",
+                                        style(
+                                            AQUA,
+                                            BOLD,
+                                            UNDERLINED,
+                                            openUrl(streamer.getOutput()),
+                                            text("Click to get the link!", GOLD)
+                                                .asHoverEvent())))
+                                .append(text(" to retrieve the audio HTTP link!", GOLD))
+                                .build()));
         this.attributes.getPlayer().setPlayerState(PlayerControls.START, mrl);
-
-      });
-    } else {
+      }
+      default -> throw new IllegalArgumentException("Illegal Audio Output!");
+    }
+    if (this.attributes.getAudioOutputType() == AudioOutputType.RESOURCEPACK) {
       this.attributes.getPlayer().setPlayerState(PlayerControls.START, mrl);
     }
-
     return SINGLE_SUCCESS;
-  }
-
-  private final Set<String> keywords = Set.of("youtube", "soundcloud", "bandcamp", "vimeo",
-      "twitch");
-  private final Set<String> extensions = Set.of("mp3", "flac", "wav", "mkv", "webm", "mp4", "m4a",
-      "ogg", "aac", "m3u", "pls");
-
-  private boolean isSupported(@NotNull final MrlConfiguration configuration) {
-    final String mrl = configuration.getMrl().toLowerCase(Locale.ROOT);
-    for (final String str : this.keywords) {
-      if (FastStringUtils.fastQuerySearch(mrl, str) != -1) {
-        return true;
-      }
-    }
-    for (final String str : this.extensions) {
-      if (FastStringUtils.fastQuerySearch(mrl, str) != -1) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private int stopVideo(@NotNull final CommandContext<CommandSender> context) {
@@ -226,7 +234,11 @@ public final class VideoCommand extends BaseCommand {
       bot.getMusicManager().pauseTrack();
       final EnhancedExecution process = this.attributes.getStreamExtractor();
       if (process != null) {
-        process.cancelProcess();
+        try {
+          process.close();
+        } catch (final Exception e) {
+          e.printStackTrace();
+        }
       }
     }
 

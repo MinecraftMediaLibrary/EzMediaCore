@@ -37,24 +37,29 @@ public final class Logger {
   private static PrintWriter LOGGER;
   private static PrintWriter VLC_LOGGER;
   private static PrintWriter FFMPEG_LOGGER;
+  private static PrintWriter RTP_LOGGER;
 
   private static Path LOG_FILE;
   private static Path VLC_LOG_FILE;
   private static Path FFMPEG_LOG_FILE;
+  private static Path RTP_LOG_FILE;
 
   public static void init(@NotNull final MediaLibraryCore core) {
     final Path path = core.getLibraryPath();
     LOG_FILE = path.resolve("emc.log");
     VLC_LOG_FILE = path.resolve("vlc.log");
     FFMPEG_LOG_FILE = path.resolve("ffmpeg.log");
+    RTP_LOG_FILE = path.resolve("rtp.log");
     try {
       Files.createDirectories(LOG_FILE.getParent());
       FileUtils.createIfNotExists(LOG_FILE);
       FileUtils.createIfNotExists(VLC_LOG_FILE);
       FileUtils.createIfNotExists(FFMPEG_LOG_FILE);
+      FileUtils.createIfNotExists(RTP_LOG_FILE);
       LOGGER = new PrintWriter(Files.newBufferedWriter(LOG_FILE), true);
       VLC_LOGGER = new PrintWriter(Files.newBufferedWriter(VLC_LOG_FILE), true);
       FFMPEG_LOGGER = new PrintWriter(Files.newBufferedWriter(FFMPEG_LOG_FILE), true);
+      RTP_LOGGER = new PrintWriter(Files.newBufferedWriter(RTP_LOG_FILE), true);
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -130,6 +135,20 @@ public final class Logger {
   }
 
   /**
+   * Directly prints the following line into Rtp.
+   *
+   * @param line to print
+   */
+  public static synchronized void directPrintRtp(@NotNull final String line) {
+    CompletableFuture.runAsync(
+        () -> {
+          RTP_LOGGER.write(line);
+          RTP_LOGGER.flush();
+        },
+        ExecutorProvider.SHARED_RESULT_POOL);
+  }
+
+  /**
    * Gets the File associated with the Logger file.
    *
    * @return the log file
@@ -154,5 +173,14 @@ public final class Logger {
    */
   public static Path getFfmpegLoggerPath() {
     return FFMPEG_LOG_FILE;
+  }
+
+  /**
+   * Gets the File associated with the RTP Logger file.
+   *
+   * @return the log file
+   */
+  public static PrintWriter getRtpLoggerPath() {
+    return RTP_LOGGER;
   }
 }

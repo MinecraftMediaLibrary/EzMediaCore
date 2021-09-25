@@ -108,11 +108,11 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   }
 
   @Override
-  public void cancelProcess() {
+  public void close() {
     this.onDownloadCancellation();
     this.cancelled = true;
     this.downloader.cancelDownload();
-    this.extractor.cancelProcess();
+    this.extractor.close();
   }
 
   @Override

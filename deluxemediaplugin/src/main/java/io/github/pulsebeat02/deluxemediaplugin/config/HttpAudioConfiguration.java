@@ -21,22 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.deluxemediaplugin.bot.audio;
+package io.github.pulsebeat02.deluxemediaplugin.config;
 
-import java.nio.ByteBuffer;
-import net.dv8tion.jda.api.audio.AudioSendHandler;
+import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import java.io.IOException;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AudioByteHandler implements AudioSendHandler {
+public class HttpAudioConfiguration extends ConfigurationProvider<ServerInfo> {
 
-  @Override
-  public boolean canProvide() {
-    return false;
+  private ServerInfo info;
+  private boolean enabled;
+
+  public HttpAudioConfiguration(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
+    super(plugin, "configuration/httpaudio.yml");
   }
 
-  @Nullable
   @Override
-  public ByteBuffer provide20MsAudio() {
-    return null;
+  void deserialize() {
+    this.saveConfig();
+  }
+
+  @Override
+  void serialize() throws IOException {
+    final FileConfiguration configuration = this.getFileConfiguration();
+    final boolean enabled = configuration.getBoolean("enabled");
+    final String ip = configuration.getString("ip");
+    final int port = configuration.getInt("port");
+    if (enabled) {
+      this.info =
+          ip == null || ip.equals("public") ? new ServerInfo(port) : new ServerInfo(ip, port);
+    }
+    this.enabled = enabled;
+  }
+
+  @Override
+  @Nullable
+  public ServerInfo getSerializedValue() {
+    return this.info;
   }
 }

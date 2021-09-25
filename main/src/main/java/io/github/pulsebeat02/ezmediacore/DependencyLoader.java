@@ -25,6 +25,7 @@ package io.github.pulsebeat02.ezmediacore;
 
 import io.github.pulsebeat02.ezmediacore.dependency.ArtifactInstaller;
 import io.github.pulsebeat02.ezmediacore.dependency.FFmpegInstaller;
+import io.github.pulsebeat02.ezmediacore.dependency.RTPInstaller;
 import io.github.pulsebeat02.ezmediacore.vlc.VLCBinaryLocator;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -45,7 +46,9 @@ public class DependencyLoader implements LibraryLoader {
   public void start() throws ExecutionException, InterruptedException {
     CompletableFuture.allOf(
             CompletableFuture.runAsync(this::installFFmpeg),
-            CompletableFuture.runAsync(this::installDependencies).thenRunAsync(this::checkVLC))
+            CompletableFuture.runAsync(this::installDependencies)
+                .thenRunAsync(this::installVLC)
+                .thenRunAsync(this::installRTP))
         .get();
   }
 
@@ -70,7 +73,7 @@ public class DependencyLoader implements LibraryLoader {
     }
   }
 
-  private void checkVLC() {
+  private void installVLC() {
     try {
       this.core.setVLCStatus(
           new VLCBinaryLocator(this.core, this.core.getVlcPath()).locate().isPresent());
@@ -78,6 +81,16 @@ public class DependencyLoader implements LibraryLoader {
         new NativePluginLoader().executePhantomPlayers();
       }
     } catch (final IOException | InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void installRTP() {
+    try {
+      final RTPInstaller installer = new RTPInstaller(this.core);
+      installer.start();
+      this.core.setRTPPath(installer.getExecutable());
+    } catch (final IOException e) {
       e.printStackTrace();
     }
   }
