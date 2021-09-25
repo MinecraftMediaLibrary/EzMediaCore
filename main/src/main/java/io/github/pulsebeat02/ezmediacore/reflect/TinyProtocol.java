@@ -141,8 +141,8 @@ public abstract class TinyProtocol {
   private final List<Channel> serverChannels = Lists.newArrayList();
   // Current handler name
   private final String handlerName;
-  private volatile boolean closed;
   private final Plugin plugin;
+  private volatile boolean closed;
   private Listener listener;
   // List of network markers
   private List<Object> networkManagers;

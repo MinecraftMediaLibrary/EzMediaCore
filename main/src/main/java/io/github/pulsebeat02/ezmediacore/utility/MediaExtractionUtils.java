@@ -48,17 +48,12 @@ public final class MediaExtractionUtils {
   private static final String SEARCH_KEYWORD;
 
   static {
-    try {
-      CACHED_RESULT =
-          Caffeine.newBuilder()
-              .executor(ExecutorProvider.SHARED_RESULT_POOL)
-              .expireAfterAccess(10, TimeUnit.MINUTES)
-              .softValues()
-              .build(MediaExtractionUtils::getFirstResultVideoInternal);
-    } catch (final Throwable t) {
-      System.out.println("D");
-      throw t;
-    }
+    CACHED_RESULT =
+        Caffeine.newBuilder()
+            .executor(ExecutorProvider.SHARED_RESULT_POOL)
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .softValues()
+            .build(MediaExtractionUtils::getFirstResultVideoInternal);
     YOUTUBE_ID_PATTERN = Pattern.compile("(?<=youtu.be/|watch\\?v=|/videos/|embed)[^#]*");
     YOUTUBE_SEARCH_URL = "https://www.youtube.com/results?search_query=%s";
     SEARCH_KEYWORD = "videoId";

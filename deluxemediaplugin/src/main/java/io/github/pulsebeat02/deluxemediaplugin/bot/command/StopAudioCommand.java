@@ -21,38 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package io.github.pulsebeat02.deluxemediaplugin.bot.command;
 
-package io.github.pulsebeat02.ezmediacore.random;
+import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
+import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
+import java.util.Set;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * Hash routines for primitive types. The implementation is based on the finalization step from
- * Austin Appleby's <code>MurmurHash3</code>.
- *
- * @see "http://sites.google.com/site/murmurhash/"
- */
-public final class MurmurHash3 {
-  private MurmurHash3() {
-    // no instances.
+public class StopAudioCommand extends DiscordBaseCommand {
+
+  public StopAudioCommand(@NotNull final MediaBot bot) {
+    super(bot, "stop", Set.of());
   }
 
-  /** Hashes a 4-byte sequence (Java int). */
-  public static int hash(int k) {
-    k ^= k >>> 16;
-    k *= 0x85ebca6b;
-    k ^= k >>> 13;
-    k *= 0xc2b2ae35;
-    k ^= k >>> 16;
-    return k;
-  }
-
-  /** Hashes an 8-byte sequence (Java long). */
-  public static long hash(long k) {
-    k ^= k >>> 33;
-    k *= 0xff51afd7ed558ccdL;
-    k ^= k >>> 33;
-    k *= 0xc4ceb9fe1a85ec53L;
-    k ^= k >>> 33;
-
-    return k;
+  @Override
+  public boolean execute(@NotNull final Message executor, final String @Nullable [] arguments) {
+    final MusicManager manager = this.getBot().getMusicManager();
+    manager.getPlayerManager().shutdown();
+    executor
+        .getChannel()
+        .sendMessageEmbeds(
+            new EmbedBuilder().setTitle("Audio Stop").setDescription("Stopped Audio!").build())
+        .queue();
+    return true;
   }
 }

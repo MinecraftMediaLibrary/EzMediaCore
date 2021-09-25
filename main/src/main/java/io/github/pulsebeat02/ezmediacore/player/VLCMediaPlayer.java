@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jcodec.common.Preconditions;
@@ -91,13 +92,15 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   public void setPlayerState(@NotNull final PlayerControls controls,
       @NotNull final Object... arguments) {
     super.setPlayerState(controls);
+    CompletableFuture.runAsync(() -> {
     switch (controls) {
       case START -> {
-        this.setMrlConfiguration(ArgumentUtils.checkPlayerArguments(arguments));
+        this.setDirectVideoMrl(ArgumentUtils.retrieveDirectVideo(arguments));
+        this.setDirectAudioMrl(ArgumentUtils.retrieveDirectAudio(arguments));
         if (this.player == null) {
           this.initializePlayer(0L, this.getProperArguments(arguments));
         }
-        this.player.media().play(this.getMrlConfiguration().getMrl());
+        this.player.media().play(this.getDirectVideoMrl().getMrl());
         this.playAudio();
       }
       case PAUSE -> {
@@ -107,7 +110,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
       case RESUME -> {
         if (this.player == null) {
           this.initializePlayer(0L);
-          this.player.media().play(this.getMrlConfiguration().getMrl());
+          this.player.media().play(this.getDirectVideoMrl().getMrl());
         } else {
           this.player.controls().play();
         }
@@ -116,6 +119,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
       case RELEASE -> this.releaseAll();
       default -> throw new IllegalArgumentException("Player state is invalid!");
     }
+    });
   }
 
   private Object @NotNull [] getProperArguments(final Object @NotNull [] arguments) {

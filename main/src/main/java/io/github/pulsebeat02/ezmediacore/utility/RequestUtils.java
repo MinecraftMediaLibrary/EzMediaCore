@@ -23,16 +23,57 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.github.pulsebeat02.ezmediacore.Logger;
+import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
+import io.github.pulsebeat02.ezmediacore.jlibdl.Format;
+import io.github.pulsebeat02.ezmediacore.jlibdl.JLibDL;
+import io.github.pulsebeat02.ezmediacore.jlibdl.MediaInfo;
+import io.github.pulsebeat02.ezmediacore.jlibdl.YoutubeDLRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpClient.Version;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.compress.utils.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class RequestUtils {
+
+  private static final LoadingCache<String, Optional<YoutubeDLRequest>> CACHED_RESULT;
+  private static final JLibDL JLIBDL;
+  private static final HttpClient HTTP_CLIENT;
+
+  static {
+    CACHED_RESULT =
+        Caffeine.newBuilder()
+            .executor(ExecutorProvider.SHARED_RESULT_POOL)
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .softValues()
+            .build(RequestUtils::getRequestInternal);
+    JLIBDL = new JLibDL();
+    HTTP_CLIENT =
+        HttpClient.newBuilder()
+            .version(Version.HTTP_1_1)
+            .followRedirects(Redirect.NORMAL)
+            .connectTimeout(Duration.ofSeconds(20))
+            .build();
+  }
 
   private RequestUtils() {}
 
@@ -69,8 +110,114 @@ public final class RequestUtils {
     return result.toString();
   }
 
-  public static String getParentUrl(@NotNull final String link) {
+  public static @NotNull String getParentUrl(@NotNull final String link) {
     final int index = link.lastIndexOf('/');
     return index > 0 ? "%s/".formatted(link.substring(0, index)) : "/";
+  }
+
+  public static boolean isStream(@NotNull final String url) {
+
+    final YoutubeDLRequest request;
+    try {
+      request = JLIBDL.request(url);
+    } catch (final IOException | InterruptedException e) {
+      return false;
+    }
+
+    if (request == null) {
+      return false;
+    }
+
+    final MediaInfo info = request.getInfo();
+    if (info == null) {
+      return false;
+    }
+
+    return info.isLive();
+  }
+
+  public static @NotNull List<String> getVideoURLs(@NotNull final String url) {
+    final Optional<YoutubeDLRequest> optional = validatePrimaryRequest(url);
+    if (optional.isEmpty()) {
+      return List.of(url);
+    }
+    return List.copyOf(getFormats(optional.get(), url, true));
+  }
+
+  public static @NotNull List<String> getAudioURLs(@NotNull final String url) {
+    final Optional<YoutubeDLRequest> optional = validatePrimaryRequest(url);
+    if (optional.isEmpty()) {
+      return List.of(url);
+    }
+    return List.copyOf(getFormats(optional.get(), url, false));
+  }
+
+  public static @NotNull Path downloadFile(@NotNull final Path path, @NotNull final String url)
+      throws IOException, InterruptedException {
+    return HTTP_CLIENT
+        .send(HttpRequest.newBuilder().uri(URI.create(url)).build(), BodyHandlers.ofFile(path))
+        .body();
+  }
+
+  private static @NotNull Optional<YoutubeDLRequest> validatePrimaryRequest(
+      @NotNull final String url) {
+    final Optional<YoutubeDLRequest> optional = CACHED_RESULT.get(url);
+    if (optional.isEmpty()) {
+      return Optional.empty();
+    }
+    final YoutubeDLRequest request = optional.get();
+    if (!validFormats(request)) {
+      return Optional.empty();
+    }
+    return Optional.of(request);
+  }
+
+  private static @NotNull List<String> getFormats(
+      @NotNull final YoutubeDLRequest request, @NotNull final String mrl, final boolean video) {
+    final List<String> urls = Lists.newArrayList();
+    for (final Format format : request.getInfo().getFormats()) {
+      if (format == null) {
+        continue;
+      }
+      final String vcodec = format.getVcodec();
+      final String acodec = format.getAcodec();
+      String url = null;
+      if (video) {
+        if (vcodec != null && !vcodec.equals("none")) {
+          url = format.getUrl();
+        }
+      } else {
+        if (acodec != null && !acodec.equals("none")) {
+          url = format.getUrl();
+        }
+      }
+      if (url != null) {
+        urls.add(url);
+      }
+    }
+    if (urls.size() == 0) {
+      Logger.info(
+          "youtube-dl could not recognize MRL %s! Adding to List for possible execution."
+              .formatted(mrl));
+      urls.add(mrl);
+    }
+    return urls;
+  }
+
+  private static boolean validFormats(@Nullable final YoutubeDLRequest request) {
+    if (request == null) {
+      return false;
+    }
+    final MediaInfo info = request.getInfo();
+    if (info == null) {
+      return false;
+    }
+    final List<Format> formats = info.getFormats();
+    return formats != null && formats.size() >= 1;
+  }
+
+  private static @NotNull Optional<YoutubeDLRequest> getRequestInternal(@NotNull final String url)
+      throws IOException, InterruptedException {
+    return Optional.ofNullable(JLIBDL.request(url));
   }
 }

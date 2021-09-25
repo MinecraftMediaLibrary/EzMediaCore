@@ -22,15 +22,16 @@
  * SOFTWARE.
  */
 
-package io.github.pulsebeat02.deluxemediaplugin.discord;
+package io.github.pulsebeat02.deluxemediaplugin.bot;
 
-import io.github.pulsebeat02.deluxemediaplugin.discord.audio.MusicManager;
+import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
 import javax.security.auth.login.LoginException;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.hooks.AnnotatedEventManager;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +55,7 @@ public class MediaBot {
                 GatewayIntent.GUILD_MEMBERS,
                 GatewayIntent.GUILD_MESSAGES,
                 GatewayIntent.GUILD_MESSAGE_REACTIONS)
+            .setEventManager(new AnnotatedEventManager())
             .addEventListeners(new MediaCommandListener(this))
             .build()
             .awaitReady();

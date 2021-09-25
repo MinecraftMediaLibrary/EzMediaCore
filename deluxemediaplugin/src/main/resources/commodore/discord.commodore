@@ -1,0 +1,9 @@
+discord {
+  connect;
+  disconnect;
+  pause;
+  resume;
+  play {
+    mrl brigadier:string greedy_phrase;
+  }
+}

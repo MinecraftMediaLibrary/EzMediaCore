@@ -30,6 +30,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -48,8 +49,9 @@ public abstract class MediaPlayer implements VideoPlayer {
   private Dimension dimensions;
   private SoundKey key;
 
-  private MrlConfiguration mrl;
-  private Runnable playAudio;
+  private MrlConfiguration directVideo;
+  private MrlConfiguration directAudio;
+  private Consumer<MrlConfiguration> playAudio;
   private Runnable stopAudio;
 
   private PlayerControls controls;
@@ -74,7 +76,7 @@ public abstract class MediaPlayer implements VideoPlayer {
     this.fps = fps;
     this.viewers = viewers;
     this.playAudio =
-        () ->
+        (mrl) ->
             this.viewers
                 .getPlayers()
                 .forEach(
@@ -131,7 +133,7 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   @Override
   public void playAudio() {
-    CompletableFuture.runAsync(this.playAudio);
+    CompletableFuture.runAsync(() -> this.playAudio.accept(this.getDirectAudioMrl()));
   }
 
   @Override
@@ -147,16 +149,6 @@ public abstract class MediaPlayer implements VideoPlayer {
   @Override
   public void setFrameConfiguration(@NotNull final FrameConfiguration configuration) {
     this.fps = configuration;
-  }
-
-  @Override
-  public @NotNull MrlConfiguration getMrlConfiguration() {
-    return this.mrl;
-  }
-
-  @Override
-  public void setMrlConfiguration(@NotNull final MrlConfiguration configuration) {
-    this.mrl = configuration;
   }
 
   @Override
@@ -180,7 +172,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void setCustomAudioPlayback(@NotNull final Runnable runnable) {
+  public void setCustomAudioPlayback(@NotNull final Consumer<MrlConfiguration> runnable) {
     this.playAudio = runnable;
   }
 
@@ -192,5 +184,25 @@ public abstract class MediaPlayer implements VideoPlayer {
   @Override
   public void setViewers(@NotNull final Viewers viewers) {
     this.viewers = viewers;
+  }
+
+  @Override
+  public @NotNull MrlConfiguration getDirectVideoMrl() {
+    return this.directVideo;
+  }
+
+  @Override
+  public void setDirectVideoMrl(@NotNull final MrlConfiguration videoMrl) {
+    this.directVideo = videoMrl;
+  }
+
+  @Override
+  public @NotNull MrlConfiguration getDirectAudioMrl() {
+    return this.directAudio;
+  }
+
+  @Override
+  public void setDirectAudioMrl(@NotNull final MrlConfiguration audioMrl) {
+    this.directAudio = audioMrl;
   }
 }

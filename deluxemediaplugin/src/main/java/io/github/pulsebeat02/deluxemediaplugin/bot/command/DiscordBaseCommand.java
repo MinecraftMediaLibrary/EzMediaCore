@@ -21,38 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package io.github.pulsebeat02.deluxemediaplugin.bot.command;
 
-package io.github.pulsebeat02.ezmediacore.random;
+import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
+import java.util.Collection;
+import net.dv8tion.jda.api.entities.Message;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * Hash routines for primitive types. The implementation is based on the finalization step from
- * Austin Appleby's <code>MurmurHash3</code>.
- *
- * @see "http://sites.google.com/site/murmurhash/"
- */
-public final class MurmurHash3 {
-  private MurmurHash3() {
-    // no instances.
+public abstract class DiscordBaseCommand {
+
+  private final MediaBot bot;
+  private final String command;
+  private final Collection<DiscordBaseCommand> subcommands;
+
+  public DiscordBaseCommand(
+      @NotNull final MediaBot bot,
+      @NotNull final String command,
+      @NotNull final Collection<DiscordBaseCommand> subcommands) {
+    this.bot = bot;
+    this.command = command;
+    this.subcommands = subcommands;
   }
 
-  /** Hashes a 4-byte sequence (Java int). */
-  public static int hash(int k) {
-    k ^= k >>> 16;
-    k *= 0x85ebca6b;
-    k ^= k >>> 13;
-    k *= 0xc2b2ae35;
-    k ^= k >>> 16;
-    return k;
+  public abstract boolean execute(
+      @NotNull final Message executor, final String @Nullable [] arguments);
+
+  public @NotNull String getCommand() {
+    return this.command;
   }
 
-  /** Hashes an 8-byte sequence (Java long). */
-  public static long hash(long k) {
-    k ^= k >>> 33;
-    k *= 0xff51afd7ed558ccdL;
-    k ^= k >>> 33;
-    k *= 0xc4ceb9fe1a85ec53L;
-    k ^= k >>> 33;
+  public @NotNull Collection<DiscordBaseCommand> getArguments() {
+    return this.subcommands;
+  }
 
-    return k;
+  public @NotNull MediaBot getBot() {
+    return this.bot;
   }
 }

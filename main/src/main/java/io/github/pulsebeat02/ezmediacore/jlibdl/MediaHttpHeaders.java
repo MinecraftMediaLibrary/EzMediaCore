@@ -22,37 +22,51 @@
  * SOFTWARE.
  */
 
-package io.github.pulsebeat02.ezmediacore.random;
+package io.github.pulsebeat02.ezmediacore.jlibdl;
 
-/**
- * Hash routines for primitive types. The implementation is based on the finalization step from
- * Austin Appleby's <code>MurmurHash3</code>.
- *
- * @see "http://sites.google.com/site/murmurhash/"
- */
-public final class MurmurHash3 {
-  private MurmurHash3() {
-    // no instances.
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+import org.jetbrains.annotations.Nullable;
+
+public final class MediaHttpHeaders {
+
+  @SerializedName("Accept")
+  @Expose
+  private String accept;
+
+  @SerializedName("Accept-Charset")
+  @Expose
+  private String acceptCharset;
+
+  @SerializedName("Accept-Encoding")
+  @Expose
+  private String acceptEncoding;
+
+  @SerializedName("Accept-Language")
+  @Expose
+  private String acceptLanguage;
+
+  @SerializedName("User-Agent")
+  @Expose
+  private String userAgent;
+
+  public @Nullable String getAccept() {
+    return this.accept;
   }
 
-  /** Hashes a 4-byte sequence (Java int). */
-  public static int hash(int k) {
-    k ^= k >>> 16;
-    k *= 0x85ebca6b;
-    k ^= k >>> 13;
-    k *= 0xc2b2ae35;
-    k ^= k >>> 16;
-    return k;
+  public @Nullable String getAcceptCharset() {
+    return this.acceptCharset;
   }
 
-  /** Hashes an 8-byte sequence (Java long). */
-  public static long hash(long k) {
-    k ^= k >>> 33;
-    k *= 0xff51afd7ed558ccdL;
-    k ^= k >>> 33;
-    k *= 0xc4ceb9fe1a85ec53L;
-    k ^= k >>> 33;
+  public @Nullable String getAcceptEncoding() {
+    return this.acceptEncoding;
+  }
 
-    return k;
+  public @Nullable String getAcceptLanguage() {
+    return this.acceptLanguage;
+  }
+
+  public @Nullable String getUserAgent() {
+    return this.userAgent;
   }
 }

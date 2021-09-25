@@ -123,11 +123,6 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
 
     final Audience audience = this.plugin.audience().sender(context.getSource());
 
-    if (VideoCommandAttributes.TEMPORARY_PLACEHOLDER) {
-      audience.sendMessage(text("Unfortunately, DeluxeMediaPlugin hasn't programmed other audio outputs yet. Stay tuned. We are working very hard to add new audio outputs!"));
-      return SINGLE_SUCCESS;
-    }
-
     final String argument = context.getArgument("audio-type", String.class);
     final Optional<AudioOutputType> optional = AudioOutputType.ofKey(argument);
     if (optional.isEmpty()) {
@@ -139,7 +134,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
       case RESOURCEPACK -> this.attributes.setAudioOutputType(AudioOutputType.RESOURCEPACK);
       case DISCORD -> {
         if (this.plugin.getMediaBot() == null) {
-          red(audience, "Discord token provided in bot.yml is invalid!");
+          red(audience, "Discord bot information provided in bot.yml is invalid!");
           return SINGLE_SUCCESS;
         }
         this.attributes.setAudioOutputType(AudioOutputType.DISCORD);
@@ -147,7 +142,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
       default -> throw new IllegalArgumentException("Audio type is invalid!");
     }
 
-    gold(audience, "Succesfully set the audio type to %s" + argument);
+    gold(audience, "Successfully set the audio type to %s".formatted(argument));
 
     return SINGLE_SUCCESS;
   }

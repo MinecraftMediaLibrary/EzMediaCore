@@ -22,37 +22,16 @@
  * SOFTWARE.
  */
 
-package io.github.pulsebeat02.ezmediacore.random;
+package io.github.pulsebeat02.ezmediacore.throwable;
 
-/**
- * Hash routines for primitive types. The implementation is based on the finalization step from
- * Austin Appleby's <code>MurmurHash3</code>.
- *
- * @see "http://sites.google.com/site/murmurhash/"
- */
-public final class MurmurHash3 {
-  private MurmurHash3() {
-    // no instances.
-  }
+import java.io.Serial;
+import org.jetbrains.annotations.NotNull;
 
-  /** Hashes a 4-byte sequence (Java int). */
-  public static int hash(int k) {
-    k ^= k >>> 16;
-    k *= 0x85ebca6b;
-    k ^= k >>> 13;
-    k *= 0xc2b2ae35;
-    k ^= k >>> 16;
-    return k;
-  }
+public class InvalidMRLException extends LibraryException {
 
-  /** Hashes an 8-byte sequence (Java long). */
-  public static long hash(long k) {
-    k ^= k >>> 33;
-    k *= 0xff51afd7ed558ccdL;
-    k ^= k >>> 33;
-    k *= 0xc4ceb9fe1a85ec53L;
-    k ^= k >>> 33;
+  @Serial private static final long serialVersionUID = 6350588543681340867L;
 
-    return k;
+  public InvalidMRLException(@NotNull final String mrl) {
+    super("Invalid MRL %s".formatted(mrl));
   }
 }
