@@ -25,6 +25,7 @@ package io.github.pulsebeat02.ezmediacore.utility;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 public final class PathUtils {
@@ -52,6 +53,10 @@ public final class PathUtils {
    * @return whether the path is valid
    */
   public static boolean isValidPath(@NotNull final String path) {
+    final String lowercase = path.toLowerCase(Locale.ROOT);
+    if (lowercase.startsWith("http://") || lowercase.startsWith("https://")) {
+      return false;
+    }
     return Files.exists(Path.of(path));
   }
 

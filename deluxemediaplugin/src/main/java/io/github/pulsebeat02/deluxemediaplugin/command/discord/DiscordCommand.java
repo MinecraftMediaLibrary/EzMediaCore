@@ -101,7 +101,7 @@ public class DiscordCommand extends BaseCommand {
     if (this.checkDiscordStatus(audience)) {
       return SINGLE_SUCCESS;
     }
-    this.plugin().getMediaBot().getMusicManager().puaseTrack();
+    this.plugin().getMediaBot().getMusicManager().pauseTrack();
     gold(audience, "Successfully paused track!");
     return SINGLE_SUCCESS;
   }

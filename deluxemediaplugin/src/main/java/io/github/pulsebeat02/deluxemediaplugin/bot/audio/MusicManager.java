@@ -178,7 +178,7 @@ public class MusicManager {
         });
   }
 
-  public void puaseTrack() {
+  public void pauseTrack() {
     if (this.player != null) {
       this.player.setPaused(true);
     }
@@ -187,6 +187,12 @@ public class MusicManager {
   public void resumeTrack() {
     if (this.player != null) {
       this.player.setPaused(false);
+    }
+  }
+
+  public void destroyTrack() {
+    if (this.player != null) {
+      this.player.destroy();
     }
   }
 

@@ -52,6 +52,7 @@ public final class VideoCommandAttributes {
   private boolean stream;
 
   private EnhancedExecution extractor;
+  private EnhancedExecution streamExtractor;
 
   private int map;
 
@@ -200,5 +201,14 @@ public final class VideoCommandAttributes {
 
   public boolean isStream() {
     return this.stream;
+  }
+
+  public EnhancedExecution getStreamExtractor() {
+    return this.streamExtractor;
+  }
+
+  public void setStreamExtractor(
+      final EnhancedExecution streamExtractor) {
+    this.streamExtractor = streamExtractor;
   }
 }

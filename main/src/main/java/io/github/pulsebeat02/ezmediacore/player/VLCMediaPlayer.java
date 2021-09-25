@@ -93,32 +93,33 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
       @NotNull final Object... arguments) {
     super.setPlayerState(controls);
     CompletableFuture.runAsync(() -> {
-    switch (controls) {
-      case START -> {
-        this.setDirectVideoMrl(ArgumentUtils.retrieveDirectVideo(arguments));
-        this.setDirectAudioMrl(ArgumentUtils.retrieveDirectAudio(arguments));
-        if (this.player == null) {
-          this.initializePlayer(0L, this.getProperArguments(arguments));
-        }
-        this.player.media().play(this.getDirectVideoMrl().getMrl());
-        this.playAudio();
-      }
-      case PAUSE -> {
-        this.stopAudio();
-        this.player.controls().stop();
-      }
-      case RESUME -> {
-        if (this.player == null) {
-          this.initializePlayer(0L);
+      switch (controls) {
+        case START -> {
+          this.setDirectVideoMrl(ArgumentUtils.retrieveDirectVideo(arguments));
+          this.setDirectAudioMrl(ArgumentUtils.retrieveDirectAudio(arguments));
+          if (this.player == null) {
+            this.initializePlayer(0L, this.getProperArguments(arguments));
+          }
+          this.playAudio();
           this.player.media().play(this.getDirectVideoMrl().getMrl());
-        } else {
-          this.player.controls().play();
         }
-        this.playAudio();
+        case PAUSE -> {
+          this.stopAudio();
+          this.player.controls().stop();
+        }
+        case RESUME -> {
+          if (this.player == null) {
+            this.initializePlayer(0L);
+            this.playAudio();
+            this.player.media().play(this.getDirectVideoMrl().getMrl());
+          } else {
+            this.playAudio();
+            this.player.controls().play();
+          }
+        }
+        case RELEASE -> this.releaseAll();
+        default -> throw new IllegalArgumentException("Player state is invalid!");
       }
-      case RELEASE -> this.releaseAll();
-      default -> throw new IllegalArgumentException("Player state is invalid!");
-    }
     });
   }
 
@@ -196,7 +197,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   @Contract(" -> new")
   private @NotNull CallbackVideoSurface getSurface() {
     this.surface = new CallbackVideoSurface(this.getBufferCallback(), this.videoCallback, false,
-          this.adapter);
+        this.adapter);
     return this.surface;
   }
 
@@ -298,8 +299,9 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     @Override
     public @NotNull MediaPlayer build() {
       final Callback callback = this.getCallback();
-      return new VLCMediaPlayer(callback, callback.getWatchers(),  this.getDims(), this.getKey(), this.getRate(),
-            this.arguments);
+      return new VLCMediaPlayer(callback, callback.getWatchers(), this.getDims(), this.getKey(),
+          this.getRate(),
+          this.arguments);
     }
   }
 
@@ -312,7 +314,8 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     }
 
     public MinecraftVideoRenderCallback(@NotNull final Consumer<int[]> consumer) {
-      super(new int[VLCMediaPlayer.super.getDimensions().getWidth() * VLCMediaPlayer.super.getDimensions().getHeight()]);
+      super(new int[VLCMediaPlayer.super.getDimensions().getWidth()
+          * VLCMediaPlayer.super.getDimensions().getHeight()]);
       this.callback = consumer;
     }
 
