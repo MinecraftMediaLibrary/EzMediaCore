@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import com.google.common.base.Preconditions;
 import com.sun.jna.Pointer;
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
@@ -37,13 +38,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import org.jcodec.common.Preconditions;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
-import uk.co.caprica.vlcj.log.LogLevel;
-import uk.co.caprica.vlcj.log.NativeLog;
 import uk.co.caprica.vlcj.player.base.callback.AudioCallbackAdapter;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.CallbackVideoSurface;
@@ -65,7 +63,6 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   private CallbackVideoSurface surface;
   private MediaPlayerFactory factory;
   private EmbeddedMediaPlayer player;
-  private NativeLog logger;
 
   VLCMediaPlayer(
       @NotNull final Callback callback,
@@ -146,20 +143,8 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer(
       @NotNull final Collection<Object> arguments) {
     if (this.player == null
-        || this.factory == null
-        || this.logger == null) { // just in case something is null;
+        || this.factory == null) { // just in case something is null;
       this.factory = new MediaPlayerFactory(this.constructArguments(arguments));
-      final NativeLog logger = this.factory.application().newLog();
-      if (logger == null) { // ignore this warning as its intellij being dumb with native bindings
-        Logger.info("VLC Native Logger not available on this platform!");
-      } else {
-        logger.setLevel(LogLevel.DEBUG);
-        logger.addLogListener(
-            (level, module, file, line, name, header, id, message) ->
-                Logger.directPrintVLC(
-                    "[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message)));
-        this.logger = logger;
-      }
       return this.factory.mediaPlayers().newEmbeddedMediaPlayer();
     }
     return this.player;
@@ -175,14 +160,13 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
       args.add("--no-audio");
     }
     args.addAll(arguments.stream().map(Object::toString).collect(Collectors.toList()));
+    args.add("--verbose=0");
+    args.add("--file-logging");
+    args.add("--logfile=%s".formatted(Logger.getVlcLoggerPath()));
     return args;
   }
 
   private void releaseAll() {
-    if (this.logger != null) {
-      this.logger.release();
-      this.logger = null;
-    }
     if (this.player != null) {
       this.player.controls().stop();
       this.player.release();

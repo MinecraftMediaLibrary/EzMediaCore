@@ -67,6 +67,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.SoundCategory;
@@ -160,8 +161,7 @@ public final class VideoCommand extends BaseCommand {
           p.playSound(p.getLocation(), sound, SoundCategory.MASTER, 100.0F, 1.0F);
         }
       });
-      case DISCORD, HTTP -> player.setCustomAudioPlayback((mrl) -> {
-      });
+      case DISCORD, HTTP -> player.setCustomAudioPlayback((mrl) -> {});
       default -> throw new IllegalArgumentException("Illegal Audio Output!");
     }
 
@@ -174,7 +174,8 @@ public final class VideoCommand extends BaseCommand {
       }
     }
 
-    final String mrl = this.attributes.getVideoMrl().getMrl();
+    final MrlConfiguration configuration = this.attributes.getVideoMrl();
+    final String mrl = configuration.getMrl();
     switch (this.attributes.getAudioOutputType()) {
       case DISCORD -> {
         final MediaBot bot = plugin.getMediaBot();
@@ -182,42 +183,36 @@ public final class VideoCommand extends BaseCommand {
         manager.destroyTrack();
         manager.joinVoiceChannel();
         //manager.addTrack(url);
-        this.attributes.getPlayer().setPlayerState(PlayerControls.START, this.attributes.getVideoMrl());
+
       }
       case HTTP -> {
+
         final ServerInfo info = plugin.getHttpAudioServer();
         final FFmpegMediaStreamer streamer = new FFmpegMediaStreamer(
-            plugin.library(), plugin.getAudioConfiguration(), RequestUtils.getAudioURLs(this.attributes.getVideoMrl().getMrl()).get(0), info.getIp(), info.getPort());
+            plugin.library(), plugin.getAudioConfiguration(), RequestUtils.getAudioURLs(mrl).get(0), info.getIp(), info.getPort());
         this.attributes.setStreamExtractor(streamer);
         streamer.executeAsync();
-        Bukkit.getOnlinePlayers().parallelStream()
-            .forEach(
-                p ->
-                    plugin
-                        .audience()
-                        .player(p)
-                        .sendMessage(
-                            text()
-                                .append(text("Click ", GOLD))
-                                .append(
-                                    text(
-                                        "this message",
-                                        style(
-                                            AQUA,
-                                            BOLD,
-                                            UNDERLINED,
-                                            openUrl(streamer.getOutput()),
-                                            text("Click to get the link!", GOLD)
-                                                .asHoverEvent())))
-                                .append(text(" to retrieve the audio HTTP link!", GOLD))
-                                .build()));
-        this.attributes.getPlayer().setPlayerState(PlayerControls.START, mrl);
+
+        final TextComponent.Builder builder = text();
+        builder.append(text("Click ", GOLD));
+        builder.append(text(
+            "this message",
+            style(
+                AQUA,
+                BOLD,
+                UNDERLINED,
+                openUrl(streamer.getOutput()),
+                text("Click to get the link!", GOLD)
+                    .asHoverEvent())));
+        builder.append(text(" to retrieve the audio HTTP link!", GOLD));
+
+        final Component component = builder.build();
+
+        plugin.audience().players().sendMessage(component);
       }
-      default -> throw new IllegalArgumentException("Illegal Audio Output!");
     }
-    if (this.attributes.getAudioOutputType() == AudioOutputType.RESOURCEPACK) {
-      this.attributes.getPlayer().setPlayerState(PlayerControls.START, mrl);
-    }
+    this.attributes.getPlayer().setPlayerState(PlayerControls.START, configuration);
+
     return SINGLE_SUCCESS;
   }
 
