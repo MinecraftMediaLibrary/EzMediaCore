@@ -26,14 +26,22 @@ package io.github.pulsebeat02.ezmediacore.rtp;
 import org.jetbrains.annotations.NotNull;
 
 public enum RTPDownloadPortal {
-  WIN_AMD_64(
+  WIN_64(
       "https://github.com/aler9/rtsp-simple-server/releases/download/v0.17.3/rtsp-simple-server_v0.17.3_windows_amd64.zip"),
+  WIN_32(
+      "https://github.com/MinecraftMediaLibrary/rtsmp-binaries/raw/main/rtsp-simple-server_v0.17.3_windows_i386.zip"),
+
   UNIX_AMD_64(
       "https://github.com/aler9/rtsp-simple-server/releases/download/v0.17.3/rtsp-simple-server_v0.17.3_linux_amd64.tar.gz"),
   UNIX_ARM_64(
-      "https://github.com/aler9/rtsp-simple-server/releases/download/v0.17.3/rtsp-simple-server_v0.17.3_linux_arm64v8.tar.gz"),
-  MAC_64(
-      "https://github.com/aler9/rtsp-simple-server/releases/download/v0.17.3/rtsp-simple-server_v0.17.3_darwin_amd64.tar.gz");
+      "https://github.com/MinecraftMediaLibrary/rtsmp-binaries/raw/main/rtsp-simple-server_v0.17.3_linux_arm64.zip"),
+  UNIX_ARM_32(
+      "https://github.com/MinecraftMediaLibrary/rtsmp-binaries/raw/main/rtsp-simple-server_v0.17.3_linux_arm.zip"),
+
+  MAC_AMD_64(
+      "https://github.com/aler9/rtsp-simple-server/releases/download/v0.17.3/rtsp-simple-server_v0.17.3_darwin_amd64.tar.gz"),
+  MAC_ARM_64(
+      "https://github.com/MinecraftMediaLibrary/rtsmp-binaries/raw/main/rtsp-simple-server_v0.17.3_darwin_arm64.zip");
 
   private final String url;
 

@@ -101,7 +101,7 @@ public final class SystemDiagnostics implements Diagnostic {
           Logger.info("Detected Windows 64-bit Operating System");
           this.vlcDownloadLink = VLCDownloadPortal.WIN_64;
           this.ffmpegDownloadLink = FFmpegDownloadPortal.WIN_64;
-          this.rtpDownloadPortal = RTPDownloadPortal.WIN_AMD_64;
+          this.rtpDownloadPortal = RTPDownloadPortal.WIN_64;
         }
         case UNIX -> {
           if (this.cpu.getArchitecture().contains("arm")) {
@@ -119,11 +119,13 @@ public final class SystemDiagnostics implements Diagnostic {
           if (this.cpu.getArchitecture().contains("arm")) {
             Logger.info("Detected MacOS ARM 64-bit Operating System");
             this.vlcDownloadLink = VLCDownloadPortal.MAC_ARM_64;
+            this.rtpDownloadPortal = RTPDownloadPortal.MAC_ARM_64;
           } else {
             Logger.info("Detected MacOS AMD 64-bit Operating System!");
             this.vlcDownloadLink = VLCDownloadPortal.MAC_AMD_64;
+            this.rtpDownloadPortal = RTPDownloadPortal.MAC_AMD_64;
           }
-          this.rtpDownloadPortal = RTPDownloadPortal.MAC_64;
+
           this.ffmpegDownloadLink = FFmpegDownloadPortal.MAC_64;
         }
         default -> throw new UnsupportedPlatformException("UNKNOWN");
@@ -134,14 +136,14 @@ public final class SystemDiagnostics implements Diagnostic {
           Logger.info("Detected Windows 32-bit Operating System");
           this.vlcDownloadLink = VLCDownloadPortal.WIN_32;
           this.ffmpegDownloadLink = FFmpegDownloadPortal.WIN_32;
-          this.rtpDownloadPortal = RTPDownloadPortal.WIN_AMD_64;
+          this.rtpDownloadPortal = RTPDownloadPortal.WIN_32;
         }
         case UNIX -> {
           if (this.cpu.getArchitecture().contains("arm")) {
             Logger.info("Detected Linux ARM 32-bit Operating System");
             this.vlcDownloadLink = VLCDownloadPortal.NA;
             this.ffmpegDownloadLink = FFmpegDownloadPortal.UNIX_ARM_32;
-            this.rtpDownloadPortal = RTPDownloadPortal.UNIX_ARM_64;
+            this.rtpDownloadPortal = RTPDownloadPortal.UNIX_ARM_32;
           }
         }
         default -> throw new UnsupportedPlatformException("UNKNOWN");
