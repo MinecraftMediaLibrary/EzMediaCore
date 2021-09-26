@@ -188,8 +188,10 @@ public final class VideoCommand extends BaseCommand {
       case HTTP -> {
 
         final ServerInfo info = plugin.getHttpAudioServer();
+        final String ip = info.getIp();
+        final int port = info.getPort();
         final FFmpegMediaStreamer streamer = new FFmpegMediaStreamer(
-            plugin.library(), plugin.getAudioConfiguration(), RequestUtils.getAudioURLs(mrl).get(0), info.getIp(), info.getPort());
+            plugin.library(), plugin.getAudioConfiguration(), RequestUtils.getAudioURLs(mrl).get(0), ip, port);
         this.attributes.setStreamExtractor(streamer);
         streamer.executeAsync();
 
@@ -201,7 +203,7 @@ public final class VideoCommand extends BaseCommand {
                 AQUA,
                 BOLD,
                 UNDERLINED,
-                openUrl(streamer.getOutput()),
+                openUrl("http://%s:%s/live.stream".formatted(ip, port)),
                 text("Click to get the link!", GOLD)
                     .asHoverEvent())));
         builder.append(text(" to retrieve the audio HTTP link!", GOLD));
