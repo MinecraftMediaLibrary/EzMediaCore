@@ -41,6 +41,7 @@ import static net.kyori.adventure.text.format.TextDecoration.UNDERLINED;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
@@ -67,7 +68,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.SoundCategory;
@@ -120,6 +120,7 @@ public final class VideoCommand extends BaseCommand {
     final DeluxeMediaPlugin plugin = this.plugin();
     final Audience audience = plugin.audience().sender(sender);
     final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+
     if (this.mediaNotSpecified(audience) || this.mediaProcessingIncomplete(audience)) {
       return SINGLE_SUCCESS;
     }
@@ -150,8 +151,51 @@ public final class VideoCommand extends BaseCommand {
       }
       default -> throw new IllegalArgumentException("Illegal video mode!");
     }
-    this.sendPlayInformation(audience);
 
+    this.sendPlayInformation(audience);
+    this.setProperAudioHandler();
+    this.cancelCurrentStream();
+    this.handleStreamPlayers(audience);
+
+    this.attributes.getPlayer().setPlayerState(PlayerControls.START, this.attributes.getVideoMrl());
+
+    return SINGLE_SUCCESS;
+  }
+
+  private void handleStreamPlayers(@NotNull final Audience audience) {
+    final DeluxeMediaPlugin plugin = this.plugin();
+    final String mrl = this.attributes.getVideoMrl().getMrl();
+    switch (this.attributes.getAudioOutputType()) {
+      case DISCORD -> {
+        this.openFFmpegStream(mrl);
+        final MediaBot bot = plugin.getMediaBot();
+        final MusicManager manager = bot.getMusicManager();
+        manager.destroyTrack();
+        manager.joinVoiceChannel();
+
+        new AudioReference(this.openFFmpegStream(mrl), "DeluxeMediaPlugin Discord Stream");
+
+        gold(audience, "Started playing audio into Discord voice chat!");
+      }
+      case HTTP -> {
+        final TextComponent.Builder builder = text();
+        builder.append(text("Click ", GOLD));
+        builder.append(text(
+            "this message",
+            style(
+                AQUA,
+                BOLD,
+                UNDERLINED,
+                openUrl(this.openFFmpegStream(mrl)),
+                text("Click to get the link!", GOLD)
+                    .asHoverEvent())));
+        builder.append(text(" to retrieve the audio HTTP link!", GOLD));
+        plugin.audience().players().sendMessage(format(builder.build()));
+      }
+    }
+  }
+
+  private void setProperAudioHandler() {
     final VideoPlayer player = this.attributes.getPlayer();
     switch (this.attributes.getAudioOutputType()) {
       case RESOURCEPACK -> player.setCustomAudioPlayback((mrl) -> {
@@ -164,7 +208,9 @@ public final class VideoCommand extends BaseCommand {
       case DISCORD, HTTP -> player.setCustomAudioPlayback((mrl) -> {});
       default -> throw new IllegalArgumentException("Illegal Audio Output!");
     }
+  }
 
+  private void cancelCurrentStream() {
     final EnhancedExecution process = this.attributes.getStreamExtractor();
     if (process != null) {
       try {
@@ -173,49 +219,16 @@ public final class VideoCommand extends BaseCommand {
         e.printStackTrace();
       }
     }
+  }
 
-    final MrlConfiguration configuration = this.attributes.getVideoMrl();
-    final String mrl = configuration.getMrl();
-    switch (this.attributes.getAudioOutputType()) {
-      case DISCORD -> {
-        final MediaBot bot = plugin.getMediaBot();
-        final MusicManager manager = bot.getMusicManager();
-        manager.destroyTrack();
-        manager.joinVoiceChannel();
-        //manager.addTrack(url);
-
-      }
-      case HTTP -> {
-
-        final ServerInfo info = plugin.getHttpAudioServer();
-        final String ip = info.getIp();
-        final int port = info.getPort();
-        final FFmpegMediaStreamer streamer = new FFmpegMediaStreamer(
-            plugin.library(), plugin.getAudioConfiguration(), RequestUtils.getAudioURLs(mrl).get(0), ip, port);
-        this.attributes.setStreamExtractor(streamer);
-        streamer.executeAsync();
-
-        final TextComponent.Builder builder = text();
-        builder.append(text("Click ", GOLD));
-        builder.append(text(
-            "this message",
-            style(
-                AQUA,
-                BOLD,
-                UNDERLINED,
-                openUrl("http://%s:%s/live.stream".formatted(ip, port)),
-                text("Click to get the link!", GOLD)
-                    .asHoverEvent())));
-        builder.append(text(" to retrieve the audio HTTP link!", GOLD));
-
-        final Component component = builder.build();
-
-        plugin.audience().players().sendMessage(component);
-      }
-    }
-    this.attributes.getPlayer().setPlayerState(PlayerControls.START, configuration);
-
-    return SINGLE_SUCCESS;
+  private String openFFmpegStream(@NotNull final String mrl) {
+    final DeluxeMediaPlugin plugin = this.plugin();
+    final ServerInfo info = plugin.getHttpAudioServer();
+    final FFmpegMediaStreamer streamer = new FFmpegMediaStreamer(
+        plugin.library(), plugin.getAudioConfiguration(), RequestUtils.getAudioURLs(mrl).get(0), info.getIp(), info.getPort());
+    this.attributes.setStreamExtractor(streamer);
+    streamer.executeAsync();
+    return "http://%s:%s/live.stream".formatted(info.getIp(),  info.getPort());
   }
 
   private int stopVideo(@NotNull final CommandContext<CommandSender> context) {
