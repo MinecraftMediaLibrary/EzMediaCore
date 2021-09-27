@@ -28,6 +28,8 @@ import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.rtp.RTPStreamingServer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -79,7 +81,23 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor
 
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
-    this.server.executeAsync();
+
+    final AtomicBoolean completed = new AtomicBoolean(false);
+    this.server.executeAsyncWithLogging(
+        (line) -> {
+          if (line.contains("[RTSP] TCP")) {
+            completed.set(true);
+          }
+        });
+    while (!completed.get()) {
+      try {
+        TimeUnit.MILLISECONDS.sleep(300L); // hack to wait for server to start
+      } catch (final InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+
+    this.addArguments("-max_muxing_queue_size", "9999");
     this.addArgument(this.output);
     super.executeWithLogging(logger);
   }

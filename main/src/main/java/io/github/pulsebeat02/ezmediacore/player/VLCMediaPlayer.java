@@ -36,12 +36,16 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.media.Media;
+import uk.co.caprica.vlcj.media.MediaEventAdapter;
+import uk.co.caprica.vlcj.media.MediaRef;
 import uk.co.caprica.vlcj.player.base.callback.AudioCallbackAdapter;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.CallbackVideoSurface;
@@ -168,13 +172,25 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
 
   private void releaseAll() {
     if (this.player != null) {
+      final CountDownLatch latch = new CountDownLatch(1);
+      this.player.events().addMediaEventListener(new MediaEventAdapter() {
+        @Override
+        public void mediaFreed(@NotNull final Media media, @NotNull final MediaRef mediaFreed) {
+          VLCMediaPlayer.this.factory.release();
+          latch.countDown();
+        }
+      });
       this.player.controls().stop();
       this.player.release();
-      this.player = null;
-    }
-    if (this.factory != null) {
-      this.factory.release();
-      this.player = null;
+      CompletableFuture.runAsync(() -> {
+        try {
+          latch.await();
+        } catch (final InterruptedException e) {
+          e.printStackTrace();
+        }
+        this.factory = null;
+        this.player = null;
+      });
     }
   }
 

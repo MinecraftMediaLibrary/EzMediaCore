@@ -114,7 +114,7 @@ public final class Logger {
   public static synchronized void directPrintVLC(@NotNull final String line) {
     CompletableFuture.runAsync(
         () -> {
-          VLC_LOGGER.write(line);
+          VLC_LOGGER.write("%s\n".formatted(line));
           VLC_LOGGER.flush();
         },
         ExecutorProvider.SHARED_RESULT_POOL);
@@ -128,7 +128,7 @@ public final class Logger {
   public static synchronized void directPrintFFmpeg(@NotNull final String line) {
     CompletableFuture.runAsync(
         () -> {
-          FFMPEG_LOGGER.write(line);
+          FFMPEG_LOGGER.write("%s\n".formatted(line));
           FFMPEG_LOGGER.flush();
         },
         ExecutorProvider.SHARED_RESULT_POOL);
@@ -142,7 +142,7 @@ public final class Logger {
   public static synchronized void directPrintRtp(@NotNull final String line) {
     CompletableFuture.runAsync(
         () -> {
-          RTP_LOGGER.write(line);
+          RTP_LOGGER.write("%s\n".formatted(line));
           RTP_LOGGER.flush();
         },
         ExecutorProvider.SHARED_RESULT_POOL);

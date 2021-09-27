@@ -41,7 +41,6 @@ import static net.kyori.adventure.text.format.TextDecoration.UNDERLINED;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
@@ -67,6 +66,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
@@ -167,15 +167,20 @@ public final class VideoCommand extends BaseCommand {
     final String mrl = this.attributes.getVideoMrl().getMrl();
     switch (this.attributes.getAudioOutputType()) {
       case DISCORD -> {
-        this.openFFmpegStream(mrl);
-        final MediaBot bot = plugin.getMediaBot();
-        final MusicManager manager = bot.getMusicManager();
-        manager.destroyTrack();
-        manager.joinVoiceChannel();
-
-        new AudioReference(this.openFFmpegStream(mrl), "DeluxeMediaPlugin Discord Stream");
-
-        gold(audience, "Started playing audio into Discord voice chat!");
+        CompletableFuture.runAsync(() -> {
+          final String link = "%s/index.m3u8".formatted(this.openFFmpegStream(mrl));
+          try {
+            TimeUnit.SECONDS.sleep(3);
+          } catch (final InterruptedException e) {
+            e.printStackTrace();
+          }
+          final MediaBot bot = plugin.getMediaBot();
+          final MusicManager manager = bot.getMusicManager();
+          manager.destroyTrack();
+          manager.joinVoiceChannel();
+          manager.addTrack(link);
+          gold(audience, "Started playing audio into Discord voice chat!");
+        });
       }
       case HTTP -> {
         final TextComponent.Builder builder = text();
@@ -215,6 +220,7 @@ public final class VideoCommand extends BaseCommand {
     if (process != null) {
       try {
         process.close();
+        this.attributes.setStreamExtractor(null);
       } catch (final Exception e) {
         e.printStackTrace();
       }
@@ -242,13 +248,14 @@ public final class VideoCommand extends BaseCommand {
     final MediaBot bot = this.plugin().getMediaBot();
     if (bot != null) {
       bot.getMusicManager().pauseTrack();
-      final EnhancedExecution process = this.attributes.getStreamExtractor();
-      if (process != null) {
-        try {
-          process.close();
-        } catch (final Exception e) {
-          e.printStackTrace();
-        }
+    }
+
+    final EnhancedExecution process = this.attributes.getStreamExtractor();
+    if (process != null) {
+      try {
+        process.close();
+      } catch (final Exception e) {
+        e.printStackTrace();
       }
     }
 

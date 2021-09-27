@@ -24,9 +24,10 @@
 package io.github.pulsebeat02.ezmediacore.rtp;
 
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.ExposedProcess;
 import org.jetbrains.annotations.NotNull;
 
-public interface StreamingServer extends EnhancedExecution {
+public interface StreamingServer extends EnhancedExecution, ExposedProcess {
 
   @NotNull
   String getAddress();
