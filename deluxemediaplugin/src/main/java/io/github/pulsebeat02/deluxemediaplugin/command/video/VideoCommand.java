@@ -82,6 +82,7 @@ public final class VideoCommand extends BaseCommand {
   private final LiteralCommandNode<CommandSender> node;
   private final VideoCommandAttributes attributes;
   private final VideoCreator builder;
+  private CompletableFuture<Void> task;
 
   public VideoCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
@@ -220,7 +221,7 @@ public final class VideoCommand extends BaseCommand {
     if (process != null) {
       try {
         process.close();
-        this.attributes.setStreamExtractor(null);
+        this.task.cancel(true);
       } catch (final Exception e) {
         e.printStackTrace();
       }
@@ -230,11 +231,13 @@ public final class VideoCommand extends BaseCommand {
   private String openFFmpegStream(@NotNull final String mrl) {
     final DeluxeMediaPlugin plugin = this.plugin();
     final ServerInfo info = plugin.getHttpAudioServer();
+    final String ip = info.getIp();
+    final int port = info.getPort();
     final FFmpegMediaStreamer streamer = new FFmpegMediaStreamer(
-        plugin.library(), plugin.getAudioConfiguration(), RequestUtils.getAudioURLs(mrl).get(0), info.getIp(), info.getPort());
+        plugin.library(), plugin.getAudioConfiguration(), RequestUtils.getAudioURLs(mrl).get(0), ip, port);
     this.attributes.setStreamExtractor(streamer);
-    streamer.executeAsync();
-    return "http://%s:%s/live.stream".formatted(info.getIp(),  info.getPort());
+    this.task = streamer.executeAsync();
+    return "http://%s:%s/live.stream".formatted(ip, port);
   }
 
   private int stopVideo(@NotNull final CommandContext<CommandSender> context) {

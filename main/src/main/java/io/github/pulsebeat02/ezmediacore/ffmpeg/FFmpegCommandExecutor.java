@@ -178,7 +178,13 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   public void close() {
     this.cancelled = true;
     if (this.process != null) {
+      this.process.descendants().forEach(ProcessHandle::destroyForcibly);
       this.process.destroyForcibly();
+      try {
+        this.process.waitFor();
+      } catch (final InterruptedException e) {
+        e.printStackTrace();
+      }
     }
   }
 
