@@ -93,8 +93,9 @@ public class RTPInstaller {
     ArchiveUtils.decompressArchive(download, parent);
     final String baseName = "rtsp-simple-server";
     this.executable =
-        this.core.getDiagnostics().getSystem().getOSType() == OSType.WINDOWS ? parent.resolve(
-            "%s.exe".formatted(baseName)) : parent.resolve(baseName);
+        this.core.getDiagnostics().getSystem().getOSType() == OSType.WINDOWS
+            ? parent.resolve("%s.exe".formatted(baseName))
+            : parent.resolve(baseName);
     if (type == OSType.MAC || type == OSType.UNIX) {
       new CommandTask("chmod", "-R", "777", this.executable.toAbsolutePath().toString()).run();
     }

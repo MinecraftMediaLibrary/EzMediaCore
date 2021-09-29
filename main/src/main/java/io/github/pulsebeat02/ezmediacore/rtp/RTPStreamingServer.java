@@ -137,9 +137,4 @@ public class RTPStreamingServer implements StreamingServer {
   public @NotNull String getAddress() {
     return this.ip;
   }
-
-  @Override
-  public @NotNull Process getProcess() {
-    return this.process;
-  }
 }

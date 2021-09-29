@@ -210,4 +210,14 @@ public final class VideoCommandAttributes {
   public void setStreamExtractor(final EnhancedExecution streamExtractor) {
     this.streamExtractor = streamExtractor;
   }
+
+  public void cancelCurrentStream() {
+    if (this.streamExtractor != null) {
+      try {
+        this.streamExtractor.close();
+      } catch (final Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
 }

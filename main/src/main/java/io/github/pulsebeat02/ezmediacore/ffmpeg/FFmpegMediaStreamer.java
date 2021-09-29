@@ -28,7 +28,6 @@ import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.rtp.RTPStreamingServer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -81,11 +80,6 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
     this.server.executeAsync();
-    try {
-      TimeUnit.SECONDS.sleep(5);
-    } catch (final InterruptedException e) {
-      e.printStackTrace();
-    }
     this.addArguments("-max_muxing_queue_size", "9999");
     this.addArgument(this.output);
     super.executeWithLogging(logger);
@@ -103,9 +97,9 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor
 
   @Override
   public void close() {
+    super.close();
     if (this.server != null) {
       this.server.close();
     }
-    super.close();
   }
 }

@@ -46,8 +46,8 @@ import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
+import io.github.pulsebeat02.deluxemediaplugin.executors.ExecutorProvider;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
-import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioTrimmer;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegMediaStreamer;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
@@ -58,6 +58,7 @@ import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.utility.HashingUtils;
 import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
+import io.github.pulsebeat02.ezmediacore.utility.ThreadUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -82,7 +83,6 @@ public final class VideoCommand extends BaseCommand {
   private final LiteralCommandNode<CommandSender> node;
   private final VideoCommandAttributes attributes;
   private final VideoCreator builder;
-  private CompletableFuture<Void> task;
 
   public VideoCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
@@ -97,9 +97,16 @@ public final class VideoCommand extends BaseCommand {
             .then(this.literal("stop").executes(this::stopVideo))
             .then(this.literal("resume").executes(this::resumeVideo))
             .then(this.literal("destroy").executes(this::destroyVideo))
+            .then(this.literal("dump-threads").executes(this::dumpThreads))
             .then(new VideoLoadCommand(plugin, this.attributes).node())
             .then(new VideoSettingCommand(plugin, this.attributes).node())
             .build();
+  }
+
+  private int dumpThreads(@NotNull final CommandContext<CommandSender> context) {
+    ThreadUtils.createThreadDump();
+    gold(this.plugin().audience().sender(context.getSource()), "Created thread dump! Look in console for more details.");
+    return SINGLE_SUCCESS;
   }
 
   private int destroyVideo(@NotNull final CommandContext<CommandSender> context) {
@@ -155,7 +162,7 @@ public final class VideoCommand extends BaseCommand {
 
     this.sendPlayInformation(audience);
     this.setProperAudioHandler();
-    this.cancelCurrentStream();
+    this.attributes.cancelCurrentStream();
     this.handleStreamPlayers(audience);
 
     this.attributes.getPlayer().setPlayerState(PlayerControls.START, this.attributes.getVideoMrl());
@@ -216,18 +223,6 @@ public final class VideoCommand extends BaseCommand {
     }
   }
 
-  private void cancelCurrentStream() {
-    final EnhancedExecution process = this.attributes.getStreamExtractor();
-    if (process != null) {
-      try {
-        process.close();
-        this.task.cancel(true);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-    }
-  }
-
   private String openFFmpegStream(@NotNull final String mrl) {
     final DeluxeMediaPlugin plugin = this.plugin();
     final ServerInfo info = plugin.getHttpAudioServer();
@@ -236,7 +231,7 @@ public final class VideoCommand extends BaseCommand {
     final FFmpegMediaStreamer streamer = new FFmpegMediaStreamer(
         plugin.library(), plugin.getAudioConfiguration(), RequestUtils.getAudioURLs(mrl).get(0), ip, port);
     this.attributes.setStreamExtractor(streamer);
-    this.task = streamer.executeAsync();
+    streamer.executeAsync(ExecutorProvider.STREAM_THREAD_EXECUTOR);
     return "http://%s:%s/live.stream".formatted(ip, port);
   }
 
@@ -253,14 +248,7 @@ public final class VideoCommand extends BaseCommand {
       bot.getMusicManager().pauseTrack();
     }
 
-    final EnhancedExecution process = this.attributes.getStreamExtractor();
-    if (process != null) {
-      try {
-        process.close();
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-    }
+    this.attributes.cancelCurrentStream();
 
     this.attributes.getPlayer().setPlayerState(PlayerControls.PAUSE);
 

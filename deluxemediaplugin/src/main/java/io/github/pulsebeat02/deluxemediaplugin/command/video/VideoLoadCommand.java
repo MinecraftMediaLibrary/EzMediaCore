@@ -118,6 +118,8 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     final Path folder = this.plugin.getBootstrap().getDataFolder().toPath().resolve("emc");
     final AtomicBoolean successful = new AtomicBoolean(true);
 
+    this.attributes.cancelCurrentStream();
+
     CompletableFuture.runAsync(
             () -> {
               try {
