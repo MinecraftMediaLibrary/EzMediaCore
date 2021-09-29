@@ -177,15 +177,15 @@ public final class VideoCommand extends BaseCommand {
       case DISCORD -> {
         CompletableFuture.runAsync(() -> {
           final String link = "%s/index.m3u8".formatted(this.openFFmpegStream(mrl));
-          try {
-            TimeUnit.SECONDS.sleep(3);
-          } catch (final InterruptedException e) {
-            e.printStackTrace();
-          }
           final MediaBot bot = plugin.getMediaBot();
           final MusicManager manager = bot.getMusicManager();
           manager.destroyTrack();
           manager.joinVoiceChannel();
+          try {
+            TimeUnit.SECONDS.sleep(3L);
+          } catch (final InterruptedException e) { // hack to wait for server start
+            e.printStackTrace();
+          }
           manager.addTrack(link);
           gold(audience, "Started playing audio into Discord voice chat!");
         });

@@ -49,7 +49,6 @@ public final class VideoCommandAttributes {
 
   private MrlConfiguration videoMrl;
   private MrlConfiguration oggMrl;
-  private boolean stream;
 
   private EnhancedExecution extractor;
   private EnhancedExecution streamExtractor;
@@ -143,14 +142,6 @@ public final class VideoCommandAttributes {
     this.mode = type;
   }
 
-  public @NotNull VideoType getMode() {
-    return this.mode;
-  }
-
-  public void setMode(@NotNull final VideoType mode) {
-    this.mode = mode;
-  }
-
   public @Nullable String getResourcepackUrl() {
     return this.resourcepackUrl;
   }
@@ -197,10 +188,6 @@ public final class VideoCommandAttributes {
 
   public void setOggMrl(final MrlConfiguration oggMrl) {
     this.oggMrl = oggMrl;
-  }
-
-  public boolean isStream() {
-    return this.stream;
   }
 
   public EnhancedExecution getStreamExtractor() {

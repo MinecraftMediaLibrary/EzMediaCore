@@ -3,6 +3,7 @@ video {
   stop;
   resume;
   destroy;
+  dump-threads;
   load {
     resourcepack {
       targets brigadier:string greedy_phrase;
