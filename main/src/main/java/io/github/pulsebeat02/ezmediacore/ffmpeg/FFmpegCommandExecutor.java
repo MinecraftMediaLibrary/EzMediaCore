@@ -124,6 +124,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
     this.onBeforeExecution();
+    final boolean streamerLog = this instanceof FFmpegMediaStreamer;
     if (!this.cancelled) {
       final boolean consume = logger != null;
       final ProcessBuilder builder = new ProcessBuilder(this.arguments);
@@ -141,7 +142,11 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
             if (consume) {
               logger.accept(line);
             }
-            Logger.directPrintFFmpeg(line);
+            if (streamerLog) {
+              Logger.directPrintFFmpegStream(line);
+            } else {
+              Logger.directPrintFFmpegPlayer(line);
+            }
           }
         }
       } catch (final IOException e) {
