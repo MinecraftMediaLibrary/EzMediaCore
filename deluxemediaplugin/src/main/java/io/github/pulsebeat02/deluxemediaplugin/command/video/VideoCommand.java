@@ -176,7 +176,7 @@ public final class VideoCommand extends BaseCommand {
     switch (this.attributes.getAudioOutputType()) {
       case DISCORD -> {
         CompletableFuture.runAsync(() -> {
-          final String link = "%s/index.m3u8".formatted(this.openFFmpegStream(mrl));
+          final String link = "%s/stream.m3u8".formatted(this.openFFmpegStream(mrl));
           final MediaBot bot = plugin.getMediaBot();
           final MusicManager manager = bot.getMusicManager();
           manager.destroyTrack();

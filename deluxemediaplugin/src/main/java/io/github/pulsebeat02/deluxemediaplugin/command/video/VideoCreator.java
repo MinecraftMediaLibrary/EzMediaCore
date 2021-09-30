@@ -49,7 +49,7 @@ public record VideoCreator(MediaLibraryCore library,
 	}
 
 	public @NotNull VideoPlayer createMapPlayer(@NotNull final Collection<? extends Player> viewers) {
-		return VideoBuilder.ffmpeg()
+		return VideoBuilder.unspecified()
 				.callback(
 						CallbackBuilder.map()
 								.algorithm(this.attributes.getDither().getAlgorithm())

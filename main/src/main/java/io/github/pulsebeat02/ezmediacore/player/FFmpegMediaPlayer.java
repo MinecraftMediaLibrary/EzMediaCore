@@ -236,11 +236,11 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
       if (controls == PlayerControls.START) {
         this.stopAudio();
         if (this.ffmpeg == null) {
-          this.initializePlayer(0L);
+          this.initializePlayer(0L, arguments);
         }
         this.start = 0L;
       } else if (controls == PlayerControls.RESUME) {
-        this.initializePlayer(System.currentTimeMillis() - this.start);
+        this.initializePlayer(System.currentTimeMillis() - this.start, arguments);
       }
   }
 

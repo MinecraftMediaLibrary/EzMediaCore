@@ -74,7 +74,7 @@ public class RTPStreamingServer implements StreamingServer {
       final boolean consume = logger != null;
       final ProcessBuilder builder = new ProcessBuilder(this.core.getRTPPath().toString());
       final Map<String, String> env = builder.environment();
-      env.put("RTSP_HLSADDRESS", "%s:%s".formatted(this.ip, this.hlsPort));
+      env.put("RTSP_HLSADDRESS", ":%s".formatted(this.hlsPort));
       builder.redirectErrorStream(true);
       try {
         this.process = builder.start();

@@ -29,6 +29,7 @@ import javax.security.auth.login.LoginException;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager;
@@ -59,6 +60,9 @@ public class MediaBot {
             .addEventListeners(new MediaCommandListener(this))
             .build()
             .awaitReady();
+    this.jda
+        .getPresence()
+        .setPresence(OnlineStatus.ONLINE, Activity.playing("DeluxeMediaPlugin Audio"));
     this.guild = this.jda.getGuildById(guild);
     this.channel = this.jda.getVoiceChannelById(voicechannel);
     this.musicManager = new MusicManager(this);
