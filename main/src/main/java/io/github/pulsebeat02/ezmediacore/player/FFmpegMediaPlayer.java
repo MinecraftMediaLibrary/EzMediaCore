@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import com.github.kokorin.jaffree.LogLevel;
 import com.github.kokorin.jaffree.StreamType;
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
 import com.github.kokorin.jaffree.ffmpeg.FFmpegResultFuture;
@@ -31,6 +32,7 @@ import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
+import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
@@ -153,7 +155,10 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
                     .disableStream(StreamType.DATA)
                     .setFrameRate(this.getFrameConfiguration().getFps()))
             .addArguments("-vf",
-                "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()));
+                "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()))
+            .setLogLevel(LogLevel.FATAL)
+            .setProgressListener((line) -> Logger.directPrintFFmpegPlayer(line.toString()))
+            .setOutputListener(Logger::directPrintFFmpegPlayer);
     for (int i = 1; i < arguments.length; i++) {
       this.ffmpeg.addArgument(arguments[i].toString());
     }
