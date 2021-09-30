@@ -157,7 +157,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
             .addArguments("-vf",
                 "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()))
             .setLogLevel(LogLevel.FATAL)
-            .setProgressListener((line) -> Logger.directPrintFFmpegPlayer(line.toString()))
+            .setProgressListener((line) -> {})
             .setOutputListener(Logger::directPrintFFmpegPlayer);
     for (int i = 1; i < arguments.length; i++) {
       this.ffmpeg.addArgument(arguments[i].toString());
