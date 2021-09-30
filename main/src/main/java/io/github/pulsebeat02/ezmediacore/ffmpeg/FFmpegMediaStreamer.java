@@ -48,7 +48,7 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor
       final int port) {
     super(core);
     this.input = input;
-    this.output = "rtsp://%s:8554/live.stream".formatted(ip);
+    this.output = "rtsp://localhost:8554/live.stream";
     this.clearArguments();
     this.addMultipleArguments(this.generateArguments(configuration));
     this.server = new RTPStreamingServer(core, ip, port);
@@ -61,6 +61,7 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor
             this.getCore().getFFmpegPath().toString(),
             "-i",
             this.input,
+            "-nostdin",
             "-ab",
             String.valueOf(configuration.getBitrate()),
             "-ac",
