@@ -32,6 +32,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import org.jetbrains.annotations.Nullable;
 
 public final class YoutubeDLRequest {
@@ -42,7 +43,7 @@ public final class YoutubeDLRequest {
 
   static {
     API_REQUEST_BASE = "https://emc-youtube-dl.herokuapp.com/api/info?url=%s";
-    HTTP_CLIENT = HttpClient.newHttpClient();
+    HTTP_CLIENT = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     GSON = new Gson();
   }
 

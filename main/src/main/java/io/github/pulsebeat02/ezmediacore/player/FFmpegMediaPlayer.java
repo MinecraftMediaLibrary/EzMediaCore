@@ -91,7 +91,6 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
 //    };
 //    this.presentationTimeStamp = 0L;
     this.modifyPlayerAttributes();
-    this.initializePlayer(0L);
   }
 
   @Override
@@ -134,6 +133,8 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
 
   @Override
   public void initializePlayer(final long seconds, @NotNull final Object... arguments) {
+    this.setDirectVideoMrl(ArgumentUtils.retrieveDirectVideo(arguments));
+    this.setDirectAudioMrl(ArgumentUtils.retrieveDirectAudio(arguments));
     final Dimension dimension = this.getDimensions();
     final String url = this.getDirectVideoMrl().getMrl();
     final Path path = Path.of(url);
@@ -221,7 +222,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
     this.start = System.currentTimeMillis();
   }
 
-  private void play(@NotNull final PlayerControls controls, @NotNull final Object... arguments) {
+  private void play(@NotNull final PlayerControls controls, @NotNull final Object[] arguments) {
     this.setupPlayer(controls, arguments);
     CompletableFuture.runAsync(() -> {
       this.future = this.updateFFmpegPlayer();
@@ -231,9 +232,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
     });
   }
 
-  private void setupPlayer(@NotNull final PlayerControls controls, @NotNull final Object... arguments) {
-    this.setDirectVideoMrl(ArgumentUtils.retrieveDirectVideo(arguments));
-    this.setDirectAudioMrl(ArgumentUtils.retrieveDirectAudio(arguments));
+  private void setupPlayer(@NotNull final PlayerControls controls, @NotNull final Object[] arguments) {
       if (controls == PlayerControls.START) {
         this.stopAudio();
         if (this.ffmpeg == null) {

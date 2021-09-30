@@ -50,7 +50,8 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
   void setViewers(@NotNull final Viewers viewers);
 
-  void onPlayerStateChange(@NotNull final PlayerControls status);
+  void onPlayerStateChange(
+      @NotNull final PlayerControls status, @NotNull final Object... arguments);
 
   @NotNull
   Callback getCallback();

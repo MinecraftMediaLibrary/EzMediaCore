@@ -211,6 +211,13 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       this.cancelled = false;
       this.attributes.setVideoMrl(MrlConfiguration.ofMrl(mrl));
       return true;
+    } else {
+      final List<String> urls = RequestUtils.getVideoURLs(mrl);
+      if (urls.size() == 1 && urls.get(0).equals(mrl)) {
+        red(
+            audience,
+            "Invalid media resource! Please check to make sure the media provided is supported!");
+      }
     }
     return false;
   }

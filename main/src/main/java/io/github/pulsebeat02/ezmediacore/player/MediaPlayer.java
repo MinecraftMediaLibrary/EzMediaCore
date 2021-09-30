@@ -123,13 +123,14 @@ public abstract class MediaPlayer implements VideoPlayer {
   @Override
   public void setPlayerState(
       @NotNull final PlayerControls controls, @NotNull final Object... arguments) {
-    this.onPlayerStateChange(controls);
+    this.onPlayerStateChange(controls, arguments);
     this.controls = controls;
     this.callback.preparePlayerStateChange(controls);
   }
 
   @Override
-  public void onPlayerStateChange(@NotNull final PlayerControls status) {}
+  public void onPlayerStateChange(
+      @NotNull final PlayerControls status, @NotNull final Object... arguments) {}
 
   @Override
   public void playAudio() {
