@@ -52,7 +52,7 @@ for examples on how to use the library. It is the plugin I used that displayed t
 
 ### Public Testing Server
 
-Thanks to [Mishal321](https://github.com/mishal321), they freely gave us a public test server.
+Thanks to [Fallhost](https://fallhost.com/), they freely gave us a public test server.
 [Join our Discord server](https://discord.gg/qVhhbCWQQV) and you are able to access the IP to the
 testing server!
 
