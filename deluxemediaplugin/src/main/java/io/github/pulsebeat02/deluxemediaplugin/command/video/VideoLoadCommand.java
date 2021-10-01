@@ -117,6 +117,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     final String mrl = context.getArgument("mrl", String.class);
     final Path folder = this.plugin.getBootstrap().getDataFolder().toPath().resolve("emc");
     final AtomicBoolean successful = new AtomicBoolean(true);
+    final AtomicBoolean status = this.attributes.getCompletion();
 
     this.attributes.cancelCurrentStream();
 
@@ -128,18 +129,22 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
                   successful.set(false);
                   return;
                 }
-                gold(
-                    audience,
-                    "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.");
-                this.attributes.getCompletion().set(false);
                 this.attributes.setVideoMrl(MrlConfiguration.ofMrl(mrl));
-                final Optional<Path> download = this.downloadMrl(audience, folder, mrl);
-                if (download.isEmpty()) {
-                  this.plugin.getBootstrap().getLogger().severe("Failed to download video!");
-                  successful.set(false);
-                  return;
+                if (this.attributes.getAudioOutputType() == AudioOutputType.RESOURCEPACK) {
+                  status.set(false);
+                  gold(
+                      audience,
+                      "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.");
+                  final Optional<Path> download = this.downloadMrl(audience, folder, mrl);
+                  if (download.isEmpty()) {
+                    this.plugin.getBootstrap().getLogger().severe("Failed to download video!");
+                    status.set(true);
+                    successful.set(false);
+                    return;
+                  }
+                  this.loadAndSendResourcepack(folder, download.get());
+                  status.set(true);
                 }
-                this.loadAndSendResourcepack(folder, download.get());
               } catch (final IOException | InterruptedException e) {
                 this.plugin.getBootstrap().getLogger().severe("Failed to load video!");
                 e.printStackTrace();
