@@ -205,6 +205,8 @@ public final class VideoCommand extends BaseCommand {
         builder.append(text(" to retrieve the audio HTTP link!", GOLD));
         plugin.audience().players().sendMessage(format(builder.build()));
       }
+      case RESOURCEPACK -> {}
+      default -> throw new IllegalArgumentException("Illegal Audio Output Option!");
     }
   }
 
