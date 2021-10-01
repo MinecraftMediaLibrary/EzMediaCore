@@ -109,7 +109,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
 
   private @NotNull CompletableFuture<Suggestions> suggestVideoModes(
       final CommandContext<CommandSender> context, final @NotNull SuggestionsBuilder builder) {
-    Arrays.stream(VideoType.values()).forEach(x -> builder.suggest(x.name()));
+    Arrays.stream(PlaybackType.values()).forEach(x -> builder.suggest(x.name()));
     return builder.buildFuture();
   }
 
@@ -243,7 +243,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
     if (setting.isEmpty()) {
       red(audience, "Could not find dither type %s".formatted(algorithm));
     } else {
-      this.attributes.setDither(setting.get());
+      this.attributes.setDitherType(setting.get());
       audience.sendMessage(
           format(join(noSeparators(), text("Set dither type to ", GOLD), text(algorithm, AQUA))));
     }
@@ -255,7 +255,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
 
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String mode = context.getArgument("video-mode", String.class);
-    final Optional<VideoType> type = VideoType.ofKey(mode);
+    final Optional<PlaybackType> type = PlaybackType.ofKey(mode);
 
     if (type.isEmpty()) {
       red(audience, "Could not find video mode %s".formatted(mode));

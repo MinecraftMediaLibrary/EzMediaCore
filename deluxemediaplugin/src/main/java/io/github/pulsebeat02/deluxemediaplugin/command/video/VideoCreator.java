@@ -52,7 +52,7 @@ public record VideoCreator(MediaLibraryCore library,
 		return VideoBuilder.unspecified()
 				.callback(
 						CallbackBuilder.map()
-								.algorithm(this.attributes.getDither().getAlgorithm())
+								.algorithm(this.attributes.getDitherType().getAlgorithm())
 								.blockWidth(this.attributes.getPixelWidth())
 								.map(Identifier.ofIdentifier(0))
 								.dims(Dimension.ofDimension(this.attributes.getFrameWidth(), this.attributes.getFrameHeight()))

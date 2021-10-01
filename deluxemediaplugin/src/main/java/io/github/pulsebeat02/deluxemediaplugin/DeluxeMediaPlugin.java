@@ -74,8 +74,8 @@ public final class DeluxeMediaPlugin {
   private CommandHandler handler;
   private Logger logger;
 
-  private PersistentPictureManager manager;
   private AudioConfiguration audioConfiguration;
+  private PersistentPictureManager manager;
   private HttpServer server;
   private MediaBot mediaBot;
   private ServerInfo httpAudioServer;
@@ -93,17 +93,8 @@ public final class DeluxeMediaPlugin {
     this.log(
         join(separator(text(" ")), text("Running DeluxeMediaPlugin", AQUA), text("[BETA]", GOLD),
             text("1.0.0", AQUA)));
-    this.log(
-        "Loading MinecraftMediaLibrary instance... this may take a minute depending on your server!");
-    try {
-      this.library = LibraryProvider.builder().plugin(this.plugin).build();
-      this.library.initialize();
-    } catch (final ExecutionException | InterruptedException e) {
-      this.log(text("There was a severe issue while loading the EzMediaCore instance!", RED));
-      e.printStackTrace();
-      this.plugin.getServer().getPluginManager().disablePlugin(this.plugin);
-      return;
-    }
+    this.log("Loading MinecraftMediaLibrary instance... this may take a minute depending on your server!");
+    this.startLibrary();
     this.log("Finished loading MinecraftMediaLibrary instance!");
     this.loadPersistentData();
     this.log("Finished loading persistent data!");
@@ -118,6 +109,29 @@ public final class DeluxeMediaPlugin {
          is your purchase identification code: %%__NONCE__%% - Enjoy using the plugin, and ask for
          support at my Discord! (https://discord.gg/MgqRKvycMC)
         """);
+  }
+
+  public void disable() throws Exception {
+    this.log("DeluxeMediaPlugin is shutting down!");
+    this.shutdownLibrary();
+    this.unregisterCommands();
+    this.disableBot();
+    this.cancelNativeTasks();
+    this.log("Good Bye :(");
+  }
+
+  public void load() {
+  }
+
+  private void startLibrary() {
+    try {
+      this.library = LibraryProvider.builder().plugin(this.plugin).build();
+      this.library.initialize();
+    } catch (final ExecutionException | InterruptedException e) {
+      this.log(text("There was a severe issue while loading the EzMediaCore instance!", RED));
+      e.printStackTrace();
+      this.plugin.getServer().getPluginManager().disablePlugin(this.plugin);
+    }
   }
 
   private void startMetrics() {
@@ -144,37 +158,38 @@ public final class DeluxeMediaPlugin {
     }
   }
 
-  public void disable() throws Exception {
-    this.log("DeluxeMediaPlugin is shutting down!");
+  private void disableBot() {
+    if (this.mediaBot != null) {
+      this.mediaBot.getJDA().shutdown();
+    }
+  }
 
+  private void unregisterCommands() {
+    if (this.handler != null) {
+      for (final BaseCommand cmd : this.handler.getCommands()) {
+        CommandUtils.unRegisterBukkitCommand(this, cmd);
+      }
+    }
+  }
+
+  private void shutdownLibrary() {
     if (this.library != null) {
       this.library.shutdown();
       this.log("Successfully shutdown MinecraftMediaLibrary instance!");
     } else {
       this.log(text("EzMediaCore instance is null... something fishy is going on.", RED));
     }
+  }
 
-    if (this.handler != null) {
-      for (final BaseCommand cmd : this.handler.getCommands()) {
-        CommandUtils.unRegisterBukkitCommand(this, cmd);
-      }
-    }
-
-    if (this.mediaBot != null) {
-      this.mediaBot.getJDA().shutdown();
-    }
-
+  private void cancelNativeTasks() throws Exception {
     final EnhancedExecution extractor = this.attributes.getExtractor();
     if (extractor != null) {
       extractor.close();
     }
-
     final EnhancedExecution streamExtractor = this.attributes.getStreamExtractor();
     if (streamExtractor != null) {
       streamExtractor.close();
     }
-
-    this.log("Good Bye :(");
   }
 
   private void loadPersistentData() {
@@ -199,9 +214,6 @@ public final class DeluxeMediaPlugin {
       this.logger.severe("A severe issue occurred while reading data from configuration files!");
       e.printStackTrace();
     }
-  }
-
-  public void load() {
   }
 
   public void log(@NotNull final String line) {

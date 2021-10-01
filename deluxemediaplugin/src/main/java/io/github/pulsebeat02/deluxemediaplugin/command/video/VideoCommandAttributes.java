@@ -24,6 +24,7 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
+import com.google.gson.annotations.Expose;
 import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherSetting;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
@@ -39,12 +40,26 @@ public final class VideoCommandAttributes {
     TEMPORARY_PLACEHOLDER = true;
   }
 
-  private final AtomicBoolean completion;
+  @Expose
+  private DitherSetting ditherType;
 
-  private VideoPlayer player;
-  private DitherSetting dither;
+  @Expose
   private AudioOutputType audioOutputType;
-  private VideoType mode;
+
+  @Expose
+  private PlaybackType playbackType;
+
+  @Expose
+  private int map;
+
+  @Expose
+  private int frameWidth, frameHeight;
+
+  @Expose
+  private int pixelWidth, pixelHeight;
+
+  private final AtomicBoolean completion;
+  private VideoPlayer player;
 
   private MrlConfiguration videoMrl;
   private MrlConfiguration oggMrl;
@@ -52,33 +67,26 @@ public final class VideoCommandAttributes {
   private EnhancedExecution extractor;
   private EnhancedExecution streamExtractor;
 
-  private int map;
-
-  private int frameWidth;
-  private int frameHeight;
-  private int pixelWidth;
-  private int pixelHeight;
-
   private String resourcepackUrl; // for resourcepack url
   private byte[] resourcepackHash;
 
   public VideoCommandAttributes() {
-    this.dither = DitherSetting.FILTER_LITE;
+    this.ditherType = DitherSetting.FILTER_LITE;
     this.audioOutputType = AudioOutputType.RESOURCEPACK;
+    this.playbackType = PlaybackType.ITEMFRAME;
     this.frameWidth = 5;
     this.frameHeight = 5;
     this.pixelWidth = 640;
     this.pixelHeight = 360;
     this.completion = new AtomicBoolean(false);
-    this.mode = VideoType.ITEMFRAME;
   }
 
-  public DitherSetting getDither() {
-    return this.dither;
+  public DitherSetting getDitherType() {
+    return this.ditherType;
   }
 
-  public void setDither(final DitherSetting dither) {
-    this.dither = dither;
+  public void setDitherType(final DitherSetting ditherType) {
+    this.ditherType = ditherType;
   }
 
   public VideoPlayer getPlayer() {
@@ -133,12 +141,12 @@ public final class VideoCommandAttributes {
     return this.completion;
   }
 
-  public @NotNull VideoType getVideoType() {
-    return this.mode;
+  public @NotNull PlaybackType getVideoType() {
+    return this.playbackType;
   }
 
-  public void setVideoType(final VideoType type) {
-    this.mode = type;
+  public void setVideoType(final PlaybackType type) {
+    this.playbackType = type;
   }
 
   public String getResourcepackUrl() {

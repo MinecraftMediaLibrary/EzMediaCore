@@ -90,9 +90,7 @@ public abstract class ConfigurationProvider<T> {
   }
 
   public void read() {
-    if (!Files.exists(this.config)) {
-      this.saveDefaultConfig();
-    }
+    this.saveDefaultConfig();
     this.getConfig();
     try {
       this.serialize();

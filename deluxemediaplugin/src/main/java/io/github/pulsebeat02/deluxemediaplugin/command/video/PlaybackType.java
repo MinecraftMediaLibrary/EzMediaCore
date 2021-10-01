@@ -28,14 +28,14 @@ import java.util.Map;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
-public enum VideoType {
+public enum PlaybackType {
   ITEMFRAME("itemframe-maps"),
   ARMOR_STAND("armorstands"),
   CHATBOX("chatbox"),
   DEBUG_HIGHLIGHTS("debug-highlights"),
   SCOREBOARD("scoreboard");
 
-  private static final Map<String, VideoType> KEYS;
+  private static final Map<String, PlaybackType> KEYS;
 
   static {
     KEYS =
@@ -49,11 +49,11 @@ public enum VideoType {
 
   private final String name;
 
-  VideoType(@NotNull final String name) {
+  PlaybackType(@NotNull final String name) {
     this.name = name;
   }
 
-  public static @NotNull Optional<VideoType> ofKey(@NotNull final String str) {
+  public static @NotNull Optional<PlaybackType> ofKey(@NotNull final String str) {
     return Optional.ofNullable(KEYS.get(str));
   }
 

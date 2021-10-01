@@ -135,7 +135,7 @@ public final class VideoCommand extends BaseCommand {
 
     this.releaseIfPlaying();
 
-    final VideoType type = this.attributes.getVideoType();
+    final PlaybackType type = this.attributes.getVideoType();
     switch (type) {
       case ITEMFRAME -> this.attributes.setPlayer(this.builder.createMapPlayer(players));
       case ARMOR_STAND -> {
