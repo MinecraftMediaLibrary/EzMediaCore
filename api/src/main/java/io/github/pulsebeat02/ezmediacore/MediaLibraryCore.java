@@ -72,6 +72,11 @@ public interface MediaLibraryCore {
   void setFFmpegPath(@NotNull final Path path);
 
   @NotNull
+  Path getRTPPath();
+
+  void setRTPPath(@NotNull final Path path);
+
+  @NotNull
   Diagnostic getDiagnostics();
 
   boolean isDisabled();

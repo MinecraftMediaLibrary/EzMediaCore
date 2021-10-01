@@ -65,6 +65,7 @@ public final class EzMediaCore implements MediaLibraryCore {
   private PacketHandler handler;
   private Listener registrationListener;
   private Path ffmpegExecutable;
+  private Path rtpExecutable;
   private boolean vlcSupported;
   private boolean disabled;
 
@@ -206,6 +207,16 @@ public final class EzMediaCore implements MediaLibraryCore {
   @Override
   public void setFFmpegPath(@NotNull final Path path) {
     this.ffmpegExecutable = path;
+  }
+
+  @Override
+  public @NotNull Path getRTPPath() {
+    return this.rtpExecutable;
+  }
+
+  @Override
+  public void setRTPPath(@NotNull final Path path) {
+    this.rtpExecutable = path;
   }
 
   @Override

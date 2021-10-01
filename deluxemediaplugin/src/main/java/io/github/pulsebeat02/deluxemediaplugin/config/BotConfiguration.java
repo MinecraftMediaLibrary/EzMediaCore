@@ -28,7 +28,7 @@ import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.discord.MediaBot;
+import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -81,7 +81,7 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
               invalid.set(true);
               return "null";
             });
-    if (invalid.get()) {
+    if (!invalid.get()) {
       try {
         this.bot = new MediaBot(token, guild, voicechannel);
       } catch (final LoginException | InterruptedException e) {

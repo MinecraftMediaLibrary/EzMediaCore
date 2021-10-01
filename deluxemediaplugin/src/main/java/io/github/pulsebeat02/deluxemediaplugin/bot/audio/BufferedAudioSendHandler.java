@@ -22,63 +22,61 @@
  * SOFTWARE.
  */
 
-package io.github.pulsebeat02.deluxemediaplugin.discord.audio;
+package io.github.pulsebeat02.deluxemediaplugin.bot.audio;
 
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
-import com.sedmelluq.discord.lavaplayer.track.playback.AudioFrame;
-import io.github.pulsebeat02.deluxemediaplugin.discord.MediaBot;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.nio.ByteBuffer;
-import javax.annotation.Nullable;
+import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class MusicSendHandler implements AudioSendHandler {
+public class BufferedAudioSendHandler implements AudioSendHandler {
 
-  private final AudioPlayer audioPlayer;
-  private final TrackScheduler trackScheduler;
-  private AudioFrame audioFrame;
+  private final Queue<ByteBuffer> packets;
+  private final ByteArrayOutputStream output;
+  private final InputStream input;
 
-  /**
-   * MusicSendHandler Public Constructor.
-   *
-   * @param musicManager MusicManager Class.
-   * @param audioPlayer AudioPlayer.
-   */
-  public MusicSendHandler(
-      @NotNull final MediaBot bot,
-      @NotNull final MusicManager musicManager,
-      @NotNull final AudioPlayer audioPlayer) {
-    this.audioPlayer = audioPlayer;
-    this.trackScheduler = new TrackScheduler(bot, musicManager, audioPlayer);
-    audioPlayer.addListener(this.trackScheduler);
+  public BufferedAudioSendHandler(@NotNull final String url) throws IOException {
+    this.packets = new ConcurrentLinkedQueue<>();
+    this.output = new ByteArrayOutputStream();
+    this.input = new URL(url).openStream();
+  }
+
+  public void startListening() {
+    CompletableFuture.runAsync(
+        () -> {
+          try {
+            final byte[] chunk = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = this.input.read(chunk)) > 0) {
+              this.output.write(chunk, 0, bytesRead);
+            }
+            this.packets.add(ByteBuffer.wrap(chunk));
+          } catch (final IOException e) {
+            e.printStackTrace();
+          }
+        });
   }
 
   @Override
   public boolean canProvide() {
-    this.audioFrame = this.audioPlayer.provide();
-    return this.audioFrame != null;
+    return this.packets.size() < 15;
   }
 
   @Nullable
   @Override
   public ByteBuffer provide20MsAudio() {
-    return ByteBuffer.wrap(this.audioFrame.getData());
+    return this.packets.poll();
   }
 
   @Override
   public boolean isOpus() {
-    return true;
-  }
-
-  public @NotNull AudioFrame getAudioFrame() {
-    return this.audioFrame;
-  }
-
-  public @NotNull AudioPlayer getAudioPlayer() {
-    return this.audioPlayer;
-  }
-
-  public @NotNull TrackScheduler getTrackScheduler() {
-    return this.trackScheduler;
+    return false;
   }
 }

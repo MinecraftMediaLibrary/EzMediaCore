@@ -29,7 +29,8 @@ import org.jetbrains.annotations.NotNull;
 
 public enum AudioOutputType {
   RESOURCEPACK,
-  DISCORD;
+  DISCORD,
+  HTTP;
 
   private static final Map<String, AudioOutputType> KEYS;
 
@@ -37,7 +38,8 @@ public enum AudioOutputType {
     KEYS =
         Map.of(
             "RESOURCEPACK", RESOURCEPACK,
-            "DISCORD", DISCORD);
+            "DISCORD", DISCORD,
+            "HTTP", HTTP);
   }
 
   public static @NotNull Optional<AudioOutputType> ofKey(@NotNull final String key) {

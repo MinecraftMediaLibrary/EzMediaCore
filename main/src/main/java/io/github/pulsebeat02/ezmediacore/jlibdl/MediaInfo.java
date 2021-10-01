@@ -1,9 +1,33 @@
-package io.github.pulsebeat02.ezmediacore.youtubedl;
+/*
+ * MIT License
+ *
+ * Copyright (c) 2021 Brandon Li
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package io.github.pulsebeat02.ezmediacore.jlibdl;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class MediaInfo {
 
@@ -143,39 +167,39 @@ public final class MediaInfo {
   @Expose
   private int width;
 
-  public @NotNull String getAcodec() {
+  public @Nullable String getAcodec() {
     return this.acodec;
   }
 
-  public @NotNull String getDescription() {
+  public @Nullable String getDescription() {
     return this.description;
   }
 
-  public @NotNull String getDisplayId() {
+  public @Nullable String getDisplayId() {
     return this.displayId;
   }
 
-  public @NotNull String getExt() {
+  public @Nullable String getExt() {
     return this.ext;
   }
 
-  public @NotNull String getExtractor() {
+  public @Nullable String getExtractor() {
     return this.extractor;
   }
 
-  public @NotNull String getExtractorKey() {
+  public @Nullable String getExtractorKey() {
     return this.extractorKey;
   }
 
-  public @NotNull String getFormat() {
+  public @Nullable String getFormat() {
     return this.format;
   }
 
-  public @NotNull String getFormatId() {
+  public @Nullable String getFormatId() {
     return this.formatId;
   }
 
-  public @NotNull List<Format> getFormats() {
+  public @Nullable List<Format> getFormats() {
     return this.formats;
   }
 
@@ -187,11 +211,11 @@ public final class MediaInfo {
     return this.height;
   }
 
-  public @NotNull MediaHttpHeaders getHttpHeaders() {
+  public @Nullable MediaHttpHeaders getHttpHeaders() {
     return this.httpHeaders;
   }
 
-  public @NotNull String getId() {
+  public @Nullable String getId() {
     return this.id;
   }
 
@@ -199,27 +223,27 @@ public final class MediaInfo {
     return this.live;
   }
 
-  public @NotNull String getManifestUrl() {
+  public @Nullable String getManifestUrl() {
     return this.manifestUrl;
   }
 
-  public @NotNull Object getPlaylist() {
+  public @Nullable Object getPlaylist() {
     return this.playlist;
   }
 
-  public @NotNull Object getPlaylistIndex() {
+  public @Nullable Object getPlaylistIndex() {
     return this.playlistIndex;
   }
 
-  public @NotNull Object getPreference() {
+  public @Nullable Object getPreference() {
     return this.preference;
   }
 
-  public @NotNull String getProtocol() {
+  public @Nullable String getProtocol() {
     return this.protocol;
   }
 
-  public @NotNull Object getRequestedSubtitles() {
+  public @Nullable Object getRequestedSubtitles() {
     return this.requestedSubtitles;
   }
 
@@ -227,11 +251,11 @@ public final class MediaInfo {
     return this.tbr;
   }
 
-  public @NotNull String getThumbnail() {
+  public @Nullable String getThumbnail() {
     return this.thumbnail;
   }
 
-  public @NotNull List<Thumbnail> getThumbnails() {
+  public @Nullable List<Thumbnail> getThumbnails() {
     return this.thumbnails;
   }
 
@@ -239,39 +263,39 @@ public final class MediaInfo {
     return this.timestamp;
   }
 
-  public @NotNull String getTitle() {
+  public @Nullable String getTitle() {
     return this.title;
   }
 
-  public @NotNull String getUploadDate() {
+  public @Nullable String getUploadDate() {
     return this.uploadDate;
   }
 
-  public @NotNull String getUploader() {
+  public @Nullable String getUploader() {
     return this.uploader;
   }
 
-  public @NotNull String getUploaderId() {
+  public @Nullable String getUploaderId() {
     return this.uploaderId;
   }
 
-  public @NotNull String getUrl() {
+  public @Nullable String getUrl() {
     return this.url;
   }
 
-  public @NotNull String getVcodec() {
+  public @Nullable String getVcodec() {
     return this.vcodec;
   }
 
-  public @NotNull Object getViewCount() {
+  public @Nullable Object getViewCount() {
     return this.viewCount;
   }
 
-  public @NotNull String getWebpageUrl() {
+  public @Nullable String getWebpageUrl() {
     return this.webpageUrl;
   }
 
-  public @NotNull String getWebpageUrlBasename() {
+  public @Nullable String getWebpageUrlBasename() {
     return this.webpageUrlBasename;
   }
 

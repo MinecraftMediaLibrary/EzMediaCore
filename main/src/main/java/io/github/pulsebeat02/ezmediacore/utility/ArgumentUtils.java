@@ -23,21 +23,52 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility;
 
+import com.google.common.base.Preconditions;
+import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
-import org.jcodec.common.Preconditions;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class ArgumentUtils {
 
   private ArgumentUtils() {}
 
-  public static MrlConfiguration checkPlayerArguments(@NotNull final Object @NotNull [] arguments) {
+  public static @NotNull MrlConfiguration retrieveDirectVideo(
+      @NotNull final Object @Nullable [] arguments) {
+    final MrlConfiguration configuration = (MrlConfiguration) checkPreconditions(arguments);
+    final String url = configuration.getMrl();
+    final List<String> list = RequestUtils.getVideoURLs(url);
+    if (list.isEmpty()) {
+      Logger.info("Extracted Video MRL: %s".formatted(url));
+      return configuration;
+    }
+    final String use = list.get(0);
+    Logger.info("Extracted Video MRL (youtube-dl): %s".formatted(use));
+    return MrlConfiguration.ofMrl(use);
+  }
+
+  public static @NotNull MrlConfiguration retrieveDirectAudio(
+      @NotNull final Object @Nullable [] arguments) {
+    final MrlConfiguration configuration = (MrlConfiguration) checkPreconditions(arguments);
+    final String url = configuration.getMrl();
+    final List<String> list = RequestUtils.getAudioURLs(url);
+    if (list.isEmpty()) {
+      Logger.info("Extracted Audio MRL: %s".formatted(url));
+      return configuration;
+    }
+    final String use = list.get(0);
+    Logger.info("Extracted Audio MRL (youtube-dl): %s".formatted(use));
+    return MrlConfiguration.ofMrl(use);
+  }
+
+  private static @NotNull Object checkPreconditions(@NotNull final Object @Nullable [] arguments) {
     Preconditions.checkArgument(arguments != null, "Arguments cannot be null!");
     Preconditions.checkArgument(
         arguments.length > 0, "Invalid argument length! Must have at least 1!");
     final Object mrl = arguments[0];
     Preconditions.checkArgument(
         mrl instanceof MrlConfiguration, "Invalid MRL type! Must be a MrlConfiguration!");
-    return (MrlConfiguration) mrl;
+    return mrl;
   }
 }

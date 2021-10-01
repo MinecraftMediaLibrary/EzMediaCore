@@ -58,6 +58,10 @@ public final class DeluxeMediaPluginBootstrap extends JavaPlugin {
 
   @Override
   public void onDisable() {
-    this.plugin.disable();
+    try {
+      this.plugin.disable();
+    } catch (final Exception e) {
+      e.printStackTrace();
+    }
   }
 }

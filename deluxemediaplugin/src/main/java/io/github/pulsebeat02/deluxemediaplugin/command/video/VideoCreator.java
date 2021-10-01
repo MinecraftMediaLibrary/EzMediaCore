@@ -112,7 +112,7 @@ public record VideoCreator(MediaLibraryCore library,
 	}
 
 	public @NotNull VideoPlayer createBlockHighlightPlayer(
-			@NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
+			@NotNull final Player sender) {
 		return VideoBuilder.unspecified()
 				.callback(
 						CallbackBuilder.blockHighlight()

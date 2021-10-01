@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class HttpServer implements HttpDaemonSolution {
 
-  private static String HTTP_SERVER_IP;
+  public static String HTTP_SERVER_IP;
 
   static {
     try (final BufferedReader in =

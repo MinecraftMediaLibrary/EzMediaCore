@@ -91,7 +91,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
                     .then(
                         this.argument("video-mode", StringArgumentType.word())
                             .suggests(this::suggestVideoModes)
-                            .executes(this::setMode)))
+                            .executes(this::setVideoMode)))
             .then(
                 this.literal("audio-output")
                     .then(
@@ -123,11 +123,6 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
 
     final Audience audience = this.plugin.audience().sender(context.getSource());
 
-    if (VideoCommandAttributes.TEMPORARY_PLACEHOLDER) {
-      audience.sendMessage(text("Unfortunately, DeluxeMediaPlugin hasn't programmed other audio outputs yet. Stay tuned. We are working very hard to add new audio outputs!"));
-      return SINGLE_SUCCESS;
-    }
-
     final String argument = context.getArgument("audio-type", String.class);
     final Optional<AudioOutputType> optional = AudioOutputType.ofKey(argument);
     if (optional.isEmpty()) {
@@ -138,16 +133,27 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
     switch (optional.get()) {
       case RESOURCEPACK -> this.attributes.setAudioOutputType(AudioOutputType.RESOURCEPACK);
       case DISCORD -> {
+        if (VideoCommandAttributes.TEMPORARY_PLACEHOLDER) {
+          red(audience, "Unfortunately, Discord support is still being developed, as the Music API used is abandoned and we must find another solution!");
+          return SINGLE_SUCCESS;
+        }
         if (this.plugin.getMediaBot() == null) {
-          red(audience, "Discord token provided in bot.yml is invalid!");
+          red(audience, "Discord bot information provided in bot.yml is invalid!");
           return SINGLE_SUCCESS;
         }
         this.attributes.setAudioOutputType(AudioOutputType.DISCORD);
       }
+      case HTTP -> {
+        if (this.plugin.getHttpAudioServer() == null) {
+          red(audience, "HTTP audio information provided in httpaudio.yml is invalid!");
+          return SINGLE_SUCCESS;
+        }
+        this.attributes.setAudioOutputType(AudioOutputType.HTTP);
+      }
       default -> throw new IllegalArgumentException("Audio type is invalid!");
     }
 
-    gold(audience, "Succesfully set the audio type to %s" + argument);
+    gold(audience, "Successfully set the audio type to %s".formatted(argument));
 
     return SINGLE_SUCCESS;
   }
@@ -245,7 +251,7 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
     return SINGLE_SUCCESS;
   }
 
-  private int setMode(@NotNull final CommandContext<CommandSender> context) {
+  private int setVideoMode(@NotNull final CommandContext<CommandSender> context) {
 
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String mode = context.getArgument("video-mode", String.class);

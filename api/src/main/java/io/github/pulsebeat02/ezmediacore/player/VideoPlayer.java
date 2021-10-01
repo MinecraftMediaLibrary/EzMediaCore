@@ -29,6 +29,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Viewable;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
 public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
@@ -39,7 +40,7 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
   void stopAudio();
 
-  void setCustomAudioPlayback(@NotNull final Runnable runnable);
+  void setCustomAudioPlayback(@NotNull final Consumer<MrlConfiguration> runnable);
 
   void setCustomAudioStopper(@NotNull final Runnable runnable);
 
@@ -49,7 +50,8 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
   void setViewers(@NotNull final Viewers viewers);
 
-  void onPlayerStateChange(@NotNull final PlayerControls status);
+  void onPlayerStateChange(
+      @NotNull final PlayerControls status, @NotNull final Object... arguments);
 
   @NotNull
   Callback getCallback();
@@ -57,9 +59,14 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
   void setCallback(@NotNull final Callback callback);
 
   @NotNull
-  MrlConfiguration getMrlConfiguration();
+  MrlConfiguration getDirectVideoMrl();
 
-  void setMrlConfiguration(@NotNull final MrlConfiguration configuration);
+  void setDirectVideoMrl(@NotNull final MrlConfiguration configuration);
+
+  @NotNull
+  MrlConfiguration getDirectAudioMrl();
+
+  void setDirectAudioMrl(@NotNull final MrlConfiguration configuration);
 
   @NotNull
   FrameConfiguration getFrameConfiguration();

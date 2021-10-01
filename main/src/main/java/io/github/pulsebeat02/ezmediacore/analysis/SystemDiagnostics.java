@@ -26,6 +26,7 @@ package io.github.pulsebeat02.ezmediacore.analysis;
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegDownloadPortal;
+import io.github.pulsebeat02.ezmediacore.rtp.RTPDownloadPortal;
 import io.github.pulsebeat02.ezmediacore.throwable.UnsupportedPlatformException;
 import io.github.pulsebeat02.ezmediacore.vlc.VLCDownloadPortal;
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public final class SystemDiagnostics implements Diagnostic {
   private final List<Mixer> sound;
   private FFmpegDownloadPortal ffmpegDownloadLink;
   private VLCDownloadPortal vlcDownloadLink;
-
+  private RTPDownloadPortal rtpDownloadPortal;
 
   public SystemDiagnostics(@NotNull final MediaLibraryCore core) {
     this.core = core;
@@ -100,14 +101,17 @@ public final class SystemDiagnostics implements Diagnostic {
           Logger.info("Detected Windows 64-bit Operating System");
           this.vlcDownloadLink = VLCDownloadPortal.WIN_64;
           this.ffmpegDownloadLink = FFmpegDownloadPortal.WIN_64;
+          this.rtpDownloadPortal = RTPDownloadPortal.WIN_64;
         }
         case UNIX -> {
           if (this.cpu.getArchitecture().contains("arm")) {
             Logger.info("Detected Linux ARM 64-bit Operating System");
             this.ffmpegDownloadLink = FFmpegDownloadPortal.UNIX_ARM_64;
+            this.rtpDownloadPortal = RTPDownloadPortal.UNIX_ARM_64;
           } else {
             Logger.info("Detected Linux AMD/Intel 64-bit Operating System");
             this.ffmpegDownloadLink = FFmpegDownloadPortal.UNIX_AMD_INTEL_64;
+            this.rtpDownloadPortal = RTPDownloadPortal.UNIX_AMD_64;
           }
           this.vlcDownloadLink = VLCDownloadPortal.NA;
         }
@@ -115,10 +119,13 @@ public final class SystemDiagnostics implements Diagnostic {
           if (this.cpu.getArchitecture().contains("arm")) {
             Logger.info("Detected MacOS ARM 64-bit Operating System");
             this.vlcDownloadLink = VLCDownloadPortal.MAC_ARM_64;
+            this.rtpDownloadPortal = RTPDownloadPortal.MAC_ARM_64;
           } else {
             Logger.info("Detected MacOS AMD 64-bit Operating System!");
             this.vlcDownloadLink = VLCDownloadPortal.MAC_AMD_64;
+            this.rtpDownloadPortal = RTPDownloadPortal.MAC_AMD_64;
           }
+
           this.ffmpegDownloadLink = FFmpegDownloadPortal.MAC_64;
         }
         default -> throw new UnsupportedPlatformException("UNKNOWN");
@@ -129,12 +136,14 @@ public final class SystemDiagnostics implements Diagnostic {
           Logger.info("Detected Windows 32-bit Operating System");
           this.vlcDownloadLink = VLCDownloadPortal.WIN_32;
           this.ffmpegDownloadLink = FFmpegDownloadPortal.WIN_32;
+          this.rtpDownloadPortal = RTPDownloadPortal.WIN_32;
         }
         case UNIX -> {
           if (this.cpu.getArchitecture().contains("arm")) {
             Logger.info("Detected Linux ARM 32-bit Operating System");
             this.vlcDownloadLink = VLCDownloadPortal.NA;
             this.ffmpegDownloadLink = FFmpegDownloadPortal.UNIX_ARM_32;
+            this.rtpDownloadPortal = RTPDownloadPortal.UNIX_ARM_32;
           }
         }
         default -> throw new UnsupportedPlatformException("UNKNOWN");
@@ -194,6 +203,11 @@ public final class SystemDiagnostics implements Diagnostic {
   @Override
   public @NotNull String getVlcUrl() {
     return this.vlcDownloadLink.getUrl();
+  }
+
+  @Override
+  public @NotNull String getRtpUrl() {
+    return this.rtpDownloadPortal.getUrl();
   }
 
   @Override

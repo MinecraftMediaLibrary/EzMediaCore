@@ -30,14 +30,14 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements AudioExtractor {
 
-  private final Path input;
-  private final Path output;
+  private final String input;
+  private final String output;
 
   public FFmpegAudioExtractor(
       @NotNull final MediaLibraryCore core,
@@ -45,22 +45,28 @@ public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements Audio
       @NotNull final Path input,
       @NotNull final Path output)
       throws IOException {
+    this(core, configuration, input.toString(), output.toString());
+  }
+
+  public FFmpegAudioExtractor(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final AudioConfiguration configuration,
+      @NotNull final String input,
+      @NotNull final String output) {
     super(core);
-    this.input = input.toAbsolutePath();
-    this.output = output.toAbsolutePath();
+    this.input = input;
+    this.output = output;
     this.clearArguments();
     this.addMultipleArguments(this.generateArguments(configuration));
   }
 
-  private List<String> generateArguments(@NotNull final AudioConfiguration configuration) {
-    final String in = this.input.toString();
+  @Contract("_ -> new")
+  private @NotNull List<String> generateArguments(@NotNull final AudioConfiguration configuration) {
     return new ArrayList<>(
         List.of(
             this.getCore().getFFmpegPath().toString(),
-            "-f",
-            FilenameUtils.getExtension(in),
             "-i",
-            in,
+            this.input,
             "-vn",
             "-acodec",
             "libvorbis",
@@ -74,23 +80,22 @@ public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements Audio
             String.valueOf(configuration.getVolume()),
             "-ss",
             String.valueOf(configuration.getStartTime()),
-            "-f",
-            FilenameUtils.getExtension(this.output.toString())));
+            "-y"));
   }
 
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
-    this.addArguments("-y", this.output.toString());
+    this.addArgument(this.output);
     super.executeWithLogging(logger);
   }
 
   @Override
-  public @NotNull Path getInput() {
+  public @NotNull String getInput() {
     return this.input;
   }
 
   @Override
-  public @NotNull Path getOutput() {
+  public @NotNull String getOutput() {
     return this.output;
   }
 }

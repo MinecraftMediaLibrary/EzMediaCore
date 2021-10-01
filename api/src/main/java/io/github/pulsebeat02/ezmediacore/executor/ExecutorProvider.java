@@ -32,6 +32,7 @@ public final class ExecutorProvider {
 
   public static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE;
 
+  public static final ExecutorService LOGGER_POOL;
   public static final ExecutorService HTTP_REQUEST_POOL;
   public static final ExecutorService MAP_UPDATE_POOL;
   public static final ExecutorService EXTERNAL_PROCESS_POOL;
@@ -42,6 +43,7 @@ public final class ExecutorProvider {
   public static final ExecutorService FRAME_HANDLER;
 
   static {
+    LOGGER_POOL = Executors.newCachedThreadPool();
     SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
     HTTP_REQUEST_POOL = Executors.newCachedThreadPool();
     MAP_UPDATE_POOL = Executors.newCachedThreadPool();

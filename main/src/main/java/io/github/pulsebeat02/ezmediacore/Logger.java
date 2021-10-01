@@ -24,37 +24,46 @@
 package io.github.pulsebeat02.ezmediacore;
 
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
+import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 public final class Logger {
 
   private static PrintWriter LOGGER;
   private static PrintWriter VLC_LOGGER;
-  private static PrintWriter FFMPEG_LOGGER;
+  private static PrintWriter RTP_LOGGER;
+  private static PrintWriter FFMPEG_PLAYER_LOGGER;
+  private static PrintWriter FFMPEG_STREAMER_LOGGER;
 
   private static Path LOG_FILE;
   private static Path VLC_LOG_FILE;
-  private static Path FFMPEG_LOG_FILE;
+  private static Path RTP_LOG_FILE;
+  private static Path FFMPEG_PLAYER_LOG_FILE;
+  private static Path FFMPEG_STREAM_LOG_FILE;
 
   public static void init(@NotNull final MediaLibraryCore core) {
     final Path path = core.getLibraryPath();
     LOG_FILE = path.resolve("emc.log");
     VLC_LOG_FILE = path.resolve("vlc.log");
-    FFMPEG_LOG_FILE = path.resolve("ffmpeg.log");
+    RTP_LOG_FILE = path.resolve("rtp.log");
+    FFMPEG_PLAYER_LOG_FILE = path.resolve("ffmpeg.log");
+    FFMPEG_STREAM_LOG_FILE = path.resolve("ffmpeg-stream.log");
     try {
       Files.createDirectories(LOG_FILE.getParent());
-      FileUtils.createIfNotExists(LOG_FILE);
-      FileUtils.createIfNotExists(VLC_LOG_FILE);
-      FileUtils.createIfNotExists(FFMPEG_LOG_FILE);
+      Set.of(LOG_FILE, VLC_LOG_FILE, RTP_LOG_FILE, FFMPEG_PLAYER_LOG_FILE, FFMPEG_STREAM_LOG_FILE)
+          .forEach(ThrowingConsumer.unchecked(FileUtils::createIfNotExists));
       LOGGER = new PrintWriter(Files.newBufferedWriter(LOG_FILE), true);
       VLC_LOGGER = new PrintWriter(Files.newBufferedWriter(VLC_LOG_FILE), true);
-      FFMPEG_LOGGER = new PrintWriter(Files.newBufferedWriter(FFMPEG_LOG_FILE), true);
+      RTP_LOGGER = new PrintWriter(Files.newBufferedWriter(RTP_LOG_FILE), true);
+      FFMPEG_PLAYER_LOGGER = new PrintWriter(Files.newBufferedWriter(FFMPEG_PLAYER_LOG_FILE), true);
+      FFMPEG_STREAMER_LOGGER =
+          new PrintWriter(Files.newBufferedWriter(FFMPEG_STREAM_LOG_FILE), true);
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -65,8 +74,8 @@ public final class Logger {
    *
    * @param info the info
    */
-  public static synchronized void info(@NotNull final Object info) {
-    directPrint("%d: [INFO] %s\n".formatted(System.currentTimeMillis(), info));
+  public static void info(@NotNull final Object info) {
+    directPrint("%d: [INFO] %s".formatted(System.currentTimeMillis(), info));
   }
 
   /**
@@ -74,8 +83,8 @@ public final class Logger {
    *
    * @param warning the warning
    */
-  public static synchronized void warn(@NotNull final Object warning) {
-    directPrint("%d: [WARN] %s\n".formatted(System.currentTimeMillis(), warning));
+  public static void warn(@NotNull final Object warning) {
+    directPrint("%d: [WARN] %s".formatted(System.currentTimeMillis(), warning));
   }
 
   /**
@@ -83,8 +92,8 @@ public final class Logger {
    *
    * @param error the error
    */
-  public static synchronized void error(@NotNull final Object error) {
-    directPrint("%d: [ERROR] %s\n".formatted(System.currentTimeMillis(), error));
+  public static void error(@NotNull final Object error) {
+    directPrint("%d: [ERROR] %s".formatted(System.currentTimeMillis(), error));
   }
 
   /**
@@ -92,13 +101,8 @@ public final class Logger {
    *
    * @param line to print
    */
-  private static synchronized void directPrint(@NotNull final String line) {
-    CompletableFuture.runAsync(
-        () -> {
-          LOGGER.write(line);
-          LOGGER.flush();
-        },
-        ExecutorProvider.SHARED_RESULT_POOL);
+  private static void directPrint(@NotNull final String line) {
+    internalDirectPrint(LOGGER, line);
   }
 
   /**
@@ -106,27 +110,44 @@ public final class Logger {
    *
    * @param line to print
    */
-  public static synchronized void directPrintVLC(@NotNull final String line) {
-    CompletableFuture.runAsync(
-        () -> {
-          VLC_LOGGER.write(line);
-          VLC_LOGGER.flush();
-        },
-        ExecutorProvider.SHARED_RESULT_POOL);
+  public static void directPrintVLC(@NotNull final String line) {
+    internalDirectPrint(VLC_LOGGER, line);
   }
 
   /**
-   * Directly prints the following line into FFmpeg.
+   * Directly prints the following line into FFmpeg player.
    *
    * @param line to print
    */
-  public static synchronized void directPrintFFmpeg(@NotNull final String line) {
-    CompletableFuture.runAsync(
+  public static void directPrintFFmpegPlayer(@NotNull final String line) {
+    internalDirectPrint(FFMPEG_PLAYER_LOGGER, line);
+  }
+
+  /**
+   * Directly prints the following line into FFmpeg stream.
+   *
+   * @param line to print
+   */
+  public static void directPrintFFmpegStream(@NotNull final String line) {
+    internalDirectPrint(FFMPEG_STREAMER_LOGGER, line);
+  }
+
+  /**
+   * Directly prints the following line into Rtp.
+   *
+   * @param line to print
+   */
+  public static void directPrintRtp(@NotNull final String line) {
+    internalDirectPrint(RTP_LOGGER, line);
+  }
+
+  private static void internalDirectPrint(
+      @NotNull final PrintWriter writer, @NotNull final String line) {
+    ExecutorProvider.LOGGER_POOL.submit(
         () -> {
-          FFMPEG_LOGGER.write(line);
-          FFMPEG_LOGGER.flush();
-        },
-        ExecutorProvider.SHARED_RESULT_POOL);
+          writer.write("%s\n".formatted(line));
+          writer.flush();
+        });
   }
 
   /**
@@ -152,7 +173,25 @@ public final class Logger {
    *
    * @return the log file
    */
-  public static Path getFfmpegLoggerPath() {
-    return FFMPEG_LOG_FILE;
+  public static Path getFFmpegPlayerLoggerPath() {
+    return FFMPEG_PLAYER_LOG_FILE;
+  }
+
+  /**
+   * Gets the File associated with the FFmpeg Stream Logger file.
+   *
+   * @return the log file
+   */
+  public static Path getFFmpegStreamLogFile() {
+    return FFMPEG_STREAM_LOG_FILE;
+  }
+
+  /**
+   * Gets the File associated with the RTP Logger file.
+   *
+   * @return the log file
+   */
+  public static PrintWriter getRtpLoggerPath() {
+    return RTP_LOGGER;
   }
 }

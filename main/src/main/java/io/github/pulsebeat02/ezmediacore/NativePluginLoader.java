@@ -25,8 +25,6 @@ package io.github.pulsebeat02.ezmediacore;
 
 import java.util.concurrent.CountDownLatch;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
-import uk.co.caprica.vlcj.log.LogLevel;
-import uk.co.caprica.vlcj.log.NativeLog;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
@@ -39,21 +37,15 @@ public class NativePluginLoader {
 
     // loads all necessary VLC plugins before actual playback occurs
 
-    final MediaPlayerFactory factory = new MediaPlayerFactory("--no-video", "--no-audio");
+    final MediaPlayerFactory factory =
+        new MediaPlayerFactory(
+            "--no-video",
+            "--no-audio",
+            "--verbose=0",
+            "--file-logging",
+            "--logfile=%s".formatted(Logger.getVlcLoggerPath()));
     final EmbeddedMediaPlayer player = factory.mediaPlayers().newEmbeddedMediaPlayer();
     final CountDownLatch latch = new CountDownLatch(1);
-
-    final NativeLog logger = factory.application().newLog();
-    if (logger == null) { // ignore this warning as its intellij being dumb with native bindings
-      Logger.info("VLC Native Logger not available on this platform!");
-      return;
-    } else {
-      logger.setLevel(LogLevel.DEBUG);
-      logger.addLogListener(
-          (level, module, file, line, name, header, id, message) ->
-              Logger.directPrintVLC(
-                  "[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message)));
-    }
 
     player
         .events()
@@ -80,7 +72,6 @@ public class NativePluginLoader {
       e.printStackTrace();
     }
 
-    logger.release();
     player.release();
     factory.release();
   }

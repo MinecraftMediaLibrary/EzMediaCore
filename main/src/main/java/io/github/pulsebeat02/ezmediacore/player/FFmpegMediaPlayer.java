@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import com.github.kokorin.jaffree.LogLevel;
 import com.github.kokorin.jaffree.StreamType;
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
 import com.github.kokorin.jaffree.ffmpeg.FFmpegResultFuture;
@@ -31,6 +32,7 @@ import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
+import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
@@ -91,7 +93,6 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
 //    };
 //    this.presentationTimeStamp = 0L;
     this.modifyPlayerAttributes();
-    this.initializePlayer(0L);
   }
 
   @Override
@@ -121,6 +122,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
   @Override
   public void setPlayerState(@NotNull final PlayerControls controls, @NotNull final Object... arguments) {
     super.setPlayerState(controls);
+    CompletableFuture.runAsync(() -> {
     this.firstFrame = false;
     switch (controls) {
       case START, RESUME -> this.play(controls, arguments);
@@ -128,12 +130,15 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
       case RELEASE -> this.release();
       default -> throw new IllegalArgumentException("Player state is invalid!");
     }
+    });
   }
 
   @Override
   public void initializePlayer(final long seconds, @NotNull final Object... arguments) {
+    this.setDirectVideoMrl(ArgumentUtils.retrieveDirectVideo(arguments));
+    this.setDirectAudioMrl(ArgumentUtils.retrieveDirectAudio(arguments));
     final Dimension dimension = this.getDimensions();
-    final String url = this.getMrlConfiguration().getMrl();
+    final String url = this.getDirectVideoMrl().getMrl();
     final Path path = Path.of(url);
     final long ms = seconds * 1000;
     this.ffmpeg =
@@ -150,7 +155,10 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
                     .disableStream(StreamType.DATA)
                     .setFrameRate(this.getFrameConfiguration().getFps()))
             .addArguments("-vf",
-                "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()));
+                "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()))
+            .setLogLevel(LogLevel.FATAL)
+            .setProgressListener((line) -> {})
+            .setOutputListener(Logger::directPrintFFmpegPlayer);
     for (int i = 1; i < arguments.length; i++) {
       this.ffmpeg.addArgument(arguments[i].toString());
     }
@@ -219,7 +227,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
     this.start = System.currentTimeMillis();
   }
 
-  private void play(@NotNull final PlayerControls controls, @NotNull final Object... arguments) {
+  private void play(@NotNull final PlayerControls controls, @NotNull final Object[] arguments) {
     this.setupPlayer(controls, arguments);
     CompletableFuture.runAsync(() -> {
       this.future = this.updateFFmpegPlayer();
@@ -229,17 +237,16 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
     });
   }
 
-  private void setupPlayer(@NotNull final PlayerControls controls, @NotNull final Object... arguments) {
-    this.setMrlConfiguration(ArgumentUtils.checkPlayerArguments(arguments));
-    if (controls == PlayerControls.START) {
-      this.stopAudio();
-      if (this.ffmpeg == null) {
-        this.initializePlayer(0L);
+  private void setupPlayer(@NotNull final PlayerControls controls, @NotNull final Object[] arguments) {
+      if (controls == PlayerControls.START) {
+        this.stopAudio();
+        if (this.ffmpeg == null) {
+          this.initializePlayer(0L, arguments);
+        }
+        this.start = 0L;
+      } else if (controls == PlayerControls.RESUME) {
+        this.initializePlayer(System.currentTimeMillis() - this.start, arguments);
       }
-      this.start = 0L;
-    } else if (controls == PlayerControls.RESUME) {
-      this.initializePlayer(System.currentTimeMillis() - this.start);
-    }
   }
 
   private FFmpegResultFuture updateFFmpegPlayer() {

@@ -77,6 +77,14 @@ public final class FileUtils {
     return false;
   }
 
+  public static boolean deleteIfExists(@NotNull final Path file) throws IOException {
+    if (Files.exists(file)) {
+      Files.delete(file);
+      return true;
+    }
+    return false;
+  }
+
   public static void copyURLToFile(@NotNull final String url, @NotNull final Path path) {
     try (final ReadableByteChannel in = Channels.newChannel(new URL(url).openStream());
         final FileChannel channel = new FileOutputStream(path.toString()).getChannel()) {

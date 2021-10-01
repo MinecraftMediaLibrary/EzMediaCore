@@ -546,8 +546,8 @@ public abstract class StringSearch {
    * @see CharIntMap#CharIntMap(int, char, int)
    */
   @Contract("_, _ -> new")
-  @NotNull final CharIntMap createCharIntMap(
-      final char[] pattern, final int defaultValue) {
+  @NotNull
+  final CharIntMap createCharIntMap(final char[] pattern, final int defaultValue) {
     return this.createCharIntMap(pattern, pattern.length, defaultValue);
   }
 

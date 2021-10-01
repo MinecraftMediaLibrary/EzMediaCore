@@ -26,11 +26,10 @@ package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherSetting;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
+import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
-import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class VideoCommandAttributes {
 
@@ -46,12 +45,13 @@ public final class VideoCommandAttributes {
   private DitherSetting dither;
   private AudioOutputType audioOutputType;
   private VideoType mode;
-  private String video;
-  private Path audio;
+
+  private MrlConfiguration videoMrl;
+  private MrlConfiguration oggMrl;
 
   private EnhancedExecution extractor;
-  private boolean youtube;
-  private String mrl; // for file resource load video mrl
+  private EnhancedExecution streamExtractor;
+
   private int map;
 
   private int frameWidth;
@@ -59,8 +59,8 @@ public final class VideoCommandAttributes {
   private int pixelWidth;
   private int pixelHeight;
 
-  private String url; // for resourcepack url
-  private byte[] hash;
+  private String resourcepackUrl; // for resourcepack url
+  private byte[] resourcepackHash;
 
   public VideoCommandAttributes() {
     this.dither = DitherSetting.FILTER_LITE;
@@ -73,7 +73,7 @@ public final class VideoCommandAttributes {
     this.mode = VideoType.ITEMFRAME;
   }
 
-  public @NotNull DitherSetting getDither() {
+  public DitherSetting getDither() {
     return this.dither;
   }
 
@@ -85,24 +85,8 @@ public final class VideoCommandAttributes {
     return this.player;
   }
 
-  public void setPlayer(@NotNull final VideoPlayer player) {
+  public void setPlayer(final VideoPlayer player) {
     this.player = player;
-  }
-
-  public @Nullable String getVideoMrl() {
-    return this.video;
-  }
-
-  public void setVideoMrl(@NotNull final String video) {
-    this.video = video;
-  }
-
-  public boolean isYoutube() {
-    return this.youtube;
-  }
-
-  public void setYoutube(final boolean youtube) {
-    this.youtube = youtube;
   }
 
   public int getFrameWidth() {
@@ -153,48 +137,24 @@ public final class VideoCommandAttributes {
     return this.mode;
   }
 
-  public void setVideoType(@NotNull final VideoType type) {
+  public void setVideoType(final VideoType type) {
     this.mode = type;
   }
 
-  public @NotNull VideoType getMode() {
-    return this.mode;
+  public String getResourcepackUrl() {
+    return this.resourcepackUrl;
   }
 
-  public void setMode(@NotNull final VideoType mode) {
-    this.mode = mode;
+  public void setResourcepackUrl(final String resourcepackUrl) {
+    this.resourcepackUrl = resourcepackUrl;
   }
 
-  public @Nullable String getUrl() {
-    return this.url;
+  public byte[] getResourcepackHash() {
+    return this.resourcepackHash;
   }
 
-  public void setUrl(@NotNull final String url) {
-    this.url = url;
-  }
-
-  public byte @Nullable [] getHash() {
-    return this.hash;
-  }
-
-  public void setHash(final byte @NotNull [] hash) {
-    this.hash = hash;
-  }
-
-  public @NotNull Path getAudio() {
-    return this.audio;
-  }
-
-  public void setAudio(@NotNull final Path audio) {
-    this.audio = audio;
-  }
-
-  public @NotNull String getMrl() {
-    return this.mrl;
-  }
-
-  public void setMrl(@NotNull final String mrl) {
-    this.mrl = mrl;
+  public void setResourcepackHash(final byte[] resourcepackHash) {
+    this.resourcepackHash = resourcepackHash;
   }
 
   public EnhancedExecution getExtractor() {
@@ -209,7 +169,41 @@ public final class VideoCommandAttributes {
     return this.audioOutputType;
   }
 
-  public void setAudioOutputType(@NotNull final AudioOutputType audioOutputType) {
+  public void setAudioOutputType(final AudioOutputType audioOutputType) {
     this.audioOutputType = audioOutputType;
+  }
+
+  public MrlConfiguration getVideoMrl() {
+    return this.videoMrl;
+  }
+
+  public void setVideoMrl(final MrlConfiguration videoMrl) {
+    this.videoMrl = videoMrl;
+  }
+
+  public MrlConfiguration getOggMrl() {
+    return this.oggMrl;
+  }
+
+  public void setOggMrl(final MrlConfiguration oggMrl) {
+    this.oggMrl = oggMrl;
+  }
+
+  public EnhancedExecution getStreamExtractor() {
+    return this.streamExtractor;
+  }
+
+  public void setStreamExtractor(final EnhancedExecution streamExtractor) {
+    this.streamExtractor = streamExtractor;
+  }
+
+  public void cancelCurrentStream() {
+    if (this.streamExtractor != null) {
+      try {
+        this.streamExtractor.close();
+      } catch (final Exception e) {
+        e.printStackTrace();
+      }
+    }
   }
 }
