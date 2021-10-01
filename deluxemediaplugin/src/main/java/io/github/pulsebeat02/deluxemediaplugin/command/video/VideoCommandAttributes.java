@@ -30,7 +30,6 @@ import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class VideoCommandAttributes {
 
@@ -74,7 +73,7 @@ public final class VideoCommandAttributes {
     this.mode = VideoType.ITEMFRAME;
   }
 
-  public @NotNull DitherSetting getDither() {
+  public DitherSetting getDither() {
     return this.dither;
   }
 
@@ -86,7 +85,7 @@ public final class VideoCommandAttributes {
     return this.player;
   }
 
-  public void setPlayer(@NotNull final VideoPlayer player) {
+  public void setPlayer(final VideoPlayer player) {
     this.player = player;
   }
 
@@ -138,23 +137,23 @@ public final class VideoCommandAttributes {
     return this.mode;
   }
 
-  public void setVideoType(@NotNull final VideoType type) {
+  public void setVideoType(final VideoType type) {
     this.mode = type;
   }
 
-  public @Nullable String getResourcepackUrl() {
+  public String getResourcepackUrl() {
     return this.resourcepackUrl;
   }
 
-  public void setResourcepackUrl(@NotNull final String resourcepackUrl) {
+  public void setResourcepackUrl(final String resourcepackUrl) {
     this.resourcepackUrl = resourcepackUrl;
   }
 
-  public byte @Nullable [] getResourcepackHash() {
+  public byte[] getResourcepackHash() {
     return this.resourcepackHash;
   }
 
-  public void setResourcepackHash(final byte @NotNull [] resourcepackHash) {
+  public void setResourcepackHash(final byte[] resourcepackHash) {
     this.resourcepackHash = resourcepackHash;
   }
 
@@ -170,7 +169,7 @@ public final class VideoCommandAttributes {
     return this.audioOutputType;
   }
 
-  public void setAudioOutputType(@NotNull final AudioOutputType audioOutputType) {
+  public void setAudioOutputType(final AudioOutputType audioOutputType) {
     this.audioOutputType = audioOutputType;
   }
 

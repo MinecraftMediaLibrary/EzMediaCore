@@ -248,12 +248,11 @@ public final class DeluxeMediaPlugin {
     return this.attributes;
   }
 
-  public void setAttributes(
-      @NotNull final VideoCommandAttributes attributes) {
+  public void setAttributes(final VideoCommandAttributes attributes) {
     this.attributes = attributes;
   }
 
-  public @NotNull ServerInfo getHttpAudioServer() {
+  public @Nullable ServerInfo getHttpAudioServer() {
     return this.httpAudioServer;
   }
 }
