@@ -25,13 +25,8 @@
 package io.github.pulsebeat02.deluxemediaplugin;
 
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
-import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.JoinConfiguration.separator;
-import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.BLUE;
-import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
-import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
@@ -43,6 +38,7 @@ import io.github.pulsebeat02.deluxemediaplugin.config.HttpAudioConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.PersistentPictureManager;
 import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.update.UpdateChecker;
 import io.github.pulsebeat02.deluxemediaplugin.utility.CommandUtils;
 import io.github.pulsebeat02.ezmediacore.LibraryProvider;
@@ -57,7 +53,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Logger;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
@@ -71,8 +67,8 @@ public final class DeluxeMediaPlugin {
 
   private MediaLibraryCore library;
   private BukkitAudiences audiences;
+  private Audience console;
   private CommandHandler handler;
-  private Logger logger;
 
   private AudioConfiguration audioConfiguration;
   private PersistentPictureManager manager;
@@ -87,48 +83,41 @@ public final class DeluxeMediaPlugin {
   }
 
   public void enable() {
-    this.logger = this.plugin.getLogger();
     this.audiences = BukkitAudiences.create(this.plugin);
+    this.console = this.audiences.console();
     this.printLogo();
-    this.log(
-        join(separator(text(" ")), text("Running DeluxeMediaPlugin", AQUA), text("[BETA]", GOLD),
-            text("1.0.0", AQUA)));
-    this.log("Loading MinecraftMediaLibrary instance... this may take a minute depending on your server!");
+    this.console.sendMessage(Locale.ENABLE_PLUGIN.build());
+    this.console.sendMessage(Locale.EMC_INIT.build());
     this.startLibrary();
-    this.log("Finished loading MinecraftMediaLibrary instance!");
+    this.console.sendMessage(Locale.FIN_EMC_INIT.build());
     this.loadPersistentData();
-    this.log("Finished loading persistent data!");
+    this.console.sendMessage(Locale.FIN_PERSISTENT_INIT.build());
     this.registerCommands();
-    this.log("Finished registering plugin commands!");
+    this.console.sendMessage(Locale.FIN_COMMANDS_INIT.build());
     this.startMetrics();
-    this.log("Finished loading Metrics data!");
+    this.console.sendMessage(Locale.FIN_METRICS_INIT.build());
     this.checkUpdates();
-    this.log("Finished loading DeluxeMediaPlugin!");
-    this.log("""
-        Hello %%__USER__%%! Thank you for purchasing DeluxeMediaPlugin. For identifier purposes, this
-         is your purchase identification code: %%__NONCE__%% - Enjoy using the plugin, and ask for
-         support at my Discord! (https://discord.gg/MgqRKvycMC)
-        """);
+    this.console.sendMessage(Locale.FIN_PLUGIN_INIT.build());
+    this.console.sendMessage(Locale.WELCOME.build());
   }
 
   public void disable() throws Exception {
-    this.log("DeluxeMediaPlugin is shutting down!");
+    this.console.sendMessage(Locale.DISABLE_PLUGIN.build());
     this.shutdownLibrary();
     this.unregisterCommands();
     this.disableBot();
     this.cancelNativeTasks();
-    this.log("Good Bye :(");
+    this.console.sendMessage(Locale.GOODBYE.build());
   }
 
-  public void load() {
-  }
+  public void load() {}
 
   private void startLibrary() {
     try {
       this.library = LibraryProvider.builder().plugin(this.plugin).build();
       this.library.initialize();
     } catch (final ExecutionException | InterruptedException e) {
-      this.log(text("There was a severe issue while loading the EzMediaCore instance!", RED));
+      this.console.sendMessage(Locale.ERR_EMC_INIT.build());
       e.printStackTrace();
       this.plugin.getServer().getPluginManager().disablePlugin(this.plugin);
     }
@@ -175,9 +164,9 @@ public final class DeluxeMediaPlugin {
   private void shutdownLibrary() {
     if (this.library != null) {
       this.library.shutdown();
-      this.log("Successfully shutdown MinecraftMediaLibrary instance!");
+      this.console.sendMessage(Locale.GOOD_EMC_SHUTDOWN.build());
     } else {
-      this.log(text("EzMediaCore instance is null... something fishy is going on.", RED));
+      this.console.sendMessage(Locale.ERR_EMC_SHUTDOWN.build());
     }
   }
 
@@ -194,8 +183,8 @@ public final class DeluxeMediaPlugin {
 
   private void loadPersistentData() {
     try {
-      Set.of(this.plugin.getDataFolder().toPath().resolve("configuration")).forEach(
-          ThrowingConsumer.unchecked(FileUtils::createFolderIfNotExists));
+      Set.of(this.plugin.getDataFolder().toPath().resolve("configuration"))
+          .forEach(ThrowingConsumer.unchecked(FileUtils::createFolderIfNotExists));
       final HttpConfiguration httpConfiguration = new HttpConfiguration(this);
       final EncoderConfiguration encoderConfiguration = new EncoderConfiguration(this);
       final BotConfiguration botConfiguration = new BotConfiguration(this);
@@ -211,7 +200,7 @@ public final class DeluxeMediaPlugin {
       this.manager = new PersistentPictureManager(this);
       this.manager.startTask();
     } catch (final IOException e) {
-      this.logger.severe("A severe issue occurred while reading data from configuration files!");
+      this.console.sendMessage(Locale.ERR_PERSISTENT_INIT.build());
       e.printStackTrace();
     }
   }
