@@ -74,7 +74,7 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
       invalid = true;
     }
 
-    if (invalid) {
+    if (!invalid) {
       try {
         this.bot = new MediaBot(token, guild, vc);
       } catch (final LoginException | InterruptedException e) {
