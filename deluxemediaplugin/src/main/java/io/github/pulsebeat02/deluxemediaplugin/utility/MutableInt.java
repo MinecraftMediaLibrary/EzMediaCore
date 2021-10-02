@@ -30,21 +30,13 @@ public class MutableInt {
 
   private int number;
 
-  MutableInt(@NotNull final Number number) {
-    this.number = (int) number;
-  }
-
   MutableInt(final int number) {
     this.number = number;
   }
 
-  MutableInt(@NotNull final String number) {
-    this.number = Integer.parseInt(number);
-  }
-
   @Contract(value = "_ -> new", pure = true)
   public static @NotNull MutableInt ofNumber(@NotNull final Number number) {
-    return new MutableInt(number);
+    return new MutableInt(number.intValue());
   }
 
   @Contract(value = "_ -> new", pure = true)
@@ -54,7 +46,7 @@ public class MutableInt {
 
   @Contract(value = "_ -> new", pure = true)
   public static @NotNull MutableInt ofString(@NotNull final String string) {
-    return new MutableInt(string);
+    return new MutableInt(Integer.parseInt(string));
   }
 
   public void increment() {
