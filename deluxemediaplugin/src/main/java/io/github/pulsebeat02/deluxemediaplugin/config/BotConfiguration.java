@@ -53,7 +53,7 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
   public void serialize() {
     final DeluxeMediaPlugin plugin = this.getPlugin();
     final FileConfiguration configuration = this.getFileConfiguration();
-    final Audience console = plugin.getLogger();
+    final Audience console = plugin.getConsoleAudience();
 
     boolean invalid = false;
     final String token = configuration.getString("token");

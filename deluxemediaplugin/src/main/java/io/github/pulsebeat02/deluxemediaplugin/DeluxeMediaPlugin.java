@@ -47,6 +47,7 @@ import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -78,11 +79,11 @@ public final class DeluxeMediaPlugin {
   }
 
   public void enable() {
+    this.assignAudiences();
     this.startLibrary();
     this.loadPersistentData();
     this.registerCommands();
     this.startMetrics();
-    this.checkUpdates();
     this.finishEnabling();
   }
 
@@ -96,9 +97,12 @@ public final class DeluxeMediaPlugin {
   }
 
   public void load() {
+    this.finishLoading();
+  }
+
+  private void assignAudiences() {
     this.audiences = BukkitAudiences.create(this.plugin);
     this.console = this.audiences.console();
-    this.finishLoading();
   }
 
   private void deserializeData() {
@@ -173,8 +177,10 @@ public final class DeluxeMediaPlugin {
   }
 
   private void cancelNativeTasks() throws Exception {
-    this.cancelNativeExtractor();
-    this.cancelNativeStreamExtractor();
+    if (this.attributes != null) {
+      this.cancelNativeExtractor();
+      this.cancelNativeStreamExtractor();
+    }
     this.console.sendMessage(Locale.CANCELLED_TASKS.build());
   }
 
@@ -193,7 +199,8 @@ public final class DeluxeMediaPlugin {
   }
 
   private void createFolders() {
-    Set.of(this.plugin.getDataFolder().toPath().resolve("configuration"))
+    final Path folder = this.plugin.getDataFolder().toPath();
+    Set.of(folder.resolve("configuration"), folder.resolve("data"))
         .forEach(ThrowingConsumer.unchecked(FileUtils::createFolderIfNotExists));
   }
 
@@ -271,7 +278,7 @@ public final class DeluxeMediaPlugin {
     this.console.sendMessage(Locale.FIN_COMMANDS_INIT.build());
   }
 
-  public Audience getLogger() {
+  public Audience getConsoleAudience() {
     return this.console;
   }
 

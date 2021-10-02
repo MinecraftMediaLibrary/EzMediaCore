@@ -96,14 +96,14 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
       final ResourcepackSoundWrapper wrapper =
           new ResourcepackSoundWrapper(
               daemon.getDaemon().getServerPath().resolve("resourcepack.zip"), "Audio Pack", 6);
-      wrapper.addSound(loader.getName().toLowerCase(java.util.Locale.ROOT),
-          this.attributes.getAudio());
+      wrapper.addSound(
+          loader.getName().toLowerCase(java.util.Locale.ROOT), this.attributes.getAudio());
       wrapper.wrap();
       final Path path = wrapper.getResourcepackFilePath();
       this.attributes.setLink(daemon.createUrl(path));
       this.attributes.setHash(HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
     } catch (final IOException e) {
-      this.plugin.getLogger().sendMessage(Locale.ERR_RESOURCEPACK_WRAP.build());
+      this.plugin.getConsoleAudience().sendMessage(Locale.ERR_RESOURCEPACK_WRAP.build());
       e.printStackTrace();
     }
     this.attributes.setCompletion(true);

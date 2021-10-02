@@ -24,9 +24,12 @@
 package io.github.pulsebeat02.deluxemediaplugin.json;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,31 +38,40 @@ public abstract class DataProvider<T> implements DataHolder<T> {
   private final DeluxeMediaPlugin plugin;
   private final String name;
   private final Path path;
+  private final Class<T> clazz;
   private T object;
 
-  public DataProvider(@NotNull final DeluxeMediaPlugin plugin, @NotNull final String name) {
+  public DataProvider(
+      @NotNull final DeluxeMediaPlugin plugin,
+      @NotNull final Class<T> clazz,
+      @NotNull final String name) {
     this.plugin = plugin;
     this.name = name;
-    this.path = plugin.getBootstrap().getDataFolder().toPath().resolve(this.name);
+    this.path = plugin.getBootstrap().getDataFolder().toPath().resolve(this.name).toAbsolutePath();
+    this.clazz = clazz;
   }
 
   @Override
   public void deserialize(@NotNull final T obj) throws IOException {
-    GsonProvider.getGson().toJson(obj, Files.newBufferedWriter(this.path));
+    try (final BufferedWriter writer = Files.newBufferedWriter(this.path)) {
+      GsonProvider.getGson().toJson(obj, writer);
+    }
   }
 
   @Override
   public void serialize() throws IOException {
     this.saveConfig();
-    this.object =
-        (T)
-            GsonProvider.getGson()
-                .fromJson(Files.newBufferedReader(this.path), this.object.getClass());
+    try (final BufferedReader reader = Files.newBufferedReader(this.path.toAbsolutePath())) {
+      this.object = GsonProvider.getGson().fromJson(reader, this.clazz);
+    }
   }
 
-  private void saveConfig() {
+  private void saveConfig() throws IOException {
     if (!Files.exists(this.path)) {
-      this.plugin.getBootstrap().saveResource(this.name, false);
+      Files.copy(
+          this.plugin.getBootstrap().getResource(this.name),
+          this.path,
+          StandardCopyOption.REPLACE_EXISTING);
     }
   }
 

@@ -68,20 +68,29 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
     this.keyword = "libvlc.%s".formatted(algorithm.getFileExtension());
   }
 
-  @Override
-  public @NotNull Optional<Path> discover(@NotNull final Path directory) {
-
-    Logger.info("Searching in Directory %s".formatted(directory));
-
+  private @NotNull Optional<Path> vlcjDiscovery() {
     final NativeDiscovery discovery = new NativeDiscovery();
     if (discovery.discover()) {
       return Optional.of(Path.of(discovery.discoveredPath()));
     }
+    return Optional.empty();
+  }
 
+  @Override
+  public @NotNull Optional<Path> discover(@NotNull final Path directory) {
+    Logger.info("Searching in Directory %s".formatted(directory));
+    final Optional<Path> discovery = this.vlcjDiscovery();
+    if (discovery.isPresent()) {
+      return discovery;
+    }
     if (Files.notExists(directory)) {
+      Logger.info("Discover directory path does not exist!");
       return Optional.empty();
     }
+    return this.discoverDirectory(directory);
+  }
 
+  private @NotNull Optional<Path> discoverDirectory(@NotNull final Path directory) {
     try {
       final CompletableFuture<Boolean> plugins =
           CompletableFuture.supplyAsync(() -> this.locatePluginsFolder(directory));
@@ -94,7 +103,6 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
     } catch (final InterruptedException | ExecutionException e) {
       e.printStackTrace();
     }
-
     return Optional.empty();
   }
 
@@ -160,7 +168,7 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
   private boolean loadLibVLCLibrary() {
     try {
       final libvlc_instance_t instance =
-          libvlc_new(0, new StringArray(new String[]{"--reset-plugins-cache"}));
+          libvlc_new(0, new StringArray(new String[] {"--reset-plugins-cache"}));
       if (instance != null) {
         libvlc_release(instance);
         final LibVlcVersion version = new LibVlcVersion();

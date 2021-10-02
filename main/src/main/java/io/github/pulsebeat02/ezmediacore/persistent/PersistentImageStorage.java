@@ -26,6 +26,8 @@ package io.github.pulsebeat02.ezmediacore.persistent;
 import com.google.common.reflect.TypeToken;
 import io.github.pulsebeat02.ezmediacore.image.Image;
 import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,16 +44,16 @@ public class PersistentImageStorage extends PersistentObject<Image> {
   @Override
   public void serialize(@NotNull final Collection<Image> list) throws IOException {
     super.serialize(list);
-    GsonProvider.getPretty().toJson(list, Files.newBufferedWriter(this.getStorageFile()));
+    try (final BufferedWriter writer = Files.newBufferedWriter(this.getStorageFile())) {
+      GsonProvider.getPretty().toJson(list, writer);
+    }
   }
 
   @Override
   public List<Image> deserialize() throws IOException {
     super.deserialize();
-    return GsonProvider.getSimple()
-        .fromJson(
-            Files.newBufferedReader(this.getStorageFile()),
-            new TypeToken<List<Image>>() {
-            }.getType());
+    try (final BufferedReader reader = Files.newBufferedReader(this.getStorageFile())) {
+      return GsonProvider.getSimple().fromJson(reader, new TypeToken<List<Image>>() {}.getType());
+    }
   }
 }

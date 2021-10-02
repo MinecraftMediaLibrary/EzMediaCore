@@ -99,7 +99,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
         }
         audience.sendMessage(Locale.DREW_IMG.build(mrl));
       } catch (final IOException e) {
-        this.plugin.getLogger().sendMessage(Locale.ERR_IMG_SET.build());
+        this.plugin.getConsoleAudience().sendMessage(Locale.ERR_IMG_SET.build());
         e.printStackTrace();
       }
     });

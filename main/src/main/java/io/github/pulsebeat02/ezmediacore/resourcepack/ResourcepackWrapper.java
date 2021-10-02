@@ -78,52 +78,19 @@ public class ResourcepackWrapper implements PackWrapper {
   public void wrap() throws IOException {
     this.onPackStartWrap();
     this.internalWrap();
-
-    //    try (final ZipOutputStream out =
-    //        new ZipOutputStream(new FileOutputStream(this.path.toFile()))) {
-    //
-    //      FileUtils.createFileIfNotExists(this.path);
-    //
-    //      final ZipEntry config = new ZipEntry("pack.mcmeta");
-    //      out.putNextEntry(config);
-    //      out.write(getPackMcmeta().getBytes());
-    //      out.closeEntry();
-    //
-    //      final ZipEntry sound = new ZipEntry("assets/minecraft/sounds.json");
-    //      out.putNextEntry(sound);
-    //      out.write(getSoundJson().getBytes());
-    //      out.closeEntry();
-    //
-    //      final ZipEntry soundFile = new ZipEntry("assets/minecraft/sounds/audio.ogg");
-    //      out.putNextEntry(soundFile);
-    //      out.write(Files.readAllBytes(Path.of(this.audio.toString())));
-    //      out.closeEntry();
-    //
-    //      if (this.icon != null && Files.exists(this.icon)) {
-    //        final ZipEntry iconFile = new ZipEntry("pack.png");
-    //        out.putNextEntry(iconFile);
-    //        out.write(Files.readAllBytes(icon));
-    //        out.closeEntry();
-    //      }
-    //    }
-
     this.onPackFinishWrap();
   }
 
   @Override
   public void internalWrap() throws IOException {
-
     Logger.info("Wrapping the Resourcepack");
     try (final ZipOutputStream out =
         new ZipOutputStream(new FileOutputStream(this.path.toFile()))) {
-
       FileUtils.createIfNotExists(this.path);
       this.addFile("pack.mcmeta", this.getPackMcmeta().getBytes());
-
       if (this.icon != null) {
         this.addFile("pack.png", this.icon);
       }
-
       for (final Map.Entry<String, byte[]> entry : this.files.entrySet()) {
         out.putNextEntry(new ZipEntry(entry.getKey()));
         out.write(entry.getValue());
@@ -134,12 +101,10 @@ public class ResourcepackWrapper implements PackWrapper {
   }
 
   @Override
-  public void onPackStartWrap() {
-  }
+  public void onPackStartWrap() {}
 
   @Override
-  public void onPackFinishWrap() {
-  }
+  public void onPackFinishWrap() {}
 
   @Override
   public void addFile(@NotNull final String path, @NotNull final Path file) throws IOException {

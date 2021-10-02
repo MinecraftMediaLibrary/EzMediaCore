@@ -45,36 +45,49 @@ public class SilentMacInstallation extends SilentInstallation {
     return OSType.MAC;
   }
 
-  @Override
-  public void downloadBinaries() throws IOException, InterruptedException {
-
-    final Path directory = this.getDirectory();
-    final Path dmg = directory.resolve("VLC.dmg");
-    final Path disk = Path.of("/Volumes/VLC media player");
-    final Path app = directory.resolve("VLC.app");
-
+  private void downloadChecksum(@NotNull final Path dmg) throws IOException {
     new VLCBinaryChecksum(this.getCore().getDiagnostics().getVlcUrl(), dmg).downloadFile();
     Logger.info("Successfully downloaded DMG file!");
+  }
 
+  private void mountDisk(@NotNull final Path dmg) throws IOException, InterruptedException {
     if (this.mountDiskImage(dmg) != 0) {
       throw new RuntimeException("A severe I/O error has occurred. Could not mount disk file!");
     }
     Logger.info("Successfully mounted disk!");
+  }
 
+  private void copyDiskFiles(@NotNull final Path disk, @NotNull final Path app) throws IOException {
     org.apache.commons.io.FileUtils.copyDirectory(disk.resolve("VLC.app").toFile(), app.toFile());
     Logger.info("Successfully moved VLC app folder!");
+  }
 
-    if (this.changePermissions(app) != 0) {
+  private void changePermissions(@NotNull final Path app) throws IOException, InterruptedException {
+    if (this.changePermissionsTask(app) != 0) {
       throw new RuntimeException(
           "A severe permission error has occurred. Could not change permissions of VLC application!");
     }
     Logger.info("Successfully changed permissions for application!");
+  }
 
+  private void unmountDisk(@NotNull final Path disk) throws IOException, InterruptedException {
     if (this.unmountDiskImage(disk) != 0) {
       throw new RuntimeException("A severe I/O error has occurred. Could not unmount disk file!");
     }
     Logger.info("Successfully unmounted disk!");
+  }
 
+  @Override
+  public void downloadBinaries() throws IOException, InterruptedException {
+    final Path directory = this.getDirectory();
+    final Path dmg = directory.resolve("VLC.dmg");
+    final Path disk = Path.of("/Volumes/VLC media player");
+    final Path app = directory.resolve("VLC.app");
+    this.downloadChecksum(app);
+    this.mountDisk(dmg);
+    this.copyDiskFiles(disk, app);
+    this.changePermissions(app);
+    this.unmountDisk(disk);
     this.setInstallationPath(app);
     this.deleteArchive(dmg);
     this.loadNativeBinaries();
@@ -86,31 +99,26 @@ public class SilentMacInstallation extends SilentInstallation {
   }
 
   private int mountDiskImage(@NotNull final Path dmg) throws IOException, InterruptedException {
-
     final CommandTask t =
-        new CommandTask(new String[]{"/usr/bin/hdiutil", "attach", dmg.toString()}, true);
-
+        new CommandTask(new String[] {"/usr/bin/hdiutil", "attach", dmg.toString()}, true);
     Logger.info("============= DMG INFORMATION =============");
     Logger.info(t.getResult());
     Logger.info("===========================================");
-
     return t.getProcess().waitFor();
   }
 
   private int unmountDiskImage(@NotNull final Path path) throws IOException, InterruptedException {
-
     final CommandTask t =
-        new CommandTask(new String[]{"diskutil", "unmount", path.toString()}, true);
-
+        new CommandTask(new String[] {"diskutil", "unmount", path.toString()}, true);
     Logger.info("=========== UNMOUNT INFORMATION ===========");
     Logger.info(t.getResult());
     Logger.info("===========================================");
-
     return t.getProcess().waitFor();
   }
 
-  private int changePermissions(@NotNull final Path path) throws IOException, InterruptedException {
-    return new CommandTask(new String[]{"chmod", "-R", "755", path.toString()}, true)
+  private int changePermissionsTask(@NotNull final Path path)
+      throws IOException, InterruptedException {
+    return new CommandTask(new String[] {"chmod", "-R", "755", path.toString()}, true)
         .getProcess()
         .waitFor();
   }

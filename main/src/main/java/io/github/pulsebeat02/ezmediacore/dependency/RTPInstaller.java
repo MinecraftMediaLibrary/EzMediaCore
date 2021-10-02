@@ -83,23 +83,32 @@ public class RTPInstaller {
       this.executable = optional.get();
       return;
     }
+    final Path parent = this.internalDownload();
+    final String baseName = "rtsp-simple-server";
+    this.executable =
+        this.core.getDiagnostics().getSystem().getOSType() == OSType.WINDOWS
+            ? parent.resolve("%s.exe".formatted(baseName))
+            : parent.resolve(baseName);
+    this.changePermissions();
+    this.hash = HashingUtils.getHash(this.executable);
+  }
+
+  private Path internalDownload() throws IOException {
     final Diagnostic diagnostic = this.core.getDiagnostics();
-    final OSType type = diagnostic.getSystem().getOSType();
     final String url = diagnostic.getRtpUrl();
     final Path download = this.folder.resolve(FilenameUtils.getName(new URL(url).getPath()));
     final Path parent = download.getParent();
     FileUtils.createIfNotExists(download);
     DependencyUtils.downloadFile(download, url);
     ArchiveUtils.decompressArchive(download, parent);
-    final String baseName = "rtsp-simple-server";
-    this.executable =
-        this.core.getDiagnostics().getSystem().getOSType() == OSType.WINDOWS
-            ? parent.resolve("%s.exe".formatted(baseName))
-            : parent.resolve(baseName);
+    return parent;
+  }
+
+  private void changePermissions() throws IOException {
+    final OSType type = this.core.getDiagnostics().getSystem().getOSType();
     if (type == OSType.MAC || type == OSType.UNIX) {
       new CommandTask("chmod", "-R", "777", this.executable.toAbsolutePath().toString()).run();
     }
-    this.hash = HashingUtils.getHash(this.executable);
   }
 
   private @NotNull Optional<Path> detectExecutable(@NotNull final Path folder) throws IOException {

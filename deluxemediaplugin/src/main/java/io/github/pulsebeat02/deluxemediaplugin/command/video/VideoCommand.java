@@ -245,7 +245,7 @@ public final class VideoCommand extends BaseCommand {
 
   private void buildResourcepack(@NotNull final Audience audience) {
     final DeluxeMediaPlugin plugin = this.plugin();
-    final Audience console = plugin.getLogger();
+    final Audience console = plugin.getConsoleAudience();
     final JavaPlugin loader = plugin.getBootstrap();
     try {
       final HttpServer server = plugin.getHttpServer();

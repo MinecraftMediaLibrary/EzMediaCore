@@ -30,6 +30,6 @@ import org.jetbrains.annotations.NotNull;
 public class MediaAttributesData extends DataProvider<VideoCommandAttributes> {
 
   public MediaAttributesData(@NotNull final DeluxeMediaPlugin plugin) {
-    super(plugin, "data/video-attributes.json");
+    super(plugin, VideoCommandAttributes.class, "data/video-attributes.json");
   }
 }

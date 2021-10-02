@@ -31,10 +31,12 @@ import java.util.concurrent.ScheduledExecutorService;
 public class ExecutorProvider {
 
   public static final Executor STREAM_THREAD_EXECUTOR;
+  public static final Executor PERIODIC_CHECK_EXECUTOR;
   public static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE;
 
   static {
     STREAM_THREAD_EXECUTOR = Executors.newFixedThreadPool(4);
+    PERIODIC_CHECK_EXECUTOR = Executors.newSingleThreadExecutor();
     SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(4);
   }
 }

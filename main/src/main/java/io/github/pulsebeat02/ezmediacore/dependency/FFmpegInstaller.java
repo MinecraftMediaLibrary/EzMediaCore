@@ -77,26 +77,30 @@ public final class FFmpegInstaller {
   }
 
   private void download() throws IOException {
-
     final Optional<Path> optional = this.detectExecutable(this.folder);
     if (optional.isPresent()) {
       this.executable = optional.get();
       return;
     }
+    this.executable = this.internalDownload();
+    this.setPermissions(this.executable);
+    this.hash = HashingUtils.getHash(this.executable);
+  }
 
+  private Path internalDownload() throws IOException {
     final Diagnostic diagnostic = this.core.getDiagnostics();
-    final OSType type = diagnostic.getSystem().getOSType();
     final String url = diagnostic.getFFmpegUrl();
     final Path download = this.folder.resolve(FilenameUtils.getName(new URL(url).getPath()));
     FileUtils.createIfNotExists(download);
-
     DependencyUtils.downloadFile(download, url);
+    return download;
+  }
+
+  private void setPermissions(@NotNull final Path download) throws IOException {
+    final OSType type = this.core.getDiagnostics().getSystem().getOSType();
     if (type == OSType.MAC || type == OSType.UNIX) {
       new CommandTask("chmod", "-R", "777", download.toAbsolutePath().toString()).run();
     }
-
-    this.executable = download;
-    this.hash = HashingUtils.getHash(this.executable);
   }
 
   private @NotNull Optional<Path> detectExecutable(@NotNull final Path folder) throws IOException {

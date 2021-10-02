@@ -58,16 +58,12 @@ public class ResourcepackSoundWrapper extends ResourcepackWrapper implements Sou
 
   @Override
   public void wrap() throws IOException {
-
     this.onPackStartWrap();
-
     this.sounds.forEach(
         ThrowingBiConsumer.sneaky(
             (key, value) -> this.addFile("assets/minecraft/sounds/%s.ogg".formatted(key), value)));
     this.addFile("assets/minecraft/sounds.json", this.createSoundJson());
-
     this.internalWrap();
-
     this.onPackFinishWrap();
   }
 

@@ -50,21 +50,23 @@ public class SilentWindowsInstallation extends SilentInstallation {
 
   @Override
   public void downloadBinaries() throws IOException {
-
-    Logger.info("No VLC binary found on machine, installing Windows binaries.");
-
     final Path folder = this.getDirectory();
     final Path archive = folder.resolve("VLC.zip");
-
-    new VLCBinaryChecksum(this.getCore().getDiagnostics().getVlcUrl(), archive).downloadFile();
-    Logger.info("Successfully downloaded archived binaries!");
-
-    ArchiveUtils.decompressArchive(archive, folder);
-    Logger.info("Successfully extracted archived binaries!");
-
+    this.downloadChecksum(archive);
+    this.extractArchive(archive, folder);
     this.setInstallationPath(folder.resolve("vlc-%s".formatted(VLCDownloadPortal.VLC_VERSION)));
     this.deleteArchive(archive);
     this.loadNativeBinaries();
+  }
+
+  private void downloadChecksum(@NotNull final Path archive) throws IOException {
+    new VLCBinaryChecksum(this.getCore().getDiagnostics().getVlcUrl(), archive).downloadFile();
+    Logger.info("Successfully downloaded archived binaries!");
+  }
+
+  private void extractArchive(@NotNull final Path archive, @NotNull final Path folder) {
+    ArchiveUtils.decompressArchive(archive, folder);
+    Logger.info("Successfully extracted archived binaries!");
   }
 
   @Override

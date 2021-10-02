@@ -29,7 +29,6 @@ import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipHeader;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipRequest;
 import java.io.IOException;
-import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
@@ -47,32 +46,14 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   private boolean running;
 
   public HttpServerDaemon(
-      @NotNull final Path path, @NotNull final String ip, final int port, final boolean verbose)
-      throws IOException {
+      @NotNull final Path path, @NotNull final String ip, final int port, final boolean verbose) {
     this.running = true;
     this.directory = path;
     this.ip = ip;
     this.port = port;
     this.verbose = verbose;
     this.header = ZipHeader.ZIP;
-
-    try {
-      this.socket = new ServerSocket(port);
-      this.socket.setReuseAddress(true);
-    } catch (final BindException e) {
-      Logger.error(
-          "The port specified is being used by another process. Please make sure to port-forward the port first and make sure it is open.");
-      Logger.error(e.getMessage());
-      return;
-    }
-
-    Logger.info("========================================");
-    Logger.info("           Started HTTP Server:         ");
-    Logger.info("========================================");
-    Logger.info("IP Address: %s".formatted(ip));
-    Logger.info("Port: %d".formatted(port));
-    Logger.info("Directory: %s".formatted(path));
-    Logger.info("========================================");
+    this.logServerInformation();
   }
 
   public HttpServerDaemon(
@@ -84,9 +65,35 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
     this(core.getHttpServerPath(), ip, port, verbose);
   }
 
+  private void logServerInformation() {
+    Logger.info("========================================");
+    Logger.info("           Started HTTP Server:         ");
+    Logger.info("========================================");
+    Logger.info("IP Address: %s".formatted(this.ip));
+    Logger.info("Port: %d".formatted(this.port));
+    Logger.info("Directory: %s".formatted(this.directory));
+    Logger.info("========================================");
+  }
+
   @Override
   public void start() {
     this.onServerStart();
+    this.openServerSocket();
+    this.handleServerRequests();
+  }
+
+  private void openServerSocket() {
+    try {
+      this.socket = new ServerSocket(this.port);
+      this.socket.setReuseAddress(true);
+    } catch (final IOException e) {
+      Logger.error(
+          "The port specified is being used by another process. Please make sure to port-forward the port first and make sure it is open.");
+      Logger.error(e.getMessage());
+    }
+  }
+
+  private void handleServerRequests() {
     while (this.running) {
       try {
         ExecutorProvider.HTTP_REQUEST_POOL.submit(
@@ -98,8 +105,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   }
 
   @Override
-  public void onServerStart() {
-  }
+  public void onServerStart() {}
 
   @Override
   public void stop() {
@@ -115,16 +121,13 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   }
 
   @Override
-  public void onServerTermination() {
-  }
+  public void onServerTermination() {}
 
   @Override
-  public void onClientConnection(@NotNull final Socket client) {
-  }
+  public void onClientConnection(@NotNull final Socket client) {}
 
   @Override
-  public void onRequestFailure(@NotNull final Socket client) {
-  }
+  public void onRequestFailure(@NotNull final Socket client) {}
 
   @Override
   public boolean isVerbose() {

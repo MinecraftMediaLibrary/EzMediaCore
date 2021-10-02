@@ -25,6 +25,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherSetting;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
@@ -41,18 +42,39 @@ public final class VideoCommandAttributes {
   }
 
   private final AtomicBoolean completion;
+
   @Expose
+  @SerializedName(value = "dither-type")
   private DitherSetting ditherType;
+
   @Expose
+  @SerializedName(value = "audio-output")
   private AudioOutputType audioOutputType;
+
   @Expose
+  @SerializedName(value = "playback-output")
   private PlaybackType playbackType;
+
   @Expose
+  @SerializedName(value = "map-id")
   private int map;
+
   @Expose
-  private int frameWidth, frameHeight;
+  @SerializedName(value = "frame-width")
+  private int frameWidth;
+
   @Expose
-  private int pixelWidth, pixelHeight;
+  @SerializedName(value = "frame-height")
+  private int frameHeight;
+
+  @Expose
+  @SerializedName(value = "pixel-width")
+  private int pixelWidth;
+
+  @Expose
+  @SerializedName(value = "pixel-height")
+  private int pixelHeight;
+
   private VideoPlayer player;
 
   private MrlConfiguration videoMrl;

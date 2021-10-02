@@ -69,6 +69,14 @@ public final class Logger {
     }
   }
 
+  public static void closeAllLoggers() {
+    LOGGER.close();
+    VLC_LOGGER.close();
+    RTP_LOGGER.close();
+    FFMPEG_PLAYER_LOGGER.close();
+    FFMPEG_STREAMER_LOGGER.close();
+  }
+
   /**
    * Prints the text as an [INFO]
    *

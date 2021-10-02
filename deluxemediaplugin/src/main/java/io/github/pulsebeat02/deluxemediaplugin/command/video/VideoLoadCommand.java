@@ -106,7 +106,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     final Path folder = this.plugin.getBootstrap().getDataFolder().toPath().resolve("emc");
     final AtomicBoolean successful = new AtomicBoolean(true);
     final AtomicBoolean status = this.attributes.getCompletion();
-    final Audience console = this.plugin.getLogger();
+    final Audience console = this.plugin.getConsoleAudience();
     this.attributes.cancelCurrentStream();
     CompletableFuture.runAsync(
             () -> {
@@ -122,7 +122,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
                   console.sendMessage(Locale.CREATE_RESOURCEPACK.build());
                   final Optional<Path> download = this.downloadMrl(audience, folder, mrl);
                   if (download.isEmpty()) {
-                    this.plugin.getLogger().sendMessage(Locale.ERR_DOWNLOAD_VIDEO.build());
+                    this.plugin.getConsoleAudience().sendMessage(Locale.ERR_DOWNLOAD_VIDEO.build());
                     status.set(true);
                     successful.set(false);
                     return;
@@ -159,8 +159,8 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
             daemon.getDaemon().getServerPath().resolve("resourcepack.zip"),
             "Audio Resourcepack",
             PackFormat.getCurrentFormat().getId());
-    wrapper.addSound(this.plugin.getBootstrap().getName().toLowerCase(java.util.Locale.ROOT),
-        oggOutput);
+    wrapper.addSound(
+        this.plugin.getBootstrap().getName().toLowerCase(java.util.Locale.ROOT), oggOutput);
     wrapper.wrap();
     this.attributes.setOggMrl(MrlConfiguration.ofMrl(oggOutput));
     final Path path = wrapper.getResourcepackFilePath();
@@ -220,8 +220,13 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
           Bukkit.getOnlinePlayers(),
           this.attributes.getResourcepackUrl(),
           this.attributes.getResourcepackHash());
-      Bukkit.getOnlinePlayers().forEach((player) -> this.plugin.audience().player(player)
-          .sendMessage(Locale.SEND_RESOURCEPACK_URL.build(player)));
+      Bukkit.getOnlinePlayers()
+          .forEach(
+              (player) ->
+                  this.plugin
+                      .audience()
+                      .player(player)
+                      .sendMessage(Locale.SEND_RESOURCEPACK_URL.build(player)));
       audience.sendMessage(Locale.LOADED_MEDIA.build(mrl));
     }
   }

@@ -180,11 +180,7 @@ public abstract class M3uStreamSegmentUrlProvider {
     return false;
   }
 
-  record ChannelStreamInfo(String quality, String url) {
+  record ChannelStreamInfo(String quality, String url) {}
 
-  }
-
-  record SegmentInfo(String url, Long duration, String name) {
-
-  }
+  record SegmentInfo(String url, Long duration, String name) {}
 }

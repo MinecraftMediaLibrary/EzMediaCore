@@ -62,8 +62,7 @@ public abstract class Image implements MapImage {
   }
 
   @Override
-  public void onStartDrawImage() {
-  }
+  public void onStartDrawImage() {}
 
   @Override
   public @NotNull BufferedImage[][] process(@NotNull BufferedImage image, final boolean resize) {
@@ -85,8 +84,7 @@ public abstract class Image implements MapImage {
   }
 
   @Override
-  public void onFinishDrawImage() {
-  }
+  public void onFinishDrawImage() {}
 
   @Override
   public void resetMaps() {
