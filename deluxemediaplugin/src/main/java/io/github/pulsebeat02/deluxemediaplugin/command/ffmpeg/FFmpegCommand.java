@@ -25,8 +25,6 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.ffmpeg;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.ffmpeg;
-import static net.kyori.adventure.text.Component.text;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -78,7 +76,7 @@ public final class FFmpegCommand extends BaseCommand {
 
   private int runFFmpegProcess(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = this.plugin().audience().sender(context.getSource());
-    this.ffmpeg.executeWithLogging(s -> audience.sendMessage(ffmpeg(text(s))));
+    this.ffmpeg.executeWithLogging(s -> audience.sendMessage(Locale.FFMPEG_PROCESS.build(s)));
     audience.sendMessage(Locale.FFMPEG_EXEC.build());
     return SINGLE_SUCCESS;
   }

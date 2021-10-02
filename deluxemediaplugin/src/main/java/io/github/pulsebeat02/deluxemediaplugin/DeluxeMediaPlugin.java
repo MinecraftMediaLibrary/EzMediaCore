@@ -24,9 +24,6 @@
 
 package io.github.pulsebeat02.deluxemediaplugin;
 
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.format.NamedTextColor.BLUE;
-
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandHandler;
@@ -48,8 +45,6 @@ import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import net.kyori.adventure.audience.Audience;
@@ -83,7 +78,7 @@ public final class DeluxeMediaPlugin {
   public void enable() {
     this.audiences = BukkitAudiences.create(this.plugin);
     this.console = this.audiences.console();
-    this.printLogo();
+    this.console.sendMessage(Locale.PLUGIN_LOGO.build());
     this.console.sendMessage(Locale.ENABLE_PLUGIN.build());
     this.console.sendMessage(Locale.EMC_INIT.build());
     this.startLibrary();
@@ -108,8 +103,7 @@ public final class DeluxeMediaPlugin {
     this.console.sendMessage(Locale.GOODBYE.build());
   }
 
-  public void load() {
-  }
+  public void load() {}
 
   private void startLibrary() {
     try {
@@ -128,22 +122,6 @@ public final class DeluxeMediaPlugin {
 
   private void checkUpdates() {
     new UpdateChecker(this).check();
-  }
-
-  private void printLogo() {
-    final List<String> logo =
-        Arrays.asList(
-            " _____       _                __  __          _ _       _____  _             _       ",
-            " |  __ \\     | |              |  \\/  |        | (_)     |  __ \\| |           (_)      ",
-            " | |  | | ___| |_   ___  _____| \\  / | ___  __| |_  __ _| |__) | |_   _  __ _ _ _ __  ",
-            " | |  | |/ _ \\ | | | \\ \\/ / _ \\ |\\/| |/ _ \\/ _` | |/ _` |  ___/| | | | |/ _` | | '_ \\ ",
-            " | |__| |  __/ | |_| |>  <  __/ |  | |  __/ (_| | | (_| | |    | | |_| | (_| | | | | |",
-            " |_____/ \\___|_|\\__,_/_/\\_\\___|_|  |_|\\___|\\__,_|_|\\__,_|_|    |_|\\__,_|\\__, |_|_| |_|",
-            "                                                                         __/ |        ",
-            "                                                                        |___/         ");
-    for (final String line : logo) {
-      this.audiences.console().sendMessage(text(line, BLUE));
-    }
   }
 
   private void disableBot() {

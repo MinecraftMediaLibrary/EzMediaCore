@@ -26,12 +26,15 @@ package io.github.pulsebeat02.deluxemediaplugin.executors;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class ExecutorProvider {
 
   public static final Executor STREAM_THREAD_EXECUTOR;
+  public static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE;
 
   static {
     STREAM_THREAD_EXECUTOR = Executors.newFixedThreadPool(4);
+    SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
   }
 }

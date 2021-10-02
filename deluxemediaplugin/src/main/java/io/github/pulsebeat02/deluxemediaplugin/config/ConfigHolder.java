@@ -21,27 +21,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.deluxemediaplugin.bot.command;
 
-import io.github.pulsebeat02.deluxemediaplugin.bot.DiscordLocale;
-import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
-import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
-import java.util.Set;
-import net.dv8tion.jda.api.entities.Message;
+package io.github.pulsebeat02.deluxemediaplugin.config;
+
+import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import java.io.IOException;
+import java.nio.file.Path;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class DisconnectAudioCommand extends DiscordBaseCommand {
+public interface ConfigHolder<T> {
 
-  public DisconnectAudioCommand(@NotNull final MediaBot bot) {
-    super(bot, "disconnect", Set.of());
-  }
+  void reloadConfig();
 
-  @Override
-  public boolean execute(@NotNull final Message executor, final String @Nullable [] arguments) {
-    final MusicManager manager = this.getBot().getMusicManager();
-    manager.leaveVoiceChannel();
-    executor.getChannel().sendMessageEmbeds(DiscordLocale.DC_VC_EMBED.build()).queue();
-    return true;
-  }
+  FileConfiguration getConfig();
+
+  void saveConfig() throws IOException;
+
+  void saveDefaultConfig();
+
+  void read() throws IOException;
+
+  void deserialize() throws IOException;
+
+  void serialize() throws IOException;
+
+  T getSerializedValue();
+
+  @NotNull
+  DeluxeMediaPlugin getPlugin();
+
+  @NotNull
+  String getFileName();
+
+  @NotNull
+  Path getConfigFile();
+
+  @NotNull
+  FileConfiguration getFileConfiguration();
 }

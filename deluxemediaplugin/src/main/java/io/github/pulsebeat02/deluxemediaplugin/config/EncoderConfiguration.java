@@ -40,7 +40,7 @@ public final class EncoderConfiguration extends ConfigurationProvider<AudioConfi
   }
 
   @Override
-  void deserialize() {
+  public void deserialize() throws IOException {
     final FileConfiguration configuration = this.getFileConfiguration();
     configuration.set("bitrate", this.settings.getBitrate());
     configuration.set("channels", this.settings.getChannels());
@@ -50,13 +50,15 @@ public final class EncoderConfiguration extends ConfigurationProvider<AudioConfi
   }
 
   @Override
-  void serialize() {
+  public void serialize() throws IOException {
     final FileConfiguration configuration = this.getFileConfiguration();
-    final int bitrate = configuration.getInt("bitrate");
-    final int channels = configuration.getInt("channels");
-    final int samplingRate = configuration.getInt("sampling-rate");
-    final int volume = configuration.getInt("volume");
-    this.settings = new AudioAttributes("libvorbis", bitrate, channels, samplingRate, volume);
+    this.settings =
+        new AudioAttributes(
+            "libvorbis",
+            configuration.getInt("bitrate"),
+            configuration.getInt("channels"),
+            configuration.getInt("sampling-rate"),
+            configuration.getInt("volume"));
   }
 
   @Override

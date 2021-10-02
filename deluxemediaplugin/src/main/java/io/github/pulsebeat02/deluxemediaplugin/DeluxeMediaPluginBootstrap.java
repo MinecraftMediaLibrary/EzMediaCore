@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin;
 
+import io.github.pulsebeat02.deluxemediaplugin.message.Sender;
 import io.github.slimjar.app.builder.ApplicationBuilder;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -37,7 +38,14 @@ public final class DeluxeMediaPluginBootstrap extends JavaPlugin {
   @Override
   public void onLoad() {
     final Logger logger = this.getLogger();
-    logger.info("Loading DeluxeMediaPlugin dependencies... this may take a minute!");
+    logger.info(InternalLocale.SLIMJAR_LOAD.build());
+    this.buildApplication();
+    logger.info(InternalLocale.SLIMJAR_FINISH.build());
+    this.plugin = new DeluxeMediaPlugin(this);
+    this.plugin.load();
+  }
+
+  private void buildApplication() {
     try {
       ApplicationBuilder.appending("DeluxeMediaPlugin").build();
     } catch (final IOException
@@ -46,9 +54,6 @@ public final class DeluxeMediaPluginBootstrap extends JavaPlugin {
         | ReflectiveOperationException e) {
       e.printStackTrace();
     }
-    logger.info("Finished loading DeluxeMediaPlugin dependencies!");
-    this.plugin = new DeluxeMediaPlugin(this);
-    this.plugin.load();
   }
 
   @Override
@@ -62,6 +67,18 @@ public final class DeluxeMediaPluginBootstrap extends JavaPlugin {
       this.plugin.disable();
     } catch (final Exception e) {
       e.printStackTrace();
+    }
+  }
+
+  interface InternalLocale {
+
+    NullComponent<Sender> SLIMJAR_LOAD =
+        () -> "Loading DeluxeMediaPlugin dependencies... this may take a minute!";
+    NullComponent<Sender> SLIMJAR_FINISH = () -> "Finished loading DeluxeMediaPlugin dependencies!";
+
+    @FunctionalInterface
+    interface NullComponent<S extends Sender> {
+      String build();
     }
   }
 }

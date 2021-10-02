@@ -24,7 +24,6 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.message;
 
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.newline;
 import static net.kyori.adventure.text.Component.space;
@@ -33,6 +32,7 @@ import static net.kyori.adventure.text.JoinConfiguration.separator;
 import static net.kyori.adventure.text.event.ClickEvent.openUrl;
 import static net.kyori.adventure.text.event.ClickEvent.runCommand;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
+import static net.kyori.adventure.text.format.NamedTextColor.BLUE;
 import static net.kyori.adventure.text.format.NamedTextColor.DARK_GRAY;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
@@ -43,6 +43,8 @@ import static net.kyori.adventure.text.format.TextDecoration.UNDERLINED;
 
 import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherSetting;
 import io.github.pulsebeat02.deluxemediaplugin.command.image.ImageMrlType;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import net.kyori.adventure.text.Component;
@@ -52,11 +54,8 @@ import org.jetbrains.annotations.NotNull;
 
 public interface Locale {
 
-  Component NEW_LINE = Component.newline();
-  Component SPACE = Component.space();
-
   UniComponent<Sender, String> REQUIRED_ARGUMENT =
-      argument ->
+      (argument) ->
           text()
               .color(DARK_GRAY)
               .append(text("<"))
@@ -65,7 +64,7 @@ public interface Locale {
               .build();
 
   UniComponent<Sender, String> OPTIONAL_ARGUMENT =
-      argument ->
+      (argument) ->
           text()
               .color(DARK_GRAY)
               .append(text("["))
@@ -73,108 +72,107 @@ public interface Locale {
               .append(text("]"))
               .build();
 
-  NullComponent<Sender>
-
-      ENABLE_PLUGIN = () -> join(separator(text(" ")),
+  NullComponent<Sender> ENABLE_PLUGIN = () -> format(join(separator(text(" ")),
       text("Running DeluxeMediaPlugin", AQUA),
       text("[BETA]", GOLD),
-      text("1.0.0", AQUA)),
-      EMC_INIT = () -> text("Loading EzMediaCore instance... this may take some time!"),
-      WELCOME = () -> text("""
+      text("1.0.0", AQUA)));
+  NullComponent<Sender> EMC_INIT = () -> format(text("Loading EzMediaCore instance... this may take some time!"));
+  NullComponent<Sender> WELCOME = () -> format(text("""
           Hello %%__USER__%%! Thank you for purchasing DeluxeMediaPlugin. For identifier purposes, this
            is your purchase identification code: %%__NONCE__%% - Enjoy using the plugin, and ask for
            support at my Discord! (https://discord.gg/MgqRKvycMC)
-          """),
+          """));
+  NullComponent<Sender> DISABLE_PLUGIN = () -> format(text("DeluxeMediaPlugin is shutting down!"));
+  NullComponent<Sender> GOOD_EMC_SHUTDOWN = () -> format(text("Successfully shutdown MinecraftMediaLibrary instance!"));
+  NullComponent<Sender> GOODBYE = () -> format(text("Good Bye! :("));
 
-  DISABLE_PLUGIN = () -> text("DeluxeMediaPlugin is shutting down!"),
-      GOOD_EMC_SHUTDOWN = () -> text("Successfully shutdown MinecraftMediaLibrary instance!"),
-      GOODBYE = () -> text("Good Bye! :("),
+  NullComponent<Sender> FIN_EMC_INIT = () -> format(text("Finished loading MinecraftMediaLibrary instance!"));
+  NullComponent<Sender> FIN_PERSISTENT_INIT = () -> format(text("Finished loading persistent data!"));
+  NullComponent<Sender> FIN_COMMANDS_INIT = () -> format(text("Finished registering plugin commands!"));
+  NullComponent<Sender> FIN_METRICS_INIT = () -> format(text("Finished loading Metrics data!"));
+  NullComponent<Sender> FIN_PLUGIN_INIT = () -> format(text("Finished loading DeluxeMediaPlugin!"));
 
-  FIN_EMC_INIT = () -> text("Finished loading MinecraftMediaLibrary instance!"),
-      FIN_PERSISTENT_INIT = () -> text("Finished loading persistent data!"),
-      FIN_COMMANDS_INIT = () -> text("Finished registering plugin commands!"),
-      FIN_METRICS_INIT = () -> text("Finished loading Metrics data!"),
-      FIN_PLUGIN_INIT = () -> text("Finished loading DeluxeMediaPlugin!"),
+  NullComponent<Sender> RUNNING_LATEST_PLUGIN = () -> format(text(
+      "You are currently running the latest version of DeluxeMediaPlugin."));
 
-  RUNNING_LATEST_PLUGIN = () -> text(
-      "You are currently running the latest version of DeluxeMediaPlugin."),
-
-  ERR_EMC_INIT = () -> text("There was a severe issue while loading the EzMediaCore instance!",
-      RED),
-      ERR_PERSISTENT_INIT = () -> text(
-          "A severe issue occurred while reading data from configuration files!", RED),
-      ERR_EMC_SHUTDOWN = () -> text("EzMediaCore instance is null... something fishy is going on.",
-          RED),
-      ERR_NO_MRL = () -> text("File or URL not specified!", RED),
-      ERR_INVALID_MRL = () -> text("Invalid MRL link! Not supported!", RED),
-      ERR_RESOURCEPACK_WRAP = () -> text("Failed to wrap resourcepack!", RED),
-      ERR_NO_RESOURCEPACK = () -> text("Please load a resourcepack first!", RED),
-      ERR_INVALID_AUDIO_STATE = () -> text(
-          "Please wait for the previous audio to extract first before loading another one!", RED),
-      ERR_INVALID_DISCORD_BOT = () -> text(
-          "Discord bot not setup yet or invalid settings in bot.yml!", RED),
-      ERR_PLAYER_SENDER = () -> text("You must be a player to execute this command!", RED),
-      ERR_INVALID_EXTENSION = () -> text(
-          "Image doesn't match any supported extensions! (%s)".formatted(ImageMrlType.EXTENSIONS)),
-      ERR_IMG_SET = () -> text("Failed to set image file!", RED),
-      ERR_IMAGE_NOT_LOADED = () -> text("The image you request purge from the map is not loaded!",
-          RED),
-      ERR_MAP_RANGE = () -> text("Invalid format! Must follow [starting-id]-[ending-id]", RED),
-      ERR_VIDEO_NOT_LOADED = () -> text("Video not loaded!", RED),
-      ERR_VIDEO_PROCESSING = () -> text("Video is still processing!", RED),
-      ERR_CANCELLATION_VIDEO_PROCESSING = () -> text("You aren't loading a video!", RED),
-      ERR_DOWNLOAD_VIDEO = () -> text("Failed to download video!", RED),
-      ERR_LOAD_VIDEO = () -> text("Failed to load video!", RED),
-      ERR_INVALID_AUDIO_OUTPUT = () -> text(
+  NullComponent<Sender> ERR_EMC_INIT = () -> format(text("There was a severe issue while loading the EzMediaCore instance!",
+      RED));
+  NullComponent<Sender> ERR_PERSISTENT_INIT = () -> format(text(
+          "A severe issue occurred while reading data from configuration files!", RED));
+  NullComponent<Sender> ERR_EMC_SHUTDOWN = () -> format(text("EzMediaCore instance is null... something fishy is going on.",
+          RED));
+  NullComponent<Sender>  ERR_NO_MRL = () -> format(text("File or URL not specified!", RED));
+  NullComponent<Sender> ERR_INVALID_MRL = () -> format(text("Invalid MRL link! Not supported!", RED));
+  NullComponent<Sender> ERR_RESOURCEPACK_WRAP = () -> format(text("Failed to wrap resourcepack!", RED));
+  NullComponent<Sender>  ERR_NO_RESOURCEPACK = () -> format(text("Please load a resourcepack first!", RED));
+  NullComponent<Sender>  ERR_INVALID_AUDIO_STATE = () -> format(text(
+          "Please wait for the previous audio to extract first before loading another one!", RED));
+  NullComponent<Sender> ERR_INVALID_DISCORD_BOT = () -> format(text(
+          "Discord bot not setup yet or invalid settings in bot.yml!", RED));
+  NullComponent<Sender> ERR_PLAYER_SENDER = () -> format(text("You must be a player to execute this command!", RED));
+  NullComponent<Sender> ERR_INVALID_EXTENSION = () -> format(text(
+          "Image doesn't match any supported extensions! (%s)".formatted(ImageMrlType.EXTENSIONS)));
+  NullComponent<Sender>  ERR_IMG_SET = () -> format(text("Failed to set image file!", RED));
+  NullComponent<Sender>   ERR_IMAGE_NOT_LOADED = () -> format(text("The image you request purge from the map is not loaded!",
+          RED));
+  NullComponent<Sender>   ERR_MAP_RANGE = () -> format(text("Invalid format! Must follow [starting-id]-[ending-id]", RED));
+  NullComponent<Sender>   ERR_VIDEO_NOT_LOADED = () -> format(text("Video not loaded!", RED));
+  NullComponent<Sender>  ERR_VIDEO_PROCESSING = () -> format(text("Video is still processing!", RED));
+  NullComponent<Sender>    ERR_CANCELLATION_VIDEO_PROCESSING = () -> format(text("You aren't loading a video!", RED));
+  NullComponent<Sender>    ERR_DOWNLOAD_VIDEO = () -> format(text("Failed to download video!", RED));
+  NullComponent<Sender>    ERR_LOAD_VIDEO = () -> format(text("Failed to load video!", RED));
+  NullComponent<Sender>    ERR_INVALID_AUDIO_OUTPUT = () -> format(text(
           "You cannot play streams without using Discord or a dynamic audio player with audio. Proceeding to play without audio.",
-          RED),
-      ERR_INVALID_TARGET_SELECTOR = () -> text(
-          "The target selector you chose contains entities that aren't players!", RED),
-      ERR_DEVELOPMENT_FEATURE = () -> text(
+          RED));
+  NullComponent<Sender>    ERR_INVALID_TARGET_SELECTOR = () -> format(text(
+          "The target selector you chose contains entities that aren't players!", RED));
+  NullComponent<Sender>    ERR_DEVELOPMENT_FEATURE = () -> format(text(
           "This feature is current being developed! Stay tuned and join the Discord for updates!",
-          RED),
-      ERR_HTTP_AUDIO = () -> text("HTTP audio information provided in httpaudio.yml is invalid!",
-          RED),
-      ERR_BOT_TOKEN = () -> text("Bot token not specified in bot.yml!", RED),
-      ERR_GUILD_TOKEN = () -> text("Guild token not specified in bot.yml!", RED),
-      ERR_VC_ID = () -> text("Voice Chat Identifier not specified in bot.yml!", RED),
+          RED));
+  NullComponent<Sender>    ERR_HTTP_AUDIO = () -> format(text("HTTP audio information provided in httpaudio.yml is invalid!",
+          RED));
+  NullComponent<Sender>    ERR_BOT_TOKEN = () -> format(text("Bot token not specified in bot.yml!", RED));
+  NullComponent<Sender>    ERR_GUILD_TOKEN = () -> format(text("Guild token not specified in bot.yml!", RED));
+  NullComponent<Sender>    ERR_VC_ID = () -> format(text("Voice Chat Identifier not specified in bot.yml!", RED));
 
-  START_AUDIO = () -> text("Started playing audio!"),
-      PAUSE_AUDIO = () -> text("Stopped playing audio!"),
-      RESUME_AUDIO = () -> text("Resumed the video!"),
-      CREATE_RESOURCEPACK = () -> text(
-          "Creating a resourcepack for audio. Depending on the length of the video, it make take some time."),
+  NullComponent<Sender> START_AUDIO = () -> format(text("Started playing audio!"));
+  NullComponent<Sender>    PAUSE_AUDIO = () -> format(text("Stopped playing audio!"));
+  NullComponent<Sender>    RESUME_AUDIO = () -> format(text("Resumed the video!"));
+  NullComponent<Sender>    CREATE_RESOURCEPACK = () -> format(text(
+          "Creating a resourcepack for audio. Depending on the length of the video, it make take some time."));
 
-  DC_DISCORD = () -> text("Successfully disconnected from voice channel!"),
-      C_DISCORD = () -> text("Successfully connected to voice channel!"),
-      PAUSED_TRACK_DISCORD = () -> text("Successfully paused track!"),
-      RESUMED_TRACK_DISCORD = () -> text("Successfully resumed track!"),
+  NullComponent<Sender> DC_DISCORD = () -> format(text("Successfully disconnected from voice channel!"));
+  NullComponent<Sender>    C_DISCORD = () -> format(text("Successfully connected to voice channel!"));
+  NullComponent<Sender>     PAUSED_TRACK_DISCORD = () -> format(text("Successfully paused track!"));
+  NullComponent<Sender>    RESUMED_TRACK_DISCORD = () -> format(text("Successfully resumed track!"));
 
-  DITHERING_OPTIONS = () -> text("Dithering Options ->")
+  NullComponent<Sender>DITHERING_OPTIONS = () -> format(text("Dithering Options ->")
       .append(getComponent(DitherSetting.class,
-          (value) -> text(value.getName(), AQUA).append(newline()))),
+          (value) -> text(value.getName(), AQUA).append(newline()))));
 
-  FFMPEG_EXEC = () -> text("Executed FFmpeg command!"),
-      RESET_FFMPEG_ARGS = () -> text("Reset all FFmpeg arguments!"),
+  NullComponent<Sender> FFMPEG_EXEC = () -> format(text("Executed FFmpeg command!"));
+  NullComponent<Sender> RESET_FFMPEG_ARGS = () -> format(text("Reset all FFmpeg arguments!"));
 
-  LOAD_IMG = () -> text("Loading image..."),
-      PURGE_ALL_MAPS_VERIFY = () -> text(
-          "Are you sure you want to purge all maps? Type YES (all caps) if you would like to continue..."),
-      PURGED_ALL_MAPS = () -> text("Successfully purged all images!"),
-      CANCELLED_PURGE_ALL_MAPS = () -> text("Cancelled purge of all images!"),
+  NullComponent<Sender> LOAD_IMG = () -> format(text("Loading image..."));
+  NullComponent<Sender>PURGE_ALL_MAPS_VERIFY = () -> format(text(
+          "Are you sure you want to purge all maps? Type YES (all caps) if you would like to continue..."));
+  NullComponent<Sender>PURGED_ALL_MAPS = () -> format(text("Successfully purged all images!"));
+  NullComponent<Sender>CANCELLED_PURGE_ALL_MAPS = () -> format(text("Cancelled purge of all images!"));
 
-  PAUSE_VIDEO = () -> text("Stopped the video!"),
-      RELEASE_VIDEO = () -> text("Successfully destroyed the current video!"),
-      SETUP_RESOURCEPACK = () -> text(
-          "Setting up resourcepack for resuming... this may take a while depending on how large the audio file is."),
-      DISCORD_AUDIO_STREAM = () -> text("Started playing audio into Discord voice chat!"),
+  NullComponent<Sender>PAUSE_VIDEO = () -> format(text("Stopped the video!"));
+  NullComponent<Sender> RELEASE_VIDEO = () -> format(text("Successfully destroyed the current video!"));
+  NullComponent<Sender>SETUP_RESOURCEPACK = () -> format(text(
+          "Setting up resourcepack for resuming... this may take a while depending on how large the audio file is."));
+  NullComponent<Sender>DISCORD_AUDIO_STREAM = () -> format(text("Started playing audio into Discord voice chat!"));
 
-  DUMP_THREADS = () -> text("Created thread dump! Look in console for more details."),
+  NullComponent<Sender>DUMP_THREADS = () -> format(text("Created thread dump! Look in console for more details."));
 
-  CANCELLED_VIDEO_PROCESSING = () -> text("Successfully cancelled the video loading process!"),
-      LOADING_VIDEO = () -> text("Initializing and reading media..."),
+  NullComponent<Sender> CANCELLED_VIDEO_PROCESSING = () -> format(text("Successfully cancelled the video loading process!"));
+  NullComponent<Sender> LOADING_VIDEO = () -> format(text("Initializing and reading media..."));
 
-  PLUGIN_AUTHORS = () -> text()
+  NullComponent<Sender> BUILT_SCREEN = () -> format(text("Successfully built your new screen!"));
+
+  NullComponent<Sender>PLUGIN_AUTHORS = () -> text()
       .append(text("-----------------------------------", GOLD))
       .append(newline())
       .append(text("Plugin: ", GOLD, BOLD))
@@ -213,22 +211,33 @@ public interface Locale {
       .append(text("-----------------------------------", GOLD))
       .append()
       .build();
+  NullComponent<Sender> PLUGIN_LOGO = () -> getComponent(
+      Arrays.asList(
+      " _____       _                __  __          _ _       _____  _             _       ",
+      " |  __ \\     | |              |  \\/  |        | (_)     |  __ \\| |           (_)      ",
+      " | |  | | ___| |_   ___  _____| \\  / | ___  __| |_  __ _| |__) | |_   _  __ _ _ _ __  ",
+      " | |  | |/ _ \\ | | | \\ \\/ / _ \\ |\\/| |/ _ \\/ _` | |/ _` |  ___/| | | | |/ _` | | '_ \\ ",
+      " | |__| |  __/ | |_| |>  <  __/ |  | |  __/ (_| | | (_| | |    | | |_| | (_| | | | | |",
+      " |_____/ \\___|_|\\__,_/_/\\_\\___|_|  |_|\\___|\\__,_|_|\\__,_|_|    |_|\\__,_|\\__, |_|_| |_|",
+      "                                                                         __/ |        ",
+      "                                                                        |___/         "),
+      (line) -> text(line, BLUE).append(newline()));
 
   UniComponent<Sender, String>
-      DREW_IMG = (mrl) -> text("Successfully drew image with mrl %s".formatted(mrl)),
-      START_TRACK_DISCORD = (mrl) -> text("Successfully started audio on MRL %s!".formatted(mrl)),
-      ADD_FFMPEG_ARG = (str) -> join(
+      DREW_IMG = (mrl) -> format(text("Successfully drew image with mrl %s".formatted(mrl)));
+  UniComponent<Sender, String> START_TRACK_DISCORD = (mrl) -> format(text("Successfully started audio on MRL %s!".formatted(mrl)));
+  UniComponent<Sender, String> ADD_FFMPEG_ARG = (str) -> format(join(
           separator(space()),
           text("Added arguments", GOLD),
           text(str, AQUA),
-          text("to the FFmpeg command.", GOLD)),
-      REMOVE_FFMPEG_ARG = (str) -> join(
+          text("to the FFmpeg command.", GOLD)));
+  UniComponent<Sender, String> REMOVE_FFMPEG_ARG = (str) -> format(join(
           separator(space()),
           text("Removed arguments", GOLD),
           text(str, AQUA),
-          text("from the FFmpeg command.", GOLD)),
-      HTTP_SEND_LINK = (mrl) ->
-          text()
+          text("from the FFmpeg command.", GOLD)));
+  UniComponent<Sender, String> HTTP_SEND_LINK = (mrl) ->
+      format(text()
               .append(text("Click ", GOLD)).append(text(
                   "this message",
                   style(
@@ -238,50 +247,49 @@ public interface Locale {
                       openUrl(mrl),
                       text("Click to get the link!", GOLD)
                           .asHoverEvent()))).append(text(" to retrieve the audio HTTP link!", GOLD))
-              .build(),
-      STARTING_VIDEO = (mrl) -> text("Starting Video on MRL %s".formatted(mrl)),
-      LOADED_MEDIA = (mrl) -> text("Successfully loaded media %s!".formatted(mrl)),
-      SET_AUDIO_TYPE = (argument) -> text(
-          "Successfully set the audio type to %s".formatted(argument)),
-      SET_DITHER_TYPE = (algorithm) -> join(separator(space()), text("Set dither type to", GOLD),
-          text(algorithm, AQUA)),
-      SET_VIDEO_TYPE = (mode) -> join(separator(space()), text("Set video mode to", GOLD),
-          text(mode, AQUA)),
-      EXTERNAL_PROCESS = (line) -> join(separator(space()), text()
+              .build());
+  UniComponent<Sender, String>  STARTING_VIDEO = (mrl) -> format(text("Starting Video on MRL %s".formatted(mrl)));
+  UniComponent<Sender, String> LOADED_MEDIA = (mrl) -> format(text("Successfully loaded media %s!".formatted(mrl)));
+  UniComponent<Sender, String> SET_AUDIO_TYPE = (argument) -> format(text(
+          "Successfully set the audio type to %s".formatted(argument)));
+  UniComponent<Sender, String> SET_DITHER_TYPE = (algorithm) -> format(join(separator(space()), text("Set dither type to", GOLD),
+          text(algorithm, AQUA)));
+  UniComponent<Sender, String> SET_VIDEO_TYPE = (mode) -> format(join(separator(space()), text("Set video mode to", GOLD),
+          text(mode, AQUA)));
+  UniComponent<Sender, String> EXTERNAL_PROCESS = (line) -> format(join(separator(space()), text()
               .color(AQUA)
               .append(text('['), text("External Process", GOLD), text(']'), space(), text("»", GRAY)),
-          text(line, GOLD)),
-      NEW_UPDATE_PLUGIN = (update) -> text(
-          "There is a new update available! (%s)".formatted(update)),
+          text(line, GOLD)));
+  UniComponent<Sender, String>  NEW_UPDATE_PLUGIN = (update) -> format(text(
+          "There is a new update available! (%s)".formatted(update)));
+  UniComponent<Sender, String> ERR_INVALID_AUDIO_TYPE = (argument) -> format(text(
+      "Could not find audio type %s".formatted(argument), RED));
+  UniComponent<Sender, String> ERR_INVALID_DITHER_TYPE = (algorithm) -> format(text(
+          "Could not find dither type %s".formatted(algorithm), RED));
+  UniComponent<Sender, String> ERR_INVALID_VIDEO_TYPE = (mode) -> format(text("Could not find video mode %s".formatted(mode), RED));
+  UniComponent<Sender, String> ERR_CANNOT_CHECK_UPDATES = (msg) -> format(text("Cannot look for updates: %s".formatted(msg), RED));
 
-  ERR_INVALID_AUDIO_TYPE = (argument) -> text(
-      "Could not find audio type %s".formatted(argument), RED),
-      ERR_INVALID_DITHER_TYPE = (algorithm) -> text(
-          "Could not find dither type %s".formatted(algorithm), RED),
-      ERR_INVALID_VIDEO_TYPE = (mode) -> text("Could not find video mode %s".formatted(mode), RED),
-      ERR_CANNOT_CHECK_UPDATES = (msg) -> text("Cannot look for updates: %s".formatted(msg), RED);
-
-  UniComponent<Sender, List<String>> LIST_FFMPEG_ARGS = (list) -> join(
+  UniComponent<Sender, List<String>> LIST_FFMPEG_ARGS = (list) -> format(join(
       separator(space()),
       text("Current FFmpeg arguments:", GOLD),
-      text(list.toString(), AQUA));
+      text(list.toString(), AQUA)));
 
   UniComponent<Sender, Integer>
       PURGE_MAP = (id) ->
-      join(
+      format(join(
           separator(space()),
           text("Successfully purged all maps with id", GOLD),
-          text(id, AQUA)),
-      GIVE_MAP_ID = (id) -> join(
-          separator(space()), text("Gave map with id", GOLD), text(id, AQUA)),
-      CHANGED_VIDEO_MAP_ID = (id) -> join(
+          text(id, AQUA)));
+  UniComponent<Sender, Integer> GIVE_MAP_ID = (id) -> format(join(
+          separator(space()), text("Gave map with id", GOLD), text(id, AQUA)));
+  UniComponent<Sender, Integer> CHANGED_VIDEO_MAP_ID = (id) -> format(join(
           separator(space()),
           text("Set starting map id to", GOLD),
-          text(id, AQUA));
+          text(id, AQUA)));
 
-  UniComponent<Sender, Long> RESUMING_VIDEO_MS = (ms) -> text("Resuming Video at %s Milliseconds!");
+  UniComponent<Sender, Long> RESUMING_VIDEO_MS = (ms) -> format(text("Resuming Video at %s Milliseconds!"));
 
-  UniComponent<Sender, Player> SEND_RESOURCEPACK_URL = (player) -> text()
+  UniComponent<Sender, Player> SEND_RESOURCEPACK_URL = (player) -> format(text()
       .append(text("Loaded resourcepack for all players! Click ", GOLD))
       .append(
           text(
@@ -296,49 +304,69 @@ public interface Locale {
                   text("Click to get the resourcepack!", GOLD)
                       .asHoverEvent())))
       .append(text(" to retrieve the resourcepack", GOLD))
-      .build();
+      .build());
 
   BiComponent<Sender, String, byte[]>
-      FIN_RESOURCEPACK_INIT = (url, hash) -> text(
-      "Loaded Resourcepack Successfully! (URL: %s, Hash: %s)".formatted(url, new String(hash))),
-      SENT_RESOURCEPACK = (url, hash) -> text(
-          "Sent Resourcepack! (URL: %s, Hash: %s)".formatted(url, new String(hash)));
+      FIN_RESOURCEPACK_INIT = (url, hash) -> format(text(
+      "Loaded Resourcepack Successfully! (URL: %s, Hash: %s)".formatted(url, new String(hash))));
+  BiComponent<Sender, String, byte[]> SENT_RESOURCEPACK = (url, hash) -> format(text(
+          "Sent Resourcepack! (URL: %s, Hash: %s)".formatted(url, new String(hash))));
 
   BiComponent<Sender, String, Integer>
       ADD_FFMPEG_ARG_INDX = (str, index) ->
-      join(
+      format(join(
           separator(space()),
           text("Added arguments", GOLD),
           text(str, AQUA),
           text("  the FFmpeg command at index", GOLD),
-          text(index, AQUA)),
-      REMOVE_FFMPEG_ARG_INDX = (str, index) ->
-          join(
+          text(index, AQUA)));
+  BiComponent<Sender, String, Integer> REMOVE_FFMPEG_ARG_INDX = (str, index) ->
+      format(join(
               separator(space()),
               text("Removed arguments", GOLD),
               text(str, AQUA),
               text("from the FFmpeg command at index", GOLD),
-              text(index, AQUA));
+              text(index, AQUA)));
 
   BiComponent<Sender, Integer, Integer>
-      CHANGED_IMG_DIMS = (width, height) -> text(
-      "Changed itemframe dimensions to %d:%d (width:height)".formatted(width, height)),
-      GAVE_MAP_RANGE = (start, end) -> join(
+      CHANGED_IMG_DIMS = (width, height) -> format(text(
+      "Changed itemframe dimensions to %d:%d (width:height)".formatted(width, height)));
+  BiComponent<Sender, Integer, Integer> GAVE_MAP_RANGE = (start, end) ->
+      format(join(
           separator(space()),
           text("Gave maps between IDs", GOLD),
           text(start, AQUA),
           text("and", GOLD),
-          text(end, AQUA)),
-      CHANGED_VIDEO_SCREEN_DIMS = (width, height) -> join(
+          text(end, AQUA)));
+  BiComponent<Sender, Integer, Integer> CHANGED_VIDEO_SCREEN_DIMS = (width, height) ->
+      format(join(
           separator(space()),
           text("Set screen dimensions to", GOLD),
           text("%d:%d".formatted(width, height), AQUA),
-          text("(width:height)", GOLD)),
-      CHANGED_ITEMFRAME_DIMS = (width, height) -> join(
+          text("(width:height)", GOLD)));
+  BiComponent<Sender, Integer, Integer>   CHANGED_ITEMFRAME_DIMS = (width, height) ->
+      format(join(
           separator(space()),
           text("Set itemframe map dimensions to", GOLD),
           text("%d:%d".formatted(width, height), AQUA),
-          text("(width:height)", GOLD));
+          text("(width:height)", GOLD)));
+
+  NullComponent<Sender> PLUGIN_PREFIX = () ->
+      text()
+          .color(AQUA)
+          .append(
+              text('['), text("DeluxeMediaPlugin", GOLD), text(']'), space(), text("»", GRAY)).build();
+
+  UniComponent<Sender, String> FFMPEG_PROCESS = (str) ->
+      text()
+          .color(AQUA)
+          .append(text('['), text("External Process", GOLD), text(']'), space(), text("»", GRAY))
+          .append(text(" %s".formatted(str)))
+          .build();
+
+  static @NotNull Component format(@NotNull final Component message) {
+    return join(separator(space()), PLUGIN_PREFIX.build(), message);
+  }
 
   static <T extends Enum<T>> @NotNull Component getComponent(@NotNull final Class<T> clazz,
       @NotNull final Function<T, Component> function) {
@@ -350,6 +378,15 @@ public interface Locale {
     return component.build();
   }
 
+  static <E> @NotNull Component getComponent(
+      @NotNull final Collection<E> collection,
+      @NotNull final Function<E, Component> function) {
+    final TextComponent.Builder component = text();
+    for (final E value : collection) {
+      component.append(function.apply(value));
+    }
+    return component.build();
+  }
 
   @FunctionalInterface
   interface NullComponent<S extends Sender> {

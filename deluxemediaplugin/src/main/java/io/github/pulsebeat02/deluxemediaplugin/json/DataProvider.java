@@ -30,46 +30,55 @@ import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class DataProvider<T> {
+public abstract class DataProvider<T> implements DataHolder<T> {
 
   private final DeluxeMediaPlugin plugin;
   private final String name;
   private final Path path;
   private T object;
 
-  public DataProvider(@NotNull final DeluxeMediaPlugin plugin, @NotNull final String name)
-      throws IOException {
+  public DataProvider(@NotNull final DeluxeMediaPlugin plugin, @NotNull final String name) {
     this.plugin = plugin;
     this.name = name;
     this.path = plugin.getBootstrap().getDataFolder().toPath().resolve(this.name);
   }
 
+  @Override
   public void deserialize() throws IOException {
     GsonProvider.getGson().toJson(this.object, Files.newBufferedWriter(this.path));
   }
 
+  @Override
   public void serialize() throws IOException {
-    if (!Files.exists(this.path)) {
-      this.plugin.getBootstrap().saveResource(this.name, false);
-    }
+    this.saveConfig();
     this.object =
         (T)
             GsonProvider.getGson()
                 .fromJson(Files.newBufferedReader(this.path), this.object.getClass());
   }
 
+  private void saveConfig() {
+    if (!Files.exists(this.path)) {
+      this.plugin.getBootstrap().saveResource(this.name, false);
+    }
+  }
+
+  @Override
   public @Nullable T getSerializedValue() {
     return this.object;
   }
 
+  @Override
   public @NotNull DeluxeMediaPlugin getPlugin() {
     return this.plugin;
   }
 
+  @Override
   public @NotNull String getFileName() {
     return this.name;
   }
 
+  @Override
   public @NotNull Path getConfigFile() {
     return this.path;
   }

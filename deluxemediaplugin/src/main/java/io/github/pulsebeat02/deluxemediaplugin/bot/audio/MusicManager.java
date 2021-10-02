@@ -32,12 +32,10 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+import io.github.pulsebeat02.deluxemediaplugin.bot.DiscordLocale;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
@@ -46,12 +44,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MusicManager {
-
-  private static final SimpleDateFormat HOURS_MINUTES_SECONDS;
-
-  static {
-    HOURS_MINUTES_SECONDS = new SimpleDateFormat("mm:ss:SSS");
-  }
 
   private final Map<Long, MusicSendHandler> musicGuildManager;
   private final MediaBot bot;
@@ -66,9 +58,7 @@ public class MusicManager {
     AudioSourceManagers.registerLocalSource(this.playerManager);
   }
 
-  /**
-   * Join's Voice Chanel and set's log channel.
-   */
+  /** Join's Voice Chanel and set's log channel. */
   public void joinVoiceChannel() {
     final Guild guild = this.bot.getGuild();
     final long id = guild.getIdLong();
@@ -82,9 +72,7 @@ public class MusicManager {
     audio.openAudioConnection(voiceChannel);
   }
 
-  /**
-   * Leave's Voice Channel.
-   */
+  /** Leave's Voice Channel. */
   public void leaveVoiceChannel() {
     final Guild guild = this.bot.getGuild();
     guild.getAudioManager().closeAudioConnection();
@@ -98,7 +86,7 @@ public class MusicManager {
   /**
    * Adds track.
    *
-   * @param url     Load's Song.
+   * @param url Load's Song.
    * @param channel Channel to send message.
    */
   public void addTrack(@Nullable final MessageChannel channel, @NotNull final String url) {
@@ -115,18 +103,7 @@ public class MusicManager {
                 .getTrackScheduler()
                 .queueSong(audioTrack);
             if (channel != null) {
-              channel
-                  .sendMessageEmbeds(
-                      new EmbedBuilder()
-                          .setTitle(info.title, info.uri)
-                          .addField("Author", info.author, false)
-                          .addField(
-                              "Playtime Length",
-                              HOURS_MINUTES_SECONDS.format(new Date(info.length)),
-                              false)
-                          .addField("Stream", info.isStream ? "Yes" : "No", false)
-                          .build())
-                  .queue();
+              channel.sendMessageEmbeds(DiscordLocale.LOADED_TRACK.build(info)).queue();
             }
           }
 
@@ -143,12 +120,7 @@ public class MusicManager {
             }
             if (channel != null) {
               channel
-                  .sendMessageEmbeds(
-                      new EmbedBuilder()
-                          .setTitle(audioPlaylist.getName(), url)
-                          .addField(
-                              "Playtime Length", HOURS_MINUTES_SECONDS.format(new Date(ms)), false)
-                          .build())
+                  .sendMessageEmbeds(DiscordLocale.LOADED_PLAYLIST.build(ms, audioPlaylist, url))
                   .queue();
             }
           }
@@ -156,27 +128,14 @@ public class MusicManager {
           @Override
           public void noMatches() {
             if (channel != null) {
-              channel
-                  .sendMessageEmbeds(
-                      new EmbedBuilder()
-                          .setTitle("Media Error")
-                          .setDescription("Could not find song %s!".formatted(url))
-                          .build())
-                  .queue();
+              channel.sendMessageEmbeds(DiscordLocale.ERR_INVALID_TRACK.build(url)).queue();
             }
           }
 
           @Override
           public void loadFailed(final FriendlyException e) {
             if (channel != null) {
-              channel
-                  .sendMessageEmbeds(
-                      new EmbedBuilder()
-                          .setTitle("Severe Player Error Occurred!")
-                          .setDescription(
-                              "An error occurred! Check console for possible exceptions or warnings.")
-                          .build())
-                  .queue();
+              channel.sendMessageEmbeds(DiscordLocale.ERR_LAVAPLAYER.build()).queue();
             }
           }
         });
