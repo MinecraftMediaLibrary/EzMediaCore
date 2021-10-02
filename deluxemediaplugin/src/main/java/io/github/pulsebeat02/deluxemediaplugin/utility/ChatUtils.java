@@ -43,7 +43,8 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ChatUtils {
 
-  private ChatUtils() {}
+  private ChatUtils() {
+  }
 
   public static @NotNull Optional<int[]> checkDimensionBoundaries(
       @NotNull final Audience sender, @NotNull final String str) {
@@ -56,7 +57,7 @@ public final class ChatUtils {
     } else if (height.isEmpty()) {
       message = dims[1];
     } else {
-      return Optional.of(new int[] {width.getAsInt(), height.getAsInt()});
+      return Optional.of(new int[]{width.getAsInt(), height.getAsInt()});
     }
     sender.sendMessage(
         text()

@@ -63,11 +63,7 @@ public final class DeluxeMediaPluginBootstrap extends JavaPlugin {
 
   @Override
   public void onDisable() {
-    try {
-      this.plugin.disable();
-    } catch (final Exception e) {
-      e.printStackTrace();
-    }
+    this.plugin.disable();
   }
 
   interface InternalLocale {
@@ -78,6 +74,7 @@ public final class DeluxeMediaPluginBootstrap extends JavaPlugin {
 
     @FunctionalInterface
     interface NullComponent<S extends Sender> {
+
       String build();
     }
   }

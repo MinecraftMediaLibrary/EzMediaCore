@@ -129,7 +129,8 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void initializeStream() {
-    IntStream.range(0, 5).parallel().forEach(key -> {}); // jump start int stream
+    IntStream.range(0, 5).parallel().forEach(key -> {
+    }); // jump start int stream
   }
 
   private void initializeProviders() {

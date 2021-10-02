@@ -100,7 +100,7 @@ public class SilentMacInstallation extends SilentInstallation {
 
   private int mountDiskImage(@NotNull final Path dmg) throws IOException, InterruptedException {
     final CommandTask t =
-        new CommandTask(new String[] {"/usr/bin/hdiutil", "attach", dmg.toString()}, true);
+        new CommandTask(new String[]{"/usr/bin/hdiutil", "attach", dmg.toString()}, true);
     Logger.info("============= DMG INFORMATION =============");
     Logger.info(t.getResult());
     Logger.info("===========================================");
@@ -109,7 +109,7 @@ public class SilentMacInstallation extends SilentInstallation {
 
   private int unmountDiskImage(@NotNull final Path path) throws IOException, InterruptedException {
     final CommandTask t =
-        new CommandTask(new String[] {"diskutil", "unmount", path.toString()}, true);
+        new CommandTask(new String[]{"diskutil", "unmount", path.toString()}, true);
     Logger.info("=========== UNMOUNT INFORMATION ===========");
     Logger.info(t.getResult());
     Logger.info("===========================================");
@@ -118,7 +118,7 @@ public class SilentMacInstallation extends SilentInstallation {
 
   private int changePermissionsTask(@NotNull final Path path)
       throws IOException, InterruptedException {
-    return new CommandTask(new String[] {"chmod", "-R", "755", path.toString()}, true)
+    return new CommandTask(new String[]{"chmod", "-R", "755", path.toString()}, true)
         .getProcess()
         .waitFor();
   }

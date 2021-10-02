@@ -30,7 +30,9 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import org.jetbrains.annotations.NotNull;
 
-/** Stolen from itxfrosty Music bot. */
+/**
+ * Stolen from itxfrosty Music bot.
+ */
 public class TrackScheduler extends AudioEventAdapter {
 
   private final MediaBot bot;
@@ -57,12 +59,16 @@ public class TrackScheduler extends AudioEventAdapter {
     }
   }
 
-  /** Clear's Audio Queue. */
+  /**
+   * Clear's Audio Queue.
+   */
   public void clearQueue() {
     this.audioPlayer.stopTrack();
   }
 
-  /** Skips Song. */
+  /**
+   * Skips Song.
+   */
   public void skip() {
     this.audioPlayer
         .getPlayingTrack()

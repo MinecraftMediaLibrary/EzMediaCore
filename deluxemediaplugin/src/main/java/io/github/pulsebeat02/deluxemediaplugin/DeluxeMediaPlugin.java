@@ -74,11 +74,11 @@ public final class DeluxeMediaPlugin {
   private VideoCommandAttributes attributes;
   private MediaAttributesData mediaAttributesData;
 
-  public DeluxeMediaPlugin(@NotNull final JavaPlugin plugin) {
+  DeluxeMediaPlugin(@NotNull final JavaPlugin plugin) {
     this.plugin = plugin;
   }
 
-  public void enable() {
+  void enable() {
     this.assignAudiences();
     this.startLibrary();
     this.loadPersistentData();
@@ -87,7 +87,7 @@ public final class DeluxeMediaPlugin {
     this.finishEnabling();
   }
 
-  public void disable() throws Exception {
+  void disable() {
     this.shutdownLibrary();
     this.deserializeData();
     this.unregisterCommands();
@@ -96,7 +96,7 @@ public final class DeluxeMediaPlugin {
     this.finishDisabling();
   }
 
-  public void load() {
+  void load() {
     this.finishLoading();
   }
 
@@ -119,7 +119,8 @@ public final class DeluxeMediaPlugin {
     this.console.sendMessage(Locale.FIN_METRICS_INIT.build());
   }
 
-  private void finishLoading() {}
+  private void finishLoading() {
+  }
 
   private void finishEnabling() {
     this.checkUpdates();
@@ -176,10 +177,14 @@ public final class DeluxeMediaPlugin {
     }
   }
 
-  private void cancelNativeTasks() throws Exception {
+  private void cancelNativeTasks() {
     if (this.attributes != null) {
-      this.cancelNativeExtractor();
-      this.cancelNativeStreamExtractor();
+      try {
+        this.cancelNativeExtractor();
+        this.cancelNativeStreamExtractor();
+      } catch (final Exception e) {
+        e.printStackTrace();
+      }
     }
     this.console.sendMessage(Locale.CANCELLED_TASKS.build());
   }

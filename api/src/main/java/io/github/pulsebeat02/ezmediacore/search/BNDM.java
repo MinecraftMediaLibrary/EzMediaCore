@@ -96,8 +96,7 @@ public class BNDM extends StringSearch {
   /**
    * Pre-processing of the pattern. The pattern may not exceed 32 bytes in length. If it does,
    * <b>only it's first 32 bytes</b> are processed which might lead to unexpected results. Returns
-   * a
-   * {@link CharIntMap} which is serializable.
+   * a {@link CharIntMap} which is serializable.
    */
   @Override
   public Object processChars(final char @NotNull [] pattern) {

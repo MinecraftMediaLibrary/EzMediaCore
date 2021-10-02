@@ -53,7 +53,8 @@ public class PersistentImageStorage extends PersistentObject<Image> {
   public List<Image> deserialize() throws IOException {
     super.deserialize();
     try (final BufferedReader reader = Files.newBufferedReader(this.getStorageFile())) {
-      return GsonProvider.getSimple().fromJson(reader, new TypeToken<List<Image>>() {}.getType());
+      return GsonProvider.getSimple().fromJson(reader, new TypeToken<List<Image>>() {
+      }.getType());
     }
   }
 }

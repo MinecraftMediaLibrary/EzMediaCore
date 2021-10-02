@@ -168,7 +168,7 @@ public class EMCNativeDiscovery implements DiscoveryProvider {
   private boolean loadLibVLCLibrary() {
     try {
       final libvlc_instance_t instance =
-          libvlc_new(0, new StringArray(new String[] {"--reset-plugins-cache"}));
+          libvlc_new(0, new StringArray(new String[]{"--reset-plugins-cache"}));
       if (instance != null) {
         libvlc_release(instance);
         final LibVlcVersion version = new LibVlcVersion();

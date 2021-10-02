@@ -53,12 +53,16 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 
-/** Constructs a chain of commands to be executed accordingly. */
+/**
+ * Constructs a chain of commands to be executed accordingly.
+ */
 public class CommandTaskChain {
 
   private final Map<CommandTask, Boolean> chain;
 
-  /** Instantiates a new CommandTaskChain */
+  /**
+   * Instantiates a new CommandTaskChain
+   */
   public CommandTaskChain() {
     this.chain = new LinkedHashMap<>();
   }
@@ -108,7 +112,8 @@ public class CommandTaskChain {
     for (final Map.Entry<CommandTask, Boolean> entry : this.chain.entrySet()) {
       final CommandTask task = entry.getKey();
       if (entry.getValue()) {
-        CompletableFuture.runAsync(() -> this.runTask(task), ExecutorProvider.EXTERNAL_PROCESS_POOL);
+        CompletableFuture.runAsync(() -> this.runTask(task),
+            ExecutorProvider.EXTERNAL_PROCESS_POOL);
       } else {
         this.runTaskChain(task);
       }
