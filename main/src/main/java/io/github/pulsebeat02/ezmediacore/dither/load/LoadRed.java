@@ -32,7 +32,8 @@ import org.jetbrains.annotations.NotNull;
 
 final class LoadRed extends RecursiveTask<byte[]> {
 
-  @Serial private static final long serialVersionUID = -6408377810782246185L;
+  @Serial
+  private static final long serialVersionUID = -6408377810782246185L;
   private final int r;
   private final int[] palette;
 

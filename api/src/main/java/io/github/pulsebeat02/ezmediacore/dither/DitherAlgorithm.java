@@ -32,5 +32,6 @@ public interface DitherAlgorithm {
   @NotNull
   ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width);
 
-  default void dither(final int @NotNull [] buffer, final int width) {}
+  default void dither(final int @NotNull [] buffer, final int width) {
+  }
 }

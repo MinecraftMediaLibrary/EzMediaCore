@@ -24,8 +24,6 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.discord;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -33,6 +31,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import java.util.Map;
 import net.kyori.adventure.audience.Audience;
@@ -69,7 +68,7 @@ public class DiscordCommand extends BaseCommand {
       return SINGLE_SUCCESS;
     }
     this.plugin().getMediaBot().getMusicManager().leaveVoiceChannel();
-    gold(audience, "Successfully disconnected from voice channel!");
+    audience.sendMessage(Locale.DC_DISCORD.build());
     return SINGLE_SUCCESS;
   }
 
@@ -79,7 +78,7 @@ public class DiscordCommand extends BaseCommand {
       return SINGLE_SUCCESS;
     }
     this.plugin().getMediaBot().getMusicManager().joinVoiceChannel();
-    gold(audience, "Successfully connected to voice channel!");
+    audience.sendMessage(Locale.C_DISCORD.build());
     return SINGLE_SUCCESS;
   }
 
@@ -92,7 +91,7 @@ public class DiscordCommand extends BaseCommand {
     final MusicManager manager = this.plugin().getMediaBot().getMusicManager();
     manager.joinVoiceChannel();
     manager.addTrack(mrl);
-    gold(audience, "Successfully started audio on MRL %s!".formatted(mrl));
+    audience.sendMessage(Locale.START_TRACK_DISCORD.build(mrl));
     return SINGLE_SUCCESS;
   }
 
@@ -102,7 +101,7 @@ public class DiscordCommand extends BaseCommand {
       return SINGLE_SUCCESS;
     }
     this.plugin().getMediaBot().getMusicManager().pauseTrack();
-    gold(audience, "Successfully paused track!");
+    audience.sendMessage(Locale.PAUSED_TRACK_DISCORD.build());
     return SINGLE_SUCCESS;
   }
 
@@ -112,13 +111,13 @@ public class DiscordCommand extends BaseCommand {
       return SINGLE_SUCCESS;
     }
     this.plugin().getMediaBot().getMusicManager().resumeTrack();
-    gold(audience, "Successfully resumed track!");
+    audience.sendMessage(Locale.RESUMED_TRACK_DISCORD.build());
     return SINGLE_SUCCESS;
   }
 
   private boolean checkDiscordStatus(@NotNull final Audience audience) {
     if (this.plugin().getMediaBot() == null) {
-      red(audience, "Discord bot not setup yet or invalid settings in bot.yml!");
+      audience.sendMessage(Locale.ERR_INVALID_DISCORD_BOT.build());
       return true;
     }
     return false;

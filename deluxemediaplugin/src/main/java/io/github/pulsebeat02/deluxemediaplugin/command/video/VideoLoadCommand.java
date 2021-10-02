@@ -25,23 +25,13 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.event.ClickEvent.runCommand;
-import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
-import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
-import static net.kyori.adventure.text.format.NamedTextColor.RED;
-import static net.kyori.adventure.text.format.Style.style;
-import static net.kyori.adventure.text.format.TextDecoration.BOLD;
-import static net.kyori.adventure.text.format.TextDecoration.UNDERLINED;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioExtractor;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
@@ -55,7 +45,6 @@ import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -104,27 +93,25 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       this.task.cancel(true);
       this.attributes.setExtractor(null);
       this.task = null;
-      gold(audience, "Successfully cancelled the video loading process!");
+      audience.sendMessage(Locale.CANCELLED_VIDEO_PROCESSING.build());
     } else {
-      red(audience, "You aren't loading a video!");
+      audience.sendMessage(Locale.ERR_CANCELLATION_VIDEO_PROCESSING.build());
     }
     return SINGLE_SUCCESS;
   }
 
   private int loadVideo(@NotNull final CommandContext<CommandSender> context) {
-
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
     final Path folder = this.plugin.getBootstrap().getDataFolder().toPath().resolve("emc");
     final AtomicBoolean successful = new AtomicBoolean(true);
     final AtomicBoolean status = this.attributes.getCompletion();
-
+    final Audience console = this.plugin.getLogger();
     this.attributes.cancelCurrentStream();
-
     CompletableFuture.runAsync(
             () -> {
               try {
-                gold(audience, "Initializing and reading media...");
+                audience.sendMessage(Locale.LOADING_VIDEO.build());
                 if (this.checkStream(audience, mrl)) {
                   successful.set(false);
                   return;
@@ -132,12 +119,10 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
                 this.attributes.setVideoMrl(MrlConfiguration.ofMrl(mrl));
                 if (this.attributes.getAudioOutputType() == AudioOutputType.RESOURCEPACK) {
                   status.set(false);
-                  gold(
-                      audience,
-                      "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.");
+                  console.sendMessage(Locale.CREATE_RESOURCEPACK.build());
                   final Optional<Path> download = this.downloadMrl(audience, folder, mrl);
                   if (download.isEmpty()) {
-                    this.plugin.getBootstrap().getLogger().severe("Failed to download video!");
+                    this.plugin.getLogger().sendMessage(Locale.ERR_DOWNLOAD_VIDEO.build());
                     status.set(true);
                     successful.set(false);
                     return;
@@ -146,7 +131,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
                   status.set(true);
                 }
               } catch (final IOException | InterruptedException e) {
-                this.plugin.getBootstrap().getLogger().severe("Failed to load video!");
+                console.sendMessage(Locale.ERR_LOAD_VIDEO.build());
                 e.printStackTrace();
               }
             })
@@ -162,7 +147,6 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   private void loadAndSendResourcepack(@NotNull final Path folder, @NotNull final Path download)
       throws IOException {
-
     final Path oggOutput = folder.resolve("output.ogg");
     final HttpServer daemon = this.plugin.getHttpServer();
     final FFmpegAudioExtractor extractor =
@@ -170,16 +154,15 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
             this.plugin.library(), this.plugin.getAudioConfiguration(), download, oggOutput);
     this.attributes.setExtractor(extractor);
     extractor.execute();
-
     final ResourcepackSoundWrapper wrapper =
         new ResourcepackSoundWrapper(
             daemon.getDaemon().getServerPath().resolve("resourcepack.zip"),
             "Audio Resourcepack",
             PackFormat.getCurrentFormat().getId());
-    wrapper.addSound(this.plugin.getBootstrap().getName().toLowerCase(Locale.ROOT), oggOutput);
+    wrapper.addSound(this.plugin.getBootstrap().getName().toLowerCase(java.util.Locale.ROOT),
+        oggOutput);
     wrapper.wrap();
     this.attributes.setOggMrl(MrlConfiguration.ofMrl(oggOutput));
-
     final Path path = wrapper.getResourcepackFilePath();
     this.attributes.setResourcepackUrl(daemon.createUrl(path));
     this.attributes.setResourcepackHash(
@@ -195,7 +178,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     } else {
       final List<String> videoMrls = RequestUtils.getAudioURLs(mrl);
       if (videoMrls.isEmpty()) {
-        red(audience, "Invalid MRL link! Not supported!");
+        audience.sendMessage(Locale.ERR_INVALID_MRL.build());
         return Optional.empty();
       }
       downloadPath = RequestUtils.downloadFile(folder.resolve("temp-audio"), videoMrls.get(0));
@@ -206,11 +189,9 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   private boolean checkStream(@NotNull final Audience audience, @NotNull final String mrl) {
     if (RequestUtils.isStream(mrl)) {
       if (this.attributes.getAudioOutputType() == AudioOutputType.RESOURCEPACK) {
-        red(
-            audience,
-            "You cannot play streams without using Discord or a dynamic audio player with audio. Proceeding to play without audio.");
+        audience.sendMessage(Locale.ERR_INVALID_AUDIO_OUTPUT.build());
       } else {
-        gold(audience, "Successfully loaded stream %s!".formatted(mrl));
+        audience.sendMessage(Locale.LOADED_MEDIA.build(mrl));
       }
       this.attributes.getCompletion().set(true);
       this.cancelled = false;
@@ -219,9 +200,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     } else {
       final List<String> urls = RequestUtils.getVideoURLs(mrl);
       if (urls.size() == 1 && urls.get(0).equals(mrl)) {
-        red(
-            audience,
-            "Invalid media resource! Please check to make sure the media provided is supported!");
+        audience.sendMessage(Locale.ERR_INVALID_MRL.build());
       }
     }
     return false;
@@ -241,30 +220,9 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
           Bukkit.getOnlinePlayers(),
           this.attributes.getResourcepackUrl(),
           this.attributes.getResourcepackHash());
-      Bukkit.getOnlinePlayers().parallelStream()
-          .forEach(
-              player ->
-                  this.plugin
-                      .audience()
-                      .player(player)
-                      .sendMessage(
-                          text()
-                              .append(text("Loaded resourcepack for all players! Click ", GOLD))
-                              .append(
-                                  text(
-                                      "this message",
-                                      style(
-                                          AQUA,
-                                          BOLD,
-                                          UNDERLINED,
-                                          runCommand(
-                                              "/video load resourcepack %s"
-                                                  .formatted(player.getName())),
-                                          text("Click to get the resourcepack!", GOLD)
-                                              .asHoverEvent())))
-                              .append(text(" to retrieve the resourcepack", GOLD))
-                              .build()));
-      gold(audience, "Successfully loaded video %s".formatted(mrl));
+      Bukkit.getOnlinePlayers().forEach((player) -> this.plugin.audience().player(player)
+          .sendMessage(Locale.SEND_RESOURCEPACK_URL.build(player)));
+      audience.sendMessage(Locale.LOADED_MEDIA.build(mrl));
     }
   }
 
@@ -290,14 +248,14 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
         entities.stream().map(entity -> (Player) entity).collect(Collectors.toSet()),
         url,
         hash);
-    gold(audience, "Sent Resourcepack! (URL: %s, Hash: %s)".formatted(url, new String(hash)));
+    audience.sendMessage(Locale.SENT_RESOURCEPACK.build(url, hash));
     return SINGLE_SUCCESS;
   }
 
   private boolean checkNonPlayer(
       @NotNull final Audience audience, @NotNull final List<Entity> entities) {
     if (entities.parallelStream().anyMatch(entity -> !(entity instanceof Player))) {
-      red(audience, "The target selector you chose contains entities that aren't players!");
+      audience.sendMessage(Locale.ERR_INVALID_TARGET_SELECTOR.build());
       return true;
     }
     return false;
@@ -305,7 +263,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   private boolean isPlayer(@NotNull final Audience audience, @NotNull final CommandSender sender) {
     if (!(sender instanceof Player)) {
-      red(audience, "You must be a player to execute this command!");
+      audience.sendMessage(Locale.ERR_PLAYER_SENDER.build());
       return true;
     }
     return false;
@@ -314,8 +272,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   private boolean unloadedResourcepack(@NotNull final Audience audience) {
     if (this.attributes.getResourcepackUrl() == null
         && this.attributes.getResourcepackHash() == null) {
-      audience.sendMessage(
-          format(text("Please load a resourcepack before executing this command!", RED)));
+      audience.sendMessage(Locale.ERR_NO_RESOURCEPACK.build());
       return true;
     }
     return false;

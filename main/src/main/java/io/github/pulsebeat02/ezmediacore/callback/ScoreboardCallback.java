@@ -136,7 +136,8 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
 
     private Identifier<Integer> id;
 
-    Builder() {}
+    Builder() {
+    }
 
     @Contract("_ -> this")
     @Override

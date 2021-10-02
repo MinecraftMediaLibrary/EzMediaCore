@@ -68,7 +68,7 @@ public class FastUUIDUtils {
 
   private static final int UUID_STRING_LENGTH = 36;
   private static final char[] HEX_DIGITS =
-      new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+      new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
   private static final long[] HEX_VALUES = new long[128];
 
   static {
@@ -100,7 +100,8 @@ public class FastUUIDUtils {
     HEX_VALUES['F'] = 0xf;
   }
 
-  private FastUUIDUtils() {}
+  private FastUUIDUtils() {
+  }
 
   /**
    * Parses a UUID from the given character sequence. The character sequence must represent a UUID
@@ -109,7 +110,7 @@ public class FastUUIDUtils {
    * @param uuidSequence the character sequence from which to parse a UUID
    * @return the UUID represented by the given character sequence
    * @throws IllegalArgumentException if the given character sequence does not conform to the string
-   *     representation as described in {@link UUID#toString()}
+   *                                  representation as described in {@link UUID#toString()}
    */
   @Contract("_ -> new")
   public static @NotNull UUID parseUUID(final @NotNull CharSequence uuidSequence) {

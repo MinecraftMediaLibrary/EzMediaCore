@@ -25,13 +25,12 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.audio;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -79,7 +78,7 @@ public final class AudioCommand extends BaseCommand {
                 100.0F,
                 1.0F));
 
-    gold(audience, "Started playing audio!");
+    audience.sendMessage(Locale.START_AUDIO.build());
 
     return SINGLE_SUCCESS;
   }
@@ -94,7 +93,7 @@ public final class AudioCommand extends BaseCommand {
 
     this.audioAction(player -> player.stopSound(this.attributes.getKey()));
 
-    red(audience, "Stopped playing audio!");
+    audience.sendMessage(Locale.PAUSE_AUDIO.build());
 
     return SINGLE_SUCCESS;
   }
@@ -105,7 +104,7 @@ public final class AudioCommand extends BaseCommand {
 
   private boolean checkUnloaded(@NotNull final Audience audience) {
     if (this.attributes.getAudio() == null) {
-      red(audience, "File or URL not specified!");
+      audience.sendMessage(Locale.ERR_NO_MRL.build());
       return true;
     }
     return false;
@@ -113,7 +112,7 @@ public final class AudioCommand extends BaseCommand {
 
   private boolean checkIncompleteLoad(@NotNull final Audience audience) {
     if (!this.attributes.getCompletion().get()) {
-      red(audience, "Audio is still processing!");
+      audience.sendMessage(Locale.ERR_NO_MRL.build());
       return true;
     }
     return false;

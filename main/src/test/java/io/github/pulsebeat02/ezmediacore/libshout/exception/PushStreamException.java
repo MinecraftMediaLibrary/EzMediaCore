@@ -9,9 +9,11 @@ import java.io.Serial;
  */
 public class PushStreamException extends RuntimeException {
 
-  @Serial private static final long serialVersionUID = 3516759721627203423L;
+  @Serial
+  private static final long serialVersionUID = 3516759721627203423L;
 
-  public PushStreamException() {}
+  public PushStreamException() {
+  }
 
   public PushStreamException(final String message) {
     super(message);

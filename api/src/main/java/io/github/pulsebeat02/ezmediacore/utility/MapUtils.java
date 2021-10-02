@@ -36,7 +36,8 @@ import org.jetbrains.annotations.NotNull;
 
 public final class MapUtils {
 
-  private MapUtils() {}
+  private MapUtils() {
+  }
 
   @NotNull
   public static ItemStack getMapFromID(final int id) {

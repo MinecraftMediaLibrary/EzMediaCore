@@ -75,7 +75,8 @@ public final class RequestUtils {
             .build();
   }
 
-  private RequestUtils() {}
+  private RequestUtils() {
+  }
 
   public static @NotNull String getSearchedVideos(
       @NotNull final String apiKey, @NotNull final String keyword) {

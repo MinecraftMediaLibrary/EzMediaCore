@@ -24,15 +24,14 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.format.NamedTextColor.RED;
-
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.security.auth.login.LoginException;
+import net.kyori.adventure.audience.Audience;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,11 +56,12 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
     final DeluxeMediaPlugin plugin = this.getPlugin();
     final FileConfiguration configuration = this.getFileConfiguration();
     final AtomicBoolean invalid = new AtomicBoolean(false);
+    final Audience console = plugin.getLogger();
     final String token =
         Objects.requireNonNullElseGet(
             configuration.getString("token"),
             () -> {
-              plugin.log("Bot token not specified in bot.yml!");
+              console.sendMessage(Locale.ERR_BOT_TOKEN.build());
               invalid.set(true);
               return "null";
             });
@@ -69,7 +69,7 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
         Objects.requireNonNullElseGet(
             configuration.getString("guild-id"),
             () -> {
-              plugin.log("Guild token not specified in bot.yml!");
+              console.sendMessage(Locale.ERR_GUILD_TOKEN.build());
               invalid.set(true);
               return "null";
             });
@@ -77,7 +77,7 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
         Objects.requireNonNullElseGet(
             configuration.getString("voice-chat-id"),
             () -> {
-              plugin.log("Voice Chat Identifier not specified in bot.yml!");
+              console.sendMessage(Locale.ERR_VC_ID.build());
               invalid.set(true);
               return "null";
             });
@@ -85,8 +85,7 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
       try {
         this.bot = new MediaBot(token, guild, voicechannel);
       } catch (final LoginException | InterruptedException e) {
-        plugin.log(
-            text("A severe issue occurred while starting the bot. Please check the token!", RED));
+        console.sendMessage(Locale.ERR_INVALID_DISCORD_BOT.build());
         e.printStackTrace();
       }
     }

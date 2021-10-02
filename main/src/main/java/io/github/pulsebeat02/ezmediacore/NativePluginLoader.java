@@ -31,7 +31,8 @@ import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 
 public class NativePluginLoader {
 
-  public NativePluginLoader() {}
+  public NativePluginLoader() {
+  }
 
   public void executePhantomPlayers() {
 

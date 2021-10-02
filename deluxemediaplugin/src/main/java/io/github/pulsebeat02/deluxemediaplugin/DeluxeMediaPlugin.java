@@ -24,7 +24,6 @@
 
 package io.github.pulsebeat02.deluxemediaplugin;
 
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.BLUE;
 
@@ -55,7 +54,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
-import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -110,7 +108,8 @@ public final class DeluxeMediaPlugin {
     this.console.sendMessage(Locale.GOODBYE.build());
   }
 
-  public void load() {}
+  public void load() {
+  }
 
   private void startLibrary() {
     try {
@@ -205,12 +204,8 @@ public final class DeluxeMediaPlugin {
     }
   }
 
-  public void log(@NotNull final String line) {
-    this.log(format(text(line)));
-  }
-
-  public void log(@NotNull final Component line) {
-    this.audiences.console().sendMessage(line);
+  public Audience getLogger() {
+    return this.console;
   }
 
   public @NotNull JavaPlugin getBootstrap() {

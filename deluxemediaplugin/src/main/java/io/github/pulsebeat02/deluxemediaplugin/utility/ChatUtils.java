@@ -61,7 +61,8 @@ public final class ChatUtils {
             .append(text('['), text("External Process", GOLD), text(']'), space(), text("»", GRAY));
   }
 
-  private ChatUtils() {}
+  private ChatUtils() {
+  }
 
   public static @NotNull Component format(@NotNull final Component message) {
     return join(separator(space()), PREFIX, message);
@@ -82,7 +83,7 @@ public final class ChatUtils {
     } else if (height.isEmpty()) {
       message = dims[1];
     } else {
-      return Optional.of(new int[] {width.getAsInt(), height.getAsInt()});
+      return Optional.of(new int[]{width.getAsInt(), height.getAsInt()});
     }
     sender.sendMessage(
         text()
@@ -118,21 +119,5 @@ public final class ChatUtils {
     }
     builder.append(text("------------------", AQUA));
     return builder.build();
-  }
-
-  public static void gold(@NotNull final Audience audience, final String message) {
-    audience.sendMessage(format(text(message, GOLD)));
-  }
-
-  public static void red(@NotNull final Audience audience, final String message) {
-    audience.sendMessage(format(text(message, RED)));
-  }
-
-  public static void aqua(@NotNull final Audience audience, final String message) {
-    audience.sendMessage(format(text(message, AQUA)));
-  }
-
-  public static void external(@NotNull final Audience audience, @NotNull final String message) {
-    audience.sendMessage(join(separator(space()), EXTERNAL_PROCESS, text(message, GOLD)));
   }
 }

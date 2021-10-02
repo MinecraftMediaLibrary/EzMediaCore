@@ -58,7 +58,7 @@ import org.jetbrains.annotations.NotNull;
 public final class YoutubeVideoFormat implements VideoFormat {
 
   private static final BiMap<
-          com.github.kiulian.downloader.model.videos.quality.VideoQuality, VideoQuality>
+      com.github.kiulian.downloader.model.videos.quality.VideoQuality, VideoQuality>
       VIDEO_FORMATS;
 
   static {
@@ -89,8 +89,8 @@ public final class YoutubeVideoFormat implements VideoFormat {
   }
 
   static @NotNull BiMap<
-          com.github.kiulian.downloader.model.videos.quality.VideoQuality, VideoQuality>
-      getVideoFormatMappings() {
+      com.github.kiulian.downloader.model.videos.quality.VideoQuality, VideoQuality>
+  getVideoFormatMappings() {
     return VIDEO_FORMATS;
   }
 

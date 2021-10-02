@@ -190,7 +190,7 @@ public class ItemBuilder {
    * Add a lore line.
    *
    * @param line The lore line to add.
-   * @param pos The index of where to put it.
+   * @param pos  The index of where to put it.
    */
   public @NotNull ItemBuilder lore(@NotNull final Component line, final int pos) {
     final ItemMeta im = this.is.getItemMeta();

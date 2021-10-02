@@ -26,18 +26,13 @@ package io.github.pulsebeat02.deluxemediaplugin.command.ffmpeg;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.ffmpeg;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
-import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
-import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
-import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegCommandExecutor;
 import java.util.Map;
@@ -69,7 +64,7 @@ public final class FFmpegCommand extends BaseCommand {
 
   private int resetFFmpegCommand(@NotNull final CommandContext<CommandSender> context) {
     this.ffmpeg.clearArguments();
-    gold(this.audience().sender(context.getSource()), "Reset all FFmpeg arguments!");
+    this.audience().sender(context.getSource()).sendMessage(Locale.RESET_FFMPEG_ARGS.build());
     return SINGLE_SUCCESS;
   }
 
@@ -77,19 +72,14 @@ public final class FFmpegCommand extends BaseCommand {
     this.plugin()
         .audience()
         .sender(context.getSource())
-        .sendMessage(
-            format(
-                join(
-                    noSeparators(),
-                    text("Current FFmpeg arguments: ", GOLD),
-                    text(this.ffmpeg.getArguments().toString(), AQUA))));
+        .sendMessage(Locale.LIST_FFMPEG_ARGS.build(this.ffmpeg.getArguments()));
     return SINGLE_SUCCESS;
   }
 
   private int runFFmpegProcess(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = this.plugin().audience().sender(context.getSource());
     this.ffmpeg.executeWithLogging(s -> audience.sendMessage(ffmpeg(text(s))));
-    gold(audience, "Executed FFmpeg command!");
+    audience.sendMessage(Locale.FFMPEG_EXEC.build());
     return SINGLE_SUCCESS;
   }
 

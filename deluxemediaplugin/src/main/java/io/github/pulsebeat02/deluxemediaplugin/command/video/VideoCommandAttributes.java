@@ -40,25 +40,19 @@ public final class VideoCommandAttributes {
     TEMPORARY_PLACEHOLDER = true;
   }
 
+  private final AtomicBoolean completion;
   @Expose
   private DitherSetting ditherType;
-
   @Expose
   private AudioOutputType audioOutputType;
-
   @Expose
   private PlaybackType playbackType;
-
   @Expose
   private int map;
-
   @Expose
   private int frameWidth, frameHeight;
-
   @Expose
   private int pixelWidth, pixelHeight;
-
-  private final AtomicBoolean completion;
   private VideoPlayer player;
 
   private MrlConfiguration videoMrl;

@@ -25,14 +25,13 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.audio;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.YoutubeVideoAudioExtractor;
 import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
@@ -42,7 +41,6 @@ import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import net.kyori.adventure.audience.Audience;
@@ -68,17 +66,14 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private void loadSoundMrl(@NotNull final String mrl) {
-
     final MediaLibraryCore core = this.plugin.library();
     final Path audio = core.getAudioPath().resolve("audio.ogg");
-
     try {
       new YoutubeVideoAudioExtractor(core, this.plugin.getAudioConfiguration(), mrl, audio)
           .executeAsync();
     } catch (final IOException e) {
       e.printStackTrace();
     }
-
     this.attributes.setAudio(audio);
   }
 
@@ -87,7 +82,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
     if (Files.exists(file)) {
       this.attributes.setAudio(file);
     } else {
-      red(audience, "The mrl specified is not valid! (Must be Youtube Link or Audio File)");
+      audience.sendMessage(Locale.ERR_INVALID_MRL.build());
       return true;
     }
     return false;
@@ -101,44 +96,36 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
       final ResourcepackSoundWrapper wrapper =
           new ResourcepackSoundWrapper(
               daemon.getDaemon().getServerPath().resolve("resourcepack.zip"), "Audio Pack", 6);
-      wrapper.addSound(loader.getName().toLowerCase(Locale.ROOT), this.attributes.getAudio());
+      wrapper.addSound(loader.getName().toLowerCase(java.util.Locale.ROOT),
+          this.attributes.getAudio());
       wrapper.wrap();
       final Path path = wrapper.getResourcepackFilePath();
       this.attributes.setLink(daemon.createUrl(path));
       this.attributes.setHash(HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
     } catch (final IOException e) {
-      loader.getLogger().severe("Failed to wrap resourcepack!");
+      this.plugin.getLogger().sendMessage(Locale.ERR_RESOURCEPACK_WRAP.build());
       e.printStackTrace();
     }
     this.attributes.setCompletion(true);
   }
 
   private int loadAudio(@NotNull final CommandContext<CommandSender> context) {
-
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
     final AtomicBoolean completion = this.attributes.getCompletion();
-
     if (this.isLoadingSound(audience)) {
       return SINGLE_SUCCESS;
     }
-
-    gold(
-        audience,
-        "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.");
-
+    audience.sendMessage(Locale.CREATE_RESOURCEPACK.build());
     completion.set(false);
-
     if (mrl.startsWith("http")) {
       CompletableFuture.runAsync(() -> this.loadSoundMrl(mrl));
     } else if (this.loadSoundFile(mrl, audience)) {
       return SINGLE_SUCCESS;
     }
-
     CompletableFuture.runAsync(this::wrapResourcepack)
         .thenRunAsync(() -> this.forceResourcepackLoad(audience))
         .whenComplete((result, exception) -> completion.set(true));
-
     return SINGLE_SUCCESS;
   }
 
@@ -146,35 +133,25 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
     final String url = this.attributes.getLink();
     final byte[] hash = this.attributes.getHash();
     ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), url, hash);
-    gold(
-        audience,
-        "Loaded Resourcepack Successfully! (URL: %s, Hash: %s)".formatted(url, new String(hash)));
+    audience.sendMessage(Locale.FIN_RESOURCEPACK_INIT.build(url, hash));
   }
 
   private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {
-
     final Audience audience = this.plugin.audience().sender(context.getSource());
-
     if (this.attributes.getLink() == null && this.attributes.getHash() == null) {
-      red(audience, "Please load a resourcepack first!");
+      audience.sendMessage(Locale.ERR_NO_RESOURCEPACK.build());
       return SINGLE_SUCCESS;
     }
-
     final String url = this.attributes.getLink();
     final byte[] hash = this.attributes.getHash();
-
     ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), url, hash);
-
-    gold(audience, "Sent Resourcepack! (URL: %s, Hash: %s)".formatted(url, new String(hash)));
-
+    audience.sendMessage(Locale.SENT_RESOURCEPACK.build(url, hash));
     return SINGLE_SUCCESS;
   }
 
   private boolean isLoadingSound(@NotNull final Audience audience) {
     if (!this.attributes.getCompletion().get()) {
-      red(
-          audience,
-          "Please wait for the previous audio to extract first before loading another one!");
+      audience.sendMessage(Locale.ERR_INVALID_AUDIO_STATE.build());
       return true;
     }
     return false;

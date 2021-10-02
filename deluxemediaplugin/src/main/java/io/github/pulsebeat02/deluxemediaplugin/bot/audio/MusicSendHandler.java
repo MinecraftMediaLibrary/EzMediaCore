@@ -42,7 +42,7 @@ public class MusicSendHandler implements AudioSendHandler {
    * MusicSendHandler Public Constructor.
    *
    * @param musicManager MusicManager Class.
-   * @param audioPlayer AudioPlayer.
+   * @param audioPlayer  AudioPlayer.
    */
   public MusicSendHandler(
       @NotNull final MediaBot bot,

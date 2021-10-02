@@ -31,11 +31,14 @@ package io.github.pulsebeat02.ezmediacore.random;
  * @see "http://sites.google.com/site/murmurhash/"
  */
 public final class MurmurHash3 {
+
   private MurmurHash3() {
     // no instances.
   }
 
-  /** Hashes a 4-byte sequence (Java int). */
+  /**
+   * Hashes a 4-byte sequence (Java int).
+   */
   public static int hash(int k) {
     k ^= k >>> 16;
     k *= 0x85ebca6b;
@@ -45,7 +48,9 @@ public final class MurmurHash3 {
     return k;
   }
 
-  /** Hashes an 8-byte sequence (Java long). */
+  /**
+   * Hashes an 8-byte sequence (Java long).
+   */
   public static long hash(long k) {
     k ^= k >>> 33;
     k *= 0xff51afd7ed558ccdL;

@@ -66,7 +66,9 @@ public class MusicManager {
     AudioSourceManagers.registerLocalSource(this.playerManager);
   }
 
-  /** Join's Voice Chanel and set's log channel. */
+  /**
+   * Join's Voice Chanel and set's log channel.
+   */
   public void joinVoiceChannel() {
     final Guild guild = this.bot.getGuild();
     final long id = guild.getIdLong();
@@ -80,7 +82,9 @@ public class MusicManager {
     audio.openAudioConnection(voiceChannel);
   }
 
-  /** Leave's Voice Channel. */
+  /**
+   * Leave's Voice Channel.
+   */
   public void leaveVoiceChannel() {
     final Guild guild = this.bot.getGuild();
     guild.getAudioManager().closeAudioConnection();
@@ -94,7 +98,7 @@ public class MusicManager {
   /**
    * Adds track.
    *
-   * @param url Load's Song.
+   * @param url     Load's Song.
    * @param channel Channel to send message.
    */
   public void addTrack(@Nullable final MessageChannel channel, @NotNull final String url) {

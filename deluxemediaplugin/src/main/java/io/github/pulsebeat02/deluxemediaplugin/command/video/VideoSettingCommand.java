@@ -25,14 +25,6 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
-import static net.kyori.adventure.text.Component.join;
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
-import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
-import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -43,6 +35,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherSetting;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import java.util.Arrays;
 import java.util.Optional;
@@ -120,46 +113,40 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
   }
 
   private int setAudioOutput(@NotNull final CommandContext<CommandSender> context) {
-
     final Audience audience = this.plugin.audience().sender(context.getSource());
-
     final String argument = context.getArgument("audio-type", String.class);
     final Optional<AudioOutputType> optional = AudioOutputType.ofKey(argument);
     if (optional.isEmpty()) {
-      red(audience, "Could not find audio type %s".formatted(argument));
+      audience.sendMessage(Locale.ERR_INVALID_AUDIO_TYPE.build(argument));
       return SINGLE_SUCCESS;
     }
-
     switch (optional.get()) {
       case RESOURCEPACK -> this.attributes.setAudioOutputType(AudioOutputType.RESOURCEPACK);
       case DISCORD -> {
         if (VideoCommandAttributes.TEMPORARY_PLACEHOLDER) {
-          red(audience, "Unfortunately, Discord support is still being developed, as the Music API used is abandoned and we must find another solution!");
+          audience.sendMessage(Locale.ERR_DEVELOPMENT_FEATURE.build());
           return SINGLE_SUCCESS;
         }
         if (this.plugin.getMediaBot() == null) {
-          red(audience, "Discord bot information provided in bot.yml is invalid!");
+          audience.sendMessage(Locale.ERR_INVALID_DISCORD_BOT.build());
           return SINGLE_SUCCESS;
         }
         this.attributes.setAudioOutputType(AudioOutputType.DISCORD);
       }
       case HTTP -> {
         if (this.plugin.getHttpAudioServer() == null) {
-          red(audience, "HTTP audio information provided in httpaudio.yml is invalid!");
+          audience.sendMessage(Locale.ERR_HTTP_AUDIO.build());
           return SINGLE_SUCCESS;
         }
         this.attributes.setAudioOutputType(AudioOutputType.HTTP);
       }
       default -> throw new IllegalArgumentException("Audio type is invalid!");
     }
-
-    gold(audience, "Successfully set the audio type to %s".formatted(argument));
-
+    audience.sendMessage(Locale.SET_AUDIO_TYPE.build(argument));
     return SINGLE_SUCCESS;
   }
 
   private int setScreenDimensions(@NotNull final CommandContext<CommandSender> context) {
-
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final Optional<int[]> optional =
         ChatUtils.checkDimensionBoundaries(
@@ -167,104 +154,60 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
     if (optional.isEmpty()) {
       return SINGLE_SUCCESS;
     }
-
     final int[] dimensions = optional.get();
     this.attributes.setPixelWidth(dimensions[0]);
     this.attributes.setPixelHeight(dimensions[1]);
-
-    audience.sendMessage(
-        format(
-            join(
-                noSeparators(),
-                text("Set screen dimensions to ", GOLD),
-                text(
-                    "%d:%d "
-                        .formatted(
-                            this.attributes.getPixelWidth(), this.attributes.getPixelHeight()),
-                    AQUA),
-                text("(width:height)", GOLD))));
-
+    audience.sendMessage(Locale.CHANGED_VIDEO_SCREEN_DIMS.build(this.attributes.getPixelWidth(),
+        this.attributes.getPixelHeight()));
     return SINGLE_SUCCESS;
   }
 
   private int setItemframeDimensions(@NotNull final CommandContext<CommandSender> context) {
-
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final Optional<int[]> optional =
         ChatUtils.checkDimensionBoundaries(
             audience, context.getArgument("itemframe-dimensions", String.class));
-
     if (optional.isEmpty()) {
       return SINGLE_SUCCESS;
     }
-
     final int[] dims = optional.get();
     this.attributes.setFrameWidth(dims[0]);
     this.attributes.setFrameHeight(dims[1]);
-
-    audience.sendMessage(
-        format(
-            join(
-                noSeparators(),
-                text("Set itemframe map dimensions to ", GOLD),
-                text(
-                    "%s:%s "
-                        .formatted(
-                            this.attributes.getFrameWidth(), this.attributes.getFrameHeight()),
-                    AQUA),
-                text("(width:height)", GOLD))));
-
+    audience.sendMessage(Locale.CHANGED_ITEMFRAME_DIMS.build(this.attributes.getFrameWidth(),
+        this.attributes.getFrameHeight()));
     return SINGLE_SUCCESS;
   }
 
   private int setStartingMap(@NotNull final CommandContext<CommandSender> context) {
-
     this.attributes.setMap(context.getArgument("map-id", int.class));
-
-    this.plugin
-        .audience()
-        .sender(context.getSource())
-        .sendMessage(
-            format(
-                join(
-                    noSeparators(),
-                    text("Set starting map id to ", GOLD),
-                    text(this.attributes.getMap(), AQUA))));
-
+    this.plugin.audience().sender(context.getSource())
+        .sendMessage(Locale.CHANGED_VIDEO_MAP_ID.build(this.attributes.getMap()));
     return SINGLE_SUCCESS;
   }
 
   private int setDitherMode(@NotNull final CommandContext<CommandSender> context) {
-
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String algorithm = context.getArgument("dithering-option", String.class);
     final Optional<DitherSetting> setting = DitherSetting.ofKey(algorithm);
-
     if (setting.isEmpty()) {
-      red(audience, "Could not find dither type %s".formatted(algorithm));
+      audience.sendMessage(Locale.ERR_INVALID_DITHER_TYPE.build(algorithm));
     } else {
       this.attributes.setDitherType(setting.get());
-      audience.sendMessage(
-          format(join(noSeparators(), text("Set dither type to ", GOLD), text(algorithm, AQUA))));
+      audience.sendMessage(Locale.SET_DITHER_TYPE.build(algorithm));
     }
-
     return SINGLE_SUCCESS;
   }
 
   private int setVideoMode(@NotNull final CommandContext<CommandSender> context) {
-
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String mode = context.getArgument("video-mode", String.class);
     final Optional<PlaybackType> type = PlaybackType.ofKey(mode);
-
     if (type.isEmpty()) {
-      red(audience, "Could not find video mode %s".formatted(mode));
+      audience.sendMessage(Locale.ERR_INVALID_VIDEO_TYPE.build(mode));
     } else {
       this.attributes.setVideoType(type.get());
-      audience.sendMessage(
-          format(join(noSeparators(), text("Set video mode to ", GOLD), text(mode, AQUA))));
+      audience.sendMessage(Locale.SET_VIDEO_TYPE.build(mode));
     }
-
     return SINGLE_SUCCESS;
   }
 

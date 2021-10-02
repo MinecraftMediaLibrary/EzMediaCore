@@ -59,7 +59,8 @@ public final class MediaExtractionUtils {
     SEARCH_KEYWORD = "videoId";
   }
 
-  private MediaExtractionUtils() {}
+  private MediaExtractionUtils() {
+  }
 
   /**
    * Extracts id from Youtube URL.
