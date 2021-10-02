@@ -62,13 +62,26 @@ public final class AudioCommand extends BaseCommand {
   }
 
   private int playAudio(@NotNull final CommandContext<CommandSender> context) {
-
     final Audience audience = this.plugin().audience().sender(context.getSource());
-
     if (this.checkUnloaded(audience) || this.checkIncompleteLoad(audience)) {
       return SINGLE_SUCCESS;
     }
+    this.playAudio();
+    audience.sendMessage(Locale.START_AUDIO.build());
+    return SINGLE_SUCCESS;
+  }
 
+  private int stopAudio(@NotNull final CommandContext<CommandSender> context) {
+    final Audience audience = this.plugin().audience().sender(context.getSource());
+    if (this.checkUnloaded(audience) || this.checkIncompleteLoad(audience)) {
+      return SINGLE_SUCCESS;
+    }
+    this.stopAudio();
+    audience.sendMessage(Locale.PAUSE_AUDIO.build());
+    return SINGLE_SUCCESS;
+  }
+
+  private void playAudio() {
     this.audioAction(
         player ->
             player.playSound(
@@ -77,25 +90,10 @@ public final class AudioCommand extends BaseCommand {
                 SoundCategory.MASTER,
                 100.0F,
                 1.0F));
-
-    audience.sendMessage(Locale.START_AUDIO.build());
-
-    return SINGLE_SUCCESS;
   }
 
-  private int stopAudio(@NotNull final CommandContext<CommandSender> context) {
-
-    final Audience audience = this.plugin().audience().sender(context.getSource());
-
-    if (this.checkUnloaded(audience) || this.checkIncompleteLoad(audience)) {
-      return SINGLE_SUCCESS;
-    }
-
+  private void stopAudio() {
     this.audioAction(player -> player.stopSound(this.attributes.getKey()));
-
-    audience.sendMessage(Locale.PAUSE_AUDIO.build());
-
-    return SINGLE_SUCCESS;
   }
 
   private void audioAction(@NotNull final Consumer<Player> consumer) {

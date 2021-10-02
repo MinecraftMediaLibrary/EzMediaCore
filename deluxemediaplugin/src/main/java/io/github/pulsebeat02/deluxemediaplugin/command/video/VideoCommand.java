@@ -75,8 +75,7 @@ public final class VideoCommand extends BaseCommand {
   public VideoCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "video", executor, "deluxemediaplugin.command.video", "");
-    this.attributes = new VideoCommandAttributes();
-    plugin.setAttributes(this.attributes);
+    this.attributes = plugin.getAttributes();
     this.builder = new VideoCreator(plugin.library(), this.attributes);
     this.node =
         this.literal(this.getName())

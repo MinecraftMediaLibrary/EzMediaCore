@@ -52,6 +52,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class CommandHandler implements TabExecutor {
 
@@ -75,32 +76,42 @@ public final class CommandHandler implements TabExecutor {
             new FFmpegCommand(plugin, this),
             new PluginCommand(plugin, this),
             new DiscordCommand(plugin, this));
-    final JavaPlugin loader = plugin.getBootstrap();
+    this.registerCommands();
+  }
+
+  private void registerCommands() {
+    final JavaPlugin loader = this.plugin.getBootstrap();
     final CommandMap commandMap = CommandMapHelper.getCommandMap();
     final Commodore commodore =
         CommodoreProvider.isSupported() ? CommodoreProvider.getCommodore(loader) : null;
     for (final BaseCommand command : this.commands) {
       this.rootNode.addChild(command.node());
       commandMap.register(loader.getName(), command);
-      try {
-        if (commodore != null) {
-          commodore.register(
-              CommodoreFileFormat.parse(
-                  loader.getResource("commodore/%s.commodore".formatted(command.getName()))));
-        }
-      } catch (final IOException e) {
-        e.printStackTrace();
+      this.registerCommodoreCommand(commodore, command);
+    }
+  }
+
+  private void registerCommodoreCommand(
+      @Nullable final Commodore commodore, @NotNull final BaseCommand command) {
+    final JavaPlugin loader = this.plugin.getBootstrap();
+    try {
+      if (commodore != null) {
+        commodore.register(
+            CommodoreFileFormat.parse(
+                loader.getResource("commodore/%s.commodore".formatted(command.getName()))));
       }
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
   }
 
   /**
    * CommandHandler to read input and execute other commands.
    *
-   * @param sender  command sender
+   * @param sender command sender
    * @param command command sent
-   * @param label   label of command
-   * @param args    arguments for command
+   * @param label label of command
+   * @param args arguments for command
    * @return whether the command usage should be showed up.
    */
   @Override
@@ -123,10 +134,10 @@ public final class CommandHandler implements TabExecutor {
   /**
    * Tab handler to handle tab completer.
    *
-   * @param sender  command sender
+   * @param sender command sender
    * @param command current command
-   * @param alias   aliases of command
-   * @param args    arguments of the command
+   * @param alias aliases of command
+   * @param args arguments of the command
    * @return list of options.
    */
   @Override

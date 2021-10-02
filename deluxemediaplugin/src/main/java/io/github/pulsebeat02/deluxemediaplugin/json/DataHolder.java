@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface DataHolder<T> {
 
-  void deserialize() throws IOException;
+  void deserialize(@NotNull final T obj) throws IOException;
 
   void serialize() throws IOException;
 

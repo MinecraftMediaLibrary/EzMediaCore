@@ -35,6 +35,6 @@ public class ExecutorProvider {
 
   static {
     STREAM_THREAD_EXECUTOR = Executors.newFixedThreadPool(4);
-    SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
+    SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(4);
   }
 }

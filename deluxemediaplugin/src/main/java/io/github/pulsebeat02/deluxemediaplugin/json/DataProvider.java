@@ -44,8 +44,8 @@ public abstract class DataProvider<T> implements DataHolder<T> {
   }
 
   @Override
-  public void deserialize() throws IOException {
-    GsonProvider.getGson().toJson(this.object, Files.newBufferedWriter(this.path));
+  public void deserialize(@NotNull final T obj) throws IOException {
+    GsonProvider.getGson().toJson(obj, Files.newBufferedWriter(this.path));
   }
 
   @Override

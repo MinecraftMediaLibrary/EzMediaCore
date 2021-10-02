@@ -37,15 +37,14 @@ public final class DeluxeMediaPluginBootstrap extends JavaPlugin {
 
   @Override
   public void onLoad() {
-    final Logger logger = this.getLogger();
-    logger.info(InternalLocale.SLIMJAR_LOAD.build());
     this.buildApplication();
-    logger.info(InternalLocale.SLIMJAR_FINISH.build());
     this.plugin = new DeluxeMediaPlugin(this);
     this.plugin.load();
   }
 
   private void buildApplication() {
+    final Logger logger = this.getLogger();
+    logger.info(InternalLocale.SLIMJAR_LOAD.build());
     try {
       ApplicationBuilder.appending("DeluxeMediaPlugin").build();
     } catch (final IOException
@@ -54,6 +53,7 @@ public final class DeluxeMediaPluginBootstrap extends JavaPlugin {
         | ReflectiveOperationException e) {
       e.printStackTrace();
     }
+    logger.info(InternalLocale.SLIMJAR_FINISH.build());
   }
 
   @Override
