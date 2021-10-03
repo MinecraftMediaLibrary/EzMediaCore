@@ -33,7 +33,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-import uk.co.caprica.vlcj.binding.RuntimeUtil;
 
 public final class Logger {
 
@@ -51,27 +50,48 @@ public final class Logger {
 
   public static void init(@NotNull final MediaLibraryCore core) {
     final Path path = core.getLibraryPath();
+    assignLoggerPaths(path);
+    try {
+      createDirectories(path);
+      assignPermissions(path);
+      assignFileWriters();
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private static void assignLoggerPaths(@NotNull final Path path) {
     LOG_FILE = path.resolve("emc.log");
     VLC_LOG_FILE = path.resolve("vlc.log");
     RTP_LOG_FILE = path.resolve("rtp.log");
     FFMPEG_PLAYER_LOG_FILE = path.resolve("ffmpeg.log");
     FFMPEG_STREAM_LOG_FILE = path.resolve("ffmpeg-stream.log");
-    try {
-      Files.createDirectories(path);
-      Set.of(LOG_FILE, VLC_LOG_FILE, RTP_LOG_FILE, FFMPEG_PLAYER_LOG_FILE, FFMPEG_STREAM_LOG_FILE)
-          .forEach(ThrowingConsumer.unchecked(FileUtils::createIfNotExists));
-      if (RuntimeUtil.isMac() || RuntimeUtil.isNix()) {
-        new CommandTask("chmod", "-R", "777", path.toAbsolutePath().toString());
-      }
-      LOGGER = new PrintWriter(Files.newBufferedWriter(LOG_FILE), true);
-      VLC_LOGGER = new PrintWriter(Files.newBufferedWriter(VLC_LOG_FILE), true);
-      RTP_LOGGER = new PrintWriter(Files.newBufferedWriter(RTP_LOG_FILE), true);
-      FFMPEG_PLAYER_LOGGER = new PrintWriter(Files.newBufferedWriter(FFMPEG_PLAYER_LOG_FILE), true);
-      FFMPEG_STREAMER_LOGGER =
-          new PrintWriter(Files.newBufferedWriter(FFMPEG_STREAM_LOG_FILE), true);
-    } catch (final IOException e) {
-      e.printStackTrace();
+  }
+
+  private static void createDirectories(@NotNull final Path path) throws IOException {
+    Files.createDirectories(path);
+    Set.of(LOG_FILE, VLC_LOG_FILE, RTP_LOG_FILE, FFMPEG_PLAYER_LOG_FILE, FFMPEG_STREAM_LOG_FILE)
+        .forEach(ThrowingConsumer.unchecked(FileUtils::createIfNotExists));
+  }
+
+  private static void assignPermissions(@NotNull final Path path) {
+    if (isUnix()) {
+      new CommandTask("chmod", "-R", "777", path.toAbsolutePath().toString());
     }
+  }
+
+  private static boolean isUnix() {
+    // cannot use Diagnostics because it's not created yet. Premature logger setup.
+    final String os = System.getProperty("os.name").toLowerCase();
+    return os.contains("mac") || os.contains("nix") || os.contains("nux") || os.contains("aix");
+  }
+
+  private static void assignFileWriters() throws IOException {
+    LOGGER = new PrintWriter(Files.newBufferedWriter(LOG_FILE), true);
+    VLC_LOGGER = new PrintWriter(Files.newBufferedWriter(VLC_LOG_FILE), true);
+    RTP_LOGGER = new PrintWriter(Files.newBufferedWriter(RTP_LOG_FILE), true);
+    FFMPEG_PLAYER_LOGGER = new PrintWriter(Files.newBufferedWriter(FFMPEG_PLAYER_LOG_FILE), true);
+    FFMPEG_STREAMER_LOGGER = new PrintWriter(Files.newBufferedWriter(FFMPEG_STREAM_LOG_FILE), true);
   }
 
   public static void closeAllLoggers() {
