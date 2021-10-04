@@ -28,7 +28,8 @@ import java.lang.management.ThreadInfo;
 
 public final class ThreadUtils {
 
-  private ThreadUtils() {}
+  private ThreadUtils() {
+  }
 
   public static void createThreadDump() {
     final ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads(true, true);

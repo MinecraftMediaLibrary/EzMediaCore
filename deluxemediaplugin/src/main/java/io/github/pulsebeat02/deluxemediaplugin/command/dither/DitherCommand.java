@@ -25,13 +25,12 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.dither;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.aqua;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import java.util.Map;
 import net.kyori.adventure.audience.Audience;
@@ -58,11 +57,7 @@ public final class DitherCommand extends BaseCommand {
 
     final Audience audience = this.audience().sender(context.getSource());
 
-    gold(audience, "Dithering Options ->");
-
-    for (final DitherSetting setting : DitherSetting.values()) {
-      aqua(audience, setting.getName());
-    }
+    audience.sendMessage(Locale.DITHERING_OPTIONS.build());
 
     return SINGLE_SUCCESS;
   }

@@ -26,35 +26,27 @@ package io.github.pulsebeat02.deluxemediaplugin.utility;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public class WrappedInteger {
+public class MutableInt {
 
   private int number;
 
-  WrappedInteger(@NotNull final Number number) {
-    this.number = (int) number;
-  }
-
-  WrappedInteger(final int number) {
+  MutableInt(final int number) {
     this.number = number;
   }
 
-  WrappedInteger(@NotNull final String number) {
-    this.number = Integer.parseInt(number);
+  @Contract(value = "_ -> new", pure = true)
+  public static @NotNull MutableInt ofNumber(@NotNull final Number number) {
+    return new MutableInt(number.intValue());
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull WrappedInteger ofNumber(@NotNull final Number number) {
-    return new WrappedInteger(number);
+  public static @NotNull MutableInt ofInteger(final int number) {
+    return new MutableInt(number);
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull WrappedInteger ofInteger(final int number) {
-    return new WrappedInteger(number);
-  }
-
-  @Contract(value = "_ -> new", pure = true)
-  public static @NotNull WrappedInteger ofString(@NotNull final String string) {
-    return new WrappedInteger(string);
+  public static @NotNull MutableInt ofString(@NotNull final String string) {
+    return new MutableInt(Integer.parseInt(string));
   }
 
   public void increment() {

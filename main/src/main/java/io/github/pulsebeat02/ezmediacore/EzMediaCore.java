@@ -129,7 +129,8 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void initializeStream() {
-    IntStream.range(0, 5).parallel().forEach(key -> {}); // jump start int stream
+    IntStream.range(0, 5).parallel().forEach(key -> {
+    }); // jump start int stream
   }
 
   private void initializeProviders() {
@@ -149,9 +150,9 @@ public final class EzMediaCore implements MediaLibraryCore {
   public void shutdown() {
     Logger.info("Shutting Down");
     this.disabled = true;
-    //    this.streams.release();
     HandlerList.unregisterAll(this.registrationListener);
     Logger.info("Good Bye! :(");
+    Logger.closeAllLoggers();
   }
 
   @Override

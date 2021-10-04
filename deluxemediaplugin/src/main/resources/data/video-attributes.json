@@ -1,0 +1,11 @@
+{
+  "completion": false,
+  "dither-type": "FILTER_LITE",
+  "audio-output": "RESOURCEPACK",
+  "playback-output": "ITEMFRAME",
+  "map-id": 0,
+  "frame-width": 5,
+  "frame-height": 5,
+  "pixel-width": 640,
+  "pixel-height": 360
+}

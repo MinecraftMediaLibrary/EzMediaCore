@@ -130,7 +130,8 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   @Override
   public void onPlayerStateChange(
-      @NotNull final PlayerControls status, @NotNull final Object... arguments) {}
+      @NotNull final PlayerControls status, @NotNull final Object... arguments) {
+  }
 
   @Override
   public void playAudio() {

@@ -82,7 +82,8 @@ public class DynamicImage extends Image
   }
 
   @Override
-  public void onStopDrawing() {}
+  public void onStopDrawing() {
+  }
 
   @Override
   public int getCurrentFrame() {

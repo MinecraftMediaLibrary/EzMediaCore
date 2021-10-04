@@ -25,19 +25,13 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.image;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
-import static net.kyori.adventure.text.Component.join;
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
-import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
-import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.ezmediacore.image.Image;
 import java.util.List;
 import java.util.Optional;
@@ -76,68 +70,48 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
   }
 
   private int purgeMap(@NotNull final CommandContext<CommandSender> context) {
-
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final int id = context.getArgument("id", int.class);
-
     final Optional<Image> image =
         this.plugin.getPictureManager().getImages().stream()
             .filter(img -> img.getMaps().contains(id))
             .findAny();
     if (image.isEmpty()) {
-      red(audience, "The image you request purge from the map is not loaded!");
+      audience.sendMessage(Locale.ERR_IMAGE_NOT_LOADED.build());
       return SINGLE_SUCCESS;
     }
-
     image.get().resetMaps();
-
-    audience.sendMessage(
-        format(
-            join(
-                noSeparators(),
-                text("Successfully purged all maps with id ", GOLD),
-                text(id, AQUA))));
-
+    audience.sendMessage(Locale.PURGE_MAP.build(id));
     return SINGLE_SUCCESS;
   }
 
   private int purgeAllMaps(@NotNull final CommandContext<CommandSender> context) {
-
     final CommandSender sender = context.getSource();
     final Audience audience = this.plugin.audience().sender(sender);
     if (!(sender instanceof Player)) {
-      red(audience, "You must be a player to execute this command!");
+      audience.sendMessage(Locale.ERR_PLAYER_SENDER.build());
       return SINGLE_SUCCESS;
     }
-
     this.attributes.getListen().add(((Player) sender).getUniqueId());
-
-    red(
-        audience,
-        "Are you sure you want to purge all maps? Type YES (all caps) if you would like to continue...");
-
+    audience.sendMessage(Locale.PURGE_ALL_MAPS_VERIFY.build());
     return SINGLE_SUCCESS;
   }
 
   @EventHandler
   public void onPlayerChat(final AsyncPlayerChatEvent event) {
-
     final Player p = event.getPlayer();
     final UUID uuid = p.getUniqueId();
     final Set<UUID> listen = this.attributes.getListen();
-
     if (listen.contains(uuid)) {
-
       event.setCancelled(true);
       final Audience audience = this.plugin.audience().player(p);
-
       if (event.getMessage().equals("YES")) {
         final List<Image> images = this.plugin.getPictureManager().getImages();
         images.forEach(Image::resetMaps);
         images.clear();
-        red(audience, "Successfully purged all images!");
+        audience.sendMessage(Locale.PURGED_ALL_MAPS.build());
       } else {
-        red(audience, "Cancelled purge of all images!");
+        audience.sendMessage(Locale.CANCELLED_PURGE_ALL_MAPS.build());
       }
       listen.remove(uuid);
     }

@@ -94,6 +94,9 @@ public final class DitherLookupUtil {
     return FULL_COLOR_MAP;
   }
 
-  /** Init. */
-  public static void init() {}
+  /**
+   * Init.
+   */
+  public static void init() {
+  }
 }

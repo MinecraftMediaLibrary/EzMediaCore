@@ -23,4 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
-public interface AudioExtractor extends IOProvider {}
+public interface AudioExtractor extends IOProvider {
+
+}

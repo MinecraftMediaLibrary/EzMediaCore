@@ -23,10 +23,10 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.bot.command;
 
+import io.github.pulsebeat02.deluxemediaplugin.bot.DiscordLocale;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
 import java.util.Set;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,14 +41,7 @@ public class DisconnectAudioCommand extends DiscordBaseCommand {
   public boolean execute(@NotNull final Message executor, final String @Nullable [] arguments) {
     final MusicManager manager = this.getBot().getMusicManager();
     manager.leaveVoiceChannel();
-    executor
-        .getChannel()
-        .sendMessageEmbeds(
-            new EmbedBuilder()
-                .setTitle("Audio Voice Channel Connection")
-                .setDescription("Left voice channel!")
-                .build())
-        .queue();
+    executor.getChannel().sendMessageEmbeds(DiscordLocale.DC_VC_EMBED.build()).queue();
     return true;
   }
 }

@@ -30,14 +30,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.logging.Level;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public abstract class ConfigurationProvider<T> {
+public abstract class ConfigurationProvider<T> implements ConfigHolder<T> {
 
   private final DeluxeMediaPlugin plugin;
   private final JavaPlugin loader;
@@ -46,14 +44,15 @@ public abstract class ConfigurationProvider<T> {
 
   private FileConfiguration fileConfiguration;
 
-  public ConfigurationProvider(@NotNull final DeluxeMediaPlugin plugin, @NotNull final String name)
-      throws IOException {
+  public ConfigurationProvider(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final String name) {
     this.plugin = plugin;
     this.name = name;
     this.loader = plugin.getBootstrap();
     this.config = this.loader.getDataFolder().toPath().resolve(this.name);
   }
 
+  @Override
   public void reloadConfig() {
     this.fileConfiguration = YamlConfiguration.loadConfiguration(this.config.toFile());
     final InputStream defConfigStream = this.loader.getResource(this.name);
@@ -64,6 +63,7 @@ public abstract class ConfigurationProvider<T> {
     }
   }
 
+  @Override
   public FileConfiguration getConfig() {
     if (this.fileConfiguration == null) {
       this.reloadConfig();
@@ -71,54 +71,43 @@ public abstract class ConfigurationProvider<T> {
     return this.fileConfiguration;
   }
 
-  public void saveConfig() {
+  @Override
+  public void saveConfig() throws IOException {
     if (this.fileConfiguration != null && this.config != null) {
-      try {
-        this.getConfig().save(this.config.toFile());
-      } catch (final IOException e) {
-        this.loader
-            .getLogger()
-            .log(Level.SEVERE, "Could not save config to %s".formatted(this.config), e);
-      }
+      this.getConfig().save(this.config.toFile());
     }
   }
 
+  @Override
   public void saveDefaultConfig() {
     if (!Files.exists(this.config)) {
       this.loader.saveResource(this.name, false);
     }
   }
 
-  public void read() {
-    if (!Files.exists(this.config)) {
-      this.saveDefaultConfig();
-    }
+  @Override
+  public void read() throws IOException {
+    this.saveDefaultConfig();
     this.getConfig();
-    try {
-      this.serialize();
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
+    this.serialize();
   }
 
-  abstract void deserialize();
-
-  abstract void serialize() throws IOException;
-
-  abstract @Nullable T getSerializedValue();
-
+  @Override
   public @NotNull DeluxeMediaPlugin getPlugin() {
     return this.plugin;
   }
 
+  @Override
   public @NotNull String getFileName() {
     return this.name;
   }
 
+  @Override
   public @NotNull Path getConfigFile() {
     return this.config;
   }
 
+  @Override
   public @NotNull FileConfiguration getFileConfiguration() {
     return this.fileConfiguration;
   }

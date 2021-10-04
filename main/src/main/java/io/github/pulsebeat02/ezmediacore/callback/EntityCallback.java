@@ -156,7 +156,8 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
     if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
       this.setLastUpdated(time);
       this.getPacketHandler()
-          .displayEntities(this.getWatchers().getViewers(), this.entities, data, this.getDimensions().getWidth());
+          .displayEntities(this.getWatchers().getViewers(), this.entities, data,
+              this.getDimensions().getWidth());
     }
   }
 
@@ -180,6 +181,7 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
     private NamedEntityString character = NamedEntityString.NORMAL_SQUARE;
     private Location location;
     private EntityType type = EntityType.ARMORSTAND;
+
     Builder() {
     }
 

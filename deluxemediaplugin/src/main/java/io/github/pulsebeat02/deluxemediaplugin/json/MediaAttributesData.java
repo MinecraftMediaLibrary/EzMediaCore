@@ -21,43 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package io.github.pulsebeat02.deluxemediaplugin.json;
 
-package io.github.pulsebeat02.deluxemediaplugin.command.video;
-
-import java.util.Map;
-import java.util.Optional;
+import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
 import org.jetbrains.annotations.NotNull;
 
-public enum VideoType {
-  ITEMFRAME("itemframe-maps"),
-  ARMOR_STAND("armorstands"),
-  CHATBOX("chatbox"),
-  DEBUG_HIGHLIGHTS("debug-highlights"),
-  SCOREBOARD("scoreboard");
+public class MediaAttributesData extends DataProvider<VideoCommandAttributes> {
 
-  private static final Map<String, VideoType> KEYS;
-
-  static {
-    KEYS =
-        Map.of(
-            "ITEMFRAME", ITEMFRAME,
-            "ARMOR_STAND", ARMOR_STAND,
-            "CHATBOX", CHATBOX,
-            "DEBUG_HIGHLIGHTS", DEBUG_HIGHLIGHTS,
-            "SCOREBOARD", SCOREBOARD);
-  }
-
-  private final String name;
-
-  VideoType(@NotNull final String name) {
-    this.name = name;
-  }
-
-  public static @NotNull Optional<VideoType> ofKey(@NotNull final String str) {
-    return Optional.ofNullable(KEYS.get(str));
-  }
-
-  public String getName() {
-    return this.name;
+  public MediaAttributesData(@NotNull final DeluxeMediaPlugin plugin) {
+    super(plugin, VideoCommandAttributes.class, "data/video-attributes.json");
   }
 }

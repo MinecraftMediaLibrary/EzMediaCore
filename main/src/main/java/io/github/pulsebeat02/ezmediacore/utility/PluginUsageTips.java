@@ -30,23 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class PluginUsageTips {
 
-  private static final String JAVA_VERSION;
-  private static final int MAJOR_VERSION;
-
-  static {
-    JAVA_VERSION = System.getProperty("java.version");
-    MAJOR_VERSION = Integer.parseInt(JAVA_VERSION.split("\\.")[1]);
-  }
-
   private PluginUsageTips() {
-  }
-
-  public static String getJavaVersion() {
-    return JAVA_VERSION;
-  }
-
-  public static int getMajorVersion() {
-    return MAJOR_VERSION;
   }
 
   public static void sendWarningMessage() {

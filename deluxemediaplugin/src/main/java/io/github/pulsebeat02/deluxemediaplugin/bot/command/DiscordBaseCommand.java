@@ -25,11 +25,9 @@ package io.github.pulsebeat02.deluxemediaplugin.bot.command;
 
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import java.util.Collection;
-import net.dv8tion.jda.api.entities.Message;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public abstract class DiscordBaseCommand {
+public abstract class DiscordBaseCommand implements DiscordCommand {
 
   private final MediaBot bot;
   private final String command;
@@ -44,17 +42,17 @@ public abstract class DiscordBaseCommand {
     this.subcommands = subcommands;
   }
 
-  public abstract boolean execute(
-      @NotNull final Message executor, final String @Nullable [] arguments);
-
+  @Override
   public @NotNull String getCommand() {
     return this.command;
   }
 
+  @Override
   public @NotNull Collection<DiscordBaseCommand> getArguments() {
     return this.subcommands;
   }
 
+  @Override
   public @NotNull MediaBot getBot() {
     return this.bot;
   }

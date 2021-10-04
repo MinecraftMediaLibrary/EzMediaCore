@@ -25,10 +25,14 @@
 package io.github.pulsebeat02.deluxemediaplugin.update;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import io.github.pulsebeat02.deluxemediaplugin.executors.ExecutorProvider;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
+import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 
 public final class UpdateChecker {
@@ -46,23 +50,23 @@ public final class UpdateChecker {
   }
 
   public void check() {
-    CompletableFuture.runAsync(
-        () -> {
-          try (final Scanner scanner =
-              new Scanner(
-                  new URL(
-                          "https://api.spigotmc.org/legacy/update.php?resource=%d"
-                              .formatted(this.resource))
-                      .openStream())) {
-            final String update = scanner.next();
-            if (this.plugin.getBootstrap().getDescription().getVersion().equalsIgnoreCase(update)) {
-              this.plugin.log("There is a new update available! (%s)".formatted(update));
-            } else {
-              this.plugin.log("You are currently running the latest version of DeluxeMediaPlugin.");
-            }
-          } catch (final IOException exception) {
-            this.plugin.log("Cannot look for updates: %s".formatted(exception.getMessage()));
-          }
-        });
+    CompletableFuture.runAsync(this::request, ExecutorProvider.PERIODIC_CHECK_EXECUTOR);
+  }
+
+  private void request() {
+    final Audience console = this.plugin.getConsoleAudience();
+    final String url =
+        "https://api.spigotmc.org/legacy/update.php?resource=%d".formatted(this.resource);
+    try (final InputStream is = new URL(url).openStream();
+        final Scanner scanner = new Scanner(is)) {
+      final String update = scanner.next();
+      if (this.plugin.getBootstrap().getDescription().getVersion().equalsIgnoreCase(update)) {
+        console.sendMessage(Locale.NEW_UPDATE_PLUGIN.build(update));
+      } else {
+        console.sendMessage(Locale.RUNNING_LATEST_PLUGIN.build());
+      }
+    } catch (final IOException e) {
+      console.sendMessage(Locale.ERR_CANNOT_CHECK_UPDATES.build(e.getMessage()));
+    }
   }
 }

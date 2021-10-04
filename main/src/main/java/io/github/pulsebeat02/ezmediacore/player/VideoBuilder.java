@@ -97,7 +97,8 @@ public class VideoBuilder {
       }
       case UNIX -> {
         return core.isVLCSupported() ? this.vlcOption()
-            : new FFmpegMediaPlayer(this.callback, this.callback.getWatchers(), this.dims, BufferConfiguration.BUFFER_10, this.key, this.rate);
+            : new FFmpegMediaPlayer(this.callback, this.callback.getWatchers(), this.dims,
+                BufferConfiguration.BUFFER_10, this.key, this.rate);
       }
       default -> throw new UnsupportedPlatformException("Unknown");
     }
@@ -105,7 +106,8 @@ public class VideoBuilder {
 
   @Contract(" -> new")
   private @NotNull MediaPlayer vlcOption() {
-    return vlc().callback(this.callback).dims(this.dims).soundKey(this.key).frameRate(this.rate).build();
+    return vlc().callback(this.callback).dims(this.dims).soundKey(this.key).frameRate(this.rate)
+        .build();
   }
 
   public void calculateFrameRate() {

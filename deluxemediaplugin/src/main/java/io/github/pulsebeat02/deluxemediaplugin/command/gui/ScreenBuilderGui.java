@@ -24,7 +24,6 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.gui;
 
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
@@ -38,7 +37,8 @@ import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.utility.WrappedInteger;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
+import io.github.pulsebeat02.deluxemediaplugin.utility.MutableInt;
 import io.github.pulsebeat02.ezmediacore.utility.MapUtils;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -53,9 +53,9 @@ public final class ScreenBuilderGui {
   private final StaticPane pane;
   private final Player viewer;
   private final DeluxeMediaPlugin plugin;
-  private final WrappedInteger width;
-  private final WrappedInteger height;
-  private final WrappedInteger id;
+  private final MutableInt width;
+  private final MutableInt height;
+  private final MutableInt id;
   private Material material;
 
   public ScreenBuilderGui(@NotNull final DeluxeMediaPlugin plugin, @NotNull final Player player) {
@@ -64,9 +64,9 @@ public final class ScreenBuilderGui {
     this.plugin = plugin;
     this.material = Material.OAK_PLANKS;
     this.viewer = player;
-    this.width = WrappedInteger.ofInteger(5);
-    this.height = WrappedInteger.ofInteger(5);
-    this.id = WrappedInteger.ofInteger(0);
+    this.width = MutableInt.ofInteger(5);
+    this.height = MutableInt.ofInteger(5);
+    this.id = MutableInt.ofInteger(0);
     this.initialize();
     this.gui.show(player);
   }
@@ -96,10 +96,7 @@ public final class ScreenBuilderGui {
                   this.width.getNumber(),
                   this.height.getNumber(),
                   this.id.getNumber());
-              this.plugin
-                  .audience()
-                  .sender(this.viewer)
-                  .sendMessage(format(text("Successfully built your new screen!", GREEN)));
+              this.plugin.audience().sender(this.viewer).sendMessage(Locale.BUILT_SCREEN.build());
               this.viewer.playSound(this.viewer.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 10, 1);
             })
         .build();
@@ -107,7 +104,7 @@ public final class ScreenBuilderGui {
 
   @Contract("_, _, _ -> new")
   private @NotNull GuiItem getGuiItem(
-      @NotNull final ItemStack stack, @NotNull final WrappedInteger update, final boolean add) {
+      @NotNull final ItemStack stack, @NotNull final MutableInt update, final boolean add) {
     return new GuiItem(
         stack,
         (event) -> {

@@ -120,16 +120,17 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
   }
 
   @Override
-  public void setPlayerState(@NotNull final PlayerControls controls, @NotNull final Object... arguments) {
+  public void setPlayerState(@NotNull final PlayerControls controls,
+      @NotNull final Object... arguments) {
     super.setPlayerState(controls);
     CompletableFuture.runAsync(() -> {
-    this.firstFrame = false;
-    switch (controls) {
-      case START, RESUME -> this.play(controls, arguments);
-      case PAUSE -> this.pause();
-      case RELEASE -> this.release();
-      default -> throw new IllegalArgumentException("Player state is invalid!");
-    }
+      this.firstFrame = false;
+      switch (controls) {
+        case START, RESUME -> this.play(controls, arguments);
+        case PAUSE -> this.pause();
+        case RELEASE -> this.release();
+        default -> throw new IllegalArgumentException("Player state is invalid!");
+      }
     });
   }
 
@@ -157,7 +158,8 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
             .addArguments("-vf",
                 "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()))
             .setLogLevel(LogLevel.FATAL)
-            .setProgressListener((line) -> {})
+            .setProgressListener((line) -> {
+            })
             .setOutputListener(Logger::directPrintFFmpegPlayer);
     for (int i = 1; i < arguments.length; i++) {
       this.ffmpeg.addArgument(arguments[i].toString());
@@ -237,16 +239,17 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
     });
   }
 
-  private void setupPlayer(@NotNull final PlayerControls controls, @NotNull final Object[] arguments) {
-      if (controls == PlayerControls.START) {
-        this.stopAudio();
-        if (this.ffmpeg == null) {
-          this.initializePlayer(0L, arguments);
-        }
-        this.start = 0L;
-      } else if (controls == PlayerControls.RESUME) {
-        this.initializePlayer(System.currentTimeMillis() - this.start, arguments);
+  private void setupPlayer(@NotNull final PlayerControls controls,
+      @NotNull final Object[] arguments) {
+    if (controls == PlayerControls.START) {
+      this.stopAudio();
+      if (this.ffmpeg == null) {
+        this.initializePlayer(0L, arguments);
       }
+      this.start = 0L;
+    } else if (controls == PlayerControls.RESUME) {
+      this.initializePlayer(System.currentTimeMillis() - this.start, arguments);
+    }
   }
 
   private FFmpegResultFuture updateFFmpegPlayer() {

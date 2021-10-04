@@ -25,13 +25,12 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.audio;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.gold;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.red;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -63,13 +62,26 @@ public final class AudioCommand extends BaseCommand {
   }
 
   private int playAudio(@NotNull final CommandContext<CommandSender> context) {
-
     final Audience audience = this.plugin().audience().sender(context.getSource());
-
     if (this.checkUnloaded(audience) || this.checkIncompleteLoad(audience)) {
       return SINGLE_SUCCESS;
     }
+    this.playAudio();
+    audience.sendMessage(Locale.START_AUDIO.build());
+    return SINGLE_SUCCESS;
+  }
 
+  private int stopAudio(@NotNull final CommandContext<CommandSender> context) {
+    final Audience audience = this.plugin().audience().sender(context.getSource());
+    if (this.checkUnloaded(audience) || this.checkIncompleteLoad(audience)) {
+      return SINGLE_SUCCESS;
+    }
+    this.stopAudio();
+    audience.sendMessage(Locale.PAUSE_AUDIO.build());
+    return SINGLE_SUCCESS;
+  }
+
+  private void playAudio() {
     this.audioAction(
         player ->
             player.playSound(
@@ -78,25 +90,10 @@ public final class AudioCommand extends BaseCommand {
                 SoundCategory.MASTER,
                 100.0F,
                 1.0F));
-
-    gold(audience, "Started playing audio!");
-
-    return SINGLE_SUCCESS;
   }
 
-  private int stopAudio(@NotNull final CommandContext<CommandSender> context) {
-
-    final Audience audience = this.plugin().audience().sender(context.getSource());
-
-    if (this.checkUnloaded(audience) || this.checkIncompleteLoad(audience)) {
-      return SINGLE_SUCCESS;
-    }
-
+  private void stopAudio() {
     this.audioAction(player -> player.stopSound(this.attributes.getKey()));
-
-    red(audience, "Stopped playing audio!");
-
-    return SINGLE_SUCCESS;
   }
 
   private void audioAction(@NotNull final Consumer<Player> consumer) {
@@ -105,7 +102,7 @@ public final class AudioCommand extends BaseCommand {
 
   private boolean checkUnloaded(@NotNull final Audience audience) {
     if (this.attributes.getAudio() == null) {
-      red(audience, "File or URL not specified!");
+      audience.sendMessage(Locale.ERR_NO_MRL.build());
       return true;
     }
     return false;
@@ -113,7 +110,7 @@ public final class AudioCommand extends BaseCommand {
 
   private boolean checkIncompleteLoad(@NotNull final Audience audience) {
     if (!this.attributes.getCompletion().get()) {
-      red(audience, "Audio is still processing!");
+      audience.sendMessage(Locale.ERR_NO_MRL.build());
       return true;
     }
     return false;

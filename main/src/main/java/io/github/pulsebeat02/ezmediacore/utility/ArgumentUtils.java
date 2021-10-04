@@ -32,7 +32,8 @@ import org.jetbrains.annotations.Nullable;
 
 public final class ArgumentUtils {
 
-  private ArgumentUtils() {}
+  private ArgumentUtils() {
+  }
 
   public static @NotNull MrlConfiguration retrieveDirectVideo(
       @NotNull final Object @Nullable [] arguments) {

@@ -42,7 +42,7 @@ public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
   }
 
   @Override
-  public void deserialize() {
+  public void deserialize() throws IOException {
     final FileConfiguration configuration = this.getFileConfiguration();
     configuration.set("enabled", this.enabled);
     configuration.set("port", this.daemon.getDaemon().getPort());

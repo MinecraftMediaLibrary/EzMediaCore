@@ -64,13 +64,13 @@ import org.jetbrains.annotations.NotNull;
  * @author <a href="http://johannburkard.de">Johann Burkard</a>
  * @version $Id: BNDM.java 6675 2015-01-17 21:02:35Z johann $
  * @see <a href="http://johannburkard.de/software/stringsearch/" target="_top"> StringSearch &#8211;
- *     high-performance pattern matching algorithms in Java</a>
+ * high-performance pattern matching algorithms in Java</a>
  * @see <a href="http://www.dcc.uchile.cl/~gnavarro/ps/cpm98.ps.gz" target="_top">
- *     http://www.dcc.uchile.cl/~gnavarro/ps/cpm98.ps.gz </a>
+ * http://www.dcc.uchile.cl/~gnavarro/ps/cpm98.ps.gz </a>
  * @see <a href="http://www-igm.univ-mlv.fr/~raffinot/ftp/cpm98.ps.gz" target="_top">
- *     http://www-igm.univ-mlv.fr/~raffinot/ftp/cpm98.ps.gz </a>
+ * http://www-igm.univ-mlv.fr/~raffinot/ftp/cpm98.ps.gz </a>
  * @see <a href="http://citeseer.ist.psu.edu/navarro98bitparallel.html" target="_top">
- *     http://citeseer.ist.psu.edu/navarro98bitparallel.html </a>
+ * http://citeseer.ist.psu.edu/navarro98bitparallel.html </a>
  */
 public class BNDM extends StringSearch {
 
@@ -95,8 +95,8 @@ public class BNDM extends StringSearch {
 
   /**
    * Pre-processing of the pattern. The pattern may not exceed 32 bytes in length. If it does,
-   * <b>only it's first 32 bytes</b> are processed which might lead to unexpected results. Returns a
-   * {@link CharIntMap} which is serializable.
+   * <b>only it's first 32 bytes</b> are processed which might lead to unexpected results. Returns
+   * a {@link CharIntMap} which is serializable.
    */
   @Override
   public Object processChars(final char @NotNull [] pattern) {
@@ -112,7 +112,9 @@ public class BNDM extends StringSearch {
     return b;
   }
 
-  /** */
+  /**
+   *
+   */
   @Override
   public int searchBytes(
       final byte[] text,

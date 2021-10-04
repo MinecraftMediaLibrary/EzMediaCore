@@ -29,7 +29,8 @@ import java.util.concurrent.RecursiveTask;
 
 final class LoadBlue extends RecursiveTask<Byte> {
 
-  @Serial private static final long serialVersionUID = 5331764784578439634L;
+  @Serial
+  private static final long serialVersionUID = 5331764784578439634L;
   private final int r, g, b;
   private final int[] palette;
 

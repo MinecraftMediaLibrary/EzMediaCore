@@ -118,16 +118,13 @@ public class NativeBinarySearch implements BinarySearcher {
 
   @Override
   public Optional<Path> search() {
-
     if (this.path != null) {
       return Optional.of(this.path);
     }
-
     final List<String> paths = this.getSearchDirectories();
     if (this.search != null) {
       paths.add(this.search.toString());
     }
-
     for (final String path : paths) {
       final Optional<Path> optional = this.provider.discover(Path.of(path));
       if (optional.isPresent()) {
@@ -135,9 +132,7 @@ public class NativeBinarySearch implements BinarySearcher {
         break;
       }
     }
-
     Logger.info(this.path == null ? "VLC path is invalid!" : "VLC path is valid!");
-
     return Optional.ofNullable(this.path);
   }
 

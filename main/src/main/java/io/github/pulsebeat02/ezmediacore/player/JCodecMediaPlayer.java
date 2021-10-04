@@ -87,38 +87,39 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
   }
 
   @Override
-  public void setPlayerState(@NotNull final PlayerControls controls, @NotNull final Object... arguments) {
+  public void setPlayerState(@NotNull final PlayerControls controls,
+      @NotNull final Object... arguments) {
     super.setPlayerState(controls);
     CompletableFuture.runAsync(() -> {
-    switch (controls) {
-      case START -> CompletableFuture.runAsync(() -> {
-        this.setDirectVideoMrl(ArgumentUtils.retrieveDirectVideo(arguments));
-        this.setDirectAudioMrl(ArgumentUtils.retrieveDirectAudio(arguments));
-        if (this.grabber == null) {
-          this.initializePlayer(0L);
+      switch (controls) {
+        case START -> CompletableFuture.runAsync(() -> {
+          this.setDirectVideoMrl(ArgumentUtils.retrieveDirectVideo(arguments));
+          this.setDirectAudioMrl(ArgumentUtils.retrieveDirectAudio(arguments));
+          if (this.grabber == null) {
+            this.initializePlayer(0L);
+          }
+          this.paused = false;
+          this.play();
+          this.start = System.currentTimeMillis();
+        });
+        case PAUSE -> {
+          this.stopAudio();
+          this.paused = true;
+          this.start = System.currentTimeMillis();
         }
-        this.paused = false;
-        this.play();
-        this.start = System.currentTimeMillis();
-      });
-      case PAUSE -> {
-        this.stopAudio();
-        this.paused = true;
-        this.start = System.currentTimeMillis();
-      }
-      case RESUME -> {
-        this.initializePlayer(System.currentTimeMillis() - this.start);
-        this.paused = false;
-        this.play();
-      }
-      case RELEASE -> {
-        this.paused = false;
-        if (this.grabber != null) {
-          this.grabber = null;
+        case RESUME -> {
+          this.initializePlayer(System.currentTimeMillis() - this.start);
+          this.paused = false;
+          this.play();
         }
+        case RELEASE -> {
+          this.paused = false;
+          if (this.grabber != null) {
+            this.grabber = null;
+          }
+        }
+        default -> throw new IllegalArgumentException("Player state is invalid!");
       }
-      default -> throw new IllegalArgumentException("Player state is invalid!");
-    }
     });
   }
 
@@ -202,7 +203,8 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
     final Dimension dimension = this.getDimensions();
     this.start = ms;
     try {
-      this.grabber = FrameGrab.createFrameGrab(NIOUtils.readableFileChannel(this.getDirectVideoMrl().getMrl()));
+      this.grabber = FrameGrab.createFrameGrab(
+          NIOUtils.readableFileChannel(this.getDirectVideoMrl().getMrl()));
       this.grabber.seekToSecondPrecise(ms / 1000.0F);
       this.grabber.getMediaInfo().setDim(new Size(dimension.getWidth(), dimension.getHeight()));
     } catch (final IOException | JCodecException e) {

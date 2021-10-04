@@ -40,88 +40,90 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public record VideoCreator(MediaLibraryCore library,
-						   VideoCommandAttributes attributes) {
+                           VideoCommandAttributes attributes) {
 
-	public VideoCreator(
-			@NotNull final MediaLibraryCore library, @NotNull final VideoCommandAttributes attributes) {
-		this.library = library;
-		this.attributes = attributes;
-	}
+  public VideoCreator(
+      @NotNull final MediaLibraryCore library, @NotNull final VideoCommandAttributes attributes) {
+    this.library = library;
+    this.attributes = attributes;
+  }
 
-	public @NotNull VideoPlayer createMapPlayer(@NotNull final Collection<? extends Player> viewers) {
-		return VideoBuilder.unspecified()
-				.callback(
-						CallbackBuilder.map()
-								.algorithm(this.attributes.getDither().getAlgorithm())
-								.blockWidth(this.attributes.getPixelWidth())
-								.map(Identifier.ofIdentifier(0))
-								.dims(Dimension.ofDimension(this.attributes.getFrameWidth(), this.attributes.getFrameHeight()))
-								.viewers(Viewers.ofPlayers(viewers))
-								.delay(DelayConfiguration.DELAY_0_MS)
-								.build(this.library))
-				.dims(Dimension.ofDimension(this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
-				.soundKey(SoundKey.ofSound("emc"))
-				.build();
-	}
+  public @NotNull VideoPlayer createMapPlayer(@NotNull final Collection<? extends Player> viewers) {
+    return VideoBuilder.unspecified()
+        .callback(
+            CallbackBuilder.map()
+                .algorithm(this.attributes.getDitherType().getAlgorithm())
+                .blockWidth(this.attributes.getPixelWidth())
+                .map(Identifier.ofIdentifier(0))
+                .dims(Dimension.ofDimension(this.attributes.getFrameWidth(),
+                    this.attributes.getFrameHeight()))
+                .viewers(Viewers.ofPlayers(viewers))
+                .delay(DelayConfiguration.DELAY_0_MS)
+                .build(this.library))
+        .dims(Dimension.ofDimension(this.attributes.getPixelWidth(),
+            this.attributes.getPixelHeight()))
+        .soundKey(SoundKey.ofSound("emc"))
+        .build();
+  }
 
-	public @NotNull VideoPlayer createEntityPlayer(
-			@NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
-		return VideoBuilder.unspecified()
-				.callback(
-						CallbackBuilder.entity()
-								.character(NamedEntityString.NORMAL_SQUARE)
-								.type(EntityType.ARMORSTAND)
-								.location(sender.getLocation())
-								.dims(Dimension.ofDimension(
-										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
-								.viewers(Viewers.ofPlayers(viewers))
-								.delay(DelayConfiguration.DELAY_20_MS)
-								.build(this.library))
-				.soundKey(SoundKey.ofSound("emc"))
-				.build();
-	}
+  public @NotNull VideoPlayer createEntityPlayer(
+      @NotNull final Player sender, @NotNull final Collection<? extends Player> viewers) {
+    return VideoBuilder.unspecified()
+        .callback(
+            CallbackBuilder.entity()
+                .character(NamedEntityString.NORMAL_SQUARE)
+                .type(EntityType.ARMORSTAND)
+                .location(sender.getLocation())
+                .dims(Dimension.ofDimension(
+                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
+                .viewers(Viewers.ofPlayers(viewers))
+                .delay(DelayConfiguration.DELAY_20_MS)
+                .build(this.library))
+        .soundKey(SoundKey.ofSound("emc"))
+        .build();
+  }
 
-	public @NotNull VideoPlayer createChatBoxPlayer(
-			@NotNull final Collection<? extends Player> viewers) {
-		return VideoBuilder.unspecified()
-				.callback(
-						CallbackBuilder.chat()
-								.character(NamedEntityString.NORMAL_SQUARE)
-								.dims(Dimension.ofDimension(
-										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
-								.viewers(Viewers.ofPlayers(viewers))
-								.delay(DelayConfiguration.ofDelay(20))
-								.build(this.library))
-				.soundKey(SoundKey.ofSound("emc"))
-				.build();
-	}
+  public @NotNull VideoPlayer createChatBoxPlayer(
+      @NotNull final Collection<? extends Player> viewers) {
+    return VideoBuilder.unspecified()
+        .callback(
+            CallbackBuilder.chat()
+                .character(NamedEntityString.NORMAL_SQUARE)
+                .dims(Dimension.ofDimension(
+                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
+                .viewers(Viewers.ofPlayers(viewers))
+                .delay(DelayConfiguration.ofDelay(20))
+                .build(this.library))
+        .soundKey(SoundKey.ofSound("emc"))
+        .build();
+  }
 
-	public @NotNull VideoPlayer createScoreboardPlayer(
-			@NotNull final Collection<? extends Player> viewers) {
-		return VideoBuilder.unspecified()
-				.callback(
-						CallbackBuilder.scoreboard()
-								.id(Identifier.ofIdentifier(1080))
-								.dims(Dimension.ofDimension(
-										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
-								.viewers(Viewers.ofPlayers(viewers))
-								.delay(DelayConfiguration.DELAY_20_MS)
-								.build(this.library))
-				.soundKey(SoundKey.ofSound("emc"))
-				.build();
-	}
+  public @NotNull VideoPlayer createScoreboardPlayer(
+      @NotNull final Collection<? extends Player> viewers) {
+    return VideoBuilder.unspecified()
+        .callback(
+            CallbackBuilder.scoreboard()
+                .id(Identifier.ofIdentifier(1080))
+                .dims(Dimension.ofDimension(
+                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
+                .viewers(Viewers.ofPlayers(viewers))
+                .delay(DelayConfiguration.DELAY_20_MS)
+                .build(this.library))
+        .soundKey(SoundKey.ofSound("emc"))
+        .build();
+  }
 
-	public @NotNull VideoPlayer createBlockHighlightPlayer(
-			@NotNull final Player sender) {
-		return VideoBuilder.unspecified()
-				.callback(
-						CallbackBuilder.blockHighlight()
-								.location(sender.getLocation())
-								.dims(Dimension.ofDimension(
-										this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
-								.delay(DelayConfiguration.ofDelay(40))
-								.build(this.library))
-				.soundKey(SoundKey.ofSound("emc"))
-				.build();
-	}
+  public @NotNull VideoPlayer createBlockHighlightPlayer(
+      @NotNull final Player sender) {
+    return VideoBuilder.unspecified()
+        .callback(
+            CallbackBuilder.blockHighlight()
+                .location(sender.getLocation())
+                .dims(Dimension.ofDimension(
+                    this.attributes.getPixelWidth(), this.attributes.getPixelHeight()))
+                .delay(DelayConfiguration.ofDelay(40))
+                .build(this.library))
+        .soundKey(SoundKey.ofSound("emc"))
+        .build();
+  }
 }

@@ -25,12 +25,6 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.ffmpeg;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils.format;
-import static net.kyori.adventure.text.Component.join;
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
-import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
-import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -38,6 +32,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegCommandExecutor;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
@@ -67,12 +62,10 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
   }
 
   private int addIndexArgument(@NotNull final CommandContext<CommandSender> context) {
-
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String str = context.getArgument("arguments", String.class);
     final int index = context.getArgument("index", int.class);
     final String[] args = str.split(" ");
-
     for (final String arg : args) {
       if (arg.contains("=")) {
         final String[] split = arg.split("=");
@@ -81,25 +74,14 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
         this.ffmpeg.addArgument(arg, index);
       }
     }
-
-    audience.sendMessage(
-        format(
-            join(
-                noSeparators(),
-                text("Added arguments ", GOLD),
-                text(str, AQUA),
-                text(" to the FFmpeg command at index ", GOLD),
-                text(index, AQUA))));
-
+    audience.sendMessage(Locale.ADD_FFMPEG_ARG_INDX.build(str, index));
     return SINGLE_SUCCESS;
   }
 
   private int addArgument(@NotNull final CommandContext<CommandSender> context) {
-
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String str = context.getArgument("arguments", String.class);
     final String[] arguments = str.split(" ");
-
     for (final String argument : arguments) {
       if (argument.contains("=")) {
         final String[] split = argument.split("=");
@@ -108,15 +90,7 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
         this.ffmpeg.addArgument(argument);
       }
     }
-
-    audience.sendMessage(
-        format(
-            join(
-                noSeparators(),
-                text("Added arguments ", GOLD),
-                text(str, AQUA),
-                text(" to the FFmpeg command.", GOLD))));
-
+    audience.sendMessage(Locale.ADD_FFMPEG_ARG.build(str));
     return SINGLE_SUCCESS;
   }
 

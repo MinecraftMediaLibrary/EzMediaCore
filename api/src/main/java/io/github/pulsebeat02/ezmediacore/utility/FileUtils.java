@@ -39,7 +39,8 @@ import org.jetbrains.annotations.NotNull;
 
 public final class FileUtils {
 
-  private FileUtils() {}
+  private FileUtils() {
+  }
 
   public static @NotNull Path downloadImageFile(
       @NotNull final String url, @NotNull final Path folder) throws IOException {

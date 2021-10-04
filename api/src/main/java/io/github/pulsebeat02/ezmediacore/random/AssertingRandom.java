@@ -35,8 +35,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class AssertingRandom extends Random {
 
-  @Serial private static final long serialVersionUID = -1552213382473062718L;
-  /** Enable paranoid mode when assertions are enabled. */
+  @Serial
+  private static final long serialVersionUID = -1552213382473062718L;
+  /**
+   * Enable paranoid mode when assertions are enabled.
+   */
   private static final boolean assertionsEnabled = AssertingRandom.class.desiredAssertionStatus();
 
   private final Random delegate;
@@ -162,7 +165,9 @@ public final class AssertingRandom extends Random {
     return this.delegate.hashCode();
   }
 
-  /** This object will no longer be usable after this method is called. */
+  /**
+   * This object will no longer be usable after this method is called.
+   */
   public void destroy() {
     this.valid = false;
   }

@@ -125,10 +125,8 @@ public final class ArtifactInstaller {
   }
 
   private void relocate() throws InterruptedException {
-
     Logger.info(
         "Preparing to relocate %d dependencies (%s)".formatted(this.jars.size(), this.jars));
-
     this.service.invokeAll(
         this.jars.stream()
             .map(path -> Executors.callable(() -> this.relocateFile(path, this.factory)))
@@ -136,25 +134,20 @@ public final class ArtifactInstaller {
   }
 
   private void writeHashes() throws IOException {
-
     Logger.info("Recording relocated JAR hashes");
-
     try (final PrintWriter writer = new PrintWriter(Files.newBufferedWriter(this.hashFile))) {
       this.hashes.forEach(writer::println);
     }
   }
 
   private void load() throws IOException {
-
     Logger.info("Preparing to load %d dependencies (%s)".formatted(this.jars.size(), this.jars));
-
     final Set<Path> invalid =
         Files.walk(this.relocatedFolder, 1)
             .filter(Files::isRegularFile)
             .filter(path -> PathUtils.getName(path).endsWith(".jar"))
             .filter(path -> !this.hashes.contains(HashingUtils.getHash(path)))
             .collect(Collectors.toSet());
-
     if (!invalid.isEmpty()) {
       for (final Path p : invalid) {
         Logger.warn(
@@ -162,7 +155,6 @@ public final class ArtifactInstaller {
         this.redownload(p, this.getDependency(p).orElseThrow(AssertionError::new));
       }
     }
-
     new JarLoader(
         Files.walk(this.relocatedFolder, 1)
             .filter(Files::isRegularFile)
@@ -172,12 +164,9 @@ public final class ArtifactInstaller {
   }
 
   private void delete() {
-
     Logger.info(
         "Preparing to delete %d stale dependencies (%s)".formatted(this.jars.size(), this.jars));
-
     this.jars.forEach(ThrowingConsumer.unchecked(Files::delete));
-
     this.jars.clear();
   }
 
@@ -203,11 +192,9 @@ public final class ArtifactInstaller {
 
   @NotNull
   private Path downloadDependency(@NotNull final DependencyInfo dependency) {
-
     final Repositories resolution = dependency.getResolution();
     final String artifact = dependency.getArtifact();
     final String path = this.dependencyFolder.toString();
-
     Optional<Path> file;
     try {
       switch (resolution) {
@@ -226,7 +213,6 @@ public final class ArtifactInstaller {
               resolution.getUrl()));
       e.printStackTrace();
     }
-
     if (file.isPresent()) {
       final Path p = file.get();
       if (DependencyUtils.validateDependency(p, dependency)) {
@@ -249,7 +235,6 @@ public final class ArtifactInstaller {
        */
       return this.downloadDependency(dependency);
     }
-
     return file.get();
   }
 

@@ -54,5 +54,6 @@ public final class ChatDimension {
     X16_92 = ofDimension(16, 92);
   }
 
-  private ChatDimension() {}
+  private ChatDimension() {
+  }
 }
