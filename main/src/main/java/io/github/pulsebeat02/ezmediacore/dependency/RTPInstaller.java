@@ -32,11 +32,13 @@ import io.github.pulsebeat02.ezmediacore.utility.ArchiveUtils;
 import io.github.pulsebeat02.ezmediacore.utility.DependencyUtils;
 import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
 import io.github.pulsebeat02.ezmediacore.utility.HashingUtils;
+import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
@@ -104,10 +106,30 @@ public class RTPInstaller {
     return parent;
   }
 
-  private void changePermissions() throws IOException {
+  private void changePermissions() {
     final OSType type = this.core.getDiagnostics().getSystem().getOSType();
     if (type == OSType.MAC || type == OSType.UNIX) {
-      new CommandTask("chmod", "-R", "777", this.executable.toAbsolutePath().toString()).run();
+      try {
+        new CommandTask("chmod", "-R", "777", this.executable.toAbsolutePath().toString()).run();
+      } catch (final IOException e) {
+        Logger.info(
+            "User doesn't have enough permissions to execute file! Copying file to directory and renaming!");
+        this.copyAndRenameFile(this.executable);
+      }
+    }
+  }
+
+  private void copyAndRenameFile(@NotNull final Path path) {
+    final String name = PathUtils.getName(path);
+    final Path parent = path.getParent();
+    final Path temp = parent.resolve("temp-rtp");
+    try {
+      Files.copy(path, temp, StandardCopyOption.REPLACE_EXISTING);
+      Files.delete(path);
+      Files.move(temp, parent.resolveSibling(name));
+    } catch (final IOException e) {
+      Logger.info("A severe error has occurred while trying to bypass execute permissions!");
+      e.printStackTrace();
     }
   }
 
