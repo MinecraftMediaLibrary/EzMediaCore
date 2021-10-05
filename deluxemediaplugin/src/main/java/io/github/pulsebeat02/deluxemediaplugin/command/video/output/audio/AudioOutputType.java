@@ -21,43 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio;
 
-package io.github.pulsebeat02.deluxemediaplugin.command.video;
-
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
-public enum PlaybackType {
-  ITEMFRAME("itemframe-maps"),
-  ARMOR_STAND("armorstands"),
-  CHATBOX("chatbox"),
-  DEBUG_HIGHLIGHTS("debug-highlights"),
-  SCOREBOARD("scoreboard");
+public enum AudioOutputType {
+  RESOURCEPACK(new ResourcepackAudioOutput()),
+  DISCORD(new DiscordAudioOutput()),
+  HTTP(new HttpAudioOutput());
 
-  private static final Map<String, PlaybackType> KEYS;
+  private static final Map<String, AudioOutputType> KEYS;
 
   static {
-    KEYS =
-        Map.of(
-            "ITEMFRAME", ITEMFRAME,
-            "ARMOR_STAND", ARMOR_STAND,
-            "CHATBOX", CHATBOX,
-            "DEBUG_HIGHLIGHTS", DEBUG_HIGHLIGHTS,
-            "SCOREBOARD", SCOREBOARD);
+    KEYS = new HashMap<>();
+    for (final AudioOutputType type : AudioOutputType.values()) {
+      KEYS.put(type.handle.getName(), type);
+    }
   }
 
-  private final String name;
+  private final AudioOutputHandle handle;
 
-  PlaybackType(@NotNull final String name) {
-    this.name = name;
+  AudioOutputType(@NotNull final AudioOutputHandle handle) {
+    this.handle = handle;
   }
 
-  public static @NotNull Optional<PlaybackType> ofKey(@NotNull final String str) {
-    return Optional.ofNullable(KEYS.get(str));
+  public @NotNull AudioOutputHandle getHandle() {
+    return this.handle;
   }
 
-  public String getName() {
-    return this.name;
+  public static @NotNull Optional<AudioOutputType> ofKey(@NotNull final String key) {
+    return Optional.ofNullable(KEYS.get(key));
   }
 }

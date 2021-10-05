@@ -31,6 +31,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioOutputType;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioExtractor;
@@ -194,6 +195,9 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   private @NotNull ResourcepackSoundWrapper executeResourcepackSoundWrapper(
       @NotNull final Path oggOutput) throws IOException {
     final HttpServer daemon = this.plugin.getHttpServer();
+    if (!daemon.isRunning()) {
+      daemon.startServer();
+    }
     final ResourcepackSoundWrapper wrapper =
         new ResourcepackSoundWrapper(
             daemon.getDaemon().getServerPath().resolve("resourcepack.zip"),
@@ -208,6 +212,9 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   private void setResourcepackAttributes(
       @NotNull final ResourcepackSoundWrapper wrapper, @NotNull final Path oggOutput) {
     final HttpServer daemon = this.plugin.getHttpServer();
+    if (!daemon.isRunning()) {
+      daemon.startServer();
+    }
     this.attributes.setOggMrl(MrlConfiguration.ofMrl(oggOutput));
     final Path path = wrapper.getResourcepackFilePath();
     this.attributes.setResourcepackUrl(daemon.createUrl(path));

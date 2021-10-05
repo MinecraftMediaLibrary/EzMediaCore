@@ -26,6 +26,8 @@ package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import com.google.gson.annotations.SerializedName;
 import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherSetting;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioOutputType;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.output.video.PlaybackType;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;

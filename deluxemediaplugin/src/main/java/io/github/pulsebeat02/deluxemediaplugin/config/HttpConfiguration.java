@@ -75,7 +75,6 @@ public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
           ip == null || ip.equals("public")
               ? new HttpServer(directory, port)
               : new HttpServer(directory, ip, port, verbose);
-      this.daemon.startServer();
     }
     this.enabled = enabled;
     return this.daemon;

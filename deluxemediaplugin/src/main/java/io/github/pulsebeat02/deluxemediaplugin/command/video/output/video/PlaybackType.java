@@ -21,28 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
+package io.github.pulsebeat02.deluxemediaplugin.command.video.output.video;
+
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
-public enum AudioOutputType {
-  RESOURCEPACK,
-  DISCORD,
-  HTTP;
+public enum PlaybackType {
+  ITEMFRAME(new ItemframeOutput()),
+  ARMOR_STAND(new EntityOutput()),
+  CHATBOX(new ChatOutput()),
+  DEBUG_HIGHLIGHTS(new DebugOutput()),
+  SCOREBOARD(new ScoreboardOutput());
 
-  private static final Map<String, AudioOutputType> KEYS;
+  private static final Map<String, PlaybackType> KEYS;
 
   static {
-    KEYS =
-        Map.of(
-            "RESOURCEPACK", RESOURCEPACK,
-            "DISCORD", DISCORD,
-            "HTTP", HTTP);
+    KEYS = new HashMap<>();
+    for (final PlaybackType type : PlaybackType.values()) {
+      KEYS.put(type.handle.getName(), type);
+    }
   }
 
-  public static @NotNull Optional<AudioOutputType> ofKey(@NotNull final String key) {
-    return Optional.ofNullable(KEYS.get(key));
+  private final PlaybackOutputHandle handle;
+
+  PlaybackType(@NotNull final PlaybackOutputHandle handle) {
+    this.handle = handle;
+  }
+
+  public static @NotNull Optional<PlaybackType> ofKey(@NotNull final String str) {
+    return Optional.ofNullable(KEYS.get(str));
+  }
+
+  public @NotNull PlaybackOutputHandle getHandle() {
+    return this.handle;
   }
 }
