@@ -168,9 +168,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
       args.add("--no-audio");
     }
     args.addAll(arguments.stream().map(Object::toString).collect(Collectors.toList()));
-    args.add("--verbose=0");
-    args.add("--file-logging");
-    args.add("--logfile=%s".formatted(Logger.getVlcLoggerPath()));
+    args.add("--quiet");
     return args;
   }
 
