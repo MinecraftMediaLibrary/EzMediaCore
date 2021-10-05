@@ -42,6 +42,8 @@ import org.jetbrains.annotations.NotNull;
 public record VideoCreator(MediaLibraryCore library,
                            VideoCommandAttributes attributes) {
 
+
+
   public VideoCreator(
       @NotNull final MediaLibraryCore library, @NotNull final VideoCommandAttributes attributes) {
     this.library = library;

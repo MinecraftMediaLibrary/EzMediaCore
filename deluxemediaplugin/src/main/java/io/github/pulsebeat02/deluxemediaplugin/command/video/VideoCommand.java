@@ -43,7 +43,6 @@ import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
-import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.utility.HashingUtils;
 import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.ResourcepackUtils;
@@ -63,7 +62,6 @@ import org.bukkit.SoundCategory;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 public final class VideoCommand extends BaseCommand {
@@ -139,45 +137,45 @@ public final class VideoCommand extends BaseCommand {
       }
       default -> throw new IllegalArgumentException("Illegal video mode!");
     }
-
     this.sendPlayInformation(audience);
     this.setProperAudioHandler();
     this.attributes.cancelCurrentStream();
     this.handleStreamPlayers(audience);
-
     this.attributes.getPlayer().setPlayerState(PlayerControls.START, this.attributes.getVideoMrl());
-
     return SINGLE_SUCCESS;
   }
 
   private void handleStreamPlayers(@NotNull final Audience audience) {
-    final DeluxeMediaPlugin plugin = this.plugin();
     final String mrl = this.attributes.getVideoMrl().getMrl();
     switch (this.attributes.getAudioOutputType()) {
-      case DISCORD -> {
-        CompletableFuture.runAsync(() -> {
-          final String link = "%s/stream.m3u8".formatted(this.openFFmpegStream(mrl));
-          final MediaBot bot = plugin.getMediaBot();
-          final MusicManager manager = bot.getMusicManager();
-          manager.destroyTrack();
-          manager.joinVoiceChannel();
-          try {
-            TimeUnit.SECONDS.sleep(3L);
-          } catch (final InterruptedException e) { // hack to wait for server start
-            e.printStackTrace();
-          }
-          manager.addTrack(link);
-          audience.sendMessage(Locale.DISCORD_AUDIO_STREAM.build());
-        });
-      }
-      case HTTP -> {
-        plugin.audience().players()
-            .sendMessage(Locale.HTTP_SEND_LINK.build(this.openFFmpegStream(mrl)));
-      }
+      case DISCORD -> this.setDiscordAudioHandler(audience, mrl);
+      case HTTP -> this.setHttpAudioHandler(mrl);
       case RESOURCEPACK -> {
       }
       default -> throw new IllegalArgumentException("Illegal Audio Output Option!");
     }
+  }
+
+  private void setDiscordAudioHandler(@NotNull final Audience audience, @NotNull final String mrl) {
+    CompletableFuture.runAsync(() -> {
+      final String link = "%s/stream.m3u8".formatted(this.openFFmpegStream(mrl));
+      final MediaBot bot = this.plugin().getMediaBot();
+      final MusicManager manager = bot.getMusicManager();
+      manager.destroyTrack();
+      manager.joinVoiceChannel();
+      try {
+        TimeUnit.SECONDS.sleep(3L);
+      } catch (final InterruptedException e) { // hack to wait for server start
+        e.printStackTrace();
+      }
+      manager.addTrack(link);
+      audience.sendMessage(Locale.DISCORD_AUDIO_STREAM.build());
+    });
+  }
+
+  private void setHttpAudioHandler(@NotNull final String mrl) {
+    this.plugin().audience().players()
+        .sendMessage(Locale.HTTP_SEND_LINK.build(this.openFFmpegStream(mrl)));
   }
 
   private void setProperAudioHandler() {
@@ -234,44 +232,63 @@ public final class VideoCommand extends BaseCommand {
     }
     audience.sendMessage(Locale.SETUP_RESOURCEPACK.build());
     CompletableFuture.runAsync(() -> this.buildResourcepack(audience))
-        .thenRunAsync(
-            () ->
-                ResourcepackUtils.forceResourcepackLoad(
-                    plugin.library(), this.attributes.getResourcepackUrl(),
-                    this.attributes.getResourcepackHash()))
-        .thenRun(() -> audience.sendMessage(Locale.RESUME_AUDIO.build()));
+        .thenRunAsync(() -> this.forceResumeLoadResourcepack(audience));
     return SINGLE_SUCCESS;
   }
 
+  private void forceResumeLoadResourcepack(@NotNull final Audience audience) {
+    ResourcepackUtils.forceResourcepackLoad(
+        this.plugin().library(), this.attributes.getResourcepackUrl(),
+        this.attributes.getResourcepackHash());
+    audience.sendMessage(Locale.RESUME_AUDIO.build());
+  }
+
   private void buildResourcepack(@NotNull final Audience audience) {
-    final DeluxeMediaPlugin plugin = this.plugin();
-    final Audience console = plugin.getConsoleAudience();
-    final JavaPlugin loader = plugin.getBootstrap();
+    final Audience console = this.plugin().getConsoleAudience();
     try {
-      final HttpServer server = plugin.getHttpServer();
       final Path audio = Path.of(this.attributes.getOggMrl().getMrl());
       final Path ogg = audio.getParent().resolve("trimmed.ogg");
       final long ms = this.attributes.getPlayer().getElapsedMilliseconds();
       console.sendMessage(Locale.RESUMING_VIDEO_MS.build(ms));
-      new FFmpegAudioTrimmer(
-          plugin.library(), audio, ogg, ms)
-          .executeAsyncWithLogging(
-              (line) -> audience.sendMessage(Locale.EXTERNAL_PROCESS.build(line)));
-      final ResourcepackSoundWrapper wrapper =
-          new ResourcepackSoundWrapper(
-              server.getDaemon().getServerPath().resolve("resourcepack.zip"), "Video Pack", 6);
-      wrapper.addSound(loader.getName().toLowerCase(java.util.Locale.ROOT), ogg);
-      wrapper.wrap();
-      final Path path = wrapper.getResourcepackFilePath();
-      this.attributes.setResourcepackUrl(server.createUrl(path));
-      this.attributes.setResourcepackHash(
-          HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
-      Files.delete(audio);
-      Files.move(ogg, ogg.resolveSibling("audio.ogg"));
+      this.executeFFmpegTrimmer(audience, audio, ogg, ms);
+      this.loadResumeResourcepack(this.wrapResumeResourcepack(ogg), audio, ogg);
     } catch (final IOException e) {
       console.sendMessage(Locale.ERR_RESOURCEPACK_WRAP.build());
       e.printStackTrace();
     }
+  }
+
+  private @NotNull ResourcepackSoundWrapper wrapResumeResourcepack(@NotNull final Path ogg) throws IOException {
+    final DeluxeMediaPlugin plugin = this.plugin();
+    final ResourcepackSoundWrapper wrapper =
+        new ResourcepackSoundWrapper(
+            plugin.getHttpServer().getDaemon().getServerPath().resolve("resourcepack.zip"), "Video Pack", 6);
+    wrapper.addSound(plugin.getBootstrap().getName().toLowerCase(java.util.Locale.ROOT), ogg);
+    wrapper.wrap();
+    return wrapper;
+  }
+
+  private void loadResumeResourcepack(
+      @NotNull final ResourcepackSoundWrapper wrapper,
+      @NotNull final Path audio,
+      @NotNull final Path ogg) throws IOException {
+    final Path path = wrapper.getResourcepackFilePath();
+    this.attributes.setResourcepackUrl(this.plugin().getHttpServer().createUrl(path));
+    this.attributes.setResourcepackHash(
+        HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
+    Files.delete(audio);
+    Files.move(ogg, ogg.resolveSibling("audio.ogg"));
+  }
+
+  private void executeFFmpegTrimmer(
+      @NotNull final Audience audience,
+      @NotNull final Path audio,
+      @NotNull final Path ogg,
+      final long delay) {
+    new FFmpegAudioTrimmer(
+        this.plugin().library(), audio, ogg, delay)
+        .executeAsyncWithLogging(
+            (line) -> audience.sendMessage(Locale.EXTERNAL_PROCESS.build(line)));
   }
 
   private boolean mediaNotSpecified(@NotNull final Audience audience) {

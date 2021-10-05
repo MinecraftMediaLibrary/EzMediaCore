@@ -123,27 +123,41 @@ public final class VideoSettingCommand implements CommandSegment.Literal<Command
     switch (optional.get()) {
       case RESOURCEPACK -> this.attributes.setAudioOutputType(AudioOutputType.RESOURCEPACK);
       case DISCORD -> {
-        if (VideoCommandAttributes.TEMPORARY_PLACEHOLDER) {
-          audience.sendMessage(Locale.ERR_DEVELOPMENT_FEATURE.build());
+        if (this.setDiscordMode(audience)) {
           return SINGLE_SUCCESS;
         }
-        if (this.plugin.getMediaBot() == null) {
-          audience.sendMessage(Locale.ERR_INVALID_DISCORD_BOT.build());
-          return SINGLE_SUCCESS;
-        }
-        this.attributes.setAudioOutputType(AudioOutputType.DISCORD);
       }
       case HTTP -> {
-        if (this.plugin.getHttpAudioServer() == null) {
-          audience.sendMessage(Locale.ERR_HTTP_AUDIO.build());
+        if (this.setHttpServerMode(audience)) {
           return SINGLE_SUCCESS;
         }
-        this.attributes.setAudioOutputType(AudioOutputType.HTTP);
       }
       default -> throw new IllegalArgumentException("Audio type is invalid!");
     }
     audience.sendMessage(Locale.SET_AUDIO_TYPE.build(argument));
     return SINGLE_SUCCESS;
+  }
+
+  private boolean setDiscordMode(@NotNull final Audience audience) {
+    if (VideoCommandAttributes.TEMPORARY_PLACEHOLDER) {
+      audience.sendMessage(Locale.ERR_DEVELOPMENT_FEATURE.build());
+      return true;
+    }
+    if (this.plugin.getMediaBot() == null) {
+      audience.sendMessage(Locale.ERR_INVALID_DISCORD_BOT.build());
+      return true;
+    }
+    this.attributes.setAudioOutputType(AudioOutputType.DISCORD);
+    return false;
+  }
+
+  private boolean setHttpServerMode(@NotNull final Audience audience) {
+    if (this.plugin.getHttpAudioServer() == null) {
+      audience.sendMessage(Locale.ERR_HTTP_AUDIO.build());
+      return true;
+    }
+    this.attributes.setAudioOutputType(AudioOutputType.HTTP);
+    return false;
   }
 
   private int setScreenDimensions(@NotNull final CommandContext<CommandSender> context) {

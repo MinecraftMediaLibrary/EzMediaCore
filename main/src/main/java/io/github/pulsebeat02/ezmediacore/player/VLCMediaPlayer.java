@@ -42,6 +42,8 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.log.LogLevel;
+import uk.co.caprica.vlcj.log.NativeLog;
 import uk.co.caprica.vlcj.player.base.callback.AudioCallbackAdapter;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.CallbackVideoSurface;
@@ -63,6 +65,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   private CallbackVideoSurface surface;
   private MediaPlayerFactory factory;
   private EmbeddedMediaPlayer player;
+  private NativeLog logger;
 
   VLCMediaPlayer(
       @NotNull final Callback callback,
@@ -142,14 +145,14 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
 
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer(
       @NotNull final Collection<Object> arguments) {
-    if (this.player == null
-        || this.factory == null) { // just in case something is null;
-      this.factory = new MediaPlayerFactory(this.constructArguments(arguments)) {
-        @Override
-        protected void onAfterRelease() {
-          VLCMediaPlayer.this.factory = null;
-        }
-      };
+    if (this.player == null || this.factory == null || this.logger == null) { // just in case something is null;
+      this.factory = new MediaPlayerFactory(this.constructArguments(arguments));
+      this.logger = this.factory.application().newLog();
+      this.logger.setLevel(LogLevel.DEBUG);
+      this.logger.addLogListener(
+          (level, module, file, line, name, header, id, message) ->
+              Logger.directPrintVLC(
+                  "[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message)));
       return this.factory.mediaPlayers().newEmbeddedMediaPlayer();
     }
     return this.player;
@@ -174,9 +177,9 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   private void releaseAll() {
     if (this.player != null) {
       this.player.controls().stop();
+      this.logger.release();
       this.player.release();
       this.factory.release();
-      this.player = null;
     }
   }
 

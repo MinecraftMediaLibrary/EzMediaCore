@@ -36,21 +36,17 @@ import org.jetbrains.annotations.Nullable;
 
 public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
 
-  private MediaBot bot;
-
   public BotConfiguration(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
     super(plugin, "configuration/bot.yml");
   }
 
   @Override
   public void deserialize() throws IOException {
-    final FileConfiguration configuration = this.getFileConfiguration();
-    configuration.set("token", this.bot.getJDA().getToken());
     this.saveConfig();
   }
 
   @Override
-  public void serialize() {
+  public @Nullable MediaBot serialize() {
     final DeluxeMediaPlugin plugin = this.getPlugin();
     final FileConfiguration configuration = this.getFileConfiguration();
     final Audience console = plugin.getConsoleAudience();
@@ -76,17 +72,13 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
 
     if (!invalid) {
       try {
-        this.bot = new MediaBot(token, guild, vc);
+        return new MediaBot(token, guild, vc);
       } catch (final LoginException | InterruptedException e) {
         console.sendMessage(Locale.ERR_INVALID_DISCORD_BOT.build());
         e.printStackTrace();
       }
     }
-  }
 
-  @Override
-  @Nullable
-  public MediaBot getSerializedValue() {
-    return this.bot;
+    return null;
   }
 }

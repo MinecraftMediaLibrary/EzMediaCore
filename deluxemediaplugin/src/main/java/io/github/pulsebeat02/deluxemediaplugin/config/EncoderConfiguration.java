@@ -50,7 +50,7 @@ public final class EncoderConfiguration extends ConfigurationProvider<AudioConfi
   }
 
   @Override
-  public void serialize() throws IOException {
+  public @NotNull AudioConfiguration serialize() throws IOException {
     final FileConfiguration configuration = this.getFileConfiguration();
     this.settings =
         new AudioAttributes(
@@ -59,10 +59,6 @@ public final class EncoderConfiguration extends ConfigurationProvider<AudioConfi
             configuration.getInt("channels"),
             configuration.getInt("sampling-rate"),
             configuration.getInt("volume"));
-  }
-
-  @Override
-  public @NotNull AudioConfiguration getSerializedValue() {
     return this.settings;
   }
 }

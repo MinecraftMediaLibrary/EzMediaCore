@@ -54,11 +54,8 @@ public final class DitherCommand extends BaseCommand {
   }
 
   private int listSettings(@NotNull final CommandContext<CommandSender> context) {
-
     final Audience audience = this.audience().sender(context.getSource());
-
     audience.sendMessage(Locale.DITHERING_OPTIONS.build());
-
     return SINGLE_SUCCESS;
   }
 

@@ -44,7 +44,7 @@ public class HttpAudioConfiguration extends ConfigurationProvider<ServerInfo> {
   }
 
   @Override
-  public void serialize() throws IOException {
+  public @Nullable ServerInfo serialize() throws IOException {
     final FileConfiguration configuration = this.getFileConfiguration();
     final boolean enabled = configuration.getBoolean("enabled");
     final String ip = configuration.getString("ip");
@@ -54,11 +54,6 @@ public class HttpAudioConfiguration extends ConfigurationProvider<ServerInfo> {
           ip == null || ip.equals("public") ? new ServerInfo(port) : new ServerInfo(ip, port);
     }
     this.enabled = enabled;
-  }
-
-  @Override
-  @Nullable
-  public ServerInfo getSerializedValue() {
     return this.info;
   }
 }

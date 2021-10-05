@@ -60,7 +60,7 @@ public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
   }
 
   @Override
-  public void serialize() throws IOException {
+  public HttpServer serialize() throws IOException {
     final FileConfiguration configuration = this.getFileConfiguration();
     final boolean enabled = configuration.getBoolean("enabled");
     final String ip = configuration.getString("ip");
@@ -78,10 +78,6 @@ public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
       this.daemon.startServer();
     }
     this.enabled = enabled;
-  }
-
-  @Override
-  public @NotNull HttpServer getSerializedValue() {
     return this.daemon;
   }
 

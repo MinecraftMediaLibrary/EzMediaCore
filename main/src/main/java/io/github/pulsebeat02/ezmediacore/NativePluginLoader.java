@@ -25,26 +25,29 @@ package io.github.pulsebeat02.ezmediacore;
 
 import java.util.concurrent.CountDownLatch;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.log.LogLevel;
+import uk.co.caprica.vlcj.log.NativeLog;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 
 public class NativePluginLoader {
 
-  public NativePluginLoader() {
-  }
+  public NativePluginLoader() {}
 
   public void executePhantomPlayers() {
 
     // loads all necessary VLC plugins before actual playback occurs
 
     final MediaPlayerFactory factory =
-        new MediaPlayerFactory(
-            "--no-video",
-            "--no-audio",
-            "--verbose=0",
-            "--file-logging",
-            "--logfile=%s".formatted(Logger.getVlcLoggerPath()));
+        new MediaPlayerFactory("--no-video", "--no-audio", "--verbose=0");
+    final NativeLog log = factory.application().newLog();
+    log.setLevel(LogLevel.DEBUG);
+    log.addLogListener(
+        (level, module, file, line, name, header, id, message) ->
+            Logger.directPrintVLC(
+                "[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message)));
+
     final EmbeddedMediaPlayer player = factory.mediaPlayers().newEmbeddedMediaPlayer();
     final CountDownLatch latch = new CountDownLatch(1);
 
@@ -73,6 +76,7 @@ public class NativePluginLoader {
       e.printStackTrace();
     }
 
+    log.release();
     player.release();
     factory.release();
   }
