@@ -24,7 +24,6 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
-import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherSetting;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
@@ -41,50 +40,38 @@ public final class VideoCommandAttributes {
     TEMPORARY_PLACEHOLDER = true;
   }
 
-  private final AtomicBoolean completion;
-
-  @Expose
   @SerializedName(value = "dither-type")
   private DitherSetting ditherType;
 
-  @Expose
   @SerializedName(value = "audio-output")
   private AudioOutputType audioOutputType;
 
-  @Expose
   @SerializedName(value = "playback-output")
   private PlaybackType playbackType;
 
-  @Expose
   @SerializedName(value = "map-id")
   private int map;
 
-  @Expose
   @SerializedName(value = "frame-width")
   private int frameWidth;
 
-  @Expose
   @SerializedName(value = "frame-height")
   private int frameHeight;
 
-  @Expose
   @SerializedName(value = "pixel-width")
   private int pixelWidth;
 
-  @Expose
   @SerializedName(value = "pixel-height")
   private int pixelHeight;
 
-  private VideoPlayer player;
-
-  private MrlConfiguration videoMrl;
-  private MrlConfiguration oggMrl;
-
-  private EnhancedExecution extractor;
-  private EnhancedExecution streamExtractor;
-
-  private String resourcepackUrl; // for resourcepack url
-  private byte[] resourcepackHash;
+  private final transient AtomicBoolean completion;
+  private transient VideoPlayer player;
+  private transient MrlConfiguration videoMrl;
+  private transient MrlConfiguration oggMrl;
+  private transient EnhancedExecution extractor;
+  private transient EnhancedExecution streamExtractor;
+  private transient String resourcepackUrl; // for resourcepack url
+  private transient byte[] resourcepackHash;
 
   public VideoCommandAttributes() {
     this.ditherType = DitherSetting.FILTER_LITE;
