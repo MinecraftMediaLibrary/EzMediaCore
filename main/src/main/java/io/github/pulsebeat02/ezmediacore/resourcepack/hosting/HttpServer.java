@@ -50,6 +50,7 @@ public class HttpServer implements HttpDaemonSolution {
   }
 
   private final HttpDaemon daemon;
+  private boolean running;
 
   public HttpServer(@NotNull final Path path, final int port) throws IOException {
     this(path, HTTP_SERVER_IP, port, true);
@@ -101,15 +102,22 @@ public class HttpServer implements HttpDaemonSolution {
   @Override
   public void startServer() {
     CompletableFuture.runAsync(this.daemon::start);
+    this.running = true;
   }
 
   @Override
   public void stopServer() {
     CompletableFuture.runAsync(this.daemon::stop);
+    this.running = false;
   }
 
   @Override
   public @NotNull HttpDaemon getDaemon() {
     return this.daemon;
+  }
+
+  @Override
+  public boolean isRunning() {
+    return this.running;
   }
 }

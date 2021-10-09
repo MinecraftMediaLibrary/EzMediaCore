@@ -76,7 +76,11 @@ public final class Logger {
 
   private static void assignPermissions(@NotNull final Path path) {
     if (isUnix()) {
-      new CommandTask("chmod", "-R", "777", path.toAbsolutePath().toString());
+      try {
+        new CommandTask("chmod", "-R", "777", path.toAbsolutePath().toString()).run();
+      } catch (final IOException e) {
+        e.printStackTrace();
+      }
     }
   }
 

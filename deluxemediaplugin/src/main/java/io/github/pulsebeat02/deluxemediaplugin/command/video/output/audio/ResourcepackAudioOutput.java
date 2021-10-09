@@ -21,39 +21,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.deluxemediaplugin.config;
+package io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import java.io.IOException;
-import org.bukkit.configuration.file.FileConfiguration;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
+import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
+import java.util.Set;
+import net.kyori.adventure.audience.Audience;
+import org.bukkit.SoundCategory;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class HttpAudioConfiguration extends ConfigurationProvider<ServerInfo> {
+public class ResourcepackAudioOutput extends AudioOutput {
 
-  private ServerInfo info;
-  private boolean enabled;
-
-  public HttpAudioConfiguration(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
-    super(plugin, "configuration/httpaudio.yml");
+  public ResourcepackAudioOutput() {
+    super("RESOURCEPACK");
   }
 
   @Override
-  public void deserialize() throws IOException {
-    this.saveConfig();
+  public void setAudioHandler(
+      @NotNull final DeluxeMediaPlugin plugin,
+      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final Audience audience,
+      @NotNull final String mrl) {
   }
 
   @Override
-  public @Nullable ServerInfo serialize() throws IOException {
-    final FileConfiguration configuration = this.getFileConfiguration();
-    final boolean enabled = configuration.getBoolean("enabled");
-    final String ip = configuration.getString("ip");
-    final int port = configuration.getInt("port");
-    if (enabled) {
-      this.info =
-          ip == null || ip.equals("public") ? new ServerInfo(port) : new ServerInfo(ip, port);
+  public void setProperAudioHandler(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final VideoCommandAttributes attributes) {
+    final VideoPlayer player = attributes.getPlayer();
+    final Set<Player> viewers = player.getWatchers().getPlayers();
+    final String sound = player.getSoundKey().getName();
+    for (final Player p : viewers) {
+      p.playSound(p.getLocation(), sound, SoundCategory.MASTER, 100.0F, 1.0F);
     }
-    this.enabled = enabled;
-    return this.info;
   }
 }

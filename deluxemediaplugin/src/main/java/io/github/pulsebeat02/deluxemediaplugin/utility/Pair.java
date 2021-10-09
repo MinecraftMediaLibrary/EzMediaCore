@@ -21,39 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.deluxemediaplugin.config;
+package io.github.pulsebeat02.deluxemediaplugin.utility;
 
-import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import java.io.IOException;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class HttpAudioConfiguration extends ConfigurationProvider<ServerInfo> {
+public final class Pair<K, V> {
 
-  private ServerInfo info;
-  private boolean enabled;
+  private final K key;
+  private final V value;
 
-  public HttpAudioConfiguration(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
-    super(plugin, "configuration/httpaudio.yml");
+  public Pair(@NotNull final K key, @NotNull final V value) {
+    this.key = key;
+    this.value = value;
   }
 
-  @Override
-  public void deserialize() throws IOException {
-    this.saveConfig();
+  public @NotNull K getKey() {
+    return this.key;
   }
 
-  @Override
-  public @Nullable ServerInfo serialize() throws IOException {
-    final FileConfiguration configuration = this.getFileConfiguration();
-    final boolean enabled = configuration.getBoolean("enabled");
-    final String ip = configuration.getString("ip");
-    final int port = configuration.getInt("port");
-    if (enabled) {
-      this.info =
-          ip == null || ip.equals("public") ? new ServerInfo(port) : new ServerInfo(ip, port);
-    }
-    this.enabled = enabled;
-    return this.info;
+  public @NotNull V getValue() {
+    return this.value;
   }
 }

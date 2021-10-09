@@ -21,43 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package io.github.pulsebeat02.deluxemediaplugin.command.video.output.video;
 
-package io.github.pulsebeat02.deluxemediaplugin.command.video;
-
-import java.util.Map;
-import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
-public enum PlaybackType {
-  ITEMFRAME("itemframe-maps"),
-  ARMOR_STAND("armorstands"),
-  CHATBOX("chatbox"),
-  DEBUG_HIGHLIGHTS("debug-highlights"),
-  SCOREBOARD("scoreboard");
-
-  private static final Map<String, PlaybackType> KEYS;
-
-  static {
-    KEYS =
-        Map.of(
-            "ITEMFRAME", ITEMFRAME,
-            "ARMOR_STAND", ARMOR_STAND,
-            "CHATBOX", CHATBOX,
-            "DEBUG_HIGHLIGHTS", DEBUG_HIGHLIGHTS,
-            "SCOREBOARD", SCOREBOARD);
-  }
+public abstract class VideoOutput implements PlaybackOutputHandle {
 
   private final String name;
 
-  PlaybackType(@NotNull final String name) {
+  public VideoOutput(@NotNull final String name) {
     this.name = name;
   }
 
-  public static @NotNull Optional<PlaybackType> ofKey(@NotNull final String str) {
-    return Optional.ofNullable(KEYS.get(str));
-  }
-
-  public String getName() {
+  @Override
+  public @NotNull String getName() {
     return this.name;
   }
 }

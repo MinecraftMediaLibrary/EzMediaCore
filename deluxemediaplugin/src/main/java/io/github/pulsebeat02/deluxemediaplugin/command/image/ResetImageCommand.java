@@ -98,7 +98,7 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
   }
 
   @EventHandler
-  public void onPlayerChat(final AsyncPlayerChatEvent event) {
+  public void onPlayerChat(@NotNull final AsyncPlayerChatEvent event) {
     final Player p = event.getPlayer();
     final UUID uuid = p.getUniqueId();
     final Set<UUID> listen = this.attributes.getListen();
@@ -106,15 +106,19 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
       event.setCancelled(true);
       final Audience audience = this.plugin.audience().player(p);
       if (event.getMessage().equals("YES")) {
-        final List<Image> images = this.plugin.getPictureManager().getImages();
-        images.forEach(Image::resetMaps);
-        images.clear();
+        this.clearImages();
         audience.sendMessage(Locale.PURGED_ALL_MAPS.build());
       } else {
         audience.sendMessage(Locale.CANCELLED_PURGE_ALL_MAPS.build());
       }
       listen.remove(uuid);
     }
+  }
+
+  private void clearImages() {
+    final List<Image> images = this.plugin.getPictureManager().getImages();
+    images.forEach(Image::resetMaps);
+    images.clear();
   }
 
   @Override

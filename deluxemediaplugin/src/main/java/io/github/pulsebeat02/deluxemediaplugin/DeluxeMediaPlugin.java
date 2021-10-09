@@ -220,31 +220,30 @@ public final class DeluxeMediaPlugin {
   private void readHttpConfiguration() throws IOException {
     final HttpConfiguration httpConfiguration = new HttpConfiguration(this);
     httpConfiguration.read();
-    this.server = httpConfiguration.getSerializedValue();
+    this.server = httpConfiguration.serialize();
   }
 
   private void readEncoderConfiguration() throws IOException {
     final EncoderConfiguration encoderConfiguration = new EncoderConfiguration(this);
     encoderConfiguration.read();
-    this.audioConfiguration = encoderConfiguration.getSerializedValue();
+    this.audioConfiguration = encoderConfiguration.serialize();
   }
 
   private void readBotConfiguration() throws IOException {
     final BotConfiguration botConfiguration = new BotConfiguration(this);
     botConfiguration.read();
-    this.mediaBot = botConfiguration.getSerializedValue();
+    this.mediaBot = botConfiguration.serialize();
   }
 
   private void readStreamAudioConfiguration() throws IOException {
     final HttpAudioConfiguration audioConfiguration = new HttpAudioConfiguration(this);
     audioConfiguration.read();
-    this.httpAudioServer = audioConfiguration.getSerializedValue();
+    this.httpAudioServer = audioConfiguration.serialize();
   }
 
   private void readJsonFiles() throws IOException {
     this.mediaAttributesData = new MediaAttributesData(this);
-    this.mediaAttributesData.serialize();
-    this.attributes = this.mediaAttributesData.getSerializedValue();
+    this.attributes = this.mediaAttributesData.serialize();
   }
 
   private void readPictureData() throws IOException {

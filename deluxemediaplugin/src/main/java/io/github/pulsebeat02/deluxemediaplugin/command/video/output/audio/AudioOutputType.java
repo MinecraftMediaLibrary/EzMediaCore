@@ -21,39 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.deluxemediaplugin.config;
+package io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio;
 
-import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import java.io.IOException;
-import org.bukkit.configuration.file.FileConfiguration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class HttpAudioConfiguration extends ConfigurationProvider<ServerInfo> {
+public enum AudioOutputType {
+  RESOURCEPACK(new ResourcepackAudioOutput()),
+  DISCORD(new DiscordAudioOutput()),
+  HTTP(new HttpAudioOutput());
 
-  private ServerInfo info;
-  private boolean enabled;
+  private static final Map<String, AudioOutputType> KEYS;
 
-  public HttpAudioConfiguration(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
-    super(plugin, "configuration/httpaudio.yml");
-  }
-
-  @Override
-  public void deserialize() throws IOException {
-    this.saveConfig();
-  }
-
-  @Override
-  public @Nullable ServerInfo serialize() throws IOException {
-    final FileConfiguration configuration = this.getFileConfiguration();
-    final boolean enabled = configuration.getBoolean("enabled");
-    final String ip = configuration.getString("ip");
-    final int port = configuration.getInt("port");
-    if (enabled) {
-      this.info =
-          ip == null || ip.equals("public") ? new ServerInfo(port) : new ServerInfo(ip, port);
+  static {
+    KEYS = new HashMap<>();
+    for (final AudioOutputType type : AudioOutputType.values()) {
+      KEYS.put(type.handle.getName(), type);
     }
-    this.enabled = enabled;
-    return this.info;
+  }
+
+  private final AudioOutputHandle handle;
+
+  AudioOutputType(@NotNull final AudioOutputHandle handle) {
+    this.handle = handle;
+  }
+
+  public static @NotNull Optional<AudioOutputType> ofKey(@NotNull final String key) {
+    return Optional.ofNullable(KEYS.get(key));
+  }
+
+  public @NotNull AudioOutputHandle getHandle() {
+    return this.handle;
   }
 }

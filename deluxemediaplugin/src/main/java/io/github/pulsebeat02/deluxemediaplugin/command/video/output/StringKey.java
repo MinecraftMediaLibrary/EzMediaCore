@@ -21,39 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.deluxemediaplugin.config;
+package io.github.pulsebeat02.deluxemediaplugin.command.video.output;
 
-import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import java.io.IOException;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class HttpAudioConfiguration extends ConfigurationProvider<ServerInfo> {
+public interface StringKey {
 
-  private ServerInfo info;
-  private boolean enabled;
-
-  public HttpAudioConfiguration(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
-    super(plugin, "configuration/httpaudio.yml");
-  }
-
-  @Override
-  public void deserialize() throws IOException {
-    this.saveConfig();
-  }
-
-  @Override
-  public @Nullable ServerInfo serialize() throws IOException {
-    final FileConfiguration configuration = this.getFileConfiguration();
-    final boolean enabled = configuration.getBoolean("enabled");
-    final String ip = configuration.getString("ip");
-    final int port = configuration.getInt("port");
-    if (enabled) {
-      this.info =
-          ip == null || ip.equals("public") ? new ServerInfo(port) : new ServerInfo(ip, port);
-    }
-    this.enabled = enabled;
-    return this.info;
-  }
+  @NotNull
+  String getName();
 }

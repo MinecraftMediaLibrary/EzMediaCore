@@ -31,7 +31,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class DataProvider<T> implements DataHolder<T> {
 
@@ -39,7 +38,6 @@ public abstract class DataProvider<T> implements DataHolder<T> {
   private final String name;
   private final Path path;
   private final Class<T> clazz;
-  private T object;
 
   public DataProvider(
       @NotNull final DeluxeMediaPlugin plugin,
@@ -59,10 +57,10 @@ public abstract class DataProvider<T> implements DataHolder<T> {
   }
 
   @Override
-  public void serialize() throws IOException {
+  public T serialize() throws IOException {
     this.saveConfig();
     try (final BufferedReader reader = Files.newBufferedReader(this.path.toAbsolutePath())) {
-      this.object = GsonProvider.getGson().fromJson(reader, this.clazz);
+      return GsonProvider.getGson().fromJson(reader, this.clazz);
     }
   }
 
@@ -73,11 +71,6 @@ public abstract class DataProvider<T> implements DataHolder<T> {
           this.path,
           StandardCopyOption.REPLACE_EXISTING);
     }
-  }
-
-  @Override
-  public @Nullable T getSerializedValue() {
-    return this.object;
   }
 
   @Override

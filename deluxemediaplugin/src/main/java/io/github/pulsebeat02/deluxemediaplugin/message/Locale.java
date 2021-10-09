@@ -132,32 +132,37 @@ public interface Locale {
       text("[BETA]", GOLD),
       text("1.0.0", AQUA)));
   NullComponent<Sender> EMC_INIT = () -> format(
-      text("Loading EzMediaCore instance... this may take some time!"));
+      text("Loading EzMediaCore instance... this may take some time!", GOLD));
   NullComponent<Sender> WELCOME = () -> format(text("""
       Hello %%__USER__%%! Thank you for purchasing DeluxeMediaPlugin. For identifier purposes, this
        is your purchase identification code: %%__NONCE__%% - Enjoy using the plugin, and ask for
        support at my Discord! (https://discord.gg/MgqRKvycMC)
-      """));
-  NullComponent<Sender> DISABLE_PLUGIN = () -> format(text("DeluxeMediaPlugin is shutting down!"));
+      """, GOLD));
+  NullComponent<Sender> DISABLE_PLUGIN = () -> format(
+      text("DeluxeMediaPlugin is shutting down!", GOLD));
   NullComponent<Sender> DISABLE_EMC = () -> format(
-      text("Successfully shutdown MinecraftMediaLibrary instance!"));
-  NullComponent<Sender> DESERIALIZE_DATA = () -> format(text("Successfully deserialized data!"));
-  NullComponent<Sender> DISABLE_COMMANDS = () -> format(text("Successfully disabled commands!"));
+      text("Successfully shutdown MinecraftMediaLibrary instance!", GOLD));
+  NullComponent<Sender> DESERIALIZE_DATA = () -> format(
+      text("Successfully deserialized data!", GOLD));
+  NullComponent<Sender> DISABLE_COMMANDS = () -> format(
+      text("Successfully disabled commands!", GOLD));
   NullComponent<Sender> DISABLE_BOT = () -> format(
-      text("Successfully disabled Discord bot! (If running)"));
+      text("Successfully disabled Discord bot! (If running)", GOLD));
   NullComponent<Sender> CANCELLED_TASKS = () -> format(
-      text("Successfully disabled all native tasks!"));
-  NullComponent<Sender> GOODBYE = () -> format(text("Good Bye! :("));
+      text("Successfully disabled all native tasks!", GOLD));
+  NullComponent<Sender> GOODBYE = () -> format(text("Good Bye! :(", GOLD));
   NullComponent<Sender> FIN_EMC_INIT = () -> format(
-      text("Finished loading MinecraftMediaLibrary instance!"));
+      text("Finished loading MinecraftMediaLibrary instance!", GOLD));
   NullComponent<Sender> FIN_PERSISTENT_INIT = () -> format(
-      text("Finished loading persistent data!"));
+      text("Finished loading persistent data!", GOLD));
   NullComponent<Sender> FIN_COMMANDS_INIT = () -> format(
-      text("Finished registering plugin commands!"));
-  NullComponent<Sender> FIN_METRICS_INIT = () -> format(text("Finished loading Metrics data!"));
-  NullComponent<Sender> FIN_PLUGIN_INIT = () -> format(text("Finished loading DeluxeMediaPlugin!"));
+      text("Finished registering plugin commands!", GOLD));
+  NullComponent<Sender> FIN_METRICS_INIT = () -> format(
+      text("Finished loading Metrics data!", GOLD));
+  NullComponent<Sender> FIN_PLUGIN_INIT = () -> format(
+      text("Finished loading DeluxeMediaPlugin!", GOLD));
   NullComponent<Sender> RUNNING_LATEST_PLUGIN = () -> format(text(
-      "You are currently running the latest version of DeluxeMediaPlugin."));
+      "You are currently running the latest version of DeluxeMediaPlugin.", GOLD));
   NullComponent<Sender> ERR_EMC_INIT = () -> format(
       text("There was a severe issue while loading the EzMediaCore instance!",
           RED));
@@ -211,44 +216,53 @@ public interface Locale {
       text("Guild token not specified in bot.yml!", RED));
   NullComponent<Sender> ERR_VC_ID = () -> format(
       text("Voice Chat Identifier not specified in bot.yml!", RED));
-  NullComponent<Sender> START_AUDIO = () -> format(text("Started playing audio!"));
-  NullComponent<Sender> PAUSE_AUDIO = () -> format(text("Stopped playing audio!"));
-  NullComponent<Sender> RESUME_AUDIO = () -> format(text("Resumed the video!"));
+  NullComponent<Sender> START_AUDIO = () -> format(text("Started playing audio!", GOLD));
+  NullComponent<Sender> PAUSE_AUDIO = () -> format(text("Stopped playing audio!", GOLD));
+  NullComponent<Sender> RESUME_AUDIO = () -> format(text("Resumed the video!", GOLD));
   NullComponent<Sender> CREATE_RESOURCEPACK = () -> format(text(
-      "Creating a resourcepack for audio. Depending on the length of the video, it make take some time."));
+      "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.",
+      GOLD));
   NullComponent<Sender> DC_DISCORD = () -> format(
-      text("Successfully disconnected from voice channel!"));
-  NullComponent<Sender> C_DISCORD = () -> format(text("Successfully connected to voice channel!"));
-  NullComponent<Sender> PAUSED_TRACK_DISCORD = () -> format(text("Successfully paused track!"));
-  NullComponent<Sender> RESUMED_TRACK_DISCORD = () -> format(text("Successfully resumed track!"));
-  NullComponent<Sender> DITHERING_OPTIONS = () -> format(text("Dithering Options ->")
+      text("Successfully disconnected from voice channel!", GOLD));
+  NullComponent<Sender> C_DISCORD = () -> format(
+      text("Successfully connected to voice channel!", GOLD));
+  NullComponent<Sender> PAUSED_TRACK_DISCORD = () -> format(
+      text("Successfully paused track!", GOLD));
+  NullComponent<Sender> RESUMED_TRACK_DISCORD = () -> format(
+      text("Successfully resumed track!", GOLD));
+  NullComponent<Sender> DITHERING_OPTIONS = () -> format(text("Dithering Options ->", GOLD)
       .append(getComponent(DitherSetting.class,
-          (value) -> text(value.getName(), AQUA).append(newline()))));
-  NullComponent<Sender> FFMPEG_EXEC = () -> format(text("Executed FFmpeg command!"));
-  NullComponent<Sender> RESET_FFMPEG_ARGS = () -> format(text("Reset all FFmpeg arguments!"));
-  NullComponent<Sender> LOAD_IMG = () -> format(text("Loading image..."));
+          (value) -> newline().append(text(value.getName(), AQUA)))));
+  NullComponent<Sender> FFMPEG_EXEC = () -> format(text("Executed FFmpeg command!", GOLD));
+  NullComponent<Sender> RESET_FFMPEG_ARGS = () -> format(text("Reset all FFmpeg arguments!", GOLD));
+  NullComponent<Sender> LOAD_IMG = () -> format(text("Loading image...", GOLD));
   NullComponent<Sender> PURGE_ALL_MAPS_VERIFY = () -> format(text(
-      "Are you sure you want to purge all maps? Type YES (all caps) if you would like to continue..."));
-  NullComponent<Sender> PURGED_ALL_MAPS = () -> format(text("Successfully purged all images!"));
+      "Are you sure you want to purge all maps? Type YES (all caps) if you would like to continue...",
+      GOLD));
+  NullComponent<Sender> PURGED_ALL_MAPS = () -> format(
+      text("Successfully purged all images!", GOLD));
   NullComponent<Sender> CANCELLED_PURGE_ALL_MAPS = () -> format(
-      text("Cancelled purge of all images!"));
-  NullComponent<Sender> PAUSE_VIDEO = () -> format(text("Stopped the video!"));
+      text("Cancelled purge of all images!", GOLD));
+  NullComponent<Sender> PAUSE_VIDEO = () -> format(text("Stopped the video!", GOLD));
   NullComponent<Sender> RELEASE_VIDEO = () -> format(
-      text("Successfully destroyed the current video!"));
+      text("Successfully destroyed the current video!", GOLD));
   NullComponent<Sender> SETUP_RESOURCEPACK = () -> format(text(
-      "Setting up resourcepack for resuming... this may take a while depending on how large the audio file is."));
+      "Setting up resourcepack for resuming... this may take a while depending on how large the audio file is.",
+      GOLD));
   NullComponent<Sender> DISCORD_AUDIO_STREAM = () -> format(
-      text("Started playing audio into Discord voice chat!"));
+      text("Started playing audio into Discord voice chat!", GOLD));
   NullComponent<Sender> DUMP_THREADS = () -> format(
-      text("Created thread dump! Look in console for more details."));
+      text("Created thread dump! Look in console for more details.", GOLD));
   NullComponent<Sender> CANCELLED_VIDEO_PROCESSING = () -> format(
-      text("Successfully cancelled the video loading process!"));
-  NullComponent<Sender> LOADING_VIDEO = () -> format(text("Initializing and reading media..."));
-  NullComponent<Sender> BUILT_SCREEN = () -> format(text("Successfully built your new screen!"));
+      text("Successfully cancelled the video loading process!", GOLD));
+  NullComponent<Sender> LOADING_VIDEO = () -> format(
+      text("Initializing and reading media...", GOLD));
+  NullComponent<Sender> BUILT_SCREEN = () -> format(
+      text("Successfully built your new screen!", GOLD));
   UniComponent<Sender, String>
-      DREW_IMG = (mrl) -> format(text("Successfully drew image with mrl %s".formatted(mrl)));
+      DREW_IMG = (mrl) -> format(text("Successfully drew image with mrl %s".formatted(mrl), GOLD));
   UniComponent<Sender, String> START_TRACK_DISCORD = (mrl) -> format(
-      text("Successfully started audio on MRL %s!".formatted(mrl)));
+      text("Successfully started audio on MRL %s!".formatted(mrl), GOLD));
   UniComponent<Sender, String> ADD_FFMPEG_ARG = (str) -> format(join(
       separator(space()),
       text("Added arguments", GOLD),
@@ -272,11 +286,11 @@ public interface Locale {
                       .asHoverEvent()))).append(text(" to retrieve the audio HTTP link!", GOLD))
           .build());
   UniComponent<Sender, String> STARTING_VIDEO = (mrl) -> format(
-      text("Starting Video on MRL %s".formatted(mrl)));
+      text("Starting Video on MRL %s".formatted(mrl), GOLD));
   UniComponent<Sender, String> LOADED_MEDIA = (mrl) -> format(
-      text("Successfully loaded media %s!".formatted(mrl)));
+      text("Successfully loaded media %s!".formatted(mrl), GOLD));
   UniComponent<Sender, String> SET_AUDIO_TYPE = (argument) -> format(text(
-      "Successfully set the audio type to %s".formatted(argument)));
+      "Successfully set the audio type to %s".formatted(argument), GOLD));
   UniComponent<Sender, String> SET_DITHER_TYPE = (algorithm) -> format(
       join(separator(space()), text("Set dither type to", GOLD),
           text(algorithm, AQUA)));
@@ -288,7 +302,7 @@ public interface Locale {
           .append(text('['), text("External Process", GOLD), text(']'), space(), text("»", GRAY)),
       text(line, GOLD)));
   UniComponent<Sender, String> NEW_UPDATE_PLUGIN = (update) -> format(text(
-      "There is a new update available! (%s)".formatted(update)));
+      "There is a new update available! (%s)".formatted(update), GOLD));
   UniComponent<Sender, String> ERR_INVALID_AUDIO_TYPE = (argument) -> format(text(
       "Could not find audio type %s".formatted(argument), RED));
   UniComponent<Sender, String> ERR_INVALID_DITHER_TYPE = (algorithm) -> format(text(
@@ -314,7 +328,7 @@ public interface Locale {
       text("Set starting map id to", GOLD),
       text(id, AQUA)));
   UniComponent<Sender, Long> RESUMING_VIDEO_MS = (ms) -> format(
-      text("Resuming Video at %s Milliseconds!"));
+      text("Resuming Video at %s Milliseconds!", GOLD));
   UniComponent<Sender, Player> SEND_RESOURCEPACK_URL = (player) -> format(text()
       .append(text("Loaded resourcepack for all players! Click ", GOLD))
       .append(

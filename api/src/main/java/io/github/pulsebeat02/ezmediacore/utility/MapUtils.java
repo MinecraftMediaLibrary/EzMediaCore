@@ -65,8 +65,8 @@ public final class MapUtils {
     final Block start = player.getLocation().getBlock().getRelative(face);
 
     // Start at top left corner
-    int map = 0;
-    for (int h = height; h >= 0; h--) {
+    int map = startingMap;
+    for (int h = height; h > 0; h--) {
       for (int w = 0; w < width; w++) {
         final Block current = start.getRelative(BlockFace.UP, h).getRelative(BlockFace.EAST, w);
         current.setType(mat);

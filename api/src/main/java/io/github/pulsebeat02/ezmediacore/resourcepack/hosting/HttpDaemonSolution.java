@@ -34,10 +34,12 @@ public interface HttpDaemonSolution extends HostingSolution {
   void stopServer();
 
   @NotNull
-  HttpDaemon getDaemon();
+  String createUrl(@NotNull final Path path);
 
   @NotNull
-  String createUrl(@NotNull final Path path);
+  HttpDaemon getDaemon();
+
+  boolean isRunning();
 
   @Override
   @NotNull

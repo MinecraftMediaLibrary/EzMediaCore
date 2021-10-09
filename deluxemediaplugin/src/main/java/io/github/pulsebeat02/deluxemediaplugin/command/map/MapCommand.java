@@ -34,8 +34,10 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+import io.github.pulsebeat02.deluxemediaplugin.utility.Pair;
 import io.github.pulsebeat02.ezmediacore.utility.MapUtils;
 import java.util.Map;
+import java.util.Optional;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -79,20 +81,32 @@ public final class MapCommand extends BaseCommand {
   private int giveMultipleMaps(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
     final Audience audience = this.plugin().audience().sender(sender);
-    final String[] bits = context.getArgument("ids", String.class).split("-");
-    final int start;
-    final int end;
-    try {
-      start = Integer.parseInt(bits[0]);
-      end = Integer.parseInt(bits[1]);
-    } catch (final NumberFormatException e) {
-      audience.sendMessage(Locale.ERR_MAP_RANGE.build());
-      return SINGLE_SUCCESS;
-    }
     if (!(sender instanceof final Player player)) {
       audience.sendMessage(Locale.ERR_PLAYER_SENDER.build());
       return SINGLE_SUCCESS;
     }
+    final Optional<Pair<Integer, Integer>> optional = this.extractData(audience,
+        context.getArgument("ids", String.class).split("-"));
+    if (optional.isEmpty()) {
+      return SINGLE_SUCCESS;
+    }
+    final Pair<Integer, Integer> pair = optional.get();
+    this.giveMaps(player, audience, pair.getKey(), pair.getValue());
+    return SINGLE_SUCCESS;
+  }
+
+  private Optional<Pair<Integer, Integer>> extractData(@NotNull final Audience audience,
+      final String @NotNull [] bits) {
+    try {
+      return Optional.of(new Pair<>(Integer.parseInt(bits[0]), Integer.parseInt(bits[1])));
+    } catch (final NumberFormatException e) {
+      audience.sendMessage(Locale.ERR_MAP_RANGE.build());
+      return Optional.empty();
+    }
+  }
+
+  private void giveMaps(@NotNull final Player player, @NotNull final Audience audience,
+      final int start, final int end) {
     final PlayerInventory inventory = player.getInventory();
     boolean noSpace = false;
     for (int id = start; id <= end; id++) {
@@ -107,7 +121,6 @@ public final class MapCommand extends BaseCommand {
       }
     }
     audience.sendMessage(Locale.GAVE_MAP_RANGE.build(start, end));
-    return SINGLE_SUCCESS;
   }
 
   @Override
