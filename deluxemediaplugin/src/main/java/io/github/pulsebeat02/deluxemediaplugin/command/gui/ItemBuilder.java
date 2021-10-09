@@ -114,7 +114,8 @@ public class ItemBuilder {
     final ItemMeta im = this.is.getItemMeta();
     im.setLore(
         Arrays.stream(lore)
-            .map(component -> legacyAmpersand().serialize(component))
+            .map(component -> translateAlternateColorCodes('&',
+                legacyAmpersand().serialize(component)))
             .collect(Collectors.toList()));
     this.is.setItemMeta(im);
     return this;
