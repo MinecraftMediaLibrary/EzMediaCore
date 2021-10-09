@@ -48,11 +48,11 @@ public enum AudioOutputType {
     this.handle = handle;
   }
 
-  public @NotNull AudioOutputHandle getHandle() {
-    return this.handle;
-  }
-
   public static @NotNull Optional<AudioOutputType> ofKey(@NotNull final String key) {
     return Optional.ofNullable(KEYS.get(key));
+  }
+
+  public @NotNull AudioOutputHandle getHandle() {
+    return this.handle;
   }
 }
