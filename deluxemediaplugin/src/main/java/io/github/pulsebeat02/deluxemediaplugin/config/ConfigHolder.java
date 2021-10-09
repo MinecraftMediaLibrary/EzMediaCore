@@ -44,9 +44,7 @@ public interface ConfigHolder<T> {
 
   void deserialize() throws IOException;
 
-  void serialize() throws IOException;
-
-  T getSerializedValue();
+  T serialize() throws IOException;
 
   @NotNull
   DeluxeMediaPlugin getPlugin();

@@ -121,7 +121,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
     this.plugin.getPictureManager().getImages().add(image);
   }
 
-  private List<Integer> getMapsFromDimension(final int width, final int height) {
+  private @NotNull List<Integer> getMapsFromDimension(final int width, final int height) {
     final List<Integer> maps = new ArrayList<>();
     for (int i = 0; i < width * height; i++) {
       maps.add(Bukkit.getServer().createMap(Bukkit.getWorld("world")).getId());

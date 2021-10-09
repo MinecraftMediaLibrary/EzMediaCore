@@ -15,7 +15,7 @@ dependencies {
     slim("org.bstats:bstats-bukkit:2.2.1")
     slim("com.mojang:brigadier:1.0.18")
     slim("net.kyori:adventure-platform-bukkit:4.0.0")
-    slim("net.kyori:adventure-api:4.9.1")
+    slim("net.kyori:adventure-api:4.9.2")
     slim("com.github.stefvanschie.inventoryframework:IF:0.10.2")
     slim("me.lucko:commodore:1.10")
     slim("net.dv8tion:JDA:4.3.0_310")

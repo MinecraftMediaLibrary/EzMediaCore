@@ -67,7 +67,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
 
   private void logServerInformation() {
     Logger.info("========================================");
-    Logger.info("           Started HTTP Server:         ");
+    Logger.info("               HTTP Server:             ");
     Logger.info("========================================");
     Logger.info("IP Address: %s".formatted(this.ip));
     Logger.info("Port: %d".formatted(this.port));

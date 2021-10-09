@@ -33,9 +33,7 @@ public interface DataHolder<T> {
 
   void deserialize(@NotNull final T obj) throws IOException;
 
-  void serialize() throws IOException;
-
-  T getSerializedValue();
+  T serialize() throws IOException;
 
   @NotNull
   DeluxeMediaPlugin getPlugin();

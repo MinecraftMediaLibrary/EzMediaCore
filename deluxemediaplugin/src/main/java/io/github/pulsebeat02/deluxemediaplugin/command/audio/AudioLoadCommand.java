@@ -93,6 +93,9 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
     final JavaPlugin loader = this.plugin.getBootstrap();
     try {
       final HttpServer daemon = this.plugin.getHttpServer();
+      if (!daemon.isRunning()) {
+        daemon.startServer();
+      }
       final ResourcepackSoundWrapper wrapper =
           new ResourcepackSoundWrapper(
               daemon.getDaemon().getServerPath().resolve("resourcepack.zip"), "Audio Pack", 6);
