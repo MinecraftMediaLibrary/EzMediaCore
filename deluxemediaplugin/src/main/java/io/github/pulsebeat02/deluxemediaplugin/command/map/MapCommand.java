@@ -85,7 +85,8 @@ public final class MapCommand extends BaseCommand {
       audience.sendMessage(Locale.ERR_PLAYER_SENDER.build());
       return SINGLE_SUCCESS;
     }
-    final Optional<Pair<Integer, Integer>> optional = this.extractData(audience, context.getArgument("ids", String.class).split("-"));
+    final Optional<Pair<Integer, Integer>> optional = this.extractData(audience,
+        context.getArgument("ids", String.class).split("-"));
     if (optional.isEmpty()) {
       return SINGLE_SUCCESS;
     }
@@ -94,7 +95,8 @@ public final class MapCommand extends BaseCommand {
     return SINGLE_SUCCESS;
   }
 
-  private Optional<Pair<Integer, Integer>> extractData(@NotNull final Audience audience, final String @NotNull [] bits) {
+  private Optional<Pair<Integer, Integer>> extractData(@NotNull final Audience audience,
+      final String @NotNull [] bits) {
     try {
       return Optional.of(new Pair<>(Integer.parseInt(bits[0]), Integer.parseInt(bits[1])));
     } catch (final NumberFormatException e) {
@@ -103,7 +105,8 @@ public final class MapCommand extends BaseCommand {
     }
   }
 
-  private void giveMaps(@NotNull final Player player, @NotNull final Audience audience, final int start, final int end) {
+  private void giveMaps(@NotNull final Player player, @NotNull final Audience audience,
+      final int start, final int end) {
     final PlayerInventory inventory = player.getInventory();
     boolean noSpace = false;
     for (int id = start; id <= end; id++) {

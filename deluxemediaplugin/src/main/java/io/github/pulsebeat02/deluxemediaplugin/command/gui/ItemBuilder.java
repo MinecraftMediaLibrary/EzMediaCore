@@ -25,6 +25,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.gui;
 
 import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacyAmpersand;
+import static org.bukkit.ChatColor.translateAlternateColorCodes;
 
 import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import java.util.ArrayList;
@@ -99,7 +100,7 @@ public class ItemBuilder {
    */
   public @NotNull ItemBuilder name(@NotNull final Component name) {
     final ItemMeta im = this.is.getItemMeta();
-    im.setDisplayName(legacyAmpersand().serialize(name));
+    im.setDisplayName(translateAlternateColorCodes('&', legacyAmpersand().serialize(name)));
     this.is.setItemMeta(im);
     return this;
   }
@@ -113,7 +114,8 @@ public class ItemBuilder {
     final ItemMeta im = this.is.getItemMeta();
     im.setLore(
         Arrays.stream(lore)
-            .map(component -> legacyAmpersand().serialize(component))
+            .map(component -> translateAlternateColorCodes('&',
+                legacyAmpersand().serialize(component)))
             .collect(Collectors.toList()));
     this.is.setItemMeta(im);
     return this;
@@ -128,7 +130,8 @@ public class ItemBuilder {
     final ItemMeta im = this.is.getItemMeta();
     im.setLore(
         lore.stream()
-            .map(component -> legacyAmpersand().serialize(component))
+            .map(component -> translateAlternateColorCodes('&',
+                legacyAmpersand().serialize(component)))
             .collect(Collectors.toList()));
     this.is.setItemMeta(im);
     return this;
@@ -142,7 +145,8 @@ public class ItemBuilder {
   public @NotNull ItemBuilder removeLore(@NotNull final Component line) {
     final ItemMeta im = this.is.getItemMeta();
     final List<String> lore = new ArrayList<>(im.getLore());
-    final String deserialized = legacyAmpersand().serialize(line);
+    final String deserialized = translateAlternateColorCodes('&',
+        legacyAmpersand().serialize(line));
     if (!lore.contains(deserialized)) {
       return this;
     }
@@ -180,7 +184,7 @@ public class ItemBuilder {
     if (im.hasLore()) {
       lore = new ArrayList<>(im.getLore());
     }
-    lore.add(legacyAmpersand().serialize(line));
+    lore.add(translateAlternateColorCodes('&', legacyAmpersand().serialize(line)));
     im.setLore(lore);
     this.is.setItemMeta(im);
     return this;
@@ -195,7 +199,7 @@ public class ItemBuilder {
   public @NotNull ItemBuilder lore(@NotNull final Component line, final int pos) {
     final ItemMeta im = this.is.getItemMeta();
     final List<String> lore = new ArrayList<>(im.getLore());
-    lore.set(pos, legacyAmpersand().serialize(line));
+    lore.set(pos, translateAlternateColorCodes('&', legacyAmpersand().serialize(line)));
     im.setLore(lore);
     this.is.setItemMeta(im);
     return this;
