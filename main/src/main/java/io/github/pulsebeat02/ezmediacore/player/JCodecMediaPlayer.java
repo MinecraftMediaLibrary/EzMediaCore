@@ -148,12 +148,10 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
   }
 
   private void play() {
-    CompletableFuture.runAsync(() -> {
-      CompletableFuture.runAsync(this::runPlayer);
-      this.delayFrames();
-      this.audioPlayer = this.updateAudioPlayer();
-      this.framePlayer = this.updateFramePlayer();
-    });
+    this.runPlayer();
+    this.delayFrames();
+    this.audioPlayer = this.updateAudioPlayer();
+    this.framePlayer = this.updateFramePlayer();
   }
 
   private void delayFrames() {
@@ -210,6 +208,16 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
     } catch (final IOException | JCodecException e) {
       e.printStackTrace();
     }
+  }
+
+  @Override
+  public @NotNull PlayerType getPlayerType() {
+    return PlayerType.JCODEC;
+  }
+
+  @Override
+  public boolean isBuffered() {
+    return true;
   }
 
   @Override

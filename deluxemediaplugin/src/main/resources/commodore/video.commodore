@@ -1,7 +1,6 @@
 video {
   play;
   stop;
-  resume;
   destroy;
   dump-threads;
   load {

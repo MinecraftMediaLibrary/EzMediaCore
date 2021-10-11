@@ -107,7 +107,9 @@ public final class DeluxeMediaPlugin {
 
   private void deserializeData() {
     try {
-      this.mediaAttributesData.deserialize(this.attributes);
+      if (this.mediaAttributesData != null) {
+        this.mediaAttributesData.deserialize(this.attributes);
+      }
     } catch (final IOException e) {
       e.printStackTrace();
     }

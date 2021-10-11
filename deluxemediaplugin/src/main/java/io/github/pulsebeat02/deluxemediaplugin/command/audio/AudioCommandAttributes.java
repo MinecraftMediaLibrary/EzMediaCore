@@ -25,6 +25,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.audio;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioOutputType;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +35,8 @@ public final class AudioCommandAttributes {
   private final AtomicBoolean completion;
   private final String key;
 
+
+  private AudioOutputType audioOutputType;
   private Path audio;
   private String link;
   private byte[] hash;
@@ -77,5 +80,14 @@ public final class AudioCommandAttributes {
 
   public void setHash(final byte @NotNull [] hash) {
     this.hash = hash;
+  }
+
+  public AudioOutputType getAudioOutputType() {
+    return this.audioOutputType;
+  }
+
+  public void setAudioOutputType(
+      final AudioOutputType audioOutputType) {
+    this.audioOutputType = audioOutputType;
   }
 }
