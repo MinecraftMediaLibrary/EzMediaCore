@@ -41,22 +41,30 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import net.md_5.bungee.api.ChatColor;
 import net.minecraft.server.v1_16_R3.ChatComponentText;
 import net.minecraft.server.v1_16_R3.ChatHexColor;
+import net.minecraft.server.v1_16_R3.ChatMessageType;
 import net.minecraft.server.v1_16_R3.DataWatcher;
 import net.minecraft.server.v1_16_R3.DataWatcherObject;
 import net.minecraft.server.v1_16_R3.DataWatcherRegistry;
+import net.minecraft.server.v1_16_R3.IChatBaseComponent;
 import net.minecraft.server.v1_16_R3.MapIcon;
 import net.minecraft.server.v1_16_R3.MinecraftKey;
 import net.minecraft.server.v1_16_R3.PacketDataSerializer;
+import net.minecraft.server.v1_16_R3.PacketPlayOutChat;
 import net.minecraft.server.v1_16_R3.PacketPlayOutCustomPayload;
 import net.minecraft.server.v1_16_R3.PacketPlayOutEntityMetadata;
 import net.minecraft.server.v1_16_R3.PacketPlayOutMap;
 import net.minecraft.server.v1_16_R3.PlayerConnection;
+import net.minecraft.server.v1_16_R3.SystemUtils;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_16_R3.util.CraftChatMessage;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 public final class NMSMapPacketIntercepter implements PacketHandler {
@@ -250,8 +258,11 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
 
   @Override
   public void displayEntities(
-      final UUID[] viewers, final Entity[] entities, final int[] data, final int width) {
-    final int height = data.length / width;
+      final UUID[] viewers,
+      final Entity[] entities,
+      final int[] data,
+      final int width,
+      final int height) {
     final int maxHeight = Math.min(height, entities.length);
     final PacketPlayOutEntityMetadata[] packets = new PacketPlayOutEntityMetadata[maxHeight];
     int index = 0;
@@ -291,6 +302,61 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
             connection.sendPacket(packet);
           }
         }
+      }
+    }
+  }
+
+  @Override
+  public void displayChat(
+      final UUID[] viewers,
+      final String character,
+      final int[] data,
+      final int width,
+      final int height) {
+    for (int y = 0; y < height; ++y) {
+      int before = -1;
+      final StringBuilder msg = new StringBuilder();
+      for (int x = 0; x < width; ++x) {
+        final int rgb = data[width * y + x];
+        if (before != rgb) {
+          msg.append(ChatColor.of("#" + Integer.toHexString(rgb).substring(2)));
+        }
+        msg.append(character);
+        before = rgb;
+      }
+      for (final UUID uuid : viewers) {
+        final PlayerConnection connection = this.connections.get(uuid);
+        final IChatBaseComponent[] base = CraftChatMessage.fromString(msg.toString());
+        for (final IChatBaseComponent component : base) {
+          connection.sendPacket(
+              new PacketPlayOutChat(component, ChatMessageType.SYSTEM, SystemUtils.b));
+        }
+      }
+    }
+  }
+
+  @Override
+  public void displayScoreboard(
+      final UUID[] viewers,
+      final Scoreboard scoreboard,
+      final String character,
+      final int[] data,
+      final int width,
+      final int height) {
+    for (int y = 0; y < height; ++y) {
+      int before = -1;
+      final StringBuilder msg = new StringBuilder();
+      for (int x = 0; x < width; ++x) {
+        final int rgb = data[width * y + x];
+        if (before != rgb) {
+          msg.append(ChatColor.of("#" + Integer.toHexString(rgb).substring(2)));
+        }
+        msg.append("█");
+        before = rgb;
+      }
+      final Team team = scoreboard.getTeam("SLOT_" + y);
+      if (team != null) {
+        team.setSuffix(msg.toString());
       }
     }
   }

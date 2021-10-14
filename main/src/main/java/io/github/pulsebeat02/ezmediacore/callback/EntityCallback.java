@@ -153,11 +153,11 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
   @Override
   public void process(final int[] data) {
     final long time = System.currentTimeMillis();
+    final int width = this.getDimensions().getWidth();
     if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
       this.setLastUpdated(time);
       this.getPacketHandler()
-          .displayEntities(this.getWatchers().getViewers(), this.entities, data,
-              this.getDimensions().getWidth());
+          .displayEntities(this.getWatchers().getViewers(), this.entities, data, width, this.entities.length / width);
     }
   }
 

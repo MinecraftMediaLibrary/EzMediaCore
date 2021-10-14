@@ -49,6 +49,7 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 
 public interface PacketHandler {
@@ -75,7 +76,26 @@ public interface PacketHandler {
       final int videoWidth);
 
   void displayEntities(
-      final UUID[] viewers, final Entity[] entities, final int[] data, final int width);
+      final UUID[] viewers,
+      final Entity[] entities,
+      final int[] data,
+      final int width,
+      final int height);
+
+  void displayChat(
+      final UUID[] viewers,
+      final String character,
+      final int[] data,
+      final int width,
+      final int height);
+
+  void displayScoreboard(
+      final UUID[] viewers,
+      final Scoreboard scoreboard,
+      final String character,
+      final int[] data,
+      final int width,
+      final int height);
 
   void injectPlayer(@NotNull final Player player);
 

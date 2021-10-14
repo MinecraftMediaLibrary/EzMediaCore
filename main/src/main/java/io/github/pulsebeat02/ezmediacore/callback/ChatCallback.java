@@ -26,8 +26,6 @@ package io.github.pulsebeat02.ezmediacore.callback;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import net.md_5.bungee.api.ChatColor;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,23 +49,13 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
     if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
       this.setLastUpdated(time);
       final Dimension dimension = this.getDimensions();
-      final int width = dimension.getWidth();
-      final int height = dimension.getHeight();
-      for (int y = 0; y < height; ++y) {
-        int before = -1;
-        final StringBuilder msg = new StringBuilder();
-        for (int x = 0; x < width; ++x) {
-          final int rgb = data[width * y + x];
-          if (before != rgb) {
-            msg.append(ChatColor.of("#" + "%08x".formatted(rgb).substring(2)));
-          }
-          msg.append(this.character.getName());
-          before = rgb;
-        }
-        for (final Player player : this.getWatchers().getPlayers()) {
-          player.sendMessage(msg.toString());
-        }
-      }
+      this.getPacketHandler()
+          .displayChat(
+              this.getWatchers().getViewers(),
+              this.character.getName(),
+              data,
+              dimension.getWidth(),
+              dimension.getHeight());
     }
   }
 
@@ -80,8 +68,7 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
 
     private NamedEntityString character = NamedEntityString.NORMAL_SQUARE;
 
-    Builder() {
-    }
+    Builder() {}
 
     @Contract("_ -> this")
     @Override

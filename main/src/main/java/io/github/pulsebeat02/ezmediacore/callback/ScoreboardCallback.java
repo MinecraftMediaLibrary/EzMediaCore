@@ -25,6 +25,7 @@ package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.utility.TaskUtils;
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -57,7 +58,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
   }
 
   private final String name;
-  private Scoreboard scoreboard;
+  private final Scoreboard scoreboard;
   private int id;
 
   ScoreboardCallback(
@@ -68,6 +69,11 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
       @NotNull final Identifier<Integer> id) {
     super(core, viewers, dimension, delay);
     this.name = "%s Video Player (%s)".formatted(core.getPlugin().getName(), id.getValue());
+    final ScoreboardManager manager = Bukkit.getScoreboardManager();
+    if (manager == null) {
+      throw new AssertionException("No worlds are loaded!");
+    }
+    this.scoreboard = manager.getNewScoreboard();
   }
 
   @Override
@@ -80,46 +86,37 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
               if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
                 this.setLastUpdated(time);
                 final Dimension dimension = this.getDimensions();
-                final int width = dimension.getWidth();
-                final int height = dimension.getHeight();
-                if (this.scoreboard == null) {
-                  final ScoreboardManager manager = Bukkit.getScoreboardManager();
-                  if (manager == null) {
-                    throw new AssertionException("No worlds are loaded!");
-                  }
-                  this.scoreboard = manager.getNewScoreboard();
-                  final Objective objective =
-                      this.scoreboard.registerNewObjective("rd-" + this.id++, "dummy", this.name);
-                  objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-                  for (int i = 0; i < height; i++) {
-                    final Team team = this.scoreboard.registerNewTeam("SLOT_" + i);
-                    final String entry = COLORS[i].toString();
-                    team.addEntry(entry);
-                    objective.getScore(entry).setScore(15 - i);
-                  }
-                }
-                for (final Player player : this.getWatchers().getPlayers()) {
+                final Viewers viewers = this.getWatchers();
+                for (final Player player : viewers.getPlayers()) {
                   player.setScoreboard(this.scoreboard);
                 }
-                for (int y = 0; y < height; ++y) {
-                  int before = -1;
-                  final StringBuilder msg = new StringBuilder();
-                  for (int x = 0; x < width; ++x) {
-                    final int rgb = data[width * y + x];
-                    if (before != rgb) {
-                      msg.append(ChatColor.of("#" + "%08x".formatted(rgb).substring(2)));
-                    }
-                    msg.append("█");
-                    before = rgb;
-                  }
-                  final Team team = this.scoreboard.getTeam("SLOT_" + y);
-                  if (team != null) {
-                    team.setSuffix(msg.toString());
-                  }
-                }
+                this.getPacketHandler()
+                    .displayScoreboard(
+                        viewers.getViewers(),
+                        this.scoreboard,
+                        this.name,
+                        data,
+                        dimension.getWidth(),
+                        dimension.getHeight());
               }
               return null;
             });
+  }
+
+  @Override
+  public void preparePlayerStateChange(@NotNull final PlayerControls status) {
+    super.preparePlayerStateChange(status);
+    if (status == PlayerControls.START) {
+      final Objective objective =
+          this.scoreboard.registerNewObjective("rd-" + this.id++, "dummy", this.name);
+      objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+      for (int i = 0; i < this.getDimensions().getHeight(); i++) {
+        final Team team = this.scoreboard.registerNewTeam("SLOT_" + i);
+        final String entry = COLORS[i].toString();
+        team.addEntry(entry);
+        objective.getScore(entry).setScore(15 - i);
+      }
+    }
   }
 
   @Override
@@ -136,8 +133,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
 
     private Identifier<Integer> id;
 
-    Builder() {
-    }
+    Builder() {}
 
     @Contract("_ -> this")
     @Override
