@@ -30,6 +30,7 @@ import io.github.pulsebeat02.ezmediacore.utility.ResponseUtils;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,7 +38,7 @@ public class YoutubeVideoDownloader implements VideoDownloader {
 
   private final YoutubeVideo video;
   private final Path videoPath;
-  private boolean cancelled;
+  private final AtomicBoolean cancelled;
 
   public YoutubeVideoDownloader(@NotNull final String url, @NotNull final Path videoPath) {
     this(new YoutubeVideo(url), videoPath);
@@ -46,23 +47,19 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   public YoutubeVideoDownloader(@NotNull final YoutubeVideo video, @NotNull final Path videoPath) {
     this.video = video;
     this.videoPath = videoPath;
-    this.cancelled = false;
+    this.cancelled = new AtomicBoolean(false);
   }
 
   public YoutubeVideoDownloader(
       @NotNull final MediaLibraryCore core, @NotNull final YoutubeVideo video) {
-    this.video = video;
-    this.videoPath = core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID()));
-    this.cancelled = false;
+    this(video, core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID())));
   }
 
   public YoutubeVideoDownloader(
       @NotNull final MediaLibraryCore core,
       @NotNull final YoutubeVideo video,
       @NotNull final String fileName) {
-    this.video = video;
-    this.videoPath = core.getVideoPath().resolve(fileName);
-    this.cancelled = false;
+    this(video, core.getVideoPath().resolve(fileName));
   }
 
   public YoutubeVideoDownloader(
@@ -75,7 +72,7 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   @Override
   public void downloadVideo(@NotNull final VideoQuality format, final boolean overwrite) {
     this.onStartVideoDownload();
-    if (!this.cancelled) {
+    if (!this.cancelled.get()) {
       this.internalDownload(
           new RequestVideoFileDownload(this.getFormat(format))
               .saveTo(this.videoPath.getParent().toFile())
@@ -90,9 +87,9 @@ public class YoutubeVideoDownloader implements VideoDownloader {
 
   private void internalDownload(@NotNull final RequestVideoFileDownload download) {
     if (ResponseUtils.getResponseResult(
-            YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download))
-        .isEmpty()
-        && !this.cancelled) {
+                YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download))
+            .isEmpty()
+        && !this.cancelled.get()) {
       this.internalDownload(download);
     }
   }
@@ -109,26 +106,23 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   }
 
   @Override
-  public void onStartVideoDownload() {
-  }
+  public void onStartVideoDownload() {}
 
   @Override
-  public void onFinishVideoDownload() {
-  }
+  public void onFinishVideoDownload() {}
 
   @Override
-  public void onDownloadFailure() {
-  }
+  public void onDownloadFailure() {}
 
   @Override
   public void cancelDownload() {
     this.onDownloadCancellation();
-    this.cancelled = true;
+    this.cancelled.set(true);
   }
 
   @Override
   public boolean isCancelled() {
-    return this.cancelled;
+    return this.cancelled.get();
   }
 
   @Override
@@ -142,6 +136,5 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   }
 
   @Override
-  public void onDownloadCancellation() {
-  }
+  public void onDownloadCancellation() {}
 }

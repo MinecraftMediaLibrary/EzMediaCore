@@ -83,15 +83,22 @@ public final class EzMediaCore implements MediaLibraryCore {
 
     this.plugin = plugin;
     this.libraryPath =
-        (libraryPath == null ? plugin.getDataFolder().toPath().resolve("emc") : libraryPath);
+        (libraryPath == null ? plugin.getDataFolder().toPath().resolve("emc") : libraryPath)
+            .toAbsolutePath();
     this.dependencyPath =
-        (dependencyPath == null ? this.libraryPath.resolve("libs") : dependencyPath);
+        (dependencyPath == null ? this.libraryPath.resolve("libs") : dependencyPath)
+            .toAbsolutePath();
     this.httpServerPath =
-        (httpServerPath == null ? this.libraryPath.resolve("http") : httpServerPath);
-    this.vlcPath = (vlcPath == null ? this.dependencyPath.resolve("vlc") : vlcPath);
-    this.imagePath = (imagePath == null ? this.libraryPath.resolve("image") : imagePath);
-    this.audioPath = (audioPath == null ? this.libraryPath.resolve("audio") : audioPath);
-    this.videoPath = (videoPath == null ? this.libraryPath.resolve("video") : videoPath);
+        (httpServerPath == null ? this.libraryPath.resolve("http") : httpServerPath)
+            .toAbsolutePath();
+    this.vlcPath =
+        (vlcPath == null ? this.dependencyPath.resolve("vlc") : vlcPath).toAbsolutePath();
+    this.imagePath =
+        (imagePath == null ? this.libraryPath.resolve("image") : imagePath).toAbsolutePath();
+    this.audioPath =
+        (audioPath == null ? this.libraryPath.resolve("audio") : audioPath).toAbsolutePath();
+    this.videoPath =
+        (videoPath == null ? this.libraryPath.resolve("video") : videoPath).toAbsolutePath();
     this.spotifyClient = client;
 
     Logger.init(this);
@@ -129,8 +136,7 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void initializeStream() {
-    IntStream.range(0, 5).parallel().forEach(key -> {
-    }); // jump start int stream
+    IntStream.range(0, 5).parallel().forEach(key -> {}); // jump start int stream
   }
 
   private void initializeProviders() {
@@ -207,7 +213,7 @@ public final class EzMediaCore implements MediaLibraryCore {
 
   @Override
   public void setFFmpegPath(@NotNull final Path path) {
-    this.ffmpegExecutable = path;
+    this.ffmpegExecutable = path.toAbsolutePath();
   }
 
   @Override
@@ -217,7 +223,7 @@ public final class EzMediaCore implements MediaLibraryCore {
 
   @Override
   public void setRTPPath(@NotNull final Path path) {
-    this.rtpExecutable = path;
+    this.rtpExecutable = path.toAbsolutePath();
   }
 
   @Override

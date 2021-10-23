@@ -23,10 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.image;
 
-import static io.github.pulsebeat02.ezmediacore.decoder.GifDecoder.GifImage;
-
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.decoder.GifDecoder;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import java.io.FileInputStream;
@@ -35,14 +32,15 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
 public class DynamicImage extends Image
     implements io.github.pulsebeat02.ezmediacore.image.GifImage {
 
-  private final GifImage image;
+  private final GifDecoder.GifImage image;
   private final int frameCount;
-  private CompletableFuture<Void> future;
+  private final AtomicBoolean cancelled;
   private int frame;
 
   public DynamicImage(
@@ -53,37 +51,38 @@ public class DynamicImage extends Image
       throws IOException {
     super(core, image, maps, dimension);
     this.image = GifDecoder.read(new FileInputStream(image.toFile()));
+    this.cancelled = new AtomicBoolean(false);
     this.frameCount = this.image.getFrameCount();
   }
 
   @Override
   public void draw(final boolean resize) {
     this.onStartDrawImage();
-    this.future =
-        CompletableFuture.runAsync(
-            () -> {
-              for (; this.frame < this.frameCount; this.frame++) {
-                this.getRenderer().drawMap(this.process(this.image.getFrame(this.frame), resize));
-                try {
-                  TimeUnit.MILLISECONDS.sleep(this.image.getDelay(this.frame) * 10L);
-                } catch (final InterruptedException e) {
-                  e.printStackTrace();
-                }
+    CompletableFuture.runAsync(
+        () -> {
+          while (!this.cancelled.get()) {
+            for (; this.frame < this.frameCount; this.frame++) {
+              this.getRenderer().drawMap(this.process(this.image.getFrame(this.frame), resize));
+              try {
+                TimeUnit.MILLISECONDS.sleep(this.image.getDelay(this.frame) * 10L);
+              } catch (final InterruptedException e) {
+                e.printStackTrace();
               }
-            },
-            ExecutorProvider.MAP_UPDATE_POOL);
+            }
+          }
+        },
+        ExecutorProvider.MAP_UPDATE_POOL);
     this.onFinishDrawImage();
   }
 
   @Override
   public void stopDrawing() {
     this.onStopDrawing();
-    this.future.cancel(true);
+    this.cancelled.set(true);
   }
 
   @Override
-  public void onStopDrawing() {
-  }
+  public void onStopDrawing() {}
 
   @Override
   public int getCurrentFrame() {

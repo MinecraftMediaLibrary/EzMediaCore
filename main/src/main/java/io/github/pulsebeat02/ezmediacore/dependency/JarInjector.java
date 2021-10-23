@@ -35,9 +35,8 @@ import java.util.Collection;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-public final class JarInjector implements DependencyInjector {
-
-  private final Collection<URL> dependencies;
+public record JarInjector(Collection<URL> dependencies) implements
+    DependencyInjector {
 
   public JarInjector(@NotNull final Collection<URL> dependencies) {
     this.dependencies = dependencies;

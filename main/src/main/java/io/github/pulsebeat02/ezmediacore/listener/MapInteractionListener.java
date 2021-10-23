@@ -36,9 +36,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
 import org.jetbrains.annotations.NotNull;
 
-public final class MapInteractionListener implements LibraryInjectable, Listener {
-
-  private final MediaLibraryCore core;
+public record MapInteractionListener(
+    MediaLibraryCore core) implements LibraryInjectable,
+    Listener {
 
   public MapInteractionListener(@NotNull final MediaLibraryCore core) {
     this.core = core;
@@ -62,7 +62,8 @@ public final class MapInteractionListener implements LibraryInjectable, Listener
   }
 
   @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public @NotNull
+  MediaLibraryCore getCore() {
     return this.core;
   }
 }

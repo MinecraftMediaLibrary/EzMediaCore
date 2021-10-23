@@ -71,7 +71,6 @@ public final class VideoCommand extends BaseCommand {
             .requires(super::testPermission)
             .then(this.literal("play").executes(this::playVideo))
             .then(this.literal("stop").executes(this::stopVideo))
-            .then(this.literal("resume").executes(this::resumeVideo))
             .then(this.literal("destroy").executes(this::destroyVideo))
             .then(this.literal("dump-threads").executes(this::dumpThreads))
             .then(new VideoLoadCommand(plugin, this.attributes).node())
@@ -270,12 +269,11 @@ public final class VideoCommand extends BaseCommand {
             entry("/video", "Lists the current video playing"),
             entry("/video play", "Plays the video"),
             entry("/video stop", "Stops the video"),
-            entry("/video load [url]", "Loads a Youtube link"),
-            entry("/video load [file]", "Loads a specific video file"),
+            entry("/video load [mrl]", "Loads a Youtube link"),
             entry("/video load cancel-download", "Cancels the Youtube download"),
             entry(
                 "/video load resourcepack [target selector]",
-                "Loads the past resourcepack made for the video"),
+                "Loads the past resourcepack made for the video for the selected entities"),
             entry(
                 "/video set screen-dimension [width:height]", "Sets the resolution of the screen"),
             entry(

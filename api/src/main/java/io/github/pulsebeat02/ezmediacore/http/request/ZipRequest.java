@@ -31,6 +31,4 @@ public interface ZipRequest {
   default ZipHeader getHeader() {
     return ZipHeader.ZIP;
   }
-
-  void setZipHeader(@NotNull final ZipHeader header);
 }

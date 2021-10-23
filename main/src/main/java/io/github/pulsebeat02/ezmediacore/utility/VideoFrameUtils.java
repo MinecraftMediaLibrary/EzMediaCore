@@ -54,8 +54,13 @@ import org.jetbrains.annotations.NotNull;
 
 public final class VideoFrameUtils {
 
-  private VideoFrameUtils() {
+  private static final char[] HEX_DIGITS;
+
+  static {
+    HEX_DIGITS = "0123456789abcdef".toCharArray();
   }
+
+  private VideoFrameUtils() {}
 
   public static int @NotNull [] toResizedColorArray(
       @NotNull final Picture frame,
@@ -266,5 +271,15 @@ public final class VideoFrameUtils {
               }
             });
     return rgb;
+  }
+
+  public static @NotNull String toHex(final int number) {
+    final StringBuilder builder = new StringBuilder();
+    int div = number;
+    while (div != 0) {
+      builder.insert(0, HEX_DIGITS[div & 15]);
+      div >>= 4;
+    }
+    return builder.toString();
   }
 }

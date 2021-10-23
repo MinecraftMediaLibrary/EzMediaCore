@@ -32,6 +32,7 @@ import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,8 +42,8 @@ public class RTPStreamingServer implements StreamingServer {
   private final MediaLibraryCore core;
   private final String ip;
   private final int hlsPort;
+  private final AtomicBoolean cancelled;
   private Process process;
-  private boolean cancelled;
 
   public RTPStreamingServer(@NotNull final MediaLibraryCore core) {
     this(core, HttpServer.HTTP_SERVER_IP, 8888);
@@ -61,6 +62,7 @@ public class RTPStreamingServer implements StreamingServer {
     this.core = core;
     this.ip = ip;
     this.hlsPort = hlsPort;
+    this.cancelled = new AtomicBoolean(false);
   }
 
   @Override
@@ -70,7 +72,7 @@ public class RTPStreamingServer implements StreamingServer {
 
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
-    if (!this.cancelled) {
+    if (!this.cancelled.get()) {
       final boolean consume = logger != null;
       final ProcessBuilder builder = new ProcessBuilder(this.core.getRTPPath().toString());
       final Map<String, String> env = builder.environment();
@@ -122,7 +124,7 @@ public class RTPStreamingServer implements StreamingServer {
 
   @Override
   public void close() {
-    this.cancelled = true;
+    this.cancelled.set(true);
     if (this.process != null) {
       this.process.destroyForcibly();
     }
@@ -130,7 +132,7 @@ public class RTPStreamingServer implements StreamingServer {
 
   @Override
   public boolean isCancelled() {
-    return this.cancelled;
+    return this.cancelled.get();
   }
 
   @Override

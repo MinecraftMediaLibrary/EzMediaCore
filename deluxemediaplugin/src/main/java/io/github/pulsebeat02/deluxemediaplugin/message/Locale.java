@@ -182,6 +182,8 @@ public interface Locale {
       "Please wait for the previous audio to extract first before loading another one!", RED));
   NullComponent<Sender> ERR_INVALID_DISCORD_BOT = () -> format(text(
       "Discord bot not setup yet or invalid settings in bot.yml!", RED));
+  NullComponent<Sender> ERR_INVALID_DISCORD_BOT_VPN = () -> format(text(
+      "Are you using a VPN perhaps? JDA doesn't like VPNs.", RED));
   NullComponent<Sender> ERR_PLAYER_SENDER = () -> format(
       text("You must be a player to execute this command!", RED));
   NullComponent<Sender> ERR_INVALID_EXTENSION = () -> format(text(

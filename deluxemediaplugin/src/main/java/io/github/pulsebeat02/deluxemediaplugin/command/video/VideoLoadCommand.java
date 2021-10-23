@@ -102,8 +102,10 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       } catch (final Exception e) {
         e.printStackTrace();
       }
-      this.task.cancel(true);
       this.attributes.setExtractor(null);
+    }
+    if (this.task != null) {
+      this.task.cancel(true);
       this.task = null;
     }
     audience.sendMessage(Locale.CANCELLED_VIDEO_PROCESSING.build());

@@ -53,16 +53,12 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Constructs a chain of commands to be executed accordingly.
- */
+/** Constructs a chain of commands to be executed accordingly. */
 public class CommandTaskChain {
 
   private final Map<CommandTask, Boolean> chain;
 
-  /**
-   * Instantiates a new CommandTaskChain
-   */
+  /** Instantiates a new CommandTaskChain */
   public CommandTaskChain() {
     this.chain = new LinkedHashMap<>();
   }
@@ -112,8 +108,8 @@ public class CommandTaskChain {
     for (final Map.Entry<CommandTask, Boolean> entry : this.chain.entrySet()) {
       final CommandTask task = entry.getKey();
       if (entry.getValue()) {
-        CompletableFuture.runAsync(() -> this.runTask(task),
-            ExecutorProvider.EXTERNAL_PROCESS_POOL);
+        CompletableFuture.runAsync(
+            () -> this.runTask(task), ExecutorProvider.EXTERNAL_PROCESS_POOL);
       } else {
         this.runTaskChain(task);
       }
@@ -125,7 +121,7 @@ public class CommandTaskChain {
       task.run();
       Logger.info(
           "Task Command: %s Result: %s"
-              .formatted(String.join(" ", task.getCommand()), task.getResult()));
+              .formatted(String.join(" ", task.getCommand()), task.getOutput()));
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -137,7 +133,7 @@ public class CommandTaskChain {
     if (task.getProcess().waitFor() == 0) {
       Logger.info(
           "Task Command: %s Result: %s"
-              .formatted(String.join(" ", task.getCommand()), task.getResult()));
+              .formatted(String.join(" ", task.getCommand()), task.getOutput()));
     } else {
       Logger.info("An exception has occurred!");
     }

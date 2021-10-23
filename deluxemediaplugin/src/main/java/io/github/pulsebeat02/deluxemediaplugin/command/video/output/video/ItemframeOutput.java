@@ -50,7 +50,7 @@ public class ItemframeOutput extends VideoOutput {
       @NotNull final CommandSender sender,
       @NotNull final Collection<? extends Player> players) {
     attributes.setPlayer(
-        VideoBuilder.unspecified()
+        VideoBuilder.ffmpeg()
             .callback(
                 CallbackBuilder.map()
                     .algorithm(attributes.getDitherType().getAlgorithm())

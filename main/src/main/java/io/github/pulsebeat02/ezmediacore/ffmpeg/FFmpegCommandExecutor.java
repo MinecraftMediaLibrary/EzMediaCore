@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,15 +43,16 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
 
   private final MediaLibraryCore core;
   private final List<String> arguments;
+  private final AtomicBoolean completion;
+  private final AtomicBoolean cancelled;
   private Process process;
-  private boolean completion;
-  private boolean cancelled;
 
   public FFmpegCommandExecutor(@NotNull final MediaLibraryCore core) {
     this.core = core;
     this.arguments = new ArrayList<>();
     this.arguments.add(core.getFFmpegPath().toString());
-    this.cancelled = false;
+    this.completion = new AtomicBoolean(false);
+    this.cancelled = new AtomicBoolean(false);
   }
 
   @Override
@@ -125,7 +127,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
     this.onBeforeExecution();
     final boolean streamerLog = this instanceof FFmpegMediaStreamer;
-    if (!this.cancelled) {
+    if (!this.cancelled.get()) {
       final boolean consume = logger != null;
       final ProcessBuilder builder = new ProcessBuilder(this.arguments);
       builder.redirectErrorStream(true);
@@ -153,7 +155,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
         e.printStackTrace();
       }
     }
-    this.completion = true;
+    this.completion.set(true);
     this.onAfterExecution();
   }
 
@@ -181,7 +183,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
 
   @Override
   public void close() {
-    this.cancelled = true;
+    this.cancelled.set(true);
     if (this.process != null) {
       this.process.descendants().forEach(ProcessHandle::destroyForcibly);
       this.process.destroyForcibly();
@@ -195,20 +197,18 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
 
   @Override
   public boolean isCancelled() {
-    return this.cancelled;
+    return this.cancelled.get();
   }
 
   @Override
-  public void onBeforeExecution() {
-  }
+  public void onBeforeExecution() {}
 
   @Override
-  public void onAfterExecution() {
-  }
+  public void onAfterExecution() {}
 
   @Override
   public boolean isCompleted() {
-    return this.completion;
+    return this.completion.get();
   }
 
   @Override

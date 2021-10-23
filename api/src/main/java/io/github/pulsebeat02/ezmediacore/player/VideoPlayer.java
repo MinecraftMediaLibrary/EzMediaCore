@@ -82,4 +82,9 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
   PlayerControls getPlayerState();
 
   long getElapsedMilliseconds();
+
+  @NotNull
+  PlayerType getPlayerType();
+
+  boolean isBuffered();
 }

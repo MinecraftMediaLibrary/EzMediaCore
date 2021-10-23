@@ -28,7 +28,6 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import java.io.IOException;
-import javax.security.auth.login.LoginException;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -73,7 +72,7 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
     if (!invalid) {
       try {
         return new MediaBot(token, guild, vc);
-      } catch (final LoginException | InterruptedException e) {
+      } catch (final Throwable e) {
         console.sendMessage(Locale.ERR_INVALID_DISCORD_BOT.build());
         e.printStackTrace();
       }

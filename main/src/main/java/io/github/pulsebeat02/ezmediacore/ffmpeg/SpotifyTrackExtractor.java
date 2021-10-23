@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +40,7 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
 
   private final SpotifyTrackDownloader downloader;
   private final YoutubeVideoAudioExtractor extractor;
-  private boolean cancelled;
+  private final AtomicBoolean cancelled;
 
   public SpotifyTrackExtractor(
       @NotNull final MediaLibraryCore core,
@@ -49,6 +50,7 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
       throws IOException {
     this.downloader = new SpotifyTrackDownloader(url, output);
     this.extractor = new YoutubeVideoAudioExtractor(core, configuration, url, output);
+    this.cancelled = new AtomicBoolean(false);
   }
 
   public SpotifyTrackExtractor(
@@ -107,27 +109,24 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
   @Override
   public void close() {
     this.onDownloadCancellation();
-    this.cancelled = true;
+    this.cancelled.set(true);
     this.downloader.cancelDownload();
     this.extractor.close();
   }
 
   @Override
   public boolean isCancelled() {
-    return this.cancelled;
+    return this.cancelled.get();
   }
 
   @Override
-  public void onDownloadCancellation() {
-  }
+  public void onDownloadCancellation() {}
 
   @Override
-  public void onStartAudioExtraction() {
-  }
+  public void onStartAudioExtraction() {}
 
   @Override
-  public void onFinishAudioExtraction() {
-  }
+  public void onFinishAudioExtraction() {}
 
   @Override
   public @NotNull TrackDownloader getTrackDownloader() {

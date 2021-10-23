@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,14 +44,13 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   private final SpotifyQuerySearch searcher;
   private final Track track;
   private final Path videoPath;
-  private boolean cancelled;
+  private final AtomicBoolean cancelled;
 
-  public SpotifyTrackDownloader(@NotNull final Track track, @NotNull final Path videoPath)
-      throws IOException {
+  public SpotifyTrackDownloader(@NotNull final Track track, @NotNull final Path videoPath) {
     this.searcher = new SpotifyQuerySearch(track);
     this.track = track;
     this.videoPath = videoPath;
-    this.cancelled = false;
+    this.cancelled = new AtomicBoolean(false);
   }
 
   public SpotifyTrackDownloader(@NotNull final String url, @NotNull final Path videoPath)
@@ -66,7 +66,7 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   @Override
   public void downloadVideo(@NotNull final VideoQuality format, final boolean overwrite) {
     this.onStartVideoDownload();
-    if (!this.cancelled) {
+    if (!this.cancelled.get()) {
       this.internalDownload(
           new RequestVideoFileDownload(this.getFormat(format))
               .saveTo(this.videoPath.getParent().toFile())
@@ -82,9 +82,9 @@ public class SpotifyTrackDownloader implements TrackDownloader {
 
   private void internalDownload(@NotNull final RequestVideoFileDownload download) {
     if (ResponseUtils.getResponseResult(
-            YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download))
-        .isEmpty()
-        && !this.cancelled) {
+                YoutubeProvider.getYoutubeDownloader().downloadVideoFile(download))
+            .isEmpty()
+        && !this.cancelled.get()) {
       this.internalDownload(download);
     }
   }
@@ -101,12 +101,10 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   }
 
   @Override
-  public void onStartVideoDownload() {
-  }
+  public void onStartVideoDownload() {}
 
   @Override
-  public void onFinishVideoDownload() {
-  }
+  public void onFinishVideoDownload() {}
 
   @Override
   public @NotNull Path getDownloadPath() {
@@ -126,19 +124,17 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   @Override
   public void cancelDownload() {
     this.onDownloadCancellation();
-    this.cancelled = true;
+    this.cancelled.set(true);
   }
 
   @Override
   public boolean isCancelled() {
-    return this.cancelled;
+    return this.cancelled.get();
   }
 
   @Override
-  public void onDownloadCancellation() {
-  }
+  public void onDownloadCancellation() {}
 
   @Override
-  public void onDownloadFailure() {
-  }
+  public void onDownloadFailure() {}
 }

@@ -143,6 +143,16 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     return this.player.status().time();
   }
 
+  @Override
+  public @NotNull PlayerType getPlayerType() {
+    return PlayerType.VLC;
+  }
+
+  @Override
+  public boolean isBuffered() {
+    return false;
+  }
+
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer(
       @NotNull final Collection<Object> arguments) {
     if (this.player == null || this.factory == null || this.logger == null) { // just in case something is null;
@@ -330,8 +340,9 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     }
 
     @Override
-    public void play(final uk.co.caprica.vlcj.player.base.MediaPlayer mediaPlayer,
-        final Pointer samples,
+    public void play(
+        @NotNull final uk.co.caprica.vlcj.player.base.MediaPlayer mediaPlayer,
+        @NotNull final Pointer samples,
         final int sampleCount, final long pts) {
       this.callback.accept(samples.getByteArray(0, sampleCount * this.blockSize));
     }

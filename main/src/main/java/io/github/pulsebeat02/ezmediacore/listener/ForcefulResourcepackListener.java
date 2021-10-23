@@ -37,12 +37,9 @@ import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-public final class ForcefulResourcepackListener implements Listener {
-
-  private final MediaLibraryCore core;
-  private final Set<UUID> uuids;
-  private final String url;
-  private final byte[] hash;
+public record ForcefulResourcepackListener(MediaLibraryCore core,
+                                           Set<UUID> uuids,
+                                           String url, byte[] hash) implements Listener {
 
   public ForcefulResourcepackListener(
       @NotNull final MediaLibraryCore core,

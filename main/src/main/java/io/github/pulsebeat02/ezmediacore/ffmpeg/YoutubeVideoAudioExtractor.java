@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +42,7 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   private final YoutubeVideoDownloader downloader;
   private final FFmpegAudioExtractor extractor;
   private final Path tempVideoPath;
-  private boolean cancelled;
+  private final AtomicBoolean cancelled;
 
   public YoutubeVideoAudioExtractor(
       @NotNull final MediaLibraryCore core,
@@ -52,7 +53,7 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
     this.tempVideoPath = core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID()));
     this.downloader = new YoutubeVideoDownloader(url, this.tempVideoPath);
     this.extractor = new FFmpegAudioExtractor(core, configuration, this.tempVideoPath, output);
-    this.cancelled = false;
+    this.cancelled = new AtomicBoolean(false);
   }
 
   public YoutubeVideoAudioExtractor(
@@ -110,18 +111,16 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   @Override
   public void close() {
     this.onDownloadCancellation();
-    this.cancelled = true;
+    this.cancelled.set(true);
     this.downloader.cancelDownload();
     this.extractor.close();
   }
 
   @Override
-  public void onStartAudioExtraction() {
-  }
+  public void onStartAudioExtraction() {}
 
   @Override
-  public void onFinishAudioExtraction() {
-  }
+  public void onFinishAudioExtraction() {}
 
   @Override
   public @NotNull VideoDownloader getDownloader() {
@@ -135,10 +134,9 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
 
   @Override
   public boolean isCancelled() {
-    return this.cancelled;
+    return this.cancelled.get();
   }
 
   @Override
-  public void onDownloadCancellation() {
-  }
+  public void onDownloadCancellation() {}
 }

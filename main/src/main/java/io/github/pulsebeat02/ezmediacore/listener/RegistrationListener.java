@@ -34,9 +34,9 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-public final class RegistrationListener implements LibraryInjectable, Listener {
-
-  private final MediaLibraryCore core;
+public record RegistrationListener(
+    MediaLibraryCore core) implements LibraryInjectable,
+    Listener {
 
   public RegistrationListener(@NotNull final MediaLibraryCore core) {
     this.core = core;
@@ -64,7 +64,8 @@ public final class RegistrationListener implements LibraryInjectable, Listener {
   }
 
   @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public @NotNull
+  MediaLibraryCore getCore() {
     return this.core;
   }
 }

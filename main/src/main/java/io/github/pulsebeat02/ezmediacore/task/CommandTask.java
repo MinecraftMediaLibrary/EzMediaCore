@@ -65,12 +65,11 @@ public class CommandTask {
 
   private final String[] command;
   private Process process;
-  private String result;
 
   /**
    * Instantiates a CommandTask.
    *
-   * @param command       command
+   * @param command command
    * @param runOnCreation whether it should be ran instantly
    * @throws IOException if the command isn't valid (when ran instantly)
    */
@@ -106,7 +105,7 @@ public class CommandTask {
    *
    * @throws IOException if the output cannot be read
    */
-  private void getOutput() throws IOException {
+  public @NotNull String getOutput() throws IOException {
     final StringBuilder output = new StringBuilder();
     final BufferedReader br =
         new BufferedReader(new InputStreamReader(this.process.getInputStream()));
@@ -115,7 +114,7 @@ public class CommandTask {
       output.append(str);
     }
     br.close();
-    this.result = output.toString();
+    return output.toString();
   }
 
   /**
@@ -134,14 +133,5 @@ public class CommandTask {
    */
   public Process getProcess() {
     return this.process;
-  }
-
-  /**
-   * Gets result of the command.
-   *
-   * @return the result
-   */
-  public String getResult() {
-    return this.result;
   }
 }

@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
 public class HttpServerDaemon implements HttpDaemon, ZipRequest {
@@ -40,14 +41,14 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   private final String ip;
   private final int port;
   private final boolean verbose;
+  private final AtomicBoolean running;
+  private final ZipHeader header;
 
   private ServerSocket socket;
-  private ZipHeader header;
-  private boolean running;
 
   public HttpServerDaemon(
       @NotNull final Path path, @NotNull final String ip, final int port, final boolean verbose) {
-    this.running = true;
+    this.running = new AtomicBoolean(false);
     this.directory = path;
     this.ip = ip;
     this.port = port;
@@ -60,8 +61,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
       @NotNull final MediaLibraryCore core,
       @NotNull final String ip,
       final int port,
-      final boolean verbose)
-      throws IOException {
+      final boolean verbose) {
     this(core.getHttpServerPath(), ip, port, verbose);
   }
 
@@ -83,6 +83,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   }
 
   private void openServerSocket() {
+    this.running.set(true);
     try {
       this.socket = new ServerSocket(this.port);
       this.socket.setReuseAddress(true);
@@ -94,7 +95,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   }
 
   private void handleServerRequests() {
-    while (this.running) {
+    while (this.running.get()) {
       try {
         ExecutorProvider.HTTP_REQUEST_POOL.submit(
             new FileRequestHandler(this, this.socket.accept(), this.header));
@@ -111,7 +112,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   @Override
   public void stop() {
     this.onServerTermination();
-    this.running = false;
+    this.running.set(false);
     if (!this.socket.isClosed()) {
       try {
         this.socket.close();
@@ -156,10 +157,5 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   @Override
   public @NotNull ZipHeader getHeader() {
     return this.header;
-  }
-
-  @Override
-  public void setZipHeader(@NotNull final ZipHeader header) {
-    this.header = header;
   }
 }

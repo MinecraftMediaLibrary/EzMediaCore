@@ -102,7 +102,7 @@ public class SilentMacInstallation extends SilentInstallation {
     final CommandTask t =
         new CommandTask(new String[]{"/usr/bin/hdiutil", "attach", dmg.toString()}, true);
     Logger.info("============= DMG INFORMATION =============");
-    Logger.info(t.getResult());
+    Logger.info(t.getOutput());
     Logger.info("===========================================");
     return t.getProcess().waitFor();
   }
@@ -111,7 +111,7 @@ public class SilentMacInstallation extends SilentInstallation {
     final CommandTask t =
         new CommandTask(new String[]{"diskutil", "unmount", path.toString()}, true);
     Logger.info("=========== UNMOUNT INFORMATION ===========");
-    Logger.info(t.getResult());
+    Logger.info(t.getOutput());
     Logger.info("===========================================");
     return t.getProcess().waitFor();
   }

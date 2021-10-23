@@ -28,12 +28,12 @@ import org.jetbrains.annotations.NotNull;
 
 public final class AudioAttributes implements AudioConfiguration {
 
-  private String codec;
-  private int start;
-  private int bitrate;
-  private int channels;
-  private int samplingRate;
-  private int volume;
+  private final String codec;
+  private final int start;
+  private final int bitrate;
+  private final int channels;
+  private final int samplingRate;
+  private final int volume;
 
   public AudioAttributes(
       @NotNull final String codec,
@@ -71,18 +71,8 @@ public final class AudioAttributes implements AudioConfiguration {
   }
 
   @Override
-  public void setBitrate(final int bitrate) {
-    this.bitrate = bitrate;
-  }
-
-  @Override
   public int getChannels() {
     return this.channels;
-  }
-
-  @Override
-  public void setChannels(final int channels) {
-    this.channels = channels;
   }
 
   @Override
@@ -91,18 +81,8 @@ public final class AudioAttributes implements AudioConfiguration {
   }
 
   @Override
-  public void setSamplingRate(final int samplingRate) {
-    this.samplingRate = samplingRate;
-  }
-
-  @Override
   public @NotNull String getCodec() {
     return this.codec;
-  }
-
-  @Override
-  public void setCodec(@NotNull final String codec) {
-    this.codec = codec;
   }
 
   @Override
@@ -111,17 +91,7 @@ public final class AudioAttributes implements AudioConfiguration {
   }
 
   @Override
-  public void setVolume(final int volume) {
-    this.volume = volume;
-  }
-
-  @Override
   public int getStartTime() {
     return this.start;
-  }
-
-  @Override
-  public void setStartTime(final int time) {
-    this.start = time;
   }
 }

@@ -57,7 +57,6 @@ public class FileRequestHandler implements FileRequest {
 
   private final HttpServerDaemon daemon;
   private final ZipHeader header;
-
   private final Socket client;
 
   public FileRequestHandler(

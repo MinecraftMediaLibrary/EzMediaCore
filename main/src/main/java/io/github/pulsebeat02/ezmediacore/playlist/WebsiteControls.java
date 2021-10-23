@@ -26,6 +26,7 @@ package io.github.pulsebeat02.ezmediacore.playlist;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -35,12 +36,13 @@ public class WebsiteControls implements WebPlayerControls {
   private final String url;
   private final Collection<String> songs;
   private final PlaylistType type;
-  private int index;
+  private final MutableInt index;
 
   public WebsiteControls(final String url, @NotNull final PlaylistType type) {
     this.url = url;
     this.songs = this.getSongs();
     this.type = type;
+    this.index = new MutableInt(0);
   }
 
   @Contract(pure = true)
@@ -50,30 +52,23 @@ public class WebsiteControls implements WebPlayerControls {
   }
 
   @Override
-  public void skipSong() {
-  }
+  public void skipSong() {}
 
   @Override
-  public void previousSong() {
-  }
+  public void previousSong() {}
 
   @Override
-  public void pauseSong() {
-  }
+  public void pauseSong() {}
 
   @Override
-  public void resumeSong() {
-  }
+  public void resumeSong() {}
 
   @Override
-  public void seekToTime(final int seconds) {
-  }
+  public void seekToTime(final int seconds) {}
 
   @Override
-  public void randomize() {
-  }
+  public void randomize() {}
 
   @Override
-  public void loopMode(final boolean mode) {
-  }
+  public void loopMode(final boolean mode) {}
 }
