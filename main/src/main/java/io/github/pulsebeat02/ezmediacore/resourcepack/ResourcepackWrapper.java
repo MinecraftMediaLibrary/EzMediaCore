@@ -65,6 +65,10 @@ public class ResourcepackWrapper implements PackWrapper {
     this.description = description;
     this.format = format;
     this.icon = icon;
+    validatePack();
+  }
+
+  private void validatePack() {
     if (!ResourcepackUtils.validatePackFormat(format)) {
       throw new InvalidPackFormatException(format);
     }
@@ -83,30 +87,34 @@ public class ResourcepackWrapper implements PackWrapper {
 
   @Override
   public void internalWrap() throws IOException {
-    Logger.info("Wrapping the Resourcepack");
     try (final ZipOutputStream out =
         new ZipOutputStream(new FileOutputStream(this.path.toFile()))) {
       FileUtils.createIfNotExists(this.path);
-      this.addFile("pack.mcmeta", this.getPackMcmeta().getBytes());
-      if (this.icon != null) {
-        this.addFile("pack.png", this.icon);
-      }
-      for (final Map.Entry<String, byte[]> entry : this.files.entrySet()) {
-        out.putNextEntry(new ZipEntry(entry.getKey()));
-        out.write(entry.getValue());
-        out.closeEntry();
-      }
+      addFiles();
+      writeFiles(out);
     }
-    Logger.info("Finished Wrapping Resourcepack");
+  }
+
+  private void addFiles() throws IOException {
+    this.addFile("pack.mcmeta", this.getPackMcmeta().getBytes());
+    if (this.icon != null) {
+      this.addFile("pack.png", this.icon);
+    }
+  }
+
+  private void writeFiles(@NotNull final ZipOutputStream out) throws IOException {
+    for (final Map.Entry<String, byte[]> entry : this.files.entrySet()) {
+      out.putNextEntry(new ZipEntry(entry.getKey()));
+      out.write(entry.getValue());
+      out.closeEntry();
+    }
   }
 
   @Override
-  public void onPackStartWrap() {
-  }
+  public void onPackStartWrap() {}
 
   @Override
-  public void onPackFinishWrap() {
-  }
+  public void onPackFinishWrap() {}
 
   @Override
   public void addFile(@NotNull final String path, @NotNull final Path file) throws IOException {

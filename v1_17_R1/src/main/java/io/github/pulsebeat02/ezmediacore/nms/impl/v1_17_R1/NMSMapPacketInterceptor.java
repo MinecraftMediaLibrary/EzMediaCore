@@ -69,7 +69,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
-public final class NMSMapPacketIntercepter implements PacketHandler {
+public final class NMSMapPacketInterceptor implements PacketHandler {
 
   private static final int PACKET_THRESHOLD_MS;
   private static final Set<Object> PACKET_DIFFERENTIATION;
@@ -93,7 +93,7 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
   private final MinecraftKey debugMarker;
   private final String handlerName;
 
-  public NMSMapPacketIntercepter() {
+  public NMSMapPacketInterceptor() {
     this.channels = new ConcurrentHashMap<>();
     this.connections = new ConcurrentHashMap<>();
     this.lastUpdated = new ConcurrentHashMap<>();
@@ -382,7 +382,7 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
 
     @Override
     public void channelRead(@NotNull final ChannelHandlerContext ctx, Object msg) throws Exception {
-      msg = NMSMapPacketIntercepter.this.onPacketInterceptIn(this.player, msg);
+      msg = NMSMapPacketInterceptor.this.onPacketInterceptIn(this.player, msg);
       if (msg != null) {
         super.channelRead(ctx, msg);
       }
@@ -392,7 +392,7 @@ public final class NMSMapPacketIntercepter implements PacketHandler {
     public void write(
         @NotNull final ChannelHandlerContext ctx, Object msg, @NotNull final ChannelPromise promise)
         throws Exception {
-      msg = NMSMapPacketIntercepter.this.onPacketInterceptOut(this.player, msg);
+      msg = NMSMapPacketInterceptor.this.onPacketInterceptOut(this.player, msg);
       if (msg != null) {
         super.write(ctx, msg, promise);
       }

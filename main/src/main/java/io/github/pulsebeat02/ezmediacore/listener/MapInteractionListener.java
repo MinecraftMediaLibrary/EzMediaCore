@@ -54,6 +54,10 @@ public record MapInteractionListener(
     if (stack.getType() != Material.FILLED_MAP) {
       return;
     }
+    correctInteraction(event, stack);
+  }
+
+  private void correctInteraction(@NotNull final HangingBreakByEntityEvent event, @NotNull final ItemStack stack) {
     if (this.core
         .getHandler()
         .isMapRegistered(((MapMeta) Objects.requireNonNull(stack.getItemMeta())).getMapId())) {

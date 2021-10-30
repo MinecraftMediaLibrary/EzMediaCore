@@ -23,8 +23,55 @@
  */
 package io.github.pulsebeat02.ezmediacore.analysis;
 
+import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
+
 public enum OSType {
   MAC,
   WINDOWS,
-  UNIX
+  UNIX;
+
+  private static final String OS;
+  private static final String OS_VERSION;
+  private static final String OS_ARCH;
+  private static final OSType CURRENT_OS;
+
+  static {
+    OS = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+    OS_VERSION = System.getProperty("os.version").toLowerCase(Locale.ROOT);
+    OS_ARCH = System.getProperty("os.arch");
+    CURRENT_OS = isUnix() ? UNIX : isWin() ? WINDOWS : MAC;
+  }
+
+  private static boolean isUnix() {
+    return Stream.of("nix", "nux", "aix").anyMatch(OS::contains);
+  }
+
+  private static boolean isWin() {
+    return OS.contains("win");
+  }
+
+  public static @NotNull OSType getCurrentOS() {
+    return CURRENT_OS;
+  }
+
+  public static @NotNull String getNativeOSValue() {
+    return OS;
+  }
+
+  public static @NotNull String getNativeOSVersionValue() {
+    return OS_VERSION;
+  }
+
+  public static @NotNull String getNativeArchValue() {
+    return OS_ARCH;
+  }
+
+  public static boolean is64Bit() {
+    return CURRENT_OS == WINDOWS
+        ? System.getenv("ProgramFiles(x86)") != null
+        : OS_ARCH.contains("64");
+  }
 }

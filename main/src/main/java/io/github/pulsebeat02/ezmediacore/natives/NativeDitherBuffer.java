@@ -24,6 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.natives;
 
 import java.nio.ByteBuffer;
+import org.jetbrains.annotations.NotNull;
 
 public final class NativeDitherBuffer {
 
@@ -31,7 +32,8 @@ public final class NativeDitherBuffer {
     System.loadLibrary("filterlite-dither");
   }
 
-  private native void setup(final int[] colorMap, final int[] fullColorMap);
+  private native void setup(final int @NotNull [] colorMap, final int @NotNull [] fullColorMap);
 
-  private native void dither_native(final ByteBuffer buffer, final int[] data, final int width);
+  private native void dither_native(
+      @NotNull final ByteBuffer buffer, final int @NotNull [] data, final int width);
 }

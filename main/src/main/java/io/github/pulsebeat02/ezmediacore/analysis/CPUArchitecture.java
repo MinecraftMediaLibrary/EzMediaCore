@@ -21,32 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.callback.entity;
+package io.github.pulsebeat02.ezmediacore.analysis;
 
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-public interface EntityCommandMutatorHelper<T extends Entity> {
+public final class CPUArchitecture implements CpuInfo {
 
-  boolean invokeGetter(
-      @NotNull final T entity, @NotNull final String methodName, @NotNull final Object argument);
+  private final String architecture;
+  private final boolean bits64;
 
-  @NotNull
-  Class<?> getEntityClass();
+  CPUArchitecture() {
+    this.architecture = OSType.getNativeArchValue();
+    this.bits64 = isBits64();
+  }
 
-  @NotNull
-  Map<String, Method> getMethodMap();
+  @Override
+  public String toString() {
+    return "[arch=%s,64bits=%s]".formatted(this.architecture, this.bits64);
+  }
 
-  @NotNull
-  Set<Class<?>> getValidArguments();
+  @Override
+  public @NotNull String getArchitecture() {
+    return this.architecture;
+  }
 
-  @NotNull
-  Collection<Method> getRawMethods();
-
-  @NotNull
-  Collection<String> getMethodNames();
+  @Override
+  public boolean isBits64() {
+    return this.bits64;
+  }
 }

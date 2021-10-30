@@ -49,10 +49,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class FileRequestHandler implements FileRequest {
 
-  private static final Pattern MATCHER;
+  private static final Pattern GET_REQUEST;
+  private static final SimpleDateFormat DATE_FORMAT;
 
   static {
-    MATCHER = Pattern.compile("GET /?(\\S*).*");
+    GET_REQUEST = Pattern.compile("GET /?(\\S*).*");
+    DATE_FORMAT = new SimpleDateFormat("dd MMM yyyy HH:mm:ss");
   }
 
   private final HttpServerDaemon daemon;
@@ -86,17 +88,19 @@ public class FileRequestHandler implements FileRequest {
   @Override
   public @NotNull String createHeader(@NotNull final Path file) {
     try {
-      return "HTTP/1.0 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nDate: %s GMT\r\nServer: HttpDaemon\r\nUser-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n"
-          .formatted(
-              this.header.getHeader(),
-              Files.size(file),
-              new SimpleDateFormat("dd MMM yyyy HH:mm:ss")
-                  .format(Calendar.getInstance().getTime()));
+      return produceHeader(file);
     } catch (final IOException e) {
       this.daemon.onRequestFailure(this.client);
       Logger.info(e.getMessage());
     }
     return "";
+  }
+
+  private @NotNull String produceHeader(@NotNull final Path file) throws IOException {
+    final long size = Files.size(file);
+    final String format = DATE_FORMAT.format(Calendar.getInstance().getTime());
+    return "HTTP/1.0 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nDate: %s GMT\r\nServer: HttpDaemon\r\nUser-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n"
+        .formatted(this.header.getHeader(), size, format);
   }
 
   @Override
@@ -109,13 +113,13 @@ public class FileRequestHandler implements FileRequest {
     this.daemon.onClientConnection(this.client);
     boolean flag = false;
     try (final BufferedReader in =
-        new BufferedReader(new InputStreamReader(this.client.getInputStream(), "8859_1"));
+            new BufferedReader(new InputStreamReader(this.client.getInputStream(), "8859_1"));
         final OutputStream out = this.client.getOutputStream();
         final PrintWriter pout = new PrintWriter(new OutputStreamWriter(out, "8859_1"), true)) {
       final InetAddress address = this.client.getInetAddress();
       String request = in.readLine();
       this.verbose("Received request '%s' from %s".formatted(request, address.toString()));
-      final Matcher get = MATCHER.matcher(request);
+      final Matcher get = GET_REQUEST.matcher(request);
       if (get.matches()) {
         request = get.group(1);
         final Path result = this.requestFileCallback(request);

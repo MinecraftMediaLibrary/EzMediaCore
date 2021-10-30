@@ -24,7 +24,9 @@
 package io.github.pulsebeat02.ezmediacore;
 
 import java.util.concurrent.CountDownLatch;
+import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.log.LogEventListener;
 import uk.co.caprica.vlcj.log.LogLevel;
 import uk.co.caprica.vlcj.log.NativeLog;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
@@ -36,21 +38,54 @@ public class NativePluginLoader {
   public NativePluginLoader() {}
 
   public void executePhantomPlayers() {
-
-    // loads all necessary VLC plugins before actual playback occurs
-
     final MediaPlayerFactory factory =
         new MediaPlayerFactory("--no-video", "--no-audio", "--verbose=0");
-    final NativeLog log = factory.application().newLog();
-    log.setLevel(LogLevel.DEBUG);
-    log.addLogListener(
-        (level, module, file, line, name, header, id, message) ->
-            Logger.directPrintVLC(
-                "[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message)));
-
+    final NativeLog log = createLog(factory);
     final EmbeddedMediaPlayer player = factory.mediaPlayers().newEmbeddedMediaPlayer();
     final CountDownLatch latch = new CountDownLatch(1);
+    addEvents(player, latch);
+    playMedia(player);
+    waitMedia(latch);
+    release(log, player, factory);
+  }
 
+  private void release(
+      @NotNull final NativeLog log,
+      @NotNull final EmbeddedMediaPlayer player,
+      @NotNull final MediaPlayerFactory factory) {
+    log.release();
+    player.release();
+    factory.release();
+  }
+
+  private @NotNull NativeLog createLog(@NotNull final MediaPlayerFactory factory) {
+    final NativeLog log = factory.application().newLog();
+    log.setLevel(LogLevel.DEBUG);
+    log.addLogListener(createListener());
+    return log;
+  }
+
+  private @NotNull LogEventListener createListener() {
+    return (level, module, file, line, name, header, id, message) ->
+        Logger.directPrintVLC("[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message));
+  }
+
+  private void waitMedia(@NotNull final CountDownLatch latch) {
+    try {
+      latch.await();
+    } catch (final InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void playMedia(@NotNull final EmbeddedMediaPlayer player) {
+    player
+        .media()
+        .play("https://github.com/MinecraftMediaLibrary/EzMediaCore/raw/master/vlc-prerender.mp4");
+  }
+
+  private void addEvents(
+      @NotNull final EmbeddedMediaPlayer player, @NotNull final CountDownLatch latch) {
     player
         .events()
         .addMediaPlayerEventListener(
@@ -65,19 +100,5 @@ public class NativePluginLoader {
                 latch.countDown();
               }
             });
-
-    player
-        .media()
-        .play("https://github.com/MinecraftMediaLibrary/EzMediaCore/raw/master/vlc-prerender.mp4");
-
-    try {
-      latch.await();
-    } catch (final InterruptedException e) {
-      e.printStackTrace();
-    }
-
-    log.release();
-    player.release();
-    factory.release();
   }
 }

@@ -38,6 +38,9 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Stolen directly from https://github.com/DhyanB/Open-Imaging
+ *
+ * Spaghetti code, not looking forward to improving it anytime
+ * sooner. Feel free to open pull request if you want.
  */
 public final class GifDecoder {
 

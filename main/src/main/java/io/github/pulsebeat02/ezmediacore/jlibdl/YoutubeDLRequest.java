@@ -33,6 +33,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class YoutubeDLRequest {
@@ -55,7 +56,7 @@ public final class YoutubeDLRequest {
   @Expose
   private String url;
 
-  static @Nullable YoutubeDLRequest request(@Nullable final String url)
+  public @NotNull YoutubeDLRequest request(@Nullable final String url)
       throws IOException, InterruptedException {
     return GSON.fromJson(
         HTTP_CLIENT

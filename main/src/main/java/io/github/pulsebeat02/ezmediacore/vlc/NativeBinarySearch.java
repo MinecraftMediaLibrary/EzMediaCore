@@ -121,25 +121,33 @@ public class NativeBinarySearch implements BinarySearcher {
     if (this.path != null) {
       return Optional.of(this.path);
     }
-    final List<String> paths = this.getSearchDirectories();
-    if (this.search != null) {
-      paths.add(this.search.toString());
+    final Optional<Path> optional = checkPaths();
+    if (optional.isEmpty()) {
+      Logger.info(this.path == null ? "VLC path is invalid!" : "VLC path is valid!");
+      return Optional.ofNullable(this.path);
     }
+    this.path = optional.get();
+    return optional;
+  }
+
+  private @NotNull Optional<Path> checkPaths() {
+    final List<String> paths = this.getSearchDirectories();
     for (final String path : paths) {
       final Optional<Path> optional = this.provider.discover(Path.of(path));
       if (optional.isPresent()) {
-        this.path = optional.get();
-        break;
+        return optional;
       }
     }
-    Logger.info(this.path == null ? "VLC path is invalid!" : "VLC path is valid!");
-    return Optional.ofNullable(this.path);
+    return Optional.empty();
   }
 
   private @NotNull List<String> getSearchDirectories() {
     final List<String> paths = new ArrayList<>();
     for (final WellKnownDirectoryProvider directory : this.directories) {
       paths.addAll(directory.getSearchDirectories());
+    }
+    if (this.search != null) {
+      paths.add(this.search.toString());
     }
     return paths;
   }
