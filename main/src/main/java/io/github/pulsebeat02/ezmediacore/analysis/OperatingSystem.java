@@ -27,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Locale;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 public final class OperatingSystem implements OperatingSystemInfo {
@@ -41,24 +42,31 @@ public final class OperatingSystem implements OperatingSystemInfo {
     this.osName = osName;
     this.type = type;
     this.version = version;
-    this.linuxDistro = type == OSType.UNIX ? this.retrieveLinuxDistribution() : "";
+    this.linuxDistro = this.getLinuxDistributionCmd();
   }
 
-  private @NotNull String retrieveLinuxDistribution() {
-    final String[] cmd = {"/bin/sh", "-c", "cat /etc/*-release"};
-    final StringBuilder concat = new StringBuilder();
+  private String getLinuxDistributionCmd() {
+    return this.type == OSType.UNIX ? this.retrieveLinuxDistribution().orElse("Unknown") : "";
+  }
+
+  private @NotNull Optional<String> retrieveLinuxDistribution() {
     try {
-      final Process p = Runtime.getRuntime().exec(cmd);
-      final BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
-      String line;
-      while ((line = bri.readLine()) != null) {
-        concat.append(line);
-        concat.append(" ");
-      }
+      return Optional.of(this.getProcessOutput(Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", "cat /etc/*-release"})));
     } catch (final IOException e) {
-      e.printStackTrace();
+      return Optional.empty();
     }
-    return concat.toString();
+  }
+
+  private @NotNull String getProcessOutput(@NotNull final Process process) throws IOException {
+    final StringBuilder sb = new StringBuilder();
+    try (final BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+      String line;
+      while ((line = br.readLine()) != null) {
+        sb.append(line);
+        sb.append(" ");
+      }
+    }
+    return sb.toString();
   }
 
   @Override
