@@ -84,6 +84,12 @@ public record ForcefulResourcepackListener(MediaLibraryCore core,
     if (!this.uuids.contains(uuid)) {
       return;
     }
+    handleStatus(event);
+  }
+
+  private void handleStatus(@NotNull final PlayerResourcePackStatusEvent event) {
+    final Player player = event.getPlayer();
+    final UUID uuid = player.getUniqueId();
     switch (event.getStatus()) {
       case FAILED_DOWNLOAD -> player.setResourcePack(this.url, this.hash);
       case ACCEPTED, DECLINED, SUCCESSFULLY_LOADED -> {

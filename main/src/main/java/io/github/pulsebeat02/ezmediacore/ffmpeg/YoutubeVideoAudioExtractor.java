@@ -41,7 +41,6 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
 
   private final YoutubeVideoDownloader downloader;
   private final FFmpegAudioExtractor extractor;
-  private final Path tempVideoPath;
   private final AtomicBoolean cancelled;
 
   public YoutubeVideoAudioExtractor(
@@ -50,9 +49,9 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
       @NotNull final String url,
       @NotNull final Path output)
       throws IOException {
-    this.tempVideoPath = core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID()));
-    this.downloader = new YoutubeVideoDownloader(url, this.tempVideoPath);
-    this.extractor = new FFmpegAudioExtractor(core, configuration, this.tempVideoPath, output);
+    Path path = core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID()));
+    this.downloader = new YoutubeVideoDownloader(url, path);
+    this.extractor = new FFmpegAudioExtractor(core, configuration, path, output);
     this.cancelled = new AtomicBoolean(false);
   }
 
@@ -73,18 +72,14 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
     this.onStartAudioExtraction();
-    final boolean log = logger != null;
-    if (log) {
-      logger.accept("Downloading Video...");
-    }
     this.downloader.downloadVideo(
         this.downloader.getVideo().getVideoFormats().get(0).getQuality(), true);
-    if (log) {
-      logger.accept("Finished downloading Video");
-    }
     this.extractor.executeWithLogging(logger);
     this.onFinishAudioExtraction();
   }
+
+  @Override
+  public void log(String line) {}
 
   @Override
   public CompletableFuture<Void> executeAsync() {

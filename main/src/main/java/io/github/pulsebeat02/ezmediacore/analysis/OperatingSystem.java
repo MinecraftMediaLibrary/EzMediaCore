@@ -36,11 +36,10 @@ public final class OperatingSystem implements OperatingSystemInfo {
   private final String version;
   private final String linuxDistro;
 
-  public OperatingSystem(
-      @NotNull final String osName, @NotNull final OSType type, @NotNull final String version) {
-    this.osName = osName;
-    this.type = type;
-    this.version = version;
+  OperatingSystem() {
+    this.osName = OSType.getNativeOSValue();
+    this.type = OSType.getCurrentOS();
+    this.version = OSType.getNativeOSVersionValue();
     this.linuxDistro = type == OSType.UNIX ? this.retrieveLinuxDistribution() : "";
   }
 

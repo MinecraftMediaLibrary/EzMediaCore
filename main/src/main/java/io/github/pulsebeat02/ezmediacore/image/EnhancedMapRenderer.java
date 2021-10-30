@@ -38,9 +38,13 @@ public class EnhancedMapRenderer implements MapRenderer {
 
   public EnhancedMapRenderer(
       @NotNull final Dimension dimension, @NotNull final List<Integer> maps) {
+    this.maps = new MapView[dimension.getHeight()][dimension.getWidth()];
+    fillMaps(maps, dimension);
+  }
+
+  private void fillMaps(@NotNull final List<Integer> maps, @NotNull final Dimension dimension) {
     final int length = dimension.getHeight();
     final int width = dimension.getWidth();
-    this.maps = new MapView[length][width];
     int count = 0;
     for (int i = 0; i < length; i++) {
       for (int j = 0; j < width; j++, count++) {
@@ -55,19 +59,21 @@ public class EnhancedMapRenderer implements MapRenderer {
       for (int j = 0; j < this.maps[i].length; j++) {
         final MapView view = this.maps[i][j];
         view.getRenderers().clear();
-        final int x = i;
-        final int y = j;
-        view.addRenderer(
-            new org.bukkit.map.MapRenderer() {
-              @Override
-              public void render(
-                  @NotNull final MapView map,
-                  @NotNull final MapCanvas canvas,
-                  @NotNull final Player player) {
-                canvas.drawImage(0, 0, images[x][y]);
-              }
-            });
+        view.addRenderer(createRenderer(images, i, j));
       }
     }
+  }
+
+  private org.bukkit.map.MapRenderer createRenderer(
+      @NotNull final BufferedImage[][] images, final int x, final int y) {
+    return new org.bukkit.map.MapRenderer() {
+      @Override
+      public void render(
+          @NotNull final MapView map,
+          @NotNull final MapCanvas canvas,
+          @NotNull final Player player) {
+        canvas.drawImage(0, 0, images[x][y]);
+      }
+    };
   }
 }

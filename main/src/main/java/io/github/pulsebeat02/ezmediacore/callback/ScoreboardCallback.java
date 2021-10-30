@@ -69,38 +69,43 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
       @NotNull final Identifier<Integer> id) {
     super(core, viewers, dimension, delay);
     this.name = "%s Video Player (%s)".formatted(core.getPlugin().getName(), id.getValue());
+    this.scoreboard = setScoreboard();
+  }
+
+  private @NotNull Scoreboard setScoreboard() {
     final ScoreboardManager manager = Bukkit.getScoreboardManager();
     if (manager == null) {
       throw new AssertionException("No worlds are loaded!");
     }
-    this.scoreboard = manager.getNewScoreboard();
+    return manager.getNewScoreboard();
   }
 
   @Override
   public void process(final int[] data) {
-    TaskUtils.sync(
-        this.getCore(),
-        (Callable<Void>)
-            () -> {
-              final long time = System.currentTimeMillis();
-              if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
-                this.setLastUpdated(time);
-                final Dimension dimension = this.getDimensions();
-                final Viewers viewers = this.getWatchers();
-                for (final Player player : viewers.getPlayers()) {
-                  player.setScoreboard(this.scoreboard);
-                }
-                this.getPacketHandler()
-                    .displayScoreboard(
-                        viewers.getViewers(),
-                        this.scoreboard,
-                        this.name,
-                        data,
-                        dimension.getWidth(),
-                        dimension.getHeight());
-              }
-              return null;
-            });
+    TaskUtils.sync(this.getCore(), processRunnable(data));
+  }
+
+  private @NotNull <T> Callable<T> processRunnable(final int @NotNull [] data) {
+    return () -> {
+      final long time = System.currentTimeMillis();
+      if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
+        this.setLastUpdated(time);
+        final Dimension dimension = this.getDimensions();
+        final Viewers viewers = this.getWatchers();
+        for (final Player player : viewers.getPlayers()) {
+          player.setScoreboard(this.scoreboard);
+        }
+        this.getPacketHandler()
+            .displayScoreboard(
+                viewers.getViewers(),
+                this.scoreboard,
+                this.name,
+                data,
+                dimension.getWidth(),
+                dimension.getHeight());
+      }
+      return null;
+    };
   }
 
   @Override

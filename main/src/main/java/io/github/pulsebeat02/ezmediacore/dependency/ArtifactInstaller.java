@@ -52,6 +52,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -80,15 +81,18 @@ public final class ArtifactInstaller {
       IOException {
     this.dependencyFolder = core.getDependencyPath();
     this.relocatedFolder = this.dependencyFolder.resolve("relocated");
-    this.factory =
-        ReflectiveJarRelocatorFacadeFactory.create(
-            this.relocatedFolder,
-            Collections.singleton(
-                new Repository(new URL(SimpleMirrorSelector.DEFAULT_CENTRAL_MIRROR_URL))));
+    this.factory = getFactory();
     this.service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     this.jars = new HashSet<>();
     this.hashes = new HashSet<>();
     this.hashFile = this.dependencyFolder.resolve(".relocated-hash");
+  }
+
+  private @NotNull JarRelocatorFacadeFactory getFactory() {
+    return ReflectiveJarRelocatorFacadeFactory.create(
+        this.relocatedFolder,
+        Collections.singleton(
+            new Repository(new URL(SimpleMirrorSelector.DEFAULT_CENTRAL_MIRROR_URL))));;
   }
 
   public void start() {
@@ -142,12 +146,21 @@ public final class ArtifactInstaller {
 
   private void load() throws IOException {
     Logger.info("Preparing to load %d dependencies (%s)".formatted(this.jars.size(), this.jars));
-    final Set<Path> invalid =
+    redownloadInvalidDependencies();
+    injectJars();
+  }
+
+  private void injectJars() throws IOException {
+    new JarLoader(
         Files.walk(this.relocatedFolder, 1)
             .filter(Files::isRegularFile)
             .filter(path -> PathUtils.getName(path).endsWith(".jar"))
-            .filter(path -> !this.hashes.contains(HashingUtils.getHash(path)))
-            .collect(Collectors.toSet());
+            .collect(Collectors.toList()))
+        .inject();
+  }
+
+  private void redownloadInvalidDependencies() throws IOException {
+    final Set<Path> invalid = getInvalidDependencies();
     if (!invalid.isEmpty()) {
       for (final Path p : invalid) {
         Logger.warn(
@@ -155,12 +168,14 @@ public final class ArtifactInstaller {
         this.redownload(p, this.getDependency(p).orElseThrow(AssertionError::new));
       }
     }
-    new JarLoader(
-        Files.walk(this.relocatedFolder, 1)
-            .filter(Files::isRegularFile)
-            .filter(path -> PathUtils.getName(path).endsWith(".jar"))
-            .collect(Collectors.toList()))
-        .inject();
+  }
+
+  private @NotNull Set<Path> getInvalidDependencies() throws IOException {
+    return Files.walk(this.relocatedFolder, 1)
+        .filter(Files::isRegularFile)
+        .filter(path -> PathUtils.getName(path).endsWith(".jar"))
+        .filter(path -> !this.hashes.contains(HashingUtils.getHash(path)))
+        .collect(Collectors.toSet());
   }
 
   private void delete() {
@@ -178,64 +193,73 @@ public final class ArtifactInstaller {
     try (final Stream<Path> paths = Files.walk(this.relocatedFolder, 1)) {
       return paths
           .filter(Files::isRegularFile)
-          .noneMatch(
-              path -> {
-                final String name = PathUtils.getName(path);
-                return name.contains(dependency.getArtifact())
-                    && name.contains(dependency.getVersion());
-              });
-    } catch (final IOException e) {
-      e.printStackTrace();
+          .noneMatch(validateDependency(dependency));
+    } catch (IOException e) {
+      return true;
     }
-    return false;
+  }
+
+  private @NotNull Predicate<Path> validateDependency(@NotNull final DependencyInfo dependency) {
+    return path -> {
+      final String name = PathUtils.getName(path);
+      return name.contains(dependency.getArtifact())
+          && name.contains(dependency.getVersion());
+    };
   }
 
   @NotNull
   private Path downloadDependency(@NotNull final DependencyInfo dependency) {
     final Repositories resolution = dependency.getResolution();
-    final String artifact = dependency.getArtifact();
     final String path = this.dependencyFolder.toString();
-    Optional<Path> file;
-    try {
-      switch (resolution) {
-        case MAVEN -> Logger.info("Checking Maven Central Repository for %s".formatted(artifact));
-        case JITPACK -> Logger.info(
-            "Checking Jitpack Central Repository for %s".formatted(artifact));
-        case JDA -> Logger.info("Checking JDA Central Repository for %s".formatted(artifact));
-        default -> throw new IllegalStateException(
-            "Specified Repository URL Doesn't Exist! (Not Maven/Jitpack)");
+    final Optional<Path> file = getDependencyFile(resolution, dependency, path);
+    if (file.isEmpty() || !checkHash(file.get(), dependency)) {
+      return this.downloadDependency(dependency);
+    }
+    return file.get();
+  }
+
+  private boolean checkHash(@NotNull final Path file, @NotNull final DependencyInfo dependency) {
+    if (DependencyUtils.validateDependency(file, dependency)) {
+      Logger.info("SHA1 Hash for File %s Succeeded!".formatted(file));
+      this.jars.add(file);
+    } else {
+      try {
+        Logger.info(
+            "SHA1 Hash for File %s Failed! Downloading the Dependency Again...".formatted(file));
+        Files.delete(file);
+        return false;
+      } catch (final IOException e) {
+        e.printStackTrace();
       }
-      file = Optional.of(DependencyUtils.downloadDependency(dependency, path));
+    }
+    return true;
+  }
+
+  private @NotNull Optional<Path> getDependencyFile(
+      @NotNull final Repositories resolution,
+      @NotNull final DependencyInfo artifact,
+      @NotNull final String path) {
+    try {
+      logRepository(resolution, artifact);
+      return Optional.of(DependencyUtils.downloadDependency(artifact, path));
     } catch (final IOException e) {
-      file = Optional.empty();
       Logger.info(
           "Cannot Resolve Dependency! (Artifact: %s | Repository URL: %s)".formatted(artifact,
               resolution.getUrl()));
       e.printStackTrace();
+      return Optional.empty();
     }
-    if (file.isPresent()) {
-      final Path p = file.get();
-      if (DependencyUtils.validateDependency(p, dependency)) {
-        Logger.info("SHA1 Hash for File %s Succeeded!".formatted(file));
-        this.jars.add(p);
-      } else {
-        try {
-          Logger.info(
-              "SHA1 Hash for File %s Failed! Downloading the Dependency Again...".formatted(file));
-          Files.delete(p);
-          return this.downloadDependency(dependency);
-        } catch (final IOException e) {
-          e.printStackTrace();
-        }
-      }
-    } else {
-      /*
-      This should never happen. But if it does, it just retries
-      Yeah that is a mess, but its a placeholder for the warning.
-       */
-      return this.downloadDependency(dependency);
+  }
+
+  private void logRepository(@NotNull final Repositories resolution, @NotNull final DependencyInfo artifact) {
+    switch (resolution) {
+      case MAVEN -> Logger.info("Checking Maven Central Repository for %s".formatted(artifact));
+      case JITPACK -> Logger.info(
+          "Checking Jitpack Central Repository for %s".formatted(artifact));
+      case JDA -> Logger.info("Checking JDA Central Repository for %s".formatted(artifact));
+      default -> throw new IllegalStateException(
+          "Specified Repository URL Doesn't Exist! (Not Maven/Jitpack)");
     }
-    return file.get();
   }
 
   private void relocateFile(

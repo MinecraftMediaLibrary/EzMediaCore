@@ -126,37 +126,40 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
     this.onBeforeExecution();
-    final boolean streamerLog = this instanceof FFmpegMediaStreamer;
     if (!this.cancelled.get()) {
-      final boolean consume = logger != null;
-      final ProcessBuilder builder = new ProcessBuilder(this.arguments);
-      builder.redirectErrorStream(true);
       try {
-        this.process = builder.start();
-        try (final BufferedReader r =
-            new BufferedReader(new InputStreamReader(this.process.getInputStream()))) {
-          String line;
-          while (true) {
-            line = r.readLine();
-            if (line == null) {
-              break;
-            }
-            if (consume) {
-              logger.accept(line);
-            }
-            if (streamerLog) {
-              Logger.directPrintFFmpegStream(line);
-            } else {
-              Logger.directPrintFFmpegPlayer(line);
-            }
-          }
-        }
+        this.process = new ProcessBuilder(this.arguments).redirectErrorStream(true).start();
+        handleLogging(logger, logger != null);
       } catch (final IOException e) {
         e.printStackTrace();
       }
     }
     this.completion.set(true);
     this.onAfterExecution();
+  }
+
+  private void handleLogging(@Nullable final Consumer<String> logger, final boolean consume)
+      throws IOException {
+    try (final BufferedReader r =
+        new BufferedReader(new InputStreamReader(this.process.getInputStream()))) {
+      String line;
+      while (true) {
+        line = r.readLine();
+        if (line == null) {
+          break;
+        }
+        if (consume) {
+          logger.accept(line);
+        } else {
+          log(line);
+        }
+      }
+    }
+  }
+
+  @Override
+  public void log(String line) {
+    Logger.directPrintFFmpegStream(line);
   }
 
   @Override

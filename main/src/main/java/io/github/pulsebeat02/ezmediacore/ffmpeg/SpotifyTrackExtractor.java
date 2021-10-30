@@ -70,19 +70,15 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
     this.onStartAudioExtraction();
-    final boolean log = logger != null;
-    if (log) {
-      logger.accept("Downloading Video...");
-    }
     this.downloader.downloadVideo(
         this.downloader.getSearcher().getYoutubeVideo().getVideoFormats().get(0).getQuality(),
         true);
-    if (log) {
-      logger.accept("Finished downloading Video");
-    }
     this.extractor.executeWithLogging(logger);
     this.onFinishAudioExtraction();
   }
+
+  @Override
+  public void log(String line) {}
 
   @Override
   public CompletableFuture<Void> executeAsync() {

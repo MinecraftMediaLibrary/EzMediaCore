@@ -32,9 +32,14 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class CallbackBuilder {
 
-  private DelayConfiguration delay = DelayConfiguration.ofDelay(0);
+  private DelayConfiguration delay;
   private Dimension dims;
-  private Viewers viewers = Viewers.onlinePlayers();
+  private Viewers viewers;
+
+  {
+    delay = DelayConfiguration.ofDelay(0);
+    viewers = Viewers.onlinePlayers();
+  }
 
   @Contract(value = " -> new", pure = true)
   public static @NotNull BlockHighlightCallback.Builder blockHighlight() {

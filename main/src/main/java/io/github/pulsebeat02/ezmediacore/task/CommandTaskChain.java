@@ -101,39 +101,51 @@ public class CommandTaskChain {
    */
   public void run() throws IOException, InterruptedException {
     Logger.info("Command Chain Information (Thread: %d)".formatted(Thread.currentThread().getId()));
+    printCommands();
+    Logger.info("Running Command Chain... ");
+    runInternalChain();
+  }
+
+  private void printCommands() {
     for (final Map.Entry<CommandTask, Boolean> entry : this.chain.entrySet()) {
       Logger.info(String.join(" ", entry.getKey().getCommand()));
     }
-    Logger.info("Running Command Chain... ");
+  }
+
+  private void runInternalChain() throws IOException, InterruptedException {
     for (final Map.Entry<CommandTask, Boolean> entry : this.chain.entrySet()) {
       final CommandTask task = entry.getKey();
       if (entry.getValue()) {
-        CompletableFuture.runAsync(
-            () -> this.runTask(task), ExecutorProvider.EXTERNAL_PROCESS_POOL);
+        CompletableFuture.runAsync(runSeparateTask(task), ExecutorProvider.EXTERNAL_PROCESS_POOL);
       } else {
         this.runTaskChain(task);
       }
     }
   }
 
+  private @NotNull Runnable runSeparateTask(@NotNull final CommandTask task) {
+    return () -> this.runTask(task);
+  }
+
   private void runTask(@NotNull final CommandTask task) {
     try {
       task.run();
-      Logger.info(
-          "Task Command: %s Result: %s"
-              .formatted(String.join(" ", task.getCommand()), task.getOutput()));
+      Logger.info(getTaskMessage(task));
     } catch (final IOException e) {
       e.printStackTrace();
     }
+  }
+
+  private @NotNull String getTaskMessage(@NotNull final CommandTask task) throws IOException {
+    return "Task Command: %s Result: %s"
+        .formatted(String.join(" ", task.getCommand()), task.getOutput());
   }
 
   private void runTaskChain(@NotNull final CommandTask task)
       throws IOException, InterruptedException {
     task.run();
     if (task.getProcess().waitFor() == 0) {
-      Logger.info(
-          "Task Command: %s Result: %s"
-              .formatted(String.join(" ", task.getCommand()), task.getOutput()));
+      Logger.info(getTaskMessage(task));
     } else {
       Logger.info("An exception has occurred!");
     }

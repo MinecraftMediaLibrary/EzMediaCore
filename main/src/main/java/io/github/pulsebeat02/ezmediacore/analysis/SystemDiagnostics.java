@@ -47,38 +47,20 @@ public final class SystemDiagnostics implements Diagnostic {
 
   private final MediaLibraryCore core;
   private final OperatingSystem system;
-  private final CpuArchitecture cpu;
+  private final CPUArchitecture cpu;
   private final List<Mixer> sound;
+
   private FFmpegDownloadPortal ffmpegDownloadLink;
   private VLCDownloadPortal vlcDownloadLink;
   private RTPDownloadPortal rtpDownloadPortal;
 
   public SystemDiagnostics(@NotNull final MediaLibraryCore core) {
     this.core = core;
-    this.system = this.getOperatingSystem();
-    this.cpu = this.getCpuArchitecture();
+    this.system = new OperatingSystem();
+    this.cpu = new CPUArchitecture();
     this.sound = this.getMixers();
     this.initializeDownloadLinks();
     this.debugInformation();
-  }
-
-  @Contract(" -> new")
-  private @NotNull CpuArchitecture getCpuArchitecture() {
-    return new CpuArchitecture(
-        System.getProperty("os.arch").toLowerCase(Locale.ROOT),
-        this.system.getOSType() == OSType.WINDOWS
-            ? System.getenv("ProgramFiles(x86)") != null
-            : System.getProperty("os.arch").contains("64"));
-  }
-
-  private @NotNull OperatingSystem getOperatingSystem() {
-    final String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
-    return new OperatingSystem(
-        os,
-        os.contains("nix") || os.contains("nux") || os.contains("aix")
-            ? OSType.UNIX
-            : os.contains("win") ? OSType.WINDOWS : OSType.MAC,
-        System.getProperty("os.version"));
   }
 
   private @NotNull List<Mixer> getMixers() {
@@ -125,7 +107,6 @@ public final class SystemDiagnostics implements Diagnostic {
             this.vlcDownloadLink = VLCDownloadPortal.MAC_AMD_64;
             this.rtpDownloadPortal = RTPDownloadPortal.MAC_AMD_64;
           }
-
           this.ffmpegDownloadLink = FFmpegDownloadPortal.MAC_64;
         }
         default -> throw new UnsupportedPlatformException("UNKNOWN");

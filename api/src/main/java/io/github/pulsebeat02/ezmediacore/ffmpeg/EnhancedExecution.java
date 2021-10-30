@@ -35,6 +35,8 @@ public interface EnhancedExecution extends AutoCloseable {
 
   void executeWithLogging(@Nullable final Consumer<String> logger);
 
+  void log(final String line);
+
   CompletableFuture<Void> executeAsync();
 
   @NotNull

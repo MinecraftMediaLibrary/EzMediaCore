@@ -58,21 +58,21 @@ public class DynamicImage extends Image
   @Override
   public void draw(final boolean resize) {
     this.onStartDrawImage();
-    CompletableFuture.runAsync(
-        () -> {
-          while (!this.cancelled.get()) {
-            for (; this.frame < this.frameCount; this.frame++) {
-              this.getRenderer().drawMap(this.process(this.image.getFrame(this.frame), resize));
-              try {
-                TimeUnit.MILLISECONDS.sleep(this.image.getDelay(this.frame) * 10L);
-              } catch (final InterruptedException e) {
-                e.printStackTrace();
-              }
-            }
-          }
-        },
-        ExecutorProvider.MAP_UPDATE_POOL);
+    CompletableFuture.runAsync(() -> drawImage(resize), ExecutorProvider.MAP_UPDATE_POOL);
     this.onFinishDrawImage();
+  }
+
+  private void drawImage(final boolean resize) {
+    while (!this.cancelled.get()) {
+      for (; this.frame < this.frameCount; this.frame++) {
+        this.getRenderer().drawMap(this.process(this.image.getFrame(this.frame), resize));
+        try {
+          TimeUnit.MILLISECONDS.sleep(this.image.getDelay(this.frame) * 10L);
+        } catch (final InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    }
   }
 
   @Override

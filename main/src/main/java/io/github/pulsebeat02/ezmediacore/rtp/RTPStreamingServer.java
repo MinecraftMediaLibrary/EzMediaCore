@@ -73,31 +73,41 @@ public class RTPStreamingServer implements StreamingServer {
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
     if (!this.cancelled.get()) {
-      final boolean consume = logger != null;
-      final ProcessBuilder builder = new ProcessBuilder(this.core.getRTPPath().toString());
+      final ProcessBuilder builder =
+          new ProcessBuilder(this.core.getRTPPath().toString()).redirectErrorStream(true);
       final Map<String, String> env = builder.environment();
       env.put("RTSP_HLSADDRESS", ":%s".formatted(this.hlsPort));
-      builder.redirectErrorStream(true);
       try {
         this.process = builder.start();
-        try (final BufferedReader r =
-            new BufferedReader(new InputStreamReader(this.process.getInputStream()))) {
-          String line;
-          while (true) {
-            line = r.readLine();
-            if (line == null) {
-              break;
-            }
-            if (consume) {
-              logger.accept(line);
-            }
-            Logger.directPrintRtp(line);
-          }
-        }
+        handleLogging(logger, logger != null);
       } catch (final IOException e) {
         e.printStackTrace();
       }
     }
+  }
+
+  private void handleLogging(@Nullable final Consumer<String> logger, final boolean consume)
+      throws IOException {
+    try (final BufferedReader r =
+        new BufferedReader(new InputStreamReader(this.process.getInputStream()))) {
+      String line;
+      while (true) {
+        line = r.readLine();
+        if (line == null) {
+          break;
+        }
+        if (consume) {
+          logger.accept(line);
+        } else {
+          log(line);
+        }
+      }
+    }
+  }
+
+  @Override
+  public void log(@NotNull final String line) {
+    Logger.directPrintRtp(line);
   }
 
   @Override

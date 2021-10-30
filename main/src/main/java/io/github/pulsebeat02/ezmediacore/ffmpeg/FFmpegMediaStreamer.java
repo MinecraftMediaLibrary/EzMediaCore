@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
+import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.rtp.RTPStreamingServer;
@@ -34,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FFmpegMediaStreamer extends FFmpegCommandExecutor
-    implements IOProvider, AutoCloseable {
+    implements MediaServer {
 
   private final RTPStreamingServer server;
   private final String input;
@@ -84,6 +85,11 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor
     this.addArguments("-max_muxing_queue_size", "9999");
     this.addArgument(this.output);
     super.executeWithLogging(logger);
+  }
+
+  @Override
+  public void log(String line) {
+    Logger.directPrintFFmpegStream(line);
   }
 
   @Override

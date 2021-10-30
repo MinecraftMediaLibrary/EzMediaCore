@@ -42,11 +42,7 @@ public final class NMSReflectionHandler {
   public static Optional<PacketHandler> getNewPacketHandlerInstance() {
     try {
       Logger.info("Loading NMS Class for Version %s".formatted(VERSION));
-      final Class<?> clazz =
-          Class.forName(
-              "io.github.pulsebeat02.ezmediacore.nms.impl.%s.NMSMapPacketIntercepter"
-                  .formatted(VERSION));
-      return Optional.of((PacketHandler) clazz.getDeclaredConstructor().newInstance());
+      return Optional.of(getPacketHandler());
     } catch (final ClassNotFoundException
         | InstantiationException
         | IllegalAccessException
@@ -57,6 +53,17 @@ public final class NMSReflectionHandler {
               .formatted(VERSION));
       return Optional.empty();
     }
+  }
+
+  private @NotNull static PacketHandler getPacketHandler()
+      throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
+          InstantiationException, IllegalAccessException {
+    return (PacketHandler)
+        Class.forName(
+                "io.github.pulsebeat02.ezmediacore.nms.impl.%s.NMSMapPacketInterceptor"
+                    .formatted(VERSION))
+            .getDeclaredConstructor()
+            .newInstance();
   }
 
   public static String getVersion() {

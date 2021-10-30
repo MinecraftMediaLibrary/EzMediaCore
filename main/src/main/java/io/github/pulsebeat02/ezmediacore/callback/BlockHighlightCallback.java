@@ -77,8 +77,7 @@ public class BlockHighlightCallback extends FrameCallback
 
     private Location location;
 
-    Builder() {
-    }
+    Builder() {}
 
     @Contract("_ -> this")
     @Override

@@ -64,8 +64,7 @@ public record RegistrationListener(
   }
 
   @Override
-  public @NotNull
-  MediaLibraryCore getCore() {
+  public @NotNull MediaLibraryCore getCore() {
     return this.core;
   }
 }
