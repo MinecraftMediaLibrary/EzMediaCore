@@ -58,7 +58,7 @@ public class ChatOutput extends VideoOutput {
                         Dimension.ofDimension(
                             attributes.getPixelWidth(), attributes.getPixelHeight()))
                     .viewers(Viewers.ofPlayers(players))
-                    .delay(DelayConfiguration.ofDelay(20))
+                    .delay(DelayConfiguration.DELAY_20_MS)
                     .build(plugin.library()))
             .soundKey(SoundKey.ofSound("emc"))
             .build());

@@ -60,7 +60,7 @@ public class ScoreboardOutput extends VideoOutput {
                     .dims(
                         Dimension.ofDimension(
                             attributes.getPixelWidth(), attributes.getPixelHeight()))
-                    .delay(DelayConfiguration.ofDelay(40))
+                    .delay(DelayConfiguration.ofDelay(40L))
                     .build(plugin.library()))
             .soundKey(SoundKey.ofSound("emc"))
             .build());

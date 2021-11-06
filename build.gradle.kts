@@ -9,8 +9,15 @@ plugins {
 
 subprojects {
 
-    apply(plugin = "java-library")
-    apply(plugin = "com.github.hierynomus.license-base")
+    apply {
+        listOf(
+            "java",
+            "java-library",
+            "com.github.hierynomus.license-base"
+        ).forEach {
+            plugin(it)
+        }
+    }
 
     java {
         sourceCompatibility = JavaVersion.VERSION_16
@@ -44,16 +51,20 @@ subprojects {
     repositories {
         mavenCentral()
         mavenLocal()
-        maven("https://repo.maven.apache.org/maven2/")
-        maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
-        maven("https://libraries.minecraft.net/")
-        maven("https://jitpack.io")
-        maven("https://repo.codemc.org/repository/maven-public")
-        maven("https://libraries.minecraft.net")
-        maven("https://oss.sonatype.org/content/repositories/snapshots/")
-        maven("https://papermc.io/repo/repository/maven-public/")
-        maven("https://m2.dv8tion.net/releases")
-        maven("https://repo.vshnv.tech/releases/")
-        maven("https://repo.mattstudios.me/artifactory/public/")
+        listOf(
+            "https://repo.maven.apache.org/maven2/",
+            "https://hub.spigotmc.org/nexus/content/repositories/snapshots/",
+            "https://libraries.minecraft.net/",
+            "https://jitpack.io",
+            "https://repo.codemc.org/repository/maven-public",
+            "https://libraries.minecraft.net",
+            "https://oss.sonatype.org/content/repositories/snapshots/",
+            "https://papermc.io/repo/repository/maven-public/",
+            "https://m2.dv8tion.net/releases",
+            "https://repo.vshnv.tech/releases/",
+            "https://repo.mattstudios.me/artifactory/public/"
+        ).forEach {
+            maven(it)
+        }
     }
 }

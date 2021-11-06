@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback;
 
+import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
@@ -45,6 +46,7 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
       @NotNull final DelayConfiguration delay,
       final int blockWidth) {
     super(core, viewers, dimension, delay);
+    Preconditions.checkArgument(map.getValue() >= 0, "Map id must be greater than or equal to 0!");
     this.algorithm = algorithm;
     this.map = map.getValue();
     this.blockWidth = blockWidth;
@@ -84,8 +86,7 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
     private Identifier<Integer> map = Identifier.ofIdentifier(0);
     private int blockWidth;
 
-    Builder() {
-    }
+    Builder() {}
 
     @Contract("_ -> this")
     @Override

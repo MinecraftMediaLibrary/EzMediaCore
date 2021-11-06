@@ -25,6 +25,7 @@ package io.github.pulsebeat02.ezmediacore.player;
 
 import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Viewable;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
@@ -34,7 +35,10 @@ import org.jetbrains.annotations.NotNull;
 
 public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
-  void initializePlayer(final long ms, @NotNull final Object... arguments);
+  void initializePlayer(
+      @NotNull final MrlConfiguration mrl,
+      @NotNull final DelayConfiguration delay,
+      @NotNull final Object... arguments);
 
   void playAudio();
 
@@ -44,14 +48,19 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
   void setCustomAudioStopper(@NotNull final Runnable runnable);
 
-  void setPlayerState(@NotNull final PlayerControls controls, @NotNull final Object... arguments);
+  void setPlayerState(
+      @NotNull final MrlConfiguration mrl,
+      @NotNull final PlayerControls controls,
+      @NotNull final Object... arguments);
 
   void setDimensions(@NotNull final Dimension dimensions);
 
   void setViewers(@NotNull final Viewers viewers);
 
   void onPlayerStateChange(
-      @NotNull final PlayerControls status, @NotNull final Object... arguments);
+      @NotNull final MrlConfiguration mrl,
+      @NotNull final PlayerControls controls,
+      @NotNull final Object... arguments);
 
   @NotNull
   Callback getCallback();

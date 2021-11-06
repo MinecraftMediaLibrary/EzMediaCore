@@ -27,9 +27,10 @@ import com.google.common.base.Preconditions;
 import com.sun.jna.Pointer;
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import io.github.pulsebeat02.ezmediacore.utility.ArgumentUtils;
+import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,11 +73,9 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
       @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
       @Nullable final SoundKey key,
-      @NotNull final FrameConfiguration fps,
-      @Nullable final Object... arguments) {
+      @NotNull final FrameConfiguration fps) {
     super(callback, viewers, pixelDimension, key, fps);
     this.adapter = this.getAdapter();
-    this.initializePlayer(0L, arguments == null ? new String[]{} : arguments);
     this.modifyPlayerAttributes();
   }
 
@@ -89,53 +88,56 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   }
 
   @Override
-  public void setPlayerState(@NotNull final PlayerControls controls,
+  public void setPlayerState(
+      @NotNull final MrlConfiguration mrl,
+      @NotNull final PlayerControls controls,
       @NotNull final Object... arguments) {
-    super.setPlayerState(controls);
+    super.setPlayerState(mrl, controls, arguments);
     CompletableFuture.runAsync(() -> {
       switch (controls) {
-        case START -> {
-          this.setDirectVideoMrl(ArgumentUtils.retrieveDirectVideo(arguments));
-          this.setDirectAudioMrl(ArgumentUtils.retrieveDirectAudio(arguments));
-          if (this.player == null) {
-            this.initializePlayer(0L, this.getProperArguments(arguments));
-          }
-          this.playAudio();
-          this.player.media().play(this.getDirectVideoMrl().getMrl());
-        }
-        case PAUSE -> {
-          this.stopAudio();
-          this.player.controls().stop();
-        }
-        case RESUME -> {
-          if (this.player == null) {
-            this.initializePlayer(0L);
-            this.playAudio();
-            this.player.media().play(this.getDirectVideoMrl().getMrl());
-          } else {
-            this.playAudio();
-            this.player.controls().play();
-          }
-        }
-        case RELEASE -> this.releaseAll();
+        case START -> start(mrl, arguments);
+        case PAUSE -> pause();
+        case RESUME -> resume(mrl, arguments);
+        case RELEASE -> release();
         default -> throw new IllegalArgumentException("Player state is invalid!");
       }
     });
   }
 
-  private Object @NotNull [] getProperArguments(final Object @NotNull [] arguments) {
-    final Object[] args = new Object[arguments.length - 1];
-    if (args.length - 1 >= 0) {
-      System.arraycopy(arguments, 1, args, 0, args.length - 1);
+  private void start(@NotNull final MrlConfiguration mrl, @NotNull final Object[] arguments) {
+    this.setDirectVideoMrl(RequestUtils.getVideoURLs(mrl).get(0));
+    this.setDirectAudioMrl(RequestUtils.getAudioURLs(mrl).get(0));
+    if (this.player == null) {
+      this.initializePlayer(mrl, DelayConfiguration.DELAY_0_MS, arguments);
     }
-    return args;
+    this.playAudio();
+    this.player.media().play(this.getDirectVideoMrl().getMrl());
+  }
+
+  private void pause() {
+    this.stopAudio();
+    this.player.controls().stop();
+  }
+
+  private void resume(@NotNull final MrlConfiguration mrl, @NotNull final Object[] arguments) {
+    if (this.player == null) {
+      this.initializePlayer(mrl, DelayConfiguration.DELAY_0_MS, arguments);
+      this.playAudio();
+      this.player.media().play(this.getDirectVideoMrl().getMrl());
+    } else {
+      this.playAudio();
+      this.player.controls().play();
+    }
   }
 
   @Override
-  public void initializePlayer(final long ms, @NotNull final Object... arguments) {
+  public void initializePlayer(
+      @NotNull final MrlConfiguration mrl,
+      @NotNull final DelayConfiguration delay,
+      @NotNull final Object... arguments) {
     this.player = this.getEmbeddedMediaPlayer(
         Arrays.stream(arguments).collect(Collectors.toList()));
-    this.player.controls().setTime(ms);
+    this.player.controls().setTime(delay.getDelay());
   }
 
   @Override
@@ -156,16 +158,24 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer(
       @NotNull final Collection<Object> arguments) {
     if (this.player == null || this.factory == null || this.logger == null) { // just in case something is null;
-      this.factory = new MediaPlayerFactory(this.constructArguments(arguments));
-      this.logger = this.factory.application().newLog();
-      this.logger.setLevel(LogLevel.DEBUG);
-      this.logger.addLogListener(
-          (level, module, file, line, name, header, id, message) ->
-              Logger.directPrintVLC(
-                  "[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message)));
+      initializeFactory(arguments);
+      initializeLogger();
       return this.factory.mediaPlayers().newEmbeddedMediaPlayer();
     }
     return this.player;
+  }
+
+  private void initializeFactory(@NotNull final Collection<Object> arguments) {
+    this.factory = new MediaPlayerFactory(this.constructArguments(arguments));
+  }
+
+  private void initializeLogger() {
+    this.logger = this.factory.application().newLog();
+    this.logger.setLevel(LogLevel.DEBUG);
+    this.logger.addLogListener(
+        (level, module, file, line, name, header, id, message) ->
+            Logger.directPrintVLC(
+                "[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message)));
   }
 
   private @NotNull List<String> constructArguments(@NotNull final Collection<Object> arguments) {
@@ -182,7 +192,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     return args;
   }
 
-  private void releaseAll() {
+  private void release() {
     if (this.player != null) {
       this.player.controls().stop();
       this.logger.release();
@@ -253,8 +263,6 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
 
   public static final class Builder extends VideoBuilder {
 
-    private Object[] arguments = {};
-
     Builder() {
     }
 
@@ -286,29 +294,18 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
       return this;
     }
 
-    @Contract("_ -> this")
-    public Builder args(@NotNull final Object... arguments) {
-      this.arguments = arguments;
-      return this;
-    }
-
     @Contract(" -> new")
     @Override
     public @NotNull MediaPlayer build() {
       final Callback callback = this.getCallback();
       return new VLCMediaPlayer(callback, callback.getWatchers(), this.getDims(), this.getKey(),
-          this.getRate(),
-          this.arguments);
+          this.getRate());
     }
   }
 
   private class MinecraftVideoRenderCallback extends RenderCallbackAdapter {
 
     private final Consumer<int[]> callback;
-
-    public MinecraftVideoRenderCallback() {
-      this(VLCMediaPlayer.super.getCallback()::process);
-    }
 
     public MinecraftVideoRenderCallback(@NotNull final Consumer<int[]> consumer) {
       super(new int[VLCMediaPlayer.super.getDimensions().getWidth()

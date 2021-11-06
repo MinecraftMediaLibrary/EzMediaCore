@@ -58,7 +58,7 @@ public class FFmpegVideoTest {
       throws IOException {
     this.ffmpeg =
         new FFmpeg(path)
-            .addInput(UrlInput.fromPath(input).setPosition(ms))
+            .addInput(UrlInput.fromPath(input).setPosition(ms).addArgument("-re"))
             .addOutput(FrameOutput.withConsumer(this.getFrameConsumer(img -> {})))
             .setLogLevel(LogLevel.FATAL)
             .setProgressListener(line -> {})

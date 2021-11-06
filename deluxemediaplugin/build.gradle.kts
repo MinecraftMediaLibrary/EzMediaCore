@@ -7,21 +7,28 @@ dependencies {
 
     compileOnly("org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT")
 
-    implementation("io.github.slimjar:slimjar:1.2.6")
-    implementation(project(":api"))
-    implementation(project(":main"))
-    implementation(project(":lib"))
+    listOf(
+        "io.github.slimjar:slimjar:1.2.6",
+        project(":api"),
+        project(":main"),
+        project(":lib")
+    ).forEach {
+        implementation(it)
+    }
 
-    slim("org.bstats:bstats-bukkit:2.2.1")
-    slim("com.mojang:brigadier:1.0.18")
-    slim("net.kyori:adventure-platform-bukkit:4.0.0")
-    slim("net.kyori:adventure-api:4.9.2")
-    slim("com.github.stefvanschie.inventoryframework:IF:0.10.2")
-    slim("me.lucko:commodore:1.10")
-    slim("net.dv8tion:JDA:4.3.0_310")
-    slim("com.sedmelluq:lavaplayer:1.3.78")
-    slim("com.mojang:authlib:1.5.25")
-
+    listOf(
+        "org.bstats:bstats-bukkit:2.2.1",
+        "com.mojang:brigadier:1.0.18",
+        "net.kyori:adventure-platform-bukkit:4.0.0",
+        "net.kyori:adventure-api:4.9.3",
+        "com.github.stefvanschie.inventoryframework:IF:0.10.2",
+        "me.lucko:commodore:1.10",
+        "net.dv8tion:JDA:4.3.0_310",
+        "com.sedmelluq:lavaplayer:1.3.78",
+        "com.mojang:authlib:1.5.25"
+    ).forEach {
+        slim(it)
+    }
 }
 
 tasks {

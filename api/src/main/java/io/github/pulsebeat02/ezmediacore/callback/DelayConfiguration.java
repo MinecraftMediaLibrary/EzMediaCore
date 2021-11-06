@@ -24,6 +24,7 @@
 
 package io.github.pulsebeat02.ezmediacore.callback;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
 public final class DelayConfiguration {
@@ -35,20 +36,21 @@ public final class DelayConfiguration {
   public static final DelayConfiguration DELAY_20_MS;
 
   static {
-    DELAY_0_MS = ofDelay(0);
-    DELAY_5_MS = ofDelay(5);
-    DELAY_10_MS = ofDelay(10);
-    DELAY_15_MS = ofDelay(15);
-    DELAY_20_MS = ofDelay(20);
+    DELAY_0_MS = ofDelay(0L);
+    DELAY_5_MS = ofDelay(5L);
+    DELAY_10_MS = ofDelay(10L);
+    DELAY_15_MS = ofDelay(15L);
+    DELAY_20_MS = ofDelay(20L);
   }
 
-  private final int delay;
+  private final long delay;
 
-  DelayConfiguration(final int delay) {
+  DelayConfiguration(final long delay) {
+    Preconditions.checkArgument(delay >= 0, "Delay must be greater than or equal to 0!");
     this.delay = delay;
   }
 
-  public static @NotNull DelayConfiguration ofDelay(final int delay) {
+  public static @NotNull DelayConfiguration ofDelay(final long delay) {
     return new DelayConfiguration(delay);
   }
 
@@ -56,7 +58,7 @@ public final class DelayConfiguration {
     return ofDelay((int) delay);
   }
 
-  public int getDelay() {
+  public long getDelay() {
     return this.delay;
   }
 }

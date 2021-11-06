@@ -37,7 +37,7 @@ public abstract class CallbackBuilder {
   private Viewers viewers;
 
   {
-    delay = DelayConfiguration.ofDelay(0);
+    delay = DelayConfiguration.DELAY_0_MS;
     viewers = Viewers.onlinePlayers();
   }
 

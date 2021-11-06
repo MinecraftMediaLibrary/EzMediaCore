@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.dimension;
 
+import com.google.common.base.Preconditions;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +33,8 @@ public final class ImmutableDimension implements Dimension {
   private final int height;
 
   public ImmutableDimension(final int width, final int height) {
+    Preconditions.checkArgument(width >= 0, "Width must be above or equal to 0!");
+    Preconditions.checkArgument(height >= 0, "Height must be above or equal to 0!");
     this.width = width;
     this.height = height;
   }

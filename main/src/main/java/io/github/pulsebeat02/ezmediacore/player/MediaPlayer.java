@@ -62,10 +62,6 @@ public abstract class MediaPlayer implements VideoPlayer {
       @NotNull final Dimension pixelDimension,
       @Nullable final SoundKey key,
       @NotNull final FrameConfiguration fps) {
-    Preconditions.checkArgument(
-        pixelDimension.getWidth() >= 0, "Width must be above or equal to 0!");
-    Preconditions.checkArgument(
-        pixelDimension.getHeight() >= 0, "Height must be above or equal to 0!");
     this.core = callback.getCore();
     this.callback = callback;
     this.dimensions = pixelDimension;
@@ -122,16 +118,19 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   @Override
   public void setPlayerState(
-      @NotNull final PlayerControls controls, @NotNull final Object... arguments) {
-    this.onPlayerStateChange(controls, arguments);
+      @NotNull final MrlConfiguration mrl,
+      @NotNull final PlayerControls controls,
+      @NotNull final Object... arguments) {
+    this.onPlayerStateChange(mrl, controls, arguments);
     this.controls = controls;
     this.callback.preparePlayerStateChange(controls);
   }
 
   @Override
   public void onPlayerStateChange(
-      @NotNull final PlayerControls status, @NotNull final Object... arguments) {
-  }
+      @NotNull final MrlConfiguration mrl,
+      @NotNull final PlayerControls controls,
+      @NotNull final Object... arguments) {}
 
   @Override
   public void playAudio() {

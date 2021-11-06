@@ -43,12 +43,6 @@ public abstract class FrameCallback implements Callback {
       @NotNull final Viewers viewers,
       @NotNull final Dimension dimension,
       @NotNull final DelayConfiguration delay) {
-    Preconditions.checkArgument(
-        dimension.getWidth() >= 0, "Width must be greater than or equal to 0!");
-    Preconditions.checkArgument(
-        dimension.getHeight() >= 0, "Height must be greater than or equal to 0!");
-    Preconditions.checkArgument(
-        delay.getDelay() >= 0, "Delay between frames must be greater than or equal to 0!");
     this.core = core;
     this.viewers = viewers;
     this.dimension = dimension;
@@ -56,8 +50,7 @@ public abstract class FrameCallback implements Callback {
   }
 
   @Override
-  public void preparePlayerStateChange(@NotNull final PlayerControls status) {
-  }
+  public void preparePlayerStateChange(@NotNull final PlayerControls status) {}
 
   @Override
   public @NotNull DelayConfiguration getDelayConfiguration() {

@@ -24,12 +24,16 @@
 package io.github.pulsebeat02.ezmediacore.player;
 
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.utility.ArgumentUtils;
+import io.github.pulsebeat02.ezmediacore.utility.Pair;
+import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -42,15 +46,50 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/*
+
+Algorithm for frame consuming into a player. We can retrieve the frames,
+and put them into a ArrayBlockingQueue. We store the ArrayBlockingQueue
+with both int[] as the frame data, and also a double for the timestamp.
+Next, we keep track of an internal time.
+
+Timestamp for each frame is calculated with the following equation.
+Suppose the function T(f) takes in a frame called f and returns the
+timestamp of that specific frame.
+
+T(f) = f.pts * f.timebase
+
+We can calculate this asynchronously when we fetch the frame as it
+can be slow doing the decimal division. We put these into our data
+structure to store the next frames.
+
+For our display thread, we can continuously fetch from our frame
+data structure. We have to account for some cases which may lead
+to the downfall of the program.
+
+What if the data structure is empty?
+In this rare case where FFmpeg isn't fast enough to deliver frames
+compared to display frames, we are lucky our data structure is
+blocking, so we just block the thread until we are able to get the
+next frame.
+
+What if we are behind in frames?
+This is a bit harder, as it requires likely a faster algorithm. One
+way to do this is by looping over the next frames while keeping track
+of the current time (Instant.now()) and trying to display the frame
+after the frame that matched up our time. Obviously, this may be a
+bit slow, and that overtime for the loop also takes some time to
+process too, so we must account for that as well.
+ */
 public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlayer {
 
-  private ArrayBlockingQueue<int[]> frames;
+  private ArrayBlockingQueue<Pair<int[], Long>> frames;
   private BufferConfiguration buffer;
   private long delay;
+  private long start;
 
   private FrameGrab grabber;
   private boolean paused;
-  private long start;
   private volatile CompletableFuture<Void> framePlayer;
   private volatile CompletableFuture<Void> audioPlayer;
   private volatile boolean firstFrame;
@@ -65,7 +104,6 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
     super(callback, viewers, pixelDimension, key, fps);
     this.buffer = buffer;
     this.modifyPlayerAttributes();
-    this.initializePlayer(0L);
   }
 
   @Override
@@ -87,40 +125,50 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
   }
 
   @Override
-  public void setPlayerState(@NotNull final PlayerControls controls,
+  public void setPlayerState(
+      @NotNull final MrlConfiguration mrl,
+      @NotNull final PlayerControls controls,
       @NotNull final Object... arguments) {
-    super.setPlayerState(controls);
+    super.setPlayerState(mrl, controls, arguments);
     CompletableFuture.runAsync(() -> {
       switch (controls) {
-        case START -> CompletableFuture.runAsync(() -> {
-          this.setDirectVideoMrl(ArgumentUtils.retrieveDirectVideo(arguments));
-          this.setDirectAudioMrl(ArgumentUtils.retrieveDirectAudio(arguments));
-          if (this.grabber == null) {
-            this.initializePlayer(0L);
-          }
-          this.paused = false;
-          this.play();
-          this.start = System.currentTimeMillis();
-        });
-        case PAUSE -> {
-          this.stopAudio();
-          this.paused = true;
-          this.start = System.currentTimeMillis();
-        }
-        case RESUME -> {
-          this.initializePlayer(System.currentTimeMillis() - this.start);
-          this.paused = false;
-          this.play();
-        }
-        case RELEASE -> {
-          this.paused = false;
-          if (this.grabber != null) {
-            this.grabber = null;
-          }
-        }
+        case START -> start(mrl, arguments);
+        case PAUSE -> pause();
+        case RESUME -> resume(mrl, arguments);
+        case RELEASE -> release();
         default -> throw new IllegalArgumentException("Player state is invalid!");
       }
     });
+  }
+
+  private void release() {
+    this.paused = false;
+    if (this.grabber != null) {
+      this.grabber = null;
+    }
+  }
+
+  private void resume(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+    this.initializePlayer(mrl, DelayConfiguration.ofDelay(System.currentTimeMillis() - this.start), arguments);
+    this.paused = false;
+    this.play();
+  }
+
+  private void pause() {
+    this.stopAudio();
+    this.paused = true;
+    this.start = System.currentTimeMillis();
+  }
+
+  private void start(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+    this.setDirectVideoMrl(RequestUtils.getVideoURLs(mrl).get(0));
+    this.setDirectAudioMrl(RequestUtils.getAudioURLs(mrl).get(0));
+    if (this.grabber == null) {
+      this.initializePlayer(mrl, DelayConfiguration.DELAY_0_MS, arguments);
+    }
+    this.paused = false;
+    this.play();
+    this.start = System.currentTimeMillis();
   }
 
   private void runPlayer() {
@@ -132,6 +180,11 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
           if ((frame = this.grabber.getNativeFrame()) == null) {
             break;
           }
+          if (!this.firstFrame) {
+            this.firstFrame = true;
+            this.start = Instant.now().toEpochMilli();
+          }
+          final long timestamp = Instant.now().toEpochMilli() - start;
           while (JCodecMediaPlayer.this.frames.remainingCapacity() <= 1) {
             try {
               TimeUnit.MILLISECONDS.sleep(5);
@@ -139,7 +192,7 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
               e.printStackTrace();
             }
           }
-          JCodecMediaPlayer.this.frames.add(VideoFrameUtils.toResizedColorArray(frame, dimension));
+          JCodecMediaPlayer.this.frames.add(Pair.ofPair(VideoFrameUtils.toResizedColorArray(frame, dimension), timestamp));
         } catch (final IOException e) {
           e.printStackTrace();
         }
@@ -186,9 +239,23 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
     return CompletableFuture.runAsync(() -> {
       while (!this.paused) {
         try {
-          callback.process(this.frames.take());
-          TimeUnit.MILLISECONDS.sleep(JCodecMediaPlayer.this.delay - 6);
-        } catch (final InterruptedException e) {
+          // process current frame
+          final Pair<int[], Long> frame = this.frames.take();
+          callback.process(frame.getKey());
+
+          // wait delay
+          TimeUnit.MILLISECONDS.sleep(this.delay - 5);
+
+          // skip frames if necessary
+          // For example, if the passed time is 40 ms, and the time of the
+          // current frame is 30 ms, we have to skip. If it is equal, we are
+          // bound to get behind, so skip
+          final long passed = Instant.now().toEpochMilli() - this.start;
+          Pair<int[], Long> skip = this.frames.peek();
+          while (skip.getValue() <= passed) {
+            skip = this.frames.poll();
+          }
+        } catch (InterruptedException e) {
           e.printStackTrace();
         }
       }
@@ -197,13 +264,15 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
 
 
   @Override
-  public void initializePlayer(final long ms, @NotNull final Object... arguments) {
+  public void initializePlayer(
+      @NotNull final MrlConfiguration mrl,
+      @NotNull final DelayConfiguration configuration,
+      @NotNull final Object... arguments) {
     final Dimension dimension = this.getDimensions();
-    this.start = ms;
     try {
       this.grabber = FrameGrab.createFrameGrab(
           NIOUtils.readableFileChannel(this.getDirectVideoMrl().getMrl()));
-      this.grabber.seekToSecondPrecise(ms / 1000.0F);
+      this.grabber.seekToSecondPrecise(configuration.getDelay() / 1000.0F);
       this.grabber.getMediaInfo().setDim(new Size(dimension.getWidth(), dimension.getHeight()));
     } catch (final IOException | JCodecException e) {
       e.printStackTrace();

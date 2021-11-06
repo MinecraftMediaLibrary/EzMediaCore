@@ -34,6 +34,7 @@ import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
@@ -41,6 +42,7 @@ import io.github.pulsebeat02.ezmediacore.throwable.InvalidBufferException;
 import io.github.pulsebeat02.ezmediacore.throwable.InvalidStreamHeaderException;
 import io.github.pulsebeat02.ezmediacore.utility.ArgumentUtils;
 import io.github.pulsebeat02.ezmediacore.utility.Pair;
+import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
@@ -54,41 +56,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/*
 
-Algorithm for frame consuming into a player. We can retrieve the frames,
-and put them into a ArrayBlockingQueue. We store the ArrayBlockingQueue
-with both int[] as the frame data, and also a double for the timestamp.
-Next, we keep track of an internal time.
-
-Timestamp for each frame is calculated with the following equation.
-Suppose the function T(f) takes in a frame called f and returns the
-timestamp of that specific frame.
-
-T(f) = f.pts * f.timebase
-
-We can calculate this asynchronously when we fetch the frame as it
-can be slow doing the decimal division. We put these into our data
-structure to store the next frames.
-
-For our display thread, we can continuously fetch from our frame
-data structure. We have to account for some cases which may lead
-to the downfall of the program.
-
-What if the data structure is empty?
-In this rare case where FFmpeg isn't fast enough to deliver frames
-compared to display frames, we are lucky our data structure is
-blocking, so we just block the thread until we are able to get the
-next frame.
-
-What if we are behind in frames?
-This is a bit harder, as it requires likely a faster algorithm. One
-way to do this is by looping over the next frames while keeping track
-of the current time (Instant.now()) and trying to display the frame
-after the frame that matched up our time. Obviously, this may be a
-bit slow, and that overtime for the loop also takes some time to
-process too, so we must account for that as well.
- */
 public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlayer {
 
   private ArrayBlockingQueue<Pair<int[], Long>> frames;
@@ -139,13 +107,15 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
   }
 
   @Override
-  public void setPlayerState(@NotNull final PlayerControls controls,
+  public void setPlayerState(
+      @NotNull final MrlConfiguration mrl,
+      @NotNull final PlayerControls controls,
       @NotNull final Object... arguments) {
-    super.setPlayerState(controls);
+    super.setPlayerState(mrl, controls, arguments);
     CompletableFuture.runAsync(() -> {
       this.firstFrame = false;
       switch (controls) {
-        case START, RESUME -> this.play(controls, arguments);
+        case START, RESUME -> this.play(mrl, controls, arguments);
         case PAUSE -> this.pause();
         case RELEASE -> this.release();
         default -> throw new IllegalArgumentException("Player state is invalid!");
@@ -154,26 +124,29 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
   }
 
   @Override
-  public void initializePlayer(final long seconds, @NotNull final Object... arguments) {
-    this.setDirectVideoMrl(ArgumentUtils.retrieveDirectVideo(arguments));
-    this.setDirectAudioMrl(ArgumentUtils.retrieveDirectAudio(arguments));
+  public void initializePlayer(
+      @NotNull final MrlConfiguration mrl,
+      @NotNull final DelayConfiguration delay,
+      @NotNull final Object... arguments) {
+    this.setDirectVideoMrl(RequestUtils.getVideoURLs(mrl).get(0));
+    this.setDirectAudioMrl(RequestUtils.getAudioURLs(mrl).get(0));
     final Dimension dimension = this.getDimensions();
     final String url = this.getDirectVideoMrl().getMrl();
     final Path path = Path.of(url);
-    final long ms = seconds * 1000;
+    final long ms = delay.getDelay() * 1000;
     this.ffmpeg =
         new FFmpeg(this.getCore().getFFmpegPath().toAbsolutePath())
             .addInput(
-                Files.exists(path)
+                (Files.exists(path)
                     ? UrlInput.fromPath(path).setPosition(ms)
-                    : UrlInput.fromUrl(url).setPosition(ms))
+                    : UrlInput.fromUrl(url).setPosition(ms))).addArgument("-re")
             .addOutput(
                 FrameOutput.withConsumer(this.getFrameConsumer())
                     .setFrameRate(this.getFrameConfiguration().getFps())
                     .disableStream(StreamType.AUDIO)
                     .disableStream(StreamType.SUBTITLE)
-                    .disableStream(StreamType.DATA)
-                    .addArguments("-vf", "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight())))
+                    .disableStream(StreamType.DATA))
+            .addArguments("-vf", "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()))
             .setLogLevel(LogLevel.FATAL)
             .setProgressListener((line) -> {})
             .setOutputListener(Logger::directPrintFFmpegPlayer);
@@ -263,24 +236,29 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
     this.start = System.currentTimeMillis();
   }
 
-  private void play(@NotNull final PlayerControls controls, @NotNull final Object[] arguments) {
-    this.setupPlayer(controls, arguments);
+  private void play(
+      @NotNull final MrlConfiguration mrl,
+      @NotNull final PlayerControls controls,
+      @NotNull final Object[] arguments) {
+    this.setupPlayer(mrl, controls, arguments);
     this.future = this.updateFFmpegPlayer();
     this.delayFrames();
     this.audioPlayer = this.updateAudioPlayer();
     this.framePlayer = this.updateVideoPlayer();
   }
 
-  private void setupPlayer(@NotNull final PlayerControls controls,
+  private void setupPlayer(
+      @NotNull final MrlConfiguration mrl,
+      @NotNull final PlayerControls controls,
       @NotNull final Object[] arguments) {
     if (controls == PlayerControls.START) {
       this.stopAudio();
       if (this.ffmpeg == null) {
-        this.initializePlayer(0L, arguments);
+        this.initializePlayer(mrl, DelayConfiguration.DELAY_0_MS, arguments);
       }
       this.start = 0L;
     } else if (controls == PlayerControls.RESUME) {
-      this.initializePlayer(System.currentTimeMillis() - this.start, arguments);
+      this.initializePlayer(mrl, DelayConfiguration.ofDelay(System.currentTimeMillis() - this.start), arguments);
     }
   }
 
@@ -332,7 +310,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
           callback.process(frame.getKey());
 
           // wait delay
-          TimeUnit.MILLISECONDS.sleep(this.delay - 10);
+          TimeUnit.MILLISECONDS.sleep(this.delay - 5);
 
           // skip frames if necessary
           // For example, if the passed time is 40 ms, and the time of the
