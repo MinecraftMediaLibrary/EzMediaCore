@@ -23,8 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.analysis;
 
-import java.util.List;
-import javax.sound.sampled.Mixer;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -79,12 +77,4 @@ public interface Diagnostic {
    */
   @NotNull
   CpuInfo getCpu();
-
-  /**
-   * Gets all sound drivers the system is associated with.
-   *
-   * @return a List of all sound drivers connected
-   */
-  @NotNull
-  List<Mixer> getSound();
 }

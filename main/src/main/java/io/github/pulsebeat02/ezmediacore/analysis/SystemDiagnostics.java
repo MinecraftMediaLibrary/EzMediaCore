@@ -29,15 +29,11 @@ import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegDownloadPortal;
 import io.github.pulsebeat02.ezmediacore.rtp.RTPDownloadPortal;
 import io.github.pulsebeat02.ezmediacore.throwable.UnsupportedPlatformException;
 import io.github.pulsebeat02.ezmediacore.vlc.VLCDownloadPortal;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Line;
-import javax.sound.sampled.Mixer;
-import javax.sound.sampled.SourceDataLine;
+import java.util.stream.Stream;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Contract;
@@ -47,8 +43,9 @@ public final class SystemDiagnostics implements Diagnostic {
 
   private final MediaLibraryCore core;
   private final OperatingSystem system;
-  private final CPUArchitecture cpu;
-  private final List<Mixer> sound;
+  private final CpuArchitecture cpu;
+  private final String os;
+  private final String ver;
 
   private FFmpegDownloadPortal ffmpegDownloadLink;
   private VLCDownloadPortal vlcDownloadLink;
@@ -56,80 +53,79 @@ public final class SystemDiagnostics implements Diagnostic {
 
   public SystemDiagnostics(@NotNull final MediaLibraryCore core) {
     this.core = core;
-    this.system = new OperatingSystem();
-    this.cpu = new CPUArchitecture();
-    this.sound = this.getMixers();
+    this.system = this.getOperatingSystem();
+    this.cpu = this.getCpuArchitecture();
+    this.os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+    this.ver = System.getProperty("os.version").toLowerCase(Locale.ROOT);
     this.initializeDownloadLinks();
     this.debugInformation();
   }
 
-  private @NotNull List<Mixer> getMixers() {
-    final List<Mixer> mixers = new ArrayList<>();
-    final Mixer.Info[] devices = AudioSystem.getMixerInfo();
-    final Line.Info sourceInfo = new Line.Info(SourceDataLine.class);
-    for (final Mixer.Info mixerInfo : devices) {
-      final Mixer mixer = AudioSystem.getMixer(mixerInfo);
-      if (mixer.isLineSupported(sourceInfo)) {
-        mixers.add(mixer);
-      }
-    }
-    return mixers;
+  @Contract(" -> new")
+  private @NotNull CpuArchitecture getCpuArchitecture() {
+    return new CpuArchitecture(this.getOsArchLower(), this.is64Bit());
   }
 
+  private boolean is64Bit() {
+    return this.system.getOSType() == OSType.WINDOWS
+        ? this.getProgramFiles()
+        : this.getOsArch();
+  }
+
+  private String getOsArchLower() {
+    return System.getProperty("os.arch").toLowerCase(Locale.ROOT);
+  }
+
+  private boolean getProgramFiles() {
+    return System.getenv("ProgramFiles(x86)") != null;
+  }
+
+  private boolean getOsArch() {
+    return System.getProperty("os.arch").contains("64");
+  }
+
+  private @NotNull OperatingSystem getOperatingSystem() {
+    return new OperatingSystem(this.os, this.getOsType(), this.ver);
+  }
+
+  private @NotNull OSType getOsType() {
+    return this.isLinux() ? OSType.UNIX : this.isWin() ? OSType.WINDOWS : OSType.MAC;
+  }
+
+  private boolean isLinux() {
+    return Stream.of("nix", "nux", "aix").anyMatch(this.os::contains);
+  }
+
+  private boolean isWin() {
+    return this.os.contains("win");
+  }
+
+  private static final Map<DeviceInformation, DeviceLinkManager> SYSTEM_TABLE;
+
+  static {
+    SYSTEM_TABLE = Map.of(
+      DeviceInformation.ofDeviceInfo(true, OSType.WINDOWS, false), DeviceLinkManager.ofDeviceLink(VLCDownloadPortal.WIN_64, FFmpegDownloadPortal.WIN_64, RTPDownloadPortal.WIN_64),
+        DeviceInformation.ofDeviceInfo(true, OSType.UNIX, true), DeviceLinkManager.ofDeviceLink(VLCDownloadPortal.NA, FFmpegDownloadPortal.UNIX_ARM_64, RTPDownloadPortal.UNIX_ARM_64),
+        DeviceInformation.ofDeviceInfo(true, OSType.UNIX, false), DeviceLinkManager.ofDeviceLink(VLCDownloadPortal.NA, FFmpegDownloadPortal.UNIX_AMD_INTEL_64, RTPDownloadPortal.UNIX_AMD_64),
+        DeviceInformation.ofDeviceInfo(true, OSType.MAC, true), DeviceLinkManager.ofDeviceLink(VLCDownloadPortal.MAC_ARM_64, FFmpegDownloadPortal.MAC_64, RTPDownloadPortal.MAC_ARM_64),
+        DeviceInformation.ofDeviceInfo(true, OSType.MAC, false), DeviceLinkManager.ofDeviceLink(VLCDownloadPortal.MAC_AMD_64, FFmpegDownloadPortal.MAC_64, RTPDownloadPortal.MAC_AMD_64),
+        DeviceInformation.ofDeviceInfo(false, OSType.WINDOWS, false), DeviceLinkManager.ofDeviceLink(VLCDownloadPortal.WIN_32, FFmpegDownloadPortal.WIN_32, RTPDownloadPortal.WIN_32),
+        DeviceInformation.ofDeviceInfo(false, OSType.UNIX, true), DeviceLinkManager.ofDeviceLink(VLCDownloadPortal.NA, FFmpegDownloadPortal.UNIX_ARM_32, RTPDownloadPortal.UNIX_ARM_32)
+    );
+  }
+
+
   private void initializeDownloadLinks() {
-    if (this.cpu.isBits64()) {
-      switch (this.system.getOSType()) {
-        case WINDOWS -> {
-          Logger.info("Detected Windows 64-bit Operating System");
-          this.vlcDownloadLink = VLCDownloadPortal.WIN_64;
-          this.ffmpegDownloadLink = FFmpegDownloadPortal.WIN_64;
-          this.rtpDownloadPortal = RTPDownloadPortal.WIN_64;
-        }
-        case UNIX -> {
-          if (this.cpu.getArchitecture().contains("arm")) {
-            Logger.info("Detected Linux ARM 64-bit Operating System");
-            this.ffmpegDownloadLink = FFmpegDownloadPortal.UNIX_ARM_64;
-            this.rtpDownloadPortal = RTPDownloadPortal.UNIX_ARM_64;
-          } else {
-            Logger.info("Detected Linux AMD/Intel 64-bit Operating System");
-            this.ffmpegDownloadLink = FFmpegDownloadPortal.UNIX_AMD_INTEL_64;
-            this.rtpDownloadPortal = RTPDownloadPortal.UNIX_AMD_64;
-          }
-          this.vlcDownloadLink = VLCDownloadPortal.NA;
-        }
-        case MAC -> {
-          if (this.cpu.getArchitecture().contains("arm")) {
-            Logger.info("Detected MacOS ARM 64-bit Operating System");
-            this.vlcDownloadLink = VLCDownloadPortal.MAC_ARM_64;
-            this.rtpDownloadPortal = RTPDownloadPortal.MAC_ARM_64;
-          } else {
-            Logger.info("Detected MacOS AMD 64-bit Operating System!");
-            this.vlcDownloadLink = VLCDownloadPortal.MAC_AMD_64;
-            this.rtpDownloadPortal = RTPDownloadPortal.MAC_AMD_64;
-          }
-          this.ffmpegDownloadLink = FFmpegDownloadPortal.MAC_64;
-        }
-        default -> throw new UnsupportedPlatformException("UNKNOWN");
-      }
-    } else {
-      switch (this.system.getOSType()) {
-        case WINDOWS -> {
-          Logger.info("Detected Windows 32-bit Operating System");
-          this.vlcDownloadLink = VLCDownloadPortal.WIN_32;
-          this.ffmpegDownloadLink = FFmpegDownloadPortal.WIN_32;
-          this.rtpDownloadPortal = RTPDownloadPortal.WIN_32;
-        }
-        case UNIX -> {
-          if (this.cpu.getArchitecture().contains("arm")) {
-            Logger.info("Detected Linux ARM 32-bit Operating System");
-            this.vlcDownloadLink = VLCDownloadPortal.NA;
-            this.ffmpegDownloadLink = FFmpegDownloadPortal.UNIX_ARM_32;
-            this.rtpDownloadPortal = RTPDownloadPortal.UNIX_ARM_32;
-          }
-        }
-        default -> throw new UnsupportedPlatformException("UNKNOWN");
-      }
+    final boolean bits64 = this.cpu.isBits64();
+    final OSType type = this.system.getOSType();
+    final boolean arm = this.getCpuArchitecture().getArchitecture().contains("arm");
+    final DeviceLinkManager links = SYSTEM_TABLE.get(new DeviceInformation(bits64, type, arm));
+    if (links == null) {
+      throw new UnsupportedPlatformException("Unsupported Platform!");
     }
+    this.ffmpegDownloadLink = links.getFfmpeg();
+    this.rtpDownloadPortal = links.getRtp();
+    this.vlcDownloadLink = links.getVlc();
   }
 
   @Override
@@ -199,10 +195,5 @@ public final class SystemDiagnostics implements Diagnostic {
   @Override
   public @NotNull CpuInfo getCpu() {
     return this.cpu;
-  }
-
-  @Override
-  public @NotNull List<Mixer> getSound() {
-    return this.sound;
   }
 }
