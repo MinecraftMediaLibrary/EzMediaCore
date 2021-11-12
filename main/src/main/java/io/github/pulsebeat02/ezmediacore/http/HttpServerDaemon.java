@@ -28,6 +28,7 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipHeader;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipRequest;
+import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -66,13 +67,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   }
 
   private void logServerInformation() {
-    Logger.info("========================================");
-    Logger.info("               HTTP Server:             ");
-    Logger.info("========================================");
-    Logger.info("IP Address: %s".formatted(this.ip));
-    Logger.info("Port: %d".formatted(this.port));
-    Logger.info("Directory: %s".formatted(this.directory));
-    Logger.info("========================================");
+    Logger.info(Locale.HTTP_INFO.build(this.ip, this.port, this.directory));
   }
 
   @Override

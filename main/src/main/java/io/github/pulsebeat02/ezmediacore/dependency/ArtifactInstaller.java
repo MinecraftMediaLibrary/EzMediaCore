@@ -25,6 +25,7 @@ package io.github.pulsebeat02.ezmediacore.dependency;
 
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import io.github.pulsebeat02.ezmediacore.utility.DependencyUtils;
 import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
@@ -81,7 +82,7 @@ public final class ArtifactInstaller {
       IOException {
     this.dependencyFolder = core.getDependencyPath();
     this.relocatedFolder = this.dependencyFolder.resolve("relocated");
-    this.factory = getFactory();
+    this.factory = this.getFactory();
     this.service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     this.jars = new HashSet<>();
     this.hashes = new HashSet<>();
@@ -92,7 +93,7 @@ public final class ArtifactInstaller {
     return ReflectiveJarRelocatorFacadeFactory.create(
         this.relocatedFolder,
         Collections.singleton(
-            new Repository(new URL(SimpleMirrorSelector.DEFAULT_CENTRAL_MIRROR_URL))));;
+            new Repository(new URL(SimpleMirrorSelector.DEFAULT_CENTRAL_MIRROR_URL))));
   }
 
   public void start() {
@@ -105,7 +106,6 @@ public final class ArtifactInstaller {
       this.delete();
       this.shutdown();
     } catch (final IOException | InterruptedException e) {
-      Logger.info("A serious exception occurred during dependency instantiation!");
       e.printStackTrace();
     }
   }
@@ -138,16 +138,14 @@ public final class ArtifactInstaller {
   }
 
   private void writeHashes() throws IOException {
-    Logger.info("Recording relocated JAR hashes");
     try (final PrintWriter writer = new PrintWriter(Files.newBufferedWriter(this.hashFile))) {
       this.hashes.forEach(writer::println);
     }
   }
 
   private void load() throws IOException {
-    Logger.info("Preparing to load %d dependencies (%s)".formatted(this.jars.size(), this.jars));
-    redownloadInvalidDependencies();
-    injectJars();
+    this.redownloadInvalidDependencies();
+    this.injectJars();
   }
 
   private void injectJars() throws IOException {
@@ -160,7 +158,7 @@ public final class ArtifactInstaller {
   }
 
   private void redownloadInvalidDependencies() throws IOException {
-    final Set<Path> invalid = getInvalidDependencies();
+    final Set<Path> invalid = this.getInvalidDependencies();
     if (!invalid.isEmpty()) {
       for (final Path p : invalid) {
         Logger.warn(
@@ -179,8 +177,6 @@ public final class ArtifactInstaller {
   }
 
   private void delete() {
-    Logger.info(
-        "Preparing to delete %d stale dependencies (%s)".formatted(this.jars.size(), this.jars));
     this.jars.forEach(ThrowingConsumer.unchecked(Files::delete));
     this.jars.clear();
   }
@@ -193,8 +189,8 @@ public final class ArtifactInstaller {
     try (final Stream<Path> paths = Files.walk(this.relocatedFolder, 1)) {
       return paths
           .filter(Files::isRegularFile)
-          .noneMatch(validateDependency(dependency));
-    } catch (IOException e) {
+          .noneMatch(this.validateDependency(dependency));
+    } catch (final IOException e) {
       return true;
     }
   }
@@ -211,8 +207,8 @@ public final class ArtifactInstaller {
   private Path downloadDependency(@NotNull final DependencyInfo dependency) {
     final Repositories resolution = dependency.getResolution();
     final String path = this.dependencyFolder.toString();
-    final Optional<Path> file = getDependencyFile(resolution, dependency, path);
-    if (file.isEmpty() || !checkHash(file.get(), dependency)) {
+    final Optional<Path> file = this.getDependencyFile(resolution, dependency, path);
+    if (file.isEmpty() || !this.checkHash(file.get(), dependency)) {
       return this.downloadDependency(dependency);
     }
     return file.get();
@@ -220,7 +216,6 @@ public final class ArtifactInstaller {
 
   private boolean checkHash(@NotNull final Path file, @NotNull final DependencyInfo dependency) {
     if (DependencyUtils.validateDependency(file, dependency)) {
-      Logger.info("SHA1 Hash for File %s Succeeded!".formatted(file));
       this.jars.add(file);
     } else {
       try {
@@ -240,7 +235,7 @@ public final class ArtifactInstaller {
       @NotNull final DependencyInfo artifact,
       @NotNull final String path) {
     try {
-      logRepository(resolution, artifact);
+      this.logRepository(resolution, artifact);
       return Optional.of(DependencyUtils.downloadDependency(artifact, path));
     } catch (final IOException e) {
       Logger.info(
@@ -251,15 +246,13 @@ public final class ArtifactInstaller {
     }
   }
 
-  private void logRepository(@NotNull final Repositories resolution, @NotNull final DependencyInfo artifact) {
-    switch (resolution) {
-      case MAVEN -> Logger.info("Checking Maven Central Repository for %s".formatted(artifact));
-      case JITPACK -> Logger.info(
-          "Checking Jitpack Central Repository for %s".formatted(artifact));
-      case JDA -> Logger.info("Checking JDA Central Repository for %s".formatted(artifact));
-      default -> throw new IllegalStateException(
-          "Specified Repository URL Doesn't Exist! (Not Maven/Jitpack)");
-    }
+  private void logRepository(@NotNull final Repositories resolution,
+      @NotNull final DependencyInfo artifact) {
+    Logger.info(Locale.DEP_CHECKS.build(switch (resolution) {
+      case MAVEN -> "Maven";
+      case JITPACK -> "Jitpack";
+      case JDA -> "JDA";
+    }, artifact));
   }
 
   private void relocateFile(

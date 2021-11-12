@@ -24,7 +24,6 @@
 package io.github.pulsebeat02.ezmediacore.analysis;
 
 import java.util.Locale;
-import java.util.Set;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 

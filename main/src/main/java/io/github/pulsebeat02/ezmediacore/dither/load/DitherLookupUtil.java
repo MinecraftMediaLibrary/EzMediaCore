@@ -49,7 +49,6 @@ public final class DitherLookupUtil {
         final Color color = MapPalette.getColor((byte) i);
         colors.add(color.getRGB());
       } catch (final IndexOutOfBoundsException e) {
-        Logger.info("Captured %d colors!".formatted(i - 1));
         break;
       }
     }

@@ -23,7 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback;
 
-import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
@@ -50,7 +49,8 @@ public abstract class FrameCallback implements Callback {
   }
 
   @Override
-  public void preparePlayerStateChange(@NotNull final PlayerControls status) {}
+  public void preparePlayerStateChange(@NotNull final PlayerControls status) {
+  }
 
   @Override
   public @NotNull DelayConfiguration getDelayConfiguration() {

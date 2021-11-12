@@ -8,7 +8,6 @@ dependencies {
 
     "compileOnlyApi"("org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
 
-
     setOf(
         "uk.co.caprica:vlcj:4.7.1",
         "uk.co.caprica:vlcj-natives:4.5.0",
@@ -27,7 +26,7 @@ dependencies {
         "org.jcodec:jcodec:0.2.5",
         "com.github.ben-manes.caffeine:caffeine:3.0.3",
         "com.github.MinecraftMediaLibrary:jarchivelib:v1.4.0",
-        "com.github.MinecraftMediaLibrary:emc-installers:v1.0.0"
+        "com.github.MinecraftMediaLibrary:emc-installers:v1.0.1"
     ).forEach {
         "compileOnly"(it)
         "testImplementation"(it)

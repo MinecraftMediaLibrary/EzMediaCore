@@ -86,7 +86,8 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
     private Identifier<Integer> map = Identifier.ofIdentifier(0);
     private int blockWidth;
 
-    Builder() {}
+    Builder() {
+    }
 
     @Contract("_ -> this")
     @Override

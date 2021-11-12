@@ -20,17 +20,19 @@ public final class JlibdlJaffreeTest {
   public static void main(final String @Nullable [] args) throws IOException, InterruptedException {
     final String url = "https://www.youtube.com/watch?v=_16io5rzmsQ&ab_channel=cantseetheforest";
     new FFmpeg(
-            Path.of(
-                "/Users/bli24/Desktop/ffmpeg/ffmpeg-x84_64-osx"))
+        Path.of(
+            "/Users/bli24/Desktop/ffmpeg/ffmpeg-x84_64-osx"))
         .addInput(UrlInput.fromUrl(new JLibDL().request(url).getInfo().getUrl()).setPosition(0))
         .addOutput(
             FrameOutput.withConsumer(
                     new FrameConsumer() {
                       @Override
-                      public void consumeStreams(@NotNull final List<Stream> streams) {}
+                      public void consumeStreams(@NotNull final List<Stream> streams) {
+                      }
 
                       @Override
-                      public void consume(@NotNull final Frame frame) {}
+                      public void consume(@NotNull final Frame frame) {
+                      }
                     })
                 .setFrameRate(30)
                 .disableStream(StreamType.AUDIO)
@@ -38,7 +40,8 @@ public final class JlibdlJaffreeTest {
                 .disableStream(StreamType.DATA)
                 .addArguments("-vf", "scale=640:360"))
         .setLogLevel(LogLevel.DEBUG)
-        .setProgressListener((progress) -> {})
+        .setProgressListener((progress) -> {
+        })
         .setOutputListener(JlibdlJaffreeTest::print)
         .execute();
   }

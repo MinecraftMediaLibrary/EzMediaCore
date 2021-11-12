@@ -129,7 +129,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
     if (!this.cancelled.get()) {
       try {
         this.process = new ProcessBuilder(this.arguments).redirectErrorStream(true).start();
-        handleLogging(logger, logger != null);
+        this.handleLogging(logger, logger != null);
       } catch (final IOException e) {
         e.printStackTrace();
       }
@@ -151,14 +151,14 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
         if (consume) {
           logger.accept(line);
         } else {
-          log(line);
+          this.log(line);
         }
       }
     }
   }
 
   @Override
-  public void log(String line) {
+  public void log(final String line) {
     Logger.directPrintFFmpegStream(line);
   }
 
@@ -204,10 +204,12 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public void onBeforeExecution() {}
+  public void onBeforeExecution() {
+  }
 
   @Override
-  public void onAfterExecution() {}
+  public void onAfterExecution() {
+  }
 
   @Override
   public boolean isCompleted() {

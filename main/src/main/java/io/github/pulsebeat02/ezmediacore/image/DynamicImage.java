@@ -58,7 +58,7 @@ public class DynamicImage extends Image
   @Override
   public void draw(final boolean resize) {
     this.onStartDrawImage();
-    CompletableFuture.runAsync(() -> drawImage(resize), ExecutorProvider.MAP_UPDATE_POOL);
+    CompletableFuture.runAsync(() -> this.drawImage(resize), ExecutorProvider.MAP_UPDATE_POOL);
     this.onFinishDrawImage();
   }
 
@@ -82,7 +82,8 @@ public class DynamicImage extends Image
   }
 
   @Override
-  public void onStopDrawing() {}
+  public void onStopDrawing() {
+  }
 
   @Override
   public int getCurrentFrame() {

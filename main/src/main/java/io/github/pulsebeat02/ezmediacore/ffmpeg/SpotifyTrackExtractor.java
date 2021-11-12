@@ -78,7 +78,8 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
   }
 
   @Override
-  public void log(String line) {}
+  public void log(final String line) {
+  }
 
   @Override
   public CompletableFuture<Void> executeAsync() {
@@ -116,13 +117,16 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
   }
 
   @Override
-  public void onDownloadCancellation() {}
+  public void onDownloadCancellation() {
+  }
 
   @Override
-  public void onStartAudioExtraction() {}
+  public void onStartAudioExtraction() {
+  }
 
   @Override
-  public void onFinishAudioExtraction() {}
+  public void onFinishAudioExtraction() {
+  }
 
   @Override
   public @NotNull TrackDownloader getTrackDownloader() {

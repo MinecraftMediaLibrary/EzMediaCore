@@ -47,18 +47,23 @@ package io.github.pulsebeat02.ezmediacore.task;
 
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
+import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 
-/** Constructs a chain of commands to be executed accordingly. */
+/**
+ * Constructs a chain of commands to be executed accordingly.
+ */
 public class CommandTaskChain {
 
   private final Map<CommandTask, Boolean> chain;
 
-  /** Instantiates a new CommandTaskChain */
+  /**
+   * Instantiates a new CommandTaskChain
+   */
   public CommandTaskChain() {
     this.chain = new LinkedHashMap<>();
   }
@@ -100,23 +105,15 @@ public class CommandTaskChain {
    * @throws IOException if an error occurred while receiving output
    */
   public void run() throws IOException, InterruptedException {
-    Logger.info("Command Chain Information (Thread: %d)".formatted(Thread.currentThread().getId()));
-    printCommands();
-    Logger.info("Running Command Chain... ");
-    runInternalChain();
-  }
-
-  private void printCommands() {
-    for (final Map.Entry<CommandTask, Boolean> entry : this.chain.entrySet()) {
-      Logger.info(String.join(" ", entry.getKey().getCommand()));
-    }
+    this.runInternalChain();
   }
 
   private void runInternalChain() throws IOException, InterruptedException {
     for (final Map.Entry<CommandTask, Boolean> entry : this.chain.entrySet()) {
       final CommandTask task = entry.getKey();
       if (entry.getValue()) {
-        CompletableFuture.runAsync(runSeparateTask(task), ExecutorProvider.EXTERNAL_PROCESS_POOL);
+        CompletableFuture.runAsync(this.runSeparateTask(task),
+            ExecutorProvider.EXTERNAL_PROCESS_POOL);
       } else {
         this.runTaskChain(task);
       }
@@ -130,7 +127,7 @@ public class CommandTaskChain {
   private void runTask(@NotNull final CommandTask task) {
     try {
       task.run();
-      Logger.info(getTaskMessage(task));
+      Logger.info(this.getTaskMessage(task));
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -145,9 +142,9 @@ public class CommandTaskChain {
       throws IOException, InterruptedException {
     task.run();
     if (task.getProcess().waitFor() == 0) {
-      Logger.info(getTaskMessage(task));
+      Logger.info(this.getTaskMessage(task));
     } else {
-      Logger.info("An exception has occurred!");
+      Logger.info(Locale.ERR_EXCEPTION_CMD);
     }
   }
 }

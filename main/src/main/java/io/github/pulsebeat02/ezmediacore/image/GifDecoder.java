@@ -109,7 +109,9 @@ public final class GifDecoder {
 
   public static GifImage read(@NotNull final InputStream is) throws IOException {
     final byte[] data = new byte[is.available()];
-    is.read(data, 0, data.length);
+    if (is.read(data, 0, data.length) == -1) {
+      throw new IOException("Invalid data GIF input stream!");
+    }
     return read(data);
   }
 
@@ -185,7 +187,6 @@ public final class GifDecoder {
         // Sub-block exceeds file end, only use remaining bytes
         subBlockSize = fileSize - i - 1; // Remaining bytes
         arraycopy(in, i + 1, imgData, imgDataPos, subBlockSize);
-        imgDataPos += subBlockSize; // Move output data position
         i += subBlockSize + 1; // Move to next sub-block size
         break;
       }

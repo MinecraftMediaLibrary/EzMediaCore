@@ -113,8 +113,6 @@ public class VideoBuilder {
   public void calculateFrameRate() {
     if (this.rate.getFps() == -1) {
       // this.rate = FrameConfiguration.ofFps(VideoFrameUtils.getFrameRate(this.callback.getCore(), Path.of(this.mrl.getMrl())).orElse(30.0));
-      // Logger.info("Unable to calculate default frame rate for video! (%s)".formatted(this.mrl));
-      // Currently not available
       this.rate = FrameConfiguration.FPS_25;
     }
     this.dims = this.dims == null ? this.callback.getDimensions() : this.dims;

@@ -24,7 +24,6 @@
 package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingFunction;
 import io.github.pulsebeat02.ezmediacore.throwable.DeadResourceLinkException;
 import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
@@ -54,7 +53,6 @@ public class SpotifyTrack implements Track {
               .build()
               .execute();
     } catch (final SpotifyWebApiException | ParseException e) {
-      Logger.info("Failed to retrieve information from Spotify link!");
       e.printStackTrace();
     }
     this.artists =

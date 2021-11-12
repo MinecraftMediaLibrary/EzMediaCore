@@ -27,7 +27,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.jlibdl.Format;
 import io.github.pulsebeat02.ezmediacore.jlibdl.JLibDL;
@@ -76,7 +75,8 @@ public final class RequestUtils {
             .build();
   }
 
-  private RequestUtils() {}
+  private RequestUtils() {
+  }
 
   public static @NotNull String getSearchedVideos(
       @NotNull final String apiKey, @NotNull final String keyword) {
@@ -199,9 +199,6 @@ public final class RequestUtils {
       }
     }
     if (urls.size() == 0) {
-      Logger.info(
-          "youtube-dl could not recognize MRL %s! Adding to List for possible execution."
-              .formatted(mrl));
       urls.add(mrl);
     }
     return urls;

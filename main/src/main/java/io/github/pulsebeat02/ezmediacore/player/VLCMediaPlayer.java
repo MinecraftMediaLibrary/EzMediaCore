@@ -95,10 +95,10 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     super.setPlayerState(mrl, controls, arguments);
     CompletableFuture.runAsync(() -> {
       switch (controls) {
-        case START -> start(mrl, arguments);
-        case PAUSE -> pause();
-        case RESUME -> resume(mrl, arguments);
-        case RELEASE -> release();
+        case START -> this.start(mrl, arguments);
+        case PAUSE -> this.pause();
+        case RESUME -> this.resume(mrl, arguments);
+        case RELEASE -> this.release();
         default -> throw new IllegalArgumentException("Player state is invalid!");
       }
     });
@@ -157,9 +157,10 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
 
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer(
       @NotNull final Collection<Object> arguments) {
-    if (this.player == null || this.factory == null || this.logger == null) { // just in case something is null;
-      initializeFactory(arguments);
-      initializeLogger();
+    if (this.player == null || this.factory == null
+        || this.logger == null) { // just in case something is null;
+      this.initializeFactory(arguments);
+      this.initializeLogger();
       return this.factory.mediaPlayers().newEmbeddedMediaPlayer();
     }
     return this.player;

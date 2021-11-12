@@ -24,7 +24,6 @@
 package io.github.pulsebeat02.ezmediacore.listener;
 
 import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -48,7 +47,6 @@ public record RegistrationListener(
   public void onPlayerJoin(@NotNull final PlayerJoinEvent event) {
     final Player p = event.getPlayer();
     this.core.getHandler().injectPlayer(p);
-    Logger.info("Registered Player %s".formatted(p.getUniqueId()));
   }
 
   /**
@@ -60,7 +58,6 @@ public record RegistrationListener(
   public void onPlayerLeave(@NotNull final PlayerQuitEvent event) {
     final Player p = event.getPlayer();
     this.core.getHandler().uninjectPlayer(p);
-    Logger.info("Unregistered Player %s".formatted(p.getUniqueId()));
   }
 
   @Override

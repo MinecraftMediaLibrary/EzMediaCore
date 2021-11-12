@@ -23,14 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility;
 
-import com.google.common.base.Preconditions;
-import io.github.pulsebeat02.ezmediacore.Logger;
-import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 public final class ArgumentUtils {
 
-  private ArgumentUtils() {}
+  private ArgumentUtils() {
+  }
 }

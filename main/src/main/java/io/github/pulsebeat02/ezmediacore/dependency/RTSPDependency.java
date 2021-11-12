@@ -21,19 +21,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.vlc.os;
+package io.github.pulsebeat02.ezmediacore.dependency;
 
-import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
+import io.github.pulsebeat02.emcinstallers.implementation.rtsp.RTSPInstaller;
+import io.github.pulsebeat02.ezmediacore.Logger;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.locale.Locale;
+import java.io.IOException;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public interface SilentInstallationProvider extends LibraryInjectable, VLCBinaryInstallation {
+public class RTSPDependency {
 
-  @NotNull
-  Path getDirectory();
+  private final MediaLibraryCore core;
+  private final Path folder;
 
-  void setInstallationPath(@Nullable final Path path);
+  public RTSPDependency(@NotNull final MediaLibraryCore core) {
+    this.core = core;
+    this.folder = core.getDependencyPath().resolve("rtp/server");
+  }
 
-  void deleteArchive(@NotNull final Path archive);
+  public void start() throws IOException {
+    final Path path = RTSPInstaller.create(this.folder).download(true);
+    this.core.setRTPPath(path);
+    Logger.info(Locale.BINARY_PATHS.build("Simple RTSP Server", path));
+  }
+
+
+  public @NotNull Path getFolder() {
+    return this.folder;
+  }
 }

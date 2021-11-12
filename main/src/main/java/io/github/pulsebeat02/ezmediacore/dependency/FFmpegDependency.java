@@ -21,23 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.vlc.os.mac;
+package io.github.pulsebeat02.ezmediacore.dependency;
 
-import io.github.pulsebeat02.ezmediacore.analysis.OSType;
-import io.github.pulsebeat02.ezmediacore.vlc.os.WellKnownDirectoryProvider;
-import java.util.List;
+import io.github.pulsebeat02.emcinstallers.implementation.ffmpeg.FFmpegInstaller;
+import io.github.pulsebeat02.ezmediacore.Logger;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.locale.Locale;
+import java.io.IOException;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-public class MacKnownDirectories implements WellKnownDirectoryProvider {
+public final class FFmpegDependency {
 
-  @Override
-  public @NotNull OSType getOperatingSystem() {
-    return OSType.MAC;
+  private final MediaLibraryCore core;
+  private final Path folder;
+
+  public FFmpegDependency(@NotNull final MediaLibraryCore core) throws IOException {
+    this.core = core;
+    this.folder = core.getDependencyPath().resolve("ffmpeg");
   }
 
-  @Override
-  public @NotNull List<String> getSearchDirectories() {
-    return List.of(
-        "/Applications/VLC.app/Contents/Frameworks", "/Applications/VLC.app/Contents/MacOS/lib");
+  public void start() throws IOException {
+    final Path path = FFmpegInstaller.create(this.folder).download(true);
+    this.core.setFFmpegPath(path);
+    Logger.info(Locale.BINARY_PATHS.build("FFmpeg", path));
+  }
+
+  public @NotNull Path getFolder() {
+    return this.folder;
   }
 }

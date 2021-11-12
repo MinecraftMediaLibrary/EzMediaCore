@@ -23,7 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
-import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
@@ -130,7 +129,8 @@ public abstract class MediaPlayer implements VideoPlayer {
   public void onPlayerStateChange(
       @NotNull final MrlConfiguration mrl,
       @NotNull final PlayerControls controls,
-      @NotNull final Object... arguments) {}
+      @NotNull final Object... arguments) {
+  }
 
   @Override
   public void playAudio() {

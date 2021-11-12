@@ -28,7 +28,6 @@ import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
-import io.github.pulsebeat02.ezmediacore.utility.ArgumentUtils;
 import io.github.pulsebeat02.ezmediacore.utility.Pair;
 import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
@@ -132,10 +131,10 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
     super.setPlayerState(mrl, controls, arguments);
     CompletableFuture.runAsync(() -> {
       switch (controls) {
-        case START -> start(mrl, arguments);
-        case PAUSE -> pause();
-        case RESUME -> resume(mrl, arguments);
-        case RELEASE -> release();
+        case START -> this.start(mrl, arguments);
+        case PAUSE -> this.pause();
+        case RESUME -> this.resume(mrl, arguments);
+        case RELEASE -> this.release();
         default -> throw new IllegalArgumentException("Player state is invalid!");
       }
     });
@@ -149,7 +148,8 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
   }
 
   private void resume(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
-    this.initializePlayer(mrl, DelayConfiguration.ofDelay(System.currentTimeMillis() - this.start), arguments);
+    this.initializePlayer(mrl, DelayConfiguration.ofDelay(System.currentTimeMillis() - this.start),
+        arguments);
     this.paused = false;
     this.play();
   }
@@ -184,7 +184,7 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
             this.firstFrame = true;
             this.start = Instant.now().toEpochMilli();
           }
-          final long timestamp = Instant.now().toEpochMilli() - start;
+          final long timestamp = Instant.now().toEpochMilli() - this.start;
           while (JCodecMediaPlayer.this.frames.remainingCapacity() <= 1) {
             try {
               TimeUnit.MILLISECONDS.sleep(5);
@@ -192,7 +192,8 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
               e.printStackTrace();
             }
           }
-          JCodecMediaPlayer.this.frames.add(Pair.ofPair(VideoFrameUtils.toResizedColorArray(frame, dimension), timestamp));
+          JCodecMediaPlayer.this.frames.add(
+              Pair.ofPair(VideoFrameUtils.toResizedColorArray(frame, dimension), timestamp));
         } catch (final IOException e) {
           e.printStackTrace();
         }
@@ -255,7 +256,7 @@ public final class JCodecMediaPlayer extends MediaPlayer implements BufferedPlay
           while (skip.getValue() <= passed) {
             skip = this.frames.poll();
           }
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
           e.printStackTrace();
         }
       }

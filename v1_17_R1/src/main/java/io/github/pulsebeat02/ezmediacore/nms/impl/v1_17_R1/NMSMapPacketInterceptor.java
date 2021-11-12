@@ -245,7 +245,8 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
 
   @Override
   public void displayScoreboard(
-      final UUID[] viewers, final Scoreboard scoreboard, final String character, final int[] data, final int width, final int height) {
+      final UUID[] viewers, final Scoreboard scoreboard, final String character, final int[] data,
+      final int width, final int height) {
     for (int y = 0; y < height; ++y) {
       int before = -1;
       final StringBuilder msg = new StringBuilder();

@@ -24,9 +24,9 @@
 package io.github.pulsebeat02.ezmediacore;
 
 import io.github.pulsebeat02.ezmediacore.dependency.ArtifactInstaller;
-import io.github.pulsebeat02.ezmediacore.dependency.FFmpegInstaller;
-import io.github.pulsebeat02.ezmediacore.dependency.RTPInstaller;
-import io.github.pulsebeat02.ezmediacore.vlc.VLCBinaryLocator;
+import io.github.pulsebeat02.ezmediacore.dependency.FFmpegDependency;
+import io.github.pulsebeat02.ezmediacore.dependency.RTSPDependency;
+import io.github.pulsebeat02.ezmediacore.vlc.VLCDependency;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
@@ -34,9 +34,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.jetbrains.annotations.NotNull;
 
-public class DependencyLoader implements LibraryLoader {
-
-  private final MediaLibraryCore core;
+public record DependencyLoader(MediaLibraryCore core) implements
+    LibraryLoader {
 
   public DependencyLoader(@NotNull final MediaLibraryCore core) {
     this.core = core;
@@ -45,18 +44,16 @@ public class DependencyLoader implements LibraryLoader {
   @Override
   public void start() throws ExecutionException, InterruptedException {
     CompletableFuture.allOf(
-            CompletableFuture.runAsync(this::installFFmpeg),
             CompletableFuture.runAsync(this::installDependencies)
+                .thenRunAsync(this::installFFmpeg)
                 .thenRunAsync(this::installVLC)
-                .thenRunAsync(this::installRTP))
+                .thenRunAsync(this::installRTSP))
         .get();
   }
 
   private void installFFmpeg() {
     try {
-      final FFmpegInstaller installer = new FFmpegInstaller(this.core);
-      installer.start();
-      this.core.setFFmpegPath(installer.getExecutable());
+      new FFmpegDependency(this.core).start();
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -75,28 +72,26 @@ public class DependencyLoader implements LibraryLoader {
 
   private void installVLC() {
     try {
-      this.core.setVLCStatus(
-          new VLCBinaryLocator(this.core, this.core.getVlcPath()).locate().isPresent());
+      new VLCDependency(this.core).start();
       if (this.core.isVLCSupported()) {
         new NativePluginLoader().executePhantomPlayers();
       }
-    } catch (final IOException | InterruptedException e) {
+    } catch (final IOException e) {
       e.printStackTrace();
     }
   }
 
-  private void installRTP() {
+  private void installRTSP() {
     try {
-      final RTPInstaller installer = new RTPInstaller(this.core);
-      installer.start();
-      this.core.setRTPPath(installer.getExecutable());
+      new RTSPDependency(this.core).start();
     } catch (final IOException e) {
       e.printStackTrace();
     }
   }
 
   @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public @NotNull
+  MediaLibraryCore getCore() {
     return this.core;
   }
 }

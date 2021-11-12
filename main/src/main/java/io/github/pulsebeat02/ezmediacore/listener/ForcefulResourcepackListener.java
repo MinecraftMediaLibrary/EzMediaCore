@@ -23,7 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.listener;
 
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import java.util.Set;
@@ -60,8 +59,6 @@ public record ForcefulResourcepackListener(MediaLibraryCore core,
       final Player player = Bukkit.getPlayer(uuid);
       if (player != null) {
         player.setResourcePack(this.url, this.hash);
-      } else {
-        Logger.info("Could not set the resourcepack for %s! (%s)".formatted(uuid, this.url));
       }
     }
   }
@@ -69,9 +66,6 @@ public record ForcefulResourcepackListener(MediaLibraryCore core,
   public void start() {
     ExecutorProvider.SCHEDULED_EXECUTOR_SERVICE.schedule(() -> {
       if (!ForcefulResourcepackListener.this.uuids.isEmpty()) {
-        Logger.info(
-            "Could not force all players to load resourcepack! (%s)".formatted(
-                ForcefulResourcepackListener.this.uuids));
         PlayerResourcePackStatusEvent.getHandlerList().unregister(this.core.getPlugin());
       }
     }, 5, TimeUnit.MINUTES);
@@ -84,7 +78,7 @@ public record ForcefulResourcepackListener(MediaLibraryCore core,
     if (!this.uuids.contains(uuid)) {
       return;
     }
-    handleStatus(event);
+    this.handleStatus(event);
   }
 
   private void handleStatus(@NotNull final PlayerResourcePackStatusEvent event) {

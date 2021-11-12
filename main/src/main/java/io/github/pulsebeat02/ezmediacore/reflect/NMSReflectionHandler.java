@@ -41,7 +41,6 @@ public final class NMSReflectionHandler {
   @NotNull
   public static Optional<PacketHandler> getNewPacketHandlerInstance() {
     try {
-      Logger.info("Loading NMS Class for Version %s".formatted(VERSION));
       return Optional.of(getPacketHandler());
     } catch (final ClassNotFoundException
         | InstantiationException
@@ -55,9 +54,10 @@ public final class NMSReflectionHandler {
     }
   }
 
-  private @NotNull static PacketHandler getPacketHandler()
+  private @NotNull
+  static PacketHandler getPacketHandler()
       throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
-          InstantiationException, IllegalAccessException {
+      InstantiationException, IllegalAccessException {
     return (PacketHandler)
         Class.forName(
                 "io.github.pulsebeat02.ezmediacore.nms.impl.%s.NMSMapPacketInterceptor"

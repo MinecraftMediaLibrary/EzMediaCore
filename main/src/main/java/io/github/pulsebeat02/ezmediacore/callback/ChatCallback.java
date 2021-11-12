@@ -68,7 +68,8 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
 
     private NamedEntityString character = NamedEntityString.NORMAL_SQUARE;
 
-    Builder() {}
+    Builder() {
+    }
 
     @Contract("_ -> this")
     @Override

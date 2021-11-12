@@ -17,16 +17,16 @@ class EventExecutorListener<E extends Event> implements Listener, EventExecutor 
     this.c = c;
   }
 
-  @Override
-  public void execute(@NotNull final Listener l, @NotNull final Event e) {
-    this.c.accept((E) e);
-  }
-
   static <E extends Event> void register(
       @NotNull final Plugin plugin,
       @NotNull final Class<E> clazz,
       @NotNull final Consumer<? super E> blah) {
     final EventExecutorListener<E> e = new EventExecutorListener<E>(blah);
     plugin.getServer().getPluginManager().registerEvent(clazz, e, NORMAL, e, plugin, false);
+  }
+
+  @Override
+  public void execute(@NotNull final Listener l, @NotNull final Event e) {
+    this.c.accept((E) e);
   }
 }

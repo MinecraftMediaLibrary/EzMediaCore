@@ -24,7 +24,6 @@
 package io.github.pulsebeat02.ezmediacore.resourcepack;
 
 import com.google.gson.JsonObject;
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
 import io.github.pulsebeat02.ezmediacore.throwable.InvalidPackFormatException;
 import io.github.pulsebeat02.ezmediacore.throwable.InvalidPackResourceException;
@@ -65,16 +64,16 @@ public class ResourcepackWrapper implements PackWrapper {
     this.description = description;
     this.format = format;
     this.icon = icon;
-    validatePack();
+    this.validatePack();
   }
 
   private void validatePack() {
-    if (!ResourcepackUtils.validatePackFormat(format)) {
-      throw new InvalidPackFormatException(format);
+    if (!ResourcepackUtils.validatePackFormat(this.format)) {
+      throw new InvalidPackFormatException(this.format);
     }
-    if (icon != null && !ResourcepackUtils.validateResourcepackIcon(icon)) {
+    if (this.icon != null && !ResourcepackUtils.validateResourcepackIcon(this.icon)) {
       throw new InvalidPackResourceException(
-          "Invalid Pack Icon! Must be PNG (%s)".formatted(PathUtils.getName(icon)));
+          "Invalid Pack Icon! Must be PNG (%s)".formatted(PathUtils.getName(this.icon)));
     }
   }
 
@@ -90,8 +89,8 @@ public class ResourcepackWrapper implements PackWrapper {
     try (final ZipOutputStream out =
         new ZipOutputStream(new FileOutputStream(this.path.toFile()))) {
       FileUtils.createIfNotExists(this.path);
-      addFiles();
-      writeFiles(out);
+      this.addFiles();
+      this.writeFiles(out);
     }
   }
 
@@ -111,10 +110,12 @@ public class ResourcepackWrapper implements PackWrapper {
   }
 
   @Override
-  public void onPackStartWrap() {}
+  public void onPackStartWrap() {
+  }
 
   @Override
-  public void onPackFinishWrap() {}
+  public void onPackFinishWrap() {
+  }
 
   @Override
   public void addFile(@NotNull final String path, @NotNull final Path file) throws IOException {

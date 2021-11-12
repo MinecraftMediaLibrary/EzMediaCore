@@ -60,7 +60,8 @@ public final class VideoFrameUtils {
     HEX_DIGITS = "0123456789abcdef".toCharArray();
   }
 
-  private VideoFrameUtils() {}
+  private VideoFrameUtils() {
+  }
 
   public static int @NotNull [] toResizedColorArray(
       @NotNull final Picture frame,

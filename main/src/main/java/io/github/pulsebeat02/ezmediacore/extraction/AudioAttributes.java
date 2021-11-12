@@ -45,7 +45,8 @@ public final class AudioAttributes implements AudioConfiguration {
     Preconditions.checkArgument(start >= 0, "Invalid Start Time! (%d)".formatted(start));
     Preconditions.checkArgument(bitrate > 0, "Invalid Bitrate! (%d)".formatted(bitrate));
     Preconditions.checkArgument(channels > 0, "Invalid Channels! (%d)".formatted(channels));
-    Preconditions.checkArgument(samplingRate > 0, "Invalid Sampling Rate! (%d)".formatted(samplingRate));
+    Preconditions.checkArgument(samplingRate > 0,
+        "Invalid Sampling Rate! (%d)".formatted(samplingRate));
     Preconditions.checkArgument(volume >= 0, "Invalid Volume! (%d)".formatted(volume));
     this.start = start;
     this.codec = codec;

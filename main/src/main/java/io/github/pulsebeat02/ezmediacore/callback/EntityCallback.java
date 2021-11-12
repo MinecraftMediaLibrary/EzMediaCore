@@ -162,7 +162,8 @@ public class EntityCallback extends FrameCallback implements EntityCallbackDispa
     if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
       this.setLastUpdated(time);
       this.getPacketHandler()
-          .displayEntities(this.getWatchers().getViewers(), this.entities, data, width, this.entities.length / width);
+          .displayEntities(this.getWatchers().getViewers(), this.entities, data, width,
+              this.entities.length / width);
     }
   }
 

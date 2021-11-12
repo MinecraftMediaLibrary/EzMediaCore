@@ -26,7 +26,6 @@ package io.github.pulsebeat02.ezmediacore.resourcepack;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
-import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingBiConsumer;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -72,7 +71,7 @@ public class ResourcepackSoundWrapper extends ResourcepackWrapper implements Sou
   private void addOgg(@NotNull final String key, @NotNull final Path value) {
     try {
       this.addFile("assets/minecraft/sounds/%s.ogg".formatted(key), value);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       e.printStackTrace();
     }
   }

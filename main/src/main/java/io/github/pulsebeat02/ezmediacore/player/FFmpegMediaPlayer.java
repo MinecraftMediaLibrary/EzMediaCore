@@ -40,7 +40,6 @@ import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.throwable.InvalidBufferException;
 import io.github.pulsebeat02.ezmediacore.throwable.InvalidStreamHeaderException;
-import io.github.pulsebeat02.ezmediacore.utility.ArgumentUtils;
 import io.github.pulsebeat02.ezmediacore.utility.Pair;
 import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
@@ -145,9 +144,11 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
                     .disableStream(StreamType.AUDIO)
                     .disableStream(StreamType.SUBTITLE)
                     .disableStream(StreamType.DATA))
-            .addArguments("-vf", "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()))
+            .addArguments("-vf",
+                "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()))
             .setLogLevel(LogLevel.FATAL)
-            .setProgressListener((line) -> {})
+            .setProgressListener((line) -> {
+            })
             .setOutputListener(Logger::directPrintFFmpegPlayer);
     for (int i = 1; i < arguments.length; i++) {
       this.ffmpeg.addArgument(arguments[i].toString());
@@ -214,7 +215,8 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
         FFmpegMediaPlayer.this.frames.add(
             Pair.ofPair(
                 VideoFrameUtils.getRGBParallel(image),
-                (long)((frame.getPts() * (1.0F / this.streams[frame.getStreamId()].getTimebase())) * 1000)
+                (long) ((frame.getPts() * (1.0F / this.streams[frame.getStreamId()].getTimebase()))
+                    * 1000)
             ));
       }
     };
@@ -257,7 +259,8 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
       }
       this.start = 0L;
     } else if (controls == PlayerControls.RESUME) {
-      this.initializePlayer(mrl, DelayConfiguration.ofDelay(System.currentTimeMillis() - this.start), arguments);
+      this.initializePlayer(mrl,
+          DelayConfiguration.ofDelay(System.currentTimeMillis() - this.start), arguments);
     }
   }
 
@@ -274,7 +277,6 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
     // block until frame size met
     while (this.frames.size() != target) {
       if (System.currentTimeMillis() - time > 30_000L) { // if stuck because issue with ffmpeg
-        Logger.info("Invalid buffer configuration found! Exceeds time limit!");
         throw new InvalidBufferException("Issue with FFmpeg? Frame collection not filling up!");
       }
     }

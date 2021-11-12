@@ -35,18 +35,19 @@ import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 
 public class NativePluginLoader {
 
-  public NativePluginLoader() {}
+  public NativePluginLoader() {
+  }
 
   public void executePhantomPlayers() {
     final MediaPlayerFactory factory =
         new MediaPlayerFactory("--no-video", "--no-audio", "--verbose=0");
-    final NativeLog log = createLog(factory);
+    final NativeLog log = this.createLog(factory);
     final EmbeddedMediaPlayer player = factory.mediaPlayers().newEmbeddedMediaPlayer();
     final CountDownLatch latch = new CountDownLatch(1);
-    addEvents(player, latch);
-    playMedia(player);
-    waitMedia(latch);
-    release(log, player, factory);
+    this.addEvents(player, latch);
+    this.playMedia(player);
+    this.waitMedia(latch);
+    this.release(log, player, factory);
   }
 
   private void release(
@@ -61,7 +62,7 @@ public class NativePluginLoader {
   private @NotNull NativeLog createLog(@NotNull final MediaPlayerFactory factory) {
     final NativeLog log = factory.application().newLog();
     log.setLevel(LogLevel.DEBUG);
-    log.addLogListener(createListener());
+    log.addLogListener(this.createListener());
     return log;
   }
 

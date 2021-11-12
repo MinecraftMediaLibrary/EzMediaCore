@@ -72,7 +72,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
     Preconditions.checkArgument(
         id.getValue() >= 0, "Scoreboard id must be greater than or equal to 0!");
     this.name = "%s Video Player (%s)".formatted(core.getPlugin().getName(), id.getValue());
-    this.scoreboard = setScoreboard();
+    this.scoreboard = this.setScoreboard();
   }
 
   private @NotNull Scoreboard setScoreboard() {
@@ -85,7 +85,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
 
   @Override
   public void process(final int[] data) {
-    TaskUtils.sync(this.getCore(), processRunnable(data));
+    TaskUtils.sync(this.getCore(), this.processRunnable(data));
   }
 
   private @NotNull <T> Callable<T> processRunnable(final int @NotNull [] data) {
@@ -141,7 +141,8 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
 
     private Identifier<Integer> id;
 
-    Builder() {}
+    Builder() {
+    }
 
     @Contract("_ -> this")
     @Override

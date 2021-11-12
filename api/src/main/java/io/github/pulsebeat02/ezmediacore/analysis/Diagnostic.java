@@ -39,30 +39,6 @@ public interface Diagnostic {
   void debugInformation();
 
   /**
-   * Gets the proper FFmpeg installation link based on the current server hardware.
-   *
-   * @return the FFmpeg installation url
-   */
-  @NotNull
-  String getFFmpegUrl();
-
-  /**
-   * Gets the proper VLC installation link based on the current server hardware.
-   *
-   * @return the VLC installation url
-   */
-  @NotNull
-  String getVlcUrl();
-
-  /**
-   * Gets the proper RTP installation link based on the current server hardware.
-   *
-   * @return the RTP installation url
-   */
-  @NotNull
-  String getRtpUrl();
-
-  /**
    * Gets the information surrounding the Operating System.
    *
    * @return the operating system information
