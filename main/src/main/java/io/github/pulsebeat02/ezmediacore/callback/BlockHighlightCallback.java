@@ -47,7 +47,7 @@ public class BlockHighlightCallback extends FrameCallback
   @Override
   public void process(final int[] data) {
     final long time = System.currentTimeMillis();
-    final int delay = this.getDelayConfiguration().getDelay();
+    final long delay = this.getDelayConfiguration().getDelay();
     if (time - this.getLastUpdated() >= delay) {
       this.setLastUpdated(time);
       final Dimension dimension = this.getDimensions();
@@ -62,7 +62,7 @@ public class BlockHighlightCallback extends FrameCallback
                   (int) (this.location.getY() + (height / 2D)) - y,
                   (int) this.location.getZ(),
                   data[width * y + x],
-                  delay + 100);
+                  (int) (delay + 100));
         }
       }
     }

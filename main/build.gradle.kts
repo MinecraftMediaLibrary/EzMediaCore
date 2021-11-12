@@ -2,12 +2,14 @@ dependencies {
 
     "implementation"("io.github.slimjar:slimjar:1.2.6")
 
-    listOf("com.mpatric:mp3agic:0.9.1", "com.github.kevinsawicki:http-request:6.0").forEach {
+    setOf("com.mpatric:mp3agic:0.9.1", "com.github.kevinsawicki:http-request:6.0").forEach {
         "testImplementation"(it)
     }
 
-    listOf(
-        "org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT",
+    "compileOnlyApi"("org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
+
+
+    setOf(
         "uk.co.caprica:vlcj:4.7.1",
         "uk.co.caprica:vlcj-natives:4.5.0",
         "com.github.sealedtx:java-youtube-downloader:3.0.1",
@@ -25,12 +27,13 @@ dependencies {
         "org.jcodec:jcodec:0.2.5",
         "com.github.ben-manes.caffeine:caffeine:3.0.3",
         "com.github.MinecraftMediaLibrary:jarchivelib:v1.4.0",
+        "com.github.MinecraftMediaLibrary:emc-installers:v1.0.0"
     ).forEach {
         "compileOnly"(it)
         "testImplementation"(it)
     }
 
-    listOf(project(":api"), project(":v1_16_R3"), project(":v1_17_R1")).forEach {
+    setOf(project(":api"), project(":v1_16_R3"), project(":v1_17_R1")).forEach {
         "api"(it)
     }
 }

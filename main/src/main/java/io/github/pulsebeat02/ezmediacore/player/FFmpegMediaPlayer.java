@@ -56,7 +56,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-
 public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlayer {
 
   private ArrayBlockingQueue<Pair<int[], Long>> frames;

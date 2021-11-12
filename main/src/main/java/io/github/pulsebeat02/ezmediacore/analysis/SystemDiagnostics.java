@@ -43,7 +43,7 @@ public final class SystemDiagnostics implements Diagnostic {
 
   private final MediaLibraryCore core;
   private final OperatingSystem system;
-  private final CpuArchitecture cpu;
+  private final CPUArchitecture cpu;
   private final String os;
   private final String ver;
 
@@ -54,26 +54,11 @@ public final class SystemDiagnostics implements Diagnostic {
   public SystemDiagnostics(@NotNull final MediaLibraryCore core) {
     this.core = core;
     this.system = this.getOperatingSystem();
-    this.cpu = this.getCpuArchitecture();
+    this.cpu = new CPUArchitecture();
     this.os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
     this.ver = System.getProperty("os.version").toLowerCase(Locale.ROOT);
     this.initializeDownloadLinks();
     this.debugInformation();
-  }
-
-  @Contract(" -> new")
-  private @NotNull CpuArchitecture getCpuArchitecture() {
-    return new CpuArchitecture(this.getOsArchLower(), this.is64Bit());
-  }
-
-  private boolean is64Bit() {
-    return this.system.getOSType() == OSType.WINDOWS
-        ? this.getProgramFiles()
-        : this.getOsArch();
-  }
-
-  private String getOsArchLower() {
-    return System.getProperty("os.arch").toLowerCase(Locale.ROOT);
   }
 
   private boolean getProgramFiles() {
@@ -118,7 +103,7 @@ public final class SystemDiagnostics implements Diagnostic {
   private void initializeDownloadLinks() {
     final boolean bits64 = this.cpu.isBits64();
     final OSType type = this.system.getOSType();
-    final boolean arm = this.getCpuArchitecture().getArchitecture().contains("arm");
+    final boolean arm = this.cpu.getArchitecture().contains("arm");
     final DeviceLinkManager links = SYSTEM_TABLE.get(new DeviceInformation(bits64, type, arm));
     if (links == null) {
       throw new UnsupportedPlatformException("Unsupported Platform!");

@@ -7,7 +7,7 @@ dependencies {
 
     compileOnly("org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT")
 
-    listOf(
+    setOf(
         "io.github.slimjar:slimjar:1.2.6",
         project(":api"),
         project(":main"),
@@ -16,7 +16,7 @@ dependencies {
         implementation(it)
     }
 
-    listOf(
+    setOf(
         "org.bstats:bstats-bukkit:2.2.1",
         "com.mojang:brigadier:1.0.18",
         "net.kyori:adventure-platform-bukkit:4.0.0",

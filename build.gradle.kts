@@ -10,7 +10,7 @@ plugins {
 subprojects {
 
     apply {
-        listOf(
+        setOf(
             "java",
             "java-library",
             "com.github.hierynomus.license-base"
@@ -41,7 +41,7 @@ subprojects {
         header = rootProject.file("header.txt")
         encoding = "UTF-8"
         mapping("java", "SLASHSTAR_STYLE")
-        includes(listOf("**/*.java", "**/*.kts"))
+        includes(setOf("**/*.java", "**/*.kts"))
     }
 
     dependencies {
@@ -51,7 +51,7 @@ subprojects {
     repositories {
         mavenCentral()
         mavenLocal()
-        listOf(
+        setOf(
             "https://repo.maven.apache.org/maven2/",
             "https://hub.spigotmc.org/nexus/content/repositories/snapshots/",
             "https://libraries.minecraft.net/",
