@@ -26,10 +26,12 @@ package io.github.pulsebeat02.ezmediacore.resourcepack.hosting;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.http.HttpDaemon;
 import io.github.pulsebeat02.ezmediacore.http.HttpServerDaemon;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
@@ -39,11 +41,12 @@ public class HttpServer implements HttpDaemonSolution {
   public static String HTTP_SERVER_IP;
 
   static {
-    try (final BufferedReader in =
-        new BufferedReader(
-            new InputStreamReader(new URL("https://myexternalip.com/raw").openStream()))) {
-      HTTP_SERVER_IP = in.readLine();
-    } catch (final IOException e) {
+    try {
+      HTTP_SERVER_IP = HttpClient.newHttpClient().send(
+          HttpRequest.newBuilder()
+              .uri(new URI("https://myexternalip.com/raw"))
+              .build(), HttpResponse.BodyHandlers.ofString()).body();
+    } catch (final IOException | URISyntaxException | InterruptedException e) {
       HTTP_SERVER_IP = "127.0.0.1"; // fallback ip
       e.printStackTrace();
     }

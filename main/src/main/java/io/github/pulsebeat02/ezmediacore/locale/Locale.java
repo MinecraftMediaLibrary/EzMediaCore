@@ -1,11 +1,12 @@
 package io.github.pulsebeat02.ezmediacore.locale;
 
-import io.github.pulsebeat02.ezmediacore.dependency.DependencyInfo;
 import java.nio.file.Path;
 
 public interface Locale {
 
   NullComponent ERR_EXCEPTION_CMD = () -> "An exception occurred while executing the command!";
+  NullComponent ERR_HOLOVID = () -> "Holovid (https://holovid.glare.dev) is down! Contact PulseBeat_02 for information!";
+  UniComponent<String> COLOR_LOOKUP = "Initial lookup table initialized in %s ms"::formatted;
   BiComponent<String, Path> BINARY_PATHS = "%s path: %s"::formatted;
   BiComponent<String, DependencyInfo> DEP_CHECKS = "Checking %s Central for dependency %s"::formatted;
   TriComponent<String, Integer, Path> HTTP_INFO =

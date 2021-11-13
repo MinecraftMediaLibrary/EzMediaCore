@@ -26,6 +26,7 @@ package io.github.pulsebeat02.ezmediacore.dither.load;
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.annotation.Author;
 import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
+import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,9 +77,7 @@ public final class DitherLookupUtil {
       }
     }
 
-    Logger.info(
-        "Initial lookup table initialized in %s ms"
-            .formatted((System.nanoTime() - start) / 1_000_000.0));
+    Logger.info(Locale.COLOR_LOOKUP.build(System.nanoTime() - start) / 1_000_000.0))
   }
 
   public static int[] getPalette() {

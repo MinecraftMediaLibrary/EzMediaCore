@@ -1,5 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
     `maven-publish`
@@ -67,26 +65,6 @@ publishing {
         )
         sign(publishing.publications)
     }
-}
-
-tasks.withType<ShadowJar> {
-    relocate("uk.co.caprica.vlcj", "io.github.pulsebeat02.ezmediacore.lib.vlcj")
-    relocate("uk.co.caprica.vlcj.binding", "io.github.pulsebeat02.ezmediacore.lib.vlcj.binding")
-    relocate(
-        "uk.co.caprica.nativestreams",
-        "io.github.pulsebeat02.ezmediacore.lib.vlcj.nativestreams"
-    )
-    relocate("com.github.kiulian.downloader", "io.github.pulsebeat02.ezmediacore.lib.youtube")
-    relocate("ws.schild.jave", "io.github.pulsebeat02.ezmediacore.lib.jave")
-    relocate("org.apache.commons.compress", "io.github.pulsebeat02.ezmediacore.lib.compress")
-    relocate("org.rauschig.jarchivelib", "io.github.pulsebeat02.ezmediacore.lib.jarchivelib")
-    relocate("org.tukaani.xz", "io.github.pulsebeat02.ezmediacore.lib.xz")
-    relocate("org.apache.commons.io", "org.bukkit.craftbukkit.libs.org.apache.commons.io")
-    relocate("com.wrapper.spotify", "io.github.pulsebeat02.ezmediacore.lib.spotify")
-    relocate("com.github.kokorin", "io.github.pulsebeat02.ezmediacore.lib.kokorin")
-    relocate("io.github.slimjar", "io.github.pulsebeat02.ezmediacore.lib.slimjar")
-    relocate("org.jcodec", "io.github.pulsebeat02.ezmediacore.lib.jcodec")
-    relocate("com.github.benmanes.caffeine", "io.github.pulsebeat02.ezmediacore.lib.caffeine")
 }
 
 task<Wrapper>("wrapper") {

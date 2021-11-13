@@ -23,9 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore;
 
-import io.github.pulsebeat02.ezmediacore.dependency.ArtifactInstaller;
 import io.github.pulsebeat02.ezmediacore.dependency.FFmpegDependency;
-import io.github.pulsebeat02.ezmediacore.dependency.RTSPDependency;
+import io.github.pulsebeat02.ezmediacore.dependency.LibraryDependencyManager;
+import io.github.pulsebeat02.ezmediacore.dependency.SimpleRTSPServerDependency;
 import io.github.pulsebeat02.ezmediacore.vlc.VLCDependency;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -43,17 +43,16 @@ public record DependencyLoader(MediaLibraryCore core) implements
 
   @Override
   public void start() throws ExecutionException, InterruptedException {
-    CompletableFuture.allOf(
-            CompletableFuture.runAsync(this::installDependencies)
-                .thenRunAsync(this::installFFmpeg)
-                .thenRunAsync(this::installVLC)
-                .thenRunAsync(this::installRTSP))
+    CompletableFuture.runAsync(this::installDependencies)
+        .thenRunAsync(this::installFFmpeg)
+        .thenRunAsync(this::installVLC)
+        .thenRunAsync(this::installRTSP)
         .get();
   }
 
   private void installFFmpeg() {
     try {
-      new FFmpegDependency(this.core).start();
+      new FFmpegDependency(this.core);
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -61,7 +60,7 @@ public record DependencyLoader(MediaLibraryCore core) implements
 
   private void installDependencies() {
     try {
-      new ArtifactInstaller(this.core).start();
+      new LibraryDependencyManager(this.core);
     } catch (final IOException
         | ReflectiveOperationException
         | URISyntaxException
@@ -72,7 +71,7 @@ public record DependencyLoader(MediaLibraryCore core) implements
 
   private void installVLC() {
     try {
-      new VLCDependency(this.core).start();
+      new VLCDependency(this.core);
       if (this.core.isVLCSupported()) {
         new NativePluginLoader().executePhantomPlayers();
       }
@@ -83,7 +82,7 @@ public record DependencyLoader(MediaLibraryCore core) implements
 
   private void installRTSP() {
     try {
-      new RTSPDependency(this.core).start();
+      new SimpleRTSPServerDependency(this.core);
     } catch (final IOException e) {
       e.printStackTrace();
     }

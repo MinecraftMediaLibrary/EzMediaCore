@@ -33,16 +33,14 @@ import io.github.pulsebeat02.ezmediacore.jlibdl.JLibDL;
 import io.github.pulsebeat02.ezmediacore.jlibdl.MediaInfo;
 import io.github.pulsebeat02.ezmediacore.jlibdl.YoutubeDLRequest;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -94,21 +92,17 @@ public final class RequestUtils {
   }
 
   public static @NotNull String getResult(@NotNull final String link) {
-    final StringBuilder result = new StringBuilder();
     try {
-      final URL url = new URL(link);
-      final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-      conn.setRequestMethod("GET");
-      try (final BufferedReader reader =
-          new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
-        for (String line; (line = reader.readLine()) != null; ) {
-          result.append(line);
-        }
-      }
-    } catch (final IOException e) {
+      final HttpResponse<String> response = HTTP_CLIENT.send(
+          HttpRequest.newBuilder()
+              .uri(new URI(link))
+              .GET().build(),
+          HttpResponse.BodyHandlers.ofString());
+      return response.body();
+    } catch (final IOException | URISyntaxException | InterruptedException e) {
       e.printStackTrace();
     }
-    return result.toString();
+    return "";
   }
 
   public static @NotNull String getParentUrl(@NotNull final String link) {

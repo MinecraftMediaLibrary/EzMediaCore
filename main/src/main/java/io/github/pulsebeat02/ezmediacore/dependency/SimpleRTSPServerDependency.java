@@ -31,17 +31,18 @@ import java.io.IOException;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-public class RTSPDependency {
+public class SimpleRTSPServerDependency {
 
   private final MediaLibraryCore core;
   private final Path folder;
 
-  public RTSPDependency(@NotNull final MediaLibraryCore core) {
+  public SimpleRTSPServerDependency(@NotNull final MediaLibraryCore core) throws IOException {
     this.core = core;
     this.folder = core.getDependencyPath().resolve("rtp/server");
+    this.start();
   }
 
-  public void start() throws IOException {
+  private void start() throws IOException {
     final Path path = RTSPInstaller.create(this.folder).download(true);
     this.core.setRTPPath(path);
     Logger.info(Locale.BINARY_PATHS.build("Simple RTSP Server", path));

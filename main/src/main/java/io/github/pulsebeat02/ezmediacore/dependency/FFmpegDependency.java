@@ -39,9 +39,10 @@ public final class FFmpegDependency {
   public FFmpegDependency(@NotNull final MediaLibraryCore core) throws IOException {
     this.core = core;
     this.folder = core.getDependencyPath().resolve("ffmpeg");
+    this.start();
   }
 
-  public void start() throws IOException {
+  private void start() throws IOException {
     final Path path = FFmpegInstaller.create(this.folder).download(true);
     this.core.setFFmpegPath(path);
     Logger.info(Locale.BINARY_PATHS.build("FFmpeg", path));

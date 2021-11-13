@@ -25,32 +25,40 @@ package io.github.pulsebeat02.ezmediacore.resourcepack.hosting;
 
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
+import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import org.jcodec.codecs.mjpeg.tools.AssertionException;
 import org.jetbrains.annotations.NotNull;
 
 public class HolovidHoster implements HolovidSolution {
 
   private static final String HOLOVID_LINK;
+  private static final HttpClient HTTP_CLIENT;
 
   static {
     HOLOVID_LINK = "https://holovid.glare.dev/resourcepack/download?videoUrl=";
+    HTTP_CLIENT = HttpClient.newHttpClient();
   }
 
   @Override
   public @NotNull String createUrl(@NotNull final String input) {
-    try (final InputStream in = new URL(HOLOVID_LINK + input).openStream()) {
+    try {
       return GsonProvider.getSimple()
           .fromJson(
-              new String(in.readAllBytes(), StandardCharsets.UTF_8),
+              HTTP_CLIENT.send(
+                  HttpRequest.newBuilder()
+                      .uri(new URI(HOLOVID_LINK + input))
+                      .build(), HttpResponse.BodyHandlers.ofString()
+              ).body(),
               HolovidResourcepackResult.class)
           .getUrl();
-    } catch (final IOException e) {
-      Logger.info(
-          "Holovid hosting site https://holovid.glare.dev is down! Contact PulseBeat_02 for information!");
+    } catch (final IOException | URISyntaxException | InterruptedException e) {
+      Logger.info(Locale.ERR_HOLOVID);
       e.printStackTrace();
     }
     throw new AssertionException("Holovid website is down!");

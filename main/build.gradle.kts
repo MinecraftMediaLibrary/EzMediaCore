@@ -1,3 +1,10 @@
+import io.github.slimjar.task.SlimJar
+
+plugins {
+    id("com.github.johnrengelman.shadow") version "7.0.0"
+    id("io.github.slimjar") version "1.3.0"
+}
+
 dependencies {
 
     "implementation"("io.github.slimjar:slimjar:1.2.6")
@@ -28,11 +35,28 @@ dependencies {
         "com.github.MinecraftMediaLibrary:jarchivelib:v1.4.0",
         "com.github.MinecraftMediaLibrary:emc-installers:v1.0.1"
     ).forEach {
-        "compileOnly"(it)
+        slim(it)
         "testImplementation"(it)
     }
 
     setOf(project(":api"), project(":v1_16_R3"), project(":v1_17_R1")).forEach {
         "api"(it)
     }
+}
+
+tasks.withType<SlimJar> {
+    relocate("uk.co.caprica.vlcj", "io.github.pulsebeat02.ezmediacore.lib.vlcj")
+    relocate("uk.co.caprica.vlcj.binding", "io.github.pulsebeat02.ezmediacore.lib.vlcj.binding")
+    relocate("uk.co.caprica.nativestreams", "io.github.pulsebeat02.ezmediacore.lib.vlcj.nativestreams")
+    relocate("com.github.kiulian.downloader", "io.github.pulsebeat02.ezmediacore.lib.youtube")
+    relocate("ws.schild.jave", "io.github.pulsebeat02.ezmediacore.lib.jave")
+    relocate("org.apache.commons.compress", "io.github.pulsebeat02.ezmediacore.lib.compress")
+    relocate("org.rauschig.jarchivelib", "io.github.pulsebeat02.ezmediacore.lib.jarchivelib")
+    relocate("org.tukaani.xz", "io.github.pulsebeat02.ezmediacore.lib.xz")
+    relocate("org.apache.commons.io", "org.bukkit.craftbukkit.libs.org.apache.commons.io")
+    relocate("com.wrapper.spotify", "io.github.pulsebeat02.ezmediacore.lib.spotify")
+    relocate("com.github.kokorin", "io.github.pulsebeat02.ezmediacore.lib.kokorin")
+    relocate("io.github.slimjar", "io.github.pulsebeat02.ezmediacore.lib.slimjar")
+    relocate("org.jcodec", "io.github.pulsebeat02.ezmediacore.lib.jcodec")
+    relocate("com.github.benmanes.caffeine", "io.github.pulsebeat02.ezmediacore.lib.caffeine")
 }
