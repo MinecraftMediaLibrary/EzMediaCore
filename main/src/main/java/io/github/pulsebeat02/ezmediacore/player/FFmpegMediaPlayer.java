@@ -38,7 +38,6 @@ import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
-import io.github.pulsebeat02.ezmediacore.throwable.InvalidBufferException;
 import io.github.pulsebeat02.ezmediacore.throwable.InvalidStreamHeaderException;
 import io.github.pulsebeat02.ezmediacore.utility.Pair;
 import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
@@ -57,68 +56,30 @@ import org.jetbrains.annotations.Nullable;
 
 public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlayer {
 
-  private ArrayBlockingQueue<Pair<int[], Long>> frames;
-  private BufferConfiguration buffer;
-  private long delay;
+  private final ArrayBlockingQueue<Pair<int[], Long>> frames;
+  private final BufferConfiguration buffer;
   private long start;
-  private long startEpoch;
+
   private volatile FFmpeg ffmpeg;
   private volatile FFmpegResultFuture future;
   private volatile CompletableFuture<Void> framePlayer;
-  private volatile CompletableFuture<Void> audioPlayer;
-  private volatile boolean firstFrame;
 
   FFmpegMediaPlayer(
       @NotNull final Callback callback,
       @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
       @NotNull final BufferConfiguration buffer,
-      @Nullable final SoundKey key,
-      @NotNull final FrameConfiguration fps) {
-    super(callback, viewers, pixelDimension, key, fps);
+      @NotNull final FrameConfiguration fps,
+      @Nullable final SoundKey key) {
+    super(callback, viewers, pixelDimension, fps, key);
     this.buffer = buffer;
-    this.modifyPlayerAttributes();
+    this.frames =
+        new ArrayBlockingQueue<>(this.buffer.getBuffer() * this.getFrameConfiguration().getFps());
   }
 
   @Override
   public @NotNull BufferConfiguration getBufferConfiguration() {
     return this.buffer;
-  }
-
-  @Override
-  public void setBufferConfiguration(@NotNull final BufferConfiguration configuration) {
-    this.buffer = configuration;
-    this.modifyPlayerAttributes();
-  }
-
-  private void modifyPlayerAttributes() {
-    final int fps = this.getFrameConfiguration().getFps();
-    this.frames = new ArrayBlockingQueue<>(this.buffer.getBuffer() * fps);
-    this.delay = 1000L / fps;
-    this.firstFrame = false;
-  }
-
-  @Override
-  public void setDimensions(@NotNull final Dimension dimensions) {
-    super.setDimensions(dimensions);
-    this.modifyPlayerAttributes();
-  }
-
-  @Override
-  public void setPlayerState(
-      @NotNull final MrlConfiguration mrl,
-      @NotNull final PlayerControls controls,
-      @NotNull final Object... arguments) {
-    super.setPlayerState(mrl, controls, arguments);
-    CompletableFuture.runAsync(() -> {
-      this.firstFrame = false;
-      switch (controls) {
-        case START, RESUME -> this.play(mrl, controls, arguments);
-        case PAUSE -> this.pause();
-        case RELEASE -> this.release();
-        default -> throw new IllegalArgumentException("Player state is invalid!");
-      }
-    });
   }
 
   @Override
@@ -136,19 +97,19 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
         new FFmpeg(this.getCore().getFFmpegPath().toAbsolutePath())
             .addInput(
                 (Files.exists(path)
-                    ? UrlInput.fromPath(path).setPosition(ms)
-                    : UrlInput.fromUrl(url).setPosition(ms))).addArgument("-re")
+                        ? UrlInput.fromPath(path).setPosition(ms)
+                        : UrlInput.fromUrl(url).setPosition(ms))
+                    .addArgument("-re"))
             .addOutput(
                 FrameOutput.withConsumer(this.getFrameConsumer())
                     .setFrameRate(this.getFrameConfiguration().getFps())
                     .disableStream(StreamType.AUDIO)
                     .disableStream(StreamType.SUBTITLE)
                     .disableStream(StreamType.DATA))
-            .addArguments("-vf",
-                "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()))
+            .addArguments(
+                "-vf", "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()))
             .setLogLevel(LogLevel.FATAL)
-            .setProgressListener((line) -> {
-            })
+            .setProgressListener((line) -> {})
             .setOutputListener(Logger::directPrintFFmpegPlayer);
     for (int i = 1; i < arguments.length; i++) {
       this.ffmpeg.addArgument(arguments[i].toString());
@@ -170,16 +131,25 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
       public void consumeStreams(@NotNull final List<Stream> streams) {
 
         // if stream ids are not properly ordered, sometimes we need to rearrange them
-        final int max = streams.stream().mapToInt(Stream::getId).max().orElseThrow(
-            InvalidStreamHeaderException::new);
+        final int max =
+            streams.stream()
+                .mapToInt(Stream::getId)
+                .max()
+                .orElseThrow(InvalidStreamHeaderException::new);
 
         // create our lookup table
-        this.streams = new Stream[max];
+        this.streams = new Stream[max + 1];
 
         // loop through elements, set id with proper stream
         for (final Stream stream : streams) {
           this.streams[stream.getId()] = stream;
         }
+
+        // set start time
+        FFmpegMediaPlayer.this.start = Instant.now().toEpochMilli();
+
+        // play audio
+        FFmpegMediaPlayer.this.playAudio();
       }
 
       @Override
@@ -190,16 +160,11 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
           return;
         }
 
-        // sometimes it is an audio frame (or non-video frame in general). We don't want audio frames
+        // sometimes it is an audio frame (or non-video frame in general). We don't want audio
+        // frames
         final BufferedImage image = frame.getImage();
         if (image == null) {
           return;
-        }
-
-        // audio frame
-        if (!FFmpegMediaPlayer.this.firstFrame) {
-          FFmpegMediaPlayer.this.firstFrame = true;
-          FFmpegMediaPlayer.this.startEpoch = Instant.now().toEpochMilli();
         }
 
         // hack to wait for the player for frames.
@@ -213,23 +178,28 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
 
         // add to queue
         FFmpegMediaPlayer.this.frames.add(
-            Pair.ofPair(
-                VideoFrameUtils.getRGBParallel(image),
-                (long) ((frame.getPts() * (1.0F / this.streams[frame.getStreamId()].getTimebase()))
-                    * 1000)
-            ));
+            Pair.ofPair(VideoFrameUtils.getRGBParallel(image), this.calculateTimeStamp(frame)));
+      }
+
+      private long calculateTimeStamp(@NotNull final Frame frame) {
+        return (long)
+            ((frame.getPts() * (1.0F / this.streams[frame.getStreamId()].getTimebase())) * 1000);
       }
     };
   }
 
-  private void release() {
+  @Override
+  public void release() {
+    super.release();
     if (this.ffmpeg != null && this.future != null) {
       this.future.graceStop();
       this.future = null;
     }
   }
 
-  private void pause() {
+  @Override
+  public void pause() {
+    super.pause();
     if (this.future != null) {
       this.future.graceStop();
     }
@@ -237,97 +207,89 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
     this.start = System.currentTimeMillis();
   }
 
-  private void play(
-      @NotNull final MrlConfiguration mrl,
-      @NotNull final PlayerControls controls,
-      @NotNull final Object[] arguments) {
-    this.setupPlayer(mrl, controls, arguments);
+  @Override
+  public void start(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+    super.start(mrl, arguments);
+    if (this.ffmpeg == null) {
+      this.initializePlayer(mrl, DelayConfiguration.DELAY_0_MS, arguments);
+    }
+    this.setupPlayer();
+  }
+
+  @Override
+  public void resume(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+    super.resume(mrl, arguments);
+    if (this.ffmpeg == null) {
+      this.initializePlayer(
+          mrl, DelayConfiguration.ofDelay(System.currentTimeMillis() - this.start), arguments);
+    }
+    this.setupPlayer();
+  }
+
+  private void setupPlayer() {
+    this.stopAudio();
     this.future = this.updateFFmpegPlayer();
     this.delayFrames();
-    this.audioPlayer = this.updateAudioPlayer();
     this.framePlayer = this.updateVideoPlayer();
-  }
-
-  private void setupPlayer(
-      @NotNull final MrlConfiguration mrl,
-      @NotNull final PlayerControls controls,
-      @NotNull final Object[] arguments) {
-    if (controls == PlayerControls.START) {
-      this.stopAudio();
-      if (this.ffmpeg == null) {
-        this.initializePlayer(mrl, DelayConfiguration.DELAY_0_MS, arguments);
-      }
-      this.start = 0L;
-    } else if (controls == PlayerControls.RESUME) {
-      this.initializePlayer(mrl,
-          DelayConfiguration.ofDelay(System.currentTimeMillis() - this.start), arguments);
-    }
-  }
-
-  private FFmpegResultFuture updateFFmpegPlayer() {
-    if (this.future != null && !this.future.isDone()) {
-      this.future.stop(true);
-    }
-    return this.ffmpeg.executeAsync(ExecutorProvider.ENCODER_HANDLER);
   }
 
   private void delayFrames() {
     final int target = (this.buffer.getBuffer() * this.getFrameConfiguration().getFps()) >> 1;
-    final long time = System.currentTimeMillis();
-    // block until frame size met
-    while (this.frames.size() != target) {
-      if (System.currentTimeMillis() - time > 30_000L) { // if stuck because issue with ffmpeg
-        throw new InvalidBufferException("Issue with FFmpeg? Frame collection not filling up!");
-      }
-    }
+    while (this.frames.size() >= target) {}
   }
 
-  private @NotNull CompletableFuture<Void> updateAudioPlayer() {
-    if (this.audioPlayer != null && !this.audioPlayer.isDone()) {
-      this.audioPlayer.cancel(true);
-    }
-    return CompletableFuture.runAsync(() -> {
-      while (true) {
-        if (this.firstFrame) {
-          this.playAudio();
-          this.firstFrame = false;
-          break;
-        }
-      }
-    }, ExecutorProvider.AUDIO_HANDLER);
+  private @NotNull FFmpegResultFuture updateFFmpegPlayer() {
+    this.checkCancellableFuture(this.future.toCompletableFuture());
+    return this.ffmpeg.executeAsync(ExecutorProvider.ENCODER_HANDLER);
   }
 
   private @NotNull CompletableFuture<Void> updateVideoPlayer() {
-    final Callback callback = this.getCallback();
-    if (this.framePlayer != null && !this.framePlayer.isDone()) {
-      this.framePlayer.cancel(true);
+    this.checkCancellableFuture(this.framePlayer);
+    return CompletableFuture.allOf(
+        CompletableFuture.runAsync(this.getDisplayRunnable(), ExecutorProvider.FRAME_HANDLER),
+        CompletableFuture.runAsync(this.getSkipRunnable(), ExecutorProvider.FRAME_HANDLER));
+  }
+
+  private <T> void checkCancellableFuture(@Nullable final CompletableFuture<T> future) {
+    if (future != null && !future.isDone()) {
+      future.cancel(true);
     }
-    return CompletableFuture.runAsync(() -> {
+  }
+
+  @Contract(pure = true)
+  private @NotNull Runnable getDisplayRunnable() {
+    return () -> {
+      final Callback callback = this.getCallback();
       while (!this.future.isDone()) {
         try {
-
           // process current frame
-          final Pair<int[], Long> frame = this.frames.take();
-          callback.process(frame.getKey());
-
-          // wait delay
-          TimeUnit.MILLISECONDS.sleep(this.delay - 5);
-
-          // skip frames if necessary
-          // For example, if the passed time is 40 ms, and the time of the
-          // current frame is 30 ms, we have to skip. If it is equal, we are
-          // bound to get behind, so skip
-          final long passed = Instant.now().toEpochMilli() - this.startEpoch;
-          Pair<int[], Long> skip = this.frames.peek();
-          while (skip.getValue() <= passed) {
-            skip = this.frames.poll();
-          }
-
-        } catch (final InterruptedException e) {
-          e.printStackTrace();
+          callback.process(this.frames.take().getKey());
+        } catch (final InterruptedException ignored) {
         }
       }
-    }, ExecutorProvider.FRAME_HANDLER);
+    };
+  }
+
+  @Contract(pure = true)
+  private @NotNull Runnable getSkipRunnable() {
+    return () -> {
+      while (!this.future.isDone()) {
+        // skip frames if necessary
+        // For example, if the passed time is 40 ms, and the time of the
+        // current frame is 30 ms, we have to skip. If it is equal, we are
+        // bound to get behind, so skip
+        try {
+          final long passed = Instant.now().toEpochMilli() - this.start;
+          Pair<int[], Long> skip = this.frames.take();
+          while (skip.getValue() <= passed) {
+            for (int i = 0; i <= 5; i++) {
+              skip = this.frames.take();
+            }
+          }
+        } catch (final InterruptedException ignored) {
+        }
+      }
+    };
   }
 
   @Override
@@ -344,8 +306,7 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
 
     private BufferConfiguration bufferSize = BufferConfiguration.BUFFER_15;
 
-    Builder() {
-    }
+    Builder() {}
 
     @Contract("_ -> this")
     @Override
@@ -386,10 +347,13 @@ public final class FFmpegMediaPlayer extends MediaPlayer implements BufferedPlay
     public @NotNull MediaPlayer build() {
       super.init();
       final Callback callback = this.getCallback();
-      return new FFmpegMediaPlayer(callback, callback.getWatchers(), this.getDims(),
+      return new FFmpegMediaPlayer(
+          callback,
+          callback.getWatchers(),
+          this.getDims(),
           this.bufferSize,
-          this.getKey(), this.getRate());
+          this.getRate(),
+          this.getKey());
     }
   }
-
 }

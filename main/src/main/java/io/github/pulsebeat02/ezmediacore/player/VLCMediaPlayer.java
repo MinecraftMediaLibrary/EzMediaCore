@@ -72,9 +72,9 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
       @NotNull final Callback callback,
       @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
-      @Nullable final SoundKey key,
-      @NotNull final FrameConfiguration fps) {
-    super(callback, viewers, pixelDimension, key, fps);
+      @NotNull final FrameConfiguration fps,
+      @Nullable final SoundKey key) {
+    super(callback, viewers, pixelDimension, fps, key);
     this.adapter = this.getAdapter();
     this.modifyPlayerAttributes();
   }
@@ -88,23 +88,8 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   }
 
   @Override
-  public void setPlayerState(
-      @NotNull final MrlConfiguration mrl,
-      @NotNull final PlayerControls controls,
-      @NotNull final Object... arguments) {
-    super.setPlayerState(mrl, controls, arguments);
-    CompletableFuture.runAsync(() -> {
-      switch (controls) {
-        case START -> this.start(mrl, arguments);
-        case PAUSE -> this.pause();
-        case RESUME -> this.resume(mrl, arguments);
-        case RELEASE -> this.release();
-        default -> throw new IllegalArgumentException("Player state is invalid!");
-      }
-    });
-  }
-
-  private void start(@NotNull final MrlConfiguration mrl, @NotNull final Object[] arguments) {
+  public void start(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+    super.start(mrl, arguments);
     this.setDirectVideoMrl(RequestUtils.getVideoURLs(mrl).get(0));
     this.setDirectAudioMrl(RequestUtils.getAudioURLs(mrl).get(0));
     if (this.player == null) {
@@ -114,12 +99,16 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     this.player.media().play(this.getDirectVideoMrl().getMrl());
   }
 
-  private void pause() {
+  @Override
+  public void pause() {
+    super.pause();
     this.stopAudio();
     this.player.controls().stop();
   }
 
-  private void resume(@NotNull final MrlConfiguration mrl, @NotNull final Object[] arguments) {
+  @Override
+  public void resume(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+    super.resume(mrl, arguments);
     if (this.player == null) {
       this.initializePlayer(mrl, DelayConfiguration.DELAY_0_MS, arguments);
       this.playAudio();
@@ -127,6 +116,17 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     } else {
       this.playAudio();
       this.player.controls().play();
+    }
+  }
+
+  @Override
+  public void release() {
+    super.release();
+    if (this.player != null) {
+      this.player.controls().stop();
+      this.logger.release();
+      this.player.release();
+      this.factory.release();
     }
   }
 
@@ -157,8 +157,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
 
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer(
       @NotNull final Collection<Object> arguments) {
-    if (this.player == null || this.factory == null
-        || this.logger == null) { // just in case something is null;
+    if (this.player == null || this.factory == null || this.logger == null) { // just in case something is null;
       this.initializeFactory(arguments);
       this.initializeLogger();
       return this.factory.mediaPlayers().newEmbeddedMediaPlayer();
@@ -191,15 +190,6 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     args.addAll(arguments.stream().map(Object::toString).collect(Collectors.toList()));
     args.add("--quiet");
     return args;
-  }
-
-  private void release() {
-    if (this.player != null) {
-      this.player.controls().stop();
-      this.logger.release();
-      this.player.release();
-      this.factory.release();
-    }
   }
 
   @Contract(" -> new")
@@ -256,12 +246,6 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     this.modifyPlayerAttributes();
   }
 
-  @Override
-  public void setDimensions(@NotNull final Dimension dimensions) {
-    super.setDimensions(dimensions);
-    this.modifyPlayerAttributes();
-  }
-
   public static final class Builder extends VideoBuilder {
 
     Builder() {
@@ -299,8 +283,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     @Override
     public @NotNull MediaPlayer build() {
       final Callback callback = this.getCallback();
-      return new VLCMediaPlayer(callback, callback.getWatchers(), this.getDims(), this.getKey(),
-          this.getRate());
+      return new VLCMediaPlayer(callback, callback.getWatchers(), this.getDims(), this.getRate(), this.getKey());
     }
   }
 
@@ -308,9 +291,13 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
 
     private final Consumer<int[]> callback;
 
-    public MinecraftVideoRenderCallback(@NotNull final Consumer<int[]> consumer) {
-      super(new int[VLCMediaPlayer.super.getDimensions().getWidth()
-          * VLCMediaPlayer.super.getDimensions().getHeight()]);
+    MinecraftVideoRenderCallback(@NotNull final Consumer<int[]> consumer) {
+      this(consumer, VLCMediaPlayer.super.getDimensions().getWidth(),
+          VLCMediaPlayer.super.getDimensions().getHeight());
+    }
+
+    MinecraftVideoRenderCallback(@NotNull final Consumer<int[]> consumer, final int width, final int height) {
+      super(new int[height * width]);
       this.callback = consumer;
     }
 
@@ -331,7 +318,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     private final Viewers viewers;
     private final int blockSize;
 
-    public MinecraftAudioCallback(@NotNull final Consumer<byte[]> consumer, final int blockSize) {
+    MinecraftAudioCallback(@NotNull final Consumer<byte[]> consumer, final int blockSize) {
       this.callback = consumer;
       this.viewers = VLCMediaPlayer.super.getWatchers();
       this.blockSize = blockSize;

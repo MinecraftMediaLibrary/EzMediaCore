@@ -29,6 +29,4 @@ public interface BufferedPlayer {
 
   @NotNull
   BufferConfiguration getBufferConfiguration();
-
-  void setBufferConfiguration(@NotNull final BufferConfiguration configuration);
 }

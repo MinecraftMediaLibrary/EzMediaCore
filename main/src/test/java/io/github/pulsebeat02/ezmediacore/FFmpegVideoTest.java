@@ -12,7 +12,10 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -25,12 +28,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class FFmpegVideoTest {
 
-  private final ArrayBlockingQueue<BufferedImage> frames;
+  private final ArrayBlockingQueue<Entry<BufferedImage, Long>> frames;
   private final JFrame window;
   private final AtomicBoolean running;
+  private long startEpoch;
   private FFmpeg ffmpeg;
 
-  public FFmpegVideoTest(@NotNull final String binary, @NotNull final String input) {
+  FFmpegVideoTest(@NotNull final String binary, @NotNull final String input) {
     this.frames = new ArrayBlockingQueue<>(30);
     this.running = new AtomicBoolean(true);
     final Path bin = Path.of(binary);
@@ -49,7 +53,7 @@ public class FFmpegVideoTest {
     this.ffmpeg.execute();
   }
 
-  public static void main(final String[] args) throws IOException {
+  public static void main(final String[] args) {
     new FFmpegVideoTest("/Users/bli24/Desktop/ffmpeg/ffmpeg-x86_64-osx",
         "/Users/bli24/Downloads/test.mp4");
   }
@@ -64,6 +68,7 @@ public class FFmpegVideoTest {
             })
             .setOutputListener(line -> {
             });
+    this.startEpoch = Instant.now().toEpochMilli();
     this.displayThread();
   }
 
@@ -71,9 +76,23 @@ public class FFmpegVideoTest {
   private @NotNull FrameConsumer getFrameConsumer() {
     return new FrameConsumer() {
 
+      private Stream[] streams;
+
       @Override
-      public void consumeStreams(final List<Stream> streams) {
+      public void consumeStreams(@NotNull final List<Stream> streams) {
+
+        // if stream ids are not properly ordered, sometimes we need to rearrange them
+        final int max = streams.stream().mapToInt(Stream::getId).max().orElseThrow();
+
+        // create our lookup table
+        this.streams = new Stream[max + 1];
+
+        // loop through elements, set id with proper stream
+        for (final Stream stream : streams) {
+          this.streams[stream.getId()] = stream;
+        }
       }
+
 
       @Override
       public void consume(final Frame frame) {
@@ -99,26 +118,61 @@ public class FFmpegVideoTest {
           }
         }
 
+        final long stamp = (long) (
+            (frame.getPts() * (1.0F / this.streams[frame.getStreamId()].getTimebase())) * 1000);
+
         // add to queue
-        FFmpegVideoTest.this.frames.add(image);
+        FFmpegVideoTest.this.frames.add(new SimpleImmutableEntry<>(image, stamp));
       }
     };
   }
 
   public void displayThread() {
-    CompletableFuture.runAsync(
-        () -> {
-          while (this.running.get()) {
-            try {
-              final BufferedImage image = this.frames.take();
-              this.window.getContentPane().removeAll();
-              this.window.add(new JLabel("", new ImageIcon(image), JLabel.CENTER));
-              this.window.repaint();
-              this.window.revalidate();
-            } catch (final InterruptedException e) {
-              e.printStackTrace();
+    CompletableFuture.allOf(
+        CompletableFuture.runAsync(this.getDisplayRunnable()),
+        CompletableFuture.runAsync(this.getSkipRunnable())
+    );
+  }
+
+  @Contract(pure = true)
+  private @NotNull Runnable getDisplayRunnable() {
+    return () -> {
+      while (this.running.get()) {
+        try {
+          // process current frame
+          this.displayFrame(this.frames.take().getKey());
+        } catch (final InterruptedException ignored) {
+        }
+      }
+    };
+  }
+
+  @Contract(pure = true)
+  private @NotNull Runnable getSkipRunnable() {
+    return () -> {
+      while (this.running.get()) {
+        // skip frames if necessary
+        // For example, if the passed time is 40 ms, and the time of the
+        // current frame is 30 ms, we have to skip. If it is equal, we are
+        // bound to get behind, so skip
+        try {
+          final long passed = Instant.now().toEpochMilli() - this.startEpoch;
+          Entry<BufferedImage, Long> skip = this.frames.take();
+          while (skip.getValue() <= passed) {
+            for (int i = 0; i <= 5; i++) {
+              skip = this.frames.take();
             }
           }
-        });
+        } catch (final InterruptedException ignored) {
+        }
+      }
+    };
+  }
+
+  private void displayFrame(@NotNull final BufferedImage image) {
+    this.window.getContentPane().removeAll();
+    this.window.add(new JLabel("", new ImageIcon(image), JLabel.CENTER));
+    this.window.repaint();
+    this.window.revalidate();
   }
 }

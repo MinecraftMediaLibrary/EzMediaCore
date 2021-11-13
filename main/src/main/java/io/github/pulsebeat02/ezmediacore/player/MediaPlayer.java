@@ -41,12 +41,13 @@ import org.jetbrains.annotations.Nullable;
 public abstract class MediaPlayer implements VideoPlayer {
 
   private final MediaLibraryCore core;
-  private FrameConfiguration fps;
+  private final Dimension dimensions;
+
+  private final FrameConfiguration fps;
   private Viewers viewers;
 
   private Callback callback;
-  private Dimension dimensions;
-  private SoundKey key;
+  private final SoundKey key;
 
   private MrlConfiguration directVideo;
   private MrlConfiguration directAudio;
@@ -59,8 +60,8 @@ public abstract class MediaPlayer implements VideoPlayer {
       @NotNull final Callback callback,
       @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
-      @Nullable final SoundKey key,
-      @NotNull final FrameConfiguration fps) {
+      @NotNull final FrameConfiguration fps,
+      @Nullable final SoundKey key) {
     this.core = callback.getCore();
     this.callback = callback;
     this.dimensions = pixelDimension;
@@ -70,24 +71,30 @@ public abstract class MediaPlayer implements VideoPlayer {
             : key;
     this.fps = fps;
     this.viewers = viewers;
-    this.playAudio =
-        (mrl) ->
-            this.viewers
-                .getPlayers()
-                .forEach(
-                    player ->
-                        player.playSound(
-                            player.getLocation(),
-                            this.key.getName(),
-                            SoundCategory.MASTER,
-                            100.0F,
-                            1.0F));
-    this.stopAudio =
-        () -> {
-          for (final Player player : this.viewers.getPlayers()) {
-            player.stopSound(this.key.getName(), SoundCategory.MASTER);
-          }
-        };
+    this.playAudio = this.getPlayAudioRunnable();
+    this.stopAudio = this.getStopAudioRunnable();
+  }
+
+  private @NotNull Runnable getStopAudioRunnable() {
+    return () -> {
+      for (final Player player : this.viewers.getPlayers()) {
+        player.stopSound(this.key.getName(), SoundCategory.MASTER);
+      }
+    };
+  }
+
+  private @NotNull Consumer<MrlConfiguration> getPlayAudioRunnable() {
+    return (mrl) ->
+        this.viewers
+            .getPlayers()
+            .forEach(
+                player ->
+                    player.playSound(
+                        player.getLocation(),
+                        this.key.getName(),
+                        SoundCategory.MASTER,
+                        100.0F,
+                        1.0F));
   }
 
   @Override
@@ -106,31 +113,39 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void setSoundKey(@NotNull final SoundKey key) {
-    this.key = key;
-  }
-
-  @Override
   public @NotNull PlayerControls getPlayerState() {
     return this.controls;
   }
 
   @Override
-  public void setPlayerState(
-      @NotNull final MrlConfiguration mrl,
-      @NotNull final PlayerControls controls,
-      @NotNull final Object... arguments) {
-    this.onPlayerStateChange(mrl, controls, arguments);
-    this.controls = controls;
-    this.callback.preparePlayerStateChange(controls);
+  public void start(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+    this.controls = PlayerControls.START;
+    this.onPlayerStateChange(mrl, this.controls, arguments);
+  }
+
+  @Override
+  public void pause() {
+    this.controls = PlayerControls.PAUSE;
+    this.onPlayerStateChange(null, this.controls);
+  }
+
+  @Override
+  public void resume(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+    this.controls = PlayerControls.RESUME;
+    this.onPlayerStateChange(mrl, this.controls, arguments);
+  }
+
+  @Override
+  public void release() {
+    this.controls = PlayerControls.RELEASE;
+    this.onPlayerStateChange(null, this.controls);
   }
 
   @Override
   public void onPlayerStateChange(
-      @NotNull final MrlConfiguration mrl,
+      @Nullable final MrlConfiguration mrl,
       @NotNull final PlayerControls controls,
-      @NotNull final Object... arguments) {
-  }
+      @NotNull final Object... arguments) {}
 
   @Override
   public void playAudio() {
@@ -148,18 +163,8 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void setFrameConfiguration(@NotNull final FrameConfiguration configuration) {
-    this.fps = configuration;
-  }
-
-  @Override
   public @NotNull Dimension getDimensions() {
     return this.dimensions;
-  }
-
-  @Override
-  public void setDimensions(@NotNull final Dimension dimensions) {
-    this.dimensions = dimensions;
   }
 
   @Override

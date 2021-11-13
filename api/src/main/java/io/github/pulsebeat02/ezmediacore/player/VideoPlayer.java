@@ -48,12 +48,13 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
   void setCustomAudioStopper(@NotNull final Runnable runnable);
 
-  void setPlayerState(
-      @NotNull final MrlConfiguration mrl,
-      @NotNull final PlayerControls controls,
-      @NotNull final Object... arguments);
+  void start(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments);
 
-  void setDimensions(@NotNull final Dimension dimensions);
+  void pause();
+
+  void resume(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments);
+
+  void release();
 
   void setViewers(@NotNull final Viewers viewers);
 
@@ -80,12 +81,8 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
   @NotNull
   FrameConfiguration getFrameConfiguration();
 
-  void setFrameConfiguration(@NotNull final FrameConfiguration configuration);
-
   @NotNull
   SoundKey getSoundKey();
-
-  void setSoundKey(@NotNull final SoundKey key);
 
   @NotNull
   PlayerControls getPlayerState();
