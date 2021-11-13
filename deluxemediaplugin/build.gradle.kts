@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
 
-    compileOnly("org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT")
 
     setOf(
         "io.github.slimjar:slimjar:1.2.6",

@@ -56,7 +56,7 @@ subprojects {
         mavenLocal()
         setOf(
             "https://repo.maven.apache.org/maven2/",
-            "https://hub.spigotmc.org/nexus/content/repositories/snapshots/",
+            "https://papermc.io/repo/repository/maven-public/",
             "https://libraries.minecraft.net/",
             "https://jitpack.io",
             "https://repo.codemc.org/repository/maven-public",
