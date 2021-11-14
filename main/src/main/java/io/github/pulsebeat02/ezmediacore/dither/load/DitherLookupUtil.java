@@ -77,7 +77,7 @@ public final class DitherLookupUtil {
       }
     }
 
-    Logger.info(Locale.COLOR_LOOKUP.build(System.nanoTime() - start) / 1_000_000.0))
+    Logger.info(Locale.COLOR_LOOKUP.build((System.nanoTime() - start) / 1_000_000.0));
   }
 
   public static int[] getPalette() {

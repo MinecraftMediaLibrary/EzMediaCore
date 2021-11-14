@@ -108,7 +108,7 @@ public final class VideoCommand extends BaseCommand {
     this.setProperAudioHandler();
     this.attributes.cancelCurrentStream();
     this.handleStreamPlayers(audience);
-    this.attributes.getPlayer().setPlayerState(PlayerControls.START, this.attributes.getVideoMrl());
+    this.attributes.getPlayer().start(this.attributes.getVideoMrl());
     return SINGLE_SUCCESS;
   }
 
@@ -145,7 +145,7 @@ public final class VideoCommand extends BaseCommand {
       bot.getMusicManager().pauseTrack();
     }
     this.attributes.cancelCurrentStream();
-    this.attributes.getPlayer().setPlayerState(PlayerControls.PAUSE);
+    this.attributes.getPlayer().pause();
     audience.sendMessage(Locale.PAUSE_VIDEO.build());
     return SINGLE_SUCCESS;
   }
@@ -242,7 +242,7 @@ public final class VideoCommand extends BaseCommand {
     final VideoPlayer player = this.attributes.getPlayer();
     if (player != null) {
       if (player.getPlayerState() != PlayerControls.RELEASE) {
-        player.setPlayerState(PlayerControls.RELEASE);
+        player.release();
       }
     }
   }

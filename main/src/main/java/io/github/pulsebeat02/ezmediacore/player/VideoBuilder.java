@@ -98,7 +98,7 @@ public class VideoBuilder {
       case UNIX -> {
         return core.isVLCSupported() ? this.vlcOption()
             : new FFmpegMediaPlayer(this.callback, this.callback.getWatchers(), this.dims,
-                BufferConfiguration.BUFFER_10, this.key, this.rate);
+                BufferConfiguration.BUFFER_10, this.rate, this.key);
       }
       default -> throw new UnsupportedPlatformException("Unknown");
     }

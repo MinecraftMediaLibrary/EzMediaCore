@@ -28,6 +28,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttribu
 import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
 import io.github.pulsebeat02.deluxemediaplugin.executors.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegMediaStreamer;
+import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
 import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
@@ -57,7 +58,7 @@ public abstract class FFmpegOutput extends AudioOutput implements FFmpegOutputHa
         new FFmpegMediaStreamer(
             plugin.library(),
             plugin.getAudioConfiguration(),
-            RequestUtils.getAudioURLs(mrl).get(0),
+            RequestUtils.getAudioURLs(MrlConfiguration.ofMrl(mrl)).get(0).getMrl(),
             ip,
             port);
     plugin.getAttributes().setStreamExtractor(streamer);

@@ -235,12 +235,12 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   private Optional<Path> getDownloadedMrl(
       @NotNull final Audience audience, @NotNull final Path folder, @NotNull final String mrl)
       throws IOException, InterruptedException {
-    final List<String> videoMrls = RequestUtils.getAudioURLs(mrl);
+    final List<MrlConfiguration> videoMrls = RequestUtils.getAudioURLs(MrlConfiguration.ofMrl(mrl));
     if (videoMrls.isEmpty()) {
       audience.sendMessage(Locale.ERR_INVALID_MRL.build());
       return Optional.empty();
     }
-    return Optional.of(RequestUtils.downloadFile(folder.resolve("temp-audio"), videoMrls.get(0)));
+    return Optional.of(RequestUtils.downloadFile(folder.resolve("temp-audio"), videoMrls.get(0).getMrl()));
   }
 
   private boolean checkStream(@NotNull final Audience audience, @NotNull final String mrl) {
@@ -265,8 +265,8 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private void checkInvalidMrl(@NotNull final Audience audience, @NotNull final String mrl) {
-    final List<String> urls = RequestUtils.getVideoURLs(mrl);
-    if (urls.size() == 1 && urls.get(0).equals(mrl)) {
+    final List<MrlConfiguration> urls = RequestUtils.getVideoURLs(MrlConfiguration.ofMrl(mrl));
+    if (urls.size() == 1 && urls.get(0).getMrl().equals(mrl)) {
       audience.sendMessage(Locale.ERR_INVALID_MRL.build());
     }
   }
