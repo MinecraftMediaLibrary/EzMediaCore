@@ -38,7 +38,7 @@ dependencies {
         "org.jcodec:jcodec:0.2.5",
         "com.github.ben-manes.caffeine:caffeine:3.0.3",
         "com.github.MinecraftMediaLibrary:jarchivelib:v1.4.0",
-        "com.github.MinecraftMediaLibrary:emc-installers:v1.0.1"
+        "io.github.pulsebeat02:emc-installers:v1.0.1"
     ).forEach {
         slim(it)
         "testImplementation"(it)

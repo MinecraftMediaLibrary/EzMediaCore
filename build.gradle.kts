@@ -65,7 +65,8 @@ subprojects {
             "https://papermc.io/repo/repository/maven-public/",
             "https://m2.dv8tion.net/releases",
             "https://repo.vshnv.tech/releases/",
-            "https://repo.mattstudios.me/artifactory/public/"
+            "https://repo.mattstudios.me/artifactory/public/",
+            "https://pulsebeat02.jfrog.io/artifactory/pulse-gradle-release-local/"
         ).forEach {
             maven(it)
         }
