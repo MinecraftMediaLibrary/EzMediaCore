@@ -24,6 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.nms.impl.v1_17_R1;
 
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
+import io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -245,8 +246,12 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
 
   @Override
   public void displayScoreboard(
-      final UUID[] viewers, final Scoreboard scoreboard, final String character, final int[] data,
-      final int width, final int height) {
+      final UUID[] viewers,
+      final Scoreboard scoreboard,
+      final String character,
+      final int[] data,
+      final int width,
+      final int height) {
     for (int y = 0; y < height; ++y) {
       int before = -1;
       final StringBuilder msg = new StringBuilder();
@@ -287,12 +292,13 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
           new PacketPlayOutEntityMetadata(
               ((CraftEntity) entities[i]).getHandle().getId(), new DataWatcher(null), false);
       try {
-        METADATA_ITEMS.set(
+        UnsafeUtils.setFinalField(
+            METADATA_ITEMS,
             packet,
             Collections.singletonList(
                 new Item<>(
                     new DataWatcherObject<>(2, DataWatcherRegistry.f), Optional.of(component))));
-      } catch (final IllegalArgumentException | IllegalAccessException e) {
+      } catch (final IllegalArgumentException e) {
         e.printStackTrace();
       }
       packets[i] = packet;

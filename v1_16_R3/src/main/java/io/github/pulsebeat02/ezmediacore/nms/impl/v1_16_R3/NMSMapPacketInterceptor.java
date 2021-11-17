@@ -24,6 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.nms.impl.v1_16_R3;
 
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
+import io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -212,16 +213,16 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
         final int mapId = map + width * y + x;
         final PacketPlayOutMap packet = new PacketPlayOutMap();
         try {
-          MAP_FIELDS[0].set(packet, mapId);
-          MAP_FIELDS[1].set(packet, (byte) 0);
-          MAP_FIELDS[2].set(packet, false);
-          MAP_FIELDS[3].set(packet, false);
-          MAP_FIELDS[4].set(packet, new MapIcon[0]);
-          MAP_FIELDS[5].set(packet, topX);
-          MAP_FIELDS[6].set(packet, topY);
-          MAP_FIELDS[7].set(packet, xDiff);
-          MAP_FIELDS[8].set(packet, yDiff);
-          MAP_FIELDS[9].set(packet, mapData);
+          UnsafeUtils.setFinalField(MAP_FIELDS[0], packet, mapId);
+          UnsafeUtils.setFinalField(MAP_FIELDS[1], packet, (byte) 0);
+          UnsafeUtils.setFinalField(MAP_FIELDS[2], packet, false);
+          UnsafeUtils.setFinalField(MAP_FIELDS[3], packet, false);
+          UnsafeUtils.setFinalField(MAP_FIELDS[4], packet, new MapIcon[0]);
+          UnsafeUtils.setFinalField(MAP_FIELDS[5], packet, topX);
+          UnsafeUtils.setFinalField(MAP_FIELDS[6], packet, topY);
+          UnsafeUtils.setFinalField(MAP_FIELDS[7], packet, xDiff);
+          UnsafeUtils.setFinalField(MAP_FIELDS[8], packet, yDiff);
+          UnsafeUtils.setFinalField(MAP_FIELDS[9], packet, mapData);
         } catch (final Exception exception) {
           exception.printStackTrace();
         }
@@ -276,13 +277,15 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
       }
       final PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata();
       try {
-        METADATA_ID.set(packet, ((CraftEntity) entities[i]).getHandle().getId());
-        METADATA_ITEMS.set(
+        UnsafeUtils.setFinalField(
+            METADATA_ID, packet, ((CraftEntity) entities[i]).getHandle().getId());
+        UnsafeUtils.setFinalField(
+            METADATA_ITEMS,
             packet,
             Collections.singletonList(
                 new DataWatcher.Item<>(
                     new DataWatcherObject<>(2, DataWatcherRegistry.f), Optional.of(component))));
-      } catch (final IllegalArgumentException | IllegalAccessException e) {
+      } catch (final IllegalArgumentException e) {
         e.printStackTrace();
       }
       packets[i] = packet;
