@@ -47,18 +47,19 @@ final class LoadBlue extends RecursiveTask<Byte> {
     float best_distance = Float.MAX_VALUE;
     float distance;
     int col;
+    final float f = 1f / 256f;
     for (int i = 4; i < this.palette.length; ++i) {
       col = this.palette[i];
       final int r2 = col >> 16 & 0xFF;
       final int g2 = col >> 8 & 0xFF;
       final int b2 = col & 0xFF;
-      final float red_avg = (this.r + r2) * .5f;
+      final float red_avg = (this.r + r2) * 0.5f;
       final int redVal = this.r - r2;
       final int greenVal = this.g - g2;
       final int blueVal = this.b - b2;
-      final float weight_red = 2.0f + red_avg * (1f / 256f);
+      final float weight_red = 2.0f + red_avg * f;
       final float weight_green = 4.0f;
-      final float weight_blue = 2.0f + (255.0f - red_avg) * (1f / 256f);
+      final float weight_blue = 2.0f + (255.0f - red_avg) * f;
       distance =
           weight_red * redVal * redVal
               + weight_green * greenVal * greenVal

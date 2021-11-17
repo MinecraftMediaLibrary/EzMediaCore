@@ -28,7 +28,6 @@ import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttribu
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
-import io.github.pulsebeat02.ezmediacore.callback.EntityType;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
@@ -60,7 +59,7 @@ public class EntityOutput extends VideoOutput {
             .callback(
                 CallbackBuilder.entity()
                     .character(NamedEntityString.NORMAL_SQUARE)
-                    .type(EntityType.ARMORSTAND)
+                    .armorStandPlayer()
                     .location(player.getLocation())
                     .dims(
                         Dimension.ofDimension(

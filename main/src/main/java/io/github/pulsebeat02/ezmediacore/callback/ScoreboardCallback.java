@@ -28,6 +28,9 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.utility.TaskUtils;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.invoke.TypeDescriptor;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -76,11 +79,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
   }
 
   private @NotNull Scoreboard setScoreboard() {
-    final ScoreboardManager manager = Bukkit.getScoreboardManager();
-    if (manager == null) {
-      throw new AssertionException("No worlds are loaded!");
-    }
-    return manager.getNewScoreboard();
+    return Bukkit.getScoreboardManager().getNewScoreboard();
   }
 
   @Override

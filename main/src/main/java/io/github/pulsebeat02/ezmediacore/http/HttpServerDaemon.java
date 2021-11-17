@@ -83,51 +83,45 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
       this.socket = new ServerSocket(this.port);
       this.socket.setReuseAddress(true);
     } catch (final IOException e) {
-      Logger.error(
-          "The port specified is being used by another process. Please make sure to port-forward the port first and make sure it is open.");
-      Logger.error(e.getMessage());
+      e.printStackTrace();
     }
   }
 
   private void handleServerRequests() {
-    while (this.running.get()) {
-      try {
+    try {
+      while (this.running.get()) {
         ExecutorProvider.HTTP_REQUEST_POOL.submit(
             new FileRequestHandler(this, this.socket.accept(), this.header));
-      } catch (final IOException e) {
-        e.printStackTrace();
       }
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
   }
 
   @Override
-  public void onServerStart() {
-  }
+  public void onServerStart() {}
 
   @Override
   public void stop() {
-    this.onServerTermination();
-    this.running.set(false);
-    if (!this.socket.isClosed()) {
-      try {
+    try {
+      this.onServerTermination();
+      this.running.set(false);
+      if (!this.socket.isClosed()) {
         this.socket.close();
-      } catch (final IOException e) {
-        e.printStackTrace();
       }
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
   }
 
   @Override
-  public void onServerTermination() {
-  }
+  public void onServerTermination() {}
 
   @Override
-  public void onClientConnection(@NotNull final Socket client) {
-  }
+  public void onClientConnection(@NotNull final Socket client) {}
 
   @Override
-  public void onRequestFailure(@NotNull final Socket client) {
-  }
+  public void onRequestFailure(@NotNull final Socket client) {}
 
   @Override
   public boolean isVerbose() {

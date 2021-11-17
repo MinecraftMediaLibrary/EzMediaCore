@@ -28,8 +28,11 @@ import org.jetbrains.annotations.NotNull;
 
 public final class MapPalette {
 
-  public static final Color[] colors =
-      new Color[]{
+  public static final Color[] NMS_PALETTE;
+
+  static {
+    NMS_PALETTE =
+        new Color[] {
           c(0, 0, 0),
           c(0, 0, 0),
           c(0, 0, 0),
@@ -174,7 +177,8 @@ public final class MapPalette {
           c(96, 1, 0),
           c(112, 2, 0),
           c(59, 1, 0)
-      };
+        };
+  }
 
   @NotNull
   private static Color c(final int r, final int g, final int b) {
@@ -183,6 +187,6 @@ public final class MapPalette {
 
   @NotNull
   public static Color getColor(final byte val) {
-    return colors[val];
+    return NMS_PALETTE[val];
   }
 }

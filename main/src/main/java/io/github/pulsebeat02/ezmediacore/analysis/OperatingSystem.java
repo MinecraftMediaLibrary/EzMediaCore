@@ -51,10 +51,6 @@ public final class OperatingSystem implements OperatingSystemInfo {
     return this.os.contains("win");
   }
 
-  private @NotNull OSType getOsType() {
-    return this.isLinux() ? OSType.UNIX : this.isWin() ? OSType.WINDOWS : OSType.MAC;
-  }
-
   private boolean isLinux() {
     return Stream.of("nix", "nux", "aix").anyMatch(this.os::contains);
   }

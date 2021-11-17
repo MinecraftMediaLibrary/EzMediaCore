@@ -27,7 +27,7 @@ import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
-import io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithmType;
+import io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithmProvider;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -82,7 +82,7 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
 
   public static final class Builder extends CallbackBuilder {
 
-    private DitherAlgorithm algorithm = DitherAlgorithmType.FILTER_LITE.getAlgorithm();
+    private DitherAlgorithm algorithm = DitherAlgorithmProvider.FILTER_LITE.getAlgorithm();
     private Identifier<Integer> map = Identifier.ofIdentifier(0);
     private int blockWidth;
 
@@ -117,7 +117,7 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder algorithm(@NotNull final DitherAlgorithmType algorithm) {
+    public @NotNull Builder algorithm(@NotNull final DitherAlgorithmProvider algorithm) {
       this.algorithm = algorithm.getAlgorithm();
       return this;
     }
