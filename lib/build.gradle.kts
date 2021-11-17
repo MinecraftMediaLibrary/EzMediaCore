@@ -8,15 +8,25 @@ dependencies {
     "implementation"(project(":main"))
 }
 
+tasks {
+    publish {
+        dependsOn(clean)
+        dependsOn(build)
+    }
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            from(components["java"])
             artifact(tasks["shadowJar"])
+            groupId = "io.github.pulsebeat02"
+            artifactId = "ezmediacore"
+            version = "v1.0.0-ALPHA"
             pom {
                 name.set("EzMediaCore")
                 description.set("A Spigot library used to play media")
                 url.set("https://github.com/MinecraftMediaLibrary/EzMediaCore")
+                inceptionYear.set("2021")
                 licenses {
                     license {
                         name.set("MIT License")
@@ -36,6 +46,10 @@ publishing {
                         id.set("Conclure")
                         name.set("Conclure")
                     }
+                    developer {
+                        id.set("itxfrosty")
+                        name.set("itxfrosty")
+                    }
                 }
                 scm {
                     connection.set("scm:git:https://github.com/MinecraftMediaLibrary/EzMediaCore.git")
@@ -47,23 +61,12 @@ publishing {
     }
     repositories {
         maven {
-            url = if (version.toString()
-                    .endsWith("SNAPSHOT")
-            ) uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") else uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2")
+            setUrl("https://pulsebeat02.jfrog.io/artifactory/pulse-gradle-release-local/")
             credentials {
-                username = System.getenv("OSSRH_USER")
-                password = System.getenv("OSSRH_PASSWORD")
+                username = ""
+                password = ""
             }
         }
-    }
-    signing {
-        val publishing: PublishingExtension by project
-        useInMemoryPgpKeys(
-            System.getenv("SIGNING_KEY") ?: return@signing,
-            System.getenv("SIGNING_PASSWORD") ?: return@signing
-        )
-        sign(publishing.publications)
     }
 }
 

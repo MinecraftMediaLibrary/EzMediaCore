@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import com.google.common.annotations.Beta;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
@@ -38,6 +39,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Unfortunately, due to JNA issues, this class must be mutable and there can only be one instance.
  */
+
+@Beta
 public abstract class MediaPlayer implements VideoPlayer {
 
   private final MediaLibraryCore core;

@@ -221,7 +221,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     final Path path = wrapper.getResourcepackFilePath();
     this.attributes.setResourcepackUrl(daemon.createUrl(path));
     this.attributes.setResourcepackHash(
-        HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
+        HashingUtils.createHashSha1(path).orElseThrow(AssertionError::new));
   }
 
   private @NotNull Optional<Path> downloadMrl(
@@ -240,11 +240,12 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       audience.sendMessage(Locale.ERR_INVALID_MRL.build());
       return Optional.empty();
     }
-    return Optional.of(RequestUtils.downloadFile(folder.resolve("temp-audio"), videoMrls.get(0).getMrl()));
+    return Optional.of(
+        RequestUtils.downloadFile(folder.resolve("temp-audio"), videoMrls.get(0).getMrl()));
   }
 
   private boolean checkStream(@NotNull final Audience audience, @NotNull final String mrl) {
-    if (RequestUtils.isStream(mrl)) {
+    if (RequestUtils.isStream(MrlConfiguration.ofMrl(mrl))) {
       this.setStreamAttributes(audience, mrl);
       return true;
     } else {

@@ -67,13 +67,10 @@ import org.jetbrains.annotations.NotNull;
 public class FastUUIDUtils {
 
   private static final int UUID_STRING_LENGTH = 36;
-  private static final char[] HEX_DIGITS =
-      new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
   private static final long[] HEX_VALUES = new long[128];
 
   static {
     Arrays.fill(HEX_VALUES, -1);
-
     HEX_VALUES['0'] = 0x0;
     HEX_VALUES['1'] = 0x1;
     HEX_VALUES['2'] = 0x2;
@@ -84,14 +81,12 @@ public class FastUUIDUtils {
     HEX_VALUES['7'] = 0x7;
     HEX_VALUES['8'] = 0x8;
     HEX_VALUES['9'] = 0x9;
-
     HEX_VALUES['a'] = 0xa;
     HEX_VALUES['b'] = 0xb;
     HEX_VALUES['c'] = 0xc;
     HEX_VALUES['d'] = 0xd;
     HEX_VALUES['e'] = 0xe;
     HEX_VALUES['f'] = 0xf;
-
     HEX_VALUES['A'] = 0xa;
     HEX_VALUES['B'] = 0xb;
     HEX_VALUES['C'] = 0xc;
@@ -114,12 +109,12 @@ public class FastUUIDUtils {
    */
   @Contract("_ -> new")
   public static @NotNull UUID parseUUID(final @NotNull CharSequence uuidSequence) {
+
     if (uuidSequence.length() != UUID_STRING_LENGTH
         || uuidSequence.charAt(8) != '-'
         || uuidSequence.charAt(13) != '-'
         || uuidSequence.charAt(18) != '-'
         || uuidSequence.charAt(23) != '-') {
-
       throw new IllegalArgumentException("Illegal UUID string: " + uuidSequence);
     }
 
@@ -131,12 +126,10 @@ public class FastUUIDUtils {
     mostSignificantBits |= getHexValueForChar(uuidSequence.charAt(5)) << 40;
     mostSignificantBits |= getHexValueForChar(uuidSequence.charAt(6)) << 36;
     mostSignificantBits |= getHexValueForChar(uuidSequence.charAt(7)) << 32;
-
     mostSignificantBits |= getHexValueForChar(uuidSequence.charAt(9)) << 28;
     mostSignificantBits |= getHexValueForChar(uuidSequence.charAt(10)) << 24;
     mostSignificantBits |= getHexValueForChar(uuidSequence.charAt(11)) << 20;
     mostSignificantBits |= getHexValueForChar(uuidSequence.charAt(12)) << 16;
-
     mostSignificantBits |= getHexValueForChar(uuidSequence.charAt(14)) << 12;
     mostSignificantBits |= getHexValueForChar(uuidSequence.charAt(15)) << 8;
     mostSignificantBits |= getHexValueForChar(uuidSequence.charAt(16)) << 4;
@@ -146,7 +139,6 @@ public class FastUUIDUtils {
     leastSignificantBits |= getHexValueForChar(uuidSequence.charAt(20)) << 56;
     leastSignificantBits |= getHexValueForChar(uuidSequence.charAt(21)) << 52;
     leastSignificantBits |= getHexValueForChar(uuidSequence.charAt(22)) << 48;
-
     leastSignificantBits |= getHexValueForChar(uuidSequence.charAt(24)) << 44;
     leastSignificantBits |= getHexValueForChar(uuidSequence.charAt(25)) << 40;
     leastSignificantBits |= getHexValueForChar(uuidSequence.charAt(26)) << 36;
@@ -174,7 +166,7 @@ public class FastUUIDUtils {
     return uuid.toString();
   }
 
-  static long getHexValueForChar(final char c) {
+  private static long getHexValueForChar(final char c) {
     try {
       if (HEX_VALUES[c] < 0) {
         throw new IllegalArgumentException("Illegal hexadecimal digit: " + c);

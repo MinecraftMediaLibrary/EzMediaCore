@@ -225,13 +225,10 @@ public final class VideoFrameUtils {
     throw new IOException("Not a known image file: " + file.toAbsolutePath());
   }
 
-  public static OptionalDouble getFrameRate(
-      @NotNull final MediaLibraryCore core, @NotNull final Path video) throws IOException {
-    return getFrameRate(core.getFFmpegPath(), video);
-  }
 
-  public static OptionalDouble getFrameRate(@NotNull final Path binary, @NotNull final Path video)
+  public static OptionalDouble getFrameRate(@NotNull final MediaLibraryCore core, @NotNull final Path video)
       throws IOException {
+    final Path binary = core.getFFmpegPath();
     try (final BufferedReader r =
         new BufferedReader(
             new InputStreamReader(
@@ -272,15 +269,5 @@ public final class VideoFrameUtils {
               }
             });
     return rgb;
-  }
-
-  public static @NotNull String toHex(final int number) {
-    final StringBuilder builder = new StringBuilder();
-    int div = number;
-    while (div != 0) {
-      builder.insert(0, HEX_DIGITS[div & 15]);
-      div >>= 4;
-    }
-    return builder.toString();
   }
 }

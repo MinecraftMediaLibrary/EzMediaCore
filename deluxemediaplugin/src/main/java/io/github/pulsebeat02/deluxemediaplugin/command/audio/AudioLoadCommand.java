@@ -104,7 +104,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
       wrapper.wrap();
       final Path path = wrapper.getResourcepackFilePath();
       this.attributes.setLink(daemon.createUrl(path));
-      this.attributes.setHash(HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
+      this.attributes.setHash(HashingUtils.createHashSha1(path).orElseThrow(AssertionError::new));
     } catch (final IOException e) {
       this.plugin.getConsoleAudience().sendMessage(Locale.ERR_RESOURCEPACK_WRAP.build());
       e.printStackTrace();

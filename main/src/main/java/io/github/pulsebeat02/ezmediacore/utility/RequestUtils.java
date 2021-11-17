@@ -73,31 +73,14 @@ public final class RequestUtils {
             .build();
   }
 
-  private RequestUtils() {
-  }
-
-  public static @NotNull String getSearchedVideos(
-      @NotNull final String apiKey, @NotNull final String keyword) {
-    final JsonObject obj =
-        JsonParser.parseString(
-                getResult(
-                    "https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&order=relevance&q=%s&key=%s"
-                        .formatted(keyword.replace(" ", "+"), apiKey)))
-            .getAsJsonObject()
-            .getAsJsonArray("items")
-            .get(0)
-            .getAsJsonObject()
-            .getAsJsonObject("snippet");
-    return "";
-  }
+  private RequestUtils() {}
 
   public static @NotNull String getResult(@NotNull final String link) {
     try {
-      final HttpResponse<String> response = HTTP_CLIENT.send(
-          HttpRequest.newBuilder()
-              .uri(new URI(link))
-              .GET().build(),
-          HttpResponse.BodyHandlers.ofString());
+      final HttpResponse<String> response =
+          HTTP_CLIENT.send(
+              HttpRequest.newBuilder().uri(new URI(link)).GET().build(),
+              HttpResponse.BodyHandlers.ofString());
       return response.body();
     } catch (final IOException | URISyntaxException | InterruptedException e) {
       e.printStackTrace();
@@ -105,30 +88,12 @@ public final class RequestUtils {
     return "";
   }
 
-  public static @NotNull String getParentUrl(@NotNull final String link) {
-    final int index = link.lastIndexOf('/');
-    return index > 0 ? "%s/".formatted(link.substring(0, index)) : "/";
-  }
-
-  public static boolean isStream(@NotNull final String url) {
-
-    final YoutubeDLRequest request;
+  public static boolean isStream(@NotNull final MrlConfiguration url) {
     try {
-      request = JLIBDL.request(url);
+      return JLIBDL.request(url.getMrl()).getInfo().isLive();
     } catch (final IOException | InterruptedException e) {
       return false;
     }
-
-    if (request == null) {
-      return false;
-    }
-
-    final MediaInfo info = request.getInfo();
-    if (info == null) {
-      return false;
-    }
-
-    return info.isLive();
   }
 
   public static @NotNull List<MrlConfiguration> getVideoURLs(@NotNull final MrlConfiguration url) {

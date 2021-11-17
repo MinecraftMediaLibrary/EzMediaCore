@@ -66,7 +66,8 @@ subprojects {
             "https://m2.dv8tion.net/releases",
             "https://repo.vshnv.tech/releases/",
             "https://repo.mattstudios.me/artifactory/public/",
-            "https://pulsebeat02.jfrog.io/artifactory/pulse-gradle-release-local/"
+            "https://pulsebeat02.jfrog.io/artifactory/pulse-gradle-release-local/",
+            "https://pulsebeat02.jfrog.io/artifactory/pulse-libs-release-local/"
         ).forEach {
             maven(it)
         }

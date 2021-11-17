@@ -64,8 +64,7 @@ public final class MediaExtractionUtils {
     HTTP_CLIENT = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
   }
 
-  private MediaExtractionUtils() {
-  }
+  private MediaExtractionUtils() {}
 
   /**
    * Extracts id from Youtube URL.
@@ -110,17 +109,15 @@ public final class MediaExtractionUtils {
   @NotNull
   private static Optional<String> getFirstResultVideoInternal(@NotNull final String query)
       throws IOException, URISyntaxException, InterruptedException {
-    final String content = HTTP_CLIENT.send(
-        HttpRequest.newBuilder()
-            .uri(new URI(query.replaceAll(" ", "+")))
-            .build(), HttpResponse.BodyHandlers.ofString()).body();
+    final String content =
+        HTTP_CLIENT
+            .send(
+                HttpRequest.newBuilder()
+                    .uri(new URI(YOUTUBE_SEARCH_URL.formatted(query.replaceAll(" ", "+"))))
+                    .build(),
+                HttpResponse.BodyHandlers.ofString())
+            .body();
     final int start = FastStringUtils.fastQuerySearch(content, SEARCH_KEYWORD) + 10;
     return Optional.of(content.substring(start, content.indexOf('"', start)));
-  }
-
-  @NotNull
-  public static FrameConfiguration getFrameConfiguration(
-      @NotNull final MediaLibraryCore core, @NotNull final Path path) throws IOException {
-    return FrameConfiguration.ofFps(VideoFrameUtils.getFrameRate(core, path).orElseThrow());
   }
 }

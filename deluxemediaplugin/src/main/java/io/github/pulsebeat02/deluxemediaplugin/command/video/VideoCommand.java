@@ -207,7 +207,7 @@ public final class VideoCommand extends BaseCommand {
     final Path path = wrapper.getResourcepackFilePath();
     this.attributes.setResourcepackUrl(this.plugin().getHttpServer().createUrl(path));
     this.attributes.setResourcepackHash(
-        HashingUtils.createHashSHA(path).orElseThrow(AssertionError::new));
+        HashingUtils.createHashSha1(path).orElseThrow(AssertionError::new));
     Files.delete(audio);
     Files.move(ogg, ogg.resolveSibling("audio.ogg"));
   }

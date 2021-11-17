@@ -27,6 +27,25 @@ import java.nio.file.Path;
 
 public interface Locale {
 
+  NullComponent SERVER_SOFTWARE_TIP = () ->
+      """
+         As a reminder, the only server softwares supported by this library are Spigot and Paper.
+         Tunity has been merged into Paper and will not be supported. Custom forks will also not
+         be supported. If you can reproduce an issue on Spigot or Paper 1.17.1, I am welcome to
+         accept and analyze it. Otherwise, I cannot do anything. This message is automatically
+         sent to all servers.
+      """;
+  NullComponent PACKET_COMPRESSION_TIP = () ->
+      """
+         Setting the value "network-compression-threshold", to -1 in the server.properties
+         file may lead to improved performance of video players for servers that aren't proxy
+         servers.
+      """;
+  NullComponent WARN_SPOTIFY_AUTH = () ->
+      """
+          Spotify API Client ID and Client Secret not specified! You will not be able
+          to use any Spotify related features.
+      """;
   NullComponent ERR_EXCEPTION_CMD = () -> "An exception occurred while executing the command!";
   NullComponent ERR_HOLOVID = () -> "Holovid (https://holovid.glare.dev) is down! Contact PulseBeat_02 for information!";
   UniComponent<Double> COLOR_LOOKUP = "Initial lookup table initialized in %s ms"::formatted;

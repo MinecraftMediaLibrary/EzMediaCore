@@ -7,7 +7,11 @@ plugins {
 
 dependencies {
 
-    "implementation"("io.github.slimjar:slimjar:1.2.6")
+    setOf(
+        "io.github.slimjar:slimjar:1.2.6"
+    ).forEach {
+        "implementation"(it)
+    }
 
     setOf("com.mpatric:mp3agic:0.9.1", "com.github.kevinsawicki:http-request:6.0").forEach {
         "testImplementation"(it)
@@ -37,7 +41,7 @@ dependencies {
         "org.apache.commons:commons-lang3:3.12.0",
         "org.jcodec:jcodec:0.2.5",
         "com.github.ben-manes.caffeine:caffeine:3.0.3",
-        "com.github.MinecraftMediaLibrary:jarchivelib:v1.4.0",
+        "io.github.pulsebeat02:jarchivelib:v1.4.0",
         "io.github.pulsebeat02:emc-installers:v1.0.1"
     ).forEach {
         slim(it)
@@ -52,7 +56,10 @@ dependencies {
 tasks.withType<SlimJar> {
     relocate("uk.co.caprica.vlcj", "io.github.pulsebeat02.ezmediacore.lib.vlcj")
     relocate("uk.co.caprica.vlcj.binding", "io.github.pulsebeat02.ezmediacore.lib.vlcj.binding")
-    relocate("uk.co.caprica.nativestreams", "io.github.pulsebeat02.ezmediacore.lib.vlcj.nativestreams")
+    relocate(
+        "uk.co.caprica.nativestreams",
+        "io.github.pulsebeat02.ezmediacore.lib.vlcj.nativestreams"
+    )
     relocate("com.github.kiulian.downloader", "io.github.pulsebeat02.ezmediacore.lib.youtube")
     relocate("ws.schild.jave", "io.github.pulsebeat02.ezmediacore.lib.jave")
     relocate("org.apache.commons.compress", "io.github.pulsebeat02.ezmediacore.lib.compress")

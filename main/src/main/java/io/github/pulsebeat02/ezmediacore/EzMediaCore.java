@@ -27,6 +27,7 @@ import io.github.pulsebeat02.ezmediacore.analysis.Diagnostic;
 import io.github.pulsebeat02.ezmediacore.analysis.SystemDiagnostics;
 import io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil;
 import io.github.pulsebeat02.ezmediacore.listener.RegistrationListener;
+import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyProvider;
@@ -34,12 +35,12 @@ import io.github.pulsebeat02.ezmediacore.playlist.youtube.YoutubeProvider;
 import io.github.pulsebeat02.ezmediacore.reflect.NMSReflectionHandler;
 import io.github.pulsebeat02.ezmediacore.search.StringSearch;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
-import io.github.pulsebeat02.ezmediacore.utility.PluginUsageTips;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.IntStream;
+import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
@@ -148,9 +149,25 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void sendUsageTips() {
-    PluginUsageTips.sendWarningMessage();
-    PluginUsageTips.sendPacketCompressionTip();
-    PluginUsageTips.sendSpotifyWarningMessage(this);
+    this.sendWarningMessage();
+    this.sendPacketCompressionTip();
+    this.sendSpotifyWarningMessage(this);
+  }
+
+  private void sendWarningMessage() {
+    Logger.warn(Locale.SERVER_SOFTWARE_TIP);
+  }
+
+  private void sendPacketCompressionTip() {
+    if (Bukkit.getOnlineMode()) {
+      Logger.warn(Locale.PACKET_COMPRESSION_TIP);
+    }
+  }
+
+  private void sendSpotifyWarningMessage(@NotNull final MediaLibraryCore core) {
+    if (core.getSpotifyClient() == null) {
+      Logger.warn(Locale.WARN_SPOTIFY_AUTH);
+    }
   }
 
   @Override

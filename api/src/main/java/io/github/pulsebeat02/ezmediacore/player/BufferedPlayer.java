@@ -23,10 +23,30 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface BufferedPlayer {
 
   @NotNull
   BufferConfiguration getBufferConfiguration();
+
+  boolean addFrame(final int @NotNull [] data, final long timestamp);
+
+  void bufferFrames();
+
+  <T> void cancelFuture(@Nullable final CompletableFuture<T> future);
+
+  void startDisplayRunnable();
+
+  void startWatchdogRunnable();
+
+  void forceStop();
+
+  void setStart(final long start);
+
+  long getStart();
+
+  boolean isExecuting();
 }

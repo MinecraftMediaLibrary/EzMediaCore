@@ -45,88 +45,75 @@
 
 package io.github.pulsebeat02.ezmediacore.utility;
 
-import io.github.pulsebeat02.ezmediacore.Logger;
+import io.github.pulsebeat02.jarchivelib.ArchiverFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
-import org.rauschig.jarchivelib.Archiver;
-import org.rauschig.jarchivelib.ArchiverFactory;
 
 public final class ArchiveUtils {
 
+  private static final Map<Set<String>, String> ASSOCIATED_COMPRESSED_TYPES;
   private static final Set<String> ARCHIVE_EXTENSIONS;
+  private static final Set<String> SPECIAL_EXTENSIONS;
 
   static {
+    ASSOCIATED_COMPRESSED_TYPES =
+        Map.of(
+            Set.of("zip"), "zip",
+            Set.of("deb", "ar"), "ar",
+            Set.of("rpm", "cpio"), "cpio",
+            Set.of("txz", "tar.xz"), "tar xz",
+            Set.of("tgz", "tar.gz"), "tar gz");
     ARCHIVE_EXTENSIONS = Set.of("zip", "deb", "rpm", "txz", "xz", "tgz", "gz", "ar", "cpio", "bz2");
+    SPECIAL_EXTENSIONS = Set.of(".tar.gz", ".tar.xz");
   }
 
-  private ArchiveUtils() {
-  }
+  private ArchiveUtils() {}
 
-  public static void decompressArchive(@NotNull final Path file, @NotNull final Path result) {
-    final String name = PathUtils.getName(file);
-    final String[] types = getCompressedType(name).split(" ");
-    final Archiver archiver;
-    if (types.length == 1) {
-      archiver = ArchiverFactory.createArchiver(types[0]);
-    } else {
-      archiver = ArchiverFactory.createArchiver(types[0], types[1]);
-    }
-    try {
-      archiver.extract(file.toFile(), result.toFile());
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
+  public static void decompressArchive(@NotNull final Path file, @NotNull final Path result)
+      throws IOException {
+    final String[] types = getCompressedType(PathUtils.getName(file)).split(" ");
+    (types.length == 1
+            ? ArchiverFactory.createArchiver(types[0])
+            : ArchiverFactory.createArchiver(types[0], types[1]))
+        .extract(file.toFile(), result.toFile());
   }
 
   public static void decompressArchive(
       @NotNull final Path file,
       @NotNull final Path result,
       @NotNull final String type,
-      @NotNull final String compression) {
-    final Archiver archiver = ArchiverFactory.createArchiver(type, compression);
-    try {
-      archiver.extract(file.toFile(), result.toFile());
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
+      @NotNull final String compression)
+      throws IOException {
+    ArchiverFactory.createArchiver(type, compression).extract(file.toFile(), result.toFile());
   }
 
   public static void decompressArchive(
-      @NotNull final Path file, @NotNull final Path result, @NotNull final String type) {
-    final Archiver archiver = ArchiverFactory.createArchiver(type);
-    try {
-      archiver.extract(file.toFile(), result.toFile());
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
+      @NotNull final Path file, @NotNull final Path result, @NotNull final String type)
+      throws IOException {
+    ArchiverFactory.createArchiver(type).extract(file.toFile(), result.toFile());
   }
 
-  public static void recursiveExtraction(@NotNull final Path file, @NotNull final Path folder) {
+  public static void recursiveExtraction(@NotNull final Path file, @NotNull final Path folder)
+      throws IOException {
     decompressArchive(file, folder);
     Path currentFolder = folder;
     final Queue<Path> queue = new LinkedList<>(containsArchiveExtension(currentFolder));
     queue.remove(file);
     while (!queue.isEmpty()) {
       final Path current = queue.remove();
-      currentFolder =
-          Path.of(
-              "%s/%s".formatted(
-                  currentFolder.toAbsolutePath(), getFileName(PathUtils.getName(current))));
+      currentFolder = currentFolder.resolve(getFileName(PathUtils.getName(current)));
       decompressArchive(current, currentFolder);
       if (!current.toAbsolutePath().toString().equals(file.toAbsolutePath().toString())) {
-        try {
-          Files.delete(current);
-        } catch (final IOException e) {
-          e.printStackTrace();
-        }
+        Files.delete(current);
       }
       final int before = queue.size();
       queue.addAll(containsArchiveExtension(currentFolder));
@@ -137,43 +124,24 @@ public final class ArchiveUtils {
   }
 
   @NotNull
-  public static Set<Path> containsArchiveExtension(@NotNull final Path f) {
+  public static Set<Path> containsArchiveExtension(@NotNull final Path f) throws IOException {
     final Set<Path> files = new HashSet<>();
     try (final Stream<Path> paths = Files.walk(f)) {
       paths.forEach(
-          x -> {
-            for (final String ext : ARCHIVE_EXTENSIONS) {
-              if (x.getFileName().endsWith(ext)) {
-                files.add(x);
-              }
-            }
-          });
-    } catch (final IOException e) {
-      e.printStackTrace();
+          path ->
+              ARCHIVE_EXTENSIONS.stream()
+                  .filter(extension -> path.getFileName().endsWith(extension))
+                  .forEach(extension -> files.add(path)));
     }
     return files;
   }
 
   @NotNull
   public static String getCompressedType(@NotNull final String name) {
-    if (name.endsWith("zip")) {
-      return "zip";
-    } else if (name.endsWith("deb") || name.endsWith("ar")) {
-      return "ar";
-    } else if (name.endsWith("rpm") || name.endsWith("cpio")) {
-      return "cpio";
-    } else if (name.endsWith("txz") || name.endsWith(".tar.xz")) {
-      return "tar xz";
-    } else if (name.endsWith("tgz") || name.endsWith(".tar.gz")) {
-      return "tar gz";
-    } else if (name.endsWith(".tar.zst") || name.endsWith("eopkg")) {
-      Logger.warn("""
-          Hello user, please read this error carefully: Your computer seems to be using
-           KAOS Linux or Solus Linux. The extract for these Linuxes is either a .tar.zst file or an
-           .eopkg file, which is yet not supported by the plugin yet. The archive has been downloaded
-           in the /vlc folder, and it is required by you to extract the file in order to get the VLC
-           libraries. This is a required step, and VLCJ will not run if you do not perform this step.
-          """);
+    for (final Set<String> keys : ASSOCIATED_COMPRESSED_TYPES.keySet()) {
+      if (keys.stream().anyMatch(name::endsWith)) {
+        return ASSOCIATED_COMPRESSED_TYPES.get(keys);
+      }
     }
     throw new UnsupportedOperationException(
         "Cannot find Archive Extension for File! (%s)".formatted(name));
@@ -181,10 +149,8 @@ public final class ArchiveUtils {
 
   @NotNull
   public static String getFileName(@NotNull final String full) {
-    if (full.endsWith(".tar.gz") || full.endsWith(".tar.xz")) {
-      return full.substring(0, full.length() - 7);
-    } else {
-      return FilenameUtils.removeExtension(full);
-    }
+    return SPECIAL_EXTENSIONS.stream().anyMatch(full::endsWith)
+        ? full.substring(0, full.length() - 7)
+        : FilenameUtils.removeExtension(full);
   }
 }

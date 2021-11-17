@@ -37,7 +37,7 @@ public final class HashingUtils {
   private HashingUtils() {
   }
 
-  public static Optional<byte[]> createHashSHA(@NotNull final Path file) {
+  public static Optional<byte[]> createHashSha1(@NotNull final Path file) {
     try {
       final MessageDigest digest = MessageDigest.getInstance("SHA-1");
       final InputStream fis = new FileInputStream(file.toFile());
@@ -54,27 +54,6 @@ public final class HashingUtils {
       e.printStackTrace();
     }
     return Optional.empty();
-  }
-
-  @NotNull
-  public static String getHash(@NotNull final Path file) {
-    try {
-      final MessageDigest digest = MessageDigest.getInstance("SHA-1");
-      try (final InputStream fis = new FileInputStream(file.toFile())) {
-        int n = 0;
-        final byte[] buffer = new byte[8192];
-        while (n != -1) {
-          n = fis.read(buffer);
-          if (n > 0) {
-            digest.update(buffer, 0, n);
-          }
-        }
-      }
-      return toHexString(digest.digest());
-    } catch (final NoSuchAlgorithmException | IOException e) {
-      e.printStackTrace();
-    }
-    return "";
   }
 
   /**
