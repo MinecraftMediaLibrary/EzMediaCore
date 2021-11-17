@@ -28,6 +28,7 @@ import com.sun.jna.Pointer;
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
+import io.github.pulsebeat02.ezmediacore.callback.Identifier;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
@@ -146,8 +147,8 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   }
 
   @Override
-  public @NotNull PlayerType getPlayerType() {
-    return PlayerType.VLC;
+  public @NotNull Identifier<String> getPlayerType() {
+    return MediaPlayer.VLC;
   }
 
   @Override

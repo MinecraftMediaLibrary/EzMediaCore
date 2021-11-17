@@ -29,8 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface Request extends Runnable {
 
-  @NotNull
-  String createHeader(@NotNull final Path file);
+  byte @NotNull [] createHeader(@NotNull final Path file);
 
   @NotNull
   Socket getClient();

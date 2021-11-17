@@ -26,6 +26,7 @@ package io.github.pulsebeat02.ezmediacore.player;
 import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
+import io.github.pulsebeat02.ezmediacore.callback.Identifier;
 import io.github.pulsebeat02.ezmediacore.callback.Viewable;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
@@ -34,6 +35,12 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
 public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
+
+  Identifier<String> VLC = Identifier.ofIdentifier("VLC");
+  Identifier<String> FFMPEG = Identifier.ofIdentifier("FFMPEG");
+
+  @Deprecated
+  Identifier<String> JCODEC = Identifier.ofIdentifier("JCODEC");
 
   void initializePlayer(
       @NotNull final MrlConfiguration mrl,
@@ -90,7 +97,7 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
   long getElapsedMilliseconds();
 
   @NotNull
-  PlayerType getPlayerType();
+  Identifier<String> getPlayerType();
 
   boolean isBuffered();
 }

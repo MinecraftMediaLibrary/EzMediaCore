@@ -50,10 +50,12 @@ public class FileRequestHandler implements FileRequest {
 
   private static final Pattern GET_REQUEST;
   private static final SimpleDateFormat DATE_FORMAT;
+  private static final String INVALID_PATH;
 
   static {
     GET_REQUEST = Pattern.compile("GET /?(\\S*).*");
     DATE_FORMAT = new SimpleDateFormat("dd MMM yyyy HH:mm:ss");
+    INVALID_PATH = "HTTP/1.0 400 Bad Request";
   }
 
   private final HttpServerDaemon daemon;
@@ -85,14 +87,14 @@ public class FileRequestHandler implements FileRequest {
   }
 
   @Override
-  public @NotNull String createHeader(@NotNull final Path file) {
+  public byte @NotNull [] createHeader(@NotNull final Path file) {
     try {
-      return this.produceHeader(file);
+      return this.produceHeader(file).getBytes(StandardCharsets.UTF_8);
     } catch (final IOException e) {
       this.daemon.onRequestFailure(this.client);
       Logger.info(e.getMessage());
     }
-    return "";
+    return new byte[] {};
   }
 
   private @NotNull String produceHeader(@NotNull final Path file) throws IOException {
@@ -112,7 +114,7 @@ public class FileRequestHandler implements FileRequest {
     this.daemon.onClientConnection(this.client);
     boolean flag = false;
     try (final BufferedReader in =
-        new BufferedReader(new InputStreamReader(this.client.getInputStream(), "8859_1"));
+            new BufferedReader(new InputStreamReader(this.client.getInputStream(), "8859_1"));
         final OutputStream out = this.client.getOutputStream();
         final PrintWriter pout = new PrintWriter(new OutputStreamWriter(out, "8859_1"), true)) {
       final InetAddress address = this.client.getInetAddress();
@@ -133,30 +135,52 @@ public class FileRequestHandler implements FileRequest {
       @NotNull final InetAddress address,
       @NotNull final String request,
       @NotNull final PrintWriter pout,
-      @NotNull final OutputStream out) throws IOException {
+      @NotNull final OutputStream out)
+      throws IOException {
     this.verbose("Received request '%s' from %s".formatted(request, address.toString()));
     final Matcher get = GET_REQUEST.matcher(request);
     if (get.matches()) {
-      this.handleGetRequest(address, out, get);
+      if (!this.handleGetRequest(address, out, pout, get)) {
+        pout.println(INVALID_PATH);
+      }
     } else {
-      pout.println("HTTP/1.0 400 Bad Request");
+      pout.println(INVALID_PATH);
       return false;
     }
     return true;
   }
 
-  private void handleGetRequest(
+  private boolean handleGetRequest(
       @NotNull final InetAddress address,
       @NotNull final OutputStream out,
-      @NotNull final Matcher get) throws IOException {
+      @NotNull final PrintWriter writer,
+      @NotNull final Matcher get)
+      throws IOException {
     final String group = get.group(1);
+    if (this.checkTreeAttack(group)) {
+      return false;
+    }
     final Path result = this.requestFileCallback(group);
+    out.write(this.createHeader(result));
+    this.sendFile(result, address, out, group);
+    return true;
+  }
+
+  private void sendFile(
+      @NotNull final Path result,
+      @NotNull final InetAddress address,
+      @NotNull final OutputStream out,
+      @NotNull final String group)
+      throws IOException {
     this.verbose("Request '%s' is being served to %s".formatted(group, address));
-    out.write(this.createHeader(result).getBytes(StandardCharsets.UTF_8));
     try (final WritableByteChannel channel = Channels.newChannel(out)) {
       FileChannel.open(result).transferTo(0, Long.MAX_VALUE, channel);
     }
     this.verbose("Successfully served '%s' to %s".formatted(group, address));
+  }
+
+  private boolean checkTreeAttack(@NotNull final String result) {
+    return result.startsWith("..") || result.endsWith("..") || result.contains("../");
   }
 
   private void verbose(final String info) {

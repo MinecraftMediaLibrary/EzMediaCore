@@ -25,6 +25,7 @@ package io.github.pulsebeat02.ezmediacore.player;
 
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
+import io.github.pulsebeat02.ezmediacore.callback.Identifier;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
@@ -123,8 +124,8 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
   }
 
   @Override
-  public @NotNull PlayerType getPlayerType() {
-    return PlayerType.JCODEC;
+  public @NotNull Identifier<String> getPlayerType() {
+    return MediaPlayer.JCODEC;
   }
 
   @Deprecated

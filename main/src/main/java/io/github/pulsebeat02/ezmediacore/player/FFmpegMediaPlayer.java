@@ -35,6 +35,7 @@ import com.github.kokorin.jaffree.ffmpeg.UrlInput;
 import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
+import io.github.pulsebeat02.ezmediacore.callback.Identifier;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
@@ -190,8 +191,8 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   }
 
   @Override
-  public @NotNull PlayerType getPlayerType() {
-    return PlayerType.FFMPEG;
+  public @NotNull Identifier<String> getPlayerType() {
+    return MediaPlayer.FFMPEG;
   }
 
   public static final class Builder extends VideoBuilder {
