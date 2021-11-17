@@ -45,7 +45,7 @@ import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
-import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
+import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Set;

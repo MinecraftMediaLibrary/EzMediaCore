@@ -26,7 +26,11 @@ package io.github.pulsebeat02.ezmediacore.player;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import io.github.pulsebeat02.ezmediacore.player.JCodecMediaPlayer.Builder;
+import io.github.pulsebeat02.ezmediacore.player.buffered.BufferConfiguration;
+import io.github.pulsebeat02.ezmediacore.player.buffered.FFmpegMediaPlayer;
+import io.github.pulsebeat02.ezmediacore.player.buffered.JCodecMediaPlayer;
+import io.github.pulsebeat02.ezmediacore.player.buffered.JCodecMediaPlayer.Builder;
+import io.github.pulsebeat02.ezmediacore.player.external.VLCMediaPlayer;
 import io.github.pulsebeat02.ezmediacore.throwable.UnsupportedPlatformException;
 import java.util.Objects;
 import org.jetbrains.annotations.Contract;
@@ -97,8 +101,13 @@ public class VideoBuilder {
       }
       case UNIX -> {
         return core.isVLCSupported() ? this.vlcOption()
-            : new FFmpegMediaPlayer(this.callback, this.callback.getWatchers(), this.dims,
-                BufferConfiguration.BUFFER_10, this.rate, this.key);
+            : new FFmpegMediaPlayer.Builder()
+                .callback(this.callback)
+                .dims(this.dims)
+                .buffer(BufferConfiguration.BUFFER_10)
+                .frameRate(this.rate)
+                .soundKey(this.key)
+                .build();
       }
       default -> throw new UnsupportedPlatformException("Unknown");
     }

@@ -28,7 +28,7 @@ import com.google.common.collect.HashBiMap;
 import com.wrapper.spotify.enums.ProductType;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import io.github.pulsebeat02.ezmediacore.throwable.UnknownPlaylistException;
-import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
+import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;

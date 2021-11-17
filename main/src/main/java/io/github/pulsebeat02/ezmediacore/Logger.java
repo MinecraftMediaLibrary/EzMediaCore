@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import io.github.pulsebeat02.ezmediacore.task.CommandTask;
-import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
+import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;

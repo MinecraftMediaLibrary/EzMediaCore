@@ -1,6 +1,6 @@
 package io.github.pulsebeat02.ezmediacore;
 
-import io.github.pulsebeat02.ezmediacore.utility.VideoFrameUtils;
+import io.github.pulsebeat02.ezmediacore.utility.graphics.VideoFrameUtils;
 import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.image.BufferedImage;

@@ -35,7 +35,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
 import io.github.pulsebeat02.deluxemediaplugin.utility.Pair;
-import io.github.pulsebeat02.ezmediacore.utility.MapUtils;
+import io.github.pulsebeat02.ezmediacore.utility.graphics.MapUtils;
 import java.util.Map;
 import java.util.Optional;
 import net.kyori.adventure.audience.Audience;

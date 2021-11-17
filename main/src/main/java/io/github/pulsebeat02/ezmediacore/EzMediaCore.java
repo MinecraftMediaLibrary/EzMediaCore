@@ -33,7 +33,7 @@ import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyProvider;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.YoutubeProvider;
 import io.github.pulsebeat02.ezmediacore.reflect.NMSReflectionHandler;
-import io.github.pulsebeat02.ezmediacore.search.StringSearch;
+import io.github.pulsebeat02.ezmediacore.utility.search.StringSearch;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import java.nio.file.Files;
 import java.nio.file.Path;

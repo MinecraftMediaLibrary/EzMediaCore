@@ -24,7 +24,7 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.image;
 
-import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
+import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;

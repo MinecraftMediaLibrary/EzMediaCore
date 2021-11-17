@@ -29,7 +29,7 @@ import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
 import io.github.pulsebeat02.deluxemediaplugin.executors.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegMediaStreamer;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
-import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
+import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 

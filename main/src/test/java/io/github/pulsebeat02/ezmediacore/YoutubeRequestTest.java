@@ -1,6 +1,6 @@
 package io.github.pulsebeat02.ezmediacore;
 
-import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
+import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 
 public class YoutubeRequestTest {

@@ -59,7 +59,7 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   private PlayerControls controls;
 
-  MediaPlayer(
+  public MediaPlayer(
       @NotNull final Callback callback,
       @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,

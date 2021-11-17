@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.specification.ArtistSimplified;
 import io.github.pulsebeat02.ezmediacore.throwable.UnknownArtistException;
-import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
+import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;

@@ -2,7 +2,7 @@ package io.github.pulsebeat02.ezmediacore;
 
 import io.github.pulsebeat02.ezmediacore.jlibdl.JLibDL;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
-import io.github.pulsebeat02.ezmediacore.utility.RequestUtils;
+import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import java.io.IOException;
 import java.util.List;
 

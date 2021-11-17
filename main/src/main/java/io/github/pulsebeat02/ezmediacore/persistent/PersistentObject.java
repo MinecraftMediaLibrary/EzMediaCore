@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.persistent;
 
-import io.github.pulsebeat02.ezmediacore.utility.FileUtils;
+import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;

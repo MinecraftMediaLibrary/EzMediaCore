@@ -27,6 +27,7 @@ package io.github.pulsebeat02.ezmediacore.jlibdl;
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import io.github.pulsebeat02.ezmediacore.jlibdl.component.MediaInfo;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;

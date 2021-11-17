@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.image;
 import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import io.github.pulsebeat02.ezmediacore.utility.ImageUtils;
+import io.github.pulsebeat02.ezmediacore.utility.graphics.ImageUtils;
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.List;

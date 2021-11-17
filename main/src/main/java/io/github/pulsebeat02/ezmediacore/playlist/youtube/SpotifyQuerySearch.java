@@ -28,7 +28,7 @@ import io.github.pulsebeat02.ezmediacore.playlist.spotify.QuerySearch;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyTrack;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.Track;
 import io.github.pulsebeat02.ezmediacore.throwable.DeadResourceLinkException;
-import io.github.pulsebeat02.ezmediacore.utility.MediaExtractionUtils;
+import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.NotNull;

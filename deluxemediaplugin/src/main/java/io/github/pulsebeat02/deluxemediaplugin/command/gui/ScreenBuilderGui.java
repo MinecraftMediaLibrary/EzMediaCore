@@ -39,7 +39,7 @@ import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.MutableInt;
-import io.github.pulsebeat02.ezmediacore.utility.MapUtils;
+import io.github.pulsebeat02.ezmediacore.utility.graphics.MapUtils;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;

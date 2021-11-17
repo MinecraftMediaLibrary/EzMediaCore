@@ -25,8 +25,8 @@ package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
 import com.github.kiulian.downloader.downloader.request.RequestVideoFileDownload;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.utility.PathUtils;
-import io.github.pulsebeat02.ezmediacore.utility.ResponseUtils;
+import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
+import io.github.pulsebeat02.ezmediacore.utility.media.ResponseUtils;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;

@@ -37,7 +37,7 @@ public abstract class FrameCallback implements Callback {
   private final Viewers viewers;
   private long lastUpdated;
 
-  FrameCallback(
+  public FrameCallback(
       @NotNull final MediaLibraryCore core,
       @NotNull final Viewers viewers,
       @NotNull final Dimension dimension,

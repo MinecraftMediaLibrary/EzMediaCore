@@ -25,8 +25,14 @@
 package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.ScoreboardCallback.Builder;
+import io.github.pulsebeat02.ezmediacore.callback.implementation.BlockHighlightCallback;
+import io.github.pulsebeat02.ezmediacore.callback.implementation.ChatCallback;
+import io.github.pulsebeat02.ezmediacore.callback.implementation.EntityCallback;
+import io.github.pulsebeat02.ezmediacore.callback.implementation.MapCallback;
+import io.github.pulsebeat02.ezmediacore.callback.implementation.ScoreboardCallback;
+import io.github.pulsebeat02.ezmediacore.callback.implementation.ScoreboardCallback.Builder;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,8 +43,8 @@ public abstract class CallbackBuilder {
   private Viewers viewers;
 
   {
-    delay = DelayConfiguration.DELAY_0_MS;
-    viewers = Viewers.onlinePlayers();
+    this.delay = DelayConfiguration.DELAY_0_MS;
+    this.viewers = Viewers.onlinePlayers();
   }
 
   @Contract(value = " -> new", pure = true)
@@ -52,8 +58,8 @@ public abstract class CallbackBuilder {
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull EntityCallback.Builder entity() {
-    return new EntityCallback.Builder();
+  public static @NotNull <T extends Entity> EntityCallback.Builder<T> entity() {
+    return new EntityCallback.Builder<>();
   }
 
   @Contract(value = " -> new", pure = true)
