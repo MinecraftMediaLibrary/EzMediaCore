@@ -1,8 +1,15 @@
 package io.github.pulsebeat02.ezmediacore.player.buffered;
 
+import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.VideoFrameUtils;
+import io.github.pulsebeat02.ezmediacore.utility.graphics.scalr.AsyncScalr;
+import io.github.pulsebeat02.ezmediacore.utility.graphics.scalr.Scalr.Method;
+import io.github.pulsebeat02.ezmediacore.utility.graphics.scalr.Scalr.Mode;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import org.jcodec.api.FrameGrab;
 import org.jcodec.common.model.Picture;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +26,7 @@ public class JCodecFrameConsumer implements Runnable {
 
   @Override
   public void run() {
+    final Dimension dimensions = this.player.getDimensions();
     try {
       while (!this.player.isExecuting()) {
         // sometimes jcodec returns a null frame...
@@ -27,13 +35,24 @@ public class JCodecFrameConsumer implements Runnable {
           break;
         }
 
-        // add to queue
-        this.player.addFrame(
-            VideoFrameUtils.toResizedColorArray(frame, this.player.getDimensions()),
-            Instant.now().toEpochMilli() - this.player.getStart());
+        // parallel computation to get bufferedimage
+        final Future<BufferedImage> image =
+            AsyncScalr.resize(
+                VideoFrameUtils.toBufferedImage(frame),
+                Method.SPEED,
+                Mode.BEST_FIT_BOTH,
+                dimensions.getWidth(),
+                dimensions.getHeight());
+
+      // add to queue
+      this.player.addFrame(VideoFrameUtils.getRGBParallel(image.get()), this.calculateTimestamp());
       }
-    } catch (final IOException e) {
+    } catch (final IOException | ExecutionException | InterruptedException e) {
       e.printStackTrace();
     }
+  }
+
+  private long calculateTimestamp() {
+    return Instant.now().toEpochMilli() - this.player.getStart();
   }
 }

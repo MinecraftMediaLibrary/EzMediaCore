@@ -23,8 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore.nms.impl.v1_17_R1;
 
+import static io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils.setFinalField;
+
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
-import io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -292,7 +293,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
           new PacketPlayOutEntityMetadata(
               ((CraftEntity) entities[i]).getHandle().getId(), new DataWatcher(null), false);
       try {
-        UnsafeUtils.setFinalField(
+        setFinalField(
             METADATA_ITEMS,
             packet,
             Collections.singletonList(

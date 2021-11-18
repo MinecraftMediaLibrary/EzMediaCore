@@ -7,6 +7,7 @@ import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
+import io.github.pulsebeat02.ezmediacore.utility.graphics.VideoFrameUtils;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -76,7 +77,7 @@ public class FFmpegVideoTest {
   private @NotNull FrameConsumer getFrameConsumer() {
     return new FrameConsumer() {
 
-      private Stream[] streams;
+      private float[] calculations;
 
       @Override
       public void consumeStreams(@NotNull final List<Stream> streams) {
@@ -85,11 +86,11 @@ public class FFmpegVideoTest {
         final int max = streams.stream().mapToInt(Stream::getId).max().orElseThrow();
 
         // create our lookup table
-        this.streams = new Stream[max + 1];
+        this.calculations = new float[max + 1];
 
-        // loop through elements, set id with proper stream
+        // loop through elements, set id with proper stream timebase
         for (final Stream stream : streams) {
-          this.streams[stream.getId()] = stream;
+          this.calculations[stream.getId()] = (1.0F / stream.getTimebase()) * 1000;
         }
       }
 
@@ -118,11 +119,14 @@ public class FFmpegVideoTest {
           }
         }
 
-        final long stamp = (long) (
-            (frame.getPts() * (1.0F / this.streams[frame.getStreamId()].getTimebase())) * 1000);
+        final long stamp = this.calculateTimeStamp(frame);
 
         // add to queue
         FFmpegVideoTest.this.frames.add(new SimpleImmutableEntry<>(image, stamp));
+      }
+
+      private long calculateTimeStamp(@NotNull final Frame frame) {
+        return (long) (frame.getPts() * this.calculations[frame.getStreamId()]);
       }
     };
   }
@@ -159,7 +163,7 @@ public class FFmpegVideoTest {
           final long passed = Instant.now().toEpochMilli() - this.startEpoch;
           Entry<BufferedImage, Long> skip = this.frames.take();
           while (skip.getValue() <= passed) {
-            for (int i = 0; i <= 5; i++) {
+            for (int i = 0; i <= 3; i++) {
               skip = this.frames.take();
             }
           }

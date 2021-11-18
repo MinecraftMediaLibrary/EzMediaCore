@@ -32,7 +32,7 @@ public final class UnsafeUtils {
    * @param field the static final field
    * @param value the value
    */
-  public static void setFinalStaticField(@NotNull final Field field, @NotNull final Object value) {
+  public static void setStaticFinalField(@NotNull final Field field, @NotNull final Object value) {
     UNSAFE.putObject(UNSAFE.staticFieldBase(field), UNSAFE.staticFieldOffset(field), value);
   }
 }

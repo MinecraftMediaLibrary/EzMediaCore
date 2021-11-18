@@ -55,33 +55,24 @@ import org.jetbrains.annotations.NotNull;
 
 public final class VideoFrameUtils {
 
-  private static final char[] HEX_DIGITS;
+  private static final RgbToBgr RGB_TO_BGR;
 
   static {
-    HEX_DIGITS = "0123456789abcdef".toCharArray();
+    RGB_TO_BGR = new RgbToBgr();
   }
 
   private VideoFrameUtils() {
   }
 
-  public static int @NotNull [] toResizedColorArray(
-      @NotNull final Picture frame,
-      @NotNull final io.github.pulsebeat02.ezmediacore.dimension.Dimension dimension) {
-    return getRGBParallel(
-        resizeImage(toBufferedImage(frame), dimension.getWidth(), dimension.getHeight()));
-  }
-
   public static @NotNull BufferedImage toBufferedImage(@NotNull Picture src) {
     final ColorSpace space = src.getColor();
     if (space != ColorSpace.BGR) {
-      final Picture bgr =
-          Picture.createCropped(src.getWidth(), src.getHeight(), ColorSpace.BGR, src.getCrop());
+      final Picture bgr = Picture.createCropped(src.getWidth(), src.getHeight(), ColorSpace.BGR, src.getCrop());
       if (space == ColorSpace.RGB) {
-        new RgbToBgr().transform(src, bgr);
+        RGB_TO_BGR.transform(src, bgr);
       } else {
-        final Transform transform = ColorUtil.getTransform(space, ColorSpace.RGB);
-        transform.transform(src, bgr);
-        new RgbToBgr().transform(bgr, bgr);
+        ColorUtil.getTransform(space, ColorSpace.RGB).transform(src, bgr);
+        RGB_TO_BGR.transform(bgr, bgr);
       }
       src = bgr;
     }
@@ -123,16 +114,6 @@ public final class VideoFrameUtils {
     }
   }
 
-  @NotNull
-  public static Optional<int[]> getBuffer(@NotNull final Path image) {
-    try {
-      return Optional.of(getBuffer(ImageIO.read(image.toFile())));
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
-    return Optional.empty();
-  }
-
   public static int @NotNull [] getBuffer(@NotNull final BufferedImage image) {
     return image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
   }
@@ -142,21 +123,6 @@ public final class VideoFrameUtils {
       final int @NotNull [] rgb, final int width, final int height) {
     final BufferedImage image = new BufferedImage(width, height, 1);
     image.setRGB(0, 0, width, height, rgb, 0, width);
-    return image;
-  }
-
-  public static byte @NotNull [] toByteArray(final int @NotNull [] array) {
-    final ByteBuffer buffer = ByteBuffer.allocate(array.length * 4);
-    final IntBuffer intBuffer = buffer.asIntBuffer();
-    intBuffer.put(array);
-    return buffer.array();
-  }
-
-  public static @NotNull BufferedImage toBufferedImage(
-      final byte @NotNull [] array, final int width, final int height) {
-    final BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
-    final byte[] arr = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
-    System.arraycopy(array, 0, arr, 0, arr.length);
     return image;
   }
 

@@ -23,8 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore.nms.impl.v1_16_R3;
 
+import static io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils.setFinalField;
+
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
-import io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -213,16 +214,16 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
         final int mapId = map + width * y + x;
         final PacketPlayOutMap packet = new PacketPlayOutMap();
         try {
-          UnsafeUtils.setFinalField(MAP_FIELDS[0], packet, mapId);
-          UnsafeUtils.setFinalField(MAP_FIELDS[1], packet, (byte) 0);
-          UnsafeUtils.setFinalField(MAP_FIELDS[2], packet, false);
-          UnsafeUtils.setFinalField(MAP_FIELDS[3], packet, false);
-          UnsafeUtils.setFinalField(MAP_FIELDS[4], packet, new MapIcon[0]);
-          UnsafeUtils.setFinalField(MAP_FIELDS[5], packet, topX);
-          UnsafeUtils.setFinalField(MAP_FIELDS[6], packet, topY);
-          UnsafeUtils.setFinalField(MAP_FIELDS[7], packet, xDiff);
-          UnsafeUtils.setFinalField(MAP_FIELDS[8], packet, yDiff);
-          UnsafeUtils.setFinalField(MAP_FIELDS[9], packet, mapData);
+          setFinalField(MAP_FIELDS[0], packet, mapId);
+          setFinalField(MAP_FIELDS[1], packet, (byte) 0);
+          setFinalField(MAP_FIELDS[2], packet, false);
+          setFinalField(MAP_FIELDS[3], packet, false);
+          setFinalField(MAP_FIELDS[4], packet, new MapIcon[0]);
+          setFinalField(MAP_FIELDS[5], packet, topX);
+          setFinalField(MAP_FIELDS[6], packet, topY);
+          setFinalField(MAP_FIELDS[7], packet, xDiff);
+          setFinalField(MAP_FIELDS[8], packet, yDiff);
+          setFinalField(MAP_FIELDS[9], packet, mapData);
         } catch (final Exception exception) {
           exception.printStackTrace();
         }
@@ -277,9 +278,9 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
       }
       final PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata();
       try {
-        UnsafeUtils.setFinalField(
+        setFinalField(
             METADATA_ID, packet, ((CraftEntity) entities[i]).getHandle().getId());
-        UnsafeUtils.setFinalField(
+        setFinalField(
             METADATA_ITEMS,
             packet,
             Collections.singletonList(
