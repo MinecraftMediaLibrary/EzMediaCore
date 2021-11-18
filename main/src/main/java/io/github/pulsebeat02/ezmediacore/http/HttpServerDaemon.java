@@ -33,10 +33,19 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
 public class HttpServerDaemon implements HttpDaemon, ZipRequest {
+
+  private static final ExecutorService HTTP_REQUEST_POOL;
+
+  static {
+    HTTP_REQUEST_POOL = Executors.newCachedThreadPool();
+  }
 
   private final Path directory;
   private final String ip;
@@ -90,8 +99,8 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   private void handleServerRequests() {
     try {
       while (this.running.get()) {
-        ExecutorProvider.HTTP_REQUEST_POOL.submit(
-            new FileRequestHandler(this, this.socket.accept(), this.header));
+        CompletableFuture.runAsync(
+            new FileRequestHandler(this, this.socket.accept(), this.header), HTTP_REQUEST_POOL);
       }
     } catch (final IOException e) {
       e.printStackTrace();

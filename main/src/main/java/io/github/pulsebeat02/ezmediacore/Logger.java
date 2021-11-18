@@ -32,6 +32,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 
 public final class Logger {
@@ -180,11 +181,10 @@ public final class Logger {
 
   private static void internalDirectPrint(
       @NotNull final PrintWriter writer, @NotNull final String line) {
-    ExecutorProvider.LOGGER_POOL.submit(
-        () -> {
-          writer.write("%s\n".formatted(line));
-          writer.flush();
-        });
+    CompletableFuture.runAsync(() -> {
+      writer.write("%s\n".formatted(line));
+      writer.flush();
+    }, ExecutorProvider.LOGGER_POOL);
   }
 
   /**

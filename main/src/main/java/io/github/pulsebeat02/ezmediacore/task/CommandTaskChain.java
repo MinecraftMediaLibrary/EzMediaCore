@@ -52,12 +52,20 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Constructs a chain of commands to be executed accordingly.
  */
 public class CommandTaskChain {
+
+  private static final ExecutorService EXTERNAL_PROCESS_POOL;
+
+  static {
+    EXTERNAL_PROCESS_POOL = Executors.newSingleThreadExecutor();
+  }
 
   private final Map<CommandTask, Boolean> chain;
 
@@ -112,8 +120,7 @@ public class CommandTaskChain {
     for (final Map.Entry<CommandTask, Boolean> entry : this.chain.entrySet()) {
       final CommandTask task = entry.getKey();
       if (entry.getValue()) {
-        CompletableFuture.runAsync(this.runSeparateTask(task),
-            ExecutorProvider.EXTERNAL_PROCESS_POOL);
+        CompletableFuture.runAsync(this.runSeparateTask(task), EXTERNAL_PROCESS_POOL);
       } else {
         this.runTaskChain(task);
       }

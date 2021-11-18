@@ -31,27 +31,15 @@ import java.util.concurrent.ScheduledExecutorService;
 public final class ExecutorProvider {
 
   public static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE;
-
-  public static final ExecutorService LOGGER_POOL;
-  public static final ExecutorService HTTP_REQUEST_POOL;
-  public static final ExecutorService MAP_UPDATE_POOL;
-  public static final ExecutorService EXTERNAL_PROCESS_POOL;
   public static final ExecutorService SHARED_RESULT_POOL;
-
+  public static final ExecutorService LOGGER_POOL;
   public static final ExecutorService ENCODER_HANDLER;
-  public static final ExecutorService AUDIO_HANDLER;
-  public static final ExecutorService FRAME_HANDLER;
 
   static {
-    LOGGER_POOL = Executors.newCachedThreadPool();
     SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
-    HTTP_REQUEST_POOL = Executors.newCachedThreadPool();
-    MAP_UPDATE_POOL = Executors.newCachedThreadPool();
-    EXTERNAL_PROCESS_POOL = Executors.newSingleThreadExecutor();
     SHARED_RESULT_POOL = new ForkJoinPool();
-    ENCODER_HANDLER = Executors.newFixedThreadPool(8);
-    AUDIO_HANDLER = Executors.newCachedThreadPool();
-    FRAME_HANDLER = Executors.newCachedThreadPool();
+    LOGGER_POOL = Executors.newCachedThreadPool();
+    ENCODER_HANDLER = Executors.newCachedThreadPool();
   }
 
   private ExecutorProvider() {

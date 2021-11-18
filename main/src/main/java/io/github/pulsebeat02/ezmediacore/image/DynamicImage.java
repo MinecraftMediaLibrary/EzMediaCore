@@ -32,12 +32,20 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
 public class DynamicImage extends Image
     implements io.github.pulsebeat02.ezmediacore.image.GifImage {
+
+  private static final ExecutorService MAP_UPDATE_POOL;
+
+  static {
+    MAP_UPDATE_POOL = Executors.newCachedThreadPool();
+  }
 
   private final GifDecoder.GifImage image;
   private final int frameCount;
@@ -59,7 +67,7 @@ public class DynamicImage extends Image
   @Override
   public void draw(final boolean resize) {
     this.onStartDrawImage();
-    CompletableFuture.runAsync(() -> this.drawImage(resize), ExecutorProvider.MAP_UPDATE_POOL);
+    CompletableFuture.runAsync(() -> this.drawImage(resize), MAP_UPDATE_POOL);
     this.onFinishDrawImage();
   }
 
