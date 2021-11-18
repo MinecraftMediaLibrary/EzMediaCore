@@ -89,6 +89,9 @@ public interface MediaLibraryCore {
   @NotNull
   LibraryLoader getLibraryLoader();
 
+  @NotNull
+  CoreLogger getLogger();
+
   @Nullable
   SpotifyClient getSpotifyClient();
 

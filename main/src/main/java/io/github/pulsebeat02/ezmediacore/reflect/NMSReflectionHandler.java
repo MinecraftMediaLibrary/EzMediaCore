@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.reflect;
 
-import io.github.pulsebeat02.ezmediacore.Logger;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
@@ -38,8 +38,13 @@ public final class NMSReflectionHandler {
     VERSION = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
   }
 
-  @NotNull
-  public static Optional<PacketHandler> getNewPacketHandlerInstance() {
+  private final MediaLibraryCore core;
+
+  public NMSReflectionHandler(@NotNull final MediaLibraryCore core) {
+    this.core = core;
+  }
+
+  public @NotNull Optional<PacketHandler> getNewPacketHandlerInstance() {
     try {
       return Optional.of(getPacketHandler());
     } catch (final ClassNotFoundException
@@ -47,17 +52,18 @@ public final class NMSReflectionHandler {
         | IllegalAccessException
         | NoSuchMethodException
         | InvocationTargetException e) {
-      Logger.error(
-          "The Server Version you are using (%s) is not yet supported by EzMediaCore! Shutting down due to the Fatal Error"
-              .formatted(VERSION));
+      this.core
+          .getLogger()
+          .error(
+              "The Server Version you are using (%s) is not yet supported by EzMediaCore! Shutting down due to the Fatal Error"
+                  .formatted(VERSION));
       return Optional.empty();
     }
   }
 
-  private @NotNull
-  static PacketHandler getPacketHandler()
+  private static @NotNull PacketHandler getPacketHandler()
       throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
-      InstantiationException, IllegalAccessException {
+          InstantiationException, IllegalAccessException {
     return (PacketHandler)
         Class.forName(
                 "io.github.pulsebeat02.ezmediacore.nms.impl.%s.NMSMapPacketInterceptor"

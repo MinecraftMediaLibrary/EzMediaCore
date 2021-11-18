@@ -35,7 +35,10 @@ import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 
 public class NativePluginLoader {
 
-  public NativePluginLoader() {
+  private final MediaLibraryCore core;
+
+  public NativePluginLoader(@NotNull final MediaLibraryCore core) {
+    this.core = core;
   }
 
   public void executePhantomPlayers() {
@@ -68,7 +71,7 @@ public class NativePluginLoader {
 
   private @NotNull LogEventListener createListener() {
     return (level, module, file, line, name, header, id, message) ->
-        Logger.directPrintVLC("[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message));
+        this.core.getLogger().vlc("[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message));
   }
 
   private void waitMedia(@NotNull final CountDownLatch latch) {

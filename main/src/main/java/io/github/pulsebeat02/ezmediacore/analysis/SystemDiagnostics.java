@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.analysis;
 
-import io.github.pulsebeat02.ezmediacore.Logger;
+import io.github.pulsebeat02.ezmediacore.CoreLogger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import org.bukkit.Server;
@@ -47,19 +47,26 @@ public final class SystemDiagnostics implements Diagnostic {
   public void debugInformation() {
     final Plugin plugin = this.core.getPlugin();
     final Server server = plugin.getServer();
-    Logger.info(Locale.PLUGIN_INFO.build(
-        plugin.getName(),
-        plugin.getDescription().getDescription(),
-        this.core.isDisabled(),
-        this.core.getLibraryPath(),
-        this.core.getVlcPath(),
-        this.core.getImagePath(),
-        this.core.getAudioPath()
-    ));
-    Logger.info(
+    this.core
+        .getLogger()
+        .info(
+            Locale.PLUGIN_INFO.build(
+                plugin.getName(),
+                plugin.getDescription().getDescription(),
+                this.core.isDisabled(),
+                this.core.getLibraryPath(),
+                this.core.getVlcPath(),
+                this.core.getImagePath(),
+                this.core.getAudioPath()));
+    final CoreLogger logger = this.core.getLogger();
+    logger.info(
         Locale.SERVER_INFO.build(server.getName(), server.getVersion(), server.getOnlineMode()));
-    Logger.info(Locale.SYSTEM_INFO.build(this.system.getOSName(), this.system.getVersion(),
-        this.system.getLinuxDistribution(), this.cpu.getArchitecture()));
+    logger.info(
+        Locale.SYSTEM_INFO.build(
+            this.system.getOSName(),
+            this.system.getVersion(),
+            this.system.getLinuxDistribution(),
+            this.cpu.getArchitecture()));
   }
 
   @Override

@@ -24,7 +24,6 @@
 package io.github.pulsebeat02.ezmediacore.dependency;
 
 import io.github.pulsebeat02.emcinstallers.implementation.rtsp.RTSPInstaller;
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.io.IOException;
@@ -45,7 +44,7 @@ public class SimpleRTSPServerDependency {
   private void start() throws IOException {
     final Path path = RTSPInstaller.create(this.folder).download(true);
     this.core.setRTPPath(path);
-    Logger.info(Locale.BINARY_PATHS.build("Simple RTSP Server", path));
+    this.core.getLogger().info(Locale.BINARY_PATHS.build("Simple RTSP Server", path));
   }
 
 

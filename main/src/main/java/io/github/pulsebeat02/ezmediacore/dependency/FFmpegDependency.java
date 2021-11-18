@@ -24,7 +24,6 @@
 package io.github.pulsebeat02.ezmediacore.dependency;
 
 import io.github.pulsebeat02.emcinstallers.implementation.ffmpeg.FFmpegInstaller;
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.io.IOException;
@@ -45,7 +44,7 @@ public final class FFmpegDependency {
   private void start() throws IOException {
     final Path path = FFmpegInstaller.create(this.folder).download(true);
     this.core.setFFmpegPath(path);
-    Logger.info(Locale.BINARY_PATHS.build("FFmpeg", path));
+    this.core.getLogger().info(Locale.BINARY_PATHS.build("FFmpeg", path));
   }
 
   public @NotNull Path getFolder() {

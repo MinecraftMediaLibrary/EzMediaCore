@@ -73,7 +73,7 @@ public record DependencyLoader(MediaLibraryCore core) implements
     try {
       new VLCDependency(this.core);
       if (this.core.isVLCSupported()) {
-        new NativePluginLoader().executePhantomPlayers();
+        new NativePluginLoader(this.core).executePhantomPlayers();
       }
     } catch (final IOException e) {
       e.printStackTrace();

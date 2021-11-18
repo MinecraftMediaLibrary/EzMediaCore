@@ -25,6 +25,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.http.HttpDaemon;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import java.io.IOException;
@@ -70,11 +71,12 @@ public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
             this.getPlugin().getBootstrap().getDataFolder().getAbsolutePath(),
             configuration.getString("directory"));
     final boolean verbose = configuration.getBoolean("verbose");
+    final MediaLibraryCore core = this.getPlugin().library();
     if (enabled) {
       this.daemon =
           ip == null || ip.equals("public")
-              ? new HttpServer(directory, port)
-              : new HttpServer(directory, ip, port, verbose);
+              ? new HttpServer(core, directory, port)
+              : HttpServer.ofServer(core, directory, ip, port, verbose);
     }
     this.enabled = enabled;
     return this.daemon;

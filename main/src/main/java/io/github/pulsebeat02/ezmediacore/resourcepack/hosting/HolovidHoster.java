@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.resourcepack.hosting;
 
-import io.github.pulsebeat02.ezmediacore.Logger;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.io.IOException;
@@ -45,6 +45,12 @@ public class HolovidHoster implements HolovidSolution {
     HTTP_CLIENT = HttpClient.newHttpClient();
   }
 
+  private final MediaLibraryCore core;
+
+  public HolovidHoster(@NotNull final MediaLibraryCore core) {
+    this.core = core;
+  }
+
   @Override
   public @NotNull String createUrl(@NotNull final String input) {
     try {
@@ -58,7 +64,7 @@ public class HolovidHoster implements HolovidSolution {
               HolovidResourcepackResult.class)
           .getUrl();
     } catch (final IOException | URISyntaxException | InterruptedException e) {
-      Logger.info(Locale.ERR_HOLOVID);
+      this.core.getLogger().info(Locale.ERR_HOLOVID);
       e.printStackTrace();
     }
     throw new AssertionException("Holovid website is down!");

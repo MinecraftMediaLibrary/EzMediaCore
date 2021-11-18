@@ -45,9 +45,6 @@
 
 package io.github.pulsebeat02.ezmediacore.task;
 
-import io.github.pulsebeat02.ezmediacore.Logger;
-import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
-import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -134,7 +131,6 @@ public class CommandTaskChain {
   private void runTask(@NotNull final CommandTask task) {
     try {
       task.run();
-      Logger.info(this.getTaskMessage(task));
     } catch (final IOException e) {
       e.printStackTrace();
     }
@@ -149,9 +145,8 @@ public class CommandTaskChain {
       throws IOException, InterruptedException {
     task.run();
     if (task.getProcess().waitFor() == 0) {
-      Logger.info(this.getTaskMessage(task));
     } else {
-      Logger.info(Locale.ERR_EXCEPTION_CMD);
+      throw new IOException("Error occurred while running program!");
     }
   }
 }

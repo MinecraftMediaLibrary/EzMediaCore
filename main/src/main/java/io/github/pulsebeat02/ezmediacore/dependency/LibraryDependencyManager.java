@@ -23,7 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.dependency;
 
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.slimjar.app.builder.ApplicationBuilder;
 import io.github.slimjar.resolver.data.Repository;
@@ -52,7 +51,7 @@ public final class LibraryDependencyManager {
         .mirrorSelector((collection, collection1) -> collection)
         .downloadDirectoryPath(this.core.getDependencyPath())
         .internalRepositories(this.getRepositories())
-        .logger((s, objects) -> Logger.info(s.formatted(objects)))
+        .logger((s, objects) -> this.core.getLogger().info(s.formatted(objects)))
         .build();
   }
 

@@ -31,6 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,17 +43,27 @@ public class ResourcepackSoundWrapper extends ResourcepackWrapper implements Sou
     this.sounds = new HashMap<>();
   }
 
-  public ResourcepackSoundWrapper(
-      @NotNull final Path path, @NotNull final String description, final int format) {
-    super(path, description, format);
-  }
-
-  public ResourcepackSoundWrapper(
+  ResourcepackSoundWrapper(
       @NotNull final Path path,
       @NotNull final String description,
       final int format,
       @Nullable final Path icon) {
     super(path, description, format, icon);
+  }
+
+  @Contract("_, _, _ -> new")
+  public static @NotNull ResourcepackSoundWrapper ofSoundPack(
+      @NotNull final Path path, @NotNull final String description, final int format) {
+    return ofSoundPack(path, description, format, null);
+  }
+
+  @Contract("_, _, _, _ -> new")
+  public static @NotNull ResourcepackSoundWrapper ofSoundPack(
+      @NotNull final Path path,
+      @NotNull final String description,
+      final int format,
+      @Nullable final Path icon) {
+    return new ResourcepackSoundWrapper(path, description, format, icon);
   }
 
   @Override

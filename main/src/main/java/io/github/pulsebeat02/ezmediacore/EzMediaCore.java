@@ -35,6 +35,7 @@ import io.github.pulsebeat02.ezmediacore.playlist.youtube.YoutubeProvider;
 import io.github.pulsebeat02.ezmediacore.reflect.NMSReflectionHandler;
 import io.github.pulsebeat02.ezmediacore.utility.search.StringSearch;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
@@ -49,10 +50,10 @@ import org.jetbrains.annotations.Nullable;
 
 public final class EzMediaCore implements MediaLibraryCore {
 
+  private final SpotifyClient spotifyClient;
   private final Plugin plugin;
   private final LibraryLoader loader;
   private final Diagnostic diagnostics;
-
   private final Path libraryPath;
   private final Path httpServerPath;
   private final Path dependencyPath;
@@ -61,9 +62,8 @@ public final class EzMediaCore implements MediaLibraryCore {
   private final Path audioPath;
   private final Path videoPath;
 
-  private final SpotifyClient spotifyClient;
-
   private PacketHandler handler;
+  private CoreLogger logger;
   private Listener registrationListener;
   private Path ffmpegExecutable;
   private Path rtpExecutable;
@@ -81,41 +81,49 @@ public final class EzMediaCore implements MediaLibraryCore {
       @Nullable final Path audioPath,
       @Nullable final Path videoPath,
       @Nullable final SpotifyClient client) {
-
     this.plugin = plugin;
-    this.libraryPath =
-        (libraryPath == null ? plugin.getDataFolder().toPath().resolve("emc") : libraryPath)
-            .toAbsolutePath();
-    this.dependencyPath =
-        (dependencyPath == null ? this.libraryPath.resolve("libs") : dependencyPath)
-            .toAbsolutePath();
-    this.httpServerPath =
-        (httpServerPath == null ? this.libraryPath.resolve("http") : httpServerPath)
-            .toAbsolutePath();
-    this.vlcPath =
-        (vlcPath == null ? this.dependencyPath.resolve("vlc") : vlcPath).toAbsolutePath();
-    this.imagePath =
-        (imagePath == null ? this.libraryPath.resolve("image") : imagePath).toAbsolutePath();
-    this.audioPath =
-        (audioPath == null ? this.libraryPath.resolve("audio") : audioPath).toAbsolutePath();
-    this.videoPath =
-        (videoPath == null ? this.libraryPath.resolve("video") : videoPath).toAbsolutePath();
     this.spotifyClient = client;
-
-    Logger.init(this);
-
+    this.libraryPath = this.getFinalPath(libraryPath, plugin.getDataFolder().toPath(), "emc");
+    this.dependencyPath = this.getFinalPath(dependencyPath, this.libraryPath, "libs");
+    this.httpServerPath = this.getFinalPath(httpServerPath, this.libraryPath, "http");
+    this.imagePath = this.getFinalPath(imagePath, this.libraryPath, "image");
+    this.audioPath = this.getFinalPath(audioPath, this.libraryPath, "audio");
+    this.videoPath = this.getFinalPath(videoPath, this.libraryPath, "video");
+    this.vlcPath = this.getFinalPath(vlcPath, this.dependencyPath, "vlc");
     this.diagnostics = new SystemDiagnostics(this);
+    this.initLogger();
+    this.initPacketHandler();
+    this.initializeProviders();
+    this.initializeStream();
     this.loader = (loader == null ? new DependencyLoader(this) : loader);
+  }
+
+  private void initPacketHandler() {
+    this.handler =
+        new NMSReflectionHandler(this)
+            .getNewPacketHandlerInstance()
+            .orElseThrow(AssertionError::new);
+  }
+
+  private void initLogger() {
+    try {
+      this.logger = new ManualLogger(this);
+      this.logger.start();
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private @NotNull Path getFinalPath(
+      @Nullable final Path path, @NotNull final Path folder, @NotNull final String name) {
+    return (path == null ? folder.resolve(name) : path).toAbsolutePath();
   }
 
   @Override
   public void initialize() throws ExecutionException, InterruptedException {
     this.registrationListener = new RegistrationListener(this);
     this.createFolders();
-    this.getPacketInstance();
     this.loader.start();
-    this.initializeStream();
-    this.initializeProviders();
     this.sendUsageTips();
   }
 
@@ -131,14 +139,8 @@ public final class EzMediaCore implements MediaLibraryCore {
         .forEach(ThrowingConsumer.unchecked(Files::createDirectories));
   }
 
-  private void getPacketInstance() {
-    this.handler =
-        NMSReflectionHandler.getNewPacketHandlerInstance().orElseThrow(AssertionError::new);
-  }
-
   private void initializeStream() {
-    IntStream.range(0, 5).parallel().forEach(key -> {
-    }); // jump start int stream
+    IntStream.range(0, 5).parallel().forEach(key -> {}); // jump start int stream
   }
 
   private void initializeProviders() {
@@ -155,18 +157,18 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void sendWarningMessage() {
-    Logger.warn(Locale.SERVER_SOFTWARE_TIP);
+    this.logger.warn(Locale.SERVER_SOFTWARE_TIP);
   }
 
   private void sendPacketCompressionTip() {
     if (Bukkit.getOnlineMode()) {
-      Logger.warn(Locale.PACKET_COMPRESSION_TIP);
+      this.logger.warn(Locale.PACKET_COMPRESSION_TIP);
     }
   }
 
   private void sendSpotifyWarningMessage(@NotNull final MediaLibraryCore core) {
     if (core.getSpotifyClient() == null) {
-      Logger.warn(Locale.WARN_SPOTIFY_AUTH);
+      this.logger.warn(Locale.WARN_SPOTIFY_AUTH);
     }
   }
 
@@ -174,7 +176,11 @@ public final class EzMediaCore implements MediaLibraryCore {
   public void shutdown() {
     this.disabled = true;
     HandlerList.unregisterAll(this.registrationListener);
-    Logger.closeAllLoggers();
+    try {
+      this.logger.close();
+    } catch (final Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
@@ -260,6 +266,11 @@ public final class EzMediaCore implements MediaLibraryCore {
   @Override
   public @NotNull LibraryLoader getLibraryLoader() {
     return this.loader;
+  }
+
+  @Override
+  public @NotNull CoreLogger getLogger() {
+    return this.logger;
   }
 
   @Override

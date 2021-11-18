@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,12 +50,7 @@ public class ResourcepackWrapper implements PackWrapper {
   private final int format;
   private final Path icon;
 
-  public ResourcepackWrapper(
-      @NotNull final Path path, @NotNull final String description, final int format) {
-    this(path, description, format, null);
-  }
-
-  public ResourcepackWrapper(
+  ResourcepackWrapper(
       @NotNull final Path path,
       @NotNull final String description,
       final int format,
@@ -65,6 +61,21 @@ public class ResourcepackWrapper implements PackWrapper {
     this.format = format;
     this.icon = icon;
     this.validatePack();
+  }
+
+  @Contract("_, _, _ -> new")
+  public static @NotNull ResourcepackWrapper ofPack(
+      @NotNull final Path path, @NotNull final String description, final int format) {
+    return ofPack(path, description, format, null);
+  }
+
+  @Contract("_, _, _, _ -> new")
+  public static @NotNull ResourcepackWrapper ofPack(
+      @NotNull final Path path,
+      @NotNull final String description,
+      final int format,
+      @Nullable final Path icon) {
+    return new ResourcepackWrapper(path, description, format, icon);
   }
 
   private void validatePack() {
@@ -110,12 +121,10 @@ public class ResourcepackWrapper implements PackWrapper {
   }
 
   @Override
-  public void onPackStartWrap() {
-  }
+  public void onPackStartWrap() {}
 
   @Override
-  public void onPackFinishWrap() {
-  }
+  public void onPackFinishWrap() {}
 
   @Override
   public void addFile(@NotNull final String path, @NotNull final Path file) throws IOException {

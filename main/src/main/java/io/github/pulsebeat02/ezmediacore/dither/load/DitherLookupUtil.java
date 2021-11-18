@@ -23,10 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.dither.load;
 
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.annotation.Author;
 import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
-import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +42,6 @@ public final class DitherLookupUtil {
     COLOR_MAP = new byte[128 * 128 * 128];
     FULL_COLOR_MAP = new int[128 * 128 * 128];
     final List<Integer> colors = new ArrayList<>();
-    final long start = System.nanoTime();
     for (int i = 0; i < 256; ++i) {
       try {
         final Color color = MapPalette.getColor((byte) i);
@@ -77,7 +74,6 @@ public final class DitherLookupUtil {
       }
     }
 
-    Logger.info(Locale.COLOR_LOOKUP.build((System.nanoTime() - start) / 1_000_000.0));
   }
 
   public static int[] getPalette() {

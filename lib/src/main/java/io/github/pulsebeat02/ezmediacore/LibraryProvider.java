@@ -36,10 +36,10 @@ import org.jetbrains.annotations.Nullable;
 
 public final class LibraryProvider {
 
-  private static final Map<Plugin, WeakReference<MediaLibraryCore>> instantiated;
+  private static final Map<Plugin, WeakReference<MediaLibraryCore>> INSTANTIATED;
 
   static {
-    instantiated = new WeakHashMap<>();
+    INSTANTIATED = new WeakHashMap<>();
   }
 
   private Plugin plugin;
@@ -62,23 +62,23 @@ public final class LibraryProvider {
   }
 
   public static boolean getLibraryStatus(@NotNull final Plugin plugin) {
-    return instantiated.containsKey(plugin);
+    return INSTANTIATED.containsKey(plugin);
   }
 
   public static <T extends JavaPlugin> boolean getLibraryStatus(@NotNull final Class<T> clazz) {
-    return instantiated.containsKey(JavaPlugin.getPlugin(clazz));
+    return INSTANTIATED.containsKey(JavaPlugin.getPlugin(clazz));
   }
 
   public static MediaLibraryCore getLibraryInstance(@NotNull final Plugin plugin) {
-    return instantiated.get(plugin).get();
+    return INSTANTIATED.get(plugin).get();
   }
 
   private static MediaLibraryCore checkValidity(
       final Plugin plugin, final MediaLibraryCore library) {
-    if (instantiated.containsKey(plugin)) {
-      return instantiated.get(plugin).get();
+    if (INSTANTIATED.containsKey(plugin)) {
+      return INSTANTIATED.get(plugin).get();
     }
-    instantiated.put(plugin, new WeakReference<>(library));
+    INSTANTIATED.put(plugin, new WeakReference<>(library));
     return library;
   }
 
@@ -145,7 +145,7 @@ public final class LibraryProvider {
             this.audioPath,
             this.videoPath,
             this.client);
-    instantiated.put(this.plugin, new WeakReference<>(core));
+    INSTANTIATED.put(this.plugin, new WeakReference<>(core));
     return core;
   }
 }

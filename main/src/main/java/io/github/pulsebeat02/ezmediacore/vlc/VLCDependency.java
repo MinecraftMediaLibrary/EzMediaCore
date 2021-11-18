@@ -24,7 +24,6 @@
 package io.github.pulsebeat02.ezmediacore.vlc;
 
 import io.github.pulsebeat02.emcinstallers.implementation.vlc.VLCInstallationKit;
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.io.IOException;
@@ -45,7 +44,7 @@ public final class VLCDependency {
   private void start() throws IOException {
     VLCInstallationKit.create(this.folder).start().ifPresent((path) -> {
       this.core.setVLCStatus(true);
-      Logger.info(Locale.BINARY_PATHS.build("VLC", path));
+      this.core.getLogger().info(Locale.BINARY_PATHS.build("VLC", path));
     });
   }
 }

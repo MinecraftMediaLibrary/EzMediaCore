@@ -30,7 +30,6 @@ import com.github.kokorin.jaffree.ffmpeg.FFmpegResultFuture;
 import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Identifier;
@@ -127,7 +126,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
                 "-vf", "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()))
             .setLogLevel(LogLevel.FATAL)
             .setProgressListener((line) -> {})
-            .setOutputListener(Logger::directPrintFFmpegPlayer);
+            .setOutputListener(line -> this.getCore().getLogger().ffmpegPlayer(line));
     for (int i = 1; i < arguments.length; i++) {
       this.ffmpeg.addArgument(arguments[i].toString());
     }

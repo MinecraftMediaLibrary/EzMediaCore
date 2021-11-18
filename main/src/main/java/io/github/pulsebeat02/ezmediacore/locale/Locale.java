@@ -46,7 +46,6 @@ public interface Locale {
           Spotify API Client ID and Client Secret not specified! You will not be able
           to use any Spotify related features.
       """;
-  NullComponent ERR_EXCEPTION_CMD = () -> "An exception occurred while executing the command!";
   NullComponent ERR_HOLOVID = () -> "Holovid (https://holovid.glare.dev) is down! Contact PulseBeat_02 for information!";
   UniComponent<Double> COLOR_LOOKUP = "Initial lookup table initialized in %s ms"::formatted;
   BiComponent<String, Path> BINARY_PATHS = "%s path: %s"::formatted;

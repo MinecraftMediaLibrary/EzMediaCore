@@ -23,7 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.rtp.RTPStreamingServer;
@@ -88,8 +87,8 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor
   }
 
   @Override
-  public void log(String line) {
-    Logger.directPrintFFmpegStream(line);
+  public void log(final String line) {
+    this.getCore().getLogger().ffmpegStream(line);
   }
 
   @Override

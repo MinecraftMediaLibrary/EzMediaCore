@@ -97,7 +97,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
         daemon.startServer();
       }
       final ResourcepackSoundWrapper wrapper =
-          new ResourcepackSoundWrapper(
+          ResourcepackSoundWrapper.ofSoundPack(
               daemon.getDaemon().getServerPath().resolve("resourcepack.zip"), "Audio Pack", 6);
       wrapper.addSound(
           loader.getName().toLowerCase(java.util.Locale.ROOT), this.attributes.getAudio());

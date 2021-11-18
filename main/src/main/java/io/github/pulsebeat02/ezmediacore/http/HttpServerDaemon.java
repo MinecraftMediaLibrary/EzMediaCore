@@ -23,9 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.http;
 
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipHeader;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipRequest;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
@@ -37,6 +35,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class HttpServerDaemon implements HttpDaemon, ZipRequest {
@@ -47,6 +46,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
     HTTP_REQUEST_POOL = Executors.newCachedThreadPool();
   }
 
+  private final MediaLibraryCore core;
   private final Path directory;
   private final String ip;
   private final int port;
@@ -56,8 +56,13 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
 
   private ServerSocket socket;
 
-  public HttpServerDaemon(
-      @NotNull final Path path, @NotNull final String ip, final int port, final boolean verbose) {
+  HttpServerDaemon(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final Path path,
+      @NotNull final String ip,
+      final int port,
+      final boolean verbose) {
+    this.core = core;
     this.running = new AtomicBoolean(false);
     this.directory = path;
     this.ip = ip;
@@ -67,16 +72,27 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
     this.logServerInformation();
   }
 
-  public HttpServerDaemon(
+  @Contract("_, _, _, _ -> new")
+  public static @NotNull HttpServerDaemon ofDaemon(
       @NotNull final MediaLibraryCore core,
       @NotNull final String ip,
       final int port,
       final boolean verbose) {
-    this(core.getHttpServerPath(), ip, port, verbose);
+    return ofDaemon(core, core.getHttpServerPath(), ip, port, verbose);
+  }
+
+  @Contract("_, _, _, _, _ -> new")
+  public static @NotNull HttpServerDaemon ofDaemon(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final Path path,
+      @NotNull final String ip,
+      final int port,
+      final boolean verbose) {
+    return new HttpServerDaemon(core, path, ip, port, verbose);
   }
 
   private void logServerInformation() {
-    Logger.info(Locale.HTTP_INFO.build(this.ip, this.port, this.directory));
+    this.core.getLogger().info(Locale.HTTP_INFO.build(this.ip, this.port, this.directory));
   }
 
   @Override
@@ -155,5 +171,10 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   @Override
   public @NotNull ZipHeader getHeader() {
     return this.header;
+  }
+
+  @Override
+  public @NotNull MediaLibraryCore getCore() {
+    return this.core;
   }
 }

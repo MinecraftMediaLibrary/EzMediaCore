@@ -190,7 +190,7 @@ public final class VideoCommand extends BaseCommand {
       throws IOException {
     final DeluxeMediaPlugin plugin = this.plugin();
     final ResourcepackSoundWrapper wrapper =
-        new ResourcepackSoundWrapper(
+        ResourcepackSoundWrapper.ofSoundPack(
             plugin.getHttpServer().getDaemon().getServerPath().resolve("resourcepack.zip"),
             "Video Pack",
             6);

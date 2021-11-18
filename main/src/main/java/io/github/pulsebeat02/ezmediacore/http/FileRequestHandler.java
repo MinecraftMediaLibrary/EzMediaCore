@@ -23,7 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.http;
 
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.http.request.FileRequest;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipHeader;
 import java.io.BufferedReader;
@@ -91,8 +90,8 @@ public class FileRequestHandler implements FileRequest {
     try {
       return this.produceHeader(file).getBytes(StandardCharsets.UTF_8);
     } catch (final IOException e) {
+      e.printStackTrace();
       this.daemon.onRequestFailure(this.client);
-      Logger.info(e.getMessage());
     }
     return new byte[] {};
   }
@@ -185,7 +184,7 @@ public class FileRequestHandler implements FileRequest {
 
   private void verbose(final String info) {
     if (this.daemon.isVerbose()) {
-      Logger.info(info);
+      this.daemon.getCore().getLogger().info(info);
     }
   }
 }

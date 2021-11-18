@@ -23,7 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -159,7 +158,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
 
   @Override
   public void log(final String line) {
-    Logger.directPrintFFmpegStream(line);
+    this.core.getLogger().ffmpegStream(line);
   }
 
   @Override

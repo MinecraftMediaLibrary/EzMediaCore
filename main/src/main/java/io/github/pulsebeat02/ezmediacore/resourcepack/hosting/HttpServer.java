@@ -34,6 +34,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class HttpServer implements HttpDaemonSolution {
@@ -42,10 +43,12 @@ public class HttpServer implements HttpDaemonSolution {
 
   static {
     try {
-      HTTP_SERVER_IP = HttpClient.newHttpClient().send(
-          HttpRequest.newBuilder()
-              .uri(new URI("https://myexternalip.com/raw"))
-              .build(), HttpResponse.BodyHandlers.ofString()).body();
+      HTTP_SERVER_IP =
+          HttpClient.newHttpClient()
+              .send(
+                  HttpRequest.newBuilder().uri(new URI("https://myexternalip.com/raw")).build(),
+                  HttpResponse.BodyHandlers.ofString())
+              .body();
     } catch (final IOException | URISyntaxException | InterruptedException e) {
       HTTP_SERVER_IP = "127.0.0.1"; // fallback ip
       e.printStackTrace();
@@ -55,37 +58,63 @@ public class HttpServer implements HttpDaemonSolution {
   private final HttpDaemon daemon;
   private boolean running;
 
-  public HttpServer(@NotNull final Path path, final int port) throws IOException {
-    this(path, HTTP_SERVER_IP, port, true);
-  }
-
-  public HttpServer(@NotNull final Path path, final int port, final boolean verbose)
+  public HttpServer(@NotNull final MediaLibraryCore core, @NotNull final Path path, final int port)
       throws IOException {
-    this(path, HTTP_SERVER_IP, port, verbose);
+    this(core, path, HTTP_SERVER_IP, port, true);
   }
 
-  public HttpServer(
-      @NotNull final Path path, @NotNull final String ip, final int port, final boolean verbose)
+  HttpServer(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final Path path,
+      @NotNull final String ip,
+      final int port,
+      final boolean verbose)
       throws IOException {
-    this.daemon = new HttpServerDaemon(path, ip, port, verbose);
+    this.daemon = HttpServerDaemon.ofDaemon(core, path, ip, port, verbose);
   }
 
-  public HttpServer(@NotNull final MediaLibraryCore core, final int port) throws IOException {
-    this(core, port, true);
-  }
-
-  public HttpServer(@NotNull final MediaLibraryCore core, final int port, final boolean verbose)
+  @Contract("_, _ -> new")
+  public static @NotNull HttpServer ofServer(@NotNull final MediaLibraryCore core, final int port)
       throws IOException {
-    this(core, HTTP_SERVER_IP, port, verbose);
+    return ofServer(core, port, true);
   }
 
-  public HttpServer(
+  @Contract("_, _, _ -> new")
+  public static @NotNull HttpServer ofServer(
+      @NotNull final MediaLibraryCore core, final int port, final boolean verbose)
+      throws IOException {
+    return ofServer(core, HTTP_SERVER_IP, port, verbose);
+  }
+
+  @Contract("_, _, _, _ -> new")
+  public static @NotNull HttpServer ofServer(
       @NotNull final MediaLibraryCore core,
       @NotNull final String ip,
       final int port,
       final boolean verbose)
       throws IOException {
-    this.daemon = new HttpServerDaemon(core, ip, port, verbose);
+    return new HttpServer(core, core.getHttpServerPath(), ip, port, verbose);
+  }
+
+  @Contract("_, _, _, _ -> new")
+  public static @NotNull HttpServer ofServer(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final Path path,
+      final int port,
+      final boolean verbose)
+      throws IOException {
+    return ofServer(core, path, HTTP_SERVER_IP, port, verbose);
+  }
+
+  @Contract("_, _, _, _, _ -> new")
+  public static @NotNull HttpServer ofServer(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final Path path,
+      @NotNull final String ip,
+      final int port,
+      final boolean verbose)
+      throws IOException {
+    return new HttpServer(core, path, ip, port, verbose);
   }
 
   @Override

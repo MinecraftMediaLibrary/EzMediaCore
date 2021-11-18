@@ -201,7 +201,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       daemon.startServer();
     }
     final ResourcepackSoundWrapper wrapper =
-        new ResourcepackSoundWrapper(
+        ResourcepackSoundWrapper.ofSoundPack(
             daemon.getDaemon().getServerPath().resolve("resourcepack.zip"),
             "Audio Resourcepack",
             PackFormat.getCurrentFormat().getId());

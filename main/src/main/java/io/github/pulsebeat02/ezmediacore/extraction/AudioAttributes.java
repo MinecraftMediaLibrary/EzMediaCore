@@ -24,6 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.extraction;
 
 import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public final class AudioAttributes implements AudioConfiguration {
@@ -35,7 +36,7 @@ public final class AudioAttributes implements AudioConfiguration {
   private final int samplingRate;
   private final int volume;
 
-  public AudioAttributes(
+  AudioAttributes(
       @NotNull final String codec,
       final int start,
       final int bitrate,
@@ -45,8 +46,8 @@ public final class AudioAttributes implements AudioConfiguration {
     Preconditions.checkArgument(start >= 0, "Invalid Start Time! (%d)".formatted(start));
     Preconditions.checkArgument(bitrate > 0, "Invalid Bitrate! (%d)".formatted(bitrate));
     Preconditions.checkArgument(channels > 0, "Invalid Channels! (%d)".formatted(channels));
-    Preconditions.checkArgument(samplingRate > 0,
-        "Invalid Sampling Rate! (%d)".formatted(samplingRate));
+    Preconditions.checkArgument(
+        samplingRate > 0, "Invalid Sampling Rate! (%d)".formatted(samplingRate));
     Preconditions.checkArgument(volume >= 0, "Invalid Volume! (%d)".formatted(volume));
     this.start = start;
     this.codec = codec;
@@ -63,6 +64,17 @@ public final class AudioAttributes implements AudioConfiguration {
       final int samplingRate,
       final int volume) {
     this(codec, 0, bitrate, channels, samplingRate, volume);
+  }
+
+  @Contract("_, _, _, _, _, _ -> new")
+  public static @NotNull AudioAttributes ofAudioAttributes(
+      @NotNull final String codec,
+      final int start,
+      final int bitrate,
+      final int channels,
+      final int samplingRate,
+      final int volume) {
+    return new AudioAttributes(codec, start, bitrate, channels, samplingRate, volume);
   }
 
   @Override

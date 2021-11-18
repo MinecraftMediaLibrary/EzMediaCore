@@ -23,7 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.rtp;
 
-import io.github.pulsebeat02.ezmediacore.Logger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import java.io.BufferedReader;
@@ -79,7 +78,7 @@ public class RTPStreamingServer implements StreamingServer {
       env.put("RTSP_HLSADDRESS", ":%s".formatted(this.hlsPort));
       try {
         this.process = builder.start();
-        handleLogging(logger, logger != null);
+        this.handleLogging(logger, logger != null);
       } catch (final IOException e) {
         e.printStackTrace();
       }
@@ -99,7 +98,7 @@ public class RTPStreamingServer implements StreamingServer {
         if (consume) {
           logger.accept(line);
         } else {
-          log(line);
+          this.log(line);
         }
       }
     }
@@ -107,7 +106,7 @@ public class RTPStreamingServer implements StreamingServer {
 
   @Override
   public void log(@NotNull final String line) {
-    Logger.directPrintRtp(line);
+    this.core.getLogger().rtp(line);
   }
 
   @Override
