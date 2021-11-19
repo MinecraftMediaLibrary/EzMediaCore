@@ -51,7 +51,7 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor
     this.output = "rtsp://localhost:8554/live.stream";
     this.clearArguments();
     this.addMultipleArguments(this.generateArguments(configuration));
-    this.server = new RTPStreamingServer(core, ip, port);
+    this.server = RTPStreamingServer.ofRtpServer(core, ip, port);
   }
 
   @Contract("_ -> new")

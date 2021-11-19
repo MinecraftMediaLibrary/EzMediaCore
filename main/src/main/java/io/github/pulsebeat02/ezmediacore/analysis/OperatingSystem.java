@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.analysis;
 
+import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -61,8 +62,9 @@ public final class OperatingSystem implements OperatingSystemInfo {
 
   private @NotNull Optional<String> retrieveLinuxDistribution() {
     try {
-      return Optional.of(this.getProcessOutput(
-          Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", "cat /etc/*-release"})));
+      return Optional.of(
+          this.getProcessOutput(
+              Runtime.getRuntime().exec(new String[] {"/bin/sh", "-c", "cat /etc/*-release"})));
     } catch (final IOException e) {
       return Optional.empty();
     }
@@ -70,8 +72,9 @@ public final class OperatingSystem implements OperatingSystemInfo {
 
   private @NotNull String getProcessOutput(@NotNull final Process process) throws IOException {
     final StringBuilder sb = new StringBuilder();
-    try (final BufferedReader br = new BufferedReader(
-        new InputStreamReader(process.getInputStream()))) {
+    try (final BufferedReader br =
+        new BufferedReader(
+            new InputStreamReader(new FastBufferedInputStream(process.getInputStream())))) {
       String line;
       while ((line = br.readLine()) != null) {
         sb.append(line);

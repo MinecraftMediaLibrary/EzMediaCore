@@ -25,7 +25,6 @@ package io.github.pulsebeat02.ezmediacore.image;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.GifDecoder;
 import java.io.FileInputStream;
 import java.io.IOException;

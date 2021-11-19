@@ -24,6 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -140,7 +141,8 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   private void handleLogging(@Nullable final Consumer<String> logger, final boolean consume)
       throws IOException {
     try (final BufferedReader r =
-        new BufferedReader(new InputStreamReader(this.process.getInputStream()))) {
+        new BufferedReader(
+            new InputStreamReader(new FastBufferedInputStream(this.process.getInputStream())))) {
       String line;
       while (true) {
         line = r.readLine();
@@ -203,12 +205,10 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public void onBeforeExecution() {
-  }
+  public void onBeforeExecution() {}
 
   @Override
-  public void onAfterExecution() {
-  }
+  public void onAfterExecution() {}
 
   @Override
   public boolean isCompleted() {

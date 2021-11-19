@@ -73,6 +73,7 @@ tasks {
         relocate("io.github.slimjar", "io.github.pulsebeat02.ezmediacore.lib.slimjar")
         relocate("org.jcodec", "io.github.pulsebeat02.ezmediacore.lib.jcodec")
         relocate("com.github.benmanes.caffeine", "io.github.pulsebeat02.ezmediacore.lib.caffeine")
+        relocate("it.unimi.dsi.fastutil", "io.github.pulsebeat02.ezmediacore.lib.fastutil")
     }
 
 }

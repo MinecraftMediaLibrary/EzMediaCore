@@ -25,6 +25,7 @@ package io.github.pulsebeat02.ezmediacore.http;
 
 import io.github.pulsebeat02.ezmediacore.http.request.FileRequest;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipHeader;
+import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -113,7 +114,9 @@ public class FileRequestHandler implements FileRequest {
     this.daemon.onClientConnection(this.client);
     boolean flag = false;
     try (final BufferedReader in =
-            new BufferedReader(new InputStreamReader(this.client.getInputStream(), "8859_1"));
+            new BufferedReader(
+                new InputStreamReader(
+                    new FastBufferedInputStream(this.client.getInputStream()), "8859_1"));
         final OutputStream out = this.client.getOutputStream();
         final PrintWriter pout = new PrintWriter(new OutputStreamWriter(out, "8859_1"), true)) {
       final InetAddress address = this.client.getInetAddress();
@@ -139,7 +142,7 @@ public class FileRequestHandler implements FileRequest {
     this.verbose("Received request '%s' from %s".formatted(request, address.toString()));
     final Matcher get = GET_REQUEST.matcher(request);
     if (get.matches()) {
-      if (!this.handleGetRequest(address, out, pout, get)) {
+      if (!this.handleGetRequest(address, out, get)) {
         pout.println(INVALID_PATH);
       }
     } else {
@@ -152,7 +155,6 @@ public class FileRequestHandler implements FileRequest {
   private boolean handleGetRequest(
       @NotNull final InetAddress address,
       @NotNull final OutputStream out,
-      @NotNull final PrintWriter writer,
       @NotNull final Matcher get)
       throws IOException {
     final String group = get.group(1);

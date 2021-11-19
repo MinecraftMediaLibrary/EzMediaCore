@@ -25,6 +25,7 @@ package io.github.pulsebeat02.ezmediacore.rtp;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
+import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -33,6 +34,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,24 +46,35 @@ public class RTPStreamingServer implements StreamingServer {
   private final AtomicBoolean cancelled;
   private Process process;
 
-  public RTPStreamingServer(@NotNull final MediaLibraryCore core) {
-    this(core, HttpServer.HTTP_SERVER_IP, 8888);
-  }
-
-  public RTPStreamingServer(@NotNull final MediaLibraryCore core, @NotNull final String url) {
-    this(core, url, 8888);
-  }
-
-  public RTPStreamingServer(@NotNull final MediaLibraryCore core, final int port) {
-    this(core, HttpServer.HTTP_SERVER_IP, port);
-  }
-
-  public RTPStreamingServer(
+  RTPStreamingServer(
       @NotNull final MediaLibraryCore core, @NotNull final String ip, final int hlsPort) {
     this.core = core;
     this.ip = ip;
     this.hlsPort = hlsPort;
     this.cancelled = new AtomicBoolean(false);
+  }
+
+  @Contract(value = "_ -> new", pure = true)
+  public static @NotNull RTPStreamingServer ofRtpServer(@NotNull final MediaLibraryCore core) {
+    return ofRtpServer(core, HttpServer.HTTP_SERVER_IP, 8080);
+  }
+
+  @Contract(value = "_, _ -> new", pure = true)
+  public static @NotNull RTPStreamingServer ofRtpServer(
+      @NotNull final MediaLibraryCore core, final int port) {
+    return ofRtpServer(core, HttpServer.HTTP_SERVER_IP, port);
+  }
+
+  @Contract(value = "_, _ -> new", pure = true)
+  public static @NotNull RTPStreamingServer ofRtpServer(
+      @NotNull final MediaLibraryCore core, @NotNull final String ip) {
+    return ofRtpServer(core, ip, 8080);
+  }
+
+  @Contract(value = "_, _, _ -> new", pure = true)
+  public static @NotNull RTPStreamingServer ofRtpServer(
+      @NotNull final MediaLibraryCore core, @NotNull final String ip, final int hlsPort) {
+    return new RTPStreamingServer(core, ip, hlsPort);
   }
 
   @Override
@@ -88,7 +101,8 @@ public class RTPStreamingServer implements StreamingServer {
   private void handleLogging(@Nullable final Consumer<String> logger, final boolean consume)
       throws IOException {
     try (final BufferedReader r =
-        new BufferedReader(new InputStreamReader(this.process.getInputStream()))) {
+        new BufferedReader(
+            new InputStreamReader(new FastBufferedInputStream(this.process.getInputStream())))) {
       String line;
       while (true) {
         line = r.readLine();

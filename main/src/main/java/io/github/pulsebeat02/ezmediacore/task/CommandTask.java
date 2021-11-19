@@ -45,6 +45,7 @@
 
 package io.github.pulsebeat02.ezmediacore.task;
 
+import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -69,7 +70,7 @@ public class CommandTask {
   /**
    * Instantiates a CommandTask.
    *
-   * @param command       command
+   * @param command command
    * @param runOnCreation whether it should be ran instantly
    * @throws IOException if the command isn't valid (when ran instantly)
    */
@@ -108,7 +109,8 @@ public class CommandTask {
   public @NotNull String getOutput() throws IOException {
     final StringBuilder output = new StringBuilder();
     final BufferedReader br =
-        new BufferedReader(new InputStreamReader(this.process.getInputStream()));
+        new BufferedReader(
+            new InputStreamReader(new FastBufferedInputStream(this.process.getInputStream())));
     String str;
     while ((str = br.readLine()) != null) {
       output.append(str);

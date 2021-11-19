@@ -42,7 +42,8 @@ dependencies {
         "org.jcodec:jcodec:0.2.5",
         "com.github.ben-manes.caffeine:caffeine:3.0.3",
         "io.github.pulsebeat02:jarchivelib:v1.4.0",
-        "io.github.pulsebeat02:emc-installers:v1.0.1"
+        "io.github.pulsebeat02:emc-installers:v1.0.1",
+        "it.unimi.dsi:fastutil:8.5.6"
     ).forEach {
         slim(it)
         "testImplementation"(it)
@@ -71,4 +72,5 @@ tasks.withType<SlimJar> {
     relocate("io.github.slimjar", "io.github.pulsebeat02.ezmediacore.lib.slimjar")
     relocate("org.jcodec", "io.github.pulsebeat02.ezmediacore.lib.jcodec")
     relocate("com.github.benmanes.caffeine", "io.github.pulsebeat02.ezmediacore.lib.caffeine")
+    relocate("it.unimi.dsi.fastutil", "io.github.pulsebeat02.ezmediacore.lib.fastutil")
 }

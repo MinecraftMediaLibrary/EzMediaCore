@@ -25,6 +25,7 @@ package io.github.pulsebeat02.ezmediacore.utility.graphics;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
+import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.awt.AlphaComposite;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -61,13 +62,13 @@ public final class VideoFrameUtils {
     RGB_TO_BGR = new RgbToBgr();
   }
 
-  private VideoFrameUtils() {
-  }
+  private VideoFrameUtils() {}
 
   public static @NotNull BufferedImage toBufferedImage(@NotNull Picture src) {
     final ColorSpace space = src.getColor();
     if (space != ColorSpace.BGR) {
-      final Picture bgr = Picture.createCropped(src.getWidth(), src.getHeight(), ColorSpace.BGR, src.getCrop());
+      final Picture bgr =
+          Picture.createCropped(src.getWidth(), src.getHeight(), ColorSpace.BGR, src.getCrop());
       if (space == ColorSpace.RGB) {
         RGB_TO_BGR.transform(src, bgr);
       } else {
@@ -192,16 +193,16 @@ public final class VideoFrameUtils {
     throw new IOException("Not a known image file: " + file.toAbsolutePath());
   }
 
-
-  public static OptionalDouble getFrameRate(@NotNull final MediaLibraryCore core, @NotNull final Path video)
-      throws IOException {
+  public static OptionalDouble getFrameRate(
+      @NotNull final MediaLibraryCore core, @NotNull final Path video) throws IOException {
     final Path binary = core.getFFmpegPath();
     try (final BufferedReader r =
         new BufferedReader(
             new InputStreamReader(
-                new ProcessBuilder(binary.toString(), "-i", video.toString())
-                    .start()
-                    .getErrorStream()))) { // ffmpeg always thinks its an error
+                new FastBufferedInputStream(
+                    new ProcessBuilder(binary.toString(), "-i", video.toString())
+                        .start()
+                        .getErrorStream())))) { // ffmpeg always thinks its an error
       String line;
       while (true) {
         line = r.readLine();

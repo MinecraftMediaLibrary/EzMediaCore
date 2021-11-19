@@ -122,7 +122,7 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
           final long passed = Instant.now().toEpochMilli() - this.start;
           Pair<int[], Long> skip = this.frames.take();
           while (skip.getValue() <= passed) {
-            for (int i = 0; i <= 5; i++) {
+            for (int i = 0; i <= 3; i++) {
               skip = this.frames.take();
             }
           }
