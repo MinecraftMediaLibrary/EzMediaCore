@@ -154,6 +154,27 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
         final int xPixMax = xDiff + topX;
         final int yPixMax = yDiff + topY;
         final byte[] mapData = new byte[xDiff * yDiff];
+
+        //        IMPLEMENTATION #1
+        //        IntStream.range(topY, yPixMax).parallel().forEach(iy -> {
+        //          final int yPos = relY + iy;
+        //          final int indexY = (yPos - yOff) * videoWidth;
+        //          IntStream.range(topX, xPixMax).parallel().forEach(ix -> {
+        //            final int val = (iy - topY) * xDiff + ix - topX;
+        //            mapData[val] = rgb.get(indexY + relX + ix - xOff);
+        //          });
+        //        });
+
+        //        IMPLEMENTATION #2
+        //        IntStream.range(topY, yPixMax).parallel().forEach(iy -> {
+        //          final int yPos = relY + iy;
+        //          final int indexY = (yPos - yOff) * videoWidth;
+        //          for (int ix = topX; ix < xPixMax; ix++) {
+        //            final int val = (iy - topY) * xDiff + ix - topX;
+        //            mapData[val] = rgb.get(indexY + relX + ix - xOff);
+        //          }
+        //        });
+
         for (int iy = topY; iy < yPixMax; iy++) {
           final int yPos = relY + iy;
           final int indexY = (yPos - yOff) * videoWidth;
@@ -162,6 +183,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
             mapData[val] = rgb.get(indexY + relX + ix - xOff);
           }
         }
+
         final int mapId = map + width * y + x;
         final PacketPlayOutMap packet =
             new PacketPlayOutMap(
@@ -225,19 +247,10 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
       final int width,
       final int height) {
     for (int y = 0; y < height; ++y) {
-      int before = -1;
-      final StringBuilder msg = new StringBuilder();
-      for (int x = 0; x < width; ++x) {
-        final int rgb = data[width * y + x];
-        if (before != rgb) {
-          msg.append(ChatColor.of("#" + Integer.toHexString(rgb).substring(2)));
-        }
-        msg.append(character);
-        before = rgb;
-      }
       for (final UUID uuid : viewers) {
         final PlayerConnection connection = this.connections.get(uuid);
-        final IChatBaseComponent[] base = CraftChatMessage.fromString(msg.toString());
+        final IChatBaseComponent[] base =
+            CraftChatMessage.fromString(this.createChatComponent(character, data, width, y));
         for (final IChatBaseComponent component : base) {
           connection.sendPacket(new PacketPlayOutChat(component, ChatMessageType.b, SystemUtils.b));
         }
@@ -254,21 +267,26 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
       final int width,
       final int height) {
     for (int y = 0; y < height; ++y) {
-      int before = -1;
-      final StringBuilder msg = new StringBuilder();
-      for (int x = 0; x < width; ++x) {
-        final int rgb = data[width * y + x];
-        if (before != rgb) {
-          msg.append(ChatColor.of("#" + Integer.toHexString(rgb).substring(2)));
-        }
-        msg.append("█");
-        before = rgb;
-      }
+      StringBuilder msg;
       final Team team = scoreboard.getTeam("SLOT_" + y);
       if (team != null) {
-        team.setSuffix(msg.toString());
+        team.setSuffix(this.createChatComponent(character, data, width, y).toString());
       }
     }
+  }
+
+  private @NotNull String createChatComponent(final String character, final int[] data, final int width, final int y) {
+    int before = -1;
+    final StringBuilder msg = new StringBuilder();
+    for (int x = 0; x < width; ++x) {
+      final int rgb = data[width * y + x];
+      if (before != rgb) {
+        msg.append(ChatColor.of("#" + Integer.toHexString(rgb).substring(2)));
+      }
+      msg.append(character);
+      before = rgb;
+    }
+    return msg.toString();
   }
 
   @Override
