@@ -25,9 +25,13 @@ package io.github.pulsebeat02.deluxemediaplugin;
 
 import io.github.pulsebeat02.deluxemediaplugin.message.Sender;
 import io.github.slimjar.app.builder.ApplicationBuilder;
+import io.github.slimjar.resolver.data.Repository;
+import io.github.slimjar.resolver.mirrors.SimpleMirrorSelector;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.logging.Logger;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -46,7 +50,11 @@ public final class DeluxeMediaPluginBootstrap extends JavaPlugin {
     final Logger logger = this.getLogger();
     logger.info(InternalLocale.SLIMJAR_LOAD.build());
     try {
-      ApplicationBuilder.appending("DeluxeMediaPlugin").build();
+      ApplicationBuilder.appending("DeluxeMediaPlugin")
+          .mirrorSelector((repository, collection) -> repository)
+          .internalRepositories(
+              Collections.singleton(new Repository(new URL(SimpleMirrorSelector.ALT_CENTRAL_URL))))
+          .build();
     } catch (final IOException
         | NoSuchAlgorithmException
         | URISyntaxException

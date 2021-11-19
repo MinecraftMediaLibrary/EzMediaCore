@@ -54,6 +54,10 @@ dependencies {
     }
 }
 
+tasks.withType<Test> {
+    enabled = false;
+}
+
 tasks.withType<SlimJar> {
     relocate("uk.co.caprica.vlcj", "io.github.pulsebeat02.ezmediacore.lib.vlcj")
     relocate("uk.co.caprica.vlcj.binding", "io.github.pulsebeat02.ezmediacore.lib.vlcj.binding")
