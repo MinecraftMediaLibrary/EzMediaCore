@@ -25,8 +25,8 @@ package io.github.pulsebeat02.ezmediacore.resourcepack;
 
 import com.google.gson.JsonObject;
 import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
-import io.github.pulsebeat02.ezmediacore.throwable.InvalidPackFormatException;
-import io.github.pulsebeat02.ezmediacore.throwable.InvalidPackResourceException;
+import io.github.pulsebeat02.ezmediacore.throwable.IllegalPackFormatException;
+import io.github.pulsebeat02.ezmediacore.throwable.IllegalPackResourceException;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
 import io.github.pulsebeat02.ezmediacore.utility.io.ResourcepackUtils;
@@ -80,10 +80,10 @@ public class ResourcepackWrapper implements PackWrapper {
 
   private void validatePack() {
     if (!ResourcepackUtils.validatePackFormat(this.format)) {
-      throw new InvalidPackFormatException(this.format);
+      throw new IllegalPackFormatException(this.format);
     }
     if (this.icon != null && !ResourcepackUtils.validateResourcepackIcon(this.icon)) {
-      throw new InvalidPackResourceException(
+      throw new IllegalPackResourceException(
           "Invalid Pack Icon! Must be PNG (%s)".formatted(PathUtils.getName(this.icon)));
     }
   }

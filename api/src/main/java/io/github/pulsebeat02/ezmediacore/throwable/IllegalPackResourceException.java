@@ -21,18 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package io.github.pulsebeat02.ezmediacore.throwable;
 
 import java.io.Serial;
 import org.jetbrains.annotations.NotNull;
 
-public class InvalidMRLException extends LibraryException {
+public final class IllegalPackResourceException extends LibraryException {
 
   @Serial
-  private static final long serialVersionUID = 6350588543681340867L;
+  private static final long serialVersionUID = 1682368011870345638L;
 
-  public InvalidMRLException(@NotNull final String mrl) {
-    super("Invalid MRL %s".formatted(mrl));
+  public IllegalPackResourceException(@NotNull final String message) {
+    super("Resourcepack Exception: %s".formatted(message));
   }
 }

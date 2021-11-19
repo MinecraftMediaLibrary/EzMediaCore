@@ -34,6 +34,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
 
@@ -96,6 +97,6 @@ public final class FileUtils {
   }
 
   public static @NotNull String getFirstLine(@NotNull final Path file) throws IOException {
-    return Files.lines(file).findFirst().orElseThrow(AssertionError::new);
+    return Files.lines(file).findFirst().orElseThrow(NoSuchElementException::new);
   }
 }

@@ -3,7 +3,7 @@ package io.github.pulsebeat02.ezmediacore.player.buffered;
 import com.github.kokorin.jaffree.ffmpeg.Frame;
 import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
-import io.github.pulsebeat02.ezmediacore.throwable.InvalidStreamHeaderException;
+import io.github.pulsebeat02.ezmediacore.throwable.IllegalStreamHeaderException;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.VideoFrameUtils;
 import java.awt.image.BufferedImage;
 import java.time.Instant;
@@ -26,7 +26,7 @@ public final class FFmpegFrameConsumer implements FrameConsumer {
         streams.stream()
             .mapToInt(Stream::getId)
             .max()
-            .orElseThrow(InvalidStreamHeaderException::new);
+            .orElseThrow(IllegalStreamHeaderException::new);
 
     // create our lookup table
     this.calculations = new float[max + 1];

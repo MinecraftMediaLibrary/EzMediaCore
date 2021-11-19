@@ -26,7 +26,6 @@ package io.github.pulsebeat02.ezmediacore.utility.io;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.listener.ForcefulResourcepackListener;
 import io.github.pulsebeat02.ezmediacore.resourcepack.PackFormat;
-import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;

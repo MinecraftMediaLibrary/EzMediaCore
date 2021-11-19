@@ -33,6 +33,7 @@ import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyProvider;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.YoutubeProvider;
 import io.github.pulsebeat02.ezmediacore.reflect.NMSReflectionHandler;
+import io.github.pulsebeat02.ezmediacore.throwable.UnsupportedServerException;
 import io.github.pulsebeat02.ezmediacore.utility.search.StringSearch;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import java.io.IOException;
@@ -102,7 +103,7 @@ public final class EzMediaCore implements MediaLibraryCore {
     this.handler =
         new NMSReflectionHandler(this)
             .getNewPacketHandlerInstance()
-            .orElseThrow(AssertionError::new);
+            .orElseThrow(UnsupportedServerException::new);
   }
 
   private void initLogger() {
@@ -146,8 +147,8 @@ public final class EzMediaCore implements MediaLibraryCore {
   private void initializeProviders() {
     DitherLookupUtil.init();
     StringSearch.init();
-    SpotifyProvider.initialize(this);
-    YoutubeProvider.initialize(this);
+    SpotifyProvider.init(this);
+    YoutubeProvider.init(this);
   }
 
   private void sendUsageTips() {

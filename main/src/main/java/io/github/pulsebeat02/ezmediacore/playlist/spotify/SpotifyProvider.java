@@ -34,7 +34,7 @@ public final class SpotifyProvider {
   private SpotifyProvider() {
   }
 
-  public static void initialize(@NotNull final MediaLibraryCore core) {
+  public static void init(@NotNull final MediaLibraryCore core) {
     final SpotifyClient client = core.getSpotifyClient();
     if (client != null) {
       SPOTIFY_API =
