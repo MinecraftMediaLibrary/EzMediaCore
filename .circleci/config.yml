@@ -21,7 +21,8 @@ jobs:
       - run: wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
       - run: java -jar BuildTools.jar --rev 1.16.5
       - run: java -jar BuildTools.jar --rev 1.17.1
-      - run: ./gradlew shadowJar
+      - run: git clone https://github.com/slimjar/slimjar.git slimjar; cd ./slimjar; ./gradlew publishToMavenLocal
+      - run: ./gradlew build
       - store_artifacts:
           path: deluxemediaplugin/build/libs/DeluxeMediaPlugin-all.jar
 #      - discord/notify:
