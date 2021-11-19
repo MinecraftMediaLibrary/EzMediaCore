@@ -33,16 +33,9 @@ import org.jetbrains.annotations.Unmodifiable;
 
 public class WebsiteControls implements WebPlayerControls {
 
-  private final String url;
-  private final Collection<String> songs;
-  private final PlaylistType type;
-  private final MutableInt index;
-
   public WebsiteControls(final String url, @NotNull final PlaylistType type) {
-    this.url = url;
-    this.songs = this.getSongs();
-    this.type = type;
-    this.index = new MutableInt(0);
+    final Collection<String> songs = this.getSongs();
+    final MutableInt index = new MutableInt(0);
   }
 
   @Contract(pure = true)

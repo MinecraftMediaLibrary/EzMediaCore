@@ -46,15 +46,13 @@ public abstract class M3uStreamSegmentUrlProvider {
 
   private static final long SEGMENT_WAIT_STEP_MS = 200;
 
-  private final String url;
   private SegmentInfo lastSegment;
 
   public M3uStreamSegmentUrlProvider(@NotNull final String url) {
-    this.url = url;
   }
 
   abstract String fetchSegmentPlaylistUrl(@NotNull final HttpInterface httpInterface)
-      throws IOException;
+      ;
 
   private @Nullable String getNextSegmentUrl(@NotNull final HttpInterface httpInterface) {
     try {
@@ -71,6 +69,7 @@ public abstract class M3uStreamSegmentUrlProvider {
         if (nextSegment != null || !this.shouldWaitForSegment(startTime, segments)) {
           break;
         }
+        //noinspection BusyWait
         Thread.sleep(SEGMENT_WAIT_STEP_MS);
       }
       if (nextSegment == null) {

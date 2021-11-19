@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface MapImage extends LibraryInjectable, Dimensional {
 
-  void draw(final boolean resize) throws IOException;
+  void draw(final boolean resize);
 
   void onStartDrawImage();
 

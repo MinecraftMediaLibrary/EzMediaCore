@@ -68,8 +68,7 @@ public class HttpServer implements HttpDaemonSolution {
       @NotNull final Path path,
       @NotNull final String ip,
       final int port,
-      final boolean verbose)
-      throws IOException {
+      final boolean verbose) {
     this.daemon = HttpServerDaemon.ofDaemon(core, path, ip, port, verbose);
   }
 

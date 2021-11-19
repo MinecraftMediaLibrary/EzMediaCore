@@ -382,7 +382,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
 
   private class PacketInterceptor extends ChannelDuplexHandler {
 
-    public volatile Player player;
+    public final Player player;
 
     private PacketInterceptor(final Player player) {
       this.player = player;

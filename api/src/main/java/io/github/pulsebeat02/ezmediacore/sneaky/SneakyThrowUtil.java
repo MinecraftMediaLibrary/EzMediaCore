@@ -31,6 +31,7 @@ public final class SneakyThrowUtil {
   }
 
   static <T extends Exception, R> R sneakyThrow(@NotNull final Exception t) throws T {
+    //noinspection unchecked
     throw (T) t;
   }
 }

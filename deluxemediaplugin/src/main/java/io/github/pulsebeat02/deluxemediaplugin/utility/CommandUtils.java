@@ -33,6 +33,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("unchecked")
 public final class CommandUtils {
 
   private static final HashMap<String, Command> knownCommands;

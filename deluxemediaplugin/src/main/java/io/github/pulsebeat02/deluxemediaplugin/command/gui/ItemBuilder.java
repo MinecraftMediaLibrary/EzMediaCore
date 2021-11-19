@@ -47,6 +47,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author NonameSL
  */
+@SuppressWarnings("deprecation")
 public class ItemBuilder {
 
   private final ItemStack is;

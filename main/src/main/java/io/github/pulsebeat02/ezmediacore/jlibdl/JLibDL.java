@@ -30,6 +30,8 @@ import org.jetbrains.annotations.Nullable;
 
 public final class JLibDL {
 
+  private JLibDL() {}
+
   public static @NotNull YoutubeDLRequest request(@Nullable final String url)
       throws IOException, InterruptedException {
     return new YoutubeDLRequest().request(url);

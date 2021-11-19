@@ -161,7 +161,7 @@ public class OrderedDither implements DitherAlgorithm {
     return data;
   }
 
-  public @NotNull float[][] getMatrix() {
+  public float[][] getMatrix() {
     return this.matrix;
   }
 

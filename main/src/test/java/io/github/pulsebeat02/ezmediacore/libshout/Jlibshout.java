@@ -128,8 +128,6 @@ public class Jlibshout {
    *
    * <p>unaccurate version
    *
-   * @param mp3
-   * @throws FileNotFoundException
    */
   @Beta
   public void pushMp3(final File mp3) throws IOException, BadFileException {
@@ -138,9 +136,7 @@ public class Jlibshout {
       final Mp3File mp3File = new Mp3File(mp3.getAbsolutePath());
       final long l = (long) ((double) mp3File.getLength() / mp3File.getLengthInSeconds());
       this.pushMediaFileAsStream(inputStream, (int) l + 1);
-    } catch (final UnsupportedTagException e) {
-      throw new BadFileException("parse mp3 error!", e);
-    } catch (final InvalidDataException e) {
+    } catch (final UnsupportedTagException | InvalidDataException e) {
       throw new BadFileException("parse mp3 error!", e);
     }
   }
@@ -161,6 +157,7 @@ public class Jlibshout {
           this.outputStream.flush();
         }
         try {
+          //noinspection BusyWait
           Thread.sleep(1000);
         } catch (final InterruptedException e) {
           // skip
@@ -227,6 +224,7 @@ public class Jlibshout {
         }
         try {
           count++;
+          //noinspection BusyWait
           Thread.sleep(400);
         } catch (final InterruptedException e) {
           // skip
@@ -260,7 +258,6 @@ public class Jlibshout {
   /**
    * 密码错误 HTTP/1.0 401 Authentication Required 同一个 mounter 重复推流 HTTP/1.0 403 Forbidden
    *
-   * @param data
    */
   private void handleResponse(final String data) {
     if (data.startsWith("HTTP/1.0 401")) {

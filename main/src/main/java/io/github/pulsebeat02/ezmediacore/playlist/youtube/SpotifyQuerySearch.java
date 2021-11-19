@@ -50,7 +50,7 @@ public class SpotifyQuerySearch implements QuerySearch {
   }
 
   public SpotifyQuerySearch(@NotNull final String url)
-      throws IOException, ParseException, SpotifyWebApiException {
+      throws IOException {
     this(new SpotifyTrack(url));
   }
 

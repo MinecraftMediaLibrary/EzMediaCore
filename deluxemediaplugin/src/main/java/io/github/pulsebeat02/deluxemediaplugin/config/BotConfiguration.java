@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
 
-  public BotConfiguration(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
+  public BotConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, "configuration/bot.yml");
   }
 

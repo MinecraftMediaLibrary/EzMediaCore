@@ -153,6 +153,7 @@ public final class AssertingRandom extends Random {
     return this.delegate.toString();
   }
 
+  @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
   @Override
   public boolean equals(final Object obj) {
     this.checkValid();

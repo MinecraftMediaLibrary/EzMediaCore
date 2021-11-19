@@ -1,17 +1,17 @@
 package io.github.pulsebeat02.ezmediacore.utility.graphics.scalr;
 
-/**
- * Copyright 2011 The Buzz Media, LLC
- *
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License at
- *
- * <p>http://www.apache.org/licenses/LICENSE-2.0
- *
- * <p>Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
- * limitations under the License.
+/*
+  Copyright 2011 The Buzz Media, LLC
+
+  <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+  except in compliance with the License. You may obtain a copy of the License at
+
+  <p>http://www.apache.org/licenses/LICENSE-2.0
+
+  <p>Unless required by applicable law or agreed to in writing, software distributed under the
+  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  express or implied. See the License for the specific language governing permissions and
+  limitations under the License.
  */
 import io.github.pulsebeat02.ezmediacore.utility.graphics.scalr.Scalr.Method;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.scalr.Scalr.Mode;
@@ -28,6 +28,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Class used to provide the asynchronous versions of all the methods defined in {@link Scalr} for
@@ -185,7 +186,7 @@ public class AsyncScalr {
    */
   public static final int THREAD_COUNT = Integer.getInteger(THREAD_COUNT_PROPERTY_NAME, 2);
 
-  /** Initializer used to verify the THREAD_COUNT system property. */
+  /* Initializer used to verify the THREAD_COUNT system property. */
   static {
     if (THREAD_COUNT < 1) {
       throw new RuntimeException(
@@ -225,12 +226,7 @@ public class AsyncScalr {
     checkService();
 
     return service.submit(
-        new Callable<>() {
-          @Override
-          public BufferedImage call() throws Exception {
-            return Scalr.apply(src, ops);
-          }
-        });
+        () -> Scalr.apply(src, ops));
   }
 
   /** @see Scalr#crop(BufferedImage, int, int, BufferedImageOp...) */
@@ -240,12 +236,7 @@ public class AsyncScalr {
     checkService();
 
     return service.submit(
-        new Callable<>() {
-          @Override
-          public BufferedImage call() throws Exception {
-            return Scalr.crop(src, width, height, ops);
-          }
-        });
+        () -> Scalr.crop(src, width, height, ops));
   }
 
   /** @see Scalr#crop(BufferedImage, int, int, int, int, BufferedImageOp...) */
@@ -260,12 +251,7 @@ public class AsyncScalr {
     checkService();
 
     return service.submit(
-        new Callable<>() {
-          @Override
-          public BufferedImage call() throws Exception {
-            return Scalr.crop(src, x, y, width, height, ops);
-          }
-        });
+        () -> Scalr.crop(src, x, y, width, height, ops));
   }
 
   /** @see Scalr#pad(BufferedImage, int, BufferedImageOp...) */
@@ -275,12 +261,7 @@ public class AsyncScalr {
     checkService();
 
     return service.submit(
-        new Callable<>() {
-          @Override
-          public BufferedImage call() throws Exception {
-            return Scalr.pad(src, padding, ops);
-          }
-        });
+        () -> Scalr.pad(src, padding, ops));
   }
 
   /** @see Scalr#pad(BufferedImage, int, Color, BufferedImageOp...) */
@@ -290,12 +271,7 @@ public class AsyncScalr {
     checkService();
 
     return service.submit(
-        new Callable<>() {
-          @Override
-          public BufferedImage call() throws Exception {
-            return Scalr.pad(src, padding, color, ops);
-          }
-        });
+        () -> Scalr.pad(src, padding, color, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, int, BufferedImageOp...) */
@@ -305,12 +281,7 @@ public class AsyncScalr {
     checkService();
 
     return service.submit(
-        new Callable<>() {
-          @Override
-          public BufferedImage call() throws Exception {
-            return Scalr.resize(src, targetSize, ops);
-          }
-        });
+        () -> Scalr.resize(src, targetSize, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, Method, int, BufferedImageOp...) */
@@ -323,12 +294,7 @@ public class AsyncScalr {
     checkService();
 
     return service.submit(
-        new Callable<>() {
-          @Override
-          public BufferedImage call() throws Exception {
-            return Scalr.resize(src, scalingMethod, targetSize, ops);
-          }
-        });
+        () -> Scalr.resize(src, scalingMethod, targetSize, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, Mode, int, BufferedImageOp...) */
@@ -341,12 +307,7 @@ public class AsyncScalr {
     checkService();
 
     return service.submit(
-        new Callable<>() {
-          @Override
-          public BufferedImage call() throws Exception {
-            return Scalr.resize(src, resizeMode, targetSize, ops);
-          }
-        });
+        () -> Scalr.resize(src, resizeMode, targetSize, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, Method, Mode, int, BufferedImageOp...) */
@@ -360,12 +321,7 @@ public class AsyncScalr {
     checkService();
 
     return service.submit(
-        new Callable<>() {
-          @Override
-          public BufferedImage call() throws Exception {
-            return Scalr.resize(src, scalingMethod, resizeMode, targetSize, ops);
-          }
-        });
+        () -> Scalr.resize(src, scalingMethod, resizeMode, targetSize, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, int, int, BufferedImageOp...) */
@@ -378,12 +334,7 @@ public class AsyncScalr {
     checkService();
 
     return service.submit(
-        new Callable<>() {
-          @Override
-          public BufferedImage call() throws Exception {
-            return Scalr.resize(src, targetWidth, targetHeight, ops);
-          }
-        });
+        () -> Scalr.resize(src, targetWidth, targetHeight, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, Method, int, int, BufferedImageOp...) */
@@ -396,12 +347,7 @@ public class AsyncScalr {
     checkService();
 
     return service.submit(
-        new Callable<>() {
-          @Override
-          public BufferedImage call() throws Exception {
-            return Scalr.resize(src, scalingMethod, targetWidth, targetHeight, ops);
-          }
-        });
+        () -> Scalr.resize(src, scalingMethod, targetWidth, targetHeight, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, Mode, int, int, BufferedImageOp...) */
@@ -415,12 +361,7 @@ public class AsyncScalr {
     checkService();
 
     return service.submit(
-        new Callable<>() {
-          @Override
-          public BufferedImage call() throws Exception {
-            return Scalr.resize(src, resizeMode, targetWidth, targetHeight, ops);
-          }
-        });
+        () -> Scalr.resize(src, resizeMode, targetWidth, targetHeight, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, Method, Mode, int, int, BufferedImageOp...) */
@@ -435,12 +376,7 @@ public class AsyncScalr {
     checkService();
 
     return service.submit(
-        new Callable<>() {
-          @Override
-          public BufferedImage call() throws Exception {
-            return Scalr.resize(src, scalingMethod, resizeMode, targetWidth, targetHeight, ops);
-          }
-        });
+        () -> Scalr.resize(src, scalingMethod, resizeMode, targetWidth, targetHeight, ops));
   }
 
   /** @see Scalr#rotate(BufferedImage, Rotation, BufferedImageOp...) */
@@ -450,12 +386,7 @@ public class AsyncScalr {
     checkService();
 
     return service.submit(
-        new Callable<>() {
-          @Override
-          public BufferedImage call() throws Exception {
-            return Scalr.rotate(src, rotation, ops);
-          }
-        });
+        () -> Scalr.rotate(src, rotation, ops));
   }
 
   protected static ExecutorService createService() {
@@ -535,7 +466,7 @@ public class AsyncScalr {
      * processing queued up scale operations.
      */
     @Override
-    public Thread newThread(final Runnable r) {
+    public Thread newThread(final @NotNull Runnable r) {
       /*
        * Create a new thread in our specified group with a meaningful
        * thread name so it is easy to identify.

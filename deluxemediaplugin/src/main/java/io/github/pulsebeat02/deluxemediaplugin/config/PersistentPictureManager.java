@@ -42,15 +42,14 @@ import org.jetbrains.annotations.NotNull;
 public final class PersistentPictureManager {
 
   private final DeluxeMediaPlugin plugin;
-  private final JavaPlugin loader;
   private final PersistentImageStorage storage;
   private final List<Image> images;
 
   public PersistentPictureManager(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
     this.plugin = plugin;
-    this.loader = plugin.getBootstrap();
+    final JavaPlugin loader = plugin.getBootstrap();
     this.storage =
-        new PersistentImageStorage(this.loader.getDataFolder().toPath().resolve("pictures.json"));
+        new PersistentImageStorage(loader.getDataFolder().toPath().resolve("pictures.json"));
     final List<Image> images = this.storage.deserialize();
     this.images = images == null ? new ArrayList<>() : images;
   }

@@ -35,11 +35,8 @@ import java.awt.image.DataBufferByte;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.nio.file.Path;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.stream.IntStream;
 import javax.imageio.ImageIO;
@@ -51,7 +48,6 @@ import org.jcodec.common.model.ColorSpace;
 import org.jcodec.common.model.Picture;
 import org.jcodec.scale.ColorUtil;
 import org.jcodec.scale.RgbToBgr;
-import org.jcodec.scale.Transform;
 import org.jetbrains.annotations.NotNull;
 
 public final class VideoFrameUtils {

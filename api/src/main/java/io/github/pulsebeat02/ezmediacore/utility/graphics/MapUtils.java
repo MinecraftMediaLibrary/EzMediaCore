@@ -43,6 +43,7 @@ public final class MapUtils {
   public static ItemStack getMapFromID(final int id) {
     final ItemStack map = new ItemStack(Material.FILLED_MAP);
     final MapMeta meta = Objects.requireNonNull((MapMeta) map.getItemMeta());
+    //noinspection deprecation
     meta.setMapId(id);
     map.setItemMeta(meta);
     return map;

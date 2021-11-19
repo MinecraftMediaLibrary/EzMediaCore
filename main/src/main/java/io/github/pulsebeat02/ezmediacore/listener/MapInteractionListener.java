@@ -59,6 +59,7 @@ public record MapInteractionListener(
 
   private void correctInteraction(@NotNull final HangingBreakByEntityEvent event,
       @NotNull final ItemStack stack) {
+    //noinspection deprecation
     if (this.core
         .getHandler()
         .isMapRegistered(((MapMeta) Objects.requireNonNull(stack.getItemMeta())).getMapId())) {

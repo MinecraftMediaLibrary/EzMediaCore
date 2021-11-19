@@ -35,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class TrackScheduler extends AudioEventAdapter {
 
-  private final MediaBot bot;
   private final AudioPlayer audioPlayer;
   private final MusicManager musicManager;
 
@@ -43,7 +42,6 @@ public class TrackScheduler extends AudioEventAdapter {
       @NotNull final MediaBot bot,
       @NotNull final MusicManager musicManager,
       @NotNull final AudioPlayer player) {
-    this.bot = bot;
     this.musicManager = musicManager;
     this.audioPlayer = player;
   }

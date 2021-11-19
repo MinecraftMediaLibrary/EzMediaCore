@@ -54,6 +54,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
     try {
       final Field field = ChatColor.class.getDeclaredField("BY_CHAR");
       field.setAccessible(true);
+      //noinspection unchecked
       COLORS = ((Map<Character, ChatColor>) field.get(null)).values().toArray(new ChatColor[0]);
       field.setAccessible(false);
     } catch (final NoSuchFieldException | IllegalAccessException e) {
@@ -111,6 +112,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
   }
 
   @Override
+  @SuppressWarnings("deprecated")
   public void preparePlayerStateChange(@NotNull final PlayerControls status) {
     super.preparePlayerStateChange(status);
     if (status == PlayerControls.START) {

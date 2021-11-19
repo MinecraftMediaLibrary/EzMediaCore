@@ -49,7 +49,7 @@ public class MediaBot {
 
   public MediaBot(
       @NotNull final String token, @NotNull final String guild, @NotNull final String voicechannel)
-      throws LoginException, InterruptedException, SSLHandshakeException, ErrorResponseException {
+      throws LoginException, InterruptedException, ErrorResponseException {
     this.jda =
         JDABuilder.createDefault(token)
             .setStatus(OnlineStatus.ONLINE)

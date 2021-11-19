@@ -8,8 +8,7 @@ import java.util.List;
 
 public class JLibDLTest {
 
-  public static void main(final String[] args) throws IOException, InterruptedException {
-    final JLibDL jLibDL = new JLibDL();
+  public static void main(final String[] args) {
     //    System.out.println(
     //
     // jLibDL.request("https://www.twitch.tv/shroud").getInfo().getFormats().get(0).getUrl());

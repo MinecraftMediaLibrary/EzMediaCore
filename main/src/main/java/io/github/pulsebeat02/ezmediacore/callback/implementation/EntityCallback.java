@@ -134,6 +134,7 @@ public class EntityCallback<T extends Entity> extends FrameCallback implements E
     return this.location;
   }
 
+  @SuppressWarnings("unchecked")
   public static final class Builder<T extends Entity> extends CallbackBuilder {
 
     private static final Pair<EntityType, Consumer<AreaEffectCloud>> AREA_EFFECT_CLOUD;

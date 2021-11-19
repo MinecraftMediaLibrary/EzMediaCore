@@ -1,17 +1,17 @@
 package io.github.pulsebeat02.ezmediacore.utility.graphics.scalr;
 
-/**
- * Copyright 2011 The Buzz Media, LLC
- *
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License at
- *
- * <p>http://www.apache.org/licenses/LICENSE-2.0
- *
- * <p>Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
- * limitations under the License.
+/*
+  Copyright 2011 The Buzz Media, LLC
+
+  <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+  except in compliance with the License. You may obtain a copy of the License at
+
+  <p>http://www.apache.org/licenses/LICENSE-2.0
+
+  <p>Unless required by applicable law or agreed to in writing, software distributed under the
+  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  express or implied. See the License for the specific language governing permissions and
+  limitations under the License.
  */
 import java.awt.Color;
 import java.awt.Graphics;
@@ -331,7 +331,7 @@ public final class Scalr {
   public static final ColorConvertOp OP_GRAYSCALE =
       new ColorConvertOp(ColorSpace.getInstance(ColorSpace.CS_GRAY), null);
 
-  /** Static initializer used to prepare some of the variables used by this class. */
+  /* Static initializer used to prepare some of the variables used by this class. */
   static {
     log(0, "Debug output ENABLED");
   }
@@ -342,7 +342,7 @@ public final class Scalr {
    * @author Riyad Kalla (software@thebuzzmedia.com)
    * @since 1.1
    */
-  public static enum Method {
+  public enum Method {
     /**
      * Used to indicate that the scaling implementation should decide which method to use in order
      * to get the best looking scaled image in the least amount of time.
@@ -394,7 +394,7 @@ public final class Scalr {
    * @author Riyad Kalla (software@thebuzzmedia.com)
    * @since 3.1
    */
-  public static enum Mode {
+  public enum Mode {
     /**
      * Used to indicate that the scaling implementation should calculate dimensions for the
      * resultant image by looking at the image's orientation and generating proportional dimensions
@@ -440,7 +440,7 @@ public final class Scalr {
    * @author Riyad Kalla (software@thebuzzmedia.com)
    * @since 3.2
    */
-  public static enum Rotation {
+  public enum Rotation {
     /**
      * 90-degree, clockwise rotation (to the right). This is equivalent to a quarter-turn of the
      * image to the right; moving the picture on to its right side.
@@ -608,12 +608,12 @@ public final class Scalr {
 
     boolean hasReassignedSrc = false;
 
-    for (int i = 0; i < ops.length; i++) {
+    for (final BufferedImageOp bufferedImageOp : ops) {
       long subT = -1;
       if (DEBUG) {
         subT = System.currentTimeMillis();
       }
-      final BufferedImageOp op = ops[i];
+      final BufferedImageOp op = bufferedImageOp;
 
       // Skip null ops instead of throwing an exception.
       if (op == null) {
@@ -637,7 +637,7 @@ public final class Scalr {
       if (resultBounds == null) {
         throw new ImagingOpException(
             "BufferedImageOp ["
-                + op.toString()
+                + op
                 + "] getBounds2D(src) returned null bounds for the target image; this should not happen and indicates a problem with application of this type of op.");
       }
 
@@ -1657,7 +1657,7 @@ public final class Scalr {
     final AffineTransform tx = new AffineTransform();
 
     switch (rotation) {
-      case CW_90:
+      case CW_90 -> {
         /*
          * A 90 or -90 degree rotation will cause the height and width to
          * flip-flop from the original image to the rotated one.
@@ -1668,10 +1668,8 @@ public final class Scalr {
         // Reminder: newWidth == result.getHeight() at this point
         tx.translate(newWidth, 0);
         tx.quadrantRotate(1);
-
-        break;
-
-      case CW_270:
+      }
+      case CW_270 -> {
         /*
          * A 90 or -90 degree rotation will cause the height and width to
          * flip-flop from the original image to the rotated one.
@@ -1682,27 +1680,24 @@ public final class Scalr {
         // Reminder: newHeight == result.getWidth() at this point
         tx.translate(0, newHeight);
         tx.quadrantRotate(3);
-        break;
-
-      case CW_180:
+      }
+      case CW_180 -> {
         tx.translate(newWidth, newHeight);
         tx.quadrantRotate(2);
-        break;
-
-      case FLIP_HORZ:
+      }
+      case FLIP_HORZ -> {
         tx.translate(newWidth, 0);
         tx.scale(-1.0, 1.0);
-        break;
-
-      case FLIP_VERT:
+      }
+      case FLIP_VERT -> {
         tx.translate(0, newHeight);
         tx.scale(1.0, -1.0);
-        break;
+      }
     }
 
     // Create our target image we will render the rotated result to.
     BufferedImage result = createOptimalImage(src, newWidth, newHeight);
-    final Graphics2D g2d = (Graphics2D) result.createGraphics();
+    final Graphics2D g2d = result.createGraphics();
 
     /*
      * Render the resultant image to our new rotatedImage buffer, applying
@@ -1750,7 +1745,7 @@ public final class Scalr {
    * @see Scalr#LOG_PREFIX
    * @see Scalr#LOG_PREFIX_PROPERTY_NAME
    */
-  protected static void log(final int depth, final String message, final Object... params) {
+  static void log(final int depth, final String message, final Object... params) {
     if (Scalr.DEBUG) {
       System.out.print(Scalr.LOG_PREFIX);
 
@@ -1788,7 +1783,7 @@ public final class Scalr {
    *     href="http://code.google.com/p/java-image-scaling/source/browse/trunk/src/main/java/com/mortennobel/imagescaling/MultiStepRescaleOp.java">Thanks
    *     to Morten Nobel for implementation hint</a>
    */
-  protected static BufferedImage createOptimalImage(final BufferedImage src) {
+  static BufferedImage createOptimalImage(final BufferedImage src) {
     return createOptimalImage(src, src.getWidth(), src.getHeight());
   }
 
@@ -1820,7 +1815,7 @@ public final class Scalr {
    *     href="http://code.google.com/p/java-image-scaling/source/browse/trunk/src/main/java/com/mortennobel/imagescaling/MultiStepRescaleOp.java">Thanks
    *     to Morten Nobel for implementation hint</a>
    */
-  protected static BufferedImage createOptimalImage(
+  static BufferedImage createOptimalImage(
       final BufferedImage src, final int width, final int height) throws IllegalArgumentException {
     if (width <= 0 || height <= 0) {
       throw new IllegalArgumentException(
@@ -1855,7 +1850,7 @@ public final class Scalr {
    *     BufferedImage}, otherwise <code>src</code> if it was already of an optimal type.
    * @throws IllegalArgumentException if <code>src</code> is <code>null</code>.
    */
-  protected static BufferedImage copyToOptimalImage(final BufferedImage src)
+  static BufferedImage copyToOptimalImage(final BufferedImage src)
       throws IllegalArgumentException {
     if (src == null) {
       throw new IllegalArgumentException("src cannot be null");
@@ -1896,7 +1891,7 @@ public final class Scalr {
    * @return the fastest {@link Method} suited for scaling the image to the specified dimensions
    *     while maintaining a good-looking result.
    */
-  protected static Method determineScalingMethod(
+  static Method determineScalingMethod(
       final int targetWidth, final int targetHeight, final float ratio) {
     // Get the primary dimension based on the orientation of the image
     final int length = (ratio <= 1 ? targetWidth : targetHeight);
@@ -1932,7 +1927,7 @@ public final class Scalr {
    * @return the result of scaling the original <code>src</code> to the given dimensions using the
    *     given interpolation method.
    */
-  protected static BufferedImage scaleImage(
+  static BufferedImage scaleImage(
       final BufferedImage src,
       final int targetWidth,
       final int targetHeight,
@@ -1971,7 +1966,7 @@ public final class Scalr {
    *     the method that {@link Graphics2D} should use when scaling the image.
    * @return an image scaled to the given dimensions using the given rendering hint.
    */
-  protected static BufferedImage scaleImageIncrementally(
+  static BufferedImage scaleImageIncrementally(
       BufferedImage src,
       final int targetWidth,
       final int targetHeight,

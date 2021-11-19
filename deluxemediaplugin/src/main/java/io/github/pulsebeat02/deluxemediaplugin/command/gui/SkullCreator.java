@@ -239,6 +239,7 @@ public final class SkullCreator {
     } catch (final IllegalArgumentException e) {
       block.setType(Material.valueOf("SKULL"), false);
       final Skull state = (Skull) block.getState();
+      //noinspection deprecation
       state.setSkullType(SkullType.PLAYER);
       state.update(false, false);
     }

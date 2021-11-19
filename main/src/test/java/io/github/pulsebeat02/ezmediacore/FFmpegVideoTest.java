@@ -7,11 +7,9 @@ import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
-import io.github.pulsebeat02.ezmediacore.utility.graphics.VideoFrameUtils;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -35,11 +33,11 @@ public class FFmpegVideoTest {
   private long startEpoch;
   private FFmpeg ffmpeg;
 
-  FFmpegVideoTest(@NotNull final String binary, @NotNull final String input) {
+  FFmpegVideoTest() {
     this.frames = new ArrayBlockingQueue<>(30);
     this.running = new AtomicBoolean(true);
-    final Path bin = Path.of(binary);
-    final Path in = Path.of(input);
+    final Path bin = Path.of("/Users/bli24/Desktop/ffmpeg/ffmpeg-x86_64-osx");
+    final Path in = Path.of("/Users/bli24/Downloads/test.mp4");
     this.window = new JFrame("Example Video");
     this.window.setSize(1024, 2048);
     this.window.setVisible(true);
@@ -50,19 +48,19 @@ public class FFmpegVideoTest {
         FFmpegVideoTest.this.running.set(false);
       }
     });
-    this.init(bin, in, 0L);
+    this.init(bin, in);
     this.ffmpeg.execute();
   }
 
   public static void main(final String[] args) {
-    new FFmpegVideoTest("/Users/bli24/Desktop/ffmpeg/ffmpeg-x86_64-osx",
-        "/Users/bli24/Downloads/test.mp4");
+    new FFmpegVideoTest(
+    );
   }
 
-  private void init(@NotNull final Path path, @NotNull final Path input, final long ms) {
+  private void init(@NotNull final Path path, @NotNull final Path input) {
     this.ffmpeg =
         new FFmpeg(path)
-            .addInput(UrlInput.fromPath(input).setPosition(ms).addArgument("-re"))
+            .addInput(UrlInput.fromPath(input).setPosition(0).addArgument("-re"))
             .addOutput(FrameOutput.withConsumer(this.getFrameConsumer()))
             .setLogLevel(LogLevel.FATAL)
             .setProgressListener(line -> {

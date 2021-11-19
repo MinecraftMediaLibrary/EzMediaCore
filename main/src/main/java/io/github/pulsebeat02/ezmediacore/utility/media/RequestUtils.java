@@ -52,7 +52,6 @@ import org.jetbrains.annotations.Nullable;
 public final class RequestUtils {
 
   private static final LoadingCache<String, Optional<YoutubeDLRequest>> CACHED_RESULT;
-  private static final JLibDL JLIBDL;
   private static final HttpClient HTTP_CLIENT;
 
   static {
@@ -62,7 +61,6 @@ public final class RequestUtils {
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .softValues()
             .build(RequestUtils::getRequestInternal);
-    JLIBDL = new JLibDL();
     HTTP_CLIENT =
         HttpClient.newBuilder()
             .version(Version.HTTP_1_1)
@@ -88,7 +86,7 @@ public final class RequestUtils {
 
   public static boolean isStream(@NotNull final MrlConfiguration url) {
     try {
-      return JLIBDL.request(url.getMrl()).getInfo().isLive();
+      return JLibDL.request(url.getMrl()).getInfo().isLive();
     } catch (final IOException | InterruptedException e) {
       return false;
     }
@@ -175,6 +173,6 @@ public final class RequestUtils {
 
   private static @NotNull Optional<YoutubeDLRequest> getRequestInternal(@NotNull final String url)
       throws IOException, InterruptedException {
-    return Optional.ofNullable(JLIBDL.request(url));
+    return Optional.ofNullable(JLibDL.request(url));
   }
 }

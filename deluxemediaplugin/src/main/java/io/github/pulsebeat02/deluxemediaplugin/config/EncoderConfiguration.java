@@ -35,7 +35,7 @@ public final class EncoderConfiguration extends ConfigurationProvider<AudioConfi
 
   private AudioConfiguration settings;
 
-  public EncoderConfiguration(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
+  public EncoderConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, "configuration/encoder.yml");
   }
 
@@ -50,7 +50,7 @@ public final class EncoderConfiguration extends ConfigurationProvider<AudioConfi
   }
 
   @Override
-  public @NotNull AudioConfiguration serialize() throws IOException {
+  public @NotNull AudioConfiguration serialize() {
     final FileConfiguration configuration = this.getFileConfiguration();
     this.settings =
         new AudioAttributes(

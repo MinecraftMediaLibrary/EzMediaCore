@@ -50,6 +50,7 @@ class EventExecutorListener<E extends Event> implements Listener, EventExecutor 
 
   @Override
   public void execute(@NotNull final Listener l, @NotNull final Event e) {
+    //noinspection unchecked
     this.c.accept((E) e);
   }
 }

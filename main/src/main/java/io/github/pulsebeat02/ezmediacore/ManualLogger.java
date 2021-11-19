@@ -137,7 +137,7 @@ public final class ManualLogger implements CoreLogger {
   }
 
   @Override
-  public void close() throws Exception {
+  public void close() {
     Set.of(this.emc, this.vlc, this.rtp, this.ffmpegPlayer, this.ffmpegStream).forEach(writer -> {
       writer.flush();
       writer.close();

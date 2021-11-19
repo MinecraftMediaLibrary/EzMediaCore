@@ -39,7 +39,7 @@ public class EnhancedMapRenderer implements MapRenderer {
   public EnhancedMapRenderer(
       @NotNull final Dimension dimension, @NotNull final List<Integer> maps) {
     this.maps = new MapView[dimension.getHeight()][dimension.getWidth()];
-    fillMaps(maps, dimension);
+    this.fillMaps(maps, dimension);
   }
 
   private void fillMaps(@NotNull final List<Integer> maps, @NotNull final Dimension dimension) {
@@ -48,6 +48,7 @@ public class EnhancedMapRenderer implements MapRenderer {
     int count = 0;
     for (int i = 0; i < length; i++) {
       for (int j = 0; j < width; j++, count++) {
+        //noinspection deprecation
         this.maps[i][j] = Bukkit.getMap(maps.get(count));
       }
     }
@@ -59,7 +60,7 @@ public class EnhancedMapRenderer implements MapRenderer {
       for (int j = 0; j < this.maps[i].length; j++) {
         final MapView view = this.maps[i][j];
         view.getRenderers().clear();
-        view.addRenderer(createRenderer(images, i, j));
+        view.addRenderer(this.createRenderer(images, i, j));
       }
     }
   }

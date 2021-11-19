@@ -36,6 +36,7 @@ import java.util.Objects;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("ALL")
 public class VideoBuilder {
 
   private Callback callback;

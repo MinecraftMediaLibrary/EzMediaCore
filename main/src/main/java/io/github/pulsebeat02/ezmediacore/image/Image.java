@@ -94,6 +94,7 @@ public abstract class Image implements MapImage {
   @Override
   public void resetMaps() {
     for (final int map : this.maps) {
+      //noinspection deprecation
       final MapView view = Bukkit.getMap(map);
       if (view != null) {
         view.getRenderers().clear();

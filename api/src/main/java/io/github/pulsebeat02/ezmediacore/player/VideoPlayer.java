@@ -29,7 +29,6 @@ import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Identifier;
 import io.github.pulsebeat02.ezmediacore.callback.Viewable;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
-import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;

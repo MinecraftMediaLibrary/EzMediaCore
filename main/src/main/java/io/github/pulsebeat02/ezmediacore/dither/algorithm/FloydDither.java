@@ -270,7 +270,7 @@ public class FloydDither implements DitherAlgorithm {
     return data;
   }
 
-  private @NotNull int[] getRGBArray(@NotNull final BufferedImage image) {
+  private int[] getRGBArray(@NotNull final BufferedImage image) {
     return image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
   }
 }

@@ -67,7 +67,6 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   private BufferFormatCallback bufferFormatCallback;
   private MinecraftVideoRenderCallback videoCallback;
   private MinecraftAudioCallback audioCallback;
-  private CallbackVideoSurface surface;
   private MediaPlayerFactory factory;
   private EmbeddedMediaPlayer player;
   private NativeLog logger;
@@ -197,9 +196,10 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
 
   @Contract(" -> new")
   private @NotNull CallbackVideoSurface getSurface() {
-    this.surface = new CallbackVideoSurface(this.getBufferCallback(), this.videoCallback, false,
+    final CallbackVideoSurface surface = new CallbackVideoSurface(this.getBufferCallback(),
+        this.videoCallback, false,
         this.adapter);
-    return this.surface;
+    return surface;
   }
 
   @Contract(value = " -> new", pure = true)

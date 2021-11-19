@@ -17,12 +17,13 @@ import org.jetbrains.annotations.Nullable;
 
 public final class JlibdlJaffreeTest {
 
+  @SuppressWarnings("AccessStaticViaInstance")
   public static void main(final String @Nullable [] args) throws IOException, InterruptedException {
     final String url = "https://www.youtube.com/watch?v=_16io5rzmsQ&ab_channel=cantseetheforest";
     new FFmpeg(
         Path.of(
             "/Users/bli24/Desktop/ffmpeg/ffmpeg-x84_64-osx"))
-        .addInput(UrlInput.fromUrl(new JLibDL().request(url).getInfo().getUrl()).setPosition(0))
+        .addInput(UrlInput.fromUrl(JLibDL.request(url).getInfo().getUrl()).setPosition(0))
         .addOutput(
             FrameOutput.withConsumer(
                     new FrameConsumer() {

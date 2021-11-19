@@ -214,7 +214,6 @@ public abstract class MismatchSearch extends StringSearch {
    * @param text      the <code>byte</code> array containing the text, may not be <code>null</code>
    * @param textStart at which position in the text the comparing should start
    * @param pattern   the pattern to search for, may not be <code>null</code>
-   * @param processed
    * @param k         the editing distance
    * @return the position in the text or -1 if the pattern was not found
    * @see #searchBytes(byte[], int, int, byte[], Object, int)

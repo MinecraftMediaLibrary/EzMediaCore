@@ -32,9 +32,8 @@ import org.jetbrains.annotations.Nullable;
 public class HttpAudioConfiguration extends ConfigurationProvider<ServerInfo> {
 
   private ServerInfo info;
-  private boolean enabled;
 
-  public HttpAudioConfiguration(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
+  public HttpAudioConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, "configuration/httpaudio.yml");
   }
 
@@ -44,7 +43,7 @@ public class HttpAudioConfiguration extends ConfigurationProvider<ServerInfo> {
   }
 
   @Override
-  public @Nullable ServerInfo serialize() throws IOException {
+  public @Nullable ServerInfo serialize() {
     final FileConfiguration configuration = this.getFileConfiguration();
     final boolean enabled = configuration.getBoolean("enabled");
     final String ip = configuration.getString("ip");
@@ -53,7 +52,6 @@ public class HttpAudioConfiguration extends ConfigurationProvider<ServerInfo> {
       this.info =
           ip == null || ip.equals("public") ? new ServerInfo(port) : new ServerInfo(ip, port);
     }
-    this.enabled = enabled;
     return this.info;
   }
 }

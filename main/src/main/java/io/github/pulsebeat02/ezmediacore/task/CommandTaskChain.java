@@ -144,8 +144,7 @@ public class CommandTaskChain {
   private void runTaskChain(@NotNull final CommandTask task)
       throws IOException, InterruptedException {
     task.run();
-    if (task.getProcess().waitFor() == 0) {
-    } else {
+    if (task.getProcess().waitFor() != 0) {
       throw new IOException("Error occurred while running program!");
     }
   }

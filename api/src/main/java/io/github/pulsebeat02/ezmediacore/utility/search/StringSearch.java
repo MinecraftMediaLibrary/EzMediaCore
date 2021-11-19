@@ -98,6 +98,7 @@ public abstract class StringSearch {
 
   static {
     final String shortString = ".";
+    //noinspection ResultOfMethodCallIgnored
     shortString.hashCode(); // make sure the cached hashCode is not 0
 
     Field value = null;

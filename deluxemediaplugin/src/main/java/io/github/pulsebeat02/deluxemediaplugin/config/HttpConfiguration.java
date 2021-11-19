@@ -38,7 +38,7 @@ public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
   private HttpServer daemon;
   private boolean enabled;
 
-  public HttpConfiguration(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
+  public HttpConfiguration(@NotNull final DeluxeMediaPlugin plugin) {
     super(plugin, "configuration/httpserver.yml");
   }
 
