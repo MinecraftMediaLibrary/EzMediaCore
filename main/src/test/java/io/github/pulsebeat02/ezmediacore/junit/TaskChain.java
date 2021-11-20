@@ -1,11 +1,11 @@
 package io.github.pulsebeat02.ezmediacore.junit;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import io.github.pulsebeat02.ezmediacore.task.CommandTask;
 import io.github.pulsebeat02.ezmediacore.task.CommandTaskChain;
 import java.io.IOException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public final class TaskChain {
 

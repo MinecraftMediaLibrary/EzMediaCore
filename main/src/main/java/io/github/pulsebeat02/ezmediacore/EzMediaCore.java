@@ -39,6 +39,7 @@ import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.IntStream;
@@ -91,8 +92,8 @@ public final class EzMediaCore implements MediaLibraryCore {
     this.audioPath = this.getFinalPath(audioPath, this.libraryPath, "audio");
     this.videoPath = this.getFinalPath(videoPath, this.libraryPath, "video");
     this.vlcPath = this.getFinalPath(vlcPath, this.dependencyPath, "vlc");
-    this.diagnostics = new SystemDiagnostics(this);
     this.initLogger();
+    this.diagnostics = new SystemDiagnostics(this);
     this.initPacketHandler();
     this.initializeProviders();
     this.initializeStream();
@@ -100,10 +101,11 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void initPacketHandler() {
-    this.handler =
-        new NMSReflectionHandler(this)
-            .getNewPacketHandlerInstance()
-            .orElseThrow(UnsupportedServerException::new);
+    final Optional<PacketHandler> handler =
+        new NMSReflectionHandler(this).getNewPacketHandlerInstance();
+    if (!Bukkit.getVersion().contains("MockBukkit")) { // hack to allow unit testing
+      this.handler = handler.orElseThrow(UnsupportedServerException::new);
+    }
   }
 
   private void initLogger() {
@@ -121,7 +123,7 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   @Override
-  public void initialize() throws ExecutionException, InterruptedException {
+  public void initialize() {
     this.registrationListener = new RegistrationListener(this);
     this.createFolders();
     this.loader.start();

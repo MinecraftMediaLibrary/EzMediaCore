@@ -29,6 +29,7 @@ public interface Locale {
 
   NullComponent SERVER_SOFTWARE_TIP = () ->
       """
+         
          As a reminder, the only server softwares supported by this library are Spigot and Paper.
          Tunity has been merged into Paper and will not be supported. Custom forks will also not
          be supported. If you can reproduce an issue on Spigot or Paper 1.17.1, I am welcome to
@@ -37,12 +38,14 @@ public interface Locale {
       """;
   NullComponent PACKET_COMPRESSION_TIP = () ->
       """
+         
          Setting the value "network-compression-threshold", to -1 in the server.properties
          file may lead to improved performance of video players for servers that aren't proxy
          servers.
       """;
   NullComponent WARN_SPOTIFY_AUTH = () ->
       """
+          
           Spotify API Client ID and Client Secret not specified! You will not be able
           to use any Spotify related features.
       """;
@@ -51,6 +54,7 @@ public interface Locale {
   BiComponent<String, Path> BINARY_PATHS = "%s path: %s"::formatted;
   TriComponent<String, Integer, Path> HTTP_INFO =
       """
+      
       ========================================
                      HTTP Server
       ========================================
@@ -60,6 +64,7 @@ public interface Locale {
       """::formatted;
   TriComponent<String, String, Boolean> SERVER_INFO =
       """
+      
       ===========================================
                    SERVER INFORMATION
       ===========================================
@@ -69,6 +74,7 @@ public interface Locale {
       """::formatted;
   QuadComponent<String, String, String, String> SYSTEM_INFO =
       """
+      
       ===========================================
                    SYSTEM INFORMATION
       ===========================================
@@ -79,6 +85,7 @@ public interface Locale {
       """::formatted;
   HeptaComponent<String, String, Boolean, Path, Path, Path, Path> PLUGIN_INFO =
       """
+      
       ===========================================
                    PLUGIN INFORMATION
       ===========================================

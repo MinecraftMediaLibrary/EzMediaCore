@@ -2,6 +2,7 @@ package io.github.pulsebeat02.ezmediacore.utility.unsafe;
 
 import java.lang.reflect.Field;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sun.misc.Unsafe;
 
 public final class UnsafeUtils {
@@ -22,7 +23,7 @@ public final class UnsafeUtils {
    * @param value the value
    */
   public static void setFinalField(
-      @NotNull final Field field, @NotNull final Object obj, @NotNull final Object value) {
+      @NotNull final Field field, @NotNull final Object obj, @Nullable final Object value) {
     UNSAFE.putObject(obj, UNSAFE.objectFieldOffset(field), value);
   }
 
@@ -32,7 +33,7 @@ public final class UnsafeUtils {
    * @param field the static final field
    * @param value the value
    */
-  public static void setStaticFinalField(@NotNull final Field field, @NotNull final Object value) {
+  public static void setStaticFinalField(@NotNull final Field field, @Nullable final Object value) {
     UNSAFE.putObject(UNSAFE.staticFieldBase(field), UNSAFE.staticFieldOffset(field), value);
   }
 }

@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 public interface MediaLibraryCore {
 
-  void initialize() throws ExecutionException, InterruptedException;
+  void initialize();
 
   void shutdown();
 

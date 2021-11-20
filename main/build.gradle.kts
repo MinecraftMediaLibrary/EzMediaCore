@@ -11,32 +11,35 @@ dependencies {
         "implementation"(it)
     }
 
-    setOf("com.mpatric:mp3agic:0.9.1", "com.github.kevinsawicki:http-request:6.0").forEach {
-        "testImplementation"(it)
-    }
-
     setOf("io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT").forEach {
         "compileOnlyApi"(it)
     }
 
-
-    // automated testing
-    setOf("org.junit.jupiter:junit-jupiter-api:5.4.2").forEach {
-        testImplementation(it)
-    }
+    //////// TESTING ////////
 
     setOf("org.junit.jupiter:junit-jupiter-engine:5.4.2").forEach {
         testRuntimeOnly(it);
     }
 
-    // manual testing
+    setOf(
+        "org.junit.jupiter:junit-jupiter-api:5.4.2",
+        "com.github.seeseemelk:MockBukkit-v1.17:1.7.0",
+        "org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT"
+    ).forEach {
+        testImplementation(it)
+    }
+
+    /////////////////////////
+
     setOf(
         "io.netty:netty-all:4.1.70.Final",
         "com.mojang:authlib:1.5.25",
         "com.google.guava:guava:30.1.1-jre",
+        "com.mpatric:mp3agic:0.9.1",
+        "com.github.kevinsawicki:http-request:6.0",
     ).forEach {
         "compileOnly"(it)
-        "testImplementation"(it)
+        testImplementation(it)
     }
 
     setOf(

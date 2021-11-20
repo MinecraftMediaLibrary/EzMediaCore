@@ -57,6 +57,7 @@ subprojects {
         setOf(
             "https://repo.maven.apache.org/maven2/",
             "https://papermc.io/repo/repository/maven-public/",
+            "https://oss.sonatype.org/content/repositories/snapshots",
             "https://libraries.minecraft.net/",
             "https://jitpack.io",
             "https://repo.codemc.org/repository/maven-public",

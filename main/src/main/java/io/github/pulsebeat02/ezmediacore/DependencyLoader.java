@@ -42,12 +42,16 @@ public record DependencyLoader(MediaLibraryCore core) implements
   }
 
   @Override
-  public void start() throws ExecutionException, InterruptedException {
-    CompletableFuture.runAsync(this::installDependencies)
-        .thenRunAsync(this::installFFmpeg)
-        .thenRunAsync(this::installVLC)
-        .thenRunAsync(this::installRTSP)
-        .get();
+  public void start() {
+    try {
+      CompletableFuture.runAsync(this::installDependencies)
+          .thenRunAsync(this::installFFmpeg)
+          .thenRunAsync(this::installVLC)
+          .thenRunAsync(this::installRTSP)
+          .get();
+    } catch (final InterruptedException | ExecutionException e) {
+      e.printStackTrace();
+    }
   }
 
   private void installFFmpeg() {

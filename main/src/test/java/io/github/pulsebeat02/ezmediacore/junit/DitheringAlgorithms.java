@@ -7,7 +7,7 @@ import static io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithm
 import static io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithmProvider.ORDERED_8X8;
 import static io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithmProvider.RANDOM;
 import static io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithmProvider.SIMPLE;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil;
@@ -16,9 +16,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import javax.imageio.ImageIO;
-import org.jcodec.codecs.mjpeg.tools.AssertionException;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public final class DitheringAlgorithms {
 
@@ -28,7 +27,7 @@ public final class DitheringAlgorithms {
     try {
       BUFFER = VideoFrameUtils.getBuffer(ImageIO.read(new URL("https://github.com/MinecraftMediaLibrary/EzMediaCore/blob/master/deluxemediaplugin.png")));
     } catch (final IOException e) {
-      throw new AssertionException("Error retrieving image resource for dither test!");
+      throw new AssertionError("Error retrieving image resource for dither test!");
     }
     DitherLookupUtil.init();
   }

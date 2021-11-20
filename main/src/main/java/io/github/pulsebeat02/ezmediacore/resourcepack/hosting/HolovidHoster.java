@@ -32,7 +32,6 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import org.jcodec.codecs.mjpeg.tools.AssertionException;
 import org.jetbrains.annotations.NotNull;
 
 public class HolovidHoster implements HolovidSolution {
@@ -67,6 +66,6 @@ public class HolovidHoster implements HolovidSolution {
       this.core.getLogger().info(Locale.ERR_HOLOVID);
       e.printStackTrace();
     }
-    throw new AssertionException("Holovid website is down!");
+    throw new AssertionError("Holovid website is down!");
   }
 }

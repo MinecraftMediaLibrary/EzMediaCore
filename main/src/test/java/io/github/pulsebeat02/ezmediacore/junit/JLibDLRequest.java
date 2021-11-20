@@ -1,10 +1,10 @@
 package io.github.pulsebeat02.ezmediacore.junit;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public final class JLibDLRequest {
 
