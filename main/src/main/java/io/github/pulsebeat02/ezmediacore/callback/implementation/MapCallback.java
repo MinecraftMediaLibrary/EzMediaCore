@@ -87,7 +87,7 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
 
   public static final class Builder extends CallbackBuilder {
 
-    private DitherAlgorithm algorithm = DitherAlgorithmProvider.FILTER_LITE.getAlgorithm();
+    private DitherAlgorithm algorithm = DitherAlgorithmProvider.FILTER_LITE;
     private Identifier<Integer> map = Identifier.ofIdentifier(0);
     private int blockWidth;
 
@@ -118,12 +118,6 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
     @Contract("_ -> this")
     public @NotNull Builder algorithm(@NotNull final DitherAlgorithm algorithm) {
       this.algorithm = algorithm;
-      return this;
-    }
-
-    @Contract("_ -> this")
-    public @NotNull Builder algorithm(@NotNull final DitherAlgorithmProvider algorithm) {
-      this.algorithm = algorithm.getAlgorithm();
       return this;
     }
 

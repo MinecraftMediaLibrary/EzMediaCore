@@ -7,9 +7,7 @@ plugins {
 
 dependencies {
 
-    setOf(
-        "io.github.slimjar:slimjar:1.2.6"
-    ).forEach {
+    setOf("io.github.slimjar:slimjar:1.2.6").forEach {
         "implementation"(it)
     }
 
@@ -17,8 +15,21 @@ dependencies {
         "testImplementation"(it)
     }
 
-    "compileOnlyApi"("io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT")
+    setOf("io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT").forEach {
+        "compileOnlyApi"(it)
+    }
 
+
+    // automated testing
+    setOf("org.junit.jupiter:junit-jupiter-api:5.4.2").forEach {
+        testImplementation(it)
+    }
+
+    setOf("org.junit.jupiter:junit-jupiter-engine:5.4.2").forEach {
+        testRuntimeOnly(it);
+    }
+
+    // manual testing
     setOf(
         "io.netty:netty-all:4.1.70.Final",
         "com.mojang:authlib:1.5.25",
@@ -54,8 +65,9 @@ dependencies {
     }
 }
 
+
 tasks.withType<Test> {
-    enabled = false;
+    useJUnitPlatform()
 }
 
 tasks.withType<SlimJar> {

@@ -26,25 +26,24 @@ package io.github.pulsebeat02.ezmediacore.dither.algorithm;
 
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.OrderedDither.DitherType;
-import org.jetbrains.annotations.NotNull;
 
-public enum DitherAlgorithmProvider {
+public final class DitherAlgorithmProvider {
 
-  FILTER_LITE(new FilterLiteDither()),
-  FLOYD_STEINBERG(new FloydDither()),
-  ORDERED_2X2(new OrderedDither(DitherType.TWO)),
-  ORDERED_4X4(new OrderedDither(DitherType.FOUR)),
-  ORDERED_8X8(new OrderedDither(DitherType.EIGHT)),
-  RANDOM(new RandomDither()),
-  SIMPLE(new SimpleDither());
+  public static final DitherAlgorithm FILTER_LITE;
+  public static final DitherAlgorithm FLOYD_STEINBERG;
+  public static final DitherAlgorithm ORDERED_2X2;
+  public static final DitherAlgorithm ORDERED_4X4;
+  public static final DitherAlgorithm ORDERED_8X8;
+  public static final DitherAlgorithm RANDOM;
+  public static final DitherAlgorithm SIMPLE;
 
-  private final DitherAlgorithm algorithm;
-
-  DitherAlgorithmProvider(@NotNull final DitherAlgorithm algorithm) {
-    this.algorithm = algorithm;
-  }
-
-  public DitherAlgorithm getAlgorithm() {
-    return this.algorithm;
+  static {
+    FILTER_LITE = new FilterLiteDither();
+    FLOYD_STEINBERG = new FloydDither();
+    ORDERED_2X2 = new OrderedDither(DitherType.TWO);
+    ORDERED_4X4 = new OrderedDither(DitherType.FOUR);
+    ORDERED_8X8 = new OrderedDither(DitherType.EIGHT);
+    RANDOM = new RandomDither();
+    SIMPLE = new SimpleDither();
   }
 }

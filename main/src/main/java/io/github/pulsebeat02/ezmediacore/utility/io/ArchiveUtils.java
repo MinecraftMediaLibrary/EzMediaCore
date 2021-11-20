@@ -45,7 +45,6 @@
 
 package io.github.pulsebeat02.ezmediacore.utility.io;
 
-import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
 import io.github.pulsebeat02.jarchivelib.ArchiverFactory;
 import java.io.IOException;
 import java.nio.file.Files;
