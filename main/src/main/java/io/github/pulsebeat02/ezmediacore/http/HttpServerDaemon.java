@@ -53,6 +53,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   private final boolean verbose;
   private final AtomicBoolean running;
   private final ZipHeader header;
+  private final ExecutorService executor;
 
   private ServerSocket socket;
 
@@ -63,6 +64,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
       final int port,
       final boolean verbose) {
     this.core = core;
+    this.executor = Executors.newSingleThreadExecutor();
     this.running = new AtomicBoolean(false);
     this.directory = path;
     this.ip = ip;
@@ -113,14 +115,19 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   }
 
   private void handleServerRequests() {
-    try {
-      while (this.running.get()) {
-        CompletableFuture.runAsync(
-            new FileRequestHandler(this, this.socket.accept(), this.header), HTTP_REQUEST_POOL);
-      }
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
+    CompletableFuture.runAsync(
+        () -> {
+          try {
+            while (this.running.get()) {
+              CompletableFuture.runAsync(
+                  new FileRequestHandler(this, this.socket.accept(), this.header),
+                  HTTP_REQUEST_POOL);
+            }
+          } catch (final IOException e) {
+            e.printStackTrace();
+          }
+        },
+        this.executor);
   }
 
   @Override
@@ -134,6 +141,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
       if (!this.socket.isClosed()) {
         this.socket.close();
       }
+      this.executor.shutdown();
     } catch (final IOException e) {
       e.printStackTrace();
     }

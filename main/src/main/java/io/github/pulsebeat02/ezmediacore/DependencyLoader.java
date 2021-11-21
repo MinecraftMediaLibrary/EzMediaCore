@@ -32,23 +32,30 @@ import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 
-public record DependencyLoader(MediaLibraryCore core) implements
-    LibraryLoader {
+public class DependencyLoader implements LibraryLoader {
+
+  private final MediaLibraryCore core;
+  private final ExecutorService executor;
 
   public DependencyLoader(@NotNull final MediaLibraryCore core) {
     this.core = core;
+    this.executor = Executors.newSingleThreadExecutor();
   }
 
   @Override
   public void start() {
     try {
-      CompletableFuture.runAsync(this::installDependencies)
-          .thenRunAsync(this::installFFmpeg)
-          .thenRunAsync(this::installVLC)
-          .thenRunAsync(this::installRTSP)
+      CompletableFuture.runAsync(this::installDependencies, this.executor)
+          .thenRunAsync(this::installFFmpeg, this.executor)
+          .thenRunAsync(this::installVLC, this.executor)
+          .thenRunAsync(this::installRTSP, this.executor)
           .get();
+      this.executor.shutdown();
     } catch (final InterruptedException | ExecutionException e) {
       e.printStackTrace();
     }
@@ -93,8 +100,7 @@ public record DependencyLoader(MediaLibraryCore core) implements
   }
 
   @Override
-  public @NotNull
-  MediaLibraryCore getCore() {
+  public @NotNull MediaLibraryCore getCore() {
     return this.core;
   }
 }

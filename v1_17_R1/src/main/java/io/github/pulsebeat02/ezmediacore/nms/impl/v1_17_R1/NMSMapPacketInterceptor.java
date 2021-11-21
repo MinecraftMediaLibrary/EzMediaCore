@@ -198,45 +198,13 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     }
     if (viewers == null) {
       for (final UUID uuid : this.connections.keySet()) {
-        final long val = this.lastUpdated.getOrDefault(uuid, 0L);
-        if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
-          this.lastUpdated.put(uuid, System.currentTimeMillis());
-          final PlayerConnection connection = this.connections.get(uuid);
-          for (final PacketPlayOutMap packet : packetArray) {
-            connection.sendPacket(packet);
-          }
-        }
+        this.sendToViewers(uuid, packetArray);
       }
     } else {
       for (final UUID uuid : viewers) {
-        final long val = this.lastUpdated.getOrDefault(uuid, 0L);
-        if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
-          this.lastUpdated.put(uuid, System.currentTimeMillis());
-          final PlayerConnection connection = this.connections.get(uuid);
-          if (connection != null) {
-            for (final PacketPlayOutMap packet : packetArray) {
-              connection.sendPacket(packet);
-            }
-          }
-        }
+        this.sendToViewers(uuid, packetArray);
       }
     }
-  }
-
-  @Override
-  public void displayMaps(
-      final UUID[] viewers,
-      final int map,
-      final int width,
-      final int height,
-      final ByteBuffer rgb,
-      final int videoWidth) {
-    final int vidHeight = rgb.capacity() / videoWidth;
-    final int pixW = width << 7;
-    final int pixH = height << 7;
-    final int xOff = (pixW - videoWidth) >> 1;
-    final int yOff = (pixH - vidHeight) >> 1;
-    this.displayMaps(viewers, map, width, height, rgb, videoWidth, xOff, yOff);
   }
 
   @Override
@@ -259,40 +227,9 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   }
 
   @Override
-  public void displayScoreboard(
-      final UUID[] viewers,
-      final Scoreboard scoreboard,
-      final String character,
-      final int[] data,
-      final int width,
-      final int height) {
-    for (int y = 0; y < height; ++y) {
-      StringBuilder msg;
-      final Team team = scoreboard.getTeam("SLOT_" + y);
-      if (team != null) {
-        team.setSuffix(this.createChatComponent(character, data, width, y).toString());
-      }
-    }
-  }
-
-  private @NotNull String createChatComponent(final String character, final int[] data, final int width, final int y) {
-    int before = -1;
-    final StringBuilder msg = new StringBuilder();
-    for (int x = 0; x < width; ++x) {
-      final int rgb = data[width * y + x];
-      if (before != rgb) {
-        msg.append(ChatColor.of("#" + Integer.toHexString(rgb).substring(2)));
-      }
-      msg.append(character);
-      before = rgb;
-    }
-    return msg.toString();
-  }
-
-  @Override
   public void displayEntities(
       final UUID[] viewers,
-      final Entity[] entities,
+      final Entity @NotNull [] entities,
       final int[] data,
       final int width,
       final int height) {
@@ -337,6 +274,18 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
             connection.sendPacket(packet);
           }
         }
+      }
+    }
+  }
+
+  private void sendToViewers(
+      @NotNull final UUID uuid, @NotNull final PacketPlayOutMap[] packetArray) {
+    final long val = this.lastUpdated.getOrDefault(uuid, 0L);
+    if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
+      this.lastUpdated.put(uuid, System.currentTimeMillis());
+      final PlayerConnection connection = this.connections.get(uuid);
+      for (final PacketPlayOutMap packet : packetArray) {
+        connection.sendPacket(packet);
       }
     }
   }

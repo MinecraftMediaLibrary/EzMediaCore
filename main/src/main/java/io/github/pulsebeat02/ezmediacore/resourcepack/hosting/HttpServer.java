@@ -24,6 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.resourcepack.hosting;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.http.HttpDaemon;
 import io.github.pulsebeat02.ezmediacore.http.HttpServerDaemon;
 import java.io.IOException;
@@ -33,7 +34,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,12 +58,8 @@ public class HttpServer implements HttpDaemonSolution {
   }
 
   private final HttpDaemon daemon;
+  private final ExecutorService executor;
   private boolean running;
-
-  public HttpServer(@NotNull final MediaLibraryCore core, @NotNull final Path path, final int port)
-      throws IOException {
-    this(core, path, HTTP_SERVER_IP, port, true);
-  }
 
   HttpServer(
       @NotNull final MediaLibraryCore core,
@@ -70,6 +68,7 @@ public class HttpServer implements HttpDaemonSolution {
       final int port,
       final boolean verbose) {
     this.daemon = HttpServerDaemon.ofDaemon(core, path, ip, port, verbose);
+    this.executor = Executors.newSingleThreadExecutor();
   }
 
   @Contract("_, _ -> new")
@@ -100,8 +99,7 @@ public class HttpServer implements HttpDaemonSolution {
       @NotNull final MediaLibraryCore core,
       @NotNull final Path path,
       final int port,
-      final boolean verbose)
-      throws IOException {
+      final boolean verbose) {
     return ofServer(core, path, HTTP_SERVER_IP, port, verbose);
   }
 
@@ -111,9 +109,14 @@ public class HttpServer implements HttpDaemonSolution {
       @NotNull final Path path,
       @NotNull final String ip,
       final int port,
-      final boolean verbose)
-      throws IOException {
+      final boolean verbose) {
     return new HttpServer(core, path, ip, port, verbose);
+  }
+
+  @Contract("_, _, _ -> new")
+  public static @NotNull HttpServer ofServer(
+      @NotNull final MediaLibraryCore core, @NotNull final Path path, final int port) {
+    return ofServer(core, path, HTTP_SERVER_IP, port, true);
   }
 
   @Override
@@ -132,13 +135,13 @@ public class HttpServer implements HttpDaemonSolution {
 
   @Override
   public void startServer() {
-    CompletableFuture.runAsync(this.daemon::start);
+    this.daemon.start();
     this.running = true;
   }
 
   @Override
   public void stopServer() {
-    CompletableFuture.runAsync(this.daemon::stop);
+    this.daemon.stop();
     this.running = false;
   }
 

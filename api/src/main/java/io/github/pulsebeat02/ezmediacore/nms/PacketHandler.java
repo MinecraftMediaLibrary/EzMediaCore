@@ -47,9 +47,11 @@ package io.github.pulsebeat02.ezmediacore.nms;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 public interface PacketHandler {
@@ -67,13 +69,20 @@ public interface PacketHandler {
       final int xOffset,
       final int yOffset);
 
-  void displayMaps(
+  default void displayMaps(
       final UUID[] viewers,
       final int map,
       final int mapWidth,
       final int mapHeight,
-      final ByteBuffer rgb,
-      final int videoWidth);
+      final @NotNull ByteBuffer rgb,
+      final int videoWidth) {
+    final int vidHeight = rgb.capacity() / videoWidth;
+    final int pixW = mapWidth << 7;
+    final int pixH = mapHeight << 7;
+    final int xOff = (pixW - videoWidth) >> 1;
+    final int yOff = (pixH - vidHeight) >> 1;
+    this.displayMaps(viewers, map, mapWidth, mapHeight, rgb, videoWidth, xOff, yOff);
+  }
 
   void displayEntities(
       final UUID[] viewers,
@@ -89,13 +98,21 @@ public interface PacketHandler {
       final int width,
       final int height);
 
-  void displayScoreboard(
+  default void displayScoreboard(
       final UUID[] viewers,
       final Scoreboard scoreboard,
       final String character,
       final int[] data,
       final int width,
-      final int height);
+      final int height) {
+    for (int y = 0; y < height; ++y) {
+      StringBuilder msg;
+      final Team team = scoreboard.getTeam("SLOT_" + y);
+      if (team != null) {
+        team.setSuffix(this.createChatComponent(character, data, width, y));
+      }
+    }
+  }
 
   void injectPlayer(@NotNull final Player player);
 
@@ -110,4 +127,19 @@ public interface PacketHandler {
   Object onPacketInterceptOut(final Player viewer, final Object packet);
 
   Object onPacketInterceptIn(final Player viewer, final Object packet);
+
+  default @NotNull String createChatComponent(
+      final String character, final int[] data, final int width, final int y) {
+    int before = -1;
+    final StringBuilder msg = new StringBuilder();
+    for (int x = 0; x < width; ++x) {
+      final int rgb = data[width * y + x];
+      if (before != rgb) {
+        msg.append(ChatColor.of("#" + Integer.toHexString(rgb).substring(2)));
+      }
+      msg.append(character);
+      before = rgb;
+    }
+    return msg.toString();
+  }
 }
