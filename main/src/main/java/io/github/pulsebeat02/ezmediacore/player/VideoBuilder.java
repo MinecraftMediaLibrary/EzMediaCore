@@ -23,25 +23,26 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import static java.util.Objects.requireNonNull;
+
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import io.github.pulsebeat02.ezmediacore.dimension.FrameDimension;
 import io.github.pulsebeat02.ezmediacore.player.buffered.BufferConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.buffered.FFmpegMediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.buffered.JCodecMediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.buffered.JCodecMediaPlayer.Builder;
 import io.github.pulsebeat02.ezmediacore.player.external.VLCMediaPlayer;
 import io.github.pulsebeat02.ezmediacore.throwable.UnsupportedPlatformException;
-import java.util.Objects;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings("ALL")
 public class VideoBuilder {
 
   private Callback callback;
-  private Dimension dims;
-  private SoundKey key;
+  private Dimension dims = FrameDimension.X5_5;
+  private SoundKey key = SoundKey.ofSound("emc");
   private FrameConfiguration rate = FrameConfiguration.FPS_30;
 
   @Contract(value = " -> new", pure = true)
@@ -55,6 +56,8 @@ public class VideoBuilder {
   }
 
   @Contract(value = " -> new", pure = true)
+  @SuppressWarnings("deprecated")
+  @Deprecated
   public static @NotNull JCodecMediaPlayer.Builder jcodec() {
     return new Builder();
   }
@@ -89,7 +92,7 @@ public class VideoBuilder {
   }
 
   public void init() {
-    Objects.requireNonNull(this.callback);
+    requireNonNull(this.callback);
     this.calculateFrameRate();
   }
 

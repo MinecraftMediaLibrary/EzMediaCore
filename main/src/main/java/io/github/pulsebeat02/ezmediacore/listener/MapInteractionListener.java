@@ -23,9 +23,10 @@
  */
 package io.github.pulsebeat02.ezmediacore.listener;
 
+import static java.util.Objects.requireNonNull;
+
 import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import java.util.Objects;
 import org.bukkit.Material;
 import org.bukkit.entity.Hanging;
 import org.bukkit.entity.ItemFrame;
@@ -62,7 +63,7 @@ public record MapInteractionListener(
     //noinspection deprecation
     if (this.core
         .getHandler()
-        .isMapRegistered(((MapMeta) Objects.requireNonNull(stack.getItemMeta())).getMapId())) {
+        .isMapRegistered(((MapMeta) requireNonNull(stack.getItemMeta())).getMapId())) {
       event.setCancelled(true);
     }
   }
