@@ -32,8 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class FilterLiteDither implements DitherAlgorithm {
 
-  FilterLiteDither() {
-  }
+  FilterLiteDither() {}
 
   /**
    * Performs Filter Lite Dithering at a more optimized pace while giving similar results to Floyd

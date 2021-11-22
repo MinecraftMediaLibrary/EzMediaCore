@@ -30,6 +30,7 @@ import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import java.util.UUID;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,17 +51,25 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
   @Override
   public void process(final int[] data) {
     final long time = System.currentTimeMillis();
+    final UUID[] viewers = this.getWatchers().getViewers();
+    final Dimension dimension = this.getDimensions();
     if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
       this.setLastUpdated(time);
-      final Dimension dimension = this.getDimensions();
-      this.getPacketHandler()
-          .displayChat(
-              this.getWatchers().getViewers(),
-              this.character.getName(),
-              data,
-              dimension.getWidth(),
-              dimension.getHeight());
+      this.displayChat(viewers, dimension, data);
     }
+  }
+
+  private void displayChat(
+      @NotNull final UUID[] viewers,
+      @NotNull final Dimension dimension,
+      final int @NotNull [] data) {
+    this.getPacketHandler()
+        .displayChat(
+            this.getWatchers().getViewers(),
+            this.character.getName(),
+            data,
+            dimension.getWidth(),
+            dimension.getHeight());
   }
 
   @Override
@@ -72,8 +81,7 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
 
     private NamedEntityString character = NamedEntityString.NORMAL_SQUARE;
 
-    public Builder() {
-    }
+    public Builder() {}
 
     @Contract("_ -> this")
     @Override

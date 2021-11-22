@@ -102,34 +102,58 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   public void initializePlayer(
       @NotNull final MrlConfiguration mrl,
       @NotNull final DelayConfiguration delay,
-      @NotNull final Object... arguments) {
+      @NotNull final Object @NotNull ... arguments) {
     this.setDirectVideoMrl(RequestUtils.getVideoURLs(mrl).get(0));
     this.setDirectAudioMrl(RequestUtils.getAudioURLs(mrl).get(0));
-    final Dimension dimension = this.getDimensions();
-    final String url = this.getDirectVideoMrl().getMrl();
-    final Path path = Path.of(url);
-    final long ms = delay.getDelay() * 1000;
-    this.ffmpeg =
-        new FFmpeg(this.getCore().getFFmpegPath().toAbsolutePath())
-            .addInput(
-                (Files.exists(path)
-                        ? UrlInput.fromPath(path).setPosition(ms)
-                        : UrlInput.fromUrl(url).setPosition(ms))
-                    .addArgument("-re"))
-            .addOutput(
-                FrameOutput.withConsumer(this.getFrameConsumer())
-                    .setFrameRate(this.getFrameConfiguration().getFps())
-                    .disableStream(StreamType.AUDIO)
-                    .disableStream(StreamType.SUBTITLE)
-                    .disableStream(StreamType.DATA))
-            .addArguments(
-                "-vf", "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()))
-            .setLogLevel(LogLevel.FATAL)
-            .setProgressListener((line) -> {})
-            .setOutputListener(line -> this.getCore().getLogger().ffmpegPlayer(line));
+    this.constructFFmpegProcess(delay);
+    this.addExtraArguments(arguments);
+  }
+
+  private void addExtraArguments(@NotNull final Object @NotNull ... arguments) {
     for (int i = 1; i < arguments.length; i++) {
       this.ffmpeg.addArgument(arguments[i].toString());
     }
+  }
+
+  private void constructFFmpegProcess(@NotNull final DelayConfiguration delay) {
+    final String url = this.getDirectVideoMrl().getMrl();
+    final Path path = Path.of(url);
+    final long ms = delay.getDelay() * 1000;
+    this.ffmpeg = new FFmpeg(this.getCore().getFFmpegPath().toAbsolutePath());
+    this.addInput(path, url, ms);
+    this.addOutput();
+    this.addDimensionArguments();
+    this.addMiscArguments();
+  }
+
+  private void addMiscArguments() {
+    this.ffmpeg
+        .setLogLevel(LogLevel.FATAL)
+        .setProgressListener((line) -> {})
+        .setOutputListener(line -> this.getCore().getLogger().ffmpegPlayer(line));
+  }
+
+  private void addDimensionArguments() {
+    final Dimension dimension = this.getDimensions();
+    this.ffmpeg.addArguments(
+        "-vf", "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()));
+  }
+
+  private void addOutput() {
+    this.ffmpeg.addOutput(
+        FrameOutput.withConsumer(this.getFrameConsumer())
+            .setFrameRate(this.getFrameConfiguration().getFps())
+            .disableStream(StreamType.AUDIO)
+            .disableStream(StreamType.SUBTITLE)
+            .disableStream(StreamType.DATA));
+  }
+
+  private void addInput(@NotNull final Path path, @NotNull final String url, final long ms) {
+    this.ffmpeg.addInput(
+        (Files.exists(path)
+                ? UrlInput.fromPath(path).setPosition(ms)
+                : UrlInput.fromUrl(url).setPosition(ms))
+            .addArgument("-re"));
   }
 
   @Contract(value = " -> new", pure = true)

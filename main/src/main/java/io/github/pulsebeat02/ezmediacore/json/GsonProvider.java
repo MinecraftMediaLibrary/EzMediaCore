@@ -31,6 +31,9 @@ import io.github.pulsebeat02.ezmediacore.json.adapter.UUIDAdapter;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 public final class GsonProvider {
 
@@ -38,16 +41,22 @@ public final class GsonProvider {
   private static final Gson PRETTY;
 
   static {
-    final Map<Class<?>, TypeAdapter<?>> adapters =
-        Map.of(
-            Path.class, new PathAdapter(),
-            UUID.class, new UUIDAdapter());
-
-    final GsonBuilder builder = new GsonBuilder();
-    adapters.forEach(builder::registerTypeAdapter);
-
+    final GsonBuilder builder = getBuilder();
     SIMPLE = builder.create();
     PRETTY = builder.setPrettyPrinting().create();
+  }
+
+  private static @NotNull GsonBuilder getBuilder() {
+    final GsonBuilder builder = new GsonBuilder();
+    getAdapters().forEach(builder::registerTypeAdapter);
+    return builder;
+  }
+
+  @Contract(" -> new")
+  private static @NotNull @Unmodifiable Map<Class<?>, TypeAdapter<?>> getAdapters() {
+    return Map.of(
+        Path.class, new PathAdapter(),
+        UUID.class, new UUIDAdapter());
   }
 
   public static Gson getSimple() {

@@ -42,19 +42,19 @@ public class FFmpegVideoTest {
     this.window.setSize(1024, 2048);
     this.window.setVisible(true);
     this.window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    this.window.addWindowListener(new WindowAdapter() {
-      @Override
-      public void windowClosing(@NotNull final WindowEvent windowEvent) {
-        FFmpegVideoTest.this.running.set(false);
-      }
-    });
+    this.window.addWindowListener(
+        new WindowAdapter() {
+          @Override
+          public void windowClosing(@NotNull final WindowEvent windowEvent) {
+            FFmpegVideoTest.this.running.set(false);
+          }
+        });
     this.init(bin, in);
     this.ffmpeg.execute();
   }
 
   public static void main(final String[] args) {
-    new FFmpegVideoTest(
-    );
+    new FFmpegVideoTest();
   }
 
   private void init(@NotNull final Path path, @NotNull final Path input) {
@@ -63,10 +63,8 @@ public class FFmpegVideoTest {
             .addInput(UrlInput.fromPath(input).setPosition(0).addArgument("-re"))
             .addOutput(FrameOutput.withConsumer(this.getFrameConsumer()))
             .setLogLevel(LogLevel.FATAL)
-            .setProgressListener(line -> {
-            })
-            .setOutputListener(line -> {
-            });
+            .setProgressListener(line -> {})
+            .setOutputListener(line -> {});
     this.startEpoch = Instant.now().toEpochMilli();
     this.displayThread();
   }
@@ -91,7 +89,6 @@ public class FFmpegVideoTest {
           this.calculations[stream.getId()] = (1.0F / stream.getTimebase()) * 1000;
         }
       }
-
 
       @Override
       public void consume(final Frame frame) {
@@ -132,8 +129,7 @@ public class FFmpegVideoTest {
   public void displayThread() {
     CompletableFuture.allOf(
         CompletableFuture.runAsync(this.getDisplayRunnable()),
-        CompletableFuture.runAsync(this.getSkipRunnable())
-    );
+        CompletableFuture.runAsync(this.getSkipRunnable()));
   }
 
   @Contract(pure = true)

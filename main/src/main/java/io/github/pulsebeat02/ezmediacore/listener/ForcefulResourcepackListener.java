@@ -23,12 +23,11 @@
  */
 package io.github.pulsebeat02.ezmediacore.listener;
 
+import static java.util.Objects.requireNonNull;
+
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -49,51 +48,57 @@ public record ForcefulResourcepackListener(MediaLibraryCore core,
     this.uuids = uuids;
     this.url = url;
     this.hash = hash;
-    final Plugin plugin = core.getPlugin();
-    plugin.getServer().getPluginManager().registerEvents(this, plugin);
+    this.register();
     this.sendResourcepack();
+  }
+
+  private void register() {
+    final Plugin plugin = this.core.getPlugin();
+    plugin.getServer().getPluginManager().registerEvents(this, plugin);
   }
 
   private void sendResourcepack() {
     for (final UUID uuid : this.uuids) {
-      final Player player = Bukkit.getPlayer(uuid);
-      if (player != null) {
-        player.setResourcePack(this.url, this.hash);
-      }
+      requireNonNull(this.core.getPlugin().getServer().getPlayer(uuid), "Player %s is not online!".formatted(uuid))
+          .setResourcePack(this.url, this.hash);
     }
-  }
-
-  public void start() {
-    ExecutorProvider.SCHEDULED_EXECUTOR_SERVICE.schedule(() -> {
-      if (!ForcefulResourcepackListener.this.uuids.isEmpty()) {
-        PlayerResourcePackStatusEvent.getHandlerList().unregister(this.core.getPlugin());
-      }
-    }, 5, TimeUnit.MINUTES);
   }
 
   @EventHandler
   public void onResourcepackStatus(@NotNull final PlayerResourcePackStatusEvent event) {
     final Player player = event.getPlayer();
-    final UUID uuid = player.getUniqueId();
-    if (!this.uuids.contains(uuid)) {
+    if (!this.isIncluded(player)) {
       return;
     }
-    this.handleStatus(event);
+    this.handleResourcepackStatus(event.getStatus(), player);
   }
 
-  private void handleStatus(@NotNull final PlayerResourcePackStatusEvent event) {
-    final Player player = event.getPlayer();
-    final UUID uuid = player.getUniqueId();
-    switch (event.getStatus()) {
-      case FAILED_DOWNLOAD -> player.setResourcePack(this.url, this.hash);
-      case ACCEPTED, DECLINED, SUCCESSFULLY_LOADED -> {
-        this.uuids.remove(uuid);
-        if (this.uuids.isEmpty()) {
-          PlayerResourcePackStatusEvent.getHandlerList().unregister(this);
-        }
-      }
-      default -> throw new IllegalArgumentException("Invalid resourcepack status!");
+  private boolean isIncluded(@NotNull final Player player) {
+    return this.uuids.contains(player.getUniqueId());
+  }
+
+  private void handleResourcepackStatus(
+      @NotNull final PlayerResourcePackStatusEvent.Status status,
+      @NotNull final Player player) {
+    switch (status) {
+      case FAILED_DOWNLOAD -> this.failed(player);
+      case ACCEPTED, DECLINED, SUCCESSFULLY_LOADED -> this.successful(player);
     }
+  }
+
+  private void successful(@NotNull final Player player) {
+    this.uuids.remove(player.getUniqueId());
+    this.unregister();
+  }
+
+  private void unregister() {
+    if (this.uuids.isEmpty()) {
+      PlayerResourcePackStatusEvent.getHandlerList().unregister(this);
+    }
+  }
+
+  private void failed(@NotNull final Player player) {
+    player.setResourcePack(this.url, this.hash);
   }
 
   public MediaLibraryCore getCore() {

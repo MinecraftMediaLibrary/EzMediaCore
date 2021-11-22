@@ -71,7 +71,9 @@ public class NativePluginLoader {
 
   private @NotNull LogEventListener createListener() {
     return (level, module, file, line, name, header, id, message) ->
-        this.core.getLogger().vlc("[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message));
+        this.core
+            .getLogger()
+            .vlc("[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message));
   }
 
   private void waitMedia(@NotNull final CountDownLatch latch) {

@@ -36,8 +36,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ResourcepackUtils {
 
-  private ResourcepackUtils() {
-  }
+  private ResourcepackUtils() {}
 
   public static boolean validatePackFormat(final int format) {
     return Arrays.stream(PackFormat.values()).anyMatch(value -> value.getId() == format);
@@ -53,8 +52,7 @@ public final class ResourcepackUtils {
       @NotNull final String url,
       final byte @NotNull [] hash) {
     new ForcefulResourcepackListener(
-        core, players.stream().map(Player::getUniqueId).collect(Collectors.toSet()), url, hash)
-        .start();
+        core, players.stream().map(Player::getUniqueId).collect(Collectors.toSet()), url, hash);
   }
 
   public static void forceResourcepackLoad(
@@ -65,7 +63,6 @@ public final class ResourcepackUtils {
         core,
         Bukkit.getOnlinePlayers().stream().map(Player::getUniqueId).collect(Collectors.toSet()),
         url,
-        hash)
-        .start();
+        hash);
   }
 }

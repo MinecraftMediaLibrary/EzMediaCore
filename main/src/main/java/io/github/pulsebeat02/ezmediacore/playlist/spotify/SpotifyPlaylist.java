@@ -25,7 +25,6 @@ package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.specification.Playlist;
-import io.github.pulsebeat02.ezmediacore.throwable.UnknownPlaylistException;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 import java.util.Arrays;
@@ -33,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.hc.core5.http.ParseException;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class SpotifyPlaylist implements TrackPlaylist {
@@ -41,20 +41,31 @@ public class SpotifyPlaylist implements TrackPlaylist {
   private final String url;
   private final List<PlaylistTrack> tracks;
 
-  public SpotifyPlaylist(@NotNull final String url)
+  SpotifyPlaylist(@NotNull final String url)
       throws IOException, ParseException, SpotifyWebApiException {
     this.url = url;
-    this.playlist =
-        SpotifyProvider.getSpotifyApi()
-            .getPlaylist(
-                MediaExtractionUtils.getSpotifyID(url)
-                    .orElseThrow(() -> new UnknownPlaylistException(url)))
-            .build()
-            .execute();
-    this.tracks =
-        Arrays.stream(this.playlist.getTracks().getItems())
-            .map(SpotifyPlaylistTrack::new)
-            .collect(Collectors.toList());
+    this.playlist = this.getInternalPlaylist();
+    this.tracks = this.getInternalTracks();
+  }
+
+  @Contract("_ -> new")
+  public static @NotNull SpotifyPlaylist ofSpotifyPlaylist(@NotNull final String url)
+      throws IOException, ParseException, SpotifyWebApiException {
+    return new SpotifyPlaylist(url);
+  }
+
+  private @NotNull List<PlaylistTrack> getInternalTracks() {
+    return Arrays.stream(this.playlist.getTracks().getItems())
+        .map(SpotifyPlaylistTrack::new)
+        .collect(Collectors.toList());
+  }
+
+  private @NotNull Playlist getInternalPlaylist()
+      throws IOException, ParseException, SpotifyWebApiException {
+    return SpotifyProvider.getSpotifyApi()
+        .getPlaylist(MediaExtractionUtils.getSpotifyIDExceptionally(this.url))
+        .build()
+        .execute();
   }
 
   @Override

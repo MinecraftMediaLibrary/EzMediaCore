@@ -29,7 +29,6 @@ import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -85,37 +84,53 @@ public class RTPStreamingServer implements StreamingServer {
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
     if (!this.cancelled.get()) {
-      final ProcessBuilder builder =
-          new ProcessBuilder(this.core.getRTPPath().toString()).redirectErrorStream(true);
-      final Map<String, String> env = builder.environment();
-      env.put("RTSP_HLSADDRESS", ":%s".formatted(this.hlsPort));
-      try {
-        this.process = builder.start();
-        this.handleLogging(logger, logger != null);
-      } catch (final IOException e) {
-        e.printStackTrace();
-      }
+      final ProcessBuilder builder = this.createProcessBuilder();
+      this.configureEnvironment(builder);
+      this.startServer(builder, logger);
     }
+  }
+
+  private @NotNull ProcessBuilder createProcessBuilder() {
+    return new ProcessBuilder(this.core.getRTPPath().toString()).redirectErrorStream(true);
+  }
+
+  private void startServer(
+      @NotNull final ProcessBuilder builder, @Nullable final Consumer<String> logger) {
+    try {
+      this.process = builder.start();
+      this.handleLogging(logger, logger != null);
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void configureEnvironment(@NotNull final ProcessBuilder builder) {
+    builder.environment().put("RTSP_HLSADDRESS", ":%s".formatted(this.hlsPort));
   }
 
   private void handleLogging(@Nullable final Consumer<String> logger, final boolean consume)
       throws IOException {
-    try (final BufferedReader r =
-        new BufferedReader(
-            new InputStreamReader(new FastBufferedInputStream(this.process.getInputStream())))) {
+    try (final BufferedReader r = this.createFastBufferedReader()) {
       String line;
-      while (true) {
-        line = r.readLine();
-        if (line == null) {
-          break;
-        }
-        if (consume) {
-          logger.accept(line);
-        } else {
-          this.log(line);
-        }
+      while ((line = r.readLine()) != null) {
+        this.consumeLine(consume, logger, line);
       }
     }
+  }
+
+  private void consumeLine(
+      final boolean consume, @Nullable final Consumer<String> logger, @NotNull final String line) {
+    if (consume) {
+      logger.accept(line);
+    } else {
+      this.log(line);
+    }
+  }
+
+  @Contract(" -> new")
+  private @NotNull BufferedReader createFastBufferedReader() {
+    return new BufferedReader(
+        new InputStreamReader(new FastBufferedInputStream(this.process.getInputStream())));
   }
 
   @Override

@@ -115,19 +115,22 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   }
 
   private void handleServerRequests() {
+    CompletableFuture.runAsync(this::requestHandler, this.executor);
+  }
+
+  private void requestHandler() {
+    try {
+      while (this.running.get()) {
+        this.handleRequest();
+      }
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void handleRequest() throws IOException {
     CompletableFuture.runAsync(
-        () -> {
-          try {
-            while (this.running.get()) {
-              CompletableFuture.runAsync(
-                  new FileRequestHandler(this, this.socket.accept(), this.header),
-                  HTTP_REQUEST_POOL);
-            }
-          } catch (final IOException e) {
-            e.printStackTrace();
-          }
-        },
-        this.executor);
+        new FileRequestHandler(this, this.socket.accept(), this.header), HTTP_REQUEST_POOL);
   }
 
   @Override
@@ -138,12 +141,16 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
     try {
       this.onServerTermination();
       this.running.set(false);
-      if (!this.socket.isClosed()) {
-        this.socket.close();
-      }
+      this.closeSocket();
       this.executor.shutdown();
     } catch (final IOException e) {
       e.printStackTrace();
+    }
+  }
+
+  private void closeSocket() throws IOException {
+    if (!this.socket.isClosed()) {
+      this.socket.close();
     }
   }
 

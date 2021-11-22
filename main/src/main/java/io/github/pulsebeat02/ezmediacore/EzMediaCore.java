@@ -33,17 +33,15 @@ import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyProvider;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.YoutubeProvider;
 import io.github.pulsebeat02.ezmediacore.reflect.NMSReflectionHandler;
+import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import io.github.pulsebeat02.ezmediacore.throwable.UnsupportedServerException;
 import io.github.pulsebeat02.ezmediacore.utility.search.StringSearch;
-import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.IntStream;
-import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
@@ -101,11 +99,19 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void initPacketHandler() {
+    if (!this.isMocking()) {
+      this.assignPacketHandler();
+    }
+  }
+
+  private void assignPacketHandler() {
     final Optional<PacketHandler> handler =
         new NMSReflectionHandler(this).getNewPacketHandlerInstance();
-    if (!Bukkit.getVersion().contains("MockBukkit")) { // hack to allow unit testing
-      this.handler = handler.orElseThrow(UnsupportedServerException::new);
-    }
+    this.handler = handler.orElseThrow(UnsupportedServerException::new);
+  }
+
+  private boolean isMocking() {
+    return !this.plugin.getServer().getVersion().contains("MockBukkit");
   }
 
   private void initLogger() {
@@ -164,21 +170,33 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void sendPacketCompressionTip() {
-    if (Bukkit.getOnlineMode()) {
+    if (this.isOnlineMode()) {
       this.logger.warn(Locale.PACKET_COMPRESSION_TIP);
     }
   }
 
+  private boolean isOnlineMode() {
+    return this.plugin.getServer().getOnlineMode();
+  }
+
   private void sendSpotifyWarningMessage(@NotNull final MediaLibraryCore core) {
-    if (core.getSpotifyClient() == null) {
+    if (this.invalidSpotifyClient(core)) {
       this.logger.warn(Locale.WARN_SPOTIFY_AUTH);
     }
+  }
+
+  private boolean invalidSpotifyClient(@NotNull final MediaLibraryCore core) {
+    return core.getSpotifyClient() == null;
   }
 
   @Override
   public void shutdown() {
     this.disabled = true;
     HandlerList.unregisterAll(this.registrationListener);
+    this.closeLogger();
+  }
+
+  private void closeLogger() {
     try {
       this.logger.close();
     } catch (final Exception e) {

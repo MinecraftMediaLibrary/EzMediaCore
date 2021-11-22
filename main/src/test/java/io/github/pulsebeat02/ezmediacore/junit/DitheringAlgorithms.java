@@ -1,12 +1,12 @@
 package io.github.pulsebeat02.ezmediacore.junit;
 
-import static io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithmProvider.FILTER_LITE;
-import static io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithmProvider.FLOYD_STEINBERG;
-import static io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithmProvider.ORDERED_2X2;
-import static io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithmProvider.ORDERED_4X4;
-import static io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithmProvider.ORDERED_8X8;
-import static io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithmProvider.RANDOM;
-import static io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithmProvider.SIMPLE;
+import static io.github.pulsebeat02.ezmediacore.dither.algorithm.Algorithm.FILTER_LITE;
+import static io.github.pulsebeat02.ezmediacore.dither.algorithm.Algorithm.FLOYD_STEINBERG;
+import static io.github.pulsebeat02.ezmediacore.dither.algorithm.Algorithm.ORDERED_2X2;
+import static io.github.pulsebeat02.ezmediacore.dither.algorithm.Algorithm.ORDERED_4X4;
+import static io.github.pulsebeat02.ezmediacore.dither.algorithm.Algorithm.ORDERED_8X8;
+import static io.github.pulsebeat02.ezmediacore.dither.algorithm.Algorithm.RANDOM;
+import static io.github.pulsebeat02.ezmediacore.dither.algorithm.Algorithm.SIMPLE;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
@@ -25,7 +25,11 @@ public final class DitheringAlgorithms {
 
   static {
     try {
-      BUFFER = VideoFrameUtils.getBuffer(ImageIO.read(new URL("https://github.com/MinecraftMediaLibrary/EzMediaCore/blob/master/deluxemediaplugin.png")));
+      BUFFER =
+          VideoFrameUtils.getBuffer(
+              ImageIO.read(
+                  new URL(
+                      "https://github.com/MinecraftMediaLibrary/EzMediaCore/blob/master/deluxemediaplugin.png")));
     } catch (final IOException e) {
       throw new AssertionError("Error retrieving image resource for dither test!");
     }

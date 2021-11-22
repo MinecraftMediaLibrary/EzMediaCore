@@ -30,6 +30,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.map.MapCanvas;
 import org.bukkit.map.MapView;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class EnhancedMapRenderer implements MapRenderer {
@@ -65,7 +66,8 @@ public class EnhancedMapRenderer implements MapRenderer {
     }
   }
 
-  private org.bukkit.map.MapRenderer createRenderer(
+  @Contract(value = "_, _, _ -> new", pure = true)
+  private org.bukkit.map.@NotNull MapRenderer createRenderer(
       @NotNull final BufferedImage[][] images, final int x, final int y) {
     return new org.bukkit.map.MapRenderer() {
       @Override

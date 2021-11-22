@@ -25,7 +25,6 @@ package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingFunction;
-import io.github.pulsebeat02.ezmediacore.throwable.DeadResourceLinkException;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 import java.util.Arrays;
@@ -33,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.hc.core5.http.ParseException;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class SpotifyTrack implements Track {
@@ -40,25 +40,33 @@ public class SpotifyTrack implements Track {
   private final String url;
   private final List<Artist> artists;
 
-  private com.wrapper.spotify.model_objects.specification.Track track;
+  private final com.wrapper.spotify.model_objects.specification.Track track;
 
-  public SpotifyTrack(@NotNull final String url) throws IOException {
+  SpotifyTrack(@NotNull final String url)
+      throws IOException, ParseException, SpotifyWebApiException {
     this.url = url;
-    try {
-      this.track =
-          SpotifyProvider.getSpotifyApi()
-              .getTrack(
-                  MediaExtractionUtils.getSpotifyID(url)
-                      .orElseThrow(() -> new DeadResourceLinkException(url)))
-              .build()
-              .execute();
-    } catch (final SpotifyWebApiException | ParseException e) {
-      e.printStackTrace();
-    }
-    this.artists =
-        Arrays.stream(this.track.getArtists())
-            .map(ThrowingFunction.unchecked(SpotifyArtist::new))
-            .collect(Collectors.toList());
+    this.track = this.getInternalTrack();
+    this.artists = this.getInternalArtists();
+  }
+
+  @Contract("_ -> new")
+  public static @NotNull SpotifyTrack ofSpotifyTrack(@NotNull final String url)
+      throws IOException, ParseException, SpotifyWebApiException {
+    return new SpotifyTrack(url);
+  }
+
+  private @NotNull com.wrapper.spotify.model_objects.specification.Track getInternalTrack()
+      throws IOException, ParseException, SpotifyWebApiException {
+    return SpotifyProvider.getSpotifyApi()
+        .getTrack(MediaExtractionUtils.getSpotifyIDExceptionally(this.url))
+        .build()
+        .execute();
+  }
+
+  private @NotNull List<Artist> getInternalArtists() {
+    return Arrays.stream(this.track.getArtists())
+        .map(ThrowingFunction.unchecked(SpotifyArtist::new))
+        .collect(Collectors.toList());
   }
 
   @Override

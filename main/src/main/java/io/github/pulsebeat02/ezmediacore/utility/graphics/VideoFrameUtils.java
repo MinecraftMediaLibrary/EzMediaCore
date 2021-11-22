@@ -192,28 +192,32 @@ public final class VideoFrameUtils {
   public static OptionalDouble getFrameRate(
       @NotNull final MediaLibraryCore core, @NotNull final Path video) throws IOException {
     final Path binary = core.getFFmpegPath();
-    try (final BufferedReader r =
-        new BufferedReader(
-            new InputStreamReader(
-                new FastBufferedInputStream(
-                    new ProcessBuilder(binary.toString(), "-i", video.toString())
-                        .start()
-                        .getErrorStream())))) { // ffmpeg always thinks its an error
+    try (final BufferedReader br =
+        createFastBufferedReader(
+            createProcess(binary, video))) { // ffmpeg always thinks its an error
       String line;
-      while (true) {
-        line = r.readLine();
-        if (line == null) {
-          break;
-        }
+      while ((line = br.readLine()) != null) {
         if (line.contains(" fps")) {
-          final int fpsIndex = line.indexOf(" fps");
-          return OptionalDouble.of(
-              Double.parseDouble(
-                  line.substring(line.lastIndexOf(",", fpsIndex) + 1, fpsIndex).trim()));
+          return OptionalDouble.of(parseDoubleFrames(line, line.indexOf(" fps")));
         }
       }
     }
     return OptionalDouble.empty();
+  }
+
+  private static double parseDoubleFrames(@NotNull final String line, final int fpsIndex) {
+    return Double.parseDouble(line.substring(line.lastIndexOf(",", fpsIndex) + 1, fpsIndex).trim());
+  }
+
+  private static @NotNull ProcessBuilder createProcess(
+      @NotNull final Path binary, @NotNull final Path video) {
+    return new ProcessBuilder(binary.toString(), "-i", video.toString());
+  }
+
+  private static @NotNull BufferedReader createFastBufferedReader(
+      @NotNull final ProcessBuilder builder) throws IOException {
+    return new BufferedReader(
+        new InputStreamReader(new FastBufferedInputStream(builder.start().getErrorStream())));
   }
 
   public static int @NotNull [] getRGBParallel(@NotNull final BufferedImage image) {

@@ -36,10 +36,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Unfortunately, due to JNA issues, this class must be mutable and there can only be one instance.
- */
-
 @Beta
 public abstract class MediaPlayer implements VideoPlayer {
 
@@ -47,11 +43,9 @@ public abstract class MediaPlayer implements VideoPlayer {
   private final Dimension dimensions;
 
   private final FrameConfiguration fps;
-  private Viewers viewers;
-
-  private Callback callback;
   private final SoundKey key;
-
+  private Viewers viewers;
+  private Callback callback;
   private MrlConfiguration directVideo;
   private MrlConfiguration directAudio;
   private Consumer<MrlConfiguration> playAudio;
@@ -68,14 +62,17 @@ public abstract class MediaPlayer implements VideoPlayer {
     this.core = callback.getCore();
     this.callback = callback;
     this.dimensions = pixelDimension;
-    this.key =
-        key == null
-            ? SoundKey.ofSound(callback.getCore().getPlugin().getName().toLowerCase(Locale.ROOT))
-            : key;
+    this.key = this.getInternalSoundKey(key);
     this.fps = fps;
     this.viewers = viewers;
     this.playAudio = this.getPlayAudioRunnable();
     this.stopAudio = this.getStopAudioRunnable();
+  }
+
+  private @NotNull SoundKey getInternalSoundKey(@Nullable final SoundKey key) {
+    return key == null
+        ? SoundKey.ofSound(this.callback.getCore().getPlugin().getName().toLowerCase(Locale.ROOT))
+        : key;
   }
 
   private @NotNull Runnable getStopAudioRunnable() {
@@ -87,17 +84,11 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   private @NotNull Consumer<MrlConfiguration> getPlayAudioRunnable() {
-    return (mrl) ->
-        this.viewers
-            .getPlayers()
-            .forEach(
-                player ->
-                    player.playSound(
-                        player.getLocation(),
-                        this.key.getName(),
-                        SoundCategory.MASTER,
-                        100.0F,
-                        1.0F));
+    return (mrl) -> this.viewers.getPlayers().forEach(this::playSound);
+  }
+
+  private void playSound(@NotNull final Player player) {
+    player.playSound(player.getLocation(), this.key.getName(), SoundCategory.MASTER, 100.0F, 1.0F);
   }
 
   @Override

@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.image;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
@@ -31,8 +33,6 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
-import org.bukkit.Bukkit;
-import org.bukkit.map.MapView;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class Image implements MapImage {
@@ -62,16 +62,19 @@ public abstract class Image implements MapImage {
   }
 
   @Override
-  public void onStartDrawImage() {
-  }
+  public void onStartDrawImage() {}
 
   @Override
   public @NotNull BufferedImage[][] process(@NotNull BufferedImage image, final boolean resize) {
     if (resize) {
-      image =
-          ImageUtils.resize(image, this.dimension.getWidth() << 7, this.dimension.getHeight() << 7);
+      image = this.resizeImage(image);
     }
     return this.processImage(image);
+  }
+
+  private @NotNull BufferedImage resizeImage(@NotNull final BufferedImage image) {
+    return ImageUtils.resize(
+        image, this.dimension.getWidth() << 7, this.dimension.getHeight() << 7);
   }
 
   private @NotNull BufferedImage[][] processImage(@NotNull final BufferedImage image) {
@@ -88,17 +91,16 @@ public abstract class Image implements MapImage {
   }
 
   @Override
-  public void onFinishDrawImage() {
-  }
+  public void onFinishDrawImage() {}
 
   @Override
   public void resetMaps() {
     for (final int map : this.maps) {
       //noinspection deprecation
-      final MapView view = Bukkit.getMap(map);
-      if (view != null) {
-        view.getRenderers().clear();
-      }
+      requireNonNull(
+              this.core.getPlugin().getServer().getMap(map), "Invalid map view %s".formatted(map))
+          .getRenderers()
+          .clear();
     }
   }
 

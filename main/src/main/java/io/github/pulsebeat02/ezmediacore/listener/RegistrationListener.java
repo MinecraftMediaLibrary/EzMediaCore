@@ -39,7 +39,11 @@ public record RegistrationListener(
 
   public RegistrationListener(@NotNull final MediaLibraryCore core) {
     this.core = core;
-    final Plugin plugin = core.getPlugin();
+    this.registerListener();
+  }
+
+  private void registerListener() {
+    final Plugin plugin = this.core.getPlugin();
     plugin.getServer().getPluginManager().registerEvents(this, plugin);
   }
 

@@ -26,13 +26,12 @@ package io.github.pulsebeat02.ezmediacore.jlibdl;
 
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class JLibDL {
 
   private JLibDL() {}
 
-  public static @NotNull YoutubeDLRequest request(@Nullable final String url)
+  public static @NotNull YoutubeDLRequest request(@NotNull final String url)
       throws IOException, InterruptedException {
     return new YoutubeDLRequest().request(url);
   }

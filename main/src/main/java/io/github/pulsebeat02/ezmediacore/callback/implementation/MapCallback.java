@@ -32,7 +32,8 @@ import io.github.pulsebeat02.ezmediacore.callback.Identifier;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
-import io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithmProvider;
+import io.github.pulsebeat02.ezmediacore.dither.algorithm.Algorithm;
+import java.util.UUID;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -61,18 +62,26 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
   public void process(final int[] data) {
     final long time = System.currentTimeMillis();
     final Dimension dimension = this.getDimensions();
+    final UUID[] viewers = this.getWatchers().getViewers();
     if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
       this.setLastUpdated(time);
-      final int width = this.blockWidth;
-      this.getPacketHandler()
-          .displayMaps(
-              this.getWatchers().getViewers(),
-              this.map,
-              dimension.getWidth(),
-              dimension.getHeight(),
-              this.algorithm.ditherIntoMinecraft(data, width),
-              width);
+      this.displayMaps(viewers, dimension, data);
     }
+  }
+
+  private void displayMaps(
+      @NotNull final UUID[] viewers,
+      @NotNull final Dimension dimension,
+      final int @NotNull [] data) {
+    final int width = this.blockWidth;
+    this.getPacketHandler()
+        .displayMaps(
+            viewers,
+            this.map,
+            dimension.getWidth(),
+            dimension.getHeight(),
+            this.algorithm.ditherIntoMinecraft(data, width),
+            width);
   }
 
   @Override
@@ -87,12 +96,11 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
 
   public static final class Builder extends CallbackBuilder {
 
-    private DitherAlgorithm algorithm = DitherAlgorithmProvider.FILTER_LITE;
+    private DitherAlgorithm algorithm = Algorithm.FILTER_LITE;
     private Identifier<Integer> map = Identifier.ofIdentifier(0);
     private int blockWidth;
 
-    public Builder() {
-    }
+    public Builder() {}
 
     @Contract("_ -> this")
     @Override

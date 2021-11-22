@@ -31,8 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class TaskUtils {
 
-  private TaskUtils() {
-  }
+  private TaskUtils() {}
 
   public static <T> @NotNull Future<T> sync(
       @NotNull final MediaLibraryCore core, @NotNull final Callable<T> task) {

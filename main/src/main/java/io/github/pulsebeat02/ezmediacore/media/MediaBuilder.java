@@ -27,7 +27,4 @@ public final class MediaBuilder {
     this.strategy = strategy;
     return this;
   }
-
-  
-
 }

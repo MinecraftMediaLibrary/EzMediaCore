@@ -205,19 +205,23 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   @Contract(value = " -> new", pure = true)
   private @NotNull BufferFormatCallback getBufferCallback() {
     if (this.bufferFormatCallback == null) {
-      final Dimension dimension = VLCMediaPlayer.this.getDimensions();
-      this.bufferFormatCallback = new BufferFormatCallback() {
-        @Override
-        public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {
-          return new RV32BufferFormat(dimension.getWidth(), dimension.getHeight());
-        }
-
-        @Override
-        public void allocatedBuffers(final ByteBuffer[] buffers) {
-        }
-      };
+      this.bufferFormatCallback = this.createBufferedCallback();
     }
     return this.bufferFormatCallback;
+  }
+
+  private @NotNull BufferFormatCallback createBufferedCallback() {
+    final Dimension dimension = VLCMediaPlayer.this.getDimensions();
+    return new BufferFormatCallback() {
+      @Override
+      public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {
+        return new RV32BufferFormat(dimension.getWidth(), dimension.getHeight());
+      }
+
+      @Override
+      public void allocatedBuffers(final ByteBuffer[] buffers) {
+      }
+    };
   }
 
   @Override

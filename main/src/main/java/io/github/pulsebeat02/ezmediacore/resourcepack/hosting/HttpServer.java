@@ -24,7 +24,6 @@
 package io.github.pulsebeat02.ezmediacore.resourcepack.hosting;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.http.HttpDaemon;
 import io.github.pulsebeat02.ezmediacore.http.HttpServerDaemon;
 import java.io.IOException;
@@ -33,6 +32,7 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,12 +45,7 @@ public class HttpServer implements HttpDaemonSolution {
 
   static {
     try {
-      HTTP_SERVER_IP =
-          HttpClient.newHttpClient()
-              .send(
-                  HttpRequest.newBuilder().uri(new URI("https://myexternalip.com/raw")).build(),
-                  HttpResponse.BodyHandlers.ofString())
-              .body();
+      HTTP_SERVER_IP = HttpClient.newHttpClient().send(createRequest(), createBodyHandler()).body();
     } catch (final IOException | URISyntaxException | InterruptedException e) {
       HTTP_SERVER_IP = "127.0.0.1"; // fallback ip
       e.printStackTrace();
@@ -69,6 +64,14 @@ public class HttpServer implements HttpDaemonSolution {
       final boolean verbose) {
     this.daemon = HttpServerDaemon.ofDaemon(core, path, ip, port, verbose);
     this.executor = Executors.newSingleThreadExecutor();
+  }
+
+  private static @NotNull HttpRequest createRequest() throws URISyntaxException {
+    return HttpRequest.newBuilder().uri(new URI("https://myexternalip.com/raw")).build();
+  }
+
+  private static @NotNull BodyHandler<String> createBodyHandler() {
+    return HttpResponse.BodyHandlers.ofString();
   }
 
   @Contract("_, _ -> new")

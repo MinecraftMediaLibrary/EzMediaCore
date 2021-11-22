@@ -23,12 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore.analysis;
 
-import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
-import java.io.BufferedReader;
+import io.github.pulsebeat02.ezmediacore.task.CommandTask;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,32 +53,23 @@ public final class OperatingSystem implements OperatingSystemInfo {
     return Stream.of("nix", "nux", "aix").anyMatch(this.os::contains);
   }
 
-  private String getLinuxDistributionCmd() {
-    return this.type == OSType.UNIX ? this.retrieveLinuxDistribution().orElse("Unknown") : "";
+  private @NotNull String getLinuxDistributionCmd() {
+    return this.type == OSType.UNIX ? this.retrieveLinuxDistribution() : "Not Linux!";
   }
 
-  private @NotNull Optional<String> retrieveLinuxDistribution() {
+  private @NotNull String retrieveLinuxDistribution() {
     try {
-      return Optional.of(
-          this.getProcessOutput(
-              Runtime.getRuntime().exec(new String[] {"/bin/sh", "-c", "cat /etc/*-release"})));
+      return this.getProcessOutput();
     } catch (final IOException e) {
-      return Optional.empty();
+      e.printStackTrace();
+      return "Unknown Distribution";
     }
   }
 
-  private @NotNull String getProcessOutput(@NotNull final Process process) throws IOException {
-    final StringBuilder sb = new StringBuilder();
-    try (final BufferedReader br =
-        new BufferedReader(
-            new InputStreamReader(new FastBufferedInputStream(process.getInputStream())))) {
-      String line;
-      while ((line = br.readLine()) != null) {
-        sb.append(line);
-        sb.append(" ");
-      }
-    }
-    return sb.toString();
+  private @NotNull String getProcessOutput() throws IOException {
+    final CommandTask task = new CommandTask("/bin/sh", "-c", "cat /etc/*-release");
+    task.run();
+    return task.getOutput();
   }
 
   @Override

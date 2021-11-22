@@ -25,12 +25,12 @@ package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.specification.ArtistSimplified;
-import io.github.pulsebeat02.ezmediacore.throwable.UnknownArtistException;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 import org.apache.hc.core5.http.ParseException;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class SpotifyArtist implements Artist {
@@ -39,25 +39,36 @@ public class SpotifyArtist implements Artist {
   private final String url;
   private final Avatar[] avatars;
 
-  public SpotifyArtist(@NotNull final String url)
+  SpotifyArtist(@NotNull final String url)
       throws IOException, ParseException, SpotifyWebApiException {
     this.url = url;
-    this.artist =
-        SpotifyProvider.getSpotifyApi()
-            .getArtist(
-                MediaExtractionUtils.getSpotifyID(url)
-                    .orElseThrow(() -> new UnknownArtistException(url)))
-            .build()
-            .execute();
-    this.avatars =
-        Arrays.stream(this.artist.getImages())
-            .map(SpotifyAvatar::new)
-            .toArray(SpotifyAvatar[]::new);
+    this.artist = this.getInternalArtist();
+    this.avatars = this.getInternalAvatars();
   }
 
   SpotifyArtist(@NotNull final ArtistSimplified simplified)
       throws IOException, ParseException, SpotifyWebApiException {
     this(simplified.getUri());
+  }
+
+  @Contract("_ -> new")
+  public static @NotNull SpotifyArtist ofSpotifyArtist(@NotNull final String url)
+      throws IOException, ParseException, SpotifyWebApiException {
+    return new SpotifyArtist(url);
+  }
+
+  private @NotNull com.wrapper.spotify.model_objects.specification.Artist getInternalArtist()
+      throws IOException, ParseException, SpotifyWebApiException {
+    return SpotifyProvider.getSpotifyApi()
+        .getArtist(MediaExtractionUtils.getSpotifyIDExceptionally(this.url))
+        .build()
+        .execute();
+  }
+
+  private @NotNull Avatar @NotNull [] getInternalAvatars() {
+    return Arrays.stream(this.artist.getImages())
+        .map(SpotifyAvatar::new)
+        .toArray(SpotifyAvatar[]::new);
   }
 
   @Override

@@ -24,14 +24,15 @@
 package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
 import com.github.kiulian.downloader.downloader.request.RequestVideoInfo;
+import com.github.kiulian.downloader.downloader.response.Response;
 import com.github.kiulian.downloader.model.videos.VideoDetails;
 import com.github.kiulian.downloader.model.videos.VideoInfo;
-import io.github.pulsebeat02.ezmediacore.throwable.DeadResourceLinkException;
-import io.github.pulsebeat02.ezmediacore.throwable.RequestFailureException;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import io.github.pulsebeat02.ezmediacore.utility.media.ResponseUtils;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class YoutubeVideo implements Video {
@@ -43,32 +44,43 @@ public class YoutubeVideo implements Video {
   private final List<VideoFormat> videoFormats;
   private final List<AudioFormat> audioFormats;
 
-  public YoutubeVideo(@NotNull final String url) {
+  YoutubeVideo(@NotNull final String url) {
     this.url = url;
-    this.id =
-        MediaExtractionUtils.getYoutubeID(url)
-            .orElseThrow(() -> new DeadResourceLinkException(url));
-    this.video = this.getVideoResponse(0);
+    this.id = MediaExtractionUtils.getYoutubeIDExceptionally(url);
+    this.video = this.getInternalVideoResponse();
     this.details = this.video.details();
-    this.videoFormats =
-        this.video.videoFormats().stream()
-            .map(YoutubeVideoFormat::new)
-            .collect(Collectors.toList());
-    this.audioFormats =
-        this.video.audioFormats().stream()
-            .map(YoutubeAudioFormat::new)
-            .collect(Collectors.toList());
+    this.videoFormats = this.getInternalVideoFormats();
+    this.audioFormats = this.getInternalAudioFormats();
   }
 
-  private VideoInfo getVideoResponse(final int tries) {
-    if (tries == 10) {
-      throw new RequestFailureException(
-          "Failed to retrieve video information from url %s!".formatted(this.url));
+  @Contract("_ -> new")
+  public static @NotNull YoutubeVideo ofYoutubeVideo(@NotNull final String url) {
+    return new YoutubeVideo(url);
+  }
+
+  private @NotNull List<AudioFormat> getInternalAudioFormats() {
+    return this.video.audioFormats().stream()
+        .map(YoutubeAudioFormat::new)
+        .collect(Collectors.toList());
+  }
+
+  private @NotNull List<VideoFormat> getInternalVideoFormats() {
+    return this.video.videoFormats().stream()
+        .map(YoutubeVideoFormat::new)
+        .collect(Collectors.toList());
+  }
+
+  private @NotNull VideoInfo getInternalVideoResponse() {
+    for (int i = 0; i < 10; i++) {
+      final Response<VideoInfo> response =
+          YoutubeProvider.getYoutubeDownloader().getVideoInfo(new RequestVideoInfo(this.id));
+      final Optional<VideoInfo> info = ResponseUtils.getResponseResult(response);
+      if (info.isPresent()) {
+        return info.get();
+      }
     }
-    final int num = tries + 1;
-    return ResponseUtils.getResponseResult(
-            YoutubeProvider.getYoutubeDownloader().getVideoInfo(new RequestVideoInfo(this.id)))
-        .orElseGet(() -> this.getVideoResponse(num));
+    throw new AssertionError(
+        "Failed to retrieve Youtube video information from %s!".formatted(this.url));
   }
 
   @Override

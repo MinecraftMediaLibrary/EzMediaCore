@@ -33,6 +33,7 @@ import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
+import java.util.UUID;
 import java.util.function.Consumer;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
@@ -45,7 +46,8 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class EntityCallback<T extends Entity> extends FrameCallback implements EntityCallbackDispatcher {
+public class EntityCallback<T extends Entity> extends FrameCallback
+    implements EntityCallbackDispatcher {
 
   private final Class<T> type;
   private final Consumer<T> consumer;
@@ -72,19 +74,23 @@ public class EntityCallback<T extends Entity> extends FrameCallback implements E
 
   private Entity @NotNull [] getModifiedEntities() {
     final int height = this.getDimensions().getHeight();
-    final Entity[] ents = new Entity[height];
-    final Location spawn = this.location.clone();
-    final World world = spawn.getWorld();
-    if (world != null) {
-      for (int i = height - 1; i >= 0; i--) {
-        ents[i] =
-            world.spawn(spawn, this.type, this.consumer == null ? null : this.consumer::accept);
-        ents[i].setCustomName(StringUtils.repeat(this.name.getName(), height));
-        ents[i].setCustomNameVisible(true);
-        spawn.add(0.0, 0.225, 0.0);
-      }
+    final Entity[] entities = new Entity[height];
+    this.spawnEntity(entities, this.location.clone(), this.location.getWorld(), height);
+    return entities;
+  }
+
+  private void spawnEntity(
+      @NotNull final Entity @NotNull [] entities,
+      @NotNull final Location spawn,
+      @NotNull final World world,
+      final int height) {
+    for (int i = height - 1; i >= 0; i--) {
+      entities[i] =
+          world.spawn(spawn, this.type, this.consumer == null ? null : this.consumer::accept);
+      entities[i].setCustomName(StringUtils.repeat(this.name.getName(), height));
+      entities[i].setCustomNameVisible(true);
+      spawn.add(0.0, 0.225, 0.0);
     }
-    return ents;
   }
 
   @Override
@@ -107,16 +113,22 @@ public class EntityCallback<T extends Entity> extends FrameCallback implements E
   public void process(final int[] data) {
     final long time = System.currentTimeMillis();
     final int width = this.getDimensions().getWidth();
+    final UUID[] viewers = this.getWatchers().getViewers();
     if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
       this.setLastUpdated(time);
-      this.getPacketHandler()
-          .displayEntities(
-              this.getWatchers().getViewers(),
-              this.entities,
-              data,
-              width,
-              this.entities.length / width);
+      this.displayEntity(viewers, data, width);
     }
+  }
+
+  private void displayEntity(
+      @NotNull final UUID[] viewers, final int @NotNull [] data, final int width) {
+    this.getPacketHandler()
+        .displayEntities(
+            this.getWatchers().getViewers(),
+            this.entities,
+            data,
+            width,
+            this.entities.length / width);
   }
 
   @Override
@@ -141,27 +153,8 @@ public class EntityCallback<T extends Entity> extends FrameCallback implements E
     private static final Pair<EntityType, Consumer<ArmorStand>> ARMOR_STAND;
 
     static {
-      AREA_EFFECT_CLOUD =
-          Pair.ofPair(
-              EntityType.AREA_EFFECT_CLOUD,
-              entity -> {
-                entity.setInvulnerable(true);
-                entity.setDuration(999999);
-                entity.setDurationOnUse(0);
-                entity.setRadiusOnUse(0);
-                entity.setRadius(0);
-                entity.setRadiusPerTick(0);
-                entity.setReapplicationDelay(0);
-                entity.setGravity(false);
-              });
-      ARMOR_STAND =
-          Pair.ofPair(
-              EntityType.ARMOR_STAND,
-              entity -> {
-                entity.setInvulnerable(true);
-                entity.setVisible(false);
-                entity.setGravity(false);
-              });
+      AREA_EFFECT_CLOUD = Pair.ofPair(EntityType.AREA_EFFECT_CLOUD, getAreaEffectCloudConsumer());
+      ARMOR_STAND = Pair.ofPair(EntityType.ARMOR_STAND, getArmorStandConsumer());
     }
 
     private NamedEntityString character = NamedEntityString.NORMAL_SQUARE;
@@ -170,6 +163,27 @@ public class EntityCallback<T extends Entity> extends FrameCallback implements E
     private Consumer<T> consumer;
 
     public Builder() {}
+
+    private static @NotNull Consumer<AreaEffectCloud> getAreaEffectCloudConsumer() {
+      return entity -> {
+        entity.setInvulnerable(true);
+        entity.setDuration(999999);
+        entity.setDurationOnUse(0);
+        entity.setRadiusOnUse(0);
+        entity.setRadius(0);
+        entity.setRadiusPerTick(0);
+        entity.setReapplicationDelay(0);
+        entity.setGravity(false);
+      };
+    }
+
+    private static @NotNull Consumer<ArmorStand> getArmorStandConsumer() {
+      return entity -> {
+        entity.setInvulnerable(true);
+        entity.setVisible(false);
+        entity.setGravity(false);
+      };
+    }
 
     @Contract("_ -> this")
     @Override

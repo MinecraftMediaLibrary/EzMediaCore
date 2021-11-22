@@ -42,9 +42,11 @@ public final class VLCDependency {
   }
 
   private void start() throws IOException {
-    VLCInstallationKit.create(this.folder).start().ifPresent((path) -> {
-      this.core.setVLCStatus(true);
-      this.core.getLogger().info(Locale.BINARY_PATHS.build("VLC", path));
-    });
+    VLCInstallationKit.create(this.folder).start().ifPresent(this::onInstallation);
+  }
+
+  private void onInstallation(@NotNull final Path path) {
+    this.core.setVLCStatus(true);
+    this.core.getLogger().info(Locale.BINARY_PATHS.build("VLC", path));
   }
 }

@@ -27,10 +27,10 @@ import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.QuerySearch;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyTrack;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.Track;
-import io.github.pulsebeat02.ezmediacore.throwable.DeadResourceLinkException;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 import org.apache.hc.core5.http.ParseException;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class SpotifyQuerySearch implements QuerySearch {
@@ -39,19 +39,31 @@ public class SpotifyQuerySearch implements QuerySearch {
   private final YoutubeVideo video;
   private final String query;
 
-  public SpotifyQuerySearch(@NotNull final Track track) {
+  SpotifyQuerySearch(@NotNull final Track track) {
     this.track = track;
-    final String query = "%s %s".formatted(track.getName(), track.getArtists().get(0));
-    this.video =
-        new YoutubeVideo(
-            MediaExtractionUtils.getFirstResultVideo(query)
-                .orElseThrow(() -> new DeadResourceLinkException(track.getId())));
-    this.query = query;
+    this.query = this.constructInternalQuery();
+    this.video = this.getInternalVideo();
   }
 
-  public SpotifyQuerySearch(@NotNull final String url)
-      throws IOException {
-    this(new SpotifyTrack(url));
+  @Contract("_ -> new")
+  public static @NotNull SpotifyQuerySearch ofSpotifyQuerySearch(@NotNull final Track track) {
+    return new SpotifyQuerySearch(track);
+  }
+
+  @Contract("_ -> new")
+  public static @NotNull SpotifyQuerySearch ofSpotifyQuerySearch(@NotNull final String url)
+      throws IOException, ParseException, SpotifyWebApiException {
+    return ofSpotifyQuerySearch(SpotifyTrack.ofSpotifyTrack(url));
+  }
+
+  private @NotNull String constructInternalQuery() {
+    return "%s %s".formatted(this.track.getName(), this.track.getArtists().get(0));
+  }
+
+  @Contract(" -> new")
+  private @NotNull YoutubeVideo getInternalVideo() {
+    return YoutubeVideo.ofYoutubeVideo(
+        MediaExtractionUtils.getFirstResultVideoExceptionally(this.query, this.track.getUrl()));
   }
 
   @Override

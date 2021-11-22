@@ -102,13 +102,24 @@ public class ResourcepackSoundWrapper extends ResourcepackWrapper implements Sou
     final JsonObject category = new JsonObject();
     final JsonObject type = new JsonObject();
     final JsonArray sounds = new JsonArray();
+    this.addSounds(category, type, sounds);
+    this.addCategory(category, sounds);
+    return GsonProvider.getPretty().toJson(type).getBytes(StandardCharsets.UTF_8);
+  }
+
+  private void addCategory(@NotNull final JsonObject category, @NotNull final JsonArray sounds) {
+    category.add("sounds", sounds);
+  }
+
+  private void addSounds(
+      @NotNull final JsonObject category,
+      @NotNull final JsonObject type,
+      @NotNull final JsonArray sounds) {
     this.sounds.forEach(
         (key, value) -> {
           sounds.add(key);
           type.add("emc", category);
         });
-    category.add("sounds", sounds);
-    return GsonProvider.getPretty().toJson(type).getBytes(StandardCharsets.UTF_8);
   }
 
   @Override

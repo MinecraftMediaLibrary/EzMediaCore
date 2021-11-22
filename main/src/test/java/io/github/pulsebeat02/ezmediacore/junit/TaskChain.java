@@ -12,7 +12,7 @@ public final class TaskChain {
   private static final String[] CMDS;
 
   static {
-    CMDS = new String[]{"echo \"test\"", "echo \"hello from emc\""};
+    CMDS = new String[] {"echo \"test\"", "echo \"hello from emc\""};
   }
 
   @Test
@@ -24,10 +24,10 @@ public final class TaskChain {
 
   @Test
   public void executeChainCommand() throws IOException, InterruptedException {
-    final CommandTaskChain chain = new CommandTaskChain()
-        .thenRun(new CommandTask(CMDS[0]))
-        .thenRunAsync(new CommandTask(CMDS[1]));
+    final CommandTaskChain chain =
+        new CommandTaskChain()
+            .thenRun(new CommandTask(CMDS[0]))
+            .thenRunAsync(new CommandTask(CMDS[1]));
     chain.run();
   }
-
 }

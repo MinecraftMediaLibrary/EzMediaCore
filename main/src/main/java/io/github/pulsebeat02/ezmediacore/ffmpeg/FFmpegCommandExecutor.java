@@ -127,35 +127,43 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
     this.onBeforeExecution();
     if (!this.cancelled.get()) {
-      try {
-        this.process = new ProcessBuilder(this.arguments).redirectErrorStream(true).start();
-        this.handleLogging(logger, logger != null);
-      } catch (final IOException e) {
-        e.printStackTrace();
-      }
+      this.executeProcess(logger);
     }
     this.completion.set(true);
     this.onAfterExecution();
   }
 
+  private void executeProcess(@Nullable final Consumer<String> logger) {
+    try {
+      this.process = new ProcessBuilder(this.arguments).redirectErrorStream(true).start();
+      this.handleLogging(logger, logger != null);
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   private void handleLogging(@Nullable final Consumer<String> logger, final boolean consume)
       throws IOException {
-    try (final BufferedReader r =
-        new BufferedReader(
-            new InputStreamReader(new FastBufferedInputStream(this.process.getInputStream())))) {
+    try (final BufferedReader br = this.createFastBufferedReader()) {
       String line;
-      while (true) {
-        line = r.readLine();
-        if (line == null) {
-          break;
-        }
-        if (consume) {
-          logger.accept(line);
-        } else {
-          this.log(line);
-        }
+      while ((line = br.readLine()) != null) {
+        this.consumeLine(consume, logger, line);
       }
     }
+  }
+
+  private void consumeLine(
+      final boolean consume, @Nullable final Consumer<String> logger, @NotNull final String line) {
+    if (consume) {
+      logger.accept(line);
+    } else {
+      this.log(line);
+    }
+  }
+
+  private @NotNull BufferedReader createFastBufferedReader() {
+    return new BufferedReader(
+        new InputStreamReader(new FastBufferedInputStream(this.process.getInputStream())));
   }
 
   @Override

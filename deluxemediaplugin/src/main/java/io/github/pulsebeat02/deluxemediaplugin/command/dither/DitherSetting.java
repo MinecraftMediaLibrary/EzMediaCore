@@ -25,20 +25,20 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.dither;
 
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
-import io.github.pulsebeat02.ezmediacore.dither.algorithm.DitherAlgorithmProvider;
+import io.github.pulsebeat02.ezmediacore.dither.algorithm.Algorithm;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 public enum DitherSetting {
-  FILTER_LITE("Filter Lite", DitherAlgorithmProvider.FILTER_LITE),
-  FLOYD_STEINBERG("Floyd Steinberg", DitherAlgorithmProvider.FLOYD_STEINBERG),
-  ORDERED_DITHER_2("Ordered Matrix (2x2)", DitherAlgorithmProvider.ORDERED_2X2),
-  ORDERED_DITHER_4("Ordered Matrix (4x4)", DitherAlgorithmProvider.ORDERED_4X4),
-  ORDERED_DITHER_8("Ordered Matrix (8x8)", DitherAlgorithmProvider.ORDERED_8X8),
-  RANDOM_DITHER("Random Dithering", DitherAlgorithmProvider.RANDOM),
-  SIMPLE_DITHER("Standard Dithering", DitherAlgorithmProvider.SIMPLE);
+  FILTER_LITE("Filter Lite", Algorithm.FILTER_LITE),
+  FLOYD_STEINBERG("Floyd Steinberg", Algorithm.FLOYD_STEINBERG),
+  ORDERED_DITHER_2("Ordered Matrix (2x2)", Algorithm.ORDERED_2X2),
+  ORDERED_DITHER_4("Ordered Matrix (4x4)", Algorithm.ORDERED_4X4),
+  ORDERED_DITHER_8("Ordered Matrix (8x8)", Algorithm.ORDERED_8X8),
+  RANDOM_DITHER("Random Dithering", Algorithm.RANDOM),
+  SIMPLE_DITHER("Standard Dithering", Algorithm.SIMPLE);
 
   private static final Map<String, DitherSetting> maps;
 

@@ -53,9 +53,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Constructs a chain of commands to be executed accordingly.
- */
+/** Constructs a chain of commands to be executed accordingly. */
 public class CommandTaskChain {
 
   private static final ExecutorService EXTERNAL_PROCESS_POOL;
@@ -66,9 +64,7 @@ public class CommandTaskChain {
 
   private final Map<CommandTask, Boolean> chain;
 
-  /**
-   * Instantiates a new CommandTaskChain
-   */
+  /** Instantiates a new CommandTaskChain */
   public CommandTaskChain() {
     this.chain = new LinkedHashMap<>();
   }
@@ -116,12 +112,20 @@ public class CommandTaskChain {
   private void runInternalChain() throws IOException, InterruptedException {
     for (final Map.Entry<CommandTask, Boolean> entry : this.chain.entrySet()) {
       final CommandTask task = entry.getKey();
-      if (entry.getValue()) {
-        CompletableFuture.runAsync(this.runSeparateTask(task), EXTERNAL_PROCESS_POOL);
+      if (this.isAsync(entry)) {
+        this.runAsync(task);
       } else {
         this.runTaskChain(task);
       }
     }
+  }
+
+  private void runAsync(@NotNull final CommandTask task) {
+    CompletableFuture.runAsync(this.runSeparateTask(task), EXTERNAL_PROCESS_POOL);
+  }
+
+  private boolean isAsync(@NotNull final Map.Entry<CommandTask, Boolean> entry) {
+    return entry.getValue();
   }
 
   private @NotNull Runnable runSeparateTask(@NotNull final CommandTask task) {

@@ -31,18 +31,23 @@ public final class SpotifyProvider {
 
   private static SpotifyApi SPOTIFY_API;
 
-  private SpotifyProvider() {
-  }
+  private SpotifyProvider() {}
 
   public static void init(@NotNull final MediaLibraryCore core) {
-    final SpotifyClient client = core.getSpotifyClient();
-    if (client != null) {
-      SPOTIFY_API =
-          new SpotifyApi.Builder()
-              .setClientId(client.getClientID())
-              .setClientSecret(client.getClientSecret())
-              .build();
+    if (isSpecified(core)) {
+      SPOTIFY_API = createApi(core.getSpotifyClient());
     }
+  }
+
+  private static boolean isSpecified(@NotNull final MediaLibraryCore core) {
+    return core.getSpotifyClient() != null;
+  }
+
+  private static @NotNull SpotifyApi createApi(@NotNull final SpotifyClient client) {
+    return new SpotifyApi.Builder()
+        .setClientId(client.getClientID())
+        .setClientSecret(client.getClientSecret())
+        .build();
   }
 
   static SpotifyApi getSpotifyApi() {

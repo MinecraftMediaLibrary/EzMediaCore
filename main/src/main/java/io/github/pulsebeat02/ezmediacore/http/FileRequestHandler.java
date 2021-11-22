@@ -113,10 +113,7 @@ public class FileRequestHandler implements FileRequest {
   public void handleIncomingRequest() {
     this.daemon.onClientConnection(this.client);
     boolean flag = false;
-    try (final BufferedReader in =
-            new BufferedReader(
-                new InputStreamReader(
-                    new FastBufferedInputStream(this.client.getInputStream()), "8859_1"));
+    try (final BufferedReader in = this.createFastBufferedReader();
         final OutputStream out = this.client.getOutputStream();
         final PrintWriter pout = new PrintWriter(new OutputStreamWriter(out, "8859_1"), true)) {
       final InetAddress address = this.client.getInetAddress();
@@ -131,6 +128,11 @@ public class FileRequestHandler implements FileRequest {
     if (flag) {
       this.daemon.onRequestFailure(this.client);
     }
+  }
+
+  private @NotNull BufferedReader createFastBufferedReader() throws IOException {
+    return new BufferedReader(
+        new InputStreamReader(new FastBufferedInputStream(this.client.getInputStream()), "8859_1"));
   }
 
   private boolean handleRequest(

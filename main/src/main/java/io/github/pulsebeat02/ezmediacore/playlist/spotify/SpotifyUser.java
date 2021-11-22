@@ -27,12 +27,12 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.wrapper.spotify.enums.ProductType;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
-import io.github.pulsebeat02.ezmediacore.throwable.UnknownPlaylistException;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 import org.apache.hc.core5.http.ParseException;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class SpotifyUser implements User {
@@ -54,29 +54,41 @@ public class SpotifyUser implements User {
   private final String url;
   private final Avatar[] avatars;
 
-  public SpotifyUser(@NotNull final String url)
+  SpotifyUser(@NotNull final String url)
       throws IOException, ParseException, SpotifyWebApiException {
     this.url = url;
-    this.user =
-        SpotifyProvider.getSpotifyApi()
-            .getUsersProfile(
-                MediaExtractionUtils.getSpotifyID(url)
-                    .orElseThrow(() -> new UnknownPlaylistException(url)))
-            .build()
-            .execute();
-    this.avatars =
-        Arrays.stream(this.user.getImages()).map(SpotifyAvatar::new).toArray(SpotifyAvatar[]::new);
+    this.user = this.getInternalUser();
+    this.avatars = this.getInternalAvatars();
   }
 
   SpotifyUser(@NotNull final com.wrapper.spotify.model_objects.specification.User user) {
     this.url = user.getUri();
     this.user = user;
-    this.avatars =
-        Arrays.stream(this.user.getImages()).map(SpotifyAvatar::new).toArray(SpotifyAvatar[]::new);
+    this.avatars = this.getInternalAvatars();
+  }
+
+  @Contract("_ -> new")
+  public static @NotNull SpotifyUser ofSpotifyUser(@NotNull final String url)
+      throws IOException, ParseException, SpotifyWebApiException {
+    return new SpotifyUser(url);
   }
 
   static @NotNull BiMap<ProductType, Subscription> getSubscriptionMappings() {
     return SUBSCRIPTIONS;
+  }
+
+  private @NotNull com.wrapper.spotify.model_objects.specification.User getInternalUser()
+      throws IOException, ParseException, SpotifyWebApiException {
+    return SpotifyProvider.getSpotifyApi()
+        .getUsersProfile(MediaExtractionUtils.getSpotifyIDExceptionally(this.url))
+        .build()
+        .execute();
+  }
+
+  private Avatar @NotNull [] getInternalAvatars() {
+    return Arrays.stream(this.user.getImages())
+        .map(SpotifyAvatar::new)
+        .toArray(SpotifyAvatar[]::new);
   }
 
   @Override

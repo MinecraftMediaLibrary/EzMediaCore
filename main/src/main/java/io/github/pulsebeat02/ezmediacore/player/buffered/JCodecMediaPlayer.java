@@ -115,14 +115,17 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
       @NotNull final Object... arguments) {
     final Dimension dimension = this.getDimensions();
     try {
-      this.grabber =
-          FrameGrab.createFrameGrab(
-              NIOUtils.readableFileChannel(this.getDirectVideoMrl().getMrl()));
+      this.grabber = this.getGrabber();
       this.grabber.seekToSecondPrecise(configuration.getDelay() / 1000.0F);
       this.grabber.getMediaInfo().setDim(new Size(dimension.getWidth(), dimension.getHeight()));
     } catch (final IOException | JCodecException e) {
       e.printStackTrace();
     }
+  }
+
+  private @NotNull FrameGrab getGrabber() throws IOException, JCodecException {
+    return FrameGrab.createFrameGrab(
+        NIOUtils.readableFileChannel(this.getDirectVideoMrl().getMrl()));
   }
 
   @Override

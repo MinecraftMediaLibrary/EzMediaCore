@@ -24,13 +24,13 @@
 package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
 import com.github.kiulian.downloader.downloader.request.RequestPlaylistInfo;
+import com.github.kiulian.downloader.downloader.response.Response;
 import com.github.kiulian.downloader.model.playlist.PlaylistDetails;
 import com.github.kiulian.downloader.model.playlist.PlaylistInfo;
-import io.github.pulsebeat02.ezmediacore.throwable.RequestFailureException;
-import io.github.pulsebeat02.ezmediacore.throwable.UnknownPlaylistException;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import io.github.pulsebeat02.ezmediacore.utility.media.ResponseUtils;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,26 +44,29 @@ public class YoutubePlaylist implements Playlist {
 
   public YoutubePlaylist(@NotNull final String url) {
     this.url = url;
-    this.id =
-        MediaExtractionUtils.getYoutubeID(url).orElseThrow(() -> new UnknownPlaylistException(url));
-    this.info = this.getPlaylistResponse(0);
+    this.id = MediaExtractionUtils.getYoutubeIDExceptionally(url);
+    this.info = this.getInternalPlaylistResponse();
     this.details = this.info.details();
-    this.videos =
-        this.info.videos().parallelStream()
-            .map(link -> new YoutubeVideo(link.videoId()))
-            .collect(Collectors.toList());
+    this.videos = this.getInternalVideos();
   }
 
-  private PlaylistInfo getPlaylistResponse(final int tries) {
-    if (tries == 10) {
-      throw new RequestFailureException(
-          "Failed to retrieve video information from url %s!".formatted(this.url));
+  private List<Video> getInternalVideos() {
+    return this.info.videos().parallelStream()
+        .map(link -> YoutubeVideo.ofYoutubeVideo(link.videoId()))
+        .collect(Collectors.toList());
+  }
+
+  private @NotNull PlaylistInfo getInternalPlaylistResponse() {
+    for (int i = 0; i < 10; i++) {
+      final Response<PlaylistInfo> response =
+          YoutubeProvider.getYoutubeDownloader().getPlaylistInfo(new RequestPlaylistInfo(this.id));
+      final Optional<PlaylistInfo> info = ResponseUtils.getResponseResult(response);
+      if (info.isPresent()) {
+        return info.get();
+      }
     }
-    final int num = tries + 1;
-    return ResponseUtils.getResponseResult(
-            YoutubeProvider.getYoutubeDownloader()
-                .getPlaylistInfo(new RequestPlaylistInfo(this.id)))
-        .orElseGet(() -> this.getPlaylistResponse(num));
+    throw new AssertionError(
+        "Failed to retrieve Youtube video information from %s!".formatted(this.url));
   }
 
   @Override

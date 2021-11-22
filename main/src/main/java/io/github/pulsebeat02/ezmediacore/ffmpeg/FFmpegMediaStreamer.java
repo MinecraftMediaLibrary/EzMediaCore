@@ -33,8 +33,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FFmpegMediaStreamer extends FFmpegCommandExecutor
-    implements MediaServer {
+public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaServer {
 
   private final RTPStreamingServer server;
   private final String input;

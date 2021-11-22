@@ -27,7 +27,7 @@ package io.github.pulsebeat02.ezmediacore.dither.algorithm;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.OrderedDither.DitherType;
 
-public final class DitherAlgorithmProvider {
+public final class Algorithm {
 
   public static final DitherAlgorithm FILTER_LITE;
   public static final DitherAlgorithm FLOYD_STEINBERG;

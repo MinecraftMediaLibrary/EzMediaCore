@@ -52,22 +52,32 @@ public class BlockHighlightCallback extends FrameCallback
   public void process(final int[] data) {
     final long time = System.currentTimeMillis();
     final long delay = this.getDelayConfiguration().getDelay();
+    final int z = (int) this.location.getZ();
+    final Dimension dimension = this.getDimensions();
+    final int width = dimension.getWidth();
+    final int height = dimension.getHeight();
     if (time - this.getLastUpdated() >= delay) {
       this.setLastUpdated(time);
-      final Dimension dimension = this.getDimensions();
-      final int width = dimension.getWidth();
-      final int height = dimension.getHeight();
-      for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-          this.getPacketHandler()
-              .displayDebugMarker(
-                  this.getWatchers().getViewers(),
-                  (int) (this.location.getX() - (width / 2D)) + x,
-                  (int) (this.location.getY() + (height / 2D)) - y,
-                  (int) this.location.getZ(),
-                  data[width * y + x],
-                  (int) (delay + 100));
-        }
+      this.displayDebugMarkerScreen(width, height, z, delay, data);
+    }
+  }
+
+  private void displayDebugMarkerScreen(
+      final int width,
+      final int height,
+      final int z,
+      final long delay,
+      final int @NotNull [] data) {
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        this.getPacketHandler()
+            .displayDebugMarker(
+                this.getWatchers().getViewers(),
+                (int) (this.location.getX() - (width / 2D)) + x,
+                (int) (this.location.getY() + (height / 2D)) - y,
+                z,
+                data[width * y + x],
+                (int) (delay + 100));
       }
     }
   }
@@ -81,8 +91,7 @@ public class BlockHighlightCallback extends FrameCallback
 
     private Location location;
 
-    public Builder() {
-    }
+    public Builder() {}
 
     @Contract("_ -> this")
     @Override

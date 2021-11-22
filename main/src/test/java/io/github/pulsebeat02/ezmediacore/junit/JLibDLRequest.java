@@ -15,5 +15,4 @@ public final class JLibDLRequest {
     assertFalse(RequestUtils.getVideoURLs(mrl).isEmpty());
     assertFalse(RequestUtils.getAudioURLs(mrl).isEmpty());
   }
-
 }

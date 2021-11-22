@@ -32,6 +32,7 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
 import org.jetbrains.annotations.NotNull;
 
 public class HolovidHoster implements HolovidSolution {
@@ -54,18 +55,26 @@ public class HolovidHoster implements HolovidSolution {
   public @NotNull String createUrl(@NotNull final String input) {
     try {
       return GsonProvider.getSimple()
-          .fromJson(
-              HTTP_CLIENT.send(
-                  HttpRequest.newBuilder()
-                      .uri(new URI(HOLOVID_LINK + input))
-                      .build(), HttpResponse.BodyHandlers.ofString()
-              ).body(),
-              HolovidResourcepackResult.class)
+          .fromJson(this.getRequest(input), HolovidResourcepackResult.class)
           .getUrl();
     } catch (final IOException | URISyntaxException | InterruptedException e) {
       this.core.getLogger().info(Locale.ERR_HOLOVID);
       e.printStackTrace();
     }
     throw new AssertionError("Holovid website is down!");
+  }
+
+  private @NotNull String getRequest(@NotNull final String input)
+      throws URISyntaxException, IOException, InterruptedException {
+    return HTTP_CLIENT.send(this.createRequest(input), this.createBodyHandler()).body();
+  }
+
+  private @NotNull HttpRequest createRequest(@NotNull final String input)
+      throws URISyntaxException {
+    return HttpRequest.newBuilder().uri(new URI(HOLOVID_LINK + input)).build();
+  }
+
+  private @NotNull BodyHandler<String> createBodyHandler() {
+    return HttpResponse.BodyHandlers.ofString();
   }
 }

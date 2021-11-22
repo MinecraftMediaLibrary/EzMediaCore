@@ -35,11 +35,9 @@ public final class YoutubeProvider {
     YOUTUBE_DOWNLOADER = new YoutubeDownloader();
   }
 
-  private YoutubeProvider() {
-  }
+  private YoutubeProvider() {}
 
-  public static void init(@NotNull final MediaLibraryCore core) {
-  }
+  public static void init(@NotNull final MediaLibraryCore core) {}
 
   static YoutubeDownloader getYoutubeDownloader() {
     return YOUTUBE_DOWNLOADER;

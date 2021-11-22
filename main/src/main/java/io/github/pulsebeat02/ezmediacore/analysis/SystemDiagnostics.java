@@ -23,7 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.analysis;
 
-import io.github.pulsebeat02.ezmediacore.CoreLogger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import org.bukkit.Server;
@@ -45,28 +44,46 @@ public final class SystemDiagnostics implements Diagnostic {
 
   @Override
   public void debugInformation() {
+    this.logPluginInfo();
+    this.logServerInfo();
+    this.logSystemInfo();
+  }
+
+  private void logPluginInfo() {
+    this.core.getLogger().info(this.getPluginInfoMessage());
+  }
+
+  private @NotNull String getPluginInfoMessage() {
     final Plugin plugin = this.core.getPlugin();
-    final Server server = plugin.getServer();
-    this.core
-        .getLogger()
-        .info(
-            Locale.PLUGIN_INFO.build(
-                plugin.getName(),
-                plugin.getDescription().getDescription(),
-                this.core.isDisabled(),
-                this.core.getLibraryPath(),
-                this.core.getVlcPath(),
-                this.core.getImagePath(),
-                this.core.getAudioPath()));
-    final CoreLogger logger = this.core.getLogger();
-    logger.info(
-        Locale.SERVER_INFO.build(server.getName(), server.getVersion(), server.getOnlineMode()));
-    logger.info(
-        Locale.SYSTEM_INFO.build(
-            this.system.getOSName(),
-            this.system.getVersion(),
-            this.system.getLinuxDistribution(),
-            this.cpu.getArchitecture()));
+    return Locale.PLUGIN_INFO.build(
+        plugin.getName(),
+        plugin.getDescription().getDescription(),
+        this.core.isDisabled(),
+        this.core.getLibraryPath(),
+        this.core.getVlcPath(),
+        this.core.getImagePath(),
+        this.core.getAudioPath());
+  }
+
+  private void logServerInfo() {
+    this.core.getLogger().info(this.getServerInfoMessage());
+  }
+
+  private @NotNull String getServerInfoMessage() {
+    final Server server = this.core.getPlugin().getServer();
+    return Locale.SERVER_INFO.build(server.getName(), server.getVersion(), server.getOnlineMode());
+  }
+
+  private void logSystemInfo() {
+    this.core.getLogger().info(this.getSystemInfoMessage());
+  }
+
+  private @NotNull String getSystemInfoMessage() {
+    return Locale.SYSTEM_INFO.build(
+        this.system.getOSName(),
+        this.system.getVersion(),
+        this.system.getLinuxDistribution(),
+        this.cpu.getArchitecture());
   }
 
   @Override

@@ -108,15 +108,18 @@ public class CommandTask {
    */
   public @NotNull String getOutput() throws IOException {
     final StringBuilder output = new StringBuilder();
-    final BufferedReader br =
-        new BufferedReader(
-            new InputStreamReader(new FastBufferedInputStream(this.process.getInputStream())));
-    String str;
-    while ((str = br.readLine()) != null) {
-      output.append(str);
+    try (final BufferedReader reader = this.getFastBufferedReader()) {
+      String str;
+      while ((str = reader.readLine()) != null) {
+        output.append(str);
+      }
     }
-    br.close();
     return output.toString();
+  }
+
+  private @NotNull BufferedReader getFastBufferedReader() {
+    return new BufferedReader(
+        new InputStreamReader(new FastBufferedInputStream(this.process.getInputStream())));
   }
 
   /**

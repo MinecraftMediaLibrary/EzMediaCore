@@ -30,7 +30,7 @@ public class SpotifyPlaylistTrack implements PlaylistTrack {
 
   private final com.wrapper.spotify.model_objects.specification.PlaylistTrack track;
 
-  public SpotifyPlaylistTrack(
+  SpotifyPlaylistTrack(
       @NotNull final com.wrapper.spotify.model_objects.specification.PlaylistTrack track) {
     this.track = track;
   }

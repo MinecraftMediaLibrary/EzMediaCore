@@ -112,9 +112,7 @@ public final class ArchiveUtils {
       final Path current = queue.remove();
       currentFolder = currentFolder.resolve(getFileName(PathUtils.getName(current)));
       decompressArchive(current, currentFolder);
-      if (!current.toAbsolutePath().toString().equals(file.toAbsolutePath().toString())) {
-        Files.delete(current);
-      }
+      deleteFile(current, file);
       final int before = queue.size();
       queue.addAll(containsArchiveExtension(currentFolder));
       if (queue.size() == before) {
@@ -123,17 +121,26 @@ public final class ArchiveUtils {
     }
   }
 
+  private static void deleteFile(@NotNull final Path current, @NotNull final Path file)
+      throws IOException {
+    if (!current.toAbsolutePath().toString().equals(file.toAbsolutePath().toString())) {
+      Files.delete(current);
+    }
+  }
+
   @NotNull
   public static Set<Path> containsArchiveExtension(@NotNull final Path f) throws IOException {
     final Set<Path> files = new HashSet<>();
     try (final Stream<Path> paths = Files.walk(f)) {
-      paths.forEach(
-          path ->
-              ARCHIVE_EXTENSIONS.stream()
-                  .filter(extension -> path.getFileName().endsWith(extension))
-                  .forEach(extension -> files.add(path)));
+      paths.forEach(path -> addPaths(files, path));
     }
     return files;
+  }
+
+  private static void addPaths(@NotNull final Set<Path> files, @NotNull final Path path) {
+    ARCHIVE_EXTENSIONS.stream()
+        .filter(extension -> path.getFileName().endsWith(extension))
+        .forEach(extension -> files.add(path));
   }
 
   @NotNull

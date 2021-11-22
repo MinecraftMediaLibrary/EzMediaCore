@@ -48,24 +48,40 @@ public record MapInteractionListener(
   @EventHandler
   public void onPlayerInteract(@NotNull final HangingBreakByEntityEvent event) {
     final Hanging hanging = event.getEntity();
-    if (!(hanging instanceof ItemFrame)) {
+    if (!this.isItemFrame(hanging)) {
       return;
     }
     final ItemStack stack = ((ItemFrame) hanging).getItem();
-    if (stack.getType() != Material.FILLED_MAP) {
+    if (!this.isFilledMap(stack)) {
       return;
     }
     this.correctInteraction(event, stack);
   }
 
+  private boolean isFilledMap(@NotNull final ItemStack stack) {
+    return stack.getType() == Material.FILLED_MAP;
+  }
+
+  private boolean isItemFrame(@NotNull final Hanging hanging) {
+    return hanging instanceof ItemFrame;
+  }
+
   private void correctInteraction(@NotNull final HangingBreakByEntityEvent event,
       @NotNull final ItemStack stack) {
     //noinspection deprecation
-    if (this.core
-        .getHandler()
-        .isMapRegistered(((MapMeta) requireNonNull(stack.getItemMeta())).getMapId())) {
+    if (this.isMapRegistered(stack)) {
       event.setCancelled(true);
     }
+  }
+
+  private boolean isMapRegistered(@NotNull final ItemStack stack) {
+    return this.core
+        .getHandler()
+        .isMapRegistered(this.getMapID(stack));
+  }
+
+  private int getMapID(@NotNull final ItemStack stack) {
+    return ((MapMeta) requireNonNull(stack.getItemMeta())).getMapId();
   }
 
   @Override

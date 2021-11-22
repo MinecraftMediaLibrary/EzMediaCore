@@ -73,13 +73,21 @@ public class DynamicImage extends Image
   private void drawImage(final boolean resize) {
     while (!this.cancelled.get()) {
       for (; this.frame < this.frameCount; this.frame++) {
-        this.getRenderer().drawMap(this.process(this.image.getFrame(this.frame), resize));
-        try {
-          TimeUnit.MILLISECONDS.sleep(this.image.getDelay(this.frame) * 10L);
-        } catch (final InterruptedException e) {
-          e.printStackTrace();
-        }
+        this.display(resize);
+        this.sleep();
       }
+    }
+  }
+
+  private void display(final boolean resize) {
+    this.getRenderer().drawMap(this.process(this.image.getFrame(this.frame), resize));
+  }
+
+  private void sleep() {
+    try {
+      TimeUnit.MILLISECONDS.sleep(this.image.getDelay(this.frame) * 10L);
+    } catch (final InterruptedException e) {
+      e.printStackTrace();
     }
   }
 
@@ -90,8 +98,7 @@ public class DynamicImage extends Image
   }
 
   @Override
-  public void onStopDrawing() {
-  }
+  public void onStopDrawing() {}
 
   @Override
   public int getCurrentFrame() {

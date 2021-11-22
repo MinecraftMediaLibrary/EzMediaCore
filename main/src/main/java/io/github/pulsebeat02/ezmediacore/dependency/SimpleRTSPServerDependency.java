@@ -42,11 +42,13 @@ public class SimpleRTSPServerDependency {
   }
 
   private void start() throws IOException {
-    final Path path = RTSPInstaller.create(this.folder).download(true);
+    this.onInstallation(RTSPInstaller.create(this.folder).download(true));
+  }
+
+  private void onInstallation(@NotNull final Path path) {
     this.core.setRTPPath(path);
     this.core.getLogger().info(Locale.BINARY_PATHS.build("Simple RTSP Server", path));
   }
-
 
   public @NotNull Path getFolder() {
     return this.folder;

@@ -42,14 +42,21 @@ public final class PathAdapter extends TypeAdapter<Path> {
   @Override
   public @NotNull Path read(@NotNull final JsonReader in) throws IOException {
     in.beginObject();
-    String path = "";
-    while (in.hasNext()) {
-      if (in.nextName().equals("path")) {
-        path = in.nextString();
-        break;
-      }
-    }
+    final String path = this.readPath(in);
     in.close();
     return Path.of(path);
+  }
+
+  private @NotNull String readPath(@NotNull final JsonReader in) throws IOException {
+    while (in.hasNext()) {
+      if (this.isPathKey(in)) {
+        return in.nextString();
+      }
+    }
+    throw new AssertionError("Could not find path value of JSON configuration!");
+  }
+
+  private boolean isPathKey(@NotNull final JsonReader in) throws IOException {
+    return in.nextName().equals("path");
   }
 }

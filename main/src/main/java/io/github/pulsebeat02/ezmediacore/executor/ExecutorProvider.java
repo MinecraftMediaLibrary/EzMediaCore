@@ -42,6 +42,5 @@ public final class ExecutorProvider {
     ENCODER_HANDLER = Executors.newCachedThreadPool();
   }
 
-  private ExecutorProvider() {
-  }
+  private ExecutorProvider() {}
 }

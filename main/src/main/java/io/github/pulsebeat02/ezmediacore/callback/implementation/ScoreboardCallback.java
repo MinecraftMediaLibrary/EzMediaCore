@@ -37,7 +37,6 @@ import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -52,11 +51,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
 
   static {
     try {
-      final Field field = ChatColor.class.getDeclaredField("BY_CHAR");
-      field.setAccessible(true);
-      //noinspection unchecked
-      COLORS = ((Map<Character, ChatColor>) field.get(null)).values().toArray(new ChatColor[0]);
-      field.setAccessible(false);
+      COLORS = getChatColors();
     } catch (final NoSuchFieldException | IllegalAccessException e) {
       e.printStackTrace();
     }
@@ -79,8 +74,16 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
     this.scoreboard = this.setScoreboard();
   }
 
+  private static ChatColor @NotNull [] getChatColors()
+      throws NoSuchFieldException, IllegalAccessException {
+    final Field field = ChatColor.class.getDeclaredField("BY_CHAR");
+    field.setAccessible(true);
+    //noinspection unchecked
+    return ((Map<Character, ChatColor>) field.get(null)).values().toArray(new ChatColor[0]);
+  }
+
   private @NotNull Scoreboard setScoreboard() {
-    return Bukkit.getScoreboardManager().getNewScoreboard();
+    return this.getCore().getPlugin().getServer().getScoreboardManager().getNewScoreboard();
   }
 
   @Override
@@ -91,24 +94,36 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
   private @NotNull <T> Callable<T> processRunnable(final int @NotNull [] data) {
     return () -> {
       final long time = System.currentTimeMillis();
+      final Viewers viewers = this.getWatchers();
+      final Dimension dimension = this.getDimensions();
       if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
         this.setLastUpdated(time);
-        final Dimension dimension = this.getDimensions();
-        final Viewers viewers = this.getWatchers();
-        for (final Player player : viewers.getPlayers()) {
-          player.setScoreboard(this.scoreboard);
-        }
-        this.getPacketHandler()
-            .displayScoreboard(
-                viewers.getViewers(),
-                this.scoreboard,
-                this.name,
-                data,
-                dimension.getWidth(),
-                dimension.getHeight());
+        this.setViewerScoreboards();
+        this.displayScoreboard(viewers, dimension, data);
       }
       return null;
     };
+  }
+
+  private void setViewerScoreboards() {
+    final Viewers viewers = this.getWatchers();
+    for (final Player player : viewers.getPlayers()) {
+      player.setScoreboard(this.scoreboard);
+    }
+  }
+
+  private void displayScoreboard(
+      @NotNull final Viewers viewers,
+      @NotNull final Dimension dimension,
+      final int @NotNull [] data) {
+    this.getPacketHandler()
+        .displayScoreboard(
+            viewers.getViewers(),
+            this.scoreboard,
+            this.name,
+            data,
+            dimension.getWidth(),
+            dimension.getHeight());
   }
 
   @Override
@@ -116,16 +131,29 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
   public void preparePlayerStateChange(@NotNull final PlayerControls status) {
     super.preparePlayerStateChange(status);
     if (status == PlayerControls.START) {
-      final Objective objective =
-          this.scoreboard.registerNewObjective("rd-" + this.id++, "dummy", this.name);
-      objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-      for (int i = 0; i < this.getDimensions().getHeight(); i++) {
-        final Team team = this.scoreboard.registerNewTeam("SLOT_" + i);
-        final String entry = COLORS[i].toString();
-        team.addEntry(entry);
-        objective.getScore(entry).setScore(15 - i);
-      }
+      this.registerScreen();
     }
+  }
+
+  private void registerScreen() {
+    final Objective objective = this.getObjective();
+    for (int i = 0; i < this.getDimensions().getHeight(); i++) {
+      this.registerTeam(objective, i);
+    }
+  }
+
+  private void registerTeam(@NotNull final Objective objective, final int i) {
+    final Team team = this.scoreboard.registerNewTeam("SLOT_" + i);
+    final String entry = COLORS[i].toString();
+    team.addEntry(entry);
+    objective.getScore(entry).setScore(15 - i);
+  }
+
+  private @NotNull Objective getObjective() {
+    final Objective objective =
+        this.scoreboard.registerNewObjective("rd-" + this.id++, "dummy", this.name);
+    objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+    return objective;
   }
 
   @Override
@@ -142,8 +170,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
 
     private Identifier<Integer> id;
 
-    public Builder() {
-    }
+    public Builder() {}
 
     @Contract("_ -> this")
     @Override

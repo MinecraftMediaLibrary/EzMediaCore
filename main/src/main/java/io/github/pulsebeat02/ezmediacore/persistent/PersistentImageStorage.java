@@ -44,17 +44,32 @@ public class PersistentImageStorage extends PersistentObject<Image> {
   @Override
   public void serialize(@NotNull final Collection<Image> list) throws IOException {
     super.serialize(list);
-    try (final BufferedWriter writer = Files.newBufferedWriter(this.getStorageFile())) {
-      GsonProvider.getPretty().toJson(list, writer);
+    try (final BufferedWriter writer = this.createWriter()) {
+      this.write(list, writer);
     }
+  }
+
+  private @NotNull BufferedWriter createWriter() throws IOException {
+    return Files.newBufferedWriter(this.getStorageFile());
+  }
+
+  private void write(@NotNull final Collection<Image> list, @NotNull final BufferedWriter writer) {
+    GsonProvider.getPretty().toJson(list, writer);
   }
 
   @Override
   public List<Image> deserialize() throws IOException {
     super.deserialize();
-    try (final BufferedReader reader = Files.newBufferedReader(this.getStorageFile())) {
-      return GsonProvider.getSimple().fromJson(reader, new TypeToken<List<Image>>() {
-      }.getType());
+    try (final BufferedReader reader = this.createReader()) {
+      return this.read(reader);
     }
+  }
+
+  private @NotNull BufferedReader createReader() throws IOException {
+    return Files.newBufferedReader(this.getStorageFile());
+  }
+
+  private List<Image> read(@NotNull final BufferedReader reader) {
+    return GsonProvider.getSimple().fromJson(reader, new TypeToken<List<Image>>() {}.getType());
   }
 }

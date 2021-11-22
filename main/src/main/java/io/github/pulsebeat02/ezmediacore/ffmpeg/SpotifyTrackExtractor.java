@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
+import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.TrackDownloader;
@@ -33,6 +34,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,8 +49,8 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
       @NotNull final Path output)
-      throws IOException {
-    this.downloader = new SpotifyTrackDownloader(url, output);
+      throws IOException, ParseException, SpotifyWebApiException {
+    this.downloader = SpotifyTrackDownloader.ofSpotifyTrackDownloader(url, output);
     this.extractor = new YoutubeVideoAudioExtractor(core, configuration, url, output);
     this.cancelled = new AtomicBoolean(false);
   }
@@ -58,7 +60,7 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
       @NotNull final String fileName)
-      throws IOException {
+      throws IOException, ParseException, SpotifyWebApiException {
     this(core, configuration, url, core.getAudioPath().resolve(fileName));
   }
 
@@ -78,8 +80,7 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
   }
 
   @Override
-  public void log(final String line) {
-  }
+  public void log(final String line) {}
 
   @Override
   public CompletableFuture<Void> executeAsync() {
@@ -117,16 +118,13 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
   }
 
   @Override
-  public void onDownloadCancellation() {
-  }
+  public void onDownloadCancellation() {}
 
   @Override
-  public void onStartAudioExtraction() {
-  }
+  public void onStartAudioExtraction() {}
 
   @Override
-  public void onFinishAudioExtraction() {
-  }
+  public void onFinishAudioExtraction() {}
 
   @Override
   public @NotNull TrackDownloader getTrackDownloader() {

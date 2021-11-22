@@ -26,6 +26,8 @@ package io.github.pulsebeat02.ezmediacore.utility.media;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
+import io.github.pulsebeat02.ezmediacore.throwable.DeadResourceLinkException;
+import io.github.pulsebeat02.ezmediacore.throwable.UnknownArtistException;
 import io.github.pulsebeat02.ezmediacore.utility.manipulation.FastStringUtils;
 import java.io.IOException;
 import java.net.URI;
@@ -33,6 +35,7 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.Optional;
@@ -70,13 +73,16 @@ public final class MediaExtractionUtils {
    * @param url the url
    * @return an Optional containing the String url if existing
    */
-  @NotNull
-  public static Optional<String> getYoutubeID(@NotNull final String url) {
+  public static @NotNull Optional<String> getYoutubeID(@NotNull final String url) {
     final Matcher matcher = YOUTUBE_ID_PATTERN.matcher(url);
     if (matcher.find()) {
       return Optional.of(matcher.group());
     }
     return Optional.empty();
+  }
+
+  public static @NotNull String getYoutubeIDExceptionally(@NotNull final String url) {
+    return getYoutubeID(url).orElseThrow(() -> new DeadResourceLinkException(url));
   }
 
   /**
@@ -85,9 +91,8 @@ public final class MediaExtractionUtils {
    * @param url the url
    * @return an Optional containing the String url if existing
    */
-  @NotNull
-  public static Optional<String> getSpotifyID(@NotNull final String url) {
-    if (!url.contains("spotify")) {
+  public static @NotNull Optional<String> getSpotifyID(@NotNull final String url) {
+    if (!isSpotifyLink(url)) {
       return Optional.empty();
     }
     final String[] split = url.split("\\?")[0].split("/");
@@ -99,23 +104,38 @@ public final class MediaExtractionUtils {
     }
   }
 
-  @NotNull
-  public static Optional<String> getFirstResultVideo(@NotNull final String query) {
+  private static boolean isSpotifyLink(@NotNull final String url) {
+    return url.contains("spotify");
+  }
+
+  public static @NotNull String getSpotifyIDExceptionally(@NotNull final String url) {
+    return getSpotifyID(url).orElseThrow(() -> new UnknownArtistException(url));
+  }
+
+  public static @NotNull Optional<String> getFirstResultVideo(@NotNull final String query) {
     return CACHED_RESULT.get(query.trim().toLowerCase(Locale.ROOT));
   }
 
-  @NotNull
-  private static Optional<String> getFirstResultVideoInternal(@NotNull final String query)
+  public static @NotNull String getFirstResultVideoExceptionally(
+      @NotNull final String query, @NotNull final String url) {
+    return getFirstResultVideo(query).orElseThrow(() -> new DeadResourceLinkException(query));
+  }
+
+  private static @NotNull Optional<String> getFirstResultVideoInternal(@NotNull final String query)
       throws IOException, URISyntaxException, InterruptedException {
-    final String content =
-        HTTP_CLIENT
-            .send(
-                HttpRequest.newBuilder()
-                    .uri(new URI(YOUTUBE_SEARCH_URL.formatted(query.replaceAll(" ", "+"))))
-                    .build(),
-                HttpResponse.BodyHandlers.ofString())
-            .body();
+    final String content = HTTP_CLIENT.send(createRequest(query), createBodyHandler()).body();
     final int start = FastStringUtils.fastQuerySearch(content, SEARCH_KEYWORD) + 10;
     return Optional.of(content.substring(start, content.indexOf('"', start)));
+  }
+
+  private static @NotNull BodyHandler<String> createBodyHandler() {
+    return HttpResponse.BodyHandlers.ofString();
+  }
+
+  private static @NotNull HttpRequest createRequest(@NotNull final String query)
+      throws URISyntaxException {
+    return HttpRequest.newBuilder()
+        .uri(new URI(YOUTUBE_SEARCH_URL.formatted(query.replaceAll(" ", "+"))))
+        .build();
   }
 }

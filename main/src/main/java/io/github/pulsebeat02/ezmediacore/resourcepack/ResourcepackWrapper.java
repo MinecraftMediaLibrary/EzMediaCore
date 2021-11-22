@@ -79,13 +79,21 @@ public class ResourcepackWrapper implements PackWrapper {
   }
 
   private void validatePack() {
-    if (!ResourcepackUtils.validatePackFormat(this.format)) {
+    if (!this.validPacketExtension()) {
       throw new IllegalPackFormatException(this.format);
     }
-    if (this.icon != null && !ResourcepackUtils.validateResourcepackIcon(this.icon)) {
+    if (!this.validIcon()) {
       throw new IllegalPackResourceException(
           "Invalid Pack Icon! Must be PNG (%s)".formatted(PathUtils.getName(this.icon)));
     }
+  }
+
+  private boolean validIcon() {
+    return this.icon != null && ResourcepackUtils.validateResourcepackIcon(this.icon);
+  }
+
+  private boolean validPacketExtension() {
+    return ResourcepackUtils.validatePackFormat(this.format);
   }
 
   @Override

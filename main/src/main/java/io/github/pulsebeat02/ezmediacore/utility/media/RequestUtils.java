@@ -26,19 +26,19 @@ package io.github.pulsebeat02.ezmediacore.utility.media;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
-import io.github.pulsebeat02.ezmediacore.jlibdl.component.Format;
 import io.github.pulsebeat02.ezmediacore.jlibdl.JLibDL;
-import io.github.pulsebeat02.ezmediacore.jlibdl.component.MediaInfo;
 import io.github.pulsebeat02.ezmediacore.jlibdl.YoutubeDLRequest;
+import io.github.pulsebeat02.ezmediacore.jlibdl.component.Format;
+import io.github.pulsebeat02.ezmediacore.jlibdl.component.MediaInfo;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.compress.utils.Lists;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,14 +75,17 @@ public final class RequestUtils {
   public static @NotNull String getResult(@NotNull final String link) {
     try {
       final HttpResponse<String> response =
-          HTTP_CLIENT.send(
-              HttpRequest.newBuilder().uri(new URI(link)).GET().build(),
-              HttpResponse.BodyHandlers.ofString());
+          HTTP_CLIENT.send(createRequest(link), createBodyHandler());
       return response.body();
-    } catch (final IOException | URISyntaxException | InterruptedException e) {
+    } catch (final IOException | InterruptedException e) {
       e.printStackTrace();
     }
     return "";
+  }
+
+  @Contract(pure = true)
+  private static @NotNull BodyHandler<String> createBodyHandler() {
+    return HttpResponse.BodyHandlers.ofString();
   }
 
   public static boolean isStream(@NotNull final MrlConfiguration url) {
@@ -110,9 +114,11 @@ public final class RequestUtils {
 
   public static @NotNull Path downloadFile(@NotNull final Path path, @NotNull final String url)
       throws IOException, InterruptedException {
-    return HTTP_CLIENT
-        .send(HttpRequest.newBuilder().uri(URI.create(url)).build(), BodyHandlers.ofFile(path))
-        .body();
+    return HTTP_CLIENT.send(createRequest(url), BodyHandlers.ofFile(path)).body();
+  }
+
+  private static @NotNull HttpRequest createRequest(@NotNull final String url) {
+    return HttpRequest.newBuilder().uri(URI.create(url)).build();
   }
 
   private static @NotNull Optional<YoutubeDLRequest> validatePrimaryRequest(
@@ -134,29 +140,36 @@ public final class RequestUtils {
       final boolean video) {
     final List<MrlConfiguration> urls = Lists.newArrayList();
     for (final Format format : request.getInfo().getFormats()) {
-      if (format == null) {
-        continue;
-      }
-      final String vcodec = format.getVcodec();
-      final String acodec = format.getAcodec();
-      String url = null;
-      if (video) {
-        if (vcodec != null && !vcodec.equals("none")) {
-          url = format.getUrl();
-        }
-      } else {
-        if (acodec != null && !acodec.equals("none")) {
-          url = format.getUrl();
-        }
-      }
-      if (url != null) {
-        urls.add(MrlConfiguration.ofMrl(url));
-      }
+      urls.add(getLinkMrl(format, video));
     }
     if (urls.size() == 0) {
       urls.add(mrl);
     }
     return urls;
+  }
+
+  private static @NotNull MrlConfiguration getLinkMrl(
+      @NotNull final Format format, final boolean video) {
+    return MrlConfiguration.ofMrl(
+        getProperUrl(format.getAcodec(), format.getVcodec(), format, video));
+  }
+
+  private @NotNull static String getProperUrl(
+      @NotNull final String acodec,
+      @NotNull final String vcodec,
+      final Format format,
+      final boolean video) {
+    String url = null;
+    if (video) {
+      if (!vcodec.equals("none")) {
+        url = format.getUrl();
+      }
+    } else {
+      if (!acodec.equals("none")) {
+        url = format.getUrl();
+      }
+    }
+    return url;
   }
 
   private static boolean validFormats(@Nullable final YoutubeDLRequest request) {

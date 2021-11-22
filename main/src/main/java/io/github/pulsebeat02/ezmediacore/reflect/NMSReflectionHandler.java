@@ -44,6 +44,21 @@ public final class NMSReflectionHandler {
     this.core = core;
   }
 
+  private static @NotNull PacketHandler getPacketHandler()
+      throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
+          InstantiationException, IllegalAccessException {
+    return (PacketHandler) getPacketHandlerClass().getDeclaredConstructor().newInstance();
+  }
+
+  private static @NotNull Class<?> getPacketHandlerClass() throws ClassNotFoundException {
+    return Class.forName(
+        "io.github.pulsebeat02.ezmediacore.nms.impl.%s.NMSMapPacketInterceptor".formatted(VERSION));
+  }
+
+  public static String getVersion() {
+    return VERSION;
+  }
+
   public @NotNull Optional<PacketHandler> getNewPacketHandlerInstance() {
     try {
       return Optional.of(getPacketHandler());
@@ -52,27 +67,10 @@ public final class NMSReflectionHandler {
         | IllegalAccessException
         | NoSuchMethodException
         | InvocationTargetException e) {
-      this.core
-          .getLogger()
-          .error(
-              "The Server Version you are using (%s) is not yet supported by EzMediaCore! Shutting down due to the Fatal Error"
-                  .formatted(VERSION));
-      return Optional.empty();
+      e.printStackTrace();
+      throw new AssertionError(
+          "Current server implementation (%s) is not supported!"
+              .formatted(this.core.getPlugin().getServer().getVersion()));
     }
-  }
-
-  private static @NotNull PacketHandler getPacketHandler()
-      throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
-          InstantiationException, IllegalAccessException {
-    return (PacketHandler)
-        Class.forName(
-                "io.github.pulsebeat02.ezmediacore.nms.impl.%s.NMSMapPacketInterceptor"
-                    .formatted(VERSION))
-            .getDeclaredConstructor()
-            .newInstance();
-  }
-
-  public static String getVersion() {
-    return VERSION;
   }
 }

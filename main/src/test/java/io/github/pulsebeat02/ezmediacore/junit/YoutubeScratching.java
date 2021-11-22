@@ -11,5 +11,4 @@ public final class YoutubeScratching {
   public void getPopularVideo() {
     assertTrue(MediaExtractionUtils.getFirstResultVideo("despacito").isPresent());
   }
-
 }

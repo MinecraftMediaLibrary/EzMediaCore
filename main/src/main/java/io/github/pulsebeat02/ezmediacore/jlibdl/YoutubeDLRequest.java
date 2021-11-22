@@ -57,15 +57,21 @@ public final class YoutubeDLRequest {
   @Expose
   private String url;
 
-  public @NotNull YoutubeDLRequest request(@Nullable final String url)
+  public @NotNull YoutubeDLRequest request(@NotNull final String url)
       throws IOException, InterruptedException {
-    return GSON.fromJson(
-        HTTP_CLIENT
-            .send(
-                HttpRequest.newBuilder().uri(URI.create(API_REQUEST_BASE.formatted(url))).build(),
-                HttpResponse.BodyHandlers.ofString())
-            .body(),
-        YoutubeDLRequest.class);
+    return GSON.fromJson(this.getJson(), YoutubeDLRequest.class);
+  }
+
+  private @NotNull String getJson() throws IOException, InterruptedException {
+    return HTTP_CLIENT.send(this.createRequest(this.url), this.createResponse()).body();
+  }
+
+  private @NotNull HttpRequest createRequest(@NotNull final String url) {
+    return HttpRequest.newBuilder().uri(URI.create(API_REQUEST_BASE.formatted(url))).build();
+  }
+
+  private @NotNull HttpResponse.BodyHandler<String> createResponse() {
+    return HttpResponse.BodyHandlers.ofString();
   }
 
   public @Nullable MediaInfo getInfo() {

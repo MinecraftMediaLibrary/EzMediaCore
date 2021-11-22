@@ -43,14 +43,21 @@ public final class UUIDAdapter extends TypeAdapter<UUID> {
   @Override
   public @NotNull UUID read(@NotNull final JsonReader in) throws IOException {
     in.beginObject();
-    String id = "";
-    while (in.hasNext()) {
-      if (in.nextName().equals("uuid")) {
-        id = in.nextString();
-        break;
-      }
-    }
+    final String id = this.readUUID(in);
     in.close();
     return FastUUIDUtils.parseUUID(id);
+  }
+
+  private @NotNull String readUUID(@NotNull final JsonReader in) throws IOException {
+    while (in.hasNext()) {
+      if (this.isUUIDKey(in)) {
+        return in.nextString();
+      }
+    }
+    throw new AssertionError("Could not find uuid value of JSON configuration!");
+  }
+
+  private boolean isUUIDKey(@NotNull final JsonReader in) throws IOException {
+    return in.nextName().equals("uuid");
   }
 }

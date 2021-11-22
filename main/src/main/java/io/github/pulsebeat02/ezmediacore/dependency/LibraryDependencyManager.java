@@ -25,14 +25,19 @@ package io.github.pulsebeat02.ezmediacore.dependency;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.slimjar.app.builder.ApplicationBuilder;
+import io.github.slimjar.logging.ProcessLogger;
 import io.github.slimjar.resolver.data.Repository;
 import io.github.slimjar.resolver.mirrors.SimpleMirrorSelector;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collection;
 import java.util.Collections;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 public final class LibraryDependencyManager {
 
@@ -51,9 +56,18 @@ public final class LibraryDependencyManager {
     ApplicationBuilder.appending("EzMediaCore - %s".formatted(this.core.getPlugin().getName()))
         .mirrorSelector((collection, collection1) -> collection)
         .downloadDirectoryPath(this.core.getDependencyPath())
-        .internalRepositories(
-            Collections.singleton(new Repository(new URL(SimpleMirrorSelector.ALT_CENTRAL_URL))))
-        .logger((s, objects) -> this.core.getLogger().info(s.formatted(objects)))
+        .internalRepositories(this.getRepo())
+        .logger(this.getProcessLogger())
         .build();
+  }
+
+  @Contract(pure = true)
+  private @NotNull ProcessLogger getProcessLogger() {
+    return (s, objects) -> this.core.getLogger().info(s.formatted(objects));
+  }
+
+  @Contract(" -> new")
+  private @NotNull @Unmodifiable Collection<Repository> getRepo() throws MalformedURLException {
+    return Collections.singleton(new Repository(new URL(SimpleMirrorSelector.ALT_CENTRAL_URL)));
   }
 }

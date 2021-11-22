@@ -32,7 +32,6 @@ import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
@@ -55,10 +54,14 @@ public class DependencyLoader implements LibraryLoader {
           .thenRunAsync(this::installVLC, this.executor)
           .thenRunAsync(this::installRTSP, this.executor)
           .get();
-      this.executor.shutdown();
+      this.shutdown();
     } catch (final InterruptedException | ExecutionException e) {
       e.printStackTrace();
     }
+  }
+
+  private void shutdown() {
+    this.executor.shutdown();
   }
 
   private void installFFmpeg() {
@@ -83,12 +86,24 @@ public class DependencyLoader implements LibraryLoader {
   private void installVLC() {
     try {
       new VLCDependency(this.core);
-      if (this.core.isVLCSupported()) {
-        new NativePluginLoader(this.core).executePhantomPlayers();
-      }
+      this.loadNativeLibVLC();
     } catch (final IOException e) {
       e.printStackTrace();
     }
+  }
+
+  private void loadNativeLibVLC() {
+    if (this.isSupported()) {
+      this.executePhantomPlayers();
+    }
+  }
+
+  private boolean isSupported() {
+    return this.core.isVLCSupported();
+  }
+
+  private void executePhantomPlayers() {
+    new NativePluginLoader(this.core).executePhantomPlayers();
   }
 
   private void installRTSP() {

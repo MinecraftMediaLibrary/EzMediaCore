@@ -32,8 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class SimpleDither implements DitherAlgorithm {
 
-  SimpleDither() {
-  }
+  SimpleDither() {}
 
   @Override
   public void dither(final int @NotNull [] buffer, final int width) {

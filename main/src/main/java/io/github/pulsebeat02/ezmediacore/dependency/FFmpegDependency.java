@@ -42,7 +42,10 @@ public final class FFmpegDependency {
   }
 
   private void start() throws IOException {
-    final Path path = FFmpegInstaller.create(this.folder).download(true);
+    this.onInstallation(FFmpegInstaller.create(this.folder).download(true));
+  }
+
+  private void onInstallation(@NotNull final Path path) {
     this.core.setFFmpegPath(path);
     this.core.getLogger().info(Locale.BINARY_PATHS.build("FFmpeg", path));
   }

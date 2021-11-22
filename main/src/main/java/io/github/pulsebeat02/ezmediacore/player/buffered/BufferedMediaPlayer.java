@@ -38,10 +38,13 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
     super(callback, viewers, pixelDimension, fps, key);
     this.buffer = buffer;
     this.status = new MutableBoolean(false);
-    this.frames =
-        new ArrayBlockingQueue<>(this.buffer.getBuffer() * this.getFrameConfiguration().getFps());
+    this.frames = new ArrayBlockingQueue<>(this.calculateCapacity());
     this.frameDisplayer = this.getDisplayRunnable();
     this.frameWatchdog = this.getSkipRunnable();
+  }
+
+  private int calculateCapacity() {
+    return this.buffer.getBuffer() * this.getFrameConfiguration().getFps();
   }
 
   @Override
@@ -138,13 +141,13 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   }
 
   @Override
-  public void setStart(final long start) {
-    this.start = start;
+  public long getStart() {
+    return this.start;
   }
 
   @Override
-  public long getStart() {
-    return this.start;
+  public void setStart(final long start) {
+    this.start = start;
   }
 
   @Override
