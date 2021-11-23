@@ -114,18 +114,23 @@ public class EntityCallback<T extends Entity> extends FrameCallback
     final long time = System.currentTimeMillis();
     final int width = this.getDimensions().getWidth();
     final UUID[] viewers = this.getWatchers().getViewers();
+    final String name = this.name.getName();
     if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
       this.setLastUpdated(time);
-      this.displayEntity(viewers, data, width);
+      this.displayEntity(viewers, name, data, width);
     }
   }
 
   private void displayEntity(
-      @NotNull final UUID[] viewers, final int @NotNull [] data, final int width) {
+      @NotNull final UUID[] viewers,
+      @NotNull final String name,
+      final int @NotNull [] data,
+      final int width) {
     this.getPacketHandler()
         .displayEntities(
             this.getWatchers().getViewers(),
             this.entities,
+            name,
             data,
             width,
             this.entities.length / width);

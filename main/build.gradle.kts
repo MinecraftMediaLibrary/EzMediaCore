@@ -33,7 +33,7 @@ dependencies {
 
     setOf(
         "io.netty:netty-all:4.1.70.Final",
-        "com.mojang:authlib:1.5.25",
+        "com.mojang:authlib:1.5.26",
         "com.google.guava:guava:30.1.1-jre",
         "com.mpatric:mp3agic:0.9.1",
         "com.github.kevinsawicki:http-request:6.0",

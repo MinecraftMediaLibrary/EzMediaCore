@@ -87,6 +87,7 @@ public interface PacketHandler {
   void displayEntities(
       final UUID[] viewers,
       final Entity[] entities,
+      final String character,
       final int[] data,
       final int width,
       final int height);

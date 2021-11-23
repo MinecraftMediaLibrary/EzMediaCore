@@ -43,7 +43,6 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
-import net.md_5.bungee.api.ChatColor;
 import net.minecraft.server.v1_16_R3.ChatComponentText;
 import net.minecraft.server.v1_16_R3.ChatHexColor;
 import net.minecraft.server.v1_16_R3.ChatMessageType;
@@ -65,8 +64,6 @@ import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R3.util.CraftChatMessage;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 public final class NMSMapPacketInterceptor implements PacketHandler {
@@ -162,7 +159,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
       final int map,
       final int width,
       final int height,
-      final ByteBuffer rgb,
+      final @NotNull ByteBuffer rgb,
       final int videoWidth,
       final int xOff,
       final int yOff) {
@@ -191,42 +188,37 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
           final int yPos = relY + iy;
           final int indexY = (yPos - yOff) * videoWidth;
           for (int ix = topX; ix < xPixMax; ix++) {
-            final int val = (iy - topY) * xDiff + ix - topX;
-            mapData[val] = rgb.get(indexY + relX + ix - xOff);
+            mapData[(iy - topY) * xDiff + ix - topX] = rgb.get(indexY + relX + ix - xOff);
           }
         }
         final int mapId = map + width * y + x;
         final PacketPlayOutMap packet = new PacketPlayOutMap();
-        try {
-          setFinalField(MAP_FIELDS[0], packet, mapId);
-          setFinalField(MAP_FIELDS[1], packet, (byte) 0);
-          setFinalField(MAP_FIELDS[2], packet, false);
-          setFinalField(MAP_FIELDS[3], packet, false);
-          setFinalField(MAP_FIELDS[4], packet, new MapIcon[0]);
-          setFinalField(MAP_FIELDS[5], packet, topX);
-          setFinalField(MAP_FIELDS[6], packet, topY);
-          setFinalField(MAP_FIELDS[7], packet, xDiff);
-          setFinalField(MAP_FIELDS[8], packet, yDiff);
-          setFinalField(MAP_FIELDS[9], packet, mapData);
-        } catch (final Exception exception) {
-          exception.printStackTrace();
-        }
+        setFinalField(MAP_FIELDS[0], packet, mapId);
+        setFinalField(MAP_FIELDS[1], packet, (byte) 0);
+        setFinalField(MAP_FIELDS[2], packet, false);
+        setFinalField(MAP_FIELDS[3], packet, false);
+        setFinalField(MAP_FIELDS[4], packet, new MapIcon[0]);
+        setFinalField(MAP_FIELDS[5], packet, topX);
+        setFinalField(MAP_FIELDS[6], packet, topY);
+        setFinalField(MAP_FIELDS[7], packet, xDiff);
+        setFinalField(MAP_FIELDS[8], packet, yDiff);
+        setFinalField(MAP_FIELDS[9], packet, mapData);
         packetArray[arrIndex++] = packet;
         PACKET_DIFFERENTIATION.add(packet);
       }
     }
     if (viewers == null) {
       for (final UUID uuid : this.connections.keySet()) {
-        this.sendToViewers(uuid, packetArray);
+        this.sendMapPacketsToViewers(uuid, packetArray);
       }
     } else {
       for (final UUID uuid : viewers) {
-        this.sendToViewers(uuid, packetArray);
+        this.sendMapPacketsToViewers(uuid, packetArray);
       }
     }
   }
 
-  private void sendToViewers(
+  private void sendMapPacketsToViewers(
       @NotNull final UUID uuid, @NotNull final PacketPlayOutMap[] packetArray) {
     final long val = this.lastUpdated.getOrDefault(uuid, 0L);
     if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
@@ -242,6 +234,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   public void displayEntities(
       final UUID[] viewers,
       final Entity @NotNull [] entities,
+      final String character,
       final int[] data,
       final int width,
       final int height) {
@@ -251,41 +244,47 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     for (int i = 0; i < maxHeight; i++) {
       final ChatComponentText component = new ChatComponentText("");
       for (int x = 0; x < width; x++) {
-        final int c = data[index++];
-        final ChatComponentText p = new ChatComponentText("█");
-        p.setChatModifier(p.getChatModifier().setColor(ChatHexColor.a(c & 0xFFFFFF)));
-        component.addSibling(p);
+        this.modifyComponent(character, component, data[index++]);
       }
-      final PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata();
-      try {
-        setFinalField(METADATA_ID, packet, ((CraftEntity) entities[i]).getHandle().getId());
-        setFinalField(
-            METADATA_ITEMS,
-            packet,
-            Collections.singletonList(
-                new DataWatcher.Item<>(
-                    new DataWatcherObject<>(2, DataWatcherRegistry.f), Optional.of(component))));
-      } catch (final IllegalArgumentException e) {
-        e.printStackTrace();
-      }
-      packets[i] = packet;
+      packets[i] = this.createEntityPacket(entities[i], component);
     }
     if (viewers == null) {
       for (final UUID uuid : this.connections.keySet()) {
-        final PlayerConnection connection = this.connections.get(uuid);
-        for (final PacketPlayOutEntityMetadata packet : packets) {
-          connection.sendPacket(packet);
-        }
+        this.sendEntityPacketToViewers(uuid, packets);
       }
     } else {
       for (final UUID uuid : viewers) {
-        final PlayerConnection connection = this.connections.get(uuid);
-        if (connection != null) {
-          for (final PacketPlayOutEntityMetadata packet : packets) {
-            connection.sendPacket(packet);
-          }
-        }
+        this.sendEntityPacketToViewers(uuid, packets);
       }
+    }
+  }
+
+  private void modifyComponent(
+      @NotNull final String character, @NotNull final ChatComponentText component, final int c) {
+    final ChatComponentText p = new ChatComponentText(character);
+    p.setChatModifier(p.getChatModifier().setColor(ChatHexColor.a(c & 0xFFFFFF)));
+    component.addSibling(p);
+  }
+
+  @NotNull
+  private PacketPlayOutEntityMetadata createEntityPacket(
+      @NotNull final Entity entity, @NotNull final ChatComponentText component) {
+    final PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata();
+    setFinalField(METADATA_ID, packet, ((CraftEntity) entity).getHandle().getId());
+    setFinalField(
+        METADATA_ITEMS,
+        packet,
+        Collections.singletonList(
+            new DataWatcher.Item<>(
+                new DataWatcherObject<>(2, DataWatcherRegistry.f), Optional.of(component))));
+    return packet;
+  }
+
+  private void sendEntityPacketToViewers(
+      @NotNull final UUID uuid, @NotNull final PacketPlayOutEntityMetadata @NotNull [] packets) {
+    final PlayerConnection connection = this.connections.get(uuid);
+    for (final PacketPlayOutEntityMetadata packet : packets) {
+      connection.sendPacket(packet);
     }
   }
 

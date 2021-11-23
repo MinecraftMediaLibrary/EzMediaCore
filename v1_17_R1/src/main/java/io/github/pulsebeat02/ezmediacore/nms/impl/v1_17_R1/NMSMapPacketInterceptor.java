@@ -44,7 +44,6 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
-import net.md_5.bungee.api.ChatColor;
 import net.minecraft.SystemUtils;
 import net.minecraft.network.PacketDataSerializer;
 import net.minecraft.network.chat.ChatComponentText;
@@ -67,8 +66,6 @@ import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_17_R1.util.CraftChatMessage;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 public final class NMSMapPacketInterceptor implements PacketHandler {
@@ -106,7 +103,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
 
   @Override
   public void displayDebugMarker(
-      final UUID[] viewers,
+      final UUID @NotNull [] viewers,
       final int x,
       final int y,
       final int z,
@@ -179,11 +176,9 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
           final int yPos = relY + iy;
           final int indexY = (yPos - yOff) * videoWidth;
           for (int ix = topX; ix < xPixMax; ix++) {
-            final int val = (iy - topY) * xDiff + ix - topX;
-            mapData[val] = rgb.get(indexY + relX + ix - xOff);
+            mapData[(iy - topY) * xDiff + ix - topX] = rgb.get(indexY + relX + ix - xOff);
           }
         }
-
         final int mapId = map + width * y + x;
         final PacketPlayOutMap packet =
             new PacketPlayOutMap(
@@ -198,11 +193,11 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     }
     if (viewers == null) {
       for (final UUID uuid : this.connections.keySet()) {
-        this.sendToViewers(uuid, packetArray);
+        this.sendMapPacketsToViewers(uuid, packetArray);
       }
     } else {
       for (final UUID uuid : viewers) {
-        this.sendToViewers(uuid, packetArray);
+        this.sendMapPacketsToViewers(uuid, packetArray);
       }
     }
   }
@@ -230,6 +225,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   public void displayEntities(
       final UUID[] viewers,
       final Entity @NotNull [] entities,
+      final String character,
       final int[] data,
       final int width,
       final int height) {
@@ -239,46 +235,51 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     for (int i = 0; i < maxHeight; i++) {
       final ChatComponentText component = new ChatComponentText("");
       for (int x = 0; x < width; x++) {
-        final int c = data[index++];
-        final ChatComponentText p = new ChatComponentText("█");
-        p.setChatModifier(p.getChatModifier().setColor(ChatHexColor.a(c & 0xFFFFFF)));
-        component.addSibling(p);
+        this.modifyComponent(character, component, data[index++]);
       }
-      final PacketPlayOutEntityMetadata packet =
-          new PacketPlayOutEntityMetadata(
-              ((CraftEntity) entities[i]).getHandle().getId(), new DataWatcher(null), false);
-      try {
-        setFinalField(
-            METADATA_ITEMS,
-            packet,
-            Collections.singletonList(
-                new Item<>(
-                    new DataWatcherObject<>(2, DataWatcherRegistry.f), Optional.of(component))));
-      } catch (final IllegalArgumentException e) {
-        e.printStackTrace();
-      }
-      packets[i] = packet;
+      packets[i] = this.createEntityPacket(entities[i], component);
     }
     if (viewers == null) {
       for (final UUID uuid : this.connections.keySet()) {
-        final PlayerConnection connection = this.connections.get(uuid);
-        for (final PacketPlayOutEntityMetadata packet : packets) {
-          connection.sendPacket(packet);
-        }
+        this.sendEntityPacketToViewers(uuid, packets);
       }
     } else {
       for (final UUID uuid : viewers) {
-        final PlayerConnection connection = this.connections.get(uuid);
-        if (connection != null) {
-          for (final PacketPlayOutEntityMetadata packet : packets) {
-            connection.sendPacket(packet);
-          }
-        }
+        this.sendEntityPacketToViewers(uuid, packets);
       }
     }
   }
 
-  private void sendToViewers(
+  private void modifyComponent(
+      @NotNull final String character, @NotNull final ChatComponentText component, final int c) {
+    final ChatComponentText p = new ChatComponentText(character);
+    p.setChatModifier(p.getChatModifier().setColor(ChatHexColor.a(c & 0xFFFFFF)));
+    component.addSibling(p);
+  }
+
+  @NotNull
+  private PacketPlayOutEntityMetadata createEntityPacket(
+      @NotNull final Entity entity, @NotNull final ChatComponentText component) {
+    final PacketPlayOutEntityMetadata packet =
+        new PacketPlayOutEntityMetadata(
+            ((CraftEntity) entity).getHandle().getId(), new DataWatcher(null), false);
+    setFinalField(
+        METADATA_ITEMS,
+        packet,
+        Collections.singletonList(
+            new Item<>(new DataWatcherObject<>(2, DataWatcherRegistry.f), Optional.of(component))));
+    return packet;
+  }
+
+  private void sendEntityPacketToViewers(
+      @NotNull final UUID uuid, @NotNull final PacketPlayOutEntityMetadata @NotNull [] packets) {
+    final PlayerConnection connection = this.connections.get(uuid);
+    for (final PacketPlayOutEntityMetadata packet : packets) {
+      connection.sendPacket(packet);
+    }
+  }
+
+  private void sendMapPacketsToViewers(
       @NotNull final UUID uuid, @NotNull final PacketPlayOutMap[] packetArray) {
     final long val = this.lastUpdated.getOrDefault(uuid, 0L);
     if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
