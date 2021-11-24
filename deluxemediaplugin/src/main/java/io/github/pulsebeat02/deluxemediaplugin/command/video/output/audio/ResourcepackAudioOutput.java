@@ -43,8 +43,7 @@ public class ResourcepackAudioOutput extends AudioOutput {
       @NotNull final DeluxeMediaPlugin plugin,
       @NotNull final VideoCommandAttributes attributes,
       @NotNull final Audience audience,
-      @NotNull final String mrl) {
-  }
+      @NotNull final String mrl) {}
 
   @Override
   public void setProperAudioHandler(

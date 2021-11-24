@@ -77,10 +77,10 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
     this.getPacketHandler()
         .displayMaps(
             viewers,
-            this.map,
-            dimension.getWidth(),
-            dimension.getHeight(),
             this.algorithm.ditherIntoMinecraft(data, width),
+            this.map,
+            dimension.getHeight(),
+            dimension.getWidth(),
             width);
   }
 

@@ -73,15 +73,16 @@ public final class ScreenBuilderGui {
   }
 
   private void initialize() {
-    this.gui.setOnGlobalClick(event -> {
-      if (event.getClickedInventory() == null) {
-        return;
-      }
-      if (event.getClickedInventory().getType() == InventoryType.PLAYER) {
-        return;
-      }
-      event.setCancelled(true);
-    });
+    this.gui.setOnGlobalClick(
+        event -> {
+          if (event.getClickedInventory() == null) {
+            return;
+          }
+          if (event.getClickedInventory().getType() == InventoryType.PLAYER) {
+            return;
+          }
+          event.setCancelled(true);
+        });
     this.pane.addItem(this.getBuildScreenItem(), 8, 2);
     this.pane.addItem(this.getGuiItem(this.getIncreaseArrow("Width"), this.width, true), 1, 1);
     this.pane.addItem(this.getGuiItem(this.getDecreaseArrow("Width"), this.width, false), 1, 3);

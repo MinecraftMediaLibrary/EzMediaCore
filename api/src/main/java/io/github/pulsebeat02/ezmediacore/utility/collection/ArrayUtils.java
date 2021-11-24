@@ -36,8 +36,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ArrayUtils {
 
-  private ArrayUtils() {
-  }
+  private ArrayUtils() {}
 
   public static <T> T @NotNull [] trim(
       final T @NotNull [] array, final int startInclusive, final int endExclusive) {

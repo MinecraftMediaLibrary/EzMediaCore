@@ -33,6 +33,7 @@ import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
+import java.nio.IntBuffer;
 import java.util.UUID;
 import java.util.function.Consumer;
 import org.apache.commons.lang.StringUtils;
@@ -117,21 +118,21 @@ public class EntityCallback<T extends Entity> extends FrameCallback
     final String name = this.name.getName();
     if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
       this.setLastUpdated(time);
-      this.displayEntity(viewers, name, data, width);
+      this.displayEntity(viewers, name, IntBuffer.wrap(data), width);
     }
   }
 
   private void displayEntity(
       @NotNull final UUID[] viewers,
       @NotNull final String name,
-      final int @NotNull [] data,
+      @NotNull final IntBuffer data,
       final int width) {
     this.getPacketHandler()
         .displayEntities(
             this.getWatchers().getViewers(),
             this.entities,
-            name,
             data,
+            name,
             width,
             this.entities.length / width);
   }

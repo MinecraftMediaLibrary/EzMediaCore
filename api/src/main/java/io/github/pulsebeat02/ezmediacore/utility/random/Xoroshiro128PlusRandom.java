@@ -36,8 +36,7 @@ public class Xoroshiro128PlusRandom extends Random {
 
   private static final double DOUBLE_UNIT = 0x1.0p-53; // 1.0 / (1L << 53);
   private static final float FLOAT_UNIT = 0x1.0p-24f; // 1.0 / (1L << 24);
-  @Serial
-  private static final long serialVersionUID = -2223015498326800080L;
+  @Serial private static final long serialVersionUID = -2223015498326800080L;
 
   private long s0, s1;
 

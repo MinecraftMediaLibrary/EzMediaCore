@@ -49,6 +49,5 @@ public class HttpAudioOutput extends FFmpegOutput {
 
   @Override
   public void setProperAudioHandler(
-      @NotNull final DeluxeMediaPlugin plugin, @NotNull final VideoCommandAttributes attributes) {
-  }
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final VideoCommandAttributes attributes) {}
 }

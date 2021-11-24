@@ -25,6 +25,7 @@ package io.github.pulsebeat02.ezmediacore.nms.impl.v1_16_R3;
 
 import static io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils.setFinalField;
 
+import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -34,7 +35,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelPromise;
 import java.lang.reflect.Field;
-import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -156,14 +157,14 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   @Override
   public void displayMaps(
       final UUID[] viewers,
+      final @NotNull BufferCarrier rgb,
       final int map,
-      final int width,
       final int height,
-      final @NotNull ByteBuffer rgb,
+      final int width,
       final int videoWidth,
       final int xOff,
       final int yOff) {
-    final int vidHeight = rgb.capacity() / videoWidth;
+    final int vidHeight = rgb.getCapacity() / videoWidth;
     final int negXOff = xOff + videoWidth;
     final int negYOff = yOff + vidHeight;
     final int xLoopMin = Math.max(0, xOff / 128);
@@ -188,7 +189,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
           final int yPos = relY + iy;
           final int indexY = (yPos - yOff) * videoWidth;
           for (int ix = topX; ix < xPixMax; ix++) {
-            mapData[(iy - topY) * xDiff + ix - topX] = rgb.get(indexY + relX + ix - xOff);
+            mapData[(iy - topY) * xDiff + ix - topX] = rgb.getByte(indexY + relX + ix - xOff);
           }
         }
         final int mapId = map + width * y + x;
@@ -234,8 +235,8 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   public void displayEntities(
       final UUID[] viewers,
       final Entity @NotNull [] entities,
+      @NotNull final IntBuffer data,
       final String character,
-      final int[] data,
       final int width,
       final int height) {
     final int maxHeight = Math.min(height, entities.length);
@@ -244,7 +245,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     for (int i = 0; i < maxHeight; i++) {
       final ChatComponentText component = new ChatComponentText("");
       for (int x = 0; x < width; x++) {
-        this.modifyComponent(character, component, data[index++]);
+        this.modifyComponent(character, component, data.get(index++));
       }
       packets[i] = this.createEntityPacket(entities[i], component);
     }
@@ -291,8 +292,8 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   @Override
   public void displayChat(
       final UUID[] viewers,
+      @NotNull final IntBuffer data,
       final String character,
-      final int[] data,
       final int width,
       final int height) {
     for (int y = 0; y < height; ++y) {

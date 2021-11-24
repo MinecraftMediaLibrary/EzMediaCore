@@ -52,6 +52,5 @@ public final class FrameDimension {
     X10_14 = ofDimension(10, 14);
   }
 
-  private FrameDimension() {
-  }
+  private FrameDimension() {}
 }

@@ -39,5 +39,4 @@ public interface AudioConfiguration {
   int getVolume();
 
   int getStartTime();
-
 }

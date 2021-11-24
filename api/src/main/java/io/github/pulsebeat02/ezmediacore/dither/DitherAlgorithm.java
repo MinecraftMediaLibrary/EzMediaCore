@@ -23,15 +23,14 @@
  */
 package io.github.pulsebeat02.ezmediacore.dither;
 
-import java.nio.ByteBuffer;
+import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 public interface DitherAlgorithm {
 
   @NotNull
-  ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width);
+  BufferCarrier ditherIntoMinecraft(final int @NotNull [] buffer, final int width);
 
-  default void dither(final int @NotNull [] buffer, final int width) {
-  }
+  default void dither(final int @NotNull [] buffer, final int width) {}
 }

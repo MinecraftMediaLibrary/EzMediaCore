@@ -80,14 +80,12 @@ import org.jetbrains.annotations.NotNull;
  * @author <a href="http://johannburkard.de">Johann Burkard</a>
  * @version $Id: StringSearch.java 6675 2015-01-17 21:02:35Z johann $
  * @see <a href="http://johannburkard.de/software/stringsearch/" target="_top"> StringSearch &#8211;
- * high-performance pattern matching algorithms in Java</a>
+ *     high-performance pattern matching algorithms in Java</a>
  */
 public abstract class StringSearch {
 
   private static final int CROSSOVER_MACOSX = 50;
-  /**
-   * The StringAccess instance.
-   */
+  /** The StringAccess instance. */
   static StringAccess activeStringAccess;
   /**
    * The crossover point at which the Reflection based char accessor should be used. The crossover
@@ -123,7 +121,7 @@ public abstract class StringSearch {
                         }
                       }
                     }
-                    return new Field[]{val, off};
+                    return new Field[] {val, off};
                   });
       value = valueOffset[0];
       offset = valueOffset[1];
@@ -152,8 +150,7 @@ public abstract class StringSearch {
     super();
   }
 
-  public static void init() {
-  }
+  public static void init() {}
 
   /**
    * Returns if Reflection is used to access the underlying <code>char</code> array in Strings.
@@ -179,8 +176,7 @@ public abstract class StringSearch {
    * Pre-processes a <code>byte</code> array. This method should be used if a pattern is searched
    * for more than one time.
    *
-   * @param pattern the <code>byte</code> array containing the pattern, may not be
-   *                <code>null</code>
+   * @param pattern the <code>byte</code> array containing the pattern, may not be <code>null</code>
    * @return an Object
    */
   public abstract Object processBytes(byte[] pattern);
@@ -214,9 +210,8 @@ public abstract class StringSearch {
    * Returns the position in the text at which the pattern was found. Returns -1 if the pattern was
    * not found.
    *
-   * @param text    the <code>byte</code> array containing the text, may not be <code>null</code>
-   * @param pattern the <code>byte</code> array containing the pattern, may not be
-   *                <code>null</code>
+   * @param text the <code>byte</code> array containing the text, may not be <code>null</code>
+   * @param pattern the <code>byte</code> array containing the pattern, may not be <code>null</code>
    * @return the position in the text or -1 if the pattern was not found
    * @see #searchBytes(byte[], int, int, byte[], Object)
    */
@@ -228,8 +223,8 @@ public abstract class StringSearch {
    * Returns the position in the text at which the pattern was found. Returns -1 if the pattern was
    * not found.
    *
-   * @param text      the <code>byte</code> array containing the text, may not be <code>null</code>
-   * @param pattern   the pattern to search for, may not be <code>null</code>
+   * @param text the <code>byte</code> array containing the text, may not be <code>null</code>
+   * @param pattern the pattern to search for, may not be <code>null</code>
    * @param processed an Object as returned from {@link #processBytes(byte[])}, may not be <code>
    *                  null</code>
    * @return the position in the text or -1 if the pattern was not found
@@ -245,10 +240,9 @@ public abstract class StringSearch {
    * Returns the position in the text at which the pattern was found. Returns -1 if the pattern was
    * not found.
    *
-   * @param text      the <code>byte</code> array containing the text, may not be <code>null</code>
+   * @param text the <code>byte</code> array containing the text, may not be <code>null</code>
    * @param textStart at which position in the text the comparing should start
-   * @param pattern   the <code>byte</code> array containing the pattern, may not be
-   *                  <code>null</code>
+   * @param pattern the <code>byte</code> array containing the pattern, may not be <code>null</code>
    * @return int the position in the text or -1 if the pattern was not found
    * @see #searchBytes(byte[], int, int, byte[], Object)
    */
@@ -260,9 +254,9 @@ public abstract class StringSearch {
    * Returns the position in the text at which the pattern was found. Returns -1 if the pattern was
    * not found.
    *
-   * @param text      the <code>byte</code> array containing the text, may not be <code>null</code>
+   * @param text the <code>byte</code> array containing the text, may not be <code>null</code>
    * @param textStart at which position in the text the comparing should start
-   * @param pattern   the pattern to search for, may not be <code>null</code>
+   * @param pattern the pattern to search for, may not be <code>null</code>
    * @param processed processed data
    * @return the position in the text or -1 if the pattern was not found
    * @see #searchBytes(byte[], int, int, byte[], Object)
@@ -277,12 +271,10 @@ public abstract class StringSearch {
    * Returns the position in the text at which the pattern was found. Returns -1 if the pattern was
    * not found.
    *
-   * @param text      text the <code>byte</code> array containing the text, may not be
-   *                  <code>null</code>
+   * @param text text the <code>byte</code> array containing the text, may not be <code>null</code>
    * @param textStart at which position in the text the comparing should start
-   * @param textEnd   at which position in the text comparing should stop
-   * @param pattern   the <code>byte</code> array containing the pattern, may not be
-   *                  <code>null</code>
+   * @param textEnd at which position in the text comparing should stop
+   * @param pattern the <code>byte</code> array containing the pattern, may not be <code>null</code>
    * @return the position in the text or -1 if the pattern was not found
    * @see #searchBytes(byte[], int, int, byte[], Object)
    */
@@ -296,11 +288,10 @@ public abstract class StringSearch {
    * Returns the position in the text at which the pattern was found. Returns -1 if the pattern was
    * not found.
    *
-   * @param text      text the <code>byte</code> array containing the text, may not be
-   *                  <code>null</code>
+   * @param text text the <code>byte</code> array containing the text, may not be <code>null</code>
    * @param textStart at which position in the text the comparing should start
-   * @param textEnd   at which position in the text comparing should stop
-   * @param pattern   the pattern to search for, may not be <code>null</code>
+   * @param textEnd at which position in the text comparing should stop
+   * @param pattern the pattern to search for, may not be <code>null</code>
    * @param processed an Object as returned from {@link #processBytes(byte[])}, may not be <code>
    *                  null</code>
    * @return the position in the text or -1 if the pattern was not found
@@ -313,9 +304,8 @@ public abstract class StringSearch {
    * Returns the position in the text at which the pattern was found. Returns -1 if the pattern was
    * not found.
    *
-   * @param text    the character array containing the text, may not be <code>null</code>
-   * @param pattern the <code>char</code> array containing the pattern, may not be
-   *                <code>null</code>
+   * @param text the character array containing the text, may not be <code>null</code>
+   * @param pattern the <code>char</code> array containing the pattern, may not be <code>null</code>
    * @return the position in the text or -1 if the pattern was not found
    * @see #searchChars(char[], int, int, char[], Object)
    */
@@ -327,11 +317,10 @@ public abstract class StringSearch {
    * Returns the index of the pattern in the text using the pre-processed Object. Returns -1 if the
    * pattern was not found.
    *
-   * @param text      the character array containing the text, may not be <code>null</code>
-   * @param pattern   the <code>char</code> array containing the pattern, may not be
-   *                  <code>null</code>
+   * @param text the character array containing the text, may not be <code>null</code>
+   * @param pattern the <code>char</code> array containing the pattern, may not be <code>null</code>
    * @param processed an Object as returned from {@link #processChars(char[])} or {@link
-   *                  #processString(String)}, may not be <code>null</code>
+   *     #processString(String)}, may not be <code>null</code>
    * @return the position in the text or -1 if the pattern was not found
    * @see #searchChars(char[], int, int, char[], Object)
    */
@@ -345,10 +334,9 @@ public abstract class StringSearch {
    * Returns the position in the text at which the pattern was found. Returns -1 if the pattern was
    * not found.
    *
-   * @param text      the character array containing the text, may not be <code>null</code>
+   * @param text the character array containing the text, may not be <code>null</code>
    * @param textStart at which position in the text the comparing should start
-   * @param pattern   the <code>char</code> array containing the pattern, may not be
-   *                  <code>null</code>
+   * @param pattern the <code>char</code> array containing the pattern, may not be <code>null</code>
    * @return the position in the text or -1 if the pattern was not found
    * @see #searchChars(char[], int, int, char[], Object)
    */
@@ -360,12 +348,11 @@ public abstract class StringSearch {
    * Returns the index of the pattern in the text using the pre-processed Object. Returns -1 if the
    * pattern was not found.
    *
-   * @param text      the String containing the text, may not be <code>null</code>
+   * @param text the String containing the text, may not be <code>null</code>
    * @param textStart at which position in the text the comparing should start
-   * @param pattern   the <code>char</code> array containing the pattern, may not be
-   *                  <code>null</code>
+   * @param pattern the <code>char</code> array containing the pattern, may not be <code>null</code>
    * @param processed an Object as returned from {@link #processChars(char[])} or {@link
-   *                  #processString(String)}, may not be <code>null</code>
+   *     #processString(String)}, may not be <code>null</code>
    * @return the position in the text or -1 if the pattern was not found
    * @see #searchChars(char[], int, int, char[], Object)
    */
@@ -379,11 +366,10 @@ public abstract class StringSearch {
    * Returns the position in the text at which the pattern was found. Returns -1 if the pattern was
    * not found.
    *
-   * @param text      the character array containing the text, may not be <code>null</code>
+   * @param text the character array containing the text, may not be <code>null</code>
    * @param textStart at which position in the text the comparing should start
-   * @param textEnd   at which position in the text comparing should stop
-   * @param pattern   the <code>char</code> array containing the pattern, may not be
-   *                  <code>null</code>
+   * @param textEnd at which position in the text comparing should stop
+   * @param pattern the <code>char</code> array containing the pattern, may not be <code>null</code>
    * @return the position in the text or -1 if the pattern was not found
    * @see #searchChars(char[], int, int, char[], Object)
    */
@@ -397,12 +383,12 @@ public abstract class StringSearch {
    * Returns the index of the pattern in the text using the pre-processed Object. Returns -1 if the
    * pattern was not found.
    *
-   * @param text      the String containing the text, may not be <code>null</code>
+   * @param text the String containing the text, may not be <code>null</code>
    * @param textStart at which position in the text the comparing should start
-   * @param textEnd   at which position in the text comparing should stop
-   * @param pattern   the pattern to search for, may not be <code>null</code>
+   * @param textEnd at which position in the text comparing should stop
+   * @param pattern the pattern to search for, may not be <code>null</code>
    * @param processed an Object as returned from {@link #processChars(char[])} or {@link
-   *                  #processString(String)}, may not be <code>null</code>
+   *     #processString(String)}, may not be <code>null</code>
    * @return the position in the text or -1 if the pattern was not found
    */
   public abstract int searchChars(
@@ -412,7 +398,7 @@ public abstract class StringSearch {
    * Convenience method to search for patterns in Strings. Returns the position in the text at which
    * the pattern was found. Returns -1 if the pattern was not found.
    *
-   * @param text    the String containing the text, may not be <code>null</code>
+   * @param text the String containing the text, may not be <code>null</code>
    * @param pattern the String containing the pattern, may not be <code>null</code>
    * @return the position in the text or -1 if the pattern was not found
    * @see #searchChars(char[], int, int, char[], Object)
@@ -425,10 +411,10 @@ public abstract class StringSearch {
    * Convenience method to search for patterns in Strings. Returns the position in the text at which
    * the pattern was found. Returns -1 if the pattern was not found.
    *
-   * @param text      the String containing the text, may not be <code>null</code>
-   * @param pattern   the String containing the pattern, may not be <code>null</code>
+   * @param text the String containing the text, may not be <code>null</code>
+   * @param pattern the String containing the pattern, may not be <code>null</code>
    * @param processed an Object as returned from {@link #processChars(char[])} or {@link
-   *                  #processString(String)}, may not be <code>null</code>
+   *     #processString(String)}, may not be <code>null</code>
    * @return the position in the text or -1 if the pattern was not found
    * @see #searchChars(char[], int, int, char[], Object)
    */
@@ -442,9 +428,9 @@ public abstract class StringSearch {
    * Convenience method to search for patterns in Strings. Returns the position in the text at which
    * the pattern was found. Returns -1 if the pattern was not found.
    *
-   * @param text      the String containing the text, may not be <code>null</code>
+   * @param text the String containing the text, may not be <code>null</code>
    * @param textStart at which position in the text the comparing should start
-   * @param pattern   the String containing the pattern, may not be <code>null</code>
+   * @param pattern the String containing the pattern, may not be <code>null</code>
    * @return the position in the text or -1 if the pattern was not found
    * @see #searchChars(char[], int, int, char[], Object)
    */
@@ -456,11 +442,11 @@ public abstract class StringSearch {
    * Convenience method to search for patterns in Strings. Returns the position in the text at which
    * the pattern was found. Returns -1 if the pattern was not found.
    *
-   * @param text      the String containing the text, may not be <code>null</code>
+   * @param text the String containing the text, may not be <code>null</code>
    * @param textStart at which position in the text the comparing should start
-   * @param pattern   the String containing the pattern, may not be <code>null</code>
+   * @param pattern the String containing the pattern, may not be <code>null</code>
    * @param processed an Object as returned from {@link #processChars(char[])} or {@link
-   *                  #processString(String)}, may not be <code>null</code>
+   *     #processString(String)}, may not be <code>null</code>
    * @return the position in the text or -1 if the pattern was not found
    * @see #searchChars(char[], int, int, char[], Object)
    */
@@ -474,10 +460,10 @@ public abstract class StringSearch {
    * Convenience method to search for patterns in Strings. Returns the position in the text at which
    * the pattern was found. Returns -1 if the pattern was not found.
    *
-   * @param text      the String containing the text, may not be <code>null</code>
+   * @param text the String containing the text, may not be <code>null</code>
    * @param textStart at which position in the text the comparing should start
-   * @param textEnd   at which position in the text comparing should stop
-   * @param pattern   the String containing the pattern, may not be <code>null</code>
+   * @param textEnd at which position in the text comparing should stop
+   * @param pattern the String containing the pattern, may not be <code>null</code>
    * @return the position in the text or -1 if the pattern was not found
    * @see #searchChars(char[], int, int, char[])
    */
@@ -491,12 +477,12 @@ public abstract class StringSearch {
    * Convenience method to search for patterns in Strings. Returns the position in the text at which
    * the pattern was found. Returns -1 if the pattern was not found.
    *
-   * @param text      the String containing the text, may not be <code>null</code>
+   * @param text the String containing the text, may not be <code>null</code>
    * @param textStart at which position in the text the comparing should start
-   * @param textEnd   at which position in the text comparing should stop
-   * @param pattern   the String containing the pattern, may not be <code>null</code>
+   * @param textEnd at which position in the text comparing should stop
+   * @param pattern the String containing the pattern, may not be <code>null</code>
    * @param processed an Object as returned from {@link #processChars(char[])} or {@link
-   *                  #processString(String)}, may not be <code>null</code>
+   *     #processString(String)}, may not be <code>null</code>
    * @return the position in the text or -1 if the pattern was not found
    * @see #searchChars(char[], int, int, char[])
    */
@@ -555,7 +541,7 @@ public abstract class StringSearch {
    * Returns a {@link CharIntMap} of the extent of the given pattern, using the specified default
    * value.
    *
-   * @param pattern      the pattern, may not be <code>null</code>
+   * @param pattern the pattern, may not be <code>null</code>
    * @param defaultValue the default value
    * @return a CharIntMap, never <code>null</code>
    * @see CharIntMap#CharIntMap(int, char, int)
@@ -570,8 +556,8 @@ public abstract class StringSearch {
    * Returns a {@link CharIntMap} of the extent of the given pattern, using the specified default
    * value.
    *
-   * @param pattern      the pattern, may not be <code>null</code>
-   * @param patternEnd   where to stop searching for extent values in the pattern
+   * @param pattern the pattern, may not be <code>null</code>
+   * @param patternEnd where to stop searching for extent values in the pattern
    * @param defaultValue the default value
    * @return a CharIntMap, never <code>null</code>
    * @see CharIntMap#CharIntMap(int, char, int)
@@ -607,9 +593,7 @@ public abstract class StringSearch {
    */
   static class StringAccess {
 
-    /**
-     * Instances are created in StringSearch only.
-     */
+    /** Instances are created in StringSearch only. */
     private StringAccess() {
       super();
     }
@@ -630,9 +614,7 @@ public abstract class StringSearch {
           text.toCharArray(), textStart, textEnd, pattern.toCharArray(), processed);
     }
 
-    /**
-     * Searches a pattern inside a text, using the given StringSearch instance.
-     */
+    /** Searches a pattern inside a text, using the given StringSearch instance. */
     int searchString(
         @NotNull final String text,
         final int textStart,
@@ -698,7 +680,7 @@ public abstract class StringSearch {
     /**
      * Instances are created in StringSearch only.
      *
-     * @param value  the "value" field in String
+     * @param value the "value" field in String
      * @param offset the "offset" field in String
      */
     private ReflectionStringAccess(final Field value, final Field offset) {
@@ -721,7 +703,7 @@ public abstract class StringSearch {
           final int o = this.offset.getInt(text);
           final char[] t = (char[]) this.value.get(text);
           return instance.searchChars(
-              t, textStart + o, textEnd + o, this.getChars(pattern), processed)
+                  t, textStart + o, textEnd + o, this.getChars(pattern), processed)
               - o;
 
         } catch (final IllegalAccessException ex) {
@@ -731,9 +713,7 @@ public abstract class StringSearch {
       return super.searchString(text, textStart, textEnd, pattern, processed, instance);
     }
 
-    /**
-     *
-     */
+    /** */
     @Override
     int searchString(
         @NotNull final String text,
@@ -755,9 +735,7 @@ public abstract class StringSearch {
       return super.searchString(text, textStart, textEnd, pattern, instance);
     }
 
-    /**
-     *
-     */
+    /** */
     @Override
     int[] searchString(
         @NotNull final String text,
@@ -785,9 +763,7 @@ public abstract class StringSearch {
       return super.searchString(text, textStart, textEnd, pattern, k, instance);
     }
 
-    /**
-     *
-     */
+    /** */
     @Override
     int[] searchString(
         @NotNull final String text,

@@ -45,7 +45,8 @@
 
 package io.github.pulsebeat02.ezmediacore.nms;
 
-import java.nio.ByteBuffer;
+import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
+import java.nio.IntBuffer;
 import java.util.UUID;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Entity;
@@ -61,49 +62,49 @@ public interface PacketHandler {
 
   void displayMaps(
       final UUID[] viewers,
+      @NotNull final BufferCarrier rgb,
       final int map,
-      final int mapWidth,
       final int mapHeight,
-      final ByteBuffer rgb,
+      final int mapWidth,
       final int videoWidth,
       final int xOffset,
       final int yOffset);
 
   default void displayMaps(
       final UUID[] viewers,
+      @NotNull final BufferCarrier rgb,
       final int map,
-      final int mapWidth,
       final int mapHeight,
-      final @NotNull ByteBuffer rgb,
+      final int mapWidth,
       final int videoWidth) {
-    final int vidHeight = rgb.capacity() / videoWidth;
+    final int vidHeight = rgb.getCapacity() / videoWidth;
     final int pixW = mapWidth << 7;
     final int pixH = mapHeight << 7;
     final int xOff = (pixW - videoWidth) >> 1;
     final int yOff = (pixH - vidHeight) >> 1;
-    this.displayMaps(viewers, map, mapWidth, mapHeight, rgb, videoWidth, xOff, yOff);
+    this.displayMaps(viewers, rgb, map, mapHeight, mapWidth, videoWidth, xOff, yOff);
   }
 
   void displayEntities(
       final UUID[] viewers,
       final Entity[] entities,
+      @NotNull final IntBuffer data,
       final String character,
-      final int[] data,
       final int width,
       final int height);
 
   void displayChat(
       final UUID[] viewers,
+      @NotNull final IntBuffer data,
       final String character,
-      final int[] data,
       final int width,
       final int height);
 
   default void displayScoreboard(
       final UUID[] viewers,
       final Scoreboard scoreboard,
+      @NotNull final IntBuffer data,
       final String character,
-      final int[] data,
       final int width,
       final int height) {
     for (int y = 0; y < height; ++y) {
@@ -130,11 +131,11 @@ public interface PacketHandler {
   Object onPacketInterceptIn(final Player viewer, final Object packet);
 
   default @NotNull String createChatComponent(
-      final String character, final int[] data, final int width, final int y) {
+      final String character, @NotNull final IntBuffer data, final int width, final int y) {
     int before = -1;
     final StringBuilder msg = new StringBuilder();
     for (int x = 0; x < width; ++x) {
-      final int rgb = data[width * y + x];
+      final int rgb = data.get(width * y + x);
       if (before != rgb) {
         msg.append(ChatColor.of("#" + Integer.toHexString(rgb).substring(2)));
       }

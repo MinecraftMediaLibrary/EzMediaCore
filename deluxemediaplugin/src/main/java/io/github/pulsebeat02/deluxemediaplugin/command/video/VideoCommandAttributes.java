@@ -43,22 +43,31 @@ public final class VideoCommandAttributes {
   }
 
   private final transient AtomicBoolean completion;
+
   @SerializedName(value = "dither-type")
   private DitherSetting ditherType;
+
   @SerializedName(value = "audio-output")
   private AudioOutputType audioOutputType;
+
   @SerializedName(value = "playback-output")
   private PlaybackType playbackType;
+
   @SerializedName(value = "map-id")
   private int map;
+
   @SerializedName(value = "frame-width")
   private int frameWidth;
+
   @SerializedName(value = "frame-height")
   private int frameHeight;
+
   @SerializedName(value = "pixel-width")
   private int pixelWidth;
+
   @SerializedName(value = "pixel-height")
   private int pixelHeight;
+
   private transient VideoPlayer player;
   private transient MrlConfiguration videoMrl;
   private transient MrlConfiguration oggMrl;

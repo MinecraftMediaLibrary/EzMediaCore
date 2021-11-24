@@ -48,11 +48,9 @@ public abstract class M3uStreamSegmentUrlProvider {
 
   private SegmentInfo lastSegment;
 
-  public M3uStreamSegmentUrlProvider(@NotNull final String url) {
-  }
+  public M3uStreamSegmentUrlProvider(@NotNull final String url) {}
 
-  abstract String fetchSegmentPlaylistUrl(@NotNull final HttpInterface httpInterface)
-      ;
+  abstract String fetchSegmentPlaylistUrl(@NotNull final HttpInterface httpInterface);
 
   private @Nullable String getNextSegmentUrl(@NotNull final HttpInterface httpInterface) {
     try {
@@ -179,11 +177,7 @@ public abstract class M3uStreamSegmentUrlProvider {
     return false;
   }
 
-  record ChannelStreamInfo(String quality, String url) {
+  record ChannelStreamInfo(String quality, String url) {}
 
-  }
-
-  record SegmentInfo(String url, Long duration, String name) {
-
-  }
+  record SegmentInfo(String url, Long duration, String name) {}
 }

@@ -115,8 +115,9 @@ public class ItemBuilder {
     final ItemMeta im = this.is.getItemMeta();
     im.setLore(
         Arrays.stream(lore)
-            .map(component -> translateAlternateColorCodes('&',
-                legacyAmpersand().serialize(component)))
+            .map(
+                component ->
+                    translateAlternateColorCodes('&', legacyAmpersand().serialize(component)))
             .collect(Collectors.toList()));
     this.is.setItemMeta(im);
     return this;
@@ -131,8 +132,9 @@ public class ItemBuilder {
     final ItemMeta im = this.is.getItemMeta();
     im.setLore(
         lore.stream()
-            .map(component -> translateAlternateColorCodes('&',
-                legacyAmpersand().serialize(component)))
+            .map(
+                component ->
+                    translateAlternateColorCodes('&', legacyAmpersand().serialize(component)))
             .collect(Collectors.toList()));
     this.is.setItemMeta(im);
     return this;
@@ -146,8 +148,8 @@ public class ItemBuilder {
   public @NotNull ItemBuilder removeLore(@NotNull final Component line) {
     final ItemMeta im = this.is.getItemMeta();
     final List<String> lore = new ArrayList<>(im.getLore());
-    final String deserialized = translateAlternateColorCodes('&',
-        legacyAmpersand().serialize(line));
+    final String deserialized =
+        translateAlternateColorCodes('&', legacyAmpersand().serialize(line));
     if (!lore.contains(deserialized)) {
       return this;
     }
@@ -195,7 +197,7 @@ public class ItemBuilder {
    * Add a lore line.
    *
    * @param line The lore line to add.
-   * @param pos  The index of where to put it.
+   * @param pos The index of where to put it.
    */
   public @NotNull ItemBuilder lore(@NotNull final Component line, final int pos) {
     final ItemMeta im = this.is.getItemMeta();

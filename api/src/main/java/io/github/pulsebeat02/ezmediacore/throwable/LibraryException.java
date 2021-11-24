@@ -28,8 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class LibraryException extends AssertionError {
 
-  @Serial
-  private static final long serialVersionUID = -6914539609629173333L;
+  @Serial private static final long serialVersionUID = -6914539609629173333L;
 
   public LibraryException(@NotNull final String message) {
     super(message);

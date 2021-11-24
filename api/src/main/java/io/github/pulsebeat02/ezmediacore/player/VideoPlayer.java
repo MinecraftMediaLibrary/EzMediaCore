@@ -38,8 +38,7 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
   Identifier<String> VLC = Identifier.ofIdentifier("VLC");
   Identifier<String> FFMPEG = Identifier.ofIdentifier("FFMPEG");
 
-  @Deprecated
-  Identifier<String> JCODEC = Identifier.ofIdentifier("JCODEC");
+  @Deprecated Identifier<String> JCODEC = Identifier.ofIdentifier("JCODEC");
 
   void initializePlayer(
       @NotNull final MrlConfiguration mrl,

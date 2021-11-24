@@ -1,18 +1,18 @@
 package io.github.pulsebeat02.ezmediacore.utility.graphics.scalr;
 
 /*
-  Copyright 2011 The Buzz Media, LLC
+ Copyright 2011 The Buzz Media, LLC
 
-  <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
-  except in compliance with the License. You may obtain a copy of the License at
+ <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ except in compliance with the License. You may obtain a copy of the License at
 
-  <p>http://www.apache.org/licenses/LICENSE-2.0
+ <p>http://www.apache.org/licenses/LICENSE-2.0
 
-  <p>Unless required by applicable law or agreed to in writing, software distributed under the
-  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-  express or implied. See the License for the specific language governing permissions and
-  limitations under the License.
- */
+ <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ express or implied. See the License for the specific language governing permissions and
+ limitations under the License.
+*/
 import io.github.pulsebeat02.ezmediacore.utility.graphics.scalr.Scalr.Method;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.scalr.Scalr.Mode;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.scalr.Scalr.Rotation;
@@ -225,8 +225,7 @@ public class AsyncScalr {
       throws IllegalArgumentException, ImagingOpException {
     checkService();
 
-    return service.submit(
-        () -> Scalr.apply(src, ops));
+    return service.submit(() -> Scalr.apply(src, ops));
   }
 
   /** @see Scalr#crop(BufferedImage, int, int, BufferedImageOp...) */
@@ -235,8 +234,7 @@ public class AsyncScalr {
       throws IllegalArgumentException, ImagingOpException {
     checkService();
 
-    return service.submit(
-        () -> Scalr.crop(src, width, height, ops));
+    return service.submit(() -> Scalr.crop(src, width, height, ops));
   }
 
   /** @see Scalr#crop(BufferedImage, int, int, int, int, BufferedImageOp...) */
@@ -250,8 +248,7 @@ public class AsyncScalr {
       throws IllegalArgumentException, ImagingOpException {
     checkService();
 
-    return service.submit(
-        () -> Scalr.crop(src, x, y, width, height, ops));
+    return service.submit(() -> Scalr.crop(src, x, y, width, height, ops));
   }
 
   /** @see Scalr#pad(BufferedImage, int, BufferedImageOp...) */
@@ -260,8 +257,7 @@ public class AsyncScalr {
       throws IllegalArgumentException, ImagingOpException {
     checkService();
 
-    return service.submit(
-        () -> Scalr.pad(src, padding, ops));
+    return service.submit(() -> Scalr.pad(src, padding, ops));
   }
 
   /** @see Scalr#pad(BufferedImage, int, Color, BufferedImageOp...) */
@@ -270,8 +266,7 @@ public class AsyncScalr {
       throws IllegalArgumentException, ImagingOpException {
     checkService();
 
-    return service.submit(
-        () -> Scalr.pad(src, padding, color, ops));
+    return service.submit(() -> Scalr.pad(src, padding, color, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, int, BufferedImageOp...) */
@@ -280,8 +275,7 @@ public class AsyncScalr {
       throws IllegalArgumentException, ImagingOpException {
     checkService();
 
-    return service.submit(
-        () -> Scalr.resize(src, targetSize, ops));
+    return service.submit(() -> Scalr.resize(src, targetSize, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, Method, int, BufferedImageOp...) */
@@ -293,8 +287,7 @@ public class AsyncScalr {
       throws IllegalArgumentException, ImagingOpException {
     checkService();
 
-    return service.submit(
-        () -> Scalr.resize(src, scalingMethod, targetSize, ops));
+    return service.submit(() -> Scalr.resize(src, scalingMethod, targetSize, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, Mode, int, BufferedImageOp...) */
@@ -306,8 +299,7 @@ public class AsyncScalr {
       throws IllegalArgumentException, ImagingOpException {
     checkService();
 
-    return service.submit(
-        () -> Scalr.resize(src, resizeMode, targetSize, ops));
+    return service.submit(() -> Scalr.resize(src, resizeMode, targetSize, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, Method, Mode, int, BufferedImageOp...) */
@@ -320,8 +312,7 @@ public class AsyncScalr {
       throws IllegalArgumentException, ImagingOpException {
     checkService();
 
-    return service.submit(
-        () -> Scalr.resize(src, scalingMethod, resizeMode, targetSize, ops));
+    return service.submit(() -> Scalr.resize(src, scalingMethod, resizeMode, targetSize, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, int, int, BufferedImageOp...) */
@@ -333,8 +324,7 @@ public class AsyncScalr {
       throws IllegalArgumentException, ImagingOpException {
     checkService();
 
-    return service.submit(
-        () -> Scalr.resize(src, targetWidth, targetHeight, ops));
+    return service.submit(() -> Scalr.resize(src, targetWidth, targetHeight, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, Method, int, int, BufferedImageOp...) */
@@ -346,8 +336,7 @@ public class AsyncScalr {
       final BufferedImageOp... ops) {
     checkService();
 
-    return service.submit(
-        () -> Scalr.resize(src, scalingMethod, targetWidth, targetHeight, ops));
+    return service.submit(() -> Scalr.resize(src, scalingMethod, targetWidth, targetHeight, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, Mode, int, int, BufferedImageOp...) */
@@ -360,8 +349,7 @@ public class AsyncScalr {
       throws IllegalArgumentException, ImagingOpException {
     checkService();
 
-    return service.submit(
-        () -> Scalr.resize(src, resizeMode, targetWidth, targetHeight, ops));
+    return service.submit(() -> Scalr.resize(src, resizeMode, targetWidth, targetHeight, ops));
   }
 
   /** @see Scalr#resize(BufferedImage, Method, Mode, int, int, BufferedImageOp...) */
@@ -385,8 +373,7 @@ public class AsyncScalr {
       throws IllegalArgumentException, ImagingOpException {
     checkService();
 
-    return service.submit(
-        () -> Scalr.rotate(src, rotation, ops));
+    return service.submit(() -> Scalr.rotate(src, rotation, ops));
   }
 
   protected static ExecutorService createService() {
@@ -471,7 +458,8 @@ public class AsyncScalr {
        * Create a new thread in our specified group with a meaningful
        * thread name so it is easy to identify.
        */
-      final Thread thread = new Thread(this.group, r, this.namePrefix + this.threadNumber.getAndIncrement(), 0);
+      final Thread thread =
+          new Thread(this.group, r, this.namePrefix + this.threadNumber.getAndIncrement(), 0);
 
       // Configure thread according to class or subclass
       thread.setDaemon(false);

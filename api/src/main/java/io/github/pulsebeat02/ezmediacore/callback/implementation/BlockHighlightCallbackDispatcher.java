@@ -26,6 +26,4 @@ package io.github.pulsebeat02.ezmediacore.callback.implementation;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.Locatable;
 
-public interface BlockHighlightCallbackDispatcher extends Callback, Locatable {
-
-}
+public interface BlockHighlightCallbackDispatcher extends Callback, Locatable {}

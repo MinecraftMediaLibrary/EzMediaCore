@@ -25,9 +25,12 @@ package io.github.pulsebeat02.ezmediacore.dither.algorithm;
 
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.COLOR_MAP;
 
+import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
-import java.nio.ByteBuffer;
+import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -145,20 +148,20 @@ public class OrderedDither implements DitherAlgorithm {
   }
 
   @Override
-  public @NotNull ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
+  public @NotNull BufferCarrier ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
-    final ByteBuffer data = ByteBuffer.allocate(buffer.length);
+    final ByteBuf data = Unpooled.buffer(buffer.length);
     for (int y = 0; y < height; y++) {
       final int yIndex = y * width;
       for (int x = 0; x < width; x++) {
-        data.put(
+        data.writeByte(
             this.getBestColor(
                 (int)
                     (buffer[yIndex + x]
                         + this.correction * ((this.matrix[x % this.size][y % this.size] - 0.5)))));
       }
     }
-    return data;
+    return ByteBufCarrier.ofByteBufCarrier(data);
   }
 
   public float[][] getMatrix() {

@@ -34,6 +34,7 @@ import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.utility.task.TaskUtils;
 import java.lang.reflect.Field;
+import java.nio.IntBuffer;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import net.md_5.bungee.api.ChatColor;
@@ -88,10 +89,10 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
 
   @Override
   public void process(final int[] data) {
-    TaskUtils.sync(this.getCore(), this.processRunnable(data));
+    TaskUtils.sync(this.getCore(), this.processRunnable(IntBuffer.wrap(data)));
   }
 
-  private @NotNull <T> Callable<T> processRunnable(final int @NotNull [] data) {
+  private @NotNull <T> Callable<T> processRunnable(@NotNull final IntBuffer data) {
     return () -> {
       final long time = System.currentTimeMillis();
       final Viewers viewers = this.getWatchers();
@@ -115,13 +116,13 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
   private void displayScoreboard(
       @NotNull final Viewers viewers,
       @NotNull final Dimension dimension,
-      final int @NotNull [] data) {
+      @NotNull final IntBuffer data) {
     this.getPacketHandler()
         .displayScoreboard(
             viewers.getViewers(),
             this.scoreboard,
-            this.name,
             data,
+            this.name,
             dimension.getWidth(),
             dimension.getHeight());
   }

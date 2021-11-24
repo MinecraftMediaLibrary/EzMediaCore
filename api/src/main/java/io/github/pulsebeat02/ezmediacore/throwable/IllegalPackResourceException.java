@@ -28,8 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class IllegalPackResourceException extends LibraryException {
 
-  @Serial
-  private static final long serialVersionUID = 1682368011870345638L;
+  @Serial private static final long serialVersionUID = 1682368011870345638L;
 
   public IllegalPackResourceException(@NotNull final String message) {
     super("Resourcepack Exception: %s".formatted(message));

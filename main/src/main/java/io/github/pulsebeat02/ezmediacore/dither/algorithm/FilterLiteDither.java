@@ -26,8 +26,11 @@ package io.github.pulsebeat02.ezmediacore.dither.algorithm;
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.COLOR_MAP;
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.FULL_COLOR_MAP;
 
+import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
-import java.nio.ByteBuffer;
+import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.jetbrains.annotations.NotNull;
 
 public class FilterLiteDither implements DitherAlgorithm {
@@ -138,12 +141,12 @@ public class FilterLiteDither implements DitherAlgorithm {
   }
 
   @Override
-  public @NotNull ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
+  public @NotNull BufferCarrier ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;
     final int[][] dither_buffer = new int[2][width << 2];
-    final ByteBuffer data = ByteBuffer.allocate(buffer.length);
+    final ByteBuf data = Unpooled.buffer(buffer.length);
     for (int y = 0; y < height; y++) {
       final boolean hasNextY = y < heightMinus;
       final int yIndex = y * width;
@@ -179,7 +182,7 @@ public class FilterLiteDither implements DitherAlgorithm {
             buf2[bufferIndex - 2] = delta_g >> 2;
             buf2[bufferIndex - 1] = delta_b >> 2;
           }
-          data.put(index, this.getBestColor(closest));
+          data.setByte(index, this.getBestColor(closest));
         }
       } else {
         int bufferIndex = width + (width << 1) - 1;
@@ -213,11 +216,11 @@ public class FilterLiteDither implements DitherAlgorithm {
             buf2[bufferIndex + 2] = delta_g >> 2;
             buf2[bufferIndex + 1] = delta_r >> 2;
           }
-          data.put(index, this.getBestColor(closest));
+          data.setByte(index, this.getBestColor(closest));
         }
       }
     }
-    return data;
+    return ByteBufCarrier.ofByteBufCarrier(data);
   }
 
   private int getBestFullColor(final int red, final int green, final int blue) {

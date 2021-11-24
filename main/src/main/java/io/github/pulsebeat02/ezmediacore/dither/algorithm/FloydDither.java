@@ -27,9 +27,12 @@ import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.COL
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.FULL_COLOR_MAP;
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.PALETTE;
 
+import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
+import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import java.awt.image.BufferedImage;
-import java.nio.ByteBuffer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -173,12 +176,12 @@ public class FloydDither implements DitherAlgorithm {
   }
 
   @Override
-  public @NotNull ByteBuffer ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
+  public @NotNull BufferCarrier ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
     final int height = buffer.length / width;
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;
     final int[][] dither_buffer = new int[2][width + width << 1];
-    final ByteBuffer data = ByteBuffer.allocate(buffer.length);
+    final ByteBuf data = Unpooled.buffer(buffer.length);
     for (int y = 0; y < height; y++) {
       final boolean hasNextY = y < heightMinus;
       final int yIndex = y * width;
@@ -221,7 +224,7 @@ public class FloydDither implements DitherAlgorithm {
               buf2[bufferIndex + 2] = (int) (0.0625 * delta_b);
             }
           }
-          data.put(index, this.getBestColor(closest));
+          data.setByte(index, this.getBestColor(closest));
         }
       } else {
         int bufferIndex = width + (width << 1) - 1;
@@ -262,11 +265,11 @@ public class FloydDither implements DitherAlgorithm {
               buf2[bufferIndex - 2] = (int) (0.0625 * delta_r);
             }
           }
-          data.put(index, this.getBestColor(closest));
+          data.setByte(index, this.getBestColor(closest));
         }
       }
     }
-    return data;
+    return ByteBufCarrier.ofByteBufCarrier(data);
   }
 
   private int[] getRGBArray(@NotNull final BufferedImage image) {

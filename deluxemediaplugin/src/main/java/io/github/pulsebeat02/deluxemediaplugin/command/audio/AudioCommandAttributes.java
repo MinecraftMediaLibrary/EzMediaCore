@@ -35,7 +35,6 @@ public final class AudioCommandAttributes {
   private final AtomicBoolean completion;
   private final String key;
 
-
   private AudioOutputType audioOutputType;
   private Path audio;
   private String link;
@@ -86,8 +85,7 @@ public final class AudioCommandAttributes {
     return this.audioOutputType;
   }
 
-  public void setAudioOutputType(
-      final AudioOutputType audioOutputType) {
+  public void setAudioOutputType(final AudioOutputType audioOutputType) {
     this.audioOutputType = audioOutputType;
   }
 }

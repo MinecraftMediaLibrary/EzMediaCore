@@ -30,6 +30,7 @@ import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import java.nio.IntBuffer;
 import java.util.UUID;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -55,19 +56,19 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
     final Dimension dimension = this.getDimensions();
     if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
       this.setLastUpdated(time);
-      this.displayChat(viewers, dimension, data);
+      this.displayChat(viewers, dimension, IntBuffer.wrap(data));
     }
   }
 
   private void displayChat(
       @NotNull final UUID[] viewers,
       @NotNull final Dimension dimension,
-      final int @NotNull [] data) {
+      @NotNull final IntBuffer data) {
     this.getPacketHandler()
         .displayChat(
             this.getWatchers().getViewers(),
-            this.character.getName(),
             data,
+            this.character.getName(),
             dimension.getWidth(),
             dimension.getHeight());
   }

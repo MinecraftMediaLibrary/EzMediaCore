@@ -53,8 +53,7 @@ public final class LibraryProvider {
   private Path videoPath;
   private SpotifyClient client;
 
-  LibraryProvider() {
-  }
+  LibraryProvider() {}
 
   @Contract(value = " -> new", pure = true)
   public static @NotNull LibraryProvider builder() {

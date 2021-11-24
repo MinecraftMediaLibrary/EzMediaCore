@@ -121,8 +121,7 @@ public final class DeluxeMediaPlugin {
     this.console.sendMessage(Locale.FIN_METRICS_INIT.build());
   }
 
-  private void finishLoading() {
-  }
+  private void finishLoading() {}
 
   private void finishEnabling() {
     this.checkUpdates();
@@ -138,14 +137,8 @@ public final class DeluxeMediaPlugin {
     this.console.sendMessage(Locale.PLUGIN_LOGO.build());
     this.console.sendMessage(Locale.ENABLE_PLUGIN.build());
     this.console.sendMessage(Locale.EMC_INIT.build());
-    try {
-      this.library = LibraryProvider.builder().plugin(this.plugin).build();
-      this.library.initialize();
-    } catch (final ExecutionException | InterruptedException e) {
-      this.console.sendMessage(Locale.ERR_EMC_INIT.build());
-      e.printStackTrace();
-      this.plugin.getServer().getPluginManager().disablePlugin(this.plugin);
-    }
+    this.library = LibraryProvider.builder().plugin(this.plugin).build();
+    this.library.initialize();
     this.console.sendMessage(Locale.FIN_EMC_INIT.build());
   }
 
