@@ -83,7 +83,7 @@ public final class FFmpegCommand extends BaseCommand {
 
   @Override
   public Component usage() {
-    return ChatUtils.getCommandUsage(
+    return Locale.getCommandUsageComponent(
         Map.of(
             "/ffmpeg reset",
             "Reset all arguments in the FFmpeg command",

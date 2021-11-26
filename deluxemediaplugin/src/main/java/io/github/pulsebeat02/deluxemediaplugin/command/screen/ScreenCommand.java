@@ -68,7 +68,7 @@ public final class ScreenCommand extends BaseCommand {
 
   @Override
   public @NotNull Component usage() {
-    return ChatUtils.getCommandUsage(Map.of("/screen", "Opens the screen building GUI"));
+    return Locale.getCommandUsageComponent(Map.of("/screen", "Opens the screen building GUI"));
   }
 
   @Override

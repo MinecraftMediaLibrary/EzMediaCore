@@ -264,7 +264,7 @@ public final class VideoCommand extends BaseCommand {
 
   @Override
   public @NotNull TextComponent usage() {
-    return ChatUtils.getCommandUsage(
+    return Locale.getCommandUsageComponent(
         Map.ofEntries(
             entry("/video", "Lists the current video playing"),
             entry("/video play", "Plays the video"),

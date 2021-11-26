@@ -66,7 +66,7 @@ public final class DitherCommand extends BaseCommand {
 
   @Override
   public @NotNull Component usage() {
-    return ChatUtils.getCommandUsage(
+    return Locale.getCommandUsageComponent(
         Map.of("/dither list", "References all possible dithering options to choose"));
   }
 }

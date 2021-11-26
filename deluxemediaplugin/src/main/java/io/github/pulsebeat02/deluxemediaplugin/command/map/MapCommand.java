@@ -35,6 +35,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.component.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.MapUtils;
+import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import java.util.Map;
 import java.util.Optional;
 import net.kyori.adventure.audience.Audience;
@@ -97,7 +98,7 @@ public final class MapCommand extends BaseCommand {
   private Optional<Pair<Integer, Integer>> extractData(@NotNull final Audience audience,
       final String @NotNull [] bits) {
     try {
-      return Optional.of(new Pair<>(Integer.parseInt(bits[0]), Integer.parseInt(bits[1])));
+      return Optional.of(Pair.ofPair(Integer.parseInt(bits[0]), Integer.parseInt(bits[1])));
     } catch (final NumberFormatException e) {
       audience.sendMessage(Locale.ERR_MAP_RANGE.build());
       return Optional.empty();
@@ -124,7 +125,7 @@ public final class MapCommand extends BaseCommand {
 
   @Override
   public @NotNull Component usage() {
-    return ChatUtils.getCommandUsage(
+    return Locale.getCommandUsageComponent(
         Map.of(
             "/map [id]",
             "Gives a map to the player with the specific id",

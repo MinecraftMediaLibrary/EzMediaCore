@@ -118,7 +118,7 @@ public final class AudioCommand extends BaseCommand {
 
   @Override
   public @NotNull Component usage() {
-    return ChatUtils.getCommandUsage(
+    return Locale.getCommandUsageComponent(
         Map.of(
             "/audio load [url]", "Loads a Youtube Link",
             "/audio load [file]", "Loads a specific audio file",

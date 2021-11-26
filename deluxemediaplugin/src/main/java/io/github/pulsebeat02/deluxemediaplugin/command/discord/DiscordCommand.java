@@ -130,7 +130,7 @@ public class DiscordCommand extends BaseCommand {
 
   @Override
   public @NotNull Component usage() {
-    return ChatUtils.getCommandUsage(
+    return Locale.getCommandUsageComponent(
         Map.of(
             "/discord connect",
             "Connects to the voice channel",

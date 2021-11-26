@@ -27,6 +27,7 @@ package io.github.pulsebeat02.deluxemediaplugin.command.image;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.component.ChatUtils;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
@@ -52,7 +53,7 @@ public final class ImageCommand extends BaseCommand {
 
   @Override
   public @NotNull Component usage() {
-    return ChatUtils.getCommandUsage(
+    return Locale.getCommandUsageComponent(
         Map.of(
             "/image", "Lists the proper usage of the command",
             "/image purge all", "Purges all loaded images onto maps",

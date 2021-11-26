@@ -64,7 +64,7 @@ public class PluginCommand extends BaseCommand {
 
   @Override
   public @NotNull Component usage() {
-    return ChatUtils.getCommandUsage(
+    return Locale.getCommandUsageComponent(
         Map.of("/deluxemediaplugin info", "Displays information about the plugin"));
   }
 
