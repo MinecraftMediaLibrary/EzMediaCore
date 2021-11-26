@@ -29,11 +29,13 @@ import java.io.IOException;
 import java.nio.file.Path;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface ConfigHolder<T> {
 
   void reloadConfig();
 
+  @NotNull
   FileConfiguration getConfig();
 
   void saveConfig() throws IOException;
@@ -44,6 +46,7 @@ public interface ConfigHolder<T> {
 
   void deserialize() throws IOException;
 
+  @Nullable
   T serialize() throws IOException;
 
   @NotNull

@@ -28,9 +28,9 @@ import io.github.pulsebeat02.deluxemediaplugin.bot.command.DisconnectAudioComman
 import io.github.pulsebeat02.deluxemediaplugin.bot.command.DiscordBaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.bot.command.PlayAudioCommand;
 import io.github.pulsebeat02.deluxemediaplugin.bot.command.StopAudioCommand;
+import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.utility.collection.ArrayUtils;
 import java.util.Map;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -59,24 +59,20 @@ public class MediaCommandListener {
     final String message = event.getMessage().getContentRaw();
     final String prefix = this.bot.getPrefix();
     if (message.startsWith(prefix)) {
-      final User user = event.getAuthor();
       final Message msg = event.getMessage();
-      if (!this.canExecuteCommand(user)) {
-        msg.getChannel()
-            .sendMessageEmbeds(
-                new EmbedBuilder()
-                    .setTitle("Not Enough Permissions")
-                    .setDescription(
-                        "You must have administrator permissions or the DJ role to execute this command!")
-                    .build())
-            .queue();
+      if (!this.canExecuteCommand(event.getAuthor())) {
+        msg.getChannel().sendMessageEmbeds(DiscordLocale.ERR_PERMS.build()).queue();
+        return;
       }
-      final String[] content = message.substring(prefix.length()).split(" ");
-      final DiscordBaseCommand command = this.commands.get(content[0]);
-      if (command != null) {
-        command.execute(msg, ArrayUtils.trim(content, 1, content.length));
-      }
+      this.executeCommand(message, prefix, msg);
     }
+  }
+
+  private void executeCommand(
+      @NotNull final String message, @NotNull final String prefix, @NotNull final Message msg) {
+    final String[] content = message.substring(prefix.length()).split(" ");
+    final DiscordBaseCommand command = this.commands.get(content[0]);
+    Nill.ifNot(command, () -> command.execute(msg, ArrayUtils.trim(content, 1, content.length)));
   }
 
   private boolean canExecuteCommand(@NotNull final User user) {

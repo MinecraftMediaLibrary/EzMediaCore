@@ -23,10 +23,13 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.json;
 
+import static java.util.Objects.requireNonNull;
+
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -45,31 +48,41 @@ public abstract class DataProvider<T> implements DataHolder<T> {
       @NotNull final String name) {
     this.plugin = plugin;
     this.name = name;
-    this.path = plugin.getBootstrap().getDataFolder().toPath().resolve(this.name).toAbsolutePath();
+    this.path = this.getResourcePath();
     this.clazz = clazz;
   }
 
+  private @NotNull Path getResourcePath() {
+    return this.plugin.getBootstrap().getDataFolder().toPath().resolve(this.name);
+  }
+
   @Override
-  public void deserialize(@NotNull final T obj) throws IOException {
+  public void deserialize(@NotNull final T obj) {
     try (final BufferedWriter writer = Files.newBufferedWriter(this.path)) {
       GsonProvider.getGson().toJson(obj, writer);
+    } catch (final IOException e) {
+      e.printStackTrace();
+      throw new AssertionError("Failed to deserialize object %s!".formatted(obj));
     }
   }
 
   @Override
-  public T serialize() throws IOException {
-    this.saveConfig();
-    try (final BufferedReader reader = Files.newBufferedReader(this.path.toAbsolutePath())) {
-      return GsonProvider.getGson().fromJson(reader, this.clazz);
+  public T serialize() {
+    try {
+      this.saveConfig();
+      try (final BufferedReader reader = Files.newBufferedReader(this.path.toAbsolutePath())) {
+        return GsonProvider.getGson().fromJson(reader, this.clazz);
+      }
+    } catch (final IOException e) {
+      e.printStackTrace();
+      throw new AssertionError("Failed to serialize %s!".formatted(this.clazz));
     }
   }
 
   private void saveConfig() throws IOException {
     if (!Files.exists(this.path)) {
-      Files.copy(
-          this.plugin.getBootstrap().getResource(this.name),
-          this.path,
-          StandardCopyOption.REPLACE_EXISTING);
+      final InputStream from = this.plugin.getBootstrap().getResource(this.name);
+      Files.copy(requireNonNull(from), this.path, StandardCopyOption.REPLACE_EXISTING);
     }
   }
 

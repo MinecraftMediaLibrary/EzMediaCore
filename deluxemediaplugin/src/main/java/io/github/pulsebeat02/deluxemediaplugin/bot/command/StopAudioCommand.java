@@ -39,9 +39,13 @@ public class StopAudioCommand extends DiscordBaseCommand {
 
   @Override
   public boolean execute(@NotNull final Message executor, final String @Nullable [] arguments) {
-    final MusicManager manager = this.getBot().getMusicManager();
-    manager.getPlayerManager().shutdown();
+    this.stopAudio();
     executor.getChannel().sendMessageEmbeds(DiscordLocale.PAUSE_AUDIO.build()).queue();
     return true;
+  }
+
+  private void stopAudio() {
+    final MusicManager manager = this.getBot().getMusicManager();
+    manager.getPlayerManager().shutdown();
   }
 }

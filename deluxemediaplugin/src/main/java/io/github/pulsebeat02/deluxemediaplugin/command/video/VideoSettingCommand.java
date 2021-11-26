@@ -38,7 +38,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherSetting;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioOutputType;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.video.PlaybackType;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
-import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+import io.github.pulsebeat02.deluxemediaplugin.utility.component.ChatUtils;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;

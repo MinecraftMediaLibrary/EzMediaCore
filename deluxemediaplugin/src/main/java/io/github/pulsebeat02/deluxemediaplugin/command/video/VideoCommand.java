@@ -34,7 +34,7 @@ import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.video.PlaybackType;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
-import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+import io.github.pulsebeat02.deluxemediaplugin.utility.component.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioTrimmer;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;

@@ -27,9 +27,10 @@ package io.github.pulsebeat02.deluxemediaplugin.config;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
+import io.github.pulsebeat02.deluxemediaplugin.utility.mutable.MutableBoolean;
+import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import java.io.IOException;
-import net.kyori.adventure.audience.Audience;
-import org.bukkit.configuration.file.FileConfiguration;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,40 +45,43 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
     this.saveConfig();
   }
 
+  private @Nullable String checkConfigurationValue(
+      @NotNull final String key,
+      @NotNull final Component message,
+      @NotNull final MutableBoolean mutableBoolean) {
+    final String value = this.getFileConfiguration().getString(key);
+    Nill.ifSo(value, () -> this.handleNull(message, mutableBoolean));
+    return value;
+  }
+
+  private void handleNull(
+      @NotNull final Component message, @NotNull final MutableBoolean mutableBoolean) {
+    this.getPlugin().getConsoleAudience().sendMessage(message);
+    mutableBoolean.set(true);
+  }
+
   @Override
   public @Nullable MediaBot serialize() {
-    final DeluxeMediaPlugin plugin = this.getPlugin();
-    final FileConfiguration configuration = this.getFileConfiguration();
-    final Audience console = plugin.getConsoleAudience();
-
-    boolean invalid = false;
-    final String token = configuration.getString("token");
-    if (token == null) {
-      console.sendMessage(Locale.ERR_BOT_TOKEN.build());
-      invalid = true;
+    final MutableBoolean invalid = MutableBoolean.ofFalse();
+    final String token =
+        this.checkConfigurationValue("token", Locale.ERR_BOT_TOKEN.build(), invalid);
+    final String guild =
+        this.checkConfigurationValue("guild-id", Locale.ERR_GUILD_TOKEN.build(), invalid);
+    final String vc =
+        this.checkConfigurationValue("voice-chat-id", Locale.ERR_VC_ID.build(), invalid);
+    if (!invalid.getBoolean()) {
+      return this.constructBot(token, guild, vc);
     }
-
-    final String guild = configuration.getString("guild-id");
-    if (guild == null) {
-      console.sendMessage(Locale.ERR_GUILD_TOKEN.build());
-      invalid = true;
-    }
-
-    final String vc = configuration.getString("voice-chat-id");
-    if (vc == null) {
-      console.sendMessage(Locale.ERR_VC_ID.build());
-      invalid = true;
-    }
-
-    if (!invalid) {
-      try {
-        return new MediaBot(token, guild, vc);
-      } catch (final Throwable e) {
-        console.sendMessage(Locale.ERR_INVALID_DISCORD_BOT.build());
-        e.printStackTrace();
-      }
-    }
-
     return null;
+  }
+
+  private @Nullable MediaBot constructBot(
+      @NotNull final String token, @NotNull final String guild, @NotNull final String vc) {
+    try {
+      return new MediaBot(token, guild, vc);
+    } catch (final Throwable e) {
+      e.printStackTrace();
+      return null;
+    }
   }
 }

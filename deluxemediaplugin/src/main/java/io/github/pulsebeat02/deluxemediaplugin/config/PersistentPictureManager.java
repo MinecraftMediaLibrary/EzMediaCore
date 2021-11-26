@@ -25,7 +25,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.executors.ExecutorProvider;
+import io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors;
 import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
 import io.github.pulsebeat02.ezmediacore.image.DynamicImage;
 import io.github.pulsebeat02.ezmediacore.image.Image;
@@ -36,7 +36,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 public final class PersistentPictureManager {
@@ -47,15 +46,22 @@ public final class PersistentPictureManager {
 
   public PersistentPictureManager(@NotNull final DeluxeMediaPlugin plugin) throws IOException {
     this.plugin = plugin;
-    final JavaPlugin loader = plugin.getBootstrap();
-    this.storage =
-        new PersistentImageStorage(loader.getDataFolder().toPath().resolve("pictures.json"));
+    this.storage = this.getPictureStorage();
+    this.images = this.getInternalImages();
+  }
+
+  private @NotNull List<Image> getInternalImages() throws IOException {
     final List<Image> images = this.storage.deserialize();
-    this.images = images == null ? new ArrayList<>() : images;
+    return images == null ? new ArrayList<>() : images;
+  }
+
+  private @NotNull PersistentImageStorage getPictureStorage() {
+    return new PersistentImageStorage(
+        this.plugin.getBootstrap().getDataFolder().toPath().resolve("pictures.json"));
   }
 
   public void startTask() {
-    ExecutorProvider.SCHEDULED_EXECUTOR_SERVICE.scheduleAtFixedRate(
+    FixedExecutors.SCHEDULED_EXECUTOR_SERVICE.scheduleAtFixedRate(
         this::scheduledSave, 0, 5, TimeUnit.MINUTES);
   }
 

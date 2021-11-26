@@ -43,15 +43,18 @@ public class HttpAudioConfiguration extends ConfigurationProvider<ServerInfo> {
   }
 
   @Override
-  public @Nullable ServerInfo serialize() {
+  public @NotNull ServerInfo serialize() {
     final FileConfiguration configuration = this.getFileConfiguration();
     final boolean enabled = configuration.getBoolean("enabled");
     final String ip = configuration.getString("ip");
     final int port = configuration.getInt("port");
     if (enabled) {
-      this.info =
-          ip == null || ip.equals("public") ? new ServerInfo(port) : new ServerInfo(ip, port);
+      this.info = this.isPublicServer(ip) ? new ServerInfo(port) : new ServerInfo(ip, port);
     }
     return this.info;
+  }
+
+  private boolean isPublicServer(@Nullable final String ip) {
+    return ip == null || ip.equals("public");
   }
 }

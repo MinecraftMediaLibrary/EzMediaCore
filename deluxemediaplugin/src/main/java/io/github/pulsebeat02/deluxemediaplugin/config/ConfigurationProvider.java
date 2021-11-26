@@ -25,6 +25,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -56,15 +57,16 @@ public abstract class ConfigurationProvider<T> implements ConfigHolder<T> {
   public void reloadConfig() {
     this.fileConfiguration = YamlConfiguration.loadConfiguration(this.config.toFile());
     final InputStream defConfigStream = this.loader.getResource(this.name);
-    if (defConfigStream != null) {
-      final YamlConfiguration defConfig =
-          YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
-      this.fileConfiguration.setDefaults(defConfig);
-    }
+    Nill.ifNot(defConfigStream, () -> this.setConfiguration(defConfigStream));
+  }
+
+  private void setConfiguration(@NotNull final InputStream defConfigStream) {
+    this.fileConfiguration.setDefaults(
+        YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream)));
   }
 
   @Override
-  public FileConfiguration getConfig() {
+  public @NotNull FileConfiguration getConfig() {
     if (this.fileConfiguration == null) {
       this.reloadConfig();
     }

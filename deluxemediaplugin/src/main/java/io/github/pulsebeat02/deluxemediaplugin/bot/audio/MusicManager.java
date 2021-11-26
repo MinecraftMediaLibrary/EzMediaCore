@@ -34,11 +34,11 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import io.github.pulsebeat02.deluxemediaplugin.bot.DiscordLocale;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
+import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import java.util.HashMap;
 import java.util.Map;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,15 +61,17 @@ public class MusicManager {
   /** Join's Voice Chanel and set's log channel. */
   public void joinVoiceChannel() {
     final Guild guild = this.bot.getGuild();
-    final long id = guild.getIdLong();
-    final VoiceChannel voiceChannel = this.bot.getChannel();
     final AudioManager audio = guild.getAudioManager();
-    if (audio.getSendingHandler() == null) {
-      this.player = this.playerManager.createPlayer();
-      this.musicGuildManager.putIfAbsent(id, new MusicSendHandler(this.bot, this, this.player));
-      audio.setSendingHandler(this.musicGuildManager.get(id));
-    }
-    audio.openAudioConnection(voiceChannel);
+    Nill.ifSo(audio.getSendingHandler(), this::createSendingHandler);
+    audio.openAudioConnection(this.bot.getChannel());
+  }
+
+  private void createSendingHandler() {
+    final Guild guild = this.bot.getGuild();
+    final long id = guild.getIdLong();
+    this.player = this.playerManager.createPlayer();
+    this.musicGuildManager.putIfAbsent(id, new MusicSendHandler(this.bot, this, this.player));
+    guild.getAudioManager().setSendingHandler(this.musicGuildManager.get(id));
   }
 
   /** Leave's Voice Channel. */

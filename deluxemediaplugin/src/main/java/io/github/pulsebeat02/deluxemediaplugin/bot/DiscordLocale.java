@@ -31,46 +31,55 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import org.jetbrains.annotations.NotNull;
 
 public interface DiscordLocale {
 
   SimpleDateFormat HOURS_MINUTES_SECONDS = new SimpleDateFormat("mm:ss:SSS");
 
+  NullComponent<Sender> ERR_PERMS =
+      () ->
+          builder()
+              .setTitle("Not Enough Permissions")
+              .setDescription(
+                  "You must have administrator permissions or the DJ role to execute this command!")
+              .build();
+
   NullComponent<Sender> CONNECT_VC_EMBED =
       () ->
-          new EmbedBuilder()
+          builder()
               .setTitle("Audio Voice Channel Connection")
               .setDescription("Connected to voice channel!")
               .build();
 
   NullComponent<Sender> DC_VC_EMBED =
       () ->
-          new EmbedBuilder()
+          builder()
               .setTitle("Audio Voice Channel Connection")
               .setDescription("Left voice channel!")
               .build();
 
   NullComponent<Sender> ERR_INVALID_MRL =
       () ->
-          new EmbedBuilder()
+          builder()
               .setTitle("User Error")
               .setDescription("Invalid arguments! Specify a media source argument to play.")
               .build();
 
   NullComponent<Sender> ERR_LAVAPLAYER =
       () ->
-          new EmbedBuilder()
+          builder()
               .setTitle("Severe Player Error Occurred!")
               .setDescription(
                   "An error occurred! Check console for possible exceptions or warnings.")
               .build();
 
   NullComponent<Sender> PAUSE_AUDIO =
-      () -> new EmbedBuilder().setTitle("Audio Stop").setDescription("Stopped Audio!").build();
+      () -> builder().setTitle("Audio Stop").setDescription("Stopped Audio!").build();
 
   UniComponent<Sender, AudioTrackInfo> LOADED_TRACK =
       (info) ->
-          new EmbedBuilder()
+          builder()
               .setTitle(info.title, info.uri)
               .addField("Author", info.author, false)
               .addField(
@@ -80,17 +89,21 @@ public interface DiscordLocale {
 
   UniComponent<Sender, String> ERR_INVALID_TRACK =
       (url) ->
-          new EmbedBuilder()
+          builder()
               .setTitle("Media Error")
               .setDescription("Could not find song %s!".formatted(url))
               .build();
 
   TriComponent<Sender, Long, AudioPlaylist, String> LOADED_PLAYLIST =
       (ms, audioPlaylist, url) ->
-          new EmbedBuilder()
+          builder()
               .setTitle(audioPlaylist.getName(), url)
               .addField("Playtime Length", HOURS_MINUTES_SECONDS.format(new Date(ms)), false)
               .build();
+
+  static @NotNull EmbedBuilder builder() {
+    return new EmbedBuilder();
+  }
 
   @FunctionalInterface
   interface NullComponent<S extends Sender> {

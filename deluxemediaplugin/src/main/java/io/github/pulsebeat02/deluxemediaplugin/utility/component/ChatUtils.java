@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package io.github.pulsebeat02.deluxemediaplugin.utility;
+package io.github.pulsebeat02.deluxemediaplugin.utility.component;
 
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.newline;
@@ -32,12 +32,13 @@ import static net.kyori.adventure.text.JoinConfiguration.separator;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.LIGHT_PURPLE;
-import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,50 +48,25 @@ public final class ChatUtils {
 
   public static @NotNull Optional<int[]> checkDimensionBoundaries(
       @NotNull final Audience sender, @NotNull final String str) {
+
     final String[] dims = str.split(":");
-    final String message;
-    final OptionalInt width = ChatUtils.checkIntegerValidity(dims[0]);
-    final OptionalInt height = ChatUtils.checkIntegerValidity(dims[1]);
-    if (width.isEmpty()) {
-      message = dims[0];
-    } else if (height.isEmpty()) {
-      message = dims[1];
-    } else {
+    final OptionalInt width = parseInt(dims[0]);
+    final OptionalInt height = parseInt(dims[1]);
+
+    if (width.isPresent() && height.isPresent()) {
       return Optional.of(new int[] {width.getAsInt(), height.getAsInt()});
     }
-    sender.sendMessage(
-        text()
-            .color(RED)
-            .append(text("Argument '"))
-            .append(text(str, GOLD))
-            .append(text("' "))
-            .append(text(message))
-            .append(text(" is not a valid argument!"))
-            .append(text(" (Must be Integer)")));
+
+    sender.sendMessage(Locale.ERR_INVALID_DIMS.build());
+
     return Optional.empty();
   }
 
-  public static @NotNull OptionalInt checkIntegerValidity(@NotNull final String num) {
+  public static @NotNull OptionalInt parseInt(@NotNull final String num) {
     try {
       return OptionalInt.of(Integer.parseInt(num));
     } catch (final NumberFormatException e) {
       return OptionalInt.empty();
     }
-  }
-
-  public static @NotNull TextComponent getCommandUsage(@NotNull final Map<String, String> usages) {
-    final TextComponent.Builder builder =
-        text().append(text("------------------", AQUA)).append(newline());
-    for (final Map.Entry<String, String> entry : usages.entrySet()) {
-      builder.append(
-          join(
-              separator(space()),
-              text(entry.getKey(), LIGHT_PURPLE),
-              text("-", GOLD),
-              text(entry.getValue(), AQUA),
-              newline()));
-    }
-    builder.append(text("------------------", AQUA));
-    return builder.build();
   }
 }

@@ -25,48 +25,52 @@
 package io.github.pulsebeat02.deluxemediaplugin.update;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.executors.ExecutorProvider;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Scanner;
-import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
 public final class UpdateChecker {
 
   private final DeluxeMediaPlugin plugin;
-  private int resource;
+  private final int resource;
 
   public UpdateChecker(@NotNull final DeluxeMediaPlugin plugin) {
     this.plugin = plugin;
+    this.resource = this.getResourceID();
+  }
+
+  private int getResourceID() {
     try {
-      this.resource = Integer.parseInt("%%__RESOURCE__%%");
+      return Integer.parseInt("%%__RESOURCE__%%");
     } catch (final NumberFormatException e) {
-      this.resource = -1;
+      return -1;
     }
   }
 
   public void check() {
-    CompletableFuture.runAsync(this::request, ExecutorProvider.PERIODIC_CHECK_EXECUTOR);
-  }
-
-  private void request() {
     final Audience console = this.plugin.getConsoleAudience();
     final String url =
         "https://api.spigotmc.org/legacy/update.php?resource=%d".formatted(this.resource);
     try (final InputStream is = new URL(url).openStream();
         final Scanner scanner = new Scanner(is)) {
-      final String update = scanner.next();
-      if (this.plugin.getBootstrap().getDescription().getVersion().equalsIgnoreCase(update)) {
-        console.sendMessage(Locale.NEW_UPDATE_PLUGIN.build(update));
-      } else {
-        console.sendMessage(Locale.RUNNING_LATEST_PLUGIN.build());
-      }
+      console.sendMessage(this.getMessage(scanner.next()));
     } catch (final IOException e) {
       console.sendMessage(Locale.ERR_CANNOT_CHECK_UPDATES.build(e.getMessage()));
     }
+  }
+
+  private @NotNull Component getMessage(@NotNull final String update) {
+    return this.checkNewUpdate(update)
+        ? Locale.NEW_UPDATE_PLUGIN.build(update)
+        : Locale.RUNNING_LATEST_PLUGIN.build();
+  }
+
+  private boolean checkNewUpdate(@NotNull final String update) {
+    return this.plugin.getBootstrap().getDescription().getVersion().equalsIgnoreCase(update);
   }
 }

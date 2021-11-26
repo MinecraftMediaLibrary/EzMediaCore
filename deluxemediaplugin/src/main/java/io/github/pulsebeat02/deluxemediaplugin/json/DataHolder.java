@@ -31,9 +31,9 @@ import org.jetbrains.annotations.NotNull;
 
 public interface DataHolder<T> {
 
-  void deserialize(@NotNull final T obj) throws IOException;
+  void deserialize(@NotNull final T obj);
 
-  T serialize() throws IOException;
+  T serialize();
 
   @NotNull
   DeluxeMediaPlugin getPlugin();

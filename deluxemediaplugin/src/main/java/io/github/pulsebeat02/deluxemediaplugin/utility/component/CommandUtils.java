@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package io.github.pulsebeat02.deluxemediaplugin.utility;
+package io.github.pulsebeat02.deluxemediaplugin.utility.component;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
@@ -39,49 +39,48 @@ public final class CommandUtils {
   private static final HashMap<String, Command> knownCommands;
 
   static {
-    knownCommands =
-        (HashMap<String, Command>)
-            (getPrivateField(
-                    (getPrivateField(Bukkit.getServer().getPluginManager(), "commandMap")
-                        .orElseThrow(AssertionError::new)),
-                    "knownCommands")
-                .orElseThrow(AssertionError::new));
+    final Object map =
+        getPrivateField(Bukkit.getServer().getPluginManager(), "commandMap")
+            .orElseThrow(AssertionError::new);
+    final Object commands =
+        getPrivateField((map), "knownCommands").orElseThrow(AssertionError::new);
+    knownCommands = (HashMap<String, Command>) commands;
   }
 
   private CommandUtils() {}
 
-  public static void unRegisterBukkitCommand(
+  public static void unregisterCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final BaseCommand cmd) {
-    try {
-      knownCommands.remove(cmd.getName());
-      for (final String alias : cmd.getAliases()) {
-        if (knownCommands.containsKey(alias)
-            && knownCommands.get(alias).toString().contains(plugin.getBootstrap().getName())) {
-          knownCommands.remove(alias);
-        }
-      }
-    } catch (final Exception e) {
-      e.printStackTrace();
+    knownCommands.remove(cmd.getName());
+    cmd.getAliases().forEach(alias -> removeAliases(plugin, alias));
+  }
+
+  private static void removeAliases(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final String alias) {
+    if (knownCommands.containsKey(alias)
+        && knownCommands.get(alias).toString().contains(plugin.getBootstrap().getName())) {
+      knownCommands.remove(alias);
     }
   }
 
   private static @NotNull Optional<Object> getPrivateField(
       @NotNull final Object object, @NotNull final String field) {
     try {
-      final Class<?> clazz = object.getClass();
-      final Field objectField =
-          field.equals("commandMap")
-              ? clazz.getDeclaredField(field)
-              : field.equals("knownCommands")
-                  ? clazz.getSuperclass().getDeclaredField(field)
-                  : clazz.getDeclaredField(field);
+      final Field objectField = getField(object.getClass(), field);
       objectField.setAccessible(true);
-      final Object result = objectField.get(object);
-      objectField.setAccessible(false);
-      return Optional.of(result);
+      return Optional.of(objectField.get(object));
     } catch (final NoSuchFieldException | IllegalAccessException e) {
       e.printStackTrace();
     }
     return Optional.empty();
+  }
+
+  private static @NotNull Field getField(@NotNull final Class<?> clazz, @NotNull final String field)
+      throws NoSuchFieldException {
+    return field.equals("commandMap")
+        ? clazz.getDeclaredField(field)
+        : field.equals("knownCommands")
+            ? clazz.getSuperclass().getDeclaredField(field)
+            : clazz.getDeclaredField(field);
   }
 }

@@ -21,25 +21,55 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.deluxemediaplugin.utility;
+package io.github.pulsebeat02.deluxemediaplugin.utility.mutable;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public final class Pair<K, V> {
+public final class MutableInt {
 
-  private final K key;
-  private final V value;
+  private int number;
 
-  public Pair(@NotNull final K key, @NotNull final V value) {
-    this.key = key;
-    this.value = value;
+  MutableInt(final int number) {
+    this.number = number;
   }
 
-  public @NotNull K getKey() {
-    return this.key;
+  @Contract(value = "_ -> new", pure = true)
+  public static @NotNull MutableInt ofNumber(@NotNull final Number number) {
+    return ofInteger(number.intValue());
   }
 
-  public @NotNull V getValue() {
-    return this.value;
+  @Contract(value = "_ -> new", pure = true)
+  public static @NotNull MutableInt ofInteger(final int number) {
+    return new MutableInt(number);
+  }
+
+  @Contract(value = "_ -> new", pure = true)
+  public static @NotNull MutableInt ofString(@NotNull final String string) {
+    return ofInteger(Integer.parseInt(string));
+  }
+
+  public void increment() {
+    this.number++;
+  }
+
+  public void decrement() {
+    this.number--;
+  }
+
+  public void add(final int add) {
+    this.number += add;
+  }
+
+  public void subtract(final int subtract) {
+    this.number -= subtract;
+  }
+
+  public void set(final int newNumber) {
+    this.number = newNumber;
+  }
+
+  public int getNumber() {
+    return this.number;
   }
 }

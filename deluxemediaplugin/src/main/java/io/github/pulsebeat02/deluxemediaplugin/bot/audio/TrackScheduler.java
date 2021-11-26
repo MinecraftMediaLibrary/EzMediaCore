@@ -28,6 +28,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
+import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import org.jetbrains.annotations.NotNull;
 
 /** Stolen from itxfrosty Music bot. */
@@ -50,9 +51,7 @@ public class TrackScheduler extends AudioEventAdapter {
    * @param track Track to Queue.
    */
   public void queueSong(@NotNull final AudioTrack track) {
-    if (this.audioPlayer.getPlayingTrack() == null) {
-      this.audioPlayer.playTrack(track);
-    }
+    Nill.ifSo(this.audioPlayer.getPlayingTrack(), () -> this.audioPlayer.playTrack(track));
   }
 
   /** Clear's Audio Queue. */

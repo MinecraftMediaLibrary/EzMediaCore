@@ -39,9 +39,13 @@ public class ConnectAudioCommand extends DiscordBaseCommand {
 
   @Override
   public boolean execute(@NotNull final Message executor, final String @Nullable [] arguments) {
-    final MusicManager manager = this.getBot().getMusicManager();
-    manager.joinVoiceChannel();
+    this.joinVoiceChannel();
     executor.getChannel().sendMessageEmbeds(DiscordLocale.CONNECT_VC_EMBED.build()).queue();
     return true;
+  }
+
+  private void joinVoiceChannel() {
+    final MusicManager manager = this.getBot().getMusicManager();
+    manager.joinVoiceChannel();
   }
 }

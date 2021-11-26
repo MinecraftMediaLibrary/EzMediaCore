@@ -26,12 +26,12 @@ package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.http.HttpDaemon;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
 
@@ -47,39 +47,54 @@ public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
     final FileConfiguration configuration = this.getFileConfiguration();
     configuration.set("enabled", this.enabled);
     configuration.set("port", this.daemon.getDaemon().getPort());
-    final HttpDaemon http = this.daemon.getDaemon();
-    configuration.set(
-        "directory",
-        this.getPlugin()
-            .getBootstrap()
-            .getDataFolder()
-            .toPath()
-            .relativize(http.getServerPath().toAbsolutePath())
-            .toString());
-    configuration.set("verbose", http.isVerbose());
+    configuration.set("verbose", this.daemon.getDaemon().isVerbose());
+    configuration.set("directory", this.getHttpDirectoryDeserialization());
     this.saveConfig();
   }
 
+  private @NotNull Path getHttpDirectoryDeserialization() {
+    return this.getPlugin()
+        .getBootstrap()
+        .getDataFolder()
+        .toPath()
+        .relativize(this.daemon.getDaemon().getServerPath().toAbsolutePath());
+  }
+
   @Override
-  public HttpServer serialize() throws IOException {
+  public @NotNull HttpServer serialize() throws IOException {
     final FileConfiguration configuration = this.getFileConfiguration();
     final boolean enabled = configuration.getBoolean("enabled");
     final String ip = configuration.getString("ip");
     final int port = configuration.getInt("port");
-    final Path directory =
-        Path.of(
-            this.getPlugin().getBootstrap().getDataFolder().getAbsolutePath(),
-            configuration.getString("directory"));
     final boolean verbose = configuration.getBoolean("verbose");
-    final MediaLibraryCore core = this.getPlugin().library();
+    final Path directory = this.getHttpDirectorySerialization();
     if (enabled) {
-      this.daemon =
-          ip == null || ip.equals("public")
-              ? HttpServer.ofServer(core, directory, port)
-              : HttpServer.ofServer(core, directory, ip, port, verbose);
+      this.daemon = this.createServer(ip, port, verbose, directory);
     }
     this.enabled = enabled;
     return this.daemon;
+  }
+
+  @NotNull
+  private HttpServer createServer(
+      @NotNull final String ip,
+      final int port,
+      final boolean verbose,
+      @NotNull final Path directory) {
+    final MediaLibraryCore core = this.getPlugin().library();
+    return this.isPublicServer(ip)
+        ? HttpServer.ofServer(core, directory, port)
+        : HttpServer.ofServer(core, directory, ip, port, verbose);
+  }
+
+  private boolean isPublicServer(@Nullable final String ip) {
+    return ip == null || ip.equals("public");
+  }
+
+  private @NotNull Path getHttpDirectorySerialization() {
+    return Path.of(
+        this.getPlugin().getBootstrap().getDataFolder().getAbsolutePath(),
+        this.getFileConfiguration().getString("directory"));
   }
 
   public boolean isEnabled() {

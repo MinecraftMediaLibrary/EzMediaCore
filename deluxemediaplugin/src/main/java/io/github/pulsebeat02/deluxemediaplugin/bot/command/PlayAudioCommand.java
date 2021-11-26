@@ -39,14 +39,23 @@ public class PlayAudioCommand extends DiscordBaseCommand {
 
   @Override
   public boolean execute(@NotNull final Message executor, final String @Nullable [] arguments) {
-    if (arguments == null || arguments.length < 1) {
+    if (this.invalidArguments(arguments)) {
       executor.getChannel().sendMessageEmbeds(DiscordLocale.ERR_INVALID_MRL.build()).queue();
       return false;
     }
+    this.joinVoiceChannel(executor, arguments);
+    executor.getChannel().sendMessageEmbeds(DiscordLocale.CONNECT_VC_EMBED.build()).queue();
+    return true;
+  }
+
+  private void joinVoiceChannel(
+      @NotNull final Message executor, final String @NotNull [] arguments) {
     final MusicManager manager = this.getBot().getMusicManager();
     manager.joinVoiceChannel();
     manager.addTrack(executor.getChannel(), arguments[0]);
-    executor.getChannel().sendMessageEmbeds(DiscordLocale.CONNECT_VC_EMBED.build()).queue();
-    return true;
+  }
+
+  private boolean invalidArguments(final String @Nullable [] arguments) {
+    return arguments == null || arguments.length < 1;
   }
 }

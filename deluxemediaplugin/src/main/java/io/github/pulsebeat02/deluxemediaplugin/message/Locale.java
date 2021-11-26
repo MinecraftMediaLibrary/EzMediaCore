@@ -36,6 +36,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.BLUE;
 import static net.kyori.adventure.text.format.NamedTextColor.DARK_GRAY;
 import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
+import static net.kyori.adventure.text.format.NamedTextColor.LIGHT_PURPLE;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 import static net.kyori.adventure.text.format.Style.style;
 import static net.kyori.adventure.text.format.TextDecoration.BOLD;
@@ -45,6 +46,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherSetting;
 import io.github.pulsebeat02.deluxemediaplugin.command.image.ImageMrlType;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -218,6 +220,7 @@ public interface Locale {
       text("Guild token not specified in bot.yml!", RED));
   NullComponent<Sender> ERR_VC_ID = () -> format(
       text("Voice Chat Identifier not specified in bot.yml!", RED));
+  NullComponent<Sender> ERR_INVALID_DIMS = () -> format(text("Invalid dimensions!", RED));
   NullComponent<Sender> START_AUDIO = () -> format(text("Started playing audio!", GOLD));
   NullComponent<Sender> PAUSE_AUDIO = () -> format(text("Stopped playing audio!", GOLD));
   NullComponent<Sender> RESUME_AUDIO = () -> format(text("Resumed the video!", GOLD));
@@ -347,6 +350,13 @@ public interface Locale {
                       .asHoverEvent())))
       .append(text(" to retrieve the resourcepack", GOLD))
       .build());
+  UniComponent<Sender, String> FFMPEG_PROCESS = (str) ->
+      text()
+          .color(AQUA)
+          .append(text('['), text("External Process", GOLD), text(']'), space(), text("»", GRAY))
+          .append(text(" %s".formatted(str)))
+          .build();
+  UniComponent<Sender, Map<String, String>> INFO_CMD_USAGE = (usages) -> getCommandUsageComponent(usages);
   BiComponent<Sender, String, byte[]>
       FIN_RESOURCEPACK_INIT = (url, hash) -> format(text(
       "Loaded Resourcepack Successfully! (URL: %s, Hash: %s)".formatted(url, new String(hash))));
@@ -389,12 +399,20 @@ public interface Locale {
           text("Set itemframe map dimensions to", GOLD),
           text("%d:%d".formatted(width, height), AQUA),
           text("(width:height)", GOLD)));
-  UniComponent<Sender, String> FFMPEG_PROCESS = (str) ->
-      text()
-          .color(AQUA)
-          .append(text('['), text("External Process", GOLD), text(']'), space(), text("»", GRAY))
-          .append(text(" %s".formatted(str)))
-          .build();
+
+  static @NotNull TextComponent getCommandUsageComponent(@NotNull final Map<String, String> usages) {
+    final TextComponent.Builder builder =
+        text().append(text("------------------", AQUA)).append(newline());
+    usages.forEach((key, value) -> builder.append(createUsageComponent(key, value)));
+    builder.append(text("------------------", AQUA));
+    return builder.build();
+  }
+
+  static @NotNull Component createUsageComponent(
+      @NotNull final String key, @NotNull final String value) {
+    return join(
+        separator(space()), text(key, LIGHT_PURPLE), text("-", GOLD), text(value, AQUA), newline());
+  }
 
   static @NotNull Component format(@NotNull final Component message) {
     return join(separator(space()), PLUGIN_PREFIX.build(), message);

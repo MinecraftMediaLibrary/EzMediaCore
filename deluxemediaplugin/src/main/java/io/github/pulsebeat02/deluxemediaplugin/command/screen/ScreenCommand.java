@@ -32,7 +32,7 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.gui.ScreenBuilderGui;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
-import io.github.pulsebeat02.deluxemediaplugin.utility.ChatUtils;
+import io.github.pulsebeat02.deluxemediaplugin.utility.component.ChatUtils;
 import java.util.Map;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;

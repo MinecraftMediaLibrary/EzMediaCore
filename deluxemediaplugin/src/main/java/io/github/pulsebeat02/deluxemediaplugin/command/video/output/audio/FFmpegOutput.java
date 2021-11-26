@@ -26,7 +26,7 @@ package io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
 import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
-import io.github.pulsebeat02.deluxemediaplugin.executors.ExecutorProvider;
+import io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegMediaStreamer;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
@@ -61,7 +61,7 @@ public abstract class FFmpegOutput extends AudioOutput implements FFmpegOutputHa
             ip,
             port);
     plugin.getAttributes().setStreamExtractor(streamer);
-    streamer.executeAsync(ExecutorProvider.STREAM_THREAD_EXECUTOR);
+    streamer.executeAsync(FixedExecutors.STREAM_THREAD_EXECUTOR);
     return "http://%s:%s/live.stream".formatted(ip, port);
   }
 }

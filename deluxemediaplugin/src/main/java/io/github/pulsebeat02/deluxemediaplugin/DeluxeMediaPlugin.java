@@ -25,7 +25,6 @@
 package io.github.pulsebeat02.deluxemediaplugin;
 
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
-import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandHandler;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
 import io.github.pulsebeat02.deluxemediaplugin.config.BotConfiguration;
@@ -34,11 +33,12 @@ import io.github.pulsebeat02.deluxemediaplugin.config.HttpAudioConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.HttpConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.PersistentPictureManager;
 import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
-import io.github.pulsebeat02.deluxemediaplugin.executors.ExecutorProvider;
+import io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors;
 import io.github.pulsebeat02.deluxemediaplugin.json.MediaAttributesData;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.update.UpdateChecker;
-import io.github.pulsebeat02.deluxemediaplugin.utility.CommandUtils;
+import io.github.pulsebeat02.deluxemediaplugin.utility.component.CommandUtils;
+import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.LibraryProvider;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
@@ -49,7 +49,6 @@ import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -106,13 +105,8 @@ public final class DeluxeMediaPlugin {
   }
 
   private void deserializeData() {
-    try {
-      if (this.mediaAttributesData != null) {
-        this.mediaAttributesData.deserialize(this.attributes);
-      }
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
+    Nill.ifNot(
+        this.mediaAttributesData, () -> this.mediaAttributesData.deserialize(this.attributes));
     this.console.sendMessage(Locale.DESERIALIZE_DATA.build());
   }
 
@@ -147,23 +141,20 @@ public final class DeluxeMediaPlugin {
   }
 
   private void disableBot() {
-    if (this.mediaBot != null) {
-      this.mediaBot.getJDA().shutdown();
-    }
+    Nill.ifNot(this.mediaBot, () -> this.mediaBot.getJDA().shutdown());
     this.console.sendMessage(Locale.DISABLE_BOT.build());
   }
 
   private void unregisterCommands() {
-    if (this.handler != null) {
-      for (final BaseCommand cmd : this.handler.getCommands()) {
-        CommandUtils.unRegisterBukkitCommand(this, cmd);
-      }
-    }
+    Nill.ifNot(
+        this.handler,
+        () -> this.handler.getCommands().forEach(cmd -> CommandUtils.unregisterCommand(this, cmd)));
     this.console.sendMessage(Locale.DISABLE_COMMANDS.build());
   }
 
   private void shutdownLibrary() {
     this.console.sendMessage(Locale.DISABLE_PLUGIN.build());
+
     if (this.library != null) {
       this.library.shutdown();
       this.console.sendMessage(Locale.DISABLE_EMC.build());
@@ -173,15 +164,18 @@ public final class DeluxeMediaPlugin {
   }
 
   private void cancelNativeTasks() {
-    if (this.attributes != null) {
-      try {
-        this.cancelNativeExtractor();
-        this.cancelNativeStreamExtractor();
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-    }
+    Nill.ifNot(this.attributes, this::cancelExternalTasks);
     this.console.sendMessage(Locale.CANCELLED_TASKS.build());
+  }
+
+  private void cancelExternalTasks() {
+    try {
+      this.cancelNativeExtractor();
+      this.cancelNativeStreamExtractor();
+    } catch (final Exception e) {
+      e.printStackTrace();
+      throw new AssertionError("Failed to cancel native tasks!");
+    }
   }
 
   private void cancelNativeExtractor() throws Exception {
@@ -260,16 +254,12 @@ public final class DeluxeMediaPlugin {
   }
 
   private void writeToFile() {
-    ExecutorProvider.SCHEDULED_EXECUTOR_SERVICE.scheduleAtFixedRate(
+    FixedExecutors.SCHEDULED_EXECUTOR_SERVICE.scheduleAtFixedRate(
         this::deserializeAttributes, 0L, 5L, TimeUnit.MINUTES);
   }
 
   private void deserializeAttributes() {
-    try {
-      this.mediaAttributesData.deserialize(this.attributes);
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
+    this.mediaAttributesData.deserialize(this.attributes);
   }
 
   private void registerCommands() {

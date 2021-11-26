@@ -39,9 +39,13 @@ public class DisconnectAudioCommand extends DiscordBaseCommand {
 
   @Override
   public boolean execute(@NotNull final Message executor, final String @Nullable [] arguments) {
-    final MusicManager manager = this.getBot().getMusicManager();
-    manager.leaveVoiceChannel();
+    this.leaveVoiceChannel();
     executor.getChannel().sendMessageEmbeds(DiscordLocale.DC_VC_EMBED.build()).queue();
     return true;
+  }
+
+  private void leaveVoiceChannel() {
+    final MusicManager manager = this.getBot().getMusicManager();
+    manager.leaveVoiceChannel();
   }
 }
