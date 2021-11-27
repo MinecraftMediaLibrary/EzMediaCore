@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility.graphics;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Objects;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -41,7 +43,7 @@ public final class MapUtils {
   @NotNull
   public static ItemStack getMapFromID(final int id) {
     final ItemStack map = new ItemStack(Material.FILLED_MAP);
-    final MapMeta meta = Objects.requireNonNull((MapMeta) map.getItemMeta());
+    final MapMeta meta = requireNonNull((MapMeta) map.getItemMeta());
     //noinspection deprecation
     meta.setMapId(id);
     map.setItemMeta(meta);

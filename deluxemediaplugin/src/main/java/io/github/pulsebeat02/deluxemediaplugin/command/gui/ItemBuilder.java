@@ -38,6 +38,7 @@ import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -62,15 +63,18 @@ public class ItemBuilder {
     this.is = is;
   }
 
-  public static ItemBuilder from(@NotNull final Material material) {
+  @Contract("_ -> new")
+  public static @NotNull ItemBuilder from(@NotNull final Material material) {
     return from(material, 1);
   }
 
-  public static ItemBuilder from(@NotNull final Material material, final int count) {
+  @Contract("_, _ -> new")
+  public static @NotNull ItemBuilder from(@NotNull final Material material, final int count) {
     return from(new ItemStack(material, count));
   }
 
-  public static ItemBuilder from(@NotNull final ItemStack stack) {
+  @Contract(value = "_ -> new", pure = true)
+  public static @NotNull ItemBuilder from(@NotNull final ItemStack stack) {
     return new ItemBuilder(stack);
   }
 
@@ -102,108 +106,6 @@ public class ItemBuilder {
   public @NotNull ItemBuilder name(@NotNull final Component name) {
     final ItemMeta im = this.is.getItemMeta();
     im.setDisplayName(translateAlternateColorCodes('&', legacyAmpersand().serialize(name)));
-    this.is.setItemMeta(im);
-    return this;
-  }
-
-  /**
-   * Re-sets the lore.
-   *
-   * @param lore The lore to set it to.
-   */
-  public @NotNull ItemBuilder lore(@NotNull final Component... lore) {
-    final ItemMeta im = this.is.getItemMeta();
-    im.setLore(
-        Arrays.stream(lore)
-            .map(
-                component ->
-                    translateAlternateColorCodes('&', legacyAmpersand().serialize(component)))
-            .collect(Collectors.toList()));
-    this.is.setItemMeta(im);
-    return this;
-  }
-
-  /**
-   * Re-sets the lore.
-   *
-   * @param lore The lore to set it to.
-   */
-  public @NotNull ItemBuilder lore(@NotNull final List<Component> lore) {
-    final ItemMeta im = this.is.getItemMeta();
-    im.setLore(
-        lore.stream()
-            .map(
-                component ->
-                    translateAlternateColorCodes('&', legacyAmpersand().serialize(component)))
-            .collect(Collectors.toList()));
-    this.is.setItemMeta(im);
-    return this;
-  }
-
-  /**
-   * Remove a lore line.
-   *
-   * @param line The line to remove.
-   */
-  public @NotNull ItemBuilder removeLore(@NotNull final Component line) {
-    final ItemMeta im = this.is.getItemMeta();
-    final List<String> lore = new ArrayList<>(im.getLore());
-    final String deserialized =
-        translateAlternateColorCodes('&', legacyAmpersand().serialize(line));
-    if (!lore.contains(deserialized)) {
-      return this;
-    }
-    lore.remove(deserialized);
-    im.setLore(lore);
-    this.is.setItemMeta(im);
-    return this;
-  }
-
-  /**
-   * Remove a lore line.
-   *
-   * @param index The index of the lore line to remove.
-   */
-  public @NotNull ItemBuilder removeLore(final int index) {
-    final ItemMeta im = this.is.getItemMeta();
-    final List<String> lore = new ArrayList<>(im.getLore());
-    if (index < 0 || index > lore.size()) {
-      return this;
-    }
-    lore.remove(index);
-    im.setLore(lore);
-    this.is.setItemMeta(im);
-    return this;
-  }
-
-  /**
-   * Add a lore line.
-   *
-   * @param line The lore line to add.
-   */
-  public @NotNull ItemBuilder lore(@NotNull final Component line) {
-    final ItemMeta im = this.is.getItemMeta();
-    List<String> lore = new ArrayList<>();
-    if (im.hasLore()) {
-      lore = new ArrayList<>(im.getLore());
-    }
-    lore.add(translateAlternateColorCodes('&', legacyAmpersand().serialize(line)));
-    im.setLore(lore);
-    this.is.setItemMeta(im);
-    return this;
-  }
-
-  /**
-   * Add a lore line.
-   *
-   * @param line The lore line to add.
-   * @param pos The index of where to put it.
-   */
-  public @NotNull ItemBuilder lore(@NotNull final Component line, final int pos) {
-    final ItemMeta im = this.is.getItemMeta();
-    final List<String> lore = new ArrayList<>(im.getLore());
-    lore.set(pos, translateAlternateColorCodes('&', legacyAmpersand().serialize(line)));
-    im.setLore(lore);
     this.is.setItemMeta(im);
     return this;
   }

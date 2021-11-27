@@ -40,15 +40,27 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.mutable.MutableInt;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.MapUtils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public final class ScreenBuilderGui {
+
+  private static final String INCREASE_BASE64;
+  private static final String DECREASE_BASE64;
+
+  static {
+    INCREASE_BASE64 =
+        "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWNkYjhmNDM2NTZjMDZjNGU4NjgzZTJlNjM0MWI0NDc5ZjE1N2Y0ODA4MmZlYTRhZmYwOWIzN2NhM2M2OTk1YiJ9fX0=";
+    DECREASE_BASE64 =
+        "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjFlMWU3MzBjNzcyNzljOGUyZTE1ZDhiMjcxYTExN2U1ZTJjYTkzZDI1YzhiZTNhMDBjYzkyYTAwY2MwYmI4NSJ9fX0=";
+  }
 
   private final ChestGui gui;
   private final StaticPane pane;
@@ -73,16 +85,7 @@ public final class ScreenBuilderGui {
   }
 
   private void initialize() {
-    this.gui.setOnGlobalClick(
-        event -> {
-          if (event.getClickedInventory() == null) {
-            return;
-          }
-          if (event.getClickedInventory().getType() == InventoryType.PLAYER) {
-            return;
-          }
-          event.setCancelled(true);
-        });
+    this.gui.setOnGlobalClick(this::cancelEvent);
     this.pane.addItem(this.getBuildScreenItem(), 8, 2);
     this.pane.addItem(this.getGuiItem(this.getIncreaseArrow("Width"), this.width, true), 1, 1);
     this.pane.addItem(this.getGuiItem(this.getDecreaseArrow("Width"), this.width, false), 1, 3);
@@ -94,37 +97,48 @@ public final class ScreenBuilderGui {
     this.update();
   }
 
+  private void cancelEvent(@NotNull final InventoryClickEvent event) {
+    if (event.getClickedInventory() == null) {
+      return;
+    }
+    if (event.getClickedInventory().getType() == InventoryType.PLAYER) {
+      return;
+    }
+    event.setCancelled(true);
+  }
+
   private @NotNull GuiItem getBuildScreenItem() {
     return ItemBuilder.from(Material.LIME_STAINED_GLASS_PANE)
         .name(text("Build Screen", GREEN))
-        .action(
-            event -> {
-              this.viewer.closeInventory();
-              MapUtils.buildMapScreen(
-                  this.viewer,
-                  this.material,
-                  this.width.getNumber(),
-                  this.height.getNumber(),
-                  this.id.getNumber());
-              this.plugin.audience().sender(this.viewer).sendMessage(Locale.BUILT_SCREEN.build());
-              this.viewer.playSound(this.viewer.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 10, 1);
-            })
+        .action(this::handleBuildScreen)
         .build();
+  }
+
+  private void handleBuildScreen(@NotNull final InventoryClickEvent event) {
+    this.viewer.closeInventory();
+    MapUtils.buildMapScreen(
+        this.viewer,
+        this.material,
+        this.width.getNumber(),
+        this.height.getNumber(),
+        this.id.getNumber());
+    this.plugin.audience().sender(this.viewer).sendMessage(Locale.BUILT_SCREEN.build());
+    this.viewer.playSound(this.viewer.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 10, 1);
   }
 
   @Contract("_, _, _ -> new")
   private @NotNull GuiItem getGuiItem(
       @NotNull final ItemStack stack, @NotNull final MutableInt update, final boolean add) {
-    return new GuiItem(
-        stack,
-        (event) -> {
-          if (add) {
-            update.increment();
-          } else {
-            update.decrement();
-          }
-          this.update();
-        });
+    return new GuiItem(stack, event -> this.mutateValue(update, add));
+  }
+
+  private void mutateValue(@NotNull final MutableInt update, final boolean add) {
+    if (add) {
+      update.increment();
+    } else {
+      update.decrement();
+    }
+    this.update();
   }
 
   private void update() {
@@ -138,26 +152,21 @@ public final class ScreenBuilderGui {
   public @NotNull GuiItem getMaterialItem() {
     return ItemBuilder.from(this.material)
         .name(join(noSeparators(), text("Material - ", GOLD), text(this.material.toString(), AQUA)))
-        .action(
-            event -> {
-              final ItemStack stack = event.getCursor();
-              if (stack == null || stack.getType() == Material.AIR) {
-                return;
-              }
-              this.material = stack.getType();
-              this.pane.addItem(
-                  ItemBuilder.from(this.material)
-                      .name(
-                          join(
-                              noSeparators(),
-                              text("Material - ", GOLD),
-                              text(this.material.toString(), AQUA)))
-                      .build(),
-                  7,
-                  2);
-              this.gui.update();
-            })
+        .action(this::handleMaterial)
         .build();
+  }
+
+  private void handleMaterial(@NotNull final InventoryClickEvent event) {
+    final ItemStack stack = event.getCursor();
+    if (stack == null || stack.getType() == Material.AIR) {
+      return;
+    }
+    this.material = stack.getType();
+    final Component name =
+        join(noSeparators(), text("Material - ", GOLD), text(this.material.toString(), AQUA));
+    final GuiItem newStack = ItemBuilder.from(this.material).name(name).build();
+    this.pane.addItem(newStack, 7, 2);
+    this.gui.update();
   }
 
   public @NotNull GuiItem getWidthItem() {
@@ -179,17 +188,13 @@ public final class ScreenBuilderGui {
   }
 
   private @NotNull ItemStack getIncreaseArrow(@NotNull final String data) {
-    return ItemBuilder.from(
-            SkullCreator.itemFromBase64(
-                "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWNkYjhmNDM2NTZjMDZjNGU4NjgzZTJlNjM0MWI0NDc5ZjE1N2Y0ODA4MmZlYTRhZmYwOWIzN2NhM2M2OTk1YiJ9fX0="))
+    return ItemBuilder.from(SkullCreator.itemFromBase64(INCREASE_BASE64))
         .name(text("Increase %s by One".formatted(data), GREEN))
         .buildWithoutAction();
   }
 
   private @NotNull ItemStack getDecreaseArrow(@NotNull final String data) {
-    return ItemBuilder.from(
-            SkullCreator.itemFromBase64(
-                "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjFlMWU3MzBjNzcyNzljOGUyZTE1ZDhiMjcxYTExN2U1ZTJjYTkzZDI1YzhiZTNhMDBjYzkyYTAwY2MwYmI4NSJ9fX0="))
+    return ItemBuilder.from(SkullCreator.itemFromBase64(DECREASE_BASE64))
         .name(text("Decrease %s by One".formatted(data), RED))
         .buildWithoutAction();
   }

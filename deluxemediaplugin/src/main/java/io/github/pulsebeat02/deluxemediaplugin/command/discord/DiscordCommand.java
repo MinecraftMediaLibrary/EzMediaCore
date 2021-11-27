@@ -24,6 +24,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.discord;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static java.util.Objects.requireNonNull;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -32,7 +33,6 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
-import io.github.pulsebeat02.deluxemediaplugin.utility.component.ChatUtils;
 import java.util.Map;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -67,9 +67,13 @@ public class DiscordCommand extends BaseCommand {
     if (this.checkDiscordStatus(audience)) {
       return SINGLE_SUCCESS;
     }
-    this.plugin().getMediaBot().getMusicManager().leaveVoiceChannel();
+    this.leaveVoiceChannel();
     audience.sendMessage(Locale.DC_DISCORD.build());
     return SINGLE_SUCCESS;
+  }
+
+  private void leaveVoiceChannel() {
+    requireNonNull(this.plugin().getMediaBot()).getMusicManager().leaveVoiceChannel();
   }
 
   private int connect(@NotNull final CommandContext<CommandSender> context) {
@@ -77,9 +81,13 @@ public class DiscordCommand extends BaseCommand {
     if (this.checkDiscordStatus(audience)) {
       return SINGLE_SUCCESS;
     }
-    this.plugin().getMediaBot().getMusicManager().joinVoiceChannel();
+    this.joinVoiceChannel();
     audience.sendMessage(Locale.C_DISCORD.build());
     return SINGLE_SUCCESS;
+  }
+
+  private void joinVoiceChannel() {
+    requireNonNull(this.plugin().getMediaBot()).getMusicManager().joinVoiceChannel();
   }
 
   private int play(@NotNull final CommandContext<CommandSender> context) {
@@ -88,11 +96,15 @@ public class DiscordCommand extends BaseCommand {
     if (this.checkDiscordStatus(audience)) {
       return SINGLE_SUCCESS;
     }
-    final MusicManager manager = this.plugin().getMediaBot().getMusicManager();
-    manager.joinVoiceChannel();
-    manager.addTrack(mrl);
+    this.playMedia(mrl);
     audience.sendMessage(Locale.START_TRACK_DISCORD.build(mrl));
     return SINGLE_SUCCESS;
+  }
+
+  private void playMedia(@NotNull final String mrl) {
+    final MusicManager manager = requireNonNull(this.plugin().getMediaBot()).getMusicManager();
+    manager.joinVoiceChannel();
+    manager.addTrack(mrl);
   }
 
   private int pause(@NotNull final CommandContext<CommandSender> context) {
@@ -100,9 +112,13 @@ public class DiscordCommand extends BaseCommand {
     if (this.checkDiscordStatus(audience)) {
       return SINGLE_SUCCESS;
     }
-    this.plugin().getMediaBot().getMusicManager().pauseTrack();
+    this.pause();
     audience.sendMessage(Locale.PAUSED_TRACK_DISCORD.build());
     return SINGLE_SUCCESS;
+  }
+
+  private void pause() {
+    requireNonNull(this.plugin().getMediaBot()).getMusicManager().pauseTrack();
   }
 
   private int resume(@NotNull final CommandContext<CommandSender> context) {
@@ -110,9 +126,13 @@ public class DiscordCommand extends BaseCommand {
     if (this.checkDiscordStatus(audience)) {
       return SINGLE_SUCCESS;
     }
-    this.plugin().getMediaBot().getMusicManager().resumeTrack();
+    this.resume();
     audience.sendMessage(Locale.RESUMED_TRACK_DISCORD.build());
     return SINGLE_SUCCESS;
+  }
+
+  private void resume() {
+    requireNonNull(this.plugin().getMediaBot()).getMusicManager().resumeTrack();
   }
 
   private boolean checkDiscordStatus(@NotNull final Audience audience) {

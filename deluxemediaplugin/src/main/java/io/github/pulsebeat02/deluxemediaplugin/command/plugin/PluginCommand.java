@@ -31,7 +31,6 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
-import io.github.pulsebeat02.deluxemediaplugin.utility.component.ChatUtils;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -44,12 +43,7 @@ public class PluginCommand extends BaseCommand {
 
   public PluginCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
-    super(
-        plugin,
-        "deluxemediaplugin",
-        executor,
-        "deluxemediaplugin.command.deluxemediaplugin",
-        "dmp");
+    super(plugin, "deluxemediaplugin", executor, "deluxemediaplugin.command.deluxemediaplugin");
     this.node =
         this.literal(this.getName())
             .requires(super::testPermission)

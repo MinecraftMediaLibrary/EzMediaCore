@@ -65,33 +65,56 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String str = context.getArgument("arguments", String.class);
     final int index = context.getArgument("index", int.class);
-    final String[] args = str.split(" ");
-    for (final String arg : args) {
-      if (arg.contains("=")) {
-        final String[] split = arg.split("=");
-        this.ffmpeg.addArguments(split[0], split[1], index);
-      } else {
-        this.ffmpeg.addArgument(arg, index);
-      }
-    }
+    this.addMultipleArguments(index, str.split(" "));
     audience.sendMessage(Locale.ADD_FFMPEG_ARG_INDX.build(str, index));
     return SINGLE_SUCCESS;
+  }
+
+  private void addMultipleArguments(final int index, final String @NotNull [] args) {
+    for (final String arg : args) {
+      if (arg.contains("=")) {
+        this.handleSpecialArgument(index, arg);
+      } else {
+        this.handleNormalArgument(index, arg);
+      }
+    }
+  }
+
+  private void handleNormalArgument(final int index, @NotNull final String arg) {
+    this.ffmpeg.addArgument(arg, index);
+  }
+
+  private void handleSpecialArgument(final int index, @NotNull final String arg) {
+    final String[] split = arg.split("=");
+    this.ffmpeg.addArguments(split[0], split[1], index);
   }
 
   private int addArgument(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String str = context.getArgument("arguments", String.class);
     final String[] arguments = str.split(" ");
-    for (final String argument : arguments) {
-      if (argument.contains("=")) {
-        final String[] split = argument.split("=");
-        this.ffmpeg.addArguments(split[0], split[1]);
-      } else {
-        this.ffmpeg.addArgument(argument);
-      }
-    }
+    this.addMultipleArguments(arguments);
     audience.sendMessage(Locale.ADD_FFMPEG_ARG.build(str));
     return SINGLE_SUCCESS;
+  }
+
+  private void addMultipleArguments(final String @NotNull [] arguments) {
+    for (final String argument : arguments) {
+      if (argument.contains("=")) {
+        this.handleSpecialArgument(argument);
+      } else {
+        this.handleNormalArgument(argument);
+      }
+    }
+  }
+
+  private void handleNormalArgument(@NotNull final String argument) {
+    this.ffmpeg.addArgument(argument);
+  }
+
+  private void handleSpecialArgument(@NotNull final String argument) {
+    final String[] split = argument.split("=");
+    this.ffmpeg.addArguments(split[0], split[1]);
   }
 
   @Override

@@ -31,7 +31,6 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
-import io.github.pulsebeat02.deluxemediaplugin.utility.component.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegCommandExecutor;
 import java.util.Map;
 import net.kyori.adventure.audience.Audience;
@@ -61,9 +60,13 @@ public final class FFmpegCommand extends BaseCommand {
   }
 
   private int resetFFmpegCommand(@NotNull final CommandContext<CommandSender> context) {
-    this.ffmpeg.clearArguments();
+    this.clearArguments();
     this.audience().sender(context.getSource()).sendMessage(Locale.RESET_FFMPEG_ARGS.build());
     return SINGLE_SUCCESS;
+  }
+
+  private void clearArguments() {
+    this.ffmpeg.clearArguments();
   }
 
   private int listFFmpegArguments(@NotNull final CommandContext<CommandSender> context) {
@@ -76,13 +79,17 @@ public final class FFmpegCommand extends BaseCommand {
 
   private int runFFmpegProcess(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = this.plugin().audience().sender(context.getSource());
-    this.ffmpeg.executeWithLogging(s -> audience.sendMessage(Locale.FFMPEG_PROCESS.build(s)));
+    this.execute(audience);
     audience.sendMessage(Locale.FFMPEG_EXEC.build());
     return SINGLE_SUCCESS;
   }
 
+  private void execute(@NotNull final Audience audience) {
+    this.ffmpeg.executeWithLogging(s -> audience.sendMessage(Locale.FFMPEG_PROCESS.build(s)));
+  }
+
   @Override
-  public Component usage() {
+  public @NotNull Component usage() {
     return Locale.getCommandUsageComponent(
         Map.of(
             "/ffmpeg reset",
