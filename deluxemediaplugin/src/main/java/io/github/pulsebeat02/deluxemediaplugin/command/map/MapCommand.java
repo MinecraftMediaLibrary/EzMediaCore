@@ -25,6 +25,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.map;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.requiresPlayer;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -66,7 +67,7 @@ public final class MapCommand extends BaseCommand {
     final CommandSender sender = context.getSource();
     final Audience audience = this.plugin().audience().sender(sender);
     final int id = context.getArgument("id", int.class);
-    if (this.requiresPlayer(sender)) {
+    if (requiresPlayer(this.plugin(), sender)) {
       return SINGLE_SUCCESS;
     }
     this.addMap((Player) sender, id);
@@ -81,7 +82,7 @@ public final class MapCommand extends BaseCommand {
   private int giveMultipleMaps(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
     final Audience audience = this.plugin().audience().sender(sender);
-    if (this.requiresPlayer(sender)) {
+    if (requiresPlayer(this.plugin(), sender)) {
       return SINGLE_SUCCESS;
     }
     final Player player = (Player) sender;

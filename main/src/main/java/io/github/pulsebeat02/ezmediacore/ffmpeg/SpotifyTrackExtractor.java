@@ -35,6 +35,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.apache.hc.core5.http.ParseException;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,24 +45,36 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
   private final YoutubeVideoAudioExtractor extractor;
   private final AtomicBoolean cancelled;
 
-  public SpotifyTrackExtractor(
+  SpotifyTrackExtractor(
       @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
       @NotNull final Path output)
       throws IOException, ParseException, SpotifyWebApiException {
     this.downloader = SpotifyTrackDownloader.ofSpotifyTrackDownloader(url, output);
-    this.extractor = new YoutubeVideoAudioExtractor(core, configuration, url, output);
+    this.extractor = YoutubeVideoAudioExtractor.ofYoutubeVideoAudioExtractor(core, configuration, url, output);
     this.cancelled = new AtomicBoolean(false);
   }
 
-  public SpotifyTrackExtractor(
+  @Contract("_, _, _, _ -> new")
+  public static @NotNull SpotifyTrackExtractor ofSpotifyTrackExtractor(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final AudioConfiguration configuration,
+      @NotNull final String url,
+      @NotNull final Path output)
+      throws IOException, ParseException, SpotifyWebApiException {
+    return new SpotifyTrackExtractor(core, configuration, url, output);
+  }
+
+  @Contract("_, _, _, _ -> new")
+  public static @NotNull SpotifyTrackExtractor ofSpotifyTrackExtractor(
       @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
       @NotNull final String fileName)
       throws IOException, ParseException, SpotifyWebApiException {
-    this(core, configuration, url, core.getAudioPath().resolve(fileName));
+    return ofSpotifyTrackExtractor(
+        core, configuration, url, core.getAudioPath().resolve(fileName));
   }
 
   @Override

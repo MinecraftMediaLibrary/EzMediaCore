@@ -27,13 +27,13 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.VideoDownloader;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.YoutubeVideoDownloader;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,25 +43,34 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   private final FFmpegAudioExtractor extractor;
   private final AtomicBoolean cancelled;
 
-  public YoutubeVideoAudioExtractor(
+  YoutubeVideoAudioExtractor(
       @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
-      @NotNull final Path output)
-      throws IOException {
+      @NotNull final Path output) {
     final Path path = core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID()));
     this.downloader = YoutubeVideoDownloader.ofYoutubeVideoDownloader(url, path);
-    this.extractor = new FFmpegAudioExtractor(core, configuration, path, output);
+    this.extractor = FFmpegAudioExtractor.ofFFmpegAudioExtractor(core, configuration, path, output);
     this.cancelled = new AtomicBoolean(false);
   }
 
-  public YoutubeVideoAudioExtractor(
+  @Contract("_, _, _, _ -> new")
+  public static @NotNull YoutubeVideoAudioExtractor ofYoutubeVideoAudioExtractor(
       @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
-      @NotNull final String fileName)
-      throws IOException {
-    this(core, configuration, url, core.getAudioPath().resolve(fileName));
+      @NotNull final Path output) {
+    return new YoutubeVideoAudioExtractor(core, configuration, url, output);
+  }
+
+  @Contract("_, _, _, _ -> new")
+  public static @NotNull YoutubeVideoAudioExtractor ofYoutubeVideoAudioExtractor(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final AudioConfiguration configuration,
+      @NotNull final String url,
+      @NotNull final String fileName) {
+    return ofYoutubeVideoAudioExtractor(
+        core, configuration, url, core.getAudioPath().resolve(fileName));
   }
 
   @Override

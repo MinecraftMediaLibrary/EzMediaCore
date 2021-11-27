@@ -38,15 +38,7 @@ public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements Audio
   private final String input;
   private final String output;
 
-  public FFmpegAudioExtractor(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final AudioConfiguration configuration,
-      @NotNull final Path input,
-      @NotNull final Path output) {
-    this(core, configuration, input.toString(), output.toString());
-  }
-
-  public FFmpegAudioExtractor(
+  FFmpegAudioExtractor(
       @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final String input,
@@ -56,6 +48,24 @@ public class FFmpegAudioExtractor extends FFmpegCommandExecutor implements Audio
     this.output = output;
     this.clearArguments();
     this.addMultipleArguments(this.generateArguments(configuration));
+  }
+
+  @Contract("_, _, _, _ -> new")
+  public static @NotNull FFmpegAudioExtractor ofFFmpegAudioExtractor(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final AudioConfiguration configuration,
+      @NotNull final String input,
+      @NotNull final String output) {
+    return new FFmpegAudioExtractor(core, configuration, input, output);
+  }
+
+  @Contract("_, _, _, _ -> new")
+  public static @NotNull FFmpegAudioExtractor ofFFmpegAudioExtractor(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final AudioConfiguration configuration,
+      @NotNull final Path input,
+      @NotNull final Path output) {
+    return ofFFmpegAudioExtractor(core, configuration, input.toString(), output.toString());
   }
 
   @Contract("_ -> new")

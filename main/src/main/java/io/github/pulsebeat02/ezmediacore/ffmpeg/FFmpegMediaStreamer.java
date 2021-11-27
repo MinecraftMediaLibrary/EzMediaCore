@@ -39,7 +39,7 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaS
   private final String input;
   private final String output;
 
-  public FFmpegMediaStreamer(
+  FFmpegMediaStreamer(
       @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final String input,
@@ -51,6 +51,16 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaS
     this.clearArguments();
     this.addMultipleArguments(this.generateArguments(configuration));
     this.server = RTPStreamingServer.ofRtpServer(core, ip, port);
+  }
+
+  @Contract("_, _, _, _, _ -> new")
+  public static @NotNull FFmpegMediaStreamer ofFFmpegMediaStreamer(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final AudioConfiguration configuration,
+      @NotNull final String input,
+      @NotNull final String ip,
+      final int port) {
+    return new FFmpegMediaStreamer(core, configuration, input, ip, port);
   }
 
   @Contract("_ -> new")

@@ -24,6 +24,9 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.audio;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleEmptyOptional;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleNull;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleTrue;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -70,51 +73,48 @@ public class AudioSettingCommand implements CommandSegment.Literal<CommandSender
   }
 
   private int setAudioOutput(@NotNull final CommandContext<CommandSender> context) {
+
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String argument = context.getArgument("audio", String.class);
     final Optional<AudioOutputType> optional = AudioOutputType.ofKey(argument);
-    if (optional.isEmpty()) {
-      audience.sendMessage(Locale.ERR_INVALID_AUDIO_TYPE.build(argument));
+
+    if (handleEmptyOptional(audience, Locale.ERR_INVALID_AUDIO_TYPE.build(argument), optional)) {
       return SINGLE_SUCCESS;
     }
+
     switch (optional.get()) {
-      case RESOURCEPACK -> this.attributes.setAudioOutputType(AudioOutputType.RESOURCEPACK);
-      case DISCORD -> {
-        if (this.setDiscordMode(audience)) {
-          return SINGLE_SUCCESS;
-        }
-      }
-      case HTTP -> {
-        if (this.setHttpServerMode(audience)) {
-          return SINGLE_SUCCESS;
-        }
-      }
+      case RESOURCEPACK -> this.setResourcepackMode(audience);
+      case DISCORD -> this.setDiscordMode(audience);
+      case HTTP -> this.setHttpServerMode(audience);
       default -> throw new IllegalArgumentException("Audio type is invalid!");
     }
+
     audience.sendMessage(Locale.SET_AUDIO_TYPE.build(argument));
+
     return SINGLE_SUCCESS;
   }
 
-  private boolean setDiscordMode(@NotNull final Audience audience) {
-    if (VideoCommandAttributes.TEMPORARY_PLACEHOLDER) {
-      audience.sendMessage(Locale.ERR_DEVELOPMENT_FEATURE.build());
-      return true;
-    }
-    if (this.plugin.getMediaBot() == null) {
-      audience.sendMessage(Locale.ERR_INVALID_DISCORD_BOT.build());
-      return true;
-    }
-    this.attributes.setAudioOutputType(AudioOutputType.DISCORD);
-    return false;
+  private void setResourcepackMode(@NotNull final Audience audience) {
+    this.attributes.setAudioOutputType(AudioOutputType.RESOURCEPACK);
   }
 
-  private boolean setHttpServerMode(@NotNull final Audience audience) {
-    if (this.plugin.getHttpAudioServer() == null) {
-      audience.sendMessage(Locale.ERR_HTTP_AUDIO.build());
-      return true;
+  private void setDiscordMode(@NotNull final Audience audience) {
+
+    if (handleTrue(audience, Locale.ERR_DEVELOPMENT_FEATURE.build(), VideoCommandAttributes.TEMPORARY_PLACEHOLDER)
+        || handleNull(audience, Locale.ERR_INVALID_DISCORD_BOT.build(), this.plugin.getMediaBot())) {
+      return;
     }
+
+    this.attributes.setAudioOutputType(AudioOutputType.DISCORD);
+  }
+
+  private void setHttpServerMode(@NotNull final Audience audience) {
+
+    if (handleNull(audience, Locale.ERR_HTTP_AUDIO.build(), this.plugin.getHttpAudioServer())) {
+      return;
+    }
+
     this.attributes.setAudioOutputType(AudioOutputType.HTTP);
-    return false;
   }
 
   @Override

@@ -25,6 +25,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.screen;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.requiresPlayer;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -55,7 +56,7 @@ public final class ScreenCommand extends BaseCommand {
 
   private int sendScreenBuilder(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
-    if (this.requiresPlayer(sender)) {
+    if (requiresPlayer(this.plugin(), sender)) {
       return SINGLE_SUCCESS;
     }
     new ScreenBuilderGui(this.plugin(), (Player) sender);

@@ -54,7 +54,7 @@ public abstract class FFmpegOutput extends AudioOutput implements FFmpegOutputHa
     final String ip = info.getIp();
     final int port = info.getPort();
     final FFmpegMediaStreamer streamer =
-        new FFmpegMediaStreamer(
+        FFmpegMediaStreamer.ofFFmpegMediaStreamer(
             plugin.library(),
             plugin.getAudioConfiguration(),
             RequestUtils.getAudioURLs(MrlConfiguration.ofMrl(mrl)).get(0).getMrl(),

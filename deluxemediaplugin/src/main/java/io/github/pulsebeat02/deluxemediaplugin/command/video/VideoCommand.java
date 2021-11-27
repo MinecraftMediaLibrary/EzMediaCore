@@ -34,7 +34,6 @@ import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.video.PlaybackType;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
-import io.github.pulsebeat02.deluxemediaplugin.utility.component.ChatUtils;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioTrimmer;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
@@ -217,7 +216,7 @@ public final class VideoCommand extends BaseCommand {
       @NotNull final Path audio,
       @NotNull final Path ogg,
       final long delay) {
-    new FFmpegAudioTrimmer(this.plugin().library(), audio, ogg, delay)
+    FFmpegAudioTrimmer.ofFFmpegAudioTrimmer(this.plugin().library(), audio, ogg, delay)
         .executeAsyncWithLogging(
             (line) -> audience.sendMessage(Locale.EXTERNAL_PROCESS.build(line)));
   }

@@ -183,7 +183,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   private void executeFFmpegExtractor(@NotNull final Path download, @NotNull final Path oggOutput)
       throws IOException {
     final FFmpegAudioExtractor extractor =
-        new FFmpegAudioExtractor(
+        FFmpegAudioExtractor.ofFFmpegAudioExtractor(
             this.plugin.library(), this.plugin.getAudioConfiguration(), download, oggOutput);
     this.attributes.setExtractor(extractor);
     extractor.execute();

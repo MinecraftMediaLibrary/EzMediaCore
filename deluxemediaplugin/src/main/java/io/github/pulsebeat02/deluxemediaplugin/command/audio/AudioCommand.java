@@ -25,13 +25,14 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.audio;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleFalse;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleNull;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
-import io.github.pulsebeat02.deluxemediaplugin.utility.component.ChatUtils;
 import java.util.Map;
 import java.util.function.Consumer;
 import net.kyori.adventure.audience.Audience;
@@ -56,28 +57,37 @@ public final class AudioCommand extends BaseCommand {
         this.literal(this.getName())
             .requires(super::testPermission)
             .then(new AudioLoadCommand(plugin, this.attributes).node())
+            .then(new AudioSettingCommand(plugin, this.attributes).node())
             .then(this.literal("play").executes(this::playAudio))
             .then(this.literal("stop").executes(this::stopAudio))
             .build();
   }
 
   private int playAudio(@NotNull final CommandContext<CommandSender> context) {
+
     final Audience audience = this.plugin().audience().sender(context.getSource());
     if (this.checkUnloaded(audience) || this.checkIncompleteLoad(audience)) {
       return SINGLE_SUCCESS;
     }
+
     this.playAudio();
+
     audience.sendMessage(Locale.START_AUDIO.build());
+
     return SINGLE_SUCCESS;
   }
 
   private int stopAudio(@NotNull final CommandContext<CommandSender> context) {
+
     final Audience audience = this.plugin().audience().sender(context.getSource());
     if (this.checkUnloaded(audience) || this.checkIncompleteLoad(audience)) {
       return SINGLE_SUCCESS;
     }
+
     this.stopAudio();
+
     audience.sendMessage(Locale.PAUSE_AUDIO.build());
+
     return SINGLE_SUCCESS;
   }
 
@@ -101,19 +111,11 @@ public final class AudioCommand extends BaseCommand {
   }
 
   private boolean checkUnloaded(@NotNull final Audience audience) {
-    if (this.attributes.getAudio() == null) {
-      audience.sendMessage(Locale.ERR_NO_MRL.build());
-      return true;
-    }
-    return false;
+    return handleNull(audience, Locale.ERR_NO_MRL.build(), this.attributes.getAudio());
   }
 
   private boolean checkIncompleteLoad(@NotNull final Audience audience) {
-    if (!this.attributes.getCompletion().get()) {
-      audience.sendMessage(Locale.ERR_NO_MRL.build());
-      return true;
-    }
-    return false;
+    return handleFalse(audience, Locale.ERR_NO_MRL.build(), this.attributes.getCompletion().get());
   }
 
   @Override

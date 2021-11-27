@@ -30,7 +30,8 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
@@ -38,6 +39,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class BaseCommand extends Command implements LiteralCommandSegment<CommandSender> {
 
@@ -71,14 +73,6 @@ public abstract class BaseCommand extends Command implements LiteralCommandSegme
   public @NotNull List<String> tabComplete(
       @NotNull final CommandSender sender, @NotNull final String label, final String... args) {
     return requireNonNull(this.executor.onTabComplete(sender, this, label, args));
-  }
-
-  public boolean requiresPlayer(@NotNull final CommandSender sender) {
-    if (!(sender instanceof Player)) {
-      this.plugin.audience().sender(sender).sendMessage(Locale.ERR_PLAYER_SENDER.build());
-      return true;
-    }
-    return false;
   }
 
   public DeluxeMediaPlugin plugin() {

@@ -36,6 +36,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,12 +48,18 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   private final AtomicBoolean cancelled;
   private Process process;
 
-  public FFmpegCommandExecutor(@NotNull final MediaLibraryCore core) {
+  FFmpegCommandExecutor(@NotNull final MediaLibraryCore core) {
     this.core = core;
     this.arguments = new ArrayList<>();
     this.arguments.add(core.getFFmpegPath().toString());
     this.completion = new AtomicBoolean(false);
     this.cancelled = new AtomicBoolean(false);
+  }
+
+  @Contract("_ -> new")
+  public static @NotNull FFmpegCommandExecutor ofFFmpegExecutor(
+      @NotNull final MediaLibraryCore core) {
+    return new FFmpegCommandExecutor(core);
   }
 
   @Override

@@ -38,7 +38,7 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
   private final String output;
   private final long ms;
 
-  public FFmpegAudioTrimmer(
+  FFmpegAudioTrimmer(
       @NotNull final MediaLibraryCore core,
       @NotNull final String input,
       @NotNull final String output,
@@ -51,20 +51,31 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
     this.ms = ms;
   }
 
-  public FFmpegAudioTrimmer(
+  @Contract("_, _, _, _ -> new")
+  public static @NotNull FFmpegAudioTrimmer ofFFmpegAudioTrimmer(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final String input,
+      @NotNull final String output,
+      final long ms) {
+    return new FFmpegAudioTrimmer(core, input, output, ms);
+  }
+
+  @Contract("_, _, _, _ -> new")
+  public static @NotNull FFmpegAudioTrimmer ofFFmpegAudioTrimmer(
       @NotNull final MediaLibraryCore core,
       @NotNull final Path input,
       @NotNull final Path output,
       final long ms) {
-    this(core, input.toString(), output.toString(), ms);
+    return ofFFmpegAudioTrimmer(core, input.toString(), output.toString(), ms);
   }
 
-  public FFmpegAudioTrimmer(
+  @Contract("_, _, _, _ -> new")
+  public static @NotNull FFmpegAudioTrimmer ofFFmpegAudioTrimmer(
       @NotNull final MediaLibraryCore core,
       @NotNull final Path input,
       @NotNull final String fileName,
       final long ms) {
-    this(core, input, core.getAudioPath().resolve(fileName), ms);
+    return ofFFmpegAudioTrimmer(core, input, core.getAudioPath().resolve(fileName), ms);
   }
 
   @Contract(" -> new")

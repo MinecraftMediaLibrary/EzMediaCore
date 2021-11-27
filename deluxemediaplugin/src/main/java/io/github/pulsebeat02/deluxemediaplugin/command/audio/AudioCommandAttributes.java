@@ -29,6 +29,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioO
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class AudioCommandAttributes {
 
@@ -57,7 +58,7 @@ public final class AudioCommandAttributes {
     return this.key;
   }
 
-  public @NotNull Path getAudio() {
+  public @Nullable Path getAudio() {
     return this.audio;
   }
 
@@ -65,7 +66,7 @@ public final class AudioCommandAttributes {
     this.audio = audio;
   }
 
-  public @NotNull String getLink() {
+  public @Nullable String getLink() {
     return this.link;
   }
 
@@ -73,7 +74,7 @@ public final class AudioCommandAttributes {
     this.link = link;
   }
 
-  public byte @NotNull [] getHash() {
+  public byte @Nullable [] getHash() {
     return this.hash;
   }
 

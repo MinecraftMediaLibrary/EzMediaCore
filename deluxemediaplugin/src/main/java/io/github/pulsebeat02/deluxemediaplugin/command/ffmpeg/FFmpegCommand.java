@@ -47,7 +47,7 @@ public final class FFmpegCommand extends BaseCommand {
   public FFmpegCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "ffmpeg", executor, "deluxemediaplugin.command.ffmpeg");
-    this.ffmpeg = new FFmpegCommandExecutor(plugin.library());
+    this.ffmpeg = FFmpegCommandExecutor.ofFFmpegExecutor(plugin.library());
     this.node =
         this.literal(this.getName())
             .requires(super::testPermission)
