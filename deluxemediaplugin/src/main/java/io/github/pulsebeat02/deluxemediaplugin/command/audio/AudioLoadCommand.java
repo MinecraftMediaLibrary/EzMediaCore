@@ -90,11 +90,14 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private boolean loadSoundFile(@NotNull final String mrl, @NotNull final Audience audience) {
+    
     final Path file = Path.of(mrl);
     if (handleTrue(audience, Locale.ERR_INVALID_MRL.build(), Files.notExists(file))) {
       return true;
     }
+    
     this.attributes.setAudio(file);
+    
     return false;
   }
 
@@ -112,10 +115,12 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
 
   @NotNull
   private HttpServer getHttpDaemon() {
+    
     final HttpServer daemon = this.plugin.getHttpServer();
     if (!daemon.isRunning()) {
       daemon.startServer();
     }
+    
     return daemon;
   }
 
@@ -137,6 +142,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
         ResourcepackSoundWrapper.ofSoundPack(output, "Audio Pack", 6);
     wrapper.addSound(name, this.attributes.getAudio());
     wrapper.wrap();
+    
     return wrapper;
   }
 
