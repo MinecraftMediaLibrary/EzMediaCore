@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.SoundCategory;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -107,7 +106,7 @@ public final class AudioCommand extends BaseCommand {
   }
 
   private void audioAction(@NotNull final Consumer<Player> consumer) {
-    Bukkit.getOnlinePlayers().forEach(consumer);
+    this.plugin().getBootstrap().getServer().getOnlinePlayers().forEach(consumer);
   }
 
   private boolean checkUnloaded(@NotNull final Audience audience) {

@@ -25,7 +25,6 @@
 package io.github.pulsebeat02.deluxemediaplugin.json;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import java.io.IOException;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 

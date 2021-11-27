@@ -52,10 +52,7 @@ public enum ImageMrlType {
   private static boolean isMrlLocalFile(@NotNull final String mrl) {
     try {
       final Path path = Path.of(mrl);
-      if (Files.notExists(path)) {
-        return false;
-      }
-      return matchesFileType(PathUtils.getName(path));
+      return Files.exists(path) && matchesFileType(PathUtils.getName(path));
     } catch (final InvalidPathException e) {
       return false;
     }

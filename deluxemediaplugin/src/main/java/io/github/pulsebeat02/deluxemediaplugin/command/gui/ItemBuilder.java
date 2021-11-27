@@ -28,11 +28,7 @@ import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializ
 import static org.bukkit.ChatColor.translateAlternateColorCodes;
 
 import com.github.stefvanschie.inventoryframework.gui.GuiItem;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryClickEvent;

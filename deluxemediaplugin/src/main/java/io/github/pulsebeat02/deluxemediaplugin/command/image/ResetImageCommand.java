@@ -25,12 +25,15 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.image;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleEmptyOptional;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.requiresPlayer;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
+import io.github.pulsebeat02.deluxemediaplugin.config.PersistentPictureManager;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.ezmediacore.image.Image;
 import java.util.List;
@@ -38,7 +41,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import net.kyori.adventure.audience.Audience;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -61,57 +63,83 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
             .then(
                 this.literal("map")
                     .then(
-                        this.argument(
-                                "id", IntegerArgumentType.integer(-2_147_483_647, 2_147_483_647))
+                        this.argument("id", IntegerArgumentType.integer())
                             .executes(this::purgeMap)))
             .then(this.literal("all").executes(this::purgeAllMaps))
             .build();
-    Bukkit.getPluginManager().registerEvents(this, plugin.getBootstrap());
+    plugin
+        .getBootstrap()
+        .getServer()
+        .getPluginManager()
+        .registerEvents(this, plugin.getBootstrap());
   }
 
   private int purgeMap(@NotNull final CommandContext<CommandSender> context) {
+
     final Audience audience = this.plugin.audience().sender(context.getSource());
+    final PersistentPictureManager manager = this.plugin.getPictureManager();
     final int id = context.getArgument("id", int.class);
     final Optional<Image> image =
-        this.plugin.getPictureManager().getImages().stream()
-            .filter(img -> img.getMaps().contains(id))
-            .findAny();
-    if (image.isEmpty()) {
-      audience.sendMessage(Locale.ERR_IMAGE_NOT_LOADED.build());
+        manager.getImages().stream().filter(img -> img.getMaps().contains(id)).findAny();
+    if (handleEmptyOptional(audience, Locale.ERR_IMAGE_NOT_LOADED.build(), image)) {
       return SINGLE_SUCCESS;
     }
-    image.get().resetMaps();
+
+    this.resetMaps(image.get());
+
     audience.sendMessage(Locale.PURGE_MAP.build(id));
+
     return SINGLE_SUCCESS;
   }
 
+  private void resetMaps(@NotNull final Image image) {
+    image.resetMaps();
+  }
+
   private int purgeAllMaps(@NotNull final CommandContext<CommandSender> context) {
+
     final CommandSender sender = context.getSource();
     final Audience audience = this.plugin.audience().sender(sender);
-    if (!(sender instanceof Player)) {
-      audience.sendMessage(Locale.ERR_PLAYER_SENDER.build());
+
+    if (requiresPlayer(this.plugin, sender)) {
       return SINGLE_SUCCESS;
     }
-    this.attributes.getListen().add(((Player) sender).getUniqueId());
+
+    this.addWarningListener((Player) sender);
+
     audience.sendMessage(Locale.PURGE_ALL_MAPS_VERIFY.build());
+
     return SINGLE_SUCCESS;
+  }
+
+  private void addWarningListener(@NotNull final Player sender) {
+    this.attributes.getListen().add(sender.getUniqueId());
   }
 
   @EventHandler
   public void onPlayerChat(@NotNull final AsyncPlayerChatEvent event) {
+
     final Player p = event.getPlayer();
     final UUID uuid = p.getUniqueId();
     final Set<UUID> listen = this.attributes.getListen();
+
     if (listen.contains(uuid)) {
       event.setCancelled(true);
+
       final Audience audience = this.plugin.audience().player(p);
-      if (event.getMessage().equals("YES")) {
-        this.clearImages();
-        audience.sendMessage(Locale.PURGED_ALL_MAPS.build());
-      } else {
-        audience.sendMessage(Locale.CANCELLED_PURGE_ALL_MAPS.build());
-      }
+      final String message = event.getMessage();
+      this.handleMessage(audience, message);
+
       listen.remove(uuid);
+    }
+  }
+
+  private void handleMessage(@NotNull final Audience audience, @NotNull final String message) {
+    if (message.equals("YES")) {
+      this.clearImages();
+      audience.sendMessage(Locale.PURGED_ALL_MAPS.build());
+    } else {
+      audience.sendMessage(Locale.CANCELLED_PURGE_ALL_MAPS.build());
     }
   }
 

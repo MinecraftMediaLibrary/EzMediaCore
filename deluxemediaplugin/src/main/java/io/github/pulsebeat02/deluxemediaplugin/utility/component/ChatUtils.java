@@ -24,22 +24,10 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.utility.component;
 
-import static net.kyori.adventure.text.Component.join;
-import static net.kyori.adventure.text.Component.newline;
-import static net.kyori.adventure.text.Component.space;
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.JoinConfiguration.separator;
-import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
-import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
-import static net.kyori.adventure.text.format.NamedTextColor.LIGHT_PURPLE;
-
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import org.jetbrains.annotations.NotNull;
 
 public final class ChatUtils {

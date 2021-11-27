@@ -35,6 +35,6 @@ public final class TaskUtils {
 
   public static <T> @NotNull Future<T> sync(
       @NotNull final MediaLibraryCore core, @NotNull final Callable<T> task) {
-    return Bukkit.getScheduler().callSyncMethod(core.getPlugin(), task);
+    return core.getPlugin().getServer().getScheduler().callSyncMethod(core.getPlugin(), task);
   }
 }
