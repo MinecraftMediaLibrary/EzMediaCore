@@ -23,13 +23,16 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.command.video.output.video;
 
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.requiresPlayer;
+import static io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration.ofDelay;
+import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.ofDimension;
+import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
+
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
-import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
-import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
-import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import io.github.pulsebeat02.ezmediacore.player.SoundKey;
+import io.github.pulsebeat02.ezmediacore.callback.implementation.BlockHighlightCallback;
+import io.github.pulsebeat02.ezmediacore.callback.implementation.BlockHighlightCallback.Builder;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import java.util.Collection;
 import org.bukkit.command.CommandSender;
@@ -48,22 +51,42 @@ public class ScoreboardOutput extends VideoOutput {
       @NotNull final VideoCommandAttributes attributes,
       @NotNull final CommandSender sender,
       @NotNull final Collection<? extends Player> players) {
-    if (!(sender instanceof final Player player)) {
-      plugin.audience().sender(sender).sendMessage(Locale.ERR_PLAYER_SENDER.build());
+
+    if (requiresPlayer(plugin, sender)) {
       return false;
     }
-    attributes.setPlayer(
-        VideoBuilder.unspecified()
-            .callback(
-                CallbackBuilder.blockHighlight()
-                    .location(player.getLocation())
-                    .dims(
-                        Dimension.ofDimension(
-                            attributes.getPixelWidth(), attributes.getPixelHeight()))
-                    .delay(DelayConfiguration.ofDelay(40L))
-                    .build(plugin.library()))
-            .soundKey(SoundKey.ofSound("emc"))
-            .build());
+
+    final VideoBuilder videoBuilder = this.createVideoBuilder(plugin, attributes, (Player) sender);
+    attributes.setPlayer(videoBuilder.build());
+
     return true;
+  }
+
+  @NotNull
+  private VideoBuilder createVideoBuilder(
+      @NotNull final DeluxeMediaPlugin plugin,
+      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final Player player) {
+
+    final BlockHighlightCallback.Builder builder =
+        this.createBlockHighlightBuilder(attributes, player);
+
+    final VideoBuilder videoBuilder = VideoBuilder.unspecified();
+    videoBuilder.soundKey(ofSound("emc"));
+    videoBuilder.callback(builder.build(plugin.library()));
+
+    return videoBuilder;
+  }
+
+  @NotNull
+  private BlockHighlightCallback.Builder createBlockHighlightBuilder(
+      @NotNull final VideoCommandAttributes attributes, @NotNull final Player player) {
+
+    final Builder builder = CallbackBuilder.blockHighlight();
+    builder.location(player.getLocation());
+    builder.dims(ofDimension(attributes.getPixelWidth(), attributes.getPixelHeight()));
+    builder.delay(ofDelay(40L));
+
+    return builder;
   }
 }

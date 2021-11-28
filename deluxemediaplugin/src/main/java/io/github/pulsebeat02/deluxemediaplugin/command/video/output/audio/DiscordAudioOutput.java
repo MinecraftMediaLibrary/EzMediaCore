@@ -45,21 +45,41 @@ public class DiscordAudioOutput extends FFmpegOutput {
       @NotNull final VideoCommandAttributes attributes,
       @NotNull final Audience audience,
       @NotNull final String mrl) {
-    CompletableFuture.runAsync(
-        () -> {
-          final String link = "%s/stream.m3u8".formatted(this.openFFmpegStream(plugin, mrl));
-          final MediaBot bot = plugin.getMediaBot();
-          final MusicManager manager = bot.getMusicManager();
-          manager.destroyTrack();
-          manager.joinVoiceChannel();
-          try {
-            TimeUnit.SECONDS.sleep(3L);
-          } catch (final InterruptedException e) { // hack to wait for server start
-            e.printStackTrace();
-          }
-          manager.addTrack(link);
-          audience.sendMessage(Locale.DISCORD_AUDIO_STREAM.build());
-        });
+    CompletableFuture.runAsync(() -> this.handleAudio(plugin, audience, mrl));
+  }
+
+  private void handleAudio(
+      @NotNull final DeluxeMediaPlugin plugin,
+      @NotNull final Audience audience,
+      @NotNull final String mrl) {
+
+    final String link = "%s/stream.m3u8".formatted(this.openFFmpegStream(plugin, mrl));
+    final MediaBot bot = plugin.getMediaBot();
+    final MusicManager manager = this.getMusicManager(bot);
+
+    this.sleep();
+
+    manager.addTrack(link);
+
+    audience.sendMessage(Locale.DISCORD_AUDIO_STREAM.build());
+  }
+
+  private void sleep() {
+    try {
+      TimeUnit.SECONDS.sleep(3L);
+    } catch (final InterruptedException e) { // hack to wait for server start
+      e.printStackTrace();
+    }
+  }
+
+  @NotNull
+  private MusicManager getMusicManager(@NotNull final MediaBot bot) {
+
+    final MusicManager manager = bot.getMusicManager();
+    manager.destroyTrack();
+    manager.joinVoiceChannel();
+
+    return manager;
   }
 
   @Override

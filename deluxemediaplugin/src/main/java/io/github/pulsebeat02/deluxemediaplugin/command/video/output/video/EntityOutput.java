@@ -23,18 +23,22 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.command.video.output.video;
 
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.requiresPlayer;
+import static io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration.DELAY_20_MS;
+import static io.github.pulsebeat02.ezmediacore.callback.Viewers.ofPlayers;
+import static io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString.NORMAL_SQUARE;
+import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.ofDimension;
+import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
+
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
-import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
-import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
-import io.github.pulsebeat02.ezmediacore.callback.Viewers;
-import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
-import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import io.github.pulsebeat02.ezmediacore.player.SoundKey;
+import io.github.pulsebeat02.ezmediacore.callback.implementation.EntityCallback;
+import io.github.pulsebeat02.ezmediacore.callback.implementation.EntityCallback.Builder;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import java.util.Collection;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,25 +54,44 @@ public class EntityOutput extends VideoOutput {
       @NotNull final VideoCommandAttributes attributes,
       @NotNull final CommandSender sender,
       @NotNull final Collection<? extends Player> players) {
-    if (!(sender instanceof final Player player)) {
-      plugin.audience().sender(sender).sendMessage(Locale.ERR_PLAYER_SENDER.build());
+    if (requiresPlayer(plugin, sender)) {
       return false;
     }
     attributes.setPlayer(
-        VideoBuilder.unspecified()
-            .callback(
-                CallbackBuilder.entity()
-                    .character(NamedEntityString.NORMAL_SQUARE)
-                    .armorStandPlayer()
-                    .location(player.getLocation())
-                    .dims(
-                        Dimension.ofDimension(
-                            attributes.getPixelWidth(), attributes.getPixelHeight()))
-                    .viewers(Viewers.ofPlayers(players))
-                    .delay(DelayConfiguration.DELAY_20_MS)
-                    .build(plugin.library()))
-            .soundKey(SoundKey.ofSound("emc"))
-            .build());
+        this.createVideoBuilder(plugin, attributes, players, (Player) sender).build());
     return true;
+  }
+
+  @NotNull
+  private VideoBuilder createVideoBuilder(
+      @NotNull final DeluxeMediaPlugin plugin,
+      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final Collection<? extends Player> players,
+      @NotNull final Player player) {
+
+    final EntityCallback.Builder<?> builder = this.createEntityBuilder(attributes, players, player);
+
+    final VideoBuilder videoBuilder = VideoBuilder.unspecified();
+    videoBuilder.soundKey(ofSound("emc"));
+    videoBuilder.callback(builder.build(plugin.library()));
+
+    return videoBuilder;
+  }
+
+  @NotNull
+  private EntityCallback.Builder<?> createEntityBuilder(
+      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final Collection<? extends Player> players,
+      @NotNull final Player player) {
+
+    final Builder<Entity> builder = CallbackBuilder.entity();
+    builder.armorStandPlayer();
+    builder.character(NORMAL_SQUARE);
+    builder.location(player.getLocation());
+    builder.dims(ofDimension(attributes.getPixelWidth(), attributes.getPixelHeight()));
+    builder.viewers(ofPlayers(players));
+    builder.delay(DELAY_20_MS);
+
+    return builder;
   }
 }

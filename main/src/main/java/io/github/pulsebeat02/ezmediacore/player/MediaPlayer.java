@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import static org.bukkit.SoundCategory.MASTER;
+
 import com.google.common.annotations.Beta;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
@@ -31,7 +33,6 @@ import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,7 +79,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   private @NotNull Runnable getStopAudioRunnable() {
     return () -> {
       for (final Player player : this.viewers.getPlayers()) {
-        player.stopSound(this.key.getName(), SoundCategory.MASTER);
+        player.stopSound(this.key.getName(), MASTER);
       }
     };
   }
@@ -88,7 +89,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   private void playSound(@NotNull final Player player) {
-    player.playSound(player.getLocation(), this.key.getName(), SoundCategory.MASTER, 100.0F, 1.0F);
+    player.playSound(player.getLocation(), this.key.getName(), MASTER, 100.0F, 1.0F);
   }
 
   @Override

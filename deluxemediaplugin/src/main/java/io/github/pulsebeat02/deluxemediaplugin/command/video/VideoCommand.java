@@ -84,16 +84,21 @@ public final class VideoCommand extends BaseCommand {
   }
 
   private int destroyVideo(@NotNull final CommandContext<CommandSender> context) {
+
     final Audience audience = this.plugin().audience().sender(context.getSource());
     if (this.mediaNotSpecified(audience) || this.mediaProcessingIncomplete(audience)) {
       return SINGLE_SUCCESS;
     }
+
     this.releaseIfPlaying();
+
     audience.sendMessage(Locale.RELEASE_VIDEO.build());
+
     return SINGLE_SUCCESS;
   }
 
   private int playVideo(@NotNull final CommandContext<CommandSender> context) {
+
     final CommandSender sender = context.getSource();
     final DeluxeMediaPlugin plugin = this.plugin();
     final Audience audience = plugin.audience().sender(sender);
@@ -101,6 +106,7 @@ public final class VideoCommand extends BaseCommand {
     if (this.mediaNotSpecified(audience) || this.mediaProcessingIncomplete(audience)) {
       return SINGLE_SUCCESS;
     }
+
     this.releaseIfPlaying();
     this.createVideoPlayer(sender, players);
     this.sendPlayInformation(audience);
@@ -108,6 +114,7 @@ public final class VideoCommand extends BaseCommand {
     this.attributes.cancelCurrentStream();
     this.handleStreamPlayers(audience);
     this.attributes.getPlayer().start(this.attributes.getVideoMrl());
+
     return SINGLE_SUCCESS;
   }
 

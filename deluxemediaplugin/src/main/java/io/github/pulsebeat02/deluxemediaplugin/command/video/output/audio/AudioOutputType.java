@@ -29,6 +29,7 @@ import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 public enum AudioOutputType {
+
   RESOURCEPACK(new ResourcepackAudioOutput()),
   DISCORD(new DiscordAudioOutput()),
   HTTP(new HttpAudioOutput());

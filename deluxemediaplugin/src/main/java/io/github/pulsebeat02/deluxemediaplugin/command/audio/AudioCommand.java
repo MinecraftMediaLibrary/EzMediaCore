@@ -27,6 +27,7 @@ package io.github.pulsebeat02.deluxemediaplugin.command.audio;
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleFalse;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleNull;
+import static org.bukkit.SoundCategory.MASTER;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -37,7 +38,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import org.bukkit.SoundCategory;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
@@ -93,12 +93,7 @@ public final class AudioCommand extends BaseCommand {
   private void playAudio() {
     this.audioAction(
         player ->
-            player.playSound(
-                player.getLocation(),
-                this.attributes.getKey(),
-                SoundCategory.MASTER,
-                100.0F,
-                1.0F));
+            player.playSound(player.getLocation(), this.attributes.getKey(), MASTER, 100.0F, 1.0F));
   }
 
   private void stopAudio() {

@@ -27,6 +27,7 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
 import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
 import io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors;
+import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegMediaStreamer;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
@@ -50,18 +51,28 @@ public abstract class FFmpegOutput extends AudioOutput implements FFmpegOutputHa
   @Override
   public String openFFmpegStream(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final String mrl) {
+
     final ServerInfo info = plugin.getHttpAudioServer();
     final String ip = info.getIp();
     final int port = info.getPort();
-    final FFmpegMediaStreamer streamer =
-        FFmpegMediaStreamer.ofFFmpegMediaStreamer(
-            plugin.library(),
-            plugin.getAudioConfiguration(),
-            RequestUtils.getAudioURLs(MrlConfiguration.ofMrl(mrl)).get(0).getMrl(),
-            ip,
-            port);
+    final FFmpegMediaStreamer streamer = this.getFFmpStream(plugin, mrl, ip, port);
+
     plugin.getAttributes().setStreamExtractor(streamer);
+
     streamer.executeAsync(FixedExecutors.STREAM_THREAD_EXECUTOR);
+
     return "http://%s:%s/live.stream".formatted(ip, port);
+  }
+
+  @NotNull
+  private FFmpegMediaStreamer getFFmpStream(
+      @NotNull final DeluxeMediaPlugin plugin,
+      @NotNull final String mrl,
+      @NotNull final String ip,
+      final int port) {
+    final AudioConfiguration configuration = plugin.getAudioConfiguration();
+    final String resource = RequestUtils.getAudioURLs(MrlConfiguration.ofMrl(mrl)).get(0).getMrl();
+    return FFmpegMediaStreamer.ofFFmpegMediaStreamer(
+        plugin.library(), configuration, resource, ip, port);
   }
 }

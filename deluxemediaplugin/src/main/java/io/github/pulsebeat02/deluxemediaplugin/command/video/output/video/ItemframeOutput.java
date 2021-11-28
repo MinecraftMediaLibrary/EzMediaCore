@@ -23,14 +23,17 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.command.video.output.video;
 
+import static io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration.DELAY_0_MS;
+import static io.github.pulsebeat02.ezmediacore.callback.Identifier.ofIdentifier;
+import static io.github.pulsebeat02.ezmediacore.callback.Viewers.ofPlayers;
+import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.ofDimension;
+import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
+
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
 import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
-import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
-import io.github.pulsebeat02.ezmediacore.callback.Identifier;
-import io.github.pulsebeat02.ezmediacore.callback.Viewers;
-import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import io.github.pulsebeat02.ezmediacore.player.SoundKey;
+import io.github.pulsebeat02.ezmediacore.callback.implementation.MapCallback;
+import io.github.pulsebeat02.ezmediacore.callback.implementation.MapCallback.Builder;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import java.util.Collection;
 import org.bukkit.command.CommandSender;
@@ -49,22 +52,39 @@ public class ItemframeOutput extends VideoOutput {
       @NotNull final VideoCommandAttributes attributes,
       @NotNull final CommandSender sender,
       @NotNull final Collection<? extends Player> players) {
-    attributes.setPlayer(
-        VideoBuilder.ffmpeg()
-            .callback(
-                CallbackBuilder.map()
-                    .algorithm(attributes.getDitherType().getAlgorithm())
-                    .blockWidth(attributes.getPixelWidth())
-                    .map(Identifier.ofIdentifier(0))
-                    .dims(
-                        Dimension.ofDimension(
-                            attributes.getFrameWidth(), attributes.getFrameHeight()))
-                    .viewers(Viewers.ofPlayers(players))
-                    .delay(DelayConfiguration.DELAY_0_MS)
-                    .build(plugin.library()))
-            .dims(Dimension.ofDimension(attributes.getPixelWidth(), attributes.getPixelHeight()))
-            .soundKey(SoundKey.ofSound("emc"))
-            .build());
+    attributes.setPlayer(this.createVideoBuilder(plugin, attributes, players).build());
     return true;
+  }
+
+  @NotNull
+  private VideoBuilder createVideoBuilder(
+      @NotNull final DeluxeMediaPlugin plugin,
+      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final Collection<? extends Player> players) {
+
+    final MapCallback.Builder builder = this.createMapBuilder(attributes, players);
+
+    final VideoBuilder videoBuilder = VideoBuilder.unspecified();
+    videoBuilder.dims(ofDimension(attributes.getPixelWidth(), attributes.getPixelHeight()));
+    videoBuilder.soundKey(ofSound("emc"));
+    videoBuilder.callback(builder.build(plugin.library()));
+
+    return videoBuilder;
+  }
+
+  @NotNull
+  private MapCallback.Builder createMapBuilder(
+      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final Collection<? extends Player> players) {
+
+    final Builder builder = CallbackBuilder.map();
+    builder.algorithm(attributes.getDitherType().getAlgorithm());
+    builder.blockWidth(attributes.getPixelWidth());
+    builder.map(ofIdentifier(0));
+    builder.dims(ofDimension(attributes.getFrameWidth(), attributes.getFrameHeight()));
+    builder.viewers(ofPlayers(players));
+    builder.delay(DELAY_0_MS);
+
+    return builder;
   }
 }
