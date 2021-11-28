@@ -36,4 +36,15 @@ public final class UnsafeUtils {
   public static void setStaticFinalField(@NotNull final Field field, @Nullable final Object value) {
     UNSAFE.putObject(UNSAFE.staticFieldBase(field), UNSAFE.staticFieldOffset(field), value);
   }
+
+  public static @NotNull Object getField(@NotNull final Object object, @NotNull final String name)
+      throws NoSuchFieldException {
+    return getField(object.getClass(), object, name);
+  }
+
+  public static @NotNull Object getField(
+      @NotNull final Class<?> clazz, @NotNull final Object object, @NotNull final String name)
+      throws NoSuchFieldException {
+    return UNSAFE.getObject(object, UNSAFE.objectFieldOffset(clazz.getDeclaredField(name)));
+  }
 }

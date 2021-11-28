@@ -71,7 +71,7 @@ publishing {
 }
 
 task<Wrapper>("wrapper") {
-    gradleVersion = "7.1.1"
+    gradleVersion = "7.3"
 }
 
 tasks {

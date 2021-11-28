@@ -63,7 +63,7 @@ dependencies {
         "testImplementation"(it)
     }
 
-    setOf(project(":api"), project(":v1_16_R3"), project(":v1_17_R1")).forEach {
+    setOf(project(":api"), project(":v1_16_R3"), project(":v1_17_R1"), project(":v1_18_R1")).forEach {
         "api"(it)
     }
 }
