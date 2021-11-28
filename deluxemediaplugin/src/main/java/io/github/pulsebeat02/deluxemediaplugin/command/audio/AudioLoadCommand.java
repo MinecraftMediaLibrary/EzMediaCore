@@ -25,8 +25,9 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.audio;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors.PACK_WRAPPER_EXECUTOR;
+import static io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors.RESOURCE_WRAPPER_EXECUTOR;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleFalse;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleNull;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleTrue;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -47,6 +48,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -90,14 +92,14 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private boolean loadSoundFile(@NotNull final String mrl, @NotNull final Audience audience) {
-    
+
     final Path file = Path.of(mrl);
     if (handleTrue(audience, Locale.ERR_INVALID_MRL.build(), Files.notExists(file))) {
       return true;
     }
-    
+
     this.attributes.setAudio(file);
-    
+
     return false;
   }
 
@@ -115,12 +117,12 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
 
   @NotNull
   private HttpServer getHttpDaemon() {
-    
+
     final HttpServer daemon = this.plugin.getHttpServer();
     if (!daemon.isRunning()) {
       daemon.startServer();
     }
-    
+
     return daemon;
   }
 
@@ -142,7 +144,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
         ResourcepackSoundWrapper.ofSoundPack(output, "Audio Pack", 6);
     wrapper.addSound(name, this.attributes.getAudio());
     wrapper.wrap();
-    
+
     return wrapper;
   }
 
@@ -157,7 +159,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
     audience.sendMessage(Locale.CREATE_RESOURCEPACK.build());
 
     this.handleAudio(audience, mrl)
-        .thenRunAsync(this::wrapPack, PACK_WRAPPER_EXECUTOR)
+        .thenRunAsync(this::wrapPack, RESOURCE_WRAPPER_EXECUTOR)
         .thenRun(() -> this.forceResourcepackLoad(audience));
 
     return SINGLE_SUCCESS;
@@ -173,13 +175,13 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
   private @NotNull CompletableFuture<Void> handleWebFile(
       @NotNull final Audience audience, @NotNull final String mrl) {
     return CompletableFuture.runAsync(
-        () -> this.loadSoundMrl(audience, mrl), PACK_WRAPPER_EXECUTOR);
+        () -> this.loadSoundMrl(audience, mrl), RESOURCE_WRAPPER_EXECUTOR);
   }
 
   private @NotNull CompletableFuture<Void> handleLocalFile(
       @NotNull final Audience audience, @NotNull final String mrl) {
     return CompletableFuture.runAsync(
-        () -> this.loadSoundFile(mrl, audience), PACK_WRAPPER_EXECUTOR);
+        () -> this.loadSoundFile(mrl, audience), RESOURCE_WRAPPER_EXECUTOR);
   }
 
   private void forceResourcepackLoad(@NotNull final Audience audience) {
@@ -191,11 +193,13 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
   private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {
 
     final Audience audience = this.plugin.audience().sender(context.getSource());
+    final Component component = Locale.ERR_NO_RESOURCEPACK.build();
 
-    if (handleTrue(
-        audience,
-        Locale.ERR_NO_RESOURCEPACK.build(),
-        this.attributes.getLink() == null && this.attributes.getHash() == null)) {
+    if (handleNull(audience, component, this.attributes.getLink())) {
+      return SINGLE_SUCCESS;
+    }
+
+    if (handleNull(audience, component, this.attributes.getHash())) {
       return SINGLE_SUCCESS;
     }
 

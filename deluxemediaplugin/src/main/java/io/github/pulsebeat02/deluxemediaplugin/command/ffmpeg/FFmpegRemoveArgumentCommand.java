@@ -60,7 +60,7 @@ public final class FFmpegRemoveArgumentCommand implements CommandSegment.Literal
 
   private int removeIndexArgument(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = this.plugin.audience().sender(context.getSource());
-    final int index = context.getArgument("index", int.class);
+    final int index = context.getArgument("index", Integer.TYPE);
     final String arg = this.ffmpeg.getArguments().get(index);
     this.removeArgument(index);
     audience.sendMessage(Locale.REMOVE_FFMPEG_ARG_INDX.build(arg, index));

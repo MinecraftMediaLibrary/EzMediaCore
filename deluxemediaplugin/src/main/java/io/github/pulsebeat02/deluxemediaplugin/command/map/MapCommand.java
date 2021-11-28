@@ -66,7 +66,7 @@ public final class MapCommand extends BaseCommand {
   private int giveMap(@NotNull final CommandContext<CommandSender> context) {
     final CommandSender sender = context.getSource();
     final Audience audience = this.plugin().audience().sender(sender);
-    final int id = context.getArgument("id", int.class);
+    final int id = context.getArgument("id", Integer.TYPE);
     if (requiresPlayer(this.plugin(), sender)) {
       return SINGLE_SUCCESS;
     }

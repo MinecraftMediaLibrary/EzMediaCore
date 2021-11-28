@@ -25,6 +25,10 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors.RESOURCE_WRAPPER_EXECUTOR;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleFalse;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleNonNull;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleNull;
 import static java.util.Map.entry;
 
 import com.mojang.brigadier.context.CommandContext;
@@ -34,6 +38,7 @@ import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.video.PlaybackType;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
+import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioTrimmer;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
@@ -140,52 +145,68 @@ public final class VideoCommand extends BaseCommand {
   }
 
   private int stopVideo(@NotNull final CommandContext<CommandSender> context) {
+
     final Audience audience = this.audience().sender(context.getSource());
     if (this.mediaNotSpecified(audience)
         || this.mediaProcessingIncomplete(audience)
         || this.mediaUninitialized(audience)) {
       return SINGLE_SUCCESS;
     }
+
     final MediaBot bot = this.plugin().getMediaBot();
-    if (bot != null) {
-      bot.getMusicManager().pauseTrack();
-    }
+    Nill.ifSo(bot, () -> bot.getMusicManager().pauseTrack());
+
     this.attributes.cancelCurrentStream();
     this.attributes.getPlayer().pause();
+
     audience.sendMessage(Locale.PAUSE_VIDEO.build());
+
     return SINGLE_SUCCESS;
   }
 
   private int resumeVideo(@NotNull final CommandContext<CommandSender> context) {
+
     final CommandSender sender = context.getSource();
     final DeluxeMediaPlugin plugin = this.plugin();
     final Audience audience = plugin.audience().sender(sender);
     if (this.mediaNotSpecified(audience) || this.mediaProcessingIncomplete(audience)) {
       return SINGLE_SUCCESS;
     }
+
     audience.sendMessage(Locale.SETUP_RESOURCEPACK.build());
-    CompletableFuture.runAsync(() -> this.buildResourcepack(audience))
-        .thenRunAsync(() -> this.forceResumeLoadResourcepack(audience));
+
+    CompletableFuture.runAsync(() -> this.buildResourcepack(audience), RESOURCE_WRAPPER_EXECUTOR)
+        .thenRun(() -> this.forceResumeLoadResourcepack(audience));
+
     return SINGLE_SUCCESS;
   }
 
   private void forceResumeLoadResourcepack(@NotNull final Audience audience) {
-    ResourcepackUtils.forceResourcepackLoad(
-        this.plugin().library(),
-        this.attributes.getResourcepackUrl(),
-        this.attributes.getResourcepackHash());
+
+    final String url = this.attributes.getPackUrl();
+    final byte[] hash = this.attributes.getPackHash();
+
+    ResourcepackUtils.forceResourcepackLoad(this.plugin().library(), url, hash);
+
     audience.sendMessage(Locale.RESUME_AUDIO.build());
   }
 
   private void buildResourcepack(@NotNull final Audience audience) {
+
     final Audience console = this.plugin().getConsoleAudience();
+
     try {
-      final Path audio = Path.of(this.attributes.getOggMrl().getMrl());
+
+      final String oggMrl = this.attributes.getOggMrl().getMrl();
+      final Path audio = Path.of(oggMrl);
       final Path ogg = audio.getParent().resolve("trimmed.ogg");
       final long ms = this.attributes.getPlayer().getElapsedMilliseconds();
+
       console.sendMessage(Locale.RESUMING_VIDEO_MS.build(ms));
+
       this.executeFFmpegTrimmer(audience, audio, ogg, ms);
       this.loadResumeResourcepack(this.wrapResumeResourcepack(ogg), audio, ogg);
+
     } catch (final IOException e) {
       console.sendMessage(Locale.ERR_RESOURCEPACK_WRAP.build());
       e.printStackTrace();
@@ -194,14 +215,17 @@ public final class VideoCommand extends BaseCommand {
 
   private @NotNull ResourcepackSoundWrapper wrapResumeResourcepack(@NotNull final Path ogg)
       throws IOException {
+
     final DeluxeMediaPlugin plugin = this.plugin();
+    final Path target =
+        plugin.getHttpServer().getDaemon().getServerPath().resolve("resourcepack.zip");
+    final String sound = plugin.getBootstrap().getName().toLowerCase(java.util.Locale.ROOT);
+
     final ResourcepackSoundWrapper wrapper =
-        ResourcepackSoundWrapper.ofSoundPack(
-            plugin.getHttpServer().getDaemon().getServerPath().resolve("resourcepack.zip"),
-            "Video Pack",
-            6);
-    wrapper.addSound(plugin.getBootstrap().getName().toLowerCase(java.util.Locale.ROOT), ogg);
+        ResourcepackSoundWrapper.ofSoundPack(target, "Video Pack", 6);
+    wrapper.addSound(sound, ogg);
     wrapper.wrap();
+
     return wrapper;
   }
 
@@ -210,10 +234,14 @@ public final class VideoCommand extends BaseCommand {
       @NotNull final Path audio,
       @NotNull final Path ogg)
       throws IOException {
+
     final Path path = wrapper.getResourcepackFilePath();
-    this.attributes.setResourcepackUrl(this.plugin().getHttpServer().createUrl(path));
-    this.attributes.setResourcepackHash(
-        HashingUtils.createHashSha1(path).orElseThrow(AssertionError::new));
+    final String url = this.plugin().getHttpServer().createUrl(path);
+    final byte[] hash = HashingUtils.createHashSha1(path).orElseThrow(AssertionError::new);
+
+    this.attributes.setPackUrl(url);
+    this.attributes.setPackHash(hash);
+
     Files.delete(audio);
     Files.move(ogg, ogg.resolveSibling("audio.ogg"));
   }
@@ -223,49 +251,39 @@ public final class VideoCommand extends BaseCommand {
       @NotNull final Path audio,
       @NotNull final Path ogg,
       final long delay) {
-    FFmpegAudioTrimmer.ofFFmpegAudioTrimmer(this.plugin().library(), audio, ogg, delay)
-        .executeAsyncWithLogging(
-            (line) -> audience.sendMessage(Locale.EXTERNAL_PROCESS.build(line)));
+    final FFmpegAudioTrimmer trimmer =
+        FFmpegAudioTrimmer.ofFFmpegAudioTrimmer(this.plugin().library(), audio, ogg, delay);
+    trimmer.executeAsyncWithLogging(
+        (line) -> audience.sendMessage(Locale.EXTERNAL_PROCESS.build(line)));
   }
 
   private boolean mediaNotSpecified(@NotNull final Audience audience) {
-    if (this.attributes.getVideoMrl() == null) {
-      audience.sendMessage(Locale.ERR_VIDEO_NOT_LOADED.build());
-      return true;
-    }
-    return false;
+    return handleNull(audience, Locale.ERR_VIDEO_NOT_LOADED.build(), this.attributes.getVideoMrl());
   }
 
   private boolean mediaProcessingIncomplete(@NotNull final Audience audience) {
-    if (!this.attributes.getCompletion().get()) {
-      audience.sendMessage(Locale.ERR_VIDEO_PROCESSING.build());
-      return true;
-    }
-    return false;
+    return handleFalse(
+        audience, Locale.ERR_VIDEO_PROCESSING.build(), this.attributes.getCompletion().get());
   }
 
   private void releaseIfPlaying() {
     final VideoPlayer player = this.attributes.getPlayer();
-    if (player != null) {
-      if (player.getPlayerState() != PlayerControls.RELEASE) {
-        player.release();
-      }
+    Nill.ifSo(player, () -> this.releasePlayer(player));
+  }
+
+  private void releasePlayer(@NotNull final VideoPlayer player) {
+    if (player.getPlayerState() != PlayerControls.RELEASE) {
+      player.release();
     }
   }
 
   private boolean mediaUninitialized(@NotNull final Audience audience) {
-    if (this.attributes.getPlayer() == null) {
-      audience.sendMessage(Locale.ERR_VIDEO_NOT_LOADED.build());
-      return true;
-    }
-    return false;
+    return handleNull(audience, Locale.ERR_VIDEO_NOT_LOADED.build(), this.attributes.getPlayer());
   }
 
   private void sendPlayInformation(@NotNull final Audience audience) {
     final MrlConfiguration mrl = this.attributes.getVideoMrl();
-    if (mrl != null) {
-      audience.sendMessage(Locale.STARTING_VIDEO.build(mrl.getMrl()));
-    }
+    handleNonNull(audience, Locale.STARTING_VIDEO.build(mrl.getMrl()), mrl);
   }
 
   @Override

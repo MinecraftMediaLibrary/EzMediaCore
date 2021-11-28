@@ -42,7 +42,7 @@ public final class VideoCommandAttributes {
     TEMPORARY_PLACEHOLDER = true;
   }
 
-  private final transient AtomicBoolean completion;
+  private transient AtomicBoolean completion;
 
   @SerializedName(value = "dither-type")
   private DitherSetting ditherType;
@@ -75,17 +75,6 @@ public final class VideoCommandAttributes {
   private transient EnhancedExecution streamExtractor;
   private transient String resourcepackUrl; // for resourcepack url
   private transient byte[] resourcepackHash;
-
-  public VideoCommandAttributes() {
-    this.ditherType = DitherSetting.FILTER_LITE;
-    this.audioOutputType = AudioOutputType.RESOURCEPACK;
-    this.playbackType = PlaybackType.ITEMFRAME;
-    this.frameWidth = 5;
-    this.frameHeight = 5;
-    this.pixelWidth = 640;
-    this.pixelHeight = 360;
-    this.completion = new AtomicBoolean(false);
-  }
 
   public DitherSetting getDitherType() {
     return this.ditherType;
@@ -155,19 +144,19 @@ public final class VideoCommandAttributes {
     this.playbackType = type;
   }
 
-  public String getResourcepackUrl() {
+  public String getPackUrl() {
     return this.resourcepackUrl;
   }
 
-  public void setResourcepackUrl(final String resourcepackUrl) {
+  public void setPackUrl(final String resourcepackUrl) {
     this.resourcepackUrl = resourcepackUrl;
   }
 
-  public byte[] getResourcepackHash() {
+  public byte[] getPackHash() {
     return this.resourcepackHash;
   }
 
-  public void setResourcepackHash(final byte[] resourcepackHash) {
+  public void setPackHash(final byte[] resourcepackHash) {
     this.resourcepackHash = resourcepackHash;
   }
 

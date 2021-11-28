@@ -40,6 +40,13 @@ public final class ArgumentUtils {
     return handleFalse(audience, component, obj == null);
   }
 
+  public static boolean handleNonNull(
+      @NotNull final Audience audience,
+      @NotNull final Component component,
+      @Nullable final Object obj) {
+    return handleTrue(audience, component, obj == null);
+  }
+
   public static boolean handleFalse(
       @NotNull final Audience audience,
       @NotNull final Component component,

@@ -78,7 +78,7 @@ public final class ResetImageCommand implements CommandSegment.Literal<CommandSe
 
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final PersistentPictureManager manager = this.plugin.getPictureManager();
-    final int id = context.getArgument("id", int.class);
+    final int id = context.getArgument("id", Integer.TYPE);
     final Optional<Image> image =
         manager.getImages().stream().filter(img -> img.getMaps().contains(id)).findAny();
     if (handleEmptyOptional(audience, Locale.ERR_IMAGE_NOT_LOADED.build(), image)) {

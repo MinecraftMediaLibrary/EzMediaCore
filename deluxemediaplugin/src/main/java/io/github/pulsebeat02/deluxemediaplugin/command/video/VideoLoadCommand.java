@@ -25,6 +25,11 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors.RESOURCE_WRAPPER_EXECUTOR;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleFalse;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleNull;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleTrue;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.requiresPlayer;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -33,6 +38,8 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioOutputType;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
+import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
+import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioExtractor;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
@@ -45,12 +52,15 @@ import io.github.pulsebeat02.ezmediacore.utility.io.ResourcepackUtils;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
@@ -83,41 +93,59 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private int cancelDownload(@NotNull final CommandContext<CommandSender> context) {
+
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final EnhancedExecution extractor = this.attributes.getExtractor();
-    if (extractor != null) {
-      this.setupCancelledAttributes(extractor, audience);
-    } else {
-      audience.sendMessage(Locale.ERR_CANCELLATION_VIDEO_PROCESSING.build());
+
+    if (handleNull(audience, Locale.ERR_CANCELLATION_VIDEO_PROCESSING.build(), extractor)) {
+      return SINGLE_SUCCESS;
     }
+
+    this.setupCancelledAttributes(extractor, audience);
+
     return SINGLE_SUCCESS;
   }
 
   private void setupCancelledAttributes(
       @Nullable final EnhancedExecution extractor, @NotNull final Audience audience) {
-    if (extractor != null) {
-      this.cancelled = true;
-      try {
-        extractor.close();
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      this.attributes.setExtractor(null);
-    }
-    if (this.task != null) {
-      this.task.cancel(true);
-      this.task = null;
-    }
+
+    Nill.ifSo(extractor, () -> this.cancelExtractor(extractor));
+    Nill.ifSo(this.task, this::cancelTask);
+
     audience.sendMessage(Locale.CANCELLED_VIDEO_PROCESSING.build());
   }
 
+  private void cancelTask() {
+    this.task.cancel(true);
+    this.task = null;
+  }
+
+  private void cancelExtractor(@Nullable final EnhancedExecution extractor) {
+    this.cancelled = true;
+    this.closeExtractor(extractor);
+    this.attributes.setExtractor(null);
+  }
+
+  private void closeExtractor(@NotNull final EnhancedExecution extractor) {
+    try {
+      extractor.close();
+    } catch (final Exception e) {
+      e.printStackTrace();
+    }
+  }
+
   private int loadVideo(@NotNull final CommandContext<CommandSender> context) {
+
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String mrl = context.getArgument("mrl", String.class);
     final AtomicBoolean successful = new AtomicBoolean(true);
+
     this.attributes.cancelCurrentStream();
-    CompletableFuture.runAsync(() -> this.handleVideoLoad(audience, successful, mrl))
+
+    CompletableFuture.runAsync(
+            () -> this.handleVideoLoad(audience, successful, mrl), RESOURCE_WRAPPER_EXECUTOR)
         .thenRun(() -> this.sendCompletionMessage(audience, mrl, successful));
+
     return SINGLE_SUCCESS;
   }
 
@@ -134,16 +162,21 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       @NotNull final Audience audience,
       @NotNull final AtomicBoolean successful,
       @NotNull final String mrl) {
+
     final Path folder = this.plugin.getBootstrap().getDataFolder().toPath().resolve("emc");
     final AtomicBoolean status = this.attributes.getCompletion();
     final Audience console = this.plugin.getConsoleAudience();
+
+    audience.sendMessage(Locale.LOADING_VIDEO.build());
+
+    if (this.checkStream(audience, mrl)) {
+      successful.set(false);
+      return;
+    }
+
+    this.attributes.setVideoMrl(MrlConfiguration.ofMrl(mrl));
+
     try {
-      audience.sendMessage(Locale.LOADING_VIDEO.build());
-      if (this.checkStream(audience, mrl)) {
-        successful.set(false);
-        return;
-      }
-      this.attributes.setVideoMrl(MrlConfiguration.ofMrl(mrl));
       if (this.attributes.getAudioOutputType() == AudioOutputType.RESOURCEPACK) {
         this.loadResourcepackVideo(audience, status, successful, folder, mrl);
       }
@@ -160,8 +193,11 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       @NotNull final Path folder,
       @NotNull final String mrl)
       throws IOException, InterruptedException {
+
     status.set(false);
+
     this.plugin.getConsoleAudience().sendMessage(Locale.CREATE_RESOURCEPACK.build());
+
     final Optional<Path> download = this.downloadMrl(audience, folder, mrl);
     if (download.isEmpty()) {
       this.plugin.getConsoleAudience().sendMessage(Locale.ERR_DOWNLOAD_VIDEO.build());
@@ -169,7 +205,9 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       successful.set(false);
       return;
     }
+
     this.loadAndSendResourcepack(folder, download.get());
+
     status.set(true);
   }
 
@@ -180,12 +218,15 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     this.executeResourcepackWrapper(oggOutput);
   }
 
-  private void executeFFmpegExtractor(@NotNull final Path download, @NotNull final Path oggOutput)
-      throws IOException {
+  private void executeFFmpegExtractor(@NotNull final Path download, @NotNull final Path oggOutput) {
+
+    final AudioConfiguration configuration = this.plugin.getAudioConfiguration();
     final FFmpegAudioExtractor extractor =
         FFmpegAudioExtractor.ofFFmpegAudioExtractor(
-            this.plugin.library(), this.plugin.getAudioConfiguration(), download, oggOutput);
+            this.plugin.library(), configuration, download, oggOutput);
+
     this.attributes.setExtractor(extractor);
+
     extractor.execute();
   }
 
@@ -196,80 +237,104 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   private @NotNull ResourcepackSoundWrapper executeResourcepackSoundWrapper(
       @NotNull final Path oggOutput) throws IOException {
-    final HttpServer daemon = this.plugin.getHttpServer();
-    if (!daemon.isRunning()) {
-      daemon.startServer();
-    }
+
+    final HttpServer daemon = this.startDaemon();
+    final Path target = daemon.getDaemon().getServerPath().resolve("resourcepack.zip");
+    final int id = PackFormat.getCurrentFormat().getId();
+    final String sound = this.plugin.getBootstrap().getName().toLowerCase(java.util.Locale.ROOT);
+
     final ResourcepackSoundWrapper wrapper =
-        ResourcepackSoundWrapper.ofSoundPack(
-            daemon.getDaemon().getServerPath().resolve("resourcepack.zip"),
-            "Audio Resourcepack",
-            PackFormat.getCurrentFormat().getId());
-    wrapper.addSound(
-        this.plugin.getBootstrap().getName().toLowerCase(java.util.Locale.ROOT), oggOutput);
+        ResourcepackSoundWrapper.ofSoundPack(target, "Audio Resourcepack", id);
+    wrapper.addSound(sound, oggOutput);
     wrapper.wrap();
+
     return wrapper;
   }
 
   private void setResourcepackAttributes(
       @NotNull final ResourcepackSoundWrapper wrapper, @NotNull final Path oggOutput) {
+
+    final HttpServer daemon = this.startDaemon();
+
+    this.attributes.setOggMrl(MrlConfiguration.ofMrl(oggOutput));
+
+    final Path path = wrapper.getResourcepackFilePath();
+    final String url = daemon.createUrl(path);
+    final byte[] hash = HashingUtils.createHashSha1(path).orElseThrow(AssertionError::new);
+
+    this.attributes.setPackUrl(url);
+    this.attributes.setPackHash(hash);
+  }
+
+  @NotNull
+  private HttpServer startDaemon() {
     final HttpServer daemon = this.plugin.getHttpServer();
     if (!daemon.isRunning()) {
       daemon.startServer();
     }
-    this.attributes.setOggMrl(MrlConfiguration.ofMrl(oggOutput));
-    final Path path = wrapper.getResourcepackFilePath();
-    this.attributes.setResourcepackUrl(daemon.createUrl(path));
-    this.attributes.setResourcepackHash(
-        HashingUtils.createHashSha1(path).orElseThrow(AssertionError::new));
+    return daemon;
   }
 
   private @NotNull Optional<Path> downloadMrl(
       @NotNull final Audience audience, @NotNull final Path folder, @NotNull final String mrl)
       throws IOException, InterruptedException {
-    return PathUtils.isValidPath(mrl)
-        ? Optional.of(Path.of(mrl))
-        : this.getDownloadedMrl(audience, folder, mrl);
+    final Optional<Path> download = this.getDownloadedMrl(audience, folder, mrl);
+    return PathUtils.isValidPath(mrl) ? Optional.of(Path.of(mrl)) : download;
   }
 
   private Optional<Path> getDownloadedMrl(
       @NotNull final Audience audience, @NotNull final Path folder, @NotNull final String mrl)
       throws IOException, InterruptedException {
+
     final List<MrlConfiguration> videoMrls = RequestUtils.getAudioURLs(MrlConfiguration.ofMrl(mrl));
-    if (videoMrls.isEmpty()) {
-      audience.sendMessage(Locale.ERR_INVALID_MRL.build());
+
+    if (handleTrue(audience, Locale.ERR_INVALID_MRL.build(), videoMrls.isEmpty())) {
       return Optional.empty();
     }
-    return Optional.of(
-        RequestUtils.downloadFile(folder.resolve("temp-audio"), videoMrls.get(0).getMrl()));
+
+    final Path target =
+        RequestUtils.downloadFile(folder.resolve("temp-audio"), videoMrls.get(0).getMrl());
+
+    return Optional.of(target);
   }
 
   private boolean checkStream(@NotNull final Audience audience, @NotNull final String mrl) {
-    if (RequestUtils.isStream(MrlConfiguration.ofMrl(mrl))) {
+
+    final boolean stream = RequestUtils.isStream(MrlConfiguration.ofMrl(mrl));
+
+    if (stream) {
       this.setStreamAttributes(audience, mrl);
       return true;
     } else {
       this.checkInvalidMrl(audience, mrl);
     }
+
     return false;
   }
 
   private void setStreamAttributes(@NotNull final Audience audience, @NotNull final String mrl) {
-    if (this.attributes.getAudioOutputType() == AudioOutputType.RESOURCEPACK) {
-      audience.sendMessage(Locale.ERR_INVALID_AUDIO_OUTPUT.build());
-    } else {
-      audience.sendMessage(Locale.LOADED_MEDIA.build(mrl));
+
+    if (handleTrue(
+        audience,
+        Locale.ERR_INVALID_AUDIO_OUTPUT.build(),
+        this.attributes.getAudioOutputType() == AudioOutputType.RESOURCEPACK)) {
+      return;
     }
+
+    audience.sendMessage(Locale.LOADED_MEDIA.build(mrl));
+
     this.attributes.getCompletion().set(true);
     this.cancelled = false;
     this.attributes.setVideoMrl(MrlConfiguration.ofMrl(mrl));
   }
 
   private void checkInvalidMrl(@NotNull final Audience audience, @NotNull final String mrl) {
+
     final List<MrlConfiguration> urls = RequestUtils.getVideoURLs(MrlConfiguration.ofMrl(mrl));
-    if (urls.size() == 1 && urls.get(0).getMrl().equals(mrl)) {
-      audience.sendMessage(Locale.ERR_INVALID_MRL.build());
-    }
+    final boolean equal = urls.get(0).getMrl().equals(mrl);
+    final boolean size = urls.size() == 1;
+
+    handleTrue(audience, Locale.ERR_INVALID_MRL.build(), size && equal);
   }
 
   private void afterDownloadExecutionFinish(
@@ -281,23 +346,26 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   private void sendCompletionMessage(@NotNull final Audience audience, @NotNull final String mrl) {
     if (!this.cancelled) {
-      ResourcepackUtils.forceResourcepackLoad(
-          this.plugin.library(),
-          Bukkit.getOnlinePlayers(),
-          this.attributes.getResourcepackUrl(),
-          this.attributes.getResourcepackHash());
-      Bukkit.getOnlinePlayers()
-          .forEach(
-              (player) ->
-                  this.plugin
-                      .audience()
-                      .player(player)
-                      .sendMessage(Locale.SEND_RESOURCEPACK_URL.build(player)));
+
+      final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+      final String url = this.attributes.getPackUrl();
+      final byte[] hash = this.attributes.getPackHash();
+
+      ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), players, url, hash);
+
+      players.forEach(this::sendSeparatePackMessage);
+
       audience.sendMessage(Locale.LOADED_MEDIA.build(mrl));
     }
   }
 
+  private void sendSeparatePackMessage(@NotNull final Player player) {
+    final Audience playerAudience = this.plugin.audience().player(player);
+    playerAudience.sendMessage(Locale.SEND_RESOURCEPACK_URL.build(player));
+  }
+
   private int sendResourcepack(@NotNull final CommandContext<CommandSender> context) {
+
     final CommandSender sender = context.getSource();
     final Audience audience = this.plugin.audience().sender(sender);
     final String targets = context.getArgument("targets", String.class);
@@ -309,49 +377,43 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     if (this.unloadedResourcepack(audience)) {
       return SINGLE_SUCCESS;
     }
-    if (this.isPlayer(audience, sender)) {
+    if (requiresPlayer(this.plugin, sender)) {
       return SINGLE_SUCCESS;
     }
-    this.sendResourcepackInternal(entities, audience);
+
+    this.forceResourcepack(entities, audience);
+
     return SINGLE_SUCCESS;
   }
 
-  private void sendResourcepackInternal(
+  private void forceResourcepack(
       @NotNull final List<Entity> entities, @NotNull final Audience audience) {
-    final String url = this.attributes.getResourcepackUrl();
-    final byte[] hash = this.attributes.getResourcepackHash();
-    ResourcepackUtils.forceResourcepackLoad(
-        this.plugin.library(),
-        entities.stream().map(entity -> (Player) entity).collect(Collectors.toSet()),
-        url,
-        hash);
+
+    final String url = this.attributes.getPackUrl();
+    final byte[] hash = this.attributes.getPackHash();
+    final Set<Player> cast =
+        entities.stream().map(entity -> (Player) entity).collect(Collectors.toSet());
+
+    ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), cast, url, hash);
+
     audience.sendMessage(Locale.SENT_RESOURCEPACK.build(url, hash));
   }
 
   private boolean checkNonPlayer(
       @NotNull final Audience audience, @NotNull final List<Entity> entities) {
-    if (entities.parallelStream().anyMatch(entity -> !(entity instanceof Player))) {
-      audience.sendMessage(Locale.ERR_INVALID_TARGET_SELECTOR.build());
-      return true;
-    }
-    return false;
-  }
-
-  private boolean isPlayer(@NotNull final Audience audience, @NotNull final CommandSender sender) {
-    if (!(sender instanceof Player)) {
-      audience.sendMessage(Locale.ERR_PLAYER_SENDER.build());
-      return true;
-    }
-    return false;
+    final boolean assertion = entities.stream().anyMatch(entity -> entity instanceof Player);
+    return handleFalse(audience, Locale.ERR_INVALID_TARGET_SELECTOR.build(), assertion);
   }
 
   private boolean unloadedResourcepack(@NotNull final Audience audience) {
-    if (this.attributes.getResourcepackUrl() == null
-        && this.attributes.getResourcepackHash() == null) {
-      audience.sendMessage(Locale.ERR_NO_RESOURCEPACK.build());
+
+    final Component component = Locale.ERR_NO_RESOURCEPACK.build();
+
+    if (handleNull(audience, component, this.attributes.getPackUrl())) {
       return true;
     }
-    return false;
+
+    return handleNull(audience, component, this.attributes.getPackHash());
   }
 
   @Override
