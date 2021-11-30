@@ -1,7 +1,42 @@
 version: 2.1
-#orbs:
-#  discord: teka23/discord@0.0.1
 jobs:
+  BUILDTOOLS:
+    docker:
+      - image: cimg/openjdk:16.0.1
+    working_directory: ~/repo
+    environment:
+      MAVEN_OPTS: -Xmx3200m -Xms2600m
+    steps:
+      - checkout
+      - run: wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
+  JAVA-16-NMS:
+    docker:
+      - image: cimg/openjdk:16.0.1
+    working_directory: ~/repo
+    enviornment:
+      MAVEN_OPTS: -Xmx3200m -Xms2600m
+    steps:
+      - checkout
+      - run: java -jar BuildTools.jar --rev 1.16.5
+      - run: java -jar BuildTools.jar --rev 1.17.1
+  JAVA-17-NMS:
+    docker:
+      - image: cimg/openjdk:17.0.0
+    working_directory: ~/repo
+    enviornment:
+      MAVEN_OPTS: -Xmx3200m -Xms2600m
+    steps:
+      - checkout
+      - run: java -jar BuildTools.jar --rev 1.18-pre5
+  SLIMJAR:
+    docker:
+      - image: cimg/openjdk:17.0.0
+    working_directory: ~/repo
+    enviornment:
+      MAVEN_OPTS: -Xmx3200m -Xms2600m
+    steps:
+      - checkout
+      - run: git clone https://github.com/slimjar/slimjar.git slimjar; cd ./slimjar; chmod 777 ./gradlew; ./gradlew publishToMavenLocal
   build:
     docker:
       - image: cimg/openjdk:17.0.0
@@ -18,15 +53,6 @@ jobs:
           paths:
             - ~/.m2/
           key: v1-dependencies-{{ checksum "build.gradle.kts" }}
-      - run: wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
-      - run: java -jar BuildTools.jar --rev 1.16.5
-      - run: java -jar BuildTools.jar --rev 1.17.1
-      - run: java -jar BuildTools.jar --rev 1.18-pre5
-      - run: git clone https://github.com/slimjar/slimjar.git slimjar; cd ./slimjar; chmod 777 ./gradlew; ./gradlew publishToMavenLocal
       - run: ./gradlew build
       - store_artifacts:
           path: deluxemediaplugin/build/libs/DeluxeMediaPlugin-all.jar
-#      - discord/notify:
-#          color: '4383476'
-#          message: https://$CIRCLE_BUILD_NUM-331827979-gh.circle-artifacts.com/0/deluxemediaplugin/build/libs/DeluxeMediaPlugin-all.jar
-#          webhook: https://discord.com/api/webhooks/881704224302432297/PhoEp-BHv2NoZMRCmtYhgwwl4GQbBHVupgJYYQ7NNHzzPMEiLvyMwILNMODDKmayn42Y
