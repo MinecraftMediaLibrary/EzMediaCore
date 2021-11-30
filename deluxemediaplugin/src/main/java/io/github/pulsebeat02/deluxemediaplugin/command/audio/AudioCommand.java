@@ -76,6 +76,12 @@ public final class AudioCommand extends BaseCommand {
     return SINGLE_SUCCESS;
   }
 
+  private void playAudio() {
+    this.audioAction(
+        player ->
+            player.playSound(player.getLocation(), this.attributes.getKey(), MASTER, 100.0F, 1.0F));
+  }
+
   private int stopAudio(@NotNull final CommandContext<CommandSender> context) {
 
     final Audience audience = this.plugin().audience().sender(context.getSource());
@@ -90,15 +96,10 @@ public final class AudioCommand extends BaseCommand {
     return SINGLE_SUCCESS;
   }
 
-  private void playAudio() {
-    this.audioAction(
-        player ->
-            player.playSound(player.getLocation(), this.attributes.getKey(), MASTER, 100.0F, 1.0F));
-  }
-
   private void stopAudio() {
     this.audioAction(player -> player.stopSound(this.attributes.getKey()));
   }
+
 
   private void audioAction(@NotNull final Consumer<Player> consumer) {
     this.plugin().getBootstrap().getServer().getOnlinePlayers().forEach(consumer);

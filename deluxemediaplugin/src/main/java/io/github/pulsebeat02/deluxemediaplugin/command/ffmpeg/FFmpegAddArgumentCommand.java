@@ -80,24 +80,6 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
     }
   }
 
-  private void handleNormalArgument(final int index, @NotNull final String arg) {
-    this.ffmpeg.addArgument(arg, index);
-  }
-
-  private void handleSpecialArgument(final int index, @NotNull final String arg) {
-    final String[] split = arg.split("=");
-    this.ffmpeg.addArguments(split[0], split[1], index);
-  }
-
-  private int addArgument(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = this.plugin.audience().sender(context.getSource());
-    final String str = context.getArgument("arguments", String.class);
-    final String[] arguments = str.split(" ");
-    this.addMultipleArguments(arguments);
-    audience.sendMessage(Locale.ADD_FFMPEG_ARG.build(str));
-    return SINGLE_SUCCESS;
-  }
-
   private void addMultipleArguments(final String @NotNull [] arguments) {
     for (final String argument : arguments) {
       if (argument.contains("=")) {
@@ -108,13 +90,31 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
     }
   }
 
+  private void handleNormalArgument(final int index, @NotNull final String arg) {
+    this.ffmpeg.addArgument(arg, index);
+  }
+
   private void handleNormalArgument(@NotNull final String argument) {
     this.ffmpeg.addArgument(argument);
+  }
+
+  private void handleSpecialArgument(final int index, @NotNull final String arg) {
+    final String[] split = arg.split("=");
+    this.ffmpeg.addArguments(split[0], split[1], index);
   }
 
   private void handleSpecialArgument(@NotNull final String argument) {
     final String[] split = argument.split("=");
     this.ffmpeg.addArguments(split[0], split[1]);
+  }
+
+  private int addArgument(@NotNull final CommandContext<CommandSender> context) {
+    final Audience audience = this.plugin.audience().sender(context.getSource());
+    final String str = context.getArgument("arguments", String.class);
+    final String[] arguments = str.split(" ");
+    this.addMultipleArguments(arguments);
+    audience.sendMessage(Locale.ADD_FFMPEG_ARG.build(str));
+    return SINGLE_SUCCESS;
   }
 
   @Override

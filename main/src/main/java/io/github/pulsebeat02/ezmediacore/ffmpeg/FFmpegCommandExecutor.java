@@ -69,17 +69,17 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public @NotNull FFmpegArgumentPreparation addArguments(
-      @NotNull final String key, @NotNull final String value) {
-    this.arguments.add(key);
-    this.arguments.add(value);
+  public @NotNull FFmpegArgumentPreparation addArgument(
+      @NotNull final String arg, final int index) {
+    this.arguments.add(index, arg);
     return this;
   }
 
   @Override
-  public @NotNull FFmpegArgumentPreparation addArgument(
-      @NotNull final String arg, final int index) {
-    this.arguments.add(index, arg);
+  public @NotNull FFmpegArgumentPreparation addArguments(
+      @NotNull final String key, @NotNull final String value) {
+    this.arguments.add(key);
+    this.arguments.add(value);
     return this;
   }
 

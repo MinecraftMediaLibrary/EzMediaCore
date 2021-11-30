@@ -1693,6 +1693,7 @@ public final class Scalr {
         tx.translate(0, newHeight);
         tx.scale(1.0, -1.0);
       }
+      default -> throw new IllegalArgumentException("Invalid rotation option!");
     }
 
     // Create our target image we will render the rotated result to.

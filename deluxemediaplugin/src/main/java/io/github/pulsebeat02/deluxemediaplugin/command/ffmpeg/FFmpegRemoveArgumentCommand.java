@@ -71,16 +71,16 @@ public final class FFmpegRemoveArgumentCommand implements CommandSegment.Literal
     this.ffmpeg.removeArgument(index);
   }
 
+  private void removeArgument(@NotNull final String argument) {
+    this.ffmpeg.removeArgument(argument);
+  }
+
   private int removeArgument(@NotNull final CommandContext<CommandSender> context) {
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String argument = context.getArgument("argument", String.class);
     this.removeArgument(argument);
     audience.sendMessage(Locale.REMOVE_FFMPEG_ARG.build(argument));
     return SINGLE_SUCCESS;
-  }
-
-  private void removeArgument(@NotNull final String argument) {
-    this.ffmpeg.removeArgument(argument);
   }
 
   @Override

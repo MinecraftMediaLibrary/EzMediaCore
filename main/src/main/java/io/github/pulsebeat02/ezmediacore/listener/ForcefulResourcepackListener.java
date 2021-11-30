@@ -83,6 +83,7 @@ public record ForcefulResourcepackListener(MediaLibraryCore core,
     switch (status) {
       case FAILED_DOWNLOAD -> this.failed(player);
       case ACCEPTED, DECLINED, SUCCESSFULLY_LOADED -> this.successful(player);
+      default -> throw new IllegalArgumentException("Invalid resourcepack status!");
     }
   }
 

@@ -34,10 +34,10 @@ public interface FFmpegArgumentPreparation extends LibraryInjectable, EnhancedEx
   FFmpegArgumentPreparation addArgument(@NotNull final String arg);
 
   @NotNull
-  FFmpegArgumentPreparation addArguments(@NotNull final String key, @NotNull final String value);
+  FFmpegArgumentPreparation addArgument(@NotNull final String arg, final int index);
 
   @NotNull
-  FFmpegArgumentPreparation addArgument(@NotNull final String arg, final int index);
+  FFmpegArgumentPreparation addArguments(@NotNull final String key, @NotNull final String value);
 
   @NotNull
   FFmpegArgumentPreparation addArguments(

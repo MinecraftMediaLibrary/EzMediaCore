@@ -40,7 +40,6 @@ public class WebsiteControls implements WebPlayerControls {
 
   @Contract(pure = true)
   private @NotNull @Unmodifiable List<String> getSongs() {
-    // TODO: 7/30/2021 get songs from spotify using some api
     return Collections.emptyList();
   }
 

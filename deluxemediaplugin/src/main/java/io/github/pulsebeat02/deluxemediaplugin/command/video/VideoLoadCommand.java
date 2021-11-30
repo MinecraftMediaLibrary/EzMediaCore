@@ -149,15 +149,6 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
     return SINGLE_SUCCESS;
   }
 
-  private void sendCompletionMessage(
-      @NotNull final Audience audience,
-      @NotNull final String mrl,
-      @NotNull final AtomicBoolean successful) {
-    if (successful.get()) {
-      this.afterDownloadExecutionFinish(audience, mrl);
-    }
-  }
-
   private void handleVideoLoad(
       @NotNull final Audience audience,
       @NotNull final AtomicBoolean successful,
@@ -356,6 +347,15 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       players.forEach(this::sendSeparatePackMessage);
 
       audience.sendMessage(Locale.LOADED_MEDIA.build(mrl));
+    }
+  }
+
+  private void sendCompletionMessage(
+      @NotNull final Audience audience,
+      @NotNull final String mrl,
+      @NotNull final AtomicBoolean successful) {
+    if (successful.get()) {
+      this.afterDownloadExecutionFinish(audience, mrl);
     }
   }
 
