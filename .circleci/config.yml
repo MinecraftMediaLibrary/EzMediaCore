@@ -21,6 +21,7 @@ jobs:
       - run: wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
       - run: java -jar BuildTools.jar --rev 1.16.5
       - run: java -jar BuildTools.jar --rev 1.17.1
+      - run: java -jar BuildTools.jar --rev 1.18-pre5
       - run: git clone https://github.com/slimjar/slimjar.git slimjar; cd ./slimjar; chmod 777 ./gradlew; ./gradlew publishToMavenLocal
       - run: ./gradlew build
       - store_artifacts:
