@@ -53,6 +53,12 @@ jobs:
           paths:
             - ~/.m2/
           key: v1-dependencies-{{ checksum "build.gradle.kts" }}
+      - dependencies:
+          requires:
+            - BUILDTOOLS
+            - JAVA-16-NMS
+            - JAVA-17-NMS
+            - SLIMJAR
       - run: ./gradlew build
       - store_artifacts:
           path: deluxemediaplugin/build/libs/DeluxeMediaPlugin-all.jar
