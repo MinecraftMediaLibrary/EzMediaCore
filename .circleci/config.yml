@@ -13,8 +13,6 @@ jobs:
     docker:
       - image: cimg/openjdk:16.0.1
     working_directory: ~/repo
-    enviornment:
-      MAVEN_OPTS: -Xmx3200m -Xms2600m
     steps:
       - checkout
       - run: java -jar BuildTools.jar --rev 1.16.5
@@ -23,8 +21,6 @@ jobs:
     docker:
       - image: cimg/openjdk:17.0.0
     working_directory: ~/repo
-    enviornment:
-      MAVEN_OPTS: -Xmx3200m -Xms2600m
     steps:
       - checkout
       - run: java -jar BuildTools.jar --rev 1.18-pre5
@@ -32,8 +28,6 @@ jobs:
     docker:
       - image: cimg/openjdk:17.0.0
     working_directory: ~/repo
-    enviornment:
-      MAVEN_OPTS: -Xmx3200m -Xms2600m
     steps:
       - checkout
       - run: git clone https://github.com/slimjar/slimjar.git slimjar; cd ./slimjar; chmod 777 ./gradlew; ./gradlew publishToMavenLocal
