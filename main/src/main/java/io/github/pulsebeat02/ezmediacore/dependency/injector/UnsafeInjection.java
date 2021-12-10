@@ -31,7 +31,7 @@ public final class UnsafeInjection {
       @NotNull final Iterable<Path> jars, @NotNull final URLClassLoader classloader)
       throws NoSuchFieldException {
     checkNotNull(jars, "JARs cannot be null!");
-    checkNotNull(classloader, "ClassLoader cannot be null!");
+    checkNotNull(classloader, "Classloader cannot be null!");
     this.jars = jars;
     final Object ucp = this.getUCP(classloader);
     this.unopened = this.getUnopenedURLs(ucp);
