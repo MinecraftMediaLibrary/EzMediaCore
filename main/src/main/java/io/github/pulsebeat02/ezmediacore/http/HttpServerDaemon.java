@@ -23,6 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore.http;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipHeader;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipRequest;
@@ -63,6 +66,10 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
       @NotNull final String ip,
       final int port,
       final boolean verbose) {
+    checkNotNull(core, "MediaLibraryCore cannot be null!");
+    checkNotNull(path, "HTTP path cannot be null!");
+    checkNotNull(ip, "IP Address cannot be null!");
+    checkArgument(port > 0, "Port must be non-negative!");
     this.core = core;
     this.executor = Executors.newSingleThreadExecutor();
     this.running = new AtomicBoolean(false);

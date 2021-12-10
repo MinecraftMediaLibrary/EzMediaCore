@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import org.jetbrains.annotations.NotNull;
 

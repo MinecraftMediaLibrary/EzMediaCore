@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility.tuple;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +34,8 @@ public class Pair<K, V> {
   private final V value;
 
   Pair(@NotNull final K key, @NotNull final V value) {
+    checkNotNull(key, "Key cannot be null!");
+    checkNotNull(value, "Value cannot be null!");
     this.key = key;
     this.value = value;
   }

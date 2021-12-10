@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.github.kiulian.downloader.downloader.request.RequestVideoInfo;
 import com.github.kiulian.downloader.downloader.response.Response;
 import com.github.kiulian.downloader.model.videos.VideoDetails;
@@ -45,6 +47,7 @@ public class YoutubeVideo implements Video {
   private final List<AudioFormat> audioFormats;
 
   YoutubeVideo(@NotNull final String url) {
+    checkNotNull(url, "URL cannot be null!");
     this.url = url;
     this.id = MediaExtractionUtils.getYoutubeIDExceptionally(url);
     this.video = this.getInternalVideoResponse();

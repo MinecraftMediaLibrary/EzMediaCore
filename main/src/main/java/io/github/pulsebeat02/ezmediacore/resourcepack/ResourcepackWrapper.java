@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.resourcepack;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.gson.JsonObject;
 import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
 import io.github.pulsebeat02.ezmediacore.throwable.IllegalPackFormatException;
@@ -55,6 +57,8 @@ public class ResourcepackWrapper implements PackWrapper {
       @NotNull final String description,
       final int format,
       @Nullable final Path icon) {
+    checkNotNull(path, "Path cannot be null!");
+    checkNotNull(description, "Description cannot be null!");
     this.files = new HashMap<>();
     this.path = path;
     this.description = description;

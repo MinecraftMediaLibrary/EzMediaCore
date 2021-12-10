@@ -23,6 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore.rtp;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
@@ -47,6 +50,8 @@ public class RTPStreamingServer implements StreamingServer {
 
   RTPStreamingServer(
       @NotNull final MediaLibraryCore core, @NotNull final String ip, final int hlsPort) {
+    checkNotNull(ip, "IP Address must be valid!");
+    checkArgument(hlsPort > 0, "Port must be non-negative!");
     this.core = core;
     this.ip = ip;
     this.hlsPort = hlsPort;

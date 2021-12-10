@@ -23,6 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility.task;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -35,6 +38,8 @@ public final class TaskUtils {
 
   public static <T> @NotNull Future<T> sync(
       @NotNull final MediaLibraryCore core, @NotNull final Callable<T> task) {
+    checkNotNull(core, "MediaLibraryCore cannot be null!");
+    checkNotNull(task, "Task cannot be null!");
     return core.getPlugin().getServer().getScheduler().callSyncMethod(core.getPlugin(), task);
   }
 }

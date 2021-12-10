@@ -23,8 +23,12 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility.media;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.throwable.DeadResourceLinkException;
 import io.github.pulsebeat02.ezmediacore.throwable.UnknownArtistException;
@@ -74,6 +78,7 @@ public final class MediaExtractionUtils {
    * @return an Optional containing the String url if existing
    */
   public static @NotNull Optional<String> getYoutubeID(@NotNull final String url) {
+    checkNotNull(url, "Youtube Video URL cannot be null!");
     final Matcher matcher = YOUTUBE_ID_PATTERN.matcher(url);
     if (matcher.find()) {
       return Optional.of(matcher.group());
@@ -82,6 +87,7 @@ public final class MediaExtractionUtils {
   }
 
   public static @NotNull String getYoutubeIDExceptionally(@NotNull final String url) {
+    checkNotNull(url, "Youtube URL cannot be null!");
     return getYoutubeID(url).orElseThrow(() -> new DeadResourceLinkException(url));
   }
 
@@ -92,6 +98,7 @@ public final class MediaExtractionUtils {
    * @return an Optional containing the String url if existing
    */
   public static @NotNull Optional<String> getSpotifyID(@NotNull final String url) {
+    checkNotNull(url, "Spotify URL cannot be null!");
     if (!isSpotifyLink(url)) {
       return Optional.empty();
     }
@@ -109,16 +116,23 @@ public final class MediaExtractionUtils {
   }
 
   public static @NotNull String getSpotifyIDExceptionally(@NotNull final String url) {
+    checkNotNull(url, "Spotify URL cannot be null!");
     return getSpotifyID(url).orElseThrow(() -> new UnknownArtistException(url));
   }
 
   public static @NotNull Optional<String> getFirstResultVideo(@NotNull final String query) {
+    checkQuery(query);
     return CACHED_RESULT.get(query.trim().toLowerCase(Locale.ROOT));
   }
 
-  public static @NotNull String getFirstResultVideoExceptionally(
-      @NotNull final String query, @NotNull final String url) {
+  public static @NotNull String getFirstResultVideoExceptionally(@NotNull final String query) {
+    checkQuery(query);
     return getFirstResultVideo(query).orElseThrow(() -> new DeadResourceLinkException(query));
+  }
+
+  private static void checkQuery(@NotNull final String query) {
+    checkNotNull(query, "Query cannot be null!");
+    checkArgument(query.length() != 0, "Query cannot be empty!");
   }
 
   private static @NotNull Optional<String> getFirstResultVideoInternal(@NotNull final String query)

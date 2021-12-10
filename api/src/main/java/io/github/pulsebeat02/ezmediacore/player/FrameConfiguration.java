@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.base.Preconditions;
 import java.util.Objects;
 import org.jetbrains.annotations.Contract;
@@ -49,7 +51,7 @@ public final class FrameConfiguration {
   private final int fps;
 
   FrameConfiguration(final int fps) {
-    Preconditions.checkArgument(fps >= 0, "FPS must be greater than or equal to 0!");
+    checkArgument(fps >= 0, "FPS must be greater than or equal to 0!");
     this.fps = fps;
   }
 

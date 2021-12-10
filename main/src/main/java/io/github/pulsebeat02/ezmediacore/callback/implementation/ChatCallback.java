@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.implementation;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
@@ -46,6 +48,7 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
       @NotNull final NamedEntityString character,
       @NotNull final DelayConfiguration delay) {
     super(core, viewers, dimension, delay);
+    checkNotNull(character, "Entity name cannot be null!");
     this.character = character;
   }
 

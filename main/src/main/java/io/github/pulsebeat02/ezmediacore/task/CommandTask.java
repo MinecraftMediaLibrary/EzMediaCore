@@ -45,6 +45,8 @@
 
 package io.github.pulsebeat02.ezmediacore.task;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -76,6 +78,7 @@ public class CommandTask {
    */
   public CommandTask(@NotNull final String[] command, final boolean runOnCreation)
       throws IOException {
+    checkNotNull(command, "Command cannot be null!");
     this.command = command;
     if (runOnCreation) {
       this.run();
@@ -88,6 +91,7 @@ public class CommandTask {
    * @param command command
    */
   public CommandTask(@NotNull final String... command) {
+    checkNotNull(command, "Command cannot be null!");
     this.command = command;
   }
 

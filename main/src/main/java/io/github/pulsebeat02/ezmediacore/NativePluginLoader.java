@@ -37,7 +37,7 @@ public class NativePluginLoader {
 
   private final MediaLibraryCore core;
 
-  public NativePluginLoader(@NotNull final MediaLibraryCore core) {
+  NativePluginLoader(@NotNull final MediaLibraryCore core) {
     this.core = core;
   }
 

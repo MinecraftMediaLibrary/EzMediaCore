@@ -53,7 +53,6 @@ public class HttpServer implements HttpDaemonSolution {
   }
 
   private final HttpDaemon daemon;
-  private final ExecutorService executor;
   private boolean running;
 
   HttpServer(
@@ -63,7 +62,6 @@ public class HttpServer implements HttpDaemonSolution {
       final int port,
       final boolean verbose) {
     this.daemon = HttpServerDaemon.ofDaemon(core, path, ip, port, verbose);
-    this.executor = Executors.newSingleThreadExecutor();
   }
 
   private static @NotNull HttpRequest createRequest() throws URISyntaxException {

@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingFunction;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
@@ -44,6 +46,7 @@ public class SpotifyTrack implements Track {
 
   SpotifyTrack(@NotNull final String url)
       throws IOException, ParseException, SpotifyWebApiException {
+    checkNotNull(url, "URL cannot be null!");
     this.url = url;
     this.track = this.getInternalTrack();
     this.artists = this.getInternalArtists();

@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility.io;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +39,7 @@ public final class HashingUtils {
   private HashingUtils() {}
 
   public static Optional<byte[]> createHashSha1(@NotNull final Path file) {
+    checkNotNull(file, "Path cannot be null!");
     try {
       final MessageDigest digest = MessageDigest.getInstance("SHA-1");
       final InputStream fis = new FileInputStream(file.toFile());
@@ -63,6 +66,7 @@ public final class HashingUtils {
    */
   @NotNull
   public static String toHexString(final byte @NotNull [] bytes) {
+    checkNotNull(bytes, "Bytes cannot be null!");
     final StringBuilder hexString = new StringBuilder();
     for (final byte b : bytes) {
       final String hex = Integer.toHexString(0xFF & b);

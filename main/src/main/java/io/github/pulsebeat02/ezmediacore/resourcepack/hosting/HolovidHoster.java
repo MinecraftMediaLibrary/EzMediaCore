@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.resourcepack.hosting;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
@@ -48,6 +50,7 @@ public class HolovidHoster implements HolovidSolution {
   private final MediaLibraryCore core;
 
   public HolovidHoster(@NotNull final MediaLibraryCore core) {
+    checkNotNull(core, "MediaLibraryCore cannot be null!");
     this.core = core;
   }
 

@@ -23,9 +23,10 @@
  */
 package io.github.pulsebeat02.ezmediacore.image;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
 
-import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.ImageUtils;
@@ -49,8 +50,12 @@ public abstract class Image implements MapImage {
       @NotNull final Path image,
       @NotNull final List<Integer> maps,
       @NotNull final Dimension dimension) {
-    Preconditions.checkArgument(maps.size() >= 1, "Invalid Map Matrix!");
-    Preconditions.checkArgument(
+    checkNotNull(core, "MediaLibraryCore cannot be null!");
+    checkNotNull(image, "Image cannot be null!");
+    checkNotNull(maps, "Maps cannot be null!");
+    checkNotNull(dimension, "Dimensions cannot be null!");
+    checkArgument(maps.size() >= 1, "Invalid Map Matrix!");
+    checkArgument(
         maps.size() == dimension.getWidth() * dimension.getHeight(),
         "Maps specified to use doesn't match dimensions (in itemframes) of image!");
     this.core = core;

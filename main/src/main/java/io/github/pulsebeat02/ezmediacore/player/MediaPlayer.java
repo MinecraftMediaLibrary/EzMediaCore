@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.bukkit.SoundCategory.MASTER;
 
 import com.google.common.annotations.Beta;
@@ -60,6 +61,10 @@ public abstract class MediaPlayer implements VideoPlayer {
       @NotNull final Dimension pixelDimension,
       @NotNull final FrameConfiguration fps,
       @Nullable final SoundKey key) {
+    checkNotNull(callback, "Callback cannot be null!");
+    checkNotNull(viewers, "Viewers cannot be null!");
+    checkNotNull(pixelDimension, "Pixel dimension cannot be null!");
+    checkNotNull(fps, "Frame configuration cannot be null!");
     this.core = callback.getCore();
     this.callback = callback;
     this.dimensions = pixelDimension;
@@ -114,6 +119,7 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   @Override
   public void start(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+    checkNotNull(mrl, "MRL cannot be null!");
     this.controls = PlayerControls.START;
     this.onPlayerStateChange(mrl, this.controls, arguments);
   }
@@ -126,6 +132,7 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   @Override
   public void resume(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+    checkNotNull(mrl, "MRL cannot be null!");
     this.controls = PlayerControls.RESUME;
     this.onPlayerStateChange(mrl, this.controls, arguments);
   }

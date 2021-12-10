@@ -23,8 +23,11 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility.media;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.jlibdl.JLibDL;
 import io.github.pulsebeat02.ezmediacore.jlibdl.YoutubeDLRequest;
@@ -73,6 +76,7 @@ public final class RequestUtils {
   private RequestUtils() {}
 
   public static @NotNull String getResult(@NotNull final String link) {
+    checkNotNull(link, "URL cannot be null!");
     try {
       final HttpResponse<String> response =
           HTTP_CLIENT.send(createRequest(link), createBodyHandler());
@@ -80,7 +84,7 @@ public final class RequestUtils {
     } catch (final IOException | InterruptedException e) {
       e.printStackTrace();
     }
-    return "";
+    throw new AssertionError("Empty content from url %s!".formatted(link));
   }
 
   @Contract(pure = true)
@@ -114,10 +118,13 @@ public final class RequestUtils {
 
   public static @NotNull Path downloadFile(@NotNull final Path path, @NotNull final String url)
       throws IOException, InterruptedException {
+    checkNotNull(path, "Path cannot be null!");
+    checkNotNull(url, "URL cannot be null!");
     return HTTP_CLIENT.send(createRequest(url), BodyHandlers.ofFile(path)).body();
   }
 
   private static @NotNull HttpRequest createRequest(@NotNull final String url) {
+    checkNotNull(url, "URL cannot be null!");
     return HttpRequest.newBuilder().uri(URI.create(url)).build();
   }
 

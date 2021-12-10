@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.entity;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.jetbrains.annotations.NotNull;
 
 public final class NamedEntityString {
@@ -50,6 +52,7 @@ public final class NamedEntityString {
   private final String name;
 
   NamedEntityString(@NotNull final String name) {
+    checkNotNull(name, "NamedEntityString cannot be null!");
     this.name = name;
   }
 

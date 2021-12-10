@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.player.external;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.base.Preconditions;
 import com.sun.jna.Pointer;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
@@ -240,7 +242,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   }
 
   private void checkIfReleased() {
-    Preconditions.checkArgument(this.player != null, "Cannot modify player after being released!");
+    checkArgument(this.player != null, "Cannot modify player after being released!");
   }
 
   private void modifyPlayerAttributes() {

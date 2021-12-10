@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility.io;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
@@ -53,6 +55,7 @@ public final class PathUtils {
    * @return whether the path is valid
    */
   public static boolean isValidPath(@NotNull final String path) {
+    checkNotNull(path, "Path cannot be null!");
     final String lowercase = path.toLowerCase(Locale.ROOT);
     if (lowercase.startsWith("http://") || lowercase.startsWith("https://")) {
       return false;
@@ -61,6 +64,7 @@ public final class PathUtils {
   }
 
   public static @NotNull String getName(@NotNull final Path path) {
+    checkNotNull(path, "Path cannot be null!");
     return path.getFileName().toString();
   }
 }

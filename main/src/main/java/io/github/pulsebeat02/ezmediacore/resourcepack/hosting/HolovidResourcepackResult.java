@@ -27,21 +27,16 @@ import org.jetbrains.annotations.NotNull;
 
 public final class HolovidResourcepackResult implements ResourcepackResult {
 
-  private final String url;
-  private final String hash;
-
-  public HolovidResourcepackResult(final String url, final String hash) {
-    this.url = url;
-    this.hash = hash;
-  }
+  private String url;
+  private String hash;
 
   @Override
   public @NotNull String getUrl() {
-    return url;
+    return this.url;
   }
 
   @Override
   public @NotNull String getHash() {
-    return hash;
+    return this.hash;
   }
 }

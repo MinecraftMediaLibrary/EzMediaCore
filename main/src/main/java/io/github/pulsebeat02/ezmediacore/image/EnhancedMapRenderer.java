@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.image;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -39,6 +41,8 @@ public class EnhancedMapRenderer implements MapRenderer {
 
   public EnhancedMapRenderer(
       @NotNull final Dimension dimension, @NotNull final List<Integer> maps) {
+    checkNotNull(dimension);
+    checkNotNull(maps);
     this.maps = new MapView[dimension.getHeight()][dimension.getWidth()];
     this.fillMaps(maps, dimension);
   }

@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.persistent;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -36,6 +38,7 @@ public abstract class PersistentObject<T> implements SerializableComponent<T> {
   private final Path path;
 
   public PersistentObject(@NotNull final Path path) {
+    checkNotNull(path, "Path cannot be null!");
     this.path = path;
   }
 

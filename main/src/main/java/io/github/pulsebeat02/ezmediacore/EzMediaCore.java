@@ -23,6 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.analysis.Diagnostic;
 import io.github.pulsebeat02.ezmediacore.analysis.SystemDiagnostics;
 import io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil;
@@ -81,6 +84,7 @@ public final class EzMediaCore implements MediaLibraryCore {
       @Nullable final Path audioPath,
       @Nullable final Path videoPath,
       @Nullable final SpotifyClient client) {
+    checkNotNull(plugin, "Cannot initialize plugin that is null!");
     this.plugin = plugin;
     this.spotifyClient = client;
     this.libraryPath = this.getFinalPath(libraryPath, plugin.getDataFolder().toPath(), "emc");

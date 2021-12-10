@@ -23,9 +23,13 @@
  */
 package io.github.pulsebeat02.ezmediacore.dimension;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.base.Preconditions;
 import java.util.Map;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 public final class ImmutableDimension implements Dimension {
 
@@ -33,14 +37,15 @@ public final class ImmutableDimension implements Dimension {
   private final int height;
 
   public ImmutableDimension(final int width, final int height) {
-    Preconditions.checkArgument(width >= 0, "Width must be above or equal to 0!");
-    Preconditions.checkArgument(height >= 0, "Height must be above or equal to 0!");
+    checkArgument(width >= 0, "Width must be above or equal to 0!");
+    checkArgument(height >= 0, "Height must be above or equal to 0!");
     this.width = width;
     this.height = height;
   }
 
+  @Contract(" -> new")
   @Override
-  public @NotNull Map<String, Object> serialize() {
+  public @NotNull @Unmodifiable Map<String, Object> serialize() {
     return Map.of(
         "width", this.width,
         "height", this.height);

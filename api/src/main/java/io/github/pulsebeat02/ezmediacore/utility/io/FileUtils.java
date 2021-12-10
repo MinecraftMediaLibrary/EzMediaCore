@@ -23,8 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility.io;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,7 +45,9 @@ public final class FileUtils {
 
   public static @NotNull Path downloadImageFile(
       @NotNull final String url, @NotNull final Path folder) throws IOException {
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(url), "URL cannot be null or empty!");
+    checkNotNull(url, "URL cannot be null!");
+    checkNotNull(folder, "Folder cannot be null!");
+    checkArgument(url.length() != 0, "URL cannot be null or empty!");
     final String filePath = "%s/%s.png".formatted(folder, UUID.randomUUID());
     try (final InputStream in = new URL(url).openStream()) {
       Files.copy(in, Path.of(filePath));
@@ -53,6 +56,7 @@ public final class FileUtils {
   }
 
   public static void createFile(@NotNull final Path file) throws IOException {
+    checkNotNull(file, "Path cannot be null!");
     final Path parent = file.getParent();
     if (Files.notExists(parent)) {
       Files.createDirectories(file.getParent());
@@ -63,6 +67,7 @@ public final class FileUtils {
   }
 
   public static boolean createIfNotExists(@NotNull final Path file) throws IOException {
+    checkNotNull(file, "Path cannot be null!");
     if (Files.notExists(file)) {
       Files.createFile(file);
       return true;
@@ -71,6 +76,7 @@ public final class FileUtils {
   }
 
   public static boolean createFolderIfNotExists(@NotNull final Path file) throws IOException {
+    checkNotNull(file, "Path cannot be null!");
     if (Files.notExists(file)) {
       Files.createDirectory(file);
       return true;
@@ -79,6 +85,7 @@ public final class FileUtils {
   }
 
   public static boolean deleteIfExists(@NotNull final Path file) throws IOException {
+    checkNotNull(file, "Path cannot be null!");
     if (Files.exists(file)) {
       Files.delete(file);
       return true;
@@ -87,6 +94,8 @@ public final class FileUtils {
   }
 
   public static void copyURLToFile(@NotNull final String url, @NotNull final Path path) {
+    checkNotNull(url, "URL cannot be null!");
+    checkNotNull(path, "Path cannot be null!");
     try (final ReadableByteChannel in = Channels.newChannel(new URL(url).openStream());
         final FileChannel channel = new FileOutputStream(path.toString()).getChannel()) {
       channel.transferFrom(in, 0, Long.MAX_VALUE);
@@ -96,6 +105,7 @@ public final class FileUtils {
   }
 
   public static @NotNull String getFirstLine(@NotNull final Path file) throws IOException {
+    checkNotNull(file, "Path cannot be null!");
     return Files.lines(file).findFirst().orElseThrow(NoSuchElementException::new);
   }
 }

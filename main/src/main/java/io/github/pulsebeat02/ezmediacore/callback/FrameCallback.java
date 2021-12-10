@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
@@ -42,6 +44,10 @@ public abstract class FrameCallback implements Callback {
       @NotNull final Viewers viewers,
       @NotNull final Dimension dimension,
       @NotNull final DelayConfiguration delay) {
+    checkNotNull(core, "MediaLibraryCore cannot be null!");
+    checkNotNull(viewers, "Viewers cannot be null!");
+    checkNotNull(dimension, "Dimension cannot be null!");
+    checkNotNull(delay, "Delay cannot be null!");
     this.core = core;
     this.viewers = viewers;
     this.dimension = dimension;

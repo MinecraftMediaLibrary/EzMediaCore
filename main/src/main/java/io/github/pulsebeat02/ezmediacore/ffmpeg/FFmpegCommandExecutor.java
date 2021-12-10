@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedReader;
@@ -49,6 +51,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   private Process process;
 
   FFmpegCommandExecutor(@NotNull final MediaLibraryCore core) {
+    checkNotNull(core, "MediaLibraryCore cannot be null!");
     this.core = core;
     this.arguments = new ArrayList<>();
     this.arguments.add(core.getFFmpegPath().toString());

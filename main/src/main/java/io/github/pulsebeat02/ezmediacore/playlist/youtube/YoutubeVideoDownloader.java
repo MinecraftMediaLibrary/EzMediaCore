@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.github.kiulian.downloader.downloader.request.RequestVideoFileDownload;
 import com.github.kiulian.downloader.downloader.response.Response;
 import com.google.common.collect.BiMap;
@@ -45,6 +47,8 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   private final AtomicBoolean cancelled;
 
   YoutubeVideoDownloader(@NotNull final YoutubeVideo video, @NotNull final Path videoPath) {
+    checkNotNull(video, "YoutubeVideo cannot be null!");
+    checkNotNull(videoPath, "Video path cannot be null!");
     this.video = video;
     this.videoPath = videoPath;
     this.cancelled = new AtomicBoolean(false);

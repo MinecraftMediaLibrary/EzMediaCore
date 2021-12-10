@@ -23,6 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.base.Preconditions;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
@@ -40,6 +43,7 @@ public final class MrlConfiguration {
   private final String mrl;
 
   MrlConfiguration(@NotNull final String mrl) {
+    checkNotNull(mrl, "MRL specified cannot be null!");
     this.mrl = mrl;
   }
 

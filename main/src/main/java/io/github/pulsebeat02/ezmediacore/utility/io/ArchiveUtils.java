@@ -45,6 +45,8 @@
 
 package io.github.pulsebeat02.ezmediacore.utility.io;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.github.pulsebeat02.jarchivelib.ArchiverFactory;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -80,6 +82,8 @@ public final class ArchiveUtils {
 
   public static void decompressArchive(@NotNull final Path file, @NotNull final Path result)
       throws IOException {
+    checkNotNull(file, "File cannot be null!");
+    checkNotNull(result, "Result cannot be null!");
     final String[] types = getCompressedType(PathUtils.getName(file)).split(" ");
     (types.length == 1
             ? ArchiverFactory.createArchiver(types[0])
@@ -93,17 +97,26 @@ public final class ArchiveUtils {
       @NotNull final String type,
       @NotNull final String compression)
       throws IOException {
+    checkNotNull(file, "File cannot be null!");
+    checkNotNull(result, "Result cannot be null!");
+    checkNotNull(type, "Type cannot be null!");
+    checkNotNull(compression, "Compression cannot be null!");
     ArchiverFactory.createArchiver(type, compression).extract(file.toFile(), result.toFile());
   }
 
   public static void decompressArchive(
       @NotNull final Path file, @NotNull final Path result, @NotNull final String type)
       throws IOException {
+    checkNotNull(file, "File cannot be null!");
+    checkNotNull(result, "Result cannot be null!");
+    checkNotNull(type, "Type cannot be null!");
     ArchiverFactory.createArchiver(type).extract(file.toFile(), result.toFile());
   }
 
   public static void recursiveExtraction(@NotNull final Path file, @NotNull final Path folder)
       throws IOException {
+    checkNotNull(file, "File cannot be null!");
+    checkNotNull(folder, "Folder cannot be null!");
     decompressArchive(file, folder);
     Path currentFolder = folder;
     final Queue<Path> queue = new LinkedList<>(containsArchiveExtension(currentFolder));
@@ -130,6 +143,7 @@ public final class ArchiveUtils {
 
   @NotNull
   public static Set<Path> containsArchiveExtension(@NotNull final Path f) throws IOException {
+    checkNotNull(f, "File cannot be null!");
     final Set<Path> files = new HashSet<>();
     try (final Stream<Path> paths = Files.walk(f)) {
       paths.forEach(path -> addPaths(files, path));
@@ -145,6 +159,7 @@ public final class ArchiveUtils {
 
   @NotNull
   public static String getCompressedType(@NotNull final String name) {
+    checkNotNull(name, "Name cannot be null!");
     for (final Set<String> keys : ASSOCIATED_COMPRESSED_TYPES.keySet()) {
       if (keys.stream().anyMatch(name::endsWith)) {
         return ASSOCIATED_COMPRESSED_TYPES.get(keys);
@@ -156,6 +171,7 @@ public final class ArchiveUtils {
 
   @NotNull
   public static String getFileName(@NotNull final String full) {
+    checkNotNull(full, "Name cannot be null!");
     return SPECIAL_EXTENSIONS.stream().anyMatch(full::endsWith)
         ? full.substring(0, full.length() - 7)
         : FilenameUtils.removeExtension(full);

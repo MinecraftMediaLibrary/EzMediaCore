@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.jetbrains.annotations.NotNull;
 
 public final class SpotifyClient {
@@ -31,6 +33,8 @@ public final class SpotifyClient {
   private final String clientSecret;
 
   public SpotifyClient(@NotNull final String clientID, @NotNull final String clientSecret) {
+    checkNotNull(clientID, "Spotify Client ID cannot be null!");
+    checkNotNull(clientSecret, "Spotify Client Secret cannot be null!");
     this.clientID = clientID;
     this.clientSecret = clientSecret;
   }

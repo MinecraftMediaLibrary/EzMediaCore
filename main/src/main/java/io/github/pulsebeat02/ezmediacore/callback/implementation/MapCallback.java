@@ -23,6 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.implementation;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
@@ -52,7 +55,8 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
       @NotNull final DelayConfiguration delay,
       final int blockWidth) {
     super(core, viewers, dimension, delay);
-    Preconditions.checkArgument(map.getValue() >= 0, "Map id must be greater than or equal to 0!");
+    checkArgument(map.getValue() >= 0, "Map id must be greater than or equal to 0!");
+    checkNotNull(algorithm, "Algorithm cannot be null!");
     this.algorithm = algorithm;
     this.map = map.getValue();
     this.blockWidth = blockWidth;

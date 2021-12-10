@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.implementation;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
@@ -66,6 +68,9 @@ public class EntityCallback<T extends Entity> extends FrameCallback
       @Nullable final Consumer<T> consumer,
       @NotNull final DelayConfiguration delay) {
     super(core, viewers, dimension, delay);
+    checkNotNull(location, "Location cannot be null!");
+    checkNotNull(type, "Entity class cannot be null!");
+    checkNotNull(character, "Name of entity cannot be null!");
     this.location = location;
     this.type = type;
     this.consumer = consumer;

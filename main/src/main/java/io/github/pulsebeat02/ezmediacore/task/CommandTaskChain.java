@@ -45,6 +45,8 @@
 
 package io.github.pulsebeat02.ezmediacore.task;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -85,6 +87,7 @@ public class CommandTaskChain {
    * @return the CommandTaskChain
    */
   public CommandTaskChain thenRun(@NotNull final CommandTask task) {
+    checkNotNull(task, "Task cannot be null!");
     this.chain.put(task, false);
     return this;
   }
@@ -96,6 +99,7 @@ public class CommandTaskChain {
    * @return the CommandTaskChain
    */
   public CommandTaskChain thenRunAsync(@NotNull final CommandTask task) {
+    checkNotNull(task, "Task cannot be null!");
     this.chain.put(task, true);
     return this;
   }

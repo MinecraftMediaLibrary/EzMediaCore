@@ -23,7 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.extraction;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,12 +44,11 @@ public final class AudioAttributes implements AudioConfiguration {
       final int channels,
       final int samplingRate,
       final int volume) {
-    Preconditions.checkArgument(start >= 0, "Invalid Start Time! (%d)".formatted(start));
-    Preconditions.checkArgument(bitrate > 0, "Invalid Bitrate! (%d)".formatted(bitrate));
-    Preconditions.checkArgument(channels > 0, "Invalid Channels! (%d)".formatted(channels));
-    Preconditions.checkArgument(
-        samplingRate > 0, "Invalid Sampling Rate! (%d)".formatted(samplingRate));
-    Preconditions.checkArgument(volume >= 0, "Invalid Volume! (%d)".formatted(volume));
+    checkArgument(start >= 0, "Invalid Start Time!");
+    checkArgument(bitrate > 0, "Invalid Bitrate!");
+    checkArgument(channels > 0, "Invalid Channels!");
+    checkArgument(samplingRate > 0, "Invalid Sampling Rate!");
+    checkArgument(volume >= 0, "Invalid Volume!");
     this.start = start;
     this.codec = codec;
     this.bitrate = bitrate;

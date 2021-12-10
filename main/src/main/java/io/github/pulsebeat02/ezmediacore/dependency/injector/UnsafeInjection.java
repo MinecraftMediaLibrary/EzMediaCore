@@ -1,5 +1,6 @@
 package io.github.pulsebeat02.ezmediacore.dependency.injector;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils.getField;
 
 import io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeManager;
@@ -29,6 +30,8 @@ public final class UnsafeInjection {
   public UnsafeInjection(
       @NotNull final Iterable<Path> jars, @NotNull final URLClassLoader classloader)
       throws NoSuchFieldException {
+    checkNotNull(jars, "JARs cannot be null!");
+    checkNotNull(classloader, "ClassLoader cannot be null!");
     this.jars = jars;
     final Object ucp = this.getUCP(classloader);
     this.unopened = this.getUnopenedURLs(ucp);

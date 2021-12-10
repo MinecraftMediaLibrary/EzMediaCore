@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.QuerySearch;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyTrack;
@@ -40,6 +42,7 @@ public class SpotifyQuerySearch implements QuerySearch {
   private final String query;
 
   SpotifyQuerySearch(@NotNull final Track track) {
+    checkNotNull(track, "Track cannot be null!");
     this.track = track;
     this.query = this.constructInternalQuery();
     this.video = this.getInternalVideo();
@@ -63,7 +66,7 @@ public class SpotifyQuerySearch implements QuerySearch {
   @Contract(" -> new")
   private @NotNull YoutubeVideo getInternalVideo() {
     return YoutubeVideo.ofYoutubeVideo(
-        MediaExtractionUtils.getFirstResultVideoExceptionally(this.query, this.track.getUrl()));
+        MediaExtractionUtils.getFirstResultVideoExceptionally(this.query));
   }
 
   @Override

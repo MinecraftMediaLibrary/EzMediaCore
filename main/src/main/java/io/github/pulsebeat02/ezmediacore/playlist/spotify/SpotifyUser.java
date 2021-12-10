@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.wrapper.spotify.enums.ProductType;
@@ -56,6 +58,7 @@ public class SpotifyUser implements User {
 
   SpotifyUser(@NotNull final String url)
       throws IOException, ParseException, SpotifyWebApiException {
+    checkNotNull(url, "URL cannot be null!");
     this.url = url;
     this.user = this.getInternalUser();
     this.avatars = this.getInternalAvatars();

@@ -24,6 +24,8 @@
 
 package io.github.pulsebeat02.ezmediacore.callback;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,6 +44,7 @@ public final class Viewers {
   private final Set<Player> players;
 
   Viewers(final @NotNull UUID[] viewers) {
+    checkNotNull(viewers, "Viewers cannot be null!");
     this.viewers = viewers;
     this.players = Collections.newSetFromMap(new WeakHashMap<>());
     this.players.addAll(Arrays.stream(viewers).map(Bukkit::getPlayer).collect(Collectors.toList()));

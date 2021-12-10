@@ -24,6 +24,8 @@
 
 package io.github.pulsebeat02.ezmediacore.jlibdl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -59,11 +61,12 @@ public final class YoutubeDLRequest {
 
   public @NotNull YoutubeDLRequest request(@NotNull final String url)
       throws IOException, InterruptedException {
-    return GSON.fromJson(this.getJson(), YoutubeDLRequest.class);
+    checkNotNull(url, "URL cannot be null!");
+    return GSON.fromJson(this.getJson(url), YoutubeDLRequest.class);
   }
 
-  private @NotNull String getJson() throws IOException, InterruptedException {
-    return HTTP_CLIENT.send(this.createRequest(this.url), this.createResponse()).body();
+  private @NotNull String getJson(@NotNull final String url) throws IOException, InterruptedException {
+    return HTTP_CLIENT.send(this.createRequest(url), this.createResponse()).body();
   }
 
   private @NotNull HttpRequest createRequest(@NotNull final String url) {

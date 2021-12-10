@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.http;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.github.pulsebeat02.ezmediacore.http.request.FileRequest;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipHeader;
 import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
@@ -66,6 +68,9 @@ public class FileRequestHandler implements FileRequest {
       @NotNull final HttpServerDaemon daemon,
       @NotNull final Socket client,
       final ZipHeader header) {
+    checkNotNull(daemon, "Daemon cannot be null!");
+    checkNotNull(client, "Client cannot be null!");
+    checkNotNull(header, "Header cannot be null!");
     this.daemon = daemon;
     this.client = client;
     this.header = header;

@@ -23,9 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility.graphics;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
 
-import java.util.Objects;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -51,6 +51,7 @@ public final class MapUtils {
   }
 
   public static void givePlayerMap(@NotNull final Player player, final int id) {
+    checkNotNull(player, "Player cannot be null!");
     player.getInventory().addItem(getMapFromID(id));
   }
 
@@ -60,6 +61,9 @@ public final class MapUtils {
       final int width,
       final int height,
       final int startingMap) {
+
+    checkNotNull(player, "Player cannot be null!");
+    checkNotNull(mat, "Material cannot be null!");
 
     final World world = player.getWorld();
     final BlockFace face = player.getFacing();

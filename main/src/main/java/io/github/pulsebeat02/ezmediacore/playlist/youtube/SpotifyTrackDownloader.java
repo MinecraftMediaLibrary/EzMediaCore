@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.github.kiulian.downloader.downloader.request.RequestVideoFileDownload;
 import com.github.kiulian.downloader.downloader.response.Response;
 import com.google.common.collect.BiMap;
@@ -53,6 +55,8 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   private final AtomicBoolean cancelled;
 
   SpotifyTrackDownloader(@NotNull final Track track, @NotNull final Path videoPath) {
+    checkNotNull(track, "Track cannot be null!");
+    checkNotNull(videoPath, "Path cannot be null!");
     this.searcher = SpotifyQuerySearch.ofSpotifyQuerySearch(track);
     this.track = track;
     this.videoPath = videoPath;

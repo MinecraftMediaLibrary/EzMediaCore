@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility.manipulation;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.github.pulsebeat02.ezmediacore.utility.search.BNDM;
 import io.github.pulsebeat02.ezmediacore.utility.search.StringSearch;
 import org.jetbrains.annotations.NotNull;
@@ -37,43 +39,69 @@ public final class FastStringUtils {
 
   private FastStringUtils() {}
 
+  private static void checkArguments(@NotNull final String content, @NotNull final String target) {
+    checkNotNull(content, "Content cannot be null!");
+    checkNotNull(target, "Target cannot be null!");
+  }
+
+  private static void checkArguments(
+      final byte @NotNull [] content, final byte @NotNull [] target) {
+    checkNotNull(content, "Content cannot be null!");
+    checkNotNull(target, "Target cannot be null!");
+  }
+
+  private static void checkArguments(
+      final char @NotNull [] content, final char @NotNull [] target) {
+    checkNotNull(content, "Content cannot be null!");
+    checkNotNull(target, "Target cannot be null!");
+  }
+
   public static int fastQuerySearch(@NotNull final String content, @NotNull final String target) {
+    checkArguments(content, target);
     return STRING_SEARCHER.searchString(content, target);
   }
 
   public static int fastQuerySearch(
       @NotNull final String content, @NotNull final String target, final int after) {
+    checkArguments(content, target);
     return STRING_SEARCHER.searchString(content, after, target);
   }
 
   public static int fastQuerySearch(
       @NotNull final String content, @NotNull final String target, final int start, final int end) {
+    checkArguments(content, target);
     return STRING_SEARCHER.searchString(content, start, end, target);
   }
 
   public static int fastQuerySearch(final byte[] content, final byte[] target) {
+    checkArguments(content, target);
     return STRING_SEARCHER.searchBytes(content, target);
   }
 
   public static int fastQuerySearch(final byte[] content, final byte[] target, final int after) {
+    checkArguments(content, target);
     return STRING_SEARCHER.searchBytes(content, after, target);
   }
 
   public static int fastQuerySearch(
       final byte[] content, final byte[] target, final int start, final int end) {
+    checkArguments(content, target);
     return STRING_SEARCHER.searchBytes(content, start, end, target);
   }
 
   public static int fastQuerySearch(final char[] content, final char[] target) {
+    checkArguments(content, target);
     return STRING_SEARCHER.searchChars(content, target);
   }
 
   public static int fastQuerySearch(final char[] content, final char[] target, final int after) {
+    checkArguments(content, target);
     return STRING_SEARCHER.searchChars(content, after, target);
   }
 
   public static int fastQuerySearch(
       final char[] content, final char[] target, final int start, final int end) {
+    checkArguments(content, target);
     return STRING_SEARCHER.searchChars(content, start, end, target);
   }
 }

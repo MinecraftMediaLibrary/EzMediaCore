@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.implementation;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
@@ -45,6 +47,7 @@ public class BlockHighlightCallback extends FrameCallback
       @NotNull final Location location,
       @NotNull final DelayConfiguration delay) {
     super(core, viewers, dimension, delay);
+    checkNotNull(location, "Location cannot be null!");
     this.location = location;
   }
 

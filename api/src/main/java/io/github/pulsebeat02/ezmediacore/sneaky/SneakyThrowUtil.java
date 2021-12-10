@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.sneaky;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.jetbrains.annotations.NotNull;
 
 public final class SneakyThrowUtil {
@@ -30,6 +32,7 @@ public final class SneakyThrowUtil {
   private SneakyThrowUtil() {}
 
   static <T extends Exception, R> R sneakyThrow(@NotNull final Exception t) throws T {
+    checkNotNull(t, "Sneaky exception cannot be null!");
     //noinspection unchecked
     throw (T) t;
   }

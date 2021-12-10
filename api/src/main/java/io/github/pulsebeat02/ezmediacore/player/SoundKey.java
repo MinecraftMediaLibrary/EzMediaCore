@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Objects;
 import org.bukkit.Sound;
 import org.jetbrains.annotations.Contract;
@@ -33,6 +35,7 @@ public final class SoundKey {
   private final String name;
 
   SoundKey(@NotNull final String name) {
+    checkNotNull(name, "Sound key cannot be null!");
     this.name = name;
   }
 

@@ -23,6 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility.io;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.listener.ForcefulResourcepackListener;
 import io.github.pulsebeat02.ezmediacore.resourcepack.PackFormat;
@@ -50,6 +53,8 @@ public final class ResourcepackUtils {
       @NotNull final Collection<? extends Player> players,
       @NotNull final String url,
       final byte @NotNull [] hash) {
+    checkArguments(core, url, hash);
+    checkNotNull(players, "Specified players cannot be null!");
     new ForcefulResourcepackListener(
         core, players.stream().map(Player::getUniqueId).collect(Collectors.toSet()), url, hash);
   }
@@ -58,6 +63,7 @@ public final class ResourcepackUtils {
       @NotNull final MediaLibraryCore core,
       @NotNull final String url,
       final byte @NotNull [] hash) {
+    checkArguments(core, url, hash);
     new ForcefulResourcepackListener(
         core,
         core.getPlugin().getServer().getOnlinePlayers().stream()
@@ -65,5 +71,14 @@ public final class ResourcepackUtils {
             .collect(Collectors.toSet()),
         url,
         hash);
+  }
+
+  private static void checkArguments(
+      @NotNull final MediaLibraryCore core,
+      @NotNull final String url,
+      final byte @NotNull [] hash) {
+    checkNotNull(core, "MediaLibraryCore cannot be null!");
+    checkNotNull(url, "Resourcepack URL cannot be null!");
+    checkNotNull(hash, "Resourcepack Hash cannot be null!");
   }
 }

@@ -41,7 +41,7 @@ public class DependencyLoader implements LibraryLoader {
   private final MediaLibraryCore core;
   private final ExecutorService executor;
 
-  public DependencyLoader(@NotNull final MediaLibraryCore core) {
+  DependencyLoader(@NotNull final MediaLibraryCore core) {
     this.core = core;
     this.executor = Executors.newSingleThreadExecutor();
   }

@@ -24,6 +24,8 @@
 
 package io.github.pulsebeat02.ezmediacore.callback;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.jetbrains.annotations.NotNull;
 
 public final class Identifier<T> {
@@ -31,6 +33,7 @@ public final class Identifier<T> {
   private final T value;
 
   Identifier(@NotNull final T value) {
+    checkNotNull(value, "Identifier value cannot be null!");
     this.value = value;
   }
 

@@ -24,6 +24,8 @@
 
 package io.github.pulsebeat02.ezmediacore.callback;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,7 +48,7 @@ public final class DelayConfiguration {
   private final long delay;
 
   DelayConfiguration(final long delay) {
-    Preconditions.checkArgument(delay >= 0, "Delay must be greater than or equal to 0!");
+    checkArgument(delay >= 0, "Delay must be greater than or equal to 0!");
     this.delay = delay;
   }
 

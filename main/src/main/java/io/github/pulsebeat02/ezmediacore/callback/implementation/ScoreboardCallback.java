@@ -23,7 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.implementation;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
@@ -69,8 +70,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
       @NotNull final DelayConfiguration delay,
       @NotNull final Identifier<Integer> id) {
     super(core, viewers, dimension, delay);
-    Preconditions.checkArgument(
-        id.getValue() >= 0, "Scoreboard id must be greater than or equal to 0!");
+    checkArgument(id.getValue() >= 0, "Scoreboard id must be greater than or equal to 0!");
     this.name = "%s Video Player (%s)".formatted(core.getPlugin().getName(), id.getValue());
     this.scoreboard = this.setScoreboard();
   }
