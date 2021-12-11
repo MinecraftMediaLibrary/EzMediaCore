@@ -14,18 +14,20 @@ dependencies {
         implementation(it)
     }
 
-    setOf("com.mojang:authlib:1.5.26").forEach {
+    setOf(
+        "org.bstats:bstats-bukkit:2.2.1",
+        "com.mojang:authlib:1.5.26",
+        "net.dv8tion:JDA:5.0.0-alpha.2",
+        "me.lucko:commodore:1.11",
+        "com.github.stefvanschie.inventoryframework:IF:0.10.3"
+    ).forEach {
         compileOnly(it)
     }
 
     setOf(
-        "org.bstats:bstats-bukkit:2.2.1",
         "com.mojang:brigadier:1.0.18",
         "net.kyori:adventure-api:4.9.3",
         "net.kyori:adventure-platform-bukkit:4.0.0",
-        "com.github.stefvanschie.inventoryframework:IF:0.10.3",
-        "me.lucko:commodore:1.11",
-        "net.dv8tion:JDA:4.3.0_310",
         "com.sedmelluq:lavaplayer:1.3.78"
     ).forEach {
         implementation(it)
@@ -45,16 +47,10 @@ tasks {
 
     shadowJar {
         archiveBaseName.set("DeluxeMediaPlugin")
-
-        relocate("net.kyori", "io.github.pulsebeat02.deluxemediaplugin.lib.kyori")
-        relocate("org.bstats", "io.github.pulsebeat02.deluxemediaplugin.lib.bstats")
-        relocate("com.mojang.brigadier", "io.github.pulsebeat02.deluxemediaplugin.lib.brigadier")
-        relocate(
-            "com.github.stefvanschie.inventoryframework",
-            "io.github.pulsebeat02.deluxemediaplugin.lib.inventoryframework"
-        )
-        relocate("me.mattstudios.util", "io.github.pulsebeat02.deluxemediaplugin.lib.util")
-        relocate("me.lucko.commodore", "io.github.pulsebeat02.deluxemediaplugin.lib.commodore")
+        relocate("org", "io.github.pulsebeat02.deluxemediaplugin.lib.org")
+        relocate("me", "io.github.pulsebeat02.deluxemediaplugin.lib.me")
+        relocate("com", "io.github.pulsebeat02.deluxemediaplugin.lib.com")
+        relocate("net", "io.github.pulsebeat02.deluxemediaplugin.lib.net")
 
         relocate("uk.co.caprica.vlcj", "io.github.pulsebeat02.ezmediacore.lib.vlcj")
         relocate("com.github.kiulian.downloader", "io.github.pulsebeat02.ezmediacore.lib.youtube")

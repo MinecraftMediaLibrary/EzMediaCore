@@ -1,13 +1,8 @@
 plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
-    // id("io.github.slimjar") version "1.3.0"
 }
 
 dependencies {
-
-//    setOf("io.github.slimjar:slimjar:1.2.6").forEach {
-//        "implementation"(it)
-//    }
 
     setOf("io.github.pulsebeat02:emc-dependency-management:v1.0.0").forEach {
         "implementation"(it)
@@ -31,7 +26,7 @@ dependencies {
         testImplementation(it)
     }
 
-    /////////////////////////
+    /////// PROVIDED ////////
 
     setOf(
         "io.netty:netty-all:4.1.70.Final",
@@ -56,11 +51,9 @@ dependencies {
         "com.github.kokorin.jaffree:jaffree:2021.11.06",
         "org.jcodec:jcodec:0.2.5",
         "com.github.ben-manes.caffeine:caffeine:3.0.5",
-        "io.github.pulsebeat02:jarchivelib:v1.4.0",
         "io.github.pulsebeat02:emc-installers:v1.0.1",
         "it.unimi.dsi:fastutil:8.5.6"
     ).forEach {
-//        slim(it)
         "compileOnly"(it)
         "testImplementation"(it)
     }
@@ -75,14 +68,11 @@ dependencies {
     }
 }
 
-
-
 tasks {
     withType<Test> {
         exclude("**/*")
         useJUnitPlatform()
     }
-
     shadowJar {
         relocate("uk.co.caprica.vlcj", "io.github.pulsebeat02.ezmediacore.lib.vlcj")
         relocate("com.github.kiulian.downloader", "io.github.pulsebeat02.ezmediacore.lib.youtube")

@@ -84,7 +84,6 @@ public final class LibraryDependencyManager {
                 ofArtifact("com:github:kokorin:jaffree", "jaffree", "2021:11:06"),
                 ofArtifact("org:jcodec", "jcodec", "0:2:5"),
                 ofArtifact("com:github:ben-manes:caffeine", "caffeine", "3:0:5"),
-                ofArtifact("io:github:pulsebeat02", "jarchivelib", "v1:4:0"),
                 ofArtifact("io:github:pulsebeat02", "emc-installers", "v1:0:1"),
                 ofArtifact("it:unimi:dsi", "fastutil", "8:5:6"))
             .collect(Collectors.toSet());
