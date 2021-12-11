@@ -6,8 +6,9 @@ it and providing a fix. Please stay tuned as I try to handle the solution. The b
 for now.
 
 **Status**: This is my most actively maintained project, and will continue to be for the next few
-years (if applicable). I am currently in high school and work is piling up so I will try my best
-to keep up.
+years (if applicable). I am currently in high school and work is piling up, so I will try my best
+to keep up. The project is currently in deep development! I think the project will be officially
+released in the summer of 2022.
 ---
 
 **EzMediaCore** is a library written in Java using the Bukkit API and NMS classes to provide a
