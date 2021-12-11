@@ -47,20 +47,20 @@ tasks {
 
     shadowJar {
         archiveBaseName.set("DeluxeMediaPlugin")
-        relocate("org", "io.github.pulsebeat02.deluxemediaplugin.lib.org")
-        relocate("me", "io.github.pulsebeat02.deluxemediaplugin.lib.me")
-        relocate("com", "io.github.pulsebeat02.deluxemediaplugin.lib.com")
-        relocate("net", "io.github.pulsebeat02.deluxemediaplugin.lib.net")
+        val base = "io.github.pulsebeat02.deluxemediaplugin.lib"
+        relocate("com.mojang", "$base.mojang")
+        relocate("net.kyori", "$base.kyori")
+        relocate("com.sedmellug", "$base.sedmellug")
 
-        relocate("uk.co.caprica.vlcj", "io.github.pulsebeat02.ezmediacore.lib.vlcj")
-        relocate("com.github.kiulian.downloader", "io.github.pulsebeat02.ezmediacore.lib.youtube")
-        relocate("com.wrapper.spotify", "io.github.pulsebeat02.ezmediacore.lib.spotify")
-        relocate("com.github.kokorin", "io.github.pulsebeat02.ezmediacore.lib.kokorin")
-        relocate("org.jcodec", "io.github.pulsebeat02.ezmediacore.lib.jcodec")
-        relocate("com.github.benmanes.caffeine", "io.github.pulsebeat02.ezmediacore.lib.caffeine")
-        relocate("it.unimi.dsi.fastutil", "io.github.pulsebeat02.ezmediacore.lib.fastutil")
-        relocate("com.alilbaba.fastjson", "io.github.pulsebeat02.ezmediacore.lib.fastjson")
-        relocate("net.sourceforge.jaad.aac", "io.github.pulsebeat02.ezmediacore.lib.aac")
+        val libraryBase = "io.github.pulsebeat02.ezmediacore.lib"
+        relocate("uk.co.caprica", "$libraryBase.caprica")
+        relocate("com.github.kiulian", "$libraryBase.kiulian")
+        relocate("se.michaelthelin", "$libraryBase.michaelthelin")
+        relocate("com.github.kokorin", "$libraryBase.kokorin")
+        relocate("org.jcodec", "$libraryBase.jcodec")
+        relocate("com.github.benmanes", "$libraryBase.benmanes")
+        relocate("it.unimi.dsi", "$libraryBase.dsi")
+        relocate("com.alilbaba", "$libraryBase.alilbaba")
+        relocate("net.sourceforge.jaad.aac", "$libraryBase.sourceforge")
     }
-
 }

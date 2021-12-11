@@ -1,7 +1,6 @@
 package io.github.pulsebeat02.ezmediacore;
 
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
-import io.github.pulsebeat02.ezmediacore.task.CommandTask;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -106,7 +105,8 @@ public final class ManualLogger implements CoreLogger {
 
   private void setPermissions() throws IOException {
     if (this.isUnix()) {
-      new CommandTask("chmod", "-R", "777", this.core.getLibraryPath().toString()).run();
+      Runtime.getRuntime()
+          .exec(new String[] {"chmod", "-R", "777", this.core.getLibraryPath().toString()});
     }
   }
 

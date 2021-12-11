@@ -88,25 +88,18 @@ public final class LibraryDependencyManager {
                 ofArtifact("it:unimi:dsi", "fastutil", "8:5:6"))
             .collect(Collectors.toSet());
 
+    final String base = "io:github:pulsebeat02:ezmediacore:lib:%s";
     final Set<Relocation> relocations =
         Stream.of(
-                ofRelocation("uk:co:caprica:vlcj", "io:github:pulsebeat02:ezmediacore:lib:vlcj"),
-                ofRelocation(
-                    "com:github:kiulian:downloader",
-                    "io:github:pulsebeat02:ezmediacore:lib:youtube"),
-                ofRelocation(
-                    "com:wrapper:spotify", "io:github:pulsebeat02:ezmediacore:lib:spotify"),
-                ofRelocation("com:github:kokorin", "io:github:pulsebeat02:ezmediacore:lib:kokorin"),
-                ofRelocation("org:jcodec", "io:github:pulsebeat02:ezmediacore:lib:jcodec"),
-                ofRelocation(
-                    "com:github:benmanes:caffeine",
-                    "io:github:pulsebeat02:ezmediacore:lib:caffeine"),
-                ofRelocation(
-                    "it:unimi:dsi:fastutil", "io:github:pulsebeat02:ezmediacore:lib:fastutil"),
-                ofRelocation(
-                    "com:alilbaba:fastjson", "io:github:pulsebeat02:ezmediacore:lib:fastjson"),
-                ofRelocation(
-                    "net:sourceforge:jaad:aac", "io:github:pulsebeat02:ezmediacore:lib:aac"))
+                ofRelocation("uk:co:caprica", base.formatted("caprica")),
+                ofRelocation("com:github:kiulian", base.formatted("kiulian")),
+                ofRelocation("se.michaelthelin", base.formatted("michaelthelin")),
+                ofRelocation("com:github:kokorin", base.formatted("kokorin")),
+                ofRelocation("org:jcodec", base.formatted("jcodec")),
+                ofRelocation("com:github:benmanes", base.formatted("caffeine")),
+                ofRelocation("it:unimi:dsi", base.formatted("dsi")),
+                ofRelocation("com:alilbaba", base.formatted("alilbaba")),
+                ofRelocation("net:sourceforge:jaad:aac", base.formatted("sourceforge")))
             .collect(Collectors.toSet());
 
     final EMCDepManagement management =

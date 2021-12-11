@@ -74,14 +74,15 @@ tasks {
         useJUnitPlatform()
     }
     shadowJar {
-        relocate("uk.co.caprica.vlcj", "io.github.pulsebeat02.ezmediacore.lib.vlcj")
-        relocate("com.github.kiulian.downloader", "io.github.pulsebeat02.ezmediacore.lib.youtube")
-        relocate("se.michaelthelin.spotify", "io.github.pulsebeat02.ezmediacore.lib.spotify")
-        relocate("com.github.kokorin", "io.github.pulsebeat02.ezmediacore.lib.kokorin")
-        relocate("org.jcodec", "io.github.pulsebeat02.ezmediacore.lib.jcodec")
-        relocate("com.github.benmanes.caffeine", "io.github.pulsebeat02.ezmediacore.lib.caffeine")
-        relocate("it.unimi.dsi.fastutil", "io.github.pulsebeat02.ezmediacore.lib.fastutil")
-        relocate("com.alilbaba.fastjson", "io.github.pulsebeat02.ezmediacore.lib.fastjson")
-        relocate("net.sourceforge.jaad.aac", "io.github.pulsebeat02.ezmediacore.lib.aac")
+        val base = "io.github.pulsebeat02.ezmediacore.lib"
+        relocate("uk.co.caprica", "$base.caprica")
+        relocate("com.github.kiulian", "$base.kiulian")
+        relocate("se.michaelthelin", "$base.michaelthelin")
+        relocate("com.github.kokorin", "$base.kokorin")
+        relocate("org.jcodec", "$base.jcodec")
+        relocate("com.github.benmanes", "$base.benmanes")
+        relocate("it.unimi.dsi", "$base.dsi")
+        relocate("com.alilbaba", "$base.alilbaba")
+        relocate("net.sourceforge.jaad.aac", "$base.sourceforge")
     }
 }

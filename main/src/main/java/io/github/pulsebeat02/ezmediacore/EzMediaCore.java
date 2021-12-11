@@ -25,7 +25,6 @@ package io.github.pulsebeat02.ezmediacore;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.analysis.Diagnostic;
 import io.github.pulsebeat02.ezmediacore.analysis.SystemDiagnostics;
 import io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil;
@@ -34,7 +33,6 @@ import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyProvider;
-import io.github.pulsebeat02.ezmediacore.playlist.youtube.YoutubeProvider;
 import io.github.pulsebeat02.ezmediacore.reflect.NMSReflectionHandler;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import io.github.pulsebeat02.ezmediacore.throwable.UnsupportedServerException;
@@ -160,7 +158,6 @@ public final class EzMediaCore implements MediaLibraryCore {
     DitherLookupUtil.init();
     StringSearch.init();
     SpotifyProvider.init(this);
-    YoutubeProvider.init(this);
   }
 
   private void sendUsageTips() {
