@@ -28,9 +28,9 @@ import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 public enum ImageMrlType {
@@ -64,6 +64,6 @@ public enum ImageMrlType {
 
   private static boolean matchesFileType(@NotNull final String mrl) {
     return EXTENSIONS.stream()
-        .anyMatch(extension -> StringUtils.endsWithIgnoreCase(mrl, extension));
+        .anyMatch(extension -> mrl.toUpperCase(Locale.ROOT).endsWith(extension));
   }
 }

@@ -11,7 +11,7 @@ import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.lang.mutable.MutableBoolean;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +20,7 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
 
   private final ArrayBlockingQueue<Pair<int[], Long>> frames;
   private final BufferConfiguration buffer;
-  private final MutableBoolean status;
+  private final AtomicBoolean status;
   private final Runnable frameDisplayer;
   private final Runnable frameWatchdog;
 
@@ -37,7 +37,7 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
       @Nullable final SoundKey key) {
     super(callback, viewers, pixelDimension, fps, key);
     this.buffer = buffer;
-    this.status = new MutableBoolean(false);
+    this.status = new AtomicBoolean(false);
     this.frames = new ArrayBlockingQueue<>(this.calculateCapacity());
     this.frameDisplayer = this.getDisplayRunnable();
     this.frameWatchdog = this.getSkipRunnable();
@@ -97,14 +97,14 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
 
   @Override
   public void forceStop() {
-    this.status.setValue(false);
+    this.status.set(false);
   }
 
   @Contract(pure = true)
   private @NotNull Runnable getDisplayRunnable() {
     return () -> {
       final Callback callback = this.getCallback();
-      while (this.status.booleanValue()) {
+      while (this.status.get()) {
         try {
           // process current frame
           callback.process(this.frames.take().getKey());
@@ -117,7 +117,7 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   @Contract(pure = true)
   private @NotNull Runnable getSkipRunnable() {
     return () -> {
-      while (this.status.booleanValue()) {
+      while (this.status.get()) {
         // skip frames if necessary
         // For example, if the passed time is 40 ms, and the time of the
         // current frame is 30 ms, we have to skip. If it is equal, we are
@@ -152,6 +152,6 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
 
   @Override
   public boolean isExecuting() {
-    return this.status.booleanValue();
+    return this.status.get();
   }
 }

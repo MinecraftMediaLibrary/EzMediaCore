@@ -25,8 +25,8 @@ package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
-import com.wrapper.spotify.model_objects.specification.Playlist;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.model_objects.specification.Playlist;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 import java.util.Arrays;

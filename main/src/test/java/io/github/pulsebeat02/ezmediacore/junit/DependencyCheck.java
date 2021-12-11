@@ -1,27 +1,4 @@
-/*
- * MIT License
- *
- * Copyright (c) 2021 Brandon Li
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-package io.github.pulsebeat02.ezmediacore.dependency;
+package io.github.pulsebeat02.ezmediacore.junit;
 
 import static io.github.pulsebeat02.emcdependencymanagement.component.Artifact.ofArtifact;
 import static io.github.pulsebeat02.emcdependencymanagement.component.Relocation.ofRelocation;
@@ -30,24 +7,21 @@ import io.github.pulsebeat02.emcdependencymanagement.EMCDepManagement;
 import io.github.pulsebeat02.emcdependencymanagement.component.Artifact;
 import io.github.pulsebeat02.emcdependencymanagement.component.Relocation;
 import io.github.pulsebeat02.emcdependencymanagement.component.Repository;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Test;
 
-public final class LibraryDependencyManager {
+public final class DependencyCheck {
 
-  private final MediaLibraryCore core;
-
-  public LibraryDependencyManager(@NotNull final MediaLibraryCore core)
-      throws IOException, ReflectiveOperationException {
-    this.core = core;
-    this.start();
+  public static void main(final String[] args) throws ReflectiveOperationException, IOException {
+    new DependencyCheck().start();
   }
 
-  private void start() throws IOException, ReflectiveOperationException {
+  @Test
+  public void start() throws IOException, ReflectiveOperationException {
 
     //    ApplicationBuilder.appending("EzMediaCore -
     // %s".formatted(this.core.getPlugin().getName()))
@@ -112,22 +86,12 @@ public final class LibraryDependencyManager {
 
     final EMCDepManagement management =
         EMCDepManagement.builder()
-            .setApplicationName("EzMediaCore - %s".formatted(this.core.getPlugin().getName()))
-            .setFolder(this.core.getDependencyPath())
+            .setApplicationName("EzMediaCore - TESTING")
+            .setFolder(Path.of(System.getProperty("user.dir"), "emc-library-test"))
             .setRepos(repos)
             .setArtifacts(artifacts)
             .setRelocations(relocations)
             .createEMCDepManagement();
     management.load();
   }
-
-  //  @Contract(pure = true)
-  //  private @NotNull ProcessLogger getProcessLogger() {
-  //    return (s, objects) -> this.core.getLogger().info(s.formatted(objects));
-  //  }
-  //
-  //  @Contract(" -> new")
-  //  private @NotNull @Unmodifiable Collection<Repository> getRepo() throws MalformedURLException {
-  //    return Collections.singleton(new Repository(new URL(SimpleMirrorSelector.ALT_CENTRAL_URL)));
-  //  }
 }

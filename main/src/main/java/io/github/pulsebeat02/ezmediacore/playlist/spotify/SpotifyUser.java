@@ -27,8 +27,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.wrapper.spotify.enums.ProductType;
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.enums.ProductType;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 import java.util.Arrays;
@@ -52,7 +52,7 @@ public class SpotifyUser implements User {
                 ProductType.PREMIUM, Subscription.PREMIUM));
   }
 
-  private final com.wrapper.spotify.model_objects.specification.User user;
+  private final se.michaelthelin.spotify.model_objects.specification.User user;
   private final String url;
   private final Avatar[] avatars;
 
@@ -64,7 +64,7 @@ public class SpotifyUser implements User {
     this.avatars = this.getInternalAvatars();
   }
 
-  SpotifyUser(@NotNull final com.wrapper.spotify.model_objects.specification.User user) {
+  SpotifyUser(@NotNull final se.michaelthelin.spotify.model_objects.specification.User user) {
     this.url = user.getUri();
     this.user = user;
     this.avatars = this.getInternalAvatars();
@@ -80,7 +80,7 @@ public class SpotifyUser implements User {
     return SUBSCRIPTIONS;
   }
 
-  private @NotNull com.wrapper.spotify.model_objects.specification.User getInternalUser()
+  private @NotNull se.michaelthelin.spotify.model_objects.specification.User getInternalUser()
       throws IOException, ParseException, SpotifyWebApiException {
     return SpotifyProvider.getSpotifyApi()
         .getUsersProfile(MediaExtractionUtils.getSpotifyIDExceptionally(this.url))
@@ -135,7 +135,7 @@ public class SpotifyUser implements User {
   }
 
   @NotNull
-  com.wrapper.spotify.model_objects.specification.User getUser() {
+  se.michaelthelin.spotify.model_objects.specification.User getUser() {
     return this.user;
   }
 }

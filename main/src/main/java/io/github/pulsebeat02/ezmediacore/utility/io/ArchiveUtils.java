@@ -57,7 +57,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
 public final class ArchiveUtils {
@@ -72,10 +71,9 @@ public final class ArchiveUtils {
             Set.of("zip"), "zip",
             Set.of("deb", "ar"), "ar",
             Set.of("rpm", "cpio"), "cpio",
-            Set.of("txz", "tar.xz"), "tar xz",
             Set.of("tgz", "tar.gz"), "tar gz");
-    ARCHIVE_EXTENSIONS = Set.of("zip", "deb", "rpm", "txz", "xz", "tgz", "gz", "ar", "cpio", "bz2");
-    SPECIAL_EXTENSIONS = Set.of(".tar.gz", ".tar.xz");
+    ARCHIVE_EXTENSIONS = Set.of("zip", "deb", "rpm", "tgz", "gz", "ar", "cpio", "bz2");
+    SPECIAL_EXTENSIONS = Set.of(".tar.gz");
   }
 
   private ArchiveUtils() {}
@@ -174,6 +172,6 @@ public final class ArchiveUtils {
     checkNotNull(full, "Name cannot be null!");
     return SPECIAL_EXTENSIONS.stream().anyMatch(full::endsWith)
         ? full.substring(0, full.length() - 7)
-        : FilenameUtils.removeExtension(full);
+        : com.google.common.io.Files.getNameWithoutExtension(full);
   }
 }

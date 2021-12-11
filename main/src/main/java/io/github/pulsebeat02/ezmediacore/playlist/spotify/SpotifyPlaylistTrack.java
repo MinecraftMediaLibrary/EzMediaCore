@@ -28,10 +28,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class SpotifyPlaylistTrack implements PlaylistTrack {
 
-  private final com.wrapper.spotify.model_objects.specification.PlaylistTrack track;
+  private final se.michaelthelin.spotify.model_objects.specification.PlaylistTrack track;
 
   SpotifyPlaylistTrack(
-      @NotNull final com.wrapper.spotify.model_objects.specification.PlaylistTrack track) {
+      @NotNull final se.michaelthelin.spotify.model_objects.specification.PlaylistTrack track) {
     this.track = track;
   }
 
@@ -51,7 +51,7 @@ public class SpotifyPlaylistTrack implements PlaylistTrack {
   }
 
   @NotNull
-  com.wrapper.spotify.model_objects.specification.PlaylistTrack getPlaylistTrack() {
+  se.michaelthelin.spotify.model_objects.specification.PlaylistTrack getPlaylistTrack() {
     return this.track;
   }
 }

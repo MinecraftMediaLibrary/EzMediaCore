@@ -26,7 +26,6 @@ package io.github.pulsebeat02.ezmediacore.playlist;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -35,7 +34,6 @@ public class WebsiteControls implements WebPlayerControls {
 
   public WebsiteControls(final String url, @NotNull final PlaylistType type) {
     final Collection<String> songs = this.getSongs();
-    final MutableInt index = new MutableInt(0);
   }
 
   @Contract(pure = true)

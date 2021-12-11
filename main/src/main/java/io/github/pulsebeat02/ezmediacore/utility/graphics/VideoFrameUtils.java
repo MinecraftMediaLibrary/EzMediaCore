@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility.graphics;
 
+import com.google.common.io.Files;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
 import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
@@ -43,7 +44,6 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
-import org.apache.commons.io.FilenameUtils;
 import org.jcodec.common.model.ColorSpace;
 import org.jcodec.common.model.Picture;
 import org.jcodec.scale.ColorUtil;
@@ -171,7 +171,7 @@ public final class VideoFrameUtils {
   @NotNull
   public static Dimension getDimensions(@NotNull final Path file) throws IOException {
     final Iterator<ImageReader> iter =
-        ImageIO.getImageReadersBySuffix(FilenameUtils.getExtension(PathUtils.getName(file)));
+        ImageIO.getImageReadersBySuffix(Files.getFileExtension(PathUtils.getName(file)));
     while (iter.hasNext()) {
       final ImageReader reader = iter.next();
       try {

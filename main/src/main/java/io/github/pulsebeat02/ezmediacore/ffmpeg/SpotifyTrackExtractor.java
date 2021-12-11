@@ -23,7 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.TrackDownloader;
@@ -38,6 +37,7 @@ import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 
 public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
 

@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingFunction;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class SpotifyTrack implements Track {
   private final String url;
   private final List<Artist> artists;
 
-  private final com.wrapper.spotify.model_objects.specification.Track track;
+  private final se.michaelthelin.spotify.model_objects.specification.Track track;
 
   SpotifyTrack(@NotNull final String url)
       throws IOException, ParseException, SpotifyWebApiException {
@@ -58,7 +58,7 @@ public class SpotifyTrack implements Track {
     return new SpotifyTrack(url);
   }
 
-  private @NotNull com.wrapper.spotify.model_objects.specification.Track getInternalTrack()
+  private @NotNull se.michaelthelin.spotify.model_objects.specification.Track getInternalTrack()
       throws IOException, ParseException, SpotifyWebApiException {
     return SpotifyProvider.getSpotifyApi()
         .getTrack(MediaExtractionUtils.getSpotifyIDExceptionally(this.url))
@@ -123,7 +123,7 @@ public class SpotifyTrack implements Track {
   }
 
   @NotNull
-  com.wrapper.spotify.model_objects.specification.Track getTrack() {
+  se.michaelthelin.spotify.model_objects.specification.Track getTrack() {
     return this.track;
   }
 }

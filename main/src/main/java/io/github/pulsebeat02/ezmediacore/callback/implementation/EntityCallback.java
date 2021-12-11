@@ -38,7 +38,6 @@ import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import java.nio.IntBuffer;
 import java.util.UUID;
 import java.util.function.Consumer;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.AreaEffectCloud;
@@ -93,10 +92,18 @@ public class EntityCallback<T extends Entity> extends FrameCallback
     for (int i = height - 1; i >= 0; i--) {
       entities[i] =
           world.spawn(spawn, this.type, this.consumer == null ? null : this.consumer::accept);
-      entities[i].setCustomName(StringUtils.repeat(this.name.getName(), height));
+      entities[i].setCustomName(this.repeat(this.name.getName(), height));
       entities[i].setCustomNameVisible(true);
       spawn.add(0.0, 0.225, 0.0);
     }
+  }
+
+  private @NotNull String repeat(@NotNull final String name, final int height) {
+    final StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < height; i++) {
+      builder.append(name);
+    }
+    return builder.toString();
   }
 
   @Override

@@ -27,7 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.jlibdl.JLibDL;
 import io.github.pulsebeat02.ezmediacore.jlibdl.YoutubeDLRequest;
@@ -48,7 +48,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.compress.utils.Lists;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

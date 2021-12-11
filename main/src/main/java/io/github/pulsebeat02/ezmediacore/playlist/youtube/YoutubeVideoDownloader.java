@@ -28,6 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.github.kiulian.downloader.downloader.request.RequestVideoFileDownload;
 import com.github.kiulian.downloader.downloader.response.Response;
 import com.google.common.collect.BiMap;
+import com.google.common.io.Files;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
 import io.github.pulsebeat02.ezmediacore.utility.media.ResponseUtils;
@@ -36,7 +37,6 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -119,7 +119,7 @@ public class YoutubeVideoDownloader implements VideoDownloader {
       @NotNull final VideoQuality format, final boolean overwrite) {
     return new RequestVideoFileDownload(this.getFormat(format))
         .saveTo(this.videoPath.getParent().toFile())
-        .renameTo(FilenameUtils.removeExtension(PathUtils.getName(this.videoPath)))
+        .renameTo(Files.getNameWithoutExtension(PathUtils.getName(this.videoPath)))
         .overwriteIfExists(overwrite);
   }
 

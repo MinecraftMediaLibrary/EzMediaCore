@@ -28,7 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.github.kiulian.downloader.downloader.request.RequestVideoFileDownload;
 import com.github.kiulian.downloader.downloader.response.Response;
 import com.google.common.collect.BiMap;
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
+import com.google.common.io.Files;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.QuerySearch;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyTrack;
@@ -42,10 +42,10 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 
 public class SpotifyTrackDownloader implements TrackDownloader {
 
@@ -113,9 +113,10 @@ public class SpotifyTrackDownloader implements TrackDownloader {
 
   private @NotNull RequestVideoFileDownload createDownloadRequest(
       @NotNull final VideoQuality format, final boolean overwrite) {
+
     return new RequestVideoFileDownload(this.getFormat(format))
         .saveTo(this.videoPath.getParent().toFile())
-        .renameTo(FilenameUtils.removeExtension(PathUtils.getName(this.videoPath)))
+        .renameTo(Files.getNameWithoutExtension(PathUtils.getName(this.videoPath)))
         .overwriteIfExists(overwrite);
   }
 

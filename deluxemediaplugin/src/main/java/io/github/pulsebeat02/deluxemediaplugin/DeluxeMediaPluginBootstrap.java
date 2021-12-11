@@ -24,9 +24,6 @@
 package io.github.pulsebeat02.deluxemediaplugin;
 
 import io.github.pulsebeat02.deluxemediaplugin.message.Sender;
-import io.github.slimjar.app.builder.ApplicationBuilder;
-import io.github.slimjar.resolver.data.Repository;
-import io.github.slimjar.resolver.mirrors.SimpleMirrorSelector;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -49,18 +46,18 @@ public final class DeluxeMediaPluginBootstrap extends JavaPlugin {
   private void buildApplication() {
     final Logger logger = this.getLogger();
     logger.info(InternalLocale.SLIMJAR_LOAD.build());
-    try {
-      ApplicationBuilder.appending("DeluxeMediaPlugin")
-          .mirrorSelector((repository, collection) -> repository)
-          .internalRepositories(
-              Collections.singleton(new Repository(new URL(SimpleMirrorSelector.ALT_CENTRAL_URL))))
-          .build();
-    } catch (final IOException
-        | NoSuchAlgorithmException
-        | URISyntaxException
-        | ReflectiveOperationException e) {
-      e.printStackTrace();
-    }
+//    try {
+//      ApplicationBuilder.appending("DeluxeMediaPlugin")
+//          .mirrorSelector((repository, collection) -> repository)
+//          .internalRepositories(
+//              Collections.singleton(new Repository(new URL(SimpleMirrorSelector.ALT_CENTRAL_URL))))
+//          .build();
+//    } catch (final IOException
+//        | NoSuchAlgorithmException
+//        | URISyntaxException
+//        | ReflectiveOperationException e) {
+//      e.printStackTrace();
+//    }
     logger.info(InternalLocale.SLIMJAR_FINISH.build());
   }
 

@@ -28,8 +28,6 @@ import io.github.pulsebeat02.ezmediacore.dependency.LibraryDependencyManager;
 import io.github.pulsebeat02.ezmediacore.dependency.SimpleRTSPServerDependency;
 import io.github.pulsebeat02.ezmediacore.vlc.VLCDependency;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -75,10 +73,7 @@ public class DependencyLoader implements LibraryLoader {
   private void installDependencies() {
     try {
       new LibraryDependencyManager(this.core);
-    } catch (final IOException
-        | ReflectiveOperationException
-        | URISyntaxException
-        | NoSuchAlgorithmException e) {
+    } catch (final IOException | ReflectiveOperationException e) {
       e.printStackTrace();
     }
   }

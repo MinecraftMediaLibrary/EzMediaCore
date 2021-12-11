@@ -25,9 +25,9 @@ package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.wrapper.spotify.SpotifyApi;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import org.jetbrains.annotations.NotNull;
+import se.michaelthelin.spotify.SpotifyApi;
 
 public final class SpotifyProvider {
 

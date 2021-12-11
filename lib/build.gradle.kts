@@ -70,10 +70,6 @@ publishing {
     }
 }
 
-task<Wrapper>("wrapper") {
-    gradleVersion = "7.3"
-}
-
 tasks {
     build {
         dependsOn(shadowJar)

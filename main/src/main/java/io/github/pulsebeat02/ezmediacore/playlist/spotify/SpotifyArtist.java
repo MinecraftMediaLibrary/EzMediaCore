@@ -25,8 +25,6 @@ package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
-import com.wrapper.spotify.model_objects.specification.ArtistSimplified;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 import java.util.Arrays;
@@ -34,10 +32,12 @@ import java.util.Map;
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
 
 public class SpotifyArtist implements Artist {
 
-  private final com.wrapper.spotify.model_objects.specification.Artist artist;
+  private final se.michaelthelin.spotify.model_objects.specification.Artist artist;
   private final String url;
   private final Avatar[] avatars;
 
@@ -60,7 +60,7 @@ public class SpotifyArtist implements Artist {
     return new SpotifyArtist(url);
   }
 
-  private @NotNull com.wrapper.spotify.model_objects.specification.Artist getInternalArtist()
+  private @NotNull se.michaelthelin.spotify.model_objects.specification.Artist getInternalArtist()
       throws IOException, ParseException, SpotifyWebApiException {
     return SpotifyProvider.getSpotifyApi()
         .getArtist(MediaExtractionUtils.getSpotifyIDExceptionally(this.url))
@@ -115,7 +115,7 @@ public class SpotifyArtist implements Artist {
   }
 
   @NotNull
-  com.wrapper.spotify.model_objects.specification.Artist getArtist() {
+  se.michaelthelin.spotify.model_objects.specification.Artist getArtist() {
     return this.artist;
   }
 }

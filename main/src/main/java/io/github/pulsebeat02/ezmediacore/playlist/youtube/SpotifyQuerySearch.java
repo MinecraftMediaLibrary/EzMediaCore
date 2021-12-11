@@ -25,7 +25,6 @@ package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.QuerySearch;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyTrack;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.Track;
@@ -34,6 +33,7 @@ import java.io.IOException;
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 
 public class SpotifyQuerySearch implements QuerySearch {
 

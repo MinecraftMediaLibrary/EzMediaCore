@@ -61,9 +61,6 @@ subprojects {
             "https://libraries.minecraft.net/",
             "https://jitpack.io",
             "https://repo.codemc.org/repository/maven-public",
-            "https://libraries.minecraft.net",
-            "https://oss.sonatype.org/content/repositories/snapshots/",
-            "https://papermc.io/repo/repository/maven-public/",
             "https://m2.dv8tion.net/releases",
             "https://repo.vshnv.tech/releases/",
             "https://repo.mattstudios.me/artifactory/public/",
@@ -72,5 +69,9 @@ subprojects {
         ).forEach {
             maven(it)
         }
+    }
+
+    task<Wrapper>("wrapper") {
+        gradleVersion = "7.3"
     }
 }

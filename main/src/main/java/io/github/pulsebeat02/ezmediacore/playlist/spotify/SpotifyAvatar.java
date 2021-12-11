@@ -30,10 +30,10 @@ import org.jetbrains.annotations.NotNull;
 
 public final class SpotifyAvatar implements Avatar {
 
-  private final com.wrapper.spotify.model_objects.specification.Image image;
+  private final se.michaelthelin.spotify.model_objects.specification.Image image;
   private final Dimension dimension;
 
-  SpotifyAvatar(@NotNull final com.wrapper.spotify.model_objects.specification.Image image) {
+  SpotifyAvatar(@NotNull final se.michaelthelin.spotify.model_objects.specification.Image image) {
     this.image = image;
     this.dimension = Dimension.ofDimension(image.getWidth(), image.getHeight());
   }
@@ -44,7 +44,7 @@ public final class SpotifyAvatar implements Avatar {
   }
 
   @NotNull
-  com.wrapper.spotify.model_objects.specification.Image getImage() {
+  se.michaelthelin.spotify.model_objects.specification.Image getImage() {
     return this.image;
   }
 
