@@ -1,5 +1,5 @@
 plugins {
-    id("com.github.johnrengelman.shadow") version "7.0.0"
+    id("com.github.johnrengelman.shadow") version "7.1.0"
 }
 
 dependencies {
@@ -37,7 +37,7 @@ dependencies {
 tasks {
 
     build {
-        finalizedBy(shadowJar)
+        dependsOn(shadowJar)
     }
 
     processResources {
@@ -67,5 +67,7 @@ tasks {
         relocate("com.fasterxml", "$libraryBase.fasterxml")
         relocate("org.apache", "$libraryBase.apache")
         relocate("com.neovisionaries", "$libraryBase.neovisionaries")
+
+        minimize();
     }
 }

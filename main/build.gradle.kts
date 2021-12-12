@@ -1,5 +1,5 @@
 plugins {
-    id("com.github.johnrengelman.shadow") version "7.0.0"
+    id("com.github.johnrengelman.shadow") version "7.1.0"
 }
 
 dependencies {
@@ -91,5 +91,6 @@ tasks {
         relocate("com.fasterxml", "$base.fasterxml")
         relocate("org.apache", "$base.apache")
         relocate("com.neovisionaries", "$base.neovisionaries")
+        minimize();
     }
 }

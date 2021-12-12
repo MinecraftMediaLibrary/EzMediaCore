@@ -60,9 +60,8 @@ import org.jetbrains.annotations.Nullable;
 public final class DeluxeMediaPlugin {
 
   private final JavaPlugin plugin;
-  private final BukkitAudiences audiences;
-  private final Audience console;
-
+  private BukkitAudiences audiences;
+  private Audience console;
   private AudioConfiguration audioConfiguration;
   private MediaLibraryCore library;
   private CommandHandler handler;
@@ -75,11 +74,10 @@ public final class DeluxeMediaPlugin {
 
   DeluxeMediaPlugin(@NotNull final JavaPlugin plugin) {
     this.plugin = plugin;
-    this.audiences = BukkitAudiences.create(this.plugin);
-    this.console = this.audiences.console();
   }
 
   void enable() {
+    this.registerAudiences();
     this.startLibrary();
     this.loadPersistentData();
     this.registerCommands();
@@ -98,6 +96,11 @@ public final class DeluxeMediaPlugin {
 
   void load() {
     this.finishLoading();
+  }
+
+  private void registerAudiences() {
+    this.audiences = BukkitAudiences.create(this.plugin);
+    this.console = this.audiences.console();
   }
 
   private void deserializeData() {

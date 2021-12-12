@@ -6,9 +6,8 @@ it and providing a fix. Please stay tuned as I try to handle the solution. The b
 for now.
 
 **Status**: This is my most actively maintained project, and will continue to be for the next few
-years (if applicable). I am currently in high school and work is piling up, so I will try my best
-to keep up. The project is currently in deep development! I think the project will be officially
-released in the summer of 2022.
+years. I am currently in high school and work is piling up, so I will try my best to keep up. I 
+think the project will be officially released in the summer of 2022.
 ---
 
 **EzMediaCore** is a library written in Java using the Bukkit API and NMS classes to provide a
@@ -40,14 +39,14 @@ Add the following to your gradle configuration:
 ```groovy  
 repositories {  
     maven {  
-        url 'https://jitpack.io'  
+        url 'https://pulsebeat02.jfrog.io/artifactory/pulse-gradle-release-local'  
     }  
 }  
 ```  
 
 ```groovy  
 dependencies {  
-    implementation 'com.github.MinecraftMediaLibrary:EzMediaCore:master-SNAPSHOT'  
+    implementation 'io.github.pulsebeat02:EzMediaCore:v1.0.0'  
 }  
 ```
 
@@ -59,7 +58,7 @@ for examples on how to use the library. It is the plugin I used that displayed t
 
 ### Building Locally
 
-1) Run [BuildTools](https://www.spigotmc.org/wiki/buildtools/) for versions 1.16.5, 1.17.1, and 1.18-pre5.
+1) Run [BuildTools](https://www.spigotmc.org/wiki/buildtools/) for versions 1.16.5, 1.17.1, and 1.18.1.
 2) Clone the [repository](https://github.com/MinecraftMediaLibrary/EzMediaCore) by using the
    following Git link: `https://github.com/MinecraftMediaLibrary/EzMediaCore.git`
 3) Run `gradlew shadowJar` on the parent project to build a jar for the plugin.
@@ -86,13 +85,10 @@ testing server!
 - [Rouge_Ram](https://rogueram.xyz/index.html) for developing a Discord bot to use in the Pulse
   Development Server.
 - [Fallhost](https://fallhost.com/), for allowing us to use their testing environment.
-- [Yugi](https://github.com/Vshnv) for helping me setup
-  [Slimjar](https://github.com/SlimJar/slimjar).
 - And also developers of the most important libraries I use, including:
     - [VLCJ](https://github.com/caprica/vlcj) made by [caprica](https://github.com/caprica).
     - [VLC Media Player](https://www.videolan.org/vlc/) for native backend support.
     - [Jaffree](https://github.com/kokorin/Jaffree) made by [kokorin](https://github.com/kokorin)
       for allowing the library to use the NUT container provided by FFmpeg.
     - [FFmpeg](https://www.ffmpeg.org/) for native encoding related operations and backend support.
-
 ---

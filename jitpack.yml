@@ -1,9 +1,0 @@
-jdk:
-  - openjdk16
-before_install:
-  - wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
-  - java -jar BuildTools.jar --rev 1.16.5
-  - java -jar BuildTools.jar --rev 1.17.1
-  - java -jar BuildTools.jar --rev 1.18-pre5
-install:
-  - ./gradlew shadowJar
