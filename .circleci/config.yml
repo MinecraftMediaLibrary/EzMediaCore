@@ -1,36 +1,5 @@
 version: 2.1
 jobs:
-  BUILDTOOLS:
-    docker:
-      - image: cimg/openjdk:16.0.1
-    working_directory: ~/repo
-    environment:
-      MAVEN_OPTS: -Xmx3200m -Xms2600m
-    steps:
-      - checkout
-      - run: wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
-  JAVA-16-NMS:
-    docker:
-      - image: cimg/openjdk:16.0.1
-    working_directory: ~/repo
-    steps:
-      - checkout
-      - run: java -jar BuildTools.jar --rev 1.16.5
-      - run: java -jar BuildTools.jar --rev 1.17.1
-  JAVA-17-NMS:
-    docker:
-      - image: cimg/openjdk:17.0.0
-    working_directory: ~/repo
-    steps:
-      - checkout
-      - run: java -jar BuildTools.jar --rev 1.18-pre5
-  SLIMJAR:
-    docker:
-      - image: cimg/openjdk:17.0.0
-    working_directory: ~/repo
-    steps:
-      - checkout
-      - run: git clone https://github.com/slimjar/slimjar.git slimjar; cd ./slimjar; chmod 777 ./gradlew; ./gradlew publishToMavenLocal
   build:
     docker:
       - image: cimg/openjdk:17.0.0
@@ -52,11 +21,32 @@ jobs:
           path: deluxemediaplugin/build/libs/DeluxeMediaPlugin-all.jar
 workflows:
   version: 2
-  build_and_test:
+  build-deps-and-compile:
     jobs:
       - build:
           requires:
-            - SLIMJAR
             - BUILDTOOLS
             - JAVA-16-NMS
             - JAVA-17-NMS
+      - BUILDTOOLS:
+          docker:
+            - image: cimg/openjdk:16.0.1
+          working_directory: ~/repo
+          steps:
+            - checkout
+            - run: wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
+      - JAVA-16-NMS:
+          docker:
+            - image: cimg/openjdk:16.0.1
+          working_directory: ~/repo
+          steps:
+            - checkout
+            - run: java -jar BuildTools.jar --rev 1.16.5
+            - run: java -jar BuildTools.jar --rev 1.17.1
+      - JAVA-17-NMS:
+          docker:
+            - image: cimg/openjdk:17.0.0
+          working_directory: ~/repo
+          steps:
+            - checkout
+            - run: java -jar BuildTools.jar --rev 1.18-pre5
