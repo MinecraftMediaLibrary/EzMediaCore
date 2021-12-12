@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    "implementation"(project(":main"))
+    implementation(project(":main"))
 }
 
 tasks {
