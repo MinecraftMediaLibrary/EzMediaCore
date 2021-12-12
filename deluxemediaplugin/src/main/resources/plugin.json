@@ -11,8 +11,6 @@
   "load": "STARTUP",
   "libraries": [
     "net.dv8tion:JDA:5.0.0-alpha.2",
-    "me.lucko:commodore:1.11",
-    "org.bstats:bstats-bukkit:2.2.1",
     "com.github.stefvanschie.inventoryframework:IF:0.10.3"
   ]
 }

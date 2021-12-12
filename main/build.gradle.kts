@@ -5,11 +5,11 @@ plugins {
 dependencies {
 
     setOf("io.github.pulsebeat02:emc-dependency-management:v1.0.0").forEach {
-        "implementation"(it)
+        implementation(it)
     }
 
     setOf("io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT").forEach {
-        "compileOnlyApi"(it)
+        compileOnlyApi(it)
     }
 
     //////// TESTING ////////
@@ -52,10 +52,13 @@ dependencies {
         "org.jcodec:jcodec:0.2.5",
         "com.github.ben-manes.caffeine:caffeine:3.0.5",
         "io.github.pulsebeat02:emc-installers:v1.0.1",
-        "it.unimi.dsi:fastutil:8.5.6"
+        "it.unimi.dsi:fastutil:8.5.6",
+        "com.fasterxml.jackson.core:jackson-core:2.13.0",
+        "org.apache.httpcomponents.client5:httpclient5:5.2-alpha1",
+        "com.neovisionaries:nv-i18n:1.29"
     ).forEach {
-        "compileOnly"(it)
-        "testImplementation"(it)
+        compileOnly(it)
+        testImplementation(it)
     }
 
     setOf(
@@ -64,7 +67,7 @@ dependencies {
         project(":v1_17_R1"),
         project(":v1_18_R1")
     ).forEach {
-        "api"(it)
+        api(it)
     }
 }
 
@@ -82,7 +85,10 @@ tasks {
         relocate("org.jcodec", "$base.jcodec")
         relocate("com.github.benmanes", "$base.benmanes")
         relocate("it.unimi.dsi", "$base.dsi")
-        relocate("com.alilbaba", "$base.alilbaba")
+        relocate("com.alibaba", "$base.alibaba")
         relocate("net.sourceforge.jaad.aac", "$base.sourceforge")
+        relocate("com.fasterxml", "$base.fasterxml")
+        relocate("org.apache", "$base.apache")
+        relocate("com.neovisionaries", "$base.neovisionaries")
     }
 }

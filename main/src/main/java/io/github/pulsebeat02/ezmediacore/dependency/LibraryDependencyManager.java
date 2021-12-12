@@ -49,14 +49,6 @@ public final class LibraryDependencyManager {
 
   private void start() throws IOException, ReflectiveOperationException {
 
-    //    ApplicationBuilder.appending("EzMediaCore -
-    // %s".formatted(this.core.getPlugin().getName()))
-    //        .mirrorSelector((collection, collection1) -> collection)
-    //        .downloadDirectoryPath(this.core.getDependencyPath())
-    //        .internalRepositories(this.getRepo())
-    //        .logger(this.getProcessLogger())
-    //        .build();
-
     final Set<Repository> repos =
         Stream.of(
                 "https://papermc.io/repo/repository/maven-public/",
@@ -85,7 +77,10 @@ public final class LibraryDependencyManager {
                 ofArtifact("org:jcodec", "jcodec", "0:2:5"),
                 ofArtifact("com:github:ben-manes:caffeine", "caffeine", "3:0:5"),
                 ofArtifact("io:github:pulsebeat02", "emc-installers", "v1:0:1"),
-                ofArtifact("it:unimi:dsi", "fastutil", "8:5:6"))
+                ofArtifact("it:unimi:dsi", "fastutil", "8:5:6"),
+                ofArtifact("com:fasterxml:jackson:core", "jackson-core", "2:13:0"),
+                ofArtifact("org:apache:httpcomponents:client5", "httpclient5", "5.2-alpha1"),
+                ofArtifact("com:neovisionaries", "nv-i18n", "1:29"))
             .collect(Collectors.toSet());
 
     final String base = "io:github:pulsebeat02:ezmediacore:lib:%s";
@@ -98,8 +93,11 @@ public final class LibraryDependencyManager {
                 ofRelocation("org:jcodec", base.formatted("jcodec")),
                 ofRelocation("com:github:benmanes", base.formatted("caffeine")),
                 ofRelocation("it:unimi:dsi", base.formatted("dsi")),
-                ofRelocation("com:alilbaba", base.formatted("alilbaba")),
-                ofRelocation("net:sourceforge:jaad:aac", base.formatted("sourceforge")))
+                ofRelocation("com:alibaba", base.formatted("alibaba")),
+                ofRelocation("net:sourceforge:jaad:aac", base.formatted("sourceforge")),
+                ofRelocation("com:fasterxml", base.formatted("fasterxml")),
+                ofRelocation("org:apache", base.formatted("apache")),
+                ofRelocation("com:neovisionaries", base.formatted("neovisionaries")))
             .collect(Collectors.toSet());
 
     final EMCDepManagement management =
@@ -112,14 +110,4 @@ public final class LibraryDependencyManager {
             .createEMCDepManagement();
     management.load();
   }
-
-  //  @Contract(pure = true)
-  //  private @NotNull ProcessLogger getProcessLogger() {
-  //    return (s, objects) -> this.core.getLogger().info(s.formatted(objects));
-  //  }
-  //
-  //  @Contract(" -> new")
-  //  private @NotNull @Unmodifiable Collection<Repository> getRepo() throws MalformedURLException {
-  //    return Collections.singleton(new Repository(new URL(SimpleMirrorSelector.ALT_CENTRAL_URL)));
-  //  }
 }
