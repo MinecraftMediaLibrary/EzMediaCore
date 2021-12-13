@@ -13,8 +13,7 @@ dependencies {
         compileOnlyApi(it)
     }
 
-    //////// TESTING ////////
-
+    // TESTING DEPENDENCIES
     setOf("org.junit.jupiter:junit-jupiter-engine:5.4.2").forEach {
         testRuntimeOnly(it);
     }
@@ -27,8 +26,7 @@ dependencies {
         testImplementation(it)
     }
 
-    /////// PROVIDED ////////
-
+    // PROVIDED DEPENDENCIES / TEST DEPENDENCIES
     setOf(
         "io.netty:netty-all:4.1.70.Final",
         "com.mojang:authlib:1.5.26",
@@ -40,7 +38,7 @@ dependencies {
         testImplementation(it)
     }
 
-    ///////// MAIN DEPS /////////
+    // MAIN DEPENDENCIES
     setOf(
         "uk.co.caprica:vlcj:4.7.1",
         "uk.co.caprica:vlcj-natives:4.5.0",
@@ -62,6 +60,7 @@ dependencies {
         testImplementation(it)
     }
 
+    // PROJECT DEPENDENCIES
     setOf(
         project(":api"),
         project(":v1_16_R3"),

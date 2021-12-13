@@ -6,14 +6,12 @@ dependencies {
 
     compileOnly("io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT")
 
-    setOf(
-        project(":api"),
-        project(":main"),
-        project(":lib")
-    ).forEach {
+    // PROJECT DEPENDENCIES
+    setOf(project(":api"), project(":main"), project(":lib")).forEach {
         implementation(it)
     }
 
+    // PROVIDED DEPENDENCIES / DOWNLOADED AT RUNTIME
     setOf(
         "com.mojang:authlib:1.5.26",
         "net.dv8tion:JDA:5.0.0-alpha.2",
@@ -22,15 +20,20 @@ dependencies {
         compileOnly(it)
     }
 
+    // MAIN SHADED DEPENDENCIES
     setOf(
         "org.bstats:bstats-bukkit:2.2.1",
-        "com.mojang:brigadier:1.0.18",
-        "me.lucko:commodore:1.11",
         "net.kyori:adventure-api:4.9.3",
         "net.kyori:adventure-platform-bukkit:4.0.0",
         "com.sedmelluq:lavaplayer:1.3.78"
     ).forEach {
         implementation(it)
+    }
+
+    // BRIGADIER USE ONLY
+    compileOnly("com.mojang:brigadier:1.0.18")
+    implementation("me.lucko:commodore:1.11") {
+        exclude("com.mojang", "brigadier")
     }
 }
 
@@ -49,10 +52,11 @@ tasks {
         archiveBaseName.set("DeluxeMediaPlugin")
         val base = "io.github.pulsebeat02.deluxemediaplugin.lib"
         relocate("org.bstats", "$base.bstats")
-        relocate("com.mojang", "$base.mojang")
         relocate("me.lucko", "$base.lucko")
         relocate("net.kyori", "$base.kyori")
-        relocate("com.sedmellug", "$base.sedmellug")
+        relocate("com.sedmelluq", "$base.sedmelluq")
+        relocate("org.jsoup", "$base.org.jsoup")
+        relocate("org.slf4j", "$base.org.slf4j")
 
         val libraryBase = "io.github.pulsebeat02.ezmediacore.lib"
         relocate("uk.co.caprica", "$libraryBase.caprica")

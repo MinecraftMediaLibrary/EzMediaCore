@@ -94,16 +94,16 @@ public final class CommandHandler implements TabExecutor {
     final JavaPlugin loader = this.plugin.getBootstrap();
     final Commodore commodore =
         CommodoreProvider.isSupported() ? CommodoreProvider.getCommodore(loader) : null;
-    Nill.ifNot(
-        commodore,
-        () -> this.commands.forEach(command -> this.registerProperCommand(command, commodore)));
+    this.commands.forEach(command -> this.registerProperCommand(command, commodore));
   }
 
   private void registerProperCommand(
-      @NotNull final BaseCommand command, @NotNull final Commodore commodore) {
+      @NotNull final BaseCommand command, @Nullable final Commodore commodore) {
+
     final CommandMap commandMap = CommandMapHelper.getCommandMap();
     this.rootNode.addChild(command.node());
     commandMap.register(this.plugin.getBootstrap().getName(), command);
+
     this.registerCommodoreCommand(commodore, command);
   }
 
