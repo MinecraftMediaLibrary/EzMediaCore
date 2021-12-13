@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore;
 import io.github.pulsebeat02.ezmediacore.dependency.FFmpegDependency;
 import io.github.pulsebeat02.ezmediacore.dependency.LibraryDependencyManager;
 import io.github.pulsebeat02.ezmediacore.dependency.SimpleRTSPServerDependency;
-import io.github.pulsebeat02.ezmediacore.vlc.VLCDependency;
+import io.github.pulsebeat02.ezmediacore.dependency.VLCDependency;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;

@@ -27,6 +27,7 @@ import static io.github.pulsebeat02.emcdependencymanagement.component.Artifact.o
 import static io.github.pulsebeat02.emcdependencymanagement.component.Relocation.ofRelocation;
 
 import io.github.pulsebeat02.emcdependencymanagement.EMCDepManagement;
+import io.github.pulsebeat02.emcdependencymanagement.SimpleLogger;
 import io.github.pulsebeat02.emcdependencymanagement.component.Artifact;
 import io.github.pulsebeat02.emcdependencymanagement.component.Relocation;
 import io.github.pulsebeat02.emcdependencymanagement.component.Repository;
@@ -35,6 +36,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.jcodec.common.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public final class LibraryDependencyManager {
@@ -107,7 +109,26 @@ public final class LibraryDependencyManager {
             .setRepos(repos)
             .setArtifacts(artifacts)
             .setRelocations(relocations)
-            .createEMCDepManagement();
+            .setLogger(this.createLogger())
+            .create();
     management.load();
   }
+
+  private @NotNull SimpleLogger createLogger() {
+    return new SimpleLogger() {
+      @Override
+      public void info(@NotNull final String line) {
+        Logger.info(line);
+      }
+      @Override
+      public void warning(@NotNull final String line) {
+        Logger.warn(line);
+      }
+      @Override
+      public void error(@NotNull final String line) {
+        Logger.error(line);
+      }
+    };
+  }
+
 }
