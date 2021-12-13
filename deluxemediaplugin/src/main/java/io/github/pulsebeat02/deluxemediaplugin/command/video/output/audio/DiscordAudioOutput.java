@@ -28,6 +28,7 @@ import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
+import io.github.pulsebeat02.deluxemediaplugin.utility.throwable.Throwing;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.audience.Audience;
@@ -45,7 +46,8 @@ public class DiscordAudioOutput extends FFmpegOutput {
       @NotNull final VideoCommandAttributes attributes,
       @NotNull final Audience audience,
       @NotNull final String mrl) {
-    CompletableFuture.runAsync(() -> this.handleAudio(plugin, audience, mrl));
+    CompletableFuture.runAsync(() -> this.handleAudio(plugin, audience, mrl))
+        .handle(Throwing.THROWING_FUTURE);
   }
 
   private void handleAudio(

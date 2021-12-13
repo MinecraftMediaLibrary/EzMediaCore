@@ -25,7 +25,6 @@ package io.github.pulsebeat02.ezmediacore.player.external;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.base.Preconditions;
 import com.sun.jna.Pointer;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
@@ -81,7 +80,8 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
       @Nullable final SoundKey key) {
     super(callback, viewers, pixelDimension, fps, key);
     this.adapter = this.getAdapter();
-    this.modifyPlayerAttributes();
+    this.videoCallback = new MinecraftVideoRenderCallback(this.getCallback()::process);
+    this.player.videoSurface().set(this.getSurface());
   }
 
   private VideoSurfaceAdapter getAdapter() {

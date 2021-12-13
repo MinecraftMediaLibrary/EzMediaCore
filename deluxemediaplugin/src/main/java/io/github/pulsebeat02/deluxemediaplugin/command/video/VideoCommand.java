@@ -39,6 +39,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.video.PlaybackType;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
+import io.github.pulsebeat02.deluxemediaplugin.utility.throwable.Throwing;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioTrimmer;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
@@ -53,6 +54,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
@@ -176,7 +178,8 @@ public final class VideoCommand extends BaseCommand {
     audience.sendMessage(Locale.SETUP_RESOURCEPACK.build());
 
     CompletableFuture.runAsync(() -> this.buildResourcepack(audience), RESOURCE_WRAPPER_EXECUTOR)
-        .thenRun(() -> this.forceResumeLoadResourcepack(audience));
+        .thenRun(() -> this.forceResumeLoadResourcepack(audience))
+        .handle(Throwing.THROWING_FUTURE);
 
     return SINGLE_SUCCESS;
   }
@@ -262,13 +265,14 @@ public final class VideoCommand extends BaseCommand {
   }
 
   private boolean mediaProcessingIncomplete(@NotNull final Audience audience) {
-    return handleFalse(
-        audience, Locale.ERR_VIDEO_PROCESSING.build(), this.attributes.getCompletion().get());
+    final AtomicBoolean atomicBoolean = this.attributes.getCompletion();
+    return atomicBoolean != null
+        && handleFalse(audience, Locale.ERR_VIDEO_PROCESSING.build(), atomicBoolean.get());
   }
 
   private void releaseIfPlaying() {
     final VideoPlayer player = this.attributes.getPlayer();
-    Nill.ifSo(player, () -> this.releasePlayer(player));
+    Nill.ifNot(player, () -> this.releasePlayer(player));
   }
 
   private void releasePlayer(@NotNull final VideoPlayer player) {

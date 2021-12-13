@@ -33,6 +33,7 @@ import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class VideoCommandAttributes {
 
@@ -42,7 +43,11 @@ public final class VideoCommandAttributes {
     TEMPORARY_PLACEHOLDER = true;
   }
 
-  private transient AtomicBoolean completion;
+  private final transient AtomicBoolean completion;
+
+  {
+    this.completion = new AtomicBoolean(false);
+  }
 
   @SerializedName(value = "dither-type")
   private DitherSetting ditherType;
@@ -132,7 +137,7 @@ public final class VideoCommandAttributes {
     this.map = map;
   }
 
-  public @NotNull AtomicBoolean getCompletion() {
+  public @Nullable AtomicBoolean getCompletion() {
     return this.completion;
   }
 

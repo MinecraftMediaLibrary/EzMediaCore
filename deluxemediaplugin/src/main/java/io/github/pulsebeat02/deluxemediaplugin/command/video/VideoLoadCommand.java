@@ -39,6 +39,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioOutputType;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
+import io.github.pulsebeat02.deluxemediaplugin.utility.throwable.Throwing;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioExtractor;
@@ -144,7 +145,8 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
     CompletableFuture.runAsync(
             () -> this.handleVideoLoad(audience, successful, mrl), RESOURCE_WRAPPER_EXECUTOR)
-        .thenRun(() -> this.sendCompletionMessage(audience, mrl, successful));
+        .thenRun(() -> this.sendCompletionMessage(audience, mrl, successful))
+        .handle(Throwing.THROWING_FUTURE);
 
     return SINGLE_SUCCESS;
   }

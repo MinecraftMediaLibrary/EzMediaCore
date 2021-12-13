@@ -145,7 +145,8 @@ public final class RequestUtils {
       @NotNull final MrlConfiguration mrl,
       final boolean video) {
     final List<MrlConfiguration> urls = Lists.newArrayList();
-    for (final Format format : request.getInfo().getFormats()) {
+    final List<Format> formats = request.getInfo().getFormats();
+    for (final Format format : formats) {
       urls.add(getLinkMrl(format, video));
     }
     if (urls.size() == 0) {
@@ -156,11 +157,11 @@ public final class RequestUtils {
 
   private static @NotNull MrlConfiguration getLinkMrl(
       @NotNull final Format format, final boolean video) {
-    return MrlConfiguration.ofMrl(
-        getProperUrl(format.getAcodec(), format.getVcodec(), format, video));
+    final String url = getProperUrl(format.getAcodec(), format.getVcodec(), format, video);
+    return url != null ? MrlConfiguration.ofMrl(url) : MrlConfiguration.emptyMrl();
   }
 
-  private @NotNull static String getProperUrl(
+  private @Nullable static String getProperUrl(
       @NotNull final String acodec,
       @NotNull final String vcodec,
       final Format format,

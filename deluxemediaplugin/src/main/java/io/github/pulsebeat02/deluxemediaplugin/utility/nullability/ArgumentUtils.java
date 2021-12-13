@@ -37,14 +37,14 @@ public final class ArgumentUtils {
       @NotNull final Audience audience,
       @NotNull final Component component,
       @Nullable final Object obj) {
-    return handleFalse(audience, component, obj == null);
+    return handleTrue(audience, component, obj == null);
   }
 
   public static boolean handleNonNull(
       @NotNull final Audience audience,
       @NotNull final Component component,
       @Nullable final Object obj) {
-    return handleTrue(audience, component, obj == null);
+    return handleFalse(audience, component, obj == null);
   }
 
   public static boolean handleFalse(

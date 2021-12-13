@@ -36,6 +36,7 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.component.ChatUtils;
+import io.github.pulsebeat02.deluxemediaplugin.utility.throwable.Throwing;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.image.DynamicImage;
@@ -94,7 +95,9 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
 
     final ImageMrlType type = optional.get();
 
-    CompletableFuture.runAsync(() -> this.handleImageType(audience, mrl, width, height, type), RESOURCE_WRAPPER_EXECUTOR);
+    CompletableFuture.runAsync(
+        () -> this.handleImageType(audience, mrl, width, height, type), RESOURCE_WRAPPER_EXECUTOR)
+        .handle(Throwing.THROWING_FUTURE);
 
     return SINGLE_SUCCESS;
   }

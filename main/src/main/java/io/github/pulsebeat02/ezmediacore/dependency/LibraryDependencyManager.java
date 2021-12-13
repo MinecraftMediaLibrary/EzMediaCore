@@ -93,7 +93,7 @@ public final class LibraryDependencyManager {
                 ofRelocation("se.michaelthelin", base.formatted("michaelthelin")),
                 ofRelocation("com:github:kokorin", base.formatted("kokorin")),
                 ofRelocation("org:jcodec", base.formatted("jcodec")),
-                ofRelocation("com:github:benmanes", base.formatted("caffeine")),
+                ofRelocation("com:github:benmanes", base.formatted("benmanes")),
                 ofRelocation("it:unimi:dsi", base.formatted("dsi")),
                 ofRelocation("com:alibaba", base.formatted("alibaba")),
                 ofRelocation("net:sourceforge:jaad:aac", base.formatted("sourceforge")),

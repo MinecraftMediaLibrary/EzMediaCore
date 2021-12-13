@@ -178,7 +178,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
 
   @Override
   public void log(final String line) {
-    this.core.getLogger().ffmpegStream(line);
+    this.core.getLogger().ffmpegPlayer(line);
   }
 
   @Override
@@ -245,5 +245,10 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   @Override
   public void clearArguments() {
     this.arguments.clear();
+  }
+
+  @Override
+  public String toString() {
+    return "ffmpeg %s".formatted(String.join(" ", this.arguments));
   }
 }
