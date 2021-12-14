@@ -81,7 +81,6 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     super(callback, viewers, pixelDimension, fps, key);
     this.adapter = this.getAdapter();
     this.videoCallback = new MinecraftVideoRenderCallback(this.getCallback()::process);
-    this.player.videoSurface().set(this.getSurface());
   }
 
   private VideoSurfaceAdapter getAdapter() {
@@ -143,6 +142,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     this.player = this.getEmbeddedMediaPlayer(
         Arrays.stream(arguments).collect(Collectors.toList()));
     this.player.controls().setTime(delay.getDelay());
+    this.player.videoSurface().set(this.getSurface());
   }
 
   @Override
@@ -198,10 +198,9 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
 
   @Contract(" -> new")
   private @NotNull CallbackVideoSurface getSurface() {
-    final CallbackVideoSurface surface = new CallbackVideoSurface(this.getBufferCallback(),
+    return new CallbackVideoSurface(this.getBufferCallback(),
         this.videoCallback, false,
         this.adapter);
-    return surface;
   }
 
   @Contract(value = " -> new", pure = true)
