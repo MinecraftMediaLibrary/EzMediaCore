@@ -80,7 +80,7 @@ public class NativePluginLoader {
     try {
       latch.await();
     } catch (final InterruptedException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 

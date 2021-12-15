@@ -7,12 +7,14 @@ import com.sedmelluq.discord.lavaplayer.container.playlists.ExtendedM3uParser.Li
 import com.sedmelluq.discord.lavaplayer.tools.ExceptionTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
+import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -57,7 +59,7 @@ public abstract class EnhancedM3uStreamSegmentUrlProvider {
         if (this.reachedEndSegments(startTime, nextSegment, segments)) {
           break;
         }
-        this.sleep();
+        Try.sleep(TimeUnit.MILLISECONDS, SEGMENT_WAIT_STEP_MS);
       }
 
       if (nextSegment == null) {
@@ -70,13 +72,7 @@ public abstract class EnhancedM3uStreamSegmentUrlProvider {
 
     } catch (final IOException e) {
       throw new RuntimeException("Failed to get next part of the stream!");
-    } catch (final InterruptedException e) {
-      throw new RuntimeException(e);
     }
-  }
-
-  private void sleep() throws InterruptedException {
-    Thread.sleep(SEGMENT_WAIT_STEP_MS);
   }
 
   private boolean reachedEndSegments(

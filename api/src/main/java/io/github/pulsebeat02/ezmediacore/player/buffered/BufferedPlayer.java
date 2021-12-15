@@ -44,9 +44,9 @@ public interface BufferedPlayer {
 
   void forceStop();
 
-  void setStart(final long start);
-
   long getStart();
+
+  void setStart(final long start);
 
   boolean isExecuting();
 }

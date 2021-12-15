@@ -50,7 +50,7 @@ public class JCodecFrameConsumer implements Runnable {
             VideoFrameUtils.getRGBParallel(image.get()), this.calculateTimestamp());
       }
     } catch (final IOException | ExecutionException | InterruptedException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 

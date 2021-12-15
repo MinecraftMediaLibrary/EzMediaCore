@@ -50,7 +50,7 @@ public class DependencyLoader implements LibraryLoader {
     try {
       new FFmpegDependency(this.core);
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 
@@ -58,7 +58,7 @@ public class DependencyLoader implements LibraryLoader {
     try {
       new LibraryDependencyManager(this.core);
     } catch (final IOException | ReflectiveOperationException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 
@@ -67,7 +67,7 @@ public class DependencyLoader implements LibraryLoader {
       new VLCDependency(this.core);
       this.loadNativeLibVLC();
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 
@@ -89,7 +89,7 @@ public class DependencyLoader implements LibraryLoader {
     try {
       new SimpleRTSPServerDependency(this.core);
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 

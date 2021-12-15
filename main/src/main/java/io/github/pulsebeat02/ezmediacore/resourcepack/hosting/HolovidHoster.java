@@ -62,9 +62,8 @@ public class HolovidHoster implements HolovidSolution {
           .getUrl();
     } catch (final IOException | URISyntaxException | InterruptedException e) {
       this.core.getLogger().info(Locale.ERR_HOLOVID);
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
-    throw new AssertionError("Holovid website is down!");
   }
 
   private @NotNull String getRequest(@NotNull final String input)

@@ -100,7 +100,6 @@ public final class AudioCommand extends BaseCommand {
     this.audioAction(player -> player.stopSound(this.attributes.getKey()));
   }
 
-
   private void audioAction(@NotNull final Consumer<Player> consumer) {
     this.plugin().getBootstrap().getServer().getOnlinePlayers().forEach(consumer);
   }

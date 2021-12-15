@@ -83,7 +83,7 @@ public class ResourcepackSoundWrapper extends ResourcepackWrapper implements Sou
     try {
       this.addFile("assets/minecraft/sounds/%s.ogg".formatted(key), value);
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 

@@ -30,6 +30,7 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipHeader;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipRequest;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
+import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -117,7 +118,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
       this.socket = new ServerSocket(this.port);
       this.socket.setReuseAddress(true);
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 
@@ -131,7 +132,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
         this.handleRequest();
       }
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 
@@ -145,19 +146,15 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
 
   @Override
   public void stop() {
-    try {
-      this.onServerTermination();
-      this.running.set(false);
-      this.closeSocket();
-      this.executor.shutdown();
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
+    this.onServerTermination();
+    this.running.set(false);
+    this.closeSocket();
+    this.executor.shutdown();
   }
 
-  private void closeSocket() throws IOException {
+  private void closeSocket() {
     if (!this.socket.isClosed()) {
-      this.socket.close();
+      Try.closeable(this.socket);
     }
   }
 

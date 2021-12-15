@@ -1,7 +1,5 @@
 package io.github.pulsebeat02.ezmediacore.utility.unsafe;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.lang.reflect.Field;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -9,13 +7,13 @@ import sun.misc.Unsafe;
 
 public final class UnsafeUtils {
 
-  private UnsafeUtils() {}
-
   private static final Unsafe UNSAFE;
 
   static {
-    UNSAFE = UnsafeManager.getUnsafe();
+    UNSAFE = UnsafeProvider.getUnsafe();
   }
+
+  private UnsafeUtils() {}
 
   /**
    * Sets a specific final field for a class (not static!).

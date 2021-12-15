@@ -148,7 +148,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
       this.process = new ProcessBuilder(this.arguments).redirectErrorStream(true).start();
       this.handleLogging(logger, logger != null);
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 
@@ -212,7 +212,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
       try {
         this.process.waitFor();
       } catch (final InterruptedException e) {
-        e.printStackTrace();
+        throw new AssertionError(e);
       }
     }
   }

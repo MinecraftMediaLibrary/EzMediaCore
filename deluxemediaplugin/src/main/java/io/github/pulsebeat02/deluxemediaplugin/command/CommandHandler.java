@@ -120,7 +120,7 @@ public final class CommandHandler implements TabExecutor {
               .getResource("commodore/%s.commodore".formatted(command.getName()));
       commodore.register(CommodoreFileFormat.parse(requireNonNull(resource)));
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 

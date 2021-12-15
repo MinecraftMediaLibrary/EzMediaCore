@@ -140,7 +140,7 @@ public class CommandTaskChain {
     try {
       task.run();
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 

@@ -24,7 +24,7 @@ publishing {
             version = "v1.0.0-ALPHA"
             pom {
                 name.set("EzMediaCore")
-                description.set("A Spigot library used to play media")
+                description.set("A professional Bukkit library used to play media")
                 url.set("https://github.com/MinecraftMediaLibrary/EzMediaCore")
                 inceptionYear.set("2021")
                 licenses {

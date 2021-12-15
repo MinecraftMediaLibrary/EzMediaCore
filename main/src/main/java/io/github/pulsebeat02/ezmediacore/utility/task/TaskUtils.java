@@ -25,11 +25,9 @@ package io.github.pulsebeat02.ezmediacore.utility.task;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 public final class TaskUtils {

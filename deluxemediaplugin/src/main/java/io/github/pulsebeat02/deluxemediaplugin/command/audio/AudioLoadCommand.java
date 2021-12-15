@@ -110,7 +110,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
       this.setPackInfo(daemon, this.createPackWrapper(daemon));
     } catch (final IOException e) {
       this.plugin.getConsoleAudience().sendMessage(Locale.ERR_RESOURCEPACK_WRAP.build());
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
     this.attributes.setCompletion(true);
   }
@@ -130,7 +130,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
       final @NotNull HttpServer daemon, final @NotNull ResourcepackSoundWrapper wrapper) {
     final Path path = wrapper.getResourcepackFilePath();
     this.attributes.setLink(daemon.createUrl(path));
-    this.attributes.setHash(HashingUtils.createHashSha1(path).orElseThrow(AssertionError::new));
+    this.attributes.setHash(HashingUtils.createHashSha1(path));
   }
 
   @NotNull

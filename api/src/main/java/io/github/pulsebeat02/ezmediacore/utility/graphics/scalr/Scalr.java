@@ -13,6 +13,7 @@ package io.github.pulsebeat02.ezmediacore.utility.graphics.scalr;
   express or implied. See the License for the specific language governing permissions and
   limitations under the License.
  */
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -33,7 +34,6 @@ import java.awt.image.IndexColorModel;
 import java.awt.image.Kernel;
 import java.awt.image.RasterFormatException;
 import java.awt.image.RescaleOp;
-
 import javax.imageio.ImageIO;
 
 /**
@@ -330,156 +330,6 @@ public final class Scalr {
    */
   public static final ColorConvertOp OP_GRAYSCALE =
       new ColorConvertOp(ColorSpace.getInstance(ColorSpace.CS_GRAY), null);
-
-  /* Static initializer used to prepare some of the variables used by this class. */
-  static {
-    log(0, "Debug output ENABLED");
-  }
-
-  /**
-   * Used to define the different scaling hints that the algorithm can use.
-   *
-   * @author Riyad Kalla (software@thebuzzmedia.com)
-   * @since 1.1
-   */
-  public enum Method {
-    /**
-     * Used to indicate that the scaling implementation should decide which method to use in order
-     * to get the best looking scaled image in the least amount of time.
-     *
-     * <p>The scaling algorithm will use the {@link Scalr#THRESHOLD_QUALITY_BALANCED} or {@link
-     * Scalr#THRESHOLD_BALANCED_SPEED} thresholds as cut-offs to decide between selecting the <code>
-     * QUALITY</code>, <code>BALANCED</code> or <code>SPEED</code> scaling algorithms.
-     *
-     * <p>By default the thresholds chosen will give nearly the best looking result in the fastest
-     * amount of time. We intend this method to work for 80% of people looking to scale an image
-     * quickly and get a good looking result.
-     */
-    AUTOMATIC,
-    /**
-     * Used to indicate that the scaling implementation should scale as fast as possible and return
-     * a result. For smaller images (800px in size) this can result in noticeable aliasing but it
-     * can be a few magnitudes times faster than using the QUALITY method.
-     */
-    SPEED,
-    /**
-     * Used to indicate that the scaling implementation should use a scaling operation balanced
-     * between SPEED and QUALITY. Sometimes SPEED looks too low quality to be useful (e.g. text can
-     * become unreadable when scaled using SPEED) but using QUALITY mode will increase the
-     * processing time too much. This mode provides a "better than SPEED" quality in a "less than
-     * QUALITY" amount of time.
-     */
-    BALANCED,
-    /**
-     * Used to indicate that the scaling implementation should do everything it can to create as
-     * nice of a result as possible. This approach is most important for smaller pictures (800px or
-     * smaller) and less important for larger pictures as the difference between this method and the
-     * SPEED method become less and less noticeable as the source-image size increases. Using the
-     * AUTOMATIC method will automatically prefer the QUALITY method when scaling an image down
-     * below 800px in size.
-     */
-    QUALITY,
-    /**
-     * Used to indicate that the scaling implementation should go above and beyond the work done by
-     * {@link Method#QUALITY} to make the image look exceptionally good at the cost of more
-     * processing time. This is especially evident when generating thumbnails of images that look
-     * jagged with some of the other {@link Method}s (even {@link Method#QUALITY}).
-     */
-    ULTRA_QUALITY
-  }
-
-  /**
-   * Used to define the different modes of resizing that the algorithm can use.
-   *
-   * @author Riyad Kalla (software@thebuzzmedia.com)
-   * @since 3.1
-   */
-  public enum Mode {
-    /**
-     * Used to indicate that the scaling implementation should calculate dimensions for the
-     * resultant image by looking at the image's orientation and generating proportional dimensions
-     * that best fit into the target width and height given
-     *
-     * <p>See "Image Proportions" in the {@link Scalr} class description for more detail.
-     */
-    AUTOMATIC,
-    /**
-     * Used to fit the image to the exact dimensions given regardless of the image's proportions. If
-     * the dimensions are not proportionally correct, this will introduce vertical or horizontal
-     * stretching to the image.
-     *
-     * <p>It is recommended that you use one of the other <code>FIT_TO</code> modes or {@link
-     * Mode#AUTOMATIC} if you want the image to look correct, but if dimension-fitting is the #1
-     * priority regardless of how it makes the image look, that is what this mode is for.
-     */
-    FIT_EXACT,
-    /**
-     * Used to indicate that the scaling implementation should calculate dimensions for the largest
-     * image that fit within the bounding box, without cropping or distortion, retaining the
-     * original proportions.
-     */
-    BEST_FIT_BOTH,
-    /**
-     * Used to indicate that the scaling implementation should calculate dimensions for the
-     * resultant image that best-fit within the given width, regardless of the orientation of the
-     * image.
-     */
-    FIT_TO_WIDTH,
-    /**
-     * Used to indicate that the scaling implementation should calculate dimensions for the
-     * resultant image that best-fit within the given height, regardless of the orientation of the
-     * image.
-     */
-    FIT_TO_HEIGHT
-  }
-
-  /**
-   * Used to define the different types of rotations that can be applied to an image during a resize
-   * operation.
-   *
-   * @author Riyad Kalla (software@thebuzzmedia.com)
-   * @since 3.2
-   */
-  public enum Rotation {
-    /**
-     * 90-degree, clockwise rotation (to the right). This is equivalent to a quarter-turn of the
-     * image to the right; moving the picture on to its right side.
-     */
-    CW_90,
-    /**
-     * 180-degree, clockwise rotation (to the right). This is equivalent to 1 half-turn of the image
-     * to the right; rotating the picture around until it is upside down from the original position.
-     */
-    CW_180,
-    /**
-     * 270-degree, clockwise rotation (to the right). This is equivalent to a quarter-turn of the
-     * image to the left; moving the picture on to its left side.
-     */
-    CW_270,
-    /**
-     * Flip the image horizontally by reflecting it around the y axis.
-     *
-     * <p>This is not a standard rotation around a center point, but instead creates the mirrored
-     * reflection of the image horizontally.
-     *
-     * <p>More specifically, the vertical orientation of the image stays the same (the top stays on
-     * top, and the bottom on bottom), but the right and left sides flip. This is different than a
-     * standard rotation where the top and bottom would also have been flipped.
-     */
-    FLIP_HORZ,
-    /**
-     * Flip the image vertically by reflecting it around the x axis.
-     *
-     * <p>This is not a standard rotation around a center point, but instead creates the mirrored
-     * reflection of the image vertically.
-     *
-     * <p>More specifically, the horizontal orientation of the image stays the same (the left stays
-     * on the left and the right stays on the right), but the top and bottom sides flip. This is
-     * different than a standard rotation where the left and right would also have been flipped.
-     */
-    FLIP_VERT
-  }
-
   /**
    * Threshold (in pixels) at which point the scaling operation using the {@link Method#AUTOMATIC}
    * method will decide if a {@link Method#BALANCED} method will be used (if smaller than or equal
@@ -495,7 +345,6 @@ public final class Scalr {
    * bigger than this threshold showed no noticeable degradation over a <code>BALANCED</code> scale.
    */
   public static final int THRESHOLD_BALANCED_SPEED = 1600;
-
   /**
    * Threshold (in pixels) at which point the scaling operation using the {@link Method#AUTOMATIC}
    * method will decide if a {@link Method#QUALITY} method will be used (if smaller than or equal to
@@ -511,6 +360,11 @@ public final class Scalr {
    * bigger than this threshold showed no noticeable degradation over a <code>QUALITY</code> scale.
    */
   public static final int THRESHOLD_QUALITY_BALANCED = 800;
+
+  /* Static initializer used to prepare some of the variables used by this class. */
+  static {
+    log(0, "Debug output ENABLED");
+  }
 
   /**
    * Used to apply, in the order given, 1 or more {@link BufferedImageOp}s to a given {@link
@@ -2119,5 +1973,149 @@ public final class Scalr {
      * result image that we want to return.
      */
     return src;
+  }
+
+  /**
+   * Used to define the different scaling hints that the algorithm can use.
+   *
+   * @author Riyad Kalla (software@thebuzzmedia.com)
+   * @since 1.1
+   */
+  public enum Method {
+    /**
+     * Used to indicate that the scaling implementation should decide which method to use in order
+     * to get the best looking scaled image in the least amount of time.
+     *
+     * <p>The scaling algorithm will use the {@link Scalr#THRESHOLD_QUALITY_BALANCED} or {@link
+     * Scalr#THRESHOLD_BALANCED_SPEED} thresholds as cut-offs to decide between selecting the <code>
+     * QUALITY</code>, <code>BALANCED</code> or <code>SPEED</code> scaling algorithms.
+     *
+     * <p>By default the thresholds chosen will give nearly the best looking result in the fastest
+     * amount of time. We intend this method to work for 80% of people looking to scale an image
+     * quickly and get a good looking result.
+     */
+    AUTOMATIC,
+    /**
+     * Used to indicate that the scaling implementation should scale as fast as possible and return
+     * a result. For smaller images (800px in size) this can result in noticeable aliasing but it
+     * can be a few magnitudes times faster than using the QUALITY method.
+     */
+    SPEED,
+    /**
+     * Used to indicate that the scaling implementation should use a scaling operation balanced
+     * between SPEED and QUALITY. Sometimes SPEED looks too low quality to be useful (e.g. text can
+     * become unreadable when scaled using SPEED) but using QUALITY mode will increase the
+     * processing time too much. This mode provides a "better than SPEED" quality in a "less than
+     * QUALITY" amount of time.
+     */
+    BALANCED,
+    /**
+     * Used to indicate that the scaling implementation should do everything it can to create as
+     * nice of a result as possible. This approach is most important for smaller pictures (800px or
+     * smaller) and less important for larger pictures as the difference between this method and the
+     * SPEED method become less and less noticeable as the source-image size increases. Using the
+     * AUTOMATIC method will automatically prefer the QUALITY method when scaling an image down
+     * below 800px in size.
+     */
+    QUALITY,
+    /**
+     * Used to indicate that the scaling implementation should go above and beyond the work done by
+     * {@link Method#QUALITY} to make the image look exceptionally good at the cost of more
+     * processing time. This is especially evident when generating thumbnails of images that look
+     * jagged with some of the other {@link Method}s (even {@link Method#QUALITY}).
+     */
+    ULTRA_QUALITY
+  }
+
+  /**
+   * Used to define the different modes of resizing that the algorithm can use.
+   *
+   * @author Riyad Kalla (software@thebuzzmedia.com)
+   * @since 3.1
+   */
+  public enum Mode {
+    /**
+     * Used to indicate that the scaling implementation should calculate dimensions for the
+     * resultant image by looking at the image's orientation and generating proportional dimensions
+     * that best fit into the target width and height given
+     *
+     * <p>See "Image Proportions" in the {@link Scalr} class description for more detail.
+     */
+    AUTOMATIC,
+    /**
+     * Used to fit the image to the exact dimensions given regardless of the image's proportions. If
+     * the dimensions are not proportionally correct, this will introduce vertical or horizontal
+     * stretching to the image.
+     *
+     * <p>It is recommended that you use one of the other <code>FIT_TO</code> modes or {@link
+     * Mode#AUTOMATIC} if you want the image to look correct, but if dimension-fitting is the #1
+     * priority regardless of how it makes the image look, that is what this mode is for.
+     */
+    FIT_EXACT,
+    /**
+     * Used to indicate that the scaling implementation should calculate dimensions for the largest
+     * image that fit within the bounding box, without cropping or distortion, retaining the
+     * original proportions.
+     */
+    BEST_FIT_BOTH,
+    /**
+     * Used to indicate that the scaling implementation should calculate dimensions for the
+     * resultant image that best-fit within the given width, regardless of the orientation of the
+     * image.
+     */
+    FIT_TO_WIDTH,
+    /**
+     * Used to indicate that the scaling implementation should calculate dimensions for the
+     * resultant image that best-fit within the given height, regardless of the orientation of the
+     * image.
+     */
+    FIT_TO_HEIGHT
+  }
+
+  /**
+   * Used to define the different types of rotations that can be applied to an image during a resize
+   * operation.
+   *
+   * @author Riyad Kalla (software@thebuzzmedia.com)
+   * @since 3.2
+   */
+  public enum Rotation {
+    /**
+     * 90-degree, clockwise rotation (to the right). This is equivalent to a quarter-turn of the
+     * image to the right; moving the picture on to its right side.
+     */
+    CW_90,
+    /**
+     * 180-degree, clockwise rotation (to the right). This is equivalent to 1 half-turn of the image
+     * to the right; rotating the picture around until it is upside down from the original position.
+     */
+    CW_180,
+    /**
+     * 270-degree, clockwise rotation (to the right). This is equivalent to a quarter-turn of the
+     * image to the left; moving the picture on to its left side.
+     */
+    CW_270,
+    /**
+     * Flip the image horizontally by reflecting it around the y axis.
+     *
+     * <p>This is not a standard rotation around a center point, but instead creates the mirrored
+     * reflection of the image horizontally.
+     *
+     * <p>More specifically, the vertical orientation of the image stays the same (the top stays on
+     * top, and the bottom on bottom), but the right and left sides flip. This is different than a
+     * standard rotation where the top and bottom would also have been flipped.
+     */
+    FLIP_HORZ,
+    /**
+     * Flip the image vertically by reflecting it around the x axis.
+     *
+     * <p>This is not a standard rotation around a center point, but instead creates the mirrored
+     * reflection of the image vertically.
+     *
+     * <p>More specifically, the horizontal orientation of the image stays the same (the left stays
+     * on the left and the right stays on the right), but the top and bottom sides flip. This is
+     * different than a standard rotation where the left and right would also have been flipped.
+     */
+    FLIP_VERT
   }
 }

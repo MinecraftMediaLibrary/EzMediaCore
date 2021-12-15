@@ -81,9 +81,8 @@ public final class RequestUtils {
           HTTP_CLIENT.send(createRequest(link), createBodyHandler());
       return response.body();
     } catch (final IOException | InterruptedException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
-    throw new AssertionError("Empty content from url %s!".formatted(link));
   }
 
   @Contract(pure = true)

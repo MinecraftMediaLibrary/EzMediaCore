@@ -119,7 +119,7 @@ public final class ManualLogger implements CoreLogger {
     try {
       Files.createDirectories(this.core.getLibraryPath());
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 
@@ -132,7 +132,7 @@ public final class ManualLogger implements CoreLogger {
     try {
       FileUtils.createIfNotExists(file);
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 

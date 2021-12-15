@@ -46,6 +46,7 @@ import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
+import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Set;
@@ -171,23 +172,18 @@ public final class DeluxeMediaPlugin {
       this.cancelNativeExtractor();
       this.cancelNativeStreamExtractor();
     } catch (final Exception e) {
-      e.printStackTrace();
-      throw new AssertionError("Failed to cancel native tasks!");
+      throw new AssertionError(e);
     }
   }
 
-  private void cancelNativeExtractor() throws Exception {
+  private void cancelNativeExtractor() {
     final EnhancedExecution extractor = this.attributes.getExtractor();
-    if (extractor != null) {
-      extractor.close();
-    }
+    Nill.ifNot(extractor, () -> Try.closeable(extractor));
   }
 
-  private void cancelNativeStreamExtractor() throws Exception {
+  private void cancelNativeStreamExtractor() {
     final EnhancedExecution streamExtractor = this.attributes.getStreamExtractor();
-    if (streamExtractor != null) {
-      streamExtractor.close();
-    }
+    Nill.ifNot(streamExtractor, () -> Try.closeable(streamExtractor));
   }
 
   private void createFolders() {
@@ -246,7 +242,7 @@ public final class DeluxeMediaPlugin {
       this.writeToFile();
     } catch (final IOException e) {
       this.console.sendMessage(Locale.ERR_PERSISTENT_INIT.build());
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
     this.console.sendMessage(Locale.FIN_PERSISTENT_INIT.build());
   }

@@ -7,6 +7,7 @@ import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
+import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -107,11 +108,7 @@ public class FFmpegVideoTest {
 
         // hack to wait for new frames
         while (FFmpegVideoTest.this.frames.remainingCapacity() <= 1) {
-          try {
-            TimeUnit.MILLISECONDS.sleep(5);
-          } catch (final InterruptedException e) {
-            e.printStackTrace();
-          }
+          Try.sleep(TimeUnit.MILLISECONDS, 5);
         }
 
         final long stamp = this.calculateTimeStamp(frame);

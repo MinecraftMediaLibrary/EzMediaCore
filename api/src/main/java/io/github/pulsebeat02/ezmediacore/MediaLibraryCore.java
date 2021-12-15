@@ -27,7 +27,6 @@ import io.github.pulsebeat02.ezmediacore.analysis.Diagnostic;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
 import java.nio.file.Path;
-import java.util.concurrent.ExecutionException;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;

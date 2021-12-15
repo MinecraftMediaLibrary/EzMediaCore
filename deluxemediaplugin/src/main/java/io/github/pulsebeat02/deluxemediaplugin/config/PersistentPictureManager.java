@@ -69,7 +69,7 @@ public final class PersistentPictureManager {
     try {
       this.save();
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 

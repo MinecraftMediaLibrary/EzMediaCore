@@ -34,15 +34,15 @@ import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyProvider;
 import io.github.pulsebeat02.ezmediacore.reflect.NMSReflectionHandler;
-import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import io.github.pulsebeat02.ezmediacore.throwable.UnsupportedServerException;
+import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
+import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import io.github.pulsebeat02.ezmediacore.utility.search.StringSearch;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
@@ -119,7 +119,7 @@ public final class EzMediaCore implements MediaLibraryCore {
       this.logger = new ManualLogger(this);
       this.logger.start();
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 
@@ -137,14 +137,14 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void createFolders() {
-    Set.of(
+    Stream.of(
             this.libraryPath,
             this.dependencyPath,
             this.httpServerPath,
             this.imagePath,
             this.audioPath,
             this.videoPath)
-        .forEach(ThrowingConsumer.unchecked(Files::createDirectories));
+        .forEach(FileUtils::createFolderIfNotExistsExceptionally);
   }
 
   private void initializeStream() {
@@ -195,11 +195,7 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void closeLogger() {
-    try {
-      this.logger.close();
-    } catch (final Exception e) {
-      e.printStackTrace();
-    }
+    Try.closeable(this.logger);
   }
 
   @Override

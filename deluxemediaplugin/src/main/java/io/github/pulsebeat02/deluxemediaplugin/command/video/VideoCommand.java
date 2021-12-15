@@ -212,7 +212,7 @@ public final class VideoCommand extends BaseCommand {
 
     } catch (final IOException e) {
       console.sendMessage(Locale.ERR_RESOURCEPACK_WRAP.build());
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 
@@ -240,7 +240,7 @@ public final class VideoCommand extends BaseCommand {
 
     final Path path = wrapper.getResourcepackFilePath();
     final String url = this.plugin().getHttpServer().createUrl(path);
-    final byte[] hash = HashingUtils.createHashSha1(path).orElseThrow(AssertionError::new);
+    final byte[] hash = HashingUtils.createHashSha1(path);
 
     this.attributes.setPackUrl(url);
     this.attributes.setPackHash(hash);

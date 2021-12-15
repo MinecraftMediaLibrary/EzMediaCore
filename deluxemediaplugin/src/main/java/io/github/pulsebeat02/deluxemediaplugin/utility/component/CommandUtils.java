@@ -28,7 +28,6 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import java.lang.reflect.Field;
 import java.util.HashMap;
-import java.util.Optional;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.jetbrains.annotations.NotNull;
@@ -39,11 +38,8 @@ public final class CommandUtils {
   private static final HashMap<String, Command> knownCommands;
 
   static {
-    final Object map =
-        getPrivateField(Bukkit.getServer().getPluginManager(), "commandMap")
-            .orElseThrow(AssertionError::new);
-    final Object commands =
-        getPrivateField((map), "knownCommands").orElseThrow(AssertionError::new);
+    final Object map = getPrivateField(Bukkit.getServer().getPluginManager(), "commandMap");
+    final Object commands = getPrivateField((map), "knownCommands");
     knownCommands = (HashMap<String, Command>) commands;
   }
 
@@ -63,16 +59,15 @@ public final class CommandUtils {
     }
   }
 
-  private static @NotNull Optional<Object> getPrivateField(
+  private static @NotNull Object getPrivateField(
       @NotNull final Object object, @NotNull final String field) {
     try {
       final Field objectField = getField(object.getClass(), field);
       objectField.setAccessible(true);
-      return Optional.of(objectField.get(object));
+      return objectField.get(object);
     } catch (final NoSuchFieldException | IllegalAccessException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
-    return Optional.empty();
   }
 
   private static @NotNull Field getField(@NotNull final Class<?> clazz, @NotNull final String field)

@@ -105,7 +105,7 @@ public class RTPStreamingServer implements StreamingServer {
       this.process = builder.start();
       this.handleLogging(logger, logger != null);
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 

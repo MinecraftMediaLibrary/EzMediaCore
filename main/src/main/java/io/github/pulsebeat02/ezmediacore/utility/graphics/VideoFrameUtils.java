@@ -181,7 +181,7 @@ public final class VideoFrameUtils {
         final int height = reader.getHeight(reader.getMinIndex());
         return new Dimension(width, height);
       } catch (final IOException e) {
-        e.printStackTrace();
+        throw new AssertionError(e);
       } finally {
         reader.dispose();
       }

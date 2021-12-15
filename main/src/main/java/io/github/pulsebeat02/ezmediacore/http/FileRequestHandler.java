@@ -27,6 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.http.request.FileRequest;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipHeader;
+import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -125,7 +126,7 @@ public class FileRequestHandler implements FileRequest {
       if (!this.handleRequest(address, in.readLine(), pout, out)) {
         flag = true;
       }
-      this.client.close();
+      Try.closeable(this.client);
     } catch (final IOException e) {
       flag = true;
       e.printStackTrace();

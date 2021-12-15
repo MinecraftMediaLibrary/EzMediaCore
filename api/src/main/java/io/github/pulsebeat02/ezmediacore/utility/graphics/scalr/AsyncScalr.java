@@ -185,6 +185,7 @@ public class AsyncScalr {
    * <p>Default value is <code>2</code>.
    */
   public static final int THREAD_COUNT = Integer.getInteger(THREAD_COUNT_PROPERTY_NAME, 2);
+  protected static ExecutorService service;
 
   /* Initializer used to verify the THREAD_COUNT system property. */
   static {
@@ -197,8 +198,6 @@ public class AsyncScalr {
               + ", but THREAD_COUNT must be > 0.");
     }
   }
-
-  protected static ExecutorService service;
 
   /**
    * Used to get access to the internal {@link ExecutorService} used by this class to process scale

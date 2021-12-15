@@ -49,13 +49,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class ScoreboardCallback extends FrameCallback implements ScoreboardCallbackDispatcher {
 
-  private static ChatColor[] COLORS;
+  private static final ChatColor[] COLORS;
 
   static {
     try {
       COLORS = getChatColors();
     } catch (final NoSuchFieldException | IllegalAccessException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 

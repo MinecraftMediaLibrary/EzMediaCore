@@ -55,6 +55,14 @@ public final class FileUtils {
     return Path.of(filePath);
   }
 
+  public static void createFileExceptionally(@NotNull final Path file) {
+    try {
+      createFile(file);
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   public static void createFile(@NotNull final Path file) throws IOException {
     checkNotNull(file, "Path cannot be null!");
     final Path parent = file.getParent();
@@ -63,6 +71,14 @@ public final class FileUtils {
     }
     if (Files.notExists(file)) {
       Files.createFile(file);
+    }
+  }
+
+  public static void createFileIfNotExistsExceptionally(@NotNull final Path file) {
+    try {
+      createIfNotExists(file);
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
   }
 
@@ -75,6 +91,14 @@ public final class FileUtils {
     return false;
   }
 
+  public static void createFolderIfNotExistsExceptionally(@NotNull final Path file) {
+    try {
+      createFolderIfNotExists(file);
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   public static boolean createFolderIfNotExists(@NotNull final Path file) throws IOException {
     checkNotNull(file, "Path cannot be null!");
     if (Files.notExists(file)) {
@@ -82,6 +106,14 @@ public final class FileUtils {
       return true;
     }
     return false;
+  }
+
+  public static void deleteIfExistsExceptionally(@NotNull final Path file) {
+    try {
+      deleteIfExists(file);
+    } catch (final IOException e) {
+      e.printStackTrace();
+    }
   }
 
   public static boolean deleteIfExists(@NotNull final Path file) throws IOException {
@@ -100,7 +132,7 @@ public final class FileUtils {
         final FileChannel channel = new FileOutputStream(path.toString()).getChannel()) {
       channel.transferFrom(in, 0, Long.MAX_VALUE);
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 

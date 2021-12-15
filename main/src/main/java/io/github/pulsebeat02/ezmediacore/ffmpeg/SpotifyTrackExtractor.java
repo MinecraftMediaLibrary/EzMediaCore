@@ -52,7 +52,8 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
       @NotNull final Path output)
       throws IOException, ParseException, SpotifyWebApiException {
     this.downloader = SpotifyTrackDownloader.ofSpotifyTrackDownloader(url, output);
-    this.extractor = YoutubeVideoAudioExtractor.ofYoutubeVideoAudioExtractor(core, configuration, url, output);
+    this.extractor =
+        YoutubeVideoAudioExtractor.ofYoutubeVideoAudioExtractor(core, configuration, url, output);
     this.cancelled = new AtomicBoolean(false);
   }
 
@@ -73,8 +74,7 @@ public class SpotifyTrackExtractor implements SpotifyAudioExtractor {
       @NotNull final String url,
       @NotNull final String fileName)
       throws IOException, ParseException, SpotifyWebApiException {
-    return ofSpotifyTrackExtractor(
-        core, configuration, url, core.getAudioPath().resolve(fileName));
+    return ofSpotifyTrackExtractor(core, configuration, url, core.getAudioPath().resolve(fileName));
   }
 
   @Override

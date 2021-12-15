@@ -6,6 +6,7 @@ import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
+import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -60,11 +61,7 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   @Override
   public boolean addFrame(final int @NotNull [] data, final long timestamp) {
     while (this.frames.remainingCapacity() <= 1) {
-      try {
-        TimeUnit.MILLISECONDS.sleep(5);
-      } catch (final InterruptedException e) {
-        e.printStackTrace();
-      }
+      Try.sleep(TimeUnit.MILLISECONDS, 5);
     }
     return this.frames.add(Pair.ofPair(data, timestamp));
   }

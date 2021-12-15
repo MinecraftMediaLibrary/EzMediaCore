@@ -65,7 +65,8 @@ public final class YoutubeDLRequest {
     return GSON.fromJson(this.getJson(url), YoutubeDLRequest.class);
   }
 
-  private @NotNull String getJson(@NotNull final String url) throws IOException, InterruptedException {
+  private @NotNull String getJson(@NotNull final String url)
+      throws IOException, InterruptedException {
     return HTTP_CLIENT.send(this.createRequest(url), this.createResponse()).body();
   }
 

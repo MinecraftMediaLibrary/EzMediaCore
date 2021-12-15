@@ -34,8 +34,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.nio.file.Path;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,7 +46,6 @@ public class HttpServer implements HttpDaemonSolution {
       HTTP_SERVER_IP = HttpClient.newHttpClient().send(createRequest(), createBodyHandler()).body();
     } catch (final IOException | URISyntaxException | InterruptedException e) {
       HTTP_SERVER_IP = "127.0.0.1"; // fallback ip
-      e.printStackTrace();
     }
   }
 

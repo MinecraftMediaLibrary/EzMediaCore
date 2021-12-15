@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 import org.jetbrains.annotations.NotNull;
 import sun.misc.Unsafe;
 
-public final class UnsafeManager {
+public final class UnsafeProvider {
 
   private static final Unsafe UNSAFE;
 
@@ -14,12 +14,11 @@ public final class UnsafeManager {
       field.setAccessible(true);
       UNSAFE = (Unsafe) field.get(null);
     } catch (final IllegalAccessException | NoSuchFieldException e) {
-      e.printStackTrace();
-      throw new AssertionError("Could not get Unsafe!");
+      throw new AssertionError(e);
     }
   }
 
-  private UnsafeManager() {}
+  private UnsafeProvider() {}
 
   public static @NotNull Unsafe getUnsafe() {
     return UNSAFE;

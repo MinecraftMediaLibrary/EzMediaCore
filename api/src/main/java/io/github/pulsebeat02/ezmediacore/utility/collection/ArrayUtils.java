@@ -26,7 +26,6 @@ package io.github.pulsebeat02.ezmediacore.utility.collection;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -49,18 +48,6 @@ public final class ArrayUtils {
   public static <T> void parallel(final T @NotNull [] array, @NotNull final Consumer<T> consumer) {
     checkArguments(array, consumer);
     stream(array).parallel().forEach(consumer);
-  }
-
-  public static <T> void parallelSneaky(
-      final T @NotNull [] array, @NotNull final Consumer<T> consumer) {
-    checkArguments(array, consumer);
-    stream(array).parallel().forEach(ThrowingConsumer.sneakyConsumer(consumer));
-  }
-
-  public static <T> void parallelUnchecked(
-      final T @NotNull [] array, @NotNull final Consumer<T> consumer) {
-    checkArguments(array, consumer);
-    stream(array).parallel().forEach(ThrowingConsumer.uncheckedConsumer(consumer));
   }
 
   private static <T> void checkArguments(

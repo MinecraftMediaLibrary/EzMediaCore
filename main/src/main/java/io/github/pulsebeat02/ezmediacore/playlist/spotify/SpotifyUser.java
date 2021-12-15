@@ -27,8 +27,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import se.michaelthelin.spotify.enums.ProductType;
-import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 import java.util.Arrays;
@@ -36,6 +34,8 @@ import java.util.Map;
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import se.michaelthelin.spotify.enums.ProductType;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 
 public class SpotifyUser implements User {
 

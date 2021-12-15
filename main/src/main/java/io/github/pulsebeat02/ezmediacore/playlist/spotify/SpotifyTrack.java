@@ -25,8 +25,6 @@ package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
-import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingFunction;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 import java.util.Arrays;
@@ -36,6 +34,8 @@ import java.util.stream.Collectors;
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
 
 public class SpotifyTrack implements Track {
 
@@ -68,8 +68,16 @@ public class SpotifyTrack implements Track {
 
   private @NotNull List<Artist> getInternalArtists() {
     return Arrays.stream(this.track.getArtists())
-        .map(ThrowingFunction.unchecked(SpotifyArtist::new))
+        .map(this::getInternalArtist)
         .collect(Collectors.toList());
+  }
+
+  private SpotifyArtist getInternalArtist(final ArtistSimplified simplified) {
+    try {
+      return new SpotifyArtist(simplified);
+    } catch (final IOException | ParseException | SpotifyWebApiException e) {
+      throw new AssertionError(e);
+    }
   }
 
   @Override

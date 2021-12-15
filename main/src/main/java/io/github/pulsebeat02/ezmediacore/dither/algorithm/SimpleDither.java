@@ -31,7 +31,6 @@ import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
 import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import java.nio.ByteBuffer;
 import org.jetbrains.annotations.NotNull;
 
 public class SimpleDither implements DitherAlgorithm {

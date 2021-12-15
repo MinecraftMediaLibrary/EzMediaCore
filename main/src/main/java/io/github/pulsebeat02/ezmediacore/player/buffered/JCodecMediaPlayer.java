@@ -119,7 +119,7 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
       this.grabber.seekToSecondPrecise(configuration.getDelay() / 1000.0F);
       this.grabber.getMediaInfo().setDim(new Size(dimension.getWidth(), dimension.getHeight()));
     } catch (final IOException | JCodecException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 

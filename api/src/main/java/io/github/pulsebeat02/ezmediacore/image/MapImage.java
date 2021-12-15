@@ -26,7 +26,6 @@ package io.github.pulsebeat02.ezmediacore.image;
 import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;

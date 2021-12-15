@@ -73,7 +73,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
 
   private static final int PACKET_THRESHOLD_MS;
   private static final Set<Object> PACKET_DIFFERENTIATION;
-  private static Field METADATA_ITEMS;
+  private static final Field METADATA_ITEMS;
 
   static {
     PACKET_THRESHOLD_MS = 0;
@@ -82,7 +82,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
       METADATA_ITEMS = PacketPlayOutEntityMetadata.class.getDeclaredField("b");
       METADATA_ITEMS.setAccessible(true);
     } catch (final NoSuchFieldException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 

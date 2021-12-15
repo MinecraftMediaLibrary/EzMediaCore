@@ -119,7 +119,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
     try {
       this.drawImage(Path.of(mrl), width, height);
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 
@@ -129,7 +129,7 @@ public final class SetImageCommand implements CommandSegment.Literal<CommandSend
       final Path download = FileUtils.downloadImageFile(mrl, output);
       this.drawImage(download, width, height);
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 

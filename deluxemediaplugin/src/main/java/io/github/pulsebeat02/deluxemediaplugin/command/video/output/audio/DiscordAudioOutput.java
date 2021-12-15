@@ -29,6 +29,7 @@ import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.throwable.Throwing;
+import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.audience.Audience;
@@ -59,19 +60,11 @@ public class DiscordAudioOutput extends FFmpegOutput {
     final MediaBot bot = plugin.getMediaBot();
     final MusicManager manager = this.getMusicManager(bot);
 
-    this.sleep();
+    Try.sleep(TimeUnit.SECONDS, 3);
 
     manager.addTrack(link);
 
     audience.sendMessage(Locale.DISCORD_AUDIO_STREAM.build());
-  }
-
-  private void sleep() {
-    try {
-      TimeUnit.SECONDS.sleep(3L);
-    } catch (final InterruptedException e) { // hack to wait for server start
-      e.printStackTrace();
-    }
   }
 
   @NotNull

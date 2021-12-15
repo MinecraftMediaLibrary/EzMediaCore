@@ -31,14 +31,13 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 public final class HashingUtils {
 
   private HashingUtils() {}
 
-  public static Optional<byte[]> createHashSha1(@NotNull final Path file) {
+  public static byte[] createHashSha1(@NotNull final Path file) {
     checkNotNull(file, "Path cannot be null!");
     try {
       final MessageDigest digest = MessageDigest.getInstance("SHA-1");
@@ -51,11 +50,10 @@ public final class HashingUtils {
           digest.update(buffer, 0, n);
         }
       }
-      return Optional.of(digest.digest());
+      return digest.digest();
     } catch (final IOException | NoSuchAlgorithmException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
-    return Optional.empty();
   }
 
   /**

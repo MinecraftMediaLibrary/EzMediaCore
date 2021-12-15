@@ -51,6 +51,7 @@ import io.github.pulsebeat02.ezmediacore.utility.io.HashingUtils;
 import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
 import io.github.pulsebeat02.ezmediacore.utility.io.ResourcepackUtils;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
+import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -110,8 +111,8 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   private void setupCancelledAttributes(
       @Nullable final EnhancedExecution extractor, @NotNull final Audience audience) {
 
-    Nill.ifSo(extractor, () -> this.cancelExtractor(extractor));
-    Nill.ifSo(this.task, this::cancelTask);
+    Nill.ifNot(extractor, () -> this.cancelExtractor(extractor));
+    Nill.ifNot(this.task, this::cancelTask);
 
     audience.sendMessage(Locale.CANCELLED_VIDEO_PROCESSING.build());
   }
@@ -128,11 +129,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   }
 
   private void closeExtractor(@NotNull final EnhancedExecution extractor) {
-    try {
-      extractor.close();
-    } catch (final Exception e) {
-      e.printStackTrace();
-    }
+    Try.closeable(extractor);
   }
 
   private int loadVideo(@NotNull final CommandContext<CommandSender> context) {
@@ -175,7 +172,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       }
     } catch (final IOException | InterruptedException e) {
       console.sendMessage(Locale.ERR_LOAD_VIDEO.build());
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 
@@ -253,7 +250,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
     final Path path = wrapper.getResourcepackFilePath();
     final String url = daemon.createUrl(path);
-    final byte[] hash = HashingUtils.createHashSha1(path).orElseThrow(AssertionError::new);
+    final byte[] hash = HashingUtils.createHashSha1(path);
 
     this.attributes.setPackUrl(url);
     this.attributes.setPackHash(hash);

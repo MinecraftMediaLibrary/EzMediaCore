@@ -28,9 +28,11 @@ import com.google.gson.annotations.SerializedName;
 import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherSetting;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioOutputType;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.video.PlaybackType;
+import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
+import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,35 +46,22 @@ public final class VideoCommandAttributes {
   }
 
   private final transient AtomicBoolean completion;
-
-  {
-    this.completion = new AtomicBoolean(false);
-  }
-
   @SerializedName(value = "dither-type")
   private DitherSetting ditherType;
-
   @SerializedName(value = "audio-output")
   private AudioOutputType audioOutputType;
-
   @SerializedName(value = "playback-output")
   private PlaybackType playbackType;
-
   @SerializedName(value = "map-id")
   private int map;
-
   @SerializedName(value = "frame-width")
   private int frameWidth;
-
   @SerializedName(value = "frame-height")
   private int frameHeight;
-
   @SerializedName(value = "pixel-width")
   private int pixelWidth;
-
   @SerializedName(value = "pixel-height")
   private int pixelHeight;
-
   private transient VideoPlayer player;
   private transient MrlConfiguration videoMrl;
   private transient MrlConfiguration oggMrl;
@@ -80,6 +69,10 @@ public final class VideoCommandAttributes {
   private transient EnhancedExecution streamExtractor;
   private transient String resourcepackUrl; // for resourcepack url
   private transient byte[] resourcepackHash;
+
+  {
+    this.completion = new AtomicBoolean(false);
+  }
 
   public DitherSetting getDitherType() {
     return this.ditherType;
@@ -206,12 +199,6 @@ public final class VideoCommandAttributes {
   }
 
   public void cancelCurrentStream() {
-    if (this.streamExtractor != null) {
-      try {
-        this.streamExtractor.close();
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-    }
+    Nill.ifNot(this.streamExtractor, () -> Try.closeable(this.streamExtractor));
   }
 }

@@ -210,7 +210,7 @@ public final class SkullCreator {
       Nill.ifSo(blockProfileField, () -> setBlockProfile(block));
       blockProfileField.set(block, makeProfile(b64));
     } catch (final IllegalAccessException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 
@@ -219,7 +219,7 @@ public final class SkullCreator {
       blockProfileField = block.getClass().getDeclaredField("profile");
       blockProfileField.setAccessible(true);
     } catch (final NoSuchFieldException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 
@@ -228,7 +228,7 @@ public final class SkullCreator {
       Nill.ifSo(metaSetProfileMethod, () -> registerSetProfileMethod(meta));
       metaSetProfileMethod.invoke(meta, makeProfile(b64));
     } catch (final Throwable e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 
@@ -238,7 +238,7 @@ public final class SkullCreator {
           .findVirtual(meta.getClass(), "setProfile",
               MethodType.methodType(void.class, GameProfile.class));
     } catch (final NoSuchMethodException | IllegalAccessException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 }

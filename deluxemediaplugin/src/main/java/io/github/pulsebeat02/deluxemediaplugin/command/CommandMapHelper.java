@@ -44,9 +44,8 @@ public final class CommandMapHelper {
               MethodHandles.publicLookup()
                   .findVirtual(clazz, name, type)
                   .invoke(Bukkit.getServer());
-    } catch (final Throwable throwable) {
-      throwable.printStackTrace();
-      throw new AssertionError("Unable to retrieve command map and register commands!");
+    } catch (final Throwable e) {
+      throw new AssertionError(e);
     }
   }
 

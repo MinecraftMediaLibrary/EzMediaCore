@@ -61,8 +61,7 @@ public abstract class DataProvider<T> implements DataHolder<T> {
     try (final BufferedWriter writer = Files.newBufferedWriter(this.path)) {
       GsonProvider.getGson().toJson(obj, writer);
     } catch (final IOException e) {
-      e.printStackTrace();
-      throw new AssertionError("Failed to deserialize object %s!".formatted(obj));
+      throw new AssertionError(e);
     }
   }
 
@@ -74,8 +73,7 @@ public abstract class DataProvider<T> implements DataHolder<T> {
         return GsonProvider.getGson().fromJson(reader, this.clazz);
       }
     } catch (final IOException e) {
-      e.printStackTrace();
-      throw new AssertionError("Failed to serialize %s!".formatted(this.clazz));
+      throw new AssertionError(e);
     }
   }
 

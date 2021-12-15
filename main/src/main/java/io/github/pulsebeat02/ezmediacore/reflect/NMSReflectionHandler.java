@@ -67,7 +67,6 @@ public final class NMSReflectionHandler {
         | IllegalAccessException
         | NoSuchMethodException
         | InvocationTargetException e) {
-      e.printStackTrace();
       throw new AssertionError(
           "Current server implementation (%s) is not supported!"
               .formatted(this.core.getPlugin().getServer().getVersion()));
