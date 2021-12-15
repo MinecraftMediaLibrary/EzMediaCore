@@ -36,7 +36,7 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.component.ChatUtils;
-import io.github.pulsebeat02.deluxemediaplugin.utility.throwable.Throwing;
+import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.image.DynamicImage;

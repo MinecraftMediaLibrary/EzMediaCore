@@ -27,12 +27,19 @@ import java.nio.file.Path;
 
 public interface Locale {
 
+  NullComponent FINISHED_SYSTEM_DIAGNOSTIC = () -> "Finished System Diagnostic Analysis";
+  NullComponent FINISHED_PACKET_HANDLE = () -> "Found valid PacketHandler implementation!";
+  NullComponent FINISHED_LOOKUP_CACHE = () -> "Finished loading lookup cache!";
+  NullComponent FINISHED_DEPENDENCY_LOADER = () -> "Finished initializing Dependency Loader!";
+  NullComponent FINISHED_EVENT_REGISTRATION = () -> "Finished registering events!";
+  NullComponent FINISHED_FOLDER_CREATION = () -> "Finished folder creation!";
+  NullComponent FINISHED_DEPENDENCY_HANDLING = () -> "Finished dependency handling!";
   NullComponent SERVER_SOFTWARE_TIP = () ->
       """
-         
+
          As a reminder, the only server softwares supported by this library are Spigot and Paper.
          Tunity has been merged into Paper and will not be supported. Custom forks will also not
-         be supported. If you can reproduce an issue on Spigot or Paper 1.17.1, I am welcome to
+         be supported. If you can reproduce an issue on Spigot or Paper 1.18.1, I am welcome to
          accept and analyze it. Otherwise, I cannot do anything. This message is automatically
          sent to all servers.
       """;
@@ -51,6 +58,7 @@ public interface Locale {
       """;
   NullComponent ERR_HOLOVID = () -> "Holovid (https://holovid.glare.dev) is down! Contact PulseBeat_02 for information!";
   UniComponent<Double> COLOR_LOOKUP = "Initial lookup table initialized in %s ms"::formatted;
+  UniComponent<String> ERR_SERVER_UNSUPPORTED = "Current server implementation (%s) is not supported!"::formatted;
   BiComponent<String, Path> BINARY_PATHS = "%s path: %s"::formatted;
   TriComponent<String, Integer, Path> HTTP_INFO =
       """

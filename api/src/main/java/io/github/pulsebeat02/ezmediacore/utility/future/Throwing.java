@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.deluxemediaplugin.utility.throwable;
+package io.github.pulsebeat02.ezmediacore.utility.future;
 
 import java.util.function.BiFunction;
 

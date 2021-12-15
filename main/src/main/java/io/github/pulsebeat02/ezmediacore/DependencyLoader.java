@@ -27,23 +27,46 @@ import io.github.pulsebeat02.ezmediacore.dependency.FFmpegDependency;
 import io.github.pulsebeat02.ezmediacore.dependency.LibraryDependencyManager;
 import io.github.pulsebeat02.ezmediacore.dependency.SimpleRTSPServerDependency;
 import io.github.pulsebeat02.ezmediacore.dependency.VLCDependency;
+import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 
 public class DependencyLoader implements LibraryLoader {
 
   private final MediaLibraryCore core;
+  private final ExecutorService service;
 
   DependencyLoader(@NotNull final MediaLibraryCore core) {
     this.core = core;
+    this.service = Executors.newFixedThreadPool(3);
   }
 
   @Override
   public void start() {
     this.installDependencies();
-    this.installFFmpeg();
-    this.installVLC();
-    this.installRTSP();
+    this.downloadNativeLibraries();
+    this.shutdown();
+  }
+
+  private void downloadNativeLibraries() {
+    try {
+      CompletableFuture.allOf(
+              CompletableFuture.runAsync(this::installVLC, this.service),
+              CompletableFuture.runAsync(this::installFFmpeg, this.service),
+              CompletableFuture.runAsync(this::installRTSP, this.service))
+          .handle(Throwing.THROWING_FUTURE)
+          .get();
+    } catch (final InterruptedException | ExecutionException e) {
+      throw new AssertionError(e);
+    }
+  }
+
+  private void shutdown() {
+    this.service.shutdown();
   }
 
   private void installFFmpeg() {

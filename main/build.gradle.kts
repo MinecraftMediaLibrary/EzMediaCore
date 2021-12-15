@@ -11,7 +11,7 @@ dependencies {
         implementation(it)
     }
 
-    setOf("io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT").forEach {
+    setOf("org.spigotmc:spigot-api:1.18.1-R0.1-SNAPSHOT").forEach {
         compileOnlyApi(it)
     }
 
@@ -23,7 +23,7 @@ dependencies {
     setOf(
         "org.junit.jupiter:junit-jupiter-api:5.4.2",
         "com.github.seeseemelk:MockBukkit-v1.17:1.7.0",
-        "org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT"
+        "org.spigotmc:spigot-api:1.18.1-R0.1-SNAPSHOT"
     ).forEach {
         testImplementation(it)
     }

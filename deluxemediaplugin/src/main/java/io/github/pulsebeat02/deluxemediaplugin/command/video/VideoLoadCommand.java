@@ -39,7 +39,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioOutputType;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
-import io.github.pulsebeat02.deluxemediaplugin.utility.throwable.Throwing;
+import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioExtractor;

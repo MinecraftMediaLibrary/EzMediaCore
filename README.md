@@ -31,7 +31,7 @@ is current being implemented, but will come soon!
 ### Prerequisites
 
 - Java 16
-- Minecraft versions **1.16.5** and **1.17.1** supported. **1.18-pre5** has been implemented but 
+- Minecraft versions **1.16.5** and **1.17.1** supported. **1.18.1** has been implemented but 
   not tested yet.
 
 Add the following to your gradle configuration:

@@ -24,9 +24,9 @@
 package io.github.pulsebeat02.ezmediacore.reflect;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Optional;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,17 +59,18 @@ public final class NMSReflectionHandler {
     return VERSION;
   }
 
-  public @NotNull Optional<PacketHandler> getNewPacketHandlerInstance() {
+  public @NotNull PacketHandler getNewPacketHandlerInstance() {
     try {
-      return Optional.of(getPacketHandler());
+      return getPacketHandler();
     } catch (final ClassNotFoundException
         | InstantiationException
         | IllegalAccessException
         | NoSuchMethodException
         | InvocationTargetException e) {
+      final String software = this.core.getPlugin().getServer().getVersion();
+      this.core.getLogger().error(Locale.ERR_SERVER_UNSUPPORTED.build(software));
       throw new AssertionError(
-          "Current server implementation (%s) is not supported!"
-              .formatted(this.core.getPlugin().getServer().getVersion()));
+          "Current server implementation (%s) is not supported!".formatted(software));
     }
   }
 }

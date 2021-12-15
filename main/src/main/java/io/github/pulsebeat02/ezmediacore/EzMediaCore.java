@@ -34,18 +34,17 @@ import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyProvider;
 import io.github.pulsebeat02.ezmediacore.reflect.NMSReflectionHandler;
-import io.github.pulsebeat02.ezmediacore.throwable.UnsupportedServerException;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import io.github.pulsebeat02.ezmediacore.utility.search.StringSearch;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
+import org.jcodec.common.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,8 +52,6 @@ public final class EzMediaCore implements MediaLibraryCore {
 
   private final SpotifyClient spotifyClient;
   private final Plugin plugin;
-  private final LibraryLoader loader;
-  private final Diagnostic diagnostics;
   private final Path libraryPath;
   private final Path httpServerPath;
   private final Path dependencyPath;
@@ -62,6 +59,8 @@ public final class EzMediaCore implements MediaLibraryCore {
   private final Path audioPath;
   private final Path videoPath;
 
+  private LibraryLoader loader;
+  private Diagnostic diagnostics;
   private PacketHandler handler;
   private CoreLogger logger;
   private Listener registrationListener;
@@ -81,37 +80,30 @@ public final class EzMediaCore implements MediaLibraryCore {
       @Nullable final Path audioPath,
       @Nullable final Path videoPath,
       @Nullable final SpotifyClient client) {
+
     checkNotNull(plugin, "Cannot initialize plugin that is null!");
+
     this.plugin = plugin;
     this.spotifyClient = client;
+
     this.libraryPath = this.getFinalPath(libraryPath, plugin.getDataFolder().toPath(), "emc");
     this.dependencyPath = this.getFinalPath(dependencyPath, this.libraryPath, "libs");
     this.httpServerPath = this.getFinalPath(httpServerPath, this.libraryPath, "http");
     this.imagePath = this.getFinalPath(imagePath, this.libraryPath, "image");
     this.audioPath = this.getFinalPath(audioPath, this.libraryPath, "audio");
     this.videoPath = this.getFinalPath(videoPath, this.libraryPath, "video");
+
     this.initLogger();
-    this.diagnostics = new SystemDiagnostics(this);
+    this.initDiagnostics();
     this.initPacketHandler();
-    this.initializeProviders();
-    this.initializeStream();
-    this.loader = (loader == null ? new DependencyLoader(this) : loader);
+    this.initProviders();
+    this.initStream();
+    this.initDependencyLoader();
   }
 
-  private void initPacketHandler() {
-    if (!this.isMocking()) {
-      this.assignPacketHandler();
-    }
-  }
-
-  private void assignPacketHandler() {
-    final Optional<PacketHandler> handler =
-        new NMSReflectionHandler(this).getNewPacketHandlerInstance();
-    this.handler = handler.orElseThrow(UnsupportedServerException::new);
-  }
-
-  private boolean isMocking() {
-    return !this.plugin.getServer().getVersion().contains("MockBukkit");
+  private @NotNull Path getFinalPath(
+      @Nullable final Path path, @NotNull final Path folder, @NotNull final String name) {
+    return (path == null ? folder.resolve(name) : path).toAbsolutePath();
   }
 
   private void initLogger() {
@@ -123,17 +115,53 @@ public final class EzMediaCore implements MediaLibraryCore {
     }
   }
 
-  private @NotNull Path getFinalPath(
-      @Nullable final Path path, @NotNull final Path folder, @NotNull final String name) {
-    return (path == null ? folder.resolve(name) : path).toAbsolutePath();
+  private void initDiagnostics() {
+    this.diagnostics = new SystemDiagnostics(this);
+    this.logger.info(Locale.FINISHED_SYSTEM_DIAGNOSTIC.build());
+  }
+
+  private void initPacketHandler() {
+    if (!this.isMocking()) {
+      this.assignPacketHandler();
+      this.logger.info(Locale.FINISHED_PACKET_HANDLE.build());
+    }
+  }
+
+  private boolean isMocking() {
+    return !this.plugin.getServer().getVersion().contains("MockBukkit");
+  }
+
+  private void assignPacketHandler() {
+    this.handler = new NMSReflectionHandler(this).getNewPacketHandlerInstance();
+  }
+
+  private void initProviders() {
+    DitherLookupUtil.init();
+    StringSearch.init();
+    SpotifyProvider.init(this);
+    Logger.info(Locale.FINISHED_LOOKUP_CACHE.build());
+  }
+
+  private void initStream() {
+    IntStream.range(0, 50).parallel().forEach(key -> {}); // jump start int stream
+  }
+
+  private void initDependencyLoader() {
+    this.loader = (this.loader == null ? new DependencyLoader(this) : this.loader);
+    Logger.info(Locale.FINISHED_DEPENDENCY_LOADER.build());
   }
 
   @Override
   public void initialize() {
-    this.registrationListener = new RegistrationListener(this);
+    this.registerEvents();
     this.createFolders();
-    this.loader.start();
+    this.startDependencyLoader();
     this.sendUsageTips();
+  }
+
+  private void registerEvents() {
+    this.registrationListener = new RegistrationListener(this);
+    this.logger.info(Locale.FINISHED_EVENT_REGISTRATION);
   }
 
   private void createFolders() {
@@ -145,16 +173,12 @@ public final class EzMediaCore implements MediaLibraryCore {
             this.audioPath,
             this.videoPath)
         .forEach(FileUtils::createFolderIfNotExistsExceptionally);
+    System.out.println(Locale.FINISHED_FOLDER_CREATION);
   }
 
-  private void initializeStream() {
-    IntStream.range(0, 5).parallel().forEach(key -> {}); // jump start int stream
-  }
-
-  private void initializeProviders() {
-    DitherLookupUtil.init();
-    StringSearch.init();
-    SpotifyProvider.init(this);
+  private void startDependencyLoader() {
+    this.loader.start();
+    this.logger.info(Locale.FINISHED_DEPENDENCY_HANDLING);
   }
 
   private void sendUsageTips() {
