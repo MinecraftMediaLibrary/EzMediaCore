@@ -44,7 +44,6 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
-import io.github.pulsebeat02.ezmediacore.sneaky.ThrowingConsumer;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import java.io.IOException;
@@ -189,7 +188,7 @@ public final class DeluxeMediaPlugin {
   private void createFolders() {
     final Path folder = this.plugin.getDataFolder().toPath();
     Set.of(folder.resolve("configuration"), folder.resolve("data"))
-        .forEach(ThrowingConsumer.unchecked(FileUtils::createFolderIfNotExists));
+        .forEach(FileUtils::createFolderIfNotExistsExceptionally);
   }
 
   private void readConfigurationFiles() throws IOException {

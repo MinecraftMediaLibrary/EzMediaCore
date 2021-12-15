@@ -27,6 +27,7 @@ import io.github.pulsebeat02.ezmediacore.dependency.FFmpegDependency;
 import io.github.pulsebeat02.ezmediacore.dependency.LibraryDependencyManager;
 import io.github.pulsebeat02.ezmediacore.dependency.SimpleRTSPServerDependency;
 import io.github.pulsebeat02.ezmediacore.dependency.VLCDependency;
+import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -72,6 +73,7 @@ public class DependencyLoader implements LibraryLoader {
   private void installFFmpeg() {
     try {
       new FFmpegDependency(this.core);
+      this.core.getLogger().info(Locale.FINISHED_DEPENDENCY_LOAD.build("FFmpeg"));
     } catch (final IOException e) {
       throw new AssertionError(e);
     }
@@ -89,6 +91,7 @@ public class DependencyLoader implements LibraryLoader {
     try {
       new VLCDependency(this.core);
       this.loadNativeLibVLC();
+      this.core.getLogger().info(Locale.FINISHED_DEPENDENCY_LOAD.build("VLC"));
     } catch (final IOException e) {
       throw new AssertionError(e);
     }
@@ -111,6 +114,7 @@ public class DependencyLoader implements LibraryLoader {
   private void installRTSP() {
     try {
       new SimpleRTSPServerDependency(this.core);
+      this.core.getLogger().info(Locale.FINISHED_DEPENDENCY_LOAD.build("RTSP"));
     } catch (final IOException e) {
       throw new AssertionError(e);
     }

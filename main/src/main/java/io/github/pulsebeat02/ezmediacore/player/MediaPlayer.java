@@ -31,7 +31,8 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import java.util.Locale;
+import io.github.pulsebeat02.ezmediacore.locale.Locale;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.bukkit.entity.Player;
@@ -77,7 +78,8 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   private @NotNull SoundKey getInternalSoundKey(@Nullable final SoundKey key) {
     return key == null
-        ? SoundKey.ofSound(this.callback.getCore().getPlugin().getName().toLowerCase(Locale.ROOT))
+        ? SoundKey.ofSound(
+            this.callback.getCore().getPlugin().getName().toLowerCase(java.util.Locale.ROOT))
         : key;
   }
 
@@ -122,12 +124,16 @@ public abstract class MediaPlayer implements VideoPlayer {
     checkNotNull(mrl, "MRL cannot be null!");
     this.controls = PlayerControls.START;
     this.onPlayerStateChange(mrl, this.controls, arguments);
+    this.core
+        .getLogger()
+        .info(Locale.MEDIA_PLAYER_START.build(mrl.getMrl(), Arrays.toString(arguments)));
   }
 
   @Override
   public void pause() {
     this.controls = PlayerControls.PAUSE;
     this.onPlayerStateChange(null, this.controls);
+    this.core.getLogger().info(Locale.MEDIA_PLAYER_PAUSE);
   }
 
   @Override
@@ -135,12 +141,16 @@ public abstract class MediaPlayer implements VideoPlayer {
     checkNotNull(mrl, "MRL cannot be null!");
     this.controls = PlayerControls.RESUME;
     this.onPlayerStateChange(mrl, this.controls, arguments);
+    this.core
+        .getLogger()
+        .info(Locale.MEDIA_PLAYER_RESUME.build(mrl.getMrl(), Arrays.toString(arguments)));
   }
 
   @Override
   public void release() {
     this.controls = PlayerControls.RELEASE;
     this.onPlayerStateChange(null, this.controls);
+    this.core.getLogger().info(Locale.MEDIA_PLAYER_RELEASE);
   }
 
   @Override

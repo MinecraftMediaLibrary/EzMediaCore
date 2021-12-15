@@ -34,6 +34,19 @@ public interface Locale {
   NullComponent FINISHED_EVENT_REGISTRATION = () -> "Finished registering events!";
   NullComponent FINISHED_FOLDER_CREATION = () -> "Finished folder creation!";
   NullComponent FINISHED_DEPENDENCY_HANDLING = () -> "Finished dependency handling!";
+
+  NullComponent FINISHED_NATIVE_VLC_LOG_REGISTRATION = () -> "Registered Native VLC log!";
+
+  UniComponent<String> FINISHED_FFMPEG_PROCESS_CREATION = "Finished FFmpeg process constructor with arguments %s!"::formatted;
+
+  NullComponent FINISHED_JCODEC_FRAME_GRABBER = () -> "Finished JCodec frame grabber object!";
+
+  BiComponent<String, String> MEDIA_PLAYER_START = "Playing media on resource mrl %s with arguments %s"::formatted;
+  BiComponent<String, String> MEDIA_PLAYER_RESUME = "Resuming media on resource mrl %s with arguments %s"::formatted;
+  NullComponent MEDIA_PLAYER_RELEASE = () -> "Released media player!";
+  NullComponent MEDIA_PLAYER_PAUSE = () -> "Paused media player!";
+
+
   NullComponent SERVER_SOFTWARE_TIP = () ->
       """
 
@@ -57,9 +70,12 @@ public interface Locale {
           to use any Spotify related features.
       """;
   NullComponent ERR_HOLOVID = () -> "Holovid (https://holovid.glare.dev) is down! Contact PulseBeat_02 for information!";
-  UniComponent<Double> COLOR_LOOKUP = "Initial lookup table initialized in %s ms"::formatted;
+
   UniComponent<String> ERR_SERVER_UNSUPPORTED = "Current server implementation (%s) is not supported!"::formatted;
+  UniComponent<String> FINISHED_DEPENDENCY_LOAD = "Finished %s dependency installation and load!"::formatted;
+
   BiComponent<String, Path> BINARY_PATHS = "%s path: %s"::formatted;
+
   TriComponent<String, Integer, Path> HTTP_INFO =
       """
       
@@ -80,6 +96,7 @@ public interface Locale {
       VERSION: %s
       ONLINE MODE: %s
       """::formatted;
+
   QuadComponent<String, String, String, String> SYSTEM_INFO =
       """
       
@@ -91,6 +108,7 @@ public interface Locale {
       DISTRO: %s
       CPU: %s
       """::formatted;
+
   HeptaComponent<String, String, Boolean, Path, Path, Path, Path> PLUGIN_INFO =
       """
       

@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore;
 
+import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
@@ -60,12 +61,14 @@ public class NativePluginLoader {
     log.release();
     player.release();
     factory.release();
+    this.core.getLogger().info(Locale.MEDIA_PLAYER_RELEASE);
   }
 
   private @NotNull NativeLog createLog(@NotNull final MediaPlayerFactory factory) {
     final NativeLog log = factory.application().newLog();
     log.setLevel(LogLevel.DEBUG);
     log.addLogListener(this.createListener());
+    this.core.getLogger().info(Locale.FINISHED_NATIVE_VLC_LOG_REGISTRATION);
     return log;
   }
 
@@ -73,7 +76,7 @@ public class NativePluginLoader {
     return (level, module, file, line, name, header, id, message) ->
         this.core
             .getLogger()
-            .vlc("[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message));
+            .info("[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message));
   }
 
   private void waitMedia(@NotNull final CountDownLatch latch) {
@@ -85,9 +88,10 @@ public class NativePluginLoader {
   }
 
   private void playMedia(@NotNull final EmbeddedMediaPlayer player) {
-    player
-        .media()
-        .play("https://github.com/MinecraftMediaLibrary/EzMediaCore/raw/master/vlc-prerender.mp4");
+    final String mrl =
+        "https://github.com/MinecraftMediaLibrary/EzMediaCore/raw/master/vlc-prerender.mp4";
+    player.media().play(mrl);
+    this.core.getLogger().info(Locale.MEDIA_PLAYER_START.build(mrl, ""));
   }
 
   private void addEvents(

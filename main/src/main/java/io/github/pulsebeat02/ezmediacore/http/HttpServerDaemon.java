@@ -79,7 +79,6 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
     this.port = port;
     this.verbose = verbose;
     this.header = ZipHeader.ZIP;
-    this.logServerInformation();
   }
 
   @Contract("_, _, _, _ -> new")

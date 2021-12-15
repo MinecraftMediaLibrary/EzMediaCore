@@ -29,6 +29,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Identifier;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
+import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
@@ -118,6 +119,7 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
       this.grabber = this.getGrabber();
       this.grabber.seekToSecondPrecise(configuration.getDelay() / 1000.0F);
       this.grabber.getMediaInfo().setDim(new Size(dimension.getWidth(), dimension.getHeight()));
+      this.getCore().getLogger().info(Locale.FINISHED_JCODEC_FRAME_GRABBER);
     } catch (final IOException | JCodecException e) {
       throw new AssertionError(e);
     }

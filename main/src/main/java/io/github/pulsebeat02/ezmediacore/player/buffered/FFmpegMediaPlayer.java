@@ -36,12 +36,14 @@ import io.github.pulsebeat02.ezmediacore.callback.Identifier;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
+import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
+import io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.jetbrains.annotations.Contract;
@@ -124,6 +126,11 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
     this.addOutput();
     this.addDimensionArguments();
     this.addMiscArguments();
+    this.getCore()
+        .getLogger()
+        .info(
+            Locale.FINISHED_FFMPEG_PROCESS_CREATION.build(
+                UnsafeUtils.getFieldExceptionally(this.ffmpeg, "additionalArguments").toString()));
   }
 
   private void addMiscArguments() {
