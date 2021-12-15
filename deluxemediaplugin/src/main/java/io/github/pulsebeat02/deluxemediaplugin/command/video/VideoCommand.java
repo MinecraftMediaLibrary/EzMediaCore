@@ -156,7 +156,7 @@ public final class VideoCommand extends BaseCommand {
     }
 
     final MediaBot bot = this.plugin().getMediaBot();
-    Nill.ifSo(bot, () -> bot.getMusicManager().pauseTrack());
+    Nill.ifNot(bot, () -> bot.getMusicManager().pauseTrack());
 
     this.attributes.cancelCurrentStream();
     this.attributes.getPlayer().pause();

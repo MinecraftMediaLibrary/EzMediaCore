@@ -28,38 +28,22 @@ import io.github.pulsebeat02.ezmediacore.dependency.LibraryDependencyManager;
 import io.github.pulsebeat02.ezmediacore.dependency.SimpleRTSPServerDependency;
 import io.github.pulsebeat02.ezmediacore.dependency.VLCDependency;
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 
 public class DependencyLoader implements LibraryLoader {
 
   private final MediaLibraryCore core;
-  private final ExecutorService executor;
 
   DependencyLoader(@NotNull final MediaLibraryCore core) {
     this.core = core;
-    this.executor = Executors.newSingleThreadExecutor();
   }
 
   @Override
   public void start() {
-    try {
-      CompletableFuture.runAsync(this::installDependencies, this.executor)
-          .thenRunAsync(this::installFFmpeg, this.executor)
-          .thenRunAsync(this::installVLC, this.executor)
-          .thenRunAsync(this::installRTSP, this.executor)
-          .get();
-      this.shutdown();
-    } catch (final InterruptedException | ExecutionException e) {
-      e.printStackTrace();
-    }
-  }
-
-  private void shutdown() {
-    this.executor.shutdown();
+    this.installDependencies();
+    this.installFFmpeg();
+    this.installVLC();
+    this.installRTSP();
   }
 
   private void installFFmpeg() {

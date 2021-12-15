@@ -33,24 +33,18 @@ import org.jetbrains.annotations.NotNull;
 public class SimpleRTSPServerDependency {
 
   private final MediaLibraryCore core;
-  private final Path folder;
 
   public SimpleRTSPServerDependency(@NotNull final MediaLibraryCore core) throws IOException {
     this.core = core;
-    this.folder = core.getDependencyPath().resolve("rtp/server");
     this.start();
   }
 
   private void start() throws IOException {
-    this.onInstallation(RTSPInstaller.create(this.folder).download(true));
+    this.onInstallation(RTSPInstaller.create().download(true));
   }
 
   private void onInstallation(@NotNull final Path path) {
     this.core.setRTPPath(path);
     this.core.getLogger().info(Locale.BINARY_PATHS.build("Simple RTSP Server", path));
-  }
-
-  public @NotNull Path getFolder() {
-    return this.folder;
   }
 }

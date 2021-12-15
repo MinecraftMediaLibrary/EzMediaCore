@@ -33,20 +33,19 @@ import org.jetbrains.annotations.NotNull;
 public final class VLCDependency {
 
   private final MediaLibraryCore core;
-  private final Path folder;
 
   public VLCDependency(@NotNull final MediaLibraryCore core) throws IOException {
     this.core = core;
-    this.folder = core.getVlcPath().getParent();
     this.start();
   }
 
   private void start() throws IOException {
-    VLCInstallationKit.create(this.folder).start().ifPresent(this::onInstallation);
+    VLCInstallationKit.create().start().ifPresent(this::onInstallation);
   }
 
   private void onInstallation(@NotNull final Path path) {
     this.core.setVLCStatus(true);
+    this.core.setVlcPath(path);
     this.core.getLogger().info(Locale.BINARY_PATHS.build("VLC", path));
   }
 }

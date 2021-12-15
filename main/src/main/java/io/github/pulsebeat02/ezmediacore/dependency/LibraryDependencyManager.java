@@ -70,7 +70,7 @@ public final class LibraryDependencyManager {
         Stream.of(
                 ofArtifact("uk:co:caprica", "vlcj", "4:7:1"),
                 ofArtifact("uk:co:caprica", "vlcj-natives", "4:5:0"),
-                ofArtifact("com:github:sealedtx", "java-youtube-downloader", "3:0:2"), //
+                ofArtifact("com:github:sealedtx", "java-youtube-downloader", "3:0:2"),
                 ofArtifact("com:alibaba", "fastjson", "1:2:78"),
                 ofArtifact("net:java:dev:jna", "jna", "5:10:0"),
                 ofArtifact("net:java:dev:jna", "jna-platform", "5:10:0"),
@@ -78,7 +78,6 @@ public final class LibraryDependencyManager {
                 ofArtifact("com:github:kokorin:jaffree", "jaffree", "2021:11:06"),
                 ofArtifact("org:jcodec", "jcodec", "0:2:5"),
                 ofArtifact("com:github:ben-manes:caffeine", "caffeine", "3:0:5"),
-                ofArtifact("io:github:pulsebeat02", "emc-installers", "v1:0:1"),
                 ofArtifact("it:unimi:dsi", "fastutil", "8:5:6"),
                 ofArtifact("com:fasterxml:jackson:core", "jackson-core", "2:13:0"),
                 ofArtifact("org:apache:httpcomponents:client5", "httpclient5", "5.2-alpha1"),
@@ -120,15 +119,16 @@ public final class LibraryDependencyManager {
       public void info(@NotNull final String line) {
         Logger.info(line);
       }
+
       @Override
       public void warning(@NotNull final String line) {
         Logger.warn(line);
       }
+
       @Override
       public void error(@NotNull final String line) {
         Logger.error(line);
       }
     };
   }
-
 }

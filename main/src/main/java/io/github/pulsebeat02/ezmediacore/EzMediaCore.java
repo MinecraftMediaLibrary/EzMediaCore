@@ -58,7 +58,6 @@ public final class EzMediaCore implements MediaLibraryCore {
   private final Path libraryPath;
   private final Path httpServerPath;
   private final Path dependencyPath;
-  private final Path vlcPath;
   private final Path imagePath;
   private final Path audioPath;
   private final Path videoPath;
@@ -68,6 +67,7 @@ public final class EzMediaCore implements MediaLibraryCore {
   private Listener registrationListener;
   private Path ffmpegExecutable;
   private Path rtpExecutable;
+  private Path vlcPath;
   private boolean vlcSupported;
   private boolean disabled;
 
@@ -77,7 +77,6 @@ public final class EzMediaCore implements MediaLibraryCore {
       @Nullable final Path libraryPath,
       @Nullable final Path dependencyPath,
       @Nullable final Path httpServerPath,
-      @Nullable final Path vlcPath,
       @Nullable final Path imagePath,
       @Nullable final Path audioPath,
       @Nullable final Path videoPath,
@@ -91,7 +90,6 @@ public final class EzMediaCore implements MediaLibraryCore {
     this.imagePath = this.getFinalPath(imagePath, this.libraryPath, "image");
     this.audioPath = this.getFinalPath(audioPath, this.libraryPath, "audio");
     this.videoPath = this.getFinalPath(videoPath, this.libraryPath, "video");
-    this.vlcPath = this.getFinalPath(vlcPath, this.dependencyPath, "vlc");
     this.initLogger();
     this.diagnostics = new SystemDiagnostics(this);
     this.initPacketHandler();
@@ -143,7 +141,6 @@ public final class EzMediaCore implements MediaLibraryCore {
             this.libraryPath,
             this.dependencyPath,
             this.httpServerPath,
-            this.vlcPath,
             this.imagePath,
             this.audioPath,
             this.videoPath)
@@ -231,11 +228,6 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   @Override
-  public @NotNull Path getVlcPath() {
-    return this.vlcPath;
-  }
-
-  @Override
   public @NotNull Path getImagePath() {
     return this.imagePath;
   }
@@ -268,6 +260,16 @@ public final class EzMediaCore implements MediaLibraryCore {
   @Override
   public void setRTPPath(@NotNull final Path path) {
     this.rtpExecutable = path.toAbsolutePath();
+  }
+
+  @Override
+  public @NotNull Path getVlcPath() {
+    return this.vlcPath;
+  }
+
+  @Override
+  public void setVlcPath(@NotNull final Path path) {
+    this.vlcPath = path;
   }
 
   @Override

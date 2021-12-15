@@ -4,10 +4,12 @@ plugins {
 
 dependencies {
 
-    setOf("io.github.pulsebeat02:emc-dependency-management:v1.0.0").forEach {
+    setOf(
+        "io.github.pulsebeat02:emc-dependency-management:v1.0.0",
+        "io.github.pulsebeat02:emc-installers:v1.1.0"
+    ).forEach {
         implementation(it)
     }
-
 
     setOf("io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT").forEach {
         compileOnlyApi(it)
@@ -50,7 +52,6 @@ dependencies {
         "com.github.kokorin.jaffree:jaffree:2021.11.06",
         "org.jcodec:jcodec:0.2.5",
         "com.github.ben-manes.caffeine:caffeine:3.0.5",
-        "io.github.pulsebeat02:emc-installers:v1.1.0",
         "it.unimi.dsi:fastutil:8.5.6",
         "com.fasterxml.jackson.core:jackson-core:2.13.0",
         "org.apache.httpcomponents.client5:httpclient5:5.2-alpha1",

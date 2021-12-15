@@ -55,9 +55,6 @@ public interface MediaLibraryCore {
   Path getDependencyPath();
 
   @NotNull
-  Path getVlcPath();
-
-  @NotNull
   Path getImagePath();
 
   @NotNull
@@ -75,6 +72,11 @@ public interface MediaLibraryCore {
   Path getRTPPath();
 
   void setRTPPath(@NotNull final Path path);
+
+  @NotNull
+  Path getVlcPath();
+
+  void setVlcPath(@NotNull final Path path);
 
   @NotNull
   Diagnostic getDiagnostics();

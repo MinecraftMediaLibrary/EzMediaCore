@@ -139,7 +139,6 @@ public final class LibraryProvider {
             this.libraryPath,
             this.dependencyPath,
             this.httpServerPath,
-            this.vlcPath,
             this.imagePath,
             this.audioPath,
             this.videoPath,

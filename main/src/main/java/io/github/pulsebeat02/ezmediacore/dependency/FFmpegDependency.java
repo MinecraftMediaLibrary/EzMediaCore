@@ -33,24 +33,18 @@ import org.jetbrains.annotations.NotNull;
 public final class FFmpegDependency {
 
   private final MediaLibraryCore core;
-  private final Path folder;
 
   public FFmpegDependency(@NotNull final MediaLibraryCore core) throws IOException {
     this.core = core;
-    this.folder = core.getDependencyPath().resolve("ffmpeg");
     this.start();
   }
 
   private void start() throws IOException {
-    this.onInstallation(FFmpegInstaller.create(this.folder).download(true));
+    this.onInstallation(FFmpegInstaller.create().download(true));
   }
 
   private void onInstallation(@NotNull final Path path) {
     this.core.setFFmpegPath(path);
     this.core.getLogger().info(Locale.BINARY_PATHS.build("FFmpeg", path));
-  }
-
-  public @NotNull Path getFolder() {
-    return this.folder;
   }
 }
