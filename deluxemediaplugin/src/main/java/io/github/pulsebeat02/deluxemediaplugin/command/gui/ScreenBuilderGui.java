@@ -32,7 +32,6 @@ import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
 import static net.kyori.adventure.text.format.NamedTextColor.GREEN;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
-import com.github.stefvanschie.inventoryframework.adventuresupport.ComponentHolder;
 import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
@@ -72,7 +71,7 @@ public final class ScreenBuilderGui {
   private Material material;
 
   public ScreenBuilderGui(@NotNull final DeluxeMediaPlugin plugin, @NotNull final Player player) {
-    this.gui = new ChestGui(5, ComponentHolder.of(text("Choose Screen Size", GOLD)));
+    this.gui = new ChestGui(5, "Choose Screen Size");
     this.pane = new StaticPane(9, 5);
     this.plugin = plugin;
     this.material = Material.OAK_PLANKS;

@@ -7,7 +7,11 @@ dependencies {
     compileOnly("org.spigotmc:spigot-api:1.18.1-R0.1-SNAPSHOT")
 
     // PROJECT DEPENDENCIES
-    setOf(project(":api"), project(":main"), project(":lib")).forEach {
+    setOf(
+        project(":lib"),
+        project(":api"),
+        project(":main"),
+    ).forEach {
         implementation(it)
     }
 
@@ -71,7 +75,5 @@ tasks {
         relocate("com.fasterxml", "$libraryBase.fasterxml")
         relocate("org.apache", "$libraryBase.apache")
         relocate("com.neovisionaries", "$libraryBase.neovisionaries")
-
-        minimize();
     }
 }

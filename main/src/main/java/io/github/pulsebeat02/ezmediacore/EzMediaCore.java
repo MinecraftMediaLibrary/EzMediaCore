@@ -127,7 +127,7 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private boolean isMocking() {
-    return !this.plugin.getServer().getVersion().contains("MockBukkit");
+    return this.plugin.getServer().getVersion().contains("MockBukkit");
   }
 
   private void assignPacketHandler() {
