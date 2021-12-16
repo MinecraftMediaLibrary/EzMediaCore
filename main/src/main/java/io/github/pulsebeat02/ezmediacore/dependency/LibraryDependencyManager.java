@@ -31,12 +31,12 @@ import io.github.pulsebeat02.emcdependencymanagement.SimpleLogger;
 import io.github.pulsebeat02.emcdependencymanagement.component.Artifact;
 import io.github.pulsebeat02.emcdependencymanagement.component.Relocation;
 import io.github.pulsebeat02.emcdependencymanagement.component.Repository;
+import io.github.pulsebeat02.ezmediacore.CoreLogger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.jcodec.common.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public final class LibraryDependencyManager {
@@ -115,19 +115,26 @@ public final class LibraryDependencyManager {
 
   private @NotNull SimpleLogger createLogger() {
     return new SimpleLogger() {
+
+      private final CoreLogger logger;
+
+      {
+        this.logger = LibraryDependencyManager.this.core.getLogger();
+      }
+
       @Override
       public void info(@NotNull final String line) {
-        Logger.info(line);
+        this.logger.info(line);
       }
 
       @Override
       public void warning(@NotNull final String line) {
-        Logger.warn(line);
+        this.logger.warn(line);
       }
 
       @Override
       public void error(@NotNull final String line) {
-        Logger.error(line);
+        this.logger.error(line);
       }
     };
   }

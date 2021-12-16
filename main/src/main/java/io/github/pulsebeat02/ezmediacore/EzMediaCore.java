@@ -44,7 +44,6 @@ import java.util.stream.Stream;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
-import org.jcodec.common.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -139,7 +138,7 @@ public final class EzMediaCore implements MediaLibraryCore {
     DitherLookupUtil.init();
     StringSearch.init();
     SpotifyProvider.init(this);
-    Logger.info(Locale.FINISHED_LOOKUP_CACHE.build());
+    this.logger.info(Locale.FINISHED_LOOKUP_CACHE.build());
   }
 
   private void initStream() {
@@ -148,7 +147,7 @@ public final class EzMediaCore implements MediaLibraryCore {
 
   private void initDependencyLoader() {
     this.loader = (this.loader == null ? new DependencyLoader(this) : this.loader);
-    Logger.info(Locale.FINISHED_DEPENDENCY_LOADER.build());
+    this.logger.info(Locale.FINISHED_DEPENDENCY_LOADER.build());
   }
 
   @Override

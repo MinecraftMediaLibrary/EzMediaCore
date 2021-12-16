@@ -49,4 +49,4 @@ workflows:
           working_directory: ~/repo
           steps:
             - checkout
-            - run: java -jar BuildTools.jar --rev 1.18-pre5
+            - run: java -jar BuildTools.jar --rev 1.18.1
