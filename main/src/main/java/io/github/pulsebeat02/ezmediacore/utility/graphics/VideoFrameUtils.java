@@ -227,15 +227,22 @@ public final class VideoFrameUtils {
     final int num = width >> 5;
     IntStream.range(0, num + ((width & 31) == 0 ? 0 : 1))
         .parallel()
-        .forEach(
-            chunk -> {
-              final int pixel = chunk << 5;
-              if (chunk == num) {
-                image.getRGB(pixel, 0, width - (num << 5), height, rgb, pixel, width);
-              } else {
-                image.getRGB(pixel, 0, 32, height, rgb, pixel, width);
-              }
-            });
+        .forEach(chunk -> handleChunk(image, width, height, rgb, num, chunk));
     return rgb;
+  }
+
+  private static void handleChunk(
+      @NotNull final BufferedImage image,
+      final int width,
+      final int height,
+      final int[] rgb,
+      final int num,
+      final int chunk) {
+    final int pixel = chunk << 5;
+    if (chunk == num) {
+      image.getRGB(pixel, 0, width - (num << 5), height, rgb, pixel, width);
+    } else {
+      image.getRGB(pixel, 0, 32, height, rgb, pixel, width);
+    }
   }
 }

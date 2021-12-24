@@ -23,11 +23,14 @@
  */
 package io.github.pulsebeat02.ezmediacore.resourcepack.hosting;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
-import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -35,16 +38,53 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
 public class HolovidHoster implements HolovidSolution {
 
+  private static final LoadingCache<String, Optional<HolovidResourcepackResult>> CACHED_RESULT;
   private static final String HOLOVID_LINK;
   private static final HttpClient HTTP_CLIENT;
 
   static {
+    CACHED_RESULT =
+        Caffeine.newBuilder()
+            .executor(ExecutorProvider.SHARED_RESULT_POOL)
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .softValues()
+            .build(HolovidHoster::getResourcpackUrlInternal);
     HOLOVID_LINK = "https://holovid.glare.dev/resourcepack/download?videoUrl=";
     HTTP_CLIENT = HttpClient.newHttpClient();
+  }
+
+  private static Optional<HolovidResourcepackResult> getResourcpackUrlInternal(
+      @NotNull final String url) {
+    try {
+      final HolovidResourcepackResult result =
+          GsonProvider.getSimple()
+              .fromJson(getRequestInternal(url), HolovidResourcepackResult.class);
+      return Optional.of(result);
+    } catch (final IOException | URISyntaxException | InterruptedException e) {
+      e.printStackTrace();
+      return Optional.empty();
+    }
+  }
+
+  private static @NotNull String getRequestInternal(@NotNull final String input)
+      throws URISyntaxException, IOException, InterruptedException {
+    return HTTP_CLIENT.send(createRequestInternal(input), createBodyHandlerInternal()).body();
+  }
+
+  private static @NotNull HttpRequest createRequestInternal(@NotNull final String input)
+      throws URISyntaxException {
+    return HttpRequest.newBuilder().uri(new URI(HOLOVID_LINK + input)).build();
+  }
+
+  private static @NotNull BodyHandler<String> createBodyHandlerInternal() {
+    return HttpResponse.BodyHandlers.ofString();
   }
 
   private final MediaLibraryCore core;
@@ -56,27 +96,11 @@ public class HolovidHoster implements HolovidSolution {
 
   @Override
   public @NotNull String createUrl(@NotNull final String input) {
-    try {
-      return GsonProvider.getSimple()
-          .fromJson(this.getRequest(input), HolovidResourcepackResult.class)
-          .getUrl();
-    } catch (final IOException | URISyntaxException | InterruptedException e) {
-      this.core.getLogger().info(Locale.ERR_HOLOVID);
-      throw new AssertionError(e);
-    }
-  }
-
-  private @NotNull String getRequest(@NotNull final String input)
-      throws URISyntaxException, IOException, InterruptedException {
-    return HTTP_CLIENT.send(this.createRequest(input), this.createBodyHandler()).body();
-  }
-
-  private @NotNull HttpRequest createRequest(@NotNull final String input)
-      throws URISyntaxException {
-    return HttpRequest.newBuilder().uri(new URI(HOLOVID_LINK + input)).build();
-  }
-
-  private @NotNull BodyHandler<String> createBodyHandler() {
-    return HttpResponse.BodyHandlers.ofString();
+    checkNotNull(input, "Query cannot be null!");
+    checkArgument(input.length() != 0, "Query cannot be empty!");
+    return CACHED_RESULT
+        .get(input.trim().toLowerCase(Locale.ROOT))
+        .orElseThrow(AssertionError::new)
+        .getUrl();
   }
 }
