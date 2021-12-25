@@ -6,7 +6,7 @@ labels: bug assignees: ''
 
 **Basic Information**
 EzMediaCore Version: (Do not say LATEST, say an exact version)
-Minecraft Server Version: (Example: 1.16.4)
+Minecraft Server Version: (Example: 1.18.1)
 Server Type: (Example: Paper)
 
 **Describe the Bug**

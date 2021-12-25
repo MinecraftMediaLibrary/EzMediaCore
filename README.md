@@ -31,8 +31,7 @@ is current being implemented, but will come soon!
 ### Prerequisites
 
 - Java 16
-- Minecraft versions **1.16.5** and **1.17.1** supported. **1.18.1** has been implemented but 
-  not tested yet.
+- Minecraft versions **1.17.1** and **1.18.1** supported.
 
 Add the following to your gradle configuration:
 
@@ -58,7 +57,7 @@ for examples on how to use the library. It is the plugin I used that displayed t
 
 ### Building Locally
 
-1) Run [BuildTools](https://www.spigotmc.org/wiki/buildtools/) for versions 1.16.5, 1.17.1, and 1.18.1.
+1) Run [BuildTools](https://www.spigotmc.org/wiki/buildtools/) for versions 1.17.1, and 1.18.1.
 2) Clone the [repository](https://github.com/MinecraftMediaLibrary/EzMediaCore) by using the
    following Git link: `https://github.com/MinecraftMediaLibrary/EzMediaCore.git`
 3) Run `gradlew shadowJar` on the parent project to build a jar for the plugin.
