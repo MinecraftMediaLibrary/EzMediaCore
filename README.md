@@ -26,7 +26,7 @@ is current being implemented, but will come soon!
 
 ### Prerequisites
 
-- Java 16
+- Java 17
 - Minecraft versions **1.17.1** and **1.18.1** supported.
 
 Add the following to your gradle configuration:

@@ -21,15 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.callback.implementation;
+package io.github.pulsebeat02.ezmediacore.callback;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
-import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
-import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
-import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.entity.EntityCallbackDispatcher;
 import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;

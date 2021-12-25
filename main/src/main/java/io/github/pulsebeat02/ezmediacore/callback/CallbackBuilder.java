@@ -25,18 +25,14 @@
 package io.github.pulsebeat02.ezmediacore.callback;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.implementation.BlockHighlightCallback;
-import io.github.pulsebeat02.ezmediacore.callback.implementation.ChatCallback;
-import io.github.pulsebeat02.ezmediacore.callback.implementation.EntityCallback;
-import io.github.pulsebeat02.ezmediacore.callback.implementation.MapCallback;
-import io.github.pulsebeat02.ezmediacore.callback.implementation.ScoreboardCallback;
-import io.github.pulsebeat02.ezmediacore.callback.implementation.ScoreboardCallback.Builder;
+import io.github.pulsebeat02.ezmediacore.callback.ScoreboardCallback.Builder;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class CallbackBuilder {
+public abstract sealed class CallbackBuilder permits BlockHighlightCallback.Builder,
+    ChatCallback.Builder, EntityCallback.Builder, MapCallback.Builder, Builder {
 
   private DelayConfiguration delay;
   private Dimension dims;

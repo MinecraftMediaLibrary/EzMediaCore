@@ -21,69 +21,75 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.callback.implementation;
+package io.github.pulsebeat02.ezmediacore.callback;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
-import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
-import io.github.pulsebeat02.ezmediacore.callback.FrameCallback;
-import io.github.pulsebeat02.ezmediacore.callback.Viewers;
-import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
+import io.github.pulsebeat02.ezmediacore.callback.implementation.BlockHighlightCallbackDispatcher;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import java.nio.IntBuffer;
-import java.util.UUID;
+import org.bukkit.Location;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public class ChatCallback extends FrameCallback implements ChatCallbackDispatcher {
+public class BlockHighlightCallback extends FrameCallback
+    implements BlockHighlightCallbackDispatcher {
 
-  private final NamedEntityString character;
+  private final Location location;
 
-  ChatCallback(
+  BlockHighlightCallback(
       @NotNull final MediaLibraryCore core,
       @NotNull final Viewers viewers,
       @NotNull final Dimension dimension,
-      @NotNull final NamedEntityString character,
+      @NotNull final Location location,
       @NotNull final DelayConfiguration delay) {
     super(core, viewers, dimension, delay);
-    checkNotNull(character, "Entity name cannot be null!");
-    this.character = character;
+    checkNotNull(location, "Location cannot be null!");
+    this.location = location;
   }
 
   @Override
   public void process(final int[] data) {
     final long time = System.currentTimeMillis();
-    final UUID[] viewers = this.getWatchers().getViewers();
+    final long delay = this.getDelayConfiguration().getDelay();
+    final int z = (int) this.location.getZ();
     final Dimension dimension = this.getDimensions();
-    if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
+    final int width = dimension.getWidth();
+    final int height = dimension.getHeight();
+    if (time - this.getLastUpdated() >= delay) {
       this.setLastUpdated(time);
-      this.displayChat(viewers, dimension, IntBuffer.wrap(data));
+      this.displayDebugMarkerScreen(width, height, z, delay, data);
     }
   }
 
-  private void displayChat(
-      @NotNull final UUID[] viewers,
-      @NotNull final Dimension dimension,
-      @NotNull final IntBuffer data) {
-    this.getPacketHandler()
-        .displayChat(
-            this.getWatchers().getViewers(),
-            data,
-            this.character.getName(),
-            dimension.getWidth(),
-            dimension.getHeight());
+  private void displayDebugMarkerScreen(
+      final int width,
+      final int height,
+      final int z,
+      final long delay,
+      final int @NotNull [] data) {
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        this.getPacketHandler()
+            .displayDebugMarker(
+                this.getWatchers().getViewers(),
+                (int) (this.location.getX() - (width / 2D)) + x,
+                (int) (this.location.getY() + (height / 2D)) - y,
+                z,
+                data[width * y + x],
+                (int) (delay + 100));
+      }
+    }
   }
 
   @Override
-  public @NotNull NamedEntityString getChatCharacter() {
-    return this.character;
+  public @NotNull Location getLocation() {
+    return this.location;
   }
 
   public static final class Builder extends CallbackBuilder {
 
-    private NamedEntityString character = NamedEntityString.NORMAL_SQUARE;
+    private Location location;
 
     public Builder() {}
 
@@ -109,15 +115,15 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder character(@NotNull final NamedEntityString character) {
-      this.character = character;
+    public @NotNull Builder location(@NotNull final Location location) {
+      this.location = location;
       return this;
     }
 
     @Override
     public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
-      return new ChatCallback(
-          core, this.getViewers(), this.getDims(), this.character, this.getDelay());
+      return new BlockHighlightCallback(
+          core, this.getViewers(), this.getDims(), this.location, this.getDelay());
     }
   }
 }

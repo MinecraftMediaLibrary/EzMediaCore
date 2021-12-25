@@ -30,21 +30,22 @@ import java.io.IOException;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-public class SimpleRTSPServerDependency {
+public final class SimpleRTSPServerDependencyManager extends LibraryDependency {
 
-  private final MediaLibraryCore core;
-
-  public SimpleRTSPServerDependency(@NotNull final MediaLibraryCore core) throws IOException {
-    this.core = core;
-    this.start();
+  public SimpleRTSPServerDependencyManager(@NotNull final MediaLibraryCore core)
+      throws IOException {
+    super(core);
   }
 
-  private void start() throws IOException {
+  @Override
+  void start() throws IOException {
     this.onInstallation(RTSPInstaller.create().download(true));
   }
 
-  private void onInstallation(@NotNull final Path path) {
-    this.core.setRTPPath(path);
-    this.core.getLogger().info(Locale.BINARY_PATHS.build("Simple RTSP Server", path));
+  @Override
+  void onInstallation(@NotNull final Path path) {
+    final MediaLibraryCore core = this.getCore();
+    core.setRTPPath(path);
+    core.getLogger().info(Locale.BINARY_PATHS.build("Simple RTSP Server", path));
   }
 }

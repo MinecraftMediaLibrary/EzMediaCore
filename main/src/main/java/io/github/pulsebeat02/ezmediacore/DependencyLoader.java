@@ -23,10 +23,10 @@
  */
 package io.github.pulsebeat02.ezmediacore;
 
-import io.github.pulsebeat02.ezmediacore.dependency.FFmpegDependency;
+import io.github.pulsebeat02.ezmediacore.dependency.FFmpegDependencyManager;
 import io.github.pulsebeat02.ezmediacore.dependency.LibraryDependencyManager;
-import io.github.pulsebeat02.ezmediacore.dependency.SimpleRTSPServerDependency;
-import io.github.pulsebeat02.ezmediacore.dependency.VLCDependency;
+import io.github.pulsebeat02.ezmediacore.dependency.SimpleRTSPServerDependencyManager;
+import io.github.pulsebeat02.ezmediacore.dependency.VLCDependencyManager;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import java.io.IOException;
@@ -72,7 +72,7 @@ public class DependencyLoader implements LibraryLoader {
 
   private void installFFmpeg() {
     try {
-      new FFmpegDependency(this.core);
+      new FFmpegDependencyManager(this.core);
       this.core.getLogger().info(Locale.FINISHED_DEPENDENCY_LOAD.build("FFmpeg"));
     } catch (final IOException e) {
       throw new AssertionError(e);
@@ -89,7 +89,7 @@ public class DependencyLoader implements LibraryLoader {
 
   private void installVLC() {
     try {
-      new VLCDependency(this.core);
+      new VLCDependencyManager(this.core);
       this.loadNativeLibVLC();
       this.core.getLogger().info(Locale.FINISHED_DEPENDENCY_LOAD.build("VLC"));
     } catch (final IOException e) {
@@ -113,7 +113,7 @@ public class DependencyLoader implements LibraryLoader {
 
   private void installRTSP() {
     try {
-      new SimpleRTSPServerDependency(this.core);
+      new SimpleRTSPServerDependencyManager(this.core);
       this.core.getLogger().info(Locale.FINISHED_DEPENDENCY_LOAD.build("RTSP"));
     } catch (final IOException e) {
       throw new AssertionError(e);

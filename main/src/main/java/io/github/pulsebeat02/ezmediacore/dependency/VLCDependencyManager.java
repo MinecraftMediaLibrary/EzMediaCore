@@ -23,28 +23,29 @@
  */
 package io.github.pulsebeat02.ezmediacore.dependency;
 
-import io.github.pulsebeat02.emcinstallers.implementation.ffmpeg.FFmpegInstaller;
+import io.github.pulsebeat02.emcinstallers.implementation.vlc.VLCInstallationKit;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-public final class FFmpegDependency {
+public final class VLCDependencyManager extends LibraryDependency {
 
-  private final MediaLibraryCore core;
-
-  public FFmpegDependency(@NotNull final MediaLibraryCore core) throws IOException {
-    this.core = core;
-    this.start();
+  public VLCDependencyManager(@NotNull final MediaLibraryCore core) throws IOException {
+    super(core);
   }
 
-  private void start() throws IOException {
-    this.onInstallation(FFmpegInstaller.create().download(true));
+  @Override
+  void start() throws IOException {
+    VLCInstallationKit.create().start().ifPresent(this::onInstallation);
   }
 
-  private void onInstallation(@NotNull final Path path) {
-    this.core.setFFmpegPath(path);
-    this.core.getLogger().info(Locale.BINARY_PATHS.build("FFmpeg", path));
+  @Override
+  void onInstallation(@NotNull final Path path) {
+    final MediaLibraryCore core = this.getCore();
+    core.setVLCStatus(true);
+    core.setVlcPath(path);
+    core.getLogger().info(Locale.BINARY_PATHS.build("VLC", path));
   }
 }
