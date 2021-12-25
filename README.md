@@ -1,12 +1,8 @@
 [![Build Status](https://img.shields.io/circleci/build/github/MinecraftMediaLibrary/EzMediaCore?style=for-the-badge)](https://app.circleci.com/pipelines/github/MinecraftMediaLibrary/EzMediaCore) [![Code Coverage](https://img.shields.io/codefactor/grade/github/MinecraftMediaLibrary/EzMediaCore?style=for-the-badge)](https://www.codefactor.io/repository/github/minecraftmedialibrary/ezmediacore) [![Dependency Status](https://img.shields.io/librariesio/github/MinecraftMediaLibrary/EzMediaCore?style=for-the-badge)](https://libraries.io/github/MinecraftMediaLibrary/EzMediaCore) [![Documentation Status](https://img.shields.io/readthedocs/minecraftmedialibrary-wiki/latest?style=for-the-badge)](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/) [![Discord](https://img.shields.io/discord/817501569108017223?style=for-the-badge)](https://discord.gg/qVhhbCWQQV) [![Language](https://img.shields.io/badge/Made%20with-Java-1f425f.svg?style=for-the-badge)](https://www.java.com/en/)
 
 ---
-**Note**: One of EzMediaCore's essential dependencies have gone down, and I am working on forking
-it and providing a fix. Please stay tuned as I try to handle the solution. The build may not work
-for now.
-
 **Status**: This is my most actively maintained project, and will continue to be for the next few
-years. I am currently in high school and work is piling up, so I will try my best to keep up. I 
+years. I am currently in high school and mid-terms are piling up, so I will try my best to keep up. I 
 think the project will be officially released in the summer of 2022.
 ---
 
