@@ -39,7 +39,6 @@ public final class SystemDiagnostics implements Diagnostic {
     this.core = core;
     this.system = new OperatingSystem();
     this.cpu = new CPUArchitecture();
-    this.debugInformation();
   }
 
   @Override

@@ -38,12 +38,12 @@ public final class SimpleRTSPServerDependencyManager extends LibraryDependency {
   }
 
   @Override
-  void start() throws IOException {
+  public void start() throws IOException {
     this.onInstallation(RTSPInstaller.create().download(true));
   }
 
   @Override
-  void onInstallation(@NotNull final Path path) {
+  public void onInstallation(@NotNull final Path path) {
     final MediaLibraryCore core = this.getCore();
     core.setRTPPath(path);
     core.getLogger().info(Locale.BINARY_PATHS.build("Simple RTSP Server", path));

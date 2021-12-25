@@ -72,7 +72,7 @@ public class DependencyLoader implements LibraryLoader {
 
   private void installFFmpeg() {
     try {
-      new FFmpegDependencyManager(this.core);
+      new FFmpegDependencyManager(this.core).start();
       this.core.getLogger().info(Locale.FINISHED_DEPENDENCY_LOAD.build("FFmpeg"));
     } catch (final IOException e) {
       throw new AssertionError(e);
@@ -81,7 +81,7 @@ public class DependencyLoader implements LibraryLoader {
 
   private void installDependencies() {
     try {
-      new LibraryDependencyManager(this.core);
+      new LibraryDependencyManager(this.core).start();
     } catch (final IOException | ReflectiveOperationException e) {
       throw new AssertionError(e);
     }
@@ -89,7 +89,7 @@ public class DependencyLoader implements LibraryLoader {
 
   private void installVLC() {
     try {
-      new VLCDependencyManager(this.core);
+      new VLCDependencyManager(this.core).start();
       this.loadNativeLibVLC();
       this.core.getLogger().info(Locale.FINISHED_DEPENDENCY_LOAD.build("VLC"));
     } catch (final IOException e) {
@@ -113,7 +113,7 @@ public class DependencyLoader implements LibraryLoader {
 
   private void installRTSP() {
     try {
-      new SimpleRTSPServerDependencyManager(this.core);
+      new SimpleRTSPServerDependencyManager(this.core).start();
       this.core.getLogger().info(Locale.FINISHED_DEPENDENCY_LOAD.build("RTSP"));
     } catch (final IOException e) {
       throw new AssertionError(e);

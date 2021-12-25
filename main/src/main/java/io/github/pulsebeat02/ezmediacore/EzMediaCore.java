@@ -116,6 +116,7 @@ public final class EzMediaCore implements MediaLibraryCore {
 
   private void initDiagnostics() {
     this.diagnostics = new SystemDiagnostics(this);
+    this.diagnostics.debugInformation();
     this.logger.info(Locale.FINISHED_SYSTEM_DIAGNOSTIC.build());
   }
 

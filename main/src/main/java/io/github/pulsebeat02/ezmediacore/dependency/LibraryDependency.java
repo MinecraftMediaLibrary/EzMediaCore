@@ -12,12 +12,11 @@ public abstract sealed class LibraryDependency permits FFmpegDependencyManager,
 
   LibraryDependency(@NotNull final MediaLibraryCore core) throws IOException {
     this.core = core;
-    this.start();
   }
 
-  abstract void start() throws IOException;
+  public abstract void start() throws IOException;
 
-  abstract void onInstallation(@NotNull final Path path);
+  public abstract void onInstallation(@NotNull final Path path);
 
   public @NotNull MediaLibraryCore getCore() {
     return this.core;

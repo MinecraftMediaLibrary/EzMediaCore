@@ -37,11 +37,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class RandomDither implements DitherAlgorithm {
 
-  private final ThreadLocalRandom random;
+  private static final ThreadLocalRandom THREAD_LOCAL_RANDOM;
 
-  RandomDither() {
-    this.random = ThreadLocalRandom.current();
+  static {
+    THREAD_LOCAL_RANDOM = ThreadLocalRandom.current();
   }
+
+  RandomDither() {}
 
   @Override
   public @NotNull BufferCarrier ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
@@ -55,9 +57,9 @@ public class RandomDither implements DitherAlgorithm {
         data.setByte(
             index,
             this.getBestColor(
-                ((color >> 16) & 0xFF) + this.random.nextInt(-64, 65),
-                ((color >> 8) & 0xFF) + this.random.nextInt(-64, 65),
-                ((color) & 0xFF) + this.random.nextInt(-64, 65)));
+                ((color >> 16) & 0xFF) + THREAD_LOCAL_RANDOM.nextInt(-64, 65),
+                ((color >> 8) & 0xFF) + THREAD_LOCAL_RANDOM.nextInt(-64, 65),
+                ((color) & 0xFF) + THREAD_LOCAL_RANDOM.nextInt(-64, 65)));
       }
     }
     return ByteBufCarrier.ofByteBufCarrier(data);
@@ -73,9 +75,9 @@ public class RandomDither implements DitherAlgorithm {
         final int color = buffer[index];
         buffer[index] =
             this.getBestColorNormal(
-                ((color >> 16) & 0xFF) + this.random.nextInt(-64, 65),
-                ((color >> 8) & 0xFF) + this.random.nextInt(-64, 65),
-                ((color) & 0xFF) + this.random.nextInt(-64, 65));
+                ((color >> 16) & 0xFF) + THREAD_LOCAL_RANDOM.nextInt(-64, 65),
+                ((color >> 8) & 0xFF) + THREAD_LOCAL_RANDOM.nextInt(-64, 65),
+                ((color) & 0xFF) + THREAD_LOCAL_RANDOM.nextInt(-64, 65));
       }
     }
   }

@@ -37,12 +37,12 @@ public final class FFmpegDependencyManager extends LibraryDependency {
   }
 
   @Override
-  void start() throws IOException {
+  public void start() throws IOException {
     this.onInstallation(FFmpegInstaller.create().download(true));
   }
 
   @Override
-  void onInstallation(@NotNull final Path path) {
+  public void onInstallation(@NotNull final Path path) {
     final MediaLibraryCore core = this.getCore();
     core.setFFmpegPath(path);
     core.getLogger().info(Locale.BINARY_PATHS.build("FFmpeg", path));

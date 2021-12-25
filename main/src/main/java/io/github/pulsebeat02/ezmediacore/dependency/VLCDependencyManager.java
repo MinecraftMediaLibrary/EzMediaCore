@@ -37,12 +37,12 @@ public final class VLCDependencyManager extends LibraryDependency {
   }
 
   @Override
-  void start() throws IOException {
+  public void start() throws IOException {
     VLCInstallationKit.create().start().ifPresent(this::onInstallation);
   }
 
   @Override
-  void onInstallation(@NotNull final Path path) {
+  public void onInstallation(@NotNull final Path path) {
     final MediaLibraryCore core = this.getCore();
     core.setVLCStatus(true);
     core.setVlcPath(path);

@@ -48,7 +48,7 @@ public final class LibraryDependencyManager extends LibraryDependency {
   }
 
   @Override
-  void start() throws IOException {
+  public void start() throws IOException {
 
     final MediaLibraryCore core = this.getCore();
     final Set<Repository> repos = this.getRepositories();
@@ -138,7 +138,7 @@ public final class LibraryDependencyManager extends LibraryDependency {
   }
 
   @Override
-  void onInstallation(@NotNull final Path path) {}
+  public void onInstallation(@NotNull final Path path) {}
 
   private @NotNull SimpleLogger createLogger() {
     return new SimpleLogger() {
