@@ -1,9 +1,7 @@
 [![Build Status](https://img.shields.io/circleci/build/github/MinecraftMediaLibrary/EzMediaCore?style=for-the-badge)](https://app.circleci.com/pipelines/github/MinecraftMediaLibrary/EzMediaCore) [![Code Coverage](https://img.shields.io/codefactor/grade/github/MinecraftMediaLibrary/EzMediaCore?style=for-the-badge)](https://www.codefactor.io/repository/github/minecraftmedialibrary/ezmediacore) [![Dependency Status](https://img.shields.io/librariesio/github/MinecraftMediaLibrary/EzMediaCore?style=for-the-badge)](https://libraries.io/github/MinecraftMediaLibrary/EzMediaCore) [![Documentation Status](https://img.shields.io/readthedocs/minecraftmedialibrary-wiki/latest?style=for-the-badge)](https://minecraftmedialibrary-wiki.readthedocs.io/en/latest/) [![Discord](https://img.shields.io/discord/817501569108017223?style=for-the-badge)](https://discord.gg/qVhhbCWQQV) [![Language](https://img.shields.io/badge/Made%20with-Java-1f425f.svg?style=for-the-badge)](https://www.java.com/en/)
 
----
-**Status**: This is my most actively maintained project, and will continue to be for the next few
-years. I am currently in high school and mid-terms are piling up, so I will try my best to keep up. I 
-think the project will be officially released in the summer of 2022.
+<h1 align="center"><img height="35" src="https://emoji.gg/assets/emoji/7333-parrotdance.gif"> EzMediaCore</h1>
+
 ---
 
 **EzMediaCore** is a library written in Java using the Bukkit API and NMS classes to provide a
@@ -16,8 +14,8 @@ for blazing fast frame delivery and support for many sorts of media formats (inc
 
 https://user-images.githubusercontent.com/40838203/132433665-a675fc35-e31f-4044-a960-ce46a8fb7df5.mp4
 
-Frame rates may reach up to **35**, at times with extremely great quality. As a comparison, a
-*smooth* animation is approximately **25** frames. The library is capable of playing media in all
+Frame rates can reach up to the **30**'s or **40**'s with extremely great quality. As a comparison, a
+*smooth* animation is approximately **25** frames. The library is capable of playing media in many
 sorts of ways, such as maps, entities, chat, scoreboards, debug markers. It is also capable of
 providing audio through a resourcepack and website (primarily for playing streams). Discord support
 is current being implemented, but will come soon!
