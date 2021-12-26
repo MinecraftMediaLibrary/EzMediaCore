@@ -94,7 +94,6 @@ public class FloydDither implements DitherAlgorithm {
         final int[] buf1 = dither_buffer[0];
         final int[] buf2 = dither_buffer[1];
         for (int x = 0; x < width; x++) {
-          final boolean hasPrevX = x > 0;
           final boolean hasNextX = x < widthMinus;
           final int index = yIndex + x;
           final int rgb = buffer[index];
@@ -114,7 +113,7 @@ public class FloydDither implements DitherAlgorithm {
             buf1[bufferIndex + 2] = (int) (0.4375 * delta_b);
           }
           if (hasNextY) {
-            if (hasPrevX) {
+            if (x > 0) {
               buf2[bufferIndex - 6] = (int) (0.1875 * delta_r);
               buf2[bufferIndex - 5] = (int) (0.1875 * delta_g);
               buf2[bufferIndex - 4] = (int) (0.1875 * delta_b);
@@ -135,7 +134,6 @@ public class FloydDither implements DitherAlgorithm {
         final int[] buf1 = dither_buffer[1];
         final int[] buf2 = dither_buffer[0];
         for (int x = width - 1; x >= 0; x--) {
-          final boolean hasPrevX = x < widthMinus;
           final boolean hasNextX = x > 0;
           final int index = yIndex + x;
           final int rgb = buffer[index];
@@ -155,7 +153,7 @@ public class FloydDither implements DitherAlgorithm {
             buf1[bufferIndex - 2] = (int) (0.4375 * delta_r);
           }
           if (hasNextY) {
-            if (hasPrevX) {
+            if (x < widthMinus) {
               buf2[bufferIndex + 6] = (int) (0.1875 * delta_b);
               buf2[bufferIndex + 5] = (int) (0.1875 * delta_g);
               buf2[bufferIndex + 4] = (int) (0.1875 * delta_r);
@@ -191,7 +189,6 @@ public class FloydDither implements DitherAlgorithm {
         final int[] buf1 = dither_buffer[0];
         final int[] buf2 = dither_buffer[1];
         for (int x = 0; x < width; x++) {
-          final boolean hasPrevX = x > 0;
           final boolean hasNextX = x < widthMinus;
           final int index = yIndex + x;
           final int rgb = buffer[index];
@@ -211,7 +208,7 @@ public class FloydDither implements DitherAlgorithm {
             buf1[bufferIndex + 2] = (int) (0.4375 * delta_b);
           }
           if (hasNextY) {
-            if (hasPrevX) {
+            if (x > 0) {
               buf2[bufferIndex - 6] = (int) (0.1875 * delta_r);
               buf2[bufferIndex - 5] = (int) (0.1875 * delta_g);
               buf2[bufferIndex - 4] = (int) (0.1875 * delta_b);
@@ -232,7 +229,6 @@ public class FloydDither implements DitherAlgorithm {
         final int[] buf1 = dither_buffer[1];
         final int[] buf2 = dither_buffer[0];
         for (int x = width - 1; x >= 0; x--) {
-          final boolean hasPrevX = x < widthMinus;
           final boolean hasNextX = x > 0;
           final int index = yIndex + x;
           final int rgb = buffer[index];
@@ -252,7 +248,7 @@ public class FloydDither implements DitherAlgorithm {
             buf1[bufferIndex - 2] = (int) (0.4375 * delta_r);
           }
           if (hasNextY) {
-            if (hasPrevX) {
+            if (x < widthMinus) {
               buf2[bufferIndex + 6] = (int) (0.1875 * delta_b);
               buf2[bufferIndex + 5] = (int) (0.1875 * delta_g);
               buf2[bufferIndex + 4] = (int) (0.1875 * delta_r);
