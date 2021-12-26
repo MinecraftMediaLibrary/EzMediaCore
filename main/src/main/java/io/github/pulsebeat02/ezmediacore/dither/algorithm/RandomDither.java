@@ -47,8 +47,9 @@ public class RandomDither implements DitherAlgorithm {
 
   @Override
   public @NotNull BufferCarrier ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
-    final int height = buffer.length / width;
-    final ByteBuf data = Unpooled.buffer(buffer.length);
+    final int length = buffer.length;
+    final int height = length / width;
+    final ByteBuf data = Unpooled.buffer(length);
     for (int y = 0; y < height; y++) {
       final int yIndex = y * width;
       for (int x = 0; x < width; x++) {

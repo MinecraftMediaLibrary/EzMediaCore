@@ -142,11 +142,12 @@ public class FilterLiteDither implements DitherAlgorithm {
 
   @Override
   public @NotNull BufferCarrier ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
-    final int height = buffer.length / width;
+    final int length = buffer.length;
+    final int height = length / width;
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;
     final int[][] dither_buffer = new int[2][width << 2];
-    final ByteBuf data = Unpooled.buffer(buffer.length);
+    final ByteBuf data = Unpooled.buffer(length);
     for (int y = 0; y < height; y++) {
       final boolean hasNextY = y < heightMinus;
       final int yIndex = y * width;
