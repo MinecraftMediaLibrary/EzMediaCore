@@ -34,6 +34,10 @@ import io.netty.buffer.Unpooled;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * See https://github.com/makeworld-the-better-one/dither/blob/master/ordered_ditherers.go
+ * and https://github.com/makeworld-the-better-one/dither/blob/master/pixelmappers.go
+ */
 public class OrderedDither implements DitherAlgorithm {
 
   private static final float[][] BAYER_MATRIX_TWO;
