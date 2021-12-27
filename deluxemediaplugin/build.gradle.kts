@@ -80,6 +80,5 @@ tasks {
     runServer {
        minecraftVersion.set("1.18.1")
        debug = true
-
     }
 }
