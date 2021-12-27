@@ -43,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class FloydDither implements DitherAlgorithm {
 
-  FloydDither() {}
+  public FloydDither() {}
 
   private int getColorFromMinecraftPalette(final byte val) {
     return PALETTE[(val + 256) % 256];

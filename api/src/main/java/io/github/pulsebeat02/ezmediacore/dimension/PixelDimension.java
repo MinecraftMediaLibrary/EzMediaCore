@@ -25,35 +25,18 @@ package io.github.pulsebeat02.ezmediacore.dimension;
 
 import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.ofDimension;
 
-public final class PixelDimension {
+public interface PixelDimension {
 
-  public static final Dimension X360_640;
-  public static final Dimension X375_667;
-  public static final Dimension X414_896;
-  public static final Dimension X360_780;
-  public static final Dimension X375_812;
+  Dimension X360_640 = ofDimension(360, 640);
+  Dimension X375_667 = ofDimension(375, 667);
+  Dimension X414_896 = ofDimension(414, 896);
+  Dimension X360_780 = ofDimension(360, 780);
+  Dimension X375_812 = ofDimension(375, 812);
 
-  public static final Dimension X1366_768;
-  public static final Dimension X1920_1080;
-  public static final Dimension X1536_864;
-  public static final Dimension X1440_900;
-  public static final Dimension X1280_720;
-  public static final Dimension X3840_2160;
-
-  static {
-    X360_640 = ofDimension(360, 640);
-    X375_667 = ofDimension(375, 667);
-    X414_896 = ofDimension(414, 896);
-    X360_780 = ofDimension(360, 780);
-    X375_812 = ofDimension(375, 812);
-
-    X1366_768 = ofDimension(1366, 768);
-    X1920_1080 = ofDimension(1920, 1080);
-    X1536_864 = ofDimension(1536, 864);
-    X1440_900 = ofDimension(1440, 900);
-    X1280_720 = ofDimension(1280, 720);
-    X3840_2160 = ofDimension(3840, 2160);
-  }
-
-  private PixelDimension() {}
+  Dimension X1366_768 = ofDimension(1366, 768);
+  Dimension X1920_1080 = ofDimension(1920, 1080);
+  Dimension X1536_864 = ofDimension(1536, 864);
+  Dimension X1440_900 = ofDimension(1440, 900);
+  Dimension X1280_720 = ofDimension(1280, 720);
+  Dimension X3840_2160 = ofDimension(3840, 2160);
 }

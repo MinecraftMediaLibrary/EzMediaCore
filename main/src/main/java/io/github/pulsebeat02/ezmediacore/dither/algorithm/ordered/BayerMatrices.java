@@ -1,10 +1,10 @@
-package io.github.pulsebeat02.ezmediacore.dither.algorithm.order;
+package io.github.pulsebeat02.ezmediacore.dither.algorithm.ordered;
 
 /**
  * See https://github.com/makeworld-the-better-one/dither/blob/master/ordered_ditherers.go Added
  * some personal implementations of ordered dithering matrices.
  */
-public interface OrderedMatrices {
+public interface BayerMatrices {
 
   // Basic 2x2 matrix.
   int NORMAL_2X2_MAX = 4;
@@ -246,4 +246,57 @@ public interface OrderedMatrices {
       {21, 29, 28, 27, 10, 2, 3, 4},
       {17, 24, 20, 16, 14, 7, 11, 15}
   };
+
+  static int[][] createBayerMatrix(final int xdim, final int ydim) {
+    final int M = log2(xdim);
+    final int L = log2(ydim);
+    final int[][] matrix = new int[xdim][ydim];
+    for (int y = 0; y < ydim; y++) {
+      for (int x = 0; x < xdim; x++) {
+        int v = 0;
+        int offset = 0;
+        int xmask = M;
+        int ymask = L;
+        if (M == 0 || (M > L && L != 0)) {
+          final int xc = x ^ ((y << M) >> L);
+          final int yc = y;
+          for (int bit = 0; bit < M + L; ) {
+            ymask--;
+            v |= ((yc >> ymask) & 1) << bit;
+            bit++;
+            for (offset += M; offset >= L; offset -= L) {
+              xmask--;
+              v |= ((xc >> xmask) & 1) << bit;
+              bit++;
+            }
+          }
+        } else {
+          final int xc = x;
+          final int yc = y ^ ((x << L) >> M);
+          for (int bit = 0; bit < M + L; ) {
+            xmask--;
+            v |= ((xc >> xmask) & 1) << bit;
+            bit++;
+            for (offset += L; offset >= M; offset -= M) {
+              ymask--;
+              v |= ((yc >> ymask) & 1) << bit;
+              bit++;
+            }
+          }
+        }
+        matrix[y][x] = v;
+      }
+    }
+    return matrix;
+  }
+
+  private static int log2(int num) {
+    int r = 0;
+    num >>= 1;
+    while (num != 0) {
+      r++;
+      num >>= 1;
+    }
+    return r;
+  }
 }

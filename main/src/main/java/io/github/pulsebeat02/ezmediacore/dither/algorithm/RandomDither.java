@@ -43,7 +43,7 @@ public class RandomDither implements DitherAlgorithm {
     THREAD_LOCAL_RANDOM = ThreadLocalRandom.current();
   }
 
-  RandomDither() {}
+  public RandomDither() {}
 
   @Override
   public @NotNull BufferCarrier ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
@@ -55,12 +55,13 @@ public class RandomDither implements DitherAlgorithm {
       for (int x = 0; x < width; x++) {
         final int index = yIndex + x;
         final int color = buffer[index];
-        data.setByte(
-            index,
-            this.getBestColor(
-                ((color >> 16) & 0xFF) + THREAD_LOCAL_RANDOM.nextInt(-64, 65),
-                ((color >> 8) & 0xFF) + THREAD_LOCAL_RANDOM.nextInt(-64, 65),
-                ((color) & 0xFF) + THREAD_LOCAL_RANDOM.nextInt(-64, 65)));
+        int r = (color >> 16) & 0xFF;
+        int g = (color >> 8) & 0xFF;
+        int b = (color) & 0xFF;
+        r = (r += this.random()) > 255 ? 255 : r < 0 ? 0 : r;
+        g = (g += this.random()) > 255 ? 255 : g < 0 ? 0 : g;
+        b = (b += this.random()) > 255 ? 255 : b < 0 ? 0 : b;
+        data.setByte(index, this.getBestColor(r, g, b));
       }
     }
     return ByteBufCarrier.ofByteBufCarrier(data);
@@ -74,13 +75,19 @@ public class RandomDither implements DitherAlgorithm {
       for (int x = 0; x < width; x++) {
         final int index = yIndex + x;
         final int color = buffer[index];
-        buffer[index] =
-            this.getBestColorNormal(
-                ((color >> 16) & 0xFF) + THREAD_LOCAL_RANDOM.nextInt(-64, 65),
-                ((color >> 8) & 0xFF) + THREAD_LOCAL_RANDOM.nextInt(-64, 65),
-                ((color) & 0xFF) + THREAD_LOCAL_RANDOM.nextInt(-64, 65));
+        int r = (color >> 16) & 0xFF;
+        int g = (color >> 8) & 0xFF;
+        int b = (color) & 0xFF;
+        r = (r += this.random()) > 255 ? 255 : r < 0 ? 0 : r;
+        g = (g += this.random()) > 255 ? 255 : g < 0 ? 0 : g;
+        b = (b += this.random()) > 255 ? 255 : b < 0 ? 0 : b;
+        buffer[index] = this.getBestColorNormal(r, g, b);
       }
     }
+  }
+
+  private int random() {
+    return THREAD_LOCAL_RANDOM.nextInt(-64, 65);
   }
 
   private byte getBestColor(final int red, final int green, final int blue) {

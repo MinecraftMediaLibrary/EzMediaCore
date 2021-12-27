@@ -26,33 +26,17 @@ package io.github.pulsebeat02.ezmediacore.dimension;
 import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.ofDimension;
 import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.square;
 
-public final class ChatDimension {
+public interface ChatDimension {
 
-  public static final Dimension X1_1;
-  public static final Dimension X2_8;
-  public static final Dimension X4_16;
-  public static final Dimension X8_16;
-  public static final Dimension X8_32;
+  Dimension X1_1 = square(1);
+  Dimension X2_8 = ofDimension(2, 8);
+  Dimension X4_16 = ofDimension(4, 16);
+  Dimension X8_16 = ofDimension(8, 16);
+  Dimension X8_32 = ofDimension(8, 32);
 
-  public static final Dimension X12_48;
-  public static final Dimension X16_48;
-  public static final Dimension X16_64;
-  public static final Dimension X16_80;
-  public static final Dimension X16_92;
-
-  static {
-    X1_1 = square(1);
-    X2_8 = ofDimension(2, 8);
-    X4_16 = ofDimension(4, 16);
-    X8_16 = ofDimension(8, 16);
-    X8_32 = ofDimension(8, 32);
-
-    X12_48 = ofDimension(12, 48);
-    X16_48 = ofDimension(16, 48);
-    X16_64 = ofDimension(16, 64);
-    X16_80 = ofDimension(16, 80);
-    X16_92 = ofDimension(16, 92);
-  }
-
-  private ChatDimension() {}
+  Dimension X12_48 = ofDimension(12, 48);
+  Dimension X16_48 = ofDimension(16, 48);
+  Dimension X16_64 = ofDimension(16, 64);
+  Dimension X16_80 = ofDimension(16, 80);
+  Dimension X16_92 = ofDimension(16, 92);
 }
