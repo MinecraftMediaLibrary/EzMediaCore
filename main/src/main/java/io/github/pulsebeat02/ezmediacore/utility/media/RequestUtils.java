@@ -92,7 +92,11 @@ public final class RequestUtils {
 
   public static boolean isStream(@NotNull final MrlConfiguration url) {
     try {
-      return JLibDL.request(url.getMrl()).getInfo().isLive();
+      final MediaInfo info = JLibDL.request(url.getMrl()).getInfo();
+      if (info == null) {
+        throw new IllegalArgumentException("Argument is not valid!");
+      }
+      return info.isLive();
     } catch (final IOException | InterruptedException e) {
       return false;
     }

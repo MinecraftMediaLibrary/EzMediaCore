@@ -70,3 +70,4 @@ nb-configuration.xml
 
 ./xgo
 ./go-natives
+./deluxemediaplugin/run

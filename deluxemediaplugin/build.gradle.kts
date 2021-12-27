@@ -1,5 +1,6 @@
 plugins {
     id("com.github.johnrengelman.shadow") version "7.1.0"
+    id("xyz.jpenilla.run-paper") version "1.0.6"
 }
 
 dependencies {
@@ -75,5 +76,10 @@ tasks {
         relocate("com.fasterxml", "$libraryBase.fasterxml")
         relocate("org.apache", "$libraryBase.apache")
         relocate("com.neovisionaries", "$libraryBase.neovisionaries")
+    }
+    runServer {
+       minecraftVersion.set("1.18.1")
+       debug = true
+
     }
 }

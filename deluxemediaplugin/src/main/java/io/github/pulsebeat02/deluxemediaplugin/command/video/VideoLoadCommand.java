@@ -290,7 +290,13 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
   private boolean checkStream(@NotNull final Audience audience, @NotNull final String mrl) {
 
-    final boolean stream = RequestUtils.isStream(MrlConfiguration.ofMrl(mrl));
+    final boolean stream;
+    try {
+      stream = RequestUtils.isStream(MrlConfiguration.ofMrl(mrl));
+    } catch (final IllegalArgumentException e) {
+      audience.sendMessage(Locale.ERR_INVALID_MRL.build());
+      return true;
+    }
 
     if (stream) {
       this.setStreamAttributes(audience, mrl);
