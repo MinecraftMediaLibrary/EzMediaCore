@@ -103,7 +103,7 @@ public final class DitheringAlgorithms {
     this.dither(this.createOrderedDither(NORMAL_8X8, NORMAL_8X8_MAX, strength), "8x8 Bayer");
     this.dither(
         this.createOrderedDither(CLUSTERED_DOT_4X4, CLUSTERED_DOT_4X4_MAX, strength),
-        "Clustered Dot 4x4 Bayer");
+        "Clustered Dot 4x4");
     this.dither(
         this.createOrderedDither(
             CLUSTERED_DOT_DIAGONAL_8X8, CLUSTERED_DOT_DIAGONAL_8X8_MAX, strength),
