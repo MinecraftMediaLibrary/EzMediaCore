@@ -429,14 +429,11 @@ public class AsyncScalr {
     protected final String namePrefix;
 
     DefaultThreadFactory() {
-      final SecurityManager manager = System.getSecurityManager();
-
       /*
        * Determine the group that threads created by this factory will be
        * in.
        */
-      this.group =
-          (manager == null ? Thread.currentThread().getThreadGroup() : manager.getThreadGroup());
+      this.group = Thread.currentThread().getThreadGroup();
 
       /*
        * Define a common name prefix for the threads created by this
@@ -452,7 +449,7 @@ public class AsyncScalr {
      * processing queued up scale operations.
      */
     @Override
-    public Thread newThread(final @NotNull Runnable r) {
+    public Thread newThread(final Runnable r) {
       /*
        * Create a new thread in our specified group with a meaningful
        * thread name so it is easy to identify.
@@ -491,7 +488,7 @@ public class AsyncScalr {
      * of the new thread to {@link Thread#MIN_PRIORITY} before returning it.
      */
     @Override
-    public Thread newThread(final Runnable r) {
+    public Thread newThread(final @NotNull Runnable r) {
       final Thread thread = super.newThread(r);
 
       thread.setDaemon(true);

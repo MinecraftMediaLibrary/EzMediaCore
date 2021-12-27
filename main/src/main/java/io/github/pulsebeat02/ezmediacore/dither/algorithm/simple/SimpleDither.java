@@ -21,8 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-package io.github.pulsebeat02.ezmediacore.dither.algorithm;
+package io.github.pulsebeat02.ezmediacore.dither.algorithm.simple;
 
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.COLOR_MAP;
 
@@ -32,18 +31,23 @@ import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
 import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import java.util.concurrent.ThreadLocalRandom;
 import org.jetbrains.annotations.NotNull;
 
-public class RandomDither implements DitherAlgorithm {
+public final class SimpleDither implements DitherAlgorithm {
 
-  private static final ThreadLocalRandom THREAD_LOCAL_RANDOM;
+  public SimpleDither() {}
 
-  static {
-    THREAD_LOCAL_RANDOM = ThreadLocalRandom.current();
+  @Override
+  public void dither(final int @NotNull [] buffer, final int width) {
+    final int height = buffer.length / width;
+    for (int y = 0; y < height; y++) {
+      final int yIndex = y * width;
+      for (int x = 0; x < width; x++) {
+        final int index = yIndex + x;
+        buffer[index] = this.getBestColorNormal(buffer[index]);
+      }
+    }
   }
-
-  public RandomDither() {}
 
   @Override
   public @NotNull BufferCarrier ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
@@ -53,48 +57,23 @@ public class RandomDither implements DitherAlgorithm {
     for (int y = 0; y < height; y++) {
       final int yIndex = y * width;
       for (int x = 0; x < width; x++) {
-        final int index = yIndex + x;
-        final int color = buffer[index];
-        int r = (color >> 16) & 0xFF;
-        int g = (color >> 8) & 0xFF;
-        int b = (color) & 0xFF;
-        r = (r += this.random()) > 255 ? 255 : r < 0 ? 0 : r;
-        g = (g += this.random()) > 255 ? 255 : g < 0 ? 0 : g;
-        b = (b += this.random()) > 255 ? 255 : b < 0 ? 0 : b;
-        data.setByte(index, this.getBestColor(r, g, b));
+        data.writeByte(this.getBestColor(buffer[yIndex + x]));
       }
     }
     return ByteBufCarrier.ofByteBufCarrier(data);
-  }
-
-  @Override
-  public void dither(final int @NotNull [] buffer, final int width) {
-    final int height = buffer.length / width;
-    for (int y = 0; y < height; y++) {
-      final int yIndex = y * width;
-      for (int x = 0; x < width; x++) {
-        final int index = yIndex + x;
-        final int color = buffer[index];
-        int r = (color >> 16) & 0xFF;
-        int g = (color >> 8) & 0xFF;
-        int b = (color) & 0xFF;
-        r = (r += this.random()) > 255 ? 255 : r < 0 ? 0 : r;
-        g = (g += this.random()) > 255 ? 255 : g < 0 ? 0 : g;
-        b = (b += this.random()) > 255 ? 255 : b < 0 ? 0 : b;
-        buffer[index] = this.getBestColorNormal(r, g, b);
-      }
-    }
-  }
-
-  private int random() {
-    return THREAD_LOCAL_RANDOM.nextInt(-64, 65);
   }
 
   private byte getBestColor(final int red, final int green, final int blue) {
     return COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
   }
 
-  private int getBestColorNormal(final int r, final int g, final int b) {
-    return MapPalette.getColor(this.getBestColor(r, g, b)).getRGB();
+  private byte getBestColor(final int rgb) {
+    return COLOR_MAP[
+        (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
+  }
+
+  private int getBestColorNormal(final int rgb) {
+    return MapPalette.getColor(this.getBestColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF))
+        .getRGB();
   }
 }

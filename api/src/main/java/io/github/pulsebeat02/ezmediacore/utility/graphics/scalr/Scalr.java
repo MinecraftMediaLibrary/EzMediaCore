@@ -467,15 +467,14 @@ public final class Scalr {
       if (DEBUG) {
         subT = System.currentTimeMillis();
       }
-      final BufferedImageOp op = bufferedImageOp;
 
       // Skip null ops instead of throwing an exception.
-      if (op == null) {
+      if (bufferedImageOp == null) {
         continue;
       }
 
       if (DEBUG) {
-        log(1, "Applying BufferedImageOp [class=%s, toString=%s]...", op.getClass(), op.toString());
+        log(1, "Applying BufferedImageOp [class=%s, toString=%s]...", bufferedImageOp.getClass(), bufferedImageOp.toString());
       }
 
       /*
@@ -485,13 +484,13 @@ public final class Scalr {
        * smaller), in that case the bounds reported by this op and the
        * bounds reported by the source image will be different.
        */
-      final Rectangle2D resultBounds = op.getBounds2D(src);
+      final Rectangle2D resultBounds = bufferedImageOp.getBounds2D(src);
 
       // Watch out for flaky/misbehaving ops that fail to work right.
       if (resultBounds == null) {
         throw new ImagingOpException(
             "BufferedImageOp ["
-                + op
+                + bufferedImageOp
                 + "] getBounds2D(src) returned null bounds for the target image; this should not happen and indicates a problem with application of this type of op.");
       }
 
@@ -509,7 +508,7 @@ public final class Scalr {
               (int) Math.round(resultBounds.getHeight()));
 
       // Perform the operation, update our result to return.
-      final BufferedImage result = op.filter(src, dest);
+      final BufferedImage result = bufferedImageOp.filter(src, dest);
 
       /*
        * Flush the 'src' image ONLY IF it is one of our interim temporary

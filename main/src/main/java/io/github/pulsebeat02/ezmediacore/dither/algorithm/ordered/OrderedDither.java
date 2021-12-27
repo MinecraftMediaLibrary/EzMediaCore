@@ -11,6 +11,7 @@ import io.netty.buffer.Unpooled;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+/** See https://github.com/makeworld-the-better-one/dither/blob/master/pixelmappers.go */
 public final class OrderedDither implements DitherAlgorithm {
 
   private final float[][] precalc;

@@ -46,7 +46,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@Deprecated
 public final class JCodecMediaPlayer extends BufferedMediaPlayer {
 
   private FrameGrab grabber;

@@ -40,12 +40,12 @@ import static io.github.pulsebeat02.ezmediacore.dither.algorithm.ordered.BayerMa
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
-import io.github.pulsebeat02.ezmediacore.dither.algorithm.FilterLiteDither;
-import io.github.pulsebeat02.ezmediacore.dither.algorithm.FloydDither;
-import io.github.pulsebeat02.ezmediacore.dither.algorithm.RandomDither;
-import io.github.pulsebeat02.ezmediacore.dither.algorithm.SimpleDither;
+import io.github.pulsebeat02.ezmediacore.dither.algorithm.error.FilterLiteDither;
+import io.github.pulsebeat02.ezmediacore.dither.algorithm.error.FloydDither;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.ordered.OrderedDither;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.ordered.OrderedPixelMapper;
+import io.github.pulsebeat02.ezmediacore.dither.algorithm.random.RandomDither;
+import io.github.pulsebeat02.ezmediacore.dither.algorithm.simple.SimpleDither;
 import io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.VideoFrameUtils;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
@@ -164,7 +164,7 @@ public final class DitheringAlgorithms {
   }
 
   public void randomDither() {
-    this.dither(new RandomDither(), "random-dithering");
+    this.dither(new RandomDither(RandomDither.NORMAL_WEIGHT), "random-dithering");
   }
 
   public void simpleDither() {
@@ -184,14 +184,18 @@ public final class DitheringAlgorithms {
 
   private void createFrame(final int[] data, final String name) {
     final int width = 630;
+
     final BufferedImage image = VideoFrameUtils.getBufferedImage(data, width, data.length / width);
+
     final JLabel label = new JLabel();
     label.setIcon(new ImageIcon(image));
+
     final JFrame frame = new JFrame(name);
     frame.setSize(500, 300);
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     frame.add(label);
     frame.setVisible(true);
+
     this.saveToFile(image, name);
   }
 

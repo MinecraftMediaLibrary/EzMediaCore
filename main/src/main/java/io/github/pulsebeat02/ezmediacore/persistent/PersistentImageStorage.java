@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("UnstableApiUsage")
 public class PersistentImageStorage extends PersistentObject<Image> {
 
   public PersistentImageStorage(@NotNull final Path path) {

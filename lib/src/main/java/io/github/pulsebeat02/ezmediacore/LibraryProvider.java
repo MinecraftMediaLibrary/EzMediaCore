@@ -47,7 +47,6 @@ public final class LibraryProvider {
   private Path libraryPath;
   private Path dependencyPath;
   private Path httpServerPath;
-  private Path vlcPath;
   private Path imagePath;
   private Path audioPath;
   private Path videoPath;
@@ -103,11 +102,6 @@ public final class LibraryProvider {
 
   public LibraryProvider httpServerPath(@Nullable final Path httpServerPath) {
     this.httpServerPath = httpServerPath;
-    return this;
-  }
-
-  public LibraryProvider vlcPath(@Nullable final Path vlcPath) {
-    this.vlcPath = vlcPath;
     return this;
   }
 

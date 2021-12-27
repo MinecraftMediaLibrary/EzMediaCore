@@ -10,7 +10,7 @@ public final class DontInlineMeBaby {
     this.obj = new Object();
   }
 
-  public @Nullable Object getObj() {
+  public Object getObj() {
     return this.obj;
   }
 }

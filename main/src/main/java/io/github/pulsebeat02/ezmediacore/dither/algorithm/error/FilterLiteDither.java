@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.dither.algorithm;
+package io.github.pulsebeat02.ezmediacore.dither.algorithm.error;
 
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.COLOR_MAP;
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.FULL_COLOR_MAP;
@@ -33,7 +33,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.jetbrains.annotations.NotNull;
 
-public class FilterLiteDither implements DitherAlgorithm {
+public final class FilterLiteDither implements DitherAlgorithm {
 
   public FilterLiteDither() {}
 

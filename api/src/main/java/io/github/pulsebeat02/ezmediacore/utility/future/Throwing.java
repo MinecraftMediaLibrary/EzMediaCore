@@ -4,7 +4,7 @@ import java.util.function.BiFunction;
 
 public final class Throwing {
 
-  public static BiFunction<Object, Throwable, Object> THROWING_FUTURE;
+  public static final BiFunction<Object, Throwable, Object> THROWING_FUTURE;
 
   static {
     THROWING_FUTURE =

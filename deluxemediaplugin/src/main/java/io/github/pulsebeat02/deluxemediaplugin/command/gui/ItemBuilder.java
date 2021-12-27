@@ -75,16 +75,6 @@ public class ItemBuilder {
   }
 
   /**
-   * Clone the ItemBuilder into a new one.
-   *
-   * @return The cloned instance.
-   */
-  @Override
-  public ItemBuilder clone() {
-    return from(this.is);
-  }
-
-  /**
    * Change the durability of the item.
    *
    * @param dur The durability to set it to.

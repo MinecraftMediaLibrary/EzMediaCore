@@ -117,6 +117,7 @@ public class YoutubeVideoDownloader implements VideoDownloader {
 
   private @NotNull RequestVideoFileDownload createDownloadRequest(
       @NotNull final VideoQuality format, final boolean overwrite) {
+    //noinspection UnstableApiUsage
     return new RequestVideoFileDownload(this.getFormat(format))
         .saveTo(this.videoPath.getParent().toFile())
         .renameTo(Files.getNameWithoutExtension(PathUtils.getName(this.videoPath)))

@@ -356,7 +356,7 @@ public interface Locale {
           .append(text('['), text("External Process", GOLD), text(']'), space(), text("»", GRAY))
           .append(text(" %s".formatted(str)))
           .build();
-  UniComponent<Sender, Map<String, String>> INFO_CMD_USAGE = (usages) -> getCommandUsageComponent(usages);
+  UniComponent<Sender, Map<String, String>> INFO_CMD_USAGE = Locale::getCommandUsageComponent;
   BiComponent<Sender, String, byte[]>
       FIN_RESOURCEPACK_INIT = (url, hash) -> format(text(
       "Loaded Resourcepack Successfully! (URL: %s, Hash: %s)".formatted(url, new String(hash))));

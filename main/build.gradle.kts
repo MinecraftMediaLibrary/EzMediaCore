@@ -19,7 +19,7 @@ dependencies {
 
     // TESTING DEPENDENCIES
     setOf("org.junit.jupiter:junit-jupiter-engine:5.4.2").forEach {
-        testRuntimeOnly(it);
+        testRuntimeOnly(it)
     }
 
     setOf(
@@ -92,7 +92,7 @@ tasks {
         relocate("com.fasterxml", "$base.fasterxml")
         relocate("org.apache", "$base.apache")
         relocate("com.neovisionaries", "$base.neovisionaries")
-        minimize();
+        minimize()
     }
 
 

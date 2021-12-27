@@ -95,11 +95,7 @@ public class EntityCallback<T extends Entity> extends FrameCallback
   }
 
   private @NotNull String repeat(@NotNull final String name, final int height) {
-    final StringBuilder builder = new StringBuilder();
-    for (int i = 0; i < height; i++) {
-      builder.append(name);
-    }
-    return builder.toString();
+    return name.repeat(Math.max(0, height));
   }
 
   @Override

@@ -24,17 +24,38 @@
 package io.github.pulsebeat02.ezmediacore.callback;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
+import static org.bukkit.ChatColor.AQUA;
+import static org.bukkit.ChatColor.BLACK;
+import static org.bukkit.ChatColor.BLUE;
+import static org.bukkit.ChatColor.BOLD;
+import static org.bukkit.ChatColor.DARK_AQUA;
+import static org.bukkit.ChatColor.DARK_BLUE;
+import static org.bukkit.ChatColor.DARK_GRAY;
+import static org.bukkit.ChatColor.DARK_GREEN;
+import static org.bukkit.ChatColor.DARK_PURPLE;
+import static org.bukkit.ChatColor.DARK_RED;
+import static org.bukkit.ChatColor.GOLD;
+import static org.bukkit.ChatColor.GRAY;
+import static org.bukkit.ChatColor.GREEN;
+import static org.bukkit.ChatColor.ITALIC;
+import static org.bukkit.ChatColor.LIGHT_PURPLE;
+import static org.bukkit.ChatColor.MAGIC;
+import static org.bukkit.ChatColor.RED;
+import static org.bukkit.ChatColor.RESET;
+import static org.bukkit.ChatColor.STRIKETHROUGH;
+import static org.bukkit.ChatColor.UNDERLINE;
+import static org.bukkit.ChatColor.WHITE;
+import static org.bukkit.ChatColor.YELLOW;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.implementation.ScoreboardCallbackDispatcher;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.utility.task.TaskUtils;
-import java.lang.reflect.Field;
 import java.nio.IntBuffer;
-import java.util.Map;
 import java.util.concurrent.Callable;
-import net.md_5.bungee.api.ChatColor;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -48,11 +69,31 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
   private static final ChatColor[] COLORS;
 
   static {
-    try {
-      COLORS = getChatColors();
-    } catch (final NoSuchFieldException | IllegalAccessException e) {
-      throw new AssertionError(e);
-    }
+    COLORS =
+        new ChatColor[] {
+          BLACK,
+          DARK_BLUE,
+          DARK_GREEN,
+          DARK_AQUA,
+          DARK_RED,
+          DARK_PURPLE,
+          GOLD,
+          GRAY,
+          DARK_GRAY,
+          BLUE,
+          GREEN,
+          AQUA,
+          RED,
+          LIGHT_PURPLE,
+          YELLOW,
+          WHITE,
+          MAGIC,
+          BOLD,
+          STRIKETHROUGH,
+          UNDERLINE,
+          ITALIC,
+          RESET
+        };
   }
 
   private final String name;
@@ -71,16 +112,9 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
     this.scoreboard = this.setScoreboard();
   }
 
-  private static ChatColor @NotNull [] getChatColors()
-      throws NoSuchFieldException, IllegalAccessException {
-    final Field field = ChatColor.class.getDeclaredField("BY_CHAR");
-    field.setAccessible(true);
-    //noinspection unchecked
-    return ((Map<Character, ChatColor>) field.get(null)).values().toArray(new ChatColor[0]);
-  }
-
   private @NotNull Scoreboard setScoreboard() {
-    return this.getCore().getPlugin().getServer().getScoreboardManager().getNewScoreboard();
+    return requireNonNull(this.getCore().getPlugin().getServer().getScoreboardManager())
+        .getNewScoreboard();
   }
 
   @Override

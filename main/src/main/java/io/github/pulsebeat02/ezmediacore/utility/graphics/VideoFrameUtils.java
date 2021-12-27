@@ -170,6 +170,7 @@ public final class VideoFrameUtils {
 
   @NotNull
   public static Dimension getDimensions(@NotNull final Path file) throws IOException {
+    @SuppressWarnings("UnstableApiUsage")
     final Iterator<ImageReader> iter =
         ImageIO.getImageReadersBySuffix(Files.getFileExtension(PathUtils.getName(file)));
     while (iter.hasNext()) {

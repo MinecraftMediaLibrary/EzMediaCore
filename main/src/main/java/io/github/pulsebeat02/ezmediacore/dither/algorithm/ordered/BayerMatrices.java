@@ -259,10 +259,9 @@ public interface BayerMatrices {
         int ymask = L;
         if (M == 0 || (M > L && L != 0)) {
           final int xc = x ^ ((y << M) >> L);
-          final int yc = y;
           for (int bit = 0; bit < M + L; ) {
             ymask--;
-            v |= ((yc >> ymask) & 1) << bit;
+            v |= ((y >> ymask) & 1) << bit;
             bit++;
             for (offset += M; offset >= L; offset -= L) {
               xmask--;
@@ -271,11 +270,10 @@ public interface BayerMatrices {
             }
           }
         } else {
-          final int xc = x;
           final int yc = y ^ ((x << L) >> M);
           for (int bit = 0; bit < M + L; ) {
             xmask--;
-            v |= ((xc >> xmask) & 1) << bit;
+            v |= ((x >> xmask) & 1) << bit;
             bit++;
             for (offset += L; offset >= M; offset -= M) {
               ymask--;

@@ -111,6 +111,7 @@ public class SpotifyTrackDownloader implements TrackDownloader {
     return false;
   }
 
+  @SuppressWarnings("UnstableApiUsage")
   private @NotNull RequestVideoFileDownload createDownloadRequest(
       @NotNull final VideoQuality format, final boolean overwrite) {
 

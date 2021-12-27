@@ -87,11 +87,7 @@ public class HolovidHoster implements HolovidSolution {
     return HttpResponse.BodyHandlers.ofString();
   }
 
-  private final MediaLibraryCore core;
-
-  public HolovidHoster(@NotNull final MediaLibraryCore core) {
-    checkNotNull(core, "MediaLibraryCore cannot be null!");
-    this.core = core;
+  public HolovidHoster() {
   }
 
   @Override

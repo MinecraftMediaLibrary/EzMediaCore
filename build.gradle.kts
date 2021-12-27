@@ -47,8 +47,8 @@ subprojects {
 
     dependencies {
         setOf("org.jetbrains:annotations:22.0.0").forEach {
-            compileOnly(it);
-            testImplementation(it);
+            compileOnly(it)
+            testImplementation(it)
         }
     }
 

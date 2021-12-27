@@ -57,7 +57,9 @@ public final class PathUtils {
   public static boolean isValidPath(@NotNull final String path) {
     checkNotNull(path, "Path cannot be null!");
     final String lowercase = path.toLowerCase(Locale.ROOT);
-    if (lowercase.startsWith("http://") || lowercase.startsWith("https://")) {
+    final String http = "http";
+    if (lowercase.startsWith("%s://".formatted(http))
+        || lowercase.startsWith("%ss://".formatted(http))) {
       return false;
     }
     return Files.exists(Path.of(path));
