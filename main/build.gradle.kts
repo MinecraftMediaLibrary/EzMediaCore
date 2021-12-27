@@ -1,3 +1,5 @@
+import org.ajoberstar.grgit.Grgit
+
 plugins {
     id("com.github.johnrengelman.shadow") version "7.1.0"
 }
@@ -92,4 +94,32 @@ tasks {
         relocate("com.neovisionaries", "$base.neovisionaries")
         minimize();
     }
+
+
+    register("compileGoCode") {
+        doLast {
+
+            val goFolder = rootProject.file("go-natives")
+            if (goFolder.exists()) {
+                goFolder.deleteRecursively()
+            }
+
+            val xgoFolder = rootProject.file("xgo")
+            if (xgoFolder.exists()) {
+                xgoFolder.deleteRecursively()
+            }
+
+            Grgit.clone {
+                dir = goFolder
+                uri = "https://github.com/MinecraftMediaLibrary/EzMediaCore-Native-Go.git"
+            }
+
+            Grgit.clone {
+                dir = xgoFolder
+                uri = "https://github.com/techknowlogick/xgo.git"
+            }
+        }
+    }
+
+
 }
