@@ -184,15 +184,17 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
 
   private @NotNull List<String> constructArguments(@NotNull final Collection<Object> arguments) {
     final List<String> args = new ArrayList<>();
+
     final int rate = this.getFrameConfiguration().getFps();
     if (rate > 0) {
       args.add("sout=\"#transcode{fps=%d}\"".formatted(rate));
     }
+
     if (this.audioCallback == null) {
       args.add("--no-audio");
     }
+
     args.addAll(arguments.stream().map(Object::toString).collect(Collectors.toList()));
-    args.add("--quiet");
     return args;
   }
 

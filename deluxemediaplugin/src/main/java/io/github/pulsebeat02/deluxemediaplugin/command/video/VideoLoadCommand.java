@@ -39,7 +39,6 @@ import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioOutputType;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
-import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioExtractor;
@@ -47,6 +46,7 @@ import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.resourcepack.PackFormat;
 import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
+import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import io.github.pulsebeat02.ezmediacore.utility.io.HashingUtils;
 import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
 import io.github.pulsebeat02.ezmediacore.utility.io.ResourcepackUtils;
@@ -159,7 +159,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
     audience.sendMessage(Locale.LOADING_VIDEO.build());
 
-    if (this.checkStream(audience, mrl)) {
+    if (!PathUtils.isValidPath(mrl) && this.checkStream(audience, mrl)) {
       successful.set(false);
       return;
     }
@@ -268,8 +268,9 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   private @NotNull Optional<Path> downloadMrl(
       @NotNull final Audience audience, @NotNull final Path folder, @NotNull final String mrl)
       throws IOException, InterruptedException {
-    final Optional<Path> download = this.getDownloadedMrl(audience, folder, mrl);
-    return PathUtils.isValidPath(mrl) ? Optional.of(Path.of(mrl)) : download;
+    return PathUtils.isValidPath(mrl)
+        ? Optional.of(Path.of(mrl))
+        : this.getDownloadedMrl(audience, folder, mrl);
   }
 
   private Optional<Path> getDownloadedMrl(

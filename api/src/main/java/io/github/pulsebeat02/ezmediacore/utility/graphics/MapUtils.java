@@ -26,6 +26,8 @@ package io.github.pulsebeat02.ezmediacore.utility.graphics;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
 
+import java.util.Arrays;
+import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -33,6 +35,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,11 +45,17 @@ public final class MapUtils {
 
   @NotNull
   public static ItemStack getMapFromID(final int id) {
+
     final ItemStack map = new ItemStack(Material.FILLED_MAP);
-    final MapMeta meta = requireNonNull((MapMeta) map.getItemMeta());
-    //noinspection deprecation
-    meta.setMapId(id);
-    map.setItemMeta(meta);
+
+    final MapMeta mapMeta = requireNonNull((MapMeta) map.getItemMeta());
+    mapMeta.setMapId(id);
+    map.setItemMeta(mapMeta);
+
+    final ItemMeta itemMeta = map.getItemMeta();
+    itemMeta.setLore(List.of("Map ID [%s]".formatted(id)));
+    map.setItemMeta(itemMeta);
+
     return map;
   }
 

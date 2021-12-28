@@ -278,6 +278,7 @@ public final class VideoCommand extends BaseCommand {
   private void releaseIfPlaying() {
     final VideoPlayer player = this.attributes.getPlayer();
     Nill.ifNot(player, () -> this.releasePlayer(player));
+    this.attributes.setPlayer(null);
   }
 
   private void releasePlayer(@NotNull final VideoPlayer player) {
