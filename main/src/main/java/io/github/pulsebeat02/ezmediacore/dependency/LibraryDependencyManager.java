@@ -95,7 +95,7 @@ public final class LibraryDependencyManager extends LibraryDependency {
             ofRelocation("com:alibaba", base.formatted("alibaba")),
             ofRelocation("net:sourceforge:jaad:aac", base.formatted("sourceforge")),
             ofRelocation("com:fasterxml", base.formatted("fasterxml")),
-            ofRelocation("org:apache", base.formatted("apache")),
+            ofRelocation("org:apache:httpcomponents", base.formatted("apache:httpcomponents")),
             ofRelocation("com:neovisionaries", base.formatted("neovisionaries")))
         .collect(Collectors.toSet());
   }

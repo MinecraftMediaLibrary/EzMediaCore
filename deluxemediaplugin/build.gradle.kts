@@ -20,7 +20,6 @@ dependencies {
     setOf(
         "com.mojang:authlib:1.5.26",
         "net.dv8tion:JDA:5.0.0-alpha.2",
-        "com.github.stefvanschie.inventoryframework:IF:0.10.3"
     ).forEach {
         compileOnly(it)
     }
@@ -30,7 +29,8 @@ dependencies {
         "org.bstats:bstats-bukkit:2.2.1",
         "net.kyori:adventure-api:4.9.3",
         "net.kyori:adventure-platform-bukkit:4.0.0",
-        "com.sedmelluq:lavaplayer:1.3.78"
+        "com.sedmelluq:lavaplayer:1.3.78",
+        "com.github.stefvanschie.inventoryframework:IF:0.10.3"
     ).forEach {
         implementation(it)
     }
@@ -60,8 +60,10 @@ tasks {
         relocate("me.lucko", "$base.lucko")
         relocate("net.kyori", "$base.kyori")
         relocate("com.sedmelluq", "$base.sedmelluq")
-        relocate("org.jsoup", "$base.org.jsoup")
-        relocate("org.slf4j", "$base.org.slf4j")
+        relocate("org.jsoup", "$base.jsoup")
+        relocate("org.slf4j", "$base.slf4j")
+        relocate("net.iharder", "$base.iharder")
+        relocate("com.github.stefvanschie", "$base.stefvanschie")
 
         val libraryBase = "io.github.pulsebeat02.ezmediacore.lib"
         relocate("uk.co.caprica", "$libraryBase.caprica")
@@ -74,7 +76,7 @@ tasks {
         relocate("com.alibaba", "$libraryBase.alibaba")
         relocate("net.sourceforge.jaad.aac", "$libraryBase.sourceforge")
         relocate("com.fasterxml", "$libraryBase.fasterxml")
-        relocate("org.apache", "$libraryBase.apache")
+        relocate("org.apache.httpcomponents", "$libraryBase.apache.httpcomponents")
         relocate("com.neovisionaries", "$libraryBase.neovisionaries")
     }
     runServer {

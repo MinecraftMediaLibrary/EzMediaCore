@@ -90,7 +90,7 @@ tasks {
         relocate("com.alibaba", "$base.alibaba")
         relocate("net.sourceforge.jaad.aac", "$base.sourceforge")
         relocate("com.fasterxml", "$base.fasterxml")
-        relocate("org.apache", "$base.apache")
+        relocate("org.apache.httpcomponents", "$base.apache.httpcomponents")
         relocate("com.neovisionaries", "$base.neovisionaries")
         minimize()
     }

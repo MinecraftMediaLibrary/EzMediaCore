@@ -10,7 +10,6 @@
   "main": "io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPluginBootstrap",
   "load": "STARTUP",
   "libraries": [
-    "net.dv8tion:JDA:5.0.0-alpha.2",
-    "com.github.stefvanschie.inventoryframework:IF:0.10.3"
+    "net.dv8tion:JDA:5.0.0-alpha.2"
   ]
 }
