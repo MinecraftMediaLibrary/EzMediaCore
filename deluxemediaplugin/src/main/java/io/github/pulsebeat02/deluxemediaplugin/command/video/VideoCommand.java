@@ -39,6 +39,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.video.PlaybackType;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
+import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioTrimmer;
 import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
@@ -159,7 +160,11 @@ public final class VideoCommand extends BaseCommand {
     Nill.ifNot(bot, () -> bot.getMusicManager().pauseTrack());
 
     this.attributes.cancelCurrentStream();
-    this.attributes.getPlayer().pause();
+
+    final VideoPlayer player = this.attributes.getPlayer();
+    if (player != null) {
+      this.attributes.getPlayer().pause();
+    }
 
     audience.sendMessage(Locale.PAUSE_VIDEO.build());
 
@@ -276,7 +281,11 @@ public final class VideoCommand extends BaseCommand {
   }
 
   private void releasePlayer(@NotNull final VideoPlayer player) {
-    if (player.getPlayerState() != PlayerControls.RELEASE) {
+    final PlayerControls state = player.getPlayerState();
+    if (state != PlayerControls.RELEASE) {
+      if (state == PlayerControls.START || state == PlayerControls.RESUME) {
+        player.pause();
+      }
       player.release();
     }
   }
