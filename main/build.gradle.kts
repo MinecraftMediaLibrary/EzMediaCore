@@ -1,7 +1,7 @@
 import org.ajoberstar.grgit.Grgit
 
 plugins {
-    id("com.github.johnrengelman.shadow") version "7.1.0"
+    id("com.github.johnrengelman.shadow") version "7.1.1"
 }
 
 dependencies {
@@ -18,7 +18,7 @@ dependencies {
     }
 
     // TESTING DEPENDENCIES
-    setOf("org.junit.jupiter:junit-jupiter-engine:5.4.2").forEach {
+    setOf("org.junit.jupiter:junit-jupiter-engine:5.8.2").forEach {
         testRuntimeOnly(it)
     }
 
@@ -32,9 +32,9 @@ dependencies {
 
     // PROVIDED DEPENDENCIES / TEST DEPENDENCIES
     setOf(
-        "io.netty:netty-all:4.1.70.Final",
+        "io.netty:netty-all:4.1.72.Final",
         "com.mojang:authlib:1.5.26",
-        "com.google.guava:guava:30.1.1-jre",
+        "com.google.guava:guava:31.0.1-jre",
         "com.mpatric:mp3agic:0.9.1",
         "com.github.kevinsawicki:http-request:6.0",
     ).forEach {
@@ -47,7 +47,7 @@ dependencies {
         "uk.co.caprica:vlcj:4.7.1",
         "uk.co.caprica:vlcj-natives:4.5.0",
         "com.github.sealedtx:java-youtube-downloader:3.0.2",
-        "com.alibaba:fastjson:1.2.78",
+        "com.alibaba:fastjson:1.2.79",
         "net.java.dev.jna:jna:5.10.0",
         "net.java.dev.jna:jna-platform:5.10.0",
         "se.michaelthelin.spotify:spotify-web-api-java:7.0.0",
@@ -55,7 +55,7 @@ dependencies {
         "org.jcodec:jcodec:0.2.5",
         "com.github.ben-manes.caffeine:caffeine:3.0.5",
         "it.unimi.dsi:fastutil:8.5.6",
-        "com.fasterxml.jackson.core:jackson-core:2.13.0",
+        "com.fasterxml.jackson.core:jackson-core:2.13.1",
         "org.apache.httpcomponents.client5:httpclient5:5.2-alpha1",
         "com.neovisionaries:nv-i18n:1.29"
     ).forEach {

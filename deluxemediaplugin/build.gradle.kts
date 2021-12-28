@@ -1,5 +1,5 @@
 plugins {
-    id("com.github.johnrengelman.shadow") version "7.1.0"
+    id("com.github.johnrengelman.shadow") version "7.1.1"
     id("xyz.jpenilla.run-paper") version "1.0.6"
 }
 
@@ -19,7 +19,7 @@ dependencies {
     // PROVIDED DEPENDENCIES / DOWNLOADED AT RUNTIME
     setOf(
         "com.mojang:authlib:1.5.26",
-        "net.dv8tion:JDA:5.0.0-alpha.2",
+        "net.dv8tion:JDA:5.0.0-alpha.3",
     ).forEach {
         compileOnly(it)
     }
@@ -28,7 +28,7 @@ dependencies {
     setOf(
         "org.bstats:bstats-bukkit:2.2.1",
         "net.kyori:adventure-api:4.9.3",
-        "net.kyori:adventure-platform-bukkit:4.0.0",
+        "net.kyori:adventure-platform-bukkit:4.0.1",
         "com.sedmelluq:lavaplayer:1.3.78",
         "com.github.stefvanschie.inventoryframework:IF:0.10.3"
     ).forEach {
