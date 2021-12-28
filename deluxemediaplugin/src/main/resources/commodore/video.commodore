@@ -11,11 +11,11 @@ video {
     mrl brigadier:string greedy_phrase;
   }
   set {
-    screen-dimensions {
-      screen-dimensions brigadier:string single_word;
+    screen-dimension {
+      screen-dimensions brigadier:string greedy_phrase;
     }
-    itemframe-dimensions {
-      itemframe-dimensions brigadier:string single_word;
+    itemframe-dimension {
+      itemframe-dimensions brigadier:string greedy_phrase;
     }
     starting-map {
       map-id brigadier:integer;

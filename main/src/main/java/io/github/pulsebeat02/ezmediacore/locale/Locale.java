@@ -46,7 +46,6 @@ public interface Locale {
   NullComponent MEDIA_PLAYER_RELEASE = () -> "Released media player!";
   NullComponent MEDIA_PLAYER_PAUSE = () -> "Paused media player!";
 
-
   NullComponent SERVER_SOFTWARE_TIP = () ->
       """
 

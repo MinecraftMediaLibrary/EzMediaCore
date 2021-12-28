@@ -173,7 +173,7 @@ public final class EzMediaCore implements MediaLibraryCore {
             this.audioPath,
             this.videoPath)
         .forEach(FileUtils::createFolderIfNotExistsExceptionally);
-    System.out.println(Locale.FINISHED_FOLDER_CREATION);
+    this.logger.info(Locale.FINISHED_FOLDER_CREATION);
   }
 
   private void startDependencyLoader() {
