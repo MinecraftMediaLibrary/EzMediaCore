@@ -68,6 +68,6 @@ nb-configuration.xml
 # Server
 ./server
 
-./xgo
-./go-natives
-./deluxemediaplugin/run
+xgo/
+go-natives/
+deluxemediaplugin/run/
