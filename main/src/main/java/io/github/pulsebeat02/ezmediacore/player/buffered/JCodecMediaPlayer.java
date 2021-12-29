@@ -35,11 +35,17 @@ import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
+import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
+import io.github.pulsebeat02.ezmediacore.player.input.JCodecMediaPlayerInputParser;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
+import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import org.jcodec.api.FrameGrab;
 import org.jcodec.api.JCodecException;
+import org.jcodec.common.io.FileChannelWrapper;
 import org.jcodec.common.io.NIOUtils;
 import org.jcodec.common.model.Size;
 import org.jetbrains.annotations.Contract;
@@ -57,7 +63,14 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
       @NotNull final BufferConfiguration buffer,
       @NotNull final FrameConfiguration fps,
       @Nullable final SoundKey key) {
-    super(callback, viewers, pixelDimension, buffer, fps, key);
+    super(
+        callback,
+        viewers,
+        pixelDimension,
+        buffer,
+        fps,
+        key,
+        new JCodecMediaPlayerInputParser(callback.getCore()));
   }
 
   @Override
@@ -125,8 +138,13 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
   }
 
   private @NotNull FrameGrab getGrabber() throws IOException, JCodecException {
-    return FrameGrab.createFrameGrab(
-        NIOUtils.readableFileChannel(this.getDirectVideoMrl().getInput()));
+    return FrameGrab.createFrameGrab(this.parseInput());
+  }
+
+  private @NotNull FileChannelWrapper parseInput() throws FileNotFoundException {
+    final InputParser parser = this.getInputParser();
+    final Pair<Object, String[]> pair = parser.parseInput(this.getDirectVideoMrl());
+    return NIOUtils.readableChannel(Path.of((String) pair.getKey()).toFile());
   }
 
   @Override

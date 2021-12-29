@@ -31,6 +31,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Viewable;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
 import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
+import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
@@ -96,6 +97,9 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
   @NotNull
   Identifier<String> getPlayerType();
+
+  @NotNull
+  InputParser getInputParser();
 
   boolean isBuffered();
 }

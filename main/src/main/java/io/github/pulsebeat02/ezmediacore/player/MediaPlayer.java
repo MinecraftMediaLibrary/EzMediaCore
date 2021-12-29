@@ -33,6 +33,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
+import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -48,6 +49,8 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   private final FrameConfiguration fps;
   private final SoundKey key;
+  private final InputParser parser;
+
   private Viewers viewers;
   private Callback callback;
   private InputItem directVideo;
@@ -62,7 +65,8 @@ public abstract class MediaPlayer implements VideoPlayer {
       @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
       @NotNull final FrameConfiguration fps,
-      @Nullable final SoundKey key) {
+      @Nullable final SoundKey key,
+      @NotNull final InputParser parser) {
     checkNotNull(callback, "Callback cannot be null!");
     checkNotNull(viewers, "Viewers cannot be null!");
     checkNotNull(pixelDimension, "Pixel dimension cannot be null!");
@@ -73,6 +77,7 @@ public abstract class MediaPlayer implements VideoPlayer {
     this.key = this.getInternalSoundKey(key);
     this.fps = fps;
     this.viewers = viewers;
+    this.parser = parser;
     this.playAudio = this.getPlayAudioRunnable();
     this.stopAudio = this.getStopAudioRunnable();
   }
@@ -223,5 +228,10 @@ public abstract class MediaPlayer implements VideoPlayer {
   @Override
   public void setDirectAudioMrl(@NotNull final InputItem audioMrl) {
     this.directAudio = audioMrl;
+  }
+
+  @Override
+  public @NotNull InputParser getInputParser() {
+    return this.parser;
   }
 }

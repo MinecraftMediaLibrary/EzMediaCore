@@ -36,7 +36,10 @@ import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
+import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
+import io.github.pulsebeat02.ezmediacore.player.input.VLCMediaPlayerInputParser;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
+import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,7 +81,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
       @NotNull final Dimension pixelDimension,
       @NotNull final FrameConfiguration fps,
       @Nullable final SoundKey key) {
-    super(callback, viewers, pixelDimension, fps, key);
+    super(callback, viewers, pixelDimension, fps, key, new VLCMediaPlayerInputParser(callback.getCore()));
     this.adapter = this.getAdapter();
     this.videoCallback = new MinecraftVideoRenderCallback(this.getCallback()::process);
   }
@@ -100,7 +103,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
       this.initializePlayer(mrl, DelayConfiguration.DELAY_0_MS, arguments);
     }
     this.playAudio();
-    this.player.media().play(this.getDirectVideoMrl().getInput());
+    this.playMedia(true);
   }
 
   @Override
@@ -116,9 +119,19 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     if (this.player == null) {
       this.initializePlayer(mrl, DelayConfiguration.DELAY_0_MS, arguments);
       this.playAudio();
-      this.player.media().play(this.getDirectVideoMrl().getInput());
+      this.playMedia(true);
     } else {
       this.playAudio();
+      this.playMedia(false);
+    }
+  }
+
+  private void playMedia(final boolean newMedia) {
+    if (newMedia) {
+      final InputParser parser = this.getInputParser();
+      final Pair<Object, String[]> pair = parser.parseInput(this.getDirectVideoMrl());
+      this.player.media().play((String) pair.getKey(), pair.getValue());
+    } else {
       this.player.controls().play();
     }
   }
