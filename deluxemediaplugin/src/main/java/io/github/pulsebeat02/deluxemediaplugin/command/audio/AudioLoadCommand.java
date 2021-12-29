@@ -38,7 +38,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
-import io.github.pulsebeat02.ezmediacore.ffmpeg.YoutubeVideoAudioExtractor;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.YoutubeOGGAudioExtractor;
 import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.utility.io.HashingUtils;
@@ -87,7 +87,7 @@ public final class AudioLoadCommand implements CommandSegment.Literal<CommandSen
       final MediaLibraryCore core,
       @NotNull final Path audio,
       @NotNull final AudioConfiguration configuration) {
-    YoutubeVideoAudioExtractor.ofYoutubeVideoAudioExtractor(core, configuration, mrl, audio)
+    YoutubeOGGAudioExtractor.ofYoutubeVideoAudioExtractor(core, configuration, mrl, audio)
         .executeAsync();
   }
 

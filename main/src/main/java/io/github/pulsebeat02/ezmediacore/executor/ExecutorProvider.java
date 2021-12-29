@@ -26,20 +26,19 @@ package io.github.pulsebeat02.ezmediacore.executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ScheduledExecutorService;
 
 public final class ExecutorProvider {
 
-  public static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE;
   public static final ExecutorService SHARED_RESULT_POOL;
   public static final ExecutorService LOGGER_POOL;
   public static final ExecutorService ENCODER_HANDLER;
+  public static final ExecutorService RTSP_SERVER;
 
   static {
-    SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
     SHARED_RESULT_POOL = new ForkJoinPool();
     LOGGER_POOL = Executors.newCachedThreadPool();
     ENCODER_HANDLER = Executors.newCachedThreadPool();
+    RTSP_SERVER = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
   }
 
   private ExecutorProvider() {}

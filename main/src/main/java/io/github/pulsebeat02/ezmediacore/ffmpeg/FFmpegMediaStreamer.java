@@ -24,6 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.rtp.RTPStreamingServer;
 import java.util.ArrayList;
@@ -89,7 +90,7 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaS
 
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
-    this.server.executeAsync();
+    this.server.executeAsync(ExecutorProvider.RTSP_SERVER);
     this.addArguments("-max_muxing_queue_size", "9999");
     this.addArgument(this.output);
     super.executeWithLogging(logger);

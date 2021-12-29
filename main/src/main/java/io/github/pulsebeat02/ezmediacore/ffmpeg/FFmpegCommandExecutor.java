@@ -136,6 +136,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
     this.onBeforeExecution();
+    this.completion.set(false);
     if (!this.cancelled.get()) {
       this.executeProcess(logger);
     }

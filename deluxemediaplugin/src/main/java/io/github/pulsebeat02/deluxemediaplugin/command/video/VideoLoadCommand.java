@@ -41,7 +41,7 @@ import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
-import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioExtractor;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.OGGAudioExtractor;
 import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.MrlInput;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
@@ -213,8 +213,8 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
   private void executeFFmpegExtractor(@NotNull final Path download, @NotNull final Path oggOutput) {
 
     final AudioConfiguration configuration = this.plugin.getAudioConfiguration();
-    final FFmpegAudioExtractor extractor =
-        FFmpegAudioExtractor.ofFFmpegAudioExtractor(
+    final OGGAudioExtractor extractor =
+        OGGAudioExtractor.ofFFmpegAudioExtractor(
             this.plugin.library(), configuration, download, oggOutput);
 
     this.attributes.setExtractor(extractor);

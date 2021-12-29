@@ -25,52 +25,56 @@ package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
-import io.github.pulsebeat02.ezmediacore.playlist.youtube.VideoDownloader;
-import io.github.pulsebeat02.ezmediacore.playlist.youtube.YoutubeVideoDownloader;
+import io.github.pulsebeat02.ezmediacore.playlist.spotify.TrackDownloader;
+import io.github.pulsebeat02.ezmediacore.playlist.youtube.SpotifyTrackDownloader;
+import java.io.IOException;
 import java.nio.file.Path;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 
-public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
+public class SpotifyOGGTrackExtractor implements SpotifyAudioExtractor {
 
-  private final YoutubeVideoDownloader downloader;
-  private final FFmpegAudioExtractor extractor;
+  private final SpotifyTrackDownloader downloader;
+  private final YoutubeOGGAudioExtractor extractor;
   private final AtomicBoolean cancelled;
 
-  YoutubeVideoAudioExtractor(
+  SpotifyOGGTrackExtractor(
       @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
-      @NotNull final Path output) {
-    final Path path = core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID()));
-    this.downloader = YoutubeVideoDownloader.ofYoutubeVideoDownloader(url, path);
-    this.extractor = FFmpegAudioExtractor.ofFFmpegAudioExtractor(core, configuration, path, output);
+      @NotNull final Path output)
+      throws IOException, ParseException, SpotifyWebApiException {
+    this.downloader = SpotifyTrackDownloader.ofSpotifyTrackDownloader(url, output);
+    this.extractor =
+        YoutubeOGGAudioExtractor.ofYoutubeVideoAudioExtractor(core, configuration, url, output);
     this.cancelled = new AtomicBoolean(false);
   }
 
   @Contract("_, _, _, _ -> new")
-  public static @NotNull YoutubeVideoAudioExtractor ofYoutubeVideoAudioExtractor(
+  public static @NotNull SpotifyOGGTrackExtractor ofSpotifyTrackExtractor(
       @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
-      @NotNull final Path output) {
-    return new YoutubeVideoAudioExtractor(core, configuration, url, output);
+      @NotNull final Path output)
+      throws IOException, ParseException, SpotifyWebApiException {
+    return new SpotifyOGGTrackExtractor(core, configuration, url, output);
   }
 
   @Contract("_, _, _, _ -> new")
-  public static @NotNull YoutubeVideoAudioExtractor ofYoutubeVideoAudioExtractor(
+  public static @NotNull SpotifyOGGTrackExtractor ofSpotifyTrackExtractor(
       @NotNull final MediaLibraryCore core,
       @NotNull final AudioConfiguration configuration,
       @NotNull final String url,
-      @NotNull final String fileName) {
-    return ofYoutubeVideoAudioExtractor(
-        core, configuration, url, core.getAudioPath().resolve(fileName));
+      @NotNull final String fileName)
+      throws IOException, ParseException, SpotifyWebApiException {
+    return ofSpotifyTrackExtractor(core, configuration, url, core.getAudioPath().resolve(fileName));
   }
 
   @Override
@@ -82,7 +86,8 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
     this.onStartAudioExtraction();
     this.downloader.downloadVideo(
-        this.downloader.getVideo().getVideoFormats().get(0).getQuality(), true);
+        this.downloader.getSearcher().getYoutubeVideo().getVideoFormats().get(0).getQuality(),
+        true);
     this.extractor.executeWithLogging(logger);
     this.onFinishAudioExtraction();
   }
@@ -121,26 +126,26 @@ public class YoutubeVideoAudioExtractor implements YoutubeAudioExtractor {
   }
 
   @Override
-  public void onStartAudioExtraction() {}
-
-  @Override
-  public void onFinishAudioExtraction() {}
-
-  @Override
-  public @NotNull VideoDownloader getDownloader() {
-    return this.downloader;
-  }
-
-  @Override
-  public @NotNull AudioExtractor getExtractor() {
-    return this.extractor;
-  }
-
-  @Override
   public boolean isCancelled() {
     return this.cancelled.get();
   }
 
   @Override
   public void onDownloadCancellation() {}
+
+  @Override
+  public void onStartAudioExtraction() {}
+
+  @Override
+  public void onFinishAudioExtraction() {}
+
+  @Override
+  public @NotNull TrackDownloader getTrackDownloader() {
+    return this.downloader;
+  }
+
+  @Override
+  public @NotNull YoutubeAudioExtractor getYoutubeExtractor() {
+    return this.extractor;
+  }
 }

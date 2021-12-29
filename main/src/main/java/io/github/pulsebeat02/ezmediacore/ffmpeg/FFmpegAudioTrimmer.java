@@ -32,6 +32,7 @@ import java.util.List;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+@Deprecated
 public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTrimmer {
 
   private final String input;
