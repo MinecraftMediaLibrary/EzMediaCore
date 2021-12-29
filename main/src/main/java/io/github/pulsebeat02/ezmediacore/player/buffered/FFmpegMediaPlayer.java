@@ -25,11 +25,11 @@ package io.github.pulsebeat02.ezmediacore.player.buffered;
 
 import com.github.kokorin.jaffree.LogLevel;
 import com.github.kokorin.jaffree.StreamType;
+import com.github.kokorin.jaffree.ffmpeg.BaseInput;
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
 import com.github.kokorin.jaffree.ffmpeg.FFmpegResultFuture;
 import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
-import com.github.kokorin.jaffree.ffmpeg.UrlInput;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Identifier;
@@ -41,10 +41,12 @@ import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
+import io.github.pulsebeat02.ezmediacore.player.input.FFmpegMediaPlayerInputParser;
 import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
+import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
+import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -97,7 +99,14 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
       @NotNull final BufferConfiguration buffer,
       @NotNull final FrameConfiguration fps,
       @Nullable final SoundKey key) {
-    super(callback, viewers, pixelDimension, buffer, fps, key);
+    super(
+        callback,
+        viewers,
+        pixelDimension,
+        buffer,
+        fps,
+        key,
+        new FFmpegMediaPlayerInputParser(callback.getCore()));
   }
 
   @Override
@@ -119,10 +128,9 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
 
   private void constructFFmpegProcess(@NotNull final DelayConfiguration delay) {
     final String url = this.getDirectVideoMrl().getInput();
-    final Path path = Path.of(url);
     final long ms = delay.getDelay() * 1000;
     this.ffmpeg = new FFmpeg(this.getCore().getFFmpegPath().toAbsolutePath());
-    this.addInput(path, url, ms);
+    this.addInput(ms);
     this.addOutput();
     this.addDimensionArguments();
     this.addMiscArguments();
@@ -155,12 +163,16 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
             .disableStream(StreamType.DATA));
   }
 
-  private void addInput(@NotNull final Path path, @NotNull final String url, final long ms) {
-    this.ffmpeg.addInput(
-        (Files.exists(path)
-                ? UrlInput.fromPath(path).setPosition(ms)
-                : UrlInput.fromUrl(url).setPosition(ms))
-            .addArgument("-re"));
+  private void addInput(final long ms) {
+
+    final InputParser parser = this.getInputParser();
+    final Pair<Object, String[]> pair = parser.parseInput(this.getDirectVideoMrl());
+
+    final BaseInput<?> input = (BaseInput<?>) pair.getKey();
+    input.setPosition(ms);
+    input.addArgument("-re");
+
+    this.ffmpeg.addInput(input);
   }
 
   @Contract(value = " -> new", pure = true)

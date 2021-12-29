@@ -6,6 +6,7 @@ import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
+import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import java.time.Instant;
@@ -35,8 +36,9 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
       @NotNull final Dimension pixelDimension,
       @NotNull final BufferConfiguration buffer,
       @NotNull final FrameConfiguration fps,
-      @Nullable final SoundKey key) {
-    super(callback, viewers, pixelDimension, fps, key);
+      @Nullable final SoundKey key,
+      @NotNull final InputParser parser) {
+    super(callback, viewers, pixelDimension, fps, key, parser);
     this.buffer = buffer;
     this.status = new AtomicBoolean(false);
     this.frames = new ArrayBlockingQueue<>(this.calculateCapacity());
