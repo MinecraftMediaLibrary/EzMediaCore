@@ -39,9 +39,9 @@ import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
-import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
+import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils;
 import java.nio.file.Files;
@@ -102,7 +102,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
 
   @Override
   public void initializePlayer(
-      @NotNull final MrlConfiguration mrl,
+      @NotNull final InputItem mrl,
       @NotNull final DelayConfiguration delay,
       @NotNull final Object @NotNull ... arguments) {
     this.setDirectVideoMrl(RequestUtils.getVideoURLs(mrl).get(0));
@@ -118,7 +118,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   }
 
   private void constructFFmpegProcess(@NotNull final DelayConfiguration delay) {
-    final String url = this.getDirectVideoMrl().getMrl();
+    final String url = this.getDirectVideoMrl().getInput();
     final Path path = Path.of(url);
     final long ms = delay.getDelay() * 1000;
     this.ffmpeg = new FFmpeg(this.getCore().getFFmpegPath().toAbsolutePath());
@@ -188,7 +188,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   }
 
   @Override
-  public void start(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+  public void start(@NotNull final InputItem mrl, @NotNull final Object... arguments) {
     super.start(mrl, arguments);
     if (this.ffmpeg == null) {
       this.initializePlayer(mrl, DelayConfiguration.DELAY_0_MS, arguments);
@@ -197,7 +197,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   }
 
   @Override
-  public void resume(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+  public void resume(@NotNull final InputItem mrl, @NotNull final Object... arguments) {
     super.resume(mrl, arguments);
     if (this.ffmpeg == null) {
       this.initializePlayer(mrl, DelayConfiguration.ofDelay(this.getStart()), arguments);

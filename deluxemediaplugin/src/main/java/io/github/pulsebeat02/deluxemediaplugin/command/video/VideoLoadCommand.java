@@ -42,7 +42,9 @@ import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioExtractor;
-import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
+import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
+import io.github.pulsebeat02.ezmediacore.player.input.implementation.MrlInput;
+import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
 import io.github.pulsebeat02.ezmediacore.resourcepack.PackFormat;
 import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
@@ -164,7 +166,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       return;
     }
 
-    this.attributes.setVideoMrl(MrlConfiguration.ofMrl(mrl));
+    this.attributes.setVideoMrl(MrlInput.ofMrl(mrl));
 
     try {
       if (this.attributes.getAudioOutputType() == AudioOutputType.RESOURCEPACK) {
@@ -246,7 +248,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
     final HttpServer daemon = this.startDaemon();
 
-    this.attributes.setOggMrl(MrlConfiguration.ofMrl(oggOutput));
+    this.attributes.setOggMrl(MrlInput.ofMrl(oggOutput));
 
     final Path path = wrapper.getResourcepackFilePath();
     final String url = daemon.createUrl(path);
@@ -277,14 +279,14 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
       @NotNull final Audience audience, @NotNull final Path folder, @NotNull final String mrl)
       throws IOException, InterruptedException {
 
-    final List<MrlConfiguration> videoMrls = RequestUtils.getAudioURLs(MrlConfiguration.ofMrl(mrl));
+    final List<InputItem> videoMrls = RequestUtils.getAudioURLs(MrlInput.ofMrl(mrl));
 
     if (handleTrue(audience, Locale.ERR_INVALID_MRL.build(), videoMrls.isEmpty())) {
       return Optional.empty();
     }
 
     final Path target =
-        RequestUtils.downloadFile(folder.resolve("temp-audio"), videoMrls.get(0).getMrl());
+        RequestUtils.downloadFile(folder.resolve("temp-audio"), videoMrls.get(0).getInput());
 
     return Optional.of(target);
   }
@@ -293,7 +295,7 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
     final boolean stream;
     try {
-      stream = RequestUtils.isStream(MrlConfiguration.ofMrl(mrl));
+      stream = RequestUtils.isStream(UrlInput.ofUrl(mrl));
     } catch (final IllegalArgumentException e) {
       audience.sendMessage(Locale.ERR_INVALID_MRL.build());
       return true;
@@ -322,13 +324,13 @@ public final class VideoLoadCommand implements CommandSegment.Literal<CommandSen
 
     this.attributes.getCompletion().set(true);
     this.cancelled = false;
-    this.attributes.setVideoMrl(MrlConfiguration.ofMrl(mrl));
+    this.attributes.setVideoMrl(MrlInput.ofMrl(mrl));
   }
 
   private void checkInvalidMrl(@NotNull final Audience audience, @NotNull final String mrl) {
 
-    final List<MrlConfiguration> urls = RequestUtils.getVideoURLs(MrlConfiguration.ofMrl(mrl));
-    final boolean equal = urls.get(0).getMrl().equals(mrl);
+    final List<InputItem> urls = RequestUtils.getVideoURLs(UrlInput.ofUrl(mrl));
+    final boolean equal = urls.get(0).getInput().equals(mrl);
     final boolean size = urls.size() == 1;
 
     handleTrue(audience, Locale.ERR_INVALID_MRL.build(), size && equal);

@@ -30,6 +30,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Identifier;
 import io.github.pulsebeat02.ezmediacore.callback.Viewable;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
+import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,11 +38,10 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
   Identifier<String> VLC = Identifier.ofIdentifier("VLC");
   Identifier<String> FFMPEG = Identifier.ofIdentifier("FFMPEG");
-
-  @Deprecated Identifier<String> JCODEC = Identifier.ofIdentifier("JCODEC");
+  Identifier<String> JCODEC = Identifier.ofIdentifier("JCODEC");
 
   void initializePlayer(
-      @NotNull final MrlConfiguration mrl,
+      @NotNull final InputItem mrl,
       @NotNull final DelayConfiguration delay,
       @NotNull final Object... arguments);
 
@@ -49,22 +49,22 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
   void stopAudio();
 
-  void setCustomAudioPlayback(@NotNull final Consumer<MrlConfiguration> runnable);
+  void setCustomAudioPlayback(@NotNull final Consumer<InputItem> runnable);
 
   void setCustomAudioStopper(@NotNull final Runnable runnable);
 
-  void start(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments);
+  void start(@NotNull final InputItem mrl, @NotNull final Object... arguments);
 
   void pause();
 
-  void resume(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments);
+  void resume(@NotNull final InputItem mrl, @NotNull final Object... arguments);
 
   void release();
 
   void setViewers(@NotNull final Viewers viewers);
 
   void onPlayerStateChange(
-      @NotNull final MrlConfiguration mrl,
+      @NotNull final InputItem mrl,
       @NotNull final PlayerControls controls,
       @NotNull final Object... arguments);
 
@@ -74,14 +74,14 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
   void setCallback(@NotNull final Callback callback);
 
   @NotNull
-  MrlConfiguration getDirectVideoMrl();
+  InputItem getDirectVideoMrl();
 
-  void setDirectVideoMrl(@NotNull final MrlConfiguration configuration);
+  void setDirectVideoMrl(@NotNull final InputItem configuration);
 
   @NotNull
-  MrlConfiguration getDirectAudioMrl();
+  InputItem getDirectAudioMrl();
 
-  void setDirectAudioMrl(@NotNull final MrlConfiguration configuration);
+  void setDirectAudioMrl(@NotNull final InputItem configuration);
 
   @NotNull
   FrameConfiguration getFrameConfiguration();

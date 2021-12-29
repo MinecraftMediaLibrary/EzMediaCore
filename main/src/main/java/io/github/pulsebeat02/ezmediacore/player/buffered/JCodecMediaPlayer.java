@@ -32,9 +32,9 @@ import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
-import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
+import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -70,7 +70,7 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
   }
 
   @Override
-  public void resume(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+  public void resume(@NotNull final InputItem mrl, @NotNull final Object... arguments) {
     super.resume(mrl, arguments);
     this.initializePlayer(mrl, DelayConfiguration.ofDelay(this.getStart()), arguments);
     this.play();
@@ -85,7 +85,7 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
   }
 
   @Override
-  public void start(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+  public void start(@NotNull final InputItem mrl, @NotNull final Object... arguments) {
     super.start(mrl, arguments);
     this.setDirectVideoMrl(RequestUtils.getVideoURLs(mrl).get(0));
     this.setDirectAudioMrl(RequestUtils.getAudioURLs(mrl).get(0));
@@ -110,7 +110,7 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
 
   @Override
   public void initializePlayer(
-      @NotNull final MrlConfiguration mrl,
+      @NotNull final InputItem mrl,
       @NotNull final DelayConfiguration configuration,
       @NotNull final Object... arguments) {
     final Dimension dimension = this.getDimensions();
@@ -126,7 +126,7 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
 
   private @NotNull FrameGrab getGrabber() throws IOException, JCodecException {
     return FrameGrab.createFrameGrab(
-        NIOUtils.readableFileChannel(this.getDirectVideoMrl().getMrl()));
+        NIOUtils.readableFileChannel(this.getDirectVideoMrl().getInput()));
   }
 
   @Override

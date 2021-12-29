@@ -39,14 +39,13 @@ import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.video.PlaybackType;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
-import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
-import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegAudioTrimmer;
-import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
+import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
 import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
 import io.github.pulsebeat02.ezmediacore.utility.concurrency.ThreadUtils;
+import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import io.github.pulsebeat02.ezmediacore.utility.io.HashingUtils;
 import io.github.pulsebeat02.ezmediacore.utility.io.ResourcepackUtils;
 import java.io.IOException;
@@ -137,7 +136,7 @@ public final class VideoCommand extends BaseCommand {
         .getAudioOutputType()
         .getHandle()
         .setAudioHandler(
-            this.plugin(), this.attributes, audience, this.attributes.getVideoMrl().getMrl());
+            this.plugin(), this.attributes, audience, this.attributes.getVideoMrl().getInput());
   }
 
   private void setProperAudioHandler() {
@@ -205,7 +204,7 @@ public final class VideoCommand extends BaseCommand {
 
     try {
 
-      final String oggMrl = this.attributes.getOggMrl().getMrl();
+      final String oggMrl = this.attributes.getOggMrl().getInput();
       final Path audio = Path.of(oggMrl);
       final Path ogg = audio.getParent().resolve("trimmed.ogg");
       final long ms = this.attributes.getPlayer().getElapsedMilliseconds();
@@ -296,8 +295,8 @@ public final class VideoCommand extends BaseCommand {
   }
 
   private void sendPlayInformation(@NotNull final Audience audience) {
-    final MrlConfiguration mrl = this.attributes.getVideoMrl();
-    handleNonNull(audience, Locale.STARTING_VIDEO.build(mrl.getMrl()), mrl);
+    final InputItem mrl = this.attributes.getVideoMrl();
+    handleNonNull(audience, Locale.STARTING_VIDEO.build(mrl.getInput()), mrl);
   }
 
   @Override

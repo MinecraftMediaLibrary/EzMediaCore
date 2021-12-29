@@ -33,7 +33,8 @@ import io.github.pulsebeat02.ezmediacore.jlibdl.JLibDL;
 import io.github.pulsebeat02.ezmediacore.jlibdl.YoutubeDLRequest;
 import io.github.pulsebeat02.ezmediacore.jlibdl.component.Format;
 import io.github.pulsebeat02.ezmediacore.jlibdl.component.MediaInfo;
-import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
+import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
+import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -90,9 +91,9 @@ public final class RequestUtils {
     return HttpResponse.BodyHandlers.ofString();
   }
 
-  public static boolean isStream(@NotNull final MrlConfiguration url) {
+  public static boolean isStream(@NotNull final InputItem url) {
     try {
-      final MediaInfo info = JLibDL.request(url.getMrl()).getInfo();
+      final MediaInfo info = JLibDL.request(url.getInput()).getInfo();
       if (info == null) {
         throw new IllegalArgumentException("Argument is not valid!");
       }
@@ -102,7 +103,7 @@ public final class RequestUtils {
     }
   }
 
-  public static @NotNull List<MrlConfiguration> getVideoURLs(@NotNull final MrlConfiguration url) {
+  public static @NotNull List<InputItem> getVideoURLs(@NotNull final InputItem url) {
     final Optional<YoutubeDLRequest> optional = validatePrimaryRequest(url);
     if (optional.isEmpty()) {
       return List.of(url);
@@ -110,7 +111,7 @@ public final class RequestUtils {
     return List.copyOf(getFormats(optional.get(), url, true));
   }
 
-  public static @NotNull List<MrlConfiguration> getAudioURLs(@NotNull final MrlConfiguration url) {
+  public static @NotNull List<InputItem> getAudioURLs(@NotNull final InputItem url) {
     final Optional<YoutubeDLRequest> optional = validatePrimaryRequest(url);
     if (optional.isEmpty()) {
       return List.of(url);
@@ -131,8 +132,8 @@ public final class RequestUtils {
   }
 
   private static @NotNull Optional<YoutubeDLRequest> validatePrimaryRequest(
-      @NotNull final MrlConfiguration url) {
-    final Optional<YoutubeDLRequest> optional = CACHED_RESULT.get(url.getMrl());
+      @NotNull final InputItem url) {
+    final Optional<YoutubeDLRequest> optional = CACHED_RESULT.get(url.getInput());
     if (optional.isEmpty()) {
       return Optional.empty();
     }
@@ -143,11 +144,11 @@ public final class RequestUtils {
     return Optional.of(request);
   }
 
-  private static @NotNull List<MrlConfiguration> getFormats(
+  private static @NotNull List<InputItem> getFormats(
       @NotNull final YoutubeDLRequest request,
-      @NotNull final MrlConfiguration mrl,
+      @NotNull final InputItem mrl,
       final boolean video) {
-    final List<MrlConfiguration> urls = Lists.newArrayList();
+    final List<InputItem> urls = Lists.newArrayList();
     final List<Format> formats = request.getInfo().getFormats();
     for (final Format format : formats) {
       urls.add(getLinkMrl(format, video));
@@ -158,10 +159,10 @@ public final class RequestUtils {
     return urls;
   }
 
-  private static @NotNull MrlConfiguration getLinkMrl(
+  private static @NotNull InputItem getLinkMrl(
       @NotNull final Format format, final boolean video) {
     final String url = getProperUrl(format.getAcodec(), format.getVcodec(), format, video);
-    return url != null ? MrlConfiguration.ofMrl(url) : MrlConfiguration.emptyMrl();
+    return url != null ? UrlInput.ofUrl(url) : UrlInput.emptyUrl();
   }
 
   private @Nullable static String getProperUrl(

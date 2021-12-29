@@ -33,9 +33,9 @@ import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
-import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
+import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -92,7 +92,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   }
 
   @Override
-  public void start(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+  public void start(@NotNull final InputItem mrl, @NotNull final Object... arguments) {
     super.start(mrl, arguments);
     this.setDirectVideoMrl(RequestUtils.getVideoURLs(mrl).get(0));
     this.setDirectAudioMrl(RequestUtils.getAudioURLs(mrl).get(0));
@@ -100,7 +100,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
       this.initializePlayer(mrl, DelayConfiguration.DELAY_0_MS, arguments);
     }
     this.playAudio();
-    this.player.media().play(this.getDirectVideoMrl().getMrl());
+    this.player.media().play(this.getDirectVideoMrl().getInput());
   }
 
   @Override
@@ -111,12 +111,12 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   }
 
   @Override
-  public void resume(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+  public void resume(@NotNull final InputItem mrl, @NotNull final Object... arguments) {
     super.resume(mrl, arguments);
     if (this.player == null) {
       this.initializePlayer(mrl, DelayConfiguration.DELAY_0_MS, arguments);
       this.playAudio();
-      this.player.media().play(this.getDirectVideoMrl().getMrl());
+      this.player.media().play(this.getDirectVideoMrl().getInput());
     } else {
       this.playAudio();
       this.player.controls().play();
@@ -136,7 +136,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
 
   @Override
   public void initializePlayer(
-      @NotNull final MrlConfiguration mrl,
+      @NotNull final InputItem mrl,
       @NotNull final DelayConfiguration delay,
       @NotNull final Object... arguments) {
     this.player = this.getEmbeddedMediaPlayer(

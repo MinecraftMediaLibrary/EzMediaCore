@@ -32,6 +32,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
+import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -49,9 +50,9 @@ public abstract class MediaPlayer implements VideoPlayer {
   private final SoundKey key;
   private Viewers viewers;
   private Callback callback;
-  private MrlConfiguration directVideo;
-  private MrlConfiguration directAudio;
-  private Consumer<MrlConfiguration> playAudio;
+  private InputItem directVideo;
+  private InputItem directAudio;
+  private Consumer<InputItem> playAudio;
   private Runnable stopAudio;
 
   private PlayerControls controls;
@@ -91,7 +92,7 @@ public abstract class MediaPlayer implements VideoPlayer {
     };
   }
 
-  private @NotNull Consumer<MrlConfiguration> getPlayAudioRunnable() {
+  private @NotNull Consumer<InputItem> getPlayAudioRunnable() {
     return (mrl) -> this.viewers.getPlayers().forEach(this::playSound);
   }
 
@@ -120,13 +121,13 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void start(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+  public void start(@NotNull final InputItem mrl, @NotNull final Object... arguments) {
     checkNotNull(mrl, "MRL cannot be null!");
     this.controls = PlayerControls.START;
     this.onPlayerStateChange(mrl, this.controls, arguments);
     this.core
         .getLogger()
-        .info(Locale.MEDIA_PLAYER_START.build(mrl.getMrl(), Arrays.toString(arguments)));
+        .info(Locale.MEDIA_PLAYER_START.build(mrl.getInput(), Arrays.toString(arguments)));
   }
 
   @Override
@@ -137,13 +138,13 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void resume(@NotNull final MrlConfiguration mrl, @NotNull final Object... arguments) {
+  public void resume(@NotNull final InputItem mrl, @NotNull final Object... arguments) {
     checkNotNull(mrl, "MRL cannot be null!");
     this.controls = PlayerControls.RESUME;
     this.onPlayerStateChange(mrl, this.controls, arguments);
     this.core
         .getLogger()
-        .info(Locale.MEDIA_PLAYER_RESUME.build(mrl.getMrl(), Arrays.toString(arguments)));
+        .info(Locale.MEDIA_PLAYER_RESUME.build(mrl.getInput(), Arrays.toString(arguments)));
   }
 
   @Override
@@ -155,7 +156,7 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   @Override
   public void onPlayerStateChange(
-      @Nullable final MrlConfiguration mrl,
+      @Nullable final InputItem mrl,
       @NotNull final PlayerControls controls,
       @NotNull final Object... arguments) {}
 
@@ -190,7 +191,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void setCustomAudioPlayback(@NotNull final Consumer<MrlConfiguration> runnable) {
+  public void setCustomAudioPlayback(@NotNull final Consumer<InputItem> runnable) {
     this.playAudio = runnable;
   }
 
@@ -205,22 +206,22 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public @NotNull MrlConfiguration getDirectVideoMrl() {
-    return this.directVideo;
-  }
-
-  @Override
-  public void setDirectVideoMrl(@NotNull final MrlConfiguration videoMrl) {
-    this.directVideo = videoMrl;
-  }
-
-  @Override
-  public @NotNull MrlConfiguration getDirectAudioMrl() {
+  public @NotNull InputItem getDirectAudioMrl() {
     return this.directAudio;
   }
 
   @Override
-  public void setDirectAudioMrl(@NotNull final MrlConfiguration audioMrl) {
+  public @NotNull InputItem getDirectVideoMrl() {
+    return this.directVideo;
+  }
+
+  @Override
+  public void setDirectVideoMrl(@NotNull final InputItem videoMrl) {
+    this.directVideo = videoMrl;
+  }
+
+  @Override
+  public void setDirectAudioMrl(@NotNull final InputItem audioMrl) {
     this.directAudio = audioMrl;
   }
 }

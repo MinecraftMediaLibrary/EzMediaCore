@@ -21,19 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.player;
+package io.github.pulsebeat02.ezmediacore.player.input.implementation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public final class MrlConfiguration {
+public final class MrlInput implements InputItem {
 
-  private static final MrlConfiguration EMPTY_MRL;
+  private static final InputItem EMPTY_MRL;
 
   static {
     EMPTY_MRL = ofMrl("");
@@ -41,32 +42,37 @@ public final class MrlConfiguration {
 
   private final String mrl;
 
-  MrlConfiguration(@NotNull final String mrl) {
+  MrlInput(@NotNull final String mrl) {
     checkNotNull(mrl, "MRL specified cannot be null!");
     this.mrl = mrl;
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull MrlConfiguration ofMrl(@NotNull final String mrl) {
-    return new MrlConfiguration(mrl);
+  public static @NotNull InputItem ofMrl(@NotNull final String mrl) {
+    return new MrlInput(mrl);
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull MrlConfiguration ofMrl(@NotNull final Path path) {
+  public static @NotNull InputItem ofMrl(@NotNull final Path path) {
     return ofMrl(path.toString());
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull MrlConfiguration ofMrl(@NotNull final File path) {
+  public static @NotNull InputItem ofMrl(@NotNull final File path) {
     return ofMrl(path.getPath());
   }
 
-  public static @NotNull MrlConfiguration emptyMrl() {
+  public static @NotNull InputItem emptyMrl() {
     return EMPTY_MRL;
   }
 
-  public @NotNull String getMrl() {
+  @Override
+  public @NotNull String getInput() {
     return this.mrl;
+  }
+
+  @Override
+  public void setupInput() {
   }
 
   @Contract(pure = true)
@@ -77,10 +83,10 @@ public final class MrlConfiguration {
 
   @Override
   public boolean equals(final Object obj) {
-    if (!(obj instanceof MrlConfiguration)) {
+    if (!(obj instanceof MrlInput)) {
       return false;
     }
-    return ((MrlConfiguration) obj).mrl.equals(this.mrl);
+    return ((MrlInput) obj).mrl.equals(this.mrl);
   }
 
   @Override

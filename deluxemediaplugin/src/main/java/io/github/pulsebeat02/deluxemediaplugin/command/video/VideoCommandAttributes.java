@@ -30,8 +30,8 @@ import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioO
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.video.PlaybackType;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
-import io.github.pulsebeat02.ezmediacore.player.MrlConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
+import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
@@ -63,8 +63,8 @@ public final class VideoCommandAttributes {
   @SerializedName(value = "pixel-height")
   private int pixelHeight;
   private transient VideoPlayer player;
-  private transient MrlConfiguration videoMrl;
-  private transient MrlConfiguration oggMrl;
+  private transient InputItem videoMrl;
+  private transient InputItem oggMrl;
   private transient EnhancedExecution extractor;
   private transient EnhancedExecution streamExtractor;
   private transient String resourcepackUrl; // for resourcepack url
@@ -174,19 +174,19 @@ public final class VideoCommandAttributes {
     this.audioOutputType = audioOutputType;
   }
 
-  public MrlConfiguration getVideoMrl() {
+  public InputItem getVideoMrl() {
     return this.videoMrl;
   }
 
-  public void setVideoMrl(final MrlConfiguration videoMrl) {
+  public void setVideoMrl(final InputItem videoMrl) {
     this.videoMrl = videoMrl;
   }
 
-  public MrlConfiguration getOggMrl() {
+  public InputItem getOggMrl() {
     return this.oggMrl;
   }
 
-  public void setOggMrl(final MrlConfiguration oggMrl) {
+  public void setOggMrl(final InputItem oggMrl) {
     this.oggMrl = oggMrl;
   }
 
