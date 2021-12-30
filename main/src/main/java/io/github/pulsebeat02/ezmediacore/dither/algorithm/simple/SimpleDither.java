@@ -24,18 +24,41 @@
 package io.github.pulsebeat02.ezmediacore.dither.algorithm.simple;
 
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.COLOR_MAP;
+import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.FULL_COLOR_MAP;
 
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
-import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
+import io.github.pulsebeat02.ezmediacore.dither.algorithm.NativelySupportedDitheringAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
+import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.jetbrains.annotations.NotNull;
 
-public final class SimpleDither implements DitherAlgorithm {
+public final class SimpleDither extends NativelySupportedDitheringAlgorithm {
 
-  public SimpleDither() {}
+  public SimpleDither(final boolean useNative) {
+    super(useNative);
+  }
+
+  public SimpleDither() {
+    super();
+  }
+
+  @Override
+  public @NotNull BufferCarrier standardMinecraftDither(
+      final int @NotNull [] buffer, final int width) {
+    final int length = buffer.length;
+    final int height = length / width;
+    final ByteBuf data = Unpooled.buffer(length);
+    for (int y = 0; y < height; y++) {
+      final int yIndex = y * width;
+      for (int x = 0; x < width; x++) {
+        data.writeByte(this.getBestColor(buffer[yIndex + x]));
+      }
+    }
+    return ByteBufCarrier.ofByteBufCarrier(data);
+  }
 
   @Override
   public void dither(final int @NotNull [] buffer, final int width) {
@@ -50,17 +73,13 @@ public final class SimpleDither implements DitherAlgorithm {
   }
 
   @Override
-  public @NotNull BufferCarrier ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
-    final int length = buffer.length;
-    final int height = length / width;
-    final ByteBuf data = Unpooled.buffer(length);
-    for (int y = 0; y < height; y++) {
-      final int yIndex = y * width;
-      for (int x = 0; x < width; x++) {
-        data.writeByte(this.getBestColor(buffer[yIndex + x]));
-      }
-    }
-    return ByteBufCarrier.ofByteBufCarrier(data);
+  public @NotNull BufferCarrier ditherIntoMinecraftNatively(
+      final int @NotNull [] buffer, final int width) {
+    return ByteBufCarrier.ofByteBufCarrier(
+        Unpooled.wrappedBuffer(
+            DitherLibC.INSTANCE
+                .simpleDither(FULL_COLOR_MAP, COLOR_MAP, buffer, width)
+                .getByteArray(0L, buffer.length)));
   }
 
   private byte getBestColor(final int red, final int green, final int blue) {
