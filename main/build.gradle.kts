@@ -51,7 +51,7 @@ dependencies {
         "net.java.dev.jna:jna:5.10.0",
         "net.java.dev.jna:jna-platform:5.10.0",
         "se.michaelthelin.spotify:spotify-web-api-java:7.0.0",
-        "com.github.kokorin.jaffree:jaffree:2021.11.06",
+        "com.github.kokorin.jaffree:jaffree:2021.12.30",
         "org.jcodec:jcodec:0.2.5",
         "com.github.ben-manes.caffeine:caffeine:3.0.5",
         "it.unimi.dsi:fastutil:8.5.6",
