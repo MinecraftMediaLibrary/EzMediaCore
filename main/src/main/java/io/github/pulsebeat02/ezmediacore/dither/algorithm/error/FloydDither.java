@@ -28,8 +28,9 @@ import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.FUL
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.PALETTE;
 
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
-import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
+import io.github.pulsebeat02.ezmediacore.dither.algorithm.NativelySupportedDitheringAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
+import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.awt.image.BufferedImage;
@@ -41,9 +42,15 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author jetp250, BananaPuncher714
  */
-public final class FloydDither implements DitherAlgorithm {
+public final class FloydDither extends NativelySupportedDitheringAlgorithm {
 
-  public FloydDither() {}
+  public FloydDither(final boolean useNative) {
+    super(useNative);
+  }
+
+  public FloydDither() {
+    super();
+  }
 
   private int getColorFromMinecraftPalette(final byte val) {
     return PALETTE[(val + 256) % 256];
@@ -174,7 +181,7 @@ public final class FloydDither implements DitherAlgorithm {
   }
 
   @Override
-  public @NotNull BufferCarrier ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
+  public @NotNull BufferCarrier standardMinecraftDither(final int @NotNull [] buffer, final int width) {
     final int length = buffer.length;
     final int height = length / width;
     final int widthMinus = width - 1;
@@ -267,6 +274,15 @@ public final class FloydDither implements DitherAlgorithm {
       }
     }
     return ByteBufCarrier.ofByteBufCarrier(data);
+  }
+
+  @Override
+  public @NotNull BufferCarrier ditherIntoMinecraftNatively(final int @NotNull [] buffer, final int width) {
+    return ByteBufCarrier.ofByteBufCarrier(
+        Unpooled.wrappedBuffer(
+            DitherLibC.INSTANCE
+                .floydSteinbergDither(FULL_COLOR_MAP, COLOR_MAP, buffer, width)
+                .getByteArray(0L, buffer.length)));
   }
 
   private int[] getRGBArray(@NotNull final BufferedImage image) {

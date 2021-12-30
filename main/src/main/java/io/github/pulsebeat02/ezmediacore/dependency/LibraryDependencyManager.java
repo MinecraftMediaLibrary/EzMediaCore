@@ -110,11 +110,11 @@ public final class LibraryDependencyManager extends LibraryDependency {
             ofArtifact("net:java:dev:jna", "jna", "5:10:0"),
             ofArtifact("net:java:dev:jna", "jna-platform", "5:10:0"),
             ofArtifact("se:michaelthelin:spotify", "spotify-web-api-java", "7:0:0"),
-            ofArtifact("com:github:kokorin:jaffree", "jaffree", "2021:11:06"),
+            ofArtifact("com:github:kokorin:jaffree", "jaffree", "2021:12:30"),
             ofArtifact("org:jcodec", "jcodec", "0:2:5"),
             ofArtifact("com:github:ben-manes:caffeine", "caffeine", "3:0:5"),
             ofArtifact("it:unimi:dsi", "fastutil", "8:5:6"),
-            ofArtifact("com:fasterxml:jackson:core", "jackson-core", "2:13:0"),
+            ofArtifact("com:fasterxml:jackson:core", "jackson-core", "2:13:1"),
             ofArtifact("org:apache:httpcomponents:client5", "httpclient5", "5.2-alpha1"),
             ofArtifact("com:neovisionaries", "nv-i18n", "1:29"))
         .collect(Collectors.toSet());

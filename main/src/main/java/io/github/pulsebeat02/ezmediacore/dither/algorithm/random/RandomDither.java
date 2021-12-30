@@ -25,17 +25,19 @@
 package io.github.pulsebeat02.ezmediacore.dither.algorithm.random;
 
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.COLOR_MAP;
+import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.FULL_COLOR_MAP;
 
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
-import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
+import io.github.pulsebeat02.ezmediacore.dither.algorithm.NativelySupportedDitheringAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
+import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.util.concurrent.ThreadLocalRandom;
 import org.jetbrains.annotations.NotNull;
 
-public final class RandomDither implements DitherAlgorithm {
+public final class RandomDither extends NativelySupportedDitheringAlgorithm {
 
   private static final ThreadLocalRandom THREAD_LOCAL_RANDOM;
 
@@ -50,16 +52,24 @@ public final class RandomDither implements DitherAlgorithm {
     HEAVY_WEIGHT = 128;
   }
 
+  private final int weight;
   private final int min;
   private final int max;
 
-  public RandomDither(final int weight) {
+  public RandomDither(final int weight, final boolean useNative) {
+    super(useNative);
+    this.weight = weight;
     this.min = -weight;
     this.max = weight + 1;
   }
 
+  public RandomDither(final int weight) {
+    this(weight, false);
+  }
+
   @Override
-  public @NotNull BufferCarrier ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
+  public @NotNull BufferCarrier standardMinecraftDither(
+      final int @NotNull [] buffer, final int width) {
     final int length = buffer.length;
     final int height = length / width;
     final ByteBuf data = Unpooled.buffer(length);
@@ -97,6 +107,16 @@ public final class RandomDither implements DitherAlgorithm {
         buffer[index] = this.getBestColorNormal(r, g, b);
       }
     }
+  }
+
+  @Override
+  public @NotNull BufferCarrier ditherIntoMinecraftNatively(
+      final int @NotNull [] buffer, final int width) {
+    return ByteBufCarrier.ofByteBufCarrier(
+        Unpooled.wrappedBuffer(
+            DitherLibC.INSTANCE
+                .randomDither(FULL_COLOR_MAP, COLOR_MAP, buffer, width, this.weight)
+                .getByteArray(0L, buffer.length)));
   }
 
   private int random() {
