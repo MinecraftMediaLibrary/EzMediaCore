@@ -5,8 +5,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-public abstract sealed class LibraryDependency permits FFmpegDependencyManager,
-    LibraryDependencyManager, SimpleRTSPServerDependencyManager, VLCDependencyManager {
+public abstract sealed class LibraryDependency permits DitherDependencyManager,
+    FFmpegDependencyManager, LibraryDependencyManager, SimpleRTSPServerDependencyManager,
+    VLCDependencyManager {
 
   private final MediaLibraryCore core;
 
