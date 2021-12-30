@@ -29,17 +29,15 @@ is current being implemented, but will come soon!
 
 Add the following to your gradle configuration:
 
-```groovy  
+```kotlin  
 repositories {  
-    maven {  
-        url 'https://pulsebeat02.jfrog.io/artifactory/pulse-gradle-release-local'  
-    }  
+    maven("https://pulsebeat02.jfrog.io/artifactory/minecraftmedialibrary/")
 }  
 ```  
 
 ```groovy  
 dependencies {  
-    implementation 'io.github.pulsebeat02:EzMediaCore:v1.0.0'  
+    implementation("io.github.pulsebeat02:EzMediaCore:v1.0.0")
 }  
 ```
 
