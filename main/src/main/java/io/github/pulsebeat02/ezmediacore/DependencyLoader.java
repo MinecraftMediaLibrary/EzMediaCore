@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore;
 
+import io.github.pulsebeat02.ezmediacore.dependency.DitherDependencyManager;
 import io.github.pulsebeat02.ezmediacore.dependency.FFmpegDependencyManager;
 import io.github.pulsebeat02.ezmediacore.dependency.LibraryDependencyManager;
 import io.github.pulsebeat02.ezmediacore.dependency.SimpleRTSPServerDependencyManager;
@@ -43,7 +44,7 @@ public class DependencyLoader implements LibraryLoader {
 
   DependencyLoader(@NotNull final MediaLibraryCore core) {
     this.core = core;
-    this.service = Executors.newFixedThreadPool(3);
+    this.service = Executors.newFixedThreadPool(4);
   }
 
   @Override
@@ -58,7 +59,8 @@ public class DependencyLoader implements LibraryLoader {
       CompletableFuture.allOf(
               CompletableFuture.runAsync(this::installVLC, this.service),
               CompletableFuture.runAsync(this::installFFmpeg, this.service),
-              CompletableFuture.runAsync(this::installRTSP, this.service))
+              CompletableFuture.runAsync(this::installRTSP, this.service),
+              CompletableFuture.runAsync(this::installNativeLibraries, this.service))
           .handle(Throwing.THROWING_FUTURE)
           .get();
     } catch (final InterruptedException | ExecutionException e) {
@@ -68,6 +70,15 @@ public class DependencyLoader implements LibraryLoader {
 
   private void shutdown() {
     this.service.shutdown();
+  }
+
+  private void installNativeLibraries() {
+    try {
+      new DitherDependencyManager(this.core).start();
+      this.core.getLogger().info(Locale.FINISHED_DEPENDENCY_LOAD.build("Dither"));
+    } catch (final IOException e) {
+      throw new AssertionError(e);
+    }
   }
 
   private void installFFmpeg() {

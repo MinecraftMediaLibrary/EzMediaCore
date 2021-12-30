@@ -8,7 +8,8 @@ dependencies {
 
     setOf(
         "io.github.pulsebeat02:emc-dependency-management:v1.0.0",
-        "io.github.pulsebeat02:emc-installers:v1.1.0"
+        "io.github.pulsebeat02:emc-installers:v1.1.0",
+        "io.github.pulsebeat02:native-library-loader:v1.0.2"
     ).forEach {
         implementation(it)
     }
@@ -37,7 +38,6 @@ dependencies {
         "com.google.guava:guava:31.0.1-jre",
         "com.mpatric:mp3agic:0.9.1",
         "com.github.kevinsawicki:http-request:6.0",
-        "io.github.pulsebeat02:native-library-loader:v1.0.2"
     ).forEach {
         compileOnly(it)
         testImplementation(it)
@@ -58,7 +58,8 @@ dependencies {
         "it.unimi.dsi:fastutil:8.5.6",
         "com.fasterxml.jackson.core:jackson-core:2.13.1",
         "org.apache.httpcomponents.client5:httpclient5:5.2-alpha1",
-        "com.neovisionaries:nv-i18n:1.29"
+        "com.neovisionaries:nv-i18n:1.29",
+        "io.github.pulsebeat02:native-library-loader:v1.0.2"
     ).forEach {
         compileOnly(it)
         testImplementation(it)
