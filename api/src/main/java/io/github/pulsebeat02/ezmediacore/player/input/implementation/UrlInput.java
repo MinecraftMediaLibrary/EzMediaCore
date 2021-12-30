@@ -14,7 +14,7 @@ public final class UrlInput implements InputItem {
   private static final InputItem EMPTY_URL;
 
   static {
-    EMPTY_URL = ofUrl("");
+    EMPTY_URL = ofUrl("https://example.com/");
   }
 
   private final URL url;
