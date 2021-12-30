@@ -7,13 +7,15 @@ import org.jetbrains.annotations.NotNull;
 
 public final class DesktopInput implements InputItem {
 
-  public static final InputItem DEFAULT_DESKTOP;
+  private static final InputItem DEFAULT_DESKTOP;
 
   static {
     DEFAULT_DESKTOP = ofDesktop();
   }
 
   private DesktopInput() {}
+
+  public static InputItem defaultDesktop() { return DEFAULT_DESKTOP; }
 
   public static DesktopInput ofDesktop() {
     return new DesktopInput();
