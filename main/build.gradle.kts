@@ -37,6 +37,7 @@ dependencies {
         "com.google.guava:guava:31.0.1-jre",
         "com.mpatric:mp3agic:0.9.1",
         "com.github.kevinsawicki:http-request:6.0",
+        "io.github.pulsebeat02:native-library-loader:v1.0.2"
     ).forEach {
         compileOnly(it)
         testImplementation(it)
