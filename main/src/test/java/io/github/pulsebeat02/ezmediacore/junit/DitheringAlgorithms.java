@@ -61,6 +61,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.WindowConstants;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Test;
 
 public final class DitheringAlgorithms {
 
@@ -79,6 +80,7 @@ public final class DitheringAlgorithms {
     DitherLookupUtil.init();
   }
 
+  @Test
   public static void main(final String[] args) {
     final DitheringAlgorithms algorithms = new DitheringAlgorithms();
     algorithms.filterLite();
