@@ -24,7 +24,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
 import io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
@@ -43,7 +43,7 @@ public abstract class FFmpegOutput extends AudioOutput implements FFmpegOutputHa
   @Override
   public void setAudioHandler(
       @NotNull final DeluxeMediaPlugin plugin,
-      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final ScreenConfig attributes,
       @NotNull final Audience audience,
       @NotNull final String mrl) {}
 
@@ -57,7 +57,7 @@ public abstract class FFmpegOutput extends AudioOutput implements FFmpegOutputHa
     final int port = info.getPort();
     final FFmpegMediaStreamer streamer = this.getFFmpStream(plugin, mrl, ip, port);
 
-    plugin.getAttributes().setStreamExtractor(streamer);
+    plugin.getScreenConfig().setStream(streamer);
 
     streamer.executeAsync(FixedExecutors.STREAM_THREAD_EXECUTOR);
 

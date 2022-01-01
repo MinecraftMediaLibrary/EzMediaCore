@@ -32,11 +32,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.tree.RootCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.command.audio.AudioCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.discord.DiscordCommand;
-import io.github.pulsebeat02.deluxemediaplugin.command.dither.DitherCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.ffmpeg.FFmpegCommand;
-import io.github.pulsebeat02.deluxemediaplugin.command.image.ImageCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.map.MapCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.plugin.PluginCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.screen.ScreenCommand;
@@ -79,15 +76,12 @@ public final class CommandHandler implements TabExecutor {
   @Contract(" -> new")
   private @NotNull @Unmodifiable Set<BaseCommand> getPluginCommands() {
     return Set.of(
-        new ImageCommand(this.plugin, this),
-        new DitherCommand(this.plugin, this),
-        new VideoCommand(this.plugin, this),
-        new AudioCommand(this.plugin, this),
+        new VideoCommand(this.plugin, this), // commodore
         new MapCommand(this.plugin, this),
         new ScreenCommand(this.plugin, this),
-        new FFmpegCommand(this.plugin, this),
+        new FFmpegCommand(this.plugin, this), //
         new PluginCommand(this.plugin, this),
-        new DiscordCommand(this.plugin, this));
+        new DiscordCommand(this.plugin, this)); //
   }
 
   private void registerCommands() {
@@ -101,7 +95,7 @@ public final class CommandHandler implements TabExecutor {
       @NotNull final BaseCommand command, @Nullable final Commodore commodore) {
 
     final CommandMap commandMap = CommandMapHelper.getCommandMap();
-    this.rootNode.addChild(command.node());
+    this.rootNode.addChild(command.getNode());
     commandMap.register(this.plugin.getBootstrap().getName(), command);
 
     this.registerCommodoreCommand(commodore, command);

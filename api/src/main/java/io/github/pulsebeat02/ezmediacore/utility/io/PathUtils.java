@@ -26,6 +26,7 @@ package io.github.pulsebeat02.ezmediacore.utility.io;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +63,11 @@ public final class PathUtils {
         || lowercase.startsWith("%ss://".formatted(http))) {
       return false;
     }
-    return Files.exists(Path.of(path));
+    try {
+      return Files.exists(Path.of(path));
+    } catch (final InvalidPathException e) {
+      return false;
+    }
   }
 
   public static @NotNull String getName(@NotNull final Path path) {

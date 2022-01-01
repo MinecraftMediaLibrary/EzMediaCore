@@ -2,13 +2,6 @@ package io.github.pulsebeat02.ezmediacore.player.input;
 
 import com.github.kokorin.jaffree.ffmpeg.CaptureInput;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
-import io.github.pulsebeat02.ezmediacore.player.input.implementation.DesktopInput;
-import io.github.pulsebeat02.ezmediacore.player.input.implementation.DeviceInput;
-import io.github.pulsebeat02.ezmediacore.player.input.implementation.MrlInput;
-import io.github.pulsebeat02.ezmediacore.player.input.implementation.PathInput;
-import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
-import io.github.pulsebeat02.ezmediacore.player.input.implementation.WindowInput;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -33,19 +26,19 @@ public final class FFmpegMediaPlayerInputParser extends MediaPlayerInputParser {
   }
 
   @Override
-  public @NotNull Pair<Object, String[]> parseUrl(@NotNull final UrlInput input) {
+  public @NotNull Pair<Object, String[]> parseUrl(@NotNull final Input input) {
     return Pair.ofPair(
         com.github.kokorin.jaffree.ffmpeg.UrlInput.fromUrl(input.getInput()), EMPTY_ARGS);
   }
 
   @Override
-  public @NotNull Pair<Object, String[]> parsePath(@NotNull final PathInput input) {
+  public @NotNull Pair<Object, String[]> parsePath(@NotNull final Input input) {
     return Pair.ofPair(
         com.github.kokorin.jaffree.ffmpeg.UrlInput.fromPath(Path.of(input.getInput())), EMPTY_ARGS);
   }
 
   @Override
-  public @NotNull Pair<Object, String[]> parseDevice(@NotNull final DeviceInput input) {
+  public @NotNull Pair<Object, String[]> parseDevice(@NotNull final Input input) {
     if (this.isWindows()) {
       return Pair.ofPair(this.createCustomCapture(input.getInput()), EMPTY_ARGS);
     } else {
@@ -62,18 +55,18 @@ public final class FFmpegMediaPlayerInputParser extends MediaPlayerInputParser {
   }
 
   @Override
-  public @NotNull Pair<Object, String[]> parseMrl(@NotNull final MrlInput input) {
+  public @NotNull Pair<Object, String[]> parseMrl(@NotNull final Input input) {
     return Pair.ofPair(
         com.github.kokorin.jaffree.ffmpeg.UrlInput.fromUrl(input.getInput()), EMPTY_ARGS);
   }
 
   @Override
-  public @NotNull Pair<Object, String[]> parseDesktop(@NotNull final DesktopInput input) {
+  public @NotNull Pair<Object, String[]> parseDesktop(@NotNull final Input input) {
     return Pair.ofPair(CaptureInput.captureDesktop(), EMPTY_ARGS);
   }
 
   @Override
-  public @NotNull Pair<Object, String[]> parseWindow(@NotNull final WindowInput input) {
+  public @NotNull Pair<Object, String[]> parseWindow(@NotNull final Input input) {
     if (this.isWindows()) {
       return Pair.ofPair(CaptureInput.WindowsGdiGrab.captureWindow(input.getInput()), EMPTY_ARGS);
     } else {

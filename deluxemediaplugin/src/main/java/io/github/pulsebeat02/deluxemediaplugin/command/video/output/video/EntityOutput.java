@@ -31,7 +31,7 @@ import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.ofDimension;
 import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.callback.EntityCallback;
 import io.github.pulsebeat02.ezmediacore.callback.EntityCallback.Builder;
@@ -51,7 +51,7 @@ public class EntityOutput extends VideoOutput {
   @Override
   public boolean createVideoPlayer(
       @NotNull final DeluxeMediaPlugin plugin,
-      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final ScreenConfig attributes,
       @NotNull final CommandSender sender,
       @NotNull final Collection<? extends Player> players) {
     if (requiresPlayer(plugin, sender)) {
@@ -65,13 +65,13 @@ public class EntityOutput extends VideoOutput {
   @NotNull
   private VideoBuilder createVideoBuilder(
       @NotNull final DeluxeMediaPlugin plugin,
-      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final ScreenConfig attributes,
       @NotNull final Collection<? extends Player> players,
       @NotNull final Player player) {
 
     final EntityCallback.Builder<?> builder = this.createEntityBuilder(attributes, players, player);
 
-    final VideoBuilder videoBuilder = VideoBuilder.unspecified();
+    final VideoBuilder videoBuilder = this.getBuilder(attributes);
     videoBuilder.soundKey(ofSound("emc"));
     videoBuilder.callback(builder.build(plugin.library()));
 
@@ -80,7 +80,7 @@ public class EntityOutput extends VideoOutput {
 
   @NotNull
   private EntityCallback.Builder<?> createEntityBuilder(
-      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final ScreenConfig attributes,
       @NotNull final Collection<? extends Player> players,
       @NotNull final Player player) {
 
@@ -88,7 +88,7 @@ public class EntityOutput extends VideoOutput {
     builder.armorStandPlayer();
     builder.character(NORMAL_SQUARE);
     builder.location(player.getLocation());
-    builder.dims(ofDimension(attributes.getPixelWidth(), attributes.getPixelHeight()));
+    builder.dims(ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
     builder.viewers(ofPlayers(players));
     builder.delay(DELAY_20_MS);
 

@@ -29,10 +29,10 @@ import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.ofDimension;
 import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
-import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.ezmediacore.callback.BlockHighlightCallback;
 import io.github.pulsebeat02.ezmediacore.callback.BlockHighlightCallback.Builder;
+import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import java.util.Collection;
 import org.bukkit.command.CommandSender;
@@ -48,7 +48,7 @@ public class ScoreboardOutput extends VideoOutput {
   @Override
   public boolean createVideoPlayer(
       @NotNull final DeluxeMediaPlugin plugin,
-      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final ScreenConfig attributes,
       @NotNull final CommandSender sender,
       @NotNull final Collection<? extends Player> players) {
 
@@ -65,13 +65,13 @@ public class ScoreboardOutput extends VideoOutput {
   @NotNull
   private VideoBuilder createVideoBuilder(
       @NotNull final DeluxeMediaPlugin plugin,
-      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final ScreenConfig attributes,
       @NotNull final Player player) {
 
     final BlockHighlightCallback.Builder builder =
         this.createBlockHighlightBuilder(attributes, player);
 
-    final VideoBuilder videoBuilder = VideoBuilder.unspecified();
+    final VideoBuilder videoBuilder = this.getBuilder(attributes);
     videoBuilder.soundKey(ofSound("emc"));
     videoBuilder.callback(builder.build(plugin.library()));
 
@@ -80,11 +80,11 @@ public class ScoreboardOutput extends VideoOutput {
 
   @NotNull
   private BlockHighlightCallback.Builder createBlockHighlightBuilder(
-      @NotNull final VideoCommandAttributes attributes, @NotNull final Player player) {
+      @NotNull final ScreenConfig attributes, @NotNull final Player player) {
 
     final Builder builder = CallbackBuilder.blockHighlight();
     builder.location(player.getLocation());
-    builder.dims(ofDimension(attributes.getPixelWidth(), attributes.getPixelHeight()));
+    builder.dims(ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
     builder.delay(ofDelay(40L));
 
     return builder;

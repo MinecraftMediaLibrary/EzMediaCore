@@ -23,6 +23,8 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.command.video.output.video;
 
+import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
+import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class VideoOutput implements PlaybackOutputHandle {
@@ -31,6 +33,15 @@ public abstract class VideoOutput implements PlaybackOutputHandle {
 
   public VideoOutput(@NotNull final String name) {
     this.name = name;
+  }
+
+  public @NotNull VideoBuilder getBuilder(@NotNull final ScreenConfig attributes) {
+    return switch (attributes.getPlayerAlgorithm()) {
+      case VLC -> VideoBuilder.vlc();
+      case FFMPEG -> VideoBuilder.ffmpeg();
+      case JCODEC -> VideoBuilder.jcodec();
+      case UNSPECIFIED -> VideoBuilder.unspecified();
+    };
   }
 
   @Override

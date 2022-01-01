@@ -24,12 +24,12 @@
 package io.github.pulsebeat02.deluxemediaplugin.json;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import org.jetbrains.annotations.NotNull;
 
-public class MediaAttributesData extends DataProvider<VideoCommandAttributes> {
+public class MediaAttributesData extends DataProvider<ScreenConfig> {
 
   public MediaAttributesData(@NotNull final DeluxeMediaPlugin plugin) {
-    super(plugin, VideoCommandAttributes.class, "data/video-attributes.json");
+    super(plugin, ScreenConfig.class, "data/screen.json");
   }
 }

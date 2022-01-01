@@ -130,7 +130,7 @@ public final class ManualLogger implements CoreLogger {
 
   private void createFile(@NotNull final Path file) {
     try {
-      FileUtils.createIfNotExists(file);
+      FileUtils.createFileIfNotExists(file);
     } catch (final IOException e) {
       throw new AssertionError(e);
     }

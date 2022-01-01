@@ -1,13 +1,6 @@
 package io.github.pulsebeat02.ezmediacore.player.input;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
-import io.github.pulsebeat02.ezmediacore.player.input.implementation.DesktopInput;
-import io.github.pulsebeat02.ezmediacore.player.input.implementation.DeviceInput;
-import io.github.pulsebeat02.ezmediacore.player.input.implementation.MrlInput;
-import io.github.pulsebeat02.ezmediacore.player.input.implementation.PathInput;
-import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
-import io.github.pulsebeat02.ezmediacore.player.input.implementation.WindowInput;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,28 +11,28 @@ public final class VLCMediaPlayerInputParser extends MediaPlayerInputParser {
   }
 
   @Override
-  public @NotNull Pair<Object, String[]> parseUrl(@NotNull final UrlInput input) {
+  public @NotNull Pair<Object, String[]> parseUrl(@NotNull final Input input) {
     return Pair.ofPair(input.getInput(), EMPTY_ARGS);
   }
 
   @Override
-  public @NotNull Pair<Object, String[]> parsePath(@NotNull final PathInput input) {
+  public @NotNull Pair<Object, String[]> parsePath(@NotNull final Input input) {
     return Pair.ofPair(input.getInput(), EMPTY_ARGS);
   }
 
   @Override
-  public @NotNull Pair<Object, String[]> parseDevice(@NotNull final DeviceInput input) {
+  public @NotNull Pair<Object, String[]> parseDevice(@NotNull final Input input) {
     throw new UnsupportedOperationException(
         "Device input device not supported for VLC Media Player!");
   }
 
   @Override
-  public @NotNull Pair<Object, String[]> parseMrl(@NotNull final MrlInput input) {
+  public @NotNull Pair<Object, String[]> parseMrl(@NotNull final Input input) {
     return Pair.ofPair(input.getInput(), EMPTY_ARGS);
   }
 
   @Override
-  public @NotNull Pair<Object, String[]> parseDesktop(@NotNull final DesktopInput input) {
+  public @NotNull Pair<Object, String[]> parseDesktop(@NotNull final Input input) {
     // -I dummy screen://
     // Arguments: -I dummy
     // URL to Play: screen://
@@ -47,7 +40,7 @@ public final class VLCMediaPlayerInputParser extends MediaPlayerInputParser {
   }
 
   @Override
-  public @NotNull Pair<Object, String[]> parseWindow(@NotNull final WindowInput input) {
+  public @NotNull Pair<Object, String[]> parseWindow(@NotNull final Input input) {
     throw new UnsupportedOperationException(
         "Window input device not supported for VLC Media Player!");
   }

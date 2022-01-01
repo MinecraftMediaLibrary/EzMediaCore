@@ -26,7 +26,7 @@ package io.github.pulsebeat02.deluxemediaplugin;
 
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandHandler;
-import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.config.BotConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.EncoderConfiguration;
 import io.github.pulsebeat02.deluxemediaplugin.config.HttpAudioConfiguration;
@@ -60,20 +60,24 @@ import org.jetbrains.annotations.Nullable;
 public final class DeluxeMediaPlugin {
 
   private final JavaPlugin plugin;
+  private final Path dataFolder;
+
   private BukkitAudiences audiences;
   private Audience console;
   private AudioConfiguration audioConfiguration;
   private MediaLibraryCore library;
+
   private CommandHandler handler;
   private PersistentPictureManager manager;
   private HttpServer server;
   private MediaBot mediaBot;
   private ServerInfo httpAudioServer;
-  private VideoCommandAttributes attributes;
+  private ScreenConfig attributes;
   private MediaAttributesData mediaAttributesData;
 
   DeluxeMediaPlugin(@NotNull final JavaPlugin plugin) {
     this.plugin = plugin;
+    this.dataFolder = plugin.getDataFolder().toPath();
   }
 
   void enable() {
@@ -181,14 +185,14 @@ public final class DeluxeMediaPlugin {
   }
 
   private void cancelNativeStreamExtractor() {
-    final EnhancedExecution streamExtractor = this.attributes.getStreamExtractor();
+    final EnhancedExecution streamExtractor = this.attributes.getStream();
     Nill.ifNot(streamExtractor, () -> Try.closeable(streamExtractor));
   }
 
   private void createFolders() {
     final Path folder = this.plugin.getDataFolder().toPath();
     Set.of(folder.resolve("configuration"), folder.resolve("data"))
-        .forEach(FileUtils::createFolderIfNotExistsExceptionally);
+        .forEach(FileUtils::createDirectoryIfNotExistsExceptionally);
   }
 
   private void readConfigurationFiles() throws IOException {
@@ -292,11 +296,15 @@ public final class DeluxeMediaPlugin {
     return this.audiences;
   }
 
-  public @NotNull VideoCommandAttributes getAttributes() {
+  public @NotNull ScreenConfig getScreenConfig() {
     return this.attributes;
   }
 
   public @Nullable ServerInfo getHttpAudioServer() {
     return this.httpAudioServer;
+  }
+
+  public @NotNull Path getDataFolder() {
+    return this.dataFolder;
   }
 }

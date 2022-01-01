@@ -32,7 +32,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
-import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
+import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
@@ -53,9 +53,9 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   private Viewers viewers;
   private Callback callback;
-  private InputItem directVideo;
-  private InputItem directAudio;
-  private Consumer<InputItem> playAudio;
+  private Input directVideo;
+  private Input directAudio;
+  private Consumer<Input> playAudio;
   private Runnable stopAudio;
 
   private PlayerControls controls;
@@ -97,7 +97,7 @@ public abstract class MediaPlayer implements VideoPlayer {
     };
   }
 
-  private @NotNull Consumer<InputItem> getPlayAudioRunnable() {
+  private @NotNull Consumer<Input> getPlayAudioRunnable() {
     return (mrl) -> this.viewers.getPlayers().forEach(this::playSound);
   }
 
@@ -126,7 +126,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void start(@NotNull final InputItem mrl, @NotNull final Object... arguments) {
+  public void start(@NotNull final Input mrl, @NotNull final Object... arguments) {
     checkNotNull(mrl, "MRL cannot be null!");
     this.controls = PlayerControls.START;
     this.onPlayerStateChange(mrl, this.controls, arguments);
@@ -143,7 +143,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void resume(@NotNull final InputItem mrl, @NotNull final Object... arguments) {
+  public void resume(@NotNull final Input mrl, @NotNull final Object... arguments) {
     checkNotNull(mrl, "MRL cannot be null!");
     this.controls = PlayerControls.RESUME;
     this.onPlayerStateChange(mrl, this.controls, arguments);
@@ -161,7 +161,7 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   @Override
   public void onPlayerStateChange(
-      @Nullable final InputItem mrl,
+      @Nullable final Input mrl,
       @NotNull final PlayerControls controls,
       @NotNull final Object... arguments) {}
 
@@ -196,7 +196,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void setCustomAudioPlayback(@NotNull final Consumer<InputItem> runnable) {
+  public void setCustomAudioPlayback(@NotNull final Consumer<Input> runnable) {
     this.playAudio = runnable;
   }
 
@@ -211,22 +211,22 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public @NotNull InputItem getDirectAudioMrl() {
+  public @NotNull Input getDirectAudioMrl() {
     return this.directAudio;
   }
 
   @Override
-  public @NotNull InputItem getDirectVideoMrl() {
+  public @NotNull Input getDirectVideoMrl() {
     return this.directVideo;
   }
 
   @Override
-  public void setDirectVideoMrl(@NotNull final InputItem videoMrl) {
+  public void setDirectVideoMrl(@NotNull final Input videoMrl) {
     this.directVideo = videoMrl;
   }
 
   @Override
-  public void setDirectAudioMrl(@NotNull final InputItem audioMrl) {
+  public void setDirectAudioMrl(@NotNull final Input audioMrl) {
     this.directAudio = audioMrl;
   }
 

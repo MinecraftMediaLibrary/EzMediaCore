@@ -64,14 +64,19 @@ public final class MapCommand extends BaseCommand {
   }
 
   private int giveMap(@NotNull final CommandContext<CommandSender> context) {
+
     final CommandSender sender = context.getSource();
     final Audience audience = this.plugin().audience().sender(sender);
     final int id = context.getArgument("id", Integer.TYPE);
+
     if (requiresPlayer(this.plugin(), sender)) {
       return SINGLE_SUCCESS;
     }
+
     this.addMap((Player) sender, id);
+
     audience.sendMessage(Locale.GIVE_MAP_ID.build(id));
+
     return SINGLE_SUCCESS;
   }
 
@@ -80,15 +85,26 @@ public final class MapCommand extends BaseCommand {
   }
 
   private int giveMultipleMaps(@NotNull final CommandContext<CommandSender> context) {
+
     final CommandSender sender = context.getSource();
     final Audience audience = this.plugin().audience().sender(sender);
+
     if (requiresPlayer(this.plugin(), sender)) {
       return SINGLE_SUCCESS;
     }
-    final Player player = (Player) sender;
+
+    this.giveMaps(context, (Player) sender, audience);
+
+    return SINGLE_SUCCESS;
+  }
+
+  private void giveMaps(
+      @NotNull final CommandContext<CommandSender> context,
+      final Player sender,
+      final Audience audience) {
+    final Player player = sender;
     this.extractData(audience, context.getArgument("ids", String.class).split("-"))
         .ifPresent(pair -> this.giveMaps(player, audience, pair.getKey(), pair.getValue()));
-    return SINGLE_SUCCESS;
   }
 
   private Optional<Pair<Integer, Integer>> extractData(
@@ -133,7 +149,7 @@ public final class MapCommand extends BaseCommand {
   }
 
   @Override
-  public @NotNull LiteralCommandNode<CommandSender> node() {
+  public @NotNull LiteralCommandNode<CommandSender> getNode() {
     return this.node;
   }
 }

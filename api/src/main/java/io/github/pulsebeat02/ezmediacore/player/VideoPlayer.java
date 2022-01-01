@@ -30,7 +30,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Identifier;
 import io.github.pulsebeat02.ezmediacore.callback.Viewable;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
-import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
+import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +42,7 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
   Identifier<String> JCODEC = Identifier.ofIdentifier("JCODEC");
 
   void initializePlayer(
-      @NotNull final InputItem mrl,
+      @NotNull final Input mrl,
       @NotNull final DelayConfiguration delay,
       @NotNull final Object... arguments);
 
@@ -50,22 +50,22 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
   void stopAudio();
 
-  void setCustomAudioPlayback(@NotNull final Consumer<InputItem> runnable);
+  void setCustomAudioPlayback(@NotNull final Consumer<Input> runnable);
 
   void setCustomAudioStopper(@NotNull final Runnable runnable);
 
-  void start(@NotNull final InputItem mrl, @NotNull final Object... arguments);
+  void start(@NotNull final Input mrl, @NotNull final Object... arguments);
 
   void pause();
 
-  void resume(@NotNull final InputItem mrl, @NotNull final Object... arguments);
+  void resume(@NotNull final Input mrl, @NotNull final Object... arguments);
 
   void release();
 
   void setViewers(@NotNull final Viewers viewers);
 
   void onPlayerStateChange(
-      @NotNull final InputItem mrl,
+      @NotNull final Input mrl,
       @NotNull final PlayerControls controls,
       @NotNull final Object... arguments);
 
@@ -75,14 +75,14 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
   void setCallback(@NotNull final Callback callback);
 
   @NotNull
-  InputItem getDirectVideoMrl();
+  Input getDirectVideoMrl();
 
-  void setDirectVideoMrl(@NotNull final InputItem configuration);
+  void setDirectVideoMrl(@NotNull final Input configuration);
 
   @NotNull
-  InputItem getDirectAudioMrl();
+  Input getDirectAudioMrl();
 
-  void setDirectAudioMrl(@NotNull final InputItem configuration);
+  void setDirectAudioMrl(@NotNull final Input configuration);
 
   @NotNull
   FrameConfiguration getFrameConfiguration();

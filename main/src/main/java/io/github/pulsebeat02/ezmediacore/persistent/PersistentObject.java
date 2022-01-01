@@ -59,6 +59,6 @@ public abstract class PersistentObject<T> implements SerializableComponent<T> {
   }
 
   private void createFile() throws IOException {
-    FileUtils.createIfNotExists(this.getStorageFile());
+    FileUtils.createFileIfNotExists(this.getStorageFile());
   }
 }

@@ -33,7 +33,7 @@ import io.github.pulsebeat02.ezmediacore.jlibdl.JLibDL;
 import io.github.pulsebeat02.ezmediacore.jlibdl.YoutubeDLRequest;
 import io.github.pulsebeat02.ezmediacore.jlibdl.component.Format;
 import io.github.pulsebeat02.ezmediacore.jlibdl.component.MediaInfo;
-import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
+import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
 import java.io.IOException;
 import java.net.URI;
@@ -91,7 +91,7 @@ public final class RequestUtils {
     return HttpResponse.BodyHandlers.ofString();
   }
 
-  public static boolean isStream(@NotNull final InputItem url) {
+  public static boolean isStream(@NotNull final Input url) {
     try {
       final MediaInfo info = JLibDL.request(url.getInput()).getInfo();
       if (info == null) {
@@ -103,7 +103,7 @@ public final class RequestUtils {
     }
   }
 
-  public static @NotNull List<InputItem> getVideoURLs(@NotNull final InputItem url) {
+  public static @NotNull List<Input> getVideoURLs(@NotNull final Input url) {
     final Optional<YoutubeDLRequest> optional = validatePrimaryRequest(url);
     if (optional.isEmpty()) {
       return List.of(url);
@@ -111,7 +111,7 @@ public final class RequestUtils {
     return List.copyOf(getFormats(optional.get(), url, true));
   }
 
-  public static @NotNull List<InputItem> getAudioURLs(@NotNull final InputItem url) {
+  public static @NotNull List<Input> getAudioURLs(@NotNull final Input url) {
     final Optional<YoutubeDLRequest> optional = validatePrimaryRequest(url);
     if (optional.isEmpty()) {
       return List.of(url);
@@ -132,7 +132,7 @@ public final class RequestUtils {
   }
 
   private static @NotNull Optional<YoutubeDLRequest> validatePrimaryRequest(
-      @NotNull final InputItem url) {
+      @NotNull final Input url) {
     final Optional<YoutubeDLRequest> optional = CACHED_RESULT.get(url.getInput());
     if (optional.isEmpty()) {
       return Optional.empty();
@@ -144,11 +144,11 @@ public final class RequestUtils {
     return Optional.of(request);
   }
 
-  private static @NotNull List<InputItem> getFormats(
+  private static @NotNull List<Input> getFormats(
       @NotNull final YoutubeDLRequest request,
-      @NotNull final InputItem mrl,
+      @NotNull final Input mrl,
       final boolean video) {
-    final List<InputItem> urls = Lists.newArrayList();
+    final List<Input> urls = Lists.newArrayList();
     final List<Format> formats = request.getInfo().getFormats();
     for (final Format format : formats) {
       urls.add(getLinkMrl(format, video));
@@ -159,7 +159,7 @@ public final class RequestUtils {
     return urls;
   }
 
-  private static @NotNull InputItem getLinkMrl(
+  private static @NotNull Input getLinkMrl(
       @NotNull final Format format, final boolean video) {
     final String url = getProperUrl(format.getAcodec(), format.getVcodec(), format, video);
     return url != null ? UrlInput.ofUrl(url) : UrlInput.emptyUrl();

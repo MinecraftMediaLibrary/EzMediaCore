@@ -84,7 +84,7 @@ public final class FFmpegRemoveArgumentCommand implements CommandSegment.Literal
   }
 
   @Override
-  public @NotNull LiteralCommandNode<CommandSender> node() {
+  public @NotNull LiteralCommandNode<CommandSender> getNode() {
     return this.node;
   }
 }

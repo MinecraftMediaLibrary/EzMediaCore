@@ -30,7 +30,7 @@ import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.ofDimension;
 import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.callback.ScoreboardCallback;
 import io.github.pulsebeat02.ezmediacore.callback.ScoreboardCallback.Builder;
@@ -49,7 +49,7 @@ public class DebugOutput extends VideoOutput {
   @Override
   public boolean createVideoPlayer(
       @NotNull final DeluxeMediaPlugin plugin,
-      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final ScreenConfig attributes,
       @NotNull final CommandSender sender,
       @NotNull final Collection<? extends Player> players) {
     attributes.setPlayer(this.createVideoBuilder(plugin, attributes, players).build());
@@ -59,13 +59,13 @@ public class DebugOutput extends VideoOutput {
   @NotNull
   private VideoBuilder createVideoBuilder(
       @NotNull final DeluxeMediaPlugin plugin,
-      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final ScreenConfig attributes,
       @NotNull final Collection<? extends Player> players) {
 
     final ScoreboardCallback.Builder builder =
         this.createDebugHighlightsBuilder(attributes, players);
 
-    final VideoBuilder videoBuilder = VideoBuilder.unspecified();
+    final VideoBuilder videoBuilder = this.getBuilder(attributes);
     videoBuilder.soundKey(ofSound("emc"));
     videoBuilder.callback(builder.build(plugin.library()));
 
@@ -74,14 +74,13 @@ public class DebugOutput extends VideoOutput {
 
   @NotNull
   private ScoreboardCallback.Builder createDebugHighlightsBuilder(
-      @NotNull final VideoCommandAttributes attributes,
-      @NotNull final Collection<? extends Player> players) {
+      @NotNull final ScreenConfig attributes, @NotNull final Collection<? extends Player> players) {
 
     final Builder builder = CallbackBuilder.scoreboard();
 
     builder.id(ofIdentifier(1080));
     builder.viewers(ofPlayers(players));
-    builder.dims(ofDimension(attributes.getPixelWidth(), attributes.getPixelHeight()));
+    builder.dims(ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
     builder.delay(DELAY_20_MS);
 
     return builder;
