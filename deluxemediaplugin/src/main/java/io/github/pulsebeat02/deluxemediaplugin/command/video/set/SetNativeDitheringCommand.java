@@ -30,7 +30,7 @@ public final class SetNativeDitheringCommand implements CommandSegment.Literal<C
     this.plugin = plugin;
     this.config = config;
     this.node =
-        this.literal("native-dit  hering")
+        this.literal("native-dithering")
             .requires(has("deluxemediaplugin.video.set.nativedithering"))
             .then(
                 this.argument("enabled", BoolArgumentType.bool())
