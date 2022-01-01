@@ -76,7 +76,7 @@ public final class CommandHandler implements TabExecutor {
   @Contract(" -> new")
   private @NotNull @Unmodifiable Set<BaseCommand> getPluginCommands() {
     return Set.of(
-        new VideoCommand(this.plugin, this), // commodore
+        new VideoCommand(this.plugin, this),
         new MapCommand(this.plugin, this),
         new ScreenCommand(this.plugin, this),
         new FFmpegCommand(this.plugin, this), //

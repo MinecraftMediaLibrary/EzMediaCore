@@ -1,33 +1,58 @@
 video {
-  play;
-  stop;
+  cancel-processing;
   destroy;
   dump-threads;
-  load {
-    resourcepack {
-      targets brigadier:string greedy_phrase;
+  pause;
+  play {
+    entities brigadier:string greedy_phrase;
+  }
+  resourcepack {
+    load {
+      selectors brigadier:string greedy_phrase;
     }
-    cancel-download;
-    mrl brigadier:string greedy_phrase;
+  }
+  load {
+    desktop;
+    device {
+      name brigadier:string greedy_phrase;
+    }
+    mrl {
+      resource brigadier:string greedy_phrase;
+    }
+    file {
+      path brigadier:string greedy_phrase;
+    }
+    url {
+      resource brigadier:string greedy_phrase;
+    }
+    window {
+      title brigadier:string greedy_phrase;
+    }
   }
   set {
-    screen-dimension {
-      screen-dimensions brigadier:string greedy_phrase;
+    audio-playback {
+      playback brigadier:string single_word;
+    }
+    dithering-algorithm {
+      algorithm brigadier:string single_word;
+    }
+    dither-map-start {
+      map brigadier:integer;
     }
     itemframe-dimension {
-      itemframe-dimensions brigadier:string greedy_phrase;
+      dimension brigadier:string greedy_phrase;
     }
-    starting-map {
-      map-id brigadier:integer;
+    native-dithering {
+      enabled brigadier:bool;
     }
-    dither {
-      dithering-option brigadier:string single_word;
+    player {
+      player brigadier:string single_word;
     }
-    mode {
-      video-mode brigadier:string single_word;
+    resolution {
+      resolution brigadier:string greedy_phrase;
     }
-    audio-output {
-      audio-type brigadier:string single_word;
+    video-playback {
+      playback brigadier:string single_word;
     }
   }
 }
