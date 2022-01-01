@@ -29,7 +29,7 @@ import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.ofDimension;
 import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.callback.ChatCallback;
 import io.github.pulsebeat02.ezmediacore.callback.ChatCallback.Builder;
@@ -48,7 +48,7 @@ public class ChatOutput extends VideoOutput {
   @Override
   public boolean createVideoPlayer(
       @NotNull final DeluxeMediaPlugin plugin,
-      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final ScreenConfig attributes,
       @NotNull final CommandSender sender,
       @NotNull final Collection<? extends Player> players) {
     attributes.setPlayer(this.createVideoBuilder(plugin, attributes).build());
@@ -57,11 +57,11 @@ public class ChatOutput extends VideoOutput {
 
   @NotNull
   private VideoBuilder createVideoBuilder(
-      @NotNull final DeluxeMediaPlugin plugin, @NotNull final VideoCommandAttributes attributes) {
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig attributes) {
 
     final ChatCallback.Builder builder = this.createChatBuilder(attributes);
 
-    final VideoBuilder videoBuilder = VideoBuilder.unspecified();
+    final VideoBuilder videoBuilder = this.getBuilder(attributes);
     videoBuilder.soundKey(ofSound("emc"));
     videoBuilder.callback(builder.build(plugin.library()));
 
@@ -69,11 +69,11 @@ public class ChatOutput extends VideoOutput {
   }
 
   @NotNull
-  private ChatCallback.Builder createChatBuilder(@NotNull final VideoCommandAttributes attributes) {
+  private ChatCallback.Builder createChatBuilder(@NotNull final ScreenConfig attributes) {
 
     final Builder builder = CallbackBuilder.chat();
     builder.character(NORMAL_SQUARE);
-    builder.dims(ofDimension(attributes.getPixelWidth(), attributes.getPixelHeight()));
+    builder.dims(ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
     builder.delay(DELAY_20_MS);
 
     return builder;

@@ -30,10 +30,12 @@ import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.ofDimension;
 import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.output.DitheringAlgorithm;
 import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.callback.MapCallback;
 import io.github.pulsebeat02.ezmediacore.callback.MapCallback.Builder;
+import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import java.util.Collection;
 import org.bukkit.command.CommandSender;
@@ -49,7 +51,7 @@ public class ItemframeOutput extends VideoOutput {
   @Override
   public boolean createVideoPlayer(
       @NotNull final DeluxeMediaPlugin plugin,
-      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final ScreenConfig attributes,
       @NotNull final CommandSender sender,
       @NotNull final Collection<? extends Player> players) {
     attributes.setPlayer(this.createVideoBuilder(plugin, attributes, players).build());
@@ -59,13 +61,14 @@ public class ItemframeOutput extends VideoOutput {
   @NotNull
   private VideoBuilder createVideoBuilder(
       @NotNull final DeluxeMediaPlugin plugin,
-      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final ScreenConfig attributes,
       @NotNull final Collection<? extends Player> players) {
 
     final MapCallback.Builder builder = this.createMapBuilder(attributes, players);
 
-    final VideoBuilder videoBuilder = VideoBuilder.unspecified();
-    videoBuilder.dims(ofDimension(attributes.getPixelWidth(), attributes.getPixelHeight()));
+    final VideoBuilder videoBuilder = this.getBuilder(attributes);
+    videoBuilder.dims(
+        ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
     videoBuilder.soundKey(ofSound("emc"));
     videoBuilder.callback(builder.build(plugin.library()));
 
@@ -74,17 +77,23 @@ public class ItemframeOutput extends VideoOutput {
 
   @NotNull
   private MapCallback.Builder createMapBuilder(
-      @NotNull final VideoCommandAttributes attributes,
-      @NotNull final Collection<? extends Player> players) {
+      @NotNull final ScreenConfig attributes, @NotNull final Collection<? extends Player> players) {
 
     final Builder builder = CallbackBuilder.map();
-    builder.algorithm(attributes.getDitherType().getAlgorithm());
-    builder.blockWidth(attributes.getPixelWidth());
+    builder.algorithm(this.getAlgorithm(attributes));
+    builder.blockWidth(attributes.getResolutionWidth());
     builder.map(ofIdentifier(0));
-    builder.dims(ofDimension(attributes.getFrameWidth(), attributes.getFrameHeight()));
+    builder.dims(ofDimension(attributes.getItemframeWidth(), attributes.getItemframeHeight()));
     builder.viewers(ofPlayers(players));
     builder.delay(DELAY_0_MS);
 
     return builder;
+  }
+
+  private @NotNull DitherAlgorithm getAlgorithm(@NotNull final ScreenConfig attributes) {
+    final DitheringAlgorithm algorithm = attributes.getDitheringAlgorithm();
+    return attributes.getNativeDithering()
+        ? algorithm.getNativeAlgorithm()
+        : algorithm.getAlgorithm();
   }
 }

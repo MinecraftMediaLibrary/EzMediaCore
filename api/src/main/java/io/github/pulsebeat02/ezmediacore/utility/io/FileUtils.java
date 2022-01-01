@@ -76,13 +76,13 @@ public final class FileUtils {
 
   public static void createFileIfNotExistsExceptionally(@NotNull final Path file) {
     try {
-      createIfNotExists(file);
+      createFileIfNotExists(file);
     } catch (final IOException e) {
       e.printStackTrace();
     }
   }
 
-  public static boolean createIfNotExists(@NotNull final Path file) throws IOException {
+  public static boolean createFileIfNotExists(@NotNull final Path file) throws IOException {
     checkNotNull(file, "Path cannot be null!");
     if (Files.notExists(file)) {
       Files.createFile(file);
@@ -91,15 +91,15 @@ public final class FileUtils {
     return false;
   }
 
-  public static void createFolderIfNotExistsExceptionally(@NotNull final Path file) {
+  public static void createDirectoryIfNotExistsExceptionally(@NotNull final Path file) {
     try {
-      createFolderIfNotExists(file);
+      createDirectoryIfNotExists(file);
     } catch (final IOException e) {
       e.printStackTrace();
     }
   }
 
-  public static boolean createFolderIfNotExists(@NotNull final Path file) throws IOException {
+  public static boolean createDirectoryIfNotExists(@NotNull final Path file) throws IOException {
     checkNotNull(file, "Path cannot be null!");
     if (Files.notExists(file)) {
       Files.createDirectory(file);
@@ -108,15 +108,15 @@ public final class FileUtils {
     return false;
   }
 
-  public static void deleteIfExistsExceptionally(@NotNull final Path file) {
+  public static void deleteIfFileExistsExceptionally(@NotNull final Path file) {
     try {
-      deleteIfExists(file);
+      deleteIfFileExists(file);
     } catch (final IOException e) {
       e.printStackTrace();
     }
   }
 
-  public static boolean deleteIfExists(@NotNull final Path file) throws IOException {
+  public static boolean deleteIfFileExists(@NotNull final Path file) throws IOException {
     checkNotNull(file, "Path cannot be null!");
     if (Files.exists(file)) {
       Files.delete(file);

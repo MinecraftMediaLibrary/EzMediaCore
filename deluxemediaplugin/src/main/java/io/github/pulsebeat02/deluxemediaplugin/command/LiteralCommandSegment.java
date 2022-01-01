@@ -31,5 +31,5 @@ public interface LiteralCommandSegment<S> extends CommandSegment<S, LiteralComma
 
   @Override
   @NotNull
-  LiteralCommandNode<S> node();
+  LiteralCommandNode<S> getNode();
 }

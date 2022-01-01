@@ -10,11 +10,5 @@ import io.github.pulsebeat02.ezmediacore.player.input.implementation.WindowInput
 public final class TemporaryTesting {
 
   public static void main(final String[] args) {
-    UrlInput.emptyUrl();
-    PathInput.emptyPath();
-    WindowInput.emptyWindow();
-    DesktopInput.defaultDesktop();
-    MrlInput.emptyMrl();
-    DeviceInput.emptyDevice();
   }
 }

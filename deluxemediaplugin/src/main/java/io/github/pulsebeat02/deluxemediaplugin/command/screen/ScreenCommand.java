@@ -31,7 +31,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
-import io.github.pulsebeat02.deluxemediaplugin.command.gui.ScreenBuilderGui;
+import io.github.pulsebeat02.deluxemediaplugin.command.screen.gui.ScreenBuilderGui;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
@@ -50,16 +50,20 @@ public final class ScreenCommand extends BaseCommand {
     this.node =
         this.literal(this.getName())
             .requires(super::testPermission)
-            .then(this.literal("build").executes(this::sendScreenBuilder))
+            .executes(this::sendScreenBuilder)
             .build();
   }
 
   private int sendScreenBuilder(@NotNull final CommandContext<CommandSender> context) {
+
     final CommandSender sender = context.getSource();
+
     if (requiresPlayer(this.plugin(), sender)) {
       return SINGLE_SUCCESS;
     }
+
     new ScreenBuilderGui(this.plugin(), (Player) sender);
+
     return SINGLE_SUCCESS;
   }
 
@@ -69,7 +73,7 @@ public final class ScreenCommand extends BaseCommand {
   }
 
   @Override
-  public @NotNull LiteralCommandNode<CommandSender> node() {
+  public @NotNull LiteralCommandNode<CommandSender> getNode() {
     return this.node;
   }
 }

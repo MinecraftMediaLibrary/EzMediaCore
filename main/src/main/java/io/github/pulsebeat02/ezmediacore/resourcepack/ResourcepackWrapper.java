@@ -113,7 +113,7 @@ public class ResourcepackWrapper implements PackWrapper {
   public void internalWrap() throws IOException {
     try (final ZipOutputStream out =
         new ZipOutputStream(new FileOutputStream(this.path.toFile()))) {
-      FileUtils.createIfNotExists(this.path);
+      FileUtils.createFileIfNotExists(this.path);
       this.addFiles();
       this.writeFiles(out);
     }

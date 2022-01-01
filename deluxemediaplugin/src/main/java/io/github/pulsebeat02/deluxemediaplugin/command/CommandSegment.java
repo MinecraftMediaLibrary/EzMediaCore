@@ -37,16 +37,16 @@ import org.jetbrains.annotations.NotNull;
 public interface CommandSegment<S, N extends CommandNode<S>> {
 
   @NotNull
-  N node();
+  N getNode();
 
   @NotNull
-  default LiteralArgumentBuilder<S> literal(final String name) {
+  default LiteralArgumentBuilder<S> literal(@NotNull final String name) {
     return LiteralArgumentBuilder.literal(name);
   }
 
   @NotNull
   default <T> RequiredArgumentBuilder<S, T> argument(
-      final String name, final ArgumentType<T> type) {
+      @NotNull final String name, @NotNull final ArgumentType<T> type) {
     return RequiredArgumentBuilder.argument(name, type);
   }
 

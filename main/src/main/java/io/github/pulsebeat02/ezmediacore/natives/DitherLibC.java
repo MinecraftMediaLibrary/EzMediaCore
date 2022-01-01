@@ -20,7 +20,11 @@ public interface DitherLibC extends Library {
 
   @NotNull
   Pointer randomDither(
-      final int[] colors, final byte[] fullColors, final int[] buffer, final int width, final int weight);
+      final int[] colors,
+      final byte[] fullColors,
+      final int[] buffer,
+      final int width,
+      final int weight);
 
   @NotNull
   Pointer simpleDither(
@@ -30,7 +34,7 @@ public interface DitherLibC extends Library {
     try {
       return Native.load("dither", DitherLibC.class);
     } catch (final Exception e) {
-      return null;
+      throw new AssertionError("Your current platform does not support native dithering!");
     }
   }
 }

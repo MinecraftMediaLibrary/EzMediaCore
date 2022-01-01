@@ -42,12 +42,11 @@ import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import io.github.pulsebeat02.ezmediacore.player.input.FFmpegMediaPlayerInputParser;
-import io.github.pulsebeat02.ezmediacore.player.input.InputItem;
+import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils;
-import java.nio.file.Path;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -111,7 +110,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
 
   @Override
   public void initializePlayer(
-      @NotNull final InputItem mrl,
+      @NotNull final Input mrl,
       @NotNull final DelayConfiguration delay,
       @NotNull final Object @NotNull ... arguments) {
     this.setDirectVideoMrl(RequestUtils.getVideoURLs(mrl).get(0));
@@ -200,7 +199,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   }
 
   @Override
-  public void start(@NotNull final InputItem mrl, @NotNull final Object... arguments) {
+  public void start(@NotNull final Input mrl, @NotNull final Object... arguments) {
     super.start(mrl, arguments);
     if (this.ffmpeg == null) {
       this.initializePlayer(mrl, DelayConfiguration.DELAY_0_MS, arguments);
@@ -209,7 +208,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   }
 
   @Override
-  public void resume(@NotNull final InputItem mrl, @NotNull final Object... arguments) {
+  public void resume(@NotNull final Input mrl, @NotNull final Object... arguments) {
     super.resume(mrl, arguments);
     if (this.ffmpeg == null) {
       this.initializePlayer(mrl, DelayConfiguration.ofDelay(this.getStart()), arguments);

@@ -52,8 +52,8 @@ public final class FFmpegCommand extends BaseCommand {
         this.literal(this.getName())
             .requires(super::testPermission)
             .then(this.literal("reset").executes(this::resetFFmpegCommand))
-            .then(new FFmpegAddArgumentCommand(plugin, this.ffmpeg).node())
-            .then(new FFmpegRemoveArgumentCommand(plugin, this.ffmpeg).node())
+            .then(new FFmpegAddArgumentCommand(plugin, this.ffmpeg).getNode())
+            .then(new FFmpegRemoveArgumentCommand(plugin, this.ffmpeg).getNode())
             .then(this.literal("list-arguments").executes(this::listFFmpegArguments))
             .then(this.literal("run").executes(this::runFFmpegProcess))
             .build();
@@ -109,7 +109,7 @@ public final class FFmpegCommand extends BaseCommand {
   }
 
   @Override
-  public @NotNull LiteralCommandNode<CommandSender> node() {
+  public @NotNull LiteralCommandNode<CommandSender> getNode() {
     return this.node;
   }
 }

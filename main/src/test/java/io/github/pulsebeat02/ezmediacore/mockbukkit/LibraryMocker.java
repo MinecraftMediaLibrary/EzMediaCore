@@ -28,7 +28,7 @@ public final class LibraryMocker {
       FILE_HANDLE = JavaPlugin.class.getDeclaredField("dataFolder");
       FILE_HANDLE.setAccessible(true);
       USER_DIR = Path.of(System.getProperty("user.dir"), "mockbukkit");
-      FileUtils.createFolderIfNotExists(USER_DIR);
+      FileUtils.createDirectoryIfNotExists(USER_DIR);
     } catch (final ClassNotFoundException e) {
       throw new AssertionError("EzMediaCore class cannot be found!");
     } catch (final NoSuchFieldException e) {

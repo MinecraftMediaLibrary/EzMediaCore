@@ -144,7 +144,7 @@ public class DiscordCommand extends BaseCommand {
   }
 
   @Override
-  public @NotNull LiteralCommandNode<CommandSender> node() {
+  public @NotNull LiteralCommandNode<CommandSender> getNode() {
     return this.node;
   }
 

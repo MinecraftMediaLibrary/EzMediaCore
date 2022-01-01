@@ -204,7 +204,7 @@ public final class DitheringAlgorithms {
   private void saveToFile(final BufferedImage image, final String name) {
     final Path dir = Paths.get(System.getProperty("user.dir"), "dither");
     try {
-      FileUtils.createFolderIfNotExists(dir);
+      FileUtils.createDirectoryIfNotExists(dir);
       ImageIO.write(image, "png", dir.resolve("%s.png".formatted(name)).toFile());
     } catch (final IOException e) {
       e.printStackTrace();

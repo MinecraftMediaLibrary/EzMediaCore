@@ -47,7 +47,7 @@ public class PluginCommand extends BaseCommand {
     this.node =
         this.literal(this.getName())
             .requires(super::testPermission)
-            .then(this.literal("info").executes(this::sendInformation))
+            .executes(this::sendInformation)
             .build();
   }
 
@@ -59,11 +59,11 @@ public class PluginCommand extends BaseCommand {
   @Override
   public @NotNull Component usage() {
     return Locale.getCommandUsageComponent(
-        Map.of("/deluxemediaplugin info", "Displays information about the plugin"));
+        Map.of("/deluxemediaplugin", "Displays information about the plugin"));
   }
 
   @Override
-  public @NotNull LiteralCommandNode<CommandSender> node() {
+  public @NotNull LiteralCommandNode<CommandSender> getNode() {
     return this.node;
   }
 }

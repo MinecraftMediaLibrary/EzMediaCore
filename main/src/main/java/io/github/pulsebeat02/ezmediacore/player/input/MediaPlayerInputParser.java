@@ -28,7 +28,7 @@ public abstract class MediaPlayerInputParser implements InputParser {
   }
 
   @Override
-  public @NotNull Pair<Object, String[]> parseInput(@NotNull final InputItem input) {
+  public @NotNull Pair<Object, String[]> parseInput(@NotNull final Input input) {
     if (input instanceof UrlInput urlInput) {
       return this.parseUrl(urlInput);
     } else if (input instanceof PathInput pathInput) {

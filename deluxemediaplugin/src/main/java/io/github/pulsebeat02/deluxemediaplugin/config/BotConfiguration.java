@@ -80,8 +80,7 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
     try {
       return new MediaBot(token, guild, vc);
     } catch (final Throwable e) {
-      e.printStackTrace();
-      return null;
+      throw new AssertionError(e);
     }
   }
 }

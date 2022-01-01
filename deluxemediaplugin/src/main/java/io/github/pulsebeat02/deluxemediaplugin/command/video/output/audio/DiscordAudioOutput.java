@@ -26,7 +26,7 @@ package io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
-import io.github.pulsebeat02.deluxemediaplugin.command.video.VideoCommandAttributes;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
@@ -44,7 +44,7 @@ public class DiscordAudioOutput extends FFmpegOutput {
   @Override
   public void setAudioHandler(
       @NotNull final DeluxeMediaPlugin plugin,
-      @NotNull final VideoCommandAttributes attributes,
+      @NotNull final ScreenConfig attributes,
       @NotNull final Audience audience,
       @NotNull final String mrl) {
     CompletableFuture.runAsync(() -> this.handleAudio(plugin, audience, mrl))
@@ -79,5 +79,5 @@ public class DiscordAudioOutput extends FFmpegOutput {
 
   @Override
   public void setProperAudioHandler(
-      @NotNull final DeluxeMediaPlugin plugin, @NotNull final VideoCommandAttributes attributes) {}
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig attributes) {}
 }
