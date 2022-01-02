@@ -83,13 +83,21 @@ public final class ScreenBuilderGui {
     this.gui.show(player);
   }
 
+  // ____________________________
+  // │__│__│__│__│__│__│__│__│__│
+  // │__│XX│__│XX│__│XX│__│__│__│
+  // │__│__│__│__│__│__│__│XX│__│
+  // │__│XX│__│XX│__│XX│__│__│__│
+  // │__│__│__│__│__│__│__│__│__│
+  // ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
   private void initialize() {
     this.gui.setOnGlobalClick(this::cancelEvent);
-    this.pane.addItem(this.getBuildScreenItem(), 8, 2);
-    this.pane.addItem(this.getGuiItem(this.getIncreaseArrow("Width"), this.width, true), 1, 1);
-    this.pane.addItem(this.getGuiItem(this.getDecreaseArrow("Width"), this.width, false), 1, 3);
-    this.pane.addItem(this.getGuiItem(this.getIncreaseArrow("Height"), this.height, true), 3, 1);
-    this.pane.addItem(this.getGuiItem(this.getIncreaseArrow("Height"), this.height, false), 3, 3);
+    this.pane.addItem(this.getBuildScreenItem(), 7, 2);
+    this.pane.addItem(this.getGuiItem(this.getIncreaseArrow("Block Width"), this.width, true), 1, 1);
+    this.pane.addItem(this.getGuiItem(this.getDecreaseArrow("Block Width"), this.width, false), 1, 3);
+    this.pane.addItem(this.getGuiItem(this.getIncreaseArrow("Block Height"), this.height, true), 3, 1);
+    this.pane.addItem(this.getGuiItem(this.getIncreaseArrow("Block Height"), this.height, false), 3, 3);
     this.pane.addItem(this.getGuiItem(this.getIncreaseArrow("Map ID"), this.id, true), 5, 1);
     this.pane.addItem(this.getGuiItem(this.getDecreaseArrow("Map ID"), this.id, false), 5, 3);
     this.gui.addPane(this.pane);
