@@ -135,7 +135,7 @@ public final class CommandHandler implements TabExecutor {
       final String @NotNull [] args) {
     final Audience audience = this.plugin.audience().sender(sender);
     try {
-      this.dispatcher.execute(this.parsedCommand(sender, command, args, false));
+      this.dispatcher.execute(this.parsedCommand(sender, command, args, true));
     } catch (final CommandSyntaxException exception) {
       audience.sendMessage(((BaseCommand) command).usage());
     }
