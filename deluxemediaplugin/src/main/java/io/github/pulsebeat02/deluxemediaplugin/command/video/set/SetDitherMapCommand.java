@@ -26,7 +26,7 @@ public final class SetDitherMapCommand implements CommandSegment.Literal<Command
     this.config = config;
     this.node =
         this.literal("dither-map-start")
-            .requires(has("deluxemediaplugin.video.set.dither-map-start"))
+            .requires(has("deluxemediaplugin.command.video.set.dither-map-start"))
             .then(
                 this.argument("map", IntegerArgumentType.integer())
                     .executes(this::setDitherMapStart))

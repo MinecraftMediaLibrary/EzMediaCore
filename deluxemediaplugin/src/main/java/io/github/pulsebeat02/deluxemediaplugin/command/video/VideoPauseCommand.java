@@ -17,18 +17,18 @@ import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-public final class PauseCommand implements CommandSegment.Literal<CommandSender> {
+public final class VideoPauseCommand implements CommandSegment.Literal<CommandSender> {
 
   private final DeluxeMediaPlugin plugin;
   private final LiteralCommandNode<CommandSender> node;
   private final ScreenConfig config;
 
-  public PauseCommand(@NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig config) {
+  public VideoPauseCommand(@NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig config) {
     this.plugin = plugin;
     this.config = config;
     this.node =
         this.literal("pause")
-            .requires(has("deluxemediaplugin.video.pause"))
+            .requires(has("deluxemediaplugin.command.video.pause"))
             .executes(this::pauseVideo)
             .build();
   }

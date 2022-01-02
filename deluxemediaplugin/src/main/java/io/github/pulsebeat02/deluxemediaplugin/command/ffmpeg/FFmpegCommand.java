@@ -24,16 +24,12 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.command.ffmpeg;
 
-import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-
-import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegCommandExecutor;
 import java.util.Map;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -51,41 +47,12 @@ public final class FFmpegCommand extends BaseCommand {
     this.node =
         this.literal(this.getName())
             .requires(super::testPermission)
-            .then(this.literal("reset").executes(this::resetFFmpegCommand))
+            .then(new FFmpegResetCommand(plugin, this.ffmpeg).getNode())
             .then(new FFmpegAddArgumentCommand(plugin, this.ffmpeg).getNode())
             .then(new FFmpegRemoveArgumentCommand(plugin, this.ffmpeg).getNode())
-            .then(this.literal("list-arguments").executes(this::listFFmpegArguments))
-            .then(this.literal("run").executes(this::runFFmpegProcess))
+            .then(new FFmpegListArgumentsCommand(plugin, this.ffmpeg).getNode())
+            .then(new FFmpegRunCommand(plugin, this.ffmpeg).getNode())
             .build();
-  }
-
-  private int resetFFmpegCommand(@NotNull final CommandContext<CommandSender> context) {
-    this.clearArguments();
-    this.audience().sender(context.getSource()).sendMessage(Locale.RESET_FFMPEG_ARGS.build());
-    return SINGLE_SUCCESS;
-  }
-
-  private void clearArguments() {
-    this.ffmpeg.clearArguments();
-  }
-
-  private int listFFmpegArguments(@NotNull final CommandContext<CommandSender> context) {
-    this.plugin()
-        .audience()
-        .sender(context.getSource())
-        .sendMessage(Locale.LIST_FFMPEG_ARGS.build(this.ffmpeg.getArguments()));
-    return SINGLE_SUCCESS;
-  }
-
-  private int runFFmpegProcess(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = this.plugin().audience().sender(context.getSource());
-    this.execute(audience);
-    audience.sendMessage(Locale.FFMPEG_EXEC.build());
-    return SINGLE_SUCCESS;
-  }
-
-  private void execute(@NotNull final Audience audience) {
-    this.ffmpeg.executeWithLogging(s -> audience.sendMessage(Locale.FFMPEG_PROCESS.build(s)));
   }
 
   @Override

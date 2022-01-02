@@ -32,7 +32,7 @@ public final class LoadDesktopCommand implements CommandSegment.Literal<CommandS
     this.command = command;
     this.node =
         this.literal("desktop")
-            .requires(has("deluxemediaplugin.video.load.desktop"))
+            .requires(has("deluxemediaplugin.command.video.load.desktop"))
             .executes(this::handleDesktop)
             .build();
   }

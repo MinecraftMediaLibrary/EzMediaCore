@@ -44,7 +44,7 @@ public final class SetResolutionCommand implements CommandSegment.Literal<Comman
     this.config = config;
     this.node =
         this.literal("resolution")
-            .requires(has("deluxemediaplugin.video.set.resolution"))
+            .requires(has("deluxemediaplugin.command.video.set.resolution"))
             .then(
                 this.argument("resolution", StringArgumentType.greedyString())
                     .suggests(this::suggestVideoResolution)

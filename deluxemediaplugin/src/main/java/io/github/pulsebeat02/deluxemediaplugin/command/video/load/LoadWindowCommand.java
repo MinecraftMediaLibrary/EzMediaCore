@@ -38,7 +38,7 @@ public final class LoadWindowCommand implements CommandSegment.Literal<CommandSe
     this.command = command;
     this.node =
         this.literal("window")
-            .requires(has("deluxemediaplugin.video.load.window"))
+            .requires(has("deluxemediaplugin.command.video.load.window"))
             .then(
                 this.argument("title", StringArgumentType.greedyString())
                     .suggests(this::suggestWindow)

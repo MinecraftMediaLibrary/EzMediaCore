@@ -26,18 +26,18 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public final class PlayCommand implements CommandSegment.Literal<CommandSender> {
+public final class VideoPlayCommand implements CommandSegment.Literal<CommandSender> {
 
   private final DeluxeMediaPlugin plugin;
   private final LiteralCommandNode<CommandSender> node;
   private final ScreenConfig config;
 
-  public PlayCommand(@NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig config) {
+  public VideoPlayCommand(@NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig config) {
     this.plugin = plugin;
     this.config = config;
     this.node =
         this.literal("play")
-            .requires(has("deluxemediaplugin.video.play"))
+            .requires(has("deluxemediaplugin.command.video.play"))
             .then(
                 this.argument("entities", StringArgumentType.greedyString())
                     .executes(this::playVideo))

@@ -33,7 +33,7 @@ public final class LoadDeviceCommand implements CommandSegment.Literal<CommandSe
     this.command = command;
     this.node =
         this.literal("device")
-            .requires(has("deluxemediaplugin.video.load.device"))
+            .requires(has("deluxemediaplugin.command.video.load.device"))
             .then(
                 this.argument("name", StringArgumentType.greedyString())
                     .executes(this::handleDevice))

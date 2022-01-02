@@ -1,0 +1,58 @@
+package io.github.pulsebeat02.deluxemediaplugin.command.discord;
+
+import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.command.Permission.has;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleNull;
+import static java.util.Objects.requireNonNull;
+
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.tree.LiteralCommandNode;
+import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
+import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
+import net.kyori.adventure.audience.Audience;
+import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
+
+public final class DiscordConnectCommand implements CommandSegment.Literal<CommandSender> {
+
+  private final LiteralCommandNode<CommandSender> node;
+  private final DeluxeMediaPlugin plugin;
+
+  public DiscordConnectCommand(@NotNull final DeluxeMediaPlugin plugin) {
+    this.plugin = plugin;
+    this.node =
+        this.literal("connect")
+            .requires(has("deluxemediaplugin.command.discord.connect"))
+            .executes(this::connectDiscordBot)
+            .build();
+  }
+
+  private int connectDiscordBot(@NotNull final CommandContext<CommandSender> context) {
+
+    final Audience audience = this.plugin.audience().sender(context.getSource());
+
+    if (this.checkDiscordStatus(audience)) {
+      return SINGLE_SUCCESS;
+    }
+
+    this.joinVoiceChannel();
+
+    audience.sendMessage(Locale.C_DISCORD.build());
+
+    return SINGLE_SUCCESS;
+  }
+
+  private void joinVoiceChannel() {
+    requireNonNull(this.plugin.getMediaBot()).getMusicManager().joinVoiceChannel();
+  }
+
+  private boolean checkDiscordStatus(@NotNull final Audience audience) {
+    return handleNull(audience, Locale.ERR_INVALID_DISCORD_BOT.build(), this.plugin.getMediaBot());
+  }
+
+  @Override
+  public @NotNull LiteralCommandNode<CommandSender> getNode() {
+    return this.node;
+  }
+}
