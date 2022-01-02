@@ -57,12 +57,13 @@ public final class ScreenCommand extends BaseCommand {
   private int sendScreenBuilder(@NotNull final CommandContext<CommandSender> context) {
 
     final CommandSender sender = context.getSource();
+    final DeluxeMediaPlugin plugin = this.plugin();
 
-    if (requiresPlayer(this.plugin(), sender)) {
+    if (requiresPlayer(plugin, sender)) {
       return SINGLE_SUCCESS;
     }
 
-    new ScreenBuilderGui(this.plugin(), (Player) sender);
+    new ScreenBuilderGui(plugin, (Player) sender);
 
     return SINGLE_SUCCESS;
   }
