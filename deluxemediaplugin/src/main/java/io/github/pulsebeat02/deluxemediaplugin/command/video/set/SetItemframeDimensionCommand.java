@@ -42,7 +42,7 @@ public final class SetItemframeDimensionCommand implements CommandSegment.Litera
     this.config = config;
     this.node =
         this.literal("itemframe-dimension")
-            .requires(has("deluxemediaplugin.video.set.itemframe-dimension"))
+            .requires(has("deluxemediaplugin.command.video.set.itemframe-dimension"))
             .then(
                 this.argument("dimension", StringArgumentType.greedyString())
                     .suggests(this::suggestItemframeDimension)

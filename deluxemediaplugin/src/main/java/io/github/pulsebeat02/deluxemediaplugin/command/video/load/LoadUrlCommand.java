@@ -33,7 +33,7 @@ public final class LoadUrlCommand implements CommandSegment.Literal<CommandSende
     this.command = command;
     this.node =
         this.literal("url")
-            .requires(has("deluxemediaplugin.video.load.url"))
+            .requires(has("deluxemediaplugin.command.video.load.url"))
             .then(
                 this.argument("resource", StringArgumentType.greedyString())
                     .executes(this::handleUrl))

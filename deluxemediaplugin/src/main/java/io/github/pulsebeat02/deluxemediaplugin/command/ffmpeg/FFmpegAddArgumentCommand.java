@@ -25,6 +25,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.ffmpeg;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.command.Permission.has;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -50,6 +51,7 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
     this.ffmpeg = executor;
     this.node =
         this.literal("add")
+            .requires(has("deluxemediaplugin.command.ffmpeg.add"))
             .then(
                 this.argument("arguments", StringArgumentType.greedyString())
                     .executes(this::addArgument))
@@ -62,11 +64,15 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
   }
 
   private int addIndexArgument(@NotNull final CommandContext<CommandSender> context) {
+
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String str = context.getArgument("arguments", String.class);
     final int index = context.getArgument("index", Integer.TYPE);
+
     this.addMultipleArguments(index, str.split(" "));
+
     audience.sendMessage(Locale.ADD_FFMPEG_ARG_INDX.build(str, index));
+
     return SINGLE_SUCCESS;
   }
 
@@ -109,11 +115,15 @@ public final class FFmpegAddArgumentCommand implements CommandSegment.Literal<Co
   }
 
   private int addArgument(@NotNull final CommandContext<CommandSender> context) {
+
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String str = context.getArgument("arguments", String.class);
     final String[] arguments = str.split(" ");
+
     this.addMultipleArguments(arguments);
+
     audience.sendMessage(Locale.ADD_FFMPEG_ARG.build(str));
+
     return SINGLE_SUCCESS;
   }
 

@@ -79,9 +79,9 @@ public final class CommandHandler implements TabExecutor {
         new VideoCommand(this.plugin, this),
         new MapCommand(this.plugin, this),
         new ScreenCommand(this.plugin, this),
-        new FFmpegCommand(this.plugin, this), //
+        new FFmpegCommand(this.plugin, this),
         new PluginCommand(this.plugin, this),
-        new DiscordCommand(this.plugin, this)); //
+        new DiscordCommand(this.plugin, this));
   }
 
   private void registerCommands() {

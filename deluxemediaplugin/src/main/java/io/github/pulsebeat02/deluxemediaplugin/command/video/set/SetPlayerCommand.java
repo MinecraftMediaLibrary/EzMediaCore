@@ -34,7 +34,7 @@ public final class SetPlayerCommand implements CommandSegment.Literal<CommandSen
     this.config = config;
     this.node =
         this.literal("player")
-            .requires(has("deluxemediaplugin.video.set.player"))
+            .requires(has("deluxemediaplugin.command.video.set.player"))
             .then(
                 this.argument("player", StringArgumentType.word())
                     .suggests(this::suggestPlayerAlgorithm)

@@ -13,16 +13,16 @@ import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-public final class DumpThreadsCommand implements CommandSegment.Literal<CommandSender> {
+public final class VideoDumpThreadsCommand implements CommandSegment.Literal<CommandSender> {
 
   private final DeluxeMediaPlugin plugin;
   private final LiteralCommandNode<CommandSender> node;
 
-  public DumpThreadsCommand(@NotNull final DeluxeMediaPlugin plugin) {
+  public VideoDumpThreadsCommand(@NotNull final DeluxeMediaPlugin plugin) {
     this.plugin = plugin;
     this.node =
         this.literal("dump-threads")
-            .requires(has("deluxemediaplugin.video.dumpthreads"))
+            .requires(has("deluxemediaplugin.command.video.dumpthreads"))
             .executes(this::dumpThreads)
             .build();
   }

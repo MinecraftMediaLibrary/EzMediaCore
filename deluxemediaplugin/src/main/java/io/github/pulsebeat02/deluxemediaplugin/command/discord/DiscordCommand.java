@@ -23,18 +23,11 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.command.discord;
 
-import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
-import static java.util.Objects.requireNonNull;
-
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import java.util.Map;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -50,97 +43,12 @@ public class DiscordCommand extends BaseCommand {
     this.node =
         this.literal(this.getName())
             .requires(super::testPermission)
-            .then(this.literal("connect").executes(this::connect))
-            .then(this.literal("disconnect").executes(this::disconnect))
-            .then(
-                this.literal("play")
-                    .then(
-                        this.argument("mrl", StringArgumentType.greedyString())
-                            .executes(this::play)))
-            .then(this.literal("pause").executes(this::pause))
-            .then(this.literal("resume").executes(this::resume))
+            .then(new DiscordConnectCommand(plugin).getNode())
+            .then(new DiscordDisconnectCommand(plugin).getNode())
+            .then(new DiscordPlayCommand(plugin).getNode())
+            .then(new DiscordPauseCommand(plugin).getNode())
+            .then(new DiscordResumeCommand(plugin).getNode())
             .build();
-  }
-
-  private int disconnect(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = this.audience().sender(context.getSource());
-    if (this.checkDiscordStatus(audience)) {
-      return SINGLE_SUCCESS;
-    }
-    this.leaveVoiceChannel();
-    audience.sendMessage(Locale.DC_DISCORD.build());
-    return SINGLE_SUCCESS;
-  }
-
-  private void leaveVoiceChannel() {
-    requireNonNull(this.plugin().getMediaBot()).getMusicManager().leaveVoiceChannel();
-  }
-
-  private int connect(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = this.audience().sender(context.getSource());
-    if (this.checkDiscordStatus(audience)) {
-      return SINGLE_SUCCESS;
-    }
-    this.joinVoiceChannel();
-    audience.sendMessage(Locale.C_DISCORD.build());
-    return SINGLE_SUCCESS;
-  }
-
-  private void joinVoiceChannel() {
-    requireNonNull(this.plugin().getMediaBot()).getMusicManager().joinVoiceChannel();
-  }
-
-  private int play(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = this.audience().sender(context.getSource());
-    final String mrl = context.getArgument("mrl", String.class);
-    if (this.checkDiscordStatus(audience)) {
-      return SINGLE_SUCCESS;
-    }
-    this.playMedia(mrl);
-    audience.sendMessage(Locale.START_TRACK_DISCORD.build(mrl));
-    return SINGLE_SUCCESS;
-  }
-
-  private void playMedia(@NotNull final String mrl) {
-    final MusicManager manager = requireNonNull(this.plugin().getMediaBot()).getMusicManager();
-    manager.joinVoiceChannel();
-    manager.addTrack(mrl);
-  }
-
-  private int pause(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = this.audience().sender(context.getSource());
-    if (this.checkDiscordStatus(audience)) {
-      return SINGLE_SUCCESS;
-    }
-    this.pause();
-    audience.sendMessage(Locale.PAUSED_TRACK_DISCORD.build());
-    return SINGLE_SUCCESS;
-  }
-
-  private void pause() {
-    requireNonNull(this.plugin().getMediaBot()).getMusicManager().pauseTrack();
-  }
-
-  private int resume(@NotNull final CommandContext<CommandSender> context) {
-    final Audience audience = this.audience().sender(context.getSource());
-    if (this.checkDiscordStatus(audience)) {
-      return SINGLE_SUCCESS;
-    }
-    this.resume();
-    audience.sendMessage(Locale.RESUMED_TRACK_DISCORD.build());
-    return SINGLE_SUCCESS;
-  }
-
-  private void resume() {
-    requireNonNull(this.plugin().getMediaBot()).getMusicManager().resumeTrack();
-  }
-
-  private boolean checkDiscordStatus(@NotNull final Audience audience) {
-    if (this.plugin().getMediaBot() == null) {
-      audience.sendMessage(Locale.ERR_INVALID_DISCORD_BOT.build());
-      return true;
-    }
-    return false;
   }
 
   @Override
@@ -153,14 +61,14 @@ public class DiscordCommand extends BaseCommand {
     return Locale.getCommandUsageComponent(
         Map.of(
             "/discord connect",
-            "Connects to the voice channel",
+            "Connects the Discord bot to the voice channel",
             "/discord disconnect",
-            "Disconnects from the voice channel",
+            "Disconnects the Discord bot from the voice channel",
             "/discord play [mrl]",
             "Plays the MRL directly through voice channel",
             "/discord pause",
-            "Pauses the audio player",
+            "Pauses the Discord bot player",
             "/discord resume",
-            "Resumes the audio player"));
+            "Resumes the Discord bot player"));
   }
 }

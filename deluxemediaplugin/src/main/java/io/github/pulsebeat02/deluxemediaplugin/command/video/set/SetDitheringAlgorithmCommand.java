@@ -33,7 +33,7 @@ public final class SetDitheringAlgorithmCommand implements CommandSegment.Litera
     this.config = config;
     this.node =
         this.literal("dithering-algorithm")
-            .requires(has("deluxemediaplugin.video.set.ditheringalgorithm"))
+            .requires(has("deluxemediaplugin.command.video.set.ditheringalgorithm"))
             .then(
                 this.argument("algorithm", StringArgumentType.word())
                     .suggests(this::suggestDitheringAlgorithm)

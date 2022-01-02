@@ -25,6 +25,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.ffmpeg;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
+import static io.github.pulsebeat02.deluxemediaplugin.command.Permission.has;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -50,6 +51,7 @@ public final class FFmpegRemoveArgumentCommand implements CommandSegment.Literal
     this.ffmpeg = executor;
     this.node =
         this.literal("remove")
+            .requires(has("deluxemediaplugin.command.ffmpeg.remove"))
             .then(
                 this.argument("argument", StringArgumentType.word()).executes(this::removeArgument))
             .then(
@@ -59,11 +61,15 @@ public final class FFmpegRemoveArgumentCommand implements CommandSegment.Literal
   }
 
   private int removeIndexArgument(@NotNull final CommandContext<CommandSender> context) {
+
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final int index = context.getArgument("index", Integer.TYPE);
     final String arg = this.ffmpeg.getArguments().get(index);
+
     this.removeArgument(index);
+
     audience.sendMessage(Locale.REMOVE_FFMPEG_ARG_INDX.build(arg, index));
+
     return SINGLE_SUCCESS;
   }
 
@@ -76,10 +82,14 @@ public final class FFmpegRemoveArgumentCommand implements CommandSegment.Literal
   }
 
   private int removeArgument(@NotNull final CommandContext<CommandSender> context) {
+
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String argument = context.getArgument("argument", String.class);
+
     this.removeArgument(argument);
+
     audience.sendMessage(Locale.REMOVE_FFMPEG_ARG.build(argument));
+
     return SINGLE_SUCCESS;
   }
 

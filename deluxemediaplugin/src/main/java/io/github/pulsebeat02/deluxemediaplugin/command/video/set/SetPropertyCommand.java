@@ -17,7 +17,7 @@ public final class SetPropertyCommand implements CommandSegment.Literal<CommandS
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig config) {
     this.node =
         this.literal("set")
-            .requires(has("deluxemediaplugin.video.set"))
+            .requires(has("deluxemediaplugin.command.video.set"))
             .then(new SetDitheringAlgorithmCommand(plugin, config).getNode())
             .then(new SetPlayerCommand(plugin, config).getNode())
             .then(new SetAudioPlaybackCommand(plugin, config).getNode())

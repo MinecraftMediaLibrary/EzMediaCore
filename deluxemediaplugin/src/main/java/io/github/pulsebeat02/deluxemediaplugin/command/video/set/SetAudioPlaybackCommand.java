@@ -34,7 +34,7 @@ public final class SetAudioPlaybackCommand implements CommandSegment.Literal<Com
     this.config = config;
     this.node =
         this.literal("audio-playback")
-            .requires(has("deluxemediaplugin.video.set.audioplayback"))
+            .requires(has("deluxemediaplugin.command.video.set.audioplayback"))
             .then(
                 this.argument("playback", StringArgumentType.word())
                     .suggests(this::suggestAudioPlayback)

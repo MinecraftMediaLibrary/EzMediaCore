@@ -31,7 +31,7 @@ public final class LoadMrlCommand implements CommandSegment.Literal<CommandSende
     this.command = command;
     this.node =
         this.literal("mrl")
-            .requires(has("deluxemediaplugin.video.load.mrl"))
+            .requires(has("deluxemediaplugin.command.video.load.mrl"))
             .then(
                 this.argument("resource", StringArgumentType.greedyString())
                     .executes(this::handleMrl))

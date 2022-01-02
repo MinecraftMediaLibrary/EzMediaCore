@@ -17,19 +17,19 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class CancelProcessingCommand implements CommandSegment.Literal<CommandSender> {
+public final class VideoCancelProcessingCommand implements CommandSegment.Literal<CommandSender> {
 
   private final DeluxeMediaPlugin plugin;
   private final LiteralCommandNode<CommandSender> node;
   private final ScreenConfig config;
 
-  public CancelProcessingCommand(
+  public VideoCancelProcessingCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig config) {
     this.plugin = plugin;
     this.config = config;
     this.node =
         this.literal("cancel-processing")
-            .requires(has("deluxemediaplugin.video.cancelprocessing"))
+            .requires(has("deluxemediaplugin.command.video.cancelprocessing"))
             .executes(this::cancelProcessing)
             .build();
   }

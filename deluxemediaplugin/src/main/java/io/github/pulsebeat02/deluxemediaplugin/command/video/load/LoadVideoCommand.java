@@ -48,7 +48,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
     this.videoFolder = this.plugin.getDataFolder().resolve("videos");
     this.node =
         this.literal("load")
-            .requires(has("deluxemediaplugin.video.load"))
+            .requires(has("deluxemediaplugin.command.video.load"))
             .then(new LoadUrlCommand(plugin, config, this).getNode())
             .then(new LoadMrlCommand(plugin, config, this).getNode())
             .then(new LoadPathCommand(plugin, config, this).getNode())

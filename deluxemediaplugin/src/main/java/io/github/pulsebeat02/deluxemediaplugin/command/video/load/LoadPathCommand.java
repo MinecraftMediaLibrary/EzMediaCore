@@ -34,7 +34,7 @@ public final class LoadPathCommand implements CommandSegment.Literal<CommandSend
     this.command = command;
     this.node =
         this.literal("file")
-            .requires(has("deluxemediaplugin.video.load.file"))
+            .requires(has("deluxemediaplugin.command.video.load.file"))
             .then(
                 this.argument("path", StringArgumentType.greedyString()).executes(this::handleFile))
             .build();

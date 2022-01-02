@@ -15,19 +15,19 @@ import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-public final class DestroyCommand implements CommandSegment.Literal<CommandSender> {
+public final class VideoDestroyCommand implements CommandSegment.Literal<CommandSender> {
 
   private final DeluxeMediaPlugin plugin;
   private final LiteralCommandNode<CommandSender> node;
   private final ScreenConfig config;
 
-  public DestroyCommand(
+  public VideoDestroyCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig config) {
     this.plugin = plugin;
     this.config = config;
     this.node =
         this.literal("destroy")
-            .requires(has("deluxemediaplugin.video.destroy"))
+            .requires(has("deluxemediaplugin.command.video.destroy"))
             .executes(this::destroyVideo)
             .build();
   }

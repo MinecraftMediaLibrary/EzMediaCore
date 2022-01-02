@@ -25,19 +25,19 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public final class ResourcepackCommand implements CommandSegment.Literal<CommandSender> {
+public final class VideoResourcepackCommand implements CommandSegment.Literal<CommandSender> {
 
   private final DeluxeMediaPlugin plugin;
   private final LiteralCommandNode<CommandSender> node;
   private final ScreenConfig config;
 
-  public ResourcepackCommand(
+  public VideoResourcepackCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig config) {
     this.plugin = plugin;
     this.config = config;
     this.node =
         this.literal("resourcepack")
-            .requires(has("deluxemediaplugin.video.resourcepack"))
+            .requires(has("deluxemediaplugin.command.video.resourcepack"))
             .then(
                 this.literal("load")
                     .requires(has("deluxemediaplugin.video.resourcepack.load"))

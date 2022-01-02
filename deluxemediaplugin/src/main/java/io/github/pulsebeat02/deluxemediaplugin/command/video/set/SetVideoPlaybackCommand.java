@@ -33,7 +33,7 @@ public final class SetVideoPlaybackCommand implements CommandSegment.Literal<Com
     this.config = config;
     this.node =
         this.literal("video-playback")
-            .requires(has("deluxemediaplugin.video.set.videoplayback"))
+            .requires(has("deluxemediaplugin.command.video.set.videoplayback"))
             .then(
                 this.argument("playback", StringArgumentType.word())
                     .suggests(this::suggestVideoPlayback)

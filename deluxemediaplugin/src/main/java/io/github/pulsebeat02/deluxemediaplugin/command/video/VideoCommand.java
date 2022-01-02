@@ -24,12 +24,12 @@ public final class VideoCommand extends BaseCommand {
         this.literal(this.getName())
             .requires(super::testPermission)
             .then(new LoadVideoCommand(plugin, this.config).getNode())
-            .then(new DumpThreadsCommand(plugin).getNode())
-            .then(new PauseCommand(plugin, this.config).getNode())
-            .then(new DestroyCommand(plugin, this.config).getNode())
-            .then(new CancelProcessingCommand(plugin, this.config).getNode())
-            .then(new PlayCommand(plugin, this.config).getNode())
-            .then(new ResourcepackCommand(plugin, this.config).getNode())
+            .then(new VideoDumpThreadsCommand(plugin).getNode())
+            .then(new VideoPauseCommand(plugin, this.config).getNode())
+            .then(new VideoDestroyCommand(plugin, this.config).getNode())
+            .then(new VideoCancelProcessingCommand(plugin, this.config).getNode())
+            .then(new VideoPlayCommand(plugin, this.config).getNode())
+            .then(new VideoResourcepackCommand(plugin, this.config).getNode())
             .build();
   }
 
