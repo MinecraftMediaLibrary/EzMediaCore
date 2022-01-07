@@ -37,7 +37,7 @@ dependencies {
         "com.mojang:authlib:1.5.26",
         "com.google.guava:guava:31.0.1-jre",
         "com.mpatric:mp3agic:0.9.1",
-        "com.github.kevinsawicki:http-request:6.0",
+        "com.github.kevinsawicki:http-request:6.0"
     ).forEach {
         compileOnly(it)
         testImplementation(it)

@@ -13,6 +13,7 @@ import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +40,7 @@ public final class VideoCancelProcessingCommand implements CommandSegment.Litera
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final EnhancedExecution extractor = this.config.getExtractor();
 
-    if (this.handleProcessing(audience, extractor)) {
+    if (this.handleProcessing(audience)) {
       return SINGLE_SUCCESS;
     }
 
@@ -50,9 +51,10 @@ public final class VideoCancelProcessingCommand implements CommandSegment.Litera
     return SINGLE_SUCCESS;
   }
 
-  private boolean handleProcessing(
-      @NotNull final Audience audience, @Nullable final EnhancedExecution extractor) {
-    return handleNull(audience, Locale.ERR_CANCELLATION_VIDEO_PROCESSING.build(), extractor);
+  private boolean handleProcessing(@NotNull final Audience audience) {
+    final Component component = Locale.ERR_CANCELLATION_VIDEO_PROCESSING.build();
+    return handleNull(audience, component, this.config.getExtractor())
+        || handleNull(audience, component, this.config.getTask());
   }
 
   private void setupCancelledAttributes(@Nullable final EnhancedExecution extractor) {
