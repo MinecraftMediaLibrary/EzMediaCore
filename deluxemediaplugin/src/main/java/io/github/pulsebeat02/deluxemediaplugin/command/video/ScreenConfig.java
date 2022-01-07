@@ -33,7 +33,7 @@ public final class ScreenConfig {
   private transient EnhancedExecution extractor;
   private transient EnhancedExecution stream;
 
-  private transient CompletableFuture<Void> task;
+  private transient CompletableFuture<Object> task;
 
   private transient String packUrl;
   private transient byte[] packHash;
@@ -156,11 +156,11 @@ public final class ScreenConfig {
     this.extractor = extractor;
   }
 
-  public @Nullable CompletableFuture<Void> getTask() {
+  public @Nullable CompletableFuture<Object> getTask() {
     return this.task;
   }
 
-  public void setTask(final CompletableFuture<Void> task) {
+  public void setTask(final CompletableFuture<Object> task) {
     this.task = task;
   }
 

@@ -7,9 +7,9 @@ import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Argume
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
-import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioPlayback;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.load.wrapper.SimpleResourcepackWrapper;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioPlayback;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
@@ -65,8 +65,9 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
     this.createFolders();
     this.cancelStream();
 
-    CompletableFuture.runAsync(() -> this.handleVideo(audience), RESOURCE_WRAPPER_EXECUTOR)
-        .handle(Throwing.THROWING_FUTURE);
+    this.config.setTask(
+        CompletableFuture.runAsync(() -> this.handleVideo(audience), RESOURCE_WRAPPER_EXECUTOR)
+            .handle(Throwing.THROWING_FUTURE));
   }
 
   private void handleVideo(@NotNull final Audience audience) {
@@ -86,6 +87,8 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
     this.sendCompletionMessage(audience, input);
 
     this.setCompletion(true);
+
+    this.config.setTask(null);
   }
 
   private void setCompletion(final boolean completion) {
@@ -117,6 +120,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
 
   private boolean handleResourcepack(@NotNull final Audience audience, @NotNull final Input input) {
     try {
+
       final Optional<Path> download = this.downloadUrlInput(audience, input);
       if (download.isEmpty()) {
         audience.sendMessage(Locale.ERR_DOWNLOAD_VIDEO.build());
@@ -125,6 +129,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
 
       new SimpleResourcepackWrapper(this.plugin, this.config, download.get(), this.videoFolder)
           .loadResourcepack();
+      
     } catch (final IOException | InterruptedException e) {
       audience.sendMessage(Locale.ERR_LOAD_VIDEO.build());
       e.printStackTrace();
