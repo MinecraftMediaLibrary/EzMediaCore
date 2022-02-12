@@ -113,7 +113,7 @@ public final class LibraryDependencyManager extends LibraryDependency {
             ofArtifact("com:github:kokorin:jaffree", "jaffree", "2021:12:30"),
             ofArtifact("org:jcodec", "jcodec", "0:2:5"),
             ofArtifact("com:github:ben-manes:caffeine", "caffeine", "3:0:5"),
-            ofArtifact("it:unimi:dsi", "fastutil", "8:5:6"),
+            ofArtifact("it:unimi:dsi", "fastutil", "8:5:8"),
             ofArtifact("com:fasterxml:jackson:core", "jackson-core", "2:13:1"),
             ofArtifact("org:apache:httpcomponents:client5", "httpclient5", "5.2-alpha1"),
             ofArtifact("com:neovisionaries", "nv-i18n", "1:29"))
