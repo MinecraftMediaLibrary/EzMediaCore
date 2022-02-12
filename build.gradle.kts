@@ -5,7 +5,7 @@ plugins {
     java
     `java-library`
     id("com.github.hierynomus.license-base") version "0.16.1"
-    id("org.ajoberstar.grgit") version "4.1.1"
+    id("org.ajoberstar.grgit") version "5.0.0"
 }
 
 subprojects {
