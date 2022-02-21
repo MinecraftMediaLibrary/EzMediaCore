@@ -33,7 +33,7 @@ dependencies {
 
     // PROVIDED DEPENDENCIES / TEST DEPENDENCIES
     setOf(
-        "io.netty:netty-all:4.1.72.Final",
+        "io.netty:netty-all:4.1.74.Final",
         "com.mojang:authlib:1.5.26",
         "com.google.guava:guava:31.0.1-jre",
         "com.mpatric:mp3agic:0.9.1",
@@ -55,7 +55,7 @@ dependencies {
         "com.github.kokorin.jaffree:jaffree:2021.12.30",
         "org.jcodec:jcodec:0.2.5",
         "com.github.ben-manes.caffeine:caffeine:3.0.5",
-        "it.unimi.dsi:fastutil:8.5.6",
+        "it.unimi.dsi:fastutil:8.5.8",
         "com.fasterxml.jackson.core:jackson-core:2.13.1",
         "org.apache.httpcomponents.client5:httpclient5:5.2-alpha1",
         "com.neovisionaries:nv-i18n:1.29",

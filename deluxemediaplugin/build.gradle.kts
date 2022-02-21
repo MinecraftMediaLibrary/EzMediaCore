@@ -19,7 +19,7 @@ dependencies {
     // PROVIDED DEPENDENCIES / DOWNLOADED AT RUNTIME
     setOf(
         "com.mojang:authlib:1.5.26",
-        "net.dv8tion:JDA:5.0.0-alpha.3",
+        "net.dv8tion:JDA:5.0.0-alpha.6",
     ).forEach {
         compileOnly(it)
     }
@@ -37,7 +37,7 @@ dependencies {
 
     // BRIGADIER USE ONLY
     compileOnly("com.mojang:brigadier:1.0.18")
-    implementation("me.lucko:commodore:1.11") {
+    implementation("me.lucko:commodore:1.12") {
         exclude("com.mojang", "brigadier")
     }
 }
