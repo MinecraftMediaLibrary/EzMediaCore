@@ -94,6 +94,7 @@ public class OGGAudioExtractor extends FFmpegCommandExecutor implements AudioExt
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
     this.addArgument(this.output);
+    System.out.println(this.getArguments());
     super.executeWithLogging(logger);
   }
 

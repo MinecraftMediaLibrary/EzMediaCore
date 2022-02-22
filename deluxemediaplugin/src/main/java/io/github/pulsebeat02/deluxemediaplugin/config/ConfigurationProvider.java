@@ -91,7 +91,6 @@ public abstract class ConfigurationProvider<T> implements ConfigHolder<T> {
   public void read() throws IOException {
     this.saveDefaultConfig();
     this.getConfig();
-    this.serialize();
   }
 
   @Override

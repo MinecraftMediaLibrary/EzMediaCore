@@ -13,7 +13,7 @@ public abstract class NativelySupportedDitheringAlgorithm
   private final BiFunction<int[], Integer, BufferCarrier> function;
 
   public NativelySupportedDitheringAlgorithm(final boolean useNative) {
-    if (useNative && DitherLibC.INSTANCE == null) {
+    if (useNative && !DitherLibC.isSupported()) {
       throw new UnsupportedOperationException(
           "Your current platform does not support native dithering!");
     }

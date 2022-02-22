@@ -37,4 +37,8 @@ public interface DitherLibC extends Library {
     }
     return null;
   }
+
+  static boolean isSupported() {
+    return INSTANCE != null;
+  }
 }

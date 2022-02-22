@@ -72,6 +72,7 @@ import io.github.pulsebeat02.ezmediacore.dither.algorithm.ordered.OrderedDither;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.ordered.OrderedPixelMapper;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.random.RandomDither;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.simple.SimpleDither;
+import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -79,8 +80,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public enum DitheringAlgorithm {
-  FILTER_LITE(new FilterLiteDither(), new FilterLiteDither(false)),
-  FLOYD_STEINBERG(new FloydDither(), new FloydDither(false)),
+  FILTER_LITE(new FilterLiteDither(), useNative() ? new FilterLiteDither(false) : null),
+  FLOYD_STEINBERG(new FloydDither(), useNative() ? new FloydDither(false) : null),
 
   BAYER_2X2(ordered(NORMAL_2X2, NORMAL_2X2_MAX)),
   BAYER_4X4(ordered(NORMAL_4X4, NORMAL_4X4_MAX)),
@@ -111,9 +112,10 @@ public enum DitheringAlgorithm {
   BAYER_CLUSTERED_DOT_DIAGONAL_8X8_3(
       ordered(CLUSTERED_DOT_DIAGONAL_8X8_3, CLUSTERED_DOT_DIAGONAL_8X8_3_MAX)),
 
-  RANDOM_DITHER_LIGHT(new RandomDither(LIGHT_WEIGHT), new RandomDither(LIGHT_WEIGHT, false)),
-  RANDOM_DITHER_NORMAL(new RandomDither(NORMAL_WEIGHT), new RandomDither(NORMAL_WEIGHT, false)),
-  RANDOM_DITHER_HEAVY(new RandomDither(HEAVY_WEIGHT), new RandomDither(HEAVY_WEIGHT, false)),
+  RANDOM_DITHER_LIGHT(new RandomDither(LIGHT_WEIGHT), new RandomDither(LIGHT_WEIGHT, useNative())),
+  RANDOM_DITHER_NORMAL(
+      new RandomDither(NORMAL_WEIGHT), new RandomDither(NORMAL_WEIGHT, useNative())),
+  RANDOM_DITHER_HEAVY(new RandomDither(HEAVY_WEIGHT), new RandomDither(HEAVY_WEIGHT, useNative())),
 
   SIMPLE_DITHER(new SimpleDither());
 
@@ -151,11 +153,15 @@ public enum DitheringAlgorithm {
     return this.algorithm;
   }
 
-  public @NotNull DitherAlgorithm getNativeAlgorithm() {
+  public @Nullable DitherAlgorithm getNativeAlgorithm() {
     return this.nativeAlgorithm;
   }
 
   public boolean isNativelySupported() {
     return this.nativeAlgorithm != null;
+  }
+
+  public static boolean useNative() {
+    return DitherLibC.INSTANCE != null;
   }
 }
