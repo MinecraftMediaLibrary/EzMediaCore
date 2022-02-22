@@ -75,9 +75,13 @@ public final class DitherDependencyManager extends LibraryDependency {
                 LibraryLocation.URL_RESOURCE.create(
                     "https://github.com/MinecraftMediaLibrary/EzMediaCore-Native-Go/raw/master/binary/freebsd/amd64/libdither.so"))
             .build();
-    loader.load(true);
+    try {
+      loader.load(true);
+    } catch (final UnsatisfiedLinkError ignored) { // suppress because native libraries aren't supported
+    }
   }
 
   @Override
-  public void onInstallation(@NotNull final Path path) {}
+  public void onInstallation(@NotNull final Path path) {
+  }
 }

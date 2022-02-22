@@ -33,8 +33,8 @@ public interface DitherLibC extends Library {
   private static @Nullable DitherLibC getInstance0() {
     try {
       return Native.load("dither", DitherLibC.class);
-    } catch (final Exception e) {
-      throw new AssertionError("Your current platform does not support native dithering!");
+    } catch (final UnsatisfiedLinkError ignored) { // suppress as native libraries aren't supported
     }
+    return null;
   }
 }
