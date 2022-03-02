@@ -30,7 +30,7 @@ dependencies {
         "net.kyori:adventure-api:4.9.3",
         "net.kyori:adventure-platform-bukkit:4.0.1",
         "com.sedmelluq:lavaplayer:1.3.78",
-        "com.github.stefvanschie.inventoryframework:IF:0.10.4"
+        "com.github.stefvanschie.inventoryframework:IF:0.10.5"
     ).forEach {
         implementation(it)
     }
