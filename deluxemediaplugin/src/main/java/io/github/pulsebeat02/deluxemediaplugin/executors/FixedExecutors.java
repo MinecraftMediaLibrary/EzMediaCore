@@ -39,4 +39,6 @@ public class FixedExecutors {
     RESOURCE_WRAPPER_EXECUTOR = Executors.newWorkStealingPool();
     SCHEDULED_EXECUTOR_SERVICE = Executors.newScheduledThreadPool(4);
   }
+
+  private FixedExecutors() {}
 }
