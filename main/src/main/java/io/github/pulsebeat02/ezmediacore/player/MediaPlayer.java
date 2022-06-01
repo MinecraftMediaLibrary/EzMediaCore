@@ -216,6 +216,11 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
+  public void setDirectAudioMrl(@NotNull final Input audioMrl) {
+    this.directAudio = audioMrl;
+  }
+
+  @Override
   public @NotNull Input getDirectVideoMrl() {
     return this.directVideo;
   }
@@ -223,11 +228,6 @@ public abstract class MediaPlayer implements VideoPlayer {
   @Override
   public void setDirectVideoMrl(@NotNull final Input videoMrl) {
     this.directVideo = videoMrl;
-  }
-
-  @Override
-  public void setDirectAudioMrl(@NotNull final Input audioMrl) {
-    this.directAudio = audioMrl;
   }
 
   @Override

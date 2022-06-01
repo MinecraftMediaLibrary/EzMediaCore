@@ -25,6 +25,7 @@ package io.github.pulsebeat02.ezmediacore.utility.concurrency;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
+import java.util.Arrays;
 
 public final class ThreadUtils {
 
@@ -32,8 +33,6 @@ public final class ThreadUtils {
 
   public static void createThreadDump() {
     final ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads(true, true);
-    for (final ThreadInfo info : threads) {
-      System.out.print(info);
-    }
+    Arrays.stream(threads).forEach(System.out::print);
   }
 }

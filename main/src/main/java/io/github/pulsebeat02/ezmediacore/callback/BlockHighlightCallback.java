@@ -49,7 +49,7 @@ public class BlockHighlightCallback extends FrameCallback
   }
 
   @Override
-  public void process(final int[] data) {
+  public void process(final int @NotNull [] data) {
     final long time = System.currentTimeMillis();
     final long delay = this.getDelayConfiguration().getDelay();
     final int z = (int) this.location.getZ();

@@ -138,7 +138,9 @@ public abstract class MismatchSearch extends StringSearch {
    * Byte searching methods
    */
 
-  /** @see #searchBytes(byte[], int, int, byte[], Object, int) */
+  /**
+   * @see #searchBytes(byte[], int, int, byte[], Object, int)
+   */
   @Override
   public final int searchBytes(
       final byte[] text,

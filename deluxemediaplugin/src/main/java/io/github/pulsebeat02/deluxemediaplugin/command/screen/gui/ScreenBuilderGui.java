@@ -94,10 +94,14 @@ public final class ScreenBuilderGui {
   private void initialize() {
     this.gui.setOnGlobalClick(this::cancelEvent);
     this.pane.addItem(this.getBuildScreenItem(), 7, 2);
-    this.pane.addItem(this.getGuiItem(this.getIncreaseArrow("Block Width"), this.width, true), 1, 1);
-    this.pane.addItem(this.getGuiItem(this.getDecreaseArrow("Block Width"), this.width, false), 1, 3);
-    this.pane.addItem(this.getGuiItem(this.getIncreaseArrow("Block Height"), this.height, true), 3, 1);
-    this.pane.addItem(this.getGuiItem(this.getIncreaseArrow("Block Height"), this.height, false), 3, 3);
+    this.pane.addItem(
+        this.getGuiItem(this.getIncreaseArrow("Block Width"), this.width, true), 1, 1);
+    this.pane.addItem(
+        this.getGuiItem(this.getDecreaseArrow("Block Width"), this.width, false), 1, 3);
+    this.pane.addItem(
+        this.getGuiItem(this.getIncreaseArrow("Block Height"), this.height, true), 3, 1);
+    this.pane.addItem(
+        this.getGuiItem(this.getIncreaseArrow("Block Height"), this.height, false), 3, 3);
     this.pane.addItem(this.getGuiItem(this.getIncreaseArrow("Map ID"), this.id, true), 5, 1);
     this.pane.addItem(this.getGuiItem(this.getDecreaseArrow("Map ID"), this.id, false), 5, 3);
     this.gui.addPane(this.pane);

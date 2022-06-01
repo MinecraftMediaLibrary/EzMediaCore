@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Objects;
 import org.jetbrains.annotations.Contract;
@@ -45,8 +44,7 @@ public final class UrlInput implements Input {
   }
 
   @Override
-  public void setupInput() {
-  }
+  public void setupInput() {}
 
   @Contract(pure = true)
   @Override

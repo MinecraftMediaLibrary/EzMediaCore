@@ -7,8 +7,8 @@ public interface Input {
 
   Input EMPTY_INPUT = () -> "";
 
-  @NotNull String getInput();
+  @NotNull
+  String getInput();
 
-  default void setupInput() {
-  }
+  default void setupInput() {}
 }

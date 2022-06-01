@@ -33,7 +33,7 @@ public interface SoundPackWrapper {
 
   void removeSound(@NotNull final String key);
 
-  byte[] createSoundJson();
+  byte @NotNull [] createSoundJson();
 
   @NotNull
   Map<String, Path> listSounds();

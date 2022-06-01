@@ -73,11 +73,15 @@ public final class LibraryProvider {
 
   private static MediaLibraryCore checkValidity(
       final Plugin plugin, final MediaLibraryCore library) {
-    if (INSTANTIATED.containsKey(plugin)) {
+    if (coreExists(plugin)) {
       return INSTANTIATED.get(plugin).get();
     }
     INSTANTIATED.put(plugin, new WeakReference<>(library));
     return library;
+  }
+
+  private static boolean coreExists(final Plugin plugin) {
+    return INSTANTIATED.containsKey(plugin);
   }
 
   public LibraryProvider plugin(@NotNull final Plugin plugin) {

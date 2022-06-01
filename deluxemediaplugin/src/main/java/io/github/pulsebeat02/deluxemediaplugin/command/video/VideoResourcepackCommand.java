@@ -27,6 +27,12 @@ import org.jetbrains.annotations.NotNull;
 
 public final class VideoResourcepackCommand implements CommandSegment.Literal<CommandSender> {
 
+  private static final List<String> SELECTOR_SUGGESTIONS;
+
+  static {
+    SELECTOR_SUGGESTIONS = List.of("@p", "@r", "@a", "@e", "@s");
+  }
+
   private final DeluxeMediaPlugin plugin;
   private final LiteralCommandNode<CommandSender> node;
   private final ScreenConfig config;
@@ -46,12 +52,6 @@ public final class VideoResourcepackCommand implements CommandSegment.Literal<Co
                             .suggests(this::suggestSelectors)
                             .executes(this::loadResourcepack)))
             .build();
-  }
-
-  private static final List<String> SELECTOR_SUGGESTIONS;
-
-  static {
-    SELECTOR_SUGGESTIONS = List.of("@p", "@r", "@a", "@e", "@s");
   }
 
   private @NotNull CompletableFuture<Suggestions> suggestSelectors(

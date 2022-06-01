@@ -32,7 +32,8 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
   private final LiteralCommandNode<CommandSender> node;
   private final ScreenConfig config;
 
-  public VideoPlayCommand(@NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig config) {
+  public VideoPlayCommand(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig config) {
     this.plugin = plugin;
     this.config = config;
     this.node =

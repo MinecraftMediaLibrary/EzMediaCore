@@ -26,6 +26,15 @@ public final class WindowInput implements Input {
     this.windowName = this.checkValidWindow(windowName);
   }
 
+  @Contract(value = "_ -> new", pure = true)
+  public static @NotNull Input ofWindowName(@NotNull final String deviceName) {
+    return new WindowInput(deviceName);
+  }
+
+  public static @NotNull Input emptyWindow() {
+    return EMPTY_WINDOW;
+  }
+
   private @NotNull String checkValidWindow(@NotNull final String name) {
     final String upper = name.toUpperCase(Locale.ROOT);
     final List<JNAWindow> windows = WindowUtils.getAllWindows();
@@ -38,15 +47,6 @@ public final class WindowInput implements Input {
     }
     throw new IllegalArgumentException(
         "Invalid window title! Not displayable or simply doesn't exist!");
-  }
-
-  @Contract(value = "_ -> new", pure = true)
-  public static @NotNull Input ofWindowName(@NotNull final String deviceName) {
-    return new WindowInput(deviceName);
-  }
-
-  public static @NotNull Input emptyWindow() {
-    return EMPTY_WINDOW;
   }
 
   @Override

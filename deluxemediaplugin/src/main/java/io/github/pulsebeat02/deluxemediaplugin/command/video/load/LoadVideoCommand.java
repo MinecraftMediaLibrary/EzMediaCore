@@ -129,7 +129,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
 
       new SimpleResourcepackWrapper(this.plugin, this.config, download.get(), this.videoFolder)
           .loadResourcepack();
-      
+
     } catch (final IOException | InterruptedException e) {
       audience.sendMessage(Locale.ERR_LOAD_VIDEO.build());
       e.printStackTrace();

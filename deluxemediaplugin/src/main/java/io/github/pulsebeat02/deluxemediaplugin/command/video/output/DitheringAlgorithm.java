@@ -128,13 +128,8 @@ public enum DitheringAlgorithm {
     }
   }
 
-  private static OrderedDither ordered(final int[][] matrix, final int max) {
-    return new OrderedDither(OrderedPixelMapper.ofPixelMapper(matrix, max, 0.005f));
-  }
-
   private final DitherAlgorithm algorithm;
   private final DitherAlgorithm nativeAlgorithm;
-
   DitheringAlgorithm(@NotNull final DitherAlgorithm algorithm) {
     this(algorithm, null);
   }
@@ -145,8 +140,16 @@ public enum DitheringAlgorithm {
     this.nativeAlgorithm = nativeAlgorithm;
   }
 
+  private static OrderedDither ordered(final int[][] matrix, final int max) {
+    return new OrderedDither(OrderedPixelMapper.ofPixelMapper(matrix, max, 0.005f));
+  }
+
   public static @NotNull Optional<DitheringAlgorithm> ofKey(@NotNull final String key) {
     return Optional.ofNullable(KEY_LOOKUP.get(key));
+  }
+
+  public static boolean useNative() {
+    return DitherLibC.INSTANCE != null;
   }
 
   public @NotNull DitherAlgorithm getAlgorithm() {
@@ -159,9 +162,5 @@ public enum DitheringAlgorithm {
 
   public boolean isNativelySupported() {
     return this.nativeAlgorithm != null;
-  }
-
-  public static boolean useNative() {
-    return DitherLibC.INSTANCE != null;
   }
 }

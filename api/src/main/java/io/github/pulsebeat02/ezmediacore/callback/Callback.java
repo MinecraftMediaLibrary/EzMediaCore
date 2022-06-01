@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface Callback extends LibraryInjectable, Viewable, Dimensional {
 
-  void process(final int[] data);
+  void process(final int @NotNull [] data);
 
   void preparePlayerStateChange(@NotNull final PlayerControls status);
 

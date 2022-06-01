@@ -39,11 +39,10 @@ import org.jetbrains.annotations.NotNull;
 
 public final class RandomDither extends NativelySupportedDitheringAlgorithm {
 
-  private static final ThreadLocalRandom THREAD_LOCAL_RANDOM;
-
   public static final int LIGHT_WEIGHT;
   public static final int NORMAL_WEIGHT;
   public static final int HEAVY_WEIGHT;
+  private static final ThreadLocalRandom THREAD_LOCAL_RANDOM;
 
   static {
     THREAD_LOCAL_RANDOM = ThreadLocalRandom.current();

@@ -11,8 +11,8 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
-import io.github.pulsebeat02.deluxemediaplugin.command.video.output.DitheringAlgorithm;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.output.DitheringAlgorithm;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import java.util.Arrays;
 import java.util.Optional;
@@ -55,7 +55,8 @@ public final class SetDitheringAlgorithmCommand implements CommandSegment.Litera
     final String algorithm = context.getArgument("algorithm", String.class);
     final Optional<DitheringAlgorithm> setting = DitheringAlgorithm.ofKey(algorithm);
 
-    if (handleEmptyOptional(audience, Locale.ERR_INVALID_DITHER_ALGORITHM.build(algorithm), setting)) {
+    if (handleEmptyOptional(
+        audience, Locale.ERR_INVALID_DITHER_ALGORITHM.build(algorithm), setting)) {
       return SINGLE_SUCCESS;
     }
 

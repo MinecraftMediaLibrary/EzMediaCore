@@ -181,7 +181,8 @@ public final class FloydDither extends NativelySupportedDitheringAlgorithm {
   }
 
   @Override
-  public @NotNull BufferCarrier standardMinecraftDither(final int @NotNull [] buffer, final int width) {
+  public @NotNull BufferCarrier standardMinecraftDither(
+      final int @NotNull [] buffer, final int width) {
     final int length = buffer.length;
     final int height = length / width;
     final int widthMinus = width - 1;
@@ -277,7 +278,8 @@ public final class FloydDither extends NativelySupportedDitheringAlgorithm {
   }
 
   @Override
-  public @NotNull BufferCarrier ditherIntoMinecraftNatively(final int @NotNull [] buffer, final int width) {
+  public @NotNull BufferCarrier ditherIntoMinecraftNatively(
+      final int @NotNull [] buffer, final int width) {
     return ByteBufCarrier.ofByteBufCarrier(
         Unpooled.wrappedBuffer(
             DitherLibC.INSTANCE

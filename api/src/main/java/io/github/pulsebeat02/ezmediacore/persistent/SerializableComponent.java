@@ -33,6 +33,7 @@ public interface SerializableComponent<T> {
 
   void serialize(@NotNull final Collection<T> list) throws IOException;
 
+  @NotNull
   List<T> deserialize() throws IOException;
 
   @NotNull

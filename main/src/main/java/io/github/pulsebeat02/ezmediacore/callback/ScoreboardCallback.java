@@ -118,7 +118,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
   }
 
   @Override
-  public void process(final int[] data) {
+  public void process(final int @NotNull [] data) {
     TaskUtils.sync(this.getCore(), this.processRunnable(IntBuffer.wrap(data)));
   }
 

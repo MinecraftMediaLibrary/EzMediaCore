@@ -72,8 +72,7 @@ public final class MrlInput implements Input {
   }
 
   @Override
-  public void setupInput() {
-  }
+  public void setupInput() {}
 
   @Contract(pure = true)
   @Override

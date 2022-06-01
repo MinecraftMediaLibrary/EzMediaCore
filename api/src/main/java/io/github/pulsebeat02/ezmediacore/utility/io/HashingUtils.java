@@ -67,12 +67,18 @@ public final class HashingUtils {
     checkNotNull(bytes, "Bytes cannot be null!");
     final StringBuilder hexString = new StringBuilder();
     for (final byte b : bytes) {
-      final String hex = Integer.toHexString(0xFF & b);
-      if (hex.length() == 1) {
-        hexString.append('0');
-      }
+      final String hex = convertByteHex(hexString, b);
       hexString.append(hex);
     }
     return hexString.toString();
+  }
+
+  @NotNull
+  private static String convertByteHex(final StringBuilder hexString, final byte b) {
+    final String hex = Integer.toHexString(0xFF & b);
+    if (hex.length() == 1) {
+      hexString.append('0');
+    }
+    return hex;
   }
 }

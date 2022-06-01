@@ -33,9 +33,9 @@ dependencies {
 
     // PROVIDED DEPENDENCIES / TEST DEPENDENCIES
     setOf(
-        "io.netty:netty-all:4.1.74.Final",
+        "io.netty:netty-all:4.1.77.Final",
         "com.mojang:authlib:1.5.26",
-        "com.google.guava:guava:31.0.1-jre",
+        "com.google.guava:guava:31.1-jre",
         "com.mpatric:mp3agic:0.9.1",
         "com.github.kevinsawicki:http-request:6.0"
     ).forEach {
@@ -56,7 +56,7 @@ dependencies {
         "org.jcodec:jcodec:0.2.5",
         "com.github.ben-manes.caffeine:caffeine:3.0.5",
         "it.unimi.dsi:fastutil:8.5.8",
-        "com.fasterxml.jackson.core:jackson-core:2.13.1",
+        "com.fasterxml.jackson.core:jackson-core:2.13.3",
         "org.apache.httpcomponents.client5:httpclient5:5.2-alpha1",
         "com.neovisionaries:nv-i18n:1.29",
     ).forEach {
@@ -67,7 +67,6 @@ dependencies {
     // PROJECT DEPENDENCIES
     setOf(
         project(":api"),
-        project(":v1_17_R1"),
         project(":v1_18_R1")
     ).forEach {
         api(it)

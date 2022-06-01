@@ -91,7 +91,7 @@ public class YoutubeOGGAudioExtractor implements YoutubeAudioExtractor {
   public void log(final String line) {}
 
   @Override
-  public CompletableFuture<Void> executeAsync() {
+  public @NotNull CompletableFuture<Void> executeAsync() {
     return CompletableFuture.runAsync(this::execute);
   }
 

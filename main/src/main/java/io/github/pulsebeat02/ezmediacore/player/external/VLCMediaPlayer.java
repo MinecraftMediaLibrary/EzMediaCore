@@ -248,8 +248,8 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   }
 
   @Override
-  public void setCustomAudioAdapter(@NotNull final Consumer<byte[]> audio, final int blockSize,
-      @NotNull final String format, final int rate, final int channels) {
+  public void setCustomAudioAdapter(@NotNull final Consumer<byte[]> audio, @NotNull final String format, final int blockSize,
+       final int rate, final int channels) {
     this.checkIfReleased();
     this.audioCallback = new MinecraftAudioCallback(audio, blockSize);
     this.player.audio().callback(format, rate, channels, this.audioCallback);

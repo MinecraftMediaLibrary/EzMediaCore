@@ -12,6 +12,10 @@ public final class OrderedPixel {
     this.b = b;
   }
 
+  public static OrderedPixel ofPixel(final int r, final int g, final int b) {
+    return new OrderedPixel(r, g, b);
+  }
+
   public int getR() {
     return this.r;
   }
@@ -22,9 +26,5 @@ public final class OrderedPixel {
 
   public int getB() {
     return this.b;
-  }
-
-  public static OrderedPixel ofPixel(final int r, final int g, final int b) {
-    return new OrderedPixel(r, g, b);
   }
 }

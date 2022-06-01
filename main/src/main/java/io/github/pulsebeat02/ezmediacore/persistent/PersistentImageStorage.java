@@ -59,7 +59,7 @@ public class PersistentImageStorage extends PersistentObject<Image> {
   }
 
   @Override
-  public List<Image> deserialize() throws IOException {
+  public @NotNull List<Image> deserialize() throws IOException {
     super.deserialize();
     try (final BufferedReader reader = this.createReader()) {
       return this.read(reader);

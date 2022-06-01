@@ -48,11 +48,18 @@ public final class FileUtils {
     checkNotNull(url, "URL cannot be null!");
     checkNotNull(folder, "Folder cannot be null!");
     checkArgument(url.length() != 0, "URL cannot be null or empty!");
+    final String filePath = downloadImage(url, folder);
+    return Path.of(filePath);
+  }
+
+  @NotNull
+  private static String downloadImage(@NotNull final String url, @NotNull final Path folder)
+      throws IOException {
     final String filePath = "%s/%s.png".formatted(folder, UUID.randomUUID());
     try (final InputStream in = new URL(url).openStream()) {
       Files.copy(in, Path.of(filePath));
     }
-    return Path.of(filePath);
+    return filePath;
   }
 
   public static void createFileExceptionally(@NotNull final Path file) {
@@ -128,6 +135,10 @@ public final class FileUtils {
   public static void copyURLToFile(@NotNull final String url, @NotNull final Path path) {
     checkNotNull(url, "URL cannot be null!");
     checkNotNull(path, "Path cannot be null!");
+    readInputStream(url, path);
+  }
+
+  private static void readInputStream(@NotNull final String url, @NotNull final Path path) {
     try (final ReadableByteChannel in = Channels.newChannel(new URL(url).openStream());
         final FileChannel channel = new FileOutputStream(path.toString()).getChannel()) {
       channel.transferFrom(in, 0, Long.MAX_VALUE);

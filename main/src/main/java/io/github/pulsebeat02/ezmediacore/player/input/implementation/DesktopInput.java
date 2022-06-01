@@ -15,7 +15,9 @@ public final class DesktopInput implements Input {
 
   private DesktopInput() {}
 
-  public static Input defaultDesktop() { return DEFAULT_DESKTOP; }
+  public static Input defaultDesktop() {
+    return DEFAULT_DESKTOP;
+  }
 
   public static DesktopInput ofDesktop() {
     return new DesktopInput();

@@ -6,7 +6,7 @@
 
 **EzMediaCore** is a library written in Java using the Bukkit API and NMS classes to provide a
 helpful tool for other media plugins to take advantage of. One of the most fascinating features
-include the ability to render **videos** on a Spigot server. 
+include the ability to render **videos** on a Spigot server.
 
 In order to maintain fast processing speeds, algorithms such as dithering, hardware acceleration,
 and use of native code is utilized. The library primarily uses **VLC Media Player** and **FFmpeg**,
@@ -14,7 +14,8 @@ for blazing fast frame delivery and support for many sorts of media formats (inc
 
 https://user-images.githubusercontent.com/40838203/132433665-a675fc35-e31f-4044-a960-ce46a8fb7df5.mp4
 
-Frame rates can reach up to the **30**'s or **40**'s with extremely great quality. As a comparison, a
+Frame rates can reach up to the **30**'s or **40**'s with extremely great quality. As a comparison,
+a
 *smooth* animation is approximately **25** frames. The library is capable of playing media in many
 sorts of ways, such as maps, entities, chat, scoreboards, debug markers. It is also capable of
 providing audio through a resourcepack and website (primarily for playing streams). Discord support
@@ -82,4 +83,5 @@ testing server!
     - [Jaffree](https://github.com/kokorin/Jaffree) made by [kokorin](https://github.com/kokorin)
       for allowing the library to use the NUT container provided by FFmpeg.
     - [FFmpeg](https://www.ffmpeg.org/) for native encoding related operations and backend support.
+
 ---

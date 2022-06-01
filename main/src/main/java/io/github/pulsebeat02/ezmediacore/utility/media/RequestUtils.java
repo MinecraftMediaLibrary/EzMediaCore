@@ -145,9 +145,7 @@ public final class RequestUtils {
   }
 
   private static @NotNull List<Input> getFormats(
-      @NotNull final YoutubeDLRequest request,
-      @NotNull final Input mrl,
-      final boolean video) {
+      @NotNull final YoutubeDLRequest request, @NotNull final Input mrl, final boolean video) {
     final List<Input> urls = Lists.newArrayList();
     final List<Format> formats = request.getInfo().getFormats();
     for (final Format format : formats) {
@@ -159,8 +157,7 @@ public final class RequestUtils {
     return urls;
   }
 
-  private static @NotNull Input getLinkMrl(
-      @NotNull final Format format, final boolean video) {
+  private static @NotNull Input getLinkMrl(@NotNull final Format format, final boolean video) {
     final String url = getProperUrl(format.getAcodec(), format.getVcodec(), format, video);
     return url != null ? UrlInput.ofUrl(url) : UrlInput.emptyUrl();
   }

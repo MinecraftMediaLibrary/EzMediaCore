@@ -37,6 +37,7 @@ public interface EnhancedExecution extends AutoCloseable {
 
   void log(final String line);
 
+  @NotNull
   CompletableFuture<Void> executeAsync();
 
   @NotNull

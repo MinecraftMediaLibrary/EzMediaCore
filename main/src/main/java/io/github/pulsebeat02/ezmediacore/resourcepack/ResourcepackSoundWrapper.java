@@ -98,7 +98,7 @@ public class ResourcepackSoundWrapper extends ResourcepackWrapper implements Sou
   }
 
   @Override
-  public byte[] createSoundJson() {
+  public byte @NotNull [] createSoundJson() {
     final JsonObject category = new JsonObject();
     final JsonObject type = new JsonObject();
     final JsonArray sounds = new JsonArray();

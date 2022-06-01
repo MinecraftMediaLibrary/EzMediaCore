@@ -28,7 +28,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
 import java.io.IOException;
@@ -60,6 +59,8 @@ public class HolovidHoster implements HolovidSolution {
     HTTP_CLIENT = HttpClient.newHttpClient();
   }
 
+  public HolovidHoster() {}
+
   private static Optional<HolovidResourcepackResult> getResourcpackUrlInternal(
       @NotNull final String url) {
     try {
@@ -85,9 +86,6 @@ public class HolovidHoster implements HolovidSolution {
 
   private static @NotNull BodyHandler<String> createBodyHandlerInternal() {
     return HttpResponse.BodyHandlers.ofString();
-  }
-
-  public HolovidHoster() {
   }
 
   @Override

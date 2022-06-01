@@ -21,59 +21,53 @@ import org.jetbrains.annotations.Nullable;
 public final class ScreenConfig {
 
   private final transient AtomicBoolean completion;
+  private transient VideoPlayer player;
+  private transient Input media;
+  private transient Input ogg;
+  private transient EnhancedExecution extractor;
+  private transient EnhancedExecution stream;
+  private transient CompletableFuture<Object> task;
+  private transient String packUrl;
+  private transient byte[] packHash;
+  @SerializedName(value = "dithering-algorithm")
+  private DitheringAlgorithm ditheringAlgorithm;
+  @SerializedName(value = "native-dithering")
+  private boolean nativeDithering = false;
+  @SerializedName(value = "player-algorithm")
+  private PlayerAlgorithm playerAlgorithm = PlayerAlgorithm.UNSPECIFIED;
+  @SerializedName(value = "audio-playback")
+  private AudioPlayback audioPlayback = AudioPlayback.RESOURCEPACK;
+  @SerializedName(value = "video-playback")
+  private VideoPlayback videoPlayback = VideoPlayback.ITEMFRAME;
+  @SerializedName(value = "starting-map-id")
+  private int map = 0;
+  @SerializedName(value = "itemframe-width")
+  private int itemframeWidth = 5;
+  @SerializedName(value = "itemframe-height")
+  private int itemframeHeight = 5;
+  @SerializedName(value = "resolution-width")
+  private int resolutionWidth = 640;
+  @SerializedName(value = "resolution-height")
+  private int resolutionHeight = 640;
 
   {
     this.completion = new AtomicBoolean(false);
   }
 
-  private transient VideoPlayer player;
-  private transient Input media;
-  private transient Input ogg;
-
-  private transient EnhancedExecution extractor;
-  private transient EnhancedExecution stream;
-
-  private transient CompletableFuture<Object> task;
-
-  private transient String packUrl;
-  private transient byte[] packHash;
-
-  @SerializedName(value = "dithering-algorithm")
-  private DitheringAlgorithm ditheringAlgorithm;
-
-  @SerializedName(value = "native-dithering")
-  private boolean nativeDithering = false;
-
-  @SerializedName(value = "player-algorithm")
-  private PlayerAlgorithm playerAlgorithm = PlayerAlgorithm.UNSPECIFIED;
-
-  @SerializedName(value = "audio-playback")
-  private AudioPlayback audioPlayback = AudioPlayback.RESOURCEPACK;
-
-  @SerializedName(value = "video-playback")
-  private VideoPlayback videoPlayback = VideoPlayback.ITEMFRAME;
-
-  @SerializedName(value = "starting-map-id")
-  private int map = 0;
-
-  @SerializedName(value = "itemframe-width")
-  private int itemframeWidth = 5;
-
-  @SerializedName(value = "itemframe-height")
-  private int itemframeHeight = 5;
-
-  @SerializedName(value = "resolution-width")
-  private int resolutionWidth = 640;
-
-  @SerializedName(value = "resolution-height")
-  private int resolutionHeight = 640;
-
   public @Nullable EnhancedExecution getStream() {
     return this.stream;
   }
 
+  public void setStream(final EnhancedExecution stream) {
+    this.stream = stream;
+  }
+
   public @Nullable EnhancedExecution getExtractor() {
     return this.extractor;
+  }
+
+  public void setExtractor(final EnhancedExecution extractor) {
+    this.extractor = extractor;
   }
 
   public @Nullable Input getOggMedia() {
@@ -84,8 +78,16 @@ public final class ScreenConfig {
     return this.media;
   }
 
+  public void setMedia(final Input media) {
+    this.media = media;
+  }
+
   public @Nullable VideoPlayer getPlayer() {
     return this.player;
+  }
+
+  public void setPlayer(final VideoPlayer player) {
+    this.player = player;
   }
 
   public boolean getCompletion() {
@@ -100,20 +102,40 @@ public final class ScreenConfig {
     return this.packHash;
   }
 
+  public void setPackHash(final byte[] packHash) {
+    this.packHash = packHash;
+  }
+
   public @Nullable String getPackUrl() {
     return this.packUrl;
+  }
+
+  public void setPackUrl(final String packUrl) {
+    this.packUrl = packUrl;
   }
 
   public @NotNull DitheringAlgorithm getDitheringAlgorithm() {
     return this.ditheringAlgorithm;
   }
 
+  public void setDitheringAlgorithm(final DitheringAlgorithm algorithm) {
+    this.ditheringAlgorithm = algorithm;
+  }
+
   public @NotNull AudioPlayback getAudioPlayback() {
     return this.audioPlayback;
   }
 
+  public void setAudioPlayback(@NotNull final AudioPlayback playback) {
+    this.audioPlayback = playback;
+  }
+
   public @NotNull VideoPlayback getVideoPlayback() {
     return this.videoPlayback;
+  }
+
+  public void setVideoPlayback(@NotNull final VideoPlayback playback) {
+    this.videoPlayback = playback;
   }
 
   public int getStartingMap() {
@@ -124,16 +146,32 @@ public final class ScreenConfig {
     return this.itemframeHeight;
   }
 
+  public void setItemframeHeight(final int height) {
+    this.itemframeHeight = height;
+  }
+
   public int getItemframeWidth() {
     return this.itemframeWidth;
+  }
+
+  public void setItemframeWidth(final int width) {
+    this.itemframeWidth = width;
   }
 
   public int getResolutionWidth() {
     return this.resolutionWidth;
   }
 
+  public void setResolutionWidth(final int width) {
+    this.resolutionWidth = width;
+  }
+
   public int getResolutionHeight() {
     return this.resolutionHeight;
+  }
+
+  public void setResolutionHeight(final int height) {
+    this.resolutionHeight = height;
   }
 
   public boolean mediaNotSpecified(@NotNull final Audience audience) {
@@ -148,14 +186,6 @@ public final class ScreenConfig {
     return handleNull(audience, Locale.ERR_VIDEO_NOT_LOADED.build(), this.player);
   }
 
-  public void setPlayer(final VideoPlayer player) {
-    this.player = player;
-  }
-
-  public void setExtractor(final EnhancedExecution extractor) {
-    this.extractor = extractor;
-  }
-
   public @Nullable CompletableFuture<Object> getTask() {
     return this.task;
   }
@@ -164,28 +194,8 @@ public final class ScreenConfig {
     this.task = task;
   }
 
-  public void setMedia(final Input media) {
-    this.media = media;
-  }
-
   public void setOgg(final Input ogg) {
     this.ogg = ogg;
-  }
-
-  public void setPackUrl(final String packUrl) {
-    this.packUrl = packUrl;
-  }
-
-  public void setPackHash(final byte[] packHash) {
-    this.packHash = packHash;
-  }
-
-  public void setDitheringAlgorithm(final DitheringAlgorithm algorithm) {
-    this.ditheringAlgorithm = algorithm;
-  }
-
-  public void setStream(final EnhancedExecution stream) {
-    this.stream = stream;
   }
 
   public PlayerAlgorithm getPlayerAlgorithm() {
@@ -196,39 +206,15 @@ public final class ScreenConfig {
     this.playerAlgorithm = algorithm;
   }
 
-  public void setAudioPlayback(@NotNull final AudioPlayback playback) {
-    this.audioPlayback = playback;
-  }
-
-  public void setVideoPlayback(@NotNull final VideoPlayback playback) {
-    this.videoPlayback = playback;
-  }
-
   public void setDitherMap(final int map) {
     this.map = map;
   }
 
-  public void setResolutionWidth(final int width) {
-    this.resolutionWidth = width;
-  }
-
-  public void setResolutionHeight(final int height) {
-    this.resolutionHeight = height;
-  }
-
-  public void setItemframeWidth(final int width) {
-    this.itemframeWidth = width;
-  }
-
-  public void setItemframeHeight(final int height) {
-    this.itemframeHeight = height;
+  public boolean getNativeDithering() {
+    return this.nativeDithering;
   }
 
   public void setNativeDithering(final boolean useNative) {
     this.nativeDithering = useNative;
-  }
-
-  public boolean getNativeDithering() {
-    return this.nativeDithering;
   }
 }

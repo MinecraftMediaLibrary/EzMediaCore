@@ -53,7 +53,7 @@ public abstract class PersistentObject<T> implements SerializableComponent<T> {
   }
 
   @Override
-  public List<T> deserialize() throws IOException {
+  public @NotNull List<T> deserialize() throws IOException {
     this.createFile();
     return Collections.emptyList();
   }

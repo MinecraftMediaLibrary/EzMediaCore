@@ -15,6 +15,7 @@ import java.lang.reflect.Field;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -39,13 +40,16 @@ import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.network.syncher.DataWatcherRegistry;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.network.PlayerConnection;
+import net.minecraft.world.level.saveddata.maps.MapIcon;
 import net.minecraft.world.level.saveddata.maps.WorldMap;
+import net.minecraft.world.level.saveddata.maps.WorldMap.b;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_18_R1.util.CraftChatMessage;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class NMSMapPacketInterceptor implements PacketHandler {
 
@@ -71,7 +75,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   private final MinecraftKey debugMarker;
   private final String handlerName;
 
-  public NMSMapPacketInterceptor() {
+  {
     this.channels = new ConcurrentHashMap<>();
     this.connections = new ConcurrentHashMap<>();
     this.lastUpdated = new ConcurrentHashMap<>();
@@ -120,10 +124,13 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
         new PacketPlayOutMap[(xLoopMax - xLoopMin) * (yLoopMax - yLoopMin)];
     int arrIndex = 0;
     for (int y = yLoopMin; y < yLoopMax; y++) {
+
       final int relY = y << 7;
       final int topY = Math.max(0, yOff - relY);
       final int yDiff = Math.min(128 - topY, negYOff - (relY + topY));
+
       for (int x = xLoopMin; x < xLoopMax; x++) {
+
         final int relX = x << 7;
         final int topX = Math.max(0, xOff - relX);
         final int xDiff = Math.min(128 - topX, negXOff - (relX + topX));
@@ -158,26 +165,41 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
             mapData[(iy - topY) * xDiff + ix - topX] = rgb.getByte(indexY + relX + ix - xOff);
           }
         }
+
         final int mapId = map + width * y + x;
-        final PacketPlayOutMap packet =
-            new PacketPlayOutMap(
-                mapId,
-                (byte) 0,
-                false,
-                new ArrayList<>(),
-                new WorldMap.b(topX, topY, xDiff, yDiff, mapData));
+        final byte b = (byte) 0;
+        final boolean display = false;
+        final List<MapIcon> icons = new ArrayList<>();
+        final WorldMap.b worldmap = new b(topX, topY, xDiff, yDiff, mapData);
+
+        final PacketPlayOutMap packet = new PacketPlayOutMap(mapId, b, display, icons, worldmap);
+
         packetArray[arrIndex++] = packet;
         PACKET_DIFFERENTIATION.add(packet);
       }
     }
+    this.sendMapPackets(viewers, packetArray);
+  }
+
+  private void sendMapPackets(
+      @NotNull final UUID[] viewers, @NotNull final PacketPlayOutMap[] packetArray) {
     if (viewers == null) {
-      for (final UUID uuid : this.connections.keySet()) {
-        this.sendMapPacketsToViewers(uuid, packetArray);
-      }
+      this.sendMapPacketsToAll(packetArray);
     } else {
-      for (final UUID uuid : viewers) {
-        this.sendMapPacketsToViewers(uuid, packetArray);
-      }
+      this.sendMapPacketsToSpecified(viewers, packetArray);
+    }
+  }
+
+  private void sendMapPacketsToSpecified(
+      @NotNull final UUID @NotNull [] viewers, @NotNull final PacketPlayOutMap[] packetArray) {
+    for (final UUID uuid : viewers) {
+      this.sendMapPacketsToViewers(uuid, packetArray);
+    }
+  }
+
+  private void sendMapPacketsToAll(@NotNull final PacketPlayOutMap[] packetArray) {
+    for (final UUID uuid : this.connections.keySet()) {
+      this.sendMapPacketsToViewers(uuid, packetArray);
     }
   }
 
@@ -185,47 +207,86 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   public void displayChat(
       final UUID[] viewers,
       @NotNull final IntBuffer data,
-      final String character,
+      final @NotNull String character,
       final int width,
       final int height) {
     for (int y = 0; y < height; ++y) {
-      for (final UUID uuid : viewers) {
-        final PlayerConnection connection = this.connections.get(uuid);
-        final IChatBaseComponent[] base =
-            CraftChatMessage.fromString(this.createChatComponent(character, data, width, y));
-        for (final IChatBaseComponent component : base) {
-          connection.a(new PacketPlayOutChat(component, ChatMessageType.b, SystemUtils.b));
-        }
-      }
+      this.displayToUsers(viewers, data, character, width, y);
+    }
+  }
+
+  private void displayToUsers(
+      @NotNull final UUID[] viewers,
+      @NotNull final IntBuffer data,
+      @NotNull final String character,
+      final int width,
+      final int y) {
+    for (final UUID uuid : viewers) {
+      this.displayComponent(data, character, width, y, uuid);
+    }
+  }
+
+  private void displayComponent(
+      @NotNull final IntBuffer data,
+      @NotNull final String character,
+      final int width,
+      final int y,
+      final UUID uuid) {
+    final PlayerConnection connection = this.connections.get(uuid);
+    final IChatBaseComponent[] base =
+        CraftChatMessage.fromString(this.createChatComponent(character, data, width, y));
+    for (final IChatBaseComponent component : base) {
+      connection.a(new PacketPlayOutChat(component, ChatMessageType.b, SystemUtils.b));
     }
   }
 
   @Override
   public void displayEntities(
-      final UUID[] viewers,
-      final Entity @NotNull [] entities,
+      @NotNull final UUID[] viewers,
+      @NotNull final Entity[] entities,
       @NotNull final IntBuffer data,
-      final String character,
+      final @NotNull String character,
       final int width,
       final int height) {
     final int maxHeight = Math.min(height, entities.length);
     final PacketPlayOutEntityMetadata[] packets = new PacketPlayOutEntityMetadata[maxHeight];
-    int index = 0;
+    final int index = 0;
     for (int i = 0; i < maxHeight; i++) {
-      final ChatComponentText component = new ChatComponentText("");
-      for (int x = 0; x < width; x++) {
-        this.modifyComponent(character, component, data.get(index++));
-      }
+      final ChatComponentText component = this.createComponent(data, character, width, index);
       packets[i] = this.createEntityPacket(entities[i], component);
     }
+    this.sendEntityPackets(viewers, packets);
+  }
+
+  private @NotNull ChatComponentText createComponent(
+      @NotNull final IntBuffer data, @NotNull final String character, final int width, int index) {
+    final ChatComponentText component = new ChatComponentText("");
+    for (int x = 0; x < width; x++) {
+      this.modifyComponent(character, component, data.get(index++));
+    }
+    return component;
+  }
+
+  private void sendEntityPackets(
+      @NotNull final UUID[] viewers, @NotNull final PacketPlayOutEntityMetadata[] packets) {
     if (viewers == null) {
-      for (final UUID uuid : this.connections.keySet()) {
-        this.sendEntityPacketToViewers(uuid, packets);
-      }
+      this.sendEntityPacketsToAll(packets);
     } else {
-      for (final UUID uuid : viewers) {
-        this.sendEntityPacketToViewers(uuid, packets);
-      }
+      this.sendEntityPacketsToSpecified(viewers, packets);
+    }
+  }
+
+  private void sendEntityPacketsToSpecified(
+      @NotNull final UUID @NotNull [] viewers,
+      @NotNull final PacketPlayOutEntityMetadata[] packets) {
+    for (final UUID uuid : viewers) {
+      this.sendEntityPacketToViewers(uuid, packets);
+    }
+  }
+
+  private void sendEntityPacketsToAll(@NotNull final PacketPlayOutEntityMetadata[] packets) {
+    for (final UUID uuid : this.connections.keySet()) {
+      this.sendEntityPacketToViewers(uuid, packets);
     }
   }
 
@@ -239,14 +300,19 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   @NotNull
   private PacketPlayOutEntityMetadata createEntityPacket(
       @NotNull final Entity entity, @NotNull final ChatComponentText component) {
-    final PacketPlayOutEntityMetadata packet =
-        new PacketPlayOutEntityMetadata(
-            ((CraftEntity) entity).getHandle().ae(), new DataWatcher(null), false);
-    setFinalField(
-        METADATA_ITEMS,
-        packet,
-        Collections.singletonList(
-            new Item<>(new DataWatcherObject<>(2, DataWatcherRegistry.f), Optional.of(component))));
+
+    final int id = ((CraftEntity) entity).getHandle().ae();
+    final DataWatcher watcher = new DataWatcher(null);
+    final PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata(id, watcher, false);
+
+    final Optional<IChatBaseComponent> optional = Optional.of(component);
+    final DataWatcherObject<Optional<IChatBaseComponent>> object =
+        new DataWatcherObject<>(2, DataWatcherRegistry.f);
+    final Item<Optional<IChatBaseComponent>> item = new Item<>(object, optional);
+    final List<Item<Optional<IChatBaseComponent>>> list = Collections.singletonList(item);
+
+    setFinalField(METADATA_ITEMS, packet, list);
+
     return packet;
   }
 
@@ -262,11 +328,20 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
       @NotNull final UUID uuid, @NotNull final PacketPlayOutMap[] packetArray) {
     final long val = this.lastUpdated.getOrDefault(uuid, 0L);
     if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
-      this.lastUpdated.put(uuid, System.currentTimeMillis());
       final PlayerConnection connection = this.connections.get(uuid);
-      for (final PacketPlayOutMap packet : packetArray) {
-        connection.a(packet);
-      }
+      this.updateTime(uuid);
+      this.sendSeparatePackets(packetArray, connection);
+    }
+  }
+
+  private void updateTime(@NotNull final UUID uuid) {
+    this.lastUpdated.put(uuid, System.currentTimeMillis());
+  }
+
+  private void sendSeparatePackets(
+      @NotNull final PacketPlayOutMap[] packetArray, @NotNull final PlayerConnection connection) {
+    for (final PacketPlayOutMap packet : packetArray) {
+      connection.a(packet);
     }
   }
 
@@ -274,28 +349,57 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   public void injectPlayer(@NotNull final Player player) {
     final PlayerConnection conn = ((CraftPlayer) player).getHandle().b;
     final Channel channel = conn.a.k;
+    this.addChannelPipeline(player, channel);
+    this.addConnection(player, conn);
+  }
+
+  private void addChannelPipeline(@NotNull final Player player, final Channel channel) {
     if (channel != null) {
-      this.channels.put(player.getUniqueId(), channel);
-      final ChannelPipeline pipeline = channel.pipeline();
-      if (pipeline.get(this.handlerName) != null) {
-        pipeline.remove(this.handlerName);
-      }
-      pipeline.addBefore("packet_handler", this.handlerName, new PacketInterceptor(player));
+      this.addChannel(player, channel);
+      this.removeChannelPipelineHandler(channel);
+      this.addPacketInterceptor(player, channel);
     }
+  }
+
+  private void addPacketInterceptor(@NotNull final Player player, @NotNull final Channel channel) {
+    channel.pipeline().addBefore("packet_handler", this.handlerName, new PacketInterceptor(player));
+  }
+
+  private void addChannel(@NotNull final Player player, final Channel channel) {
+    this.channels.put(player.getUniqueId(), channel);
+  }
+
+  private void addConnection(@NotNull final Player player, final PlayerConnection conn) {
     this.connections.put(player.getUniqueId(), conn);
   }
 
   @Override
   public void uninjectPlayer(@NotNull final Player player) {
     final Channel channel = ((CraftPlayer) player).getHandle().b.a.k;
-    this.channels.remove(player.getUniqueId());
+    this.removeChannel(player);
+    this.removeChannelPipeline(channel);
+    this.removeConnection(player);
+  }
+
+  private void removeChannelPipeline(@Nullable final Channel channel) {
     if (channel != null) {
-      final ChannelPipeline pipeline = channel.pipeline();
-      if (pipeline.get(this.handlerName) != null) {
-        pipeline.remove(this.handlerName);
-      }
+      this.removeChannelPipelineHandler(channel);
     }
+  }
+
+  private void removeChannelPipelineHandler(@NotNull final Channel channel) {
+    final ChannelPipeline pipeline = channel.pipeline();
+    if (pipeline.get(this.handlerName) != null) {
+      pipeline.remove(this.handlerName);
+    }
+  }
+
+  private void removeConnection(@NotNull final Player player) {
     this.connections.remove(player.getUniqueId());
+  }
+
+  private void removeChannel(@NotNull final Player player) {
+    this.channels.remove(player.getUniqueId());
   }
 
   @Override
@@ -315,10 +419,6 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
 
   @Override
   public Object onPacketInterceptOut(final Player viewer, final Object packet) {
-    //    if (PACKET_DIFFERENTIATION.contains(packet)) {
-    //      // some logic
-    //      return packet;
-    //    }
     return packet;
   }
 

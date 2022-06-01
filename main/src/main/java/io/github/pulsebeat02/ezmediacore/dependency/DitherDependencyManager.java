@@ -77,11 +77,11 @@ public final class DitherDependencyManager extends LibraryDependency {
             .build();
     try {
       loader.load(true);
-    } catch (final UnsatisfiedLinkError ignored) { // suppress because native libraries aren't supported
+    } catch (
+        final UnsatisfiedLinkError ignored) { // suppress because native libraries aren't supported
     }
   }
 
   @Override
-  public void onInstallation(@NotNull final Path path) {
-  }
+  public void onInstallation(@NotNull final Path path) {}
 }

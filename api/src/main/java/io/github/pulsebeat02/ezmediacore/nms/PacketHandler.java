@@ -58,10 +58,15 @@ import org.jetbrains.annotations.NotNull;
 public interface PacketHandler {
 
   void displayDebugMarker(
-      final UUID[] viewers, final int x, final int y, final int z, final int color, final int time);
+      @NotNull final UUID[] viewers,
+      final int x,
+      final int y,
+      final int z,
+      final int color,
+      final int time);
 
   void displayMaps(
-      final UUID[] viewers,
+      @NotNull final UUID[] viewers,
       @NotNull final BufferCarrier rgb,
       final int map,
       final int mapHeight,
@@ -71,7 +76,7 @@ public interface PacketHandler {
       final int yOffset);
 
   default void displayMaps(
-      final UUID[] viewers,
+      @NotNull final UUID[] viewers,
       @NotNull final BufferCarrier rgb,
       final int map,
       final int mapHeight,
@@ -86,23 +91,23 @@ public interface PacketHandler {
   }
 
   void displayEntities(
-      final UUID[] viewers,
-      final Entity[] entities,
+      @NotNull final UUID[] viewers,
+      @NotNull final Entity[] entities,
       @NotNull final IntBuffer data,
-      final String character,
+      @NotNull final String character,
       final int width,
       final int height);
 
   void displayChat(
-      final UUID[] viewers,
+      @NotNull final UUID[] viewers,
       @NotNull final IntBuffer data,
-      final String character,
+      @NotNull final String character,
       final int width,
       final int height);
 
   default void displayScoreboard(
-      final UUID[] viewers,
-      final Scoreboard scoreboard,
+      @NotNull final UUID[] viewers,
+      @NotNull final Scoreboard scoreboard,
       @NotNull final IntBuffer data,
       final String character,
       final int width,
@@ -135,13 +140,24 @@ public interface PacketHandler {
     int before = -1;
     final StringBuilder msg = new StringBuilder();
     for (int x = 0; x < width; ++x) {
-      final int rgb = data.get(width * y + x);
-      if (before != rgb) {
-        msg.append(ChatColor.of("#" + Integer.toHexString(rgb).substring(2)));
-      }
+      final int rgb = this.appendRGB(msg, data, width, y, before, x);
       msg.append(character);
       before = rgb;
     }
     return msg.toString();
+  }
+
+  private int appendRGB(
+      @NotNull final StringBuilder msg,
+      @NotNull final IntBuffer data,
+      final int width,
+      final int y,
+      final int before,
+      final int x) {
+    final int rgb = data.get(width * y + x);
+    if (before != rgb) {
+      msg.append(ChatColor.of("#" + Integer.toHexString(rgb).substring(2)));
+    }
+    return rgb;
   }
 }

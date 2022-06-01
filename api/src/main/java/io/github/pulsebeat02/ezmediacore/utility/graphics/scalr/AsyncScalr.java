@@ -185,6 +185,7 @@ public class AsyncScalr {
    * <p>Default value is <code>2</code>.
    */
   public static final int THREAD_COUNT = Integer.getInteger(THREAD_COUNT_PROPERTY_NAME, 2);
+
   protected static ExecutorService service;
 
   /* Initializer used to verify the THREAD_COUNT system property. */
@@ -219,7 +220,9 @@ public class AsyncScalr {
     return service;
   }
 
-  /** @see Scalr#apply(BufferedImage, BufferedImageOp...) */
+  /**
+   * @see Scalr#apply(BufferedImage, BufferedImageOp...)
+   */
   public static Future<BufferedImage> apply(final BufferedImage src, final BufferedImageOp... ops)
       throws IllegalArgumentException, ImagingOpException {
     checkService();
@@ -227,7 +230,9 @@ public class AsyncScalr {
     return service.submit(() -> Scalr.apply(src, ops));
   }
 
-  /** @see Scalr#crop(BufferedImage, int, int, BufferedImageOp...) */
+  /**
+   * @see Scalr#crop(BufferedImage, int, int, BufferedImageOp...)
+   */
   public static Future<BufferedImage> crop(
       final BufferedImage src, final int width, final int height, final BufferedImageOp... ops)
       throws IllegalArgumentException, ImagingOpException {
@@ -236,7 +241,9 @@ public class AsyncScalr {
     return service.submit(() -> Scalr.crop(src, width, height, ops));
   }
 
-  /** @see Scalr#crop(BufferedImage, int, int, int, int, BufferedImageOp...) */
+  /**
+   * @see Scalr#crop(BufferedImage, int, int, int, int, BufferedImageOp...)
+   */
   public static Future<BufferedImage> crop(
       final BufferedImage src,
       final int x,
@@ -250,7 +257,9 @@ public class AsyncScalr {
     return service.submit(() -> Scalr.crop(src, x, y, width, height, ops));
   }
 
-  /** @see Scalr#pad(BufferedImage, int, BufferedImageOp...) */
+  /**
+   * @see Scalr#pad(BufferedImage, int, BufferedImageOp...)
+   */
   public static Future<BufferedImage> pad(
       final BufferedImage src, final int padding, final BufferedImageOp... ops)
       throws IllegalArgumentException, ImagingOpException {
@@ -259,7 +268,9 @@ public class AsyncScalr {
     return service.submit(() -> Scalr.pad(src, padding, ops));
   }
 
-  /** @see Scalr#pad(BufferedImage, int, Color, BufferedImageOp...) */
+  /**
+   * @see Scalr#pad(BufferedImage, int, Color, BufferedImageOp...)
+   */
   public static Future<BufferedImage> pad(
       final BufferedImage src, final int padding, final Color color, final BufferedImageOp... ops)
       throws IllegalArgumentException, ImagingOpException {
@@ -268,7 +279,9 @@ public class AsyncScalr {
     return service.submit(() -> Scalr.pad(src, padding, color, ops));
   }
 
-  /** @see Scalr#resize(BufferedImage, int, BufferedImageOp...) */
+  /**
+   * @see Scalr#resize(BufferedImage, int, BufferedImageOp...)
+   */
   public static Future<BufferedImage> resize(
       final BufferedImage src, final int targetSize, final BufferedImageOp... ops)
       throws IllegalArgumentException, ImagingOpException {
@@ -277,7 +290,9 @@ public class AsyncScalr {
     return service.submit(() -> Scalr.resize(src, targetSize, ops));
   }
 
-  /** @see Scalr#resize(BufferedImage, Method, int, BufferedImageOp...) */
+  /**
+   * @see Scalr#resize(BufferedImage, Method, int, BufferedImageOp...)
+   */
   public static Future<BufferedImage> resize(
       final BufferedImage src,
       final Method scalingMethod,
@@ -289,7 +304,9 @@ public class AsyncScalr {
     return service.submit(() -> Scalr.resize(src, scalingMethod, targetSize, ops));
   }
 
-  /** @see Scalr#resize(BufferedImage, Mode, int, BufferedImageOp...) */
+  /**
+   * @see Scalr#resize(BufferedImage, Mode, int, BufferedImageOp...)
+   */
   public static Future<BufferedImage> resize(
       final BufferedImage src,
       final Mode resizeMode,
@@ -301,7 +318,9 @@ public class AsyncScalr {
     return service.submit(() -> Scalr.resize(src, resizeMode, targetSize, ops));
   }
 
-  /** @see Scalr#resize(BufferedImage, Method, Mode, int, BufferedImageOp...) */
+  /**
+   * @see Scalr#resize(BufferedImage, Method, Mode, int, BufferedImageOp...)
+   */
   public static Future<BufferedImage> resize(
       final BufferedImage src,
       final Method scalingMethod,
@@ -314,7 +333,9 @@ public class AsyncScalr {
     return service.submit(() -> Scalr.resize(src, scalingMethod, resizeMode, targetSize, ops));
   }
 
-  /** @see Scalr#resize(BufferedImage, int, int, BufferedImageOp...) */
+  /**
+   * @see Scalr#resize(BufferedImage, int, int, BufferedImageOp...)
+   */
   public static Future<BufferedImage> resize(
       final BufferedImage src,
       final int targetWidth,
@@ -326,7 +347,9 @@ public class AsyncScalr {
     return service.submit(() -> Scalr.resize(src, targetWidth, targetHeight, ops));
   }
 
-  /** @see Scalr#resize(BufferedImage, Method, int, int, BufferedImageOp...) */
+  /**
+   * @see Scalr#resize(BufferedImage, Method, int, int, BufferedImageOp...)
+   */
   public static Future<BufferedImage> resize(
       final BufferedImage src,
       final Method scalingMethod,
@@ -338,7 +361,9 @@ public class AsyncScalr {
     return service.submit(() -> Scalr.resize(src, scalingMethod, targetWidth, targetHeight, ops));
   }
 
-  /** @see Scalr#resize(BufferedImage, Mode, int, int, BufferedImageOp...) */
+  /**
+   * @see Scalr#resize(BufferedImage, Mode, int, int, BufferedImageOp...)
+   */
   public static Future<BufferedImage> resize(
       final BufferedImage src,
       final Mode resizeMode,
@@ -351,7 +376,9 @@ public class AsyncScalr {
     return service.submit(() -> Scalr.resize(src, resizeMode, targetWidth, targetHeight, ops));
   }
 
-  /** @see Scalr#resize(BufferedImage, Method, Mode, int, int, BufferedImageOp...) */
+  /**
+   * @see Scalr#resize(BufferedImage, Method, Mode, int, int, BufferedImageOp...)
+   */
   public static Future<BufferedImage> resize(
       final BufferedImage src,
       final Method scalingMethod,
@@ -366,7 +393,9 @@ public class AsyncScalr {
         () -> Scalr.resize(src, scalingMethod, resizeMode, targetWidth, targetHeight, ops));
   }
 
-  /** @see Scalr#rotate(BufferedImage, Rotation, BufferedImageOp...) */
+  /**
+   * @see Scalr#rotate(BufferedImage, Rotation, BufferedImageOp...)
+   */
   public static Future<BufferedImage> rotate(
       final BufferedImage src, final Rotation rotation, final BufferedImageOp... ops)
       throws IllegalArgumentException, ImagingOpException {

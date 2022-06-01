@@ -19,25 +19,25 @@ dependencies {
     // PROVIDED DEPENDENCIES / DOWNLOADED AT RUNTIME
     setOf(
         "com.mojang:authlib:1.5.26",
-        "net.dv8tion:JDA:5.0.0-alpha.6",
+        "net.dv8tion:JDA:5.0.0-alpha.11",
     ).forEach {
         compileOnly(it)
     }
 
     // MAIN SHADED DEPENDENCIES
     setOf(
-        "org.bstats:bstats-bukkit:2.2.1",
-        "net.kyori:adventure-api:4.9.3",
-        "net.kyori:adventure-platform-bukkit:4.0.1",
+        "org.bstats:bstats-bukkit:3.0.0",
+        "net.kyori:adventure-api:4.10.1",
+        "net.kyori:adventure-platform-bukkit:4.1.0",
         "com.sedmelluq:lavaplayer:1.3.78",
-        "com.github.stefvanschie.inventoryframework:IF:0.10.4"
+        "com.github.stefvanschie.inventoryframework:IF:0.10.5"
     ).forEach {
         implementation(it)
     }
 
     // BRIGADIER USE ONLY
     compileOnly("com.mojang:brigadier:1.0.18")
-    implementation("me.lucko:commodore:1.12") {
+    implementation("me.lucko:commodore:1.13") {
         exclude("com.mojang", "brigadier")
     }
 }
@@ -80,7 +80,7 @@ tasks {
         relocate("com.neovisionaries", "$libraryBase.neovisionaries")
     }
     runServer {
-       minecraftVersion.set("1.18.1")
-       debug = true
+        minecraftVersion.set("1.18.1")
+        debug = true
     }
 }

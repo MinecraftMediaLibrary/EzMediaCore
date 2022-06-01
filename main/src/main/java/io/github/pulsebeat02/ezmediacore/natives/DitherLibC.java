@@ -10,6 +10,18 @@ public interface DitherLibC extends Library {
 
   DitherLibC INSTANCE = getInstance0();
 
+  private static @Nullable DitherLibC getInstance0() {
+    try {
+      return Native.load("dither", DitherLibC.class);
+    } catch (final UnsatisfiedLinkError ignored) { // suppress as native libraries aren't supported
+    }
+    return null;
+  }
+
+  static boolean isSupported() {
+    return INSTANCE != null;
+  }
+
   @NotNull
   Pointer filterLiteDither(
       final int[] colors, final byte[] fullColors, final int[] buffer, final int width);
@@ -29,16 +41,4 @@ public interface DitherLibC extends Library {
   @NotNull
   Pointer simpleDither(
       final int[] colors, final byte[] fullColors, final int[] buffer, final int width);
-
-  private static @Nullable DitherLibC getInstance0() {
-    try {
-      return Native.load("dither", DitherLibC.class);
-    } catch (final UnsatisfiedLinkError ignored) { // suppress as native libraries aren't supported
-    }
-    return null;
-  }
-
-  static boolean isSupported() {
-    return INSTANCE != null;
-  }
 }

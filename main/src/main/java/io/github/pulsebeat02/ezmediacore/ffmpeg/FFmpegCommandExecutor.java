@@ -183,7 +183,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public CompletableFuture<Void> executeAsync() {
+  public @NotNull CompletableFuture<Void> executeAsync() {
     return CompletableFuture.runAsync(this::execute);
   }
 

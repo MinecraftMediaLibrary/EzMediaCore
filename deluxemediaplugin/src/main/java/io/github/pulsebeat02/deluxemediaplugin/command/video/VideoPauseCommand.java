@@ -23,7 +23,8 @@ public final class VideoPauseCommand implements CommandSegment.Literal<CommandSe
   private final LiteralCommandNode<CommandSender> node;
   private final ScreenConfig config;
 
-  public VideoPauseCommand(@NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig config) {
+  public VideoPauseCommand(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig config) {
     this.plugin = plugin;
     this.config = config;
     this.node =

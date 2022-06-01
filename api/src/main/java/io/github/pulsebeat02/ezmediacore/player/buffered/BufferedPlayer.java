@@ -36,6 +36,7 @@ public interface BufferedPlayer {
 
   void bufferFrames();
 
+  @NotNull
   <T> void cancelFuture(@Nullable final CompletableFuture<T> future);
 
   void startDisplayRunnable();

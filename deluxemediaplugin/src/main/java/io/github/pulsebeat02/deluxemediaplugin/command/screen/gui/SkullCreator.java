@@ -26,6 +26,13 @@ package io.github.pulsebeat02.deluxemediaplugin.command.screen.gui;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Base64;
+import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.SkullType;
@@ -34,36 +41,24 @@ import org.bukkit.block.Skull;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Base64;
-import java.util.UUID;
-
 /**
- * A library for the Bukkit API to create player skulls
- * from names, base64 strings, and texture URLs.
- * <p>
- * Does not use any NMS code, and should work across all versions.
+ * A library for the Bukkit API to create player skulls from names, base64 strings, and texture
+ * URLs.
+ *
+ * <p>Does not use any NMS code, and should work across all versions.
  *
  * @author Dean B on 12/28/2016.
  */
 public class SkullCreator {
 
-  private SkullCreator() {}
-
   private static boolean warningPosted = false;
-
   // some reflection stuff to be used when setting a skull's profile
   private static Field blockProfileField;
   private static Method metaSetProfileMethod;
   private static Field metaProfileField;
+  private SkullCreator() {}
 
-  /**
-   * Creates a player skull, should work in both legacy and new Bukkit APIs.
-   */
+  /** Creates a player skull, should work in both legacy and new Bukkit APIs. */
   public static ItemStack createSkull() {
     checkLegacy();
 
@@ -139,7 +134,7 @@ public class SkullCreator {
    * Modifies a skull to use the skin of the player with a given UUID.
    *
    * @param item The item to apply the name to. Must be a player skull.
-   * @param id   The Player's UUID.
+   * @param id The Player's UUID.
    * @return The head of the Player.
    */
   public static ItemStack itemWithUuid(final ItemStack item, final UUID id) {
@@ -157,7 +152,7 @@ public class SkullCreator {
    * Modifies a skull to use the skin at the given Mojang URL.
    *
    * @param item The item to apply the skin to. Must be a player skull.
-   * @param url  The URL of the Mojang skin.
+   * @param url The URL of the Mojang skin.
    * @return The head associated with the URL.
    */
   public static ItemStack itemWithUrl(final ItemStack item, final String url) {
@@ -170,7 +165,7 @@ public class SkullCreator {
   /**
    * Modifies a skull to use the skin based on the given base64 string.
    *
-   * @param item   The ItemStack to put the base64 onto. Must be a player skull.
+   * @param item The ItemStack to put the base64 onto. Must be a player skull.
    * @param base64 The base64 string containing the texture.
    * @return The head with a custom texture.
    */
@@ -193,7 +188,7 @@ public class SkullCreator {
    * Sets the block to a skull with the given name.
    *
    * @param block The block to set.
-   * @param name  The player to set it to.
+   * @param name The player to set it to.
    * @deprecated names don't make for good identifiers.
    */
   @Deprecated
@@ -210,7 +205,7 @@ public class SkullCreator {
    * Sets the block to a skull with the given UUID.
    *
    * @param block The block to set.
-   * @param id    The player to set it to.
+   * @param id The player to set it to.
    */
   public static void blockWithUuid(final Block block, final UUID id) {
     notNull(block, "block");
@@ -226,7 +221,7 @@ public class SkullCreator {
    * Sets the block to a skull with the skin found at the provided mojang URL.
    *
    * @param block The block to set.
-   * @param url   The mojang URL to set it to use.
+   * @param url The mojang URL to set it to use.
    */
   public static void blockWithUrl(final Block block, final String url) {
     notNull(block, "block");
@@ -238,7 +233,7 @@ public class SkullCreator {
   /**
    * Sets the block to a skull with the skin for the base64 string.
    *
-   * @param block  The block to set.
+   * @param block The block to set.
    * @param base64 The base64 to set it to use.
    */
   public static void blockWithBase64(final Block block, final String base64) {
@@ -284,10 +279,10 @@ public class SkullCreator {
 
   private static GameProfile makeProfile(final String b64) {
     // random uuid based on the b64 string
-    final UUID id = new UUID(
-        b64.substring(b64.length() - 20).hashCode(),
-        b64.substring(b64.length() - 10).hashCode()
-    );
+    final UUID id =
+        new UUID(
+            b64.substring(b64.length() - 20).hashCode(),
+            b64.substring(b64.length() - 10).hashCode());
     final GameProfile profile = new GameProfile(id, "Player");
     profile.getProperties().put("textures", new Property("textures", b64));
     return profile;
@@ -339,9 +334,12 @@ public class SkullCreator {
       Material.valueOf("SKULL");
 
       if (!warningPosted) {
-        Bukkit.getLogger().warning("SKULLCREATOR API - Using the legacy bukkit API with 1.13+ bukkit versions is not supported!");
+        Bukkit.getLogger()
+            .warning(
+                "SKULLCREATOR API - Using the legacy bukkit API with 1.13+ bukkit versions is not supported!");
         warningPosted = true;
       }
-    } catch (final NoSuchFieldException | IllegalArgumentException ignored) {}
+    } catch (final NoSuchFieldException | IllegalArgumentException ignored) {
+    }
   }
 }

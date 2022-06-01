@@ -115,7 +115,7 @@ public class EntityCallback<T extends Entity> extends FrameCallback
   }
 
   @Override
-  public void process(final int[] data) {
+  public void process(final int @NotNull [] data) {
     final long time = System.currentTimeMillis();
     final int width = this.getDimensions().getWidth();
     final UUID[] viewers = this.getWatchers().getViewers();

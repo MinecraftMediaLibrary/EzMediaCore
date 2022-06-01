@@ -32,8 +32,8 @@ public interface ConsumablePlayer {
 
   void setCustomAudioAdapter(
       @NotNull final Consumer<byte[]> audio,
-      final int blockSize,
       @NotNull final String format,
+      final int blockSize,
       final int rate,
       final int channels);
 }

@@ -58,7 +58,7 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
   }
 
   @Override
-  public void process(final int[] data) {
+  public void process(final int @NotNull [] data) {
     final long time = System.currentTimeMillis();
     final Dimension dimension = this.getDimensions();
     final UUID[] viewers = this.getWatchers().getViewers();

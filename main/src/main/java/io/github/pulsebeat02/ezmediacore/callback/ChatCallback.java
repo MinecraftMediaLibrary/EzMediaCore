@@ -50,7 +50,7 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
   }
 
   @Override
-  public void process(final int[] data) {
+  public void process(final int @NotNull [] data) {
     final long time = System.currentTimeMillis();
     final UUID[] viewers = this.getWatchers().getViewers();
     final Dimension dimension = this.getDimensions();
