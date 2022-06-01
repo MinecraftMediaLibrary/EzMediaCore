@@ -75,7 +75,7 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
     return null;
   }
 
-  private @Nullable MediaBot constructBot(
+  private @NotNull MediaBot constructBot(
       @NotNull final String token, @NotNull final String guild, @NotNull final String vc) {
     try {
       return new MediaBot(token, guild, vc);

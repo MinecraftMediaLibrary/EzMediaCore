@@ -56,6 +56,7 @@ public class SkullCreator {
   private static Field blockProfileField;
   private static Method metaSetProfileMethod;
   private static Field metaProfileField;
+
   private SkullCreator() {}
 
   /** Creates a player skull, should work in both legacy and new Bukkit APIs. */

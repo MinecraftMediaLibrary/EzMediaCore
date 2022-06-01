@@ -31,6 +31,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +63,8 @@ public class PersistentImageStorage extends PersistentObject<Image> {
   public @NotNull List<Image> deserialize() throws IOException {
     super.deserialize();
     try (final BufferedReader reader = this.createReader()) {
-      return this.read(reader);
+      final List<Image> images = this.read(reader);
+      return images == null ? new ArrayList<>() : images;
     }
   }
 

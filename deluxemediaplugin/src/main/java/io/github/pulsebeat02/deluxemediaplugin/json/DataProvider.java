@@ -59,29 +59,41 @@ public abstract class DataProvider<T> implements DataHolder<T> {
   @Override
   public void deserialize(@NotNull final T obj) {
     try (final BufferedWriter writer = Files.newBufferedWriter(this.path)) {
-      GsonProvider.getGson().toJson(obj, writer);
+      this.convertJson(obj, writer);
     } catch (final IOException e) {
       throw new AssertionError(e);
     }
+  }
+
+  private void convertJson(@NotNull final T obj, @NotNull final BufferedWriter writer) {
+    GsonProvider.getGson().toJson(obj, writer);
   }
 
   @Override
   public T serialize() {
     try {
       this.saveConfig();
-      try (final BufferedReader reader = Files.newBufferedReader(this.path.toAbsolutePath())) {
-        return GsonProvider.getGson().fromJson(reader, this.clazz);
-      }
+      return this.parseJson();
     } catch (final IOException e) {
       throw new AssertionError(e);
+    }
+  }
+
+  private @NotNull T parseJson() throws IOException {
+    try (final BufferedReader reader = Files.newBufferedReader(this.path.toAbsolutePath())) {
+      return GsonProvider.getGson().fromJson(reader, this.clazz);
     }
   }
 
   private void saveConfig() throws IOException {
     if (!Files.exists(this.path)) {
       final InputStream from = this.plugin.getBootstrap().getResource(this.name);
-      Files.copy(requireNonNull(from), this.path, StandardCopyOption.REPLACE_EXISTING);
+      this.copyFile(from);
     }
+  }
+
+  private void copyFile(@NotNull final InputStream from) throws IOException {
+    Files.copy(requireNonNull(from), this.path, StandardCopyOption.REPLACE_EXISTING);
   }
 
   @Override

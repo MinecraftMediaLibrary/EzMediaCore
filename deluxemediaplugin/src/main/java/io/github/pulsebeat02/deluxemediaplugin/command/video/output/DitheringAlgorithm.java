@@ -130,6 +130,7 @@ public enum DitheringAlgorithm {
 
   private final DitherAlgorithm algorithm;
   private final DitherAlgorithm nativeAlgorithm;
+
   DitheringAlgorithm(@NotNull final DitherAlgorithm algorithm) {
     this(algorithm, null);
   }

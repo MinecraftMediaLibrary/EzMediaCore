@@ -33,7 +33,6 @@ import io.github.pulsebeat02.ezmediacore.image.StaticImage;
 import io.github.pulsebeat02.ezmediacore.persistent.PersistentImageStorage;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -51,8 +50,7 @@ public final class PersistentPictureManager {
   }
 
   private @NotNull List<Image> getInternalImages() throws IOException {
-    final List<Image> images = this.storage.deserialize();
-    return images == null ? new ArrayList<>() : images;
+    return this.storage.deserialize();
   }
 
   private @NotNull PersistentImageStorage getPictureStorage() {

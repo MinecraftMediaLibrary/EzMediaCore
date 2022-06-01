@@ -29,24 +29,34 @@ public final class ScreenConfig {
   private transient CompletableFuture<Object> task;
   private transient String packUrl;
   private transient byte[] packHash;
+
   @SerializedName(value = "dithering-algorithm")
   private DitheringAlgorithm ditheringAlgorithm;
+
   @SerializedName(value = "native-dithering")
   private boolean nativeDithering = false;
+
   @SerializedName(value = "player-algorithm")
   private PlayerAlgorithm playerAlgorithm = PlayerAlgorithm.UNSPECIFIED;
+
   @SerializedName(value = "audio-playback")
   private AudioPlayback audioPlayback = AudioPlayback.RESOURCEPACK;
+
   @SerializedName(value = "video-playback")
   private VideoPlayback videoPlayback = VideoPlayback.ITEMFRAME;
+
   @SerializedName(value = "starting-map-id")
   private int map = 0;
+
   @SerializedName(value = "itemframe-width")
   private int itemframeWidth = 5;
+
   @SerializedName(value = "itemframe-height")
   private int itemframeHeight = 5;
+
   @SerializedName(value = "resolution-width")
   private int resolutionWidth = 640;
+
   @SerializedName(value = "resolution-height")
   private int resolutionHeight = 640;
 

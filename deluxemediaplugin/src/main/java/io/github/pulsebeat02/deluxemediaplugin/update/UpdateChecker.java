@@ -56,6 +56,10 @@ public final class UpdateChecker {
     final Audience console = this.plugin.getConsoleAudience();
     final String url =
         "https://api.spigotmc.org/legacy/update.php?resource=%d".formatted(this.resource);
+    this.fetchRequest(console, url);
+  }
+
+  private void fetchRequest(@NotNull final Audience console, @NotNull final String url) {
     try (final InputStream is = new URL(url).openStream();
         final Scanner scanner = new Scanner(is)) {
       console.sendMessage(this.getMessage(scanner.next()));

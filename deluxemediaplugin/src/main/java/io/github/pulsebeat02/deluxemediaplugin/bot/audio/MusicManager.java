@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -97,47 +98,51 @@ public class MusicManager {
         url,
         new AudioLoadResultHandler() {
           @Override
-          public void trackLoaded(final AudioTrack audioTrack) {
+          public void trackLoaded(@NotNull final AudioTrack audioTrack) {
             final AudioTrackInfo info = audioTrack.getInfo();
-            MusicManager.this
-                .musicGuildManager
-                .get(guild.getIdLong())
-                .getTrackScheduler()
-                .queueSong(audioTrack);
+            this.queueTrack(audioTrack, guild);
             if (channel != null) {
               channel.sendMessageEmbeds(DiscordLocale.LOADED_TRACK.build(info)).queue();
             }
           }
 
+          private void queueTrack(
+              @NotNull final AudioTrack audioTrack, @NotNull final Guild guild) {
+            MusicManager.this
+                .musicGuildManager
+                .get(guild.getIdLong())
+                .getTrackScheduler()
+                .queueSong(audioTrack);
+          }
+
           @Override
-          public void playlistLoaded(final AudioPlaylist audioPlaylist) {
+          public void playlistLoaded(@NotNull final AudioPlaylist audioPlaylist) {
+            final long ms = this.calculateLength(audioPlaylist);
+            this.sendEmbed(DiscordLocale.LOADED_PLAYLIST.build(ms, audioPlaylist, url));
+          }
+
+          private long calculateLength(@NotNull final AudioPlaylist audioPlaylist) {
             long ms = 0;
             for (final AudioTrack track : audioPlaylist.getTracks()) {
-              MusicManager.this
-                  .musicGuildManager
-                  .get(guild.getIdLong())
-                  .getTrackScheduler()
-                  .queueSong(track);
+              this.queueTrack(track, guild);
               ms += track.getInfo().length;
             }
-            if (channel != null) {
-              channel
-                  .sendMessageEmbeds(DiscordLocale.LOADED_PLAYLIST.build(ms, audioPlaylist, url))
-                  .queue();
-            }
+            return ms;
           }
 
           @Override
           public void noMatches() {
-            if (channel != null) {
-              channel.sendMessageEmbeds(DiscordLocale.ERR_INVALID_TRACK.build(url)).queue();
-            }
+            this.sendEmbed(DiscordLocale.ERR_INVALID_TRACK.build(url));
           }
 
           @Override
-          public void loadFailed(final FriendlyException e) {
+          public void loadFailed(@NotNull final FriendlyException e) {
+            this.sendEmbed(DiscordLocale.ERR_LAVAPLAYER.build());
+          }
+
+          private void sendEmbed(@NotNull final MessageEmbed embed) {
             if (channel != null) {
-              channel.sendMessageEmbeds(DiscordLocale.ERR_LAVAPLAYER.build()).queue();
+              channel.sendMessageEmbeds(embed).queue();
             }
           }
         });

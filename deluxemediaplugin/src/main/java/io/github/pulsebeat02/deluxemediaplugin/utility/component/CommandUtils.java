@@ -53,10 +53,18 @@ public final class CommandUtils {
 
   private static void removeAliases(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final String alias) {
-    if (knownCommands.containsKey(alias)
-        && knownCommands.get(alias).toString().contains(plugin.getBootstrap().getName())) {
+    if (containsCommand(alias) && containsPluginName(plugin, alias)) {
       knownCommands.remove(alias);
     }
+  }
+
+  private static boolean containsPluginName(
+      @NotNull final DeluxeMediaPlugin plugin, @NotNull final String alias) {
+    return knownCommands.get(alias).toString().contains(plugin.getBootstrap().getName());
+  }
+
+  private static boolean containsCommand(@NotNull final String alias) {
+    return knownCommands.containsKey(alias);
   }
 
   private static @NotNull Object getPrivateField(
