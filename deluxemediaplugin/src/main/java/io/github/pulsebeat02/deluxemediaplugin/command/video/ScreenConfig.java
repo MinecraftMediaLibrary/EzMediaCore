@@ -1,6 +1,5 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
-import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleFalse;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleNull;
 
 import com.google.gson.annotations.SerializedName;
@@ -13,14 +12,12 @@ import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class ScreenConfig {
 
-  private final transient AtomicBoolean completion;
   private transient VideoPlayer player;
   private transient Input media;
   private transient Input ogg;
@@ -60,10 +57,6 @@ public final class ScreenConfig {
   @SerializedName(value = "resolution-height")
   private int resolutionHeight = 640;
 
-  {
-    this.completion = new AtomicBoolean(false);
-  }
-
   public @Nullable EnhancedExecution getStream() {
     return this.stream;
   }
@@ -98,14 +91,6 @@ public final class ScreenConfig {
 
   public void setPlayer(final VideoPlayer player) {
     this.player = player;
-  }
-
-  public boolean getCompletion() {
-    return this.completion.get();
-  }
-
-  public void setCompletion(final boolean status) {
-    this.completion.set(status);
   }
 
   public byte @Nullable [] getPackHash() {
@@ -189,7 +174,7 @@ public final class ScreenConfig {
   }
 
   public boolean mediaProcessingIncomplete(@NotNull final Audience audience) {
-    return handleFalse(audience, Locale.ERR_VIDEO_PROCESSING.build(), this.completion.get());
+    return handleNull(audience, Locale.ERR_VIDEO_PROCESSING.build(), this.task);
   }
 
   public boolean mediaUninitialized(@NotNull final Audience audience) {

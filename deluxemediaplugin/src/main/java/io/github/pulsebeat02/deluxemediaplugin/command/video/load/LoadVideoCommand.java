@@ -72,10 +72,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
 
   private void handleVideo(@NotNull final Audience audience) {
 
-    this.setCompletion(false);
-
     final Input input = this.config.getMedia();
-
     if (this.handleUrlInput(audience, input)) {
       return;
     }
@@ -86,13 +83,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
 
     this.sendCompletionMessage(audience, input);
 
-    this.setCompletion(true);
-
     this.config.setTask(null);
-  }
-
-  private void setCompletion(final boolean completion) {
-    this.config.setCompletion(completion);
   }
 
   private void sendCompletionMessage(@NotNull final Audience audience, @NotNull final Input input) {
@@ -213,8 +204,6 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
     }
 
     audience.sendMessage(Locale.LOADED_MEDIA.build(input.getInput()));
-
-    this.config.setCompletion(true);
 
     return true;
   }
