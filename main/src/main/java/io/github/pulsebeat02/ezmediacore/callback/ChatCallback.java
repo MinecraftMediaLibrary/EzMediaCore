@@ -64,13 +64,11 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
       @NotNull final UUID[] viewers,
       @NotNull final Dimension dimension,
       @NotNull final IntBuffer data) {
-    this.getPacketHandler()
-        .displayChat(
-            this.getWatchers().getViewers(),
-            data,
-            this.character.getName(),
-            dimension.getWidth(),
-            dimension.getHeight());
+    final UUID[] watchers = this.getWatchers().getViewers();
+    final String character = this.character.getName();
+    final int width = dimension.getWidth();
+    final int height = dimension.getHeight();
+    this.getPacketHandler().displayChat(watchers, data, character, width, height);
   }
 
   @Override

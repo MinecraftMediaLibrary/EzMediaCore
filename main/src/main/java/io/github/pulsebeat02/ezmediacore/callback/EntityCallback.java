@@ -131,14 +131,9 @@ public class EntityCallback<T extends Entity> extends FrameCallback
       @NotNull final String name,
       @NotNull final IntBuffer data,
       final int width) {
-    this.getPacketHandler()
-        .displayEntities(
-            this.getWatchers().getViewers(),
-            this.entities,
-            data,
-            name,
-            width,
-            this.entities.length / width);
+    final UUID[] watchers = this.getWatchers().getViewers();
+    final int height = this.entities.length / width;
+    this.getPacketHandler().displayEntities(watchers, this.entities, data, name, width, height);
   }
 
   @Override

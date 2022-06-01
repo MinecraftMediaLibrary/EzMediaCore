@@ -66,22 +66,28 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaS
 
   @Contract("_ -> new")
   private @NotNull List<String> generateArguments(@NotNull final AudioConfiguration configuration) {
+    final String path = this.getCore().getFFmpegPath().toString();
+    final String bitrate = String.valueOf(configuration.getBitrate());
+    final String channels = String.valueOf(configuration.getChannels());
+    final String sampling = String.valueOf(configuration.getSamplingRate());
+    final String volume = String.valueOf(configuration.getVolume());
+    final String start = String.valueOf(configuration.getStartTime());
     return new ArrayList<>(
         List.of(
-            this.getCore().getFFmpegPath().toString(),
+            path,
             "-i",
             this.input,
             "-nostdin",
             "-ab",
-            String.valueOf(configuration.getBitrate()),
+            bitrate,
             "-ac",
-            String.valueOf(configuration.getChannels()),
+            channels,
             "-ar",
-            String.valueOf(configuration.getSamplingRate()),
+            sampling,
             "-vol",
-            String.valueOf(configuration.getVolume()),
+            volume,
             "-ss",
-            String.valueOf(configuration.getStartTime()),
+            start,
             "-f",
             "rtsp",
             "-rtsp_transport",

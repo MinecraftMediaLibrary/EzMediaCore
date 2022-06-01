@@ -208,6 +208,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     }
 
     args.addAll(arguments.stream().map(Object::toString).collect(Collectors.toList()));
+
     return args;
   }
 
@@ -228,16 +229,7 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
 
   private @NotNull BufferFormatCallback createBufferedCallback() {
     final Dimension dimension = VLCMediaPlayer.this.getDimensions();
-    return new BufferFormatCallback() {
-      @Override
-      public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {
-        return new RV32BufferFormat(dimension.getWidth(), dimension.getHeight());
-      }
-
-      @Override
-      public void allocatedBuffers(final ByteBuffer[] buffers) {
-      }
-    };
+    return new CustomBufferFormatCallback(dimension);
   }
 
   @Override
@@ -267,6 +259,24 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   public void setCallback(@NotNull final Callback callback) {
     super.setCallback(callback);
     this.modifyPlayerAttributes();
+  }
+
+  private record CustomBufferFormatCallback(
+      Dimension dimension) implements
+      BufferFormatCallback {
+
+    private CustomBufferFormatCallback(@NotNull final Dimension dimension) {
+      this.dimension = dimension;
+    }
+
+    @Override
+    public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {
+      return new RV32BufferFormat(this.dimension.getWidth(), this.dimension.getHeight());
+    }
+
+    @Override
+    public void allocatedBuffers(final ByteBuffer[] buffers) {
+    }
   }
 
   public static final class Builder extends VideoBuilder {

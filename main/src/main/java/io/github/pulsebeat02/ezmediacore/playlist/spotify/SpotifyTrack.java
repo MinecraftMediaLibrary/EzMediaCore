@@ -72,7 +72,8 @@ public class SpotifyTrack implements Track {
         .collect(Collectors.toList());
   }
 
-  private SpotifyArtist getInternalArtist(final ArtistSimplified simplified) {
+  @Contract("_ -> new")
+  private @NotNull SpotifyArtist getInternalArtist(final ArtistSimplified simplified) {
     try {
       return new SpotifyArtist(simplified);
     } catch (final IOException | ParseException | SpotifyWebApiException e) {

@@ -37,9 +37,7 @@ public final class ResponseUtils {
       case error, canceled -> {
         return Optional.empty();
       }
-      default -> {
-        return Optional.of(response.data());
-      }
     }
+    return Optional.of(response.data());
   }
 }

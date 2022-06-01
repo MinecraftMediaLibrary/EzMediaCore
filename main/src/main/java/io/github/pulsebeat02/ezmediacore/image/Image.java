@@ -34,6 +34,7 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
+import org.bukkit.map.MapView;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class Image implements MapImage {
@@ -101,11 +102,10 @@ public abstract class Image implements MapImage {
   @Override
   public void resetMaps() {
     for (final int map : this.maps) {
-      //noinspection deprecation
-      requireNonNull(
-              this.core.getPlugin().getServer().getMap(map), "Invalid map view %s".formatted(map))
-          .getRenderers()
-          .clear();
+      final MapView view =
+          requireNonNull(
+              this.core.getPlugin().getServer().getMap(map), "Invalid map view %s".formatted(map));
+      view.getRenderers().clear();
     }
   }
 

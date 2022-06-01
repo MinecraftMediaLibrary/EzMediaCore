@@ -46,6 +46,10 @@ public class PersistentImageStorage extends PersistentObject<Image> {
   @Override
   public void serialize(@NotNull final Collection<Image> list) throws IOException {
     super.serialize(list);
+    this.serializeWriter(list);
+  }
+
+  private void serializeWriter(@NotNull final Collection<Image> list) throws IOException {
     try (final BufferedWriter writer = this.createWriter()) {
       this.write(list, writer);
     }
@@ -62,6 +66,11 @@ public class PersistentImageStorage extends PersistentObject<Image> {
   @Override
   public @NotNull List<Image> deserialize() throws IOException {
     super.deserialize();
+    return this.deserializeReader();
+  }
+
+  @NotNull
+  private List<Image> deserializeReader() throws IOException {
     try (final BufferedReader reader = this.createReader()) {
       final List<Image> images = this.read(reader);
       return images == null ? new ArrayList<>() : images;

@@ -61,8 +61,9 @@ public class YoutubePlaylist implements Playlist {
 
   private @NotNull PlaylistInfo getInternalPlaylistResponse() {
     for (int i = 0; i < 10; i++) {
+      final RequestPlaylistInfo playlistInfo = new RequestPlaylistInfo(this.id);
       final Response<PlaylistInfo> response =
-          YoutubeProvider.getYoutubeDownloader().getPlaylistInfo(new RequestPlaylistInfo(this.id));
+          YoutubeProvider.getYoutubeDownloader().getPlaylistInfo(playlistInfo);
       final Optional<PlaylistInfo> info = ResponseUtils.getResponseResult(response);
       if (info.isPresent()) {
         return info.get();

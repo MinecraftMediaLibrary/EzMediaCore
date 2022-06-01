@@ -96,19 +96,25 @@ public class NativePluginLoader {
 
   private void addEvents(
       @NotNull final EmbeddedMediaPlayer player, @NotNull final CountDownLatch latch) {
-    player
-        .events()
-        .addMediaPlayerEventListener(
-            new MediaPlayerEventAdapter() {
-              @Override
-              public void finished(final MediaPlayer mediaPlayer) {
-                latch.countDown();
-              }
+    player.events().addMediaPlayerEventListener(new CustomMediaPlayerEventListener(latch));
+  }
 
-              @Override
-              public void error(final MediaPlayer mediaPlayer) {
-                latch.countDown();
-              }
-            });
+  private static class CustomMediaPlayerEventListener extends MediaPlayerEventAdapter {
+
+    private final CountDownLatch latch;
+
+    private CustomMediaPlayerEventListener(@NotNull final CountDownLatch latch) {
+      this.latch = latch;
+    }
+
+    @Override
+    public void finished(final MediaPlayer mediaPlayer) {
+      this.latch.countDown();
+    }
+
+    @Override
+    public void error(final MediaPlayer mediaPlayer) {
+      this.latch.countDown();
+    }
   }
 }

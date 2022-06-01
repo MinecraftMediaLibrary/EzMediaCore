@@ -55,14 +55,16 @@ public class DependencyLoader implements LibraryLoader {
   }
 
   private void downloadNativeLibraries() {
+
+    final CompletableFuture<?>[] futures = {
+      CompletableFuture.runAsync(this::installVLC, this.service),
+      CompletableFuture.runAsync(this::installFFmpeg, this.service),
+      CompletableFuture.runAsync(this::installRTSP, this.service),
+      CompletableFuture.runAsync(this::installNativeLibraries, this.service)
+    };
+
     try {
-      CompletableFuture.allOf(
-              CompletableFuture.runAsync(this::installVLC, this.service),
-              CompletableFuture.runAsync(this::installFFmpeg, this.service),
-              CompletableFuture.runAsync(this::installRTSP, this.service),
-              CompletableFuture.runAsync(this::installNativeLibraries, this.service))
-          .handle(Throwing.THROWING_FUTURE)
-          .get();
+      CompletableFuture.allOf(futures).handle(Throwing.THROWING_FUTURE).get();
     } catch (final InterruptedException | ExecutionException e) {
       throw new AssertionError(e);
     }

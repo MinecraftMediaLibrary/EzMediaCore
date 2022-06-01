@@ -79,8 +79,8 @@ public interface PacketHandler {
       @NotNull final UUID[] viewers,
       @NotNull final BufferCarrier rgb,
       final int map,
-      final int mapHeight,
       final int mapWidth,
+      final int mapHeight,
       final int videoWidth) {
     final int vidHeight = rgb.getCapacity() / videoWidth;
     final int pixW = mapWidth << 7;

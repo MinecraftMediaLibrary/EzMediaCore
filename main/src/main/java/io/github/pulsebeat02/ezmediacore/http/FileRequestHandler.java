@@ -117,28 +117,40 @@ public class FileRequestHandler implements FileRequest {
 
   @Override
   public void handleIncomingRequest() {
+
     this.daemon.onClientConnection(this.client);
-    boolean flag = false;
+
+    boolean flag;
     try (final BufferedReader in = this.createFastBufferedReader();
         final OutputStream out = this.client.getOutputStream();
         final PrintWriter pout = new PrintWriter(new OutputStreamWriter(out, "8859_1"), true)) {
-      final InetAddress address = this.client.getInetAddress();
-      if (!this.handleRequest(address, in.readLine(), pout, out)) {
-        flag = true;
-      }
+      flag = this.handleRequest(in, out, pout);
       Try.closeable(this.client);
     } catch (final IOException e) {
       flag = true;
       e.printStackTrace();
     }
+
     if (flag) {
       this.daemon.onRequestFailure(this.client);
     }
   }
 
+  private boolean handleRequest(
+      final @NotNull BufferedReader in,
+      @NotNull final OutputStream out,
+      @NotNull final PrintWriter pout)
+      throws IOException {
+    final InetAddress address = this.client.getInetAddress();
+    return !this.handleRequest(address, in.readLine(), pout, out);
+  }
+
   private @NotNull BufferedReader createFastBufferedReader() throws IOException {
-    return new BufferedReader(
-        new InputStreamReader(new FastBufferedInputStream(this.client.getInputStream()), "8859_1"));
+    final FastBufferedInputStream fastBufferedInputStream =
+        new FastBufferedInputStream(this.client.getInputStream());
+    final InputStreamReader inputStreamReader =
+        new InputStreamReader(fastBufferedInputStream, "8859_1");
+    return new BufferedReader(inputStreamReader);
   }
 
   private boolean handleRequest(
@@ -147,16 +159,21 @@ public class FileRequestHandler implements FileRequest {
       @NotNull final PrintWriter pout,
       @NotNull final OutputStream out)
       throws IOException {
+
     this.verbose("Received request '%s' from %s".formatted(request, address.toString()));
+
     final Matcher get = GET_REQUEST.matcher(request);
-    if (get.matches()) {
-      if (!this.handleGetRequest(address, out, get)) {
-        pout.println(INVALID_PATH);
-      }
-    } else {
+
+    if (!get.matches()) {
       pout.println(INVALID_PATH);
       return false;
     }
+
+    if (!this.handleGetRequest(address, out, get)) {
+      pout.println(INVALID_PATH);
+      return false;
+    }
+
     return true;
   }
 
@@ -165,14 +182,23 @@ public class FileRequestHandler implements FileRequest {
       @NotNull final OutputStream out,
       @NotNull final Matcher get)
       throws IOException {
+
     final String group = get.group(1);
     if (this.checkTreeAttack(group)) {
       return false;
     }
+
+    this.sendFile(address, out, group);
+
+    return true;
+  }
+
+  private void sendFile(
+      @NotNull final InetAddress address, @NotNull final OutputStream out, final String group)
+      throws IOException {
     final Path result = this.requestFileCallback(group);
     out.write(this.createHeader(result));
     this.sendFile(result, address, out, group);
-    return true;
   }
 
   private void sendFile(
@@ -182,10 +208,15 @@ public class FileRequestHandler implements FileRequest {
       @NotNull final String group)
       throws IOException {
     this.verbose("Request '%s' is being served to %s".formatted(group, address));
+    this.openWritableChannel(result, out);
+    this.verbose("Successfully served '%s' to %s".formatted(group, address));
+  }
+
+  private void openWritableChannel(@NotNull final Path result, @NotNull final OutputStream out)
+      throws IOException {
     try (final WritableByteChannel channel = Channels.newChannel(out)) {
       FileChannel.open(result).transferTo(0, Long.MAX_VALUE, channel);
     }
-    this.verbose("Successfully served '%s' to %s".formatted(group, address));
   }
 
   private boolean checkTreeAttack(@NotNull final String result) {

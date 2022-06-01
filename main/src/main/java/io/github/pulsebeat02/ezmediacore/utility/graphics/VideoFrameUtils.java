@@ -50,6 +50,7 @@ import org.jcodec.scale.ColorUtil;
 import org.jcodec.scale.RgbToBgr;
 import org.jetbrains.annotations.NotNull;
 
+/** Not my class, pulled from Jaffree */
 public final class VideoFrameUtils {
 
   private static final RgbToBgr RGB_TO_BGR;

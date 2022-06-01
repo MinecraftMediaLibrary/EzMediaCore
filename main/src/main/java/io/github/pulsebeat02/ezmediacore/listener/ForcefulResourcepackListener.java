@@ -59,8 +59,8 @@ public record ForcefulResourcepackListener(MediaLibraryCore core,
 
   private void sendResourcepack() {
     for (final UUID uuid : this.uuids) {
-      requireNonNull(this.core.getPlugin().getServer().getPlayer(uuid), "Player %s is not online!".formatted(uuid))
-          .setResourcePack(this.url, this.hash);
+      final Player player = requireNonNull(this.core.getPlugin().getServer().getPlayer(uuid), "Player %s is not online!".formatted(uuid));
+      player.setResourcePack(this.url, this.hash);
     }
   }
 

@@ -75,8 +75,9 @@ public class YoutubeVideo implements Video {
 
   private @NotNull VideoInfo getInternalVideoResponse() {
     for (int i = 0; i < 10; i++) {
+      final RequestVideoInfo videoInfo = new RequestVideoInfo(this.id);
       final Response<VideoInfo> response =
-          YoutubeProvider.getYoutubeDownloader().getVideoInfo(new RequestVideoInfo(this.id));
+          YoutubeProvider.getYoutubeDownloader().getVideoInfo(videoInfo);
       final Optional<VideoInfo> info = ResponseUtils.getResponseResult(response);
       if (info.isPresent()) {
         return info.get();

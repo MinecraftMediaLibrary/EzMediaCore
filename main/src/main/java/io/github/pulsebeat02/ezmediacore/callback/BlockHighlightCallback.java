@@ -28,6 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.implementation.BlockHighlightCallbackDispatcher;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import java.util.UUID;
 import org.bukkit.Location;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -70,14 +71,14 @@ public class BlockHighlightCallback extends FrameCallback
       final int @NotNull [] data) {
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
+        final UUID[] viewers = this.getWatchers().getViewers();
+        final int modifiedX = (int) (this.location.getX() - (width / 2D)) + x;
+        final int modifiedY = (int) (this.location.getY() + (height / 2D)) - y;
+        final int modifiedZ = z;
+        final int color = data[width * y + x];
+        final int newDelay = (int) (delay + 100);
         this.getPacketHandler()
-            .displayDebugMarker(
-                this.getWatchers().getViewers(),
-                (int) (this.location.getX() - (width / 2D)) + x,
-                (int) (this.location.getY() + (height / 2D)) - y,
-                z,
-                data[width * y + x],
-                (int) (delay + 100));
+            .displayDebugMarker(viewers, modifiedX, modifiedY, modifiedZ, color, newDelay);
       }
     }
   }

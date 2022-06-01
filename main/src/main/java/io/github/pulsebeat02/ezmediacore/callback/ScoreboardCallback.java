@@ -54,6 +54,7 @@ import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.utility.task.TaskUtils;
 import java.nio.IntBuffer;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -147,14 +148,11 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
       @NotNull final Viewers viewers,
       @NotNull final Dimension dimension,
       @NotNull final IntBuffer data) {
+    final UUID[] watchers = viewers.getViewers();
+    final int width = dimension.getWidth();
+    final int height = dimension.getHeight();
     this.getPacketHandler()
-        .displayScoreboard(
-            viewers.getViewers(),
-            this.scoreboard,
-            data,
-            this.name,
-            dimension.getWidth(),
-            dimension.getHeight());
+        .displayScoreboard(watchers, this.scoreboard, data, this.name, width, height);
   }
 
   @Override

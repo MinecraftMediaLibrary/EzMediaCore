@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,13 +64,10 @@ public final class ResourcepackUtils {
       @NotNull final String url,
       final byte @NotNull [] hash) {
     checkArguments(core, url, hash);
+    final Stream<? extends Player> stream =
+        core.getPlugin().getServer().getOnlinePlayers().stream();
     new ForcefulResourcepackListener(
-        core,
-        core.getPlugin().getServer().getOnlinePlayers().stream()
-            .map(Player::getUniqueId)
-            .collect(Collectors.toSet()),
-        url,
-        hash);
+        core, stream.map(Player::getUniqueId).collect(Collectors.toSet()), url, hash);
   }
 
   private static void checkArguments(

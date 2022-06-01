@@ -28,6 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.gson.Gson;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
 import java.io.IOException;
@@ -64,12 +65,12 @@ public class HolovidHoster implements HolovidSolution {
   private static Optional<HolovidResourcepackResult> getResourcpackUrlInternal(
       @NotNull final String url) {
     try {
+      final Gson gson = GsonProvider.getSimple();
+      final String request = getRequestInternal(url);
       final HolovidResourcepackResult result =
-          GsonProvider.getSimple()
-              .fromJson(getRequestInternal(url), HolovidResourcepackResult.class);
+          gson.fromJson(request, HolovidResourcepackResult.class);
       return Optional.of(result);
     } catch (final IOException | URISyntaxException | InterruptedException e) {
-      e.printStackTrace();
       return Optional.empty();
     }
   }

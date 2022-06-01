@@ -27,6 +27,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import io.github.pulsebeat02.ezmediacore.callback.implementation.MapCallbackDispatcher;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
@@ -72,15 +73,11 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
       @NotNull final UUID[] viewers,
       @NotNull final Dimension dimension,
       final int @NotNull [] data) {
-    final int width = this.blockWidth;
-    this.getPacketHandler()
-        .displayMaps(
-            viewers,
-            this.algorithm.ditherIntoMinecraft(data, width),
-            this.map,
-            dimension.getHeight(),
-            dimension.getWidth(),
-            width);
+    final int blockWidth = this.blockWidth;
+    final BufferCarrier dithered = this.algorithm.ditherIntoMinecraft(data, blockWidth);
+    final int height = dimension.getHeight();
+    final int width = dimension.getWidth();
+    this.getPacketHandler().displayMaps(viewers, dithered, this.map, width, height, blockWidth);
   }
 
   @Override
