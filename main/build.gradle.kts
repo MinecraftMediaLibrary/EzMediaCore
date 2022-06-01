@@ -14,7 +14,7 @@ dependencies {
         implementation(it)
     }
 
-    setOf("org.spigotmc:spigot-api:1.18.1-R0.1-SNAPSHOT").forEach {
+    setOf("org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT").forEach {
         compileOnlyApi(it)
     }
 
@@ -67,7 +67,7 @@ dependencies {
     // PROJECT DEPENDENCIES
     setOf(
         project(":api"),
-        project(":v1_18_R1")
+        project(":v1_18_R2")
     ).forEach {
         api(it)
     }

@@ -43,9 +43,9 @@ import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.world.level.saveddata.maps.MapIcon;
 import net.minecraft.world.level.saveddata.maps.WorldMap;
 import net.minecraft.world.level.saveddata.maps.WorldMap.b;
-import org.bukkit.craftbukkit.v1_18_R1.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_18_R1.util.CraftChatMessage;
+import org.bukkit.craftbukkit.v1_18_R2.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_18_R2.util.CraftChatMessage;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -236,7 +236,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     final IChatBaseComponent[] base =
         CraftChatMessage.fromString(this.createChatComponent(character, data, width, y));
     for (final IChatBaseComponent component : base) {
-      connection.a(new PacketPlayOutChat(component, ChatMessageType.b, SystemUtils.b));
+      connection.a(new PacketPlayOutChat(component, ChatMessageType.b, SystemUtils.c));
     }
   }
 
@@ -348,7 +348,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   @Override
   public void injectPlayer(@NotNull final Player player) {
     final PlayerConnection conn = ((CraftPlayer) player).getHandle().b;
-    final Channel channel = conn.a.k;
+    final Channel channel = conn.a.m;
     this.addChannelPipeline(player, channel);
     this.addConnection(player, conn);
   }
@@ -375,7 +375,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
 
   @Override
   public void uninjectPlayer(@NotNull final Player player) {
-    final Channel channel = ((CraftPlayer) player).getHandle().b.a.k;
+    final Channel channel = ((CraftPlayer) player).getHandle().b.a.m;
     this.removeChannel(player);
     this.removeChannelPipeline(channel);
     this.removeConnection(player);

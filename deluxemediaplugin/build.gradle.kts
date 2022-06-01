@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
 
-    compileOnly("org.spigotmc:spigot-api:1.18.1-R0.1-SNAPSHOT")
+    compileOnly("org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT")
 
     // PROJECT DEPENDENCIES
     setOf(
@@ -80,7 +80,7 @@ tasks {
         relocate("com.neovisionaries", "$libraryBase.neovisionaries")
     }
     runServer {
-        minecraftVersion.set("1.18.1")
+        minecraftVersion.set("1.18.2")
         debug = true
     }
 }

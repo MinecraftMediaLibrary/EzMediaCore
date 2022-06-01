@@ -17,8 +17,7 @@ jobs:
             - ~/.m2/
           key: v1-dependencies-{{ checksum "build.gradle.kts" }}
       - run: wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
-      - run: java -jar BuildTools.jar --rev 1.17.1
-      - run: java -jar BuildTools.jar --rev 1.18.1
+      - run: java -jar BuildTools.jar --rev 1.18.2
       - run: ./gradlew build
       - store_artifacts:
           path: deluxemediaplugin/build/libs/DeluxeMediaPlugin-all.jar
