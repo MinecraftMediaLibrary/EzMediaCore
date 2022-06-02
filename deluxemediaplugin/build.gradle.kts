@@ -19,7 +19,7 @@ dependencies {
     // PROVIDED DEPENDENCIES / DOWNLOADED AT RUNTIME
     setOf(
         "com.mojang:authlib:1.5.26",
-        "net.dv8tion:JDA:5.0.0-alpha.11",
+        "net.dv8tion:JDA:5.0.0-alpha.12",
     ).forEach {
         compileOnly(it)
     }

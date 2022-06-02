@@ -106,7 +106,7 @@ public final class LibraryDependencyManager extends LibraryDependency {
             ofArtifact("uk:co:caprica", "vlcj", "4:7:1"),
             ofArtifact("uk:co:caprica", "vlcj-natives", "4:5:0"),
             ofArtifact("com:github:sealedtx", "java-youtube-downloader", "3:0:2"),
-            ofArtifact("com:alibaba", "fastjson", "1:2:79"),
+            ofArtifact("com:alibaba", "fastjson", "1:2:83"),
             ofArtifact("net:java:dev:jna", "jna", "5:10:0"),
             ofArtifact("net:java:dev:jna", "jna-platform", "5:10:0"),
             ofArtifact("se:michaelthelin:spotify", "spotify-web-api-java", "7:0:0"),
