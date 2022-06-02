@@ -4,7 +4,7 @@
 
 ---
 
-**EzMediaCore** is a library written in Java using the Bukkit API and NMS classes to provide a
+**EzMediaCore** is a library written in Java using the Spigot API and NMS classes to provide a
 helpful tool for other media plugins to take advantage of. One of the most fascinating features
 include the ability to render **videos** on a Spigot server.
 
@@ -57,31 +57,47 @@ for examples on how to use the library. It is the plugin I used that displayed t
 
 ---
 
-### Public Testing Server
+### Fallhost Sponsorship
 
-Thanks to [Fallhost](https://fallhost.com/), they freely gave us a public test server.
-[Join our Discord server](https://discord.gg/qVhhbCWQQV) and you are able to access the IP to the
-testing server!
+I'd like to gladly thank [Fallhost](https://fallhost.com/) for sponsoring this project and giving 
+a free public test server! [Join the Discord server](https://discord.gg/qVhhbCWQQV) and you are 
+able to access the IP to the testing server!
 
 ---
 
-### Contributors/Acknowledgements
+### Contributors / Acknowledgements
 
-- [BananaPuncher714](https://github.com/BananaPuncher714) for creating MinecraftVideo, leading the
-  spark, and also providing a Floyd Steinberg dithering implementation.
-- [Jetp250](https://github.com/jetp250) for a fast dithering table class.
-- [Emilyy](https://github.com/emilyy-dev) for helping me with asynchronous tasks and implementation.
-- [Conclure](https://github.com/Conclure) for helping me migrate from maven to gradle and overall
-  big API improvements.
-- [itxfrosty](https://github.com/itxfrosty) for helping me develop a Discord bot to play music.
-- [Rouge_Ram](https://rogueram.xyz/index.html) for developing a Discord bot to use in the Pulse
-  Development Server.
-- [Fallhost](https://fallhost.com/), for allowing us to use their testing environment.
-- And also developers of the most important libraries I use, including:
-    - [VLCJ](https://github.com/caprica/vlcj) made by [caprica](https://github.com/caprica).
-    - [VLC Media Player](https://www.videolan.org/vlc/) for native backend support.
-    - [Jaffree](https://github.com/kokorin/Jaffree) made by [kokorin](https://github.com/kokorin)
-      for allowing the library to use the NUT container provided by FFmpeg.
-    - [FFmpeg](https://www.ffmpeg.org/) for native encoding related operations and backend support.
+| Developer                                                          | Contribution                                         |
+|--------------------------------------------------------------------|------------------------------------------------------|
+| [BananaPuncher714](https://github.com/BananaPuncher714)            | Created the original MinecraftVideo plugin           |
+| [Jetp250](https://github.com/jetp250)                              | Developed Floyd Steinberg dithering                  |
+| [Emilyy](https://github.com/emilyy-dev) (LuckPerms Developer)      | Assisted with implementation and testing             |
+| [Conclure](https://github.com/Conclure) (Spigot Discord Moderator) | Assisted with Maven to Gradle migration              |
+| [itxfrosty](https://github.com/itxfrosty)                          | Developed a Discord bot for music integration        |
+| [Rouge_Ram](https://rogueram.xyz/index.html)                       | Developed a Discord bot used in Pulse Development!   |
+
+| Sponsor                 | Donation                 |
+|-------------------------|--------------------------|
+| Vijay Pondini           | $10.00                   |
+| Matthew Holden          | $6.00                    |
+
+
+| Project / Dependency                                                                        | Contribution                       |
+|---------------------------------------------------------------------------------------------|------------------------------------|
+| [VLCJ](https://github.com/caprica/vlcj) made by [caprica](https://github.com/caprica)       | VLC Media Player Bindings          |
+| [VLC Media Player](https://www.videolan.org/vlc/)                                           | Native Backend Support             |
+| [Jaffree](https://github.com/kokorin/Jaffree) made by [kokorin](https://github.com/kokorin) | FFmpeg Integration (NUT Container) |
+| [FFmpeg](https://www.ffmpeg.org/)                                                           | Native Media Encoding and Decoding |
+
+
+### Projects that use EzMediaCore Code
+
+| Project                                                   | Description                            |
+|-----------------------------------------------------------|----------------------------------------|
+| [MakiDesktop](https://github.com/ayunami2000/MakiDesktop) | Controlling VNC through Minecraft Maps |
+| [MakiScreen](https://github.com/makifoxgirl/MakiScreen)   | Streaming OBS onto Minecraft Maps      |
+
+
+
 
 ---
