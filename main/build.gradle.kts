@@ -46,7 +46,7 @@ dependencies {
         "com.github.sealedtx:java-youtube-downloader:3.0.2",
         "com.alibaba:fastjson:1.2.83",
         "net.java.dev.jna:jna:5.10.0",
-        "net.java.dev.jna:jna-platform:5.10.0",
+        "net.java.dev.jna:jna-platform:5.11.0",
         "se.michaelthelin.spotify:spotify-web-api-java:7.0.0",
         "com.github.kokorin.jaffree:jaffree:2021.12.30",
         "org.jcodec:jcodec:0.2.5",
