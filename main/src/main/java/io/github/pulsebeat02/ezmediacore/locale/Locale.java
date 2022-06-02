@@ -49,9 +49,9 @@ public interface Locale {
   NullComponent SERVER_SOFTWARE_TIP = () ->
       """
 
-         As a reminder, the only server softwares supported by this library are Spigot and Paper.
+         As a reminder, the only server software supported by this library are Spigot and Paper.
          Tunity has been merged into Paper and will not be supported. Custom forks will also not
-         be supported. If you can reproduce an issue on Spigot or Paper 1.18.1, I am welcome to
+         be supported. If you can reproduce an issue on Spigot or Paper 1.18.2, I am welcome to
          accept and analyze it. Otherwise, I cannot do anything. This message is automatically
          sent to all servers.
       """;
