@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore.nms.impl.v1_18_R1;
+package io.github.pulsebeat02.ezmediacore.nms.impl.v1_18_R2;
 
 import static io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils.setFinalField;
 

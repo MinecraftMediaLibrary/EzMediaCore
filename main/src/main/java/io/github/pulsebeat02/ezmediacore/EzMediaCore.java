@@ -188,12 +188,12 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void sendWarningMessage() {
-    this.logger.warn(Locale.SERVER_SOFTWARE_TIP);
+    this.logger.warn(Locale.SERVER_SOFTWARE_TIP.build());
   }
 
   private void sendPacketCompressionTip() {
     if (this.isOnlineMode()) {
-      this.logger.warn(Locale.PACKET_COMPRESSION_TIP);
+      this.logger.warn(Locale.PACKET_COMPRESSION_TIP.build());
     }
   }
 
@@ -203,7 +203,7 @@ public final class EzMediaCore implements MediaLibraryCore {
 
   private void sendSpotifyWarningMessage(@NotNull final MediaLibraryCore core) {
     if (this.invalidSpotifyClient(core)) {
-      this.logger.warn(Locale.WARN_SPOTIFY_AUTH);
+      this.logger.warn(Locale.WARN_SPOTIFY_AUTH.build());
     }
   }
 

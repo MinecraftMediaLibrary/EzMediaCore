@@ -18,12 +18,8 @@ dependencies {
         compileOnlyApi(it)
     }
 
-    // TESTING DEPENDENCIES
-    setOf("org.junit.jupiter:junit-jupiter-engine:5.8.2").forEach {
-        testRuntimeOnly(it)
-    }
-
     setOf(
+        "org.junit.jupiter:junit-jupiter-engine:5.8.2",
         "org.junit.jupiter:junit-jupiter-api:5.4.2",
         "com.github.seeseemelk:MockBukkit-v1.17:1.7.0",
         "org.spigotmc:spigot-api:1.18.1-R0.1-SNAPSHOT"
@@ -90,7 +86,7 @@ tasks {
         relocate("com.alibaba", "$base.alibaba")
         relocate("net.sourceforge.jaad.aac", "$base.sourceforge")
         relocate("com.fasterxml", "$base.fasterxml")
-        relocate("org.apache.httpcomponents", "$base.apache.httpcomponents")
+        relocate("org.apache", "$base.apache")
         relocate("com.neovisionaries", "$base.neovisionaries")
         minimize()
     }
