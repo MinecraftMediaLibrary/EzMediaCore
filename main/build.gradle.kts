@@ -20,8 +20,8 @@ dependencies {
 
     setOf(
         "org.junit.jupiter:junit-jupiter-engine:5.8.2",
-        "org.junit.jupiter:junit-jupiter-api:5.4.2",
-        "com.github.seeseemelk:MockBukkit-v1.17:1.7.0",
+        "org.junit.jupiter:junit-jupiter-api:5.8.2",
+        "com.github.seeseemelk:MockBukkit-v1.18:2.7.0",
         "org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT"
     ).forEach {
         testImplementation(it)
@@ -41,16 +41,16 @@ dependencies {
 
     // MAIN DEPENDENCIES
     setOf(
-        "uk.co.caprica:vlcj:4.7.1",
-        "uk.co.caprica:vlcj-natives:4.5.0",
+        "uk.co.caprica:vlcj:4.7.3",
+        "uk.co.caprica:vlcj-natives:4.7.0",
         "com.github.sealedtx:java-youtube-downloader:3.0.2",
-        "com.alibaba:fastjson:1.2.83",
-        "net.java.dev.jna:jna:5.10.0",
-        "net.java.dev.jna:jna-platform:5.10.0",
-        "se.michaelthelin.spotify:spotify-web-api-java:7.0.0",
+        "com.alibaba:fastjson:2.0.6",
+        "net.java.dev.jna:jna:5.11.0",
+        "net.java.dev.jna:jna-platform:5.11.0",
+        "se.michaelthelin.spotify:spotify-web-api-java:7.1.0",
         "com.github.kokorin.jaffree:jaffree:2021.12.30",
         "org.jcodec:jcodec:0.2.5",
-        "com.github.ben-manes.caffeine:caffeine:3.0.5",
+        "com.github.ben-manes.caffeine:caffeine:3.1.1",
         "it.unimi.dsi:fastutil:8.5.8",
         "com.fasterxml.jackson.core:jackson-core:2.13.3",
         "org.apache.httpcomponents.client5:httpclient5:5.2-alpha1",
