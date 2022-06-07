@@ -21,7 +21,7 @@ dependencies {
     setOf(
         "org.junit.jupiter:junit-jupiter-engine:5.8.2",
         "org.junit.jupiter:junit-jupiter-api:5.8.2",
-        "com.github.seeseemelk:MockBukkit-v1.18:2.7.0",
+        "com.github.seeseemelk:MockBukkit-v1.18:2.22.2",
         "org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT"
     ).forEach {
         testImplementation(it)
@@ -53,7 +53,7 @@ dependencies {
         "com.github.ben-manes.caffeine:caffeine:3.1.1",
         "it.unimi.dsi:fastutil:8.5.8",
         "com.fasterxml.jackson.core:jackson-core:2.13.3",
-        "org.apache.httpcomponents.client5:httpclient5:5.2-alpha1",
+        "org.apache.httpcomponents.client5:httpclient5:5.2-beta1",
         "com.neovisionaries:nv-i18n:1.29",
     ).forEach {
         compileOnly(it)

@@ -115,7 +115,7 @@ public final class LibraryDependencyManager extends LibraryDependency {
             ofArtifact("com:github:ben-manes:caffeine", "caffeine", "3:1:1"),
             ofArtifact("it:unimi:dsi", "fastutil", "8:5:8"),
             ofArtifact("com:fasterxml:jackson:core", "jackson-core", "2:13:3"),
-            ofArtifact("org:apache:httpcomponents:client5", "httpclient5", "5.2-alpha1"),
+            ofArtifact("org:apache:httpcomponents:client5", "httpclient5", "5:2-beta1"),
             ofArtifact("com:neovisionaries", "nv-i18n", "1:29"))
         .collect(Collectors.toSet());
   }
