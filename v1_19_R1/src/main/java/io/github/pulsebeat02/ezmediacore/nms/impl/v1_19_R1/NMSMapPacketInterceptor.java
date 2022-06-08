@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore.nms.impl.v1_18_R2;
+package io.github.pulsebeat02.ezmediacore.nms.impl.v1_19_R1;
 
 import static io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils.setFinalField;
 
@@ -13,6 +13,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelPromise;
 import java.lang.reflect.Field;
 import java.nio.IntBuffer;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,12 +26,12 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.SystemUtils;
 import net.minecraft.network.PacketDataSerializer;
-import net.minecraft.network.chat.ChatBaseComponent;
-import net.minecraft.network.chat.ChatComponentText;
-import net.minecraft.network.chat.ChatHexColor;
-import net.minecraft.network.chat.ChatMessageType;
+import net.minecraft.network.chat.ChatModifier;
+import net.minecraft.network.chat.ChatSender;
+import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.network.chat.IChatBaseComponent;
-import net.minecraft.network.protocol.game.PacketPlayOutChat;
+import net.minecraft.network.chat.IChatMutableComponent;
+import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
 import net.minecraft.network.protocol.game.PacketPlayOutCustomPayload;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutMap;
@@ -40,11 +41,12 @@ import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.network.syncher.DataWatcherRegistry;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.network.PlayerConnection;
+import net.minecraft.util.MinecraftEncryption.b;
 import net.minecraft.world.level.saveddata.maps.MapIcon;
 import net.minecraft.world.level.saveddata.maps.WorldMap;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_18_R2.util.CraftChatMessage;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R1.util.CraftChatMessage;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -234,8 +236,11 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     final PlayerConnection connection = this.connections.get(uuid);
     final IChatBaseComponent[] base =
         CraftChatMessage.fromString(this.createChatComponent(character, data, width, y));
+    final Instant now = Instant.now();
+    final Optional<IChatBaseComponent> optional = Optional.empty();
     for (final IChatBaseComponent component : base) {
-      connection.a(new PacketPlayOutChat(component, ChatMessageType.b, SystemUtils.c));
+      final ChatSender sender = new ChatSender(SystemUtils.c, component);
+      connection.a(new ClientboundPlayerChatPacket(component, optional, 0, sender, now, b.a));
     }
   }
 
@@ -251,7 +256,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     final PacketPlayOutEntityMetadata[] packets = new PacketPlayOutEntityMetadata[maxHeight];
     int index = 0;
     for (int i = 0; i < maxHeight; i++) {
-      final ChatComponentText component = new ChatComponentText("");
+      final IChatMutableComponent component = IChatMutableComponent.a(ComponentContents.a);
       for (int x = 0; x < width; x++) {
         this.modifyComponent(character, component, data.get(index++));
       }
@@ -284,15 +289,32 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   }
 
   private void modifyComponent(
-      @NotNull final String character, @NotNull final ChatComponentText component, final int c) {
-    final ChatBaseComponent p = new ChatComponentText(character);
-    p.a(p.c().a(ChatHexColor.a(c & 0xFFFFFF)));
+      @NotNull final String character,
+      @NotNull final IChatMutableComponent component,
+      final int c) {
+
+    final ChatModifier modifier = ChatModifier.a;
+    modifier.a(c & 0xFFFFFF);
+
+    final IChatMutableComponent p = this.createMutableComponent(character);
+    p.a(modifier);
+
     component.a(p);
+  }
+
+  private @NotNull IChatMutableComponent createMutableComponent(@NotNull final String character) {
+    return IChatMutableComponent.a(
+        new ComponentContents() {
+          @Override
+          public String toString() {
+            return character;
+          }
+        });
   }
 
   @NotNull
   private PacketPlayOutEntityMetadata createEntityPacket(
-      @NotNull final Entity entity, @NotNull final ChatComponentText component) {
+      @NotNull final Entity entity, @NotNull final IChatMutableComponent component) {
 
     final int id = ((CraftEntity) entity).getHandle().ae();
     final DataWatcher watcher = new DataWatcher(null);
@@ -341,7 +363,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   @Override
   public void injectPlayer(@NotNull final Player player) {
     final PlayerConnection conn = ((CraftPlayer) player).getHandle().b;
-    final Channel channel = conn.a.m;
+    final Channel channel = conn.b.m;
     this.addChannelPipeline(player, channel);
     this.addConnection(player, conn);
   }
@@ -368,7 +390,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
 
   @Override
   public void uninjectPlayer(@NotNull final Player player) {
-    final Channel channel = ((CraftPlayer) player).getHandle().b.a.m;
+    final Channel channel = ((CraftPlayer) player).getHandle().b.b.m;
     this.removeChannel(player);
     this.removeChannelPipeline(channel);
     this.removeConnection(player);
