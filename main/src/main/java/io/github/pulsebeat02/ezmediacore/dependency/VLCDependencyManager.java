@@ -39,6 +39,7 @@ public final class VLCDependencyManager extends LibraryDependency {
   @Override
   public void start() throws IOException {
     VLCInstallationKit.create().start().ifPresent(this::onInstallation);
+    this.loadNativeLibVLC();
   }
 
   @Override
@@ -47,5 +48,19 @@ public final class VLCDependencyManager extends LibraryDependency {
     core.setVLCStatus(true);
     core.setVlcPath(path);
     core.getLogger().info(Locale.BINARY_PATHS.build("VLC", path));
+  }
+
+  private void loadNativeLibVLC() {
+    if (this.isSupported()) {
+      this.executePhantomPlayers();
+    }
+  }
+
+  private boolean isSupported() {
+    return this.getCore().isVLCSupported();
+  }
+
+  private void executePhantomPlayers() {
+    new NativePluginLoader(this.getCore()).executePhantomPlayers();
   }
 }

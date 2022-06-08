@@ -19,6 +19,7 @@ import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
@@ -128,7 +129,7 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
     return handleTrue(
         audience,
         Locale.ERR_INVALID_TARGET_SELECTOR.build(),
-        entities.stream().anyMatch(entity -> !(entity instanceof Player)));
+        entities.stream().anyMatch(Predicate.not(entity -> entity instanceof Player)));
   }
 
   private List<? extends Player> convert(@NotNull final List<Entity> entities) {
