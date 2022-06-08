@@ -70,7 +70,7 @@ public abstract class DataProvider<T> implements DataHolder<T> {
   }
 
   @Override
-  public T serialize() {
+  public @NotNull T serialize() {
     try {
       this.saveConfig();
       return this.parseJson();

@@ -102,9 +102,7 @@ public abstract class Image implements MapImage {
   @Override
   public void resetMaps() {
     for (final int map : this.maps) {
-      final MapView view =
-          requireNonNull(
-              this.core.getPlugin().getServer().getMap(map), "Invalid map view %s".formatted(map));
+      final MapView view = requireNonNull(this.core.getPlugin().getServer().getMap(map));
       view.getRenderers().clear();
     }
   }

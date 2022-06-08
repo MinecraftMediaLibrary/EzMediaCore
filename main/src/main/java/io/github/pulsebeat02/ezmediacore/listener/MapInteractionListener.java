@@ -47,14 +47,17 @@ public record MapInteractionListener(
 
   @EventHandler
   public void onPlayerInteract(@NotNull final HangingBreakByEntityEvent event) {
+
     final Hanging hanging = event.getEntity();
     if (!this.isItemFrame(hanging)) {
       return;
     }
+
     final ItemStack stack = ((ItemFrame) hanging).getItem();
     if (!this.isFilledMap(stack)) {
       return;
     }
+
     this.correctInteraction(event, stack);
   }
 

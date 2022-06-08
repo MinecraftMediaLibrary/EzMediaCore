@@ -73,14 +73,25 @@ public class EnhancedMapRenderer implements MapRenderer {
   @Contract(value = "_, _, _ -> new", pure = true)
   private org.bukkit.map.@NotNull MapRenderer createRenderer(
       @NotNull final BufferedImage[][] images, final int x, final int y) {
-    return new org.bukkit.map.MapRenderer() {
-      @Override
-      public void render(
-          @NotNull final MapView map,
-          @NotNull final MapCanvas canvas,
-          @NotNull final Player player) {
-        canvas.drawImage(0, 0, images[x][y]);
-      }
-    };
+    return new CustomMapRender(images, x, y);
+  }
+
+  public static class CustomMapRender extends org.bukkit.map.MapRenderer {
+
+    private final BufferedImage[][] images;
+    private final int x;
+    private final int y;
+
+    CustomMapRender(@NotNull final BufferedImage[][] images, final int x, final int y) {
+      this.images = images;
+      this.x = x;
+      this.y = y;
+    }
+
+    @Override
+    public void render(
+        @NotNull final MapView map, @NotNull final MapCanvas canvas, @NotNull final Player player) {
+      canvas.drawImage(0, 0, this.images[this.x][this.y]);
+    }
   }
 }

@@ -44,11 +44,13 @@ public class NativePluginLoader {
   }
 
   public void executePhantomPlayers() {
-    final MediaPlayerFactory factory =
-        new MediaPlayerFactory("--no-video", "--no-audio", "--verbose=0");
+
+    final String[] args = {"--no-video", "--no-audio", "--verbose=0"};
+    final MediaPlayerFactory factory = new MediaPlayerFactory(args);
     final NativeLog log = this.createLog(factory);
     final EmbeddedMediaPlayer player = factory.mediaPlayers().newEmbeddedMediaPlayer();
     final CountDownLatch latch = new CountDownLatch(1);
+
     this.addEvents(player, latch);
     this.playMedia(player);
     this.waitMedia(latch);
@@ -66,10 +68,13 @@ public class NativePluginLoader {
   }
 
   private @NotNull NativeLog createLog(@NotNull final MediaPlayerFactory factory) {
+
     final NativeLog log = factory.application().newLog();
     log.setLevel(LogLevel.DEBUG);
     log.addLogListener(this.createListener());
+
     this.core.getLogger().info(Locale.FINISHED_NATIVE_VLC_LOG_REGISTRATION);
+
     return log;
   }
 

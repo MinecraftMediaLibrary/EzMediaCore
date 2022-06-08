@@ -32,6 +32,7 @@ public interface DataHolder<T> {
 
   void deserialize(@NotNull final T obj);
 
+  @NotNull
   T serialize();
 
   @NotNull
