@@ -38,9 +38,9 @@ public final class OrderedDither implements DitherAlgorithm {
         int r = color >> 16 & 0xFF;
         int g = color >> 8 & 0xFF;
         int b = color & 0xFF;
-        r = (r += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : r < 0 ? 0 : r;
-        g = (g += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : g < 0 ? 0 : g;
-        b = (b += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : b < 0 ? 0 : b;
+        r = (r += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(r, 0);
+        g = (g += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(g, 0);
+        b = (b += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(b, 0);
         data.writeByte(this.getBestColor(r, g, b));
       }
     }
@@ -58,9 +58,9 @@ public final class OrderedDither implements DitherAlgorithm {
         int r = color >> 16 & 0xFF;
         int g = color >> 8 & 0xFF;
         int b = color & 0xFF;
-        r = (r += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : r < 0 ? 0 : r;
-        g = (g += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : g < 0 ? 0 : g;
-        b = (b += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : b < 0 ? 0 : b;
+        r = (r += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(r, 0);
+        g = (g += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(g, 0);
+        b = (b += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(b, 0);
         buffer[index] = this.getBestColorNormal(r, g, b);
       }
     }

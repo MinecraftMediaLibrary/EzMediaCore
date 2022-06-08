@@ -7,10 +7,7 @@ import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelPromise;
 import java.lang.reflect.Field;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -67,7 +64,6 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     }
   }
 
-  private final Map<UUID, Channel> channels;
   private final Map<UUID, PlayerConnection> connections;
   private final Map<UUID, Long> lastUpdated;
   private final Set<Integer> maps;
@@ -75,7 +71,6 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   private final String handlerName;
 
   {
-    this.channels = new ConcurrentHashMap<>();
     this.connections = new ConcurrentHashMap<>();
     this.lastUpdated = new ConcurrentHashMap<>();
     this.maps = new TreeSet<>();
@@ -115,8 +110,8 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     final int vidHeight = rgb.getCapacity() / videoWidth;
     final int negXOff = xOff + videoWidth;
     final int negYOff = yOff + vidHeight;
-    final int xLoopMin = Math.max(0, xOff / 128);
-    final int yLoopMin = Math.max(0, yOff / 128);
+    final int xLoopMin = Math.max(0, xOff >> 7);
+    final int yLoopMin = Math.max(0, yOff >> 7);
     final int xLoopMax = Math.min(width, (int) Math.ceil(negXOff / 128.0));
     final int yLoopMax = Math.min(height, (int) Math.ceil(negYOff / 128.0));
     final PacketPlayOutMap[] packetArray =
@@ -136,26 +131,6 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
         final int xPixMax = xDiff + topX;
         final int yPixMax = yDiff + topY;
         final byte[] mapData = new byte[xDiff * yDiff];
-
-        //        IMPLEMENTATION #1
-        //        IntStream.range(topY, yPixMax).parallel().forEach(iy -> {
-        //          final int yPos = relY + iy;
-        //          final int indexY = (yPos - yOff) * videoWidth;
-        //          IntStream.range(topX, xPixMax).parallel().forEach(ix -> {
-        //            final int val = (iy - topY) * xDiff + ix - topX;
-        //            mapData[val] = rgb.get(indexY + relX + ix - xOff);
-        //          });
-        //        });
-
-        //        IMPLEMENTATION #2
-        //        IntStream.range(topY, yPixMax).parallel().forEach(iy -> {
-        //          final int yPos = relY + iy;
-        //          final int indexY = (yPos - yOff) * videoWidth;
-        //          for (int ix = topX; ix < xPixMax; ix++) {
-        //            final int val = (iy - topY) * xDiff + ix - topX;
-        //            mapData[val] = rgb.get(indexY + relX + ix - xOff);
-        //          }
-        //        });
 
         for (int iy = topY; iy < yPixMax; iy++) {
           final int yPos = relY + iy;
@@ -342,24 +317,14 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   public void injectPlayer(@NotNull final Player player) {
     final PlayerConnection conn = ((CraftPlayer) player).getHandle().b;
     final Channel channel = conn.a.m;
-    this.addChannelPipeline(player, channel);
+    this.addChannelPipeline(channel);
     this.addConnection(player, conn);
   }
 
-  private void addChannelPipeline(@NotNull final Player player, final Channel channel) {
+  private void addChannelPipeline(final Channel channel) {
     if (channel != null) {
-      this.addChannel(player, channel);
       this.removeChannelPipelineHandler(channel);
-      this.addPacketInterceptor(player, channel);
     }
-  }
-
-  private void addPacketInterceptor(@NotNull final Player player, @NotNull final Channel channel) {
-    channel.pipeline().addBefore("packet_handler", this.handlerName, new PacketInterceptor(player));
-  }
-
-  private void addChannel(@NotNull final Player player, final Channel channel) {
-    this.channels.put(player.getUniqueId(), channel);
   }
 
   private void addConnection(@NotNull final Player player, final PlayerConnection conn) {
@@ -369,7 +334,6 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   @Override
   public void uninjectPlayer(@NotNull final Player player) {
     final Channel channel = ((CraftPlayer) player).getHandle().b.a.m;
-    this.removeChannel(player);
     this.removeChannelPipeline(channel);
     this.removeConnection(player);
   }
@@ -391,10 +355,6 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     this.connections.remove(player.getUniqueId());
   }
 
-  private void removeChannel(@NotNull final Player player) {
-    this.channels.remove(player.getUniqueId());
-  }
-
   @Override
   public boolean isMapRegistered(final int id) {
     return this.maps.contains(id);
@@ -408,42 +368,5 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   @Override
   public void registerMap(final int id) {
     this.maps.add(id);
-  }
-
-  @Override
-  public Object onPacketInterceptOut(final Player viewer, final Object packet) {
-    return packet;
-  }
-
-  @Override
-  public Object onPacketInterceptIn(final Player viewer, final Object packet) {
-    return packet;
-  }
-
-  private class PacketInterceptor extends ChannelDuplexHandler {
-
-    public final Player player;
-
-    private PacketInterceptor(final Player player) {
-      this.player = player;
-    }
-
-    @Override
-    public void channelRead(@NotNull final ChannelHandlerContext ctx, Object msg) throws Exception {
-      msg = NMSMapPacketInterceptor.this.onPacketInterceptIn(this.player, msg);
-      if (msg != null) {
-        super.channelRead(ctx, msg);
-      }
-    }
-
-    @Override
-    public void write(
-        @NotNull final ChannelHandlerContext ctx, Object msg, @NotNull final ChannelPromise promise)
-        throws Exception {
-      msg = NMSMapPacketInterceptor.this.onPacketInterceptOut(this.player, msg);
-      if (msg != null) {
-        super.write(ctx, msg, promise);
-      }
-    }
   }
 }

@@ -107,31 +107,35 @@ public final class FloydDither extends NativelySupportedDitheringAlgorithm {
           int red = rgb >> 16 & 0xFF;
           int green = rgb >> 8 & 0xFF;
           int blue = rgb & 0xFF;
-          red = (red += buf1[bufferIndex++]) > 255 ? 255 : red < 0 ? 0 : red;
-          green = (green += buf1[bufferIndex++]) > 255 ? 255 : green < 0 ? 0 : green;
-          blue = (blue += buf1[bufferIndex++]) > 255 ? 255 : blue < 0 ? 0 : blue;
+          red = (red += buf1[bufferIndex++]) > 255 ? 255 : Math.max(red, 0);
+          green = (green += buf1[bufferIndex++]) > 255 ? 255 : Math.max(green, 0);
+          blue = (blue += buf1[bufferIndex++]) > 255 ? 255 : Math.max(blue, 0);
           final int closest = this.getBestFullColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
           if (hasNextX) {
-            buf1[bufferIndex] = (int) (0.4375 * delta_r);
-            buf1[bufferIndex + 1] = (int) (0.4375 * delta_g);
-            buf1[bufferIndex + 2] = (int) (0.4375 * delta_b);
+            // 0.4375 -> 7/16
+            buf1[bufferIndex] = (delta_r >> 4) * 7;
+            buf1[bufferIndex + 1] = (delta_g >> 4) * 7;
+            buf1[bufferIndex + 2] = (delta_b >> 4) * 7;
           }
           if (hasNextY) {
             if (x > 0) {
-              buf2[bufferIndex - 6] = (int) (0.1875 * delta_r);
-              buf2[bufferIndex - 5] = (int) (0.1875 * delta_g);
-              buf2[bufferIndex - 4] = (int) (0.1875 * delta_b);
+              // 0.1875 -> 3/16
+              buf2[bufferIndex - 6] = (delta_r >> 4) * 3;
+              buf2[bufferIndex - 5] = (delta_g >> 4) * 3;
+              buf2[bufferIndex - 4] = (delta_b >> 4) * 3;
             }
-            buf2[bufferIndex - 3] = (int) (0.3125 * delta_r);
-            buf2[bufferIndex - 2] = (int) (0.3125 * delta_g);
-            buf2[bufferIndex - 1] = (int) (0.3125 * delta_b);
+            // 0.3125 -> 5/16
+            buf2[bufferIndex - 3] = (delta_r >> 4) * 5;
+            buf2[bufferIndex - 2] = (delta_g >> 4) * 5;
+            buf2[bufferIndex - 1] = (delta_b >> 4) * 5;
             if (hasNextX) {
-              buf2[bufferIndex] = (int) (0.0625 * delta_r);
-              buf2[bufferIndex + 1] = (int) (0.0625 * delta_g);
-              buf2[bufferIndex + 2] = (int) (0.0625 * delta_b);
+              // 0.0625 -> 1/16
+              buf2[bufferIndex] = delta_r >> 4;
+              buf2[bufferIndex + 1] = delta_g >> 4;
+              buf2[bufferIndex + 2] = delta_b >> 4;
             }
           }
           buffer[index] = closest;
@@ -147,31 +151,31 @@ public final class FloydDither extends NativelySupportedDitheringAlgorithm {
           int red = rgb >> 16 & 0xFF;
           int green = rgb >> 8 & 0xFF;
           int blue = rgb & 0xFF;
-          blue = (blue += buf1[bufferIndex--]) > 255 ? 255 : blue < 0 ? 0 : blue;
-          green = (green += buf1[bufferIndex--]) > 255 ? 255 : green < 0 ? 0 : green;
-          red = (red += buf1[bufferIndex--]) > 255 ? 255 : red < 0 ? 0 : red;
+          blue = (blue += buf1[bufferIndex--]) > 255 ? 255 : Math.max(blue, 0);
+          green = (green += buf1[bufferIndex--]) > 255 ? 255 : Math.max(green, 0);
+          red = (red += buf1[bufferIndex--]) > 255 ? 255 : Math.max(red, 0);
           final int closest = this.getBestFullColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
           if (hasNextX) {
-            buf1[bufferIndex] = (int) (0.4375 * delta_b);
-            buf1[bufferIndex - 1] = (int) (0.4375 * delta_g);
-            buf1[bufferIndex - 2] = (int) (0.4375 * delta_r);
+            buf1[bufferIndex] = (delta_b >> 4) * 7;
+            buf1[bufferIndex - 1] = (delta_g >> 4) * 7;
+            buf1[bufferIndex - 2] = (delta_r >> 4) * 7;
           }
           if (hasNextY) {
             if (x < widthMinus) {
-              buf2[bufferIndex + 6] = (int) (0.1875 * delta_b);
-              buf2[bufferIndex + 5] = (int) (0.1875 * delta_g);
-              buf2[bufferIndex + 4] = (int) (0.1875 * delta_r);
+              buf2[bufferIndex + 6] = (delta_b >> 4) * 3;
+              buf2[bufferIndex + 5] = (delta_g >> 4) * 3;
+              buf2[bufferIndex + 4] = (delta_r >> 4) * 3;
             }
-            buf2[bufferIndex + 3] = (int) (0.3125 * delta_b);
-            buf2[bufferIndex + 2] = (int) (0.3125 * delta_g);
-            buf2[bufferIndex + 1] = (int) (0.3125 * delta_r);
+            buf2[bufferIndex + 3] = (delta_b >> 4) * 5;
+            buf2[bufferIndex + 2] = (delta_g >> 4) * 5;
+            buf2[bufferIndex + 1] = (delta_r >> 4) * 5;
             if (hasNextX) {
-              buf2[bufferIndex] = (int) (0.0625 * delta_b);
-              buf2[bufferIndex - 1] = (int) (0.0625 * delta_g);
-              buf2[bufferIndex - 2] = (int) (0.0625 * delta_r);
+              buf2[bufferIndex] = delta_b >> 4;
+              buf2[bufferIndex - 1] = delta_g >> 4;
+              buf2[bufferIndex - 2] = delta_r >> 4;
             }
           }
           buffer[index] = closest;
@@ -203,31 +207,31 @@ public final class FloydDither extends NativelySupportedDitheringAlgorithm {
           int red = rgb >> 16 & 0xFF;
           int green = rgb >> 8 & 0xFF;
           int blue = rgb & 0xFF;
-          red = (red += buf1[bufferIndex++]) > 255 ? 255 : red < 0 ? 0 : red;
-          green = (green += buf1[bufferIndex++]) > 255 ? 255 : green < 0 ? 0 : green;
-          blue = (blue += buf1[bufferIndex++]) > 255 ? 255 : blue < 0 ? 0 : blue;
+          red = (red += buf1[bufferIndex++]) > 255 ? 255 : Math.max(red, 0);
+          green = (green += buf1[bufferIndex++]) > 255 ? 255 : Math.max(green, 0);
+          blue = (blue += buf1[bufferIndex++]) > 255 ? 255 : Math.max(blue, 0);
           final int closest = this.getBestFullColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
           if (hasNextX) {
-            buf1[bufferIndex] = (int) (0.4375 * delta_r);
-            buf1[bufferIndex + 1] = (int) (0.4375 * delta_g);
-            buf1[bufferIndex + 2] = (int) (0.4375 * delta_b);
+            buf1[bufferIndex] = (delta_r >> 4) * 7;
+            buf1[bufferIndex + 1] = (delta_g >> 4) * 7;
+            buf1[bufferIndex + 2] = (delta_b >> 4) * 7;
           }
           if (hasNextY) {
             if (x > 0) {
-              buf2[bufferIndex - 6] = (int) (0.1875 * delta_r);
-              buf2[bufferIndex - 5] = (int) (0.1875 * delta_g);
-              buf2[bufferIndex - 4] = (int) (0.1875 * delta_b);
+              buf2[bufferIndex - 6] = (delta_r >> 4) * 3;
+              buf2[bufferIndex - 5] = (delta_g >> 4) * 3;
+              buf2[bufferIndex - 4] = (delta_b >> 4) * 3;
             }
-            buf2[bufferIndex - 3] = (int) (0.3125 * delta_r);
-            buf2[bufferIndex - 2] = (int) (0.3125 * delta_g);
-            buf2[bufferIndex - 1] = (int) (0.3125 * delta_b);
+            buf2[bufferIndex - 3] = (delta_r >> 4) * 5;
+            buf2[bufferIndex - 2] = (delta_g >> 4) * 5;
+            buf2[bufferIndex - 1] = (delta_b >> 4) * 5;
             if (hasNextX) {
-              buf2[bufferIndex] = (int) (0.0625 * delta_r);
-              buf2[bufferIndex + 1] = (int) (0.0625 * delta_g);
-              buf2[bufferIndex + 2] = (int) (0.0625 * delta_b);
+              buf2[bufferIndex] = delta_r >> 4;
+              buf2[bufferIndex + 1] = delta_g >> 4;
+              buf2[bufferIndex + 2] = delta_b >> 4;
             }
           }
           data.setByte(index, this.getBestColor(closest));
@@ -243,31 +247,31 @@ public final class FloydDither extends NativelySupportedDitheringAlgorithm {
           int red = rgb >> 16 & 0xFF;
           int green = rgb >> 8 & 0xFF;
           int blue = rgb & 0xFF;
-          blue = (blue += buf1[bufferIndex--]) > 255 ? 255 : blue < 0 ? 0 : blue;
-          green = (green += buf1[bufferIndex--]) > 255 ? 255 : green < 0 ? 0 : green;
-          red = (red += buf1[bufferIndex--]) > 255 ? 255 : red < 0 ? 0 : red;
+          blue = (blue += buf1[bufferIndex--]) > 255 ? 255 : Math.max(blue, 0);
+          green = (green += buf1[bufferIndex--]) > 255 ? 255 : Math.max(green, 0);
+          red = (red += buf1[bufferIndex--]) > 255 ? 255 : Math.max(red, 0);
           final int closest = this.getBestFullColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
           if (hasNextX) {
-            buf1[bufferIndex] = (int) (0.4375 * delta_b);
-            buf1[bufferIndex - 1] = (int) (0.4375 * delta_g);
-            buf1[bufferIndex - 2] = (int) (0.4375 * delta_r);
+            buf1[bufferIndex] = (delta_b >> 4) * 7;
+            buf1[bufferIndex - 1] = (delta_g >> 4) * 7;
+            buf1[bufferIndex - 2] = (delta_r >> 4) * 7;
           }
           if (hasNextY) {
             if (x < widthMinus) {
-              buf2[bufferIndex + 6] = (int) (0.1875 * delta_b);
-              buf2[bufferIndex + 5] = (int) (0.1875 * delta_g);
-              buf2[bufferIndex + 4] = (int) (0.1875 * delta_r);
+              buf2[bufferIndex + 6] = (delta_b >> 4) * 3;
+              buf2[bufferIndex + 5] = (delta_g >> 4) * 3;
+              buf2[bufferIndex + 4] = (delta_r >> 4) * 3;
             }
-            buf2[bufferIndex + 3] = (int) (0.3125 * delta_b);
-            buf2[bufferIndex + 2] = (int) (0.3125 * delta_g);
-            buf2[bufferIndex + 1] = (int) (0.3125 * delta_r);
+            buf2[bufferIndex + 3] = (delta_b >> 4) * 5;
+            buf2[bufferIndex + 2] = (delta_g >> 4) * 5;
+            buf2[bufferIndex + 1] = (delta_r >> 4) * 5;
             if (hasNextX) {
-              buf2[bufferIndex] = (int) (0.0625 * delta_b);
-              buf2[bufferIndex - 1] = (int) (0.0625 * delta_g);
-              buf2[bufferIndex - 2] = (int) (0.0625 * delta_r);
+              buf2[bufferIndex] = delta_b >> 4;
+              buf2[bufferIndex - 1] = delta_g >> 4;
+              buf2[bufferIndex - 2] = delta_r >> 4;
             }
           }
           data.setByte(index, this.getBestColor(closest));

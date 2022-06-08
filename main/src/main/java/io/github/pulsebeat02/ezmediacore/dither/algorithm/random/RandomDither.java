@@ -80,9 +80,9 @@ public final class RandomDither extends NativelySupportedDitheringAlgorithm {
         int r = (color >> 16) & 0xFF;
         int g = (color >> 8) & 0xFF;
         int b = (color) & 0xFF;
-        r = (r += this.random()) > 255 ? 255 : r < 0 ? 0 : r;
-        g = (g += this.random()) > 255 ? 255 : g < 0 ? 0 : g;
-        b = (b += this.random()) > 255 ? 255 : b < 0 ? 0 : b;
+        r = (r += this.random()) > 255 ? 255 : Math.max(r, 0);
+        g = (g += this.random()) > 255 ? 255 : Math.max(g, 0);
+        b = (b += this.random()) > 255 ? 255 : Math.max(b, 0);
         data.setByte(index, this.getBestColor(r, g, b));
       }
     }

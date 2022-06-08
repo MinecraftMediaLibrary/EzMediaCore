@@ -131,10 +131,6 @@ public interface PacketHandler {
 
   void registerMap(final int id);
 
-  Object onPacketInterceptOut(final Player viewer, final Object packet);
-
-  Object onPacketInterceptIn(final Player viewer, final Object packet);
-
   default @NotNull String createChatComponent(
       final String character, @NotNull final IntBuffer data, final int width, final int y) {
     int before = -1;
