@@ -32,13 +32,5 @@ public class ImageTest {
     frame.pack();
     frame.setVisible(true);
 
-    //    System.out.println(Arrays.toString(rgb));
-    //    for (int i = 0; i < rgb.length; i++) {
-    //      final int color = rgb[i];
-    //      final int old = original[i];
-    //      if (color != old) {
-    //        System.out.printf("Index: %d mismatch [%d,%d]%n", i, color, old);
-    //      }
-    //    }
   }
 }

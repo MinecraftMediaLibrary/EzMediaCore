@@ -49,6 +49,7 @@ public final class SetPlayerCommand implements CommandSegment.Literal<CommandSen
     return builder.buildFuture();
   }
 
+  @SuppressWarnings("OptionalGetWithoutIsPresent")
   private int setPlayer(@NotNull final CommandContext<CommandSender> context) {
 
     final Audience audience = this.plugin.audience().sender(context.getSource());

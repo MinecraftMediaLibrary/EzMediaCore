@@ -14,7 +14,6 @@ import org.jcodec.api.FrameGrab;
 import org.jcodec.common.model.Picture;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings("deprecation")
 public class JCodecFrameConsumer implements Runnable {
 
   private final JCodecMediaPlayer player;

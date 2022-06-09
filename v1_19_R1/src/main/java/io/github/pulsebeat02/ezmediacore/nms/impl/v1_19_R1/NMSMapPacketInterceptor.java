@@ -49,6 +49,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings("CommentedOutCode")
 public final class NMSMapPacketInterceptor implements PacketHandler {
 
   private static final int PACKET_THRESHOLD_MS;

@@ -25,7 +25,7 @@ public final class ArgumentUtils {
   public static <T> boolean handleEmptyOptional(
       @NotNull final Audience audience,
       @NotNull final Component component,
-      @NotNull final Optional<T> optional) {
+      @SuppressWarnings("OptionalUsedAsFieldOrParameterType") @NotNull final Optional<T> optional) {
     if (optional.isEmpty()) {
       audience.sendMessage(component);
       return true;

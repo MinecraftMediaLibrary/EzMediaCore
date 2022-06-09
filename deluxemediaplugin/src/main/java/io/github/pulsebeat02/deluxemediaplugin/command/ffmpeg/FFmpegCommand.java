@@ -38,20 +38,19 @@ import org.jetbrains.annotations.NotNull;
 public final class FFmpegCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> node;
-  private final FFmpegCommandExecutor ffmpeg;
 
   public FFmpegCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "ffmpeg", executor, "deluxemediaplugin.command.ffmpeg");
-    this.ffmpeg = FFmpegCommandExecutor.ofFFmpegExecutor(plugin.library());
+    final FFmpegCommandExecutor ffmpeg = FFmpegCommandExecutor.ofFFmpegExecutor(plugin.library());
     this.node =
         this.literal(this.getName())
             .requires(super::testPermission)
-            .then(new FFmpegResetCommand(plugin, this.ffmpeg).getNode())
-            .then(new FFmpegAddArgumentCommand(plugin, this.ffmpeg).getNode())
-            .then(new FFmpegRemoveArgumentCommand(plugin, this.ffmpeg).getNode())
-            .then(new FFmpegListArgumentsCommand(plugin, this.ffmpeg).getNode())
-            .then(new FFmpegRunCommand(plugin, this.ffmpeg).getNode())
+            .then(new FFmpegResetCommand(plugin, ffmpeg).getNode())
+            .then(new FFmpegAddArgumentCommand(plugin, ffmpeg).getNode())
+            .then(new FFmpegRemoveArgumentCommand(plugin, ffmpeg).getNode())
+            .then(new FFmpegListArgumentsCommand(plugin, ffmpeg).getNode())
+            .then(new FFmpegRunCommand(plugin, ffmpeg).getNode())
             .build();
   }
 

@@ -49,6 +49,7 @@ public final class SetDitheringAlgorithmCommand implements CommandSegment.Litera
     return builder.buildFuture();
   }
 
+  @SuppressWarnings("OptionalGetWithoutIsPresent")
   private int setDitheringAlgorithm(final CommandContext<CommandSender> context) {
 
     final Audience audience = this.plugin.audience().sender(context.getSource());

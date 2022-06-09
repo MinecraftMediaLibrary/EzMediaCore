@@ -14,22 +14,21 @@ import org.jetbrains.annotations.NotNull;
 public final class VideoCommand extends BaseCommand {
 
   private final LiteralCommandNode<CommandSender> node;
-  private final ScreenConfig config;
 
   public VideoCommand(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final TabExecutor executor) {
     super(plugin, "video", executor, "deluxemediaplugin.command.video", "");
-    this.config = plugin.getScreenConfig();
+    final ScreenConfig config = plugin.getScreenConfig();
     this.node =
         this.literal(this.getName())
             .requires(super::testPermission)
-            .then(new LoadVideoCommand(plugin, this.config).getNode())
+            .then(new LoadVideoCommand(plugin, config).getNode())
             .then(new VideoDumpThreadsCommand(plugin).getNode())
-            .then(new VideoPauseCommand(plugin, this.config).getNode())
-            .then(new VideoDestroyCommand(plugin, this.config).getNode())
-            .then(new VideoCancelProcessingCommand(plugin, this.config).getNode())
-            .then(new VideoPlayCommand(plugin, this.config).getNode())
-            .then(new VideoResourcepackCommand(plugin, this.config).getNode())
+            .then(new VideoPauseCommand(plugin, config).getNode())
+            .then(new VideoDestroyCommand(plugin, config).getNode())
+            .then(new VideoCancelProcessingCommand(plugin, config).getNode())
+            .then(new VideoPlayCommand(plugin, config).getNode())
+            .then(new VideoResourcepackCommand(plugin, config).getNode())
             .build();
   }
 

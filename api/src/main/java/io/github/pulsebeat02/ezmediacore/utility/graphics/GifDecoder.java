@@ -42,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
 public final class GifDecoder {
 
   public static GifImage read(final byte[] in) throws IOException {
-    final GifDecoder decoder = new GifDecoder();
     final GifImage img = new GifImage();
     GifFrame frame = null; // Currently, open frame
     int pos = readHeader(in, img); // Read header, get next byte position

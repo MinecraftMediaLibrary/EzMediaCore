@@ -49,6 +49,7 @@ public final class SetAudioPlaybackCommand implements CommandSegment.Literal<Com
     return builder.buildFuture();
   }
 
+  @SuppressWarnings("OptionalGetWithoutIsPresent")
   private int setAudioPlayback(final CommandContext<CommandSender> context) {
 
     final Audience audience = this.plugin.audience().sender(context.getSource());

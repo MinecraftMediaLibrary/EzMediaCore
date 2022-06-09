@@ -74,11 +74,10 @@ public class BlockHighlightCallback extends FrameCallback
         final UUID[] viewers = this.getWatchers().getViewers();
         final int modifiedX = (int) (this.location.getX() - (width / 2D)) + x;
         final int modifiedY = (int) (this.location.getY() + (height / 2D)) - y;
-        final int modifiedZ = z;
         final int color = data[width * y + x];
         final int newDelay = (int) (delay + 100);
         this.getPacketHandler()
-            .displayDebugMarker(viewers, modifiedX, modifiedY, modifiedZ, color, newDelay);
+            .displayDebugMarker(viewers, modifiedX, modifiedY, z, color, newDelay);
       }
     }
   }

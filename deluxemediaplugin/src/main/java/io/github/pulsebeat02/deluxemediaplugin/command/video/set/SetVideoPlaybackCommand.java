@@ -48,6 +48,7 @@ public final class SetVideoPlaybackCommand implements CommandSegment.Literal<Com
     return builder.buildFuture();
   }
 
+  @SuppressWarnings("OptionalGetWithoutIsPresent")
   private int setVideoPlayback(final CommandContext<CommandSender> context) {
 
     final Audience audience = this.plugin.audience().sender(context.getSource());

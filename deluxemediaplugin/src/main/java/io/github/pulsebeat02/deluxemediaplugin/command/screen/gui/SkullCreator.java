@@ -174,11 +174,10 @@ public class SkullCreator {
     notNull(item, "item");
     notNull(base64, "base64");
 
-    if (!(item.getItemMeta() instanceof SkullMeta)) {
+    if (!(item.getItemMeta() instanceof final SkullMeta meta)) {
       throw new IllegalArgumentException("ItemStack not type SkullMeta!");
     }
 
-    final SkullMeta meta = (SkullMeta) item.getItemMeta();
     mutateItemMeta(meta, base64);
     item.setItemMeta(meta);
 
@@ -274,7 +273,7 @@ public class SkullCreator {
     } catch (final URISyntaxException e) {
       throw new RuntimeException(e);
     }
-    final String toEncode = "{\"textures\":{\"SKIN\":{\"url\":\"" + actualUrl.toString() + "\"}}}";
+    final String toEncode = "{\"textures\":{\"SKIN\":{\"url\":\"" + actualUrl + "\"}}}";
     return Base64.getEncoder().encodeToString(toEncode.getBytes());
   }
 
@@ -326,7 +325,6 @@ public class SkullCreator {
 
   // suppress warning since PLAYER_HEAD doesn't exist in 1.12.2,
   // but we expect this and catch the error at runtime.
-  @SuppressWarnings("JavaReflectionMemberAccess")
   private static void checkLegacy() {
     try {
       // if both of these succeed, then we are running

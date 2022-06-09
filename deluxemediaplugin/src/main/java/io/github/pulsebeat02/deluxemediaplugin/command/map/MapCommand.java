@@ -102,9 +102,8 @@ public final class MapCommand extends BaseCommand {
       @NotNull final CommandContext<CommandSender> context,
       final Player sender,
       final Audience audience) {
-    final Player player = sender;
     this.extractData(audience, context.getArgument("ids", String.class).split("-"))
-        .ifPresent(pair -> this.giveMaps(player, audience, pair.getKey(), pair.getValue()));
+        .ifPresent(pair -> this.giveMaps(sender, audience, pair.getKey(), pair.getValue()));
   }
 
   private Optional<Pair<Integer, Integer>> extractData(
