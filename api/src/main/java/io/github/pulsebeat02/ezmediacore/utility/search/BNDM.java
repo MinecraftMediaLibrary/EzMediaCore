@@ -180,26 +180,4 @@ public class BNDM extends StringSearch {
 
     return -1;
   }
-
-  /**
-   * Returns the smaller of two <code>char</code>s.
-   *
-   * @param one the first <code>char</code>
-   * @param two the second <code>char</code>
-   * @return the smaller <code>char</code>
-   */
-  final char min(final char one, final char two) {
-    return one < two ? one : two;
-  }
-
-  /**
-   * Returns the larger of two <code>char</code>s.
-   *
-   * @param one the first <code>char</code>
-   * @param two the second <code>char</code>
-   * @return the larger <code>char</code>
-   */
-  final char max(final char one, final char two) {
-    return one > two ? one : two;
-  }
 }
