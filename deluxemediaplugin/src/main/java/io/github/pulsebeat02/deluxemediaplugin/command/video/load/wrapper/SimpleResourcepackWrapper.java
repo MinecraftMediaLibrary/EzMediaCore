@@ -74,7 +74,7 @@ public final class SimpleResourcepackWrapper {
     return wrapper;
   }
 
-  private @NotNull HttpServer startDaemon() {
+  private @NotNull HttpServer startDaemon() throws IOException {
     final HttpServer daemon = this.plugin.getHttpServer();
     if (!daemon.isRunning()) {
       daemon.startServer();

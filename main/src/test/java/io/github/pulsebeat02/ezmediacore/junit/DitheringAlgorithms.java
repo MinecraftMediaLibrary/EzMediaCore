@@ -207,7 +207,7 @@ public final class DitheringAlgorithms {
       FileUtils.createDirectoryIfNotExists(dir);
       ImageIO.write(image, "png", dir.resolve("%s.png".formatted(name)).toFile());
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 }

@@ -30,6 +30,7 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipHeader;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipRequest;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
+import io.github.pulsebeat02.ezmediacore.utility.concurrency.ThrowingRunnable;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -105,33 +106,24 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   }
 
   @Override
-  public void start() {
+  public void start() throws IOException {
     this.onServerStart();
     this.openServerSocket();
     this.handleServerRequests();
   }
 
-  private void openServerSocket() {
-    this.running.set(true);
-    try {
-      this.socket = new ServerSocket(this.port);
-      this.socket.setReuseAddress(true);
-    } catch (final IOException e) {
-      throw new AssertionError(e);
-    }
+  private void openServerSocket() throws IOException {
+    this.socket = new ServerSocket(this.port);
+    this.socket.setReuseAddress(true);
   }
 
   private void handleServerRequests() {
-    CompletableFuture.runAsync(this::requestHandler, this.executor);
+    CompletableFuture.runAsync((ThrowingRunnable) this::requestHandler, this.executor);
   }
 
-  private void requestHandler() {
-    try {
-      while (this.running.get()) {
-        this.handleRequest();
-      }
-    } catch (final IOException e) {
-      throw new AssertionError(e);
+  private void requestHandler() throws IOException {
+    while (this.running.get()) {
+      this.handleRequest();
     }
   }
 

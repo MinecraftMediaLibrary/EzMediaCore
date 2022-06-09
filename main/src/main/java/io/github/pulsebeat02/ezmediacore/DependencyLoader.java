@@ -72,7 +72,7 @@ public class DependencyLoader implements LibraryLoader {
       final CompletableFuture<?> dependencies = CompletableFuture.runAsync(runnable, this.service);
       dependencies.get();
     } catch (final InterruptedException | ExecutionException e) {
-      e.printStackTrace();
+      throw new AssertionError(e);
     }
   }
 

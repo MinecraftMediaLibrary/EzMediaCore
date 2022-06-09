@@ -23,10 +23,10 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
+import com.google.common.collect.Lists;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.format.FormatterProvider;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.jetbrains.annotations.Contract;
@@ -83,8 +83,8 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
   private @NotNull List<String> generateArguments() {
     final String path = this.getCore().getFFmpegPath().toString();
     final String time = FormatterProvider.FFMPEG_TIME_FORMATTER.format(new Date(this.ms));
-    return new ArrayList<>(
-        List.of(path, "-ss", time, "-to", "99:99:99.999", "-i", this.input, this.output));
+    return Lists.newArrayList(
+        path, "-ss", time, "-to", "99:99:99.999", "-i", this.input, this.output);
   }
 
   @Override

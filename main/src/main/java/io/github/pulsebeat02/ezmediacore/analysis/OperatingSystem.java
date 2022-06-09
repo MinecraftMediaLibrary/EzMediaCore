@@ -38,10 +38,12 @@ public final class OperatingSystem implements OperatingSystemInfo {
   private final String linuxDistro;
 
   public OperatingSystem() {
-    this.os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
-    this.osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+    final String name = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+    final String version = System.getProperty("os.version").toLowerCase(Locale.ROOT);
+    this.os = name;
+    this.osName = name;
     this.type = this.isWin() ? OSType.WINDOWS : this.isLinux() ? OSType.UNIX : OSType.MAC;
-    this.version = System.getProperty("os.version").toLowerCase(Locale.ROOT);
+    this.version = version;
     this.linuxDistro = this.getLinuxDistributionCmd();
   }
 

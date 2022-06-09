@@ -23,11 +23,11 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
+import com.google.common.collect.Lists;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.rtp.RTPStreamingServer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.Contract;
@@ -72,26 +72,25 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaS
     final String sampling = String.valueOf(configuration.getSamplingRate());
     final String volume = String.valueOf(configuration.getVolume());
     final String start = String.valueOf(configuration.getStartTime());
-    return new ArrayList<>(
-        List.of(
-            path,
-            "-i",
-            this.input,
-            "-nostdin",
-            "-ab",
-            bitrate,
-            "-ac",
-            channels,
-            "-ar",
-            sampling,
-            "-vol",
-            volume,
-            "-ss",
-            start,
-            "-f",
-            "rtsp",
-            "-rtsp_transport",
-            "tcp"));
+    return Lists.newArrayList(
+        path,
+        "-i",
+        this.input,
+        "-nostdin",
+        "-ab",
+        bitrate,
+        "-ac",
+        channels,
+        "-ar",
+        sampling,
+        "-vol",
+        volume,
+        "-ss",
+        start,
+        "-f",
+        "rtsp",
+        "-rtsp_transport",
+        "tcp");
   }
 
   @Override

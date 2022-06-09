@@ -24,12 +24,13 @@
 package io.github.pulsebeat02.ezmediacore.resourcepack.hosting;
 
 import io.github.pulsebeat02.ezmediacore.http.HttpDaemon;
+import java.io.IOException;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
 public interface HttpDaemonSolution extends HostingSolution {
 
-  void startServer();
+  void startServer() throws IOException;
 
   void stopServer();
 

@@ -89,11 +89,14 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   @Override
   public @NotNull FFmpegArgumentPreparation addArguments(
       @NotNull final String key, @NotNull final String value, final int index) {
+
     if (index < 0 || index > this.arguments.size() - 1) {
       return this;
     }
+
     this.arguments.add(index, value);
     this.arguments.add(index, key);
+
     return this;
   }
 
@@ -135,12 +138,17 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
 
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) {
+
     this.onBeforeExecution();
+
     this.completion.set(false);
+
     if (!this.cancelled.get()) {
       this.executeProcess(logger);
     }
+
     this.completion.set(true);
+
     this.onAfterExecution();
   }
 

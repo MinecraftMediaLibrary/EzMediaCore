@@ -24,13 +24,14 @@
 package io.github.pulsebeat02.ezmediacore.http;
 
 import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
+import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
 public interface HttpDaemon extends LibraryInjectable {
 
-  void start();
+  void start() throws IOException;
 
   void onServerStart();
 

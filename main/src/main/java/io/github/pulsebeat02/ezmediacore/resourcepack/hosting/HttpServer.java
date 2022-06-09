@@ -132,7 +132,7 @@ public class HttpServer implements HttpDaemonSolution {
   }
 
   @Override
-  public void startServer() {
+  public void startServer() throws IOException {
     this.daemon.start();
     this.running = true;
   }
