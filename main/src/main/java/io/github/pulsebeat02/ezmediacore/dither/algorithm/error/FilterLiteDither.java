@@ -25,11 +25,14 @@ package io.github.pulsebeat02.ezmediacore.dither.algorithm.error;
 
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.COLOR_MAP;
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.FULL_COLOR_MAP;
+import static java.util.Objects.requireNonNull;
 
+import com.sun.jna.Pointer;
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.NativelySupportedDitheringAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
 import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
+import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.jetbrains.annotations.NotNull;
@@ -88,7 +91,7 @@ public final class FilterLiteDither extends NativelySupportedDitheringAlgorithm 
           red = (red += buf1[bufferIndex++]) > 255 ? 255 : Math.max(red, 0);
           green = (green += buf1[bufferIndex++]) > 255 ? 255 : Math.max(green, 0);
           blue = (blue += buf1[bufferIndex++]) > 255 ? 255 : Math.max(blue, 0);
-          final int closest = this.getBestFullColor(red, green, blue);
+          final int closest = DitherUtils.getBestFullColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
@@ -122,7 +125,7 @@ public final class FilterLiteDither extends NativelySupportedDitheringAlgorithm 
           blue = (blue += buf1[bufferIndex--]) > 255 ? 255 : Math.max(blue, 0);
           green = (green += buf1[bufferIndex--]) > 255 ? 255 : Math.max(green, 0);
           red = (red += buf1[bufferIndex--]) > 255 ? 255 : Math.max(red, 0);
-          final int closest = this.getBestFullColor(red, green, blue);
+          final int closest = DitherUtils.getBestFullColor(red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
@@ -172,10 +175,13 @@ public final class FilterLiteDither extends NativelySupportedDitheringAlgorithm 
           red = (red += buf1[bufferIndex++]) > 255 ? 255 : Math.max(red, 0);
           green = (green += buf1[bufferIndex++]) > 255 ? 255 : Math.max(green, 0);
           blue = (blue += buf1[bufferIndex++]) > 255 ? 255 : Math.max(blue, 0);
-          final int closest = this.getBestFullColor(red, green, blue);
-          final int delta_r = red - (closest >> 16 & 0xFF);
-          final int delta_g = green - (closest >> 8 & 0xFF);
-          final int delta_b = blue - (closest & 0xFF);
+          final int closest = DitherUtils.getBestFullColor(red, green, blue);
+          final int r = closest >> 16 & 0xFF;
+          final int g = closest >> 8 & 0xFF;
+          final int b = closest & 0xFF;
+          final int delta_r = red - r;
+          final int delta_g = green - g;
+          final int delta_b = blue - b;
           if (x < widthMinus) {
             buf1[bufferIndex] = delta_r >> 1;
             buf1[bufferIndex + 1] = delta_g >> 1;
@@ -191,7 +197,7 @@ public final class FilterLiteDither extends NativelySupportedDitheringAlgorithm 
             buf2[bufferIndex - 2] = delta_g >> 2;
             buf2[bufferIndex - 1] = delta_b >> 2;
           }
-          data.setByte(index, this.getBestColor(closest));
+          data.setByte(index, DitherUtils.getBestColor(r, g, b));
         }
       } else {
         int bufferIndex = width + (width << 1) - 1;
@@ -206,10 +212,13 @@ public final class FilterLiteDither extends NativelySupportedDitheringAlgorithm 
           blue = (blue += buf1[bufferIndex--]) > 255 ? 255 : Math.max(blue, 0);
           green = (green += buf1[bufferIndex--]) > 255 ? 255 : Math.max(green, 0);
           red = (red += buf1[bufferIndex--]) > 255 ? 255 : Math.max(red, 0);
-          final int closest = this.getBestFullColor(red, green, blue);
-          final int delta_r = red - (closest >> 16 & 0xFF);
-          final int delta_g = green - (closest >> 8 & 0xFF);
-          final int delta_b = blue - (closest & 0xFF);
+          final int closest = DitherUtils.getBestFullColor(red, green, blue);
+          final int r = closest >> 16 & 0xFF;
+          final int g = closest >> 8 & 0xFF;
+          final int b = closest & 0xFF;
+          final int delta_r = red - r;
+          final int delta_g = green - g;
+          final int delta_b = blue - b;
           if (x > 0) {
             buf1[bufferIndex] = delta_b >> 1;
             buf1[bufferIndex - 1] = delta_g >> 1;
@@ -225,29 +234,20 @@ public final class FilterLiteDither extends NativelySupportedDitheringAlgorithm 
             buf2[bufferIndex + 2] = delta_g >> 2;
             buf2[bufferIndex + 1] = delta_r >> 2;
           }
-          data.setByte(index, this.getBestColor(closest));
+          data.setByte(index, DitherUtils.getBestColor(r, g, b));
         }
       }
     }
     return ByteBufCarrier.ofByteBufCarrier(data);
   }
 
-  private int getBestFullColor(final int red, final int green, final int blue) {
-    return FULL_COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
-  }
-
-  private byte getBestColor(final int rgb) {
-    return COLOR_MAP[
-        (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
-  }
-
   @Override
   public @NotNull BufferCarrier ditherIntoMinecraftNatively(
       final int @NotNull [] buffer, final int width) {
-    return ByteBufCarrier.ofByteBufCarrier(
-        Unpooled.wrappedBuffer(
-            DitherLibC.INSTANCE
-                .filterLiteDither(FULL_COLOR_MAP, COLOR_MAP, buffer, width)
-                .getByteArray(0L, buffer.length)));
+    final DitherLibC library = requireNonNull(DitherLibC.INSTANCE);
+    final Pointer pointer = library.filterLiteDither(FULL_COLOR_MAP, COLOR_MAP, buffer, width);
+    final byte[] array = pointer.getByteArray(0L, buffer.length);
+    final ByteBuf data = Unpooled.buffer(array.length);
+    return ByteBufCarrier.ofByteBufCarrier(data);
   }
 }

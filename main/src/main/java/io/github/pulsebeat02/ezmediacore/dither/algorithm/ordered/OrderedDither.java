@@ -1,11 +1,9 @@
 package io.github.pulsebeat02.ezmediacore.dither.algorithm.ordered;
 
-import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.COLOR_MAP;
-
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
-import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
 import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
+import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.jetbrains.annotations.Contract;
@@ -41,7 +39,7 @@ public final class OrderedDither implements DitherAlgorithm {
         r = (r += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(r, 0);
         g = (g += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(g, 0);
         b = (b += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(b, 0);
-        data.writeByte(this.getBestColor(r, g, b));
+        data.writeByte(DitherUtils.getBestColor(r, g, b));
       }
     }
     return ByteBufCarrier.ofByteBufCarrier(data);
@@ -61,16 +59,8 @@ public final class OrderedDither implements DitherAlgorithm {
         r = (r += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(r, 0);
         g = (g += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(g, 0);
         b = (b += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(b, 0);
-        buffer[index] = this.getBestColorNormal(r, g, b);
+        buffer[index] = DitherUtils.getBestColorNormal(r, g, b);
       }
     }
-  }
-
-  private byte getBestColor(final int red, final int green, final int blue) {
-    return COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
-  }
-
-  private int getBestColorNormal(final int r, final int g, final int b) {
-    return MapPalette.getColor(this.getBestColor(r, g, b)).getRGB();
   }
 }

@@ -59,9 +59,9 @@ for examples on how to use the library. It is the plugin I used that displayed t
 
 ### Fallhost Sponsorship
 
-I'd like to gladly thank [Fallhost](https://fallhost.com/) for sponsoring this project and giving 
-a free public test server! [Join the Discord server](https://discord.gg/qVhhbCWQQV) and you are 
-able to access the IP to the testing server!
+I'd like to gladly thank [Fallhost](https://fallhost.com/) for sponsoring this project and giving a
+free public test server! [Join the Discord server](https://discord.gg/qVhhbCWQQV) and you are able
+to access the IP to the testing server!
 
 ---
 
@@ -81,7 +81,6 @@ able to access the IP to the testing server!
 | Vijay Pondini           | $10.00                   |
 | Matthew Holden          | $6.00                    |
 
-
 | Project / Dependency                                                                        | Contribution                       |
 |---------------------------------------------------------------------------------------------|------------------------------------|
 | [VLCJ](https://github.com/caprica/vlcj) made by [caprica](https://github.com/caprica)       | VLC Media Player Bindings          |
@@ -89,15 +88,11 @@ able to access the IP to the testing server!
 | [Jaffree](https://github.com/kokorin/Jaffree) made by [kokorin](https://github.com/kokorin) | FFmpeg Integration (NUT Container) |
 | [FFmpeg](https://www.ffmpeg.org/)                                                           | Native Media Encoding and Decoding |
 
-
 ### Projects that use EzMediaCore Code
 
 | Project                                                   | Description                            |
 |-----------------------------------------------------------|----------------------------------------|
 | [MakiDesktop](https://github.com/ayunami2000/MakiDesktop) | Controlling VNC through Minecraft Maps |
 | [MakiScreen](https://github.com/makifoxgirl/MakiScreen)   | Streaming OBS onto Minecraft Maps      |
-
-
-
 
 ---

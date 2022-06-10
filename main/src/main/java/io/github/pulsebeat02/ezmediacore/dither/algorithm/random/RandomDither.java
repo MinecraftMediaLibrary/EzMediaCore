@@ -26,12 +26,14 @@ package io.github.pulsebeat02.ezmediacore.dither.algorithm.random;
 
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.COLOR_MAP;
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.FULL_COLOR_MAP;
+import static java.util.Objects.requireNonNull;
 
+import com.sun.jna.Pointer;
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
-import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.NativelySupportedDitheringAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
 import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
+import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.util.concurrent.ThreadLocalRandom;
@@ -83,7 +85,7 @@ public final class RandomDither extends NativelySupportedDitheringAlgorithm {
         r = (r += this.random()) > 255 ? 255 : Math.max(r, 0);
         g = (g += this.random()) > 255 ? 255 : Math.max(g, 0);
         b = (b += this.random()) > 255 ? 255 : Math.max(b, 0);
-        data.setByte(index, this.getBestColor(r, g, b));
+        data.setByte(index, DitherUtils.getBestColor(r, g, b));
       }
     }
     return ByteBufCarrier.ofByteBufCarrier(data);
@@ -103,7 +105,7 @@ public final class RandomDither extends NativelySupportedDitheringAlgorithm {
         r = (r += this.random()) > 255 ? 255 : Math.max(r, 0);
         g = (g += this.random()) > 255 ? 255 : Math.max(g, 0);
         b = (b += this.random()) > 255 ? 255 : Math.max(b, 0);
-        buffer[index] = this.getBestColorNormal(r, g, b);
+        buffer[index] = DitherUtils.getBestColorNormal(r, g, b);
       }
     }
   }
@@ -111,22 +113,15 @@ public final class RandomDither extends NativelySupportedDitheringAlgorithm {
   @Override
   public @NotNull BufferCarrier ditherIntoMinecraftNatively(
       final int @NotNull [] buffer, final int width) {
-    return ByteBufCarrier.ofByteBufCarrier(
-        Unpooled.wrappedBuffer(
-            DitherLibC.INSTANCE
-                .randomDither(FULL_COLOR_MAP, COLOR_MAP, buffer, width, this.weight)
-                .getByteArray(0L, buffer.length)));
+    final DitherLibC library = requireNonNull(DitherLibC.INSTANCE);
+    final Pointer pointer =
+        library.randomDither(FULL_COLOR_MAP, COLOR_MAP, buffer, width, this.weight);
+    final byte[] array = pointer.getByteArray(0L, buffer.length);
+    final ByteBuf data = Unpooled.buffer(array.length);
+    return ByteBufCarrier.ofByteBufCarrier(data);
   }
 
   private int random() {
     return THREAD_LOCAL_RANDOM.nextInt(this.min, this.max);
-  }
-
-  private byte getBestColor(final int red, final int green, final int blue) {
-    return COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
-  }
-
-  private int getBestColorNormal(final int r, final int g, final int b) {
-    return MapPalette.getColor(this.getBestColor(r, g, b)).getRGB();
   }
 }

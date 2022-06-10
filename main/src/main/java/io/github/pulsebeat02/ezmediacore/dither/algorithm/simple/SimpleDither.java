@@ -25,12 +25,14 @@ package io.github.pulsebeat02.ezmediacore.dither.algorithm.simple;
 
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.COLOR_MAP;
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.FULL_COLOR_MAP;
+import static java.util.Objects.requireNonNull;
 
+import com.sun.jna.Pointer;
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
-import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.NativelySupportedDitheringAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
 import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
+import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +56,11 @@ public final class SimpleDither extends NativelySupportedDitheringAlgorithm {
     for (int y = 0; y < height; y++) {
       final int yIndex = y * width;
       for (int x = 0; x < width; x++) {
-        data.writeByte(this.getBestColor(buffer[yIndex + x]));
+        final int color = buffer[yIndex + x];
+        final int r = (color >> 16) & 0xFF;
+        final int g = (color >> 8) & 0xFF;
+        final int b = (color) & 0xFF;
+        data.writeByte(DitherUtils.getBestColor(r, g, b));
       }
     }
     return ByteBufCarrier.ofByteBufCarrier(data);
@@ -67,7 +73,11 @@ public final class SimpleDither extends NativelySupportedDitheringAlgorithm {
       final int yIndex = y * width;
       for (int x = 0; x < width; x++) {
         final int index = yIndex + x;
-        buffer[index] = this.getBestColorNormal(buffer[index]);
+        final int color = buffer[index];
+        final int r = (color >> 16) & 0xFF;
+        final int g = (color >> 8) & 0xFF;
+        final int b = (color) & 0xFF;
+        buffer[index] = DitherUtils.getBestColorNormal(r, g, b);
       }
     }
   }
@@ -75,24 +85,10 @@ public final class SimpleDither extends NativelySupportedDitheringAlgorithm {
   @Override
   public @NotNull BufferCarrier ditherIntoMinecraftNatively(
       final int @NotNull [] buffer, final int width) {
-    return ByteBufCarrier.ofByteBufCarrier(
-        Unpooled.wrappedBuffer(
-            DitherLibC.INSTANCE
-                .simpleDither(FULL_COLOR_MAP, COLOR_MAP, buffer, width)
-                .getByteArray(0L, buffer.length)));
-  }
-
-  private byte getBestColor(final int red, final int green, final int blue) {
-    return COLOR_MAP[red >> 1 << 14 | green >> 1 << 7 | blue >> 1];
-  }
-
-  private byte getBestColor(final int rgb) {
-    return COLOR_MAP[
-        (rgb >> 16 & 0xFF) >> 1 << 14 | (rgb >> 8 & 0xFF) >> 1 << 7 | (rgb & 0xFF) >> 1];
-  }
-
-  private int getBestColorNormal(final int rgb) {
-    return MapPalette.getColor(this.getBestColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF))
-        .getRGB();
+    final DitherLibC library = requireNonNull(DitherLibC.INSTANCE);
+    final Pointer pointer = library.simpleDither(FULL_COLOR_MAP, COLOR_MAP, buffer, width);
+    final byte[] array = pointer.getByteArray(0L, buffer.length);
+    final ByteBuf data = Unpooled.buffer(array.length);
+    return ByteBufCarrier.ofByteBufCarrier(data);
   }
 }
