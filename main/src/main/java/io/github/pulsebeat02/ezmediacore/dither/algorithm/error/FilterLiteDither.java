@@ -29,7 +29,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.sun.jna.Pointer;
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
-import io.github.pulsebeat02.ezmediacore.dither.algorithm.NativelySupportedDitheringAlgorithm;
+import io.github.pulsebeat02.ezmediacore.dither.algorithm.ForeignDitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
 import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
@@ -37,7 +37,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.jetbrains.annotations.NotNull;
 
-public final class FilterLiteDither extends NativelySupportedDitheringAlgorithm {
+public final class FilterLiteDither extends ForeignDitherAlgorithm {
 
   public FilterLiteDither(final boolean useNative) {
     super(useNative);

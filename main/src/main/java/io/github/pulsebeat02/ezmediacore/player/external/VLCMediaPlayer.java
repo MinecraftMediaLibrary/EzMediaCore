@@ -26,6 +26,8 @@ package io.github.pulsebeat02.ezmediacore.player.external;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.sun.jna.Pointer;
+import io.github.pulsebeat02.ezmediacore.CoreLogger;
+import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Identifier;
@@ -188,11 +190,16 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   }
 
   private void initializeLogger() {
+
     this.logger = this.factory.application().newLog();
     this.logger.setLevel(LogLevel.DEBUG);
+
+    final MediaLibraryCore core = this.getCore();
+    final CoreLogger logger = core.getLogger();
+    final String format = "[%-20s] (%-20s) %7s: %s%s";
     this.logger.addLogListener(
         (level, module, file, line, name, header, id, message) ->
-            this.getCore().getLogger().vlc("[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message)));
+            logger.vlc(format.formatted(module, name, level, message, System.lineSeparator())));
   }
 
   private @NotNull List<String> constructArguments(@NotNull final Collection<Object> arguments) {

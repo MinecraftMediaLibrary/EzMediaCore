@@ -90,7 +90,8 @@ public final class ManualLogger implements CoreLogger {
   @Contract(pure = true)
   private @NotNull Runnable print(@NotNull final PrintWriter writer, @NotNull final String line) {
     return () -> {
-      writer.write("%s\n".formatted(line));
+      writer.write(line);
+      writer.write(System.lineSeparator());
       writer.flush();
     };
   }

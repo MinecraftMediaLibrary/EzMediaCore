@@ -9,6 +9,7 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegCommandExecutor;
+import java.io.IOException;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +43,11 @@ public final class FFmpegRunCommand implements CommandSegment.Literal<CommandSen
   }
 
   private void execute(@NotNull final Audience audience) {
-    this.ffmpeg.executeWithLogging(s -> audience.sendMessage(Locale.FFMPEG_PROCESS.build(s)));
+    try {
+      this.ffmpeg.executeWithLogging(s -> audience.sendMessage(Locale.FFMPEG_PROCESS.build(s)));
+    } catch (final IOException e) {
+      throw new AssertionError(e);
+    }
   }
 
   @Override

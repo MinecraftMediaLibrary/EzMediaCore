@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.dependency;
 
+import io.github.pulsebeat02.ezmediacore.CoreLogger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.util.concurrent.CountDownLatch;
@@ -79,10 +80,10 @@ public class NativePluginLoader {
   }
 
   private @NotNull LogEventListener createListener() {
+    final CoreLogger logger = this.core.getLogger();
+    final String format = "[%-20s] (%-20s) %7s: %s%s";
     return (level, module, file, line, name, header, id, message) ->
-        this.core
-            .getLogger()
-            .info("[%-20s] (%-20s) %7s: %s\n".formatted(module, name, level, message));
+        logger.info(format.formatted(module, name, level, message, System.lineSeparator()));
   }
 
   private void waitMedia(@NotNull final CountDownLatch latch) {

@@ -1,26 +1,34 @@
 package io.github.pulsebeat02.ezmediacore.dither.algorithm;
 
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
-import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.NativeDitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
 import java.util.function.BiFunction;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class NativelySupportedDitheringAlgorithm
-    implements DitherAlgorithm, NativeDitherAlgorithm {
+public abstract class ForeignDitherAlgorithm implements NativeDitherAlgorithm {
 
   private final BiFunction<int[], Integer, BufferCarrier> function;
 
-  public NativelySupportedDitheringAlgorithm(final boolean useNative) {
-    if (useNative && !DitherLibC.isSupported()) {
-      throw new UnsupportedOperationException(
-          "Your current platform does not support native dithering!");
+  public ForeignDitherAlgorithm(final boolean useNative) {
+    if (useNative) {
+      this.tryUsingNative();
     }
     this.function = useNative ? this::ditherIntoMinecraftNatively : this::standardMinecraftDither;
   }
 
-  public NativelySupportedDitheringAlgorithm() {
+  private void tryUsingNative() {
+    if (!DitherLibC.isSupported()) {
+      this.throwException();
+    }
+  }
+
+  private void throwException() {
+    throw new UnsupportedOperationException(
+        "Your current platform does not support native dithering!");
+  }
+
+  public ForeignDitherAlgorithm() {
     this(false);
   }
 

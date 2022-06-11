@@ -29,7 +29,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.sun.jna.Pointer;
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
-import io.github.pulsebeat02.ezmediacore.dither.algorithm.NativelySupportedDitheringAlgorithm;
+import io.github.pulsebeat02.ezmediacore.dither.algorithm.ForeignDitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
 import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
@@ -42,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author jetp250, BananaPuncher714
  */
-public final class FloydDither extends NativelySupportedDitheringAlgorithm {
+public final class FloydDither extends ForeignDitherAlgorithm {
 
   public FloydDither(final boolean useNative) {
     super(useNative);

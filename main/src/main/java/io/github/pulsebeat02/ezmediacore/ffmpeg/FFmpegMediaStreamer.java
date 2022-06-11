@@ -23,12 +23,11 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
-import com.google.common.collect.Lists;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.rtp.RTPStreamingServer;
-import java.util.List;
+import java.io.IOException;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +49,7 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaS
     this.input = input;
     this.output = "rtsp://localhost:8554/live.stream";
     this.clearArguments();
-    this.addMultipleArguments(this.generateArguments(configuration));
+    this.generateArguments(configuration);
     this.server = RTPStreamingServer.ofRtpServer(core, ip, port);
   }
 
@@ -64,37 +63,35 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaS
     return new FFmpegMediaStreamer(core, configuration, input, ip, port);
   }
 
-  @Contract("_ -> new")
-  private @NotNull List<String> generateArguments(@NotNull final AudioConfiguration configuration) {
+  private void generateArguments(@NotNull final AudioConfiguration configuration) {
+
     final String path = this.getCore().getFFmpegPath().toString();
+    this.addArgument(path);
+
+    this.addArgument(FFmpegArguments.NO_INPUT);
+
     final String bitrate = String.valueOf(configuration.getBitrate());
+    this.addArguments(FFmpegArguments.AUDIO_BITRATE, bitrate);
+
     final String channels = String.valueOf(configuration.getChannels());
+    this.addArguments(FFmpegArguments.AUDIO_CHANNELS, channels);
+
     final String sampling = String.valueOf(configuration.getSamplingRate());
+    this.addArguments(FFmpegArguments.AUDIO_SAMPLING, sampling);
+
     final String volume = String.valueOf(configuration.getVolume());
+    this.addArguments(FFmpegArguments.AUDIO_VOLUME, volume);
+
     final String start = String.valueOf(configuration.getStartTime());
-    return Lists.newArrayList(
-        path,
-        "-i",
-        this.input,
-        "-nostdin",
-        "-ab",
-        bitrate,
-        "-ac",
-        channels,
-        "-ar",
-        sampling,
-        "-vol",
-        volume,
-        "-ss",
-        start,
-        "-f",
-        "rtsp",
-        "-rtsp_transport",
-        "tcp");
+    this.addArguments(FFmpegArguments.DURATION_START, start);
+
+    this.addArguments(FFmpegArguments.OUTPUT_FORMAT, "rtsp");
+    this.addArgument("-rtsp_transport");
+    this.addArgument("tcp");
   }
 
   @Override
-  public void executeWithLogging(@Nullable final Consumer<String> logger) {
+  public void executeWithLogging(@Nullable final Consumer<String> logger) throws IOException {
     this.server.executeAsync(ExecutorProvider.RTSP_SERVER);
     this.addArguments("-max_muxing_queue_size", "9999");
     this.addArgument(this.output);
@@ -117,7 +114,7 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaS
   }
 
   @Override
-  public void close() {
+  public void close() throws InterruptedException {
     super.close();
     if (this.server != null) {
       this.server.close();

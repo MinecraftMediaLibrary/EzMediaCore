@@ -36,7 +36,7 @@ public final class SimpleResourcepackWrapper {
     this.setResourcepack(this.wrapResourcepack());
   }
 
-  private void executeFFmpegExtractor() {
+  private void executeFFmpegExtractor() throws IOException {
 
     final AudioConfiguration configuration = this.plugin.getAudioConfiguration();
     final OGGAudioExtractor extractor =

@@ -29,8 +29,6 @@ import io.github.pulsebeat02.ezmediacore.playlist.spotify.TrackDownloader;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.SpotifyTrackDownloader;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.apache.hc.core5.http.ParseException;
@@ -39,7 +37,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 
-public class SpotifyOGGTrackExtractor implements SpotifyAudioExtractor {
+public class SpotifyOGGTrackExtractor extends FFmpegCommandExecutor
+    implements SpotifyAudioExtractor {
 
   private final SpotifyTrackDownloader downloader;
   private final YoutubeOGGAudioExtractor extractor;
@@ -51,6 +50,7 @@ public class SpotifyOGGTrackExtractor implements SpotifyAudioExtractor {
       @NotNull final String url,
       @NotNull final Path output)
       throws IOException, ParseException, SpotifyWebApiException {
+    super(core);
     this.downloader = SpotifyTrackDownloader.ofSpotifyTrackDownloader(url, output);
     this.extractor =
         YoutubeOGGAudioExtractor.ofYoutubeVideoAudioExtractor(core, configuration, url, output);
@@ -78,12 +78,7 @@ public class SpotifyOGGTrackExtractor implements SpotifyAudioExtractor {
   }
 
   @Override
-  public void execute() {
-    this.executeWithLogging(null);
-  }
-
-  @Override
-  public void executeWithLogging(@Nullable final Consumer<String> logger) {
+  public void executeWithLogging(@Nullable final Consumer<String> logger) throws IOException {
     this.onStartAudioExtraction();
     this.downloader.downloadVideo(
         this.downloader.getSearcher().getYoutubeVideo().getVideoFormats().get(0).getQuality(),
@@ -93,41 +88,11 @@ public class SpotifyOGGTrackExtractor implements SpotifyAudioExtractor {
   }
 
   @Override
-  public void log(final String line) {}
-
-  @Override
-  public @NotNull CompletableFuture<Void> executeAsync() {
-    return CompletableFuture.runAsync(this::execute);
-  }
-
-  @Override
-  public @NotNull CompletableFuture<Void> executeAsync(@NotNull final Executor executor) {
-    return CompletableFuture.runAsync(this::execute, executor);
-  }
-
-  @Override
-  public @NotNull CompletableFuture<Void> executeAsyncWithLogging(
-      @NotNull final Consumer<String> logger) {
-    return CompletableFuture.runAsync(() -> this.executeWithLogging(logger));
-  }
-
-  @Override
-  public @NotNull CompletableFuture<Void> executeAsyncWithLogging(
-      @NotNull final Consumer<String> logger, @NotNull final Executor executor) {
-    return CompletableFuture.runAsync(() -> this.executeWithLogging(logger), executor);
-  }
-
-  @Override
-  public void close() {
+  public void close() throws InterruptedException {
     this.onDownloadCancellation();
     this.cancelled.set(true);
     this.downloader.cancelDownload();
     this.extractor.close();
-  }
-
-  @Override
-  public boolean isCancelled() {
-    return this.cancelled.get();
   }
 
   @Override

@@ -466,7 +466,8 @@ public interface Locale {
   static @NotNull Component getComponent(@NotNull final String largeString,
       @NotNull final Function<String, Component> function) {
     final TextComponent.Builder component = text();
-    for (final String line : largeString.split("\n")) {
+    final String[] split = largeString.split(System.lineSeparator());
+    for (final String line : split) {
       component.append(function.apply(line));
     }
     return component.build();

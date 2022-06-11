@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -31,9 +32,9 @@ import org.jetbrains.annotations.Nullable;
 
 public interface EnhancedExecution extends AutoCloseable {
 
-  void execute();
+  void execute() throws IOException;
 
-  void executeWithLogging(@Nullable final Consumer<String> logger);
+  void executeWithLogging(@Nullable final Consumer<String> logger) throws IOException;
 
   void log(final String line);
 

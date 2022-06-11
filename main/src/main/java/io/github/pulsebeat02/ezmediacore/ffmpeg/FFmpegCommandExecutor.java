@@ -26,6 +26,7 @@ package io.github.pulsebeat02.ezmediacore.ffmpeg;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.utility.concurrency.ThrowingRunnable;
 import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -132,33 +133,27 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public void execute() {
+  public void execute() throws IOException {
     this.executeWithLogging(null);
   }
 
   @Override
-  public void executeWithLogging(@Nullable final Consumer<String> logger) {
+  public void executeWithLogging(@Nullable final Consumer<String> logger) throws IOException {
 
     this.onBeforeExecution();
 
     this.completion.set(false);
-
     if (!this.cancelled.get()) {
       this.executeProcess(logger);
     }
-
     this.completion.set(true);
 
     this.onAfterExecution();
   }
 
-  private void executeProcess(@Nullable final Consumer<String> logger) {
-    try {
-      this.process = new ProcessBuilder(this.arguments).redirectErrorStream(true).start();
-      this.handleLogging(logger, logger != null);
-    } catch (final IOException e) {
-      throw new AssertionError(e);
-    }
+  private void executeProcess(@Nullable final Consumer<String> logger) throws IOException {
+    this.process = new ProcessBuilder(this.arguments).redirectErrorStream(true).start();
+    this.handleLogging(logger, logger != null);
   }
 
   private void handleLogging(@Nullable final Consumer<String> logger, final boolean consume)
@@ -192,37 +187,34 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
 
   @Override
   public @NotNull CompletableFuture<Void> executeAsync() {
-    return CompletableFuture.runAsync(this::execute);
+    return CompletableFuture.runAsync((ThrowingRunnable) this::execute);
   }
 
   @Override
   public @NotNull CompletableFuture<Void> executeAsync(@NotNull final Executor executor) {
-    return CompletableFuture.runAsync(this::execute, executor);
+    return CompletableFuture.runAsync((ThrowingRunnable) this::execute, executor);
   }
 
   @Override
   public @NotNull CompletableFuture<Void> executeAsyncWithLogging(
       @NotNull final Consumer<String> logger) {
-    return CompletableFuture.runAsync(() -> this.executeWithLogging(logger));
+    return CompletableFuture.runAsync((ThrowingRunnable) () -> this.executeWithLogging(logger));
   }
 
   @Override
   public @NotNull CompletableFuture<Void> executeAsyncWithLogging(
       @NotNull final Consumer<String> logger, @NotNull final Executor executor) {
-    return CompletableFuture.runAsync(() -> this.executeWithLogging(logger), executor);
+    return CompletableFuture.runAsync(
+        (ThrowingRunnable) () -> this.executeWithLogging(logger), executor);
   }
 
   @Override
-  public void close() {
+  public void close() throws InterruptedException {
     this.cancelled.set(true);
     if (this.process != null) {
       this.process.descendants().forEach(ProcessHandle::destroyForcibly);
       this.process.destroyForcibly();
-      try {
-        this.process.waitFor();
-      } catch (final InterruptedException e) {
-        throw new AssertionError(e);
-      }
+      this.process.waitFor();
     }
   }
 

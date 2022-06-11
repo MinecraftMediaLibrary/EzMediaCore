@@ -25,8 +25,11 @@ package io.github.pulsebeat02.ezmediacore.http;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.Lists;
 import io.github.pulsebeat02.ezmediacore.http.request.FileRequest;
+import io.github.pulsebeat02.ezmediacore.http.request.RequestHeaderArguments;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipHeader;
+import io.github.pulsebeat02.ezmediacore.utility.http.HttpUtils;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedReader;
@@ -45,6 +48,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -97,17 +102,30 @@ public class FileRequestHandler implements FileRequest {
     try {
       return this.produceHeader(file).getBytes(StandardCharsets.UTF_8);
     } catch (final IOException e) {
-      e.printStackTrace();
       this.daemon.onRequestFailure(this.client);
+      throw new AssertionError(e);
     }
-    return new byte[] {};
   }
 
   private @NotNull String produceHeader(@NotNull final Path file) throws IOException {
-    final long size = Files.size(file);
-    final String format = DATE_FORMAT.format(Calendar.getInstance().getTime());
-    return "HTTP/1.0 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nDate: %s GMT\r\nServer: HttpDaemon\r\nUser-Agent: HTTPDaemon/1.0.0 (Resourcepack Hosting)\r\n\r\n"
-        .formatted(this.header.getHeader(), size, format);
+
+    final List<String> arguments = Lists.newArrayList();
+    arguments.add(RequestHeaderArguments.HTTP_HEADER);
+
+    final String header = this.header.getHeader();
+    arguments.addAll(Set.of(RequestHeaderArguments.CONTENT_TYPE, header));
+
+    final String size = String.valueOf(Files.size(file));
+    arguments.addAll(Set.of(RequestHeaderArguments.CONTENT_LENGTH, size));
+
+    final String date = DATE_FORMAT.format(Calendar.getInstance().getTime());
+    arguments.addAll(Set.of(RequestHeaderArguments.DATE, "%s GMT".formatted(date)));
+
+    arguments.addAll(Set.of(RequestHeaderArguments.SERVER, "EzMediaCore HttpDaemon"));
+    arguments.addAll(
+        Set.of(RequestHeaderArguments.USER_AGENT, "HTTPDaemon/1.0.0 (Resourcepack Hosting)"));
+
+    return String.join(System.lineSeparator(), arguments);
   }
 
   @Override
@@ -184,7 +202,7 @@ public class FileRequestHandler implements FileRequest {
       throws IOException {
 
     final String group = get.group(1);
-    if (this.checkTreeAttack(group)) {
+    if (HttpUtils.checkTreeAttack(group)) {
       return false;
     }
 
@@ -217,10 +235,6 @@ public class FileRequestHandler implements FileRequest {
     try (final WritableByteChannel channel = Channels.newChannel(out)) {
       FileChannel.open(result).transferTo(0, Long.MAX_VALUE, channel);
     }
-  }
-
-  private boolean checkTreeAttack(@NotNull final String result) {
-    return result.startsWith("..") || result.endsWith("..") || result.contains("../");
   }
 
   private void verbose(final String info) {

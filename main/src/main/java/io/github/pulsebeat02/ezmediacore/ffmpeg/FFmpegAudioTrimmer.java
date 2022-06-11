@@ -23,12 +23,10 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
-import com.google.common.collect.Lists;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.format.FormatterProvider;
 import java.nio.file.Path;
 import java.util.Date;
-import java.util.List;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,9 +45,9 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
     super(core);
     this.input = input;
     this.output = output;
-    this.clearArguments();
-    this.addMultipleArguments(this.generateArguments());
     this.ms = ms;
+    this.clearArguments();
+    this.generateArguments();
   }
 
   @Contract("_, _, _, _ -> new")
@@ -79,12 +77,17 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
     return ofFFmpegAudioTrimmer(core, input, core.getAudioPath().resolve(fileName), ms);
   }
 
-  @Contract(" -> new")
-  private @NotNull List<String> generateArguments() {
+  private void generateArguments() {
+
     final String path = this.getCore().getFFmpegPath().toString();
+    this.addArgument(path);
+
     final String time = FormatterProvider.FFMPEG_TIME_FORMATTER.format(new Date(this.ms));
-    return Lists.newArrayList(
-        path, "-ss", time, "-to", "99:99:99.999", "-i", this.input, this.output);
+    this.addArguments(FFmpegArguments.DURATION_START, time);
+    this.addArguments(FFmpegArguments.DURATION_END, "99:99:99.999");
+
+    this.addArguments(FFmpegArguments.INPUT, this.input);
+    this.addArgument(this.output);
   }
 
   @Override
