@@ -21,7 +21,7 @@ dependencies {
     setOf(
         "org.junit.jupiter:junit-jupiter-engine:5.8.2",
         "org.junit.jupiter:junit-jupiter-api:5.8.2",
-        "com.github.seeseemelk:MockBukkit-v1.18:2.22.2",
+        "com.github.seeseemelk:MockBukkit-v1.18:2.24.0",
         "org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT"
     ).forEach {
         testImplementation(it)
@@ -44,7 +44,7 @@ dependencies {
         "uk.co.caprica:vlcj:4.7.3",
         "uk.co.caprica:vlcj-natives:4.7.0",
         "com.github.sealedtx:java-youtube-downloader:3.0.2",
-        "com.alibaba:fastjson:2.0.6",
+        "com.alibaba:fastjson:2.0.7",
         "net.java.dev.jna:jna:5.11.0",
         "net.java.dev.jna:jna-platform:5.11.0",
         "se.michaelthelin.spotify:spotify-web-api-java:7.1.0",

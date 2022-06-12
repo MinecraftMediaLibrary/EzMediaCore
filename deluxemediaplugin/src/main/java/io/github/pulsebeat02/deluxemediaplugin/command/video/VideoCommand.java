@@ -4,6 +4,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.load.LoadVideoCommand;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.set.SetPropertyCommand;
 import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
@@ -29,6 +30,7 @@ public final class VideoCommand extends BaseCommand {
             .then(new VideoCancelProcessingCommand(plugin, config).getNode())
             .then(new VideoPlayCommand(plugin, config).getNode())
             .then(new VideoResourcepackCommand(plugin, config).getNode())
+            .then(new SetPropertyCommand(plugin, config).getNode())
             .build();
   }
 
@@ -39,7 +41,7 @@ public final class VideoCommand extends BaseCommand {
             "/video load [desktop | device | mrl | path | url | video | window] [argument]",
                 "Loads the video",
             "/video dump-threads", "Dumps threads for video player (debugging purposes)",
-            "/video play", "Plays the video player",
+            "/video play [target selector]", "Plays the video player for the selected entities",
             "/video pause", "Pauses the video player",
             "/video destroy", "Destroys the video player",
             "/video cancel-processing", "Cancels video processing",
