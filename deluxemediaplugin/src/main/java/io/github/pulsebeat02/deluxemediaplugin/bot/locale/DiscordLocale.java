@@ -22,11 +22,10 @@
  * SOFTWARE.
  */
 
-package io.github.pulsebeat02.deluxemediaplugin.bot;
+package io.github.pulsebeat02.deluxemediaplugin.bot.locale;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import io.github.pulsebeat02.deluxemediaplugin.message.Sender;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -37,7 +36,7 @@ public interface DiscordLocale {
 
   SimpleDateFormat HOURS_MINUTES_SECONDS = new SimpleDateFormat("mm:ss:SSS");
 
-  NullComponent<Sender> ERR_PERMS =
+  NullComponent ERR_PERMS =
       () ->
           builder()
               .setTitle("Not Enough Permissions")
@@ -45,28 +44,28 @@ public interface DiscordLocale {
                   "You must have administrator permissions or the DJ role to execute this command!")
               .build();
 
-  NullComponent<Sender> CONNECT_VC_EMBED =
+  NullComponent CONNECT_VC_EMBED =
       () ->
           builder()
               .setTitle("Audio Voice Channel Connection")
               .setDescription("Connected to voice channel!")
               .build();
 
-  NullComponent<Sender> DC_VC_EMBED =
+  NullComponent DC_VC_EMBED =
       () ->
           builder()
               .setTitle("Audio Voice Channel Connection")
               .setDescription("Left voice channel!")
               .build();
 
-  NullComponent<Sender> ERR_INVALID_MRL =
+  NullComponent ERR_INVALID_MRL =
       () ->
           builder()
               .setTitle("User Error")
               .setDescription("Invalid arguments! Specify a media source argument to play.")
               .build();
 
-  NullComponent<Sender> ERR_LAVAPLAYER =
+  NullComponent ERR_LAVAPLAYER =
       () ->
           builder()
               .setTitle("Severe Player Error Occurred!")
@@ -74,10 +73,10 @@ public interface DiscordLocale {
                   "An error occurred! Check console for possible exceptions or warnings.")
               .build();
 
-  NullComponent<Sender> PAUSE_AUDIO =
+  NullComponent PAUSE_AUDIO =
       () -> builder().setTitle("Audio Stop").setDescription("Stopped Audio!").build();
 
-  UniComponent<Sender, AudioTrackInfo> LOADED_TRACK =
+  UniComponent<AudioTrackInfo> LOADED_TRACK =
       (info) ->
           builder()
               .setTitle(info.title, info.uri)
@@ -87,14 +86,14 @@ public interface DiscordLocale {
               .addField("Stream", info.isStream ? "Yes" : "No", false)
               .build();
 
-  UniComponent<Sender, String> ERR_INVALID_TRACK =
+  UniComponent<String> ERR_INVALID_TRACK =
       (url) ->
           builder()
               .setTitle("Media Error")
               .setDescription("Could not find song %s!".formatted(url))
               .build();
 
-  TriComponent<Sender, Long, AudioPlaylist, String> LOADED_PLAYLIST =
+  TriComponent<Long, AudioPlaylist, String> LOADED_PLAYLIST =
       (ms, audioPlaylist, url) ->
           builder()
               .setTitle(audioPlaylist.getName(), url)
@@ -106,43 +105,43 @@ public interface DiscordLocale {
   }
 
   @FunctionalInterface
-  interface NullComponent<S extends Sender> {
+  interface NullComponent {
 
     MessageEmbed build();
   }
 
   @FunctionalInterface
-  interface UniComponent<S extends Sender, A0> {
+  interface UniComponent<A0> {
 
     MessageEmbed build(A0 arg0);
   }
 
   @FunctionalInterface
-  interface BiComponent<S extends Sender, A0, A1> {
+  interface BiComponent<A0, A1> {
 
     MessageEmbed build(A0 arg0, A1 arg1);
   }
 
   @FunctionalInterface
-  interface TriComponent<S extends Sender, A0, A1, A2> {
+  interface TriComponent<A0, A1, A2> {
 
     MessageEmbed build(A0 arg0, A1 arg1, A2 arg2);
   }
 
   @FunctionalInterface
-  interface QuadComponent<S extends Sender, A0, A1, A2, A3> {
+  interface QuadComponent<A0, A1, A2, A3> {
 
     MessageEmbed build(A0 arg0, A1 arg1, A2 arg2, A3 arg3);
   }
 
   @FunctionalInterface
-  interface PentaComponent<S extends Sender, A0, A1, A2, A3, A4> {
+  interface PentaComponent<A0, A1, A2, A3, A4> {
 
     MessageEmbed build(A0 arg0, A1 arg1, A2 arg2, A3 arg3, A4 arg4);
   }
 
   @FunctionalInterface
-  interface HexaComponent<S extends Sender, A0, A1, A2, A3, A4, A5> {
+  interface HexaComponent<A0, A1, A2, A3, A4, A5> {
 
     MessageEmbed build(A0 arg0, A1 arg1, A2 arg2, A3 arg3, A4 arg4, A5 arg5);
   }

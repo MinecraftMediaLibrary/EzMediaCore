@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.deluxemediaplugin.message;
+package io.github.pulsebeat02.deluxemediaplugin.locale;
 
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;

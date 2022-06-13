@@ -5,7 +5,7 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.load.LoadVideoCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.set.SetPropertyCommand;
-import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
+import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;

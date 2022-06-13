@@ -25,7 +25,7 @@ package io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
-import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
+import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 

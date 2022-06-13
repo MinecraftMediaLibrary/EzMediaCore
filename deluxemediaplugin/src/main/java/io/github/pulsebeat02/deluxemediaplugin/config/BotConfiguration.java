@@ -26,7 +26,7 @@ package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
-import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
+import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.mutable.MutableBoolean;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import java.io.IOException;

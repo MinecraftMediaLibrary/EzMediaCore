@@ -35,7 +35,7 @@ import io.github.pulsebeat02.deluxemediaplugin.config.PersistentPictureManager;
 import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
 import io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors;
 import io.github.pulsebeat02.deluxemediaplugin.json.MediaAttributesData;
-import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
+import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.update.UpdateChecker;
 import io.github.pulsebeat02.deluxemediaplugin.utility.component.CommandUtils;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
