@@ -46,7 +46,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
-import me.lucko.commodore.file.CommodoreFileFormat;
+import me.lucko.commodore.file.CommodoreFileReader;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -112,7 +112,7 @@ public final class CommandHandler implements TabExecutor {
           this.plugin
               .getBootstrap()
               .getResource("commodore/%s.commodore".formatted(command.getName()));
-      commodore.register(CommodoreFileFormat.parse(requireNonNull(resource)));
+      commodore.register(CommodoreFileReader.INSTANCE.parse(requireNonNull(resource)));
     } catch (final IOException e) {
       throw new AssertionError(e);
     }
