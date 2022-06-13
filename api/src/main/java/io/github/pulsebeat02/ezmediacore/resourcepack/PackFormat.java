@@ -32,6 +32,7 @@ public enum PackFormat {
   VER_1171(7),
   VER_118(8),
   VER_1181(8),
+  VER_1182(8),
   VER_119(9),
   VER_UNKNOWN(-1);
 
@@ -54,6 +55,7 @@ public enum PackFormat {
             "1171", VER_1171,
             "118", VER_118,
             "1181", VER_1181,
+            "1182", VER_1182,
             "119", VER_119);
   }
 
