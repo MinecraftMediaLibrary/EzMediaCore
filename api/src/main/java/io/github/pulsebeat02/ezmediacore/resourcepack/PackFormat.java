@@ -53,7 +53,8 @@ public enum PackFormat {
             "117", VER_117,
             "1171", VER_1171,
             "118", VER_118,
-            "1181", VER_1181);
+            "1181", VER_1181,
+            "119", VER_119);
   }
 
   private final int id;
