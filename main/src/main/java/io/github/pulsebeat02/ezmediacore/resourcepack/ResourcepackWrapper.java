@@ -88,7 +88,7 @@ public class ResourcepackWrapper implements PackWrapper {
       throw new IllegalPackFormatException(this.format);
     }
 
-    if (!this.checkIcon()) {
+    if (this.checkIcon()) {
       throw new IllegalPackResourceException(
           "Invalid Pack Icon! Must be PNG (%s)".formatted(PathUtils.getName(this.icon)));
     }
