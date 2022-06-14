@@ -46,7 +46,7 @@ public final class YoutubeDLRequest {
   private static final Gson GSON;
 
   static {
-    API_REQUEST_BASE = "https://emc-youtube-dl.herokuapp.com/api/info?url=%s";
+    API_REQUEST_BASE = "https://emc-youtube-dl-backup.herokuapp.com/api/info?url=%s";
     HTTP_CLIENT = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     GSON = new Gson();
   }
