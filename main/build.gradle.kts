@@ -21,7 +21,7 @@ dependencies {
     setOf(
         "org.junit.jupiter:junit-jupiter-engine:5.8.2",
         "org.junit.jupiter:junit-jupiter-api:5.8.2",
-        "com.github.seeseemelk:MockBukkit-v1.18:2.26.0",
+        "com.github.seeseemelk:MockBukkit-v1.18:2.27.0",
         "org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT"
     ).forEach {
         testImplementation(it)
@@ -29,7 +29,7 @@ dependencies {
 
     // PROVIDED DEPENDENCIES / TEST DEPENDENCIES
     setOf(
-        "io.netty:netty-all:4.1.77.Final",
+        "io.netty:netty-all:4.1.78.Final",
         "com.mojang:authlib:1.5.26",
         "com.google.guava:guava:31.1-jre",
         "com.mpatric:mp3agic:0.9.1",
@@ -48,7 +48,7 @@ dependencies {
         "net.java.dev.jna:jna:5.11.0",
         "net.java.dev.jna:jna-platform:5.11.0",
         "se.michaelthelin.spotify:spotify-web-api-java:7.1.0",
-        "com.github.kokorin.jaffree:jaffree:2021.12.30",
+        "com.github.kokorin.jaffree:jaffree:2022.06.03",
         "org.jcodec:jcodec:0.2.5",
         "com.github.ben-manes.caffeine:caffeine:3.1.1",
         "it.unimi.dsi:fastutil:8.5.8",
