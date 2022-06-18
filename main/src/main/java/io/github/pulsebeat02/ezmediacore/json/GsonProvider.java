@@ -27,10 +27,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
 import io.github.pulsebeat02.ezmediacore.json.adapter.PathAdapter;
-import io.github.pulsebeat02.ezmediacore.json.adapter.UUIDAdapter;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.UUID;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -54,9 +52,7 @@ public final class GsonProvider {
 
   @Contract(" -> new")
   private static @NotNull @Unmodifiable Map<Class<?>, TypeAdapter<?>> getAdapters() {
-    return Map.of(
-        Path.class, new PathAdapter(),
-        UUID.class, new UUIDAdapter());
+    return Map.of(Path.class, new PathAdapter());
   }
 
   public static Gson getSimple() {

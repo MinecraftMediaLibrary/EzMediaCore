@@ -43,7 +43,7 @@ public final class PathAdapter extends TypeAdapter<Path> {
   public @NotNull Path read(@NotNull final JsonReader in) throws IOException {
     in.beginObject();
     final String path = this.readPath(in);
-    in.close();
+    in.endObject();
     return Path.of(path);
   }
 
