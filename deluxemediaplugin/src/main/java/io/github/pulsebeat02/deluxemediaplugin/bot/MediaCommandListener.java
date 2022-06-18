@@ -28,6 +28,7 @@ import io.github.pulsebeat02.deluxemediaplugin.bot.command.DisconnectAudioComman
 import io.github.pulsebeat02.deluxemediaplugin.bot.command.DiscordBaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.bot.command.PlayAudioCommand;
 import io.github.pulsebeat02.deluxemediaplugin.bot.command.StopAudioCommand;
+import io.github.pulsebeat02.deluxemediaplugin.bot.locale.DiscordLocale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.utility.collection.ArrayUtils;
 import java.util.Map;

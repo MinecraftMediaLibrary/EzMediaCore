@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package io.github.pulsebeat02.deluxemediaplugin.message;
+package io.github.pulsebeat02.deluxemediaplugin.locale;
 
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.newline;

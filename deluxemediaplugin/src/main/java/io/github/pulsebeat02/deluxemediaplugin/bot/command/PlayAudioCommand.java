@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.bot.command;
 
-import io.github.pulsebeat02.deluxemediaplugin.bot.DiscordLocale;
+import io.github.pulsebeat02.deluxemediaplugin.bot.locale.DiscordLocale;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
 import java.util.Set;

@@ -32,7 +32,7 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import io.github.pulsebeat02.deluxemediaplugin.bot.DiscordLocale;
+import io.github.pulsebeat02.deluxemediaplugin.bot.locale.DiscordLocale;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import java.util.HashMap;

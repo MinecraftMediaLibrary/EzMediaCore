@@ -7,7 +7,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.video.output.DitheringAlg
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.PlayerAlgorithm;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.VideoPlayback;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioPlayback;
-import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
+import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;

@@ -25,7 +25,7 @@
 package io.github.pulsebeat02.deluxemediaplugin.update;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.deluxemediaplugin.message.Locale;
+import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
