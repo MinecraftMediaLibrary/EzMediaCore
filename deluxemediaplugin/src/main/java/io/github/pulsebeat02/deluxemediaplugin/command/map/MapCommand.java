@@ -102,14 +102,21 @@ public final class MapCommand extends BaseCommand {
       @NotNull final CommandContext<CommandSender> context,
       final Player sender,
       final Audience audience) {
-    this.extractData(audience, context.getArgument("ids", String.class).split("-"))
+    final String[] ids = context.getArgument("ids", String.class).split("-");
+    this.extractData(audience, ids)
         .ifPresent(pair -> this.giveMaps(sender, audience, pair.getKey(), pair.getValue()));
   }
 
   private Optional<Pair<Integer, Integer>> extractData(
       @NotNull final Audience audience, final String @NotNull [] bits) {
+
     try {
-      return Optional.of(Pair.ofPair(Integer.parseInt(bits[0]), Integer.parseInt(bits[1])));
+
+      final int min = Integer.parseInt(bits[0]);
+      final int max = Integer.parseInt(bits[1]);
+      final Pair<Integer, Integer> pair = Pair.ofPair(min, max);
+
+      return Optional.of(pair);
     } catch (final NumberFormatException e) {
       audience.sendMessage(Locale.ERR_MAP_RANGE.build());
       return Optional.empty();

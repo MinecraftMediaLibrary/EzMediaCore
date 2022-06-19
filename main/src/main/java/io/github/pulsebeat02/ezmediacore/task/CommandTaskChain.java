@@ -50,6 +50,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -116,11 +117,16 @@ public class CommandTaskChain {
   private void runInternalChain() throws IOException, InterruptedException {
     for (final Map.Entry<CommandTask, Boolean> entry : this.chain.entrySet()) {
       final CommandTask task = entry.getKey();
-      if (this.isAsync(entry)) {
-        this.runAsync(task);
-      } else {
-        this.runTaskChain(task);
-      }
+      this.handleCommandTask(entry, task);
+    }
+  }
+
+  private void handleCommandTask(@NotNull final Entry<CommandTask, Boolean> entry, @NotNull final CommandTask task)
+      throws IOException, InterruptedException {
+    if (this.isAsync(entry)) {
+      this.runAsync(task);
+    } else {
+      this.runTaskChain(task);
     }
   }
 

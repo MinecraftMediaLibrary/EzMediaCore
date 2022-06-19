@@ -29,7 +29,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipHeader;
 import io.github.pulsebeat02.ezmediacore.http.request.ZipRequest;
-import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.utility.concurrency.ThrowingRunnable;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import java.io.IOException;
@@ -99,10 +98,6 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
       final int port,
       final boolean verbose) {
     return new HttpServerDaemon(core, path, ip, port, verbose);
-  }
-
-  private void logServerInformation() {
-    this.core.getLogger().info(Locale.HTTP_INFO.build(this.ip, this.port, this.directory));
   }
 
   @Override

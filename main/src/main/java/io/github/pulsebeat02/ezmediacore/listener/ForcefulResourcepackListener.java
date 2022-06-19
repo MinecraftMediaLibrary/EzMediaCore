@@ -28,6 +28,7 @@ import static java.util.Objects.requireNonNull;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.util.Set;
 import java.util.UUID;
+import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -59,7 +60,8 @@ public record ForcefulResourcepackListener(MediaLibraryCore core,
 
   private void sendResourcepack() {
     for (final UUID uuid : this.uuids) {
-      final Player player = requireNonNull(this.core.getPlugin().getServer().getPlayer(uuid), "Player %s is not online!".formatted(uuid));
+      final Server server = this.core.getPlugin().getServer();
+      final Player player = requireNonNull(server.getPlayer(uuid));
       player.setResourcePack(this.url, this.hash);
     }
   }

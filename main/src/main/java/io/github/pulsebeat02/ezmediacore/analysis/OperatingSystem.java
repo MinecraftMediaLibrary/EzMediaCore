@@ -26,10 +26,16 @@ package io.github.pulsebeat02.ezmediacore.analysis;
 import io.github.pulsebeat02.ezmediacore.task.CommandTask;
 import java.io.IOException;
 import java.util.Locale;
-import java.util.stream.Stream;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 public final class OperatingSystem implements OperatingSystemInfo {
+
+  private static final Set<String> UNIX;
+
+  static {
+    UNIX = Set.of("nix", "nux", "aix");
+  }
 
   private final String osName;
   private final String os;
@@ -52,7 +58,7 @@ public final class OperatingSystem implements OperatingSystemInfo {
   }
 
   private boolean isLinux() {
-    return Stream.of("nix", "nux", "aix").anyMatch(this.os::contains);
+    return UNIX.stream().anyMatch(this.os::contains);
   }
 
   private @NotNull String getLinuxDistributionCmd() {
@@ -97,6 +103,6 @@ public final class OperatingSystem implements OperatingSystemInfo {
   @Override
   public String toString() {
     return "{os=%s,type=%s,linux-distro=%s}"
-        .formatted(this.osName, this.type.name().toLowerCase(Locale.ROOT), this.linuxDistro);
+        .formatted(this.osName, this.type, this.linuxDistro);
   }
 }

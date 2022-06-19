@@ -92,26 +92,31 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   @Override
   public void downloadVideo(@NotNull final VideoQuality format, final boolean overwrite) {
     this.onStartVideoDownload();
-    if (!this.cancelled.get()) {
-      if (!this.makeVideoResponse(format, overwrite)) {
-        this.onDownloadFailure();
-      }
+    if (!this.cancelled.get() && !this.makeVideoResponse(format, overwrite)) {
+      this.onDownloadFailure();
     }
     this.onFinishVideoDownload();
   }
 
   private boolean makeVideoResponse(@NotNull final VideoQuality format, final boolean overwrite) {
+
     final RequestVideoFileDownload request = this.createDownloadRequest(format, overwrite);
+
     for (int i = 0; i < 10; i++) {
-      if (!this.cancelled.get()) {
-        final Response<File> response =
-            YoutubeProvider.getYoutubeDownloader().downloadVideoFile(request);
-        final Optional<File> optional = ResponseUtils.getResponseResult(response);
-        if (optional.isPresent()) {
-          return true;
-        }
+
+      if (this.cancelled.get()) {
+        continue;
       }
+
+      final Response<File> response =
+          YoutubeProvider.getYoutubeDownloader().downloadVideoFile(request);
+      final Optional<File> optional = ResponseUtils.getResponseResult(response);
+      if (optional.isPresent()) {
+        return true;
+      }
+
     }
+
     return false;
   }
 
@@ -134,13 +139,16 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   }
 
   @Override
-  public void onStartVideoDownload() {}
+  public void onStartVideoDownload() {
+  }
 
   @Override
-  public void onFinishVideoDownload() {}
+  public void onFinishVideoDownload() {
+  }
 
   @Override
-  public void onDownloadFailure() {}
+  public void onDownloadFailure() {
+  }
 
   @Override
   public void cancelDownload() {

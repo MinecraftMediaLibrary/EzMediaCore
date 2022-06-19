@@ -99,11 +99,14 @@ public class ResourcepackSoundWrapper extends ResourcepackWrapper implements Sou
 
   @Override
   public byte @NotNull [] createSoundJson() {
+
     final JsonObject category = new JsonObject();
     final JsonObject type = new JsonObject();
     final JsonArray sounds = new JsonArray();
+
     this.addSounds(category, type, sounds);
     this.addCategory(category, sounds);
+
     return GsonProvider.getPretty().toJson(type).getBytes(StandardCharsets.UTF_8);
   }
 
@@ -116,10 +119,13 @@ public class ResourcepackSoundWrapper extends ResourcepackWrapper implements Sou
       @NotNull final JsonObject type,
       @NotNull final JsonArray sounds) {
     this.sounds.forEach(
-        (key, value) -> {
-          sounds.add(key);
-          type.add("emc", category);
-        });
+        (key, value) -> this.addSound0(category, type, sounds, key));
+  }
+
+  private void addSound0(@NotNull final JsonObject category, @NotNull final JsonObject type,
+      @NotNull final JsonArray sounds, @NotNull final String key) {
+    sounds.add(key);
+    type.add("emc", category);
   }
 
   @Override

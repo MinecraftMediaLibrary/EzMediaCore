@@ -219,6 +219,7 @@ public interface Locale {
   NullComponent<Sender> ERR_INVALID_OS = () -> format(text("Unfortunately, window capture only works on FFmpeg and Window's devices. Sorry about the inconvenience.", RED));
   NullComponent<Sender> ERR_INVALID_WINDOW = () -> format(text("The window you specified is not visible or simply does not exist!", RED));
   NullComponent<Sender> ERR_VLC_UNSUPPORTED = () -> format(text("Sorry, but VLC isn't supported for your enviornment. Please use snap to download it for your enviornment!", RED));
+  NullComponent<Sender> ERR_NO_VIEWERS = () -> format(text("The target selector you specified has no viewers!", RED));
   NullComponent<Sender> START_AUDIO = () -> format(text("Started playing audio!", GOLD));
   NullComponent<Sender> PAUSE_AUDIO = () -> format(text("Stopped playing audio!", GOLD));
   NullComponent<Sender> RESUME_AUDIO = () -> format(text("Resumed the video!", GOLD));

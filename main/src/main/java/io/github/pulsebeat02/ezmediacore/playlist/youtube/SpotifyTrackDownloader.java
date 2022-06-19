@@ -97,17 +97,24 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   }
 
   private boolean makeVideoResponse(@NotNull final VideoQuality format, final boolean overwrite) {
+
     final RequestVideoFileDownload request = this.createDownloadRequest(format, overwrite);
+
     for (int i = 0; i < 10; i++) {
-      if (!this.cancelled.get()) {
-        final Response<File> response =
-            YoutubeProvider.getYoutubeDownloader().downloadVideoFile(request);
-        final Optional<File> optional = ResponseUtils.getResponseResult(response);
-        if (optional.isPresent()) {
-          return true;
-        }
+
+      if (this.cancelled.get()) {
+        continue;
       }
+
+      final Response<File> response =
+          YoutubeProvider.getYoutubeDownloader().downloadVideoFile(request);
+      final Optional<File> optional = ResponseUtils.getResponseResult(response);
+      if (optional.isPresent()) {
+        return true;
+      }
+
     }
+
     return false;
   }
 

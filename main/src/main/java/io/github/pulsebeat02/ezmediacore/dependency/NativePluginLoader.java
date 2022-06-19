@@ -38,6 +38,12 @@ import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 
 public class NativePluginLoader {
 
+  private static final String VLC_PRERENDER;
+
+  static {
+    VLC_PRERENDER = "https://github.com/MinecraftMediaLibrary/EzMediaCore/raw/master/vlc-prerender.mp4";
+  }
+
   private final MediaLibraryCore core;
 
   NativePluginLoader(@NotNull final MediaLibraryCore core) {
@@ -81,9 +87,7 @@ public class NativePluginLoader {
 
   private @NotNull LogEventListener createListener() {
     final CoreLogger logger = this.core.getLogger();
-    final String format = "[%-20s] (%-20s) %7s: %s%s";
-    return (level, module, file, line, name, header, id, message) ->
-        logger.info(format.formatted(module, name, level, message, System.lineSeparator()));
+    return new SimpleLogEventListener(logger);
   }
 
   private void waitMedia(@NotNull final CountDownLatch latch) {
@@ -95,15 +99,34 @@ public class NativePluginLoader {
   }
 
   private void playMedia(@NotNull final EmbeddedMediaPlayer player) {
-    final String mrl =
-        "https://github.com/MinecraftMediaLibrary/EzMediaCore/raw/master/vlc-prerender.mp4";
-    player.media().play(mrl);
-    this.core.getLogger().info(Locale.MEDIA_PLAYER_START.build(mrl, ""));
+    player.media().play(VLC_PRERENDER);
+    this.core.getLogger().info(Locale.MEDIA_PLAYER_START.build(VLC_PRERENDER, ""));
   }
 
   private void addEvents(
       @NotNull final EmbeddedMediaPlayer player, @NotNull final CountDownLatch latch) {
     player.events().addMediaPlayerEventListener(new CustomMediaPlayerEventListener(latch));
+  }
+
+  private static class SimpleLogEventListener implements LogEventListener {
+
+    private static final String LOG_FORMAT;
+
+    static {
+      LOG_FORMAT = "[%-20s] (%-20s) %7s: %s%s";
+    }
+
+    private final CoreLogger logger;
+
+    public SimpleLogEventListener(@NotNull final CoreLogger logger) {
+      this.logger = logger;
+    }
+
+    @Override
+    public void log(final LogLevel level, final String module, final String file, final Integer line, final String name,
+        final String header, final Integer id, final String message) {
+      this.logger.info(LOG_FORMAT.formatted(module, name, level, message, System.lineSeparator()));
+    }
   }
 
   private static class CustomMediaPlayerEventListener extends MediaPlayerEventAdapter {
@@ -115,12 +138,12 @@ public class NativePluginLoader {
     }
 
     @Override
-    public void finished(final MediaPlayer mediaPlayer) {
+    public void finished(@NotNull final MediaPlayer mediaPlayer) {
       this.latch.countDown();
     }
 
     @Override
-    public void error(final MediaPlayer mediaPlayer) {
+    public void error(@NotNull final MediaPlayer mediaPlayer) {
       this.latch.countDown();
     }
   }

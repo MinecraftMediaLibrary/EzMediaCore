@@ -60,19 +60,25 @@ public class HolovidHoster implements HolovidSolution {
     HTTP_CLIENT = HttpClient.newHttpClient();
   }
 
-  public HolovidHoster() {}
+  public HolovidHoster() {
+  }
 
   private static Optional<HolovidResourcepackResult> getResourcpackUrlInternal(
       @NotNull final String url) {
     try {
-      final Gson gson = GsonProvider.getSimple();
-      final String request = getRequestInternal(url);
-      final HolovidResourcepackResult result =
-          gson.fromJson(request, HolovidResourcepackResult.class);
-      return Optional.of(result);
+      return Optional.of(handleResult(url));
     } catch (final IOException | URISyntaxException | InterruptedException e) {
       return Optional.empty();
     }
+  }
+
+  private static HolovidResourcepackResult handleResult(@NotNull final String url)
+      throws URISyntaxException, IOException, InterruptedException {
+
+    final Gson gson = GsonProvider.getSimple();
+    final String request = getRequestInternal(url);
+
+    return gson.fromJson(request, HolovidResourcepackResult.class);
   }
 
   private static @NotNull String getRequestInternal(@NotNull final String input)
@@ -91,10 +97,14 @@ public class HolovidHoster implements HolovidSolution {
 
   @Override
   public @NotNull String createUrl(@NotNull final String input) {
+
     checkNotNull(input, "Query cannot be null!");
     checkArgument(input.length() != 0, "Query cannot be empty!");
+
+    final String query = input.trim().toLowerCase(Locale.ROOT);
+
     return CACHED_RESULT
-        .get(input.trim().toLowerCase(Locale.ROOT))
+        .get(query)
         .orElseThrow(AssertionError::new)
         .getUrl();
   }

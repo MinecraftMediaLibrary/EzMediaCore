@@ -28,7 +28,7 @@ public final class SimpleResourcepackWrapper {
     this.plugin = plugin;
     this.config = config;
     this.download = download;
-    this.ogg = videoFolder.resolve(".output-ogg.tmp");
+    this.ogg = videoFolder.resolve(".output.ogg");
   }
 
   public void loadResourcepack() throws IOException {

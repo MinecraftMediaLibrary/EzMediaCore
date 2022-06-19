@@ -1,5 +1,6 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleNonNull;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleNull;
 
 import com.google.gson.annotations.SerializedName;
@@ -174,7 +175,7 @@ public final class ScreenConfig {
   }
 
   public boolean mediaProcessingIncomplete(@NotNull final Audience audience) {
-    return handleNull(audience, Locale.ERR_VIDEO_PROCESSING.build(), this.task);
+    return handleNonNull(audience, Locale.ERR_VIDEO_PROCESSING.build(), this.task);
   }
 
   public boolean mediaUninitialized(@NotNull final Audience audience) {

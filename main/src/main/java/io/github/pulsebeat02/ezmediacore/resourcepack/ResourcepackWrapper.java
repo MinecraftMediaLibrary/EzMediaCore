@@ -30,7 +30,6 @@ import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
 import io.github.pulsebeat02.ezmediacore.throwable.IllegalPackFormatException;
 import io.github.pulsebeat02.ezmediacore.throwable.IllegalPackResourceException;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
-import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
 import io.github.pulsebeat02.ezmediacore.utility.io.ResourcepackUtils;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -89,8 +88,7 @@ public class ResourcepackWrapper implements PackWrapper {
     }
 
     if (this.checkIcon()) {
-      throw new IllegalPackResourceException(
-          "Invalid Pack Icon! Must be PNG (%s)".formatted(PathUtils.getName(this.icon)));
+      throw new IllegalPackResourceException("Invalid PNG pack icon");
     }
   }
 
@@ -177,11 +175,14 @@ public class ResourcepackWrapper implements PackWrapper {
 
   @Override
   public @NotNull String getPackMcmeta() {
+
     final JsonObject mcmeta = new JsonObject();
     final JsonObject pack = new JsonObject();
+
     pack.addProperty("pack_format", this.format);
     pack.addProperty("description", this.description);
     mcmeta.add("pack", pack);
+
     return GsonProvider.getSimple().toJson(mcmeta);
   }
 

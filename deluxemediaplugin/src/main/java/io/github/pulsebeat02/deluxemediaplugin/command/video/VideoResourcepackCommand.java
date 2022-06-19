@@ -106,10 +106,12 @@ public final class VideoResourcepackCommand implements CommandSegment.Literal<Co
 
   private boolean checkSelectors(
       @NotNull final Audience audience, @NotNull final List<Entity> entities) {
+    final boolean valid = entities.stream()
+        .anyMatch(Predicate.not(entity -> entity instanceof Player));
     return handleTrue(
         audience,
         Locale.ERR_INVALID_TARGET_SELECTOR.build(),
-        entities.stream().anyMatch(Predicate.not(entity -> entity instanceof Player)));
+        valid);
   }
 
   private List<? extends Player> convert(@NotNull final List<Entity> entities) {
