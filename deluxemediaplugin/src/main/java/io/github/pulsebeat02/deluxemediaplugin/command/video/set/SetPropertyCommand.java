@@ -25,6 +25,7 @@ public final class SetPropertyCommand implements CommandSegment.Literal<CommandS
             .then(new SetDitherMapCommand(plugin, config).getNode())
             .then(new SetItemframeDimensionCommand(plugin, config).getNode())
             .then(new SetNativeDitheringCommand(plugin, config).getNode())
+            .then(new SetResolutionCommand(plugin, config).getNode())
             .build();
   }
 

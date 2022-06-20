@@ -24,9 +24,9 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.utility.component;
 
+import com.google.common.primitives.Ints;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import java.util.Optional;
-import java.util.OptionalInt;
 import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,11 +38,11 @@ public final class ChatUtils {
       @NotNull final Audience sender, @NotNull final String str) {
 
     final String[] dims = str.split(":");
-    final OptionalInt width = parseInt(dims[0]);
-    final OptionalInt height = parseInt(dims[1]);
+    final Optional<Integer> width = parseInt(dims[0]);
+    final Optional<Integer> height = parseInt(dims[1]);
 
     if (width.isPresent() && height.isPresent()) {
-      return Optional.of(new int[] {width.getAsInt(), height.getAsInt()});
+      return Optional.of(new int[] {width.get(), height.get()});
     }
 
     sender.sendMessage(Locale.ERR_INVALID_DIMS.build());
@@ -50,11 +50,7 @@ public final class ChatUtils {
     return Optional.empty();
   }
 
-  public static @NotNull OptionalInt parseInt(@NotNull final String num) {
-    try {
-      return OptionalInt.of(Integer.parseInt(num));
-    } catch (final NumberFormatException e) {
-      return OptionalInt.empty();
-    }
+  public static @NotNull Optional<Integer> parseInt(@NotNull final String num) {
+    return Optional.ofNullable(Ints.tryParse(num));
   }
 }

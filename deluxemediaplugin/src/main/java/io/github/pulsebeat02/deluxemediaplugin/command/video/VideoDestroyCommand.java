@@ -62,9 +62,7 @@ public final class VideoDestroyCommand implements CommandSegment.Literal<Command
   private void releasePlayer(@NotNull final VideoPlayer player) {
     final PlayerControls state = player.getPlayerState();
     if (state != PlayerControls.RELEASE) {
-      if (state == PlayerControls.START || state == PlayerControls.RESUME) {
-        player.pause();
-      }
+      player.pause();
       player.release();
     }
   }
