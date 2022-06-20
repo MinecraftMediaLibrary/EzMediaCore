@@ -36,6 +36,7 @@ public enum PackFormat {
   VER_119(9),
   VER_UNKNOWN(-1);
 
+  private static final PackFormat CURRENT_FORMAT;
   private static final String VERSION;
   private static final Map<String, PackFormat> KEYS;
 
@@ -56,7 +57,8 @@ public enum PackFormat {
             "118", VER_118,
             "1181", VER_1181,
             "1182", VER_1182,
-            "119", VER_119);
+            "1191", VER_119);
+    CURRENT_FORMAT = KEYS.get(VERSION);
   }
 
   private final int id;
@@ -67,7 +69,7 @@ public enum PackFormat {
 
   @NotNull
   public static PackFormat getCurrentFormat() {
-    return KEYS.get(VERSION);
+    return CURRENT_FORMAT;
   }
 
   public int getId() {
