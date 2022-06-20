@@ -40,7 +40,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class MediaCommandListener {
+public final class MediaCommandListener {
 
   private final MediaBot bot;
   private final Map<String, DiscordBaseCommand> commands;

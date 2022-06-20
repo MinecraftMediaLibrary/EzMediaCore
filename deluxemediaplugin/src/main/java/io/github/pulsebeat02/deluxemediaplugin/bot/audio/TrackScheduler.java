@@ -32,7 +32,7 @@ import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import org.jetbrains.annotations.NotNull;
 
 /** Stolen from itxfrosty Music bot. */
-public class TrackScheduler extends AudioEventAdapter {
+public final class TrackScheduler extends AudioEventAdapter {
 
   private final AudioPlayer audioPlayer;
   private final MusicManager musicManager;

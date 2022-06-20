@@ -28,11 +28,10 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.playback.AudioFrame;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import java.nio.ByteBuffer;
-import javax.annotation.Nullable;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import org.jetbrains.annotations.NotNull;
 
-public class MusicSendHandler implements AudioSendHandler {
+public final class MusicSendHandler implements AudioSendHandler {
 
   private final AudioPlayer audioPlayer;
   private final TrackScheduler trackScheduler;
@@ -59,7 +58,6 @@ public class MusicSendHandler implements AudioSendHandler {
     return this.audioFrame != null;
   }
 
-  @Nullable
   @Override
   public ByteBuffer provide20MsAudio() {
     return ByteBuffer.wrap(this.audioFrame.getData());

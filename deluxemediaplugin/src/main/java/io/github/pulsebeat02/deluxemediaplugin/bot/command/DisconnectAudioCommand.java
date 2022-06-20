@@ -23,15 +23,15 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.bot.command;
 
-import io.github.pulsebeat02.deluxemediaplugin.bot.locale.DiscordLocale;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
+import io.github.pulsebeat02.deluxemediaplugin.bot.locale.DiscordLocale;
 import java.util.Set;
 import net.dv8tion.jda.api.entities.Message;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DisconnectAudioCommand extends DiscordBaseCommand {
+public final class DisconnectAudioCommand extends DiscordBaseCommand {
 
   public DisconnectAudioCommand(@NotNull final MediaBot bot) {
     super(bot, "disconnect", Set.of());

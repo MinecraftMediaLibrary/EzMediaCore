@@ -41,7 +41,7 @@ import net.dv8tion.jda.api.hooks.AnnotatedEventManager;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import org.jetbrains.annotations.NotNull;
 
-public class MediaBot {
+public final class MediaBot {
 
   private final JDA jda;
   private final Guild guild;

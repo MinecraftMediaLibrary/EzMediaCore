@@ -63,16 +63,28 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
   @Override
   public @Nullable MediaBot serialize() {
     final MutableBoolean invalid = MutableBoolean.ofFalse();
-    final String token =
-        this.checkConfigurationValue("token", Locale.ERR_BOT_TOKEN.build(), invalid);
-    final String guild =
-        this.checkConfigurationValue("guild-id", Locale.ERR_GUILD_TOKEN.build(), invalid);
-    final String vc =
-        this.checkConfigurationValue("voice-chat-id", Locale.ERR_VC_ID.build(), invalid);
+    final String token = this.getToken(invalid);
+    final String guild = this.getGuild(invalid);
+    final String vc = this.getVoiceChat(invalid);
     if (!invalid.getBoolean()) {
       return this.constructBot(token, guild, vc);
     }
     return null;
+  }
+
+  @Nullable
+  private String getVoiceChat(final MutableBoolean invalid) {
+    return this.checkConfigurationValue("voice-chat-id", Locale.ERR_VC_ID.build(), invalid);
+  }
+
+  @Nullable
+  private String getGuild(final MutableBoolean invalid) {
+    return this.checkConfigurationValue("guild-id", Locale.ERR_GUILD_TOKEN.build(), invalid);
+  }
+
+  @Nullable
+  private String getToken(final MutableBoolean invalid) {
+    return this.checkConfigurationValue("token", Locale.ERR_BOT_TOKEN.build(), invalid);
   }
 
   private @NotNull MediaBot constructBot(
