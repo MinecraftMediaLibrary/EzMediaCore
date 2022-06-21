@@ -30,6 +30,7 @@ import io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegMediaStreamer;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.MrlInput;
+import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +46,8 @@ public abstract class FFmpegOutput extends AudioOutput implements FFmpegOutputHa
       @NotNull final DeluxeMediaPlugin plugin,
       @NotNull final ScreenConfig attributes,
       @NotNull final Audience audience,
-      @NotNull final String mrl) {}
+      @NotNull final String mrl) {
+  }
 
   @NotNull
   @Override
@@ -71,7 +73,8 @@ public abstract class FFmpegOutput extends AudioOutput implements FFmpegOutputHa
       @NotNull final String ip,
       final int port) {
     final AudioConfiguration configuration = plugin.getAudioConfiguration();
-    final String resource = RequestUtils.getAudioURLs(MrlInput.ofMrl(mrl)).get(0).getInput();
+    final MediaRequest request = RequestUtils.requestMediaInformation(MrlInput.ofMrl(mrl));
+    final String resource = request.getAudioLinks().get(0).getInput();
     return FFmpegMediaStreamer.ofFFmpegMediaStreamer(
         plugin.library(), configuration, resource, ip, port);
   }

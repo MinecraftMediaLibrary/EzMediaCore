@@ -44,6 +44,7 @@ import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import io.github.pulsebeat02.ezmediacore.player.input.FFmpegMediaPlayerInputParser;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
+import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils;
@@ -113,8 +114,9 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
       @NotNull final Input mrl,
       @NotNull final DelayConfiguration delay,
       @NotNull final Object @NotNull ... arguments) {
-    this.setDirectVideoMrl(RequestUtils.getVideoURLs(mrl).get(0));
-    this.setDirectAudioMrl(RequestUtils.getAudioURLs(mrl).get(0));
+    final MediaRequest request = RequestUtils.requestMediaInformation(mrl);
+    this.setDirectVideoMrl(request.getVideoLinks().get(0));
+    this.setDirectAudioMrl(request.getAudioLinks().get(0));
     this.constructFFmpegProcess(delay);
     this.addExtraArguments(arguments);
   }
@@ -126,7 +128,6 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   }
 
   private void constructFFmpegProcess(@NotNull final DelayConfiguration delay) {
-    final String url = this.getDirectVideoMrl().getInput();
     final long ms = delay.getDelay() * 1000;
     this.ffmpeg = new FFmpeg(this.getCore().getFFmpegPath().toAbsolutePath());
     this.addInput(ms);

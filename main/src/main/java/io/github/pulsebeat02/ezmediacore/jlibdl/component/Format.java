@@ -26,6 +26,7 @@ package io.github.pulsebeat02.ezmediacore.jlibdl.component;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class Format {
@@ -86,7 +87,7 @@ public final class Format {
   @Expose
   private int width;
 
-  public @Nullable String getAcodec() {
+  public @NotNull String getAcodec() {
     return this.acodec;
   }
 
@@ -126,11 +127,11 @@ public final class Format {
     return this.tbr;
   }
 
-  public @Nullable String getUrl() {
+  public @NotNull String getUrl() {
     return this.url;
   }
 
-  public @Nullable String getVcodec() {
+  public @NotNull String getVcodec() {
     return this.vcodec;
   }
 

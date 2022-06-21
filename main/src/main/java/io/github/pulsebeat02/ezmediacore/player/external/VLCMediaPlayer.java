@@ -40,6 +40,7 @@ import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.player.input.VLCMediaPlayerInputParser;
+import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import java.nio.ByteBuffer;
@@ -99,8 +100,9 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   @Override
   public void start(@NotNull final Input mrl, @NotNull final Object... arguments) {
     super.start(mrl, arguments);
-    this.setDirectVideoMrl(RequestUtils.getVideoURLs(mrl).get(0));
-    this.setDirectAudioMrl(RequestUtils.getAudioURLs(mrl).get(0));
+    final MediaRequest request = RequestUtils.requestMediaInformation(mrl);
+    this.setDirectVideoMrl(request.getVideoLinks().get(0));
+    this.setDirectAudioMrl(request.getAudioLinks().get(0));
     if (this.player == null) {
       this.initializePlayer(mrl, DelayConfiguration.DELAY_0_MS, arguments);
     }

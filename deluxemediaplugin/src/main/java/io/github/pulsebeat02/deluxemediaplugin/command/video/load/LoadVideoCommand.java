@@ -16,6 +16,7 @@ import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.PathInput;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
+import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
 import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import io.github.pulsebeat02.ezmediacore.utility.io.ResourcepackUtils;
@@ -144,7 +145,8 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
       @NotNull final Audience audience, @NotNull final Path folder, @NotNull final Input input)
       throws IOException, InterruptedException {
 
-    final List<Input> results = RequestUtils.getAudioURLs(input);
+    final MediaRequest request = RequestUtils.requestMediaInformation(input);
+    final List<Input> results = request.getAudioLinks();
 
     if (this.checkInvalidUrl(audience, results)) {
       return Optional.empty();
@@ -184,12 +186,14 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
   }
 
   private boolean isStream(@NotNull final Input input) {
-    return RequestUtils.isStream(input);
+    final MediaRequest request = RequestUtils.requestMediaInformation(input);
+    return request.isStream();
   }
 
   private boolean checkInvalidUrl(@NotNull final Audience audience, @NotNull final Input input) {
 
-    final List<Input> urls = RequestUtils.getVideoURLs(input);
+    final MediaRequest request = RequestUtils.requestMediaInformation(input);
+    final List<Input> urls = request.getVideoLinks();
 
     final boolean equal = urls.get(0).equals(input);
     final boolean size = urls.size() == 1;

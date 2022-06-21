@@ -33,6 +33,7 @@ import io.github.pulsebeat02.ezmediacore.jlibdl.component.MediaInfo;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
@@ -47,7 +48,10 @@ public final class YoutubeDLRequest {
 
   static {
     API_REQUEST_BASE = "https://emc-youtube-dl-backup.herokuapp.com/api/info?url=%s";
-    HTTP_CLIENT = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+    HTTP_CLIENT = HttpClient.newBuilder()
+        .version(Version.HTTP_2)
+        .connectTimeout(Duration.ofSeconds(10))
+        .build();
     GSON = new Gson();
   }
 
@@ -71,14 +75,17 @@ public final class YoutubeDLRequest {
   }
 
   private @NotNull HttpRequest createRequest(@NotNull final String url) {
-    return HttpRequest.newBuilder().uri(URI.create(API_REQUEST_BASE.formatted(url))).build();
+    return HttpRequest.newBuilder()
+        .uri(URI.create(API_REQUEST_BASE.formatted(url)))
+        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36")
+        .build();
   }
 
   private @NotNull HttpResponse.BodyHandler<String> createResponse() {
     return HttpResponse.BodyHandlers.ofString();
   }
 
-  public @Nullable MediaInfo getInfo() {
+  public @NotNull MediaInfo getInfo() {
     return this.info;
   }
 

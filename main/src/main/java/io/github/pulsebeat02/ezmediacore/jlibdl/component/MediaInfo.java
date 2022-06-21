@@ -27,6 +27,7 @@ package io.github.pulsebeat02.ezmediacore.jlibdl.component;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class MediaInfo {
@@ -199,7 +200,7 @@ public final class MediaInfo {
     return this.formatId;
   }
 
-  public @Nullable List<Format> getFormats() {
+  public @NotNull List<Format> getFormats() {
     return this.formats;
   }
 
