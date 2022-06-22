@@ -113,7 +113,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
   private boolean handleResourcepack(@NotNull final Audience audience, @NotNull final Input input) {
     try {
 
-      final Optional<Path> download = this.downloadUrlInput(audience, input);
+      final Optional<String> download = this.getSourceInput(audience, input);
       if (download.isEmpty()) {
         audience.sendMessage(Locale.ERR_DOWNLOAD_VIDEO.build());
         return true;
@@ -122,40 +122,33 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
       new SimpleResourcepackWrapper(this.plugin, this.config, download.get(), this.videoFolder)
           .loadResourcepack();
 
-    } catch (final IOException | InterruptedException e) {
+    } catch (final IOException e) {
       audience.sendMessage(Locale.ERR_LOAD_VIDEO.build());
       e.printStackTrace();
     }
     return false;
   }
 
-  private @NotNull Optional<Path> downloadUrlInput(
-      @NotNull final Audience audience, @NotNull final Input input)
-      throws IOException, InterruptedException {
+  private @NotNull Optional<String> getSourceInput(
+      @NotNull final Audience audience, @NotNull final Input input) {
     return this.isPathInput(input)
-        ? Optional.of(Path.of(input.getInput()))
-        : this.downloadFile(audience, this.videoFolder, input);
+        ? Optional.of(input.getInput())
+        : this.getAudioSource(audience, input);
   }
 
   private boolean isPathInput(@NotNull final Input input) {
     return input instanceof PathInput;
   }
 
-  private Optional<Path> downloadFile(
-      @NotNull final Audience audience, @NotNull final Path folder, @NotNull final Input input)
-      throws IOException, InterruptedException {
-
+  private Optional<String> getAudioSource(
+      @NotNull final Audience audience, @NotNull final Input input) {
     final MediaRequest request = RequestUtils.requestMediaInformation(input);
     final List<Input> results = request.getAudioLinks();
-
     if (this.checkInvalidUrl(audience, results)) {
       return Optional.empty();
     }
-
     final Input first = results.get(0);
-    final Path target = RequestUtils.downloadFile(folder.resolve(".audio.tmp"), first.getInput());
-
-    return Optional.of(target);
+    return Optional.of(first.getInput());
   }
 
   private boolean checkInvalidUrl(

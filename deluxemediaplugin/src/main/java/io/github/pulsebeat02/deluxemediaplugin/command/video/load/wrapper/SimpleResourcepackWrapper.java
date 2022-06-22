@@ -17,18 +17,18 @@ public final class SimpleResourcepackWrapper {
 
   private final DeluxeMediaPlugin plugin;
   private final ScreenConfig config;
-  private final Path download;
-  private final Path ogg;
+  private final String source;
+  private final String ogg;
 
   public SimpleResourcepackWrapper(
       @NotNull final DeluxeMediaPlugin plugin,
       @NotNull final ScreenConfig config,
-      @NotNull final Path download,
+      @NotNull final String source,
       @NotNull final Path videoFolder) {
     this.plugin = plugin;
     this.config = config;
-    this.download = download;
-    this.ogg = videoFolder.resolve(".output.ogg");
+    this.source = source;
+    this.ogg = videoFolder.resolve(".output.ogg").toString();
   }
 
   public void loadResourcepack() throws IOException {
@@ -41,7 +41,7 @@ public final class SimpleResourcepackWrapper {
     final AudioConfiguration configuration = this.plugin.getAudioConfiguration();
     final OGGAudioExtractor extractor =
         OGGAudioExtractor.ofFFmpegAudioExtractor(
-            this.plugin.library(), configuration, this.download, this.ogg);
+            this.plugin.library(), configuration, this.source, this.ogg);
 
     this.config.setExtractor(extractor);
 
@@ -68,7 +68,7 @@ public final class SimpleResourcepackWrapper {
 
     final ResourcepackSoundWrapper wrapper =
         ResourcepackSoundWrapper.ofSoundPack(target, "Auto-Generated Audio Pack", id);
-    wrapper.addSound(sound, this.ogg);
+    wrapper.addSound(sound, Path.of(this.ogg));
     wrapper.wrap();
 
     return wrapper;
