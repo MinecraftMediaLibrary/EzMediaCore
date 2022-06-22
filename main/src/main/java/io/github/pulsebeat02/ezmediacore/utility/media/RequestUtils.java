@@ -48,7 +48,7 @@ import org.jetbrains.annotations.NotNull;
 public final class RequestUtils {
 
   private static final LoadingCache<String, Optional<MediaRequest>> CACHED_RESULT;
-
+  private static final int DOWNLOAD_CHUNK_SIZE;
   static {
     CACHED_RESULT =
         Caffeine.newBuilder()
@@ -56,6 +56,7 @@ public final class RequestUtils {
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .softValues()
             .build(RequestUtils::getRequestInternal);
+    DOWNLOAD_CHUNK_SIZE = 5 * 1_000 * 1_000;
   }
 
   private static @NotNull Optional<MediaRequest> getRequestInternal(@NotNull final String url)
@@ -80,19 +81,19 @@ public final class RequestUtils {
 
   @Contract("_, _ -> param2")
   private static @NotNull Path downloadInChunks(@NotNull final String source, @NotNull final Path path) throws IOException {
-    final int chunk = 5 * 1_000 * 1_000;
     long start = 0;
-    long end = chunk;
+    long end = DOWNLOAD_CHUNK_SIZE;
     final URL website = new URL(source);
-    final ReadableByteChannel in = Channels.newChannel(website.openStream());
-    final FileChannel out = new FileOutputStream(path.toFile()).getChannel();
-    final ByteBuffer buffer = ByteBuffer.allocate(chunk);
-    while (in.read(buffer) != -1) {
-      out.transferFrom(in, start, chunk);
-      start = end;
-      end += chunk;
+    try (final ReadableByteChannel in = Channels.newChannel(website.openStream());
+    final FileChannel out = FileChannel.open(path)) {
+      final ByteBuffer buffer = ByteBuffer.allocate(DOWNLOAD_CHUNK_SIZE);
+      while (in.read(buffer) != -1) {
+        out.transferFrom(in, start, DOWNLOAD_CHUNK_SIZE);
+        start = end;
+        end += DOWNLOAD_CHUNK_SIZE;
+      }
+      return path;
     }
-    return path;
   }
 
   public static @NotNull MediaRequest requestMediaInformation(@NotNull final Input url) {
