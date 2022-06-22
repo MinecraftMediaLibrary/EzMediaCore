@@ -53,8 +53,7 @@ public final class VideoCancelProcessingCommand implements CommandSegment.Litera
 
   private boolean handleProcessing(@NotNull final Audience audience) {
     final Component component = Locale.ERR_CANCELLATION_VIDEO_PROCESSING.build();
-    return handleNull(audience, component, this.config.getExtractor())
-        || handleNull(audience, component, this.config.getTask());
+    return handleNull(audience, component, this.config.getTask());
   }
 
   private void setupCancelledAttributes(@Nullable final EnhancedExecution extractor) {
