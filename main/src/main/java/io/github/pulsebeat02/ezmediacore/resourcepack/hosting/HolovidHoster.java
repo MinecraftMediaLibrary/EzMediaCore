@@ -82,13 +82,12 @@ public class HolovidHoster implements HolovidSolution {
   }
 
   private static @NotNull String getRequestInternal(@NotNull final String input)
-      throws URISyntaxException, IOException, InterruptedException {
+      throws IOException, InterruptedException {
     return HTTP_CLIENT.send(createRequestInternal(input), createBodyHandlerInternal()).body();
   }
 
-  private static @NotNull HttpRequest createRequestInternal(@NotNull final String input)
-      throws URISyntaxException {
-    return HttpRequest.newBuilder().uri(new URI(HOLOVID_LINK + input)).build();
+  private static @NotNull HttpRequest createRequestInternal(@NotNull final String input) {
+    return HttpRequest.newBuilder().uri(URI.create(HOLOVID_LINK + input)).build();
   }
 
   private static @NotNull BodyHandler<String> createBodyHandlerInternal() {

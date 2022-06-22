@@ -266,12 +266,7 @@ public class SkullCreator {
 
   private static String urlToBase64(final String url) {
 
-    final URI actualUrl;
-    try {
-      actualUrl = new URI(url);
-    } catch (final URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
+    final URI actualUrl = URI.create(url);
     final String toEncode = "{\"textures\":{\"SKIN\":{\"url\":\"" + actualUrl + "\"}}}";
     return Base64.getEncoder().encodeToString(toEncode.getBytes());
   }

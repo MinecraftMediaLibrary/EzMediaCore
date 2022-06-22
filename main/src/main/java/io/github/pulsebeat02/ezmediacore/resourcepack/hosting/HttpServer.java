@@ -44,7 +44,7 @@ public class HttpServer implements HttpDaemonSolution {
   static {
     try {
       HTTP_SERVER_IP = HttpClient.newHttpClient().send(createRequest(), createBodyHandler()).body();
-    } catch (final IOException | URISyntaxException | InterruptedException e) {
+    } catch (final IOException | InterruptedException e) {
       HTTP_SERVER_IP = "127.0.0.1"; // fallback ip
     }
   }
@@ -61,8 +61,8 @@ public class HttpServer implements HttpDaemonSolution {
     this.daemon = HttpServerDaemon.ofDaemon(core, path, ip, port, verbose);
   }
 
-  private static @NotNull HttpRequest createRequest() throws URISyntaxException {
-    return HttpRequest.newBuilder().uri(new URI("https://myexternalip.com/raw")).build();
+  private static @NotNull HttpRequest createRequest() {
+    return HttpRequest.newBuilder().uri(URI.create("https://myexternalip.com/raw")).build();
   }
 
   private static @NotNull BodyHandler<String> createBodyHandler() {

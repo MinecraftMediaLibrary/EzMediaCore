@@ -135,7 +135,7 @@ public final class MediaExtractionUtils {
   }
 
   private static @NotNull Optional<String> getFirstResultVideoInternal(@NotNull final String query)
-      throws IOException, URISyntaxException, InterruptedException {
+      throws IOException, InterruptedException {
     final String content = HTTP_CLIENT.send(createRequest(query), createBodyHandler()).body();
     final int start = FastStringUtils.fastQuerySearch(content, SEARCH_KEYWORD) + 10;
     return Optional.of(content.substring(start, content.indexOf('"', start)));
@@ -145,10 +145,9 @@ public final class MediaExtractionUtils {
     return HttpResponse.BodyHandlers.ofString();
   }
 
-  private static @NotNull HttpRequest createRequest(@NotNull final String query)
-      throws URISyntaxException {
+  private static @NotNull HttpRequest createRequest(@NotNull final String query) {
     return HttpRequest.newBuilder()
-        .uri(new URI(YOUTUBE_SEARCH_URL.formatted(query.replaceAll(" ", "+"))))
+        .uri(URI.create(YOUTUBE_SEARCH_URL.formatted(query.replaceAll(" ", "+"))))
         .build();
   }
 }
