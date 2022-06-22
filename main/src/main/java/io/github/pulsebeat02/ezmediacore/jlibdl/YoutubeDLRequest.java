@@ -27,8 +27,6 @@ package io.github.pulsebeat02.ezmediacore.jlibdl;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.gson.Gson;
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
 import io.github.pulsebeat02.ezmediacore.jlibdl.component.MediaInfo;
 import java.io.IOException;
 import java.net.URI;
@@ -38,7 +36,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class YoutubeDLRequest {
 
@@ -55,18 +52,10 @@ public final class YoutubeDLRequest {
     GSON = new Gson();
   }
 
-  @SerializedName("info")
-  @Expose
-  private MediaInfo info;
-
-  @SerializedName("url")
-  @Expose
-  private String url;
-
-  public @NotNull YoutubeDLRequest request(@NotNull final String url)
+  public @NotNull MediaInfo request(@NotNull final String url)
       throws IOException, InterruptedException {
     checkNotNull(url, "URL cannot be null!");
-    return GSON.fromJson(this.getJson(url), YoutubeDLRequest.class);
+    return GSON.fromJson(this.getJson(url), MediaInfo.class);
   }
 
   private @NotNull String getJson(@NotNull final String url)
@@ -82,13 +71,5 @@ public final class YoutubeDLRequest {
 
   private @NotNull HttpResponse.BodyHandler<String> createResponse() {
     return HttpResponse.BodyHandlers.ofString();
-  }
-
-  public @NotNull MediaInfo getInfo() {
-    return this.info;
-  }
-
-  public @Nullable String getUrl() {
-    return this.url;
   }
 }

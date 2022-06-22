@@ -29,25 +29,17 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.jlibdl.JLibDL;
-import io.github.pulsebeat02.ezmediacore.jlibdl.YoutubeDLRequest;
+import io.github.pulsebeat02.ezmediacore.jlibdl.component.MediaInfo;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpClient.Redirect;
-import java.net.http.HttpClient.Version;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.Contract;
@@ -56,15 +48,8 @@ import org.jetbrains.annotations.NotNull;
 public final class RequestUtils {
 
   private static final LoadingCache<String, Optional<MediaRequest>> CACHED_RESULT;
-  private static final HttpClient HTTP_CLIENT;
 
   static {
-    HTTP_CLIENT =
-        HttpClient.newBuilder()
-            .version(Version.HTTP_1_1)
-            .followRedirects(Redirect.NORMAL)
-            .connectTimeout(Duration.ofSeconds(20))
-            .build();
     CACHED_RESULT =
         Caffeine.newBuilder()
             .executor(ExecutorProvider.SHARED_RESULT_POOL)
@@ -76,7 +61,7 @@ public final class RequestUtils {
   private static @NotNull Optional<MediaRequest> getRequestInternal(@NotNull final String url)
       throws InterruptedException {
     try {
-      final YoutubeDLRequest request = JLibDL.request(url);
+      final MediaInfo request = JLibDL.request(url);
       return Optional.of(MediaRequest.ofRequest(request));
     } catch (final IOException e) {
       return Optional.empty();
@@ -85,25 +70,24 @@ public final class RequestUtils {
 
   private RequestUtils() {
   }
+
   public static @NotNull Path downloadFile(@NotNull final Path path, @NotNull final String url)
-      throws IOException, InterruptedException {
+      throws IOException {
     checkNotNull(path, "Path cannot be null!");
     checkNotNull(url, "URL cannot be null!");
-    final HttpResponse<InputStream> stream = HTTP_CLIENT.send(createRequest(url),
-        BodyHandlers.ofInputStream());
-    return downloadInChunks(stream.body(), path);
+    return downloadInChunks(url, path);
   }
 
   @Contract("_, _ -> param2")
-  private static @NotNull Path downloadInChunks(@NotNull final InputStream source,
-      @NotNull final Path path) throws IOException {
+  private static @NotNull Path downloadInChunks(@NotNull final String source, @NotNull final Path path) throws IOException {
     final int chunk = 5 * 1_000 * 1_000;
     long start = 0;
     long end = chunk;
-    final ReadableByteChannel in = Channels.newChannel(source);
+    final URL website = new URL(source);
+    final ReadableByteChannel in = Channels.newChannel(website.openStream());
     final FileChannel out = new FileOutputStream(path.toFile()).getChannel();
     final ByteBuffer buffer = ByteBuffer.allocate(chunk);
-    while (in.read(buffer) > 0) {
+    while (in.read(buffer) != -1) {
       out.transferFrom(in, start, chunk);
       start = end;
       end += chunk;
@@ -114,12 +98,5 @@ public final class RequestUtils {
   public static @NotNull MediaRequest requestMediaInformation(@NotNull final Input url) {
     final Optional<MediaRequest> result = CACHED_RESULT.get(url.getInput());
     return result.orElseGet(() -> MediaRequest.ofRequest(url));
-  }
-
-  private static @NotNull HttpRequest createRequest(@NotNull final String url) {
-    checkNotNull(url, "URL cannot be null!");
-    return HttpRequest.newBuilder()
-        .uri(URI.create(url))
-        .build();
   }
 }

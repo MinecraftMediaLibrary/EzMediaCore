@@ -24,6 +24,7 @@
 
 package io.github.pulsebeat02.ezmediacore.jlibdl;
 
+import io.github.pulsebeat02.ezmediacore.jlibdl.component.MediaInfo;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +32,7 @@ public final class JLibDL {
 
   private JLibDL() {}
 
-  public static @NotNull YoutubeDLRequest request(@NotNull final String url)
+  public static @NotNull MediaInfo request(@NotNull final String url)
       throws IOException, InterruptedException {
     return new YoutubeDLRequest().request(url);
   }

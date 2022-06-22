@@ -1,15 +1,12 @@
 package io.github.pulsebeat02.ezmediacore;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
@@ -28,7 +25,7 @@ public final class ChunkDownloadTest {
   }
 
   public static void main(final String[] args)
-      throws URISyntaxException, IOException, InterruptedException {
+      throws IOException {
 
     final Path test = Paths.get(System.getProperty("user.dir"), "test");
     FileUtils.createDirectoryIfNotExistsExceptionally(test);
@@ -41,26 +38,22 @@ public final class ChunkDownloadTest {
   }
 
   public static @NotNull Path downloadUrlChunks(@NotNull final Path path, @NotNull final String url)
-      throws IOException, InterruptedException {
-
-    final HttpRequest.Builder builder = HttpRequest.newBuilder();
-    builder.uri(URI.create(url));
-    final HttpResponse<InputStream> stream = HTTP_CLIENT.send(builder.build(),
-        BodyHandlers.ofInputStream());
-    final InputStream input = stream.body();
-
-    return downloadInChunks(input, path);
+      throws IOException {
+    checkNotNull(path, "Path cannot be null!");
+    checkNotNull(url, "URL cannot be null!");
+    return downloadInChunks(url, path);
   }
 
   @Contract("_, _ -> param2")
-  private static @NotNull Path downloadInChunks(@NotNull final InputStream source, @NotNull final Path path) throws IOException {
-    final int chunk = 5 * 1_000 * 1_000;
+  private static @NotNull Path downloadInChunks(@NotNull final String source, @NotNull final Path path) throws IOException {
+    final int chunk = 2 * 1_000 * 1_000;
     long start = 0;
     long end = chunk;
-    final ReadableByteChannel in = Channels.newChannel(source);
+    final URL website = new URL(source);
+    final ReadableByteChannel in = Channels.newChannel(website.openStream());
     final FileChannel out = new FileOutputStream(path.toFile()).getChannel();
     final ByteBuffer buffer = ByteBuffer.allocate(chunk);
-    while (in.read(buffer) > 0) {
+    while (in.read(buffer) != -1) {
       out.transferFrom(in, start, chunk);
       start = end;
       end += chunk;

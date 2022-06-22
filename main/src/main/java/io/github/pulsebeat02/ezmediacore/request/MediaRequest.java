@@ -1,7 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.request;
 
-import io.github.pulsebeat02.ezmediacore.jlibdl.YoutubeDLRequest;
 import io.github.pulsebeat02.ezmediacore.jlibdl.component.Format;
+import io.github.pulsebeat02.ezmediacore.jlibdl.component.MediaInfo;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
 import java.util.List;
@@ -10,12 +10,12 @@ import org.jetbrains.annotations.NotNull;
 
 public final class MediaRequest {
 
-  private final YoutubeDLRequest request;
+  private final MediaInfo request;
   private final List<Input> audio;
   private final List<Input> video;
   private final boolean stream;
 
-  MediaRequest(@NotNull final YoutubeDLRequest request) {
+  MediaRequest(@NotNull final MediaInfo request) {
     this.request = request;
     this.audio = this.getInternalAudioInputs();
     this.video = this.getInternalVideoInputs();
@@ -30,7 +30,7 @@ public final class MediaRequest {
   }
 
   @Contract("_ -> new")
-  public static @NotNull MediaRequest ofRequest(@NotNull final YoutubeDLRequest request) {
+  public static @NotNull MediaRequest ofRequest(@NotNull final MediaInfo request) {
     return new MediaRequest(request);
   }
 
@@ -40,7 +40,7 @@ public final class MediaRequest {
   }
 
   private @NotNull List<Input> getInternalAudioInputs() {
-    final List<Format> formats = this.request.getInfo().getFormats();
+    final List<Format> formats = this.request.getFormats();
     final List<Format> audio = formats.stream().filter(this::isAudioCodec).toList();
     return audio.stream().map(url -> UrlInput.ofUrl(url.getUrl())).toList();
   }
@@ -50,7 +50,7 @@ public final class MediaRequest {
   }
 
   private @NotNull List<Input> getInternalVideoInputs() {
-    final List<Format> formats = this.request.getInfo().getFormats();
+    final List<Format> formats = this.request.getFormats();
     final List<Format> video = formats.stream().filter(this::isVideoCodec).toList();
     return video.stream().map(url -> UrlInput.ofUrl(url.getUrl())).toList();
   }
@@ -60,10 +60,10 @@ public final class MediaRequest {
   }
 
   private boolean isStreamInternal() {
-    return this.request.getInfo().isLive();
+    return this.request.isLive();
   }
 
-  public YoutubeDLRequest getRequest() {
+  public MediaInfo getRequest() {
     return this.request;
   }
 
