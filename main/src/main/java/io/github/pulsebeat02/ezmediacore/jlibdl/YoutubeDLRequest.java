@@ -47,7 +47,7 @@ public final class YoutubeDLRequest {
   private static final Gson GSON;
 
   static {
-    API_REQUEST_BASE = "https://emc-youtube-dl-backup.herokuapp.com/api/info?url=%s";
+    API_REQUEST_BASE = "http://88.198.20.120:4567/info?url=%s";
     HTTP_CLIENT = HttpClient.newBuilder()
         .version(Version.HTTP_2)
         .connectTimeout(Duration.ofSeconds(10))
@@ -77,7 +77,6 @@ public final class YoutubeDLRequest {
   private @NotNull HttpRequest createRequest(@NotNull final String url) {
     return HttpRequest.newBuilder()
         .uri(URI.create(API_REQUEST_BASE.formatted(url)))
-        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36")
         .build();
   }
 

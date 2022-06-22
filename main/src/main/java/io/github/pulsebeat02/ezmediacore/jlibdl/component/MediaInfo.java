@@ -184,7 +184,7 @@ public final class MediaInfo {
     return this.ext;
   }
 
-  public @Nullable String getExtractor() {
+  public @NotNull String getExtractor() {
     return this.extractor;
   }
 
