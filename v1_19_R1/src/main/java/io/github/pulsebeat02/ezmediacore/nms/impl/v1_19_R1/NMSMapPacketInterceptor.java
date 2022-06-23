@@ -4,6 +4,7 @@ import static io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils.setFi
 
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
+import io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -52,12 +53,14 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   private static final int PACKET_THRESHOLD_MS;
   private static final Set<Object> PACKET_DIFFERENTIATION;
   private static final Field METADATA_ITEMS;
+  private static final Field CHATMODIFIER;
 
   static {
     PACKET_THRESHOLD_MS = 0;
     PACKET_DIFFERENTIATION = Collections.newSetFromMap(new WeakHashMap<>());
     try {
       METADATA_ITEMS = PacketPlayOutEntityMetadata.class.getDeclaredField("b");
+      CHATMODIFIER = IChatMutableComponent.class.getDeclaredField("e");
       METADATA_ITEMS.setAccessible(true);
     } catch (final NoSuchFieldException e) {
       throw new AssertionError(e);
@@ -282,8 +285,9 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
       @NotNull final String character,
       @NotNull final IChatMutableComponent component,
       final int c) {
-    final IChatBaseComponent p = IChatBaseComponent.a(character);
-    p.a(ChatModifier.a.a(ChatHexColor.a(c & 0xFFFFFF)));
+    final IChatMutableComponent p = IChatMutableComponent.a(ComponentContents.a);
+    UnsafeUtils.setFinalField(CHATMODIFIER, p, ChatModifier.a.a(ChatHexColor.a(c & 0xFFFFFF)));
+    p.a(IChatBaseComponent.a(character));
     component.a(p);
   }
 
