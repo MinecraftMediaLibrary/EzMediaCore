@@ -113,7 +113,6 @@ public interface PacketHandler {
       final int width,
       final int height) {
     for (int y = 0; y < height; ++y) {
-      StringBuilder msg;
       final Team team = scoreboard.getTeam("SLOT_" + y);
       if (team != null) {
         team.setSuffix(this.createChatComponent(character, data, width, y));

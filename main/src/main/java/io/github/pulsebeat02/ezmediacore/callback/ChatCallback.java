@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.callback;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
+import io.github.pulsebeat02.ezmediacore.callback.entity.NamedStringCharacter;
 import io.github.pulsebeat02.ezmediacore.callback.implementation.ChatCallbackDispatcher;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.nio.IntBuffer;
@@ -36,13 +36,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class ChatCallback extends FrameCallback implements ChatCallbackDispatcher {
 
-  private final NamedEntityString character;
+  private final NamedStringCharacter character;
 
   ChatCallback(
       @NotNull final MediaLibraryCore core,
       @NotNull final Viewers viewers,
       @NotNull final Dimension dimension,
-      @NotNull final NamedEntityString character,
+      @NotNull final NamedStringCharacter character,
       @NotNull final DelayConfiguration delay) {
     super(core, viewers, dimension, delay);
     checkNotNull(character, "Entity name cannot be null!");
@@ -65,20 +65,20 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
       @NotNull final Dimension dimension,
       @NotNull final IntBuffer data) {
     final UUID[] watchers = this.getWatchers().getViewers();
-    final String character = this.character.getName();
+    final String character = this.character.getCharacter();
     final int width = dimension.getWidth();
     final int height = dimension.getHeight();
     this.getPacketHandler().displayChat(watchers, data, character, width, height);
   }
 
   @Override
-  public @NotNull NamedEntityString getChatCharacter() {
+  public @NotNull NamedStringCharacter getChatCharacter() {
     return this.character;
   }
 
   public static final class Builder extends CallbackBuilder {
 
-    private NamedEntityString character = NamedEntityString.NORMAL_SQUARE;
+    private NamedStringCharacter character = NamedStringCharacter.NORMAL_SQUARE;
 
     public Builder() {}
 
@@ -104,7 +104,7 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder character(@NotNull final NamedEntityString character) {
+    public @NotNull Builder character(@NotNull final NamedStringCharacter character) {
       this.character = character;
       return this;
     }

@@ -24,9 +24,10 @@
 package io.github.pulsebeat02.ezmediacore.callback.implementation;
 
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.callback.CharacterBased;
 import org.jetbrains.annotations.NotNull;
 
-public interface ScoreboardCallbackDispatcher extends Callback {
+public interface ScoreboardCallbackDispatcher extends Callback, CharacterBased {
 
   @NotNull
   String getScoreboardName();

@@ -27,16 +27,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.jetbrains.annotations.NotNull;
 
-public final class NamedEntityString {
+public final class NamedStringCharacter {
 
-  public static final NamedEntityString DASH;
-  public static final NamedEntityString HYPHEN;
-  public static final NamedEntityString PERIOD;
+  public static final NamedStringCharacter DASH;
+  public static final NamedStringCharacter HYPHEN;
+  public static final NamedStringCharacter PERIOD;
 
-  public static final NamedEntityString TINY_SQUARE;
-  public static final NamedEntityString NORMAL_SQUARE;
-  public static final NamedEntityString VERTICAL_RECTANGLE;
-  public static final NamedEntityString HORIZONTAL_RECTANGLE;
+  public static final NamedStringCharacter TINY_SQUARE;
+  public static final NamedStringCharacter NORMAL_SQUARE;
+  public static final NamedStringCharacter VERTICAL_RECTANGLE;
+  public static final NamedStringCharacter HORIZONTAL_RECTANGLE;
 
   static {
     DASH = ofString("-");
@@ -49,18 +49,18 @@ public final class NamedEntityString {
     HORIZONTAL_RECTANGLE = ofString("▬");
   }
 
-  private final String name;
+  private final String character;
 
-  NamedEntityString(@NotNull final String name) {
+  NamedStringCharacter(@NotNull final String name) {
     checkNotNull(name, "NamedEntityString cannot be null!");
-    this.name = name;
+    this.character = name;
   }
 
-  public static @NotNull NamedEntityString ofString(@NotNull final String name) {
-    return new NamedEntityString(name);
+  public static @NotNull NamedStringCharacter ofString(@NotNull final String name) {
+    return new NamedStringCharacter(name);
   }
 
-  public @NotNull String getName() {
-    return this.name;
+  public @NotNull String getCharacter() {
+    return this.character;
   }
 }

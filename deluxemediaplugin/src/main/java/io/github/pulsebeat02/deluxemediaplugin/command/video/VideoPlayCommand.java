@@ -2,6 +2,7 @@ package io.github.pulsebeat02.deluxemediaplugin.command.video;
 
 import static com.mojang.brigadier.Command.SINGLE_SUCCESS;
 import static io.github.pulsebeat02.deluxemediaplugin.command.Permission.has;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleFalse;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleNonNull;
 import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleTrue;
 
@@ -66,6 +67,10 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
       return SINGLE_SUCCESS;
     }
 
+    if (this.isValidScoreboardDimension(audience)) {
+      return SINGLE_SUCCESS;
+    }
+
     this.releaseIfPlaying();
     this.createVideoPlayer(sender, entities);
     this.setProperAudioHandler();
@@ -75,6 +80,14 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
     this.sendPlayInformation(audience);
 
     return SINGLE_SUCCESS;
+  }
+
+  private boolean isValidScoreboardDimension(@NotNull final Audience audience) {
+    final int width = this.config.getResolutionWidth();
+    final int height = this.config.getResolutionHeight();
+    final boolean valid = this.config.getVideoPlayback() != VideoPlayback.SCOREBOARD
+        || width >= 0 && width <= 32 && height >= 0 && height <= 16;
+    return handleFalse(audience, Locale.ERR_SCOREBOARD_DIMENSION.build(), valid);
   }
 
   private void startPlayer() {

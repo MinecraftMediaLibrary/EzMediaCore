@@ -27,7 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.entity.EntityCallbackDispatcher;
-import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
+import io.github.pulsebeat02.ezmediacore.callback.entity.NamedStringCharacter;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
@@ -51,14 +51,14 @@ public class EntityCallback<T extends Entity> extends FrameCallback
   private final Consumer<T> consumer;
   private final Entity[] entities;
   private final Location location;
-  private final NamedEntityString name;
+  private final NamedStringCharacter name;
 
   EntityCallback(
       @NotNull final MediaLibraryCore core,
       @NotNull final Viewers viewers,
       @NotNull final Dimension dimension,
       @NotNull final Location location,
-      @NotNull final NamedEntityString character,
+      @NotNull final NamedStringCharacter character,
       @NotNull final Class<T> type,
       @Nullable final Consumer<T> consumer,
       @NotNull final DelayConfiguration delay) {
@@ -88,7 +88,7 @@ public class EntityCallback<T extends Entity> extends FrameCallback
     for (int i = height - 1; i >= 0; i--) {
       entities[i] =
           world.spawn(spawn, this.type, this.consumer == null ? null : this.consumer::accept);
-      entities[i].setCustomName(this.repeat(this.name.getName(), height));
+      entities[i].setCustomName(this.repeat(this.name.getCharacter(), height));
       entities[i].setCustomNameVisible(true);
       spawn.add(0.0, 0.225, 0.0);
     }
@@ -119,7 +119,7 @@ public class EntityCallback<T extends Entity> extends FrameCallback
     final long time = System.currentTimeMillis();
     final int width = this.getDimensions().getWidth();
     final UUID[] viewers = this.getWatchers().getViewers();
-    final String name = this.name.getName();
+    final String name = this.name.getCharacter();
     if (time - this.getLastUpdated() >= this.getDelayConfiguration().getDelay()) {
       this.setLastUpdated(time);
       this.displayEntity(viewers, name, IntBuffer.wrap(data), width);
@@ -142,7 +142,7 @@ public class EntityCallback<T extends Entity> extends FrameCallback
   }
 
   @Override
-  public @NotNull NamedEntityString getStringName() {
+  public @NotNull NamedStringCharacter getStringName() {
     return this.name;
   }
 
@@ -162,7 +162,7 @@ public class EntityCallback<T extends Entity> extends FrameCallback
       ARMOR_STAND = Pair.ofPair(EntityType.ARMOR_STAND, getArmorStandConsumer());
     }
 
-    private NamedEntityString character = NamedEntityString.NORMAL_SQUARE;
+    private NamedStringCharacter character = NamedStringCharacter.NORMAL_SQUARE;
     private Location location;
     private Class<T> entity;
     private Consumer<T> consumer;
@@ -218,7 +218,7 @@ public class EntityCallback<T extends Entity> extends FrameCallback
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder<T> character(@NotNull final NamedEntityString character) {
+    public @NotNull Builder<T> character(@NotNull final NamedStringCharacter character) {
       this.character = character;
       return this;
     }

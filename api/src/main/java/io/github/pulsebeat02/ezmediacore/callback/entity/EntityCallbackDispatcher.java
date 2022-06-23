@@ -24,15 +24,13 @@
 package io.github.pulsebeat02.ezmediacore.callback.entity;
 
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.callback.CharacterBased;
 import io.github.pulsebeat02.ezmediacore.callback.Locatable;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-public interface EntityCallbackDispatcher extends Callback, Locatable {
+public interface EntityCallbackDispatcher extends Callback, Locatable, CharacterBased {
 
   @NotNull
   Entity[] getEntities();
-
-  @NotNull
-  NamedEntityString getStringName();
 }

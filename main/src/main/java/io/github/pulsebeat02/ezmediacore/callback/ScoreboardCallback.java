@@ -49,6 +49,7 @@ import static org.bukkit.ChatColor.WHITE;
 import static org.bukkit.ChatColor.YELLOW;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.callback.entity.NamedStringCharacter;
 import io.github.pulsebeat02.ezmediacore.callback.implementation.ScoreboardCallbackDispatcher;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
@@ -71,33 +72,34 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
 
   static {
     COLORS =
-        new ChatColor[] {
-          BLACK,
-          DARK_BLUE,
-          DARK_GREEN,
-          DARK_AQUA,
-          DARK_RED,
-          DARK_PURPLE,
-          GOLD,
-          GRAY,
-          DARK_GRAY,
-          BLUE,
-          GREEN,
-          AQUA,
-          RED,
-          LIGHT_PURPLE,
-          YELLOW,
-          WHITE,
-          MAGIC,
-          BOLD,
-          STRIKETHROUGH,
-          UNDERLINE,
-          ITALIC,
-          RESET
+        new ChatColor[]{
+            BLACK,
+            DARK_BLUE,
+            DARK_GREEN,
+            DARK_AQUA,
+            DARK_RED,
+            DARK_PURPLE,
+            GOLD,
+            GRAY,
+            DARK_GRAY,
+            BLUE,
+            GREEN,
+            AQUA,
+            RED,
+            LIGHT_PURPLE,
+            YELLOW,
+            WHITE,
+            MAGIC,
+            BOLD,
+            STRIKETHROUGH,
+            UNDERLINE,
+            ITALIC,
+            RESET
         };
   }
 
   private final String name;
+  private final NamedStringCharacter character;
   private final Scoreboard scoreboard;
   private int id;
 
@@ -105,10 +107,12 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
       @NotNull final MediaLibraryCore core,
       @NotNull final Viewers viewers,
       @NotNull final Dimension dimension,
+      @NotNull final NamedStringCharacter character,
       @NotNull final DelayConfiguration delay,
       @NotNull final Identifier<Integer> id) {
     super(core, viewers, dimension, delay);
     checkArgument(id.getValue() >= 0, "Scoreboard id must be greater than or equal to 0!");
+    this.character = character;
     this.name = "%s Video Player (%s)".formatted(core.getPlugin().getName(), id.getValue());
     this.scoreboard = this.setScoreboard();
   }
@@ -152,7 +156,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
     final int width = dimension.getWidth();
     final int height = dimension.getHeight();
     this.getPacketHandler()
-        .displayScoreboard(watchers, this.scoreboard, data, this.name, width, height);
+        .displayScoreboard(watchers, this.scoreboard, data, this.character.getCharacter(), width, height);
   }
 
   @Override
@@ -195,11 +199,18 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
     return 0;
   }
 
+  @Override
+  public @NotNull NamedStringCharacter getStringName() {
+    return this.character;
+  }
+
   public static final class Builder extends CallbackBuilder {
 
     private Identifier<Integer> id;
+    private NamedStringCharacter character = NamedStringCharacter.NORMAL_SQUARE;
 
-    public Builder() {}
+    public Builder() {
+    }
 
     @Contract("_ -> this")
     @Override
@@ -228,10 +239,29 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
       return this;
     }
 
+    @Contract("_ -> this")
+    public @NotNull Builder character(@NotNull final NamedStringCharacter character) {
+      this.character = character;
+      return this;
+    }
+
     @Override
     public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
+
+      final Dimension dimension = this.getDims();
+      final int width = dimension.getWidth();
+      final int height = dimension.getHeight();
+      if (!this.isValidDimension(width, height)) {
+        throw new IllegalArgumentException(
+            "Scoreboard dimensions must be between 0 and 16!");
+      }
+
       return new ScoreboardCallback(
-          core, this.getViewers(), this.getDims(), this.getDelay(), this.id);
+          core, this.getViewers(), this.getDims(), this.character, this.getDelay(), this.id);
+    }
+
+    private boolean isValidDimension(final int width, final int height) {
+      return (width >= 0 && width <= 32) && (height >= 0 && height <= 16);
     }
   }
 }

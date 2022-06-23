@@ -24,11 +24,11 @@
 package io.github.pulsebeat02.ezmediacore.callback.implementation;
 
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
-import io.github.pulsebeat02.ezmediacore.callback.entity.NamedEntityString;
+import io.github.pulsebeat02.ezmediacore.callback.entity.NamedStringCharacter;
 import org.jetbrains.annotations.NotNull;
 
 public interface ChatCallbackDispatcher extends Callback {
 
   @NotNull
-  NamedEntityString getChatCharacter();
+  NamedStringCharacter getChatCharacter();
 }
