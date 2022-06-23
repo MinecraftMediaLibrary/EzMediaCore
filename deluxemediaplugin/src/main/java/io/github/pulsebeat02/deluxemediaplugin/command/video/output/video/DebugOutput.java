@@ -23,17 +23,16 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.command.video.output.video;
 
-import static io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration.DELAY_20_MS;
-import static io.github.pulsebeat02.ezmediacore.callback.Identifier.ofIdentifier;
-import static io.github.pulsebeat02.ezmediacore.callback.Viewers.ofPlayers;
+import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.requiresPlayer;
+import static io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration.ofDelay;
 import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.ofDimension;
 import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
+import io.github.pulsebeat02.ezmediacore.callback.BlockHighlightCallback;
+import io.github.pulsebeat02.ezmediacore.callback.BlockHighlightCallback.Builder;
 import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
-import io.github.pulsebeat02.ezmediacore.callback.ScoreboardCallback;
-import io.github.pulsebeat02.ezmediacore.callback.ScoreboardCallback.Builder;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import java.util.Collection;
 import org.bukkit.command.CommandSender;
@@ -52,7 +51,14 @@ public class DebugOutput extends VideoOutput {
       @NotNull final ScreenConfig attributes,
       @NotNull final CommandSender sender,
       @NotNull final Collection<? extends Player> players) {
-    attributes.setPlayer(this.createVideoBuilder(plugin, attributes, players).build());
+
+    if (requiresPlayer(plugin, sender)) {
+      return false;
+    }
+
+    final VideoBuilder videoBuilder = this.createVideoBuilder(plugin, attributes, (Player) sender);
+    attributes.setPlayer(videoBuilder.build());
+
     return true;
   }
 
@@ -60,10 +66,10 @@ public class DebugOutput extends VideoOutput {
   private VideoBuilder createVideoBuilder(
       @NotNull final DeluxeMediaPlugin plugin,
       @NotNull final ScreenConfig attributes,
-      @NotNull final Collection<? extends Player> players) {
+      @NotNull final Player player) {
 
-    final ScoreboardCallback.Builder builder =
-        this.createDebugHighlightsBuilder(attributes, players);
+    final BlockHighlightCallback.Builder builder =
+        this.createBlockHighlightBuilder(attributes, player);
 
     final VideoBuilder videoBuilder = this.getBuilder(attributes);
     videoBuilder.soundKey(ofSound("emc"));
@@ -73,15 +79,13 @@ public class DebugOutput extends VideoOutput {
   }
 
   @NotNull
-  private ScoreboardCallback.Builder createDebugHighlightsBuilder(
-      @NotNull final ScreenConfig attributes, @NotNull final Collection<? extends Player> players) {
+  private BlockHighlightCallback.Builder createBlockHighlightBuilder(
+      @NotNull final ScreenConfig attributes, @NotNull final Player player) {
 
-    final Builder builder = CallbackBuilder.scoreboard();
-
-    builder.id(ofIdentifier(1080));
-    builder.viewers(ofPlayers(players));
+    final Builder builder = CallbackBuilder.blockHighlight();
+    builder.location(player.getLocation());
     builder.dims(ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
-    builder.delay(DELAY_20_MS);
+    builder.delay(ofDelay(40L));
 
     return builder;
   }
