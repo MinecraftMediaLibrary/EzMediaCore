@@ -267,7 +267,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
 
   @NotNull
   private PacketPlayOutEntityMetadata createEntityPacket(
-      @NotNull final Entity entity, @NotNull final ChatComponentText component) {
+      @NotNull final Entity entity, @NotNull final IChatBaseComponent component) {
 
     final int id = ((CraftEntity) entity).getHandle().ae();
     final DataWatcher watcher = new DataWatcher(null);

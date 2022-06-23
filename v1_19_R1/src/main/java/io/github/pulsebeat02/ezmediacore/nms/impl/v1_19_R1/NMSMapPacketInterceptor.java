@@ -284,17 +284,14 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
       @NotNull final String character,
       @NotNull final IChatMutableComponent component,
       final int c) {
-
-    ChatModifier modifier = ChatModifier.a;
-    modifier = modifier.a(c & 0xFFFFFF);
-
-    component.a(IChatBaseComponent.a(character));
-    component.a(modifier);
+    final IChatBaseComponent p = IChatBaseComponent.a(character);
+    p.a(ChatModifier.a.a(ChatHexColor.a(c & 0xFFFFFF)));
+    component.a(p);
   }
 
   @NotNull
   private PacketPlayOutEntityMetadata createEntityPacket(
-      @NotNull final Entity entity, @NotNull final IChatMutableComponent component) {
+      @NotNull final Entity entity, @NotNull final IChatBaseComponent component) {
 
     final int id = ((CraftEntity) entity).getHandle().ae();
     final DataWatcher watcher = new DataWatcher(null);
