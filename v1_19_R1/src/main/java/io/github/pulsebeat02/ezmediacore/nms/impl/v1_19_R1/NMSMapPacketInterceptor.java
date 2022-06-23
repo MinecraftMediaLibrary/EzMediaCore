@@ -20,10 +20,12 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
-
-import net.minecraft.SystemUtils;
 import net.minecraft.network.PacketDataSerializer;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.ChatHexColor;
+import net.minecraft.network.chat.ChatModifier;
+import net.minecraft.network.chat.ComponentContents;
+import net.minecraft.network.chat.IChatBaseComponent;
+import net.minecraft.network.chat.IChatMutableComponent;
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import net.minecraft.network.protocol.game.PacketPlayOutCustomPayload;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
@@ -36,7 +38,6 @@ import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.world.level.saveddata.maps.MapIcon;
 import net.minecraft.world.level.saveddata.maps.WorldMap;
-import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_19_R1.util.CraftChatMessage;
@@ -229,7 +230,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     final IChatBaseComponent[] base =
         CraftChatMessage.fromString(this.createChatComponent(character, data, width, y));
     for (final IChatBaseComponent component : base) {
-      connection.a(new ClientboundSystemChatPacket(component, 2));
+      connection.a(new ClientboundSystemChatPacket(component, 1));
     }
   }
 
