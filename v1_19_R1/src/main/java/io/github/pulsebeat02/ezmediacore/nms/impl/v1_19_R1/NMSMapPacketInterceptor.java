@@ -10,7 +10,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import java.lang.reflect.Field;
 import java.nio.IntBuffer;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,14 +20,11 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
-import net.minecraft.SystemUtils;
 import net.minecraft.network.PacketDataSerializer;
 import net.minecraft.network.chat.ChatModifier;
-import net.minecraft.network.chat.ChatSender;
 import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.chat.IChatMutableComponent;
-import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
 import net.minecraft.network.protocol.game.PacketPlayOutCustomPayload;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutMap;
@@ -38,12 +34,11 @@ import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.network.syncher.DataWatcherRegistry;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.network.PlayerConnection;
-import net.minecraft.util.MinecraftEncryption.b;
 import net.minecraft.world.level.saveddata.maps.MapIcon;
 import net.minecraft.world.level.saveddata.maps.WorldMap;
+import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R1.util.CraftChatMessage;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -208,35 +203,13 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
       final int width,
       final int height) {
     for (int y = 0; y < height; ++y) {
-      this.displayToUsers(viewers, data, character, width, y);
-    }
-  }
-
-  private void displayToUsers(
-      @NotNull final UUID[] viewers,
-      @NotNull final IntBuffer data,
-      @NotNull final String character,
-      final int width,
-      final int y) {
-    for (final UUID uuid : viewers) {
-      this.displayComponent(data, character, width, y, uuid);
-    }
-  }
-
-  private void displayComponent(
-      @NotNull final IntBuffer data,
-      @NotNull final String character,
-      final int width,
-      final int y,
-      final UUID uuid) {
-    final PlayerConnection connection = this.connections.get(uuid);
-    final IChatBaseComponent[] base =
-        CraftChatMessage.fromString(this.createChatComponent(character, data, width, y));
-    final Instant now = Instant.now();
-    final Optional<IChatBaseComponent> optional = Optional.empty();
-    for (final IChatBaseComponent component : base) {
-      final ChatSender sender = new ChatSender(SystemUtils.c, component);
-      connection.a(new ClientboundPlayerChatPacket(component, optional, 0, sender, now, b.a));
+      for (final UUID uuid : viewers) {
+        final Player player = Bukkit.getPlayer(uuid);
+        if (player == null) {
+          continue;
+        }
+        player.sendMessage(this.createChatComponent(character, data, width, y));
+      }
     }
   }
 
@@ -289,23 +262,11 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
       @NotNull final IChatMutableComponent component,
       final int c) {
 
-    final ChatModifier modifier = ChatModifier.a;
-    modifier.a(c & 0xFFFFFF);
+    ChatModifier modifier = ChatModifier.a;
+    modifier = modifier.a(c & 0xFFFFFF);
 
-    final IChatMutableComponent p = this.createMutableComponent(character);
-    p.a(modifier);
-
-    component.a(p);
-  }
-
-  private @NotNull IChatMutableComponent createMutableComponent(@NotNull final String character) {
-    return IChatMutableComponent.a(
-        new ComponentContents() {
-          @Override
-          public String toString() {
-            return character;
-          }
-        });
+    component.a(IChatBaseComponent.a(character));
+    component.a(modifier);
   }
 
   @NotNull
