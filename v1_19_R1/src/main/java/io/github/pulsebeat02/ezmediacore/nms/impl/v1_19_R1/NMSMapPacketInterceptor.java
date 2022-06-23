@@ -20,11 +20,10 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
+
+import net.minecraft.SystemUtils;
 import net.minecraft.network.PacketDataSerializer;
-import net.minecraft.network.chat.ChatModifier;
-import net.minecraft.network.chat.ComponentContents;
-import net.minecraft.network.chat.IChatBaseComponent;
-import net.minecraft.network.chat.IChatMutableComponent;
+import net.minecraft.network.chat.*;
 import net.minecraft.network.protocol.game.PacketPlayOutCustomPayload;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutMap;
@@ -39,6 +38,7 @@ import net.minecraft.world.level.saveddata.maps.WorldMap;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R1.util.CraftChatMessage;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -203,13 +203,36 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
       final int width,
       final int height) {
     for (int y = 0; y < height; ++y) {
-      for (final UUID uuid : viewers) {
-        final Player player = Bukkit.getPlayer(uuid);
-        if (player == null) {
-          continue;
-        }
-        player.sendMessage(this.createChatComponent(character, data, width, y));
+      this.displayToUsers(viewers, data, character, width, y);
+    }
+  }
+
+  private void displayToUsers(
+      @NotNull final UUID[] viewers,
+      @NotNull final IntBuffer data,
+      @NotNull final String character,
+      final int width,
+      final int y) {
+    for (final UUID uuid : viewers) {
+      this.displayComponent(data, character, width, y, uuid);
+    }
+  }
+
+  private void displayComponent(
+      @NotNull final IntBuffer data,
+      @NotNull final String character,
+      final int width,
+      final int y,
+      final UUID uuid) {
+    final PlayerConnection connection = this.connections.get(uuid);
+    final IChatBaseComponent[] base =
+        CraftChatMessage.fromString(this.createChatComponent(character, data, width, y));
+    for (final IChatBaseComponent component : base) {
+      final CraftPlayer player = connection.getCraftPlayer();
+      if (player == null) {
+        return;
       }
+      player.getHandle().a(component);
     }
   }
 
