@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.SystemUtils;
 import net.minecraft.network.PacketDataSerializer;
 import net.minecraft.network.chat.*;
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import net.minecraft.network.protocol.game.PacketPlayOutCustomPayload;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutMap;
@@ -228,11 +229,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     final IChatBaseComponent[] base =
         CraftChatMessage.fromString(this.createChatComponent(character, data, width, y));
     for (final IChatBaseComponent component : base) {
-      final CraftPlayer player = connection.getCraftPlayer();
-      if (player == null) {
-        return;
-      }
-      player.getHandle().a(component);
+      connection.a(new ClientboundSystemChatPacket(component, 2));
     }
   }
 
