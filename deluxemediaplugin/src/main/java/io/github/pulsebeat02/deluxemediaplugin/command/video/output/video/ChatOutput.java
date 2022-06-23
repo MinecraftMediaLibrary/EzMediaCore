@@ -64,6 +64,7 @@ public class ChatOutput extends VideoOutput {
     final VideoBuilder videoBuilder = this.getBuilder(attributes);
     videoBuilder.soundKey(ofSound("emc"));
     videoBuilder.callback(builder.build(plugin.library()));
+    videoBuilder.dims(ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
 
     return videoBuilder;
   }
