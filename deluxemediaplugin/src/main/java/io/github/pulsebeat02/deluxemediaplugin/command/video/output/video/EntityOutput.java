@@ -73,8 +73,8 @@ public class EntityOutput extends VideoOutput {
 
     final VideoBuilder videoBuilder = this.getBuilder(attributes);
     videoBuilder.soundKey(ofSound("emc"));
-    videoBuilder.callback(builder.build(plugin.library()));
     videoBuilder.dims(ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
+    videoBuilder.callback(builder.build(plugin.library()));
 
     return videoBuilder;
   }

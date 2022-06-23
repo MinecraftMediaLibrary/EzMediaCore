@@ -96,7 +96,11 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     final PacketPlayOutCustomPayload packet =
         new PacketPlayOutCustomPayload(this.debugMarker, new PacketDataSerializer(buf));
     for (final UUID uuid : viewers) {
-      this.connections.get(uuid).a(packet);
+      final PlayerConnection connection = this.connections.get(uuid);
+      if (connection == null) {
+        continue;
+      }
+      connection.a(packet);
     }
   }
 
@@ -229,7 +233,12 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
       final int width,
       final int y,
       final UUID uuid) {
+
     final PlayerConnection connection = this.connections.get(uuid);
+    if (connection == null) {
+      return;
+    }
+
     final IChatBaseComponent[] base =
         CraftChatMessage.fromString(this.createChatComponent(character, data, width, y));
     for (final IChatBaseComponent component : base) {
@@ -312,7 +321,12 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
 
   private void sendEntityPacketToViewers(
       @NotNull final UUID uuid, @NotNull final PacketPlayOutEntityMetadata @NotNull [] packets) {
+
     final PlayerConnection connection = this.connections.get(uuid);
+    if (connection == null) {
+      return;
+    }
+
     for (final PacketPlayOutEntityMetadata packet : packets) {
       connection.a(packet);
     }
@@ -323,6 +337,9 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     final long val = this.lastUpdated.getOrDefault(uuid, 0L);
     if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
       final PlayerConnection connection = this.connections.get(uuid);
+      if (connection == null) {
+        return;
+      }
       this.updateTime(uuid);
       this.sendSeparatePackets(packetArray, connection);
     }
@@ -333,7 +350,12 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   }
 
   private void sendSeparatePackets(
-      @NotNull final PacketPlayOutMap[] packetArray, @NotNull final PlayerConnection connection) {
+      @NotNull final PacketPlayOutMap[] packetArray, @Nullable final PlayerConnection connection) {
+
+    if (connection == null) {
+      return;
+    }
+
     for (final PacketPlayOutMap packet : packetArray) {
       connection.a(packet);
     }
