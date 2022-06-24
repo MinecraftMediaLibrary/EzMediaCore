@@ -23,11 +23,11 @@
  */
 package io.github.pulsebeat02.ezmediacore.analysis;
 
-import io.github.pulsebeat02.ezmediacore.task.CommandTask;
-import java.io.IOException;
+import io.github.pulsebeat02.ezmediacore.utility.os.OSUtils;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Locale;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
 
 public final class OperatingSystem implements OperatingSystemInfo {
 
@@ -62,22 +62,9 @@ public final class OperatingSystem implements OperatingSystemInfo {
   }
 
   private @NotNull String getLinuxDistributionCmd() {
-    return this.type == OSType.UNIX ? this.retrieveLinuxDistribution() : "Not Linux!";
-  }
-
-  private @NotNull String retrieveLinuxDistribution() {
-    try {
-      return this.getProcessOutput();
-    } catch (final IOException e) {
-      e.printStackTrace();
-      return "Unknown Distribution";
-    }
-  }
-
-  private @NotNull String getProcessOutput() throws IOException {
-    final CommandTask task = new CommandTask("/bin/sh", "-c", "cat /etc/*-release");
-    task.run();
-    return task.getOutput();
+    return this.type == OSType.UNIX
+        ? OSUtils.getLinuxDistribution()
+        : "Not Linux!";
   }
 
   @Override
