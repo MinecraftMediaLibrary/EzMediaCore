@@ -68,6 +68,7 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaS
     final String path = this.getCore().getFFmpegPath().toString();
     this.addArgument(path);
 
+    this.addArgument(FFmpegArguments.NATIVE_FRAME_READ_RATE);
     this.addArguments(FFmpegArguments.INPUT, this.input);
     this.addArgument(FFmpegArguments.NO_CONSOLE_INPUT);
 

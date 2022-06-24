@@ -25,6 +25,7 @@ public interface FFmpegArguments {
   String DURATION_START = "-ss";
   String DURATION_END = "-to";
 
+  String NATIVE_FRAME_READ_RATE = "-re";
   String NO_CONSOLE_INPUT = "-nostdin";
   String LOG_LEVEL = "-loglevel";
   String HIDE_BANNER = "-hide_banner";
