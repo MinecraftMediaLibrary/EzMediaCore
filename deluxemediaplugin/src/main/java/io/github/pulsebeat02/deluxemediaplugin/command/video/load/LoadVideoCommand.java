@@ -82,18 +82,21 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
       return;
     }
 
-    this.sendCompletionMessage(audience, input);
+    this.sendCompletionMessage();
+
+    audience.sendMessage(Locale.LOADED_MEDIA.build(input.getInput()));
 
     this.config.setTask(null);
   }
 
-  private void sendCompletionMessage(@NotNull final Audience audience, @NotNull final Input input) {
-    final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
-    final String url = this.config.getPackUrl();
-    final byte[] hash = this.config.getPackHash();
-    ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), players, url, hash);
-    players.forEach(this::sendSeparatePackMessage);
-    audience.sendMessage(Locale.LOADED_MEDIA.build(input.getInput()));
+  private void sendCompletionMessage() {
+    if (this.config.getAudioPlayback() == AudioPlayback.RESOURCEPACK) {
+      final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+      final String url = this.config.getPackUrl();
+      final byte[] hash = this.config.getPackHash();
+      ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), players, url, hash);
+      players.forEach(this::sendSeparatePackMessage);
+    }
   }
 
   private void sendSeparatePackMessage(@NotNull final Player player) {
