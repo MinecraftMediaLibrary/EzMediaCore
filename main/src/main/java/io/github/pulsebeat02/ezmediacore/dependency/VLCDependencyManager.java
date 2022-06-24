@@ -24,10 +24,14 @@
 package io.github.pulsebeat02.ezmediacore.dependency;
 
 import io.github.pulsebeat02.emcinstallers.implementation.vlc.VLCInstallationKit;
+import io.github.pulsebeat02.emcinstallers.implementation.vlc.search.EnhancedNativeDiscovery;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.analysis.OSType;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.io.IOException;
 import java.nio.file.Path;
+
+import io.github.pulsebeat02.nativelibraryloader.utils.OSUtils;
 import org.jetbrains.annotations.NotNull;
 
 public final class VLCDependencyManager extends LibraryDependency {
@@ -38,8 +42,12 @@ public final class VLCDependencyManager extends LibraryDependency {
 
   @Override
   public void start() throws IOException {
-    VLCInstallationKit.create().start().ifPresent(this::onInstallation);
-    this.loadNativeLibVLC();
+    final EnhancedNativeDiscovery discovery = new EnhancedNativeDiscovery();
+    if (discovery.discover()) {
+      final String result = discovery.getDiscoveredPath();
+      this.onInstallation(Path.of(result));
+      this.loadNativeLibVLC();
+    }
   }
 
   @Override

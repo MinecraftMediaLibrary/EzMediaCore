@@ -51,7 +51,7 @@ public final class LoadDeviceCommand implements CommandSegment.Literal<CommandSe
 
     this.setDeviceMedia(media);
 
-    audience.sendMessage(Locale.SET_MEDIA.build("Device capture"));
+    audience.sendMessage(Locale.SET_MEDIA.build("Device Capture"));
 
     this.command.loadVideo(audience);
 
