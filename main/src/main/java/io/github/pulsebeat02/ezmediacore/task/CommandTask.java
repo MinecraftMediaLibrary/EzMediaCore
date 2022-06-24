@@ -45,13 +45,13 @@
 
 package io.github.pulsebeat02.ezmediacore.task;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.jetbrains.annotations.NotNull;
 
-import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import org.jetbrains.annotations.NotNull;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A specialized CommandTask which executes native commands from the Runtime. The class is used for
@@ -73,7 +73,7 @@ public class CommandTask {
    * Instantiates a CommandTask.
    *
    * @param command command
-   * @param runOnCreation whether it should be ran instantly
+   * @param runOnCreation whether it should be run instantly
    * @throws IOException if the command isn't valid (when ran instantly)
    */
   public CommandTask(@NotNull final String[] command, final boolean runOnCreation)
@@ -112,7 +112,7 @@ public class CommandTask {
    */
   public @NotNull String getOutput() throws IOException {
     final StringBuilder output = new StringBuilder();
-    try (final BufferedReader reader = this.getFastBufferedReader()) {
+    try (final BufferedReader reader = this.getBufferedReader()) {
       String str;
       while ((str = reader.readLine()) != null) {
         output.append(str);
@@ -121,9 +121,8 @@ public class CommandTask {
     return output.toString();
   }
 
-  private @NotNull BufferedReader getFastBufferedReader() {
-    return new BufferedReader(
-        new InputStreamReader(new FastBufferedInputStream(this.process.getInputStream())));
+  private @NotNull BufferedReader getBufferedReader() {
+    return new BufferedReader(new InputStreamReader(this.process.getInputStream()));
   }
 
   /**
