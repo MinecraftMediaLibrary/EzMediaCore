@@ -26,6 +26,7 @@ package io.github.pulsebeat02.ezmediacore.callback;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.callback.entity.NamedStringCharacter;
 import io.github.pulsebeat02.ezmediacore.callback.implementation.BlockHighlightCallbackDispatcher;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.util.UUID;
@@ -37,16 +38,20 @@ public class BlockHighlightCallback extends FrameCallback
     implements BlockHighlightCallbackDispatcher {
 
   private final Location location;
+  private final NamedStringCharacter character;
 
   BlockHighlightCallback(
       @NotNull final MediaLibraryCore core,
       @NotNull final Viewers viewers,
       @NotNull final Dimension dimension,
       @NotNull final Location location,
+      @NotNull final NamedStringCharacter character,
       @NotNull final DelayConfiguration delay) {
     super(core, viewers, dimension, delay);
     checkNotNull(location, "Location cannot be null!");
+    checkNotNull(character, "Character cannot be null!");
     this.location = location;
+    this.character = character;
   }
 
   @Override
@@ -77,7 +82,8 @@ public class BlockHighlightCallback extends FrameCallback
         final int color = data[width * y + x];
         final int newDelay = (int) (delay + 100);
         this.getPacketHandler()
-            .displayDebugMarker(viewers, modifiedX, modifiedY, z, color, newDelay);
+            .displayDebugMarker(viewers, this.character.getCharacter(), modifiedY, z, modifiedX,
+                color, newDelay);
       }
     }
   }
@@ -87,8 +93,14 @@ public class BlockHighlightCallback extends FrameCallback
     return this.location;
   }
 
+  @Override
+  public @NotNull NamedStringCharacter getStringName() {
+    return this.character;
+  }
+
   public static final class Builder extends CallbackBuilder {
 
+    private NamedStringCharacter character = NamedStringCharacter.NORMAL_SQUARE;
     private Location location;
 
     public Builder() {}
@@ -120,10 +132,16 @@ public class BlockHighlightCallback extends FrameCallback
       return this;
     }
 
+    @Contract("_ -> this")
+    public @NotNull Builder character(@NotNull final NamedStringCharacter character) {
+      this.character = character;
+      return this;
+    }
+
     @Override
     public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
       return new BlockHighlightCallback(
-          core, this.getViewers(), this.getDims(), this.location, this.getDelay());
+          core, this.getViewers(), this.getDims(), this.location, this.character, this.getDelay());
     }
   }
 }

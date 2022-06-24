@@ -24,6 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.callback;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
 import static org.bukkit.ChatColor.AQUA;
 import static org.bukkit.ChatColor.BLACK;
@@ -112,6 +113,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
       @NotNull final Identifier<Integer> id) {
     super(core, viewers, dimension, delay);
     checkArgument(id.getValue() >= 0, "Scoreboard id must be greater than or equal to 0!");
+    checkNotNull(character, "Character cannot be null!");
     this.character = character;
     this.name = "%s Video Player (%s)".formatted(core.getPlugin().getName(), id.getValue());
     this.scoreboard = this.setScoreboard();

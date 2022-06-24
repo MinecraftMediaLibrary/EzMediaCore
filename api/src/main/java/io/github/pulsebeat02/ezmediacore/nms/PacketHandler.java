@@ -59,9 +59,10 @@ public interface PacketHandler {
 
   void displayDebugMarker(
       @NotNull final UUID[] viewers,
-      final int x,
+      final @NotNull String character,
       final int y,
       final int z,
+      final int x,
       final int color,
       final int time);
 
