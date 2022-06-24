@@ -66,9 +66,14 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
     this.createFolders();
     this.cancelStream();
 
-    this.config.setTask(
-        CompletableFuture.runAsync(() -> this.handleVideo(audience), RESOURCE_WRAPPER_EXECUTOR)
-            .handle(Throwing.THROWING_FUTURE));
+    final CompletableFuture<Void> future = CompletableFuture.runAsync(() -> this.handleVideo(audience), RESOURCE_WRAPPER_EXECUTOR);
+    future.handle(Throwing.THROWING_FUTURE);
+
+
+
+    this.config.setTask(future);
+
+
   }
 
   private void handleVideo(@NotNull final Audience audience) {

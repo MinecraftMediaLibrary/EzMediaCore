@@ -47,7 +47,7 @@ public final class LoadDesktopCommand implements CommandSegment.Literal<CommandS
 
     this.setDesktopMedia();
 
-    audience.sendMessage(Locale.SET_MEDIA.build("Desktop capture"));
+    audience.sendMessage(Locale.SET_MEDIA.build("Desktop Capture"));
 
     this.command.loadVideo(audience);
 

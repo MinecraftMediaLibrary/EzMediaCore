@@ -55,7 +55,7 @@ public final class LoadUrlCommand implements CommandSegment.Literal<CommandSende
 
     this.setUrlMedia(url);
 
-    audience.sendMessage(Locale.SET_MEDIA.build("URL"));
+    audience.sendMessage(Locale.SET_MEDIA.build("url"));
 
     this.command.loadVideo(audience);
 

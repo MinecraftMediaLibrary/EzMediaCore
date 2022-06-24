@@ -24,7 +24,7 @@ public final class ScreenConfig {
   private transient Input ogg;
   private transient EnhancedExecution extractor;
   private transient EnhancedExecution stream;
-  private transient CompletableFuture<Object> task;
+  private transient CompletableFuture<Void> task;
   private transient String packUrl;
   private transient byte[] packHash;
 
@@ -182,11 +182,11 @@ public final class ScreenConfig {
     return handleNull(audience, Locale.ERR_VIDEO_NOT_LOADED.build(), this.player);
   }
 
-  public @Nullable CompletableFuture<Object> getTask() {
+  public @Nullable CompletableFuture<Void> getTask() {
     return this.task;
   }
 
-  public void setTask(final CompletableFuture<Object> task) {
+  public void setTask(final CompletableFuture<Void> task) {
     this.task = task;
   }
 

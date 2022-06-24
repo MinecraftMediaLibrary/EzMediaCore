@@ -51,7 +51,7 @@ public final class LoadPathCommand implements CommandSegment.Literal<CommandSend
 
     this.setPathMedia(Path.of(path));
 
-    audience.sendMessage(Locale.SET_MEDIA.build("File path"));
+    audience.sendMessage(Locale.SET_MEDIA.build("File Path"));
 
     this.command.loadVideo(audience);
 

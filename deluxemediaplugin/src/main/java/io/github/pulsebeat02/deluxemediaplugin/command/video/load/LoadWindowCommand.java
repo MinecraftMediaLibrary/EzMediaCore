@@ -72,7 +72,7 @@ public final class LoadWindowCommand implements CommandSegment.Literal<CommandSe
 
     this.setWindowMedia(name);
 
-    audience.sendMessage(Locale.SET_MEDIA.build("Window capture"));
+    audience.sendMessage(Locale.SET_MEDIA.build("Window Capture"));
 
     this.command.loadVideo(audience);
 
