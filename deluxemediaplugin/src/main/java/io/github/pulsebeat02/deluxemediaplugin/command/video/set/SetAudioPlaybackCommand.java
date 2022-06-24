@@ -56,7 +56,8 @@ public final class SetAudioPlaybackCommand implements CommandSegment.Literal<Com
     final String argument = context.getArgument("playback", String.class);
     final Optional<AudioPlayback> optional = AudioPlayback.ofKey(argument);
 
-    if (handleEmptyOptional(audience, Locale.ERR_INVALID_AUDIO_PLAYBACK.build(argument), optional)) {
+    if (handleEmptyOptional(audience, Locale.ERR_INVALID_AUDIO_PLAYBACK.build(argument),
+        optional)) {
       return SINGLE_SUCCESS;
     }
 

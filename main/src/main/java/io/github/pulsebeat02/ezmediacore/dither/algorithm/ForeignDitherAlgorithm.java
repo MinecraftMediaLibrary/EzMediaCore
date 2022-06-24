@@ -17,6 +17,10 @@ public abstract class ForeignDitherAlgorithm implements NativeDitherAlgorithm {
     this.function = useNative ? this::ditherIntoMinecraftNatively : this::standardMinecraftDither;
   }
 
+  public ForeignDitherAlgorithm() {
+    this(false);
+  }
+
   private void tryUsingNative() {
     if (!DitherLibC.isSupported()) {
       this.throwException();
@@ -26,10 +30,6 @@ public abstract class ForeignDitherAlgorithm implements NativeDitherAlgorithm {
   private void throwException() {
     throw new UnsupportedOperationException(
         "Your current platform does not support native dithering!");
-  }
-
-  public ForeignDitherAlgorithm() {
-    this(false);
   }
 
   @NotNull

@@ -121,7 +121,8 @@ public class CommandTaskChain {
     }
   }
 
-  private void handleCommandTask(@NotNull final Entry<CommandTask, Boolean> entry, @NotNull final CommandTask task)
+  private void handleCommandTask(
+      @NotNull final Entry<CommandTask, Boolean> entry, @NotNull final CommandTask task)
       throws IOException, InterruptedException {
     if (this.isAsync(entry)) {
       this.runAsync(task);

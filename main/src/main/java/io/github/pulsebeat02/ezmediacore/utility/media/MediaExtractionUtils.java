@@ -34,7 +34,6 @@ import io.github.pulsebeat02.ezmediacore.throwable.UnknownArtistException;
 import io.github.pulsebeat02.ezmediacore.utility.manipulation.FastStringUtils;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;

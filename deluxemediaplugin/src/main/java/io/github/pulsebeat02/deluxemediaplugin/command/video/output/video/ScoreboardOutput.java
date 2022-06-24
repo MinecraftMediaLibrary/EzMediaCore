@@ -62,12 +62,12 @@ public class ScoreboardOutput extends VideoOutput {
       @NotNull final ScreenConfig attributes,
       @NotNull final Collection<? extends Player> players) {
 
-    final ScoreboardCallback.Builder builder =
-        this.createScoreboardBuilder(attributes, players);
+    final ScoreboardCallback.Builder builder = this.createScoreboardBuilder(attributes, players);
 
     final VideoBuilder videoBuilder = this.getBuilder(attributes);
     videoBuilder.soundKey(ofSound("emc"));
-    videoBuilder.dims(ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
+    videoBuilder.dims(
+        ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
     videoBuilder.callback(builder.build(plugin.library()));
 
     return videoBuilder;

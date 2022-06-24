@@ -112,7 +112,6 @@ public class SpotifyTrackDownloader implements TrackDownloader {
       if (optional.isPresent()) {
         return true;
       }
-
     }
 
     return false;

@@ -114,7 +114,6 @@ public class YoutubeVideoDownloader implements VideoDownloader {
       if (optional.isPresent()) {
         return true;
       }
-
     }
 
     return false;
@@ -139,16 +138,13 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   }
 
   @Override
-  public void onStartVideoDownload() {
-  }
+  public void onStartVideoDownload() {}
 
   @Override
-  public void onFinishVideoDownload() {
-  }
+  public void onFinishVideoDownload() {}
 
   @Override
-  public void onDownloadFailure() {
-  }
+  public void onDownloadFailure() {}
 
   @Override
   public void cancelDownload() {

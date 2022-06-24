@@ -60,8 +60,7 @@ public class HolovidHoster implements HolovidSolution {
     HTTP_CLIENT = HttpClient.newHttpClient();
   }
 
-  public HolovidHoster() {
-  }
+  public HolovidHoster() {}
 
   private static Optional<HolovidResourcepackResult> getResourcpackUrlInternal(
       @NotNull final String url) {
@@ -102,9 +101,6 @@ public class HolovidHoster implements HolovidSolution {
 
     final String query = input.trim().toLowerCase(Locale.ROOT);
 
-    return CACHED_RESULT
-        .get(query)
-        .orElseThrow(AssertionError::new)
-        .getUrl();
+    return CACHED_RESULT.get(query).orElseThrow(AssertionError::new).getUrl();
   }
 }

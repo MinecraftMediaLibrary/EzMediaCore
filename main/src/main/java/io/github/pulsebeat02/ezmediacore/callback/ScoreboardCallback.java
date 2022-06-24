@@ -72,29 +72,29 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
 
   static {
     COLORS =
-        new ChatColor[]{
-            BLACK,
-            DARK_BLUE,
-            DARK_GREEN,
-            DARK_AQUA,
-            DARK_RED,
-            DARK_PURPLE,
-            GOLD,
-            GRAY,
-            DARK_GRAY,
-            BLUE,
-            GREEN,
-            AQUA,
-            RED,
-            LIGHT_PURPLE,
-            YELLOW,
-            WHITE,
-            MAGIC,
-            BOLD,
-            STRIKETHROUGH,
-            UNDERLINE,
-            ITALIC,
-            RESET
+        new ChatColor[] {
+          BLACK,
+          DARK_BLUE,
+          DARK_GREEN,
+          DARK_AQUA,
+          DARK_RED,
+          DARK_PURPLE,
+          GOLD,
+          GRAY,
+          DARK_GRAY,
+          BLUE,
+          GREEN,
+          AQUA,
+          RED,
+          LIGHT_PURPLE,
+          YELLOW,
+          WHITE,
+          MAGIC,
+          BOLD,
+          STRIKETHROUGH,
+          UNDERLINE,
+          ITALIC,
+          RESET
         };
   }
 
@@ -156,7 +156,8 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
     final int width = dimension.getWidth();
     final int height = dimension.getHeight();
     this.getPacketHandler()
-        .displayScoreboard(watchers, this.scoreboard, data, this.character.getCharacter(), width, height);
+        .displayScoreboard(
+            watchers, this.scoreboard, data, this.character.getCharacter(), width, height);
   }
 
   @Override
@@ -209,8 +210,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
     private Identifier<Integer> id;
     private NamedStringCharacter character = NamedStringCharacter.NORMAL_SQUARE;
 
-    public Builder() {
-    }
+    public Builder() {}
 
     @Contract("_ -> this")
     @Override
@@ -252,8 +252,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
       final int width = dimension.getWidth();
       final int height = dimension.getHeight();
       if (!this.isValidDimension(width, height)) {
-        throw new IllegalArgumentException(
-            "Scoreboard dimensions must be between 0 and 16!");
+        throw new IllegalArgumentException("Scoreboard dimensions must be between 0 and 16!");
       }
 
       return new ScoreboardCallback(

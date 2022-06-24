@@ -41,10 +41,8 @@ public class HttpAudioOutput extends FFmpegOutput {
       @NotNull final ScreenConfig attributes,
       @NotNull final Audience audience,
       @NotNull final String mrl) {
-    plugin
-        .audience()
-        .players()
-        .sendMessage(Locale.HTTP_SEND_LINK.build(this.openFFmpegStream(plugin, mrl)));
+    final String url = this.openFFmpegStream(plugin, mrl);
+    plugin.audience().players().sendMessage(Locale.HTTP_SEND_LINK.build(url));
   }
 
   @Override

@@ -13,6 +13,7 @@ package io.github.pulsebeat02.ezmediacore.utility.graphics.scalr;
  express or implied. See the License for the specific language governing permissions and
  limitations under the License.
 */
+
 import io.github.pulsebeat02.ezmediacore.utility.graphics.scalr.Scalr.Method;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.scalr.Scalr.Mode;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.scalr.Scalr.Rotation;
@@ -72,15 +73,16 @@ import org.jetbrains.annotations.NotNull;
  *
  * <h3>Performance</h3>
  *
- * When tuning this class for optimal performance, benchmarking your particular hardware is the best
- * approach. For some rough guidelines though, there are two resources you want to watch closely:
+ * <p>When tuning this class for optimal performance, benchmarking your particular hardware is the
+ * best approach. For some rough guidelines though, there are two resources you want to watch
+ * closely:
  *
  * <ol>
  *   <li>JVM Heap Memory (Assume physical machine memory is always sufficiently large)
  *   <li># of CPU Cores
  * </ol>
  *
- * You never want to allocate more scaling threads than you have CPU cores and on a sufficiently
+ * <p>You never want to allocate more scaling threads than you have CPU cores and on a sufficiently
  * busy host where some of the cores may be busy running a database or a web server, you will want
  * to allocate even less scaling threads.
  *
@@ -114,7 +116,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * <h3>Resource Overhead</h3>
  *
- * The {@link ExecutorService} utilized by this class won't be initialized until one of the
+ * <p>The {@link ExecutorService} utilized by this class won't be initialized until one of the
  * operation methods are called, at which point the <code>service</code> will be instantiated for
  * the first time and operation queued up.
  *
@@ -124,8 +126,8 @@ import org.jetbrains.annotations.NotNull;
  *
  * <h3>Cleaning up Service Threads</h3>
  *
- * By default the {@link Thread}s created by the internal {@link ThreadPoolExecutor} do not run in
- * <code>daemon</code> mode; which means they will block the host VM from exiting until they are
+ * <p>By default the {@link Thread}s created by the internal {@link ThreadPoolExecutor} do not run
+ * in <code>daemon</code> mode; which means they will block the host VM from exiting until they are
  * explicitly shut down in a client application; in a server application the container will shut
  * down the pool forcibly.
  *
@@ -137,16 +139,16 @@ import org.jetbrains.annotations.NotNull;
  *
  * <h3>Reusing Shutdown AsyncScalr</h3>
  *
- * If you have previously called <code>shutdown</code> on the underlying service utilized by this
+ * <p>If you have previously called <code>shutdown</code> on the underlying service utilized by this
  * class, subsequent calls to any of the operations this class provides will invoke the internal
  * {@link #checkService()} method which will replace the terminated underlying {@link
  * ExecutorService} with a new one via the {@link #createService()} method.
  *
  * <h3>Custom Implementations</h3>
  *
- * If a subclass wants to customize the {@link ExecutorService} or {@link ThreadFactory} used under
- * the covers, this can be done by overriding the {@link #createService()} method which is invoked
- * by this class anytime a new {@link ExecutorService} is needed.
+ * <p>If a subclass wants to customize the {@link ExecutorService} or {@link ThreadFactory} used
+ * under the covers, this can be done by overriding the {@link #createService()} method which is
+ * invoked by this class anytime a new {@link ExecutorService} is needed.
  *
  * <p>By default the {@link #createService()} method delegates to the {@link
  * #createService(ThreadFactory)} method with a new instance of {@link DefaultThreadFactory}. Either
@@ -167,6 +169,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 3.2
  */
 public class AsyncScalr {
+
   /**
    * System property name used to set the number of threads the default underlying {@link
    * ExecutorService} will use to process async image operations.
@@ -451,6 +454,7 @@ public class AsyncScalr {
    * @since 4.0
    */
   protected static class DefaultThreadFactory implements ThreadFactory {
+
     protected static final AtomicInteger poolNumber = new AtomicInteger(1);
 
     protected final ThreadGroup group;
@@ -504,7 +508,7 @@ public class AsyncScalr {
    *       compatible with server environment deployments.
    * </ol>
    *
-   * This class is provided as a convenience for subclasses to use if they want this (common)
+   * <p>This class is provided as a convenience for subclasses to use if they want this (common)
    * customization to the {@link Thread}s used internally by {@link AsyncScalr} to process images,
    * but don't want to have to write the implementation.
    *
@@ -512,6 +516,7 @@ public class AsyncScalr {
    * @since 4.0
    */
   protected static class ServerThreadFactory extends DefaultThreadFactory {
+
     /**
      * Overridden to set <code>daemon</code> property to <code>true</code> and decrease the priority
      * of the new thread to {@link Thread#MIN_PRIORITY} before returning it.

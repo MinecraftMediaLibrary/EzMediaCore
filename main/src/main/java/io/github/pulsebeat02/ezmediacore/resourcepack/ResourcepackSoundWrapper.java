@@ -118,12 +118,14 @@ public class ResourcepackSoundWrapper extends ResourcepackWrapper implements Sou
       @NotNull final JsonObject category,
       @NotNull final JsonObject type,
       @NotNull final JsonArray sounds) {
-    this.sounds.forEach(
-        (key, value) -> this.addSound0(category, type, sounds, key));
+    this.sounds.forEach((key, value) -> this.addSound0(category, type, sounds, key));
   }
 
-  private void addSound0(@NotNull final JsonObject category, @NotNull final JsonObject type,
-      @NotNull final JsonArray sounds, @NotNull final String key) {
+  private void addSound0(
+      @NotNull final JsonObject category,
+      @NotNull final JsonObject type,
+      @NotNull final JsonArray sounds,
+      @NotNull final String key) {
     sounds.add(key);
     type.add("emc", category);
   }

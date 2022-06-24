@@ -42,8 +42,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class LibraryDependencyManager extends LibraryDependency {
 
-  public LibraryDependencyManager(@NotNull final MediaLibraryCore core)
-      throws IOException {
+  public LibraryDependencyManager(@NotNull final MediaLibraryCore core) throws IOException {
     super(core);
   }
 

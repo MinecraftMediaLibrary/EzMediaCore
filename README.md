@@ -61,16 +61,15 @@ for examples on how to use the library. It is the plugin I used that displayed t
 
 [![Fallhost](https://user-images.githubusercontent.com/40838203/173696220-78710bfd-dcad-4e4e-8d59-11030dc750bd.png)](https://fallhost.com/) [![BisectHosting](https://www.bisecthosting.com/partners/custom-banners/ba551f73-9616-4d2c-b40b-293493ca5124.png)](https://bisecthosting.com/pulse)
 
-I'd like to gladly thank [Fallhost](https://fallhost.com/) for sponsoring this project and giving a free public test server! 
-Fallhost has provided blazing fast servers at very affordable prices. You should check it out by clicking on the image above,
-and buying a server! Thank you for reaching out very quick to support the project!
+I'd like to gladly thank [Fallhost](https://fallhost.com/) for sponsoring this project and giving a
+free public test server!
+Fallhost has provided blazing fast servers at very affordable prices. You should check it out by
+clicking on the image above, and buying a server! Thank you for reaching out very quick to support
+the project!
 
-
-
-
-
-I'd like to also thank [BisectHosting](https://bisecthosting.com/pulse) for sponsoring open-source projects such as this one
-as well. Use code `pulse` on your next purchase to get 25% off your next server! 
+I'd like to also thank [BisectHosting](https://bisecthosting.com/pulse) for sponsoring open-source
+projects such as this one as well. Use code `pulse` on your next purchase to get 25% off your next
+server!
 
 ---
 

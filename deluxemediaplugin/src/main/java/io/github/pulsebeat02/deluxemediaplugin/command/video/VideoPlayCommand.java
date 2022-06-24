@@ -85,8 +85,9 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
   private boolean isValidScoreboardDimension(@NotNull final Audience audience) {
     final int width = this.config.getResolutionWidth();
     final int height = this.config.getResolutionHeight();
-    final boolean valid = this.config.getVideoPlayback() != VideoPlayback.SCOREBOARD
-        || width >= 0 && width <= 32 && height >= 0 && height <= 16;
+    final boolean valid =
+        this.config.getVideoPlayback() != VideoPlayback.SCOREBOARD
+            || width >= 0 && width <= 32 && height >= 0 && height <= 16;
     return handleFalse(audience, Locale.ERR_SCOREBOARD_DIMENSION.build(), valid);
   }
 
@@ -139,12 +140,9 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
 
   private boolean checkSelectors(
       @NotNull final Audience audience, @NotNull final List<Entity> entities) {
-    final boolean valid = entities.stream()
-        .anyMatch(Predicate.not(entity -> entity instanceof Player));
-    return handleTrue(
-        audience,
-        Locale.ERR_INVALID_TARGET_SELECTOR.build(),
-        valid);
+    final boolean valid =
+        entities.stream().anyMatch(Predicate.not(entity -> entity instanceof Player));
+    return handleTrue(audience, Locale.ERR_INVALID_TARGET_SELECTOR.build(), valid);
   }
 
   private List<? extends Player> convert(@NotNull final List<Entity> entities) {

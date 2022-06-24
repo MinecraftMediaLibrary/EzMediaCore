@@ -19,8 +19,10 @@ public final class MusicResultHandler implements AudioLoadResultHandler {
   private final MessageChannel channel;
   private final String url;
 
-  public MusicResultHandler(@NotNull final MusicManager manager,
-      @Nullable final MessageChannel channel, @NotNull final String url) {
+  public MusicResultHandler(
+      @NotNull final MusicManager manager,
+      @Nullable final MessageChannel channel,
+      @NotNull final String url) {
     this.manager = manager;
     this.channel = channel;
     this.guild = manager.getBot().getGuild();
@@ -36,9 +38,9 @@ public final class MusicResultHandler implements AudioLoadResultHandler {
     }
   }
 
-  private void queueTrack(
-      @NotNull final AudioTrack audioTrack, @NotNull final Guild guild) {
-    this.manager.getMusicGuildManager()
+  private void queueTrack(@NotNull final AudioTrack audioTrack, @NotNull final Guild guild) {
+    this.manager
+        .getMusicGuildManager()
         .get(guild.getIdLong())
         .getTrackScheduler()
         .queueSong(audioTrack);

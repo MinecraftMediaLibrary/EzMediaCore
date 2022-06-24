@@ -41,7 +41,8 @@ public class NativePluginLoader {
   private static final String VLC_PRERENDER;
 
   static {
-    VLC_PRERENDER = "https://github.com/MinecraftMediaLibrary/EzMediaCore/raw/master/vlc-prerender.mp4";
+    VLC_PRERENDER =
+        "https://github.com/MinecraftMediaLibrary/EzMediaCore/raw/master/vlc-prerender.mp4";
   }
 
   private final MediaLibraryCore core;
@@ -123,8 +124,15 @@ public class NativePluginLoader {
     }
 
     @Override
-    public void log(final LogLevel level, final String module, final String file, final Integer line, final String name,
-        final String header, final Integer id, final String message) {
+    public void log(
+        final LogLevel level,
+        final String module,
+        final String file,
+        final Integer line,
+        final String name,
+        final String header,
+        final Integer id,
+        final String message) {
       this.logger.info(LOG_FORMAT.formatted(module, name, level, message, System.lineSeparator()));
     }
   }

@@ -164,7 +164,8 @@ public class FileRequestHandler implements FileRequest {
   }
 
   private @NotNull BufferedReader createFastBufferedReader() throws IOException {
-    return new BufferedReader(new InputStreamReader(new FastBufferedInputStream(this.client.getInputStream()), "8859_1"));
+    return new BufferedReader(
+        new InputStreamReader(new FastBufferedInputStream(this.client.getInputStream()), "8859_1"));
   }
 
   private boolean handleRequest(

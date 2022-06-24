@@ -214,13 +214,23 @@ public interface Locale {
   NullComponent<Sender> ERR_VC_ID = () -> format(
       text("Voice Chat Identifier not specified in bot.yml!", RED));
   NullComponent<Sender> ERR_INVALID_DIMS = () -> format(text("Invalid dimensions!", RED));
-  NullComponent<Sender> ERR_INVALID_PATH = () -> format(text("The file at the path you specified does not exist! Make sure the path is an absolute path!", RED));
-  NullComponent<Sender> ERR_INVALID_URL = () -> format(text("The URL you specified is not valid! Make sure you are able to connect to it!", RED));
-  NullComponent<Sender> ERR_INVALID_OS = () -> format(text("Unfortunately, window capture only works on FFmpeg and Window's devices. Sorry about the inconvenience.", RED));
-  NullComponent<Sender> ERR_INVALID_WINDOW = () -> format(text("The window you specified is not visible or simply does not exist!", RED));
-  NullComponent<Sender> ERR_VLC_UNSUPPORTED = () -> format(text("Sorry, but VLC isn't supported for your enviornment. Please use snap to download it for your enviornment!", RED));
-  NullComponent<Sender> ERR_NO_VIEWERS = () -> format(text("The target selector you specified has no viewers!", RED));
-  NullComponent<Sender> ERR_SCOREBOARD_DIMENSION = () -> format(text("Scoreboard dimensions must be between 0 and 16!", RED));
+  NullComponent<Sender> ERR_INVALID_PATH = () -> format(text(
+      "The file at the path you specified does not exist! Make sure the path is an absolute path!",
+      RED));
+  NullComponent<Sender> ERR_INVALID_URL = () -> format(
+      text("The URL you specified is not valid! Make sure you are able to connect to it!", RED));
+  NullComponent<Sender> ERR_INVALID_OS = () -> format(text(
+      "Unfortunately, window capture only works on FFmpeg and Window's devices. Sorry about the inconvenience.",
+      RED));
+  NullComponent<Sender> ERR_INVALID_WINDOW = () -> format(
+      text("The window you specified is not visible or simply does not exist!", RED));
+  NullComponent<Sender> ERR_VLC_UNSUPPORTED = () -> format(text(
+      "Sorry, but VLC isn't supported for your enviornment. Please use snap to download it for your enviornment!",
+      RED));
+  NullComponent<Sender> ERR_NO_VIEWERS = () -> format(
+      text("The target selector you specified has no viewers!", RED));
+  NullComponent<Sender> ERR_SCOREBOARD_DIMENSION = () -> format(
+      text("Scoreboard dimensions must be between 0 and 16!", RED));
   NullComponent<Sender> START_AUDIO = () -> format(text("Started playing audio!", GOLD));
   NullComponent<Sender> PAUSE_AUDIO = () -> format(text("Stopped playing audio!", GOLD));
   NullComponent<Sender> RESUME_AUDIO = () -> format(text("Resumed the video!", GOLD));
@@ -264,7 +274,8 @@ public interface Locale {
       text("Initializing and reading media...", GOLD));
   NullComponent<Sender> BUILT_SCREEN = () -> format(
       text("Successfully built your new screen!", GOLD));
-  UniComponent<Sender, String> SET_MEDIA = (str) -> format(text("Set media to %s!".formatted(str), GOLD));
+  UniComponent<Sender, String> SET_MEDIA = (str) -> format(
+      text("Set media to %s!".formatted(str), GOLD));
   UniComponent<Sender, String>
       DREW_IMG = (mrl) -> format(text("Successfully drew image with mrl %s".formatted(mrl), GOLD));
   UniComponent<Sender, String> START_TRACK_DISCORD = (mrl) -> format(
@@ -322,9 +333,10 @@ public interface Locale {
       text("Cannot look for updates: %s".formatted(msg), RED));
   UniComponent<Sender, String> ERR_INVALID_PLAYER_ALGORITHM = (algorithm) -> format(text(
       "Could not find player algorithm %s".formatted(algorithm), RED));
-  UniComponent<Sender, DitheringAlgorithm> ERR_INVALID_NATIVE_DITHERING_ALGORITHM = (algorithm) -> format(text(
-      "The dithering algorithm %s is not natively supported!".formatted(algorithm.name())
-  ));
+  UniComponent<Sender, DitheringAlgorithm> ERR_INVALID_NATIVE_DITHERING_ALGORITHM = (algorithm) -> format(
+      text(
+          "The dithering algorithm %s is not natively supported!".formatted(algorithm.name())
+      ));
   UniComponent<Sender, List<String>> LIST_FFMPEG_ARGS = (list) -> format(join(
       separator(space()),
       text("Current FFmpeg arguments:", GOLD),
@@ -371,9 +383,11 @@ public interface Locale {
       "Loaded Resourcepack Successfully! (URL: %s, Hash: %s)".formatted(url, new String(hash))));
   BiComponent<Sender, String, byte[]> SENT_RESOURCEPACK = (url, hash) -> format(text(
       "Sent Resourcepack! (URL: %s, Hash: %s)".formatted(url, new String(hash))));
-  BiComponent<Sender, DitheringAlgorithm, Boolean> SET_NATIVE_DITHERING = (algorithm, enabled) -> format(text(
-      "Set native dithering %s for dithering algorithm %s".formatted(enabled ? "on" : "off", algorithm.name())
-  ));
+  BiComponent<Sender, DitheringAlgorithm, Boolean> SET_NATIVE_DITHERING = (algorithm, enabled) -> format(
+      text(
+          "Set native dithering %s for dithering algorithm %s".formatted(enabled ? "on" : "off",
+              algorithm.name())
+      ));
   BiComponent<Sender, String, Integer>
       ADD_FFMPEG_ARG_INDX = (str, index) ->
       format(join(
@@ -411,9 +425,11 @@ public interface Locale {
           text("Set itemframe map dimensions to", GOLD),
           text("%d:%d".formatted(width, height), AQUA),
           text("(width:height)", GOLD)));
-  BiComponent<Sender, String, String> ERR_INVALID_PLAYER_MEDIA = (player, media) -> format(text("Invalid player! %s does not support %s!", RED));
+  BiComponent<Sender, String, String> ERR_INVALID_PLAYER_MEDIA = (player, media) -> format(
+      text("Invalid player! %s does not support %s!", RED));
 
-  static @NotNull TextComponent getCommandUsageComponent(@NotNull final Map<String, String> usages) {
+  static @NotNull TextComponent getCommandUsageComponent(
+      @NotNull final Map<String, String> usages) {
     final TextComponent.Builder builder =
         text().append(text("------------------", AQUA)).append(newline());
     usages.forEach((key, value) -> builder.append(createUsageComponent(key, value)));

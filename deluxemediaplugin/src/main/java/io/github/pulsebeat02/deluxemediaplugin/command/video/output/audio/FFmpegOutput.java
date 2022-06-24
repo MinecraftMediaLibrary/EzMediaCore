@@ -46,8 +46,7 @@ public abstract class FFmpegOutput extends AudioOutput implements FFmpegOutputHa
       @NotNull final DeluxeMediaPlugin plugin,
       @NotNull final ScreenConfig attributes,
       @NotNull final Audience audience,
-      @NotNull final String mrl) {
-  }
+      @NotNull final String mrl) {}
 
   @NotNull
   @Override

@@ -30,7 +30,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.UUID;
 import org.bukkit.Bukkit;
@@ -57,9 +56,12 @@ public class SkullCreator {
   private static Method metaSetProfileMethod;
   private static Field metaProfileField;
 
-  private SkullCreator() {}
+  private SkullCreator() {
+  }
 
-  /** Creates a player skull, should work in both legacy and new Bukkit APIs. */
+  /**
+   * Creates a player skull, should work in both legacy and new Bukkit APIs.
+   */
   public static ItemStack createSkull() {
     checkLegacy();
 
@@ -134,7 +136,7 @@ public class SkullCreator {
    * Modifies a skull to use the skin of the player with a given UUID.
    *
    * @param item The item to apply the name to. Must be a player skull.
-   * @param id The Player's UUID.
+   * @param id   The Player's UUID.
    * @return The head of the Player.
    */
   public static ItemStack itemWithUuid(final ItemStack item, final UUID id) {
@@ -152,7 +154,7 @@ public class SkullCreator {
    * Modifies a skull to use the skin at the given Mojang URL.
    *
    * @param item The item to apply the skin to. Must be a player skull.
-   * @param url The URL of the Mojang skin.
+   * @param url  The URL of the Mojang skin.
    * @return The head associated with the URL.
    */
   public static ItemStack itemWithUrl(final ItemStack item, final String url) {
@@ -165,7 +167,7 @@ public class SkullCreator {
   /**
    * Modifies a skull to use the skin based on the given base64 string.
    *
-   * @param item The ItemStack to put the base64 onto. Must be a player skull.
+   * @param item   The ItemStack to put the base64 onto. Must be a player skull.
    * @param base64 The base64 string containing the texture.
    * @return The head with a custom texture.
    */
@@ -187,7 +189,7 @@ public class SkullCreator {
    * Sets the block to a skull with the given name.
    *
    * @param block The block to set.
-   * @param name The player to set it to.
+   * @param name  The player to set it to.
    * @deprecated names don't make for good identifiers.
    */
   @Deprecated
@@ -204,7 +206,7 @@ public class SkullCreator {
    * Sets the block to a skull with the given UUID.
    *
    * @param block The block to set.
-   * @param id The player to set it to.
+   * @param id    The player to set it to.
    */
   public static void blockWithUuid(final Block block, final UUID id) {
     notNull(block, "block");
@@ -220,7 +222,7 @@ public class SkullCreator {
    * Sets the block to a skull with the skin found at the provided mojang URL.
    *
    * @param block The block to set.
-   * @param url The mojang URL to set it to use.
+   * @param url   The mojang URL to set it to use.
    */
   public static void blockWithUrl(final Block block, final String url) {
     notNull(block, "block");
@@ -232,7 +234,7 @@ public class SkullCreator {
   /**
    * Sets the block to a skull with the skin for the base64 string.
    *
-   * @param block The block to set.
+   * @param block  The block to set.
    * @param base64 The base64 to set it to use.
    */
   public static void blockWithBase64(final Block block, final String base64) {

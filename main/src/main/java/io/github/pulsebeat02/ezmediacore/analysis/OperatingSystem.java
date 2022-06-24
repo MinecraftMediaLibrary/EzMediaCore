@@ -102,7 +102,6 @@ public final class OperatingSystem implements OperatingSystemInfo {
 
   @Override
   public String toString() {
-    return "{os=%s,type=%s,linux-distro=%s}"
-        .formatted(this.osName, this.type, this.linuxDistro);
+    return "{os=%s,type=%s,linux-distro=%s}".formatted(this.osName, this.type, this.linuxDistro);
   }
 }

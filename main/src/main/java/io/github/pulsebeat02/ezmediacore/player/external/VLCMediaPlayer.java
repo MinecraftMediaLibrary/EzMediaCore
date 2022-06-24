@@ -84,7 +84,8 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
       @NotNull final Dimension pixelDimension,
       @NotNull final FrameConfiguration fps,
       @Nullable final SoundKey key) {
-    super(callback, viewers, pixelDimension, fps, key, new VLCMediaPlayerInputParser(callback.getCore()));
+    super(callback, viewers, pixelDimension, fps, key,
+        new VLCMediaPlayerInputParser(callback.getCore()));
     this.adapter = this.getAdapter();
     this.videoCallback = new MinecraftVideoRenderCallback(this.getCallback()::process);
   }
@@ -179,7 +180,8 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
 
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer(
       @NotNull final Collection<Object> arguments) {
-    if (this.player == null || this.factory == null || this.logger == null) { // just in case something is null;
+    if (this.player == null || this.factory == null
+        || this.logger == null) { // just in case something is null;
       this.initializeFactory(arguments);
       this.initializeLogger();
       return this.factory.mediaPlayers().newEmbeddedMediaPlayer();
@@ -249,8 +251,9 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   }
 
   @Override
-  public void setCustomAudioAdapter(@NotNull final Consumer<byte[]> audio, @NotNull final String format, final int blockSize,
-       final int rate, final int channels) {
+  public void setCustomAudioAdapter(@NotNull final Consumer<byte[]> audio,
+      @NotNull final String format, final int blockSize,
+      final int rate, final int channels) {
     this.checkIfReleased();
     this.audioCallback = new MinecraftAudioCallback(audio, blockSize);
     this.player.audio().callback(format, rate, channels, this.audioCallback);
@@ -325,7 +328,8 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
     @Override
     public @NotNull MediaPlayer build() {
       final Callback callback = this.getCallback();
-      return new VLCMediaPlayer(callback, callback.getWatchers(), this.getDims(), this.getRate(), this.getKey());
+      return new VLCMediaPlayer(callback, callback.getWatchers(), this.getDims(), this.getRate(),
+          this.getKey());
     }
   }
 
@@ -338,7 +342,8 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
           VLCMediaPlayer.super.getDimensions().getHeight());
     }
 
-    MinecraftVideoRenderCallback(@NotNull final Consumer<int[]> consumer, final int width, final int height) {
+    MinecraftVideoRenderCallback(@NotNull final Consumer<int[]> consumer, final int width,
+        final int height) {
       super(new int[height * width]);
       this.callback = consumer;
     }

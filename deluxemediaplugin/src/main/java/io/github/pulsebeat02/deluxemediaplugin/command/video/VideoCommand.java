@@ -39,15 +39,21 @@ public final class VideoCommand extends BaseCommand {
     return Locale.getCommandUsageComponent(
         Map.of(
             "/video load [desktop | device | mrl | path | url | video | window] [argument]",
-                "Loads the video",
-            "/video dump-threads", "Dumps threads for video player (debugging purposes)",
-            "/video play [target selector]", "Plays the video player for the selected entities",
-            "/video pause", "Pauses the video player",
-            "/video destroy", "Destroys the video player",
-            "/video cancel-processing", "Cancels video processing",
+            "Loads the video",
+            "/video dump-threads",
+            "Dumps threads for video player (debugging purposes)",
+            "/video play [target selector]",
+            "Plays the video player for the selected entities",
+            "/video pause",
+            "Pauses the video player",
+            "/video destroy",
+            "Destroys the video player",
+            "/video cancel-processing",
+            "Cancels video processing",
             "/video load [target selector]",
-                "Loads the video resourcepack for the target selected entities",
-            "/video set [property] [value]", "Sets the video player property to the new value"));
+            "Loads the video resourcepack for the target selected entities",
+            "/video set [property] [value]",
+            "Sets the video player property to the new value"));
   }
 
   @Override

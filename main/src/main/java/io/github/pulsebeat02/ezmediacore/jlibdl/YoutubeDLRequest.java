@@ -45,10 +45,11 @@ public final class YoutubeDLRequest {
 
   static {
     API_REQUEST_BASE = "http://88.198.20.120:4567/info?url=%s";
-    HTTP_CLIENT = HttpClient.newBuilder()
-        .version(Version.HTTP_2)
-        .connectTimeout(Duration.ofSeconds(10))
-        .build();
+    HTTP_CLIENT =
+        HttpClient.newBuilder()
+            .version(Version.HTTP_2)
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
     GSON = new Gson();
   }
 
@@ -64,9 +65,7 @@ public final class YoutubeDLRequest {
   }
 
   private @NotNull HttpRequest createRequest(@NotNull final String url) {
-    return HttpRequest.newBuilder()
-        .uri(URI.create(API_REQUEST_BASE.formatted(url)))
-        .build();
+    return HttpRequest.newBuilder().uri(URI.create(API_REQUEST_BASE.formatted(url))).build();
   }
 
   private @NotNull HttpResponse.BodyHandler<String> createResponse() {

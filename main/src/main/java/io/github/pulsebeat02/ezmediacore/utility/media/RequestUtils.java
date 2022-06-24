@@ -32,7 +32,6 @@ import io.github.pulsebeat02.ezmediacore.jlibdl.JLibDL;
 import io.github.pulsebeat02.ezmediacore.jlibdl.component.MediaInfo;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -49,6 +48,7 @@ public final class RequestUtils {
 
   private static final LoadingCache<String, Optional<MediaRequest>> CACHED_RESULT;
   private static final int DOWNLOAD_CHUNK_SIZE;
+
   static {
     CACHED_RESULT =
         Caffeine.newBuilder()
@@ -58,6 +58,8 @@ public final class RequestUtils {
             .build(RequestUtils::getRequestInternal);
     DOWNLOAD_CHUNK_SIZE = 5 * 1_000 * 1_000;
   }
+
+  private RequestUtils() {}
 
   private static @NotNull Optional<MediaRequest> getRequestInternal(@NotNull final String url)
       throws InterruptedException {
@@ -69,9 +71,6 @@ public final class RequestUtils {
     }
   }
 
-  private RequestUtils() {
-  }
-
   public static @NotNull Path downloadFile(@NotNull final Path path, @NotNull final String url)
       throws IOException {
     checkNotNull(path, "Path cannot be null!");
@@ -80,12 +79,13 @@ public final class RequestUtils {
   }
 
   @Contract("_, _ -> param2")
-  private static @NotNull Path downloadInChunks(@NotNull final String source, @NotNull final Path path) throws IOException {
+  private static @NotNull Path downloadInChunks(
+      @NotNull final String source, @NotNull final Path path) throws IOException {
     long start = 0;
     long end = DOWNLOAD_CHUNK_SIZE;
     final URL website = new URL(source);
     try (final ReadableByteChannel in = Channels.newChannel(website.openStream());
-    final FileChannel out = FileChannel.open(path)) {
+        final FileChannel out = FileChannel.open(path)) {
       final ByteBuffer buffer = ByteBuffer.allocate(DOWNLOAD_CHUNK_SIZE);
       while (in.read(buffer) != -1) {
         out.transferFrom(in, start, DOWNLOAD_CHUNK_SIZE);
