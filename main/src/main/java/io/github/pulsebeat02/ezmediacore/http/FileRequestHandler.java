@@ -88,11 +88,6 @@ public class FileRequestHandler implements FileRequest {
   }
 
   @Override
-  public @NotNull Path requestFileCallback(@NotNull final String request) {
-    return this.daemon.getServerPath().resolve(request);
-  }
-
-  @Override
   public @NotNull ZipHeader getHeader() {
     return this.header;
   }
@@ -111,21 +106,28 @@ public class FileRequestHandler implements FileRequest {
 
     final List<String> arguments = Lists.newArrayList();
     arguments.add(RequestHeaderArguments.HTTP_HEADER);
+    arguments.add(System.lineSeparator());
 
     final String header = this.header.getHeader();
     arguments.addAll(Set.of(RequestHeaderArguments.CONTENT_TYPE, header));
+    arguments.add(System.lineSeparator());
 
     final String size = String.valueOf(Files.size(file));
     arguments.addAll(Set.of(RequestHeaderArguments.CONTENT_LENGTH, size));
+    arguments.add(System.lineSeparator());
 
     final String date = DATE_FORMAT.format(Calendar.getInstance().getTime());
     arguments.addAll(Set.of(RequestHeaderArguments.DATE, "%s GMT".formatted(date)));
+    arguments.add(System.lineSeparator());
 
-    arguments.addAll(Set.of(RequestHeaderArguments.SERVER, "EzMediaCore HttpDaemon"));
-    arguments.addAll(
-        Set.of(RequestHeaderArguments.USER_AGENT, "HTTPDaemon/1.0.0 (Resourcepack Hosting)"));
+    arguments.addAll(Set.of(RequestHeaderArguments.SERVER, "HttpDaemon"));
+    arguments.add(System.lineSeparator());
 
-    return String.join(System.lineSeparator(), arguments);
+    arguments.addAll(Set.of(RequestHeaderArguments.USER_AGENT, "HTTPDaemon/1.0.0 (Resourcepack Hosting)"));
+    arguments.add(System.lineSeparator());
+    arguments.add(System.lineSeparator());
+
+    return String.join("", arguments);
   }
 
   @Override
@@ -214,6 +216,11 @@ public class FileRequestHandler implements FileRequest {
     final Path result = this.requestFileCallback(group);
     out.write(this.createHeader(result));
     this.sendFile(result, address, out, group);
+  }
+
+  @Override
+  public @NotNull Path requestFileCallback(@NotNull final String request) {
+    return this.daemon.getServerPath().resolve(request);
   }
 
   private void sendFile(
