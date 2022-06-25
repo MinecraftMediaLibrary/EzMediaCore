@@ -84,14 +84,13 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   @Override
   public void displayDebugMarker(
       final UUID @NotNull [] viewers,
-      final int x,
-      final int y,
-      final int z,
+      final @NotNull String character, final int y, final int z, final int x,
       final int color,
       final int time) {
     final ByteBuf buf = Unpooled.buffer();
     buf.writeLong(((long) x & 67108863L) << 38 | (long) y & 4095L | ((long) z & 67108863L) << 12);
     buf.writeInt(color);
+    writeString(buf, character);
     buf.writeInt(time);
     final PacketPlayOutCustomPayload packet =
         new PacketPlayOutCustomPayload(this.debugMarker, new PacketDataSerializer(buf));
@@ -102,6 +101,17 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
       }
       connection.a(packet);
     }
+  }
+
+  private static void writeString(@NotNull final ByteBuf packet, @NotNull final String s) {
+    final byte[] bytes = s.getBytes();
+    int length = bytes.length;
+    while ((length & -128) != 0) {
+      packet.writeByte(length & 127 | 128);
+      length >>>= 7;
+    }
+    packet.writeByte(length);
+    packet.writeBytes(bytes);
   }
 
   @Override

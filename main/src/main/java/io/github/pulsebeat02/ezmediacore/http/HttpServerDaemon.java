@@ -110,6 +110,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   private void openServerSocket() throws IOException {
     this.socket = new ServerSocket(this.port);
     this.socket.setReuseAddress(true);
+    this.running.set(true);
   }
 
   private void handleServerRequests() {
@@ -123,8 +124,7 @@ public class HttpServerDaemon implements HttpDaemon, ZipRequest {
   }
 
   private void handleRequest() throws IOException {
-    CompletableFuture.runAsync(
-        new FileRequestHandler(this, this.socket.accept(), this.header), HTTP_REQUEST_POOL);
+    new FileRequestHandler(this, this.socket.accept(), this.header).run();
   }
 
   @Override
