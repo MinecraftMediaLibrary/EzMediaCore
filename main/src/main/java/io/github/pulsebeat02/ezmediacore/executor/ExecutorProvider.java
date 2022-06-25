@@ -38,7 +38,7 @@ public final class ExecutorProvider {
     SHARED_RESULT_POOL = new ForkJoinPool();
     LOGGER_POOL = Executors.newCachedThreadPool();
     ENCODER_HANDLER = Executors.newCachedThreadPool();
-    RTSP_SERVER = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    RTSP_SERVER = Executors.newCachedThreadPool();
   }
 
   private ExecutorProvider() {}
