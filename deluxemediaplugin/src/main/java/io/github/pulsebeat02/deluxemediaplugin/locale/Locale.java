@@ -365,7 +365,7 @@ public interface Locale {
                   BOLD,
                   UNDERLINED,
                   runCommand(
-                      "/video load resourcepack %s"
+                      "/video resourcepack load %s"
                           .formatted(player.getName())),
                   text("Click to get the resourcepack!", GOLD)
                       .asHoverEvent())))

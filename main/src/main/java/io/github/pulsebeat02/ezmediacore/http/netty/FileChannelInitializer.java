@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore.server;
+package io.github.pulsebeat02.ezmediacore.http.netty;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -17,12 +17,19 @@ public final class FileChannelInitializer extends ChannelInitializer<Channel> {
   private final Path directory;
   private final SslContext context;
   private final boolean sslEnabled;
+  private final String ip;
+  private final int port;
 
   public FileChannelInitializer(
-      @NotNull final Path directory, @Nullable final SslContext context) {
+      @NotNull final Path directory,
+      @Nullable final SslContext context,
+      @NotNull final String ip,
+      final int port) {
     this.directory = directory;
     this.context = context;
     this.sslEnabled = context != null;
+    this.ip = ip;
+    this.port = port;
   }
 
   @Override
@@ -36,6 +43,6 @@ public final class FileChannelInitializer extends ChannelInitializer<Channel> {
     pipeline.addLast(new HttpServerCodec());
     pipeline.addLast(new HttpObjectAggregator(65536));
     pipeline.addLast(new ChunkedWriteHandler());
-    pipeline.addLast(new HttpServletHandler(this.directory));
+    pipeline.addLast(new HttpServletHandler(this.directory, this.ip));
   }
 }

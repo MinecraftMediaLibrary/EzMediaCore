@@ -60,8 +60,7 @@ public final class SimpleResourcepackWrapper {
   }
 
   private @NotNull ResourcepackSoundWrapper wrapResourcepack() throws IOException {
-
-    final HttpServer daemon = this.startDaemon();
+    final HttpServer daemon = this.plugin.getHttpServer();
     final String sound = "deluxemediaplugin";
     final Path target = daemon.getDaemon().getServerPath().resolve("pack.zip");
     final int id = PackFormat.getCurrentFormat().getId();
@@ -72,13 +71,5 @@ public final class SimpleResourcepackWrapper {
     wrapper.wrap();
 
     return wrapper;
-  }
-
-  private @NotNull HttpServer startDaemon() throws IOException {
-    final HttpServer daemon = this.plugin.getHttpServer();
-    if (!daemon.isRunning()) {
-      daemon.startServer();
-    }
-    return daemon;
   }
 }

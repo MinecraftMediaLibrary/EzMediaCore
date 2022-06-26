@@ -31,17 +31,13 @@ import org.jetbrains.annotations.NotNull;
 
 public interface HttpDaemon extends LibraryInjectable {
 
-  void start() throws IOException;
+  void start();
 
   void onServerStart();
 
   void stop();
 
   void onServerTermination();
-
-  void onClientConnection(@NotNull final Socket client);
-
-  void onRequestFailure(@NotNull final Socket client);
 
   boolean isVerbose();
 

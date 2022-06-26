@@ -82,9 +82,11 @@ public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
       final boolean verbose,
       @NotNull final Path directory) {
     final MediaLibraryCore core = this.getPlugin().library();
-    return this.isPublicServer(ip)
+    final HttpServer server = this.isPublicServer(ip)
         ? HttpServer.ofServer(core, directory, port)
         : HttpServer.ofServer(core, directory, ip, port, verbose);
+    server.startServer();
+    return server;
   }
 
   private boolean isPublicServer(@Nullable final String ip) {

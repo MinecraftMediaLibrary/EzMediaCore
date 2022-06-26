@@ -1,4 +1,27 @@
-package io.github.pulsebeat02.ezmediacore.server;
+package io.github.pulsebeat02.ezmediacore.http.netty;
+
+import static io.netty.handler.codec.http.HttpHeaderNames.CACHE_CONTROL;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderNames.DATE;
+import static io.netty.handler.codec.http.HttpHeaderNames.EXPIRES;
+import static io.netty.handler.codec.http.HttpHeaderNames.IF_MODIFIED_SINCE;
+import static io.netty.handler.codec.http.HttpHeaderNames.LAST_MODIFIED;
+import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
+import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
+import static io.netty.handler.codec.http.HttpMethod.GET;
+import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
+import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
+import static io.netty.handler.codec.http.HttpResponseStatus.FOUND;
+import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
+import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED;
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_0;
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import static java.util.function.Predicate.not;
 
 import io.github.pulsebeat02.ezmediacore.utility.http.HttpUtils;
 import io.netty.buffer.ByteBuf;
@@ -7,16 +30,23 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpChunkedInput;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.CharsetUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -24,18 +54,19 @@ import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.TimeZone;
 import java.util.stream.Stream;
-
-import static io.netty.handler.codec.http.HttpHeaderNames.*;
-import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
-import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
-import static io.netty.handler.codec.http.HttpMethod.GET;
-import static io.netty.handler.codec.http.HttpResponseStatus.*;
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_0;
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+
   public static final DateFormat HTTP_DATE_FORMAT;
   public static final int HTTP_CACHE_SECONDS;
 
@@ -46,10 +77,13 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
   }
 
   private final Path directory;
+  private final String ip;
+
   private FullHttpRequest request;
 
-  public HttpServletHandler(@NotNull final Path directory) {
+  public HttpServletHandler(@NotNull final Path directory, @NotNull final String ip) {
     this.directory = directory;
+    this.ip = ip;
   }
 
   @Override
@@ -134,13 +168,7 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
   private ChannelFuture getFileContentHandler(
       @NotNull final ChannelHandlerContext ctx, final RandomAccessFile raf, final long size)
       throws IOException {
-    return this.isSslEnabled(ctx)
-        ? this.getFileChunkFuture(ctx, raf, size)
-        : this.getInsecureFuture(ctx);
-  }
-
-  private ChannelFuture getInsecureFuture(@NotNull final ChannelHandlerContext ctx) {
-    return ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+    return this.getFileChunkFuture(ctx, raf, size);
   }
 
   private ChannelFuture getFileChunkFuture(
@@ -153,10 +181,6 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
     final HttpChunkedInput input = new HttpChunkedInput(chunked);
     lastContentFuture = ctx.writeAndFlush(input, ctx.newProgressivePromise());
     return lastContentFuture;
-  }
-
-  private boolean isSslEnabled(@NotNull final ChannelHandlerContext ctx) {
-    return ctx.pipeline().get(SslHandler.class) != null;
   }
 
   private boolean isInvalidFile(@NotNull final ChannelHandlerContext ctx, final Path file) {
@@ -183,7 +207,7 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
 
   private boolean isForbiddenFile(@NotNull final ChannelHandlerContext ctx, final Path file)
       throws IOException {
-    if (Files.isHidden(file) || Files.notExists(file)) {
+    if (Files.notExists(file) || Files.isHidden(file)) {
       this.sendError(ctx, NOT_FOUND);
       return true;
     }
@@ -233,16 +257,17 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
   private @Nullable String sanitizeUri(@NotNull final String uri) {
 
     final String url = URLDecoder.decode(uri, StandardCharsets.UTF_8);
-    if (uri.isEmpty() || uri.charAt(0) != '/') {
+    if (url.isEmpty() || url.charAt(0) != '/') {
       return null;
     }
 
-    final String replaced = url.replace('/', File.separatorChar);
-    if (HttpUtils.checkTreeAttack(replaced)) {
+    if (HttpUtils.checkTreeAttack(url)) {
       return null;
     }
 
-    return this.directory.resolve(uri).toString();
+    final String resolve = url.startsWith("/") ? url.substring(1) : url;
+
+    return this.directory.resolve(resolve).toString();
   }
 
   private void sendListing(@NotNull final ChannelHandlerContext ctx, @NotNull final Path dir)
@@ -263,7 +288,7 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
   private void appendFullFileList(@NotNull final StringBuilder buf, @NotNull final Path dir)
       throws IOException {
     try (final Stream<Path> files = Files.walk(dir, 1)) {
-      final List<Path> valid = files.toList();
+      final List<Path> valid = files.filter(not(path -> path.equals(dir))).toList();
       for (final Path path : valid) {
         this.appendFileListing(buf, path);
       }
@@ -285,7 +310,7 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
       return;
     }
 
-    buf.append(HttpUtils.createFileHtmlContent(path));
+    buf.append(HttpUtils.createFileHtmlContent(this.directory, path));
   }
 
   @NotNull
@@ -389,6 +414,10 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
 
   private void setContentTypeHeader(@NotNull final HttpResponse response, @NotNull final Path file)
       throws IOException {
-    response.headers().set(CONTENT_TYPE, Files.probeContentType(file));
+    try (final InputStream is = Files.newInputStream(file)) {
+      final String type = URLConnection.guessContentTypeFromStream(is);
+      final String corrected = Objects.requireNonNullElse(type, "application/octet-stream");
+      response.headers().set(CONTENT_TYPE, corrected);
+    }
   }
 }

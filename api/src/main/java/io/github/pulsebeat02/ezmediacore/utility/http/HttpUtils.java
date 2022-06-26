@@ -25,7 +25,7 @@ public final class HttpUtils {
                     <h3>Listing of: %s</h3>\r
                     <ul><li><a href="../">..</a></li>\r
                     """;
-    FILE_HTML_CONTENT = "<li><a href=\"" + "%s" + "\">" + "%s" + "</a></li>\r\n";
+    FILE_HTML_CONTENT = "<li><a href=\"%s\">%s</a></li>\r\n";
     HTML_BODY = "</ul></body></html>\r\n";
   }
 
@@ -47,7 +47,8 @@ public final class HttpUtils {
     return BASE_FOLDER_HTML_CONTENT.formatted(directory, directory);
   }
 
-  public static String createFileHtmlContent(@NotNull final Path file) {
-    return FILE_HTML_CONTENT.formatted(file, file);
+  public static String createFileHtmlContent( @NotNull final Path parent, @NotNull final Path file) {
+    final Path relative = parent.relativize(file);
+    return FILE_HTML_CONTENT.formatted(relative, relative);
   }
 }

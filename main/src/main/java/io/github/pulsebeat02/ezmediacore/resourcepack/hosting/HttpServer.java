@@ -24,8 +24,9 @@
 package io.github.pulsebeat02.ezmediacore.resourcepack.hosting;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.http.HttpDaemon;
-import io.github.pulsebeat02.ezmediacore.http.HttpServerDaemon;
+import io.github.pulsebeat02.ezmediacore.http.netty.NettyServer;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -33,6 +34,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,7 +59,7 @@ public class HttpServer implements HttpDaemonSolution {
       @NotNull final String ip,
       final int port,
       final boolean verbose) {
-    this.daemon = HttpServerDaemon.ofDaemon(core, path, ip, port, verbose);
+    this.daemon = NettyServer.ofDaemon(core, path, ip, port, verbose);
   }
 
   private static @NotNull HttpRequest createRequest() {
@@ -131,14 +133,14 @@ public class HttpServer implements HttpDaemonSolution {
   }
 
   @Override
-  public void startServer() throws IOException {
-    this.daemon.start();
+  public void startServer() {
+    CompletableFuture.runAsync(this.daemon::start, ExecutorProvider.HTTP_SERVER);
     this.running = true;
   }
 
   @Override
   public void stopServer() {
-    this.daemon.stop();
+    CompletableFuture.runAsync(this.daemon::stop,  ExecutorProvider.HTTP_SERVER);
     this.running = false;
   }
 

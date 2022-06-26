@@ -33,12 +33,14 @@ public final class ExecutorProvider {
   public static final ExecutorService LOGGER_POOL;
   public static final ExecutorService ENCODER_HANDLER;
   public static final ExecutorService RTSP_SERVER;
+  public static final ExecutorService HTTP_SERVER;
 
   static {
     SHARED_RESULT_POOL = new ForkJoinPool();
     LOGGER_POOL = Executors.newCachedThreadPool();
     ENCODER_HANDLER = Executors.newCachedThreadPool();
     RTSP_SERVER = Executors.newCachedThreadPool();
+    HTTP_SERVER = Executors.newCachedThreadPool();
   }
 
   private ExecutorProvider() {}
