@@ -43,7 +43,7 @@ public final class Viewers {
   private final UUID[] viewers;
   private final Set<Player> players;
 
-  Viewers(final @NotNull UUID[] viewers) {
+  Viewers(final UUID @NotNull [] viewers) {
     checkNotNull(viewers, "Viewers cannot be null!");
     this.viewers = viewers;
     this.players = Collections.newSetFromMap(new WeakHashMap<>());

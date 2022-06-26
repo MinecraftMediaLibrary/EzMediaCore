@@ -105,7 +105,7 @@ public class FastUUIDUtils {
    *     representation as described in {@link UUID#toString()}
    */
   @Contract("_ -> new")
-  public static @NotNull UUID parseUUID(final @NotNull CharSequence uuidSequence) {
+  public static @NotNull UUID parseUUID(@NotNull final CharSequence uuidSequence) {
 
     long mostSignificantBits = HEX_VALUES[uuidSequence.charAt(0)] << 60;
     mostSignificantBits |= HEX_VALUES[uuidSequence.charAt(1)] << 56;

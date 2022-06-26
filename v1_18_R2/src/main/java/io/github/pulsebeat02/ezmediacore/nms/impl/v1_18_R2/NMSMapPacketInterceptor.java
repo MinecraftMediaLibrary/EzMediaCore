@@ -81,7 +81,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   @Override
   public void displayDebugMarker(
       final UUID @NotNull [] viewers,
-      final @NotNull String character,
+      @NotNull final String character,
       final int x,
       final int y,
       final int z,
@@ -194,7 +194,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   public void displayChat(
       final UUID[] viewers,
       @NotNull final IntBuffer data,
-      final @NotNull String character,
+      @NotNull final String character,
       final int width,
       final int height) {
     for (int y = 0; y < height; ++y) {
@@ -232,7 +232,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
       @NotNull final UUID[] viewers,
       @NotNull final Entity[] entities,
       @NotNull final IntBuffer data,
-      final @NotNull String character,
+      @NotNull final String character,
       final int width,
       final int height) {
     final int maxHeight = Math.min(height, entities.length);

@@ -522,7 +522,7 @@ public class AsyncScalr {
      * of the new thread to {@link Thread#MIN_PRIORITY} before returning it.
      */
     @Override
-    public Thread newThread(final @NotNull Runnable r) {
+    public Thread newThread(@NotNull final Runnable r) {
       final Thread thread = super.newThread(r);
 
       thread.setDaemon(true);

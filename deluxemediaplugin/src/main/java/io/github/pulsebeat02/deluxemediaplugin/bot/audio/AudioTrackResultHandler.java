@@ -36,7 +36,7 @@ public final class AudioTrackResultHandler implements AudioLoadResultHandler {
   }
 
   @Override
-  public void trackLoaded(final @NotNull AudioTrack audioTrack) {
+  public void trackLoaded(@NotNull final AudioTrack audioTrack) {
     final AudioTrackInfo info = audioTrack.getInfo();
     this.scheduler.queueSong(audioTrack);
     Nill.ifNot(this.channel, () -> this.sendTrackLoadedMessage(info));
@@ -47,7 +47,7 @@ public final class AudioTrackResultHandler implements AudioLoadResultHandler {
   }
 
   @Override
-  public void playlistLoaded(final @NotNull AudioPlaylist audioPlaylist) {
+  public void playlistLoaded(@NotNull final AudioPlaylist audioPlaylist) {
     final MutableLong ms = MutableLong.ofLong(0L);
     for (final AudioTrack track : audioPlaylist.getTracks()) {
       this.scheduler.queueSong(track);

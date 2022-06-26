@@ -141,7 +141,7 @@ public enum DitheringAlgorithm {
     this.nativeAlgorithm = nativeAlgorithm;
   }
 
-  private static OrderedDither ordered(final int[][] matrix, final int max) {
+  private static OrderedDither ordered(final int[] @NotNull [] matrix, final int max) {
     return new OrderedDither(OrderedPixelMapper.ofPixelMapper(matrix, max, 0.005f));
   }
 

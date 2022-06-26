@@ -34,20 +34,20 @@ public class Permission implements Predicate<CommandSender> {
   }
 
   @Override
-  public @NotNull Permission and(final @NotNull Predicate<? super CommandSender> other) {
+  public @NotNull Permission and(@NotNull final Predicate<? super CommandSender> other) {
     return new Permission(this.delegate.and(requireNonNull(other, "other")));
   }
 
-  public @NotNull Permission and(final @NotNull String other) {
+  public @NotNull Permission and(@NotNull final String other) {
     return this.and(has(other));
   }
 
   @Override
-  public @NotNull Permission or(final @NotNull Predicate<? super CommandSender> other) {
+  public @NotNull Permission or(@NotNull final Predicate<? super CommandSender> other) {
     return new Permission(this.delegate.or(requireNonNull(other, "other")));
   }
 
-  public @NotNull Permission or(final @NotNull String other) {
+  public @NotNull Permission or(@NotNull final String other) {
     return new Permission(this.or(has(other)));
   }
 

@@ -103,29 +103,10 @@ public abstract class StringSearch {
     Field offset = null;
 
     try {
-      final Field[] valueOffset =
-          AccessController.doPrivileged(
-              (PrivilegedExceptionAction<Field[]>)
-                  () -> {
-                    final Field[] stringFields = shortString.getClass().getDeclaredFields();
-                    final Class<? extends char[]> charArray = char[].class;
-                    Field val = null, off = null;
-                    for (final Field field : stringFields) {
-                      if (field.getType() == charArray
-                          && !Modifier.isStatic(field.getModifiers())) {
-                        val = field;
-                        val.setAccessible(true);
-                      } else if (field.getType() == Integer.TYPE) {
-                        if (field.getInt(shortString) == 0) {
-                          off = field;
-                        }
-                      }
-                    }
-                    return new Field[] {val, off};
-                  });
+      final Field[] valueOffset = getFields(shortString);
       value = valueOffset[0];
       offset = valueOffset[1];
-    } catch (final PrivilegedActionException | SecurityException ignore) {
+    } catch (final SecurityException | IllegalAccessException ignore) {
     }
 
     if (value != null && offset != null) {
@@ -135,11 +116,29 @@ public abstract class StringSearch {
           crossover = CROSSOVER_MACOSX;
         }
       } catch (final SecurityException ex) {
-        // Ignored.
       }
     } else {
       StringSearch.activeStringAccess = new StringAccess();
     }
+  }
+
+  @NotNull
+  private static Field[] getFields(final String shortString) throws IllegalAccessException {
+    final Field[] stringFields = shortString.getClass().getDeclaredFields();
+    final Class<? extends char[]> charArray = char[].class;
+    Field val = null, off = null;
+    for (final Field field : stringFields) {
+      if (field.getType() == charArray
+          && !Modifier.isStatic(field.getModifiers())) {
+        val = field;
+        val.setAccessible(true);
+      } else if (field.getType() == Integer.TYPE) {
+        if (field.getInt(shortString) == 0) {
+          off = field;
+        }
+      }
+    }
+    return new Field[] {val, off};
   }
 
   /**
