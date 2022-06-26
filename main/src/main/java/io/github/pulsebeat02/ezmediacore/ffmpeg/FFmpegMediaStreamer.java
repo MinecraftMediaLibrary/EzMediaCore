@@ -86,15 +86,14 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaS
 
     final String start = String.valueOf(configuration.getStartTime());
     this.addArguments(FFmpegArguments.DURATION_START, start);
-
-    this.addArguments(FFmpegArguments.OUTPUT_FORMAT, "rtsp");
-    this.addArgument("-rtsp_transport");
-    this.addArgument("tcp");
   }
 
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) throws IOException {
     this.server.executeAsync(ExecutorProvider.RTSP_SERVER);
+    this.addArguments(FFmpegArguments.OUTPUT_FORMAT, "rtsp");
+    this.addArgument("-rtsp_transport");
+    this.addArgument("tcp");
     this.addArguments("-max_muxing_queue_size", "9999");
     this.addArgument(this.output);
     super.executeWithLogging(logger);

@@ -29,5 +29,8 @@ import org.jetbrains.annotations.NotNull;
 public interface FFmpegOutputHandle {
 
   @NotNull
-  String openFFmpegStream(@NotNull final DeluxeMediaPlugin plugin, @NotNull final String mrl);
+  String openFFmpegStream(
+      @NotNull final DeluxeMediaPlugin plugin,
+      @NotNull final String mrl,
+      @NotNull final String... arguments);
 }
