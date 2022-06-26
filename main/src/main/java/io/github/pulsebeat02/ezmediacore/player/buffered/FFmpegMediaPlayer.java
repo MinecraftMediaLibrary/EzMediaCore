@@ -25,11 +25,7 @@ package io.github.pulsebeat02.ezmediacore.player.buffered;
 
 import com.github.kokorin.jaffree.LogLevel;
 import com.github.kokorin.jaffree.StreamType;
-import com.github.kokorin.jaffree.ffmpeg.BaseInput;
-import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
-import com.github.kokorin.jaffree.ffmpeg.FFmpegResultFuture;
-import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
-import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
+import com.github.kokorin.jaffree.ffmpeg.*;
 import io.github.pulsebeat02.ezmediacore.callback.Callback;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Identifier;
@@ -45,12 +41,15 @@ import io.github.pulsebeat02.ezmediacore.player.input.FFmpegMediaPlayerInputPars
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
+import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.concurrent.CompletableFuture;
 
 /*
 
@@ -226,8 +225,13 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   }
 
   private void updateFFmpegPlayer() {
-    this.cancelFuture(this.future.toCompletableFuture());
+    if (this.future != null) {
+      this.cancelFuture(this.future.toCompletableFuture());
+    }
     this.future = this.ffmpeg.executeAsync(ExecutorProvider.ENCODER_HANDLER);
+
+    final CompletableFuture<FFmpegResult> completableFuture = this.future.toCompletableFuture();
+    completableFuture.handle(Throwing.THROWING_FUTURE);
   }
 
   @Override

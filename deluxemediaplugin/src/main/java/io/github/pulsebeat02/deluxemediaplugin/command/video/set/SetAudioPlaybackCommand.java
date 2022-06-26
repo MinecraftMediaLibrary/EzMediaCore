@@ -83,16 +83,15 @@ public final class SetAudioPlaybackCommand implements CommandSegment.Literal<Com
     this.config.setAudioPlayback(AudioPlayback.RESOURCEPACK);
   }
 
-
   private void setDiscordMode(@NotNull final Audience audience) {
 
     if (handleNull(audience, Locale.ERR_INVALID_DISCORD_BOT.build(), this.plugin.getMediaBot())) {
       return;
     }
 
-    if (true) { // temporary placeholder as I fix the bot
-      return;
-    }
+//    if (true) { // temporary placeholder as I fix the bot
+//      return;
+//    }
 
     this.config.setAudioPlayback(AudioPlayback.DISCORD);
   }

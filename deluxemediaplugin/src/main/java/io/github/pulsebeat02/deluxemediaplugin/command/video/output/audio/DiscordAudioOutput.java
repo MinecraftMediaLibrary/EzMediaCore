@@ -56,7 +56,7 @@ public class DiscordAudioOutput extends FFmpegOutput {
       @NotNull final Audience audience,
       @NotNull final String mrl) {
 
-    final String link = "%s/stream.m3u8".formatted(this.openFFmpegStream(plugin, mrl));
+    final String link = this.openFFmpegStream(plugin, mrl);
     final MediaBot bot = plugin.getMediaBot();
     final MusicManager manager = this.getMusicManager(bot);
 
