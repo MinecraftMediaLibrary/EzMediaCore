@@ -56,8 +56,6 @@ public class VideoBuilder {
   }
 
   @Contract(value = " -> new", pure = true)
-  @SuppressWarnings("deprecated")
-  @Deprecated
   public static @NotNull JCodecMediaPlayer.Builder jcodec() {
     return new Builder();
   }

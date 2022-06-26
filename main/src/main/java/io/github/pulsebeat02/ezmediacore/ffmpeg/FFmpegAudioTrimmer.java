@@ -30,7 +30,6 @@ import java.util.Date;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-@Deprecated
 public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTrimmer {
 
   private final String input;
@@ -86,7 +85,6 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
 
     final String time = FormatterProvider.FFMPEG_TIME_FORMATTER.format(new Date(this.ms));
     this.addArguments(FFmpegArguments.DURATION_START, time);
-    this.addArguments(FFmpegArguments.DURATION_END, "99:99:99.999");
 
     this.addArgument(this.output);
   }

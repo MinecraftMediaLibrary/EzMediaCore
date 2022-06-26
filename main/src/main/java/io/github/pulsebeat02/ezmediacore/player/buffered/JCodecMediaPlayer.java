@@ -154,7 +154,6 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
     return MediaPlayer.JCODEC;
   }
 
-  @Deprecated
   public static final class Builder extends VideoBuilder {
 
     private BufferConfiguration bufferSize = BufferConfiguration.BUFFER_15;
