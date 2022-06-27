@@ -50,7 +50,7 @@ public final class SetAudioPlaybackCommand implements CommandSegment.Literal<Com
   }
 
   @SuppressWarnings("OptionalGetWithoutIsPresent")
-  private int setAudioPlayback(final CommandContext<CommandSender> context) {
+  private int setAudioPlayback(@NotNull final CommandContext<CommandSender> context) {
 
     final Audience audience = this.plugin.audience().sender(context.getSource());
     final String argument = context.getArgument("playback", String.class);
@@ -72,14 +72,14 @@ public final class SetAudioPlaybackCommand implements CommandSegment.Literal<Com
       @NotNull final Audience audience,
       @NotNull final AudioPlayback type) {
     switch (type) {
-      case RESOURCEPACK -> this.setPackMode(audience);
+      case RESOURCEPACK -> this.setPackMode();
       case DISCORD -> this.setDiscordMode(audience);
       case HTTP -> this.setHttpServerMode(audience);
       default -> throw new IllegalArgumentException("Audio playback is invalid!");
     }
   }
 
-  private void setPackMode(@NotNull final Audience audience) {
+  private void setPackMode() {
     this.config.setAudioPlayback(AudioPlayback.RESOURCEPACK);
   }
 

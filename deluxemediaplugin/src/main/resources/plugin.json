@@ -6,7 +6,7 @@
     "PulseBeat02",
     "itxfrosty"
   ],
-  "api-version": "1.17",
+  "api-version": "1.19",
   "main": "io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPluginBootstrap",
   "load": "STARTUP",
   "libraries": [

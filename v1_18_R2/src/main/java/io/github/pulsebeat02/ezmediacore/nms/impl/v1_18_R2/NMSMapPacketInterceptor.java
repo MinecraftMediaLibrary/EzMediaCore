@@ -113,7 +113,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   @Override
   public void displayMaps(
       final UUID[] viewers,
-      final @NotNull BufferCarrier rgb,
+      @NotNull final BufferCarrier rgb,
       final int map,
       final int height,
       final int width,
