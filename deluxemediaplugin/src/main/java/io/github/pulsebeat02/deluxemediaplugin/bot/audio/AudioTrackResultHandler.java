@@ -74,7 +74,8 @@ public final class AudioTrackResultHandler implements AudioLoadResultHandler {
   }
 
   @Override
-  public void loadFailed(final FriendlyException e) {
+  public void loadFailed(@NotNull final FriendlyException e) {
+    e.printStackTrace();
     Nill.ifNot(this.channel, this::sendLoadFailedMessage);
   }
 
