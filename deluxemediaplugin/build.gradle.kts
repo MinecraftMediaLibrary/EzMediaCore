@@ -59,7 +59,6 @@ tasks {
         relocate("org.bstats", "$base.bstats")
         relocate("me.lucko", "$base.lucko")
         relocate("net.kyori", "$base.kyori")
-        relocate("com.sedmelluq", "$base.sedmelluq")
         relocate("org.jsoup", "$base.jsoup")
         relocate("org.slf4j", "$base.slf4j")
         relocate("net.iharder", "$base.iharder")
