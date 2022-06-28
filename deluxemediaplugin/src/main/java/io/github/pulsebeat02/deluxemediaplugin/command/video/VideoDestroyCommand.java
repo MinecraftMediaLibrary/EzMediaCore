@@ -9,8 +9,10 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
+import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +47,7 @@ public final class VideoDestroyCommand implements CommandSegment.Literal<Command
     }
 
     this.releaseIfPlaying();
+    this.releaseNativeProcesses();
 
     audience.sendMessage(Locale.RELEASE_VIDEO.build());
 
@@ -57,6 +60,13 @@ public final class VideoDestroyCommand implements CommandSegment.Literal<Command
     Nill.ifNot(player, () -> this.releasePlayer(player));
 
     this.config.setPlayer(null);
+  }
+
+  private void releaseNativeProcesses() {
+    final EnhancedExecution extractor = this.config.getExtractor();
+    final EnhancedExecution stream = this.config.getStream();
+    Nill.ifNot(extractor, () -> Try.closeable(extractor));
+    Nill.ifNot(stream, () -> Try.closeable(stream));
   }
 
   private void releasePlayer(@NotNull final VideoPlayer player) {

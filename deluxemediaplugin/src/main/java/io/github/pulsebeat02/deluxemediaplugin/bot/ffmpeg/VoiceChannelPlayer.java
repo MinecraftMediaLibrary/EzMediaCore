@@ -1,13 +1,19 @@
 package io.github.pulsebeat02.deluxemediaplugin.bot.ffmpeg;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import javax.sound.sampled.AudioInputStream;
+
+import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public final class VoiceChannelPlayer {
 
@@ -20,6 +26,10 @@ public final class VoiceChannelPlayer {
   }
 
   public void start(@NotNull final VoiceChannel channel, @NotNull final String input) {
+    CompletableFuture.runAsync(() -> this.handleInput(channel, input));
+  }
+
+  private void handleInput(@NotNull final VoiceChannel channel, @NotNull final String input) {
     final AudioManager manager = this.guild.getAudioManager();
     this.closeAudioManager(manager);
     this.setSendingHandler(input, manager);
@@ -36,7 +46,18 @@ public final class VoiceChannelPlayer {
     final MediaLibraryCore core = this.plugin.library();
     final FFmpegPipedOutput output = new FFmpegPipedOutput(core, input);
     output.executeAsync(FixedExecutors.STREAM_THREAD_EXECUTOR);
+    this.setStream(output);
+    this.sleep();
     return output.getInputStream();
+  }
+
+  private void sleep() {
+    Try.sleep(TimeUnit.SECONDS, 1);
+  }
+
+  private void setStream(@NotNull final FFmpegPipedOutput output) {
+    final ScreenConfig config = this.plugin.getScreenConfig();
+    config.setStream(output);
   }
 
   private void closeAudioManager(@NotNull final AudioManager manager) {
@@ -45,7 +66,8 @@ public final class VoiceChannelPlayer {
     }
   }
 
-  private void openAudioManager(@NotNull final VoiceChannel channel, @NotNull final AudioManager manager) {
+  private void openAudioManager(
+      @NotNull final VoiceChannel channel, @NotNull final AudioManager manager) {
     manager.openAudioConnection(channel);
   }
 }

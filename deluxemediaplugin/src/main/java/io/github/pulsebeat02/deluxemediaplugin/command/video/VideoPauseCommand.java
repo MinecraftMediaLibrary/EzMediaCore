@@ -70,8 +70,8 @@ public final class VideoPauseCommand implements CommandSegment.Literal<CommandSe
   }
 
   private void pauseDiscordMusic() {
-    final MediaBot bot = this.plugin.getMediaBot();
-    Nill.ifNot(bot, () -> bot.getMusicManager().pauseTrack());
+    final EnhancedExecution stream = this.config.getStream();
+    Nill.ifNot(stream, () -> Try.closeable(stream));
   }
 
   @Override
