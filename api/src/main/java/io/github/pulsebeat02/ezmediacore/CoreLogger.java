@@ -7,17 +7,17 @@ public interface CoreLogger extends AutoCloseable {
 
   void start() throws IOException;
 
-  void info(@NotNull Object info);
+  void info(@NotNull final Object info);
 
-  void warn(@NotNull Object warning);
+  void warn(@NotNull final Object warning);
 
-  void error(@NotNull Object error);
+  void error(@NotNull final Object error);
 
-  void vlc(@NotNull String line);
+  void vlc(@NotNull final String line);
 
-  void ffmpegPlayer(@NotNull String line);
+  void ffmpegPlayer(@NotNull final String line);
 
-  void ffmpegStream(@NotNull String line);
+  void ffmpegStream(@NotNull final String line);
 
-  void rtp(@NotNull String line);
+  void rtp(@NotNull final String line);
 }

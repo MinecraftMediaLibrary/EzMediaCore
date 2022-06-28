@@ -12,6 +12,7 @@ import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
+import java.util.concurrent.CancellationException;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -62,8 +63,14 @@ public final class VideoCancelProcessingCommand implements CommandSegment.Litera
   }
 
   private void cancelTask() {
-    this.config.getTask().cancel(true);
+    this.forceCancel();
     this.config.setTask(null);
+  }
+
+  private void forceCancel() {
+    try {
+      this.config.getTask().cancel(true);
+    } catch (final CancellationException ignored) {}
   }
 
   private void cancelExtractor(@NotNull final EnhancedExecution extractor) {

@@ -30,4 +30,5 @@ public interface FFmpegArguments {
   String LOG_LEVEL = "-loglevel";
   String HIDE_BANNER = "-hide_banner";
   String NO_STATS = "-nostats";
+  String PIPE_OUTPUT = "-pipe:%s";
 }

@@ -26,12 +26,15 @@ package io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
 import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
+import io.github.pulsebeat02.deluxemediaplugin.bot.ffmpeg.VoiceChannelPlayer;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,25 +59,14 @@ public class DiscordAudioOutput extends FFmpegOutput {
       @NotNull final Audience audience,
       @NotNull final String mrl) {
 
-    final String link = this.openFFmpegStream(plugin, mrl);
     final MediaBot bot = plugin.getMediaBot();
-    final MusicManager manager = this.getMusicManager(bot);
+    final Guild guild = bot.getGuild();
+    final VoiceChannel channel = bot.getChannel();
 
-    Try.sleep(TimeUnit.SECONDS, 3);
-
-    manager.addTrack(link);
+    final VoiceChannelPlayer player = new VoiceChannelPlayer(plugin, guild);
+    player.start(channel, mrl);
 
     audience.sendMessage(Locale.DISCORD_AUDIO_STREAM.build());
-  }
-
-  @NotNull
-  private MusicManager getMusicManager(@NotNull final MediaBot bot) {
-
-    final MusicManager manager = bot.getMusicManager();
-    manager.destroyTrack();
-    manager.joinVoiceChannel();
-
-    return manager;
   }
 
   @Override

@@ -71,6 +71,7 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaS
     this.addArgument(FFmpegArguments.NATIVE_FRAME_READ_RATE);
     this.addArguments(FFmpegArguments.INPUT, this.input);
     this.addArgument(FFmpegArguments.NO_CONSOLE_INPUT);
+    this.addArgument(FFmpegArguments.HIDE_BANNER);
 
     final String bitrate = String.valueOf(configuration.getBitrate());
     this.addArguments(FFmpegArguments.AUDIO_BITRATE, bitrate);
@@ -100,7 +101,7 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaS
   }
 
   @Override
-  public void log(final String line) {
+  public void log(final @NotNull String line) {
     this.getCore().getLogger().ffmpegStream(line);
   }
 

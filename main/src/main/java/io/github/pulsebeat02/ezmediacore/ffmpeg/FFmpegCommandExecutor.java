@@ -51,7 +51,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   private final AtomicBoolean cancelled;
   private Process process;
 
-  FFmpegCommandExecutor(@NotNull final MediaLibraryCore core) {
+  public FFmpegCommandExecutor(@NotNull final MediaLibraryCore core) {
     checkNotNull(core, "MediaLibraryCore cannot be null!");
     this.core = core;
     this.arguments = new ArrayList<>();
@@ -181,7 +181,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public void log(final String line) {
+  public void log(@NotNull final String line) {
     this.core.getLogger().ffmpegPlayer(line);
   }
 
