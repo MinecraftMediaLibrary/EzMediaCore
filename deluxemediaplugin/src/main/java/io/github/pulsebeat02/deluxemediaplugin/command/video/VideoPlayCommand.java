@@ -131,7 +131,7 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
 
   private void sendPlayInformation(@NotNull final Audience audience) {
     final Input mrl = this.config.getMedia();
-    handleNonNull(audience, Locale.STARTING_VIDEO.build(mrl.getInput()), mrl);
+    handleNonNull(audience, Locale.PLAY_VIDEO.build(mrl.getInput()), mrl);
   }
 
   private void createVideoPlayer(

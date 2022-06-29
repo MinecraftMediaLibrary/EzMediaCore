@@ -44,7 +44,7 @@ import static net.kyori.adventure.text.format.TextDecoration.BOLD;
 import static net.kyori.adventure.text.format.TextDecoration.UNDERLINED;
 
 public interface Locale {
-  NullComponent<Sender> PLUGIN_AUTHORS = () -> text()
+  NullComponent<Sender> PLUGIN_INFO = () -> text()
       .append(text("-----------------------------------", GOLD))
       .append(newline())
       .append(text("Plugin: ", GOLD, BOLD))
@@ -105,118 +105,118 @@ public interface Locale {
        support at my Discord! (https://discord.gg/MgqRKvycMC) \s
       """, GOLD));
   NullComponent<Sender> DISABLE_PLUGIN = () -> format(
-      text("DeluxeMediaPlugin is shutting down!", GOLD));
+      text("Disabling DeluxeMediaPlugin!", GOLD));
   NullComponent<Sender> DISABLE_EMC = () -> format(
-      text("Successfully shutdown MinecraftMediaLibrary instance!", GOLD));
+      text("Disabled MinecraftMediaLibrary instance!", GOLD));
   NullComponent<Sender> DESERIALIZE_DATA = () -> format(
-      text("Successfully deserialized data!", GOLD));
+      text("Deserialized data!", GOLD));
   NullComponent<Sender> DISABLE_COMMANDS = () -> format(
-      text("Successfully disabled commands!", GOLD));
+      text("Disabled all commands!", GOLD));
   NullComponent<Sender> DISABLE_BOT = () -> format(
-      text("Successfully disabled Discord bot! (If running)", GOLD));
+      text("Disabled Discord bot!", GOLD));
   NullComponent<Sender> CANCELLED_TASKS = () -> format(
-      text("Successfully disabled all native tasks!", GOLD));
+      text("Disabled all native tasks!", GOLD));
   NullComponent<Sender> GOODBYE = () -> format(text("Good Bye! :(", GOLD));
   NullComponent<Sender> FIN_EMC_INIT = () -> format(
-      text("Finished loading MinecraftMediaLibrary instance!", GOLD));
-  NullComponent<Sender> FIN_PERSISTENT_INIT = () -> format(
-      text("Finished loading persistent data!", GOLD));
-  NullComponent<Sender> FIN_COMMANDS_INIT = () -> format(
-      text("Finished registering plugin commands!", GOLD));
-  NullComponent<Sender> FIN_METRICS_INIT = () -> format(
-      text("Finished loading Metrics data!", GOLD));
-  NullComponent<Sender> FIN_PLUGIN_INIT = () -> format(
-      text("Finished loading DeluxeMediaPlugin!", GOLD));
+      text("Loaded MinecraftMediaLibrary instance!", GOLD));
+  NullComponent<Sender> PERSISTENT_INIT = () -> format(
+      text("Loaded persistent data!", GOLD));
+  NullComponent<Sender> COMMANDS_INIT = () -> format(
+      text("Registered plugin commands!", GOLD));
+  NullComponent<Sender> METRICS_INIT = () -> format(
+      text("Loaded Metrics data!", GOLD));
+  NullComponent<Sender> PLUGIN_INIT = () -> format(
+      text("Loaded DeluxeMediaPlugin!", GOLD));
   NullComponent<Sender> RUNNING_LATEST_PLUGIN = () -> format(text(
       "You are currently running the latest version of DeluxeMediaPlugin.", GOLD));
-  NullComponent<Sender> ERR_PERSISTENT_INIT = () -> format(text(
-      "A severe issue occurred while reading data from configuration files!", RED));
-  NullComponent<Sender> ERR_EMC_SHUTDOWN = () -> format(
-      text("EzMediaCore instance is null... something fishy is going on.",
-          RED));
-  NullComponent<Sender> ERR_INVALID_MRL = () -> format(
-      text("Invalid MRL link! Not supported!", RED));
-  NullComponent<Sender> ERR_NO_RESOURCEPACK = () -> format(
-      text("Please load a resourcepack first!", RED));
-  NullComponent<Sender> ERR_INVALID_DISCORD_BOT = () -> format(text(
-      "Discord bot not setup yet or invalid settings in bot.yml!", RED));
-  NullComponent<Sender> ERR_PLAYER_SENDER = () -> format(
-      text("You must be a player to execute this command!", RED));
-  NullComponent<Sender> ERR_MAP_RANGE = () -> format(
-      text("Invalid format! Must follow [starting-id]-[ending-id]", RED));
-  NullComponent<Sender> ERR_VIDEO_NOT_LOADED = () -> format(text("Video not loaded!", RED));
-  NullComponent<Sender> ERR_VIDEO_PROCESSING = () -> format(
-      text("Video is still processing!", RED));
-  NullComponent<Sender> ERR_CANCELLATION_VIDEO_PROCESSING = () -> format(
-      text("You aren't processing a video!", RED));
-  NullComponent<Sender> ERR_DOWNLOAD_VIDEO = () -> format(text("Failed to download video!", RED));
-  NullComponent<Sender> ERR_LOAD_VIDEO = () -> format(text("Failed to load video!", RED));
-  NullComponent<Sender> ERR_INVALID_AUDIO_OUTPUT = () -> format(text(
-      "You cannot play streams without using Discord or a dynamic audio player with audio. Proceeding to play without audio.",
-      RED));
-  NullComponent<Sender> ERR_INVALID_TARGET_SELECTOR = () -> format(text(
-      "The target selector you chose contains entities that aren't players!", RED));
-  NullComponent<Sender> ERR_HTTP_AUDIO = () -> format(
-      text("HTTP audio information provided in httpaudio.yml is invalid!",
-          RED));
-  NullComponent<Sender> ERR_BOT_TOKEN = () -> format(
-      text("Bot token not specified in bot.yml!", RED));
-  NullComponent<Sender> ERR_GUILD_TOKEN = () -> format(
-      text("Guild token not specified in bot.yml!", RED));
-  NullComponent<Sender> ERR_VC_ID = () -> format(
-      text("Voice Chat Identifier not specified in bot.yml!", RED));
-  NullComponent<Sender> ERR_INVALID_DIMS = () -> format(text("Invalid dimensions!", RED));
-  NullComponent<Sender> ERR_INVALID_PATH = () -> format(text(
-      "The file at the path you specified does not exist! Make sure the path is an absolute path!",
-      RED));
-  NullComponent<Sender> ERR_INVALID_URL = () -> format(
-      text("The URL you specified is not valid! Make sure you are able to connect to it!", RED));
-  NullComponent<Sender> ERR_INVALID_OS = () -> format(text(
-      "Unfortunately, window capture only works on FFmpeg and Window's devices. Sorry about the inconvenience.",
-      RED));
-  NullComponent<Sender> ERR_INVALID_WINDOW = () -> format(
-      text("The window you specified is not visible or simply does not exist!", RED));
-  NullComponent<Sender> ERR_VLC_UNSUPPORTED = () -> format(text(
-      "Sorry, but VLC isn't supported for your enviornment. Please use snap to download it for your enviornment!",
-      RED));
-  NullComponent<Sender> ERR_SCOREBOARD_DIMENSION = () -> format(
-      text("Scoreboard width must be between 0 and 32 and scoreboard height must be between 0 and 16!", RED));
+  NullComponent<Sender> ERR_PERSISTENT_INIT = () -> text(
+      "An issue occurred while reading data from configuration files!", RED);
+  NullComponent<Sender> ERR_EMC_SHUTDOWN = () ->
+      text("EzMediaCore instance is null! Check logs for errors!",
+          RED);
+  NullComponent<Sender> ERR_INVALID_MRL = () ->
+      text("The mrl you provided is not supported!", RED);
+  NullComponent<Sender> ERR_NO_RESOURCEPACK = () ->
+      text("Load a resourcepack first before running this command!", RED);
+  NullComponent<Sender> ERR_INVALID_DISCORD_BOT = () -> text(
+      "Invalid Discord configuration in bot.yml!", RED);
+  NullComponent<Sender> ERR_PLAYER_SENDER = () ->
+      text("You must be a player to execute this command!", RED);
+  NullComponent<Sender> ERR_MAP_RANGE = () ->
+      text("Invalid map usage! (Usage: /map [starting-id]-[ending-id])", RED);
+  NullComponent<Sender> ERR_VIDEO_NOT_LOADED = () -> text("Load a video first!", RED);
+  NullComponent<Sender> ERR_VIDEO_PROCESSING = () ->
+      text("The video is still processing!", RED);
+  NullComponent<Sender> ERR_CANCELLATION_VIDEO_PROCESSING = () ->
+      text("There is no video processing!", RED);
+  NullComponent<Sender> ERR_DOWNLOAD_VIDEO = () -> text("Failed to download video!", RED);
+  NullComponent<Sender> ERR_LOAD_VIDEO = () -> text("Failed to load video!", RED);
+  NullComponent<Sender> ERR_INVALID_AUDIO_OUTPUT = () -> text(
+      "You cannot play streams without using HTTP or Discord! Proceeding to play stream without audio.",
+      RED);
+  NullComponent<Sender> ERR_INVALID_TARGET_SELECTOR = () -> text(
+      "The target selector must be all players!", RED);
+  NullComponent<Sender> ERR_HTTP_AUDIO = () ->
+      text("Invalid HTTP configuration in httpaudio.yml!",
+          RED);
+  NullComponent<Sender> ERR_BOT_TOKEN = () ->
+      text("Invalid Discord token in bot.yml!", RED);
+  NullComponent<Sender> ERR_GUILD_ID = () ->
+      text("Invalid Guild ID in bot.yml!", RED);
+  NullComponent<Sender> ERR_VC_ID = () ->
+      text("Invalid Voice Chat ID specified in bot.yml!", RED);
+  NullComponent<Sender> ERR_INVALID_DIMS = () -> text("Invalid dimension usage! (Usage: [width]:[height])", RED);
+  NullComponent<Sender> ERR_INVALID_PATH = () -> text(
+      "The file does not exist! Make sure the path is an absolute path!",
+      RED);
+  NullComponent<Sender> ERR_INVALID_URL = () ->
+      text("The URL is not valid!", RED);
+  NullComponent<Sender> ERR_INVALID_OS = () -> text(
+      "Window capture only works on Window's devices!",
+      RED);
+  NullComponent<Sender> ERR_INVALID_WINDOW = () ->
+      text("The window is not visible!", RED);
+  NullComponent<Sender> ERR_VLC_UNSUPPORTED = () -> text(
+      "VLC is not supported on this server!",
+      RED);
+  NullComponent<Sender> ERR_SCOREBOARD_DIMENSION = () ->
+      text("Scoreboard width must be between 0 and 32 and scoreboard height must be between 0 and 16!", RED);
 
-  NullComponent<Sender> ERR_INVALID_SELECTOR = () -> format(text("Invalid target selector!", RED));
-  NullComponent<Sender> CREATE_RESOURCEPACK = () -> format(text(
-      "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.",
+  NullComponent<Sender> ERR_INVALID_SELECTOR = () -> text("Invalid target selector!", RED);
+  NullComponent<Sender> RESOURCEPACK_CREATION = () -> format(text(
+      "Creating a resourcepack for audio...",
       GOLD));
-  NullComponent<Sender> DC_DISCORD = () -> format(
-      text("Successfully disconnected from voice channel!", GOLD));
-  NullComponent<Sender> C_DISCORD = () -> format(
-      text("Successfully connected to voice channel!", GOLD));
-  NullComponent<Sender> FFMPEG_EXEC = () -> format(text("Executed FFmpeg command!", GOLD));
+  NullComponent<Sender> DISCORD_DISCONNECT = () -> format(
+      text("Disconnected from voice channel!", GOLD));
+  NullComponent<Sender> DISCORD_CONNECT = () -> format(
+      text("Connected to voice channel!", GOLD));
+  NullComponent<Sender> FFMPEG_EXECUTION = () -> format(text("Executed FFmpeg command!", GOLD));
   NullComponent<Sender> RESET_FFMPEG_ARGS = () -> format(text("Reset all FFmpeg arguments!", GOLD));
-  NullComponent<Sender> PAUSE_VIDEO = () -> format(text("Stopped the video!", GOLD));
-  NullComponent<Sender> RELEASE_VIDEO = () -> format(
-      text("Successfully destroyed the current video!", GOLD));
+  NullComponent<Sender> PAUSE_VIDEO = () -> format(text("Paused the video!", GOLD));
+  NullComponent<Sender> DESTROY_VIDEO = () -> format(
+      text("Destroyed the video!", GOLD));
   NullComponent<Sender> DISCORD_AUDIO_STREAM = () -> format(
-      text("Started playing audio into Discord voice chat!", GOLD));
+      text("Began playing audio into Discord voice chat!", GOLD));
   NullComponent<Sender> DUMP_THREADS = () -> format(
-      text("Created thread dump! Look in console for more details.", GOLD));
+      text("Created thread dump in console!", GOLD));
   NullComponent<Sender> CANCELLED_VIDEO_PROCESSING = () -> format(
-      text("Successfully cancelled the video loading process!", GOLD));
+      text("Cancelled the video loading!", GOLD));
   NullComponent<Sender> LOADING_VIDEO = () -> format(
-      text("Initializing and reading media...", GOLD));
+      text("Extracting media metadata...", GOLD));
   NullComponent<Sender> BUILT_SCREEN = () -> format(
-      text("Successfully built your new screen!", GOLD));
+      text("Built your new screen!", GOLD));
   UniComponent<Sender, String> SET_MEDIA = (str) -> format(
       text("Set media to %s!".formatted(str), GOLD));
   UniComponent<Sender, String> ADD_FFMPEG_ARG = (str) -> format(join(
       separator(space()),
       text("Added arguments", GOLD),
       text(str, AQUA),
-      text("to the FFmpeg command.", GOLD)));
+      text("to the command.", GOLD)));
   UniComponent<Sender, String> REMOVE_FFMPEG_ARG = (str) -> format(join(
       separator(space()),
       text("Removed arguments", GOLD),
       text(str, AQUA),
-      text("from the FFmpeg command.", GOLD)));
+      text("from the command.", GOLD)));
   UniComponent<Sender, String> HTTP_SEND_LINK = (mrl) ->
       format(text()
           .append(text("Click ", GOLD)).append(text(
@@ -227,12 +227,12 @@ public interface Locale {
                   UNDERLINED,
                   openUrl(mrl),
                   text("Click to get the link!", GOLD)
-                      .asHoverEvent()))).append(text(" to retrieve the audio HTTP link!", GOLD))
+                      .asHoverEvent()))).append(text(" to retrieve the HTTP link!", GOLD))
           .build());
-  UniComponent<Sender, String> STARTING_VIDEO = (mrl) -> format(
-      text("Starting Video on MRL %s".formatted(mrl), GOLD));
+  UniComponent<Sender, String> PLAY_VIDEO = (mrl) -> format(
+      text("Started playing %s".formatted(mrl), GOLD));
   UniComponent<Sender, String> LOADED_MEDIA = (mrl) -> format(
-      text("Successfully loaded media %s!".formatted(mrl), GOLD));
+      text("Loaded media %s!".formatted(mrl), GOLD));
   UniComponent<Sender, String> SET_AUDIO_PLAYBACK = (argument) -> format(
       join(separator(space()), text("Set audio playback to", GOLD),
           text(argument, AQUA)));
@@ -259,11 +259,11 @@ public interface Locale {
       "Could not find player algorithm %s".formatted(algorithm), RED));
   UniComponent<Sender, DitheringAlgorithm> ERR_INVALID_NATIVE_DITHERING_ALGORITHM = (algorithm) -> format(
       text(
-          "The dithering algorithm %s is not natively supported!".formatted(algorithm.name())
+          "Dithering algorithm %s is not natively supported!".formatted(algorithm.name())
       ));
   UniComponent<Sender, List<String>> LIST_FFMPEG_ARGS = (list) -> format(join(
       separator(space()),
-      text("Current FFmpeg arguments:", GOLD),
+      text("Current arguments:", GOLD),
       text(list.toString(), AQUA)));
   UniComponent<Sender, Integer> GIVE_MAP_ID = (id) -> format(join(
       separator(space()), text("Gave map with id", GOLD), text(id, AQUA)));
@@ -285,7 +285,7 @@ public interface Locale {
                           .formatted(player.getName())),
                   text("Click to get the resourcepack!", GOLD)
                       .asHoverEvent())))
-      .append(text(" to retrieve the resourcepack", GOLD))
+      .append(text(" to retrieve the link!", GOLD))
       .build());
   UniComponent<Sender, String> FFMPEG_PROCESS = (str) ->
       text()
@@ -325,13 +325,13 @@ public interface Locale {
   BiComponent<Sender, Integer, Integer> CHANGED_VIDEO_SCREEN_DIMS = (width, height) ->
       format(join(
           separator(space()),
-          text("Set screen resolution to", GOLD),
+          text("Set resolution to", GOLD),
           text("%d:%d".formatted(width, height), AQUA),
           text("(width:height)", GOLD)));
   BiComponent<Sender, Integer, Integer> CHANGED_ITEMFRAME_DIMS = (width, height) ->
       format(join(
           separator(space()),
-          text("Set itemframe map dimensions to", GOLD),
+          text("Set itemframe dimensions to", GOLD),
           text("%d:%d".formatted(width, height), AQUA),
           text("(width:height)", GOLD)));
   BiComponent<Sender, String, String> ERR_INVALID_PLAYER_MEDIA = (player, media) -> format(

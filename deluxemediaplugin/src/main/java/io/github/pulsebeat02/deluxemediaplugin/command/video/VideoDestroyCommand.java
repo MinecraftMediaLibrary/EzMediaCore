@@ -50,7 +50,7 @@ public final class VideoDestroyCommand implements CommandSegment.Literal<Command
     this.releaseIfPlaying();
     this.releaseNativeProcesses();
 
-    audience.sendMessage(Locale.RELEASE_VIDEO.build());
+    audience.sendMessage(Locale.DESTROY_VIDEO.build());
 
     return SINGLE_SUCCESS;
   }

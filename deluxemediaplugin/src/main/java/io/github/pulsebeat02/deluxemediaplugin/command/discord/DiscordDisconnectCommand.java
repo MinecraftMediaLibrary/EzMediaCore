@@ -38,7 +38,7 @@ public final class DiscordDisconnectCommand implements CommandSegment.Literal<Co
 
     this.leaveVoiceChannel();
 
-    audience.sendMessage(Locale.DC_DISCORD.build());
+    audience.sendMessage(Locale.DISCORD_DISCONNECT.build());
 
     return SINGLE_SUCCESS;
   }

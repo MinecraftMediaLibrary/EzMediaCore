@@ -108,7 +108,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
   private boolean handleResourcepackAudio(
       @NotNull final Audience audience, @NotNull final Input input) {
     if (this.isResourcepackAudio()) {
-      audience.sendMessage(Locale.CREATE_RESOURCEPACK.build());
+      audience.sendMessage(Locale.RESOURCEPACK_CREATION.build());
       return this.handleResourcepack(audience, input);
     }
     return false;

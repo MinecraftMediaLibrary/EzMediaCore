@@ -52,7 +52,7 @@ public class PluginCommand extends BaseCommand {
   }
 
   private int sendInformation(@NotNull final CommandContext<CommandSender> context) {
-    this.plugin().audience().sender(context.getSource()).sendMessage(Locale.PLUGIN_AUTHORS.build());
+    this.plugin().audience().sender(context.getSource()).sendMessage(Locale.PLUGIN_INFO.build());
     return SINGLE_SUCCESS;
   }
 

@@ -116,14 +116,14 @@ public final class DeluxeMediaPlugin {
 
   private void startMetrics() {
     new Metrics(this.plugin, 10229);
-    this.console.sendMessage(Locale.FIN_METRICS_INIT.build());
+    this.console.sendMessage(Locale.METRICS_INIT.build());
   }
 
   private void finishLoading() {}
 
   private void finishEnabling() {
     this.checkUpdates();
-    this.console.sendMessage(Locale.FIN_PLUGIN_INIT.build());
+    this.console.sendMessage(Locale.PLUGIN_INIT.build());
     this.console.sendMessage(Locale.WELCOME.build());
   }
 
@@ -256,7 +256,7 @@ public final class DeluxeMediaPlugin {
       this.console.sendMessage(Locale.ERR_PERSISTENT_INIT.build());
       throw new AssertionError(e);
     }
-    this.console.sendMessage(Locale.FIN_PERSISTENT_INIT.build());
+    this.console.sendMessage(Locale.PERSISTENT_INIT.build());
   }
 
   private void writeToFile() {
@@ -270,7 +270,7 @@ public final class DeluxeMediaPlugin {
 
   private void registerCommands() {
     this.handler = new CommandHandler(this);
-    this.console.sendMessage(Locale.FIN_COMMANDS_INIT.build());
+    this.console.sendMessage(Locale.COMMANDS_INIT.build());
   }
 
   public Audience getConsoleAudience() {

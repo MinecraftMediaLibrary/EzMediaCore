@@ -38,7 +38,7 @@ public final class DiscordConnectCommand implements CommandSegment.Literal<Comma
 
     this.joinVoiceChannel();
 
-    audience.sendMessage(Locale.C_DISCORD.build());
+    audience.sendMessage(Locale.DISCORD_CONNECT.build());
 
     return SINGLE_SUCCESS;
   }

@@ -37,7 +37,7 @@ public final class FFmpegRunCommand implements CommandSegment.Literal<CommandSen
 
     this.execute(audience);
 
-    audience.sendMessage(Locale.FFMPEG_EXEC.build());
+    audience.sendMessage(Locale.FFMPEG_EXECUTION.build());
 
     return SINGLE_SUCCESS;
   }

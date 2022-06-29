@@ -79,7 +79,7 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
 
   @Nullable
   private String getGuild(final MutableBoolean invalid) {
-    return this.checkConfigurationValue("guild-id", Locale.ERR_GUILD_TOKEN.build(), invalid);
+    return this.checkConfigurationValue("guild-id", Locale.ERR_GUILD_ID.build(), invalid);
   }
 
   @Nullable
