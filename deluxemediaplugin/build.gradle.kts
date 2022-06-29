@@ -58,13 +58,7 @@ tasks {
         relocate("org.bstats", "$base.bstats")
         relocate("me.lucko", "$base.lucko")
         relocate("net.kyori", "$base.kyori")
-        relocate("org.jsoup", "$base.jsoup")
-        relocate("org.slf4j", "$base.slf4j")
-        relocate("net.iharder", "$base.iharder")
         relocate("com.github.stefvanschie", "$base.stefvanschie")
-        relocate("org.apache.commons", "$base.apache.commons")
-        relocate("org.apache.http", "$base.apache.http")
-        relocate("com.fasterxml", "$base.fasterxml")
 
         val libraryBase = "io.github.pulsebeat02.ezmediacore.lib"
         relocate("uk.co.caprica", "$libraryBase.caprica")
@@ -76,7 +70,8 @@ tasks {
         relocate("it.unimi.dsi", "$libraryBase.dsi")
         relocate("com.alibaba", "$libraryBase.alibaba")
         relocate("net.sourceforge.jaad.aac", "$libraryBase.sourceforge")
-        relocate("org.apache.httpcomponents", "$libraryBase.apache.httpcomponents")
+        relocate("com.fasterxml", "$libraryBase.fasterxml")
+        relocate("org.apache", "$libraryBase.apache")
         relocate("com.neovisionaries", "$libraryBase.neovisionaries")
     }
     runServer {
