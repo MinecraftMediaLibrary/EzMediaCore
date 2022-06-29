@@ -24,60 +24,33 @@
 
 package io.github.pulsebeat02.deluxemediaplugin.locale;
 
-import static net.kyori.adventure.text.Component.join;
-import static net.kyori.adventure.text.Component.newline;
-import static net.kyori.adventure.text.Component.space;
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.JoinConfiguration.separator;
-import static net.kyori.adventure.text.event.ClickEvent.openUrl;
-import static net.kyori.adventure.text.event.ClickEvent.runCommand;
-import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
-import static net.kyori.adventure.text.format.NamedTextColor.BLUE;
-import static net.kyori.adventure.text.format.NamedTextColor.DARK_GRAY;
-import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
-import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
-import static net.kyori.adventure.text.format.NamedTextColor.LIGHT_PURPLE;
-import static net.kyori.adventure.text.format.NamedTextColor.RED;
-import static net.kyori.adventure.text.format.Style.style;
-import static net.kyori.adventure.text.format.TextDecoration.BOLD;
-import static net.kyori.adventure.text.format.TextDecoration.UNDERLINED;
-
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.DitheringAlgorithm;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
+import static net.kyori.adventure.text.Component.*;
+import static net.kyori.adventure.text.JoinConfiguration.separator;
+import static net.kyori.adventure.text.event.ClickEvent.openUrl;
+import static net.kyori.adventure.text.event.ClickEvent.runCommand;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
+import static net.kyori.adventure.text.format.Style.style;
+import static net.kyori.adventure.text.format.TextDecoration.BOLD;
+import static net.kyori.adventure.text.format.TextDecoration.UNDERLINED;
+
 public interface Locale {
-
-  UniComponent<Sender, String> REQUIRED_ARGUMENT =
-      (argument) ->
-          text()
-              .color(DARK_GRAY)
-              .append(text("<"))
-              .append(text(argument, GRAY))
-              .append(text(">"))
-              .build();
-
-  UniComponent<Sender, String> OPTIONAL_ARGUMENT =
-      (argument) ->
-          text()
-              .color(DARK_GRAY)
-              .append(text("["))
-              .append(text(argument, GRAY))
-              .append(text("]"))
-              .build();
   NullComponent<Sender> PLUGIN_AUTHORS = () -> text()
       .append(text("-----------------------------------", GOLD))
       .append(newline())
       .append(text("Plugin: ", GOLD, BOLD))
       .append(text("DeluxeMediaPlugin", AQUA))
       .append(newline())
-      .append(text("Authors: ", GOLD, BOLD))
+      .append(text("Author: ", GOLD, BOLD))
       .append(
           text(
               "PulseBeat_02",
@@ -85,14 +58,6 @@ public interface Locale {
                   AQUA,
                   text("PulseBeat_02's Github", GOLD).asHoverEvent(),
                   openUrl("https://github.com/PulseBeat02"))))
-      .append(text(", ", GOLD))
-      .append(
-          text(
-              "itxfrosty",
-              style(
-                  AQUA,
-                  text("itxfrosty's Github", GOLD).asHoverEvent(),
-                  openUrl("https://github.com/itxfrosty"))))
       .append(newline())
       .append(text("Version: ", GOLD, BOLD))
       .append(text("BETA Release", AQUA))
@@ -164,27 +129,17 @@ public interface Locale {
       text("Finished loading DeluxeMediaPlugin!", GOLD));
   NullComponent<Sender> RUNNING_LATEST_PLUGIN = () -> format(text(
       "You are currently running the latest version of DeluxeMediaPlugin.", GOLD));
-  NullComponent<Sender> ERR_EMC_INIT = () -> format(
-      text("There was a severe issue while loading the EzMediaCore instance!",
-          RED));
   NullComponent<Sender> ERR_PERSISTENT_INIT = () -> format(text(
       "A severe issue occurred while reading data from configuration files!", RED));
   NullComponent<Sender> ERR_EMC_SHUTDOWN = () -> format(
       text("EzMediaCore instance is null... something fishy is going on.",
           RED));
-  NullComponent<Sender> ERR_NO_MRL = () -> format(text("File or URL not specified!", RED));
   NullComponent<Sender> ERR_INVALID_MRL = () -> format(
       text("Invalid MRL link! Not supported!", RED));
-  NullComponent<Sender> ERR_RESOURCEPACK_WRAP = () -> format(
-      text("Failed to wrap resourcepack!", RED));
   NullComponent<Sender> ERR_NO_RESOURCEPACK = () -> format(
       text("Please load a resourcepack first!", RED));
-  NullComponent<Sender> ERR_INVALID_AUDIO_STATE = () -> format(text(
-      "Please wait for the previous audio to extract first before loading another one!", RED));
   NullComponent<Sender> ERR_INVALID_DISCORD_BOT = () -> format(text(
       "Discord bot not setup yet or invalid settings in bot.yml!", RED));
-  NullComponent<Sender> ERR_INVALID_DISCORD_BOT_VPN = () -> format(text(
-      "Are you using a VPN perhaps? JDA doesn't like VPNs.", RED));
   NullComponent<Sender> ERR_PLAYER_SENDER = () -> format(
       text("You must be a player to execute this command!", RED));
   NullComponent<Sender> ERR_MAP_RANGE = () -> format(
@@ -201,9 +156,6 @@ public interface Locale {
       RED));
   NullComponent<Sender> ERR_INVALID_TARGET_SELECTOR = () -> format(text(
       "The target selector you chose contains entities that aren't players!", RED));
-  NullComponent<Sender> ERR_DEVELOPMENT_FEATURE = () -> format(text(
-      "This feature is current being developed! Stay tuned and join the Discord for updates!",
-      RED));
   NullComponent<Sender> ERR_HTTP_AUDIO = () -> format(
       text("HTTP audio information provided in httpaudio.yml is invalid!",
           RED));
@@ -227,13 +179,10 @@ public interface Locale {
   NullComponent<Sender> ERR_VLC_UNSUPPORTED = () -> format(text(
       "Sorry, but VLC isn't supported for your enviornment. Please use snap to download it for your enviornment!",
       RED));
-  NullComponent<Sender> ERR_NO_VIEWERS = () -> format(
-      text("The target selector you specified has no viewers!", RED));
   NullComponent<Sender> ERR_SCOREBOARD_DIMENSION = () -> format(
       text("Scoreboard width must be between 0 and 32 and scoreboard height must be between 0 and 16!", RED));
-  NullComponent<Sender> START_AUDIO = () -> format(text("Started playing audio!", GOLD));
-  NullComponent<Sender> PAUSE_AUDIO = () -> format(text("Stopped playing audio!", GOLD));
-  NullComponent<Sender> RESUME_AUDIO = () -> format(text("Resumed the video!", GOLD));
+
+  NullComponent<Sender> ERR_INVALID_SELECTOR = () -> format(text("Invalid target selector!", RED));
   NullComponent<Sender> CREATE_RESOURCEPACK = () -> format(text(
       "Creating a resourcepack for audio. Depending on the length of the video, it make take some time.",
       GOLD));
@@ -241,29 +190,11 @@ public interface Locale {
       text("Successfully disconnected from voice channel!", GOLD));
   NullComponent<Sender> C_DISCORD = () -> format(
       text("Successfully connected to voice channel!", GOLD));
-  NullComponent<Sender> PAUSED_TRACK_DISCORD = () -> format(
-      text("Successfully paused track!", GOLD));
-  NullComponent<Sender> RESUMED_TRACK_DISCORD = () -> format(
-      text("Successfully resumed track!", GOLD));
-  NullComponent<Sender> DITHERING_OPTIONS = () -> format(text("Dithering Options ->", GOLD)
-      .append(getComponent(DitheringAlgorithm.class,
-          (value) -> newline().append(text(value.name(), AQUA)))));
   NullComponent<Sender> FFMPEG_EXEC = () -> format(text("Executed FFmpeg command!", GOLD));
   NullComponent<Sender> RESET_FFMPEG_ARGS = () -> format(text("Reset all FFmpeg arguments!", GOLD));
-  NullComponent<Sender> LOAD_IMG = () -> format(text("Loading image...", GOLD));
-  NullComponent<Sender> PURGE_ALL_MAPS_VERIFY = () -> format(text(
-      "Are you sure you want to purge all maps? Type YES (all caps) if you would like to continue...",
-      GOLD));
-  NullComponent<Sender> PURGED_ALL_MAPS = () -> format(
-      text("Successfully purged all images!", GOLD));
-  NullComponent<Sender> CANCELLED_PURGE_ALL_MAPS = () -> format(
-      text("Cancelled purge of all images!", GOLD));
   NullComponent<Sender> PAUSE_VIDEO = () -> format(text("Stopped the video!", GOLD));
   NullComponent<Sender> RELEASE_VIDEO = () -> format(
       text("Successfully destroyed the current video!", GOLD));
-  NullComponent<Sender> SETUP_RESOURCEPACK = () -> format(text(
-      "Setting up resourcepack for resuming... this may take a while depending on how large the audio file is.",
-      GOLD));
   NullComponent<Sender> DISCORD_AUDIO_STREAM = () -> format(
       text("Started playing audio into Discord voice chat!", GOLD));
   NullComponent<Sender> DUMP_THREADS = () -> format(
@@ -276,10 +207,6 @@ public interface Locale {
       text("Successfully built your new screen!", GOLD));
   UniComponent<Sender, String> SET_MEDIA = (str) -> format(
       text("Set media to %s!".formatted(str), GOLD));
-  UniComponent<Sender, String>
-      DREW_IMG = (mrl) -> format(text("Successfully drew image with mrl %s".formatted(mrl), GOLD));
-  UniComponent<Sender, String> START_TRACK_DISCORD = (mrl) -> format(
-      text("Successfully started audio on MRL %s!".formatted(mrl), GOLD));
   UniComponent<Sender, String> ADD_FFMPEG_ARG = (str) -> format(join(
       separator(space()),
       text("Added arguments", GOLD),
@@ -318,10 +245,6 @@ public interface Locale {
   UniComponent<Sender, String> SET_VIDEO_PLAYBACK = (playback) -> format(
       join(separator(space()), text("Set video playback to", GOLD),
           text(playback, AQUA)));
-  UniComponent<Sender, String> EXTERNAL_PROCESS = (line) -> format(join(separator(space()), text()
-          .color(AQUA)
-          .append(text('['), text("External Process", GOLD), text(']'), space(), text("»", GRAY)),
-      text(line, GOLD)));
   UniComponent<Sender, String> NEW_UPDATE_PLUGIN = (update) -> format(text(
       "There is a new update available! (%s)".formatted(update), GOLD));
   UniComponent<Sender, String> ERR_INVALID_AUDIO_PLAYBACK = (argument) -> format(text(
@@ -342,20 +265,12 @@ public interface Locale {
       separator(space()),
       text("Current FFmpeg arguments:", GOLD),
       text(list.toString(), AQUA)));
-  UniComponent<Sender, Integer>
-      PURGE_MAP = (id) ->
-      format(join(
-          separator(space()),
-          text("Successfully purged all maps with id", GOLD),
-          text(id, AQUA)));
   UniComponent<Sender, Integer> GIVE_MAP_ID = (id) -> format(join(
       separator(space()), text("Gave map with id", GOLD), text(id, AQUA)));
   UniComponent<Sender, Integer> CHANGED_VIDEO_MAP_ID = (id) -> format(join(
       separator(space()),
       text("Set starting map id to", GOLD),
       text(id, AQUA)));
-  UniComponent<Sender, Long> RESUMING_VIDEO_MS = (ms) -> format(
-      text("Resuming Video at %s Milliseconds!", GOLD));
   UniComponent<Sender, Player> SEND_RESOURCEPACK_URL = (player) -> format(text()
       .append(text("Loaded resourcepack for all players! Click ", GOLD))
       .append(
@@ -378,10 +293,6 @@ public interface Locale {
           .append(text('['), text("External Process", GOLD), text(']'), space(), text("»", GRAY))
           .append(text(" %s".formatted(str)))
           .build();
-  UniComponent<Sender, Map<String, String>> INFO_CMD_USAGE = Locale::getCommandUsageComponent;
-  BiComponent<Sender, String, byte[]>
-      FIN_RESOURCEPACK_INIT = (url, hash) -> format(text(
-      "Loaded Resourcepack Successfully! (URL: %s, Hash: %s)".formatted(url, new String(hash))));
   BiComponent<Sender, String, byte[]> SENT_RESOURCEPACK = (url, hash) -> format(text(
       "Sent Resourcepack! (URL: %s, Hash: %s)".formatted(url, new String(hash))));
   BiComponent<Sender, DitheringAlgorithm, Boolean> SET_NATIVE_DITHERING = (algorithm, enabled) -> format(
@@ -404,9 +315,6 @@ public interface Locale {
           text(str, AQUA),
           text("from the FFmpeg command at index", GOLD),
           text(index, AQUA)));
-  BiComponent<Sender, Integer, Integer>
-      CHANGED_IMG_DIMS = (width, height) -> format(text(
-      "Changed itemframe dimensions to %d:%d (width:height)".formatted(width, height)));
   BiComponent<Sender, Integer, Integer> GAVE_MAP_RANGE = (start, end) ->
       format(join(
           separator(space()),
@@ -447,41 +355,6 @@ public interface Locale {
   static @NotNull Component format(@NotNull final Component message) {
     return join(separator(space()), PLUGIN_PREFIX.build(), message);
   }
-
-  static <T extends Enum<T>> @NotNull Component getComponent(@NotNull final Class<T> clazz,
-      @NotNull final Function<T, Component> function) {
-    final T[] arr = clazz.getEnumConstants();
-    final TextComponent.Builder component = text();
-    for (final T value : arr) {
-      component.append(function.apply(value));
-    }
-    return component.build();
-  }
-
-  static <E> @NotNull Component getComponent(
-      @NotNull final Collection<E> collection,
-      @NotNull final Function<E, Component> function) {
-    final TextComponent.Builder component = text();
-    for (final E value : collection) {
-      component.append(function.apply(value));
-    }
-    return component.build();
-  }
-
-  /*
-
-
-    _____       _                __  __          _ _       _____  _             _
- |  __ \     | |              |  \/  |        | (_)     |  __ \| |           (_)
- | |  | | ___| |_   ___  _____| \  / | ___  __| |_  __ _| |__) | |_   _  __ _ _ _ __
- | |  | |/ _ \ | | | \ \/ / _ \ |\/| |/ _ \/ _` | |/ _` |  ___/| | | | |/ _` | | '_ \
- | |__| |  __/ | |_| |>  <  __/ |  | |  __/ (_| | | (_| | |    | | |_| | (_| | | | | |
- |_____/ \___|_|\__,_/_/\_\___|_|  |_|\___|\__,_|_|\__,_|_|    |_|\__,_|\__, |_|_| |_|
-                                                                         __/ |
-                                                                        |___/
-
-   */
-
   static @NotNull Component getComponent(@NotNull final String largeString,
       @NotNull final Function<String, Component> function) {
     final TextComponent.Builder component = text();

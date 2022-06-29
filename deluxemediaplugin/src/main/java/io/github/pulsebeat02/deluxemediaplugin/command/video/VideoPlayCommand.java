@@ -53,6 +53,10 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
     final Audience audience = this.plugin.audience().sender(sender);
     final String selectors = context.getArgument("entities", String.class);
 
+    if (this.attemptSelection(sender, audience, selectors)) {
+      return SINGLE_SUCCESS;
+    }
+
     final List<Entity> entities =
         this.plugin.getBootstrap().getServer().selectEntities(sender, selectors);
     if (this.checkSelectors(audience, entities)) {
@@ -80,6 +84,20 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
     this.sendPlayInformation(audience);
 
     return SINGLE_SUCCESS;
+  }
+
+  private boolean attemptSelection(
+          @NotNull final CommandSender sender,
+          @NotNull final Audience audience,
+          @NotNull final String selector) {
+    final boolean status;
+    try {
+      this.plugin.getBootstrap().getServer().selectEntities(sender, selector);
+      return false;
+    } catch (final IllegalArgumentException e) {
+      status = true;
+    }
+    return handleTrue(audience, Locale.ERR_INVALID_TARGET_SELECTOR.build(), status);
   }
 
   private boolean isValidScoreboardDimension(@NotNull final Audience audience) {

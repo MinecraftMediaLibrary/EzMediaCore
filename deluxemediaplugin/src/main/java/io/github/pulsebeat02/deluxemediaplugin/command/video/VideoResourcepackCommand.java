@@ -67,9 +67,13 @@ public final class VideoResourcepackCommand implements CommandSegment.Literal<Co
     final CommandSender sender = context.getSource();
     final Audience audience = this.plugin.audience().sender(sender);
     final String targets = context.getArgument("selectors", String.class);
+
+    if (this.attemptSelection(sender, audience, targets)) {
+      return SINGLE_SUCCESS;
+    }
+
     final List<Entity> entities =
         this.plugin.getBootstrap().getServer().selectEntities(sender, targets);
-
     if (this.checkSelectors(audience, entities)) {
       return SINGLE_SUCCESS;
     }
@@ -85,6 +89,20 @@ public final class VideoResourcepackCommand implements CommandSegment.Literal<Co
     this.loadResourcepack(entities, audience);
 
     return SINGLE_SUCCESS;
+  }
+
+  private boolean attemptSelection(
+      @NotNull final CommandSender sender,
+      @NotNull final Audience audience,
+      @NotNull final String selector) {
+    final boolean status;
+    try {
+      this.plugin.getBootstrap().getServer().selectEntities(sender, selector);
+      return false;
+    } catch (final IllegalArgumentException e) {
+      status = true;
+    }
+    return handleTrue(audience, Locale.ERR_INVALID_TARGET_SELECTOR.build(), status);
   }
 
   private void loadResourcepack(
