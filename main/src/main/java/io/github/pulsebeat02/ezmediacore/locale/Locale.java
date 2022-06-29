@@ -68,23 +68,10 @@ public interface Locale {
               Spotify API Client ID and Client Secret not specified! You will not be able
               to use any Spotify related features.
           """;
-  NullComponent ERR_HOLOVID = () -> "Holovid (https://holovid.glare.dev) is down! Contact PulseBeat_02 for information!";
-
   UniComponent<String> ERR_SERVER_UNSUPPORTED = "Current server implementation (%s) is not supported!"::formatted;
   UniComponent<String> FINISHED_DEPENDENCY_LOAD = "Finished %s dependency installation and load!"::formatted;
 
   BiComponent<String, Path> BINARY_PATHS = "%s path: %s"::formatted;
-
-  TriComponent<String, Integer, Path> HTTP_INFO =
-      """
-                
-          ========================================
-                         HTTP Server
-          ========================================
-          IP: %s
-          PORT: %s
-          PATH: %s
-          """::formatted;
   TriComponent<String, String, Boolean> SERVER_INFO =
       """
                 

@@ -139,7 +139,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   public void pause() {
     this.controls = PlayerControls.PAUSE;
     this.onPlayerStateChange(null, this.controls);
-    this.core.getLogger().info(Locale.MEDIA_PLAYER_PAUSE);
+    this.core.getLogger().info(Locale.MEDIA_PLAYER_PAUSE.build());
   }
 
   @Override
@@ -156,7 +156,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   public void release() {
     this.controls = PlayerControls.RELEASE;
     this.onPlayerStateChange(null, this.controls);
-    this.core.getLogger().info(Locale.MEDIA_PLAYER_RELEASE);
+    this.core.getLogger().info(Locale.MEDIA_PLAYER_RELEASE.build());
   }
 
   @Override

@@ -72,7 +72,7 @@ public class NativePluginLoader {
     log.release();
     player.release();
     factory.release();
-    this.core.getLogger().info(Locale.MEDIA_PLAYER_RELEASE);
+    this.core.getLogger().info(Locale.MEDIA_PLAYER_RELEASE.build());
   }
 
   private @NotNull NativeLog createLog(@NotNull final MediaPlayerFactory factory) {
@@ -81,7 +81,7 @@ public class NativePluginLoader {
     log.setLevel(LogLevel.DEBUG);
     log.addLogListener(this.createListener());
 
-    this.core.getLogger().info(Locale.FINISHED_NATIVE_VLC_LOG_REGISTRATION);
+    this.core.getLogger().info(Locale.FINISHED_NATIVE_VLC_LOG_REGISTRATION.build());
 
     return log;
   }

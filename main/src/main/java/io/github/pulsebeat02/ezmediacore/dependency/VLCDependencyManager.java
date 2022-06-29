@@ -23,16 +23,13 @@
  */
 package io.github.pulsebeat02.ezmediacore.dependency;
 
-import io.github.pulsebeat02.emcinstallers.implementation.vlc.VLCInstallationKit;
 import io.github.pulsebeat02.emcinstallers.implementation.vlc.search.EnhancedNativeDiscovery;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.analysis.OSType;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.nio.file.Path;
-
-import io.github.pulsebeat02.nativelibraryloader.utils.OSUtils;
-import org.jetbrains.annotations.NotNull;
 
 public final class VLCDependencyManager extends LibraryDependency {
 

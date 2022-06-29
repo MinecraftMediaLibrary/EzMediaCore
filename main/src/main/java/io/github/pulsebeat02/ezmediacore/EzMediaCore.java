@@ -161,7 +161,7 @@ public final class EzMediaCore implements MediaLibraryCore {
 
   private void registerEvents() {
     this.registrationListener = new RegistrationListener(this);
-    this.logger.info(Locale.FINISHED_EVENT_REGISTRATION);
+    this.logger.info(Locale.FINISHED_EVENT_REGISTRATION.build());
   }
 
   private void createFolders() {
@@ -173,12 +173,12 @@ public final class EzMediaCore implements MediaLibraryCore {
             this.audioPath,
             this.videoPath)
         .forEach(FileUtils::createDirectoryIfNotExistsExceptionally);
-    this.logger.info(Locale.FINISHED_FOLDER_CREATION);
+    this.logger.info(Locale.FINISHED_FOLDER_CREATION.build());
   }
 
   private void startDependencyLoader() {
     this.loader.start();
-    this.logger.info(Locale.FINISHED_DEPENDENCY_HANDLING);
+    this.logger.info(Locale.FINISHED_DEPENDENCY_HANDLING.build());
   }
 
   private void sendUsageTips() {
