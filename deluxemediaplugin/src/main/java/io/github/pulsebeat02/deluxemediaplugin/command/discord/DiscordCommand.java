@@ -45,9 +45,6 @@ public class DiscordCommand extends BaseCommand {
             .requires(super::testPermission)
             .then(new DiscordConnectCommand(plugin).getNode())
             .then(new DiscordDisconnectCommand(plugin).getNode())
-            .then(new DiscordPlayCommand(plugin).getNode())
-            .then(new DiscordPauseCommand(plugin).getNode())
-            .then(new DiscordResumeCommand(plugin).getNode())
             .build();
   }
 

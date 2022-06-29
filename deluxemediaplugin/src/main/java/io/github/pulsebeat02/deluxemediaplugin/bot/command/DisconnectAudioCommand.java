@@ -24,12 +24,12 @@
 package io.github.pulsebeat02.deluxemediaplugin.bot.command;
 
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
-import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
 import io.github.pulsebeat02.deluxemediaplugin.bot.locale.DiscordLocale;
-import java.util.Set;
 import net.dv8tion.jda.api.entities.Message;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Set;
 
 public final class DisconnectAudioCommand extends DiscordBaseCommand {
 
@@ -45,7 +45,6 @@ public final class DisconnectAudioCommand extends DiscordBaseCommand {
   }
 
   private void leaveVoiceChannel() {
-    final MusicManager manager = this.getBot().getMusicManager();
-    manager.leaveVoiceChannel();
+    this.getBot().leaveVoiceChannel();
   }
 }

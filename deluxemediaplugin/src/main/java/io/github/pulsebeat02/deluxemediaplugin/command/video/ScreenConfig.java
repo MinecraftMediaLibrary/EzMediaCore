@@ -4,6 +4,7 @@ import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Argume
 import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.handleNull;
 
 import com.google.gson.annotations.SerializedName;
+import io.github.pulsebeat02.deluxemediaplugin.bot.ffmpeg.AudioPlayerStreamSendHandler;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.DitheringAlgorithm;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.PlayerAlgorithm;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.VideoPlayback;
@@ -24,6 +25,8 @@ public final class ScreenConfig {
   private transient Input ogg;
   private transient EnhancedExecution extractor;
   private transient EnhancedExecution stream;
+
+  private transient AudioPlayerStreamSendHandler discordHandler;
   private transient CompletableFuture<Void> task;
   private transient String packUrl;
   private transient byte[] packHash;
@@ -212,5 +215,13 @@ public final class ScreenConfig {
 
   public void setNativeDithering(final boolean useNative) {
     this.nativeDithering = useNative;
+  }
+
+  public @Nullable AudioPlayerStreamSendHandler getDiscordHandler() {
+    return this.discordHandler;
+  }
+
+  public void setDiscordHandler(@NotNull final AudioPlayerStreamSendHandler discordHandler) {
+    this.discordHandler = discordHandler;
   }
 }

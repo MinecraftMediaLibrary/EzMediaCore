@@ -29,7 +29,8 @@ public final class VoiceChannelPlayer {
   }
 
   public void start(@NotNull final VoiceChannel channel, @NotNull final String input) {
-    final CompletableFuture<Void> future = CompletableFuture.runAsync(() -> this.handleInput(channel, input));
+    final CompletableFuture<Void> future =
+        CompletableFuture.runAsync(() -> this.handleInput(channel, input));
     future.handle(Throwing.THROWING_FUTURE);
   }
 
@@ -43,17 +44,33 @@ public final class VoiceChannelPlayer {
   private void setSendingHandler(@NotNull final String input, @NotNull final AudioManager manager) {
     final AudioInputStream stream = this.getAudioInputStream(input);
     final AudioPlayerStreamSendHandler player = new AudioPlayerStreamSendHandler(stream);
-    player.play();
+    this.setDiscordSendHandler(player);
+    this.setManagerSendingHandler(manager, player);
+  }
+
+  private void setManagerSendingHandler(
+      @NotNull final AudioManager manager, final AudioPlayerStreamSendHandler player) {
     manager.setSendingHandler(player);
   }
 
+  private void setDiscordSendHandler(@NotNull final AudioPlayerStreamSendHandler player) {
+    final ScreenConfig config = this.plugin.getScreenConfig();
+    config.setDiscordHandler(player);
+  }
+
   private @NotNull AudioInputStream getAudioInputStream(@NotNull final String input) {
-    final MediaLibraryCore core = this.plugin.library();
-    final FFmpegPipedOutput output = new FFmpegPipedOutput(core, input);
-    output.executeAsync(FixedExecutors.STREAM_THREAD_EXECUTOR);
+    final FFmpegPipedOutput output = this.createPipedFFmpegOutput(input);
     this.setStream(output);
     this.sleep();
     return output.getInputStream();
+  }
+
+  @NotNull
+  private FFmpegPipedOutput createPipedFFmpegOutput(@NotNull final String input) {
+    final MediaLibraryCore core = this.plugin.library();
+    final FFmpegPipedOutput output = new FFmpegPipedOutput(core, input);
+    output.executeAsync(FixedExecutors.STREAM_THREAD_EXECUTOR);
+    return output;
   }
 
   private void sleep() {

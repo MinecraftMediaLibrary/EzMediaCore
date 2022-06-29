@@ -21,17 +21,13 @@ public final class AudioPlayerStreamSendHandler implements AudioSendHandler {
   private final int audioBufferSize;
   private final AudioInputStream audioSource;
 
-  private boolean started;
-  private boolean playing;
   private boolean paused;
-  private boolean stopped;
 
   public AudioPlayerStreamSendHandler(@NotNull final AudioInputStream inSource) {
     final AudioFormat baseFormat = inSource.getFormat();
     final AudioFormat audioFormat = this.getConvertedAudioFormat(baseFormat);
     this.audioSource = AudioSystem.getAudioInputStream(audioFormat, inSource);
     this.audioBufferSize = OPUS_FRAME_SIZE * audioFormat.getFrameSize();
-    this.stopped = true;
   }
 
   private @NotNull AudioFormat getConvertedAudioFormat(@NotNull final AudioFormat baseFormat) {
@@ -57,7 +53,7 @@ public final class AudioPlayerStreamSendHandler implements AudioSendHandler {
 
   @Override
   public boolean canProvide() {
-    return !this.paused && !this.stopped;
+    return !this.paused;
   }
 
   @Override
@@ -72,37 +68,11 @@ public final class AudioPlayerStreamSendHandler implements AudioSendHandler {
     }
   }
 
-  public void play() {
-    this.started = true;
-    this.playing = true;
-    this.paused = false;
-    this.stopped = false;
-  }
-
   public void pause() {
-    this.playing = false;
     this.paused = true;
   }
 
-  public void stop() {
-    this.playing = false;
+  public void play() {
     this.paused = false;
-    this.stopped = true;
-  }
-
-  public boolean isStarted() {
-    return this.started;
-  }
-
-  public boolean isPlaying() {
-    return this.playing;
-  }
-
-  public boolean isPaused() {
-    return this.paused;
-  }
-
-  public boolean isStopped() {
-    return this.stopped;
   }
 }

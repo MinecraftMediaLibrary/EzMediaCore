@@ -30,7 +30,6 @@ import static net.dv8tion.jda.api.requests.GatewayIntent.GUILD_MEMBERS;
 import static net.dv8tion.jda.api.requests.GatewayIntent.GUILD_MESSAGES;
 import static net.dv8tion.jda.api.requests.GatewayIntent.GUILD_MESSAGE_REACTIONS;
 
-import io.github.pulsebeat02.deluxemediaplugin.bot.audio.MusicManager;
 import javax.security.auth.login.LoginException;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -38,6 +37,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager;
+import net.dv8tion.jda.api.managers.AudioManager;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,7 +46,6 @@ public final class MediaBot {
   private final JDA jda;
   private final Guild guild;
   private final VoiceChannel channel;
-  private final MusicManager musicManager;
   private String prefix;
 
   public MediaBot(
@@ -55,7 +54,6 @@ public final class MediaBot {
     this.jda = this.createBot(token);
     this.guild = this.jda.getGuildById(guild);
     this.channel = this.jda.getVoiceChannelById(voicechannel);
-    this.musicManager = new MusicManager(this);
     this.prefix = "d!";
     this.setPresence();
   }
@@ -76,12 +74,18 @@ public final class MediaBot {
     this.jda.getPresence().setPresence(ONLINE, playing("DeluxeMediaPlugin Audio"));
   }
 
-  public @NotNull JDA getJDA() {
-    return this.jda;
+  public void joinVoiceChannel() {
+    final AudioManager manager = this.guild.getAudioManager();
+    manager.openAudioConnection(this.channel);
   }
 
-  public @NotNull MusicManager getMusicManager() {
-    return this.musicManager;
+  public void leaveVoiceChannel() {
+    final AudioManager manager = this.guild.getAudioManager();
+    manager.closeAudioConnection();
+  }
+
+  public @NotNull JDA getJDA() {
+    return this.jda;
   }
 
   public @NotNull Guild getGuild() {

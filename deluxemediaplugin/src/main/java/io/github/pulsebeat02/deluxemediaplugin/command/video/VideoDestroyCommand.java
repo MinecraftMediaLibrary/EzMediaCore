@@ -6,6 +6,7 @@ import static io.github.pulsebeat02.deluxemediaplugin.command.Permission.has;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
+import io.github.pulsebeat02.deluxemediaplugin.bot.ffmpeg.AudioPlayerStreamSendHandler;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
@@ -64,8 +65,10 @@ public final class VideoDestroyCommand implements CommandSegment.Literal<Command
 
   private void releaseNativeProcesses() {
     final EnhancedExecution extractor = this.config.getExtractor();
+    final AudioPlayerStreamSendHandler handler = this.config.getDiscordHandler();
     final EnhancedExecution stream = this.config.getStream();
     Nill.ifNot(extractor, () -> Try.closeable(extractor));
+    Nill.ifNot(handler, () -> handler.pause());
     Nill.ifNot(stream, () -> Try.closeable(stream));
   }
 

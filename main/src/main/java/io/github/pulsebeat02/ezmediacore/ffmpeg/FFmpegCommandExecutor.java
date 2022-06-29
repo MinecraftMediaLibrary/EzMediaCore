@@ -49,6 +49,8 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   private final List<String> arguments;
   private final AtomicBoolean completion;
   private final AtomicBoolean cancelled;
+
+  private Consumer<ProcessBuilder> consumer;
   private Process process;
 
   public FFmpegCommandExecutor(@NotNull final MediaLibraryCore core) {
@@ -128,6 +130,13 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
+  public @NotNull FFmpegArgumentPreparation modifyProcess(
+      @NotNull final Consumer<ProcessBuilder> consumer) {
+    this.consumer = consumer;
+    return this;
+  }
+
+  @Override
   public @NotNull MediaLibraryCore getCore() {
     return this.core;
   }
@@ -152,7 +161,13 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   private void executeProcess(@Nullable final Consumer<String> logger) throws IOException {
-    this.process = new ProcessBuilder(this.arguments).redirectErrorStream(true).start();
+
+    final ProcessBuilder builder = new ProcessBuilder(this.arguments).redirectErrorStream(true);
+    if (this.consumer != null) {
+      this.consumer.accept(builder);
+    }
+
+    this.process = builder.start();
     this.handleLogging(logger, logger != null);
   }
 
@@ -246,6 +261,11 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   @Override
   public void clearArguments() {
     this.arguments.clear();
+  }
+
+  @Override
+  public void setProcess(@NotNull final Process process) {
+    this.process = process;
   }
 
   @Override

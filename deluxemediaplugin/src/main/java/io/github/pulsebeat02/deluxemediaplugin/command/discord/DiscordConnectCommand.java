@@ -44,7 +44,7 @@ public final class DiscordConnectCommand implements CommandSegment.Literal<Comma
   }
 
   private void joinVoiceChannel() {
-    requireNonNull(this.plugin.getMediaBot()).getMusicManager().joinVoiceChannel();
+    requireNonNull(this.plugin.getMediaBot()).joinVoiceChannel();
   }
 
   private boolean checkDiscordStatus(@NotNull final Audience audience) {

@@ -48,7 +48,7 @@ public final class DiscordDisconnectCommand implements CommandSegment.Literal<Co
   }
 
   private void leaveVoiceChannel() {
-    requireNonNull(this.plugin.getMediaBot()).getMusicManager().leaveVoiceChannel();
+    requireNonNull(this.plugin.getMediaBot()).leaveVoiceChannel();
   }
 
   @Override

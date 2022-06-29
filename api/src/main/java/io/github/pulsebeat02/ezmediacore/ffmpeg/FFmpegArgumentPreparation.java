@@ -25,6 +25,8 @@ package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
 import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
 import java.util.Collection;
+import java.util.function.Consumer;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,6 +57,8 @@ public interface FFmpegArgumentPreparation extends LibraryInjectable, EnhancedEx
   @NotNull
   FFmpegArgumentPreparation addMultipleArguments(@NotNull final Collection<String> arguments);
 
+  @NotNull
+  FFmpegArgumentPreparation modifyProcess(@NotNull final Consumer<ProcessBuilder> builder);
   void clearArguments();
 
   void onBeforeExecution();
@@ -65,4 +69,6 @@ public interface FFmpegArgumentPreparation extends LibraryInjectable, EnhancedEx
 
   @Nullable
   Process getProcess();
+
+  void setProcess(@NotNull final Process process);
 }

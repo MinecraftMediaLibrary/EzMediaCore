@@ -26,8 +26,6 @@ package io.github.pulsebeat02.deluxemediaplugin.bot;
 import io.github.pulsebeat02.deluxemediaplugin.bot.command.ConnectAudioCommand;
 import io.github.pulsebeat02.deluxemediaplugin.bot.command.DisconnectAudioCommand;
 import io.github.pulsebeat02.deluxemediaplugin.bot.command.DiscordBaseCommand;
-import io.github.pulsebeat02.deluxemediaplugin.bot.command.PlayAudioCommand;
-import io.github.pulsebeat02.deluxemediaplugin.bot.command.StopAudioCommand;
 import io.github.pulsebeat02.deluxemediaplugin.bot.locale.DiscordLocale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.utility.collection.ArrayUtils;
@@ -50,9 +48,7 @@ public final class MediaCommandListener {
     this.commands =
         Map.of(
             "connect", new ConnectAudioCommand(bot),
-            "disconnect", new DisconnectAudioCommand(bot),
-            "play", new PlayAudioCommand(bot),
-            "stop", new StopAudioCommand(bot));
+            "disconnect", new DisconnectAudioCommand(bot));
   }
 
   @SubscribeEvent
