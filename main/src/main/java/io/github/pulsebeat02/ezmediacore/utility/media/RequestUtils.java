@@ -65,6 +65,9 @@ public final class RequestUtils {
       throws InterruptedException {
     try {
       final MediaInfo request = JLibDL.request(url);
+      if (request == null) {
+        return Optional.empty();
+      }
       return Optional.of(MediaRequest.ofRequest(request));
     } catch (final IOException e) {
       return Optional.empty();

@@ -74,7 +74,7 @@ public final class VoiceChannelPlayer {
   }
 
   private void sleep() {
-    Try.sleep(TimeUnit.SECONDS, 1);
+    Try.sleep(TimeUnit.SECONDS, 5);
   }
 
   private void setStream(@NotNull final FFmpegPipedOutput output) {

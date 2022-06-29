@@ -36,6 +36,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class YoutubeDLRequest {
 
@@ -53,7 +54,7 @@ public final class YoutubeDLRequest {
     GSON = new Gson();
   }
 
-  public @NotNull MediaInfo request(@NotNull final String url)
+  public @Nullable MediaInfo request(@NotNull final String url)
       throws IOException, InterruptedException {
     checkNotNull(url, "URL cannot be null!");
     return GSON.fromJson(this.getJson(url), MediaInfo.class);
