@@ -38,7 +38,7 @@ public final class VideoCommand extends BaseCommand {
   public Component usage() {
     return Locale.getCommandUsageComponent(
         Map.of(
-            "/video load [desktop | device | mrl | path | url | video | window] [argument]",
+            "/video load [input] [argument]",
             "Loads the video",
             "/video dump-threads",
             "Dumps threads for video player (debugging purposes)",
