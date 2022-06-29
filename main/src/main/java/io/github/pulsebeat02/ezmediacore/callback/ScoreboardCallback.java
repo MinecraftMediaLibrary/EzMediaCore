@@ -254,7 +254,8 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
       final int width = dimension.getWidth();
       final int height = dimension.getHeight();
       if (!this.isValidDimension(width, height)) {
-        throw new IllegalArgumentException("Scoreboard dimensions must be between 0 and 16!");
+        throw new IllegalArgumentException(
+            "Scoreboard width must be between 0 and 32 and scoreboard height must be between 0 and 16!");
       }
 
       return new ScoreboardCallback(

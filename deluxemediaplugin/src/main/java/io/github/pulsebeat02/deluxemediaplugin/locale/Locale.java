@@ -230,7 +230,7 @@ public interface Locale {
   NullComponent<Sender> ERR_NO_VIEWERS = () -> format(
       text("The target selector you specified has no viewers!", RED));
   NullComponent<Sender> ERR_SCOREBOARD_DIMENSION = () -> format(
-      text("Scoreboard dimensions must be between 0 and 16!", RED));
+      text("Scoreboard width must be between 0 and 32 and scoreboard height must be between 0 and 16!", RED));
   NullComponent<Sender> START_AUDIO = () -> format(text("Started playing audio!", GOLD));
   NullComponent<Sender> PAUSE_AUDIO = () -> format(text("Stopped playing audio!", GOLD));
   NullComponent<Sender> RESUME_AUDIO = () -> format(text("Resumed the video!", GOLD));
@@ -306,8 +306,9 @@ public interface Locale {
       text("Starting Video on MRL %s".formatted(mrl), GOLD));
   UniComponent<Sender, String> LOADED_MEDIA = (mrl) -> format(
       text("Successfully loaded media %s!".formatted(mrl), GOLD));
-  UniComponent<Sender, String> SET_AUDIO_PLAYBACK = (argument) -> format(text(
-      "Successfully set the audio playback to %s".formatted(argument), GOLD));
+  UniComponent<Sender, String> SET_AUDIO_PLAYBACK = (argument) -> format(
+      join(separator(space()), text("Set audio playback to", GOLD),
+          text(argument, AQUA)));
   UniComponent<Sender, String> SET_DITHER_ALGORITHM = (algorithm) -> format(
       join(separator(space()), text("Set dither algorithm to", GOLD),
           text(algorithm, AQUA)));

@@ -43,6 +43,7 @@ import io.github.pulsebeat02.ezmediacore.LibraryProvider;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
+import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
@@ -174,8 +175,16 @@ public final class DeluxeMediaPlugin {
     try {
       this.cancelNativeExtractor();
       this.cancelNativeStreamExtractor();
+      this.releasePlayers();
     } catch (final Exception e) {
       throw new AssertionError(e);
+    }
+  }
+
+  private void releasePlayers() {
+    final VideoPlayer player = this.attributes.getPlayer();
+    if (player != null) {
+      player.release();
     }
   }
 

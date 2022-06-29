@@ -4,6 +4,9 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.utility.concurrency.ThrowingConsumer;
+import io.github.pulsebeat02.ezmediacore.utility.concurrency.ThrowingRunnable;
+import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import javax.sound.sampled.AudioInputStream;
 
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
@@ -26,7 +29,8 @@ public final class VoiceChannelPlayer {
   }
 
   public void start(@NotNull final VoiceChannel channel, @NotNull final String input) {
-    CompletableFuture.runAsync(() -> this.handleInput(channel, input));
+    final CompletableFuture<Void> future = CompletableFuture.runAsync(() -> this.handleInput(channel, input));
+    future.handle(Throwing.THROWING_FUTURE);
   }
 
   private void handleInput(@NotNull final VoiceChannel channel, @NotNull final String input) {
@@ -39,6 +43,7 @@ public final class VoiceChannelPlayer {
   private void setSendingHandler(@NotNull final String input, @NotNull final AudioManager manager) {
     final AudioInputStream stream = this.getAudioInputStream(input);
     final AudioPlayerStreamSendHandler player = new AudioPlayerStreamSendHandler(stream);
+    player.play();
     manager.setSendingHandler(player);
   }
 
