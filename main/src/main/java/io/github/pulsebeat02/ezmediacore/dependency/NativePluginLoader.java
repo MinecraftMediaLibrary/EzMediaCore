@@ -133,7 +133,7 @@ public class NativePluginLoader {
         final String header,
         final Integer id,
         final String message) {
-      this.logger.info(LOG_FORMAT.formatted(module, name, level, message, System.lineSeparator()));
+      this.logger.vlc(LOG_FORMAT.formatted(module, name, level, message, System.lineSeparator()));
     }
   }
 
