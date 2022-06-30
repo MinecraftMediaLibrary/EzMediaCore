@@ -196,7 +196,7 @@ public interface Locale {
   NullComponent<Sender> DESTROY_VIDEO = () -> format(
       text("Destroyed the video!", GOLD));
   NullComponent<Sender> DISCORD_AUDIO_STREAM = () -> format(
-      text("Began playing audio into Discord voice chat!", GOLD));
+      text("Began playing audio into Discord voice chat (5 seconds)!", GOLD));
   NullComponent<Sender> DUMP_THREADS = () -> format(
       text("Created thread dump in console!", GOLD));
   NullComponent<Sender> CANCELLED_VIDEO_PROCESSING = () -> format(

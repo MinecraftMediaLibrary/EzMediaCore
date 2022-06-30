@@ -68,10 +68,14 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaS
     final String path = this.getCore().getFFmpegPath().toString();
     this.addArgument(path);
 
+    this.addArgument(FFmpegArguments.HIDE_BANNER);
+    this.addArgument(FFmpegArguments.NO_STATS);
+    this.addArguments(FFmpegArguments.LOG_LEVEL, "error");
     this.addArgument(FFmpegArguments.NATIVE_FRAME_READ_RATE);
     this.addArguments(FFmpegArguments.INPUT, this.input);
     this.addArgument(FFmpegArguments.NO_CONSOLE_INPUT);
-    this.addArgument(FFmpegArguments.HIDE_BANNER);
+    this.addArguments(FFmpegArguments.TUNE, "fastdecode");
+    this.addArguments(FFmpegArguments.TUNE, "zerolatency");
 
     final String bitrate = String.valueOf(configuration.getBitrate());
     this.addArguments(FFmpegArguments.AUDIO_BITRATE, bitrate);

@@ -32,4 +32,5 @@ public interface FFmpegArguments {
   String NO_STATS = "-nostats";
   String PIPE_OUTPUT = "pipe:%s";
   String PIPE_TO_STDOUT = "-";
+  String TUNE = "-tune";
 }

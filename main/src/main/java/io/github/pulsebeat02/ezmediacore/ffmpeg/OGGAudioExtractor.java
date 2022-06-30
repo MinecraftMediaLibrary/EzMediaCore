@@ -72,10 +72,12 @@ public class OGGAudioExtractor extends FFmpegCommandExecutor implements AudioExt
     final String path = this.getCore().getFFmpegPath().toString();
     this.addArgument(path);
 
+    this.addArgument(FFmpegArguments.HIDE_BANNER);
+    this.addArgument(FFmpegArguments.NO_STATS);
+    this.addArguments(FFmpegArguments.LOG_LEVEL, "error");
     this.addArguments(FFmpegArguments.INPUT, this.input);
     this.addArgument(FFmpegArguments.EXCLUDE_VIDEO_STREAMS);
     this.addArguments(FFmpegArguments.AUDIO_CODEC, "libvorbis");
-    this.addArgument(FFmpegArguments.HIDE_BANNER);
 
     final String bitrate = String.valueOf(configuration.getBitrate());
     this.addArguments(FFmpegArguments.AUDIO_BITRATE, bitrate);

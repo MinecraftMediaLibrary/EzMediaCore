@@ -5,6 +5,7 @@ import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegArguments;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegCommandExecutor;
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
 import java.util.function.Consumer;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -24,7 +25,12 @@ public final class FFmpegPipedOutput extends FFmpegCommandExecutor {
   }
 
   public void addPipeArguments() {
+    this.addArgument(FFmpegArguments.HIDE_BANNER);
+    this.addArgument(FFmpegArguments.NO_STATS);
+    this.addArguments(FFmpegArguments.LOG_LEVEL, "error");
     this.addArguments(FFmpegArguments.INPUT, this.input);
+    this.addArguments(FFmpegArguments.TUNE, "fastdecode");
+    this.addArguments(FFmpegArguments.TUNE, "zerolatency");
     this.addArgument(FFmpegArguments.EXCLUDE_VIDEO_STREAMS);
     this.addArguments(FFmpegArguments.OUTPUT_FORMAT, "wav");
     this.addArgument(FFmpegArguments.PIPE_TO_STDOUT);
@@ -33,6 +39,7 @@ public final class FFmpegPipedOutput extends FFmpegCommandExecutor {
   @Override
   public void executeWithLogging(@Nullable final Consumer<String> logger) throws IOException {
     final ProcessBuilder builder = new ProcessBuilder(this.getArguments());
+    builder.redirectError(Redirect.INHERIT);
     final Process process = builder.start();
     this.setProcess(process);
     this.handleInputStream(process);

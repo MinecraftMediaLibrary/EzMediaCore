@@ -81,8 +81,10 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
     final String path = this.getCore().getFFmpegPath().toString();
     this.addArgument(path);
 
-    this.addArguments(FFmpegArguments.INPUT, this.input);
     this.addArgument(FFmpegArguments.HIDE_BANNER);
+    this.addArgument(FFmpegArguments.NO_STATS);
+    this.addArguments(FFmpegArguments.LOG_LEVEL, "error");
+    this.addArguments(FFmpegArguments.INPUT, this.input);
 
     final String time = FormatterProvider.FFMPEG_TIME_FORMATTER.format(new Date(this.ms));
     this.addArguments(FFmpegArguments.DURATION_START, time);
