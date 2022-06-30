@@ -24,19 +24,20 @@
 package io.github.pulsebeat02.ezmediacore.player.buffered;
 
 import java.util.concurrent.CompletableFuture;
+
+import io.github.pulsebeat02.ezmediacore.player.external.ConsumablePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface BufferedPlayer {
+public interface BufferedPlayer extends ConsumablePlayer {
 
   @NotNull
   BufferConfiguration getBufferConfiguration();
 
-  boolean addFrame(final int @NotNull [] data, final long timestamp);
+  boolean addFrame(final int @Nullable [] data, final byte @Nullable [] audio, final long timestamp);
 
   void bufferFrames();
 
-  @NotNull
   <T> void cancelFuture(@Nullable final CompletableFuture<T> future);
 
   void startDisplayRunnable();
@@ -50,4 +51,12 @@ public interface BufferedPlayer {
   void setStart(final long start);
 
   boolean isExecuting();
+
+  @NotNull String getAudioFormat();
+
+  int getAudioBlockSize();
+
+  int getAudioBitrate();
+
+  int getAudioChannels();
 }

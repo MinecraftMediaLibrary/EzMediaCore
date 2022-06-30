@@ -24,11 +24,11 @@
 package io.github.pulsebeat02.ezmediacore.player.external;
 
 import java.util.function.Consumer;
+
+import io.github.pulsebeat02.ezmediacore.player.FrameConsumable;
 import org.jetbrains.annotations.NotNull;
 
-public interface ConsumablePlayer {
-
-  void setCustomVideoAdapter(@NotNull final Consumer<int[]> pixels);
+public interface ConsumablePlayer extends FrameConsumable {
 
   void setCustomAudioAdapter(
       @NotNull final Consumer<byte[]> audio,

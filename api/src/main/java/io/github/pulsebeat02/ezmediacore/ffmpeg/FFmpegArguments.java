@@ -15,6 +15,7 @@ public interface FFmpegArguments {
   String AUDIO_SAMPLING = "-ar";
   String AUDIO_VOLUME = "-vol";
   String AUDIO_QUALITY_LEVEL = "-qscale";
+  String AUDIO_BLOCK_SIZE = "-blocksize";
 
   String VIDEO_CODEC = "-vcodec";
   String VIDEO_RESOLUTION = "-s";

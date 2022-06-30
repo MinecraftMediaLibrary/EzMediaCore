@@ -5,10 +5,11 @@ import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import io.github.pulsebeat02.ezmediacore.throwable.IllegalStreamHeaderException;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.VideoFrameUtils;
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.image.BufferedImage;
 import java.time.Instant;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
 public final class FFmpegFrameConsumer implements FrameConsumer {
 
@@ -45,20 +46,26 @@ public final class FFmpegFrameConsumer implements FrameConsumer {
 
   @Override
   public void consume(final Frame frame) {
+
     // sometimes ffmpeg returns a null frame...
     if (frame == null) {
       return;
     }
 
-    // sometimes it is an audio frame (or non-video frame in general). We don't want audio
-    // frames
+    final byte[] audio = this.toByteArray(frame.getSamples());
     final BufferedImage image = frame.getImage();
-    if (image == null) {
-      return;
-    }
+    final int[] data = image == null ? null : VideoFrameUtils.getRGBParallel(image);
 
     // add to queue
-    this.player.addFrame(VideoFrameUtils.getRGBParallel(image), this.calculateTimeStamp(frame));
+    this.player.addFrame(data, audio, this.calculateTimeStamp(frame));
+  }
+
+  private byte @NotNull [] toByteArray(final int @NotNull [] data) {
+    final byte[] bytes = new byte[data.length];
+    for (int i = 0; i < bytes.length; i++) {
+      bytes[i] = (byte) data[i];
+    }
+    return bytes;
   }
 
   private long calculateTimeStamp(@NotNull final Frame frame) {

@@ -46,7 +46,7 @@ public class JCodecFrameConsumer implements Runnable {
 
         // add to queue
         this.player.addFrame(
-            VideoFrameUtils.getRGBParallel(image.get()), this.calculateTimestamp());
+            VideoFrameUtils.getRGBParallel(image.get()), null, this.calculateTimestamp());
       }
     } catch (final IOException | ExecutionException | InterruptedException e) {
       throw new AssertionError(e);

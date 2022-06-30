@@ -8,19 +8,21 @@ import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
-import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
+import io.github.pulsebeat02.ezmediacore.utility.tuple.Triple;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.util.function.Consumer;
 
 public abstract class BufferedMediaPlayer extends MediaPlayer implements BufferedPlayer {
 
-  private final ArrayBlockingQueue<Pair<int[], Long>> frames;
+  private final ArrayBlockingQueue<Triple<int[], byte[], Long>> frames;
   private final BufferConfiguration buffer;
   private final AtomicBoolean status;
   private final Runnable frameDisplayer;
@@ -29,6 +31,13 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   private long start;
   private CompletableFuture<Void> display;
   private CompletableFuture<Void> watchdog;
+  private Consumer<int[]> videoCallback;
+  private Consumer<byte[]> audioCallback;
+
+  private String format;
+  private int blockSize;
+  private int rate;
+  private int channels;
 
   BufferedMediaPlayer(
       @NotNull final Callback callback,
@@ -61,11 +70,12 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   }
 
   @Override
-  public boolean addFrame(final int @NotNull [] data, final long timestamp) {
+  public boolean addFrame(
+      final int @Nullable [] data, final byte @Nullable [] audio, final long timestamp) {
     while (this.frames.remainingCapacity() <= 1) {
       Try.sleep(TimeUnit.MILLISECONDS, 5);
     }
-    return this.frames.add(Pair.ofPair(data, timestamp));
+    return this.frames.add(Triple.ofTriple(data, audio, timestamp));
   }
 
   @SuppressWarnings("LoopConditionNotUpdatedInsideLoop")
@@ -108,7 +118,16 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
       while (this.status.get()) {
         try {
           // process current frame
-          callback.process(this.frames.take().getKey());
+          final Triple<int[], byte[], Long> frame = this.frames.take();
+          final int[] buffer = frame.getX();
+          final byte[] audio = frame.getY();
+          if (buffer != null) {
+            callback.process(buffer);
+            this.videoCallback.accept(buffer);
+          }
+          if (audio != null) {
+            this.audioCallback.accept(audio);
+          }
         } catch (final InterruptedException ignored) {
         }
       }
@@ -125,8 +144,8 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
         // bound to get behind, so skip
         try {
           final long passed = Instant.now().toEpochMilli() - this.start;
-          Pair<int[], Long> skip = this.frames.take();
-          while (skip.getValue() <= passed) {
+          Triple<int[], byte[], Long> skip = this.frames.take();
+          while (skip.getZ() <= passed) {
             this.frames.take();
             skip = this.frames.take();
           }
@@ -134,6 +153,25 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
         }
       }
     };
+  }
+
+  @Override
+  public void setCustomVideoAdapter(@NotNull final Consumer<int[]> pixels) {
+    this.videoCallback = pixels;
+  }
+
+  @Override
+  public void setCustomAudioAdapter(
+      @NotNull final Consumer<byte[]> audio,
+      @NotNull final String format,
+      final int blockSize,
+      final int rate,
+      final int channels) {
+    this.audioCallback = audio;
+    this.format = format;
+    this.blockSize = blockSize;
+    this.rate = rate;
+    this.channels = channels;
   }
 
   @Override
@@ -154,5 +192,25 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   @Override
   public boolean isExecuting() {
     return this.status.get();
+  }
+
+  @Override
+  public @NotNull String getAudioFormat() {
+    return this.format;
+  }
+
+  @Override
+  public int getAudioBlockSize() {
+    return this.blockSize;
+  }
+
+  @Override
+  public int getAudioBitrate() {
+    return this.rate;
+  }
+
+  @Override
+  public int getAudioChannels() {
+    return this.channels;
   }
 }

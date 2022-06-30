@@ -32,6 +32,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Identifier;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegArguments;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
@@ -144,7 +145,11 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
     this.ffmpeg
         .setLogLevel(LogLevel.FATAL)
         .setProgressListener((line) -> {})
-        .setOutputListener(line -> this.getCore().getLogger().ffmpegPlayer(line));
+        .setOutputListener(line -> this.getCore().getLogger().ffmpegPlayer(line))
+        .addArguments(FFmpegArguments.AUDIO_CODEC, this.getAudioFormat())
+        .addArguments(FFmpegArguments.AUDIO_BLOCK_SIZE, String.valueOf(this.getAudioBitrate()))
+        .addArguments(FFmpegArguments.AUDIO_BITRATE, String.valueOf(this.getAudioBitrate()))
+        .addArguments(FFmpegArguments.AUDIO_CHANNELS, String.valueOf(this.getAudioChannels()));
   }
 
   private void addDimensionArguments() {
@@ -157,7 +162,6 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
     this.ffmpeg.addOutput(
         FrameOutput.withConsumer(this.getFrameConsumer())
             .setFrameRate(this.getFrameConfiguration().getFps())
-            .disableStream(StreamType.AUDIO)
             .disableStream(StreamType.SUBTITLE)
             .disableStream(StreamType.DATA));
   }
