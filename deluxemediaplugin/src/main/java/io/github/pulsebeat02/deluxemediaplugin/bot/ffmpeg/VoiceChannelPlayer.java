@@ -4,19 +4,13 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.utility.concurrency.ThrowingConsumer;
-import io.github.pulsebeat02.ezmediacore.utility.concurrency.ThrowingRunnable;
-import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
-import javax.sound.sampled.AudioInputStream;
-
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
+import java.util.concurrent.TimeUnit;
+import javax.sound.sampled.AudioInputStream;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 public final class VoiceChannelPlayer {
 
@@ -29,9 +23,7 @@ public final class VoiceChannelPlayer {
   }
 
   public void start(@NotNull final VoiceChannel channel, @NotNull final String input) {
-    final CompletableFuture<Void> future =
-        CompletableFuture.runAsync(() -> this.handleInput(channel, input));
-    future.handle(Throwing.THROWING_FUTURE);
+    this.handleInput(channel, input);
   }
 
   private void handleInput(@NotNull final VoiceChannel channel, @NotNull final String input) {

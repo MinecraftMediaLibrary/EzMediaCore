@@ -61,6 +61,7 @@ public class DiscordAudioOutput extends FFmpegOutput {
       @NotNull final Audience audience,
       @NotNull final String mrl) {
 
+    final ScreenConfig config = plugin.getScreenConfig();
     final MediaRequest info = RequestUtils.requestMediaInformation(MrlInput.ofMrl(mrl));
     final Input input = info.getAudioLinks().get(0);
     final String raw = input.getInput();
@@ -71,6 +72,8 @@ public class DiscordAudioOutput extends FFmpegOutput {
 
     final VoiceChannelPlayer player = new VoiceChannelPlayer(plugin, guild);
     player.start(channel, raw);
+
+    this.startVideo(config);
 
     audience.sendMessage(Locale.DISCORD_AUDIO_STREAM.build());
   }

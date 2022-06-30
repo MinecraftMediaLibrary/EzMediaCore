@@ -110,7 +110,7 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
   }
 
   private void startPlayer() {
-    this.config.getPlayer().start(this.config.getMedia());
+
   }
 
   private void handleStreamPlayers(@NotNull final Audience audience) {

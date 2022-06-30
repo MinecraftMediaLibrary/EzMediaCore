@@ -26,6 +26,10 @@ package io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
+import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
+import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,8 +45,22 @@ public class HttpAudioOutput extends FFmpegOutput {
       @NotNull final ScreenConfig attributes,
       @NotNull final Audience audience,
       @NotNull final String mrl) {
+    CompletableFuture.runAsync(() -> this.handleAudio(plugin, attributes, mrl))
+        .handle(Throwing.THROWING_FUTURE);
+  }
+
+  private void handleAudio(
+      @NotNull final DeluxeMediaPlugin plugin,
+      @NotNull final ScreenConfig attributes,
+      @NotNull final String mrl) {
     final String url = this.openFFmpegStream(plugin, mrl);
     plugin.audience().players().sendMessage(Locale.HTTP_SEND_LINK.build(url));
+    this.block();
+    this.startVideo(attributes);
+  }
+
+  public void block() {
+    Try.sleep(TimeUnit.SECONDS, 1);
   }
 
   @Override

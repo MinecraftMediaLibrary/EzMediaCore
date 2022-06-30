@@ -74,6 +74,7 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
     final int target = (this.buffer.getBuffer() * this.getFrameConfiguration().getFps()) >> 1;
     // noinspection StatementWithEmptyBody
     while (this.frames.size() >= target) {}
+    this.playAudio();
   }
 
   @Override

@@ -39,4 +39,8 @@ public interface AudioOutputHandle extends StringKey {
 
   void setProperAudioHandler(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig attributes);
+
+  default void startVideo(@NotNull final ScreenConfig config) {
+    config.getPlayer().start(config.getMedia());
+  }
 }
