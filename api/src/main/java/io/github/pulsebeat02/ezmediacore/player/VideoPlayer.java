@@ -24,46 +24,28 @@
 package io.github.pulsebeat02.ezmediacore.player;
 
 import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
-import io.github.pulsebeat02.ezmediacore.callback.Callback;
-import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
-import io.github.pulsebeat02.ezmediacore.callback.Identifier;
+import io.github.pulsebeat02.ezmediacore.callback.AudioCallback;
+import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewable;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
-import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
+import io.github.pulsebeat02.ezmediacore.player.input.PlayerInput;
+import io.github.pulsebeat02.ezmediacore.player.output.PlayerOutput;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
 public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
-  Identifier<String> VLC = Identifier.ofIdentifier("VLC");
-  Identifier<String> FFMPEG = Identifier.ofIdentifier("FFMPEG");
-  Identifier<String> JCODEC = Identifier.ofIdentifier("JCODEC");
+  @NotNull VideoCallback getVideoCallback();
 
-  void initializePlayer(
-      @NotNull final Input mrl,
-      @NotNull final DelayConfiguration delay,
-      @NotNull final Object... arguments);
-
-  void playAudio();
-
-  void stopAudio();
-
-  void setCustomAudioPlayback(@NotNull final Consumer<Input> consumer);
-
-  void setCustomAudioStopper(@NotNull final Consumer<Input> consumer);
-
-  @NotNull
-  Callback getCallback();
-
-  void setCustomVideoPlayback(@NotNull final Callback callback);
+  @NotNull AudioCallback getAudioCallback();
 
   void start(@NotNull final Input mrl, @NotNull final Object... arguments);
 
   void pause();
 
-  void resume(@NotNull final Input mrl, @NotNull final Object... arguments);
+  void resume();
 
   void release();
 
@@ -74,32 +56,14 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
       @NotNull final PlayerControls controls,
       @NotNull final Object... arguments);
 
-  @NotNull
-  Input getDirectVideoMrl();
+  @NotNull PlayerInput getInput();
 
-  void setDirectVideoMrl(@NotNull final Input configuration);
+  void setInput(@NotNull final PlayerInput input);
 
-  @NotNull
-  Input getDirectAudioMrl();
+  @NotNull PlayerOutput<?> getOutput();
 
-  void setDirectAudioMrl(@NotNull final Input configuration);
-
-  @NotNull
-  FrameConfiguration getFrameConfiguration();
-
-  @NotNull
-  SoundKey getSoundKey();
+  void setOutput(@NotNull final PlayerOutput<?> output);
 
   @NotNull
   PlayerControls getPlayerState();
-
-  long getElapsedMilliseconds();
-
-  @NotNull
-  Identifier<String> getPlayerType();
-
-  @NotNull
-  InputParser getInputParser();
-
-  boolean isBuffered();
 }

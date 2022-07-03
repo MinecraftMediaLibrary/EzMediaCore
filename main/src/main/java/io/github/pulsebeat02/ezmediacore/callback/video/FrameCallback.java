@@ -21,17 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.callback;
+package io.github.pulsebeat02.ezmediacore.callback.video;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
+import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
+import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class FrameCallback implements Callback {
+public abstract class FrameCallback implements VideoCallback {
 
   private final MediaLibraryCore core;
   private final DelayConfiguration delay;
@@ -57,17 +60,14 @@ public abstract class FrameCallback implements Callback {
   @Override
   public void preparePlayerStateChange(@NotNull final PlayerControls status) {}
 
-  @Override
   public @NotNull DelayConfiguration getDelayConfiguration() {
     return this.delay;
   }
 
-  @Override
   public long getLastUpdated() {
     return this.lastUpdated;
   }
 
-  @Override
   public void setLastUpdated(final long lastUpdated) {
     this.lastUpdated = lastUpdated;
   }
@@ -77,7 +77,6 @@ public abstract class FrameCallback implements Callback {
     return this.core;
   }
 
-  @Override
   public @NotNull PacketHandler getPacketHandler() {
     return this.core.getHandler();
   }

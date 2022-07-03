@@ -21,11 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.callback;
+package io.github.pulsebeat02.ezmediacore.callback.video;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
+import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.entity.NamedStringCharacter;
 import io.github.pulsebeat02.ezmediacore.callback.implementation.BlockHighlightCallbackDispatcher;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
@@ -98,33 +100,12 @@ public class BlockHighlightCallback extends FrameCallback
     return this.character;
   }
 
-  public static final class Builder extends CallbackBuilder {
+  public static final class Builder extends VideoCallbackBuilder {
 
     private NamedStringCharacter character = NamedStringCharacter.NORMAL_SQUARE;
     private Location location;
 
     public Builder() {}
-
-    @Contract("_ -> this")
-    @Override
-    public @NotNull Builder delay(@NotNull final DelayConfiguration delay) {
-      super.delay(delay);
-      return this;
-    }
-
-    @Contract("_ -> this")
-    @Override
-    public @NotNull Builder dims(@NotNull final Dimension dims) {
-      super.dims(dims);
-      return this;
-    }
-
-    @Contract("_ -> this")
-    @Override
-    public @NotNull Builder viewers(@NotNull final Viewers viewers) {
-      super.viewers(viewers);
-      return this;
-    }
 
     @Contract("_ -> this")
     public @NotNull Builder location(@NotNull final Location location) {

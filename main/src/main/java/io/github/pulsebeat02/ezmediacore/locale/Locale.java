@@ -39,10 +39,12 @@ public interface Locale {
 
   UniComponent<String> FINISHED_FFMPEG_PROCESS_CREATION = "Finished FFmpeg process constructor with arguments %s!"::formatted;
 
+  UniComponent<String> MEDIA_PLAYER_RESUME = "Resuming media on resource mrl!"::formatted;
+
   NullComponent FINISHED_JCODEC_FRAME_GRABBER = () -> "Finished JCodec frame grabber object!";
 
   BiComponent<String, String> MEDIA_PLAYER_START = "Playing media on resource mrl %s with arguments %s"::formatted;
-  BiComponent<String, String> MEDIA_PLAYER_RESUME = "Resuming media on resource mrl %s with arguments %s"::formatted;
+
   NullComponent MEDIA_PLAYER_RELEASE = () -> "Released media player!";
   NullComponent MEDIA_PLAYER_PAUSE = () -> "Paused media player!";
 

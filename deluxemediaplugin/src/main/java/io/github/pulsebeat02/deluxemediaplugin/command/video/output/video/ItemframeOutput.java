@@ -32,9 +32,9 @@ import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.DitheringAlgorithm;
-import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
-import io.github.pulsebeat02.ezmediacore.callback.MapCallback;
-import io.github.pulsebeat02.ezmediacore.callback.MapCallback.Builder;
+import io.github.pulsebeat02.ezmediacore.callback.video.VideoCallbackBuilder;
+import io.github.pulsebeat02.ezmediacore.callback.video.MapCallback;
+import io.github.pulsebeat02.ezmediacore.callback.video.MapCallback.Builder;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import java.util.Collection;
@@ -70,7 +70,7 @@ public class ItemframeOutput extends VideoOutput {
     videoBuilder.dims(
         ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
     videoBuilder.soundKey(ofSound("emc"));
-    videoBuilder.callback(builder.build(plugin.library()));
+    videoBuilder.video(builder.build(plugin.library()));
 
     return videoBuilder;
   }
@@ -79,7 +79,7 @@ public class ItemframeOutput extends VideoOutput {
   private MapCallback.Builder createMapBuilder(
       @NotNull final ScreenConfig attributes, @NotNull final Collection<? extends Player> players) {
 
-    final Builder builder = CallbackBuilder.map();
+    final Builder builder = VideoCallbackBuilder.map();
     builder.algorithm(this.getAlgorithm(attributes));
     builder.blockWidth(attributes.getResolutionWidth());
     builder.map(ofIdentifier(0));

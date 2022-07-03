@@ -23,9 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore.player.buffered;
 
-import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.callback.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
-import io.github.pulsebeat02.ezmediacore.callback.Identifier;
+import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
@@ -37,8 +37,6 @@ import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.player.input.JCodecMediaPlayerInputParser;
-import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
-import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -51,27 +49,28 @@ import org.jcodec.common.io.NIOUtils;
 import org.jcodec.common.model.Size;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+/**
+ * This video player sucks as it ignores all output configurations, which means that there is not
+ * even audio at all...
+ */
 public final class JCodecMediaPlayer extends BufferedMediaPlayer {
 
   private FrameGrab grabber;
 
   JCodecMediaPlayer(
-      @NotNull final Callback callback,
+      @NotNull final VideoCallback video,
+      @NotNull final AudioCallback audio,
       @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
-      @NotNull final BufferConfiguration buffer,
-      @NotNull final FrameConfiguration fps,
-      @Nullable final SoundKey key) {
+      @NotNull final BufferConfiguration buffer) {
     super(
-        callback,
+        video,
+        audio,
         viewers,
         pixelDimension,
         buffer,
-        fps,
-        key,
-        new JCodecMediaPlayerInputParser(callback.getCore()));
+        new JCodecMediaPlayerInputParser(video.getCore()));
   }
 
   @Override
@@ -84,16 +83,15 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
   }
 
   @Override
-  public void resume(@NotNull final Input mrl, @NotNull final Object... arguments) {
-    super.resume(mrl, arguments);
-    this.initializePlayer(mrl, DelayConfiguration.ofDelay(this.getStart()), arguments);
+  public void resume() {
+    super.resume();
+    this.initializePlayer(DelayConfiguration.ofDelay(this.getStart()));
     this.play();
   }
 
   @Override
   public void pause() {
     super.pause();
-    this.stopAudio();
     this.forceStop();
     this.setStart(System.currentTimeMillis());
   }
@@ -101,11 +99,8 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
   @Override
   public void start(@NotNull final Input mrl, @NotNull final Object... arguments) {
     super.start(mrl, arguments);
-    final MediaRequest request = RequestUtils.requestMediaInformation(mrl);
-    this.setDirectVideoMrl(request.getVideoLinks().get(0));
-    this.setDirectAudioMrl(request.getAudioLinks().get(0));
     if (this.grabber == null) {
-      this.initializePlayer(mrl, DelayConfiguration.DELAY_0_MS, arguments);
+      this.initializePlayer(DelayConfiguration.DELAY_0_MS);
     }
     this.play();
     this.setStart(System.currentTimeMillis());
@@ -123,11 +118,7 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
     this.startWatchdogRunnable();
   }
 
-  @Override
-  public void initializePlayer(
-      @NotNull final Input mrl,
-      @NotNull final DelayConfiguration configuration,
-      @NotNull final Object... arguments) {
+  public void initializePlayer(@NotNull final DelayConfiguration configuration) {
     final Dimension dimension = this.getDimensions();
     try {
       this.grabber = this.getGrabber();
@@ -145,13 +136,8 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
 
   private @NotNull FileChannelWrapper parseInput() throws FileNotFoundException {
     final InputParser parser = this.getInputParser();
-    final Pair<Object, String[]> pair = parser.parseInput(this.getDirectVideoMrl());
+    final Pair<Object, String[]> pair = parser.parseInput(this.getInput().getDirectVideoMrl());
     return NIOUtils.readableChannel(Path.of((String) pair.getKey()).toFile());
-  }
-
-  @Override
-  public @NotNull Identifier<String> getPlayerType() {
-    return MediaPlayer.JCODEC;
   }
 
   public static final class Builder extends VideoBuilder {
@@ -162,8 +148,15 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
 
     @Contract("_ -> this")
     @Override
-    public Builder callback(@NotNull final Callback callback) {
-      super.callback(callback);
+    public Builder audio(@NotNull final AudioCallback callback) {
+      super.audio(callback);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public Builder video(@NotNull final VideoCallback callback) {
+      super.video(callback);
       return this;
     }
 
@@ -198,14 +191,10 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
     @Override
     public @NotNull MediaPlayer build() {
       super.init();
-      final Callback callback = this.getCallback();
+      final VideoCallback video = this.getVideo();
+      final AudioCallback audio = this.getAudio();
       return new JCodecMediaPlayer(
-          callback,
-          callback.getWatchers(),
-          this.getDims(),
-          this.bufferSize,
-          this.getRate(),
-          this.getKey());
+          video, audio, video.getWatchers(), this.getDims(), this.bufferSize);
     }
   }
 }

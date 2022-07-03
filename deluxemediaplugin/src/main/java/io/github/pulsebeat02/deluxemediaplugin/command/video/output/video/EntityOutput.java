@@ -32,9 +32,9 @@ import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
-import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
-import io.github.pulsebeat02.ezmediacore.callback.EntityCallback;
-import io.github.pulsebeat02.ezmediacore.callback.EntityCallback.Builder;
+import io.github.pulsebeat02.ezmediacore.callback.video.VideoCallbackBuilder;
+import io.github.pulsebeat02.ezmediacore.callback.video.EntityCallback;
+import io.github.pulsebeat02.ezmediacore.callback.video.EntityCallback.Builder;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import java.util.Collection;
 import org.bukkit.command.CommandSender;
@@ -75,7 +75,7 @@ public class EntityOutput extends VideoOutput {
     videoBuilder.soundKey(ofSound("emc"));
     videoBuilder.dims(
         ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
-    videoBuilder.callback(builder.build(plugin.library()));
+    videoBuilder.video(builder.build(plugin.library()));
 
     return videoBuilder;
   }
@@ -86,7 +86,7 @@ public class EntityOutput extends VideoOutput {
       @NotNull final Collection<? extends Player> players,
       @NotNull final Player player) {
 
-    final Builder<Entity> builder = CallbackBuilder.entity();
+    final Builder<Entity> builder = VideoCallbackBuilder.entity();
     builder.armorStandPlayer();
     builder.character(NORMAL_SQUARE);
     builder.location(player.getLocation());

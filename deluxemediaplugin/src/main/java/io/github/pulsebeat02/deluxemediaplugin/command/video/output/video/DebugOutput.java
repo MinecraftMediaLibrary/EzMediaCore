@@ -30,9 +30,9 @@ import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
-import io.github.pulsebeat02.ezmediacore.callback.BlockHighlightCallback;
-import io.github.pulsebeat02.ezmediacore.callback.BlockHighlightCallback.Builder;
-import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
+import io.github.pulsebeat02.ezmediacore.callback.video.BlockHighlightCallback;
+import io.github.pulsebeat02.ezmediacore.callback.video.BlockHighlightCallback.Builder;
+import io.github.pulsebeat02.ezmediacore.callback.video.VideoCallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import java.util.Collection;
 import org.bukkit.command.CommandSender;
@@ -75,7 +75,7 @@ public class DebugOutput extends VideoOutput {
     videoBuilder.soundKey(ofSound("emc"));
     videoBuilder.dims(
         ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
-    videoBuilder.callback(builder.build(plugin.library()));
+    videoBuilder.video(builder.build(plugin.library()));
 
     return videoBuilder;
   }
@@ -84,7 +84,7 @@ public class DebugOutput extends VideoOutput {
   private BlockHighlightCallback.Builder createBlockHighlightBuilder(
       @NotNull final ScreenConfig attributes, @NotNull final Player player) {
 
-    final Builder builder = CallbackBuilder.blockHighlight();
+    final Builder builder = VideoCallbackBuilder.blockHighlight();
     builder.location(player.getLocation());
     builder.dims(ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
     builder.delay(ofDelay(40L));

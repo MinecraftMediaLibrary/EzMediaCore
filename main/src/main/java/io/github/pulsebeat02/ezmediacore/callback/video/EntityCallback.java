@@ -21,11 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.callback;
+package io.github.pulsebeat02.ezmediacore.callback.video;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
+import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.entity.EntityCallbackDispatcher;
 import io.github.pulsebeat02.ezmediacore.callback.entity.NamedStringCharacter;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
@@ -152,7 +154,7 @@ public class EntityCallback<T extends Entity> extends FrameCallback
   }
 
   @SuppressWarnings("unchecked")
-  public static final class Builder<T extends Entity> extends CallbackBuilder {
+  public static final class Builder<T extends Entity> extends VideoCallbackBuilder {
 
     private static final Pair<EntityType, Consumer<AreaEffectCloud>> AREA_EFFECT_CLOUD;
     private static final Pair<EntityType, Consumer<ArmorStand>> ARMOR_STAND;
@@ -188,27 +190,6 @@ public class EntityCallback<T extends Entity> extends FrameCallback
         entity.setVisible(false);
         entity.setGravity(false);
       };
-    }
-
-    @Contract("_ -> this")
-    @Override
-    public @NotNull Builder<T> delay(@NotNull final DelayConfiguration delay) {
-      super.delay(delay);
-      return this;
-    }
-
-    @Contract("_ -> this")
-    @Override
-    public @NotNull Builder<T> dims(@NotNull final Dimension dims) {
-      super.dims(dims);
-      return this;
-    }
-
-    @Contract("_ -> this")
-    @Override
-    public @NotNull Builder<T> viewers(@NotNull final Viewers viewers) {
-      super.viewers(viewers);
-      return this;
     }
 
     @Contract("_ -> this")

@@ -23,11 +23,11 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.implementation;
 
-import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import org.jetbrains.annotations.NotNull;
 
-public interface MapCallbackDispatcher extends Callback {
+public interface MapCallbackDispatcher extends VideoCallback {
 
   long getMapId();
 

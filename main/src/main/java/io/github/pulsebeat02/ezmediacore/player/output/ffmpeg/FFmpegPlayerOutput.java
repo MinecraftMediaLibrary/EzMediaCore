@@ -8,13 +8,11 @@ public final class FFmpegPlayerOutput implements FFmpegOutput<Void> {
   private ConfiguredOutput tcp;
   private ConfiguredOutput stdout;
 
-  FFmpegPlayerOutput() {
-  }
+  FFmpegPlayerOutput() {}
 
   public static @NotNull FFmpegPlayerOutput of() {
     return new FFmpegPlayerOutput();
   }
-
 
   public void setTcpOutput(@NotNull final ConfiguredOutput output) {
     this.tcp = output;
@@ -24,7 +22,6 @@ public final class FFmpegPlayerOutput implements FFmpegOutput<Void> {
     this.stdout = output;
   }
 
-
   /*
   No physical output as the ConfiguredOutput (TcpFFmpegOutput and StdoutFFmpegOutput) already
   have their respective output methods.
@@ -32,5 +29,10 @@ public final class FFmpegPlayerOutput implements FFmpegOutput<Void> {
   @Override
   public @NotNull Void getResultingOutput() {
     return null;
+  }
+
+  @Override
+  public String toString() {
+    return "-c:v libx264 -c:a aac -f tee -map 0 \"%s|%s\"".formatted(this.tcp, this.stdout);
   }
 }

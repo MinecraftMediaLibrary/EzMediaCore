@@ -26,7 +26,8 @@ package io.github.pulsebeat02.ezmediacore.player;
 import static java.util.Objects.requireNonNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.callback.AudioCallback;
+import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dimension.FrameDimension;
 import io.github.pulsebeat02.ezmediacore.player.buffered.BufferConfiguration;
@@ -40,9 +41,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class VideoBuilder {
 
-  private Callback callback;
+  private VideoCallback video;
+  private AudioCallback audio;
   private Dimension dims = FrameDimension.X5_5;
-  private SoundKey key = SoundKey.ofSound("emc");
   private FrameConfiguration rate = FrameConfiguration.FPS_30;
 
   @Contract(value = " -> new", pure = true)
@@ -66,8 +67,14 @@ public class VideoBuilder {
   }
 
   @Contract("_ -> this")
-  public VideoBuilder callback(@NotNull final Callback callback) {
-    this.callback = callback;
+  public VideoBuilder video(@NotNull final VideoCallback callback) {
+    this.video = callback;
+    return this;
+  }
+
+  @Contract("_ -> this")
+  public VideoBuilder audio(@NotNull final AudioCallback callback) {
+    this.audio = callback;
     return this;
   }
 
@@ -85,18 +92,17 @@ public class VideoBuilder {
 
   @Contract("_ -> this")
   public VideoBuilder soundKey(@NotNull final SoundKey key) {
-    this.key = key;
     return this;
   }
 
   public void init() {
-    requireNonNull(this.callback);
+    requireNonNull(this.video);
     this.calculateFrameRate();
   }
 
   public MediaPlayer build() {
     this.init();
-    final MediaLibraryCore core = this.callback.getCore();
+    final MediaLibraryCore core = this.video.getCore();
     switch (core.getDiagnostics().getSystem().getOSType()) {
       case WINDOWS, MAC -> {
         return this.vlcOption();
@@ -104,11 +110,11 @@ public class VideoBuilder {
       case UNIX -> {
         return core.isVLCSupported() ? this.vlcOption()
             : new FFmpegMediaPlayer.Builder()
-                .callback(this.callback)
+                .video(this.video)
+                .audio(this.audio)
                 .dims(this.dims)
                 .buffer(BufferConfiguration.BUFFER_10)
                 .frameRate(this.rate)
-                .soundKey(this.key)
                 .build();
       }
       default -> throw new UnsupportedPlatformException("Unknown");
@@ -117,7 +123,7 @@ public class VideoBuilder {
 
   @Contract(" -> new")
   private @NotNull MediaPlayer vlcOption() {
-    return vlc().callback(this.callback).dims(this.dims).soundKey(this.key).frameRate(this.rate)
+    return vlc().video(this.video).audio(this.audio).dims(this.dims).frameRate(this.rate)
         .build();
   }
 
@@ -126,19 +132,19 @@ public class VideoBuilder {
       // this.rate = FrameConfiguration.ofFps(VideoFrameUtils.getFrameRate(this.callback.getCore(), Path.of(this.mrl.getMrl())).orElse(30.0));
       this.rate = FrameConfiguration.FPS_25;
     }
-    this.dims = this.dims == null ? this.callback.getDimensions() : this.dims;
+    this.dims = this.dims == null ? this.video.getDimensions() : this.dims;
   }
 
-  public Callback getCallback() {
-    return this.callback;
+  public VideoCallback getVideo() {
+    return this.video;
+  }
+
+  public AudioCallback getAudio() {
+    return this.audio;
   }
 
   public Dimension getDims() {
     return this.dims;
-  }
-
-  public SoundKey getKey() {
-    return this.key;
   }
 
   public FrameConfiguration getRate() {

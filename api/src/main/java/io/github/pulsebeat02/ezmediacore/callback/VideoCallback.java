@@ -21,19 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.player.external;
+package io.github.pulsebeat02.ezmediacore.callback;
 
-import java.util.function.Consumer;
-
-import io.github.pulsebeat02.ezmediacore.player.FrameConsumable;
+import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
+import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
+import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
+import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import org.jetbrains.annotations.NotNull;
 
-public interface ConsumablePlayer extends FrameConsumable {
+public interface VideoCallback extends LibraryInjectable, Viewable, Dimensional, PlayerListener {
 
-  void setCustomAudioAdapter(
-      @NotNull final Consumer<byte[]> audio,
-      @NotNull final String format,
-      final int blockSize,
-      final int rate,
-      final int channels);
+  void process(final int @NotNull [] data);
 }

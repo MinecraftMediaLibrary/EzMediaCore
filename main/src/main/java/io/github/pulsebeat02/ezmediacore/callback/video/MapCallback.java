@@ -21,12 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.callback;
+package io.github.pulsebeat02.ezmediacore.callback.video;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
+import io.github.pulsebeat02.ezmediacore.callback.Identifier;
+import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import io.github.pulsebeat02.ezmediacore.callback.implementation.MapCallbackDispatcher;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
@@ -90,34 +93,13 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
     return this.algorithm;
   }
 
-  public static final class Builder extends CallbackBuilder {
+  public static final class Builder extends VideoCallbackBuilder {
 
     private DitherAlgorithm algorithm = new FilterLiteDither();
     private Identifier<Integer> map = Identifier.ofIdentifier(0);
     private int blockWidth;
 
     public Builder() {}
-
-    @Contract("_ -> this")
-    @Override
-    public @NotNull Builder delay(@NotNull final DelayConfiguration delay) {
-      super.delay(delay);
-      return this;
-    }
-
-    @Contract("_ -> this")
-    @Override
-    public @NotNull Builder dims(@NotNull final Dimension dims) {
-      super.dims(dims);
-      return this;
-    }
-
-    @Contract("_ -> this")
-    @Override
-    public @NotNull Builder viewers(@NotNull final Viewers viewers) {
-      super.viewers(viewers);
-      return this;
-    }
 
     @Contract("_ -> this")
     public @NotNull Builder algorithm(@NotNull final DitherAlgorithm algorithm) {

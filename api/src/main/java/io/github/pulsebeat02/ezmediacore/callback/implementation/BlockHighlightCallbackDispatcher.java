@@ -23,8 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.implementation;
 
-import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.CharacterBased;
 import io.github.pulsebeat02.ezmediacore.callback.Locatable;
 
-public interface BlockHighlightCallbackDispatcher extends Callback, Locatable, CharacterBased {}
+public interface BlockHighlightCallbackDispatcher extends VideoCallback, Locatable, CharacterBased {}

@@ -31,9 +31,9 @@ import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
-import io.github.pulsebeat02.ezmediacore.callback.CallbackBuilder;
-import io.github.pulsebeat02.ezmediacore.callback.ScoreboardCallback;
-import io.github.pulsebeat02.ezmediacore.callback.ScoreboardCallback.Builder;
+import io.github.pulsebeat02.ezmediacore.callback.video.VideoCallbackBuilder;
+import io.github.pulsebeat02.ezmediacore.callback.video.ScoreboardCallback;
+import io.github.pulsebeat02.ezmediacore.callback.video.ScoreboardCallback.Builder;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import java.util.Collection;
 import org.bukkit.command.CommandSender;
@@ -68,7 +68,7 @@ public class ScoreboardOutput extends VideoOutput {
     videoBuilder.soundKey(ofSound("emc"));
     videoBuilder.dims(
         ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
-    videoBuilder.callback(builder.build(plugin.library()));
+    videoBuilder.video(builder.build(plugin.library()));
 
     return videoBuilder;
   }
@@ -77,7 +77,7 @@ public class ScoreboardOutput extends VideoOutput {
   private ScoreboardCallback.Builder createScoreboardBuilder(
       @NotNull final ScreenConfig attributes, @NotNull final Collection<? extends Player> players) {
 
-    final Builder builder = CallbackBuilder.scoreboard();
+    final Builder builder = VideoCallbackBuilder.scoreboard();
 
     builder.id(ofIdentifier(1080));
     builder.viewers(ofPlayers(players));

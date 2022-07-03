@@ -1,24 +1,22 @@
 package io.github.pulsebeat02.ezmediacore.player.buffered;
 
-import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.callback.AudioCallback;
+import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
-import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Triple;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class BufferedMediaPlayer extends MediaPlayer implements BufferedPlayer {
 
@@ -31,23 +29,15 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   private long start;
   private CompletableFuture<Void> display;
   private CompletableFuture<Void> watchdog;
-  private Consumer<int[]> videoCallback;
-  private Consumer<byte[]> audioCallback;
-
-  private String format;
-  private int blockSize;
-  private int rate;
-  private int channels;
 
   BufferedMediaPlayer(
-      @NotNull final Callback callback,
+      @NotNull final VideoCallback video,
+      @NotNull final AudioCallback audio,
       @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
       @NotNull final BufferConfiguration buffer,
-      @NotNull final FrameConfiguration fps,
-      @Nullable final SoundKey key,
       @NotNull final InputParser parser) {
-    super(callback, viewers, pixelDimension, fps, key, parser);
+    super(video, audio, viewers, pixelDimension, parser);
     this.buffer = buffer;
     this.status = new AtomicBoolean(false);
     this.frames = new ArrayBlockingQueue<>(this.calculateCapacity());
@@ -56,7 +46,7 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   }
 
   private int calculateCapacity() {
-    return this.buffer.getBuffer() * this.getFrameConfiguration().getFps();
+    return this.buffer.getBuffer() * 60;
   }
 
   @Override
@@ -64,7 +54,6 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
     return this.buffer;
   }
 
-  @Override
   public long getElapsedMilliseconds() {
     return System.currentTimeMillis() - this.start;
   }
@@ -81,10 +70,9 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   @SuppressWarnings("LoopConditionNotUpdatedInsideLoop")
   @Override
   public void bufferFrames() {
-    final int target = (this.buffer.getBuffer() * this.getFrameConfiguration().getFps()) >> 1;
+    final int target = this.calculateCapacity() >> 1;
     // noinspection StatementWithEmptyBody
     while (this.frames.size() >= target) {}
-    this.playAudio();
   }
 
   @Override
@@ -114,7 +102,8 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   @Contract(pure = true)
   private @NotNull Runnable getDisplayRunnable() {
     return () -> {
-      final Callback callback = this.getCallback();
+      final VideoCallback videoCallback = this.getVideoCallback();
+      final AudioCallback audioCallback = this.getAudioCallback();
       while (this.status.get()) {
         try {
           // process current frame
@@ -122,11 +111,10 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
           final int[] buffer = frame.getX();
           final byte[] audio = frame.getY();
           if (buffer != null) {
-            callback.process(buffer);
-            this.videoCallback.accept(buffer);
+            videoCallback.process(buffer);
           }
           if (audio != null) {
-            this.audioCallback.accept(audio);
+            audioCallback.process(audio);
           }
         } catch (final InterruptedException ignored) {
         }
@@ -156,30 +144,6 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   }
 
   @Override
-  public void setCustomVideoAdapter(@NotNull final Consumer<int[]> pixels) {
-    this.videoCallback = pixels;
-  }
-
-  @Override
-  public void setCustomAudioAdapter(
-      @NotNull final Consumer<byte[]> audio,
-      @NotNull final String format,
-      final int blockSize,
-      final int rate,
-      final int channels) {
-    this.audioCallback = audio;
-    this.format = format;
-    this.blockSize = blockSize;
-    this.rate = rate;
-    this.channels = channels;
-  }
-
-  @Override
-  public boolean isBuffered() {
-    return true;
-  }
-
-  @Override
   public long getStart() {
     return this.start;
   }
@@ -192,25 +156,5 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   @Override
   public boolean isExecuting() {
     return this.status.get();
-  }
-
-  @Override
-  public @NotNull String getAudioFormat() {
-    return this.format;
-  }
-
-  @Override
-  public int getAudioBlockSize() {
-    return this.blockSize;
-  }
-
-  @Override
-  public int getAudioBitrate() {
-    return this.rate;
-  }
-
-  @Override
-  public int getAudioChannels() {
-    return this.channels;
   }
 }

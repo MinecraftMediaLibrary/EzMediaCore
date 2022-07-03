@@ -22,16 +22,18 @@
  * SOFTWARE.
  */
 
-package io.github.pulsebeat02.ezmediacore.callback;
+package io.github.pulsebeat02.ezmediacore.callback.video;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.ScoreboardCallback.Builder;
+import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
+import io.github.pulsebeat02.ezmediacore.callback.Viewers;
+import io.github.pulsebeat02.ezmediacore.callback.video.ScoreboardCallback.Builder;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public abstract sealed class CallbackBuilder permits BlockHighlightCallback.Builder,
+public abstract sealed class VideoCallbackBuilder permits BlockHighlightCallback.Builder,
     ChatCallback.Builder, EntityCallback.Builder, MapCallback.Builder, Builder {
 
   private DelayConfiguration delay;
@@ -69,19 +71,19 @@ public abstract sealed class CallbackBuilder permits BlockHighlightCallback.Buil
   }
 
   @Contract("_ -> this")
-  public @NotNull CallbackBuilder delay(@NotNull final DelayConfiguration delay) {
+  public @NotNull VideoCallbackBuilder delay(@NotNull final DelayConfiguration delay) {
     this.delay = delay;
     return this;
   }
 
   @Contract("_ -> this")
-  public @NotNull CallbackBuilder dims(@NotNull final Dimension dims) {
+  public @NotNull VideoCallbackBuilder dims(@NotNull final Dimension dims) {
     this.dims = dims;
     return this;
   }
 
   @Contract("_ -> this")
-  public @NotNull CallbackBuilder viewers(@NotNull final Viewers viewers) {
+  public @NotNull VideoCallbackBuilder viewers(@NotNull final Viewers viewers) {
     this.viewers = viewers;
     return this;
   }

@@ -24,100 +24,58 @@
 package io.github.pulsebeat02.ezmediacore.player;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.bukkit.SoundCategory.MASTER;
 
-import com.google.common.annotations.Beta;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.callback.AudioCallback;
+import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
+import io.github.pulsebeat02.ezmediacore.player.input.PlayerInput;
+import io.github.pulsebeat02.ezmediacore.player.input.PlayerInputHolder;
+import io.github.pulsebeat02.ezmediacore.player.output.PlayerOutput;
+import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
+import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@Beta
 public abstract class MediaPlayer implements VideoPlayer {
 
   private final MediaLibraryCore core;
   private final Dimension dimensions;
-
-  private final FrameConfiguration fps;
-  private final SoundKey key;
   private final InputParser parser;
+  private final VideoCallback video;
+  private final AudioCallback audio;
 
   private Viewers viewers;
-  private Callback callback;
-  private Input directVideo;
-  private Input directAudio;
-  private Consumer<Input> playAudio;
-  private Consumer<Input> stopAudio;
-
+  private PlayerInput input;
+  private PlayerOutput<?> output;
   private PlayerControls controls;
 
   public MediaPlayer(
-      @NotNull final Callback callback,
+      @NotNull final VideoCallback video,
+      @NotNull final AudioCallback audio,
       @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
-      @NotNull final FrameConfiguration fps,
-      @Nullable final SoundKey key,
       @NotNull final InputParser parser) {
-    checkNotNull(callback, "Callback cannot be null!");
+    checkNotNull(video, "Video callback cannot be null!");
+    checkNotNull(video, "Audio callback cannot be null!");
     checkNotNull(viewers, "Viewers cannot be null!");
     checkNotNull(pixelDimension, "Pixel dimension cannot be null!");
-    checkNotNull(fps, "Frame configuration cannot be null!");
-    this.core = callback.getCore();
-    this.callback = callback;
+    this.core = video.getCore();
+    this.video = video;
+    this.audio = audio;
     this.dimensions = pixelDimension;
-    this.key = this.getInternalSoundKey(key);
-    this.fps = fps;
     this.viewers = viewers;
     this.parser = parser;
-    this.playAudio = this.getPlayAudioRunnable();
-    this.stopAudio = this.getStopAudioRunnable();
-  }
-
-  private @NotNull SoundKey getInternalSoundKey(@Nullable final SoundKey key) {
-    return key == null
-        ? SoundKey.ofSound(
-            this.callback.getCore().getPlugin().getName().toLowerCase(java.util.Locale.ROOT))
-        : key;
-  }
-
-  private @NotNull Consumer<Input> getStopAudioRunnable() {
-    return (mrl) -> {
-      for (final Player player : this.viewers.getPlayers()) {
-        player.stopSound(this.key.getName(), MASTER);
-      }
-    };
-  }
-
-  private @NotNull Consumer<Input> getPlayAudioRunnable() {
-    return (mrl) -> this.viewers.getPlayers().forEach(this::playSound);
-  }
-
-  private void playSound(@NotNull final Player player) {
-    player.playSound(player.getLocation(), this.key.getName(), MASTER, 100.0F, 1.0F);
   }
 
   @Override
-  public @NotNull Callback getCallback() {
-    return this.callback;
-  }
-
-  @Override
-  public void setCustomVideoPlayback(@NotNull final Callback callback) {
-    this.callback = callback;
-  }
-
-  @Override
-  public @NotNull SoundKey getSoundKey() {
-    return this.key;
+  public @NotNull VideoCallback getVideoCallback() {
+    return this.video;
   }
 
   @Override
@@ -128,6 +86,10 @@ public abstract class MediaPlayer implements VideoPlayer {
   @Override
   public void start(@NotNull final Input mrl, @NotNull final Object... arguments) {
     checkNotNull(mrl, "MRL cannot be null!");
+    final MediaRequest request = RequestUtils.requestMediaInformation(mrl);
+    final Input video = request.getVideoLinks().get(0);
+    final Input audio = request.getAudioLinks().get(0);
+    this.input = PlayerInputHolder.ofInputs(video, audio);
     this.controls = PlayerControls.START;
     this.onPlayerStateChange(mrl, this.controls, arguments);
     this.core
@@ -143,13 +105,12 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void resume(@NotNull final Input mrl, @NotNull final Object... arguments) {
-    checkNotNull(mrl, "MRL cannot be null!");
+  public void resume() {
+    final Input mrl = this.getInput().getDirectVideoMrl();
+    checkNotNull(mrl, "Input cannot be null!");
     this.controls = PlayerControls.RESUME;
-    this.onPlayerStateChange(mrl, this.controls, arguments);
-    this.core
-        .getLogger()
-        .info(Locale.MEDIA_PLAYER_RESUME.build(mrl.getInput(), Arrays.toString(arguments)));
+    this.onPlayerStateChange(mrl, this.controls);
+    this.core.getLogger().info(Locale.MEDIA_PLAYER_RESUME.build(mrl.getInput()));
   }
 
   @Override
@@ -164,22 +125,8 @@ public abstract class MediaPlayer implements VideoPlayer {
       @Nullable final Input mrl,
       @NotNull final PlayerControls controls,
       @NotNull final Object... arguments) {
-    this.getCallback().preparePlayerStateChange(controls);
-  }
-
-  @Override
-  public void playAudio() {
-    CompletableFuture.runAsync(() -> this.playAudio.accept(this.getDirectAudioMrl()));
-  }
-
-  @Override
-  public void stopAudio() {
-    CompletableFuture.runAsync(() -> this.stopAudio.accept(this.getDirectAudioMrl()));
-  }
-
-  @Override
-  public @NotNull FrameConfiguration getFrameConfiguration() {
-    return this.fps;
+    this.video.preparePlayerStateChange(controls);
+    this.audio.preparePlayerStateChange(controls);
   }
 
   @Override
@@ -198,13 +145,8 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void setCustomAudioPlayback(@NotNull final Consumer<Input> runnable) {
-    this.playAudio = runnable;
-  }
-
-  @Override
-  public void setCustomAudioStopper(@NotNull final Consumer<Input> runnable) {
-    this.stopAudio = runnable;
+  public @NotNull AudioCallback getAudioCallback() {
+    return this.audio;
   }
 
   @Override
@@ -213,26 +155,25 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public @NotNull Input getDirectAudioMrl() {
-    return this.directAudio;
+  public @NotNull PlayerInput getInput() {
+    return this.input;
   }
 
   @Override
-  public void setDirectAudioMrl(@NotNull final Input audioMrl) {
-    this.directAudio = audioMrl;
+  public void setInput(@NotNull final PlayerInput input) {
+    this.input = input;
   }
 
   @Override
-  public @NotNull Input getDirectVideoMrl() {
-    return this.directVideo;
+  public @NotNull PlayerOutput<?> getOutput() {
+    return this.output;
   }
 
   @Override
-  public void setDirectVideoMrl(@NotNull final Input videoMrl) {
-    this.directVideo = videoMrl;
+  public void setOutput(@NotNull final PlayerOutput<?> output) {
+    this.output = output;
   }
 
-  @Override
   public @NotNull InputParser getInputParser() {
     return this.parser;
   }

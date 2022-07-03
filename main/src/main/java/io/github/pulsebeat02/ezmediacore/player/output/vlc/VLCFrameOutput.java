@@ -41,4 +41,9 @@ public final class VLCFrameOutput implements VLCOutput<ConsumableOutput> {
   public @NotNull ConsumableOutput getResultingOutput() {
     return this.output;
   }
+
+  @Override
+  public String toString() {
+    return "--sout '#%s:%s'".formatted(this.transcoder, this.standard);
+  }
 }

@@ -23,11 +23,11 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.implementation;
 
-import io.github.pulsebeat02.ezmediacore.callback.Callback;
+import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.CharacterBased;
 import org.jetbrains.annotations.NotNull;
 
-public interface ScoreboardCallbackDispatcher extends Callback, CharacterBased {
+public interface ScoreboardCallbackDispatcher extends VideoCallback, CharacterBased {
 
   @NotNull
   String getScoreboardName();
