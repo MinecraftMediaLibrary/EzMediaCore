@@ -56,7 +56,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   private Input directVideo;
   private Input directAudio;
   private Consumer<Input> playAudio;
-  private Runnable stopAudio;
+  private Consumer<Input> stopAudio;
 
   private PlayerControls controls;
 
@@ -89,8 +89,8 @@ public abstract class MediaPlayer implements VideoPlayer {
         : key;
   }
 
-  private @NotNull Runnable getStopAudioRunnable() {
-    return () -> {
+  private @NotNull Consumer<Input> getStopAudioRunnable() {
+    return (mrl) -> {
       for (final Player player : this.viewers.getPlayers()) {
         player.stopSound(this.key.getName(), MASTER);
       }
@@ -111,7 +111,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void setCallback(@NotNull final Callback callback) {
+  public void setCustomVideoPlayback(@NotNull final Callback callback) {
     this.callback = callback;
   }
 
@@ -174,7 +174,7 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   @Override
   public void stopAudio() {
-    CompletableFuture.runAsync(this.stopAudio);
+    CompletableFuture.runAsync(() -> this.stopAudio.accept(this.getDirectAudioMrl()));
   }
 
   @Override
@@ -203,7 +203,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public void setCustomAudioStopper(@NotNull final Runnable runnable) {
+  public void setCustomAudioStopper(@NotNull final Consumer<Input> runnable) {
     this.stopAudio = runnable;
   }
 

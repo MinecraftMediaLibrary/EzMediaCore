@@ -50,9 +50,14 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
   void stopAudio();
 
-  void setCustomAudioPlayback(@NotNull final Consumer<Input> runnable);
+  void setCustomAudioPlayback(@NotNull final Consumer<Input> consumer);
 
-  void setCustomAudioStopper(@NotNull final Runnable runnable);
+  void setCustomAudioStopper(@NotNull final Consumer<Input> consumer);
+
+  @NotNull
+  Callback getCallback();
+
+  void setCustomVideoPlayback(@NotNull final Callback callback);
 
   void start(@NotNull final Input mrl, @NotNull final Object... arguments);
 
@@ -68,11 +73,6 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
       @NotNull final Input mrl,
       @NotNull final PlayerControls controls,
       @NotNull final Object... arguments);
-
-  @NotNull
-  Callback getCallback();
-
-  void setCallback(@NotNull final Callback callback);
 
   @NotNull
   Input getDirectVideoMrl();

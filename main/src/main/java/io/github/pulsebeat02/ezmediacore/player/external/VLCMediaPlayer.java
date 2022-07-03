@@ -268,8 +268,8 @@ public final class VLCMediaPlayer extends MediaPlayer implements ConsumablePlaye
   }
 
   @Override
-  public void setCallback(@NotNull final Callback callback) {
-    super.setCallback(callback);
+  public void setCustomVideoPlayback(@NotNull final Callback callback) {
+    super.setCustomVideoPlayback(callback);
     this.modifyPlayerAttributes();
   }
 
