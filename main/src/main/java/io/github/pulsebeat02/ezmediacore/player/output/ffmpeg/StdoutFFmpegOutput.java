@@ -7,20 +7,24 @@ import org.jetbrains.annotations.NotNull;
 
 public final class StdoutFFmpegOutput extends FFmpegOutputConfiguration<StreamOutput> {
 
-  private final StreamOutput output;
+  private StreamOutput output;
 
-  StdoutFFmpegOutput(@NotNull final StreamOutput output) {
-    this.output = output;
+  StdoutFFmpegOutput() {
   }
 
-  @Contract("_ -> new")
-  public static @NotNull StdoutFFmpegOutput ofOutput(@NotNull final StreamOutput output) {
-    return new StdoutFFmpegOutput(output);
+  @Contract(" -> new")
+  public static @NotNull StdoutFFmpegOutput ofOutput() {
+    return new StdoutFFmpegOutput();
   }
 
   @Override
   public @NotNull StreamOutput getResultingOutput() {
     return this.output;
+  }
+
+  @Override
+  public void setOutput(@NotNull final StreamOutput output) {
+    this.output = output;
   }
 
   @Override

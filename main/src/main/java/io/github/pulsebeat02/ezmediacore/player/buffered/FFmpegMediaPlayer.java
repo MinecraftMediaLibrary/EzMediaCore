@@ -114,7 +114,6 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
 
   public void initializePlayer(
       @NotNull final DelayConfiguration delay, @NotNull final Object @NotNull ... arguments) {
-    this.constructFFmpegProcess(delay);
     this.addExtraArguments(arguments);
   }
 
@@ -124,32 +123,26 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
     }
   }
 
-  private void constructFFmpegProcess(@NotNull final DelayConfiguration delay) {
-    final long ms = delay.getDelay() * 1000;
-    this.ffmpeg = new FFmpeg(this.getCore().getFFmpegPath().toAbsolutePath());
-    this.addInput(ms);
-    this.addOutput();
-    this.addDimensionArguments();
-    this.addMiscArguments();
-    this.getCore()
-        .getLogger()
-        .info(
-            Locale.FINISHED_FFMPEG_PROCESS_CREATION.build(
-                UnsafeUtils.getFieldExceptionally(this.ffmpeg, "additionalArguments").toString()));
-  }
+  private void createProcess(@NotNull final DelayConfiguration configuration) {
 
-  private void addMiscArguments() {
+    final Dimension dimension = this.getDimensions();
+    final String mrl = this.getInput().getDirectVideoMrl().toString();
+    final String delay = String.valueOf(configuration.getDelay() * 1000);
 
+    this.addArgument(this.getCore().getFFmpegPath().toString());
     this.addArgument(FFmpegArguments.HIDE_BANNER);
     this.addArgument(FFmpegArguments.NO_STATS);
     this.addArguments(FFmpegArguments.LOG_LEVEL, "error");
     this.addArgument(FFmpegArguments.NATIVE_FRAME_READ_RATE);
-    this.addArguments(FFmpegArguments.INPUT, this.getInput().getDirectVideoMrl().toString());
+    this.addArguments(FFmpegArguments.INPUT, mrl);
     this.addArgument(FFmpegArguments.NO_CONSOLE_INPUT);
     this.addArguments(FFmpegArguments.TUNE, "fastdecode");
     this.addArguments(FFmpegArguments.TUNE, "zerolatency");
+    this.addArguments(FFmpegArguments.DURATION_START, delay);
+    this.addArgument(FFmpegArguments.VIDEO_SCALE.formatted(dimension.getWidth(), dimension.getHeight()));
+    this.addArgument(this.getOutput().toString());
 
-
+    // handle output...
   }
 
   private void addArgument(@NotNull final String argument) {
@@ -159,31 +152,6 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   private void addArguments(@NotNull final String key, @NotNull final String value) {
     this.arguments.add(key);
     this.arguments.add(value);
-  }
-
-  private void addDimensionArguments() {
-    final Dimension dimension = this.getDimensions();
-    this.ffmpeg.addArguments(
-        "-vf", "scale=%s:%s".formatted(dimension.getWidth(), dimension.getHeight()));
-  }
-
-  private void addOutput() {
-    this.ffmpeg.addOutput(
-        FrameOutput.withConsumer(this.getFrameConsumer())
-            .disableStream(StreamType.SUBTITLE)
-            .disableStream(StreamType.DATA));
-  }
-
-  private void addInput(final long ms) {
-
-    final InputParser parser = this.getInputParser();
-    final Pair<Object, String[]> pair = parser.parseInput(this.getInput().getDirectVideoMrl());
-
-    final BaseInput<?> input = (BaseInput<?>) pair.getKey();
-    input.setPosition(ms);
-    input.addArgument("-re");
-
-    this.ffmpeg.addInput(input);
   }
 
   @Contract(value = " -> new", pure = true)

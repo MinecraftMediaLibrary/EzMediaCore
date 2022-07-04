@@ -7,20 +7,23 @@ import org.jetbrains.annotations.NotNull;
 
 public final class TcpFFmpegOutput extends FFmpegOutputConfiguration<TcpOutput> {
 
-  private final TcpOutput output;
+  private TcpOutput output;
 
-  TcpFFmpegOutput(@NotNull final TcpOutput output) {
-    this.output = output;
-  }
+  TcpFFmpegOutput() {}
 
-  @Contract("_ -> new")
-  public static @NotNull TcpFFmpegOutput ofOutput(@NotNull final TcpOutput output) {
-    return new TcpFFmpegOutput(output);
+  @Contract(" -> new")
+  public static @NotNull TcpFFmpegOutput ofOutput() {
+    return new TcpFFmpegOutput();
   }
 
   @Override
   public @NotNull TcpOutput getResultingOutput() {
     return this.output;
+  }
+
+  @Override
+  public void setOutput(@NotNull final TcpOutput output) {
+    this.output = output;
   }
 
   @Override

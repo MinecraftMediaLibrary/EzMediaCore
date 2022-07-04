@@ -22,6 +22,7 @@ public interface FFmpegArguments {
   String VIDEO_FRAME_RATE = "-r";
   String VIDEO_ASPECT_RATIO = "-aspect";
   String VIDEO_LOOP = "-loop";
+  String VIDEO_SCALE = "scale=%s:%s";
 
   String DURATION_START = "-ss";
   String DURATION_END = "-to";

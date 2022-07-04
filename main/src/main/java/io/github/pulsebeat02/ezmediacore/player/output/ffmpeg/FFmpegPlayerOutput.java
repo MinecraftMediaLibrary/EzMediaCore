@@ -1,12 +1,11 @@
 package io.github.pulsebeat02.ezmediacore.player.output.ffmpeg;
 
-import io.github.pulsebeat02.ezmediacore.player.output.ConfiguredOutput;
 import org.jetbrains.annotations.NotNull;
 
 public final class FFmpegPlayerOutput implements FFmpegOutput<Void> {
 
-  private ConfiguredOutput tcp;
-  private ConfiguredOutput stdout;
+  private TcpFFmpegOutput tcp;
+  private StdoutFFmpegOutput stdout;
 
   FFmpegPlayerOutput() {}
 
@@ -14,11 +13,11 @@ public final class FFmpegPlayerOutput implements FFmpegOutput<Void> {
     return new FFmpegPlayerOutput();
   }
 
-  public void setTcpOutput(@NotNull final ConfiguredOutput output) {
+  public void setTcpOutput(@NotNull final TcpFFmpegOutput output) {
     this.tcp = output;
   }
 
-  public void setStdoutOutput(@NotNull final ConfiguredOutput output) {
+  public void setStdoutOutput(@NotNull final StdoutFFmpegOutput output) {
     this.stdout = output;
   }
 
@@ -29,6 +28,10 @@ public final class FFmpegPlayerOutput implements FFmpegOutput<Void> {
   @Override
   public @NotNull Void getResultingOutput() {
     return null;
+  }
+
+  @Override
+  public void setOutput(@NotNull final Void output) {
   }
 
   @Override

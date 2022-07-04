@@ -6,4 +6,6 @@ public interface PlayerOutput<T> {
 
   @NotNull
   T getResultingOutput();
+
+  void setOutput(@NotNull T output);
 }
