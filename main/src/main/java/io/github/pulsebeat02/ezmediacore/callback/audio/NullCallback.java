@@ -1,7 +1,6 @@
 package io.github.pulsebeat02.ezmediacore.callback.audio;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import org.jetbrains.annotations.NotNull;
 

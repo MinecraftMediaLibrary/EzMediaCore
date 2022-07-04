@@ -24,7 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.player;
 
 import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
-import io.github.pulsebeat02.ezmediacore.callback.AudioCallback;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewable;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
@@ -32,7 +32,6 @@ import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.PlayerInput;
 import io.github.pulsebeat02.ezmediacore.player.output.PlayerOutput;
-import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
 public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {

@@ -32,6 +32,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
+import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class FrameCallback implements VideoCallback {
@@ -58,7 +59,7 @@ public abstract class FrameCallback implements VideoCallback {
   }
 
   @Override
-  public void preparePlayerStateChange(@NotNull final PlayerControls status) {}
+  public void preparePlayerStateChange(@NotNull final VideoPlayer player, @NotNull final PlayerControls status) {}
 
   public @NotNull DelayConfiguration getDelayConfiguration() {
     return this.delay;

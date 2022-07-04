@@ -1,9 +1,9 @@
 package io.github.pulsebeat02.ezmediacore.callback.audio;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.DiscordAudioConsumer;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
+import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +25,8 @@ public final class DiscordCallback extends SampleCallback {
   }
 
   @Override
-  public void preparePlayerStateChange(@NotNull final PlayerControls status) {}
+  public void preparePlayerStateChange(
+      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {}
 
   public static final class Builder extends AudioCallbackBuilder {
 

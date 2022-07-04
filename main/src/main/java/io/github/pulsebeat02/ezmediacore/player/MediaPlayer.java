@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.player;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.AudioCallback;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
@@ -125,8 +125,8 @@ public abstract class MediaPlayer implements VideoPlayer {
       @Nullable final Input mrl,
       @NotNull final PlayerControls controls,
       @NotNull final Object... arguments) {
-    this.video.preparePlayerStateChange(controls);
-    this.audio.preparePlayerStateChange(controls);
+    this.video.preparePlayerStateChange(this, controls);
+    this.audio.preparePlayerStateChange(this, controls);
   }
 
   @Override

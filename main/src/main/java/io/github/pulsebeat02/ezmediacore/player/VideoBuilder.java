@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.player;
 import static java.util.Objects.requireNonNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.AudioCallback;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dimension.FrameDimension;

@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore.callback;
+package io.github.pulsebeat02.ezmediacore.callback.audio;
 
 @FunctionalInterface
 public interface DiscordAudioConsumer {

@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.player.buffered;
 
-import io.github.pulsebeat02.ezmediacore.callback.AudioCallback;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;

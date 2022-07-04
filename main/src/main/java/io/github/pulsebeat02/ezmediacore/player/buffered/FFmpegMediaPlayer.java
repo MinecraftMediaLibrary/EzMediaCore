@@ -23,7 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.player.buffered;
 
-import com.github.kokorin.jaffree.LogLevel;
 import com.github.kokorin.jaffree.StreamType;
 import com.github.kokorin.jaffree.ffmpeg.BaseInput;
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
@@ -32,7 +31,7 @@ import com.github.kokorin.jaffree.ffmpeg.FFmpegResultFuture;
 import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.google.common.collect.Lists;
-import io.github.pulsebeat02.ezmediacore.callback.AudioCallback;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;

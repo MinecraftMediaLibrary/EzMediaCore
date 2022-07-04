@@ -38,6 +38,7 @@ import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import io.github.pulsebeat02.ezmediacore.utility.search.StringSearch;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -84,6 +85,7 @@ public final class EzMediaCore implements MediaLibraryCore {
 
     this.plugin = plugin;
     this.spotifyClient = client;
+    this.loader = loader;
 
     this.libraryPath = this.getFinalPath(libraryPath, plugin.getDataFolder().toPath(), "emc");
     this.dependencyPath = this.getFinalPath(dependencyPath, this.libraryPath, "libs");
@@ -174,6 +176,10 @@ public final class EzMediaCore implements MediaLibraryCore {
             this.videoPath)
         .forEach(FileUtils::createDirectoryIfNotExistsExceptionally);
     this.logger.info(Locale.FINISHED_FOLDER_CREATION.build());
+  }
+
+  private void createFiles() {
+    FileUtils.copyFromResourcesExceptionally("audio.html", this.httpServerPath.resolve("audio.html"));
   }
 
   private void startDependencyLoader() {

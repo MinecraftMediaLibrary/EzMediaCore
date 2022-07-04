@@ -53,8 +53,9 @@ public final class EncoderConfiguration extends ConfigurationProvider<AudioConfi
   public @NotNull AudioConfiguration serialize() {
     final FileConfiguration configuration = this.getFileConfiguration();
     this.settings =
-        new AudioAttributes(
+        AudioAttributes.ofAudioAttributes(
             "libvorbis",
+            0,
             configuration.getInt("bitrate"),
             configuration.getInt("channels"),
             configuration.getInt("sampling-rate"),

@@ -57,6 +57,7 @@ import io.github.pulsebeat02.ezmediacore.callback.entity.NamedStringCharacter;
 import io.github.pulsebeat02.ezmediacore.callback.implementation.ScoreboardCallbackDispatcher;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
+import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.utility.task.TaskUtils;
 import java.nio.IntBuffer;
 import java.util.UUID;
@@ -167,8 +168,9 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
 
   @Override
   @SuppressWarnings("deprecated")
-  public void preparePlayerStateChange(@NotNull final PlayerControls status) {
-    super.preparePlayerStateChange(status);
+  public void preparePlayerStateChange(
+      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
+    super.preparePlayerStateChange(player, status);
     if (status == PlayerControls.START) {
       this.registerScreen();
     }

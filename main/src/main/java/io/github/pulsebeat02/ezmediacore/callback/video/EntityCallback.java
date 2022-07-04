@@ -32,6 +32,7 @@ import io.github.pulsebeat02.ezmediacore.callback.entity.EntityCallbackDispatche
 import io.github.pulsebeat02.ezmediacore.callback.entity.NamedStringCharacter;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
+import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import java.nio.IntBuffer;
 import java.util.UUID;
@@ -101,8 +102,8 @@ public class EntityCallback<T extends Entity> extends FrameCallback
   }
 
   @Override
-  public void preparePlayerStateChange(@NotNull final PlayerControls status) {
-    super.preparePlayerStateChange(status);
+  public void preparePlayerStateChange(@NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
+    super.preparePlayerStateChange(player, status);
     if (status == PlayerControls.RELEASE) {
       this.removeEntities();
     }

@@ -30,6 +30,12 @@ import org.jetbrains.annotations.NotNull;
 
 public final class AudioAttributes implements AudioConfiguration {
 
+  public static final AudioAttributes OGG_CONFIGURATION;
+
+  static {
+    OGG_CONFIGURATION = AudioAttributes.ofAudioAttributes("libvorbis", 0, 160000, 2, 44100, 50);
+  }
+
   private final String codec;
   private final int start;
   private final int bitrate;
@@ -57,7 +63,7 @@ public final class AudioAttributes implements AudioConfiguration {
     this.volume = volume;
   }
 
-  public AudioAttributes(
+  AudioAttributes(
       @NotNull final String codec,
       final int bitrate,
       final int channels,

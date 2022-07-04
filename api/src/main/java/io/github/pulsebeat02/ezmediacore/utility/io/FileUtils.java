@@ -26,6 +26,7 @@ package io.github.pulsebeat02.ezmediacore.utility.io;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,15 +63,17 @@ public final class FileUtils {
     return filePath;
   }
 
-  public static void createFileExceptionally(@NotNull final Path file) {
+  public static boolean createFileExceptionally(@NotNull final Path file) {
     try {
       createFile(file);
     } catch (final IOException e) {
       e.printStackTrace();
+      return false;
     }
+    return true;
   }
 
-  public static void createFile(@NotNull final Path file) throws IOException {
+  public static boolean createFile(@NotNull final Path file) throws IOException {
     checkNotNull(file, "Path cannot be null!");
     final Path parent = file.getParent();
     if (Files.notExists(parent)) {
@@ -79,14 +82,17 @@ public final class FileUtils {
     if (Files.notExists(file)) {
       Files.createFile(file);
     }
+    return true;
   }
 
-  public static void createFileIfNotExistsExceptionally(@NotNull final Path file) {
+  public static boolean createFileIfNotExistsExceptionally(@NotNull final Path file) {
     try {
       createFileIfNotExists(file);
     } catch (final IOException e) {
       e.printStackTrace();
+      return false;
     }
+    return true;
   }
 
   public static boolean createFileIfNotExists(@NotNull final Path file) throws IOException {
@@ -98,57 +104,56 @@ public final class FileUtils {
     return false;
   }
 
-  public static void createDirectoryIfNotExistsExceptionally(@NotNull final Path file) {
+  public static boolean createDirectoryIfNotExistsExceptionally(@NotNull final Path file) {
     try {
       createDirectoryIfNotExists(file);
     } catch (final IOException e) {
       e.printStackTrace();
+      return false;
     }
+    return true;
   }
 
   public static boolean createDirectoryIfNotExists(@NotNull final Path file) throws IOException {
     checkNotNull(file, "Path cannot be null!");
     if (Files.notExists(file)) {
       Files.createDirectory(file);
-      return true;
     }
-    return false;
+    return true;
   }
 
-  public static void deleteIfFileExistsExceptionally(@NotNull final Path file) {
+  public static boolean deleteIfFileExistsExceptionally(@NotNull final Path file) {
     try {
       deleteIfFileExists(file);
     } catch (final IOException e) {
       e.printStackTrace();
+      return false;
     }
+    return true;
   }
 
   public static boolean deleteIfFileExists(@NotNull final Path file) throws IOException {
     checkNotNull(file, "Path cannot be null!");
     if (Files.exists(file)) {
       Files.delete(file);
-      return true;
     }
-    return false;
-  }
-
-  public static void copyURLToFile(@NotNull final String url, @NotNull final Path path) {
-    checkNotNull(url, "URL cannot be null!");
-    checkNotNull(path, "Path cannot be null!");
-    readInputStream(url, path);
-  }
-
-  private static void readInputStream(@NotNull final String url, @NotNull final Path path) {
-    try (final ReadableByteChannel in = Channels.newChannel(new URL(url).openStream());
-        final FileChannel channel = new FileOutputStream(path.toString()).getChannel()) {
-      channel.transferFrom(in, 0, Long.MAX_VALUE);
-    } catch (final IOException e) {
-      throw new AssertionError(e);
-    }
+    return true;
   }
 
   public static @NotNull String getFirstLine(@NotNull final Path file) throws IOException {
     checkNotNull(file, "Path cannot be null!");
     return Files.lines(file).findFirst().orElseThrow(NoSuchElementException::new);
+  }
+
+  public static boolean copyFromResourcesExceptionally(@NotNull final String resource, @NotNull final Path destination) {
+    final ClassLoader loader = FileUtils.class.getClassLoader();
+    final File file = new File(loader.getResource(resource).getFile());
+    try {
+      Files.move(file.toPath(), destination);
+    } catch (final IOException e) {
+      e.printStackTrace();
+      return false;
+    }
+    return true;
   }
 }

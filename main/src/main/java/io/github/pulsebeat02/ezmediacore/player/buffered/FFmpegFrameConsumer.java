@@ -39,9 +39,6 @@ public final class FFmpegFrameConsumer implements FrameConsumer {
 
     // set start time
     this.player.setStart(Instant.now().toEpochMilli());
-
-    // play audio
-    this.player.playAudio();
   }
 
   @Override

@@ -37,6 +37,7 @@ import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class HttpServer implements HttpDaemonSolution {
 
@@ -56,10 +57,11 @@ public class HttpServer implements HttpDaemonSolution {
   HttpServer(
       @NotNull final MediaLibraryCore core,
       @NotNull final Path path,
-      @NotNull final String ip,
+      @Nullable final String ip,
       final int port,
       final boolean verbose) {
-    this.daemon = NettyServer.ofDaemon(core, path, ip, port, verbose);
+    final String address = ip == null ? HTTP_SERVER_IP : ip;
+    this.daemon = NettyServer.ofDaemon(core, path, address, port, verbose);
   }
 
   private static @NotNull HttpRequest createRequest() {

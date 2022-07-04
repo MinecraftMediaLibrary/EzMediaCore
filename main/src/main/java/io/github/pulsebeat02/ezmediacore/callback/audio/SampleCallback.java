@@ -3,9 +3,9 @@ package io.github.pulsebeat02.ezmediacore.callback.audio;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
+import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class SampleCallback implements AudioCallback {
@@ -33,7 +33,7 @@ public abstract class SampleCallback implements AudioCallback {
   }
 
   @Override
-  public void preparePlayerStateChange(@NotNull final PlayerControls status) {
+  public void preparePlayerStateChange(@NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
   }
 }
 
