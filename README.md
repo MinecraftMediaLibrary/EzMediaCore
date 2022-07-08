@@ -18,8 +18,7 @@ Frame rates can reach up to the **30**'s or **40**'s with extremely great qualit
 a
 *smooth* animation is approximately **25** frames. The library is capable of playing media in many
 sorts of ways, such as maps, entities, chat, scoreboards, debug markers. It is also capable of
-providing audio through a resourcepack and website (primarily for playing streams). Discord support
-is current being implemented, but will come soon!
+providing audio through a resourcepack, website, and Discord bot (primarily for playing streams).
 
 ---
 
@@ -79,8 +78,8 @@ server!
 |--------------------------------------------------------------------|------------------------------------------------------|
 | [BananaPuncher714](https://github.com/BananaPuncher714)            | Created the original MinecraftVideo plugin           |
 | [Jetp250](https://github.com/jetp250)                              | Developed Floyd Steinberg dithering                  |
-| [Emilyy](https://github.com/emilyy-dev) (LuckPerms Developer)      | Assisted with implementation and testing             |
-| [Conclure](https://github.com/Conclure) (Spigot Discord Moderator) | Assisted with Maven to Gradle migration              |
+| [Emilyy](https://github.com/emilyy-dev)      | Assisted with implementation and testing             |
+| [Conclure](https://github.com/Conclure) | Assisted with Maven to Gradle migration              |
 | [itxfrosty](https://github.com/itxfrosty)                          | Developed a Discord bot for music integration        |
 | [Rouge_Ram](https://rogueram.xyz/index.html)                       | Developed a Discord bot used in Pulse Development!   |
 
