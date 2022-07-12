@@ -2,6 +2,7 @@ package io.github.pulsebeat02.ezmediacore.callback.audio;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
+import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import org.jetbrains.annotations.Contract;
@@ -21,7 +22,7 @@ public final class DiscordCallback extends SampleCallback {
 
   @Override
   public void process(final byte @NotNull [] data) {
-    this.consumer.consume(data);
+    this.consumer.consume(ByteBufCarrier.ofByteArray(data));
   }
 
   @Override

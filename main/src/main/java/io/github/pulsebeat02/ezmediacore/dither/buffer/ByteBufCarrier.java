@@ -20,9 +20,15 @@ public final class ByteBufCarrier implements BufferCarrier {
     return new ByteBufCarrier(buffer);
   }
 
+
   @Contract(value = "_ -> new", pure = true)
   public static @NotNull ByteBufCarrier ofByteBufCarrier(@NotNull final ByteBuffer buffer) {
     return new ByteBufCarrier(Unpooled.copiedBuffer(buffer));
+  }
+
+  @Contract(value = "_ -> new", pure = true)
+  public static @NotNull ByteBufCarrier ofByteArray(final byte @NotNull [] buffer) {
+    return new ByteBufCarrier(Unpooled.wrappedBuffer(buffer));
   }
 
   @Override
