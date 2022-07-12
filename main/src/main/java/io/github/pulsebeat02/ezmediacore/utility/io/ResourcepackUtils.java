@@ -41,7 +41,7 @@ public final class ResourcepackUtils {
   private ResourcepackUtils() {}
 
   public static boolean validatePackFormat(final int format) {
-    return Arrays.stream(PackFormat.values()).anyMatch(value -> value.getId() == format);
+    return Stream.of(PackFormat.values()).anyMatch(value -> value.getId() == format);
   }
 
   public static boolean validateResourcepackIcon(@NotNull final Path icon) {

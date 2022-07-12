@@ -79,6 +79,6 @@ public final class ArrayUtils {
   @Contract(pure = true)
   private static <T> @NotNull Stream<T> stream(final T @NotNull [] array) {
     checkNotNull(array, "Array cannot be null!");
-    return Arrays.stream(array);
+    return Stream.of(array);
   }
 }

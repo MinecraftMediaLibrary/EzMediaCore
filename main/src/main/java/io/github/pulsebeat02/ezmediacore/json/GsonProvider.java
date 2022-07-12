@@ -29,6 +29,7 @@ import com.google.gson.TypeAdapter;
 import io.github.pulsebeat02.ezmediacore.json.adapter.PathAdapter;
 import java.nio.file.Path;
 import java.util.Map;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -47,6 +48,7 @@ public final class GsonProvider {
   private static @NotNull GsonBuilder getBuilder() {
     final GsonBuilder builder = new GsonBuilder();
     getAdapters().forEach(builder::registerTypeAdapter);
+    builder.enableComplexMapKeySerialization();
     return builder;
   }
 

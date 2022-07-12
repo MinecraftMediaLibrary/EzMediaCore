@@ -48,6 +48,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
@@ -145,7 +147,7 @@ public final class VLCMediaPlayer extends MediaPlayer {
       @NotNull final DelayConfiguration delay,
       @NotNull final Object... arguments) {
     this.player = this.getEmbeddedMediaPlayer(
-        Arrays.stream(arguments).collect(Collectors.toList()));
+            Stream.of(arguments).collect(Collectors.toList()));
     this.player.controls().setTime(delay.getDelay());
     this.player.videoSurface().set(this.getSurface());
     this.player.audio().callback("wav", 160000, 2, this.createAudioCallback());

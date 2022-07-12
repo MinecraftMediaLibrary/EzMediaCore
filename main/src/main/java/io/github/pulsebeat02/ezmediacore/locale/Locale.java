@@ -23,94 +23,44 @@
  */
 package io.github.pulsebeat02.ezmediacore.locale;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 import java.nio.file.Path;
 
+import static io.github.pulsebeat02.ezmediacore.locale.MessageLoader.key;
+
 public interface Locale {
-
-  NullComponent FINISHED_SYSTEM_DIAGNOSTIC = () -> "Finished System Diagnostic Analysis";
-  NullComponent FINISHED_PACKET_HANDLE = () -> "Found valid PacketHandler implementation!";
-  NullComponent FINISHED_LOOKUP_CACHE = () -> "Finished loading lookup cache!";
-  NullComponent FINISHED_DEPENDENCY_LOADER = () -> "Finished initializing Dependency Loader!";
-  NullComponent FINISHED_EVENT_REGISTRATION = () -> "Finished registering events!";
-  NullComponent FINISHED_FOLDER_CREATION = () -> "Finished folder creation!";
-  NullComponent FINISHED_DEPENDENCY_HANDLING = () -> "Finished dependency handling!";
-
-  NullComponent FINISHED_NATIVE_VLC_LOG_REGISTRATION = () -> "Registered Native VLC log!";
-
-  UniComponent<String> FINISHED_FFMPEG_PROCESS_CREATION = "Finished FFmpeg process constructor with arguments %s!"::formatted;
-
-  UniComponent<String> MEDIA_PLAYER_RESUME = "Resuming media on resource mrl!"::formatted;
-
-  NullComponent FINISHED_JCODEC_FRAME_GRABBER = () -> "Finished JCodec frame grabber object!";
-
-  BiComponent<String, String> MEDIA_PLAYER_START = "Playing media on resource mrl %s with arguments %s"::formatted;
-
-  NullComponent MEDIA_PLAYER_RELEASE = () -> "Released media player!";
-  NullComponent MEDIA_PLAYER_PAUSE = () -> "Paused media player!";
-
-  NullComponent SERVER_SOFTWARE_TIP = () ->
-      """
-
-             As a reminder, the only server software supported by this library are Spigot and Paper.
-             Tunity has been merged into Paper and will not be supported. Custom forks will also not
-             be supported. If you can reproduce an issue on Spigot or Paper 1.19, I am welcome to
-             accept and analyze it. Otherwise, I cannot do anything. This message is automatically
-             sent to all servers.
-          """;
-  NullComponent PACKET_COMPRESSION_TIP = () ->
-      """
-             
-             Setting the value "network-compression-threshold", to -1 in the server.properties
-             file may lead to improved performance of video players for servers that aren't proxy
-             servers.
-          """;
-  NullComponent WARN_SPOTIFY_AUTH = () ->
-      """
-              
-              Spotify API Client ID and Client Secret not specified! You will not be able
-              to use any Spotify related features.
-          """;
-  UniComponent<String> ERR_SERVER_UNSUPPORTED = "Current server implementation (%s) is not supported!"::formatted;
-  UniComponent<String> FINISHED_DEPENDENCY_LOAD = "Finished %s dependency installation and load!"::formatted;
-
-  BiComponent<String, Path> BINARY_PATHS = "%s path: %s"::formatted;
-  TriComponent<String, String, Boolean> SERVER_INFO =
-      """
-                
-          ===========================================
-                       SERVER INFORMATION
-          ===========================================
-          NAME: %s
-          VERSION: %s
-          ONLINE MODE: %s
-          """::formatted;
-
+  NullComponent FINISHED_SYSTEM_DIAGNOSTIC = toNullComponent(key("ezmediacore.log.diagnostic"));
+  NullComponent FINISHED_PACKET_HANDLE = toNullComponent(key("ezmediacore.log.handle"));
+  NullComponent FINISHED_LOOKUP_CACHE = toNullComponent(key("ezmediacore.log.cache"));
+  NullComponent FINISHED_DEPENDENCY_LOADER = toNullComponent(key("ezmediacore.log.loader"));
+  NullComponent FINISHED_EVENT_REGISTRATION = toNullComponent(key("ezmediacore.log.event"));
+  NullComponent FINISHED_FOLDER_CREATION = toNullComponent(key("ezmediacore.log.folder"));
+  NullComponent FINISHED_DEPENDENCY_HANDLING = toNullComponent(key("ezmediacore.log.dependency"));
+  NullComponent FINISHED_NATIVE_VLC_LOG_REGISTRATION =
+      toNullComponent(key("ezmediacore.log.native"));
+  NullComponent MEDIA_PLAYER_RELEASE = toNullComponent(key("ezmediacore.log.release"));
+  NullComponent MEDIA_PLAYER_PAUSE = toNullComponent(key("ezmediacore.log.pause"));
+  NullComponent FINISHED_JCODEC_FRAME_GRABBER = toNullComponent(key("ezmediacore.log.jcodec"));
+  NullComponent SERVER_SOFTWARE_TIP = toNullComponent(key("ezmediacore.log.server.software"));
+  NullComponent PACKET_COMPRESSION_TIP = toNullComponent(key("ezmediacore.log.packet.compression"));
+  NullComponent WARN_SPOTIFY_AUTH = toNullComponent(key("ezmediacore.log.spotify.auth"));
+  UniComponent<String> MEDIA_PLAYER_RESUME = key("ezmediacore.log.resume")::formatted;
+  UniComponent<String> ERR_SERVER_UNSUPPORTED = key("ezmediacore.error.server")::formatted;
+  UniComponent<String> FINISHED_DEPENDENCY_LOAD = key("ezmediacore.log.dependency.load")::formatted;
+  BiComponent<String, String> MEDIA_PLAYER_START = key("ezmediacore.log.start")::formatted;
+  BiComponent<String, Path> BINARY_PATHS = key("ezmediacore.log.binary")::formatted;
+  TriComponent<String, String, Boolean> SERVER_INFO = key("ezmediacore.log.http")::formatted;
   QuadComponent<String, String, String, String> SYSTEM_INFO =
-      """
-                
-          ===========================================
-                       SYSTEM INFORMATION
-          ===========================================
-          OS: %s
-          VERSION: %s
-          DISTRO: %s
-          CPU: %s
-          """::formatted;
-
+      key("ezmediacore.log.system")::formatted;
   HeptaComponent<String, String, Boolean, Path, Path, Path, Path> PLUGIN_INFO =
-      """
-                
-          ===========================================
-                       PLUGIN INFORMATION
-          ===========================================
-          NAME: %s
-          DESCRIPTION: %s
-          LIB DISABLED: %s
-          LIB PATH: %s
-          VLC PATH: %s
-          IMAGE PATH: %s
-          AUDIO PATH: %s
-          """::formatted;
+      key("ezmediacore.log.plugin")::formatted;
+
+  @Contract(pure = true)
+  static @NotNull NullComponent toNullComponent(@NotNull final String key) {
+    return () -> key;
+  }
 
   @FunctionalInterface
   interface NullComponent {

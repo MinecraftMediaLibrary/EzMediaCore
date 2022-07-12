@@ -31,6 +31,8 @@ import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Stream;
+
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -89,7 +91,7 @@ public class SpotifyUser implements User {
   }
 
   private Avatar @NotNull [] getInternalAvatars() {
-    return Arrays.stream(this.user.getImages())
+    return Stream.of(this.user.getImages())
         .map(SpotifyAvatar::new)
         .toArray(SpotifyAvatar[]::new);
   }

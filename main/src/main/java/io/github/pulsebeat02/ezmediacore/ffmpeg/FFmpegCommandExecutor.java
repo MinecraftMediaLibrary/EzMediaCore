@@ -39,6 +39,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -118,7 +120,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   @Override
   public @NotNull FFmpegArgumentPreparation addMultipleArguments(
       @NotNull final String[] arguments) {
-    Arrays.stream(arguments).forEach(this::addArgument);
+    Stream.of(arguments).forEach(this::addArgument);
     return this;
   }
 

@@ -25,7 +25,10 @@ package io.github.pulsebeat02.ezmediacore.dependency;
 
 import static io.github.pulsebeat02.emcdependencymanagement.component.Artifact.ofArtifact;
 import static io.github.pulsebeat02.emcdependencymanagement.component.Relocation.ofRelocation;
+import static java.util.Objects.requireNonNull;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import io.github.pulsebeat02.emcdependencymanagement.EMCDepManagement;
 import io.github.pulsebeat02.emcdependencymanagement.SimpleLogger;
 import io.github.pulsebeat02.emcdependencymanagement.component.Artifact;
@@ -34,16 +37,26 @@ import io.github.pulsebeat02.emcdependencymanagement.component.Repository;
 import io.github.pulsebeat02.ezmediacore.CoreLogger;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
+import io.github.pulsebeat02.ezmediacore.utility.io.ResourceUtils;
 import org.jetbrains.annotations.NotNull;
 
 public final class LibraryDependencyManager extends LibraryDependency {
 
+  private final Gson gson;
+
   public LibraryDependencyManager(@NotNull final MediaLibraryCore core) throws IOException {
     super(core);
+    this.gson = GsonProvider.getSimple();
   }
 
   @Override
@@ -81,59 +94,30 @@ public final class LibraryDependencyManager extends LibraryDependency {
   }
 
   @NotNull
-  private Set<Relocation> getRelocations() {
-    final String base = "io:github:pulsebeat02:ezmediacore:lib:%s";
-    return Stream.of(
-            ofRelocation("uk:co:caprica", base.formatted("caprica")),
-            ofRelocation("com:github:kiulian", base.formatted("kiulian")),
-            ofRelocation("se.michaelthelin", base.formatted("michaelthelin")),
-            ofRelocation("com:github:kokorin", base.formatted("kokorin")),
-            ofRelocation("org:jcodec", base.formatted("jcodec")),
-            ofRelocation("com:github:benmanes", base.formatted("benmanes")),
-            ofRelocation("it:unimi:dsi", base.formatted("dsi")),
-            ofRelocation("com:alibaba", base.formatted("alibaba")),
-            ofRelocation("net:sourceforge:jaad:aac", base.formatted("sourceforge")),
-            ofRelocation("com:fasterxml", base.formatted("fasterxml")),
-            ofRelocation("org:apache:httpcomponents", base.formatted("apache:httpcomponents")),
-            ofRelocation("com:neovisionaries", base.formatted("neovisionaries")))
-        .collect(Collectors.toSet());
+  private Set<Relocation> getRelocations() throws IOException {
+    try (final Reader reader =
+        ResourceUtils.getResourceAsInputStream("/emc-json/library/relocations.json")) {
+      final TypeToken<Set<Relocation>> token = new TypeToken<>() {};
+      return this.gson.fromJson(reader, token.getType());
+    }
   }
 
   @NotNull
-  private Set<Artifact> getArtifacts() {
-    return Stream.of(
-            ofArtifact("uk:co:caprica", "vlcj", "4:7:3"),
-            ofArtifact("uk:co:caprica", "vlcj-natives", "4:7:0"),
-            ofArtifact("com:github:sealedtx", "java-youtube-downloader", "3:0:2"),
-            ofArtifact("com:alibaba", "fastjson", "2:0:9"),
-            ofArtifact("net:java:dev:jna", "jna", "5:12:1"),
-            ofArtifact("net:java:dev:jna", "jna-platform", "5:12:1"),
-            ofArtifact("se:michaelthelin:spotify", "spotify-web-api-java", "7:1:0"),
-            ofArtifact("com:github:kokorin:jaffree", "jaffree", "2021:12:30"),
-            ofArtifact("org:jcodec", "jcodec", "0:2:5"),
-            ofArtifact("com:github:ben-manes:caffeine", "caffeine", "3:1:1"),
-            ofArtifact("it:unimi:dsi", "fastutil", "8:5:8"),
-            ofArtifact("com:fasterxml:jackson:core", "jackson-core", "2:13:3"),
-            ofArtifact("org:apache:httpcomponents:client5", "httpclient5", "5:2-beta1"),
-            ofArtifact("com:neovisionaries", "nv-i18n", "1:29"))
-        .collect(Collectors.toSet());
+  private Set<Artifact> getArtifacts() throws IOException {
+    try (final Reader reader =
+        ResourceUtils.getResourceAsInputStream("/emc-json/library/dependencies.json")) {
+      final TypeToken<Set<Artifact>> token = new TypeToken<>() {};
+      return this.gson.fromJson(reader, token.getType());
+    }
   }
 
   @NotNull
-  private Set<Repository> getRepositories() {
-    return Stream.of(
-            "https://papermc.io/repo/repository/maven-public/",
-            "https://oss.sonatype.org/content/repositories/snapshots",
-            "https://libraries.minecraft.net/",
-            "https://jitpack.io/",
-            "https://repo.codemc.org/repository/maven-public/",
-            "https://m2.dv8tion.net/releases/",
-            "https://repo.vshnv.tech/releases/",
-            "https://repo.mattstudios.me/artifactory/public/",
-            "https://pulsebeat02.jfrog.io/artifactory/pulse-gradle-release-local/",
-            "https://pulsebeat02.jfrog.io/artifactory/pulse-libs-release-local/")
-        .map(Repository::ofRepo)
-        .collect(Collectors.toSet());
+  private Set<Repository> getRepositories() throws IOException {
+    try (final Reader reader =
+        ResourceUtils.getResourceAsInputStream("/emc-json/library/repositories.json")) {
+      final TypeToken<Set<Repository>> token = new TypeToken<>() {};
+      return this.gson.fromJson(reader, token.getType());
+    }
   }
 
   @Override

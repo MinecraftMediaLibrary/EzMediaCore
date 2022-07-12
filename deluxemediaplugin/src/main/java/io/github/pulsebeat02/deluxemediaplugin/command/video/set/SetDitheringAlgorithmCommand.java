@@ -17,6 +17,8 @@ import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
+
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +46,7 @@ public final class SetDitheringAlgorithmCommand implements CommandSegment.Litera
   private @NotNull CompletableFuture<Suggestions> suggestDitheringAlgorithm(
       @NotNull final CommandContext<CommandSender> context,
       @NotNull final SuggestionsBuilder builder) {
-    Arrays.stream(DitheringAlgorithm.values())
+    Stream.of(DitheringAlgorithm.values())
         .forEach(algorithm -> builder.suggest(algorithm.name()));
     return builder.buildFuture();
   }

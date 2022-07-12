@@ -1,52 +1,41 @@
 package io.github.pulsebeat02.ezmediacore.dependency;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import io.github.pulsebeat02.emcdependencymanagement.component.Repository;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
+import io.github.pulsebeat02.ezmediacore.utility.io.ResourceUtils;
 import io.github.pulsebeat02.nativelibraryloader.NativeLibraryLoader;
 import io.github.pulsebeat02.nativelibraryloader.os.Arch;
 import io.github.pulsebeat02.nativelibraryloader.os.Bits;
 import io.github.pulsebeat02.nativelibraryloader.os.OS;
 import io.github.pulsebeat02.nativelibraryloader.os.Platform;
 import io.github.pulsebeat02.nativelibraryloader.strategy.LibraryLocation;
+import io.github.pulsebeat02.nativelibraryloader.strategy.implementation.NativeResourceLocator;
 import io.github.pulsebeat02.nativelibraryloader.strategy.implementation.ResourceLocator;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Set;
+
+import io.github.pulsebeat02.nativelibraryloader.strategy.implementation.UrlResourceNativeLibrary;
 import org.jetbrains.annotations.NotNull;
 
 public final class DitherDependencyManager extends LibraryDependency {
 
-  private static final Map<Platform, ResourceLocator> NATIVE_LIBRARY_MAP;
+  public static final Map<Platform, NativeResourceLocator> NATIVE_LIBRARY_MAP;
 
   static {
-    NATIVE_LIBRARY_MAP =
-        Map.of(
-            Platform.ofPlatform(OS.OSX, Arch.NOT_ARM, Bits.BITS_64),
-            LibraryLocation.URL_RESOURCE.create(
-                "https://github.com/MinecraftMediaLibrary/EzMediaCore-Native-Go/raw/master/binary/darwin/amd64/libdither.dylib"),
-            Platform.ofPlatform(OS.OSX, Arch.IS_ARM, Bits.BITS_64),
-            LibraryLocation.URL_RESOURCE.create(
-                "https://github.com/MinecraftMediaLibrary/EzMediaCore-Native-Go/raw/master/binary/darwin/arm64/libdither.dylib"),
-            Platform.ofPlatform(OS.WIN, Arch.NOT_ARM, Bits.BITS_64),
-            LibraryLocation.URL_RESOURCE.create(
-                "https://github.com/MinecraftMediaLibrary/EzMediaCore-Native-Go/raw/master/binary/windows/amd64/dither.dll"),
-            Platform.ofPlatform(OS.WIN, Arch.NOT_ARM, Bits.BITS_32),
-            LibraryLocation.URL_RESOURCE.create(
-                "https://github.com/MinecraftMediaLibrary/EzMediaCore-Native-Go/raw/master/binary/windows/i386/dither.dll"),
-            Platform.ofPlatform(OS.UNIX, Arch.NOT_ARM, Bits.BITS_64),
-            LibraryLocation.URL_RESOURCE.create(
-                "https://github.com/MinecraftMediaLibrary/EzMediaCore-Native-Go/raw/master/binary/linux/amd64/libdither.so"),
-            Platform.ofPlatform(OS.UNIX, Arch.IS_ARM, Bits.BITS_32),
-            LibraryLocation.URL_RESOURCE.create(
-                "https://github.com/MinecraftMediaLibrary/EzMediaCore-Native-Go/raw/master/binary/linux/arm/libdither.so"),
-            Platform.ofPlatform(OS.UNIX, Arch.IS_ARM, Bits.BITS_64),
-            LibraryLocation.URL_RESOURCE.create(
-                "https://github.com/MinecraftMediaLibrary/EzMediaCore-Native-Go/raw/master/binary/linux/arm64/libdither.so"),
-            Platform.ofPlatform(OS.UNIX, Arch.NOT_ARM, Bits.BITS_32),
-            LibraryLocation.URL_RESOURCE.create(
-                "https://github.com/MinecraftMediaLibrary/EzMediaCore-Native-Go/raw/master/binary/linux/i386/libdither.so"),
-            Platform.ofPlatform(OS.FREEBSD, Arch.NOT_ARM, Bits.BITS_64),
-            LibraryLocation.URL_RESOURCE.create(
-                "https://github.com/MinecraftMediaLibrary/EzMediaCore-Native-Go/raw/master/binary/freebsd/amd64/libdither.so"));
+    final Gson gson = GsonProvider.getSimple();
+    try (final Reader reader =
+        ResourceUtils.getResourceAsInputStream("/emc-json/dither/binaries.json")) {
+      final TypeToken<Map<Platform, UrlResourceNativeLibrary>> token = new TypeToken<>() {};
+      NATIVE_LIBRARY_MAP = gson.fromJson(reader, token.getType());
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public DitherDependencyManager(@NotNull final MediaLibraryCore core) throws IOException {

@@ -72,10 +72,16 @@ dependencies {
 }
 
 tasks {
+
+    processResources {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
     withType<Test> {
         exclude("**/*")
         useJUnitPlatform()
     }
+
     shadowJar {
         val base = "io.github.pulsebeat02.ezmediacore.lib"
         relocate("uk.co.caprica", "$base.caprica")

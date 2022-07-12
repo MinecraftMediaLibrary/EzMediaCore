@@ -31,6 +31,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +60,7 @@ public class SpotifyPlaylist implements TrackPlaylist {
   }
 
   private @NotNull List<PlaylistTrack> getInternalTracks() {
-    return Arrays.stream(this.playlist.getTracks().getItems())
+    return Stream.of(this.playlist.getTracks().getItems())
         .map(SpotifyPlaylistTrack::new)
         .collect(Collectors.toList());
   }

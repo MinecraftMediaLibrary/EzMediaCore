@@ -33,6 +33,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -47,7 +49,7 @@ public final class Viewers {
     checkNotNull(viewers, "Viewers cannot be null!");
     this.viewers = viewers;
     this.players = Collections.newSetFromMap(new WeakHashMap<>());
-    this.players.addAll(Arrays.stream(viewers).map(Bukkit::getPlayer).collect(Collectors.toList()));
+    this.players.addAll(Stream.of(viewers).map(Bukkit::getPlayer).collect(Collectors.toList()));
   }
 
   public static @NotNull Viewers ofPlayers(@NotNull final Collection<? extends Player> collection) {
@@ -55,7 +57,7 @@ public final class Viewers {
   }
 
   public static @NotNull Viewers ofPlayers(@NotNull final Player... viewers) {
-    return ofPlayers(Arrays.stream(viewers).collect(Collectors.toList()));
+    return ofPlayers(Stream.of(viewers).collect(Collectors.toList()));
   }
 
   public static @NotNull Viewers ofUUIDs(@NotNull final Collection<? extends UUID> collection) {

@@ -17,6 +17,8 @@ import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
+
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +46,7 @@ public final class SetVideoPlaybackCommand implements CommandSegment.Literal<Com
   private @NotNull CompletableFuture<Suggestions> suggestVideoPlayback(
       @NotNull final CommandContext<CommandSender> context,
       @NotNull final SuggestionsBuilder builder) {
-    Arrays.stream(VideoPlayback.values()).forEach(playback -> builder.suggest(playback.name()));
+    Stream.of(VideoPlayback.values()).forEach(playback -> builder.suggest(playback.name()));
     return builder.buildFuture();
   }
 
