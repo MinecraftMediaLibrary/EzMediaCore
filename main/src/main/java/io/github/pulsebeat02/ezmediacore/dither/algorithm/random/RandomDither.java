@@ -36,7 +36,11 @@ import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+
+import java.util.SplittableRandom;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.random.RandomGenerator;
+
 import org.jetbrains.annotations.NotNull;
 
 public final class RandomDither extends ForeignDitherAlgorithm {
@@ -44,10 +48,10 @@ public final class RandomDither extends ForeignDitherAlgorithm {
   public static final int LIGHT_WEIGHT;
   public static final int NORMAL_WEIGHT;
   public static final int HEAVY_WEIGHT;
-  private static final ThreadLocalRandom THREAD_LOCAL_RANDOM;
+  private static final RandomGenerator RANDOM;
 
   static {
-    THREAD_LOCAL_RANDOM = ThreadLocalRandom.current();
+    RANDOM = RandomGenerator.getDefault();
     LIGHT_WEIGHT = 32;
     NORMAL_WEIGHT = 64;
     HEAVY_WEIGHT = 128;
@@ -122,6 +126,6 @@ public final class RandomDither extends ForeignDitherAlgorithm {
   }
 
   private int random() {
-    return THREAD_LOCAL_RANDOM.nextInt(this.min, this.max);
+    return RANDOM.nextInt(this.min, this.max);
   }
 }
