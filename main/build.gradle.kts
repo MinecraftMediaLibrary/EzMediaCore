@@ -30,7 +30,7 @@ dependencies {
 
     // PROVIDED DEPENDENCIES / TEST DEPENDENCIES
     setOf(
-        "io.netty:netty-all:4.1.78.Final",
+        "io.netty:netty-all:4.1.79.Final",
         "com.mojang:authlib:1.5.26",
         "com.google.guava:guava:31.1-jre",
         "com.mpatric:mp3agic:0.9.1",
@@ -45,7 +45,7 @@ dependencies {
         "uk.co.caprica:vlcj:4.7.3",
         "uk.co.caprica:vlcj-natives:4.7.0",
         "com.github.sealedtx:java-youtube-downloader:3.0.2",
-        "com.alibaba:fastjson:2.0.8",
+        "com.alibaba:fastjson:2.0.9",
         "net.java.dev.jna:jna:5.12.1",
         "net.java.dev.jna:jna-platform:5.12.1",
         "se.michaelthelin.spotify:spotify-web-api-java:7.1.0",
