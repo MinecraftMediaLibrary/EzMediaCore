@@ -1,1 +1,50 @@
-[{"original":"org.apache.httpcomponents","relocation":"io.github.pulsebeat02.ezmediacore.lib.apache.httpcomponents"},{"original":"it.unimi.dsi","relocation":"io.github.pulsebeat02.ezmediacore.lib.dsi"},{"original":"se.michaelthelin","relocation":"io.github.pulsebeat02.ezmediacore.lib.michaelthelin"},{"original":"com.fasterxml","relocation":"io.github.pulsebeat02.ezmediacore.lib.fasterxml"},{"original":"uk.co.caprica","relocation":"io.github.pulsebeat02.ezmediacore.lib.caprica"},{"original":"com.alibaba","relocation":"io.github.pulsebeat02.ezmediacore.lib.alibaba"},{"original":"com.github.kiulian","relocation":"io.github.pulsebeat02.ezmediacore.lib.kiulian"},{"original":"com.neovisionaries","relocation":"io.github.pulsebeat02.ezmediacore.lib.neovisionaries"},{"original":"com.github.kokorin","relocation":"io.github.pulsebeat02.ezmediacore.lib.kokorin"},{"original":"com.github.benmanes","relocation":"io.github.pulsebeat02.ezmediacore.lib.benmanes"},{"original":"net.sourceforge.jaad.aac","relocation":"io.github.pulsebeat02.ezmediacore.lib.sourceforge"},{"original":"org.jcodec","relocation":"io.github.pulsebeat02.ezmediacore.lib.jcodec"}]
+[
+  {
+    "original": "org.apache.httpcomponents",
+    "relocation": "io.github.pulsebeat02.ezmediacore.lib.apache.httpcomponents"
+  },
+  {
+    "original": "it.unimi.dsi",
+    "relocation": "io.github.pulsebeat02.ezmediacore.lib.dsi"
+  },
+  {
+    "original": "se.michaelthelin",
+    "relocation": "io.github.pulsebeat02.ezmediacore.lib.michaelthelin"
+  },
+  {
+    "original": "com.fasterxml",
+    "relocation": "io.github.pulsebeat02.ezmediacore.lib.fasterxml"
+  },
+  {
+    "original": "uk.co.caprica",
+    "relocation": "io.github.pulsebeat02.ezmediacore.lib.caprica"
+  },
+  {
+    "original": "com.alibaba",
+    "relocation": "io.github.pulsebeat02.ezmediacore.lib.alibaba"
+  },
+  {
+    "original": "com.github.kiulian",
+    "relocation": "io.github.pulsebeat02.ezmediacore.lib.kiulian"
+  },
+  {
+    "original": "com.neovisionaries",
+    "relocation": "io.github.pulsebeat02.ezmediacore.lib.neovisionaries"
+  },
+  {
+    "original": "com.github.kokorin",
+    "relocation": "io.github.pulsebeat02.ezmediacore.lib.kokorin"
+  },
+  {
+    "original": "com.github.benmanes",
+    "relocation": "io.github.pulsebeat02.ezmediacore.lib.benmanes"
+  },
+  {
+    "original": "net.sourceforge.jaad.aac",
+    "relocation": "io.github.pulsebeat02.ezmediacore.lib.sourceforge"
+  },
+  {
+    "original": "org.jcodec",
+    "relocation": "io.github.pulsebeat02.ezmediacore.lib.jcodec"
+  }
+]

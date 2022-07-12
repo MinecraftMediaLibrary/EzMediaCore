@@ -68,7 +68,7 @@ public final class NMSReflectionHandler {
         | NoSuchMethodException
         | InvocationTargetException e) {
       final String software = this.core.getPlugin().getServer().getVersion();
-      this.core.getLogger().error(Locale.ERR_SERVER_UNSUPPORTED.build(software));
+      this.core.getLogger().error(Locale.UNSUPPORTED_SERVER.build(software));
       throw new AssertionError(
           "Current server implementation (%s) is not supported!".formatted(software));
     }

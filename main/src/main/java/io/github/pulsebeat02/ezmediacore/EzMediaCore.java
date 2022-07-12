@@ -38,7 +38,6 @@ import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import io.github.pulsebeat02.ezmediacore.utility.search.StringSearch;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -119,13 +118,13 @@ public final class EzMediaCore implements MediaLibraryCore {
   private void initDiagnostics() {
     this.diagnostics = new SystemDiagnostics(this);
     this.diagnostics.debugInformation();
-    this.logger.info(Locale.FINISHED_SYSTEM_DIAGNOSTIC.build());
+    this.logger.info(Locale.SYSTEM_DIAGNOSTIC.build());
   }
 
   private void initPacketHandler() {
     if (!this.isMocking()) {
       this.assignPacketHandler();
-      this.logger.info(Locale.FINISHED_PACKET_HANDLE.build());
+      this.logger.info(Locale.PACKET_HANDLER.build());
     }
   }
 
@@ -141,7 +140,7 @@ public final class EzMediaCore implements MediaLibraryCore {
     DitherLookupUtil.init();
     StringSearch.init();
     SpotifyProvider.init(this);
-    this.logger.info(Locale.FINISHED_LOOKUP_CACHE.build());
+    this.logger.info(Locale.LOOKUP_CACHE.build());
   }
 
   private void initStream() {
@@ -150,7 +149,6 @@ public final class EzMediaCore implements MediaLibraryCore {
 
   private void initDependencyLoader() {
     this.loader = (this.loader == null ? new DependencyLoader(this) : this.loader);
-    this.logger.info(Locale.FINISHED_DEPENDENCY_LOADER.build());
   }
 
   @Override
@@ -163,7 +161,7 @@ public final class EzMediaCore implements MediaLibraryCore {
 
   private void registerEvents() {
     this.registrationListener = new RegistrationListener(this);
-    this.logger.info(Locale.FINISHED_EVENT_REGISTRATION.build());
+    this.logger.info(Locale.EVENT_REGISTRATION.build());
   }
 
   private void createFolders() {
@@ -175,7 +173,7 @@ public final class EzMediaCore implements MediaLibraryCore {
             this.audioPath,
             this.videoPath)
         .forEach(FileUtils::createDirectoryIfNotExistsExceptionally);
-    this.logger.info(Locale.FINISHED_FOLDER_CREATION.build());
+    this.logger.info(Locale.FILE_CREATION.build());
   }
 
   private void createFiles() {
@@ -184,7 +182,7 @@ public final class EzMediaCore implements MediaLibraryCore {
 
   private void startDependencyLoader() {
     this.loader.start();
-    this.logger.info(Locale.FINISHED_DEPENDENCY_HANDLING.build());
+    this.logger.info(Locale.DEPENDENCY_LOADING.build());
   }
 
   private void sendUsageTips() {
@@ -194,12 +192,12 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void sendWarningMessage() {
-    this.logger.warn(Locale.SERVER_SOFTWARE_TIP.build());
+    this.logger.warn(Locale.SERVER_SOFTWARE.build());
   }
 
   private void sendPacketCompressionTip() {
     if (this.isOnlineMode()) {
-      this.logger.warn(Locale.PACKET_COMPRESSION_TIP.build());
+      this.logger.warn(Locale.PACKET_COMPRESSION.build());
     }
   }
 
@@ -209,7 +207,7 @@ public final class EzMediaCore implements MediaLibraryCore {
 
   private void sendSpotifyWarningMessage(@NotNull final MediaLibraryCore core) {
     if (this.invalidSpotifyClient(core)) {
-      this.logger.warn(Locale.WARN_SPOTIFY_AUTH.build());
+      this.logger.warn(Locale.SPOTIFY_AUTHENTICATION.build());
     }
   }
 

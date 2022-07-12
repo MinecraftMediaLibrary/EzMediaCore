@@ -114,7 +114,7 @@ public class DependencyLoader implements LibraryLoader {
       @NotNull final LibraryDependency dependency, @NotNull final String name) throws IOException {
     dependency.start();
     final CoreLogger logger = this.core.getLogger();
-    logger.info(Locale.FINISHED_DEPENDENCY_LOAD.build(name));
+    logger.info(Locale.DEPENDENCY_LOAD.build(name));
   }
 
   @Override

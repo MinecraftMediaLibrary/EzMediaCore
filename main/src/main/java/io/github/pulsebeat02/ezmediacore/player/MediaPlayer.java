@@ -94,14 +94,14 @@ public abstract class MediaPlayer implements VideoPlayer {
     this.onPlayerStateChange(mrl, this.controls, arguments);
     this.core
         .getLogger()
-        .info(Locale.MEDIA_PLAYER_START.build(mrl.getInput(), Arrays.toString(arguments)));
+        .info(Locale.PLAYER_START.build(mrl.getInput(), Arrays.toString(arguments)));
   }
 
   @Override
   public void pause() {
     this.controls = PlayerControls.PAUSE;
     this.onPlayerStateChange(null, this.controls);
-    this.core.getLogger().info(Locale.MEDIA_PLAYER_PAUSE.build());
+    this.core.getLogger().info(Locale.PLAYER_PAUSE.build());
   }
 
   @Override
@@ -110,14 +110,14 @@ public abstract class MediaPlayer implements VideoPlayer {
     checkNotNull(mrl, "Input cannot be null!");
     this.controls = PlayerControls.RESUME;
     this.onPlayerStateChange(mrl, this.controls);
-    this.core.getLogger().info(Locale.MEDIA_PLAYER_RESUME.build(mrl.getInput()));
+    this.core.getLogger().info(Locale.PLAYER_RESUME.build());
   }
 
   @Override
   public void release() {
     this.controls = PlayerControls.RELEASE;
     this.onPlayerStateChange(null, this.controls);
-    this.core.getLogger().info(Locale.MEDIA_PLAYER_RELEASE.build());
+    this.core.getLogger().info(Locale.PLAYER_RELEASE.build());
   }
 
   @Override

@@ -31,25 +31,22 @@ import java.nio.file.Path;
 import static io.github.pulsebeat02.ezmediacore.locale.MessageLoader.key;
 
 public interface Locale {
-  NullComponent FINISHED_SYSTEM_DIAGNOSTIC = toNullComponent(key("ezmediacore.log.diagnostic"));
-  NullComponent FINISHED_PACKET_HANDLE = toNullComponent(key("ezmediacore.log.handle"));
-  NullComponent FINISHED_LOOKUP_CACHE = toNullComponent(key("ezmediacore.log.cache"));
-  NullComponent FINISHED_DEPENDENCY_LOADER = toNullComponent(key("ezmediacore.log.loader"));
-  NullComponent FINISHED_EVENT_REGISTRATION = toNullComponent(key("ezmediacore.log.event"));
-  NullComponent FINISHED_FOLDER_CREATION = toNullComponent(key("ezmediacore.log.folder"));
-  NullComponent FINISHED_DEPENDENCY_HANDLING = toNullComponent(key("ezmediacore.log.dependency"));
-  NullComponent FINISHED_NATIVE_VLC_LOG_REGISTRATION =
-      toNullComponent(key("ezmediacore.log.native"));
-  NullComponent MEDIA_PLAYER_RELEASE = toNullComponent(key("ezmediacore.log.release"));
-  NullComponent MEDIA_PLAYER_PAUSE = toNullComponent(key("ezmediacore.log.pause"));
-  NullComponent FINISHED_JCODEC_FRAME_GRABBER = toNullComponent(key("ezmediacore.log.jcodec"));
-  NullComponent SERVER_SOFTWARE_TIP = toNullComponent(key("ezmediacore.log.server.software"));
-  NullComponent PACKET_COMPRESSION_TIP = toNullComponent(key("ezmediacore.log.packet.compression"));
-  NullComponent WARN_SPOTIFY_AUTH = toNullComponent(key("ezmediacore.log.spotify.auth"));
-  UniComponent<String> MEDIA_PLAYER_RESUME = key("ezmediacore.log.resume")::formatted;
-  UniComponent<String> ERR_SERVER_UNSUPPORTED = key("ezmediacore.error.server")::formatted;
-  UniComponent<String> FINISHED_DEPENDENCY_LOAD = key("ezmediacore.log.dependency.load")::formatted;
-  BiComponent<String, String> MEDIA_PLAYER_START = key("ezmediacore.log.start")::formatted;
+  NullComponent SYSTEM_DIAGNOSTIC = toNullComponent(key("ezmediacore.log.diagnostic"));
+  NullComponent PACKET_HANDLER = toNullComponent(key("ezmediacore.log.handle"));
+  NullComponent LOOKUP_CACHE = toNullComponent(key("ezmediacore.log.cache"));
+  NullComponent EVENT_REGISTRATION = toNullComponent(key("ezmediacore.log.event"));
+  NullComponent FILE_CREATION = toNullComponent(key("ezmediacore.log.folder"));
+  NullComponent DEPENDENCY_LOADING = toNullComponent(key("ezmediacore.log.dependency"));
+  NullComponent NATIVE_LOG_REGISTRATION = toNullComponent(key("ezmediacore.log.native"));
+  NullComponent PLAYER_RELEASE = toNullComponent(key("ezmediacore.log.release"));
+  NullComponent PLAYER_PAUSE = toNullComponent(key("ezmediacore.log.pause"));
+  NullComponent PLAYER_RESUME = toNullComponent(key("ezmediacore.log.resume"));
+  NullComponent SERVER_SOFTWARE = toNullComponent(key("ezmediacore.log.server.software"));
+  NullComponent PACKET_COMPRESSION = toNullComponent(key("ezmediacore.log.packet.compression"));
+  NullComponent SPOTIFY_AUTHENTICATION = toNullComponent(key("ezmediacore.log.spotify.auth"));
+  UniComponent<String> UNSUPPORTED_SERVER = key("ezmediacore.error.server")::formatted;
+  UniComponent<String> DEPENDENCY_LOAD = key("ezmediacore.log.dependency.load")::formatted;
+  BiComponent<String, String> PLAYER_START = key("ezmediacore.log.start")::formatted;
   BiComponent<String, Path> BINARY_PATHS = key("ezmediacore.log.binary")::formatted;
   TriComponent<String, String, Boolean> SERVER_INFO = key("ezmediacore.log.http")::formatted;
   QuadComponent<String, String, String, String> SYSTEM_INFO =

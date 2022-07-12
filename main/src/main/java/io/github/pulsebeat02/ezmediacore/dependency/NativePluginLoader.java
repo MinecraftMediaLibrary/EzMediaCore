@@ -72,7 +72,7 @@ public class NativePluginLoader {
     log.release();
     player.release();
     factory.release();
-    this.core.getLogger().info(Locale.MEDIA_PLAYER_RELEASE.build());
+    this.core.getLogger().info(Locale.PLAYER_RELEASE.build());
   }
 
   private @NotNull NativeLog createLog(@NotNull final MediaPlayerFactory factory) {
@@ -81,7 +81,7 @@ public class NativePluginLoader {
     log.setLevel(LogLevel.DEBUG);
     log.addLogListener(this.createListener());
 
-    this.core.getLogger().info(Locale.FINISHED_NATIVE_VLC_LOG_REGISTRATION.build());
+    this.core.getLogger().info(Locale.NATIVE_LOG_REGISTRATION.build());
 
     return log;
   }
@@ -101,7 +101,7 @@ public class NativePluginLoader {
 
   private void playMedia(@NotNull final EmbeddedMediaPlayer player) {
     player.media().play(VLC_PRERENDER);
-    this.core.getLogger().info(Locale.MEDIA_PLAYER_START.build(VLC_PRERENDER, ""));
+    this.core.getLogger().info(Locale.PLAYER_START.build(VLC_PRERENDER, ""));
   }
 
   private void addEvents(
