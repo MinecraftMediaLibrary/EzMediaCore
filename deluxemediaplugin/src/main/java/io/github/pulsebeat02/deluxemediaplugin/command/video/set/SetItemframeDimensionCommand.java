@@ -76,7 +76,7 @@ public final class SetItemframeDimensionCommand implements CommandSegment.Litera
 
     this.setDimensions(width, height);
 
-    audience.sendMessage(Locale.CHANGED_ITEMFRAME_DIMS.build(width, height));
+    audience.sendMessage(Locale.SET_ITEMFRAME_DIMENSION.build(width, height));
 
     return SINGLE_SUCCESS;
   }

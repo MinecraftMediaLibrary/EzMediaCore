@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
 
 public final class TranslationManager {
 
@@ -28,14 +29,26 @@ public final class TranslationManager {
   }
 
   private void registerTranslations() {
+    this.registerLocale();
+    this.addGlobalRegistry();
+  }
+
+  private void addGlobalRegistry() {
+    GlobalTranslator.translator().addSource(this.registry);
+  }
+
+  private void registerLocale() {
+    final ResourceBundle bundle = this.getBundle();
+    this.registry.registerAll(DEFAULT_LOCALE, bundle, false);
+  }
+
+  private @NotNull PropertyResourceBundle getBundle() {
     try (final Reader reader =
         ResourceUtils.getResourceAsInputStream("/locale/deluxemediaplugin_en.properties")) {
-      final PropertyResourceBundle bundle = new PropertyResourceBundle(reader);
-      this.registry.registerAll(DEFAULT_LOCALE, bundle, false);
+      return new PropertyResourceBundle(reader);
     } catch (final IOException e) {
       throw new RuntimeException(e);
     }
-    GlobalTranslator.translator().addSource(this.registry);
   }
 
   public @NotNull Component render(@NotNull final Component component) {

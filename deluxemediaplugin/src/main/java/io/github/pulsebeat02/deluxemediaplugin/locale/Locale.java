@@ -25,16 +25,12 @@
 package io.github.pulsebeat02.deluxemediaplugin.locale;
 
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.DitheringAlgorithm;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-import java.util.function.Function;
+import java.util.List;
 
+import static io.github.pulsebeat02.deluxemediaplugin.locale.LocaleParent.*;
 import static net.kyori.adventure.text.Component.*;
-import static net.kyori.adventure.text.JoinConfiguration.separator;
 import static net.kyori.adventure.text.event.ClickEvent.openUrl;
 import static net.kyori.adventure.text.event.ClickEvent.runCommand;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
@@ -42,9 +38,9 @@ import static net.kyori.adventure.text.format.Style.style;
 import static net.kyori.adventure.text.format.TextDecoration.BOLD;
 import static net.kyori.adventure.text.format.TextDecoration.UNDERLINED;
 
-public interface Locale {
 
-  //
+public interface Locale extends LocaleParent{
+
   NullComponent<Sender> PLUGIN_INFO = () -> text()
       .append(text("-----------------------------------", GOLD))
       .append(newline())
@@ -84,12 +80,6 @@ public interface Locale {
                                                                                   |___/        \s
           """,
       (line) -> newline().append(text(line, BLUE)));
-  NullComponent<Sender> PREFIX = () ->
-      text()
-          .color(AQUA)
-          .append(
-              text('['), text("DeluxeMediaPlugin", GOLD), text(']'), space(), text("»", GRAY))
-          .build();
   NullComponent<Sender> ENABLE = info("deluxemediaplugin.log.enable");
   NullComponent<Sender> ENABLE_EMC = info("deluxemediaplugin.log.emc.enable");
   NullComponent<Sender> WELCOME = info("deluxemediaplugin.log.finish");
@@ -139,188 +129,34 @@ public interface Locale {
   NullComponent<Sender> CANCEL_VIDEO_PROCESSING = info("deluxemediaplugin.command.video.cancel-processing");
   NullComponent<Sender> LOAD_VIDEO = info("deluxemediaplugin.command.video.load.metadata");
   NullComponent<Sender> BUILD_SCREEN = info("deluxemediaplugin.command.screen.build");
-  UniComponent<Sender, String> SET_MEDIA = str ->
-          format(translatable("deluxemediaplugin.command.video.load.type", GOLD)
-                  .args(text(str, AQUA)));
+  UniComponent<Sender, String> SET_MEDIA = info("deluxemediaplugin.command.video.load.type", null);
   UniComponent<Sender, String> HTTP_SEND_LINK = mrl ->
           format(translatable("deluxemediaplugin.command.video.resourcepack.link.0", GOLD)
                   .append(translatable("deluxemediaplugin.command.video.resourcepack.link.1")
                           .style(style(AQUA, BOLD, UNDERLINED, openUrl(mrl)))));
 
-  UniComponent<Sender, String> PLAY_VIDEO = mrl->
-          format(translatable("deluxemediaplugin.command.video.play", GOLD).args(text(mrl, AQUA)));
-  UniComponent<Sender, String> LOADED_MEDIA = mrl ->
-          format(translatable("deluxemediaplugin.command.video.load.success", GOLD).args(text(mrl, AQUA)));
-  UniComponent<Sender, String> SET_AUDIO_PLAYBACK = argument ->
-          format(translatable("deluxemediaplugin.command.video.set.audio-playback", GOLD).args(text(argument, AQUA)));
-  UniComponent<Sender, String> SET_DITHER_ALGORITHM = algorithm ->
-          format(translatable("deluxemediaplugin.command.video.set.dither-algorithm", GOLD).args(text(algorithm, AQUA)));
-  UniComponent<Sender, String> SET_PLAYER_ALGORITHM = algorithm ->
-          format(translatable("deluxemediaplugin.command.video.set.player-algorithm", GOLD).args(text(algorithm, AQUA)));
-  UniComponent<Sender, String> SET_VIDEO_PLAYBACK = playback ->
-          format(translatable("deluxemediaplugin.command.video.set.video-playback", GOLD).args(text(playback, AQUA)));
-  UniComponent<Sender, String> NEW_UPDATE_PLUGIN = update ->
-          format(translatable("deluxemediaplugin.log.update.available", GOLD).args(text(update, AQUA)));
-  UniComponent<Sender, String> INVALID_AUDIO_PLAYBACK = argument ->
-          format(translatable("deluxemediaplugin.command.video.set.audio-playback.error", RED).args(text(argument, AQUA)));
-  UniComponent<Sender, String> INVALID_DITHER_ALGORITHM = algorithm ->
-          format(translatable("deluxemediaplugin.command.video.set.dither-algorithm.error", RED).args(text(algorithm, AQUA)));
-  UniComponent<Sender, String> INVALID_VIDEO_PLAYBACK = playback ->
-          format(translatable("deluxemediaplugin.command.video.set.video-playback.error", RED).args(text(playback, AQUA)));
-  UniComponent<Sender, String> CANNOT_CHECK_UPDATES = msg ->
-          format(translatable("deluxemediaplugin.log.update.error", RED).args(text(msg, AQUA)));
-  UniComponent<Sender, String> INVALID_PLAYER_ALGORITHM = algorithm ->
-          format(translatable("deluxemediaplugin.command.video.set.player-algorithm.error", RED));
-  UniComponent<Sender, DitheringAlgorithm> INVALID_NATIVE_DITHERING_ALGORITHM = algorithm ->
-          format(translatable("deluxemediaplugin.command.video.set.native-dithering.error", RED).args(text(algorithm.name(), AQUA)));
-  UniComponent<Sender, Integer> GIVE_SINGLE_MAP = id ->
-          format(translatable("deluxemediaplugin.command.map", GOLD).args(text(id.toString(), AQUA)));
-  UniComponent<Sender, Integer> CHANGED_VIDEO_MAP_ID = id ->
-          format(translatable("deluxemediaplugin.command.video.set.starting-map", GOLD).args(text(id, AQUA)));
-
+  UniComponent<Sender, String> PLAY_VIDEO = info("deluxemediaplugin.command.video.play", null);
+  UniComponent<Sender, String> LOADED_MEDIA = info("deluxemediaplugin.command.video.load.success", null);
+  UniComponent<Sender, String> SET_AUDIO_PLAYBACK = info("deluxemediaplugin.command.video.set.audio-playback", null);
+  UniComponent<Sender, String> SET_DITHER_ALGORITHM = info("deluxemediaplugin.command.video.set.dither-algorithm", null);
+  UniComponent<Sender, String> SET_PLAYER_ALGORITHM = info("deluxemediaplugin.command.video.set.player-algorithm", null);
+  UniComponent<Sender, String> SET_VIDEO_PLAYBACK = info("deluxemediaplugin.command.video.set.video-playback", null);
+  UniComponent<Sender, String> NEW_UPDATE_PLUGIN = info("deluxemediaplugin.log.update.available", null);
+  UniComponent<Sender, String> INVALID_AUDIO_PLAYBACK = error("deluxemediaplugin.command.video.set.audio-playback.error", null);
+  UniComponent<Sender, String> INVALID_DITHER_ALGORITHM = error("deluxemediaplugin.command.video.set.dither-algorithm.error", null);
+  UniComponent<Sender, String> INVALID_VIDEO_PLAYBACK = error("deluxemediaplugin.command.video.set.video-playback.error", null);
+  UniComponent<Sender, String> CANNOT_CHECK_UPDATES = error("deluxemediaplugin.log.update.error", null);
+  UniComponent<Sender, String> INVALID_PLAYER_ALGORITHM = error("deluxemediaplugin.command.video.set.player-algorithm.error", null);
+  UniComponent<Sender, DitheringAlgorithm> INVALID_NATIVE_DITHERING_ALGORITHM = error("deluxemediaplugin.command.video.set.native-dithering.error", null);
+  UniComponent<Sender, Integer> GIVE_SINGLE_MAP = info("deluxemediaplugin.command.map", null);
+  UniComponent<Sender, Integer> CHANGED_VIDEO_MAP_ID = info("deluxemediaplugin.command.video.set.starting-map", null);
   UniComponent<Sender, Player> SEND_RESOURCEPACK_URL = player ->
-          format(translatable("deluxemediaplugin.command.video.resourcepack.result.0", GOLD)
-                  .args(translatable("deluxemediaplugin.command.video.resourcepack.result.1",
-                          style(AQUA, BOLD, UNDERLINED, runCommand("/video resourcepack load %s".formatted(player.getName()))))));
-  BiComponent<Sender, String, byte[]> RESOURCEPACK_INFO = (url, hash) ->
-          format(translatable("deluxemediaplugin.command.video.resourcepack.sent", GOLD).args(text(url, AQUA), text(new String(hash), AQUA)));
-  BiComponent<Sender, DitheringAlgorithm, Boolean> SET_NATIVE_DITHERING = (algorithm, enabled) ->
-          format(translatable("deluxemediaplugin.command.video.set.native-dithering", GOLD).args(text(enabled ? "on" : "off", AQUA), text(algorithm.name(), AQUA)));
-  BiComponent<Sender, Integer, Integer> GIVE_MAP_RANGE = (start, end) ->
-          format(translatable("deluxemediaplugin.command.map.range", GOLD).args(text(start, AQUA), text(end, AQUA)));
-  BiComponent<Sender, Integer, Integer> CHANGED_VIDEO_SCREEN_DIMS = (width, height) ->
-          format(translatable("deluxemediaplugin.command.video.set.resolution", GOLD).args(text(width, AQUA), text(height, AQUA)));
-  BiComponent<Sender, Integer, Integer> CHANGED_ITEMFRAME_DIMS = (width, height) ->
-          format(translatable("deluxemediaplugin.command.video.set.itemframe-dimension", GOLD).args(text(width, AQUA), text(height, AQUA)));
-  BiComponent<Sender, String, String> INVALID_PLAYER_MEDIA = (player, media) ->
-          format(translatable("deluxemediaplugin.command.video.load.player.invalid-input", RED).args(text(player, AQUA), text(media, AQUA)));
-
-  TranslationManager MANAGER = new TranslationManager();
-  static @NotNull NullComponent<Sender> error(@NotNull final String key) {
-    return () -> MANAGER.render(translatable(key, RED));
-  }
-
-  static @NotNull NullComponent<Sender> info(@NotNull final String key) {
-    return () -> format(translatable(key, GOLD));
-  }
-
-  static @NotNull TextComponent getCommandUsageComponent(
-      @NotNull final Map<String, String> usages) {
-    final TextComponent.Builder builder =
-        text().append(text("------------------", AQUA)).append(newline());
-    usages.forEach((key, value) -> builder.append(createUsageComponent(key, value)));
-    builder.append(text("------------------", AQUA));
-    return builder.build();
-  }
-
-  static @NotNull Component createUsageComponent(
-      @NotNull final String key, @NotNull final String value) {
-    return join(
-        separator(space()), text(key, LIGHT_PURPLE), text("-", GOLD), text(value, AQUA), newline());
-  }
-
-  static @NotNull Component format(@NotNull final Component message) {
-    return MANAGER.render(join(separator(space()), PREFIX.build(), message));
-  }
-  static @NotNull Component getComponent(@NotNull final String largeString,
-      @NotNull final Function<String, Component> function) {
-    final TextComponent.Builder component = text();
-    final String[] split = largeString.split(System.lineSeparator());
-    for (final String line : split) {
-      component.append(function.apply(line));
-    }
-    return component.build();
-  }
-
-  @FunctionalInterface
-  interface NullComponent<S extends Sender> {
-
-    Component build();
-
-    default void send(@NotNull final S sender) {
-      sender.sendMessage(format(this.build()));
-    }
-  }
-
-  @FunctionalInterface
-  interface UniComponent<S extends Sender, A0> {
-
-    Component build(A0 arg0);
-
-    default void send(@NotNull final S sender, final A0 arg0) {
-      sender.sendMessage(format(this.build(arg0)));
-    }
-  }
-
-  @FunctionalInterface
-  interface BiComponent<S extends Sender, A0, A1> {
-
-    Component build(A0 arg0, A1 arg1);
-
-    default void send(@NotNull final S sender, @NotNull final A0 arg0, @NotNull final A1 arg1) {
-      sender.sendMessage(format(this.build(arg0, arg1)));
-    }
-  }
-
-  @FunctionalInterface
-  interface TriComponent<S extends Sender, A0, A1, A2> {
-
-    Component build(A0 arg0, A1 arg1, A2 arg2);
-
-    default void send(
-        @NotNull final S sender,
-        @NotNull final A0 arg0,
-        @NotNull final A1 arg1,
-        @NotNull final A2 arg2) {
-      sender.sendMessage(format(this.build(arg0, arg1, arg2)));
-    }
-  }
-
-  @FunctionalInterface
-  interface QuadComponent<S extends Sender, A0, A1, A2, A3> {
-
-    Component build(A0 arg0, A1 arg1, A2 arg2, A3 arg3);
-
-    default void send(
-        @NotNull final S sender,
-        @NotNull final A0 arg0,
-        @NotNull final A1 arg1,
-        @NotNull final A2 arg2,
-        @NotNull final A3 arg3) {
-      sender.sendMessage(format(this.build(arg0, arg1, arg2, arg3)));
-    }
-  }
-
-  @FunctionalInterface
-  interface PentaComponent<S extends Sender, A0, A1, A2, A3, A4> {
-
-    Component build(A0 arg0, A1 arg1, A2 arg2, A3 arg3, A4 arg4);
-
-    default void send(
-        @NotNull final S sender,
-        @NotNull final A0 arg0,
-        @NotNull final A1 arg1,
-        @NotNull final A2 arg2,
-        @NotNull final A3 arg3,
-        @NotNull final A4 arg4) {
-      sender.sendMessage(format(this.build(arg0, arg1, arg2, arg3, arg4)));
-    }
-  }
-
-  @FunctionalInterface
-  interface HexaComponent<S extends Sender, A0, A1, A2, A3, A4, A5> {
-
-    Component build(A0 arg0, A1 arg1, A2 arg2, A3 arg3, A4 arg4, A5 arg5);
-
-    default void send(
-        @NotNull final S sender,
-        @NotNull final A0 arg0,
-        @NotNull final A1 arg1,
-        @NotNull final A2 arg2,
-        @NotNull final A3 arg3,
-        @NotNull final A4 arg4,
-        @NotNull final A5 arg5) {
-      sender.sendMessage(format(this.build(arg0, arg1, arg2, arg3, arg4, arg5)));
-    }
-  }
+          format(translatable("deluxemediaplugin.command.video.resourcepack.result.0", GOLD, List.of(translatable("deluxemediaplugin.command.video.resourcepack.result.1",
+                  style(AQUA, BOLD, UNDERLINED, runCommand("/video resourcepack load %s".formatted(player.getName())))))));
+  BiComponent<Sender, String, byte[]> RESOURCEPACK_INFO = info("deluxemediaplugin.command.video.resourcepack.sent", null, String::new);
+  BiComponent<Sender, DitheringAlgorithm, Boolean> SET_NATIVE_DITHERING = info("deluxemediaplugin.command.video.set.native-dithering", null,  enabled -> enabled ? "on" : "off");
+  BiComponent<Sender, Integer, Integer> GIVE_MAP_RANGE = info("deluxemediaplugin.command.map.range", null, null);
+  BiComponent<Sender, Integer, Integer> SET_RESOLUTION = info("deluxemediaplugin.command.video.set.resolution", null, null);
+  BiComponent<Sender, Integer, Integer> SET_ITEMFRAME_DIMENSION = info("deluxemediaplugin.command.video.set.itemframe-dimension", null, null);
+  BiComponent<Sender, String, String> INVALID_PLAYER_MEDIA = error("deluxemediaplugin.command.video.load.player.invalid-input", null, null);
 }

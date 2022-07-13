@@ -89,7 +89,7 @@ public final class SetResolutionCommand implements CommandSegment.Literal<Comman
 
     this.setResolution(width, height);
 
-    audience.sendMessage(Locale.CHANGED_VIDEO_SCREEN_DIMS.build(width, height));
+    audience.sendMessage(Locale.SET_RESOLUTION.build(width, height));
 
     return SINGLE_SUCCESS;
   }
