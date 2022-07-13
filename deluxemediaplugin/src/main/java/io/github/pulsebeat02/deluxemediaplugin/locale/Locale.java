@@ -150,9 +150,9 @@ public interface Locale extends LocaleParent{
   UniComponent<Sender, DitheringAlgorithm> INVALID_NATIVE_DITHERING_ALGORITHM = error("deluxemediaplugin.command.video.set.native-dithering.error", null);
   UniComponent<Sender, Integer> GIVE_SINGLE_MAP = info("deluxemediaplugin.command.map", null);
   UniComponent<Sender, Integer> CHANGED_VIDEO_MAP_ID = info("deluxemediaplugin.command.video.set.starting-map", null);
-  UniComponent<Sender, Player> SEND_RESOURCEPACK_URL = player ->
+  UniComponent<Sender, String> SEND_RESOURCEPACK_URL = player ->
           format(translatable("deluxemediaplugin.command.video.resourcepack.result.0", GOLD, List.of(translatable("deluxemediaplugin.command.video.resourcepack.result.1",
-                  style(AQUA, BOLD, UNDERLINED, runCommand("/video resourcepack load %s".formatted(player.getName())))))));
+                  style(AQUA, BOLD, UNDERLINED, runCommand("/video resourcepack load %s".formatted(player)))))));
   BiComponent<Sender, String, byte[]> RESOURCEPACK_INFO = info("deluxemediaplugin.command.video.resourcepack.sent", null, String::new);
   BiComponent<Sender, DitheringAlgorithm, Boolean> SET_NATIVE_DITHERING = info("deluxemediaplugin.command.video.set.native-dithering", null,  enabled -> enabled ? "on" : "off");
   BiComponent<Sender, Integer, Integer> GIVE_MAP_RANGE = info("deluxemediaplugin.command.map.range", null, null);

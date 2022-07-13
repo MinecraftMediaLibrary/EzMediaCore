@@ -103,7 +103,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
 
   private void sendSeparatePackMessage(@NotNull final Player player) {
     final Audience playerAudience = this.plugin.audience().player(player);
-    playerAudience.sendMessage(Locale.SEND_RESOURCEPACK_URL.build(player));
+    playerAudience.sendMessage(Locale.SEND_RESOURCEPACK_URL.build(player.getName()));
   }
 
   private boolean handleResourcepackAudio(
