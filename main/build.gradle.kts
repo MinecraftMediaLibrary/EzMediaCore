@@ -7,9 +7,9 @@ plugins {
 dependencies {
 
     setOf(
-        "io.github.pulsebeat02:emc-dependency-management:v1.0.0",
-        "io.github.pulsebeat02:emc-installers:v1.1.0",
-        "io.github.pulsebeat02:native-library-loader:v1.0.2"
+            "io.github.pulsebeat02:emc-dependency-management:v1.0.0",
+            "io.github.pulsebeat02:emc-installers:v1.1.0",
+            "io.github.pulsebeat02:native-library-loader:v1.0.2"
     ).forEach {
         implementation(it)
     }
@@ -19,22 +19,22 @@ dependencies {
     }
 
     setOf(
-        "org.junit.jupiter:junit-jupiter-engine:5.8.2",
-        "org.junit.jupiter:junit-jupiter-api:5.8.2",
-        "com.github.seeseemelk:MockBukkit-v1.18:2.27.0",
-        "org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT",
-        "me.friwi:jcefmaven:100.0.14.3"
+            "org.junit.jupiter:junit-jupiter-engine:5.8.2",
+            "org.junit.jupiter:junit-jupiter-api:5.8.2",
+            "com.github.seeseemelk:MockBukkit-v1.18:2.27.0",
+            "org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT",
+            "me.friwi:jcefmaven:100.0.14.3"
     ).forEach {
         testImplementation(it)
     }
 
     // PROVIDED DEPENDENCIES / TEST DEPENDENCIES
     setOf(
-        "io.netty:netty-all:4.1.79.Final",
-        "com.mojang:authlib:1.5.26",
-        "com.google.guava:guava:31.1-jre",
-        "com.mpatric:mp3agic:0.9.1",
-        "com.github.kevinsawicki:http-request:6.0"
+            "io.netty:netty-all:4.1.79.Final",
+            "com.mojang:authlib:1.5.26",
+            "com.google.guava:guava:31.1-jre",
+            "com.mpatric:mp3agic:0.9.1",
+            "com.github.kevinsawicki:http-request:6.0"
     ).forEach {
         compileOnly(it)
         testImplementation(it)
@@ -42,20 +42,20 @@ dependencies {
 
     // MAIN DEPENDENCIES
     setOf(
-        "uk.co.caprica:vlcj:4.7.3",
-        "uk.co.caprica:vlcj-natives:4.7.0",
-        "com.github.sealedtx:java-youtube-downloader:3.0.2",
-        "com.alibaba:fastjson:2.0.9",
-        "net.java.dev.jna:jna:5.12.1",
-        "net.java.dev.jna:jna-platform:5.12.1",
-        "se.michaelthelin.spotify:spotify-web-api-java:7.1.0",
-        "com.github.kokorin.jaffree:jaffree:2022.06.03",
-        "org.jcodec:jcodec:0.2.5",
-        "com.github.ben-manes.caffeine:caffeine:3.1.1",
-        "it.unimi.dsi:fastutil:8.5.8",
-        "com.fasterxml.jackson.core:jackson-core:2.13.3",
-        "org.apache.httpcomponents.client5:httpclient5:5.2-beta1",
-        "com.neovisionaries:nv-i18n:1.29",
+            "uk.co.caprica:vlcj:4.7.3",
+            "uk.co.caprica:vlcj-natives:4.7.0",
+            "com.github.sealedtx:java-youtube-downloader:3.0.2",
+            "com.alibaba:fastjson:2.0.9",
+            "net.java.dev.jna:jna:5.12.1",
+            "net.java.dev.jna:jna-platform:5.12.1",
+            "se.michaelthelin.spotify:spotify-web-api-java:7.1.0",
+            "com.github.kokorin.jaffree:jaffree:2022.06.03",
+            "org.jcodec:jcodec:0.2.5",
+            "com.github.ben-manes.caffeine:caffeine:3.1.1",
+            "it.unimi.dsi:fastutil:8.5.8",
+            "com.fasterxml.jackson.core:jackson-core:2.13.3",
+            "org.apache.httpcomponents.client5:httpclient5:5.2-beta1",
+            "com.neovisionaries:nv-i18n:1.29",
     ).forEach {
         compileOnly(it)
         testImplementation(it)
@@ -63,9 +63,9 @@ dependencies {
 
     // PROJECT DEPENDENCIES
     setOf(
-        project(":api"),
-        project(":v1_18_R2"),
-        project(":v1_19_R1")
+            project(":api"),
+            project(":v1_18_R2"),
+            project(":v1_19_R1")
     ).forEach {
         api(it)
     }

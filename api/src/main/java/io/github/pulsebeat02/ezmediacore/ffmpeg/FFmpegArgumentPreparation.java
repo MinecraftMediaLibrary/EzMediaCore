@@ -59,6 +59,7 @@ public interface FFmpegArgumentPreparation extends LibraryInjectable, EnhancedEx
 
   @NotNull
   FFmpegArgumentPreparation modifyProcess(@NotNull final Consumer<ProcessBuilder> builder);
+
   void clearArguments();
 
   void onBeforeExecution();

@@ -12,9 +12,12 @@ public interface PackCallback {
 
   void playAudio();
 
-  @NotNull String getAudioUrl();
+  @NotNull
+  String getAudioUrl();
 
-  @Nullable CompletableFuture<Path> getPackFuture();
+  @Nullable
+  CompletableFuture<Path> getPackFuture();
 
-  @Nullable HttpDaemonSolution getServer();
+  @Nullable
+  HttpDaemonSolution getServer();
 }

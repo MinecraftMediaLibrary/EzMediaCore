@@ -145,7 +145,8 @@ public final class FileUtils {
     return Files.lines(file).findFirst().orElseThrow(NoSuchElementException::new);
   }
 
-  public static boolean copyFromResourcesExceptionally(@NotNull final String resource, @NotNull final Path destination) {
+  public static boolean copyFromResourcesExceptionally(
+      @NotNull final String resource, @NotNull final Path destination) {
     final ClassLoader loader = FileUtils.class.getClassLoader();
     final File file = new File(loader.getResource(resource).getFile());
     try {

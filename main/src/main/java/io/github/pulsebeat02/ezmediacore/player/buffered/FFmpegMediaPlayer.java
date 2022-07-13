@@ -139,7 +139,8 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
     this.addArguments(FFmpegArguments.TUNE, "fastdecode");
     this.addArguments(FFmpegArguments.TUNE, "zerolatency");
     this.addArguments(FFmpegArguments.DURATION_START, delay);
-    this.addArgument(FFmpegArguments.VIDEO_SCALE.formatted(dimension.getWidth(), dimension.getHeight()));
+    this.addArgument(
+        FFmpegArguments.VIDEO_SCALE.formatted(dimension.getWidth(), dimension.getHeight()));
     this.addArgument(this.getOutput().toString());
 
     // handle output...

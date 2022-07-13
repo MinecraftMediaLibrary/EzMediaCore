@@ -63,7 +63,7 @@ public final class LoadPathCommand implements CommandSegment.Literal<CommandSend
   }
 
   private boolean checkInvalidPath(@NotNull final Audience audience, @NotNull final String path) {
-    return handleTrue(audience, Locale.ERR_INVALID_PATH.build(), PathUtils.isValidPath(path));
+    return handleTrue(audience, Locale.INVALID_FILE.build(), PathUtils.isValidPath(path));
   }
 
   @Override

@@ -14,7 +14,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.DitheringAlgorithm;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
-import java.util.Arrays;
+
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -46,8 +46,7 @@ public final class SetDitheringAlgorithmCommand implements CommandSegment.Litera
   private @NotNull CompletableFuture<Suggestions> suggestDitheringAlgorithm(
       @NotNull final CommandContext<CommandSender> context,
       @NotNull final SuggestionsBuilder builder) {
-    Stream.of(DitheringAlgorithm.values())
-        .forEach(algorithm -> builder.suggest(algorithm.name()));
+    Stream.of(DitheringAlgorithm.values()).forEach(algorithm -> builder.suggest(algorithm.name()));
     return builder.buildFuture();
   }
 
@@ -58,8 +57,7 @@ public final class SetDitheringAlgorithmCommand implements CommandSegment.Litera
     final String algorithm = context.getArgument("algorithm", String.class);
     final Optional<DitheringAlgorithm> setting = DitheringAlgorithm.ofKey(algorithm);
 
-    if (handleEmptyOptional(
-        audience, Locale.ERR_INVALID_DITHER_ALGORITHM.build(algorithm), setting)) {
+    if (handleEmptyOptional(audience, Locale.INVALID_DITHER_ALGORITHM.build(algorithm), setting)) {
       return SINGLE_SUCCESS;
     }
 

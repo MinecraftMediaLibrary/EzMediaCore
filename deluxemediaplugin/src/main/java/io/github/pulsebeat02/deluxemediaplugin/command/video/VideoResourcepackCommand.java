@@ -102,7 +102,7 @@ public final class VideoResourcepackCommand implements CommandSegment.Literal<Co
     } catch (final IllegalArgumentException e) {
       status = true;
     }
-    return handleTrue(audience, Locale.ERR_INVALID_TARGET_SELECTOR.build(), status);
+    return handleTrue(audience, Locale.INVALID_TARGET_SELECTOR.build(), status);
   }
 
   private void loadResourcepack(
@@ -111,11 +111,11 @@ public final class VideoResourcepackCommand implements CommandSegment.Literal<Co
     final byte[] hash = this.config.getPackHash();
     final List<? extends Player> cast = this.convert(entities);
     ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), cast, url, hash);
-    audience.sendMessage(Locale.SENT_RESOURCEPACK.build(url, hash));
+    audience.sendMessage(Locale.RESOURCEPACK_INFO.build(url, hash));
   }
 
   private boolean unloadedResourcepack(@NotNull final Audience audience) {
-    final Component component = Locale.ERR_NO_RESOURCEPACK.build();
+    final Component component = Locale.INVALID_RESOURCEPACK.build();
     if (handleNull(audience, component, this.config.getPackUrl())) {
       return true;
     }
@@ -126,7 +126,7 @@ public final class VideoResourcepackCommand implements CommandSegment.Literal<Co
       @NotNull final Audience audience, @NotNull final List<Entity> entities) {
     final boolean valid =
         entities.stream().anyMatch(Predicate.not(entity -> entity instanceof Player));
-    return handleTrue(audience, Locale.ERR_INVALID_TARGET_SELECTOR.build(), valid);
+    return handleTrue(audience, Locale.INVALID_TARGET_SELECTOR.build(), valid);
   }
 
   private List<? extends Player> convert(@NotNull final List<Entity> entities) {

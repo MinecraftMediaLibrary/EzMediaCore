@@ -15,7 +15,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioPlayback;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
-import java.util.Arrays;
+
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -58,7 +58,7 @@ public final class SetAudioPlaybackCommand implements CommandSegment.Literal<Com
     final String argument = context.getArgument("playback", String.class);
     final Optional<AudioPlayback> optional = AudioPlayback.ofKey(argument);
 
-    if (handleEmptyOptional(audience, Locale.ERR_INVALID_AUDIO_PLAYBACK.build(argument),
+    if (handleEmptyOptional(audience, Locale.INVALID_AUDIO_PLAYBACK.build(argument),
         optional)) {
       return SINGLE_SUCCESS;
     }
@@ -87,7 +87,7 @@ public final class SetAudioPlaybackCommand implements CommandSegment.Literal<Com
 
   private void setDiscordMode(@NotNull final Audience audience) {
 
-    if (handleNull(audience, Locale.ERR_INVALID_DISCORD_BOT.build(), this.plugin.getMediaBot())) {
+    if (handleNull(audience, Locale.INVALID_DISCORD_CREDENTIALS.build(), this.plugin.getMediaBot())) {
       return;
     }
 
@@ -100,7 +100,7 @@ public final class SetAudioPlaybackCommand implements CommandSegment.Literal<Com
 
   private void setHttpServerMode(@NotNull final Audience audience) {
 
-    if (handleNull(audience, Locale.ERR_HTTP_AUDIO.build(), this.plugin.getHttpServer())) {
+    if (handleNull(audience, Locale.INVALID_HTTP_CONFIGURATION.build(), this.plugin.getHttpServer())) {
       return;
     }
 

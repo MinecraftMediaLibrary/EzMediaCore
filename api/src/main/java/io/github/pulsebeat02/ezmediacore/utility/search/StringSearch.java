@@ -128,8 +128,7 @@ public abstract class StringSearch {
     final Class<? extends char[]> charArray = char[].class;
     Field val = null, off = null;
     for (final Field field : stringFields) {
-      if (field.getType() == charArray
-          && !Modifier.isStatic(field.getModifiers())) {
+      if (field.getType() == charArray && !Modifier.isStatic(field.getModifiers())) {
         val = field;
         val.setAccessible(true);
       } else if (field.getType() == Integer.TYPE) {

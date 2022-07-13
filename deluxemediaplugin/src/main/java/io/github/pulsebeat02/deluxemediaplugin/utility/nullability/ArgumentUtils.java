@@ -17,9 +17,7 @@ public final class ArgumentUtils {
   public static boolean requiresPlayer(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final CommandSender sender) {
     return handleFalse(
-        plugin.audience().sender(sender),
-        Locale.ERR_PLAYER_SENDER.build(),
-        sender instanceof Player);
+        plugin.audience().sender(sender), Locale.INVALID_SENDER.build(), sender instanceof Player);
   }
 
   public static <T> boolean handleEmptyOptional(

@@ -4,7 +4,7 @@ import java.io.InputStream;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public final class StreamOutput implements OutputHandler<InputStream>  {
+public final class StreamOutput implements OutputHandler<InputStream> {
 
   private final InputStream stream;
 

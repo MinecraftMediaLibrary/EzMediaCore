@@ -12,9 +12,9 @@ subprojects {
 
     apply {
         setOf(
-            "java",
-            "java-library",
-            "com.github.hierynomus.license-base"
+                "java",
+                "java-library",
+                "com.github.hierynomus.license-base"
         ).forEach {
             plugin(it)
         }
@@ -57,16 +57,16 @@ subprojects {
         mavenCentral()
         mavenLocal()
         setOf(
-            "https://repo.maven.apache.org/maven2/",
-            "https://papermc.io/repo/repository/maven-public/",
-            "https://hub.spigotmc.org/nexus/content/repositories/snapshots/",
-            "https://oss.sonatype.org/content/repositories/snapshots/",
-            "https://oss.sonatype.org/content/repositories/central/",
-            "https://libraries.minecraft.net/",
-            "https://jitpack.io/",
-            "https://repo.codemc.org/repository/maven-public/",
-            "https://m2.dv8tion.net/releases/",
-            "https://pulsebeat02.jfrog.io/artifactory/minecraftmedialibrary/"
+                "https://repo.maven.apache.org/maven2/",
+                "https://papermc.io/repo/repository/maven-public/",
+                "https://hub.spigotmc.org/nexus/content/repositories/snapshots/",
+                "https://oss.sonatype.org/content/repositories/snapshots/",
+                "https://oss.sonatype.org/content/repositories/central/",
+                "https://libraries.minecraft.net/",
+                "https://jitpack.io/",
+                "https://repo.codemc.org/repository/maven-public/",
+                "https://m2.dv8tion.net/releases/",
+                "https://pulsebeat02.jfrog.io/artifactory/minecraftmedialibrary/"
         ).forEach {
             maven(it)
         }

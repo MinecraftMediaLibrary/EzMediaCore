@@ -84,7 +84,10 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   @Override
   public void displayDebugMarker(
       final UUID @NotNull [] viewers,
-      @NotNull final String character, final int y, final int z, final int x,
+      @NotNull final String character,
+      final int y,
+      final int z,
+      final int x,
       final int color,
       final int time) {
     final ByteBuf buf = Unpooled.buffer();

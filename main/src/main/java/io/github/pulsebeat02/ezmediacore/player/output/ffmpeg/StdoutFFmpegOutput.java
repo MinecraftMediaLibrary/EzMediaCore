@@ -9,8 +9,7 @@ public final class StdoutFFmpegOutput extends FFmpegOutputConfiguration<StreamOu
 
   private StreamOutput output;
 
-  StdoutFFmpegOutput() {
-  }
+  StdoutFFmpegOutput() {}
 
   @Contract(" -> new")
   public static @NotNull StdoutFFmpegOutput ofOutput() {

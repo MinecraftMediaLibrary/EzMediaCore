@@ -31,8 +31,7 @@ public final class FFmpegPlayerOutput implements FFmpegOutput<Void> {
   }
 
   @Override
-  public void setOutput(@NotNull final Void output) {
-  }
+  public void setOutput(@NotNull final Void output) {}
 
   @Override
   public String toString() {

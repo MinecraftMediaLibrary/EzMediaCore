@@ -51,7 +51,9 @@ public abstract class FFmpegOutput extends AudioOutput implements FFmpegOutputHa
   @NotNull
   @Override
   public String openFFmpegStream(
-      @NotNull final DeluxeMediaPlugin plugin, @NotNull final String mrl, @NotNull final String... arguments) {
+      @NotNull final DeluxeMediaPlugin plugin,
+      @NotNull final String mrl,
+      @NotNull final String... arguments) {
 
     final ServerInfo info = plugin.getHttpAudioServer();
     final String ip = info.getIp();

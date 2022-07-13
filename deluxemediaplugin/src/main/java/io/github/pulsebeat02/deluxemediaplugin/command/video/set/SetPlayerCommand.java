@@ -15,7 +15,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.PlayerAlgorithm;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
-import java.util.Arrays;
+
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -58,7 +58,7 @@ public final class SetPlayerCommand implements CommandSegment.Literal<CommandSen
     final String player = context.getArgument("player", String.class);
     final Optional<PlayerAlgorithm> setting = PlayerAlgorithm.ofKey(player);
 
-    if (handleEmptyOptional(audience, Locale.ERR_INVALID_PLAYER_ALGORITHM.build(player), setting)) {
+    if (handleEmptyOptional(audience, Locale.INVALID_PLAYER_ALGORITHM.build(player), setting)) {
       return SINGLE_SUCCESS;
     }
 
@@ -79,7 +79,7 @@ public final class SetPlayerCommand implements CommandSegment.Literal<CommandSen
       @NotNull final Audience audience, @NotNull final PlayerAlgorithm setting) {
     final boolean supported = this.plugin.library().isVLCSupported();
     final boolean vlc = setting == PlayerAlgorithm.VLC;
-    return handleTrue(audience, Locale.ERR_VLC_UNSUPPORTED.build(), !supported && vlc);
+    return handleTrue(audience, Locale.VLC_UNSUPPORTED.build(), !supported && vlc);
   }
 
   private void setDitheringAlgorithm(@NotNull final PlayerAlgorithm setting) {

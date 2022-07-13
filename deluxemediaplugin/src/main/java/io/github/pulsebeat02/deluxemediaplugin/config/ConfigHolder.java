@@ -44,10 +44,10 @@ public interface ConfigHolder<T> {
 
   void read() throws IOException;
 
-  void deserialize() throws IOException;
+  void serialize() throws IOException;
 
   @Nullable
-  T serialize() throws IOException;
+  T deserialize() throws IOException;
 
   @NotNull
   DeluxeMediaPlugin getPlugin();

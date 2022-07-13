@@ -20,7 +20,6 @@ public final class ByteBufCarrier implements BufferCarrier {
     return new ByteBufCarrier(buffer);
   }
 
-
   @Contract(value = "_ -> new", pure = true)
   public static @NotNull ByteBufCarrier ofByteBufCarrier(@NotNull final ByteBuffer buffer) {
     return new ByteBufCarrier(Unpooled.copiedBuffer(buffer));

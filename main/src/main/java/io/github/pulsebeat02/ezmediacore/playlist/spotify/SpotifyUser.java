@@ -91,9 +91,7 @@ public class SpotifyUser implements User {
   }
 
   private Avatar @NotNull [] getInternalAvatars() {
-    return Stream.of(this.user.getImages())
-        .map(SpotifyAvatar::new)
-        .toArray(SpotifyAvatar[]::new);
+    return Stream.of(this.user.getImages()).map(SpotifyAvatar::new).toArray(SpotifyAvatar[]::new);
   }
 
   @Override

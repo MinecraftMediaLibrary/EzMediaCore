@@ -36,9 +36,11 @@ import org.jetbrains.annotations.NotNull;
 
 public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
-  @NotNull VideoCallback getVideoCallback();
+  @NotNull
+  VideoCallback getVideoCallback();
 
-  @NotNull AudioCallback getAudioCallback();
+  @NotNull
+  AudioCallback getAudioCallback();
 
   void start(@NotNull final Input mrl, @NotNull final Object... arguments);
 
@@ -55,11 +57,13 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
       @NotNull final PlayerControls controls,
       @NotNull final Object... arguments);
 
-  @NotNull PlayerInput getInput();
+  @NotNull
+  PlayerInput getInput();
 
   void setInput(@NotNull final PlayerInput input);
 
-  @NotNull PlayerOutput<?> getOutput();
+  @NotNull
+  PlayerOutput<?> getOutput();
 
   void setOutput(@NotNull final PlayerOutput<?> output);
 

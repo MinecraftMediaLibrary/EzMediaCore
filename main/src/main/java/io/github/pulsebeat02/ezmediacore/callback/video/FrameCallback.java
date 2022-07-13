@@ -59,7 +59,8 @@ public abstract class FrameCallback implements VideoCallback {
   }
 
   @Override
-  public void preparePlayerStateChange(@NotNull final VideoPlayer player, @NotNull final PlayerControls status) {}
+  public void preparePlayerStateChange(
+      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {}
 
   public @NotNull DelayConfiguration getDelayConfiguration() {
     return this.delay;

@@ -177,7 +177,8 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void createFiles() {
-    FileUtils.copyFromResourcesExceptionally("audio.html", this.httpServerPath.resolve("audio.html"));
+    FileUtils.copyFromResourcesExceptionally(
+        "audio.html", this.httpServerPath.resolve("audio.html"));
   }
 
   private void startDependencyLoader() {

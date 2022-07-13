@@ -142,7 +142,7 @@ public class HttpServer implements HttpDaemonSolution {
 
   @Override
   public void stopServer() {
-    CompletableFuture.runAsync(this.daemon::stop,  ExecutorProvider.HTTP_SERVER);
+    CompletableFuture.runAsync(this.daemon::stop, ExecutorProvider.HTTP_SERVER);
     this.running = false;
   }
 

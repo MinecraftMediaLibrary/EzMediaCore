@@ -61,7 +61,7 @@ public final class LoadDesktopCommand implements CommandSegment.Literal<CommandS
   private boolean checkInvalidPlayer(@NotNull final Audience audience) {
     return handleTrue(
         audience,
-        Locale.ERR_INVALID_PLAYER_MEDIA.build("JCodec", "Desktop capture"),
+        Locale.INVALID_PLAYER_MEDIA.build("JCodec", "Desktop capture"),
         this.config.getPlayer() instanceof JCodecMediaPlayer);
   }
 

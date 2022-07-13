@@ -75,7 +75,7 @@ public final class MapCommand extends BaseCommand {
 
     this.addMap((Player) sender, id);
 
-    audience.sendMessage(Locale.GIVE_MAP_ID.build(id));
+    audience.sendMessage(Locale.GIVE_SINGLE_MAP.build(id));
 
     return SINGLE_SUCCESS;
   }
@@ -118,7 +118,7 @@ public final class MapCommand extends BaseCommand {
 
       return Optional.of(pair);
     } catch (final NumberFormatException e) {
-      audience.sendMessage(Locale.ERR_MAP_RANGE.build());
+      audience.sendMessage(Locale.INVALID_MAP_RANGE.build());
       return Optional.empty();
     }
   }
@@ -141,7 +141,7 @@ public final class MapCommand extends BaseCommand {
         inventory.addItem(stack);
       }
     }
-    audience.sendMessage(Locale.GAVE_MAP_RANGE.build(start, end));
+    audience.sendMessage(Locale.GIVE_MAP_RANGE.build(start, end));
   }
 
   @Override

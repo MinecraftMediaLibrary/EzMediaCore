@@ -84,8 +84,8 @@ public class BlockHighlightCallback extends FrameCallback
         final int color = data[width * y + x];
         final int newDelay = (int) (delay + 100);
         this.getPacketHandler()
-            .displayDebugMarker(viewers, this.character.getCharacter(), modifiedY, z, modifiedX,
-                color, newDelay);
+            .displayDebugMarker(
+                viewers, this.character.getCharacter(), modifiedY, z, modifiedX, color, newDelay);
       }
     }
   }

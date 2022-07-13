@@ -6,9 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class NullCallback extends SampleCallback {
 
-  NullCallback(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Viewers viewers) {
+  NullCallback(@NotNull final MediaLibraryCore core, @NotNull final Viewers viewers) {
     super(core, viewers);
   }
 
@@ -28,4 +26,3 @@ public final class NullCallback extends SampleCallback {
     }
   }
 }
-

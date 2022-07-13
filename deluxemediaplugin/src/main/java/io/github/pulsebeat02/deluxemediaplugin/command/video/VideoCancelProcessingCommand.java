@@ -47,13 +47,13 @@ public final class VideoCancelProcessingCommand implements CommandSegment.Litera
 
     this.setupCancelledAttributes(extractor);
 
-    audience.sendMessage(Locale.CANCELLED_VIDEO_PROCESSING.build());
+    audience.sendMessage(Locale.CANCEL_VIDEO_PROCESSING.build());
 
     return SINGLE_SUCCESS;
   }
 
   private boolean handleProcessing(@NotNull final Audience audience) {
-    final Component component = Locale.ERR_CANCELLATION_VIDEO_PROCESSING.build();
+    final Component component = Locale.NO_PROCESSING_VIDEO.build();
     return handleNull(audience, component, this.config.getTask());
   }
 
@@ -70,7 +70,8 @@ public final class VideoCancelProcessingCommand implements CommandSegment.Litera
   private void forceCancel() {
     try {
       this.config.getTask().cancel(true);
-    } catch (final CancellationException ignored) {}
+    } catch (final CancellationException ignored) {
+    }
   }
 
   private void cancelExtractor(@NotNull final EnhancedExecution extractor) {

@@ -71,9 +71,7 @@ public class SpotifyArtist implements Artist {
   }
 
   private @NotNull Avatar @NotNull [] getInternalAvatars() {
-    return Stream.of(this.artist.getImages())
-        .map(SpotifyAvatar::new)
-        .toArray(SpotifyAvatar[]::new);
+    return Stream.of(this.artist.getImages()).map(SpotifyAvatar::new).toArray(SpotifyAvatar[]::new);
   }
 
   @Override

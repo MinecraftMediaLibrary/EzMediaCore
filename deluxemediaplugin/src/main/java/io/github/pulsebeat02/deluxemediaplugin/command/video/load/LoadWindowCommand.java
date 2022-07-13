@@ -85,13 +85,15 @@ public final class LoadWindowCommand implements CommandSegment.Literal<CommandSe
 
   private boolean checkInvalidOperatingSystem(@NotNull final Audience audience) {
     return handleFalse(
-        audience, Locale.ERR_INVALID_OS.build(), OSType.getCurrentOS() == OSType.WINDOWS);
+        audience,
+        Locale.INVALID_WINDOW_SUPPORTED_OS.build(),
+        OSType.getCurrentOS() == OSType.WINDOWS);
   }
 
   private boolean checkInvalidPlayer(@NotNull final Audience audience) {
     return handleFalse(
         audience,
-        Locale.ERR_INVALID_PLAYER_MEDIA.build("JCodec and VLC Media Player", "Window capture"),
+        Locale.INVALID_PLAYER_MEDIA.build("JCodec and VLC Media Player", "Window capture"),
         this.config.getPlayer() instanceof FFmpegMediaPlayer);
   }
 
@@ -101,7 +103,7 @@ public final class LoadWindowCommand implements CommandSegment.Literal<CommandSe
         WindowUtils.getAllWindows().stream()
             .anyMatch(
                 window -> window.getTitle().toUpperCase(java.util.Locale.ROOT).contains(target));
-    return handleFalse(audience, Locale.ERR_INVALID_WINDOW.build(), found);
+    return handleFalse(audience, Locale.HIDDEN_WINDOW.build(), found);
   }
 
   @Override

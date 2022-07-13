@@ -87,9 +87,9 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
   }
 
   private boolean attemptSelection(
-          @NotNull final CommandSender sender,
-          @NotNull final Audience audience,
-          @NotNull final String selector) {
+      @NotNull final CommandSender sender,
+      @NotNull final Audience audience,
+      @NotNull final String selector) {
     final boolean status;
     try {
       this.plugin.getBootstrap().getServer().selectEntities(sender, selector);
@@ -97,7 +97,7 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
     } catch (final IllegalArgumentException e) {
       status = true;
     }
-    return handleTrue(audience, Locale.ERR_INVALID_TARGET_SELECTOR.build(), status);
+    return handleTrue(audience, Locale.INVALID_TARGET_SELECTOR.build(), status);
   }
 
   private boolean isValidScoreboardDimension(@NotNull final Audience audience) {
@@ -106,12 +106,10 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
     final boolean valid =
         this.config.getVideoPlayback() != VideoPlayback.SCOREBOARD
             || width >= 0 && width <= 32 && height >= 0 && height <= 16;
-    return handleFalse(audience, Locale.ERR_SCOREBOARD_DIMENSION.build(), valid);
+    return handleFalse(audience, Locale.INVALID_SCOREBOARD_DIMENSION.build(), valid);
   }
 
-  private void startPlayer() {
-
-  }
+  private void startPlayer() {}
 
   private void handleStreamPlayers(@NotNull final Audience audience) {
     this.config
@@ -160,7 +158,7 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
       @NotNull final Audience audience, @NotNull final List<Entity> entities) {
     final boolean valid =
         entities.stream().anyMatch(Predicate.not(entity -> entity instanceof Player));
-    return handleTrue(audience, Locale.ERR_INVALID_TARGET_SELECTOR.build(), valid);
+    return handleTrue(audience, Locale.INVALID_TARGET_SELECTOR.build(), valid);
   }
 
   private List<? extends Player> convert(@NotNull final List<Entity> entities) {

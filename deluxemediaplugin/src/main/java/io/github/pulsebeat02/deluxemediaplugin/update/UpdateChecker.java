@@ -64,14 +64,14 @@ public final class UpdateChecker {
         final Scanner scanner = new Scanner(is)) {
       console.sendMessage(this.getMessage(scanner.next()));
     } catch (final IOException e) {
-      console.sendMessage(Locale.ERR_CANNOT_CHECK_UPDATES.build(e.getMessage()));
+      console.sendMessage(Locale.CANNOT_CHECK_UPDATES.build(e.getMessage()));
     }
   }
 
   private @NotNull Component getMessage(@NotNull final String update) {
     return this.checkNewUpdate(update)
         ? Locale.NEW_UPDATE_PLUGIN.build(update)
-        : Locale.RUNNING_LATEST_PLUGIN.build();
+        : Locale.LATEST_VERSION.build();
   }
 
   private boolean checkNewUpdate(@NotNull final String update) {

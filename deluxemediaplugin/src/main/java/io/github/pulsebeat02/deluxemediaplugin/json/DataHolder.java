@@ -30,10 +30,10 @@ import org.jetbrains.annotations.NotNull;
 
 public interface DataHolder<T> {
 
-  void deserialize(@NotNull final T obj);
+  void serialize(@NotNull final T obj);
 
   @NotNull
-  T serialize();
+  T deserialize();
 
   @NotNull
   DeluxeMediaPlugin getPlugin();

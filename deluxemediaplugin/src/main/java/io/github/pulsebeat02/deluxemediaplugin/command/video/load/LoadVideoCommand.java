@@ -61,12 +61,13 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
 
   public void loadVideo(@NotNull final Audience audience) {
 
-    audience.sendMessage(Locale.LOADING_VIDEO.build());
+    audience.sendMessage(Locale.LOAD_VIDEO.build());
 
     this.createFolders();
     this.cancelStream();
 
-    final CompletableFuture<Void> future = CompletableFuture.runAsync(() -> this.handleVideo(audience), RESOURCE_WRAPPER_EXECUTOR);
+    final CompletableFuture<Void> future =
+        CompletableFuture.runAsync(() -> this.handleVideo(audience), RESOURCE_WRAPPER_EXECUTOR);
     future.handle(Throwing.THROWING_FUTURE);
 
     this.config.setTask(future);
@@ -119,7 +120,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
 
       final Optional<String> download = this.getSourceInput(audience, input);
       if (download.isEmpty()) {
-        audience.sendMessage(Locale.ERR_DOWNLOAD_VIDEO.build());
+        audience.sendMessage(Locale.INVALID_EXTRACTION.build());
         return true;
       }
 
@@ -127,7 +128,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
           .loadResourcepack();
 
     } catch (final IOException e) {
-      audience.sendMessage(Locale.ERR_LOAD_VIDEO.build());
+      audience.sendMessage(Locale.INVALID_VIDEO.build());
       e.printStackTrace();
     }
     return false;
@@ -157,7 +158,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
 
   private boolean checkInvalidUrl(
       @NotNull final Audience audience, @NotNull final List<Input> results) {
-    return handleTrue(audience, Locale.ERR_INVALID_MRL.build(), results.isEmpty());
+    return handleTrue(audience, Locale.INVALID_INPUT.build(), results.isEmpty());
   }
 
   private boolean isResourcepackAudio() {
@@ -177,7 +178,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
           ? this.handleStream(audience, input)
           : this.checkInvalidUrl(audience, input);
     } catch (final IllegalArgumentException e) {
-      audience.sendMessage(Locale.ERR_INVALID_MRL.build());
+      audience.sendMessage(Locale.INVALID_INPUT.build());
       return true;
     }
   }
@@ -195,7 +196,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
     final boolean equal = urls.get(0).equals(input);
     final boolean size = urls.size() == 1;
 
-    return handleTrue(audience, Locale.ERR_INVALID_MRL.build(), size && equal);
+    return handleTrue(audience, Locale.INVALID_INPUT.build(), size && equal);
   }
 
   private boolean handleStream(@NotNull final Audience audience, @NotNull final Input input) {
@@ -211,7 +212,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
 
   private boolean checkInvalidAudioPlayback(@NotNull final Audience audience) {
     return handleTrue(
-        audience, Locale.ERR_INVALID_AUDIO_OUTPUT.build(), this.isResourcepackAudio());
+        audience, Locale.INVALID_STREAM_AUDIO_OUTPUT.build(), this.isResourcepackAudio());
   }
 
   private boolean isUrlInput(@NotNull final Input input) {

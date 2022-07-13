@@ -65,7 +65,7 @@ public final class LoadDeviceCommand implements CommandSegment.Literal<CommandSe
   private boolean checkInvalidPlayer(@NotNull final Audience audience) {
     return handleFalse(
         audience,
-        Locale.ERR_INVALID_PLAYER_MEDIA.build("JCodec and VLC Media Player", "Device capture"),
+        Locale.INVALID_PLAYER_MEDIA.build("JCodec and VLC Media Player", "Device capture"),
         this.config.getPlayer() instanceof FFmpegMediaPlayer);
   }
 

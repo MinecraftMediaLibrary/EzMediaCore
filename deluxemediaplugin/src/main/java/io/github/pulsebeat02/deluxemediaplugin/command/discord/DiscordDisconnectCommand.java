@@ -44,7 +44,8 @@ public final class DiscordDisconnectCommand implements CommandSegment.Literal<Co
   }
 
   private boolean checkDiscordStatus(@NotNull final Audience audience) {
-    return handleNull(audience, Locale.ERR_INVALID_DISCORD_BOT.build(), this.plugin.getMediaBot());
+    return handleNull(
+        audience, Locale.INVALID_DISCORD_CREDENTIALS.build(), this.plugin.getMediaBot());
   }
 
   private void leaveVoiceChannel() {

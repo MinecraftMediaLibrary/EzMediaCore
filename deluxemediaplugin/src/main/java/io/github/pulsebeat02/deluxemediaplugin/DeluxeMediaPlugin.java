@@ -92,7 +92,7 @@ public final class DeluxeMediaPlugin {
 
   void disable() {
     this.shutdownLibrary();
-    this.deserializeData();
+    this.serializeData();
     this.unregisterCommands();
     this.disableBot();
     this.cancelNativeTasks();
@@ -108,22 +108,19 @@ public final class DeluxeMediaPlugin {
     this.console = this.audiences.console();
   }
 
-  private void deserializeData() {
-    Nill.ifNot(
-        this.mediaAttributesData, () -> this.mediaAttributesData.deserialize(this.attributes));
-    this.console.sendMessage(Locale.DESERIALIZE_DATA.build());
+  private void serializeData() {
+    Nill.ifNot(this.mediaAttributesData, () -> this.mediaAttributesData.serialize(this.attributes));
   }
 
   private void startMetrics() {
     new Metrics(this.plugin, 10229);
-    this.console.sendMessage(Locale.METRICS_INIT.build());
+    this.console.sendMessage(Locale.ENABLE_METRICS.build());
   }
 
   private void finishLoading() {}
 
   private void finishEnabling() {
     this.checkUpdates();
-    this.console.sendMessage(Locale.PLUGIN_INIT.build());
     this.console.sendMessage(Locale.WELCOME.build());
   }
 
@@ -132,12 +129,12 @@ public final class DeluxeMediaPlugin {
   }
 
   private void startLibrary() {
-    this.console.sendMessage(Locale.PLUGIN_LOGO.build());
-    this.console.sendMessage(Locale.ENABLE_PLUGIN.build());
-    this.console.sendMessage(Locale.EMC_INIT.build());
+    this.console.sendMessage(Locale.LOGO.build());
+    this.console.sendMessage(Locale.ENABLE.build());
+    this.console.sendMessage(Locale.ENABLE_EMC.build());
     this.library = LibraryProvider.builder().plugin(this.plugin).build();
     this.library.initialize();
-    this.console.sendMessage(Locale.FIN_EMC_INIT.build());
+    this.console.sendMessage(Locale.ENABLED_EMC.build());
   }
 
   private void checkUpdates() {
@@ -153,22 +150,22 @@ public final class DeluxeMediaPlugin {
     Nill.ifNot(
         this.handler,
         () -> this.handler.getCommands().forEach(cmd -> CommandUtils.unregisterCommand(this, cmd)));
-    this.console.sendMessage(Locale.DISABLE_COMMANDS.build());
+    this.console.sendMessage(Locale.DISABLE_COMMAND.build());
   }
 
   private void shutdownLibrary() {
-    this.console.sendMessage(Locale.DISABLE_PLUGIN.build());
+    this.console.sendMessage(Locale.DISABLE.build());
     if (this.library != null) {
       this.library.shutdown();
       this.console.sendMessage(Locale.DISABLE_EMC.build());
     } else {
-      this.console.sendMessage(Locale.ERR_EMC_SHUTDOWN.build());
+      this.console.sendMessage(Locale.INVALID_EMC.build());
     }
   }
 
   private void cancelNativeTasks() {
     Nill.ifNot(this.attributes, this::cancelExternalTasks);
-    this.console.sendMessage(Locale.CANCELLED_TASKS.build());
+    this.console.sendMessage(Locale.DISABLE_TASK.build());
   }
 
   private void cancelExternalTasks() {
@@ -215,30 +212,30 @@ public final class DeluxeMediaPlugin {
   private void readHttpConfiguration() throws IOException {
     final HttpConfiguration httpConfiguration = new HttpConfiguration(this);
     httpConfiguration.read();
-    this.server = httpConfiguration.serialize();
+    this.server = httpConfiguration.deserialize();
   }
 
   private void readEncoderConfiguration() throws IOException {
     final EncoderConfiguration encoderConfiguration = new EncoderConfiguration(this);
     encoderConfiguration.read();
-    this.audioConfiguration = encoderConfiguration.serialize();
+    this.audioConfiguration = encoderConfiguration.deserialize();
   }
 
   private void readBotConfiguration() throws IOException {
     final BotConfiguration botConfiguration = new BotConfiguration(this);
     botConfiguration.read();
-    this.mediaBot = botConfiguration.serialize();
+    this.mediaBot = botConfiguration.deserialize();
   }
 
   private void readStreamAudioConfiguration() throws IOException {
     final HttpAudioConfiguration audioConfiguration = new HttpAudioConfiguration(this);
     audioConfiguration.read();
-    this.httpAudioServer = audioConfiguration.serialize();
+    this.httpAudioServer = audioConfiguration.deserialize();
   }
 
   private void readJsonFiles() throws IOException {
     this.mediaAttributesData = new MediaAttributesData(this);
-    this.attributes = this.mediaAttributesData.serialize();
+    this.attributes = this.mediaAttributesData.deserialize();
   }
 
   private void readPictureData() throws IOException {
@@ -253,10 +250,10 @@ public final class DeluxeMediaPlugin {
       this.readJsonFiles();
       this.writeToFile();
     } catch (final IOException e) {
-      this.console.sendMessage(Locale.ERR_PERSISTENT_INIT.build());
+      this.console.sendMessage(Locale.INVALID_DESERIALIZATION.build());
       throw new AssertionError(e);
     }
-    this.console.sendMessage(Locale.PERSISTENT_INIT.build());
+    this.console.sendMessage(Locale.DESERIALIZED_DATA.build());
   }
 
   private void writeToFile() {
@@ -265,12 +262,12 @@ public final class DeluxeMediaPlugin {
   }
 
   private void deserializeAttributes() {
-    this.mediaAttributesData.deserialize(this.attributes);
+    this.mediaAttributesData.serialize(this.attributes);
   }
 
   private void registerCommands() {
     this.handler = new CommandHandler(this);
-    this.console.sendMessage(Locale.COMMANDS_INIT.build());
+    this.console.sendMessage(Locale.ENABLE_COMMAND.build());
   }
 
   public Audience getConsoleAudience() {

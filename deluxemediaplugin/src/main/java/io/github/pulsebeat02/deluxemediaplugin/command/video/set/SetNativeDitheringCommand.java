@@ -72,7 +72,7 @@ public final class SetNativeDitheringCommand implements CommandSegment.Literal<C
     final DitheringAlgorithm algorithm = this.config.getDitheringAlgorithm();
     final boolean supported = algorithm.isNativelySupported();
     return handleTrue(
-        audience, Locale.ERR_INVALID_NATIVE_DITHERING_ALGORITHM.build(algorithm), supported);
+        audience, Locale.INVALID_NATIVE_DITHERING_ALGORITHM.build(algorithm), supported);
   }
 
   @Override

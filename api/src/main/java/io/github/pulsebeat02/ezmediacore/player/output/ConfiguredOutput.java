@@ -7,5 +7,6 @@ public interface ConfiguredOutput {
 
   void setProperty(@NotNull final String key, @NotNull final String value);
 
-  @NotNull Map<String, String> getConfiguration();
+  @NotNull
+  Map<String, String> getConfiguration();
 }

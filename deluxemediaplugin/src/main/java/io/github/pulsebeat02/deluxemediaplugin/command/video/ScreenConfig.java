@@ -174,15 +174,15 @@ public final class ScreenConfig {
   }
 
   public boolean mediaNotSpecified(@NotNull final Audience audience) {
-    return handleNull(audience, Locale.ERR_VIDEO_NOT_LOADED.build(), this.media);
+    return handleNull(audience, Locale.UNLOADED_VIDEO.build(), this.media);
   }
 
   public boolean mediaProcessingIncomplete(@NotNull final Audience audience) {
-    return handleNonNull(audience, Locale.ERR_VIDEO_PROCESSING.build(), this.task);
+    return handleNonNull(audience, Locale.PROCESSING_VIDEO.build(), this.task);
   }
 
   public boolean mediaUninitialized(@NotNull final Audience audience) {
-    return handleNull(audience, Locale.ERR_VIDEO_NOT_LOADED.build(), this.player);
+    return handleNull(audience, Locale.UNLOADED_VIDEO.build(), this.player);
   }
 
   public @Nullable CompletableFuture<Void> getTask() {

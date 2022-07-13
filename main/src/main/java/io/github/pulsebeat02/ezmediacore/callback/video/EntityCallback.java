@@ -102,7 +102,8 @@ public class EntityCallback<T extends Entity> extends FrameCallback
   }
 
   @Override
-  public void preparePlayerStateChange(@NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
+  public void preparePlayerStateChange(
+      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
     super.preparePlayerStateChange(player, status);
     if (status == PlayerControls.RELEASE) {
       this.removeEntities();

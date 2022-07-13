@@ -133,7 +133,7 @@ public final class ScreenBuilderGui {
         this.width.getNumber(),
         this.height.getNumber(),
         this.id.getNumber());
-    this.plugin.audience().sender(this.viewer).sendMessage(Locale.BUILT_SCREEN.build());
+    this.plugin.audience().sender(this.viewer).sendMessage(Locale.BUILD_SCREEN.build());
     this.viewer.playSound(this.viewer.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 10, 1);
   }
 

@@ -71,7 +71,7 @@ public final class LoadUrlCommand implements CommandSegment.Literal<CommandSende
       new URL(url).openConnection();
       return false;
     } catch (final IOException e) {
-      audience.sendMessage(Locale.ERR_INVALID_URL.build());
+      audience.sendMessage(Locale.INVALID_URL.build());
       return true;
     }
   }

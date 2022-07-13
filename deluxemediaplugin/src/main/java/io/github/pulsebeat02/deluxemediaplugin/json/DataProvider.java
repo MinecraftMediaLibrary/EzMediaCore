@@ -57,7 +57,7 @@ public abstract class DataProvider<T> implements DataHolder<T> {
   }
 
   @Override
-  public void deserialize(@NotNull final T obj) {
+  public void serialize(@NotNull final T obj) {
     try (final BufferedWriter writer = Files.newBufferedWriter(this.path)) {
       this.convertJson(obj, writer);
     } catch (final IOException e) {
@@ -70,7 +70,7 @@ public abstract class DataProvider<T> implements DataHolder<T> {
   }
 
   @Override
-  public @NotNull T serialize() {
+  public @NotNull T deserialize() {
     try {
       this.saveConfig();
       return this.parseJson();

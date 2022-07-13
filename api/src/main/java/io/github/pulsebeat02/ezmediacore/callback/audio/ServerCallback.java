@@ -5,5 +5,6 @@ import org.jetbrains.annotations.Nullable;
 
 public interface ServerCallback {
 
-  @Nullable CompletableFuture<Void> getServerFuture();
+  @Nullable
+  CompletableFuture<Void> getServerFuture();
 }

@@ -33,7 +33,8 @@ public interface BufferedPlayer {
   @NotNull
   BufferConfiguration getBufferConfiguration();
 
-  boolean addFrame(final int @Nullable [] data, final byte @Nullable [] audio, final long timestamp);
+  boolean addFrame(
+      final int @Nullable [] data, final byte @Nullable [] audio, final long timestamp);
 
   void bufferFrames();
 

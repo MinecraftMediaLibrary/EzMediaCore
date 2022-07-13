@@ -62,9 +62,7 @@ public final class OperatingSystem implements OperatingSystemInfo {
   }
 
   private @NotNull String getLinuxDistributionCmd() {
-    return this.type == OSType.UNIX
-        ? OSUtils.getLinuxDistribution()
-        : "Not Linux!";
+    return this.type == OSType.UNIX ? OSUtils.getLinuxDistribution() : "Not Linux!";
   }
 
   @Override

@@ -41,7 +41,7 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
   }
 
   @Override
-  public void deserialize() throws IOException {
+  public void serialize() throws IOException {
     this.saveConfig();
   }
 
@@ -61,7 +61,7 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
   }
 
   @Override
-  public @Nullable MediaBot serialize() {
+  public @Nullable MediaBot deserialize() {
     final MutableBoolean invalid = MutableBoolean.ofFalse();
     final String token = this.getToken(invalid);
     final String guild = this.getGuild(invalid);
@@ -74,17 +74,19 @@ public final class BotConfiguration extends ConfigurationProvider<MediaBot> {
 
   @Nullable
   private String getVoiceChat(final MutableBoolean invalid) {
-    return this.checkConfigurationValue("voice-chat-id", Locale.ERR_VC_ID.build(), invalid);
+    return this.checkConfigurationValue(
+        "voice-chat-id", Locale.INVALID_DISCORD_VC_ID.build(), invalid);
   }
 
   @Nullable
   private String getGuild(final MutableBoolean invalid) {
-    return this.checkConfigurationValue("guild-id", Locale.ERR_GUILD_ID.build(), invalid);
+    return this.checkConfigurationValue(
+        "guild-id", Locale.INVALID_DISCORD_GUILD_ID.build(), invalid);
   }
 
   @Nullable
   private String getToken(final MutableBoolean invalid) {
-    return this.checkConfigurationValue("token", Locale.ERR_BOT_TOKEN.build(), invalid);
+    return this.checkConfigurationValue("token", Locale.INVALID_DISCORD_BOT_TOKEN.build(), invalid);
   }
 
   private @NotNull MediaBot constructBot(

@@ -14,7 +14,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.VideoPlayback;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
-import java.util.Arrays;
+
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -57,7 +57,7 @@ public final class SetVideoPlaybackCommand implements CommandSegment.Literal<Com
     final String argument = context.getArgument("playback", String.class);
     final Optional<VideoPlayback> type = VideoPlayback.ofKey(argument);
 
-    if (handleEmptyOptional(audience, Locale.ERR_INVALID_VIDEO_PLAYBACK.build(argument), type)) {
+    if (handleEmptyOptional(audience, Locale.INVALID_VIDEO_PLAYBACK.build(argument), type)) {
       return SINGLE_SUCCESS;
     }
 

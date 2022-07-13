@@ -17,6 +17,7 @@ import static java.util.Objects.requireNonNull;
 public final class MessageLoader {
 
   private MessageLoader() {}
+
   private static final Map<String, String> INTERNAL_LOCALE;
 
   static {

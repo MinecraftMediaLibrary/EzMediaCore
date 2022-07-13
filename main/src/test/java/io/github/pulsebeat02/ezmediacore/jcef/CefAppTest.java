@@ -14,7 +14,8 @@ import org.cef.browser.CefBrowserFactory;
 public final class CefAppTest {
 
   public static void main(final String[] args)
-      throws UnsupportedPlatformException, CefInitializationException, IOException, InterruptedException {
+      throws UnsupportedPlatformException, CefInitializationException, IOException,
+          InterruptedException {
 
     final CefAppBuilder builder = new CefAppBuilder();
     builder.setInstallDir(new File("jcef-bundle"));
@@ -25,8 +26,5 @@ public final class CefAppTest {
     final CefApp app = builder.build();
     final CefClient client = app.createClient();
     final CefBrowser browser = client.createBrowser("https://www.google.com", true, true);
-
-
   }
-
 }

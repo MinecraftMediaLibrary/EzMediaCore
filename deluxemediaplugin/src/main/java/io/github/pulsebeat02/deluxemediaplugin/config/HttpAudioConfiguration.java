@@ -38,12 +38,12 @@ public class HttpAudioConfiguration extends ConfigurationProvider<ServerInfo> {
   }
 
   @Override
-  public void deserialize() throws IOException {
+  public void serialize() throws IOException {
     this.saveConfig();
   }
 
   @Override
-  public @NotNull ServerInfo serialize() {
+  public @NotNull ServerInfo deserialize() {
     final FileConfiguration configuration = this.getFileConfiguration();
     final boolean enabled = configuration.getBoolean("enabled");
     final String ip = configuration.getString("ip");

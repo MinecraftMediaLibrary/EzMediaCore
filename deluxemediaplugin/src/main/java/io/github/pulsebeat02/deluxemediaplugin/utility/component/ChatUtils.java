@@ -45,7 +45,7 @@ public final class ChatUtils {
       return Optional.of(new int[] {width.get(), height.get()});
     }
 
-    sender.sendMessage(Locale.ERR_INVALID_DIMS.build());
+    sender.sendMessage(Locale.INVALID_RESOLUTION.build());
 
     return Optional.empty();
   }

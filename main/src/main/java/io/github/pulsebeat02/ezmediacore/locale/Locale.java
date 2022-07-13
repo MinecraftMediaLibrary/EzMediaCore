@@ -31,19 +31,19 @@ import java.nio.file.Path;
 import static io.github.pulsebeat02.ezmediacore.locale.MessageLoader.key;
 
 public interface Locale {
-  NullComponent SYSTEM_DIAGNOSTIC = toNullComponent(key("ezmediacore.log.diagnostic"));
-  NullComponent PACKET_HANDLER = toNullComponent(key("ezmediacore.log.handle"));
-  NullComponent LOOKUP_CACHE = toNullComponent(key("ezmediacore.log.cache"));
-  NullComponent EVENT_REGISTRATION = toNullComponent(key("ezmediacore.log.event"));
-  NullComponent FILE_CREATION = toNullComponent(key("ezmediacore.log.folder"));
-  NullComponent DEPENDENCY_LOADING = toNullComponent(key("ezmediacore.log.dependency"));
-  NullComponent NATIVE_LOG_REGISTRATION = toNullComponent(key("ezmediacore.log.native"));
-  NullComponent PLAYER_RELEASE = toNullComponent(key("ezmediacore.log.release"));
-  NullComponent PLAYER_PAUSE = toNullComponent(key("ezmediacore.log.pause"));
-  NullComponent PLAYER_RESUME = toNullComponent(key("ezmediacore.log.resume"));
-  NullComponent SERVER_SOFTWARE = toNullComponent(key("ezmediacore.log.server.software"));
-  NullComponent PACKET_COMPRESSION = toNullComponent(key("ezmediacore.log.packet.compression"));
-  NullComponent SPOTIFY_AUTHENTICATION = toNullComponent(key("ezmediacore.log.spotify.auth"));
+  NullComponent SYSTEM_DIAGNOSTIC = toNullComponent("ezmediacore.log.diagnostic");
+  NullComponent PACKET_HANDLER = toNullComponent("ezmediacore.log.handle");
+  NullComponent LOOKUP_CACHE = toNullComponent("ezmediacore.log.cache");
+  NullComponent EVENT_REGISTRATION = toNullComponent("ezmediacore.log.event");
+  NullComponent FILE_CREATION = toNullComponent("ezmediacore.log.folder");
+  NullComponent DEPENDENCY_LOADING = toNullComponent("ezmediacore.log.dependency");
+  NullComponent NATIVE_LOG_REGISTRATION = toNullComponent("ezmediacore.log.native");
+  NullComponent PLAYER_RELEASE = toNullComponent("ezmediacore.log.release");
+  NullComponent PLAYER_PAUSE = toNullComponent("ezmediacore.log.pause");
+  NullComponent PLAYER_RESUME = toNullComponent("ezmediacore.log.resume");
+  NullComponent SERVER_SOFTWARE = toNullComponent("ezmediacore.log.server.software");
+  NullComponent PACKET_COMPRESSION = toNullComponent("ezmediacore.log.packet.compression");
+  NullComponent SPOTIFY_AUTHENTICATION = toNullComponent("ezmediacore.log.spotify.auth");
   UniComponent<String> UNSUPPORTED_SERVER = key("ezmediacore.error.server")::formatted;
   UniComponent<String> DEPENDENCY_LOAD = key("ezmediacore.log.dependency.load")::formatted;
   BiComponent<String, String> PLAYER_START = key("ezmediacore.log.start")::formatted;
@@ -56,7 +56,7 @@ public interface Locale {
 
   @Contract(pure = true)
   static @NotNull NullComponent toNullComponent(@NotNull final String key) {
-    return () -> key;
+    return () -> key(key);
   }
 
   @FunctionalInterface

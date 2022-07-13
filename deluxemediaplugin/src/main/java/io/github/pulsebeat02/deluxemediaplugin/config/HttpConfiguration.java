@@ -43,7 +43,7 @@ public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
   }
 
   @Override
-  public void deserialize() throws IOException {
+  public void serialize() throws IOException {
     final FileConfiguration configuration = this.getFileConfiguration();
     configuration.set("enabled", this.enabled);
     configuration.set("port", this.daemon.getDaemon().getPort());
@@ -61,7 +61,7 @@ public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
   }
 
   @Override
-  public @NotNull HttpServer serialize() throws IOException {
+  public @NotNull HttpServer deserialize() throws IOException {
     final FileConfiguration configuration = this.getFileConfiguration();
     final boolean enabled = configuration.getBoolean("enabled");
     final String ip = configuration.getString("ip");
@@ -82,9 +82,10 @@ public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
       final boolean verbose,
       @NotNull final Path directory) {
     final MediaLibraryCore core = this.getPlugin().library();
-    final HttpServer server = this.isPublicServer(ip)
-        ? HttpServer.ofServer(core, directory, port)
-        : HttpServer.ofServer(core, directory, ip, port, verbose);
+    final HttpServer server =
+        this.isPublicServer(ip)
+            ? HttpServer.ofServer(core, directory, port)
+            : HttpServer.ofServer(core, directory, ip, port, verbose);
     server.startServer();
     return server;
   }
