@@ -4,21 +4,24 @@ import org.jetbrains.annotations.NotNull;
 
 public final class FFmpegPlayerOutput implements FFmpegOutput<Void> {
 
-  private TcpFFmpegOutput tcp;
-  private StdoutFFmpegOutput stdout;
+  private final TcpFFmpegOutput tcp;
+  private final StdoutFFmpegOutput stdout;
 
-  FFmpegPlayerOutput() {}
+  FFmpegPlayerOutput() {
+    this.tcp = new TcpFFmpegOutput();
+    this.stdout = new StdoutFFmpegOutput();
+  }
 
   public static @NotNull FFmpegPlayerOutput of() {
     return new FFmpegPlayerOutput();
   }
 
-  public void setTcpOutput(@NotNull final TcpFFmpegOutput output) {
-    this.tcp = output;
+  public @NotNull TcpFFmpegOutput getTcp() {
+    return this.tcp;
   }
 
-  public void setStdoutOutput(@NotNull final StdoutFFmpegOutput output) {
-    this.stdout = output;
+  public @NotNull StdoutFFmpegOutput getStdout() {
+    return this.stdout;
   }
 
   /*
