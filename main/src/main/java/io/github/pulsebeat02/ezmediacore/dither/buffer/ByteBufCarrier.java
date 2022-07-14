@@ -39,4 +39,9 @@ public final class ByteBufCarrier implements BufferCarrier {
   public int getCapacity() {
     return this.buffer.capacity();
   }
+
+  @Override
+  public byte @NotNull [] getByteArray() {
+    return this.buffer.array();
+  }
 }

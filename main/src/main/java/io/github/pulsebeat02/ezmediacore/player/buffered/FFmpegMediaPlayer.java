@@ -32,6 +32,7 @@ import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegArguments;
 import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
@@ -43,6 +44,11 @@ import io.github.pulsebeat02.ezmediacore.player.output.PlayerOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.StreamOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.TcpOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.FFmpegPlayerOutput;
+import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.NativeFrameConsumer;
+import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.ParallelNutReader;
+import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
+import io.github.pulsebeat02.ezmediacore.utility.network.NetworkUtils;
+import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -137,30 +143,39 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
     this.addArguments(FFmpegArguments.TUNE, "fastdecode");
     this.addArguments(FFmpegArguments.TUNE, "zerolatency");
     this.addArguments(FFmpegArguments.DURATION_START, delay);
-    this.addArgument(
-        FFmpegArguments.VIDEO_SCALE.formatted(dimension.getWidth(), dimension.getHeight()));
+    this.addArgument(FFmpegArguments.VIDEO_SCALE.formatted(dimension.getWidth(), dimension.getHeight()));
     this.addArgument(this.getOutput().toString());
+
     this.execute();
   }
 
   private void execute() {
-    final ProcessBuilder builder = new ProcessBuilder(this.arguments);
-    builder.redirectError(ProcessBuilder.Redirect.INHERIT);
+
     try {
+
+      final ProcessBuilder builder = new ProcessBuilder(this.arguments);
+      builder.redirectError(ProcessBuilder.Redirect.INHERIT);
       this.process = builder.start();
-      final int port;
-      try (final ServerSocket s = new ServerSocket(0)) {
-        port = s.getLocalPort();
-      }
+
+
+      final int port = NetworkUtils.getFreePort();
+
       final InputStream stream = this.process.getInputStream();
       final PlayerOutput<FFmpegPlayerOutput> output = this.getOutput();
       final FFmpegPlayerOutput raw = output.getResultingOutput();
+
       raw.getStdout().setOutput(StreamOutput.ofStream(stream));
       raw.getTcp().setOutput(TcpOutput.ofHost("localhost", port));
+
       final String internal = raw.getTcp().getResultingOutput().getRaw();
       final InputStream url = new URL(internal).openStream();
-      final NutFrameReader reader = new NutFrameReader(this.getFrameConsumer(), ImageFormats.BGR24);
-      reader.read(url);
+
+      CompletableFuture.runAsync(() -> {
+        final ParallelNutReader reader = ParallelNutReader.ofReader(this.getFrameConsumer(), ImageFormats.BGR24);
+        reader.read(url);
+      }, ExecutorProvider.FRAME_CONSUMER).handle(Throwing.THROWING_FUTURE);
+
+
     } catch (final IOException e) {
       throw new RuntimeException(e);
     }
@@ -176,7 +191,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   }
 
   @Contract(value = " -> new", pure = true)
-  private @NotNull FrameConsumer getFrameConsumer() {
+  private @NotNull NativeFrameConsumer getFrameConsumer() {
     return new FFmpegFrameConsumer(this);
   }
 

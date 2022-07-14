@@ -30,6 +30,7 @@ import java.util.concurrent.ForkJoinPool;
 public final class ExecutorProvider {
 
   public static final ExecutorService SHARED_RESULT_POOL;
+  public static final ExecutorService FRAME_CONSUMER;
   public static final ExecutorService LOGGER_POOL;
   public static final ExecutorService ENCODER_HANDLER;
   public static final ExecutorService RTSP_SERVER;
@@ -37,6 +38,7 @@ public final class ExecutorProvider {
 
   static {
     SHARED_RESULT_POOL = new ForkJoinPool();
+    FRAME_CONSUMER = Executors.newCachedThreadPool();
     LOGGER_POOL = Executors.newCachedThreadPool();
     ENCODER_HANDLER = Executors.newCachedThreadPool();
     RTSP_SERVER = Executors.newCachedThreadPool();

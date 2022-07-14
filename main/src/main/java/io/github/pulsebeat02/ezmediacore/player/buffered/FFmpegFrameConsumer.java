@@ -1,17 +1,14 @@
 package io.github.pulsebeat02.ezmediacore.player.buffered;
 
-import com.github.kokorin.jaffree.ffmpeg.Frame;
-import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
-import com.github.kokorin.jaffree.ffmpeg.Stream;
+import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.FFmpegBufferedFrame;
+import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.FFmpegBufferedStream;
+import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.NativeFrameConsumer;
 import io.github.pulsebeat02.ezmediacore.throwable.IllegalStreamHeaderException;
-import io.github.pulsebeat02.ezmediacore.utility.graphics.VideoFrameUtils;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.image.BufferedImage;
 import java.time.Instant;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-public final class FFmpegFrameConsumer implements FrameConsumer {
+public final class FFmpegFrameConsumer implements NativeFrameConsumer {
 
   private final FFmpegMediaPlayer player;
   private float[] calculations;
@@ -21,11 +18,11 @@ public final class FFmpegFrameConsumer implements FrameConsumer {
   }
 
   @Override
-  public void consumeStreams(final List<Stream> streams) {
+  public void consumeStreams(final List<FFmpegBufferedStream> streams) {
     // if stream ids are not properly ordered, sometimes we need to rearrange them
     final int max =
         streams.stream()
-            .mapToInt(Stream::getId)
+            .mapToInt(FFmpegBufferedStream::getId)
             .max()
             .orElseThrow(IllegalStreamHeaderException::new);
 
@@ -33,7 +30,7 @@ public final class FFmpegFrameConsumer implements FrameConsumer {
     this.calculations = new float[max + 1];
 
     // loop through elements, set id with proper stream timebase
-    for (final Stream stream : streams) {
+    for (final FFmpegBufferedStream stream : streams) {
       this.calculations[stream.getId()] = (1.0F / stream.getTimebase()) * 1000;
     }
 
@@ -42,30 +39,21 @@ public final class FFmpegFrameConsumer implements FrameConsumer {
   }
 
   @Override
-  public void consume(final Frame frame) {
+  public void consume(final FFmpegBufferedFrame frame) {
 
     // sometimes ffmpeg returns a null frame...
     if (frame == null) {
       return;
     }
 
-    final byte[] audio = this.toByteArray(frame.getSamples());
-    final BufferedImage image = frame.getImage();
-    final int[] data = image == null ? null : VideoFrameUtils.getRGBParallel(image);
+    final byte[] audio = frame.getSamples().getByteArray();
+    final int[] image = frame.getImage();
 
     // add to queue
-    this.player.addFrame(data, audio, this.calculateTimeStamp(frame));
+    this.player.addFrame(image, audio, this.calculateTimeStamp(frame));
   }
 
-  private byte @NotNull [] toByteArray(final int @NotNull [] data) {
-    final byte[] bytes = new byte[data.length];
-    for (int i = 0; i < bytes.length; i++) {
-      bytes[i] = (byte) data[i];
-    }
-    return bytes;
-  }
-
-  private long calculateTimeStamp(@NotNull final Frame frame) {
+  private long calculateTimeStamp(@NotNull final FFmpegBufferedFrame frame) {
     return (long) (frame.getPts() * this.calculations[frame.getStreamId()]);
   }
 }
