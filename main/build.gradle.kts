@@ -21,7 +21,7 @@ dependencies {
     setOf(
             "org.junit.jupiter:junit-jupiter-engine:5.8.2",
             "org.junit.jupiter:junit-jupiter-api:5.8.2",
-            "com.github.seeseemelk:MockBukkit-v1.18:2.27.0",
+            "com.github.seeseemelk:MockBukkit-v1.19:2.29.0",
             "org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT",
             "me.friwi:jcefmaven:100.0.14.3"
     ).forEach {
