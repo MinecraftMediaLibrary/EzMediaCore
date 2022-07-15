@@ -58,6 +58,16 @@ public final class HttpCallback extends SampleCallback implements ServerCallback
     return this.future;
   }
 
+  @Override
+  public void close() throws Exception {
+    if (this.server != null) {
+      this.server.close();
+    }
+    if (this.future != null) {
+      this.future.cancel(true);
+    }
+  }
+
   public static final class Builder extends AudioCallbackBuilder {
 
     private AudioConfiguration configuration;

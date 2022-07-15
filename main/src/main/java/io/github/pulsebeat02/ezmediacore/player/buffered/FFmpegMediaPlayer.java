@@ -93,7 +93,7 @@ after the frame that matched up our time. Obviously, this may be a
 bit slow, and that overtime for the loop also takes some time to
 process too, so we must account for that as well.
  */
-public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
+public final class FFmpegMediaPlayer extends BufferedMediaPlayer<FFmpegPlayerOutput> {
 
   private final List<String> arguments;
 
@@ -156,7 +156,6 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
       final ProcessBuilder builder = new ProcessBuilder(this.arguments);
       builder.redirectError(ProcessBuilder.Redirect.INHERIT);
       this.process = builder.start();
-
 
       final int port = NetworkUtils.getFreePort();
 
@@ -304,7 +303,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
 
     @Contract(" -> new")
     @Override
-    public @NotNull MediaPlayer build() {
+    public @NotNull MediaPlayer<FFmpegPlayerOutput> build() {
       super.init();
       final VideoCallback video = this.getVideo();
       final AudioCallback audio = this.getAudio();

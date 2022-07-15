@@ -15,6 +15,10 @@ public final class NullCallback extends SampleCallback {
     // do nothing
   }
 
+  @Override
+  public void close() throws Exception {
+  }
+
   public static final class Builder extends AudioCallbackBuilder {
 
     public Builder() {}

@@ -17,6 +17,7 @@ import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.throwable.HttpServerException;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
@@ -143,6 +144,16 @@ public final class ResourcepackCallback extends SampleCallback implements PackCa
   @Override
   public @Nullable CompletableFuture<Path> getPackFuture() {
     return this.extraction;
+  }
+
+  @Override
+  public void close() throws Exception {
+    if (this.server != null) {
+      this.server.stopServer();
+    }
+    if (this.extraction != null) {
+      this.extraction.cancel(true);
+    }
   }
 
   public static final class Builder extends AudioCallbackBuilder {

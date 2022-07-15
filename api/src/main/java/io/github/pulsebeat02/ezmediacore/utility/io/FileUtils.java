@@ -140,9 +140,24 @@ public final class FileUtils {
     return true;
   }
 
-  public static @NotNull String getFirstLine(@NotNull final Path file) throws IOException {
+  public static @NotNull String getContentExceptionally(@NotNull final Path file) {
     checkNotNull(file, "Path cannot be null!");
-    return Files.lines(file).findFirst().orElseThrow(NoSuchElementException::new);
+    try {
+      return new String(Files.readAllBytes(file));
+    } catch (final IOException e) {
+      return "";
+    }
+  }
+
+  public static boolean setContentExceptionally(@NotNull final Path file, @NotNull final String content) {
+    checkNotNull(file, "Path cannot be null!");
+    try {
+      Files.write(file, content.getBytes());
+      return true;
+    } catch (final IOException e) {
+      e.printStackTrace();
+      return false;
+    }
   }
 
   public static boolean copyFromResourcesExceptionally(

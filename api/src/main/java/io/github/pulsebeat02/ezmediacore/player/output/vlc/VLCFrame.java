@@ -6,8 +6,8 @@ import org.jetbrains.annotations.NotNull;
 public interface VLCFrame {
 
   @NotNull
-  Optional<int[]> getColorspace();
+  Optional<int[]> getRGBSamples();
 
   @NotNull
-  Optional<int[]> getAudioSamples();
+  Optional<byte[]> getAudioSamples();
 }
