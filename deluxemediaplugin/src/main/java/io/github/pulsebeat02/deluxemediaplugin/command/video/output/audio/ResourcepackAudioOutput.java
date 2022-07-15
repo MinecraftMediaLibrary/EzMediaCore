@@ -51,7 +51,7 @@ public class ResourcepackAudioOutput extends AudioOutput {
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig attributes) {
     final VideoPlayer player = attributes.getPlayer();
     final Set<Player> viewers = player.getWatchers().getPlayers();
-    final String sound = player.getSoundKey().getName();
+    final String sound = "emc";
     viewers.forEach(p -> p.playSound(p.getLocation(), sound, MASTER, 100.0F, 1.0F));
   }
 }

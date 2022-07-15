@@ -25,6 +25,7 @@ package io.github.pulsebeat02.ezmediacore.utility.io;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -162,10 +163,11 @@ public final class FileUtils {
 
   public static boolean copyFromResourcesExceptionally(
       @NotNull final String resource, @NotNull final Path destination) {
-    final ClassLoader loader = FileUtils.class.getClassLoader();
-    final File file = new File(loader.getResource(resource).getFile());
+    checkNotNull(resource, "Resource cannot be null!");
+    checkNotNull(destination, "Destination cannot be null!");
+    final InputStream stream = requireNonNull(FileUtils.class.getResourceAsStream(resource));
     try {
-      Files.move(file.toPath(), destination);
+      Files.copy(stream, destination);
     } catch (final IOException e) {
       e.printStackTrace();
       return false;

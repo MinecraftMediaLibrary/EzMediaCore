@@ -100,7 +100,7 @@ public class VideoBuilder {
     this.calculateFrameRate();
   }
 
-  public MediaPlayer build() {
+  public MediaPlayer<?> build() {
     this.init();
     final MediaLibraryCore core = this.video.getCore();
     switch (core.getDiagnostics().getSystem().getOSType()) {
@@ -122,7 +122,7 @@ public class VideoBuilder {
   }
 
   @Contract(" -> new")
-  private @NotNull MediaPlayer vlcOption() {
+  private @NotNull MediaPlayer<?> vlcOption() {
     return vlc().video(this.video).audio(this.audio).dims(this.dims).frameRate(this.rate)
         .build();
   }

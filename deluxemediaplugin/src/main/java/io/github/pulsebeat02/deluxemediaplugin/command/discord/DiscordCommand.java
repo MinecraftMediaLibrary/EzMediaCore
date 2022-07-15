@@ -27,6 +27,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
+import io.github.pulsebeat02.deluxemediaplugin.locale.LocaleParent;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -55,7 +56,7 @@ public class DiscordCommand extends BaseCommand {
 
   @Override
   public @NotNull Component usage() {
-    return Locale.getCommandUsageComponent(
+    return LocaleParent.getCommandUsageComponent(
         Map.of(
             "/discord connect",
             "Connects the Discord bot to the voice channel",

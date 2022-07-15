@@ -38,6 +38,7 @@ import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import io.github.pulsebeat02.ezmediacore.utility.search.StringSearch;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -182,8 +183,10 @@ public final class EzMediaCore implements MediaLibraryCore {
   }
 
   private void createFiles() {
-    FileUtils.copyFromResourcesExceptionally(
-        "audio.html", this.httpServerPath.resolve("audio.html"));
+    final Path file = this.httpServerPath.resolve("audio.html");
+    if (Files.notExists(file)) {
+      FileUtils.copyFromResourcesExceptionally("/audio.html", file);
+    }
   }
 
   private void startDependencyLoader() {
@@ -193,18 +196,11 @@ public final class EzMediaCore implements MediaLibraryCore {
 
   private void sendUsageTips() {
     this.sendWarningMessage();
-    this.sendPacketCompressionTip();
     this.sendSpotifyWarningMessage(this);
   }
 
   private void sendWarningMessage() {
     this.logger.warn(Locale.SERVER_SOFTWARE.build());
-  }
-
-  private void sendPacketCompressionTip() {
-    if (this.isOnlineMode()) {
-      this.logger.warn(Locale.PACKET_COMPRESSION.build());
-    }
   }
 
   private boolean isOnlineMode() {

@@ -34,6 +34,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
+import io.github.pulsebeat02.deluxemediaplugin.locale.LocaleParent;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.MapUtils;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import java.util.Map;
@@ -146,7 +147,7 @@ public final class MapCommand extends BaseCommand {
 
   @Override
   public @NotNull Component usage() {
-    return Locale.getCommandUsageComponent(
+    return LocaleParent.getCommandUsageComponent(
         Map.of(
             "/map [id]",
             "Gives a map to the player with the specific id",

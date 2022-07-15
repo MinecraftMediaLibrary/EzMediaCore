@@ -37,6 +37,7 @@ import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
+import java.util.Random;
 import java.util.SplittableRandom;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.random.RandomGenerator;
@@ -51,7 +52,7 @@ public final class RandomDither extends ForeignDitherAlgorithm {
   private static final RandomGenerator RANDOM;
 
   static {
-    RANDOM = RandomGenerator.getDefault();
+    RANDOM = new Xoroshiro128PlusRandom();
     LIGHT_WEIGHT = 32;
     NORMAL_WEIGHT = 64;
     HEAVY_WEIGHT = 128;

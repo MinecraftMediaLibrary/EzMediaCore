@@ -6,6 +6,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.load.LoadVideoCommand;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.set.SetPropertyCommand;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
+import io.github.pulsebeat02.deluxemediaplugin.locale.LocaleParent;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
@@ -36,7 +37,7 @@ public final class VideoCommand extends BaseCommand {
 
   @Override
   public Component usage() {
-    return Locale.getCommandUsageComponent(
+    return LocaleParent.getCommandUsageComponent(
         Map.of(
             "/video load [input] [argument]",
             "Loads the video",

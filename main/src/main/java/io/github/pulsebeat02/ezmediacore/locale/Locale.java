@@ -42,7 +42,6 @@ public interface Locale {
   NullComponent PLAYER_PAUSE = toNullComponent("ezmediacore.log.pause");
   NullComponent PLAYER_RESUME = toNullComponent("ezmediacore.log.resume");
   NullComponent SERVER_SOFTWARE = toNullComponent("ezmediacore.log.server.software");
-  NullComponent PACKET_COMPRESSION = toNullComponent("ezmediacore.log.packet.compression");
   NullComponent SPOTIFY_AUTHENTICATION = toNullComponent("ezmediacore.log.spotify.auth");
   UniComponent<String> UNSUPPORTED_SERVER = key("ezmediacore.error.server")::formatted;
   UniComponent<String> DEPENDENCY_LOAD = key("ezmediacore.log.dependency.load")::formatted;
