@@ -83,7 +83,7 @@ public final class VLCMediaPlayer extends MediaPlayer<VLCFrameOutput> {
     super(video, audio, viewers, pixelDimension,
         new VLCMediaPlayerInputParser(video.getCore()));
     this.adapter = this.getAdapter();
-    this.videoCallback = new MinecraftVideoRenderCallback(this.getVideoCallback()::process);
+    this.videoCallback = new MinecraftVideoRenderCallback(this, this.getVideoCallback()::process);
   }
 
   private VideoSurfaceAdapter getAdapter() {
@@ -153,7 +153,7 @@ public final class VLCMediaPlayer extends MediaPlayer<VLCFrameOutput> {
 
   private @NotNull MinecraftAudioCallback createAudioCallback() {
     final Consumer<byte[]> audio = this.getAudioCallback()::process;
-    return new MinecraftAudioCallback(audio, 3840);
+    return new MinecraftAudioCallback(this, audio, 3840);
   }
 
   private @NotNull EmbeddedMediaPlayer getEmbeddedMediaPlayer(
@@ -237,11 +237,12 @@ public final class VLCMediaPlayer extends MediaPlayer<VLCFrameOutput> {
     private final int blockSize;
 
     MinecraftAudioCallback(
+        @NotNull final VLCMediaPlayer player,
         @NotNull final Consumer<byte[]> consumer,
         final int blockSize) {
-      this.output = VLCMediaPlayer.super.getOutput().getResultingOutput().getResultingOutput();
+      this.output = player.getOutput().getResultingOutput().getResultingOutput();
       this.callback = consumer;
-      this.viewers = VLCMediaPlayer.super.getWatchers();
+      this.viewers = player.getWatchers();
       this.blockSize = blockSize;
     }
 
@@ -273,15 +274,15 @@ public final class VLCMediaPlayer extends MediaPlayer<VLCFrameOutput> {
     private final ConsumableOutput output;
     private final Consumer<int[]> callback;
 
-    MinecraftVideoRenderCallback(@NotNull final Consumer<int[]> consumer) {
-      this(consumer, VLCMediaPlayer.super.getDimensions().getWidth(),
+    MinecraftVideoRenderCallback(@NotNull final VLCMediaPlayer player, @NotNull final Consumer<int[]> consumer) {
+      this(player, consumer, VLCMediaPlayer.super.getDimensions().getWidth(),
           VLCMediaPlayer.super.getDimensions().getHeight());
     }
 
-    MinecraftVideoRenderCallback(@NotNull final Consumer<int[]> consumer, final int width,
+    MinecraftVideoRenderCallback(@NotNull final VLCMediaPlayer player, @NotNull final Consumer<int[]> consumer, final int width,
         final int height) {
       super(new int[height * width]);
-      this.output = VLCMediaPlayer.super.getOutput().getResultingOutput().getResultingOutput();
+      this.output = player.getOutput().getResultingOutput().getResultingOutput();
       this.callback = consumer;
     }
 

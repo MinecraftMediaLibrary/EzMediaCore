@@ -54,7 +54,7 @@ public interface LocaleParent {
 
   static @NotNull <T> UniComponent<Sender, T> info(
       @NotNull final String key, @Nullable final Function<T, String> function) {
-    return argument -> info0(key, List.of(text(createFinalText(argument, function), AQUA)));
+    return argument -> format(info0(key, List.of(text(createFinalText(argument, function), AQUA))));
   }
 
   static @NotNull <T, U> BiComponent<Sender, T, U> info(
@@ -62,16 +62,16 @@ public interface LocaleParent {
       @Nullable final Function<T, String> function1,
       @Nullable final Function<U, String> function2) {
     return (argument1, argument2) ->
-        info0(
+        format(info0(
             key,
             List.of(
                 text(createFinalText(argument1, function1), AQUA),
-                text(createFinalText(argument2, function2), AQUA)));
+                text(createFinalText(argument2, function2), AQUA))));
   }
 
   static @NotNull Component info0(
       @NotNull final String key, @NotNull final List<Component> arguments) {
-    return internal0(key, AQUA, arguments);
+    return internal0(key, GOLD, arguments);
   }
 
   static @NotNull Component error0(
