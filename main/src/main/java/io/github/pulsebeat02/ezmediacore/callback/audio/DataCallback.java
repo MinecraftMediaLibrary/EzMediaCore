@@ -8,12 +8,12 @@ import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class SampleCallback implements AudioCallback {
+public abstract class DataCallback implements AudioCallback {
 
   private final MediaLibraryCore core;
   private final Viewers viewers;
 
-  public SampleCallback(@NotNull final MediaLibraryCore core, @NotNull final Viewers viewers) {
+  public DataCallback(@NotNull final MediaLibraryCore core, @NotNull final Viewers viewers) {
     checkNotNull(core, "MediaLibraryCore cannot be null!");
     checkNotNull(viewers, "Viewers cannot be null!");
     this.core = core;
@@ -32,5 +32,5 @@ public abstract class SampleCallback implements AudioCallback {
 
   @Override
   public void preparePlayerStateChange(
-      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {}
+      @NotNull final VideoPlayer<?> player, @NotNull final PlayerControls status) {}
 }

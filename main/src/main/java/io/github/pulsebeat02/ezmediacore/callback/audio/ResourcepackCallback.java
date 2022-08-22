@@ -17,14 +17,13 @@ import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import io.github.pulsebeat02.ezmediacore.throwable.HttpServerException;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class ResourcepackCallback extends SampleCallback implements PackCallback {
+public final class ResourcepackCallback extends DataCallback implements PackCallback {
 
   private HttpServer server;
   private CompletableFuture<Path> extraction;
@@ -66,7 +65,7 @@ public final class ResourcepackCallback extends SampleCallback implements PackCa
 
   @Override
   public void preparePlayerStateChange(
-      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
+      @NotNull final VideoPlayer<?> player, @NotNull final PlayerControls status) {
 
     final MediaLibraryCore core = this.getCore();
     final String source = player.getInput().getDirectAudioMrl().toString();

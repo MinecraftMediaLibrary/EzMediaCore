@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore;
+package io.github.pulsebeat02.ezmediacore.video;
 
 import com.github.kokorin.jaffree.LogLevel;
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg;

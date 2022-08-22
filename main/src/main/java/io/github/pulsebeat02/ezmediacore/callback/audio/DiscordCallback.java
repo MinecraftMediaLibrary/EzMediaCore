@@ -14,7 +14,7 @@ import java.nio.file.Path;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public final class DiscordCallback extends SampleCallback {
+public final class DiscordCallback extends DataCallback {
 
   private final DiscordAudioConsumer consumer;
 
@@ -45,7 +45,7 @@ public final class DiscordCallback extends SampleCallback {
 
   @Override
   public void preparePlayerStateChange(
-      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
+      @NotNull final VideoPlayer<?> player, @NotNull final PlayerControls status) {
     if (player instanceof VLCMediaPlayer) {
       this.replaceOccurrence();
       this.setupHttpServer();

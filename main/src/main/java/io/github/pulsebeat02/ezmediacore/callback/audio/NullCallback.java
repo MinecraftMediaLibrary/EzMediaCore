@@ -4,7 +4,7 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import org.jetbrains.annotations.NotNull;
 
-public final class NullCallback extends SampleCallback {
+public final class NullCallback extends DataCallback {
 
   NullCallback(@NotNull final MediaLibraryCore core, @NotNull final Viewers viewers) {
     super(core, viewers);

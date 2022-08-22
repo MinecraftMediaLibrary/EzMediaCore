@@ -4,7 +4,7 @@ import io.github.pulsebeat02.ezmediacore.player.output.OutputConfiguration;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-public final class VLCStandardOutput extends OutputConfiguration {
+public class VLCStandardOutput extends OutputConfiguration {
 
   public static final String ACCESS;
   public static final String MUX;
@@ -30,13 +30,20 @@ public final class VLCStandardOutput extends OutputConfiguration {
     EMAIL = "email";
   }
 
+  private final String section;
+
+  public VLCStandardOutput(@NotNull final String section) {
+    this.section = section;
+  }
+
   @Override
   public @NotNull String toString() {
     final Map<String, String> configuration = this.getConfiguration();
-    final StringBuilder builder = new StringBuilder("std{");
+    final StringBuilder builder = new StringBuilder("%s{".formatted(this.section));
     for (final Map.Entry<String, String> entry : configuration.entrySet()) {
       builder.append(entry.getKey()).append("=").append(entry.getValue()).append(",");
     }
+    builder.deleteCharAt(builder.length() - 1);
     builder.append("}");
     return builder.toString();
   }

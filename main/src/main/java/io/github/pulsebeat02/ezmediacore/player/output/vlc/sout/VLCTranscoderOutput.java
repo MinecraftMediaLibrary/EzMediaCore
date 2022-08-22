@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore.player.output.vlc;
+package io.github.pulsebeat02.ezmediacore.player.output.vlc.sout;
 
 import io.github.pulsebeat02.ezmediacore.player.output.OutputConfiguration;
 import java.util.Map;
@@ -75,6 +75,7 @@ public final class VLCTranscoderOutput extends OutputConfiguration {
     for (final Map.Entry<String, String> entry : configuration.entrySet()) {
       builder.append(entry.getKey()).append("=").append(entry.getValue()).append(",");
     }
+    builder.deleteCharAt(builder.length() - 1);
     builder.append("}");
     return builder.toString();
   }

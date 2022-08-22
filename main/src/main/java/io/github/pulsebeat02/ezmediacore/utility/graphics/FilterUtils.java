@@ -1,6 +1,5 @@
 package io.github.pulsebeat02.ezmediacore.utility.graphics;
 
-import io.github.pulsebeat02.ezmediacore.player.output.vlc.VLCTranscoderOutput;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import org.jetbrains.annotations.NotNull;

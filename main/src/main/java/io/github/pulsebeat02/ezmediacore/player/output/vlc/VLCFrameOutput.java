@@ -1,7 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.player.output.vlc;
 
 import io.github.pulsebeat02.ezmediacore.player.output.ConsumableOutput;
-import org.jetbrains.annotations.Contract;
+import io.github.pulsebeat02.ezmediacore.player.output.vlc.sout.VLCTranscoderOutput;
 import org.jetbrains.annotations.NotNull;
 
 public final class VLCFrameOutput implements VLCOutput<ConsumableOutput> {
@@ -11,12 +11,7 @@ public final class VLCFrameOutput implements VLCOutput<ConsumableOutput> {
   private VLCTranscoderOutput transcoder;
   private VLCStandardOutput standard;
 
-  VLCFrameOutput() {}
-
-  @Contract(" -> new")
-  public @NotNull VLCFrameOutput ofFrameOutput() {
-    return new VLCFrameOutput();
-  }
+  public VLCFrameOutput() {}
 
   public void setTranscoder(@NotNull final VLCTranscoderOutput transcoder) {
     this.transcoder = transcoder;
@@ -38,6 +33,6 @@ public final class VLCFrameOutput implements VLCOutput<ConsumableOutput> {
 
   @Override
   public String toString() {
-    return "--sout '#%s:%s'".formatted(this.transcoder, this.standard);
+    return ":sout=#%s:%s".formatted(this.transcoder, this.standard);
   }
 }
