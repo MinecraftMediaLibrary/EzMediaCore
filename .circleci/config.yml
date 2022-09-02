@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: cimg/openjdk:18.0.1
+      - image: cimg/openjdk:18.0.2
     working_directory: ~/repo
     environment:
       MAVEN_OPTS: -Xmx3200m -Xms2600m

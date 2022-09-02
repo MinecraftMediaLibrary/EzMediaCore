@@ -9,6 +9,6 @@
   "main": "io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPluginBootstrap",
   "load": "STARTUP",
   "libraries": [
-    "net.dv8tion:JDA:5.0.0-alpha.15"
+    "net.dv8tion:JDA:5.0.0-alpha.18"
   ]
 }
