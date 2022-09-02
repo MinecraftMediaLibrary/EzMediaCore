@@ -44,7 +44,7 @@ dependencies {
             "com.alibaba:fastjson:2.0.12",
             "net.java.dev.jna:jna:5.12.1",
             "net.java.dev.jna:jna-platform:5.12.1",
-            "se.michaelthelin.spotify:spotify-web-api-java:7.1.0",
+            "se.michaelthelin.spotify:spotify-web-api-java:7.2.0",
             "com.github.kokorin.jaffree:jaffree:2022.06.03",
             "org.jcodec:jcodec:0.2.5",
             "com.github.ben-manes.caffeine:caffeine:3.1.1",
