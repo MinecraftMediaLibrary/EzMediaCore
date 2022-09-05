@@ -2,16 +2,11 @@ package io.github.pulsebeat02.ezmediacore.callback.rewrite.discord;
 
 import com.sun.jna.Pointer;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.player.external.VLCMediaPlayer;
-import io.github.pulsebeat02.ezmediacore.player.output.ConsumableOutput;
-import io.github.pulsebeat02.ezmediacore.player.output.vlc.VLCMediaFrame;
 import org.jetbrains.annotations.NotNull;
 import uk.co.caprica.vlcj.player.base.callback.AudioCallbackAdapter;
-
-import java.util.function.Consumer;
 
 public final class VLCDiscordCallback extends DiscordCallback {
 

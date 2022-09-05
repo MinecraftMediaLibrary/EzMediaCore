@@ -22,7 +22,7 @@
   {
     "group": "se.michaelthelin.spotify",
     "artifact": "spotify-web-api-java",
-    "version": "7.1.0"
+    "version": "7.2.0"
   },
   {
     "group": "com.github.kokorin.jaffree",
@@ -52,7 +52,7 @@
   {
     "group": "com.fasterxml.jackson.core",
     "artifact": "jackson-core",
-    "version": "2.13.3"
+    "version": "2.13.4"
   },
   {
     "group": "com.neovisionaries",
