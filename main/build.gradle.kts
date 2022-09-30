@@ -38,7 +38,7 @@ dependencies {
 
     // MAIN DEPENDENCIES
     setOf(
-            "uk.co.caprica:vlcj:4.7.3",
+            "uk.co.caprica:vlcj:4.8.2",
             "uk.co.caprica:vlcj-natives:4.7.0",
             "com.github.sealedtx:java-youtube-downloader:3.0.2",
             "com.alibaba:fastjson:2.0.12",
