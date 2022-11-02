@@ -19,7 +19,7 @@ dependencies {
     }
 
     setOf(
-            "me.friwi:jcefmaven:104.4.23"
+            "me.friwi:jcefmaven:105.3.36.2"
     ).forEach {
         testImplementation(it)
     }
