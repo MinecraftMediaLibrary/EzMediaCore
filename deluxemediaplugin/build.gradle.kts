@@ -27,7 +27,7 @@ dependencies {
     // MAIN SHADED DEPENDENCIES
     setOf(
             "org.bstats:bstats-bukkit:3.0.0",
-            "net.kyori:adventure-api:4.11.0",
+            "net.kyori:adventure-api:4.12.0",
             "net.kyori:adventure-platform-bukkit:4.1.2",
             "com.github.stefvanschie.inventoryframework:IF:0.10.7"
     ).forEach {
