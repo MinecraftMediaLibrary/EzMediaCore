@@ -47,7 +47,7 @@ dependencies {
             "se.michaelthelin.spotify:spotify-web-api-java:7.2.0",
             "com.github.kokorin.jaffree:jaffree:2022.06.03",
             "org.jcodec:jcodec:0.2.5",
-            "com.github.ben-manes.caffeine:caffeine:3.1.1",
+            "com.github.ben-manes.caffeine:caffeine:3.1.2",
             "it.unimi.dsi:fastutil:8.5.8",
             "com.fasterxml.jackson.core:jackson-core:2.13.4",
             "org.apache.httpcomponents.client5:httpclient5:5.2-beta1",
