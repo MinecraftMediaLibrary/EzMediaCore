@@ -8,7 +8,7 @@ import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 import java.util.concurrent.TimeUnit;
 import javax.sound.sampled.AudioInputStream;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.jetbrains.annotations.NotNull;
 

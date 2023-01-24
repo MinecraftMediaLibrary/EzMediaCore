@@ -75,7 +75,7 @@ tasks {
         relocate("com.neovisionaries", "$libraryBase.neovisionaries")
     }
     runServer {
-        minecraftVersion.set("1.19.2")
+        // minecraftVersion.set("1.19.2")
         debug = true
     }
 }

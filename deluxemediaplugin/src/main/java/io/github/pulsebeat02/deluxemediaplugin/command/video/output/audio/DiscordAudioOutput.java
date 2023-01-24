@@ -34,7 +34,7 @@ import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
 import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 
