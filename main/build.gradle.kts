@@ -61,7 +61,8 @@ dependencies {
     setOf(
             project(":api"),
             project(":v1_18_R2"),
-            project(":v1_19_R1")
+            project(":v1_19_R1"),
+            project(":v1_19_R2")
     ).forEach {
         api(it)
     }

@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore.nms.impl.v1_19_R1;
+package io.github.pulsebeat02.ezmediacore.nms.impl.v1_19_R2;
 
 import static io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils.setFinalField;
 
@@ -39,9 +39,9 @@ import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.world.level.saveddata.maps.MapIcon;
 import net.minecraft.world.level.saveddata.maps.WorldMap;
-import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R1.util.CraftChatMessage;
+import org.bukkit.craftbukkit.v1_19_R2.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_19_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R2.util.CraftChatMessage;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -317,13 +317,13 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   private PacketPlayOutEntityMetadata createEntityPacket(
       @NotNull final Entity entity, @NotNull final IChatBaseComponent component) {
 
-    final int id = ((CraftEntity) entity).getHandle().ae();
+    final int id = ((CraftEntity) entity).getHandle().ah();
     final DataWatcher watcher = new DataWatcher(null);
-    final PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata(id, watcher, false);
+    final PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata(id, watcher.c());
 
     final Optional<IChatBaseComponent> optional = Optional.of(component);
     final DataWatcherObject<Optional<IChatBaseComponent>> object =
-        new DataWatcherObject<>(2, DataWatcherRegistry.f);
+        new DataWatcherObject<>(2, DataWatcherRegistry.g);
     final Item<Optional<IChatBaseComponent>> item = new Item<>(object, optional);
     final List<Item<Optional<IChatBaseComponent>>> list = Collections.singletonList(item);
 
