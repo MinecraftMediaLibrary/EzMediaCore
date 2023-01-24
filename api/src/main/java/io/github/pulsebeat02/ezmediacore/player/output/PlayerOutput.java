@@ -2,10 +2,10 @@ package io.github.pulsebeat02.ezmediacore.player.output;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface PlayerOutput<T> {
+public interface PlayerOutput {
 
   @NotNull
-  T getResultingOutput();
+  Object getResultingOutput();
 
-  void setOutput(@NotNull T output);
+  void setOutput(@NotNull Object output);
 }

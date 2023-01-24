@@ -29,7 +29,6 @@ import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
-import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
@@ -37,7 +36,6 @@ import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.player.input.JCodecMediaPlayerInputParser;
-import io.github.pulsebeat02.ezmediacore.player.output.NullOutput;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -55,7 +53,7 @@ import org.jetbrains.annotations.NotNull;
  * This video player sucks as it ignores all output configurations, which means that there is not
  * even audio at all...
  */
-public final class JCodecMediaPlayer extends BufferedMediaPlayer<NullOutput> {
+public final class JCodecMediaPlayer extends BufferedMediaPlayer {
 
   private FrameGrab grabber;
 
@@ -189,7 +187,7 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer<NullOutput> {
 
     @Contract(" -> new")
     @Override
-    public @NotNull MediaPlayer<NullOutput> build() {
+    public @NotNull MediaPlayer build() {
       super.init();
       final VideoCallback video = this.getVideo();
       final AudioCallback audio = this.getAudio();

@@ -23,9 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.player.buffered;
 
-import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.ImageFormats;
-import com.github.kokorin.jaffree.ffmpeg.NutFrameReader;
 import com.google.common.collect.Lists;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
@@ -54,7 +52,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.ServerSocket;
 import java.net.URL;
 import java.util.List;
 
@@ -93,7 +90,7 @@ after the frame that matched up our time. Obviously, this may be a
 bit slow, and that overtime for the loop also takes some time to
 process too, so we must account for that as well.
  */
-public final class FFmpegMediaPlayer extends BufferedMediaPlayer<FFmpegPlayerOutput> {
+public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
 
   private final List<String> arguments;
 
@@ -117,17 +114,13 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer<FFmpegPlayerOut
 
   public void initializePlayer(
       @NotNull final DelayConfiguration delay, @NotNull final Object @NotNull ... arguments) {
-    this.createProcess(delay);
-    this.addExtraArguments(arguments);
+    this.createProcess(delay, arguments);
+    this.execute();
   }
 
-  private void addExtraArguments(@NotNull final Object @NotNull ... arguments) {
-    for (int i = 1; i < arguments.length; i++) {
-      this.addArgument(arguments[i].toString());
-    }
-  }
 
-  private void createProcess(@NotNull final DelayConfiguration configuration) {
+
+  private void createProcess(@NotNull final DelayConfiguration configuration, @NotNull final Object @NotNull ... arguments) {
 
     final Dimension dimension = this.getDimensions();
     final String mrl = this.getInput().getDirectVideoMrl().toString();
@@ -137,16 +130,20 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer<FFmpegPlayerOut
     this.addArgument(FFmpegArguments.HIDE_BANNER);
     this.addArgument(FFmpegArguments.NO_STATS);
     this.addArguments(FFmpegArguments.LOG_LEVEL, "error");
-    this.addArgument(FFmpegArguments.NATIVE_FRAME_READ_RATE);
-    this.addArguments(FFmpegArguments.INPUT, mrl);
+    this.addArguments(FFmpegArguments.NATIVE_FRAME_READ_RATE, mrl);
     this.addArgument(FFmpegArguments.NO_CONSOLE_INPUT);
     this.addArguments(FFmpegArguments.TUNE, "fastdecode");
     this.addArguments(FFmpegArguments.TUNE, "zerolatency");
     this.addArguments(FFmpegArguments.DURATION_START, delay);
     this.addArgument(FFmpegArguments.VIDEO_SCALE.formatted(dimension.getWidth(), dimension.getHeight()));
+    this.addExtraArguments(arguments);
     this.addArgument(this.getOutput().toString());
+  }
 
-    this.execute();
+  private void addExtraArguments(@NotNull final Object[] arguments) {
+    for (int i = 1; i < arguments.length; i++) {
+      this.addArgument(arguments[i].toString());
+    }
   }
 
   private void execute() {
@@ -160,8 +157,8 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer<FFmpegPlayerOut
       final int port = NetworkUtils.getFreePort();
 
       final InputStream stream = this.process.getInputStream();
-      final PlayerOutput<FFmpegPlayerOutput> output = this.getOutput();
-      final FFmpegPlayerOutput raw = output.getResultingOutput();
+      final PlayerOutput output = this.getOutput();
+      final FFmpegPlayerOutput raw = (FFmpegPlayerOutput) output.getResultingOutput();
 
       raw.getStdout().setOutput(StreamOutput.ofStream(stream));
       raw.getTcp().setOutput(TcpOutput.ofHost("localhost", port));
@@ -233,10 +230,9 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer<FFmpegPlayerOut
     this.setupPlayer();
   }
 
-  // TODO FIX THIS
   @Override
-  public @NotNull PlayerOutput<FFmpegPlayerOutput> getOutput() {
-    return (PlayerOutput<FFmpegPlayerOutput>) super.getOutput();
+  public @NotNull PlayerOutput getOutput() {
+    return super.getOutput();
   }
 
   private void setupPlayer() {
@@ -303,7 +299,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer<FFmpegPlayerOut
 
     @Contract(" -> new")
     @Override
-    public @NotNull MediaPlayer<FFmpegPlayerOutput> build() {
+    public @NotNull MediaPlayer build() {
       super.init();
       final VideoCallback video = this.getVideo();
       final AudioCallback audio = this.getAudio();

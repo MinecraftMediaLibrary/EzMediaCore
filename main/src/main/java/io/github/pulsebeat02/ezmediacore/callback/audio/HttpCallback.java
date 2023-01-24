@@ -71,14 +71,14 @@ public final class HttpCallback extends DataCallback implements ServerCallback {
       output.setTranscoder(transcoder);
       output.setStandard(standard);
 
-      vlc.setOutput(new PlayerOutput<>() {
+      vlc.setOutput(new PlayerOutput() {
         @Override
-        public @NotNull VLCFrameOutput getResultingOutput() {
+        public @NotNull Object getResultingOutput() {
           return null;
         }
 
         @Override
-        public void setOutput(@NotNull final VLCFrameOutput output) {
+        public void setOutput(@NotNull final Object output) {
 
         }
       });

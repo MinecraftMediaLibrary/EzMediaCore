@@ -42,7 +42,7 @@ import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class MediaPlayer<T> implements VideoPlayer<T> {
+public abstract class MediaPlayer implements VideoPlayer {
 
   private final MediaLibraryCore core;
   private final Dimension dimensions;
@@ -52,7 +52,7 @@ public abstract class MediaPlayer<T> implements VideoPlayer<T> {
 
   private Viewers viewers;
   private PlayerInput input;
-  private PlayerOutput<T> output;
+  private PlayerOutput output;
   private PlayerControls controls;
 
   public MediaPlayer(
@@ -165,12 +165,12 @@ public abstract class MediaPlayer<T> implements VideoPlayer<T> {
   }
 
   @Override
-  public @NotNull PlayerOutput<T> getOutput() {
+  public @NotNull PlayerOutput getOutput() {
     return this.output;
   }
 
   @Override
-  public void setOutput(@NotNull final PlayerOutput<T> output) {
+  public void setOutput(@NotNull final PlayerOutput output) {
     this.output = output;
   }
 

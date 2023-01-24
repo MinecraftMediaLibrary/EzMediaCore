@@ -7,5 +7,5 @@ import org.jetbrains.annotations.NotNull;
 public interface PlayerListener {
 
   void preparePlayerStateChange(
-      @NotNull final VideoPlayer<?> player, @NotNull final PlayerControls status);
+      @NotNull final VideoPlayer player, @NotNull final PlayerControls status);
 }

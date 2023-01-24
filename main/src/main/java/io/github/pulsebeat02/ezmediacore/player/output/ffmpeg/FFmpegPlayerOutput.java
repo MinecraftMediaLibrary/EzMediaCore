@@ -2,7 +2,7 @@ package io.github.pulsebeat02.ezmediacore.player.output.ffmpeg;
 
 import org.jetbrains.annotations.NotNull;
 
-public final class FFmpegPlayerOutput implements FFmpegOutput<Void> {
+public final class FFmpegPlayerOutput implements FFmpegOutput {
 
   private final TcpFFmpegOutput tcp;
   private final StdoutFFmpegOutput stdout;
@@ -34,7 +34,7 @@ public final class FFmpegPlayerOutput implements FFmpegOutput<Void> {
   }
 
   @Override
-  public void setOutput(@NotNull final Void output) {}
+  public void setOutput(@NotNull final Object output) {}
 
   @Override
   public String toString() {

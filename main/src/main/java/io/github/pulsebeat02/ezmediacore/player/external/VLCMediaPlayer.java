@@ -40,7 +40,6 @@ import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.player.input.VLCMediaPlayerInputParser;
 import io.github.pulsebeat02.ezmediacore.player.output.ConsumableOutput;
-import io.github.pulsebeat02.ezmediacore.player.output.vlc.VLCFrameOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.vlc.VLCMediaFrame;
 import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
 import java.nio.ByteBuffer;
@@ -66,7 +65,7 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCall
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.RenderCallbackAdapter;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32BufferFormat;
 
-public final class VLCMediaPlayer extends MediaPlayer<VLCFrameOutput> {
+public final class VLCMediaPlayer extends MediaPlayer {
 
   private final VideoSurfaceAdapter adapter;
   private BufferFormatCallback bufferFormatCallback;
@@ -240,7 +239,7 @@ public final class VLCMediaPlayer extends MediaPlayer<VLCFrameOutput> {
         @NotNull final VLCMediaPlayer player,
         @NotNull final Consumer<byte[]> consumer,
         final int blockSize) {
-      this.output = player.getOutput().getResultingOutput().getResultingOutput();
+      this.output = (ConsumableOutput) player.getOutput().getResultingOutput();
       this.callback = consumer;
       this.viewers = player.getWatchers();
       this.blockSize = blockSize;
@@ -282,7 +281,7 @@ public final class VLCMediaPlayer extends MediaPlayer<VLCFrameOutput> {
     MinecraftVideoRenderCallback(@NotNull final VLCMediaPlayer player, @NotNull final Consumer<int[]> consumer, final int width,
         final int height) {
       super(new int[height * width]);
-      this.output = player.getOutput().getResultingOutput().getResultingOutput();
+      this.output = (ConsumableOutput) player.getOutput().getResultingOutput();
       this.callback = consumer;
     }
 
@@ -340,7 +339,7 @@ public final class VLCMediaPlayer extends MediaPlayer<VLCFrameOutput> {
 
     @Contract(" -> new")
     @Override
-    public @NotNull MediaPlayer<VLCFrameOutput> build() {
+    public @NotNull MediaPlayer build() {
       final VideoCallback video = this.getVideo();
       final AudioCallback audio = this.getAudio();
       return new VLCMediaPlayer(video, audio, video.getWatchers(), this.getDims());

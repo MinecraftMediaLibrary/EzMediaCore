@@ -19,14 +19,14 @@ dependencies {
     }
 
     setOf(
-            "me.friwi:jcefmaven:104.4.23"
+            "me.friwi:jcefmaven:109.1.11"
     ).forEach {
         testImplementation(it)
     }
 
     // PROVIDED DEPENDENCIES / TEST DEPENDENCIES
     setOf(
-            "io.netty:netty-all:4.1.80.Final",
+            "io.netty:netty-all:4.1.87.Final",
             "com.mojang:authlib:1.5.26",
             "com.google.guava:guava:31.1-jre",
             "com.mpatric:mp3agic:0.9.1",
@@ -38,19 +38,19 @@ dependencies {
 
     // MAIN DEPENDENCIES
     setOf(
-            "uk.co.caprica:vlcj:4.7.3",
-            "uk.co.caprica:vlcj-natives:4.7.0",
+            "uk.co.caprica:vlcj:4.8.2",
+            "uk.co.caprica:vlcj-natives:4.8.1",
             "com.github.sealedtx:java-youtube-downloader:3.0.2",
-            "com.alibaba:fastjson:2.0.12",
-            "net.java.dev.jna:jna:5.12.1",
-            "net.java.dev.jna:jna-platform:5.12.1",
-            "se.michaelthelin.spotify:spotify-web-api-java:7.2.0",
+            "com.alibaba:fastjson:2.0.23",
+            "net.java.dev.jna:jna:5.13.0",
+            "net.java.dev.jna:jna-platform:5.13.0",
+            "se.michaelthelin.spotify:spotify-web-api-java:7.3.0",
             "com.github.kokorin.jaffree:jaffree:2022.06.03",
             "org.jcodec:jcodec:0.2.5",
-            "com.github.ben-manes.caffeine:caffeine:3.1.1",
-            "it.unimi.dsi:fastutil:8.5.8",
-            "com.fasterxml.jackson.core:jackson-core:2.13.4",
-            "org.apache.httpcomponents.client5:httpclient5:5.2-beta1",
+            "com.github.ben-manes.caffeine:caffeine:3.1.2",
+            "it.unimi.dsi:fastutil:8.5.11",
+            "com.fasterxml.jackson.core:jackson-core:2.14.1",
+            "org.apache.httpcomponents.client5:httpclient5:5.2.1",
             "com.neovisionaries:nv-i18n:1.29",
     ).forEach {
         compileOnly(it)

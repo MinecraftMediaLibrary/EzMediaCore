@@ -45,7 +45,7 @@ public final class DiscordCallback extends DataCallback {
 
   @Override
   public void preparePlayerStateChange(
-      @NotNull final VideoPlayer<?> player, @NotNull final PlayerControls status) {
+      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
     if (player instanceof VLCMediaPlayer) {
       this.replaceOccurrence();
       this.setupHttpServer();

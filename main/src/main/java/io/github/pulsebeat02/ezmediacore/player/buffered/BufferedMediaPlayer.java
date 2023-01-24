@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class BufferedMediaPlayer<T> extends MediaPlayer<T> implements BufferedPlayer {
+public abstract class BufferedMediaPlayer extends MediaPlayer implements BufferedPlayer {
 
   private final ArrayBlockingQueue<Triple<int[], byte[], Long>> frames;
   private final BufferConfiguration buffer;

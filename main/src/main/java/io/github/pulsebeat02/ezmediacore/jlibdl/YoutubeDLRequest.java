@@ -45,7 +45,7 @@ public final class YoutubeDLRequest {
   private static final Gson GSON;
 
   static {
-    API_REQUEST_BASE = "http://88.198.20.120:4567/info?url=%s";
+    API_REQUEST_BASE = "http://88.99.104.93:4567/info?url=%s";
     HTTP_CLIENT =
         HttpClient.newBuilder()
             .version(Version.HTTP_2)

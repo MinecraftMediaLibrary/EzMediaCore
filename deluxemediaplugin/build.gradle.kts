@@ -1,6 +1,6 @@
 plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("xyz.jpenilla.run-paper") version "1.0.6"
+    id("xyz.jpenilla.run-paper") version "2.0.1"
 }
 
 dependencies {
@@ -19,7 +19,7 @@ dependencies {
     // PROVIDED DEPENDENCIES / DOWNLOADED AT RUNTIME
     setOf(
             "com.mojang:authlib:1.5.26",
-            "net.dv8tion:JDA:5.0.0-alpha.18",
+            "net.dv8tion:JDA:5.0.0-beta.3",
     ).forEach {
         compileOnly(it)
     }
@@ -27,9 +27,9 @@ dependencies {
     // MAIN SHADED DEPENDENCIES
     setOf(
             "org.bstats:bstats-bukkit:3.0.0",
-            "net.kyori:adventure-api:4.11.0",
-            "net.kyori:adventure-platform-bukkit:4.1.2",
-            "com.github.stefvanschie.inventoryframework:IF:0.10.7"
+            "net.kyori:adventure-api:4.12.0",
+            "net.kyori:adventure-platform-bukkit:4.2.0",
+            "com.github.stefvanschie.inventoryframework:IF:0.10.8"
     ).forEach {
         implementation(it)
     }
@@ -75,7 +75,7 @@ tasks {
         relocate("com.neovisionaries", "$libraryBase.neovisionaries")
     }
     runServer {
-        minecraftVersion.set("1.18.2")
+        minecraftVersion.set("1.19.2")
         debug = true
     }
 }

@@ -55,7 +55,7 @@ public final class PackCallback extends AudioHandler implements PackSource {
 
   @Override
   public void preparePlayerStateChange(
-      @NotNull final VideoPlayer<?> player, @NotNull final PlayerControls status) {
+      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
     this.startServer();
     this.handleStart(player, status);
     this.handleAudio(status);
@@ -84,7 +84,7 @@ public final class PackCallback extends AudioHandler implements PackSource {
   }
 
   private void handleStart(
-      @NotNull final VideoPlayer<?> player, @NotNull final PlayerControls controls) {
+      @NotNull final VideoPlayer player, @NotNull final PlayerControls controls) {
     if (controls == PlayerControls.START) {
       final String source = player.getInput().getDirectAudioMrl().toString();
       final OGGAudioExtractor extractor = this.createExtractor(source);

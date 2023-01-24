@@ -1,10 +1,11 @@
 package io.github.pulsebeat02.ezmediacore.player.output.vlc;
 
+import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.player.output.ConsumableOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.vlc.sout.VLCTranscoderOutput;
 import org.jetbrains.annotations.NotNull;
 
-public final class VLCFrameOutput implements VLCOutput<ConsumableOutput> {
+public final class VLCFrameOutput implements VLCOutput {
 
   private ConsumableOutput output;
 
@@ -27,8 +28,9 @@ public final class VLCFrameOutput implements VLCOutput<ConsumableOutput> {
   }
 
   @Override
-  public void setOutput(@NotNull final ConsumableOutput output) {
-    this.output = output;
+  public void setOutput(@NotNull final Object output) {
+    Preconditions.checkArgument(output instanceof ConsumableOutput);
+    this.output = (ConsumableOutput) output;
   }
 
   @Override

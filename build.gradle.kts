@@ -47,7 +47,7 @@ subprojects {
     }
 
     dependencies {
-        setOf("org.jetbrains:annotations:23.0.0").forEach {
+        setOf("org.jetbrains:annotations:24.0.0").forEach {
             compileOnly(it)
             testImplementation(it)
         }
@@ -73,6 +73,6 @@ subprojects {
     }
 
     task<Wrapper>("wrapper") {
-        gradleVersion = "7.5.1"
+        gradleVersion = "7.6"
     }
 }

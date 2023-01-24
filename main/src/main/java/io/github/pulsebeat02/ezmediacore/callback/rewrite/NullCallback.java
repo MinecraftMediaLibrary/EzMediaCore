@@ -12,8 +12,7 @@ public final class NullCallback extends AudioHandler {
   }
 
   @Override
-  public void preparePlayerStateChange(
-      @NotNull final VideoPlayer<?> player, @NotNull final PlayerControls status) {}
+  public void preparePlayerStateChange(@NotNull final VideoPlayer player, @NotNull final PlayerControls status) {}
 
   @Override
   public void process(final byte @NotNull [] data) {}

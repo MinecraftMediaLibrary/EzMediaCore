@@ -34,7 +34,7 @@ import io.github.pulsebeat02.ezmediacore.player.input.PlayerInput;
 import io.github.pulsebeat02.ezmediacore.player.output.PlayerOutput;
 import org.jetbrains.annotations.NotNull;
 
-public interface VideoPlayer<T> extends LibraryInjectable, Viewable, Dimensional {
+public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
 
   @NotNull
   VideoCallback getVideoCallback();
@@ -63,9 +63,9 @@ public interface VideoPlayer<T> extends LibraryInjectable, Viewable, Dimensional
   void setInput(@NotNull final PlayerInput input);
 
   @NotNull
-  PlayerOutput<T> getOutput();
+  PlayerOutput getOutput();
 
-  void setOutput(@NotNull final PlayerOutput<T> output);
+  void setOutput(@NotNull final PlayerOutput output);
 
   @NotNull
   PlayerControls getPlayerState();
