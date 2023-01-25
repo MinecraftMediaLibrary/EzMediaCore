@@ -230,11 +230,6 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
     this.setupPlayer();
   }
 
-  @Override
-  public @NotNull PlayerOutput getOutput() {
-    return super.getOutput();
-  }
-
   private void setupPlayer() {
     this.updateFFmpegPlayer();
     this.bufferFrames();
