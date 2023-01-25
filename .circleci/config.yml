@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: cimg/openjdk:18.0.2
+      - image: cimg/openjdk:17.0.5
     working_directory: ~/repo
     environment:
       MAVEN_OPTS: -Xmx3200m -Xms2600m
@@ -18,7 +18,8 @@ jobs:
           key: v1-dependencies-{{ checksum "build.gradle.kts" }}
       - run: wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
       - run: java -jar BuildTools.jar --rev 1.18.2
-      - run: java -jar BuildTools.jar --rev 1.19
+      - run: java -jar BuildTools.jar --rev 1.19.2
+      - run: java -jar BuildTools.jar --rev 1.19.3
       - run: ./gradlew build
       - store_artifacts:
           path: deluxemediaplugin/build/libs/DeluxeMediaPlugin-all.jar
