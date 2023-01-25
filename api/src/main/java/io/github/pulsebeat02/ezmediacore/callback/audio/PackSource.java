@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore.callback.rewrite;
+package io.github.pulsebeat02.ezmediacore.callback.audio;
 
 import org.jetbrains.annotations.NotNull;
 

@@ -1,6 +1,7 @@
 package io.github.pulsebeat02.ezmediacore.callback.rewrite;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AudioHandler implements AudioSource {
