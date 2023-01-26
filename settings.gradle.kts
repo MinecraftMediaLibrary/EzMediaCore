@@ -1,6 +1,13 @@
 rootProject.name = "ezmediacore"
 
-include("api", "v1_18_R2", "v1_19_R1", "v1_19_R2", "main", "lib", "deluxemediaplugin")
+include(
+    ":ezmediacore:api",
+    ":ezmediacore:v1_18_R2",
+    ":ezmediacore:v1_19_R1",
+    ":ezmediacore:v1_19_R2",
+    ":ezmediacore:main",
+    ":ezmediacore:lib",
+    "deluxemediaplugin")
 
 mapOf(
     "api" to "ezmediacore-api",

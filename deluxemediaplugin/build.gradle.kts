@@ -8,9 +8,9 @@ dependencies {
 
     // PROJECT DEPENDENCIES
     setOf(
-            project(":lib"),
-            project(":api"),
-            project(":main"),
+            project(":ezmediacore:lib"),
+            project(":ezmediacore:api"),
+            project(":ezmediacore:main"),
     ).forEach {
         implementation(it)
     }

@@ -51,7 +51,7 @@ public final class VLCHttpServerCallback extends ServerCallback {
   }
 
   private @NotNull VLCStandardOutput getStandardOutput() {
-    final VLCStandardOutput output = VLCStandardOutput.ofOutput("http");
+    final VLCStandardOutput output = VLCStandardOutput.ofSection("http");
     final String host = this.getHost();
     final int port = this.getPort();
     Map.of(VLCStandardOutput.DST, "%s:%s/audio.ogg".formatted(host, port))

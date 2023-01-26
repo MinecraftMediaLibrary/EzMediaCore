@@ -13,12 +13,12 @@ public class Test {
 
   public static void main(final String[] args) {
 
-    final VLCTranscoderOutput transcoder = new VLCTranscoderOutput();
+    final VLCTranscoderOutput transcoder = VLCTranscoderOutput.ofOutput();
     transcoder.setProperty(VLCTranscoderOutput.SCODEC, "none");
     transcoder.setProperty(VLCTranscoderOutput.VCODEC, "none");
     transcoder.setProperty(VLCTranscoderOutput.ACODEC, "vorbis");
 
-    final VLCStandardOutput standard = new VLCStandardOutput("http");
+    final VLCStandardOutput standard = VLCStandardOutput.ofSection("http");
     standard.setProperty(VLCStandardOutput.DST, "localhost:8554/audio.ogg");
 
     final VLCFrameOutput output = new VLCFrameOutput();

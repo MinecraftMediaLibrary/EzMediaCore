@@ -59,10 +59,10 @@ dependencies {
 
     // PROJECT DEPENDENCIES
     setOf(
-            project(":api"),
-            project(":v1_18_R2"),
-            project(":v1_19_R1"),
-            project(":v1_19_R2")
+            project(":ezmediacore:api"),
+            project(":ezmediacore:v1_18_R2"),
+            project(":ezmediacore:v1_19_R1"),
+            project(":ezmediacore:v1_19_R2")
     ).forEach {
         api(it)
     }

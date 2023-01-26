@@ -34,12 +34,12 @@ public class VLCStandardOutput extends OutputConfiguration {
 
   private final String section;
 
-  VLCStandardOutput(@NotNull final String section) {
+  protected VLCStandardOutput(@NotNull final String section) {
     this.section = section;
   }
 
   @Contract("_ -> new")
-  public static @NotNull VLCStandardOutput ofOutput(@NotNull final String section) {
+  public static @NotNull VLCStandardOutput ofSection(@NotNull final String section) {
     return new VLCStandardOutput(section);
   }
 
