@@ -26,6 +26,7 @@ package io.github.pulsebeat02.ezmediacore.callback.audio;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public final class NullCallback extends AudioOutput {
@@ -35,8 +36,18 @@ public final class NullCallback extends AudioOutput {
   }
 
   @Override
-  public void preparePlayerStateChange(@NotNull final VideoPlayer player, @NotNull final PlayerControls status) {}
+  public void preparePlayerStateChange(
+      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {}
 
   @Override
   public void process(final byte @NotNull [] data) {}
+
+  public static final class Builder extends AudioCallbackBuilder {
+
+    @Contract("_ -> new")
+    @Override
+    public @NotNull AudioOutput build(@NotNull final MediaLibraryCore core) {
+      return new NullCallback(core);
+    }
+  }
 }

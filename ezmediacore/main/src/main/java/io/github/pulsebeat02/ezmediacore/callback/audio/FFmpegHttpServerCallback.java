@@ -105,7 +105,9 @@ public final class FFmpegHttpServerCallback extends ServerCallback {
     @Contract("_ -> new")
     @Override
     public @NotNull AudioOutput build(@NotNull final MediaLibraryCore core) {
-      return new FFmpegHttpServerCallback(core, this.getHost(), this.getPort());
+      final String host = this.getHost();
+      final int port = this.getPort();
+      return new FFmpegHttpServerCallback(core, host, port);
     }
   }
 }

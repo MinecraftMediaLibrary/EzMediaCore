@@ -41,8 +41,10 @@ import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.output.PlayerOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.StreamOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.*;
+import io.github.pulsebeat02.ezmediacore.utility.concurrency.ThrowingRunnable;
 import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 
+import java.net.MalformedURLException;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -115,9 +117,9 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
     this.execute();
   }
 
-
-
-  private void createProcess(@NotNull final DelayConfiguration configuration, @NotNull final Object @NotNull ... arguments) {
+  private void createProcess(
+      @NotNull final DelayConfiguration configuration,
+      @NotNull final Object @NotNull ... arguments) {
 
     final Dimension dimension = this.getDimensions();
     final String mrl = this.getInput().getDirectVideoMrl().toString();
@@ -132,7 +134,8 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
     this.addArguments(FFmpegArguments.TUNE, "fastdecode");
     this.addArguments(FFmpegArguments.TUNE, "zerolatency");
     this.addArguments(FFmpegArguments.DURATION_START, delay);
-    this.addArgument(FFmpegArguments.VIDEO_SCALE.formatted(dimension.getWidth(), dimension.getHeight()));
+    this.addArgument(
+        FFmpegArguments.VIDEO_SCALE.formatted(dimension.getWidth(), dimension.getHeight()));
     this.addExtraArguments(arguments);
     this.addArgument(this.getOutput().toString());
   }
@@ -144,36 +147,58 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   }
 
   private void execute() {
+    this.startProcess();
+    this.handleOutputs();
+  }
 
+  private void handleOutputs() {
+    final InputStream stream = this.process.getInputStream();
+    final FFmpegPlayerOutput raw = this.getRawFFmpegOutput();
+    this.setNecessaryFFmpegOutput(stream, raw);
+    this.executeNutReader(raw);
+  }
+
+  @NotNull
+  private FFmpegPlayerOutput getRawFFmpegOutput() {
+    final PlayerOutput output = this.getOutput();
+    return (FFmpegPlayerOutput) output.getResultingOutput();
+  }
+
+  private void setNecessaryFFmpegOutput(
+      @NotNull final InputStream stream, @NotNull final FFmpegPlayerOutput raw) {
+    final FFmpegOutputConfiguration configuration = raw.getVariedOutput();
+    if (configuration instanceof TcpFFmpegOutput) {
+      configuration.setOutput(StreamOutput.ofStream(stream));
+    }
+  }
+
+  private void executeNutReader(@NotNull final FFmpegPlayerOutput raw) {
+    final String internal = raw.getTcp().getResultingOutput().getRaw();
+    CompletableFuture.runAsync(this.readNutFormat(internal), ExecutorProvider.FRAME_CONSUMER)
+        .handle(Throwing.THROWING_FUTURE);
+  }
+
+  private @NotNull Runnable readNutFormat(@NotNull final String internal) {
+    return (ThrowingRunnable)
+        () -> {
+          final InputStream url = new URL(internal).openStream();
+          final ParallelNutReader reader =
+              ParallelNutReader.ofReader(this.getFrameConsumer(), ImageFormats.BGR24);
+          reader.read(url);
+        };
+  }
+
+  private void startProcess() {
+    final ProcessBuilder builder = new ProcessBuilder(this.arguments);
+    builder.redirectError(ProcessBuilder.Redirect.INHERIT);
+    this.startProcess(builder);
+  }
+
+  private void startProcess(@NotNull final ProcessBuilder builder) {
     try {
-
-      final ProcessBuilder builder = new ProcessBuilder(this.arguments);
-      builder.redirectError(ProcessBuilder.Redirect.INHERIT);
       this.process = builder.start();
-
-      final InputStream stream = this.process.getInputStream();
-      final PlayerOutput output = this.getOutput();
-      final FFmpegPlayerOutput raw = (FFmpegPlayerOutput) output.getResultingOutput();
-
-
-      // NEED TO FIX THIS HORRIBLE CODE ASAP
-      final FFmpegOutputConfiguration configuration = raw.getVariedOutput();
-      if (configuration instanceof TcpFFmpegOutput) {
-        configuration.setOutput(StreamOutput.ofStream(stream));
-      }
-
-
-      final String internal = raw.getTcp().getResultingOutput().getRaw();
-      final InputStream url = new URL(internal).openStream();
-
-      CompletableFuture.runAsync(() -> {
-        final ParallelNutReader reader = ParallelNutReader.ofReader(this.getFrameConsumer(), ImageFormats.BGR24);
-        reader.read(url);
-      }, ExecutorProvider.FRAME_CONSUMER).handle(Throwing.THROWING_FUTURE);
-
-
     } catch (final IOException e) {
-      throw new RuntimeException(e);
+      throw new AssertionError(e);
     }
   }
 

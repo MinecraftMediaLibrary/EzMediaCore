@@ -34,6 +34,7 @@ import io.github.pulsebeat02.ezmediacore.resourcepack.PackFormat;
 import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,15 +58,23 @@ public final class PackCallback extends AudioOutput implements PackSource {
       @NotNull final AudioConfiguration configuration,
       @NotNull final Viewers viewers,
       @Nullable final SoundKey key,
-      @NotNull final Path path,
       @NotNull final String host,
       final int port) {
     super(core);
     this.configuration = configuration;
     this.viewers = viewers;
     this.key = this.getInternalSoundKey(key);
-    this.server = HttpServer.ofServer(core, path, host, port, true);
+    this.server = this.getServer(core, host, port);
     this.ogg = core.getHttpServerPath().resolve("output.ogg");
+  }
+
+  private HttpServer getServer(
+      @NotNull final MediaLibraryCore core, @NotNull final String host, final int port) {
+    try {
+      return HttpServer.ofServer(core, host, port, true);
+    } catch (final IOException e) {
+      throw new AssertionError(e);
+    }
   }
 
   private @NotNull SoundKey getInternalSoundKey(@Nullable final SoundKey key) {
@@ -160,5 +169,38 @@ public final class PackCallback extends AudioOutput implements PackSource {
   @Override
   public @NotNull CompletableFuture<Object> getFuture() {
     return this.future;
+  }
+
+  public static final class Builder extends ServerCallback.Builder {
+
+    private AudioConfiguration configuration;
+    private Viewers viewers = Viewers.onlinePlayers();
+    private SoundKey key;
+
+    @Contract("_ -> this")
+    public @NotNull Builder host(@NotNull final AudioConfiguration configuration) {
+      this.configuration = configuration;
+      return this;
+    }
+
+    @Contract("_ -> this")
+    public @NotNull Builder viewers(@NotNull final Viewers viewers) {
+      this.viewers = viewers;
+      return this;
+    }
+
+    @Contract("_ -> this")
+    public @NotNull Builder key(@NotNull final SoundKey key) {
+      this.key = key;
+      return this;
+    }
+
+    @Contract("_ -> new")
+    @Override
+    public @NotNull AudioOutput build(@NotNull final MediaLibraryCore core) {
+      final String host = this.getHost();
+      final int port = this.getPort();
+      return new PackCallback(core, this.configuration, this.viewers, this.key, host, port);
+    }
   }
 }

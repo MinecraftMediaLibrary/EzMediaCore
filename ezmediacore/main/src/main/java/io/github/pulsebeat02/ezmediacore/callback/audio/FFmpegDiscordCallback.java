@@ -69,7 +69,6 @@ public final class FFmpegDiscordCallback extends DiscordCallback
     final TcpFFmpegOutput tcp = this.getTcpFFmpegOutput();
     final FFmpegPlayerOutput output = FFmpegPlayerOutput.of(tcp, std);
     ffmpeg.setOutput(output);
-
     final InputStream input = std.getResultingOutput().getRaw();
     this.setOutput(input);
   }

@@ -90,7 +90,9 @@ public final class VLCHttpServerCallback extends ServerCallback {
     @Contract("_ -> new")
     @Override
     public @NotNull AudioOutput build(@NotNull final MediaLibraryCore core) {
-      return new VLCHttpServerCallback(core, this.getHost(), this.getPort());
+      final String host = this.getHost();
+      final int port = this.getPort();
+      return new VLCHttpServerCallback(core, host, port);
     }
   }
 }
