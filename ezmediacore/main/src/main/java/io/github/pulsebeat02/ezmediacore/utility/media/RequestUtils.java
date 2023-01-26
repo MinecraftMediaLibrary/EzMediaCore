@@ -101,6 +101,6 @@ public final class RequestUtils {
 
   public static @NotNull MediaRequest requestMediaInformation(@NotNull final Input url) {
     final Optional<MediaRequest> result = CACHED_RESULT.get(url.getInput());
-    return result.orElseGet(() -> MediaRequest.ofRequest(url));
+    return result.orElseGet(MediaRequest::ofEmptyRequest);
   }
 }

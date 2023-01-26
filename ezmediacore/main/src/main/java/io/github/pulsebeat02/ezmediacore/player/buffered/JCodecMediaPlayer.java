@@ -27,12 +27,15 @@ import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutput;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
+import io.github.pulsebeat02.ezmediacore.player.external.VLCMediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.player.input.JCodecMediaPlayerInputParser;
@@ -59,7 +62,7 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
 
   JCodecMediaPlayer(
       @NotNull final VideoCallback video,
-      @NotNull final AudioCallback audio,
+      @NotNull final AudioSource audio,
       @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
       @NotNull final BufferConfiguration buffer) {
@@ -146,8 +149,8 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
 
     @Contract("_ -> this")
     @Override
-    public Builder audio(@NotNull final AudioCallback callback) {
-      super.audio(callback);
+    public Builder audio(@NotNull final AudioOutput audio) {
+      super.audio(audio);
       return this;
     }
 
@@ -173,13 +176,6 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
     }
 
     @Contract("_ -> this")
-    @Override
-    public Builder soundKey(@NotNull final SoundKey key) {
-      super.soundKey(key);
-      return this;
-    }
-
-    @Contract("_ -> this")
     public @NotNull Builder buffer(@NotNull final BufferConfiguration bufferSize) {
       this.bufferSize = bufferSize;
       return this;
@@ -190,7 +186,7 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
     public @NotNull MediaPlayer build() {
       super.init();
       final VideoCallback video = this.getVideo();
-      final AudioCallback audio = this.getAudio();
+      final AudioSource audio = this.getAudio();
       return new JCodecMediaPlayer(
           video, audio, video.getWatchers(), this.getDims(), this.bufferSize);
     }

@@ -31,11 +31,14 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
-import io.github.pulsebeat02.deluxemediaplugin.command.video.load.wrapper.SimpleResourcepackWrapper;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioPlayback;
+import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutputBuilder;
+import io.github.pulsebeat02.ezmediacore.extraction.AudioAttributes;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
+import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.PathInput;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
@@ -45,7 +48,7 @@ import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import io.github.pulsebeat02.ezmediacore.utility.io.ResourcepackUtils;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
-import java.io.IOException;
+
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -97,91 +100,34 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
   }
 
   private void handleVideo(@NotNull final Audience audience) {
-
     final Input input = this.config.getMedia();
     if (this.handleUrlInput(audience, input)) {
       return;
     }
-
-    if (this.handleResourcepackAudio(audience, input)) {
+    if (this.handleResourcepackAudio(audience)) {
       return;
     }
-
-    this.sendCompletionMessage();
-
     audience.sendMessage(Locale.LOADED_MEDIA.build(input.getInput()));
-
     this.config.setTask(null);
   }
 
-  private void sendCompletionMessage() {
-    if (this.config.getAudioPlayback() == AudioPlayback.RESOURCEPACK) {
-      final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
-      final String url = this.config.getPackUrl();
-      final byte[] hash = this.config.getPackHash();
-      ResourcepackUtils.forceResourcepackLoad(this.plugin.library(), players, url, hash);
-      players.forEach(this::sendSeparatePackMessage);
-    }
-  }
-
-  private void sendSeparatePackMessage(@NotNull final Player player) {
-    final Audience playerAudience = this.plugin.audience().player(player);
-    playerAudience.sendMessage(Locale.SEND_RESOURCEPACK_URL.build(player.getName()));
-  }
-
-  private boolean handleResourcepackAudio(
-      @NotNull final Audience audience, @NotNull final Input input) {
+  private boolean handleResourcepackAudio(@NotNull final Audience audience) {
     if (this.isResourcepackAudio()) {
       audience.sendMessage(Locale.RESOURCEPACK_CREATION.build());
-      return this.handleResourcepack(audience, input);
+      return this.handleResourcepack();
     }
     return false;
   }
 
-  private boolean handleResourcepack(@NotNull final Audience audience, @NotNull final Input input) {
-    try {
-
-      final Optional<String> download = this.getSourceInput(audience, input);
-      if (download.isEmpty()) {
-        audience.sendMessage(Locale.INVALID_EXTRACTION.build());
-        return true;
-      }
-
-      new SimpleResourcepackWrapper(this.plugin, this.config, download.get(), this.videoFolder)
-          .loadResourcepack();
-
-    } catch (final IOException e) {
-      audience.sendMessage(Locale.INVALID_VIDEO.build());
-      e.printStackTrace();
-    }
+  private boolean handleResourcepack() {
+    final SoundKey key = SoundKey.ofSound("emc");
+    final AudioAttributes attributes = AudioAttributes.OGG_CONFIGURATION;
+    final ServerInfo info = this.plugin.getHttpAudioServer();
+    final String ip = info.getIp();
+    final int port = info.getPort();
+    this.config.setAudioOutput(
+        AudioOutputBuilder.pack().key(key).audio(attributes).host(ip).port(port));
     return false;
-  }
-
-  private @NotNull Optional<String> getSourceInput(
-      @NotNull final Audience audience, @NotNull final Input input) {
-    return this.isPathInput(input)
-        ? Optional.of(input.getInput())
-        : this.getAudioSource(audience, input);
-  }
-
-  private boolean isPathInput(@NotNull final Input input) {
-    return input instanceof PathInput;
-  }
-
-  private Optional<String> getAudioSource(
-      @NotNull final Audience audience, @NotNull final Input input) {
-    final MediaRequest request = RequestUtils.requestMediaInformation(input);
-    final List<Input> results = request.getAudioLinks();
-    if (this.checkInvalidUrl(audience, results)) {
-      return Optional.empty();
-    }
-    final Input first = results.get(0);
-    return Optional.of(first.getInput());
-  }
-
-  private boolean checkInvalidUrl(
-      @NotNull final Audience audience, @NotNull final List<Input> results) {
-    return handleTrue(audience, Locale.INVALID_INPUT.build(), results.isEmpty());
   }
 
   private boolean isResourcepackAudio() {
@@ -197,13 +143,24 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
 
   private boolean checkStreamMrl(@NotNull final Audience audience, @NotNull final Input input) {
     try {
-      return this.isStream(input)
-          ? this.handleStream(audience, input)
-          : this.checkInvalidUrl(audience, input);
+      return this.discoverUrl(audience, input);
     } catch (final IllegalArgumentException e) {
       audience.sendMessage(Locale.INVALID_INPUT.build());
       return true;
     }
+  }
+
+  private boolean discoverUrl(@NotNull final Audience audience, @NotNull final Input input) {
+    final boolean stream = this.isStream(input);
+    if (stream) {
+      return this.handleStream(audience, input);
+    } else {
+      return this.handleUrl(audience, input);
+    }
+  }
+
+  private boolean handleUrl(@NotNull final Audience audience, @NotNull final Input input) {
+    return this.checkInvalidUrl(audience, input);
   }
 
   private boolean isStream(@NotNull final Input input) {
@@ -212,30 +169,22 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
   }
 
   private boolean checkInvalidUrl(@NotNull final Audience audience, @NotNull final Input input) {
-
     final MediaRequest request = RequestUtils.requestMediaInformation(input);
-    final List<Input> urls = request.getVideoLinks();
-
-    final boolean equal = urls.get(0).equals(input);
-    final boolean size = urls.size() == 1;
-
-    return handleTrue(audience, Locale.INVALID_INPUT.build(), size && equal);
+    return handleTrue(audience, Locale.INVALID_INPUT.build(), request.getVideoLinks().isEmpty());
   }
 
   private boolean handleStream(@NotNull final Audience audience, @NotNull final Input input) {
-
-    if (this.checkInvalidAudioPlayback(audience)) {
+    final boolean invalid = this.checkInvalidAudioPlayback(audience);
+    if (invalid) {
       return true;
     }
-
     audience.sendMessage(Locale.LOADED_MEDIA.build(input.getInput()));
-
     return true;
   }
 
   private boolean checkInvalidAudioPlayback(@NotNull final Audience audience) {
-    return handleTrue(
-        audience, Locale.INVALID_STREAM_AUDIO_OUTPUT.build(), this.isResourcepackAudio());
+    final boolean resourcepack = this.isResourcepackAudio();
+    return handleTrue(audience, Locale.INVALID_STREAM_AUDIO_OUTPUT.build(), resourcepack);
   }
 
   private boolean isUrlInput(@NotNull final Input input) {

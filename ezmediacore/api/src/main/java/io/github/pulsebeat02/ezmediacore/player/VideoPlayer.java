@@ -28,6 +28,7 @@ import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewable;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.PlayerInput;
@@ -40,7 +41,7 @@ public interface VideoPlayer extends LibraryInjectable, Viewable, Dimensional {
   VideoCallback getVideoCallback();
 
   @NotNull
-  AudioCallback getAudioCallback();
+  AudioSource getAudioCallback();
 
   void start(@NotNull final Input mrl, @NotNull final Object... arguments);
 

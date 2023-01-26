@@ -26,6 +26,8 @@ package io.github.pulsebeat02.ezmediacore.player.buffered;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutput;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
@@ -54,7 +56,7 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
 
   BufferedMediaPlayer(
       @NotNull final VideoCallback video,
-      @NotNull final AudioCallback audio,
+      @NotNull final AudioSource audio,
       @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
       @NotNull final BufferConfiguration buffer,
@@ -125,7 +127,7 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   private @NotNull Runnable getDisplayRunnable() {
     return () -> {
       final VideoCallback videoCallback = this.getVideoCallback();
-      final AudioCallback audioCallback = this.getAudioCallback();
+      final AudioSource audioCallback = this.getAudioCallback();
       while (this.status.get()) {
         try {
           // process current frame

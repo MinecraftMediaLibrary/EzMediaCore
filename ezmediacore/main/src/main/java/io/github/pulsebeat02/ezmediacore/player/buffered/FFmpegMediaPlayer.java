@@ -29,6 +29,8 @@ import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutput;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegArguments;
@@ -97,7 +99,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
 
   FFmpegMediaPlayer(
       @NotNull final VideoCallback video,
-      @NotNull final AudioCallback audio,
+      @NotNull final AudioSource audio,
       @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
       @NotNull final BufferConfiguration buffer) {
@@ -276,8 +278,8 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
 
     @Contract("_ -> this")
     @Override
-    public Builder audio(@NotNull final AudioCallback callback) {
-      super.audio(callback);
+    public Builder audio(@NotNull final AudioOutput audio) {
+      super.audio(audio);
       return this;
     }
 
@@ -303,14 +305,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
     }
 
     @Contract("_ -> this")
-    @Override
-    public Builder soundKey(@NotNull final SoundKey key) {
-      super.soundKey(key);
-      return this;
-    }
-
-    @Contract("_ -> this")
-    public @NotNull VideoBuilder buffer(@NotNull final BufferConfiguration bufferSize) {
+    public @NotNull Builder buffer(@NotNull final BufferConfiguration bufferSize) {
       this.bufferSize = bufferSize;
       return this;
     }
@@ -320,7 +315,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
     public @NotNull MediaPlayer build() {
       super.init();
       final VideoCallback video = this.getVideo();
-      final AudioCallback audio = this.getAudio();
+      final AudioSource audio = this.getAudio();
       return new FFmpegMediaPlayer(
           video, audio, video.getWatchers(), this.getDims(), this.bufferSize);
     }

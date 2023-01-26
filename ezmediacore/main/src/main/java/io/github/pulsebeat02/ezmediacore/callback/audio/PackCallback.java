@@ -33,6 +33,7 @@ import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.resourcepack.PackFormat;
 import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
 import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
+import io.github.pulsebeat02.ezmediacore.utility.io.HashingUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +52,7 @@ public final class PackCallback extends AudioOutput implements PackSource {
   private final Viewers viewers;
   private final SoundKey key;
   private final Path ogg;
-  private CompletableFuture<Object> future;
+  private CompletableFuture<Void> future;
 
   PackCallback(
       @NotNull final MediaLibraryCore core,
@@ -120,7 +121,20 @@ public final class PackCallback extends AudioOutput implements PackSource {
     if (controls == PlayerControls.START) {
       final String source = player.getInput().getDirectAudioMrl().toString();
       final OGGAudioExtractor extractor = this.createExtractor(source);
-      this.future = extractor.executeAsync().thenApply(pack -> this.executeWrapper());
+      this.future =
+          extractor
+              .executeAsync()
+              .thenApply(pack -> this.executeWrapper())
+              .thenAccept(this::sendPack);
+    }
+  }
+
+  private void sendPack(@NotNull final ResourcepackSoundWrapper wrapper) {
+    final Path target = wrapper.getResourcepackFilePath();
+    final byte[] hash = HashingUtils.createHashSha1(target);
+    final String url = this.server.createUrl(target);
+    for (final Player p : this.viewers.getPlayers()) {
+      p.setResourcePack(url, hash);
     }
   }
 
@@ -167,7 +181,7 @@ public final class PackCallback extends AudioOutput implements PackSource {
   public void process(final byte @NotNull [] data) {}
 
   @Override
-  public @NotNull CompletableFuture<Object> getFuture() {
+  public @NotNull CompletableFuture<Void> getFuture() {
     return this.future;
   }
 
@@ -178,7 +192,21 @@ public final class PackCallback extends AudioOutput implements PackSource {
     private SoundKey key;
 
     @Contract("_ -> this")
-    public @NotNull Builder host(@NotNull final AudioConfiguration configuration) {
+    @Override
+    public @NotNull Builder host(@NotNull final String host) {
+      super.host(host);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public @NotNull Builder port(final int port) {
+      super.port(port);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    public @NotNull Builder audio(@NotNull final AudioConfiguration configuration) {
       this.configuration = configuration;
       return this;
     }

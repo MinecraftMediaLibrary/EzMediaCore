@@ -30,5 +30,5 @@ import java.util.concurrent.CompletableFuture;
 public interface PackSource {
 
   @NotNull
-  CompletableFuture<Object> getFuture();
+  CompletableFuture<Void> getFuture();
 }

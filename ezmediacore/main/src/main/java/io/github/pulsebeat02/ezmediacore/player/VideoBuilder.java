@@ -23,28 +23,29 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
-import static java.util.Objects.requireNonNull;
-
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutput;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dimension.FrameDimension;
 import io.github.pulsebeat02.ezmediacore.player.buffered.BufferConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.buffered.FFmpegMediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.buffered.JCodecMediaPlayer;
-import io.github.pulsebeat02.ezmediacore.player.buffered.JCodecMediaPlayer.Builder;
 import io.github.pulsebeat02.ezmediacore.player.external.VLCMediaPlayer;
 import io.github.pulsebeat02.ezmediacore.throwable.UnsupportedPlatformException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import static java.util.Objects.requireNonNull;
+
 public class VideoBuilder {
 
   private VideoCallback video;
-  private AudioCallback audio;
   private Dimension dims = FrameDimension.X5_5;
   private FrameConfiguration rate = FrameConfiguration.FPS_30;
+
+  private AudioOutput audio;
 
   @Contract(value = " -> new", pure = true)
   public static @NotNull VLCMediaPlayer.Builder vlc() {
@@ -58,7 +59,7 @@ public class VideoBuilder {
 
   @Contract(value = " -> new", pure = true)
   public static @NotNull JCodecMediaPlayer.Builder jcodec() {
-    return new Builder();
+    return new JCodecMediaPlayer.Builder();
   }
 
   @Contract(value = " -> new", pure = true)
@@ -69,12 +70,6 @@ public class VideoBuilder {
   @Contract("_ -> this")
   public VideoBuilder video(@NotNull final VideoCallback callback) {
     this.video = callback;
-    return this;
-  }
-
-  @Contract("_ -> this")
-  public VideoBuilder audio(@NotNull final AudioCallback callback) {
-    this.audio = callback;
     return this;
   }
 
@@ -91,7 +86,8 @@ public class VideoBuilder {
   }
 
   @Contract("_ -> this")
-  public VideoBuilder soundKey(@NotNull final SoundKey key) {
+  public VideoBuilder audio(@NotNull final AudioOutput audio) {
+    this.audio = audio;
     return this;
   }
 
@@ -108,28 +104,38 @@ public class VideoBuilder {
         return this.vlcOption();
       }
       case UNIX -> {
-        return core.isVLCSupported() ? this.vlcOption()
-            : new FFmpegMediaPlayer.Builder()
-                .video(this.video)
-                .audio(this.audio)
-                .dims(this.dims)
-                .buffer(BufferConfiguration.BUFFER_10)
-                .frameRate(this.rate)
-                .build();
+        return core.isVLCSupported() ? this.vlcOption() : this.createFFmpegMediaPlayer();
       }
       default -> throw new UnsupportedPlatformException("Unknown");
     }
   }
 
+  @NotNull
+  private MediaPlayer createFFmpegMediaPlayer() {
+    return new FFmpegMediaPlayer.Builder()
+        .video(this.video)
+        .audio(this.audio)
+        .dims(this.dims)
+        .buffer(BufferConfiguration.BUFFER_10)
+        .frameRate(this.rate)
+        .build();
+  }
+
   @Contract(" -> new")
   private @NotNull MediaPlayer vlcOption() {
-    return vlc().video(this.video).audio(this.audio).dims(this.dims).frameRate(this.rate)
+    return vlc()
+        .video(this.video)
+        .audio(this.audio)
+        .dims(this.dims)
+        .frameRate(this.rate)
+        .audio(this.audio)
         .build();
   }
 
   public void calculateFrameRate() {
     if (this.rate.getFps() == -1) {
-      // this.rate = FrameConfiguration.ofFps(VideoFrameUtils.getFrameRate(this.callback.getCore(), Path.of(this.mrl.getMrl())).orElse(30.0));
+      // this.rate = FrameConfiguration.ofFps(VideoFrameUtils.getFrameRate(this.callback.getCore(),
+      // Path.of(this.mrl.getMrl())).orElse(30.0));
       this.rate = FrameConfiguration.FPS_25;
     }
     this.dims = this.dims == null ? this.video.getDimensions() : this.dims;
@@ -139,7 +145,7 @@ public class VideoBuilder {
     return this.video;
   }
 
-  public AudioCallback getAudio() {
+  public AudioSource getAudio() {
     return this.audio;
   }
 

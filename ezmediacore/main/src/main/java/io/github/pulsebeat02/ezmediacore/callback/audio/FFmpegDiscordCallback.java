@@ -106,7 +106,7 @@ public final class FFmpegDiscordCallback extends DiscordCallback
   @Override
   public void process(final byte @NotNull [] data) {}
 
-  public static final class Builder extends AudioCallbackBuilder {
+  public static final class Builder extends AudioOutputBuilder {
 
     @Contract("_ -> new")
     @Override

@@ -24,16 +24,18 @@
 package io.github.pulsebeat02.ezmediacore.callback.audio;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.video.BlockHighlightCallback;
+import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public abstract sealed class AudioCallbackBuilder
+import static com.google.common.base.Preconditions.checkArgument;
+
+public abstract sealed class AudioOutputBuilder
     permits FFmpegDiscordCallback.Builder,
         NullCallback.Builder,
         ServerCallback.Builder,
         VLCDiscordCallback.Builder {
-
+  
   @Contract(value = " -> new", pure = true)
   public static @NotNull FFmpegDiscordCallback.Builder ffmpegDiscord() {
     return new FFmpegDiscordCallback.Builder();

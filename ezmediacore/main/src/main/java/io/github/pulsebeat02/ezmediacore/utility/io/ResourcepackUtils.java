@@ -58,17 +58,6 @@ public final class ResourcepackUtils {
         core, players.stream().map(Player::getUniqueId).collect(Collectors.toSet()), url, hash);
   }
 
-  public static void forceResourcepackLoad(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final String url,
-      final byte @NotNull [] hash) {
-    checkArguments(core, url, hash);
-    final Stream<? extends Player> stream =
-        core.getPlugin().getServer().getOnlinePlayers().stream();
-    new ForcefulResourcepackListener(
-        core, stream.map(Player::getUniqueId).collect(Collectors.toSet()), url, hash);
-  }
-
   private static void checkArguments(
       @NotNull final MediaLibraryCore core,
       @NotNull final String url,

@@ -31,8 +31,10 @@ import io.github.pulsebeat02.deluxemediaplugin.bot.ffmpeg.AudioPlayerStreamSendH
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.DitheringAlgorithm;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.PlayerAlgorithm;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.VideoPlayback;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioOutput;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioPlayback;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutputBuilder;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
@@ -53,6 +55,8 @@ public final class ScreenConfig {
   private transient CompletableFuture<Void> task;
   private transient String packUrl;
   private transient byte[] packHash;
+
+  private transient AudioOutputBuilder audioOutput;
 
   @SerializedName(value = "dithering-algorithm")
   private DitheringAlgorithm ditheringAlgorithm;
@@ -246,5 +250,13 @@ public final class ScreenConfig {
 
   public void setDiscordHandler(@NotNull final AudioPlayerStreamSendHandler discordHandler) {
     this.discordHandler = discordHandler;
+  }
+
+  public @NotNull AudioOutputBuilder getAudioOutput() {
+    return this.audioOutput;
+  }
+
+  public void setAudioOutput(@NotNull final AudioOutputBuilder audioOutput) {
+    this.audioOutput = audioOutput;
   }
 }

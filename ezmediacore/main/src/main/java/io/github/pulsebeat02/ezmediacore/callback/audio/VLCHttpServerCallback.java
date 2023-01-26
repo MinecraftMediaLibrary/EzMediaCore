@@ -87,6 +87,20 @@ public final class VLCHttpServerCallback extends ServerCallback {
 
   public static final class Builder extends ServerCallback.Builder {
 
+    @Contract("_ -> this")
+    @Override
+    public @NotNull Builder host(@NotNull final String host) {
+      super.host(host);
+      return this;
+    }
+
+    @Contract("_ -> this")
+    @Override
+    public @NotNull Builder port(final int port) {
+      super.port(port);
+      return this;
+    }
+
     @Contract("_ -> new")
     @Override
     public @NotNull AudioOutput build(@NotNull final MediaLibraryCore core) {

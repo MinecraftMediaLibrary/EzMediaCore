@@ -49,7 +49,7 @@ public abstract class ServerCallback extends AudioOutput implements ServerCallba
     return this.port;
   }
 
-  public abstract static sealed class Builder extends AudioCallbackBuilder
+  public abstract static sealed class Builder extends AudioOutputBuilder
       permits FFmpegHttpServerCallback.Builder,
           PackCallback.Builder,
           VLCHttpServerCallback.Builder {

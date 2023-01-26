@@ -29,6 +29,8 @@ import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutput;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
@@ -48,7 +50,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   private final Dimension dimensions;
   private final InputParser parser;
   private final VideoCallback video;
-  private final AudioCallback audio;
+  private final AudioSource audio;
 
   private Viewers viewers;
   private PlayerInput input;
@@ -57,7 +59,7 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   public MediaPlayer(
       @NotNull final VideoCallback video,
-      @NotNull final AudioCallback audio,
+      @NotNull final AudioSource audio,
       @NotNull final Viewers viewers,
       @NotNull final Dimension pixelDimension,
       @NotNull final InputParser parser) {
@@ -145,7 +147,7 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public @NotNull AudioCallback getAudioCallback() {
+  public @NotNull AudioSource getAudioCallback() {
     return this.audio;
   }
 

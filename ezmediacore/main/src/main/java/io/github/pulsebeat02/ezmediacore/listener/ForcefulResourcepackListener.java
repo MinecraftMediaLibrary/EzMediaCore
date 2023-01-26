@@ -36,9 +36,8 @@ import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-public record ForcefulResourcepackListener(MediaLibraryCore core,
-                                           Set<UUID> uuids,
-                                           String url, byte[] hash) implements Listener {
+public record ForcefulResourcepackListener(
+    MediaLibraryCore core, Set<UUID> uuids, String url, byte[] hash) implements Listener {
 
   public ForcefulResourcepackListener(
       @NotNull final MediaLibraryCore core,
@@ -80,8 +79,7 @@ public record ForcefulResourcepackListener(MediaLibraryCore core,
   }
 
   private void handleResourcepackStatus(
-      @NotNull final PlayerResourcePackStatusEvent.Status status,
-      @NotNull final Player player) {
+      @NotNull final PlayerResourcePackStatusEvent.Status status, @NotNull final Player player) {
     switch (status) {
       case FAILED_DOWNLOAD -> this.failed(player);
       case ACCEPTED, DECLINED, SUCCESSFULLY_LOADED -> this.successful(player);

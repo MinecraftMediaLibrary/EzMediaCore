@@ -48,7 +48,7 @@ public final class Viewers {
     checkNotNull(viewers, "Viewers cannot be null!");
     this.viewers = viewers;
     this.players = Collections.newSetFromMap(new WeakHashMap<>());
-    this.players.addAll(Stream.of(viewers).map(Bukkit::getPlayer).collect(Collectors.toList()));
+    this.players.addAll(Stream.of(viewers).map(Bukkit::getPlayer).toList());
   }
 
   public static @NotNull Viewers ofPlayers(@NotNull final Collection<? extends Player> collection) {

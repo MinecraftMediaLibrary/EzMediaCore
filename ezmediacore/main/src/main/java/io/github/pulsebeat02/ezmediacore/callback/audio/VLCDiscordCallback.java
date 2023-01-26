@@ -59,7 +59,7 @@ public final class VLCDiscordCallback extends DiscordCallback {
     this.audioConsumer.accept(data);
   }
 
-  public static final class Builder extends AudioCallbackBuilder {
+  public static final class Builder extends AudioOutputBuilder {
 
     private Consumer<byte[]> consumer;
 

@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.request;
 import io.github.pulsebeat02.ezmediacore.jlibdl.component.Format;
 import io.github.pulsebeat02.ezmediacore.jlibdl.component.MediaInfo;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
-import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
+
 import java.util.List;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -34,8 +34,8 @@ import org.jetbrains.annotations.NotNull;
 public final class MediaRequest {
 
   private final MediaInfo request;
-  private final List<Input> audio;
-  private final List<Input> video;
+  private final List<Format> audio;
+  private final List<Format> video;
   private final boolean stream;
 
   MediaRequest(@NotNull final MediaInfo request) {
@@ -45,10 +45,10 @@ public final class MediaRequest {
     this.stream = this.isStream();
   }
 
-  MediaRequest(@NotNull final Input url) {
+  MediaRequest() {
     this.request = null;
-    this.audio = List.of(url);
-    this.video = List.of(url);
+    this.audio = List.of();
+    this.video = List.of();
     this.stream = false;
   }
 
@@ -57,29 +57,29 @@ public final class MediaRequest {
     return new MediaRequest(request);
   }
 
-  @Contract("_ -> new")
-  public static @NotNull MediaRequest ofRequest(@NotNull final Input url) {
-    return new MediaRequest(url);
+  @Contract(" -> new")
+  public static @NotNull MediaRequest ofEmptyRequest() {
+    return new MediaRequest();
   }
 
-  private @NotNull List<Input> getInternalAudioInputs() {
+  private @NotNull List<Format> getInternalAudioInputs() {
     final List<Format> formats = this.request.getFormats();
-    final List<Format> audio = formats.stream().filter(this::isAudioCodec).toList();
-    return audio.stream().map(url -> UrlInput.ofUrl(url.getUrl())).toList();
+    return formats.stream().filter(this::isAudioCodec).toList();
   }
 
   private boolean isAudioCodec(@NotNull final Format format) {
-    return !format.getAcodec().equals("none");
+    final String acodec = format.getAcodec();
+    return !acodec.equals("none");
   }
 
-  private @NotNull List<Input> getInternalVideoInputs() {
+  private @NotNull List<Format> getInternalVideoInputs() {
     final List<Format> formats = this.request.getFormats();
-    final List<Format> video = formats.stream().filter(this::isVideoCodec).toList();
-    return video.stream().map(url -> UrlInput.ofUrl(url.getUrl())).toList();
+    return formats.stream().filter(this::isVideoCodec).toList();
   }
 
   private boolean isVideoCodec(@NotNull final Format format) {
-    return !format.getVcodec().equals("none");
+    final String vcodec = format.getVcodec();
+    return !vcodec.equals("none");
   }
 
   private boolean isStreamInternal() {
@@ -90,11 +90,11 @@ public final class MediaRequest {
     return this.request;
   }
 
-  public List<Input> getAudioLinks() {
+  public List<Format> getAudioLinks() {
     return this.audio;
   }
 
-  public List<Input> getVideoLinks() {
+  public List<Format> getVideoLinks() {
     return this.video;
   }
 
