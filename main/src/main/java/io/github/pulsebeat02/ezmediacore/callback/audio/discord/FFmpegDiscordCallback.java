@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore.callback.rewrite.discord;
+package io.github.pulsebeat02.ezmediacore.callback.audio.discord;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.audio.FFmpegJDADiscordCallback;
@@ -38,7 +38,10 @@ public final class FFmpegDiscordCallback extends DiscordCallback
   @Override
   public void preparePlayerStateChange(
       @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
+    this.startServer(player);
+  }
 
+  private void startServer(@NotNull final VideoPlayer player) {
     final FFmpegMediaPlayer ffmpeg = (FFmpegMediaPlayer) player;
     final StdoutFFmpegOutput std = this.getStdoutFFmpegOutput();
     final TcpFFmpegOutput tcp = this.getTcpFFmpegOutput();

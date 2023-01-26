@@ -1,8 +1,7 @@
-package io.github.pulsebeat02.ezmediacore.callback.rewrite;
+package io.github.pulsebeat02.ezmediacore.callback.audio;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
-import io.github.pulsebeat02.ezmediacore.callback.audio.PackSource;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.OGGAudioExtractor;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;

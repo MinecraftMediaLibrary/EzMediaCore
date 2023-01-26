@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore.callback.rewrite.discord;
+package io.github.pulsebeat02.ezmediacore.callback.audio.discord;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;

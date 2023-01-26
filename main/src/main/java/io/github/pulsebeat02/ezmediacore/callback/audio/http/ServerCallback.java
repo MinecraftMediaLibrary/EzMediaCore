@@ -1,8 +1,8 @@
-package io.github.pulsebeat02.ezmediacore.callback.rewrite.http;
+package io.github.pulsebeat02.ezmediacore.callback.audio.http;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.audio.ServerCallbackProxy;
-import io.github.pulsebeat02.ezmediacore.callback.rewrite.AudioHandler;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioHandler;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class ServerCallback extends AudioHandler implements ServerCallbackProxy {

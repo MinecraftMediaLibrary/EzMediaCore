@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore.callback.rewrite.http;
+package io.github.pulsebeat02.ezmediacore.callback.audio.http;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
