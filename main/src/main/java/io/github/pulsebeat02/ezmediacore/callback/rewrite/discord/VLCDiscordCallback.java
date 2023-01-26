@@ -26,7 +26,8 @@ public final class VLCDiscordCallback extends DiscordCallback {
 
   @Override
   public void preparePlayerStateChange(
-          @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {}
+          @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
+  }
 
   @Override
   public void process(final byte @NotNull [] data) {

@@ -3,19 +3,20 @@ package io.github.pulsebeat02.ezmediacore.player.output.ffmpeg;
 import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.player.output.ServerOutput;
 import io.github.pulsebeat02.ezmediacore.utility.misc.ConcatenationUtils;
-import java.util.Map;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public final class TcpFFmpegOutput extends FFmpegOutputConfiguration {
+import java.util.Map;
+
+public final class RTSPFFmpegOutput extends FFmpegOutputConfiguration {
 
   private ServerOutput output;
 
-  TcpFFmpegOutput() {}
+  RTSPFFmpegOutput() {}
 
   @Contract(" -> new")
-  public static @NotNull TcpFFmpegOutput ofOutput() {
-    return new TcpFFmpegOutput();
+  public static @NotNull RTSPFFmpegOutput ofOutput() {
+    return new RTSPFFmpegOutput();
   }
 
   @Override

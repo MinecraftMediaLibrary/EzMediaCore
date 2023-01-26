@@ -167,7 +167,6 @@ public final class EzMediaCore implements MediaLibraryCore {
 
   private void createResources() {
     this.createFolders();
-    this.createFiles();
     this.logger.info(Locale.FILE_CREATION.build());
   }
 
@@ -180,13 +179,6 @@ public final class EzMediaCore implements MediaLibraryCore {
             this.audioPath,
             this.videoPath)
         .forEach(FileUtils::createDirectoryIfNotExistsExceptionally);
-  }
-
-  private void createFiles() {
-    final Path file = this.httpServerPath.resolve("audio.html");
-    if (Files.notExists(file)) {
-      FileUtils.copyFromResourcesExceptionally("/audio.html", file);
-    }
   }
 
   private void startDependencyLoader() {

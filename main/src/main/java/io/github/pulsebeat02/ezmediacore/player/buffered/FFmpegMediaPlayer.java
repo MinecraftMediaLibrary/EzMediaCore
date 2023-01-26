@@ -40,12 +40,9 @@ import io.github.pulsebeat02.ezmediacore.player.input.FFmpegMediaPlayerInputPars
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.output.PlayerOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.StreamOutput;
-import io.github.pulsebeat02.ezmediacore.player.output.TcpOutput;
-import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.FFmpegPlayerOutput;
-import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.NativeFrameConsumer;
-import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.ParallelNutReader;
+import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.*;
 import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
-import io.github.pulsebeat02.ezmediacore.utility.network.NetworkUtils;
+
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -154,14 +151,17 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
       builder.redirectError(ProcessBuilder.Redirect.INHERIT);
       this.process = builder.start();
 
-      final int port = NetworkUtils.getFreePort();
-
       final InputStream stream = this.process.getInputStream();
       final PlayerOutput output = this.getOutput();
       final FFmpegPlayerOutput raw = (FFmpegPlayerOutput) output.getResultingOutput();
 
-      raw.getStdout().setOutput(StreamOutput.ofStream(stream));
-      raw.getTcp().setOutput(TcpOutput.ofHost("localhost", port));
+
+      // NEED TO FIX THIS HORRIBLE CODE ASAP
+      final FFmpegOutputConfiguration configuration = raw.getVariedOutput();
+      if (configuration instanceof TcpFFmpegOutput) {
+        configuration.setOutput(StreamOutput.ofStream(stream));
+      }
+
 
       final String internal = raw.getTcp().getResultingOutput().getRaw();
       final InputStream url = new URL(internal).openStream();

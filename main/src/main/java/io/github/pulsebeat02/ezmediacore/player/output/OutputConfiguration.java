@@ -12,6 +12,10 @@ public abstract class OutputConfiguration implements ConfiguredOutput {
     this.configuration = Maps.newHashMap();
   }
 
+  public OutputConfiguration(@NotNull final Map<String, String> configuration) {
+    this.configuration = Maps.newHashMap(configuration);
+  }
+
   @Override
   public void setProperty(@NotNull final String key, @NotNull final String value) {
     this.configuration.put(key, value);
