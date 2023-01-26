@@ -31,6 +31,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 public final class RTSPFFmpegOutput extends FFmpegOutputConfiguration {
 
   private ServerOutput output;
@@ -49,7 +51,7 @@ public final class RTSPFFmpegOutput extends FFmpegOutputConfiguration {
 
   @Override
   public void setOutput(@NotNull final Object output) {
-    Preconditions.checkArgument(output instanceof ServerOutput);
+    checkArgument(output instanceof ServerOutput);
     this.output = (ServerOutput) output;
   }
 

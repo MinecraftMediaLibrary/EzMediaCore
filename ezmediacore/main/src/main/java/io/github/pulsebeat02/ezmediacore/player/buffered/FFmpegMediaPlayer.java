@@ -167,9 +167,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   private void setNecessaryFFmpegOutput(
       @NotNull final InputStream stream, @NotNull final FFmpegPlayerOutput raw) {
     final FFmpegOutputConfiguration configuration = raw.getVariedOutput();
-    if (configuration instanceof TcpFFmpegOutput) {
-      configuration.setOutput(StreamOutput.ofStream(stream));
-    }
+    configuration.setOptionalOutput(StreamOutput.ofStream(stream));
   }
 
   private void executeNutReader(@NotNull final FFmpegPlayerOutput raw) {

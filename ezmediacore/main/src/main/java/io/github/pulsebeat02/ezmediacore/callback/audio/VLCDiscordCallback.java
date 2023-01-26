@@ -31,6 +31,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /*
  * VLCDiscordCallback assumes the use for a Discord bot. While it does
  * not directly support actual libraries for Discord bots (for example, JDA
@@ -70,6 +72,7 @@ public final class VLCDiscordCallback extends DiscordCallback {
     @Contract("_ -> new")
     @Override
     public @NotNull AudioOutput build(@NotNull final MediaLibraryCore core) {
+      checkNotNull(this.consumer, "Discord audio consumer cannot be null!");
       return new VLCDiscordCallback(core, this.consumer);
     }
   }

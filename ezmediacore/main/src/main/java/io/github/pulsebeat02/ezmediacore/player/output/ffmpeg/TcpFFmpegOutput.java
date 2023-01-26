@@ -30,6 +30,8 @@ import java.util.Map;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 public final class TcpFFmpegOutput extends FFmpegOutputConfiguration {
 
   private ServerOutput output;
@@ -48,7 +50,7 @@ public final class TcpFFmpegOutput extends FFmpegOutputConfiguration {
 
   @Override
   public void setOutput(@NotNull final Object output) {
-    Preconditions.checkArgument(output instanceof ServerOutput);
+    checkArgument(output instanceof ServerOutput);
     this.output = (ServerOutput) output;
   }
 

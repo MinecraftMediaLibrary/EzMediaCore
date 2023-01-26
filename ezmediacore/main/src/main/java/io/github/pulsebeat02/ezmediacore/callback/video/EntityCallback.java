@@ -23,6 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.video;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
@@ -235,6 +236,9 @@ public class EntityCallback<T extends Entity> extends FrameCallback
     @Contract("_ -> new")
     @Override
     public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
+      checkNotNull(this.location, "Location cannot be null!");
+      checkNotNull(this.entity, "Entity cannot be null!");
+      checkNotNull(this.consumer, "Consumer (for entity) cannot be null!");
       return new EntityCallback<>(
           core,
           this.getViewers(),

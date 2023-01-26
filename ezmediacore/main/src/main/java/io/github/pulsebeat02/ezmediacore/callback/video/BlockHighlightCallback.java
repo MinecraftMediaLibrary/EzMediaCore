@@ -122,6 +122,7 @@ public class BlockHighlightCallback extends FrameCallback
     @Contract("_ -> new")
     @Override
     public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
+      checkNotNull(this.location, "Location cannot be null!");
       return new BlockHighlightCallback(
           core, this.getViewers(), this.getDims(), this.location, this.character, this.getDelay());
     }

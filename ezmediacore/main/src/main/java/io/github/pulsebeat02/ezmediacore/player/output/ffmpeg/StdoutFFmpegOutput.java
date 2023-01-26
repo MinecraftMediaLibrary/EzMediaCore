@@ -24,11 +24,14 @@
 package io.github.pulsebeat02.ezmediacore.player.output.ffmpeg;
 
 import com.google.common.base.Preconditions;
+import io.github.pulsebeat02.ezmediacore.player.output.OutputHandler;
 import io.github.pulsebeat02.ezmediacore.player.output.StreamOutput;
 import io.github.pulsebeat02.ezmediacore.utility.misc.ConcatenationUtils;
 import java.util.Map;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 public final class StdoutFFmpegOutput extends FFmpegOutputConfiguration {
 
@@ -48,7 +51,7 @@ public final class StdoutFFmpegOutput extends FFmpegOutputConfiguration {
 
   @Override
   public void setOutput(@NotNull final Object output) {
-    Preconditions.checkArgument(output instanceof StreamOutput);
+    checkArgument(output instanceof StreamOutput);
     this.output = (StreamOutput) output;
   }
 
@@ -57,5 +60,11 @@ public final class StdoutFFmpegOutput extends FFmpegOutputConfiguration {
     final Map<String, String> configuration = this.getConfiguration();
     final String raw = "pipe\\:1";
     return ConcatenationUtils.mapOutputString(configuration, raw);
+  }
+
+  @Override
+  public void setOptionalOutput(@NotNull final OutputHandler<?> handler) {
+    checkArgument(handler instanceof StreamOutput);
+    this.output = (StreamOutput) handler;
   }
 }

@@ -49,6 +49,7 @@ import static org.bukkit.ChatColor.UNDERLINE;
 import static org.bukkit.ChatColor.WHITE;
 import static org.bukkit.ChatColor.YELLOW;
 
+import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Identifier;
@@ -238,10 +239,10 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
       final Dimension dimension = this.getDims();
       final int width = dimension.getWidth();
       final int height = dimension.getHeight();
-      if (!this.isValidDimension(width, height)) {
-        throw new IllegalArgumentException(
-            "Scoreboard width must be between 0 and 32 and scoreboard height must be between 0 and 16!");
-      }
+
+      checkArgument(
+          this.isValidDimension(width, height),
+          "Scoreboard width must be between 0 and 32 and scoreboard height must be between 0 and 16!");
 
       return new ScoreboardCallback(
           core, this.getViewers(), this.getDims(), this.character, this.getDelay(), this.id);

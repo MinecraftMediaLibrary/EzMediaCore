@@ -54,7 +54,7 @@ public abstract class ServerCallback extends AudioOutput implements ServerCallba
           PackCallback.Builder,
           VLCHttpServerCallback.Builder {
 
-    private String host;
+    private String host = "localhost";
     private int port;
 
     @Contract("_ -> this")

@@ -122,6 +122,7 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
     @Contract("_ -> new")
     @Override
     public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
+      checkArgument(this.blockWidth > 0, "Block width cannot be 0!");
       return new MapCallback(
           core,
           this.getViewers(),
