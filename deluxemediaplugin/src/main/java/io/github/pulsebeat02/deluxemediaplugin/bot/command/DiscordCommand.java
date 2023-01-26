@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Brandon Li
+ * Copyright (c) 2023 Brandon Li
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package io.github.pulsebeat02.deluxemediaplugin.bot.command;
 
 import io.github.pulsebeat02.deluxemediaplugin.bot.MediaBot;
