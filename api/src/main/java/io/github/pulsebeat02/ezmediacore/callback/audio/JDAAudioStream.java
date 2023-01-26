@@ -4,10 +4,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 
-public interface JDAAudioPlayerStreamHandle {
+public interface JDAAudioStream {
   boolean canProvide();
 
-  @NotNull ByteBuffer provide20MsAudio();
+  @NotNull
+  ByteBuffer provide20MsAudio();
 
   void pause();
 

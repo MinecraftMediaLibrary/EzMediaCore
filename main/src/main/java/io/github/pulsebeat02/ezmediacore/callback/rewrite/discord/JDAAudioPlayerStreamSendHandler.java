@@ -1,6 +1,6 @@
 package io.github.pulsebeat02.ezmediacore.callback.rewrite.discord;
 
-import io.github.pulsebeat02.ezmediacore.callback.audio.JDAAudioPlayerStreamHandle;
+import io.github.pulsebeat02.ezmediacore.callback.audio.JDAAudioStream;
 import org.jetbrains.annotations.NotNull;
 
 import javax.sound.sampled.AudioFormat;
@@ -9,7 +9,7 @@ import javax.sound.sampled.AudioSystem;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public final class JDAAudioPlayerStreamSendHandler implements JDAAudioPlayerStreamHandle {
+public final class JDAAudioPlayerStreamSendHandler implements JDAAudioStream {
   private static final int OPUS_FRAME_SIZE;
   private static final ByteBuffer EMPTY_BUFFER;
 

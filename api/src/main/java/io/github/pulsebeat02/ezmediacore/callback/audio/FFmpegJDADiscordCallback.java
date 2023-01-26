@@ -2,8 +2,8 @@ package io.github.pulsebeat02.ezmediacore.callback.audio;
 
 import org.jetbrains.annotations.Nullable;
 
-public interface FFmpegDiscordCallbackHandle {
+public interface FFmpegJDADiscordCallback {
 
   @Nullable
-  JDAAudioPlayerStreamHandle getStream();
+  JDAAudioStream getStream();
 }

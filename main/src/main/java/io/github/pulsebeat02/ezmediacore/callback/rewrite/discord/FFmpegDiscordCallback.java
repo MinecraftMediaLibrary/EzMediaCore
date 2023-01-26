@@ -1,8 +1,8 @@
 package io.github.pulsebeat02.ezmediacore.callback.rewrite.discord;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.audio.FFmpegDiscordCallbackHandle;
-import io.github.pulsebeat02.ezmediacore.callback.audio.JDAAudioPlayerStreamHandle;
+import io.github.pulsebeat02.ezmediacore.callback.audio.FFmpegJDADiscordCallback;
+import io.github.pulsebeat02.ezmediacore.callback.audio.JDAAudioStream;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.player.buffered.FFmpegMediaPlayer;
@@ -24,9 +24,9 @@ import java.io.InputStream;
  * play it into the Discord bot.
  */
 public final class FFmpegDiscordCallback extends DiscordCallback
-    implements FFmpegDiscordCallbackHandle {
+    implements FFmpegJDADiscordCallback {
 
-  private JDAAudioPlayerStreamHandle stream;
+  private JDAAudioStream stream;
 
   private final int port;
 
@@ -75,7 +75,7 @@ public final class FFmpegDiscordCallback extends DiscordCallback
   }
 
   @Override
-  public @Nullable JDAAudioPlayerStreamHandle getStream() {
+  public @Nullable JDAAudioStream getStream() {
     return this.stream;
   }
 
