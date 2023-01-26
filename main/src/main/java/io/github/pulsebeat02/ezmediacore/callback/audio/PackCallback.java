@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.bukkit.SoundCategory.MASTER;
 
-public final class PackCallback extends AudioHandler implements PackSource {
+public final class PackCallback extends AudioOutput implements PackSource {
 
   private final HttpServer server;
   private final AudioConfiguration configuration;

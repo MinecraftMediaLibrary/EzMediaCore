@@ -1,8 +1,6 @@
-package io.github.pulsebeat02.ezmediacore.callback.audio.discord;
+package io.github.pulsebeat02.ezmediacore.callback.audio;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.callback.audio.FFmpegJDADiscordCallback;
-import io.github.pulsebeat02.ezmediacore.callback.audio.JDAAudioStream;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.player.buffered.FFmpegMediaPlayer;
@@ -11,6 +9,7 @@ import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.FFmpegPlayerOutput
 import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.StdoutFFmpegOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.TcpFFmpegOutput;
 import io.github.pulsebeat02.ezmediacore.utility.network.NetworkUtils;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,4 +83,13 @@ public final class FFmpegDiscordCallback extends DiscordCallback
 
   @Override
   public void process(final byte @NotNull [] data) {}
+
+  public static final class Builder extends AudioCallbackBuilder {
+
+    @Contract("_ -> new")
+    @Override
+    public @NotNull AudioOutput build(@NotNull final MediaLibraryCore core) {
+      return new FFmpegDiscordCallback(core);
+    }
+  }
 }

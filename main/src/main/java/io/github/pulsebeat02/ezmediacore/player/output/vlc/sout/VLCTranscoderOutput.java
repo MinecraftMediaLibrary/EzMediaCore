@@ -2,6 +2,8 @@ package io.github.pulsebeat02.ezmediacore.player.output.vlc.sout;
 
 import io.github.pulsebeat02.ezmediacore.player.output.OutputConfiguration;
 import java.util.Map;
+
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public final class VLCTranscoderOutput extends OutputConfiguration {
@@ -66,6 +68,13 @@ public final class VLCTranscoderOutput extends OutputConfiguration {
     THREADS = "threads";
     POOL_SIZE = "pool-size";
     HIGH_PRIORITY = "high-priority";
+  }
+
+  VLCTranscoderOutput() {}
+
+  @Contract(" -> new")
+  public static @NotNull VLCTranscoderOutput ofOutput() {
+    return new VLCTranscoderOutput();
   }
 
   @Override

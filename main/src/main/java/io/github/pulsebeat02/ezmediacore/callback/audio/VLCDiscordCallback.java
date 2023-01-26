@@ -1,8 +1,9 @@
-package io.github.pulsebeat02.ezmediacore.callback.audio.discord;
+package io.github.pulsebeat02.ezmediacore.callback.audio;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
@@ -26,11 +27,27 @@ public final class VLCDiscordCallback extends DiscordCallback {
 
   @Override
   public void preparePlayerStateChange(
-          @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
-  }
+      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {}
 
   @Override
   public void process(final byte @NotNull [] data) {
     this.audioConsumer.accept(data);
+  }
+
+  public static final class Builder extends AudioCallbackBuilder {
+
+    private Consumer<byte[]> consumer;
+
+    @Contract("_ -> this")
+    public @NotNull Builder consumer(@NotNull final Consumer<byte[]> consumer) {
+      this.consumer = consumer;
+      return this;
+    }
+
+    @Contract("_ -> new")
+    @Override
+    public @NotNull AudioOutput build(@NotNull final MediaLibraryCore core) {
+      return new VLCDiscordCallback(core, this.consumer);
+    }
   }
 }

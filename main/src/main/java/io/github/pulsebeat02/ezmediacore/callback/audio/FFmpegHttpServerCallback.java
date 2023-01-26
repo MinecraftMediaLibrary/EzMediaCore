@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore.callback.audio.http;
+package io.github.pulsebeat02.ezmediacore.callback.audio;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
@@ -11,6 +11,7 @@ import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.RTSPFFmpegOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.TcpFFmpegOutput;
 import io.github.pulsebeat02.ezmediacore.rtp.RTPStreamingServer;
 import io.github.pulsebeat02.ezmediacore.utility.network.NetworkUtils;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public final class FFmpegHttpServerCallback extends ServerCallback {
@@ -75,4 +76,13 @@ public final class FFmpegHttpServerCallback extends ServerCallback {
 
   @Override
   public void process(final byte @NotNull [] data) {}
+
+  public static final class Builder extends ServerCallback.Builder {
+
+    @Contract("_ -> new")
+    @Override
+    public @NotNull AudioOutput build(@NotNull final MediaLibraryCore core) {
+      return new FFmpegHttpServerCallback(core, this.getHost(), this.getPort());
+    }
+  }
 }

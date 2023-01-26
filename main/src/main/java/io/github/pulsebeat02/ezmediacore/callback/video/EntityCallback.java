@@ -232,6 +232,7 @@ public class EntityCallback<T extends Entity> extends FrameCallback
       return this;
     }
 
+    @Contract("_ -> new")
     @Override
     public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
       return new EntityCallback<>(

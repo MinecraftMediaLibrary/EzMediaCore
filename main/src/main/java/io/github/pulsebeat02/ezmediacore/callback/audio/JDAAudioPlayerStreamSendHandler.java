@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore.callback.audio.discord;
+package io.github.pulsebeat02.ezmediacore.callback.audio;
 
 import io.github.pulsebeat02.ezmediacore.callback.audio.JDAAudioStream;
 import org.jetbrains.annotations.NotNull;

@@ -2,6 +2,8 @@ package io.github.pulsebeat02.ezmediacore.player.output.vlc;
 
 import io.github.pulsebeat02.ezmediacore.player.output.OutputConfiguration;
 import java.util.Map;
+
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class VLCStandardOutput extends OutputConfiguration {
@@ -32,8 +34,13 @@ public class VLCStandardOutput extends OutputConfiguration {
 
   private final String section;
 
-  public VLCStandardOutput(@NotNull final String section) {
+  VLCStandardOutput(@NotNull final String section) {
     this.section = section;
+  }
+
+  @Contract("_ -> new")
+  public static @NotNull VLCStandardOutput ofOutput(@NotNull final String section) {
+    return new VLCStandardOutput(section);
   }
 
   @Override

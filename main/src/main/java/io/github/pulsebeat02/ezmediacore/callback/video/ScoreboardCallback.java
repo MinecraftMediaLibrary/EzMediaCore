@@ -231,6 +231,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
       return this;
     }
 
+    @Contract("_ -> new")
     @Override
     public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
 

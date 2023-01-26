@@ -1,4 +1,4 @@
-package io.github.pulsebeat02.ezmediacore.callback.audio.http;
+package io.github.pulsebeat02.ezmediacore.callback.audio;
 
 import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
@@ -7,6 +7,7 @@ import io.github.pulsebeat02.ezmediacore.player.external.VLCMediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.output.vlc.VLCFrameOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.vlc.VLCStandardOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.vlc.sout.VLCTranscoderOutput;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -40,7 +41,7 @@ public final class VLCHttpServerCallback extends ServerCallback {
   }
 
   private @NotNull VLCTranscoderOutput getTranscoderOutput() {
-    final VLCTranscoderOutput output = new VLCTranscoderOutput();
+    final VLCTranscoderOutput output = VLCTranscoderOutput.ofOutput();
     Map.of(
             VLCTranscoderOutput.VCODEC, "x264",
             VLCTranscoderOutput.ACODEC, "vorbis",
@@ -50,7 +51,7 @@ public final class VLCHttpServerCallback extends ServerCallback {
   }
 
   private @NotNull VLCStandardOutput getStandardOutput() {
-    final VLCStandardOutput output = new VLCStandardOutput("http");
+    final VLCStandardOutput output = VLCStandardOutput.ofOutput("http");
     final String host = this.getHost();
     final int port = this.getPort();
     Map.of(VLCStandardOutput.DST, "%s:%s/audio.ogg".formatted(host, port))
@@ -60,4 +61,13 @@ public final class VLCHttpServerCallback extends ServerCallback {
 
   @Override
   public void process(final byte @NotNull [] data) {}
+
+  public static final class Builder extends ServerCallback.Builder {
+
+    @Contract("_ -> new")
+    @Override
+    public @NotNull AudioOutput build(@NotNull final MediaLibraryCore core) {
+      return new VLCHttpServerCallback(core, this.getHost(), this.getPort());
+    }
+  }
 }

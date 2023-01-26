@@ -5,7 +5,7 @@ import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import org.jetbrains.annotations.NotNull;
 
-public final class NullCallback extends AudioHandler {
+public final class NullCallback extends AudioOutput {
 
   NullCallback(@NotNull final MediaLibraryCore core) {
     super(core);
