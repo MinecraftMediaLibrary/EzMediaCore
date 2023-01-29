@@ -49,7 +49,7 @@ dependencies {
             "org.jcodec:jcodec:0.2.5",
             "com.github.ben-manes.caffeine:caffeine:3.1.2",
             "it.unimi.dsi:fastutil:8.5.11",
-            "com.fasterxml.jackson.core:jackson-core:2.14.1",
+            "com.fasterxml.jackson.core:jackson-core:2.14.2",
             "org.apache.httpcomponents.client5:httpclient5:5.2.1",
             "com.neovisionaries:nv-i18n:1.29",
     ).forEach {
