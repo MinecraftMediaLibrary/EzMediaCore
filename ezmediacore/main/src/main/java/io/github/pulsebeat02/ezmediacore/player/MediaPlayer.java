@@ -32,11 +32,13 @@ import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutput;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import io.github.pulsebeat02.ezmediacore.jlibdl.component.Format;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.player.input.PlayerInput;
 import io.github.pulsebeat02.ezmediacore.player.input.PlayerInputHolder;
+import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
 import io.github.pulsebeat02.ezmediacore.player.output.PlayerOutput;
 import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
@@ -89,9 +91,11 @@ public abstract class MediaPlayer implements VideoPlayer {
   public void start(@NotNull final Input mrl, @NotNull final Object... arguments) {
     checkNotNull(mrl, "MRL cannot be null!");
     final MediaRequest request = RequestUtils.requestMediaInformation(mrl);
-    final Input video = request.getVideoLinks().get(0);
-    final Input audio = request.getAudioLinks().get(0);
-    this.input = PlayerInputHolder.ofInputs(video, audio);
+    final Format video = request.getVideoLinks().get(0);
+    final Format audio = request.getAudioLinks().get(0);
+    final Input videoInput = UrlInput.ofUrl(video.getUrl());
+    final Input audioInput = UrlInput.ofUrl(audio.getUrl());
+    this.input = PlayerInputHolder.ofInputs(videoInput, audioInput);
     this.controls = PlayerControls.START;
     this.onPlayerStateChange(mrl, this.controls, arguments);
     this.core

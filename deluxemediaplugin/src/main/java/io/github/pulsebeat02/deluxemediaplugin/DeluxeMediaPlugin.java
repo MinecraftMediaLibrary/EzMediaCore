@@ -128,7 +128,6 @@ public final class DeluxeMediaPlugin {
   }
 
   private void startLibrary() {
-    this.console.sendMessage(Locale.LOGO.build());
     this.console.sendMessage(Locale.ENABLE.build());
     this.console.sendMessage(Locale.ENABLE_EMC.build());
     this.library = LibraryProvider.builder().plugin(this.plugin).build();

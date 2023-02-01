@@ -66,19 +66,6 @@ public interface Locale extends LocaleParent{
       .append(text("-----------------------------------", GOLD))
       .append()
       .build();
-  //
-  NullComponent<Sender> LOGO = () -> getComponent(
-      """
-            _____       _                __  __          _ _       _____  _             _      \s
-           |  __ \\     | |              |  \\/  |        | (_)     |  __ \\| |           (_)     \s
-           | |  | | ___| |_   ___  _____| \\  / | ___  __| |_  __ _| |__) | |_   _  __ _ _ _ __ \s
-           | |  | |/ _ \\ | | | \\ \\/ / _ \\ |\\/| |/ _ \\/ _` | |/ _` |  ___/| | | | |/ _` | | '_ \\\s
-           | |__| |  __/ | |_| |>  <  __/ |  | |  __/ (_| | | (_| | |    | | |_| | (_| | | | | |
-           |_____/ \\___|_|\\__,_/_/\\_\\___|_|  |_|\\___|\\__,_|_|\\__,_|_|    |_|\\__,_|\\__, |_|_| |_|
-                                                                                   __/ |       \s
-                                                                                  |___/        \s
-          """,
-      (line) -> newline().append(text(line, BLUE)));
   NullComponent<Sender> ENABLE = info("deluxemediaplugin.log.enable");
   NullComponent<Sender> ENABLE_EMC = info("deluxemediaplugin.log.emc.enable");
   NullComponent<Sender> WELCOME = info("deluxemediaplugin.log.finish");

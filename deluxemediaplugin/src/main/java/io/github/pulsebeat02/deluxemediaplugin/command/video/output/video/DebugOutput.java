@@ -77,6 +77,7 @@ public class DebugOutput extends VideoOutput {
     videoBuilder.dims(
         ofDimension(attributes.getResolutionWidth(), attributes.getResolutionHeight()));
     videoBuilder.audio(attributes.getAudioOutput().build(core));
+    videoBuilder.video(builder.build(core));
 
     return videoBuilder;
   }

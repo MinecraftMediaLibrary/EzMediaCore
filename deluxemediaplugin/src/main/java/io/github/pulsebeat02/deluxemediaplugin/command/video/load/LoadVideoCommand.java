@@ -31,6 +31,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
+import io.github.pulsebeat02.deluxemediaplugin.command.video.output.PlayerAlgorithm;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioPlayback;
 import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
@@ -40,24 +41,17 @@ import io.github.pulsebeat02.ezmediacore.extraction.AudioAttributes;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
-import io.github.pulsebeat02.ezmediacore.player.input.implementation.PathInput;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
 import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
 import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
-import io.github.pulsebeat02.ezmediacore.utility.io.ResourcepackUtils;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.audience.Audience;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public final class LoadVideoCommand implements CommandSegment.Literal<CommandSender> {
@@ -100,38 +94,47 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
   }
 
   private void handleVideo(@NotNull final Audience audience) {
+
     final Input input = this.config.getMedia();
     if (this.handleUrlInput(audience, input)) {
       return;
     }
-    if (this.handleResourcepackAudio(audience)) {
+
+    if (this.handleResourcepackAudio()) {
       return;
     }
     audience.sendMessage(Locale.LOADED_MEDIA.build(input.getInput()));
     this.config.setTask(null);
   }
 
-  private boolean handleResourcepackAudio(@NotNull final Audience audience) {
-    if (this.isResourcepackAudio()) {
-      audience.sendMessage(Locale.RESOURCEPACK_CREATION.build());
-      return this.handleResourcepack();
-    }
-    return false;
-  }
-
-  private boolean handleResourcepack() {
+  private boolean handleResourcepackAudio() {
+    final AudioPlayback playback = this.config.getAudioPlayback();
     final SoundKey key = SoundKey.ofSound("emc");
     final AudioAttributes attributes = AudioAttributes.OGG_CONFIGURATION;
     final ServerInfo info = this.plugin.getHttpAudioServer();
     final String ip = info.getIp();
     final int port = info.getPort();
-    this.config.setAudioOutput(
-        AudioOutputBuilder.pack().key(key).audio(attributes).host(ip).port(port));
+    switch (playback) {
+      case RESOURCEPACK -> this.config.setAudioOutput(
+          AudioOutputBuilder.pack().key(key).audio(attributes).host(ip).port(port));
+      case HTTP -> {
+        final PlayerAlgorithm algorithm = this.config.getPlayerAlgorithm();
+        switch (algorithm) {
+          case VLC -> this.config.setAudioOutput(
+              AudioOutputBuilder.vlcHttpServer().host(ip).port(port));
+          case FFMPEG -> this.config.setAudioOutput(
+              AudioOutputBuilder.ffmpegHttpServer().host(ip).port(port));
+        }
+      }
+      case DISCORD -> {
+        final PlayerAlgorithm algorithm = this.config.getPlayerAlgorithm();
+        switch (algorithm) {
+          case VLC -> this.config.setAudioOutput(AudioOutputBuilder.vlcDiscord());
+          case FFMPEG -> this.config.setAudioOutput(AudioOutputBuilder.ffmpegDiscord());
+        }
+      }
+    }
     return false;
-  }
-
-  private boolean isResourcepackAudio() {
-    return this.config.getAudioPlayback() == AudioPlayback.RESOURCEPACK;
   }
 
   private boolean handleUrlInput(@NotNull final Audience audience, @NotNull final Input input) {
@@ -183,7 +186,7 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
   }
 
   private boolean checkInvalidAudioPlayback(@NotNull final Audience audience) {
-    final boolean resourcepack = this.isResourcepackAudio();
+    final boolean resourcepack = this.config.getAudioPlayback() == AudioPlayback.RESOURCEPACK;
     return handleTrue(audience, Locale.INVALID_STREAM_AUDIO_OUTPUT.build(), resourcepack);
   }
 
