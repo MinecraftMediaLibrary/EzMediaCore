@@ -7,7 +7,8 @@ include(
     ":ezmediacore:v1_19_R2",
     ":ezmediacore:main",
     ":ezmediacore:lib",
-    "deluxemediaplugin")
+    "deluxemediaplugin",
+    "deluxewedisplays")
 
 mapOf(
     "api" to "ezmediacore-api",
@@ -16,7 +17,9 @@ mapOf(
     "v1_19_R2" to "v1_19_R2",
     "main" to "ezmediacore",
     "lib" to "ezmediacore-lib",
-    "deluxemediaplugin" to "deluxemediaplugin"
+    "deluxemediaplugin" to "deluxemediaplugin",
+    "deluxewedisplays" to "deluxewedisplays"
 ).forEach {
     findProject(it.key)?.name = it.value
 }
+include("deluxewebdisplays")

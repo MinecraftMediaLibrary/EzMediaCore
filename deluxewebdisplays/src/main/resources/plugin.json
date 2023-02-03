@@ -1,0 +1,14 @@
+{
+  "name": "DeluxeWebDisplays",
+  "version": "1.0.0",
+  "description": "Browse the internet in Minecraft!",
+  "authors": [
+    "PulseBeat02"
+  ],
+  "api-version": "1.19",
+  "main": "io.github.pulsebeat02.deluxemediaplugin.DeluxeWebDisplays",
+  "load": "STARTUP",
+  "libraries": [
+    "me.friwi:jcefmaven:109.1.11"
+  ]
+}

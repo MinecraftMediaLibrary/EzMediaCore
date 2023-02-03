@@ -81,8 +81,7 @@ public final class SetAudioPlaybackCommand implements CommandSegment.Literal<Com
     final String argument = context.getArgument("playback", String.class);
     final Optional<AudioPlayback> optional = AudioPlayback.ofKey(argument);
 
-    if (handleEmptyOptional(audience, Locale.INVALID_AUDIO_PLAYBACK.build(argument),
-        optional)) {
+    if (handleEmptyOptional(audience, Locale.INVALID_AUDIO_PLAYBACK.build(argument), optional)) {
       return SINGLE_SUCCESS;
     }
 
@@ -94,8 +93,7 @@ public final class SetAudioPlaybackCommand implements CommandSegment.Literal<Com
   }
 
   private void handleAudioType(
-      @NotNull final Audience audience,
-      @NotNull final AudioPlayback type) {
+      @NotNull final Audience audience, @NotNull final AudioPlayback type) {
     switch (type) {
       case RESOURCEPACK -> this.setPackMode();
       case DISCORD -> this.setDiscordMode(audience);
@@ -110,20 +108,22 @@ public final class SetAudioPlaybackCommand implements CommandSegment.Literal<Com
 
   private void setDiscordMode(@NotNull final Audience audience) {
 
-    if (handleNull(audience, Locale.INVALID_DISCORD_CREDENTIALS.build(), this.plugin.getMediaBot())) {
+    if (handleNull(
+        audience, Locale.INVALID_DISCORD_CREDENTIALS.build(), this.plugin.getMediaBot())) {
       return;
     }
 
-//    if (true) { // temporary placeholder as I fix the bot
-//      return;
-//    }
+    //    if (true) { // temporary placeholder as I fix the bot
+    //      return;
+    //    }
 
     this.config.setAudioPlayback(AudioPlayback.DISCORD);
   }
 
   private void setHttpServerMode(@NotNull final Audience audience) {
 
-    if (handleNull(audience, Locale.INVALID_HTTP_CONFIGURATION.build(), this.plugin.getHttpServer())) {
+    if (handleNull(
+        audience, Locale.INVALID_HTTP_CONFIGURATION.build(), this.plugin.getHttpServer())) {
       return;
     }
 

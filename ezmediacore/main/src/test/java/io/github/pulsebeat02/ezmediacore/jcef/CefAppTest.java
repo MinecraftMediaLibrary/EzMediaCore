@@ -26,5 +26,7 @@ public final class CefAppTest {
     final CefApp app = builder.build();
     final CefClient client = app.createClient();
     final CefBrowser browser = client.createBrowser("https://www.google.com", true, true);
+
+
   }
 }

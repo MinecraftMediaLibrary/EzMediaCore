@@ -31,7 +31,6 @@ import io.github.pulsebeat02.deluxemediaplugin.bot.ffmpeg.AudioPlayerStreamSendH
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.DitheringAlgorithm;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.PlayerAlgorithm;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.VideoPlayback;
-import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioOutput;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioPlayback;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutputBuilder;

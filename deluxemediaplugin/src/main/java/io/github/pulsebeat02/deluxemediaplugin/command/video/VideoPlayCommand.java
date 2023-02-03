@@ -100,9 +100,7 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
 
     this.releaseIfPlaying();
     this.createVideoPlayer(sender, entities);
-    this.setProperAudioHandler();
     this.cancelStream();
-    this.handleStreamPlayers(audience);
     this.startPlayer();
     this.sendPlayInformation(audience);
 
@@ -134,20 +132,9 @@ public final class VideoPlayCommand implements CommandSegment.Literal<CommandSen
 
   private void startPlayer() {}
 
-  private void handleStreamPlayers(@NotNull final Audience audience) {
-    this.config
-        .getAudioPlayback()
-        .getHandle()
-        .setAudioHandler(this.plugin, this.config, audience, this.config.getMedia().getInput());
-  }
-
   private void cancelStream() {
     final EnhancedExecution stream = this.config.getStream();
     Nill.ifNot(stream, () -> Try.closeable(stream));
-  }
-
-  private void setProperAudioHandler() {
-    this.config.getAudioPlayback().getHandle().setProperAudioHandler(this.plugin, this.config);
   }
 
   private void sendPlayInformation(@NotNull final Audience audience) {
