@@ -9,7 +9,9 @@ import java.util.Optional;
 public enum AudioPlayback {
   RESOURCEPACK,
   HTTP,
-  DISCORD;
+  DISCORD,
+
+  NONE;
 
   private static final Map<String, AudioPlayback> KEYS;
 

@@ -36,6 +36,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioP
 import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
+import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutput;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutputBuilder;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioAttributes;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
@@ -132,6 +133,9 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
           case VLC -> this.config.setAudioOutput(AudioOutputBuilder.vlcDiscord());
           case FFMPEG -> this.config.setAudioOutput(AudioOutputBuilder.ffmpegDiscord());
         }
+      }
+      case NONE -> {
+        this.config.setAudioOutput(AudioOutputBuilder.empty());
       }
     }
     return false;
