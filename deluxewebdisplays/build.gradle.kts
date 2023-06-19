@@ -12,7 +12,7 @@ repositories {
 dependencies {
 
     compileOnly("org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT")
-    compileOnly("me.friwi:jcefmaven:109.1.11")
+    compileOnly("me.friwi:jcefmaven:109.1.11.1")
 
     // Projects
     setOf(
