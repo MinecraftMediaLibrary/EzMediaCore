@@ -25,7 +25,7 @@ dependencies {
 
 
     setOf(
-        "org.bstats:bstats-bukkit:3.0.0",
+        "org.bstats:bstats-bukkit:3.0.2",
         "net.kyori:adventure-api:4.12.0",
         "net.kyori:adventure-platform-bukkit:4.2.0",
     ).forEach {
