@@ -26,7 +26,7 @@ dependencies {
 
     // PROVIDED DEPENDENCIES / TEST DEPENDENCIES
     setOf(
-            "io.netty:netty-all:4.1.87.Final",
+            "io.netty:netty-all:4.1.101.Final",
             "com.mojang:authlib:3.16.29",
             "com.google.guava:guava:31.1-jre",
             "com.mpatric:mp3agic:0.9.1",
