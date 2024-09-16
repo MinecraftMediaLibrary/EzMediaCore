@@ -41,7 +41,7 @@ dependencies {
             "uk.co.caprica:vlcj:4.8.2",
             "uk.co.caprica:vlcj-natives:4.8.1",
             "com.github.sealedtx:java-youtube-downloader:3.0.2",
-            "com.alibaba:fastjson:2.0.23",
+            "com.alibaba:fastjson:2.0.53",
             "net.java.dev.jna:jna:5.13.0",
             "net.java.dev.jna:jna-platform:5.13.0",
             "se.michaelthelin.spotify:spotify-web-api-java:7.3.0",
