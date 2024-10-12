@@ -25,13 +25,13 @@ dependencies {
 
     // Provided dependencies
     compileOnly("org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT")
-    compileOnly("io.netty:netty-all:4.1.87.Final")
+    compileOnly("io.netty:netty-all:4.1.114.Final")
     compileOnly("com.mojang:authlib:3.16.29")
     compileOnly("com.google.guava:guava:31.1-jre")
     compileOnly("it.unimi.dsi:fastutil:8.5.11")
 
     testImplementation("me.friwi:jcefmaven:109.1.11.1")
-    testImplementation("io.netty:netty-all:4.1.87.Final")
+    testImplementation("io.netty:netty-all:4.1.114.Final")
     testImplementation("com.mojang:authlib:3.16.29")
     testImplementation("com.google.guava:guava:31.1-jre")
     testImplementation("com.github.kevinsawicki:http-request:6.0")
