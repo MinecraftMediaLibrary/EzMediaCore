@@ -13,7 +13,7 @@ dependencies {
     compileOnly("com.github.ben-manes.caffeine:caffeine:3.1.2")
     compileOnly("uk.co.caprica:vlcj:4.8.2")
     compileOnly("uk.co.caprica:vlcj-natives:4.8.1")
-    compileOnly("com.github.sealedtx:java-youtube-downloader:3.0.2")
+    compileOnly("com.github.sealedtx:java-youtube-downloader:3.2.6")
     compileOnly("net.java.dev.jna:jna:5.13.0")
     compileOnly("net.java.dev.jna:jna-platform:5.13.0")
     compileOnly("se.michaelthelin.spotify:spotify-web-api-java:7.3.0")
