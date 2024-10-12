@@ -13,7 +13,7 @@ dependencies {
     compileOnly("team.unnamed:creative-api:1.7.3")
     compileOnly("team.unnamed:creative-serializer-minecraft:1.7.3")
     compileOnly("team.unnamed:creative-server:1.7.3")
-    compileOnly("com.github.ben-manes.caffeine:caffeine:3.1.2")
+    compileOnly("com.github.ben-manes.caffeine:caffeine:3.1.8")
     compileOnly("uk.co.caprica:vlcj:4.8.2")
     compileOnly("uk.co.caprica:vlcj-natives:4.8.1")
     compileOnly("com.github.sealedtx:java-youtube-downloader:3.0.2")
@@ -43,7 +43,7 @@ dependencies {
     testImplementation("se.michaelthelin.spotify:spotify-web-api-java:7.3.0")
     testImplementation("com.github.kokorin.jaffree:jaffree:2022.06.03")
     testImplementation("org.jcodec:jcodec:0.2.5")
-    testImplementation("com.github.ben-manes.caffeine:caffeine:3.1.2")
+    testImplementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
     testImplementation("it.unimi.dsi:fastutil:8.5.11")
 }
 
