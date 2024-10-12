@@ -24,7 +24,7 @@
 package rewrite.reflect;
 
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
-import io.github.pulsebeat02.ezmediacore.locale.Locale;
+import rewrite.locale.Locale;
 import rewrite.logging.Logger;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 

@@ -5,28 +5,29 @@ The library is currently being rewritten! I am rewriting each package of code sl
 
 ---
 
-**EzMediaCore** is a library written in Java using the Spigot API and NMS classes to provide a
-helpful tool for other media plugins to take advantage of. One of the most fascinating features
-include the ability to render **videos** on a Spigot server.
+**EzMediaCore** is a Bukkit library written in Java with the purpose of providing a simple and easy way
+to render media on a Minecraft server. One of the most fascinating features of EzMediaCore is the ability to 
+render **videos** on a Bukkit server.
 
-In order to maintain fast processing speeds, algorithms such as dithering, hardware acceleration,
-and use of native code is utilized. The library primarily uses **VLC Media Player** and **FFmpeg**,
-for blazing fast frame delivery and support for many sorts of media formats (including streams).
+In order to maintain fast processing speeds, external video playback libraries such as **FFmpeg** or 
+**VLC Media Player** are used to aid in frame rendering. Other complicated algorithms, like dithering algorithms,
+are included in the library to provide a smooth and high-quality video playback experience in-game. With the
+power of these tools, we're able to play not just standard Youtube videos, but live-streams, screen-shares,
+webcams, and other input devices, reaching extremely high frame rates with limited bandwidth constraints.
+
+Here is an example of a video showcasing the power of **EzMediaCore**:
 
 https://user-images.githubusercontent.com/40838203/132433665-a675fc35-e31f-4044-a960-ce46a8fb7df5.mp4
 
-Frame rates can reach up to the **30**'s or **40**'s with extremely great quality. As a comparison,
-a
-*smooth* animation is approximately **25** frames. The library is capable of playing media in many
-sorts of ways, such as maps, entities, chat, scoreboards, debug markers. It is also capable of
-providing audio through a resourcepack, website, and Discord bot (primarily for playing streams).
-
+This library is capable of playing media in many sorts of outputs, such as maps, entities, chat, scoreboards, 
+debug markers and more. It is also capable of providing audio through a resourcepack, website, and Discord bot, so
+developers can implement many ways of playing media in their server.
 ---
 
 ### Prerequisites
 
-- Java 17
-- Minecraft versions **1.18.2** and **1.19** supported.
+- Java 21
+- Minecraft versions **1.21.X** supported.
 
 Add the following to your gradle configuration:
 
@@ -53,7 +54,7 @@ for examples on how to use the library. It is the plugin I used that displayed t
 1) Run [BuildTools](https://www.spigotmc.org/wiki/buildtools/) for versions 1.18.2 and 1.19.
 2) Clone the [repository](https://github.com/MinecraftMediaLibrary/EzMediaCore) by using the
    following Git link: `https://github.com/MinecraftMediaLibrary/EzMediaCore.git`
-3) Run `gradlew shadowJar` on the parent project to build a jar for the plugin.
+3) Run `gradlew build` on the parent project to build a jar for the plugin.
 
 ---
 
@@ -82,13 +83,6 @@ server!
 |-------------------------|--------------------------|
 | Vijay Pondini           | $10.00                   |
 | Matthew Holden          | $6.00                    |
-
-| Project / Dependency                                                                        | Contribution                       |
-|---------------------------------------------------------------------------------------------|------------------------------------|
-| [VLCJ](https://github.com/caprica/vlcj) made by [caprica](https://github.com/caprica)       | VLC Media Player Bindings          |
-| [VLC Media Player](https://www.videolan.org/vlc/)                                           | Native Backend Support             |
-| [Jaffree](https://github.com/kokorin/Jaffree) made by [kokorin](https://github.com/kokorin) | FFmpeg Integration (NUT Container) |
-| [FFmpeg](https://www.ffmpeg.org/)                                                           | Native Media Encoding and Decoding |
 
 ### Projects that use EzMediaCore Code
 

@@ -28,7 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
 
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
-import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import rewrite.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.ImageUtils;
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;

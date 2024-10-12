@@ -35,14 +35,13 @@ import java.nio.file.StandardCopyOption;
 
 public final class NativeUtils {
 
+  private static final String JNA_LIBRARY_PATH = "jna.library.path";
   private static final Path TEMPORARY_DIRECTORY;
-  private static final String JNA_LIBRARY_PATH;
 
   static {
     try {
       TEMPORARY_DIRECTORY = FileUtils.createTempDirectory("native-library-loader");
       FileUtils.deleteOnExit(TEMPORARY_DIRECTORY);
-      JNA_LIBRARY_PATH = "jna.library.path";
     } catch (final IOException e) {
       throw new AssertionError(e);
     }
@@ -51,58 +50,26 @@ public final class NativeUtils {
   private NativeUtils() {}
 
   public static void loadLibraryFromUrl(final String url) throws IOException {
-
-    if (!isValidUrl(url)) {
-      throw new IllegalArgumentException("The url must be valid!");
-    }
-
     final String filename = FileUtils.getFileNameFromUrl(url);
-    if (!isValidName(filename)) {
-      throw new IllegalArgumentException("The filename has to be at least 3 characters long.");
-    }
-
     final Path downloaded = FileUtils.downloadFile(url, TEMPORARY_DIRECTORY);
-    System.load(downloaded.toString());
-    addSearchPath(downloaded.getParent());
-  }
-
-  private static boolean isValidUrl(final String url) {
-    try {
-      new URL(url).toURI();
-      return true;
-    } catch (final MalformedURLException | URISyntaxException e) {
-      return false;
-    }
+    final Path parent = downloaded.getParent();
+    final String raw = downloaded.toString();
+    System.load(raw);
+    addSearchPath(parent);
   }
 
   public static void loadLibraryFromJar(final String path) throws IOException {
-
-    if (!isAbsolute(path)) {
-      throw new IllegalArgumentException("The path has to be absolute (start with '/').");
-    }
-
     final String[] parts = path.split("/");
     final String filename = (parts.length > 1) ? parts[parts.length - 1] : null;
-
-    if (!isValidName(filename)) {
-      throw new IllegalArgumentException("The filename has to be at least 3 characters long.");
-    }
-
     loadNativeBinary(copyNativeLibrary(path, filename));
-  }
-
-  private static boolean isAbsolute(final String path) {
-    return path != null && path.startsWith("/");
-  }
-
-  private static boolean isValidName(final String name) {
-    return name != null && name.length() >= 3;
   }
 
   private static void loadNativeBinary(final Path temp) throws IOException {
     try {
-      System.load(temp.toString());
-      addSearchPath(temp.getParent());
+      final Path parent = temp.getParent();
+      final String raw = temp.toString();
+      System.load(raw);
+      addSearchPath(parent);
     } finally {
       deleteNativeBinary(temp);
     }
@@ -120,16 +87,9 @@ public final class NativeUtils {
       throws IOException {
     final Path temp = TEMPORARY_DIRECTORY.resolve(filename);
     try (final InputStream is = NativeUtils.class.getResourceAsStream(path)) {
-      validateStream(is);
       Files.copy(is, temp, StandardCopyOption.REPLACE_EXISTING);
     }
     return temp;
-  }
-
-  private static void validateStream(final InputStream stream) {
-    if (stream == null) {
-      throw new IllegalArgumentException("Native library stream cannot be null!");
-    }
   }
 
   /**
@@ -147,14 +107,15 @@ public final class NativeUtils {
       return;
     }
 
-    final String[] paths = System.getProperty(JNA_LIBRARY_PATH).split(";");
+    final String libraryProperty = System.getProperty(JNA_LIBRARY_PATH);
+    final String[] paths = libraryProperty.split(";");
     for (final String path : paths) {
       if (path.equals(dir)) {
         return; // already included
       }
     }
 
-    System.setProperty(
-        JNA_LIBRARY_PATH, String.format("%s%s%s", property, File.pathSeparator, dir));
+    final String path = property + File.pathSeparator + dir;
+    System.setProperty(JNA_LIBRARY_PATH, path);
   }
 }

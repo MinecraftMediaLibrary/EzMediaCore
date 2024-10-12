@@ -30,7 +30,7 @@ import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.entity.NamedStringCharacter;
 import io.github.pulsebeat02.ezmediacore.callback.implementation.ChatCallbackDispatcher;
-import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import rewrite.dimension.Dimension;
 import java.nio.IntBuffer;
 import java.util.UUID;
 import org.jetbrains.annotations.Contract;

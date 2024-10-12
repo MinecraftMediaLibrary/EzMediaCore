@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
-import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import rewrite.dimension.Dimension;
 
 
 public final class SpotifyAvatar implements Avatar {
@@ -46,8 +46,7 @@ public final class SpotifyAvatar implements Avatar {
     return this.image;
   }
 
-  @Override
-  public  Dimension getDimensions() {
+  public Dimension getDimensions() {
     return this.dimension;
   }
 }

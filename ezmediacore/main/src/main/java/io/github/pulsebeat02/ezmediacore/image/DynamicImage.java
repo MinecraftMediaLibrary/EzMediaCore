@@ -24,7 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.image;
 
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
-import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import rewrite.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.GifDecoder;
 
 import java.io.FileInputStream;

@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.player.buffered;
 
-import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import rewrite.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.VideoFrameUtils;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.scalr.AsyncScalr;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.scalr.Scalr.Method;

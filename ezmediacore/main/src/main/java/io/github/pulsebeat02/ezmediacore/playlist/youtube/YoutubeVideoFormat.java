@@ -51,7 +51,7 @@ import static java.util.Map.entry;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import rewrite.dimension.Dimension;
 import java.util.Map;
 
 
@@ -114,8 +114,7 @@ public final class YoutubeVideoFormat implements VideoFormat {
     return this.format;
   }
 
-  @Override
-  public  Dimension getDimensions() {
+  public Dimension getDimensions() {
     return this.dimension;
   }
 }

@@ -84,7 +84,8 @@ public class PersistentImageStorage extends PersistentObject<Image> {
   }
 
   private List<Image> read( final BufferedReader reader) {
-    final Type type = new TypeToken<List<Image>>() {}.getType();
+    final TypeToken<List<Image>> token = new TypeToken<List<Image>>() {};
+    final Type type = token.getType();
     final Gson gson = GsonProvider.getSimple();
     return gson.fromJson(reader, type);
   }

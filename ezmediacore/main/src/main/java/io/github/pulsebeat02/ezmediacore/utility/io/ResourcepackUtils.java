@@ -26,7 +26,6 @@ package io.github.pulsebeat02.ezmediacore.utility.io;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
-import io.github.pulsebeat02.ezmediacore.listener.ForcefulResourcepackListener;
 import io.github.pulsebeat02.ezmediacore.resourcepack.PackFormat;
 import java.nio.file.Path;
 import java.util.Collection;

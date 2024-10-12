@@ -30,7 +30,7 @@ import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutput;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
-import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import rewrite.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegArguments;
 import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;

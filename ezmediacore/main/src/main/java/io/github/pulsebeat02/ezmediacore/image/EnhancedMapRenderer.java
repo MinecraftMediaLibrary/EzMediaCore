@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.image;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import rewrite.dimension.Dimension;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import org.bukkit.Bukkit;

@@ -25,7 +25,7 @@ package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors;
-import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import rewrite.dimension.ImmutableDimension;
 import io.github.pulsebeat02.ezmediacore.image.DynamicImage;
 import io.github.pulsebeat02.ezmediacore.image.Image;
 import io.github.pulsebeat02.ezmediacore.image.StaticImage;

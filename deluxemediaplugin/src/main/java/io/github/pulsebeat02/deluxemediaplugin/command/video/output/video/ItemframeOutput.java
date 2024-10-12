@@ -26,7 +26,7 @@ package io.github.pulsebeat02.deluxemediaplugin.command.video.output.video;
 import static io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration.DELAY_0_MS;
 import static io.github.pulsebeat02.ezmediacore.callback.Identifier.ofIdentifier;
 import static io.github.pulsebeat02.ezmediacore.callback.Viewers.ofPlayers;
-import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.ofDimension;
+import static rewrite.dimension.Dimension.ofDimension;
 import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;

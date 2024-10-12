@@ -47,7 +47,7 @@ public final class FileUtils {
   public static Path createTempDirectory(final String prefix) throws IOException {
     final String temp = System.getProperty("java.io.tmpdir");
     final String name = prefix + System.nanoTime();
-    final Path directory = Paths.get(temp, name);
+    final Path directory = Path.of(temp, name);
     return Files.createDirectory(directory);
   }
 

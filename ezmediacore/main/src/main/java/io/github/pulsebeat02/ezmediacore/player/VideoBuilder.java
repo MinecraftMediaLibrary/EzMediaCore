@@ -28,8 +28,8 @@ import io.github.pulsebeat02.ezmediacore.utility.misc.OSType;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutput;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
-import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import io.github.pulsebeat02.ezmediacore.dimension.FrameDimension;
+import rewrite.dimension.Dimension;
+import rewrite.dimension.BlockWidth;
 import io.github.pulsebeat02.ezmediacore.player.buffered.BufferConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.buffered.FFmpegMediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.buffered.JCodecMediaPlayer;
@@ -43,7 +43,7 @@ import static java.util.Objects.requireNonNull;
 public class VideoBuilder {
 
   private VideoCallback video;
-  private Dimension dims = FrameDimension.X5_5;
+  private Dimension dims = BlockWidth.X5_5;
   private FrameConfiguration rate = FrameConfiguration.FPS_30;
 
   private AudioOutput audio;

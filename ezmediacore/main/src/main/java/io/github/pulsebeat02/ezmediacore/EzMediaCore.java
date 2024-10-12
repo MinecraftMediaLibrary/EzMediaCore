@@ -25,10 +25,10 @@ package io.github.pulsebeat02.ezmediacore;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.github.pulsebeat02.ezmediacore.dependency.DependencyLoader;
+import rewrite.dependency.DependencyLoader;
 import io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil;
-import io.github.pulsebeat02.ezmediacore.listener.RegistrationListener;
-import io.github.pulsebeat02.ezmediacore.locale.Locale;
+import rewrite.listener.RegistrationListener;
+import rewrite.locale.Locale;
 import rewrite.logging.LibraryLogger;
 import rewrite.logging.Logger;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
@@ -46,14 +46,6 @@ import org.bukkit.plugin.Plugin;
 
 public final class EzMediaCore {
 
-  /*
-
-  TODO:
-
-  - Rewrite whole library... (resourcepack package up)
-
-   */
-
   private final SpotifyClient spotifyClient;
   private final Plugin plugin;
 
@@ -68,11 +60,6 @@ public final class EzMediaCore {
   private PacketHandler handler;
   private Logger logger;
   private Listener registrationListener;
-  private Path ffmpegExecutable;
-  private Path rtpExecutable;
-  private Path vlcPath;
-
-  private boolean vlcSupported;
   private boolean disabled;
 
   EzMediaCore(
@@ -248,27 +235,11 @@ public final class EzMediaCore {
     return this.videoPath;
   }
 
-  public  Path getFFmpegPath() {
-    return this.ffmpegExecutable;
-  }
-
-  public void setFFmpegPath( final Path path) {
-    this.ffmpegExecutable = path.toAbsolutePath();
-  }
-
-  public  Path getVlcPath() {
-    return this.vlcPath;
-  }
-
-  public void setVlcPath( final Path path) {
-    this.vlcPath = path;
-  }
-
   public boolean isDisabled() {
     return this.disabled;
   }
 
-  public  Listener getRegistrationHandler() {
+  public Listener getRegistrationHandler() {
     return this.registrationListener;
   }
 
@@ -276,7 +247,7 @@ public final class EzMediaCore {
     this.registrationListener = listener;
   }
 
-  public  DependencyLoader getLibraryLoader() {
+  public DependencyLoader getLibraryLoader() {
     return this.loader;
   }
 
@@ -284,15 +255,7 @@ public final class EzMediaCore {
     return this.logger;
   }
 
-  public  SpotifyClient getSpotifyClient() {
+  public SpotifyClient getSpotifyClient() {
     return this.spotifyClient;
-  }
-
-  public boolean isVLCSupported() {
-    return this.vlcSupported;
-  }
-
-  public void setVLCStatus(final boolean vlcStatus) {
-    this.vlcSupported = vlcStatus;
   }
 }

@@ -1,5 +1,7 @@
 package rewrite.capabilities;
 
-public final class Capabilities {
-  public static final RTPCapability RTP = new RTPCapability();
+public interface Capabilities {
+  RTSPCapability RTSP = new RTSPCapability();
+  VLCCapability VLC = new VLCCapability();
+  FFmpegCapability FFMPEG = new FFmpegCapability();
 }

@@ -25,7 +25,7 @@ package rewrite.rtp;
 
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import rewrite.capabilities.Capabilities;
-import rewrite.capabilities.RTPCapability;
+import rewrite.capabilities.RTSPCapability;
 import rewrite.logging.Logger;
 import org.jcodec.codecs.mjpeg.tools.AssertionException;
 
@@ -61,12 +61,12 @@ public class RTPServer {
   }
 
   public boolean hasCapabilities() {
-    final RTPCapability capability = Capabilities.RTP;
+    final RTSPCapability capability = Capabilities.RTSP;
     return capability.isEnabled();
   }
 
   private ProcessBuilder createProcessBuilder() {
-    final RTPCapability capability = Capabilities.RTP;
+    final RTSPCapability capability = Capabilities.RTSP;
     if (capability.isEnabled()) {
       final Path path = capability.getBinaryPath();
       final String raw = path.toString();

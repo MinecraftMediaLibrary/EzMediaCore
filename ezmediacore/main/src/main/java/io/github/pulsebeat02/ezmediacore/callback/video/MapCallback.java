@@ -32,7 +32,7 @@ import io.github.pulsebeat02.ezmediacore.callback.Identifier;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import io.github.pulsebeat02.ezmediacore.callback.implementation.MapCallbackDispatcher;
-import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import rewrite.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.error.FilterLiteDither;
 import java.util.UUID;

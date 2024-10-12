@@ -26,14 +26,12 @@ package io.github.pulsebeat02.ezmediacore.player;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
-import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
-import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutput;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
-import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
+import rewrite.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.jlibdl.component.Format;
-import io.github.pulsebeat02.ezmediacore.locale.Locale;
+import rewrite.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.player.input.PlayerInput;

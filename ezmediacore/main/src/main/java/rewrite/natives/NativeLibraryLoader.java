@@ -23,10 +23,10 @@
  */
 package rewrite.natives;
 
-import rewrite.natives.os.Arch;
-import rewrite.natives.os.Bits;
-import rewrite.natives.os.OS;
-import rewrite.natives.os.Platform;
+import rewrite.util.os.Arch;
+import rewrite.util.os.Bits;
+import rewrite.util.os.OS;
+import rewrite.util.os.Platform;
 import rewrite.natives.strategy.implementation.ResourceLocator;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;

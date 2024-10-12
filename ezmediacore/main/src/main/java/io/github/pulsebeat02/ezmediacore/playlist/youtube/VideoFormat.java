@@ -23,10 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
-import io.github.pulsebeat02.ezmediacore.dimension.Dimensional;
 
-
-public interface VideoFormat extends Dimensional {
+public interface VideoFormat {
 
   int getFPS();
 

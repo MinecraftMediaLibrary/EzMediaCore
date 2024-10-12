@@ -26,11 +26,14 @@ package io.github.pulsebeat02.ezmediacore.ffmpeg;
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.format.FormatterProvider;
 import java.nio.file.Path;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.jetbrains.annotations.Contract;
 
 
 public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTrimmer {
+
+  public static final SimpleDateFormat FFMPEG_TIME_FORMATTER = new SimpleDateFormat("HH:mm:ss.SSS");
 
   private final String input;
   private final String output;
@@ -86,7 +89,7 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
     this.addArguments(FFmpegArguments.LOG_LEVEL, "error");
     this.addArguments(FFmpegArguments.INPUT, this.input);
 
-    final String time = FormatterProvider.FFMPEG_TIME_FORMATTER.format(new Date(this.ms));
+    final String time = FFMPEG_TIME_FORMATTER.format(new Date(this.ms));
     this.addArguments(FFmpegArguments.DURATION_START, time);
 
     this.addArgument(this.output);
