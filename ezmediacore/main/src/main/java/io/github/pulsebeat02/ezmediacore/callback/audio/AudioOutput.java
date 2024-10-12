@@ -23,19 +23,18 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.audio;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import org.jetbrains.annotations.NotNull;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+
 
 public abstract class AudioOutput implements AudioSource {
 
-  private final MediaLibraryCore core;
+  private final EzMediaCore core;
 
-  public AudioOutput(@NotNull final MediaLibraryCore core) {
+  public AudioOutput( final EzMediaCore core) {
     this.core = core;
   }
 
-  @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public  EzMediaCore getCore() {
     return this.core;
   }
 }

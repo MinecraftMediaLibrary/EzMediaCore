@@ -28,7 +28,7 @@ import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.FUL
 import static io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil.PALETTE;
 
 import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class DitherUtils {
 
@@ -57,7 +57,7 @@ public final class DitherUtils {
     return (rgb >>> 24 & 0xFF) == 0 ? 0 : getBestColor(r, g, b);
   }
 
-  public static byte @NotNull [] simplify(final int @NotNull [] buffer) {
+  public static byte  [] simplify(final int  [] buffer) {
     final byte[] map = new byte[buffer.length];
     for (int index = 0; index < buffer.length; index++) {
       final int rgb = buffer[index];

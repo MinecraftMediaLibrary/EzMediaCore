@@ -23,14 +23,14 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 public class OGGAudioExtractor extends FFmpegCommandExecutor implements AudioExtractor {
 
@@ -38,10 +38,10 @@ public class OGGAudioExtractor extends FFmpegCommandExecutor implements AudioExt
   private final String output;
 
   OGGAudioExtractor(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final AudioConfiguration configuration,
-      @NotNull final String input,
-      @NotNull final String output) {
+       final EzMediaCore core,
+       final AudioConfiguration configuration,
+       final String input,
+       final String output) {
     super(core);
     this.input = input;
     this.output = output;
@@ -50,24 +50,24 @@ public class OGGAudioExtractor extends FFmpegCommandExecutor implements AudioExt
   }
 
   @Contract("_, _, _, _ -> new")
-  public static @NotNull OGGAudioExtractor ofFFmpegAudioExtractor(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final AudioConfiguration configuration,
-      @NotNull final String input,
-      @NotNull final String output) {
+  public static  OGGAudioExtractor ofFFmpegAudioExtractor(
+       final EzMediaCore core,
+       final AudioConfiguration configuration,
+       final String input,
+       final String output) {
     return new OGGAudioExtractor(core, configuration, input, output);
   }
 
   @Contract("_, _, _, _ -> new")
-  public static @NotNull OGGAudioExtractor ofFFmpegAudioExtractor(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final AudioConfiguration configuration,
-      @NotNull final Path input,
-      @NotNull final Path output) {
+  public static  OGGAudioExtractor ofFFmpegAudioExtractor(
+       final EzMediaCore core,
+       final AudioConfiguration configuration,
+       final Path input,
+       final Path output) {
     return ofFFmpegAudioExtractor(core, configuration, input.toString(), output.toString());
   }
 
-  private void generateArguments(@NotNull final AudioConfiguration configuration) {
+  private void generateArguments( final AudioConfiguration configuration) {
 
     final String path = this.getCore().getFFmpegPath().toString();
     this.addArgument(path);
@@ -98,18 +98,18 @@ public class OGGAudioExtractor extends FFmpegCommandExecutor implements AudioExt
   }
 
   @Override
-  public void executeWithLogging(@Nullable final Consumer<String> logger) throws IOException {
+  public void executeWithLogging( final Consumer<String> logger) throws IOException {
     this.addArgument(this.output);
     super.executeWithLogging(logger);
   }
 
   @Override
-  public @NotNull String getInput() {
+  public  String getInput() {
     return this.input;
   }
 
   @Override
-  public @NotNull String getOutput() {
+  public  String getOutput() {
     return this.output;
   }
 }

@@ -32,7 +32,7 @@ import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.video.VideoCallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.callback.video.EntityCallback;
 import io.github.pulsebeat02.ezmediacore.callback.video.EntityCallback.Builder;
@@ -70,7 +70,7 @@ public class EntityOutput extends VideoOutput {
       @NotNull final Collection<? extends Player> players,
       @NotNull final Player player) {
 
-    final MediaLibraryCore core = plugin.library();
+    final EzMediaCore core = plugin.library();
     final EntityCallback.Builder<?> builder = this.createEntityBuilder(attributes, players, player);
 
     final VideoBuilder videoBuilder = this.getBuilder(attributes);

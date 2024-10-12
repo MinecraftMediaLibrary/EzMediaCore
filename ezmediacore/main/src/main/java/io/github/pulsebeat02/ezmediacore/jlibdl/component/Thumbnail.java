@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.jlibdl.component;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import org.jetbrains.annotations.Nullable;
+
 
 public final class Thumbnail {
 
@@ -37,11 +37,11 @@ public final class Thumbnail {
   @Expose
   private String url;
 
-  public @Nullable String getId() {
+  public  String getId() {
     return this.id;
   }
 
-  public @Nullable String getUrl() {
+  public  String getUrl() {
     return this.url;
   }
 }

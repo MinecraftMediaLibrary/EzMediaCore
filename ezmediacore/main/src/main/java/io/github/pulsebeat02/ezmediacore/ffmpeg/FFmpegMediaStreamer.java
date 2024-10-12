@@ -23,47 +23,47 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
-import io.github.pulsebeat02.ezmediacore.rtp.RTPStreamingServer;
+import io.github.pulsebeat02.ezmediacore.rtp.RTPServer;
 import java.io.IOException;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaServer {
 
-  private final RTPStreamingServer server;
+  private final RTPServer server;
   private final String input;
   private final String output;
 
   FFmpegMediaStreamer(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final AudioConfiguration configuration,
-      @NotNull final String input,
-      @NotNull final String ip,
+       final EzMediaCore core,
+       final AudioConfiguration configuration,
+       final String input,
+       final String ip,
       final int port) {
     super(core);
     this.input = input;
     this.output = "rtsp://localhost:8554/live.stream";
     this.clearArguments();
     this.generateArguments(configuration);
-    this.server = RTPStreamingServer.ofRtpServer(core, ip, port);
+    this.server = RTPServer.ofRtpServer(core, ip, port);
   }
 
   @Contract("_, _, _, _, _ -> new")
-  public static @NotNull FFmpegMediaStreamer ofFFmpegMediaStreamer(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final AudioConfiguration configuration,
-      @NotNull final String input,
-      @NotNull final String ip,
+  public static  FFmpegMediaStreamer ofFFmpegMediaStreamer(
+       final EzMediaCore core,
+       final AudioConfiguration configuration,
+       final String input,
+       final String ip,
       final int port) {
     return new FFmpegMediaStreamer(core, configuration, input, ip, port);
   }
 
-  private void generateArguments(@NotNull final AudioConfiguration configuration) {
+  private void generateArguments( final AudioConfiguration configuration) {
 
     final String path = this.getCore().getFFmpegPath().toString();
     this.addArgument(path);
@@ -94,7 +94,7 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaS
   }
 
   @Override
-  public void executeWithLogging(@Nullable final Consumer<String> logger) throws IOException {
+  public void executeWithLogging( final Consumer<String> logger) throws IOException {
     this.server.executeAsync(ExecutorProvider.RTSP_SERVER);
     this.addArguments(FFmpegArguments.OUTPUT_FORMAT, "rtsp");
     this.addArgument("-rtsp_transport");
@@ -105,17 +105,17 @@ public class FFmpegMediaStreamer extends FFmpegCommandExecutor implements MediaS
   }
 
   @Override
-  public void log(final @NotNull String line) {
+  public void log(final  String line) {
     this.getCore().getLogger().ffmpegStream(line);
   }
 
   @Override
-  public @NotNull String getInput() {
+  public  String getInput() {
     return this.input;
   }
 
   @Override
-  public @NotNull String getOutput() {
+  public  String getOutput() {
     return this.output;
   }
 

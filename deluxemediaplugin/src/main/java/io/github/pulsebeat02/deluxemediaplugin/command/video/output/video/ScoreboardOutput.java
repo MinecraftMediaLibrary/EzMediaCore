@@ -31,7 +31,7 @@ import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.video.VideoCallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.callback.video.ScoreboardCallback;
 import io.github.pulsebeat02.ezmediacore.callback.video.ScoreboardCallback.Builder;
@@ -63,7 +63,7 @@ public class ScoreboardOutput extends VideoOutput {
       @NotNull final ScreenConfig attributes,
       @NotNull final Collection<? extends Player> players) {
 
-    final MediaLibraryCore core = plugin.library();
+    final EzMediaCore core = plugin.library();
     final ScoreboardCallback.Builder builder = this.createScoreboardBuilder(attributes, players);
 
     final VideoBuilder videoBuilder = this.getBuilder(attributes);

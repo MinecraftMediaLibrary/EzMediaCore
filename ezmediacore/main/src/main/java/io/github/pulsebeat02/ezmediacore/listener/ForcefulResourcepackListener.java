@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.listener;
 
 import static java.util.Objects.requireNonNull;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Server;
@@ -34,16 +34,16 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.NotNull;
+
 
 public record ForcefulResourcepackListener(
-    MediaLibraryCore core, Set<UUID> uuids, String url, byte[] hash) implements Listener {
+    EzMediaCore core, Set<UUID> uuids, String url, byte[] hash) implements Listener {
 
   public ForcefulResourcepackListener(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Set<UUID> uuids,
-      @NotNull final String url,
-      final byte @NotNull [] hash) {
+       final EzMediaCore core,
+       final Set<UUID> uuids,
+       final String url,
+      final byte  [] hash) {
     this.core = core;
     this.uuids = uuids;
     this.url = url;
@@ -66,7 +66,7 @@ public record ForcefulResourcepackListener(
   }
 
   @EventHandler
-  public void onResourcepackStatus(@NotNull final PlayerResourcePackStatusEvent event) {
+  public void onResourcepackStatus( final PlayerResourcePackStatusEvent event) {
     final Player player = event.getPlayer();
     if (!this.isIncluded(player)) {
       return;
@@ -74,12 +74,12 @@ public record ForcefulResourcepackListener(
     this.handleResourcepackStatus(event.getStatus(), player);
   }
 
-  private boolean isIncluded(@NotNull final Player player) {
+  private boolean isIncluded( final Player player) {
     return this.uuids.contains(player.getUniqueId());
   }
 
   private void handleResourcepackStatus(
-      @NotNull final PlayerResourcePackStatusEvent.Status status, @NotNull final Player player) {
+       final PlayerResourcePackStatusEvent.Status status,  final Player player) {
     switch (status) {
       case FAILED_DOWNLOAD -> this.failed(player);
       case ACCEPTED, DECLINED, SUCCESSFULLY_LOADED -> this.successful(player);
@@ -87,7 +87,7 @@ public record ForcefulResourcepackListener(
     }
   }
 
-  private void successful(@NotNull final Player player) {
+  private void successful( final Player player) {
     this.uuids.remove(player.getUniqueId());
     this.unregister();
   }
@@ -98,11 +98,11 @@ public record ForcefulResourcepackListener(
     }
   }
 
-  private void failed(@NotNull final Player player) {
+  private void failed( final Player player) {
     player.setResourcePack(this.url, this.hash);
   }
 
-  public MediaLibraryCore getCore() {
+  public EzMediaCore getCore() {
     return this.core;
   }
 

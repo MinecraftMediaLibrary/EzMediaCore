@@ -29,14 +29,14 @@ import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.NativeFrameConsume
 import io.github.pulsebeat02.ezmediacore.throwable.IllegalStreamHeaderException;
 import java.time.Instant;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class FFmpegFrameConsumer implements NativeFrameConsumer {
 
   private final FFmpegMediaPlayer player;
   private float[] calculations;
 
-  FFmpegFrameConsumer(@NotNull final FFmpegMediaPlayer player) {
+  FFmpegFrameConsumer( final FFmpegMediaPlayer player) {
     this.player = player;
   }
 
@@ -76,7 +76,7 @@ public final class FFmpegFrameConsumer implements NativeFrameConsumer {
     this.player.addFrame(image, audio, this.calculateTimeStamp(frame));
   }
 
-  private long calculateTimeStamp(@NotNull final FFmpegBufferedFrame frame) {
+  private long calculateTimeStamp( final FFmpegBufferedFrame frame) {
     return (long) (frame.getPts() * this.calculations[frame.getStreamId()]);
   }
 }

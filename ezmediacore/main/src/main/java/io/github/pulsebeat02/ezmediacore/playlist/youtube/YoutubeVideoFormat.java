@@ -53,7 +53,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.util.Map;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class YoutubeVideoFormat implements VideoFormat {
 
@@ -83,12 +83,12 @@ public final class YoutubeVideoFormat implements VideoFormat {
   private final Dimension dimension;
 
   YoutubeVideoFormat(
-      @NotNull final com.github.kiulian.downloader.model.videos.formats.VideoFormat format) {
+       final com.github.kiulian.downloader.model.videos.formats.VideoFormat format) {
     this.format = format;
     this.dimension = Dimension.ofDimension(format.width(), format.height());
   }
 
-  static @NotNull BiMap<
+  static  BiMap<
           com.github.kiulian.downloader.model.videos.quality.VideoQuality, VideoQuality>
       getVideoFormatMappings() {
     return VIDEO_FORMATS;
@@ -100,22 +100,22 @@ public final class YoutubeVideoFormat implements VideoFormat {
   }
 
   @Override
-  public @NotNull String getQualityLabel() {
+  public  String getQualityLabel() {
     return this.format.qualityLabel();
   }
 
   @Override
-  public @NotNull VideoQuality getQuality() {
+  public  VideoQuality getQuality() {
     return VIDEO_FORMATS.get(this.format.videoQuality());
   }
 
-  @NotNull
+  
   com.github.kiulian.downloader.model.videos.formats.VideoFormat getFormat() {
     return this.format;
   }
 
   @Override
-  public @NotNull Dimension getDimensions() {
+  public  Dimension getDimensions() {
     return this.dimension;
   }
 }

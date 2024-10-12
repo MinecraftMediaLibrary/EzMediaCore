@@ -29,6 +29,8 @@ import io.github.pulsebeat02.deluxemediaplugin.bot.command.DiscordBaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.bot.locale.DiscordLocale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.utility.collection.ArrayUtils;
+
+import java.util.Arrays;
 import java.util.Map;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -69,7 +71,7 @@ public final class MediaCommandListener {
       @NotNull final String message, @NotNull final String prefix, @NotNull final Message msg) {
     final String[] content = message.substring(prefix.length()).split(" ");
     final DiscordBaseCommand command = this.commands.get(content[0]);
-    Nill.ifNot(command, () -> command.execute(msg, ArrayUtils.trim(content, 1, content.length)));
+    Nill.ifNot(command, () -> command.execute(msg,  Arrays.copyOfRange(content, 1, content.length)));
   }
 
   private boolean canExecuteCommand(@NotNull final User user) {

@@ -32,7 +32,7 @@ import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.DitheringAlgorithm;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.video.VideoCallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.callback.video.MapCallback;
 import io.github.pulsebeat02.ezmediacore.callback.video.MapCallback.Builder;
@@ -65,7 +65,7 @@ public class ItemframeOutput extends VideoOutput {
       @NotNull final ScreenConfig attributes,
       @NotNull final Collection<? extends Player> players) {
 
-    final MediaLibraryCore core = plugin.library();
+    final EzMediaCore core = plugin.library();
     final MapCallback.Builder builder = this.createMapBuilder(attributes, players);
 
     final VideoBuilder videoBuilder = this.getBuilder(attributes);

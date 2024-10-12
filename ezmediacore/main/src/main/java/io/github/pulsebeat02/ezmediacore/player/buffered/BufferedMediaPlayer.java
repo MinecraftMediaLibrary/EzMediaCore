@@ -23,24 +23,21 @@
  */
 package io.github.pulsebeat02.ezmediacore.player.buffered;
 
-import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
-import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutput;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
-import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
-import io.github.pulsebeat02.ezmediacore.utility.tuple.Triple;
+import io.github.pulsebeat02.ezmediacore.utility.structure.Triple;
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 public abstract class BufferedMediaPlayer extends MediaPlayer implements BufferedPlayer {
 
@@ -55,12 +52,12 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   private CompletableFuture<Void> watchdog;
 
   BufferedMediaPlayer(
-      @NotNull final VideoCallback video,
-      @NotNull final AudioSource audio,
-      @NotNull final Viewers viewers,
-      @NotNull final Dimension pixelDimension,
-      @NotNull final BufferConfiguration buffer,
-      @NotNull final InputParser parser) {
+       final VideoCallback video,
+       final AudioSource audio,
+       final Viewers viewers,
+       final Dimension pixelDimension,
+       final BufferConfiguration buffer,
+       final InputParser parser) {
     super(video, audio, viewers, pixelDimension, parser);
     this.buffer = buffer;
     this.status = new AtomicBoolean(false);
@@ -74,7 +71,7 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   }
 
   @Override
-  public @NotNull BufferConfiguration getBufferConfiguration() {
+  public  BufferConfiguration getBufferConfiguration() {
     return this.buffer;
   }
 
@@ -84,7 +81,7 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
 
   @Override
   public boolean addFrame(
-      final int @Nullable [] data, final byte @Nullable [] audio, final long timestamp) {
+      final int  [] data, final byte  [] audio, final long timestamp) {
     while (this.frames.remainingCapacity() <= 1) {
       Try.sleep(TimeUnit.MILLISECONDS, 5);
     }
@@ -100,7 +97,7 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   }
 
   @Override
-  public <T> void cancelFuture(@Nullable final CompletableFuture<T> future) {
+  public <T> void cancelFuture( final CompletableFuture<T> future) {
     if (future != null && !future.isDone()) {
       future.cancel(true);
     }
@@ -124,7 +121,7 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   }
 
   @Contract(pure = true)
-  private @NotNull Runnable getDisplayRunnable() {
+  private  Runnable getDisplayRunnable() {
     return () -> {
       final VideoCallback videoCallback = this.getVideoCallback();
       final AudioSource audioCallback = this.getAudioCallback();
@@ -147,7 +144,7 @@ public abstract class BufferedMediaPlayer extends MediaPlayer implements Buffere
   }
 
   @Contract(pure = true)
-  private @NotNull Runnable getSkipRunnable() {
+  private  Runnable getSkipRunnable() {
     return () -> {
       while (this.status.get()) {
         // skip frames if necessary

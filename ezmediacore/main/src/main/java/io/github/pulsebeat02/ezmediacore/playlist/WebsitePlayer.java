@@ -23,22 +23,22 @@
  */
 package io.github.pulsebeat02.ezmediacore.playlist;
 
-import org.jetbrains.annotations.NotNull;
+
 
 public class WebsitePlayer implements WebPlayer {
 
   @Override
-  public @NotNull String getUrl() {
+  public  String getUrl() {
     return null;
   }
 
   @Override
-  public @NotNull String getCurrentSong() {
+  public  String getCurrentSong() {
     return null;
   }
 
   @Override
-  public @NotNull PlaylistType getType() {
+  public  PlaylistType getType() {
     return null;
   }
 

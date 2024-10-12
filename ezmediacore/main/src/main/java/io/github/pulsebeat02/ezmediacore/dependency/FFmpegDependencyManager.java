@@ -24,15 +24,15 @@
 package io.github.pulsebeat02.ezmediacore.dependency;
 
 import io.github.pulsebeat02.emcinstallers.implementation.ffmpeg.FFmpegInstaller;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.io.IOException;
 import java.nio.file.Path;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class FFmpegDependencyManager extends LibraryDependency {
 
-  public FFmpegDependencyManager(@NotNull final MediaLibraryCore core) throws IOException {
+  public FFmpegDependencyManager( final EzMediaCore core) throws IOException {
     super(core);
   }
 
@@ -42,8 +42,8 @@ public final class FFmpegDependencyManager extends LibraryDependency {
   }
 
   @Override
-  public void onInstallation(@NotNull final Path path) {
-    final MediaLibraryCore core = this.getCore();
+  public void onInstallation( final Path path) {
+    final EzMediaCore core = this.getCore();
     core.setFFmpegPath(path);
     core.getLogger().info(Locale.BINARY_PATHS.build("FFmpeg", path));
   }

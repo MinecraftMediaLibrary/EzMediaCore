@@ -25,8 +25,8 @@ package io.github.pulsebeat02.ezmediacore.jlibdl.component;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 public final class Format {
 
@@ -86,19 +86,19 @@ public final class Format {
   @Expose
   private int width;
 
-  public @NotNull String getAcodec() {
+  public  String getAcodec() {
     return this.acodec;
   }
 
-  public @Nullable String getExt() {
+  public  String getExt() {
     return this.ext;
   }
 
-  public @Nullable String getFormat() {
+  public  String getFormat() {
     return this.format;
   }
 
-  public @Nullable String getFormatId() {
+  public  String getFormatId() {
     return this.formatId;
   }
 
@@ -106,19 +106,19 @@ public final class Format {
     return this.fps;
   }
 
-  public @Nullable FormatHttpHeaders getHttpHeaders() {
+  public  FormatHttpHeaders getHttpHeaders() {
     return this.httpHeaders;
   }
 
-  public @Nullable String getManifestUrl() {
+  public  String getManifestUrl() {
     return this.manifestUrl;
   }
 
-  public @Nullable Object getPreference() {
+  public  Object getPreference() {
     return this.preference;
   }
 
-  public @Nullable String getProtocol() {
+  public  String getProtocol() {
     return this.protocol;
   }
 
@@ -126,11 +126,11 @@ public final class Format {
     return this.tbr;
   }
 
-  public @NotNull String getUrl() {
+  public  String getUrl() {
     return this.url;
   }
 
-  public @NotNull String getVcodec() {
+  public  String getVcodec() {
     return this.vcodec;
   }
 

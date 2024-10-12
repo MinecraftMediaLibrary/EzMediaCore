@@ -24,30 +24,30 @@
 package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class SpotifyAvatar implements Avatar {
 
   private final se.michaelthelin.spotify.model_objects.specification.Image image;
   private final Dimension dimension;
 
-  SpotifyAvatar(@NotNull final se.michaelthelin.spotify.model_objects.specification.Image image) {
+  SpotifyAvatar( final se.michaelthelin.spotify.model_objects.specification.Image image) {
     this.image = image;
     this.dimension = Dimension.ofDimension(image.getWidth(), image.getHeight());
   }
 
   @Override
-  public @NotNull String getUrl() {
+  public  String getUrl() {
     return this.image.getUrl();
   }
 
-  @NotNull
+
   se.michaelthelin.spotify.model_objects.specification.Image getImage() {
     return this.image;
   }
 
   @Override
-  public @NotNull Dimension getDimensions() {
+  public  Dimension getDimensions() {
     return this.dimension;
   }
 }

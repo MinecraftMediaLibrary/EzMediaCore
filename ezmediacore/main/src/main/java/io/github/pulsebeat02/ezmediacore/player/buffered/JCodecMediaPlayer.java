@@ -23,7 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.player.buffered;
 
-import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
@@ -33,13 +32,11 @@ import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
-import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
-import io.github.pulsebeat02.ezmediacore.player.external.VLCMediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.player.input.JCodecMediaPlayerInputParser;
-import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
+import io.github.pulsebeat02.ezmediacore.utility.structure.Pair;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -50,7 +47,7 @@ import org.jcodec.common.io.FileChannelWrapper;
 import org.jcodec.common.io.NIOUtils;
 import org.jcodec.common.model.Size;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 /**
  * This video player sucks as it ignores all output configurations, which means that there is not
@@ -61,11 +58,11 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
   private FrameGrab grabber;
 
   JCodecMediaPlayer(
-      @NotNull final VideoCallback video,
-      @NotNull final AudioSource audio,
-      @NotNull final Viewers viewers,
-      @NotNull final Dimension pixelDimension,
-      @NotNull final BufferConfiguration buffer) {
+       final VideoCallback video,
+       final AudioSource audio,
+       final Viewers viewers,
+       final Dimension pixelDimension,
+       final BufferConfiguration buffer) {
     super(
         video,
         audio,
@@ -99,7 +96,7 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
   }
 
   @Override
-  public void start(@NotNull final Input mrl, @NotNull final Object... arguments) {
+  public void start( final Input mrl,  final Object... arguments) {
     super.start(mrl, arguments);
     if (this.grabber == null) {
       this.initializePlayer(DelayConfiguration.DELAY_0_MS);
@@ -120,7 +117,7 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
     this.startWatchdogRunnable();
   }
 
-  public void initializePlayer(@NotNull final DelayConfiguration configuration) {
+  public void initializePlayer( final DelayConfiguration configuration) {
     final Dimension dimension = this.getDimensions();
     try {
       this.grabber = this.getGrabber();
@@ -131,11 +128,11 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
     }
   }
 
-  private @NotNull FrameGrab getGrabber() throws IOException, JCodecException {
+  private  FrameGrab getGrabber() throws IOException, JCodecException {
     return FrameGrab.createFrameGrab(this.parseInput());
   }
 
-  private @NotNull FileChannelWrapper parseInput() throws FileNotFoundException {
+  private  FileChannelWrapper parseInput() throws FileNotFoundException {
     final InputParser parser = this.getInputParser();
     final Pair<Object, String[]> pair = parser.parseInput(this.getInput().getDirectVideoMrl());
     return NIOUtils.readableChannel(Path.of((String) pair.getKey()).toFile());
@@ -149,41 +146,41 @@ public final class JCodecMediaPlayer extends BufferedMediaPlayer {
 
     @Contract("_ -> this")
     @Override
-    public Builder audio(@NotNull final AudioOutput audio) {
+    public Builder audio( final AudioOutput audio) {
       super.audio(audio);
       return this;
     }
 
     @Contract("_ -> this")
     @Override
-    public Builder video(@NotNull final VideoCallback callback) {
+    public Builder video( final VideoCallback callback) {
       super.video(callback);
       return this;
     }
 
     @Contract("_ -> this")
     @Override
-    public Builder frameRate(@NotNull final FrameConfiguration rate) {
+    public Builder frameRate( final FrameConfiguration rate) {
       super.frameRate(rate);
       return this;
     }
 
     @Contract("_ -> this")
     @Override
-    public Builder dims(@NotNull final Dimension dims) {
+    public Builder dims( final Dimension dims) {
       super.dims(dims);
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder buffer(@NotNull final BufferConfiguration bufferSize) {
+    public  Builder buffer( final BufferConfiguration bufferSize) {
       this.bufferSize = bufferSize;
       return this;
     }
 
     @Contract(" -> new")
     @Override
-    public @NotNull MediaPlayer build() {
+    public  MediaPlayer build() {
       super.init();
       final VideoCallback video = this.getVideo();
       final AudioSource audio = this.getAudio();

@@ -23,16 +23,16 @@
  */
 package io.github.pulsebeat02.ezmediacore.player.input;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.analysis.OSType;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import io.github.pulsebeat02.ezmediacore.utility.misc.OSType;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.DesktopInput;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.DeviceInput;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.MrlInput;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.PathInput;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.WindowInput;
-import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
+import io.github.pulsebeat02.ezmediacore.utility.structure.Pair;
+
 
 public abstract class MediaPlayerInputParser implements InputParser {
 
@@ -42,27 +42,27 @@ public abstract class MediaPlayerInputParser implements InputParser {
     EMPTY_ARGS = new String[]{};
   }
 
-  private final MediaLibraryCore core;
+  private final EzMediaCore core;
   private final boolean windows;
 
-  public MediaPlayerInputParser(@NotNull final MediaLibraryCore core) {
+  public MediaPlayerInputParser( final EzMediaCore core) {
     this.core = core;
-    this.windows = core.getDiagnostics().getSystem().getOSType() == OSType.WINDOWS;
+    this.windows = OSType.getCurrentOS() == OSType.WINDOWS;
   }
 
   @Override
-  public @NotNull Pair<Object, String[]> parseInput(@NotNull final Input input) {
-    if (input instanceof UrlInput urlInput) {
+  public  Pair<Object, String[]> parseInput( final Input input) {
+    if (input instanceof final UrlInput urlInput) {
       return this.parseUrl(urlInput);
-    } else if (input instanceof PathInput pathInput) {
+    } else if (input instanceof final PathInput pathInput) {
       return this.parsePath(pathInput);
-    } else if (input instanceof DeviceInput deviceInput) {
+    } else if (input instanceof final DeviceInput deviceInput) {
       return this.parseDevice(deviceInput);
-    } else if (input instanceof MrlInput mrlInput) {
+    } else if (input instanceof final MrlInput mrlInput) {
       return this.parseMrl(mrlInput);
-    } else if (input instanceof DesktopInput desktopInput) {
+    } else if (input instanceof final DesktopInput desktopInput) {
       return this.parseDesktop(desktopInput);
-    } else if (input instanceof WindowInput windowInput) {
+    } else if (input instanceof final WindowInput windowInput) {
       return this.parseWindow(windowInput);
     } else {
       return Pair.ofPair(input.getInput(), new String[]{});
@@ -70,7 +70,7 @@ public abstract class MediaPlayerInputParser implements InputParser {
   }
 
   @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public  EzMediaCore getCore() {
     return this.core;
   }
 

@@ -29,16 +29,16 @@ import com.github.kiulian.downloader.downloader.request.RequestVideoFileDownload
 import com.github.kiulian.downloader.downloader.response.Response;
 import com.google.common.collect.BiMap;
 import com.google.common.io.Files;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
-import io.github.pulsebeat02.ezmediacore.utility.media.ResponseUtils;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public class YoutubeVideoDownloader implements VideoDownloader {
 
@@ -46,7 +46,7 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   private final Path videoPath;
   private final AtomicBoolean cancelled;
 
-  YoutubeVideoDownloader(@NotNull final YoutubeVideo video, @NotNull final Path videoPath) {
+  YoutubeVideoDownloader( final YoutubeVideo video,  final Path videoPath) {
     checkNotNull(video, "YoutubeVideo cannot be null!");
     checkNotNull(videoPath, "Video path cannot be null!");
     this.video = video;
@@ -55,42 +55,42 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   }
 
   @Contract(value = "_, _ -> new", pure = true)
-  public static @NotNull YoutubeVideoDownloader ofYoutubeVideoDownloader(
-      @NotNull final YoutubeVideo video, @NotNull final Path videoPath) {
+  public static  YoutubeVideoDownloader ofYoutubeVideoDownloader(
+       final YoutubeVideo video,  final Path videoPath) {
     return new YoutubeVideoDownloader(video, videoPath);
   }
 
   @Contract("_, _ -> new")
-  public static @NotNull YoutubeVideoDownloader ofYoutubeVideoDownloader(
-      @NotNull final MediaLibraryCore core, @NotNull final YoutubeVideo video) {
+  public static  YoutubeVideoDownloader ofYoutubeVideoDownloader(
+       final EzMediaCore core,  final YoutubeVideo video) {
     return ofYoutubeVideoDownloader(
         video, core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID())));
   }
 
   @Contract("_, _, _ -> new")
-  public static @NotNull YoutubeVideoDownloader ofYoutubeVideoDownloader(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final YoutubeVideo video,
-      @NotNull final String fileName) {
+  public static  YoutubeVideoDownloader ofYoutubeVideoDownloader(
+       final EzMediaCore core,
+       final YoutubeVideo video,
+       final String fileName) {
     return ofYoutubeVideoDownloader(video, core.getVideoPath().resolve(fileName));
   }
 
   @Contract("_, _, _ -> new")
-  public static @NotNull YoutubeVideoDownloader ofYoutubeVideoDownloader(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final String url,
-      @NotNull final String fileName) {
+  public static  YoutubeVideoDownloader ofYoutubeVideoDownloader(
+       final EzMediaCore core,
+       final String url,
+       final String fileName) {
     return ofYoutubeVideoDownloader(core, YoutubeVideo.ofYoutubeVideo(url), fileName);
   }
 
   @Contract("_, _ -> new")
-  public static @NotNull YoutubeVideoDownloader ofYoutubeVideoDownloader(
-      @NotNull final String url, @NotNull final Path videoPath) {
+  public static  YoutubeVideoDownloader ofYoutubeVideoDownloader(
+       final String url,  final Path videoPath) {
     return ofYoutubeVideoDownloader(YoutubeVideo.ofYoutubeVideo(url), videoPath);
   }
 
   @Override
-  public void downloadVideo(@NotNull final VideoQuality format, final boolean overwrite) {
+  public void downloadVideo( final VideoQuality format, final boolean overwrite) {
     this.onStartVideoDownload();
     if (!this.cancelled.get() && !this.makeVideoResponse(format, overwrite)) {
       this.onDownloadFailure();
@@ -98,7 +98,7 @@ public class YoutubeVideoDownloader implements VideoDownloader {
     this.onFinishVideoDownload();
   }
 
-  private boolean makeVideoResponse(@NotNull final VideoQuality format, final boolean overwrite) {
+  private boolean makeVideoResponse( final VideoQuality format, final boolean overwrite) {
 
     final RequestVideoFileDownload request = this.createDownloadRequest(format, overwrite);
 
@@ -119,8 +119,8 @@ public class YoutubeVideoDownloader implements VideoDownloader {
     return false;
   }
 
-  private @NotNull RequestVideoFileDownload createDownloadRequest(
-      @NotNull final VideoQuality format, final boolean overwrite) {
+  private  RequestVideoFileDownload createDownloadRequest(
+       final VideoQuality format, final boolean overwrite) {
     return new RequestVideoFileDownload(this.getFormat(format))
         .saveTo(this.videoPath.getParent().toFile())
         .renameTo(Files.getNameWithoutExtension(PathUtils.getName(this.videoPath)))
@@ -128,7 +128,7 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   }
 
   private com.github.kiulian.downloader.model.videos.formats.VideoFormat getFormat(
-      @NotNull final VideoQuality format) {
+       final VideoQuality format) {
     final BiMap<VideoQuality, com.github.kiulian.downloader.model.videos.quality.VideoQuality>
         inverse = YoutubeVideoFormat.getVideoFormatMappings().inverse();
     return this.video.getVideoInfo().videoFormats().stream()
@@ -158,12 +158,12 @@ public class YoutubeVideoDownloader implements VideoDownloader {
   }
 
   @Override
-  public @NotNull Video getVideo() {
+  public  Video getVideo() {
     return this.video;
   }
 
   @Override
-  public @NotNull Path getDownloadPath() {
+  public  Path getDownloadPath() {
     return this.videoPath;
   }
 

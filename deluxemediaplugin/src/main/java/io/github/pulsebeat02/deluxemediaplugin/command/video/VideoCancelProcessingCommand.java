@@ -34,7 +34,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
-import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
+
 import java.util.concurrent.CancellationException;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;

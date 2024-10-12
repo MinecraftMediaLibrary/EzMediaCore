@@ -23,11 +23,11 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.audio;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 import java.util.function.Consumer;
 
@@ -45,17 +45,17 @@ public final class VLCDiscordCallback extends DiscordCallback {
   private final Consumer<byte[]> audioConsumer;
 
   VLCDiscordCallback(
-      @NotNull final MediaLibraryCore core, @NotNull final Consumer<byte[]> audioConsumer) {
+       final EzMediaCore core,  final Consumer<byte[]> audioConsumer) {
     super(core);
     this.audioConsumer = audioConsumer;
   }
 
   @Override
   public void preparePlayerStateChange(
-      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {}
+       final VideoPlayer player,  final PlayerControls status) {}
 
   @Override
-  public void process(final byte @NotNull [] data) {
+  public void process(final byte  [] data) {
     this.audioConsumer.accept(data);
   }
 
@@ -64,14 +64,14 @@ public final class VLCDiscordCallback extends DiscordCallback {
     private Consumer<byte[]> consumer;
 
     @Contract("_ -> this")
-    public @NotNull Builder consumer(@NotNull final Consumer<byte[]> consumer) {
+    public  Builder consumer( final Consumer<byte[]> consumer) {
       this.consumer = consumer;
       return this;
     }
 
     @Contract("_ -> new")
     @Override
-    public @NotNull AudioOutput build(@NotNull final MediaLibraryCore core) {
+    public  AudioOutput build( final EzMediaCore core) {
       checkNotNull(this.consumer, "Discord audio consumer cannot be null!");
       return new VLCDiscordCallback(core, this.consumer);
     }

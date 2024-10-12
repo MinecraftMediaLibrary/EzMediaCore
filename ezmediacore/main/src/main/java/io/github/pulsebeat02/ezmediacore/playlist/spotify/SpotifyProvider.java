@@ -25,8 +25,8 @@ package io.github.pulsebeat02.ezmediacore.playlist.spotify;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import org.jetbrains.annotations.NotNull;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+
 import se.michaelthelin.spotify.SpotifyApi;
 
 public final class SpotifyProvider {
@@ -35,18 +35,18 @@ public final class SpotifyProvider {
 
   private SpotifyProvider() {}
 
-  public static void init(@NotNull final MediaLibraryCore core) {
-    checkNotNull(core, "MediaLibraryCore cannot be null!");
+  public static void init( final EzMediaCore core) {
+    checkNotNull(core, "EzMediaCore cannot be null!");
     if (isSpecified(core)) {
       SPOTIFY_API = createApi(core.getSpotifyClient());
     }
   }
 
-  private static boolean isSpecified(@NotNull final MediaLibraryCore core) {
+  private static boolean isSpecified( final EzMediaCore core) {
     return core.getSpotifyClient() != null;
   }
 
-  private static @NotNull SpotifyApi createApi(@NotNull final SpotifyClient client) {
+  private static  SpotifyApi createApi( final SpotifyClient client) {
     return new SpotifyApi.Builder()
         .setClientId(client.getClientID())
         .setClientSecret(client.getClientSecret())

@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
 
@@ -46,7 +46,7 @@ public class SpotifyTrack implements Track {
 
   private final se.michaelthelin.spotify.model_objects.specification.Track track;
 
-  SpotifyTrack(@NotNull final String url)
+  SpotifyTrack( final String url)
       throws IOException, ParseException, SpotifyWebApiException {
     checkNotNull(url, "URL cannot be null!");
     this.url = url;
@@ -55,12 +55,12 @@ public class SpotifyTrack implements Track {
   }
 
   @Contract("_ -> new")
-  public static @NotNull SpotifyTrack ofSpotifyTrack(@NotNull final String url)
+  public static  SpotifyTrack ofSpotifyTrack( final String url)
       throws IOException, ParseException, SpotifyWebApiException {
     return new SpotifyTrack(url);
   }
 
-  private @NotNull se.michaelthelin.spotify.model_objects.specification.Track getInternalTrack()
+  private  se.michaelthelin.spotify.model_objects.specification.Track getInternalTrack()
       throws IOException, ParseException, SpotifyWebApiException {
     return SpotifyProvider.getSpotifyApi()
         .getTrack(MediaExtractionUtils.getSpotifyIDExceptionally(this.url))
@@ -68,14 +68,14 @@ public class SpotifyTrack implements Track {
         .execute();
   }
 
-  private @NotNull List<Artist> getInternalArtists() {
+  private  List<Artist> getInternalArtists() {
     return Stream.of(this.track.getArtists())
         .map(this::getInternalArtist)
         .collect(Collectors.toList());
   }
 
   @Contract("_ -> new")
-  private @NotNull SpotifyArtist getInternalArtist(final ArtistSimplified simplified) {
+  private  SpotifyArtist getInternalArtist(final ArtistSimplified simplified) {
     try {
       return new SpotifyArtist(simplified);
     } catch (final IOException | ParseException | SpotifyWebApiException e) {
@@ -84,27 +84,27 @@ public class SpotifyTrack implements Track {
   }
 
   @Override
-  public @NotNull String getId() {
+  public  String getId() {
     return this.track.getId();
   }
 
   @Override
-  public @NotNull String getName() {
+  public  String getName() {
     return this.track.getName();
   }
 
   @Override
-  public @NotNull List<Artist> getArtists() {
+  public  List<Artist> getArtists() {
     return this.artists;
   }
 
   @Override
-  public @NotNull Map<String, String> getExternalUrls() {
+  public  Map<String, String> getExternalUrls() {
     return this.track.getExternalUrls().getExternalUrls();
   }
 
   @Override
-  public @NotNull String getPreviewUrl() {
+  public  String getPreviewUrl() {
     return this.track.getPreviewUrl();
   }
 
@@ -129,11 +129,11 @@ public class SpotifyTrack implements Track {
   }
 
   @Override
-  public @NotNull String getUrl() {
+  public  String getUrl() {
     return this.url;
   }
 
-  @NotNull
+  
   se.michaelthelin.spotify.model_objects.specification.Track getTrack() {
     return this.track;
   }

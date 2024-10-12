@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.callback.video;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
@@ -33,22 +33,22 @@ import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
-import org.jetbrains.annotations.NotNull;
+
 
 public abstract class FrameCallback implements VideoCallback {
 
-  private final MediaLibraryCore core;
+  private final EzMediaCore core;
   private final DelayConfiguration delay;
   private final Dimension dimension;
   private final Viewers viewers;
   private long lastUpdated;
 
   public FrameCallback(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Viewers viewers,
-      @NotNull final Dimension dimension,
-      @NotNull final DelayConfiguration delay) {
-    checkNotNull(core, "MediaLibraryCore cannot be null!");
+       final EzMediaCore core,
+       final Viewers viewers,
+       final Dimension dimension,
+       final DelayConfiguration delay) {
+    checkNotNull(core, "EzMediaCore cannot be null!");
     checkNotNull(viewers, "Viewers cannot be null!");
     checkNotNull(dimension, "Dimension cannot be null!");
     checkNotNull(delay, "Delay cannot be null!");
@@ -60,9 +60,9 @@ public abstract class FrameCallback implements VideoCallback {
 
   @Override
   public void preparePlayerStateChange(
-      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {}
+       final VideoPlayer player,  final PlayerControls status) {}
 
-  public @NotNull DelayConfiguration getDelayConfiguration() {
+  public  DelayConfiguration getDelayConfiguration() {
     return this.delay;
   }
 
@@ -75,21 +75,21 @@ public abstract class FrameCallback implements VideoCallback {
   }
 
   @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public  EzMediaCore getCore() {
     return this.core;
   }
 
-  public @NotNull PacketHandler getPacketHandler() {
+  public  PacketHandler getPacketHandler() {
     return this.core.getHandler();
   }
 
   @Override
-  public @NotNull Viewers getWatchers() {
+  public  Viewers getWatchers() {
     return this.viewers;
   }
 
   @Override
-  public @NotNull Dimension getDimensions() {
+  public  Dimension getDimensions() {
     return this.dimension;
   }
 }

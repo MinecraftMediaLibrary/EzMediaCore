@@ -23,14 +23,14 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.video;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.video.ScoreboardCallback.Builder;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public abstract sealed class VideoCallbackBuilder permits BlockHighlightCallback.Builder,
     ChatCallback.Builder, EntityCallback.Builder, MapCallback.Builder, Builder {
@@ -45,59 +45,59 @@ public abstract sealed class VideoCallbackBuilder permits BlockHighlightCallback
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull BlockHighlightCallback.Builder blockHighlight() {
+  public static  BlockHighlightCallback.Builder blockHighlight() {
     return new BlockHighlightCallback.Builder();
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull ChatCallback.Builder chat() {
+  public static  ChatCallback.Builder chat() {
     return new ChatCallback.Builder();
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull <T extends Entity> EntityCallback.Builder<T> entity() {
+  public static  <T extends Entity> EntityCallback.Builder<T> entity() {
     return new EntityCallback.Builder<>();
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull MapCallback.Builder map() {
+  public static  MapCallback.Builder map() {
     return new MapCallback.Builder();
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull ScoreboardCallback.Builder scoreboard() {
+  public static  ScoreboardCallback.Builder scoreboard() {
     return new Builder();
   }
 
   @Contract("_ -> this")
-  public @NotNull VideoCallbackBuilder delay(@NotNull final DelayConfiguration delay) {
+  public  VideoCallbackBuilder delay( final DelayConfiguration delay) {
     this.delay = delay;
     return this;
   }
 
   @Contract("_ -> this")
-  public @NotNull VideoCallbackBuilder dims(@NotNull final Dimension dims) {
+  public  VideoCallbackBuilder dims( final Dimension dims) {
     this.dims = dims;
     return this;
   }
 
   @Contract("_ -> this")
-  public @NotNull VideoCallbackBuilder viewers(@NotNull final Viewers viewers) {
+  public  VideoCallbackBuilder viewers( final Viewers viewers) {
     this.viewers = viewers;
     return this;
   }
 
-  public @NotNull DelayConfiguration getDelay() {
+  public  DelayConfiguration getDelay() {
     return this.delay;
   }
 
-  public @NotNull Dimension getDims() {
+  public  Dimension getDims() {
     return this.dims;
   }
 
-  public @NotNull Viewers getViewers() {
+  public  Viewers getViewers() {
     return this.viewers;
   }
 
-  public abstract @NotNull FrameCallback build(@NotNull final MediaLibraryCore core);
+  public abstract  FrameCallback build( final EzMediaCore core);
 }

@@ -24,15 +24,15 @@
 package io.github.pulsebeat02.ezmediacore.dependency;
 
 import io.github.pulsebeat02.emcinstallers.implementation.rtsp.RTSPInstaller;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.io.IOException;
 import java.nio.file.Path;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class SimpleRTSPServerDependencyManager extends LibraryDependency {
 
-  public SimpleRTSPServerDependencyManager(@NotNull final MediaLibraryCore core)
+  public SimpleRTSPServerDependencyManager( final EzMediaCore core)
       throws IOException {
     super(core);
   }
@@ -43,8 +43,8 @@ public final class SimpleRTSPServerDependencyManager extends LibraryDependency {
   }
 
   @Override
-  public void onInstallation(@NotNull final Path path) {
-    final MediaLibraryCore core = this.getCore();
+  public void onInstallation( final Path path) {
+    final EzMediaCore core = this.getCore();
     core.setRTPPath(path);
     core.getLogger().info(Locale.BINARY_PATHS.build("Simple RTSP Server", path));
   }

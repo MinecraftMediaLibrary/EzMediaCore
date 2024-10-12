@@ -27,7 +27,7 @@ import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import io.github.pulsebeat02.ezmediacore.dither.NativeDitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
 import java.util.function.BiFunction;
-import org.jetbrains.annotations.NotNull;
+
 
 public abstract class ForeignDitherAlgorithm implements NativeDitherAlgorithm {
 
@@ -55,11 +55,11 @@ public abstract class ForeignDitherAlgorithm implements NativeDitherAlgorithm {
         "Your current platform does not support native dithering!");
   }
 
-  @NotNull
-  public abstract BufferCarrier standardMinecraftDither(int @NotNull [] buffer, int width);
+
+  public abstract BufferCarrier standardMinecraftDither(int  [] buffer, int width);
 
   @Override
-  public @NotNull BufferCarrier ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
+  public  BufferCarrier ditherIntoMinecraft(final int  [] buffer, final int width) {
     return this.function.apply(buffer, width);
   }
 }

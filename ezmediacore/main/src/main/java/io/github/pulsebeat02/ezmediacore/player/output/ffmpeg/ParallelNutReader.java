@@ -39,8 +39,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 public final class ParallelNutReader {
 
@@ -53,8 +53,8 @@ public final class ParallelNutReader {
   }
 
   @Contract("_, _ -> new")
-  public static @NotNull ParallelNutReader ofReader(
-      @NotNull final NativeFrameConsumer consumer, @NotNull final ImageFormat format) {
+  public static  ParallelNutReader ofReader(
+       final NativeFrameConsumer consumer,  final ImageFormat format) {
     return new ParallelNutReader(consumer, format);
   }
 
@@ -73,12 +73,12 @@ public final class ParallelNutReader {
     this.consumer.consume(null);
   }
 
-  private void readStreams(@NotNull final List<Stream> streams) {
+  private void readStreams( final List<Stream> streams) {
     this.consumer.consumeStreams(
         streams.stream().map(s -> (FFmpegBufferedStream) FFmpegMediaStream.ofStream(s)).toList());
   }
 
-  private void readFrames(@NotNull final NutReader nutReader, @NotNull final StreamHeader[] streamHeaders) throws IOException {
+  private void readFrames( final NutReader nutReader,  final StreamHeader[] streamHeaders) throws IOException {
     NutFrame nutFrame;
     while ((nutFrame = nutReader.readFrame()) != null) {
       final int trackNo = nutFrame.streamId;
@@ -90,8 +90,8 @@ public final class ParallelNutReader {
     }
   }
 
-  private @NotNull List<Stream> parseTracks(
-      @NotNull final MainHeader main, @NotNull final StreamHeader[] headers) {
+  private  List<Stream> parseTracks(
+       final MainHeader main,  final StreamHeader[] headers) {
     final List<Stream> result = Lists.newArrayList();
     for (final StreamHeader streamHeader : headers) {
       this.deserializeStream(streamHeader)
@@ -101,14 +101,14 @@ public final class ParallelNutReader {
   }
 
   private void modifyStream(
-      @NotNull final Stream stream,
-      @NotNull final MainHeader main,
-      @NotNull final StreamHeader header) {
+       final Stream stream,
+       final MainHeader main,
+       final StreamHeader header) {
     final Rational timebase = main.timeBases[header.timeBaseId];
     stream.setId(header.streamId).setTimebase(timebase.getDenominator() / timebase.getNumerator());
   }
 
-  private @NotNull Optional<Stream> deserializeStream(@NotNull final StreamHeader streamHeader) {
+  private  Optional<Stream> deserializeStream( final StreamHeader streamHeader) {
     if (streamHeader.streamType == StreamHeader.Type.VIDEO) {
       return Optional.of(
           this.handleVideoStream(streamHeader.video.width, streamHeader.video.height));
@@ -119,11 +119,11 @@ public final class ParallelNutReader {
     return Optional.empty();
   }
 
-  private @NotNull Stream handleVideoStream(final int width, final int height) {
+  private  Stream handleVideoStream(final int width, final int height) {
     return new Stream().setType(Stream.Type.VIDEO).setWidth(width).setHeight(height);
   }
 
-  private @NotNull Stream handleAudioStream(@NotNull final Rational rate, final int channels) {
+  private  Stream handleAudioStream( final Rational rate, final int channels) {
     return new Stream()
         .setType(Stream.Type.AUDIO)
         .setSampleRate(rate.longValue())
@@ -131,7 +131,7 @@ public final class ParallelNutReader {
   }
 
   private FFmpegBufferedFrame parseFrame(
-      @NotNull final StreamHeader track, @Nullable final NutFrame frame) {
+       final StreamHeader track,  final NutFrame frame) {
 
     if (frame == null || frame.data == null || frame.data.length == 0 || frame.eor) {
       return null;

@@ -23,9 +23,9 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.audio;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public abstract class ServerCallback extends AudioOutput implements ServerCallbackProxy {
 
@@ -33,14 +33,14 @@ public abstract class ServerCallback extends AudioOutput implements ServerCallba
   private final int port;
 
   public ServerCallback(
-      @NotNull final MediaLibraryCore core, @NotNull final String host, final int port) {
+       final EzMediaCore core,  final String host, final int port) {
     super(core);
     this.host = host;
     this.port = port;
   }
 
   @Override
-  public @NotNull String getHost() {
+  public  String getHost() {
     return this.host;
   }
 
@@ -58,13 +58,13 @@ public abstract class ServerCallback extends AudioOutput implements ServerCallba
     private int port;
 
     @Contract("_ -> this")
-    public @NotNull Builder host(@NotNull final String host) {
+    public  Builder host( final String host) {
       this.host = host;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder port(final int port) {
+    public  Builder port(final int port) {
       this.port = port;
       return this;
     }

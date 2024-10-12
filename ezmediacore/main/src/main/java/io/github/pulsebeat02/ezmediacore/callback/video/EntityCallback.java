@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.callback.video;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.entity.EntityCallbackDispatcher;
@@ -34,7 +34,7 @@ import io.github.pulsebeat02.ezmediacore.callback.entity.NamedStringCharacter;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
-import io.github.pulsebeat02.ezmediacore.utility.tuple.Pair;
+import io.github.pulsebeat02.ezmediacore.utility.structure.Pair;
 import java.nio.IntBuffer;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -45,8 +45,8 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 public class EntityCallback<T extends Entity> extends FrameCallback
     implements EntityCallbackDispatcher {
@@ -58,14 +58,14 @@ public class EntityCallback<T extends Entity> extends FrameCallback
   private final NamedStringCharacter name;
 
   EntityCallback(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Viewers viewers,
-      @NotNull final Dimension dimension,
-      @NotNull final Location location,
-      @NotNull final NamedStringCharacter character,
-      @NotNull final Class<T> type,
-      @Nullable final Consumer<T> consumer,
-      @NotNull final DelayConfiguration delay) {
+       final EzMediaCore core,
+       final Viewers viewers,
+       final Dimension dimension,
+       final Location location,
+       final NamedStringCharacter character,
+       final Class<T> type,
+       final Consumer<T> consumer,
+       final DelayConfiguration delay) {
     super(core, viewers, dimension, delay);
     checkNotNull(location, "Location cannot be null!");
     checkNotNull(type, "Entity class cannot be null!");
@@ -77,7 +77,7 @@ public class EntityCallback<T extends Entity> extends FrameCallback
     this.entities = this.getModifiedEntities();
   }
 
-  private Entity @NotNull [] getModifiedEntities() {
+  private Entity  [] getModifiedEntities() {
     final int height = this.getDimensions().getHeight();
     final Entity[] entities = new Entity[height];
     this.spawnEntity(entities, this.location.clone(), this.location.getWorld(), height);
@@ -85,9 +85,9 @@ public class EntityCallback<T extends Entity> extends FrameCallback
   }
 
   private void spawnEntity(
-      @NotNull final Entity @NotNull [] entities,
-      @NotNull final Location spawn,
-      @NotNull final World world,
+       final Entity  [] entities,
+       final Location spawn,
+       final World world,
       final int height) {
     for (int i = height - 1; i >= 0; i--) {
       entities[i] =
@@ -98,13 +98,13 @@ public class EntityCallback<T extends Entity> extends FrameCallback
     }
   }
 
-  private @NotNull String repeat(@NotNull final String name, final int height) {
+  private  String repeat( final String name, final int height) {
     return name.repeat(Math.max(0, height));
   }
 
   @Override
   public void preparePlayerStateChange(
-      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
+       final VideoPlayer player,  final PlayerControls status) {
     super.preparePlayerStateChange(player, status);
     if (status == PlayerControls.RELEASE) {
       this.removeEntities();
@@ -120,7 +120,7 @@ public class EntityCallback<T extends Entity> extends FrameCallback
   }
 
   @Override
-  public void process(final int @NotNull [] data) {
+  public void process(final int  [] data) {
     final long time = System.currentTimeMillis();
     final int width = this.getDimensions().getWidth();
     final UUID[] viewers = this.getWatchers().getViewers();
@@ -132,9 +132,9 @@ public class EntityCallback<T extends Entity> extends FrameCallback
   }
 
   private void displayEntity(
-      @NotNull final UUID[] viewers,
-      @NotNull final String name,
-      @NotNull final IntBuffer data,
+       final UUID[] viewers,
+       final String name,
+       final IntBuffer data,
       final int width) {
     final UUID[] watchers = this.getWatchers().getViewers();
     final int height = this.entities.length;
@@ -142,17 +142,17 @@ public class EntityCallback<T extends Entity> extends FrameCallback
   }
 
   @Override
-  public @NotNull Entity[] getEntities() {
+  public  Entity[] getEntities() {
     return this.entities;
   }
 
   @Override
-  public @NotNull NamedStringCharacter getStringName() {
+  public  NamedStringCharacter getStringName() {
     return this.name;
   }
 
   @Override
-  public @NotNull Location getLocation() {
+  public  Location getLocation() {
     return this.location;
   }
 
@@ -174,7 +174,7 @@ public class EntityCallback<T extends Entity> extends FrameCallback
 
     public Builder() {}
 
-    private static @NotNull Consumer<AreaEffectCloud> getAreaEffectCloudConsumer() {
+    private static  Consumer<AreaEffectCloud> getAreaEffectCloudConsumer() {
       return entity -> {
         entity.setInvulnerable(true);
         entity.setDuration(999999);
@@ -187,7 +187,7 @@ public class EntityCallback<T extends Entity> extends FrameCallback
       };
     }
 
-    private static @NotNull Consumer<ArmorStand> getArmorStandConsumer() {
+    private static  Consumer<ArmorStand> getArmorStandConsumer() {
       return entity -> {
         entity.setInvulnerable(true);
         entity.setVisible(false);
@@ -196,38 +196,38 @@ public class EntityCallback<T extends Entity> extends FrameCallback
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder<T> location(@NotNull final Location location) {
+    public  Builder<T> location( final Location location) {
       this.location = location;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder<T> character(@NotNull final NamedStringCharacter character) {
+    public  Builder<T> character( final NamedStringCharacter character) {
       this.character = character;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder<T> entityType(@NotNull final Class<T> entity) {
+    public  Builder<T> entityType( final Class<T> entity) {
       this.entity = entity;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder<T> consumer(@NotNull final Consumer<T> consumer) {
+    public  Builder<T> consumer( final Consumer<T> consumer) {
       this.consumer = consumer;
       return this;
     }
 
     @Contract(" -> this")
-    public @NotNull Builder<T> areaEffectCloudPlayer() {
+    public  Builder<T> areaEffectCloudPlayer() {
       this.entity = (Class<T>) AREA_EFFECT_CLOUD.getKey().getEntityClass();
       this.consumer = (Consumer<T>) AREA_EFFECT_CLOUD.getValue();
       return this;
     }
 
     @Contract(" -> this")
-    public @NotNull Builder<T> armorStandPlayer() {
+    public  Builder<T> armorStandPlayer() {
       this.entity = (Class<T>) ARMOR_STAND.getKey().getEntityClass();
       this.consumer = (Consumer<T>) ARMOR_STAND.getValue();
       return this;
@@ -235,7 +235,7 @@ public class EntityCallback<T extends Entity> extends FrameCallback
 
     @Contract("_ -> new")
     @Override
-    public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
+    public  FrameCallback build( final EzMediaCore core) {
       checkNotNull(this.location, "Location cannot be null!");
       checkNotNull(this.entity, "Entity cannot be null!");
       checkNotNull(this.consumer, "Consumer (for entity) cannot be null!");

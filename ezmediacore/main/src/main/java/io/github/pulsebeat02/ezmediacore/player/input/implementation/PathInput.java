@@ -31,7 +31,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Objects;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class PathInput implements Input {
 
@@ -43,7 +43,7 @@ public final class PathInput implements Input {
 
   private final Path path;
 
-  PathInput(@NotNull final String path) {
+  PathInput( final String path) {
     checkNotNull(path, "URL specified cannot be null!");
     try {
       this.path = Path.of(path);
@@ -53,26 +53,26 @@ public final class PathInput implements Input {
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull Input ofPath(@NotNull final String path) {
+  public static  Input ofPath( final String path) {
     return new PathInput(path);
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull Input ofPath(@NotNull final Path path) {
+  public static  Input ofPath( final Path path) {
     return ofPath(path.toString());
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull Input ofPath(@NotNull final File file) {
+  public static  Input ofPath( final File file) {
     return ofPath(file.toString());
   }
 
-  public static @NotNull Input emptyPath() {
+  public static  Input emptyPath() {
     return EMPTY_PATH;
   }
 
   @Override
-  public @NotNull String getInput() {
+  public  String getInput() {
     return this.path.toString();
   }
 
@@ -81,7 +81,7 @@ public final class PathInput implements Input {
 
   @Contract(pure = true)
   @Override
-  public @NotNull String toString() {
+  public  String toString() {
     return "{path=%s}".formatted(this.path);
   }
 

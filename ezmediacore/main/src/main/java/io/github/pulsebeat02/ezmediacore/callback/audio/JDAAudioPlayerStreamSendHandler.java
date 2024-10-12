@@ -24,7 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.callback.audio;
 
 import io.github.pulsebeat02.ezmediacore.callback.audio.JDAAudioStream;
-import org.jetbrains.annotations.NotNull;
+
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -46,14 +46,14 @@ public final class JDAAudioPlayerStreamSendHandler implements JDAAudioStream {
 
   private boolean paused;
 
-  JDAAudioPlayerStreamSendHandler(@NotNull final AudioInputStream inSource) {
+  JDAAudioPlayerStreamSendHandler( final AudioInputStream inSource) {
     final AudioFormat baseFormat = inSource.getFormat();
     final AudioFormat audioFormat = this.getConvertedAudioFormat(baseFormat);
     this.audioSource = AudioSystem.getAudioInputStream(audioFormat, inSource);
     this.audioBufferSize = OPUS_FRAME_SIZE * audioFormat.getFrameSize();
   }
 
-  private @NotNull AudioFormat getConvertedAudioFormat(@NotNull final AudioFormat baseFormat) {
+  private  AudioFormat getConvertedAudioFormat( final AudioFormat baseFormat) {
 
     final float samplingRate = baseFormat.getSampleRate();
     final int sampleSizeInBits = baseFormat.getSampleSizeInBits();
@@ -80,7 +80,7 @@ public final class JDAAudioPlayerStreamSendHandler implements JDAAudioStream {
   }
 
   @Override
-  public @NotNull ByteBuffer provide20MsAudio() {
+  public  ByteBuffer provide20MsAudio() {
     try {
       final byte[] audio = new byte[this.audioBufferSize];
       final int amountRead = this.audioSource.read(audio, 0, audio.length);

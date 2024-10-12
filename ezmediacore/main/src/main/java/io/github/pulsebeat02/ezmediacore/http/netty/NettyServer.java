@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.http.netty;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.http.HttpDaemon;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -39,8 +39,8 @@ import java.nio.file.Path;
 import java.security.cert.CertificateException;
 import javax.net.ssl.SSLException;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 public final class NettyServer implements HttpDaemon {
 
@@ -56,7 +56,7 @@ public final class NettyServer implements HttpDaemon {
     CHILD_GROUP = new NioEventLoopGroup();
   }
 
-  @Nullable
+  
   private static SslContext retrieveSslContext() {
     SslContext temporary = null;
     if (SSL_ENABLED) {
@@ -71,7 +71,7 @@ public final class NettyServer implements HttpDaemon {
     return temporary;
   }
 
-  private final MediaLibraryCore core;
+  private final EzMediaCore core;
   private final Path path;
   private final String ip;
   private final int port;
@@ -81,9 +81,9 @@ public final class NettyServer implements HttpDaemon {
   private Channel channel;
 
   public NettyServer(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Path path,
-      @NotNull final String ip,
+       final EzMediaCore core,
+       final Path path,
+       final String ip,
       final int port,
       final boolean verbose) {
     this.core = core;
@@ -97,19 +97,19 @@ public final class NettyServer implements HttpDaemon {
   }
 
   @Contract("_, _, _, _ -> new")
-  public static @NotNull NettyServer ofDaemon(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final String ip,
+  public static  NettyServer ofDaemon(
+       final EzMediaCore core,
+       final String ip,
       final int port,
       final boolean verbose) {
     return ofDaemon(core, core.getHttpServerPath(), ip, port, verbose);
   }
 
   @Contract("_, _, _, _, _ -> new")
-  public static @NotNull NettyServer ofDaemon(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Path path,
-      @NotNull final String ip,
+  public static  NettyServer ofDaemon(
+       final EzMediaCore core,
+       final Path path,
+       final String ip,
       final int port,
       final boolean verbose) {
     return new NettyServer(core, path, ip, port, verbose);
@@ -164,7 +164,7 @@ public final class NettyServer implements HttpDaemon {
   }
 
   @Override
-  public @NotNull Path getServerPath() {
+  public  Path getServerPath() {
     return this.path;
   }
 
@@ -174,12 +174,12 @@ public final class NettyServer implements HttpDaemon {
   }
 
   @Override
-  public @NotNull String getAddress() {
+  public  String getAddress() {
     return this.ip;
   }
 
   @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public  EzMediaCore getCore() {
     return this.core;
   }
 }

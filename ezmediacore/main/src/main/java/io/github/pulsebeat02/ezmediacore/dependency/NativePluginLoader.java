@@ -23,11 +23,11 @@
  */
 package io.github.pulsebeat02.ezmediacore.dependency;
 
-import io.github.pulsebeat02.ezmediacore.CoreLogger;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.logging.Logger;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import java.util.concurrent.CountDownLatch;
-import org.jetbrains.annotations.NotNull;
+
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.log.LogEventListener;
 import uk.co.caprica.vlcj.log.LogLevel;
@@ -45,9 +45,9 @@ public class NativePluginLoader {
         "https://github.com/MinecraftMediaLibrary/EzMediaCore/raw/master/vlc-prerender.mp4";
   }
 
-  private final MediaLibraryCore core;
+  private final EzMediaCore core;
 
-  NativePluginLoader(@NotNull final MediaLibraryCore core) {
+  NativePluginLoader( final EzMediaCore core) {
     this.core = core;
   }
 
@@ -66,16 +66,16 @@ public class NativePluginLoader {
   }
 
   private void release(
-      @NotNull final NativeLog log,
-      @NotNull final EmbeddedMediaPlayer player,
-      @NotNull final MediaPlayerFactory factory) {
+       final NativeLog log,
+       final EmbeddedMediaPlayer player,
+       final MediaPlayerFactory factory) {
     log.release();
     player.release();
     factory.release();
     this.core.getLogger().info(Locale.PLAYER_RELEASE.build());
   }
 
-  private @NotNull NativeLog createLog(@NotNull final MediaPlayerFactory factory) {
+  private  NativeLog createLog( final MediaPlayerFactory factory) {
 
     final NativeLog log = factory.application().newLog();
     log.setLevel(LogLevel.DEBUG);
@@ -86,12 +86,12 @@ public class NativePluginLoader {
     return log;
   }
 
-  private @NotNull LogEventListener createListener() {
-    final CoreLogger logger = this.core.getLogger();
+  private  LogEventListener createListener() {
+    final Logger logger = this.core.getLogger();
     return new SimpleLogEventListener(logger);
   }
 
-  private void waitMedia(@NotNull final CountDownLatch latch) {
+  private void waitMedia( final CountDownLatch latch) {
     try {
       latch.await();
     } catch (final InterruptedException e) {
@@ -99,13 +99,13 @@ public class NativePluginLoader {
     }
   }
 
-  private void playMedia(@NotNull final EmbeddedMediaPlayer player) {
+  private void playMedia( final EmbeddedMediaPlayer player) {
     player.media().play(VLC_PRERENDER);
     this.core.getLogger().info(Locale.PLAYER_START.build(VLC_PRERENDER, ""));
   }
 
   private void addEvents(
-      @NotNull final EmbeddedMediaPlayer player, @NotNull final CountDownLatch latch) {
+       final EmbeddedMediaPlayer player,  final CountDownLatch latch) {
     player.events().addMediaPlayerEventListener(new CustomMediaPlayerEventListener(latch));
   }
 
@@ -117,9 +117,9 @@ public class NativePluginLoader {
       LOG_FORMAT = "[%-20s] (%-20s) %7s: %s%s";
     }
 
-    private final CoreLogger logger;
+    private final Logger logger;
 
-    public SimpleLogEventListener(@NotNull final CoreLogger logger) {
+    public SimpleLogEventListener( final Logger logger) {
       this.logger = logger;
     }
 
@@ -141,17 +141,17 @@ public class NativePluginLoader {
 
     private final CountDownLatch latch;
 
-    private CustomMediaPlayerEventListener(@NotNull final CountDownLatch latch) {
+    private CustomMediaPlayerEventListener( final CountDownLatch latch) {
       this.latch = latch;
     }
 
     @Override
-    public void finished(@NotNull final MediaPlayer mediaPlayer) {
+    public void finished( final MediaPlayer mediaPlayer) {
       this.latch.countDown();
     }
 
     @Override
-    public void error(@NotNull final MediaPlayer mediaPlayer) {
+    public void error( final MediaPlayer mediaPlayer) {
       this.latch.countDown();
     }
   }

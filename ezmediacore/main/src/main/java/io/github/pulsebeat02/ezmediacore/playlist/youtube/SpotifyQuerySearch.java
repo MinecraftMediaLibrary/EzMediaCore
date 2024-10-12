@@ -32,7 +32,7 @@ import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
 import java.io.IOException;
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 
 public class SpotifyQuerySearch implements QuerySearch {
@@ -41,7 +41,7 @@ public class SpotifyQuerySearch implements QuerySearch {
   private final YoutubeVideo video;
   private final String query;
 
-  SpotifyQuerySearch(@NotNull final Track track) {
+  SpotifyQuerySearch( final Track track) {
     checkNotNull(track, "Track cannot be null!");
     this.track = track;
     this.query = this.constructInternalQuery();
@@ -49,38 +49,38 @@ public class SpotifyQuerySearch implements QuerySearch {
   }
 
   @Contract("_ -> new")
-  public static @NotNull SpotifyQuerySearch ofSpotifyQuerySearch(@NotNull final Track track) {
+  public static  SpotifyQuerySearch ofSpotifyQuerySearch( final Track track) {
     return new SpotifyQuerySearch(track);
   }
 
   @Contract("_ -> new")
-  public static @NotNull SpotifyQuerySearch ofSpotifyQuerySearch(@NotNull final String url)
+  public static  SpotifyQuerySearch ofSpotifyQuerySearch( final String url)
       throws IOException, ParseException, SpotifyWebApiException {
     return ofSpotifyQuerySearch(SpotifyTrack.ofSpotifyTrack(url));
   }
 
-  private @NotNull String constructInternalQuery() {
+  private  String constructInternalQuery() {
     return "%s %s".formatted(this.track.getName(), this.track.getArtists().get(0));
   }
 
   @Contract(" -> new")
-  private @NotNull YoutubeVideo getInternalVideo() {
+  private  YoutubeVideo getInternalVideo() {
     return YoutubeVideo.ofYoutubeVideo(
         MediaExtractionUtils.getFirstResultVideoExceptionally(this.query));
   }
 
   @Override
-  public @NotNull Video getYoutubeVideo() {
+  public  Video getYoutubeVideo() {
     return this.video;
   }
 
   @Override
-  public @NotNull String getSearchQuery() {
+  public  String getSearchQuery() {
     return this.query;
   }
 
   @Override
-  public @NotNull Track getTrack() {
+  public  Track getTrack() {
     return this.track;
   }
 

@@ -28,7 +28,7 @@ import io.github.pulsebeat02.ezmediacore.player.output.ServerOutput;
 import io.github.pulsebeat02.ezmediacore.utility.misc.ConcatenationUtils;
 import java.util.Map;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -39,23 +39,23 @@ public final class TcpFFmpegOutput extends FFmpegOutputConfiguration {
   TcpFFmpegOutput() {}
 
   @Contract(" -> new")
-  public static @NotNull TcpFFmpegOutput ofOutput() {
+  public static  TcpFFmpegOutput ofOutput() {
     return new TcpFFmpegOutput();
   }
 
   @Override
-  public @NotNull ServerOutput getResultingOutput() {
+  public  ServerOutput getResultingOutput() {
     return this.output;
   }
 
   @Override
-  public void setOutput(@NotNull final Object output) {
+  public void setOutput( final Object output) {
     checkArgument(output instanceof ServerOutput);
     this.output = (ServerOutput) output;
   }
 
   @Override
-  public @NotNull String toString() {
+  public  String toString() {
     final Map<String, String> configuration = this.getConfiguration();
     final String raw = this.output.getRaw();
     return ConcatenationUtils.mapOutputString(configuration, raw);

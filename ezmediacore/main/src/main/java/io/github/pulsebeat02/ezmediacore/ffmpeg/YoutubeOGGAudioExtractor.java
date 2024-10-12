@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.VideoDownloader;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.YoutubeVideoDownloader;
@@ -33,8 +33,8 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 public class YoutubeOGGAudioExtractor extends FFmpegCommandExecutor
     implements YoutubeAudioExtractor {
@@ -44,10 +44,10 @@ public class YoutubeOGGAudioExtractor extends FFmpegCommandExecutor
   private final AtomicBoolean cancelled;
 
   YoutubeOGGAudioExtractor(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final AudioConfiguration configuration,
-      @NotNull final String url,
-      @NotNull final Path output) {
+       final EzMediaCore core,
+       final AudioConfiguration configuration,
+       final String url,
+       final Path output) {
     super(core);
     final Path path = core.getVideoPath().resolve("%s.mp4".formatted(UUID.randomUUID()));
     this.downloader = YoutubeVideoDownloader.ofYoutubeVideoDownloader(url, path);
@@ -56,26 +56,26 @@ public class YoutubeOGGAudioExtractor extends FFmpegCommandExecutor
   }
 
   @Contract("_, _, _, _ -> new")
-  public static @NotNull YoutubeOGGAudioExtractor ofYoutubeVideoAudioExtractor(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final AudioConfiguration configuration,
-      @NotNull final String url,
-      @NotNull final Path output) {
+  public static  YoutubeOGGAudioExtractor ofYoutubeVideoAudioExtractor(
+       final EzMediaCore core,
+       final AudioConfiguration configuration,
+       final String url,
+       final Path output) {
     return new YoutubeOGGAudioExtractor(core, configuration, url, output);
   }
 
   @Contract("_, _, _, _ -> new")
-  public static @NotNull YoutubeOGGAudioExtractor ofYoutubeVideoAudioExtractor(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final AudioConfiguration configuration,
-      @NotNull final String url,
-      @NotNull final String fileName) {
+  public static  YoutubeOGGAudioExtractor ofYoutubeVideoAudioExtractor(
+       final EzMediaCore core,
+       final AudioConfiguration configuration,
+       final String url,
+       final String fileName) {
     return ofYoutubeVideoAudioExtractor(
         core, configuration, url, core.getAudioPath().resolve(fileName));
   }
 
   @Override
-  public void executeWithLogging(@Nullable final Consumer<String> logger) throws IOException {
+  public void executeWithLogging( final Consumer<String> logger) throws IOException {
     this.onStartAudioExtraction();
     this.downloader.downloadVideo(
         this.downloader.getVideo().getVideoFormats().get(0).getQuality(), true);
@@ -101,12 +101,12 @@ public class YoutubeOGGAudioExtractor extends FFmpegCommandExecutor
   public void onDownloadCancellation() {}
 
   @Override
-  public @NotNull VideoDownloader getDownloader() {
+  public  VideoDownloader getDownloader() {
     return this.downloader;
   }
 
   @Override
-  public @NotNull AudioExtractor getExtractor() {
+  public  AudioExtractor getExtractor() {
     return this.extractor;
   }
 }

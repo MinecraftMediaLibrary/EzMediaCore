@@ -23,12 +23,12 @@
  */
 package io.github.pulsebeat02.ezmediacore.reflect;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import java.lang.reflect.InvocationTargetException;
 import org.bukkit.Bukkit;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class NMSReflectionHandler {
 
@@ -38,19 +38,19 @@ public final class NMSReflectionHandler {
     VERSION = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
   }
 
-  private final MediaLibraryCore core;
+  private final EzMediaCore core;
 
-  public NMSReflectionHandler(@NotNull final MediaLibraryCore core) {
+  public NMSReflectionHandler( final EzMediaCore core) {
     this.core = core;
   }
 
-  private static @NotNull PacketHandler getPacketHandler()
+  private static  PacketHandler getPacketHandler()
       throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
           InstantiationException, IllegalAccessException {
     return (PacketHandler) getPacketHandlerClass().getDeclaredConstructor().newInstance();
   }
 
-  private static @NotNull Class<?> getPacketHandlerClass() throws ClassNotFoundException {
+  private static  Class<?> getPacketHandlerClass() throws ClassNotFoundException {
     return Class.forName(
         "io.github.pulsebeat02.ezmediacore.nms.impl.%s.NMSMapPacketInterceptor".formatted(VERSION));
   }
@@ -59,7 +59,7 @@ public final class NMSReflectionHandler {
     return VERSION;
   }
 
-  public @NotNull PacketHandler getNewPacketHandlerInstance() {
+  public  PacketHandler getNewPacketHandlerInstance() {
     try {
       return getPacketHandler();
     } catch (final ClassNotFoundException

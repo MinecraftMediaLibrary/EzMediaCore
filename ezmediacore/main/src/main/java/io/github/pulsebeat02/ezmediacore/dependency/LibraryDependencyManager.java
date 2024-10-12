@@ -34,27 +34,22 @@ import io.github.pulsebeat02.emcdependencymanagement.SimpleLogger;
 import io.github.pulsebeat02.emcdependencymanagement.component.Artifact;
 import io.github.pulsebeat02.emcdependencymanagement.component.Relocation;
 import io.github.pulsebeat02.emcdependencymanagement.component.Repository;
-import io.github.pulsebeat02.ezmediacore.CoreLogger;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.logging.Logger;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Path;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
+import rewrite.json.GsonProvider;
 import io.github.pulsebeat02.ezmediacore.utility.io.ResourceUtils;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class LibraryDependencyManager extends LibraryDependency {
 
   private final Gson gson;
 
-  public LibraryDependencyManager(@NotNull final MediaLibraryCore core) throws IOException {
+  public LibraryDependencyManager( final EzMediaCore core) throws IOException {
     super(core);
     this.gson = GsonProvider.getSimple();
   }
@@ -62,7 +57,7 @@ public final class LibraryDependencyManager extends LibraryDependency {
   @Override
   public void start() throws IOException {
 
-    final MediaLibraryCore core = this.getCore();
+    final EzMediaCore core = this.getCore();
     final Set<Repository> repos = this.getRepositories();
     final Set<Artifact> artifacts = this.getArtifacts();
     final Set<Relocation> relocations = this.getRelocations();
@@ -78,10 +73,10 @@ public final class LibraryDependencyManager extends LibraryDependency {
   }
 
   private EMCDepManagement constructApplication(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Set<Repository> repos,
-      @NotNull final Set<Artifact> artifacts,
-      @NotNull final Set<Relocation> relocations)
+       final EzMediaCore core,
+       final Set<Repository> repos,
+       final Set<Artifact> artifacts,
+       final Set<Relocation> relocations)
       throws IOException {
     return EMCDepManagement.builder()
         .setApplicationName("EzMediaCore - %s".formatted(core.getPlugin().getName()))
@@ -93,7 +88,7 @@ public final class LibraryDependencyManager extends LibraryDependency {
         .create();
   }
 
-  @NotNull
+  
   private Set<Relocation> getRelocations() throws IOException {
     try (final Reader reader =
         ResourceUtils.getResourceAsInputStream("/emc-json/library/relocations.json")) {
@@ -102,7 +97,7 @@ public final class LibraryDependencyManager extends LibraryDependency {
     }
   }
 
-  @NotNull
+  
   private Set<Artifact> getArtifacts() throws IOException {
     try (final Reader reader =
         ResourceUtils.getResourceAsInputStream("/emc-json/library/dependencies.json")) {
@@ -111,7 +106,7 @@ public final class LibraryDependencyManager extends LibraryDependency {
     }
   }
 
-  @NotNull
+  
   private Set<Repository> getRepositories() throws IOException {
     try (final Reader reader =
         ResourceUtils.getResourceAsInputStream("/emc-json/library/repositories.json")) {
@@ -121,29 +116,29 @@ public final class LibraryDependencyManager extends LibraryDependency {
   }
 
   @Override
-  public void onInstallation(@NotNull final Path path) {}
+  public void onInstallation( final Path path) {}
 
-  private @NotNull SimpleLogger createLogger() {
+  private  SimpleLogger createLogger() {
     return new SimpleLogger() {
 
-      private final CoreLogger logger;
+      private final Logger logger;
 
       {
         this.logger = LibraryDependencyManager.this.getCore().getLogger();
       }
 
       @Override
-      public void info(@NotNull final String line) {
+      public void info( final String line) {
         this.logger.info(line);
       }
 
       @Override
-      public void warning(@NotNull final String line) {
+      public void warning( final String line) {
         this.logger.warn(line);
       }
 
       @Override
-      public void error(@NotNull final String line) {
+      public void error( final String line) {
         this.logger.error(line);
       }
     };

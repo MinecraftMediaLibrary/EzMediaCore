@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.TrackDownloader;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.SpotifyTrackDownloader;
@@ -33,8 +33,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 
 public class SpotifyOGGTrackExtractor extends FFmpegCommandExecutor
@@ -45,10 +45,10 @@ public class SpotifyOGGTrackExtractor extends FFmpegCommandExecutor
   private final AtomicBoolean cancelled;
 
   SpotifyOGGTrackExtractor(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final AudioConfiguration configuration,
-      @NotNull final String url,
-      @NotNull final Path output)
+       final EzMediaCore core,
+       final AudioConfiguration configuration,
+       final String url,
+       final Path output)
       throws IOException, ParseException, SpotifyWebApiException {
     super(core);
     this.downloader = SpotifyTrackDownloader.ofSpotifyTrackDownloader(url, output);
@@ -58,27 +58,27 @@ public class SpotifyOGGTrackExtractor extends FFmpegCommandExecutor
   }
 
   @Contract("_, _, _, _ -> new")
-  public static @NotNull SpotifyOGGTrackExtractor ofSpotifyTrackExtractor(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final AudioConfiguration configuration,
-      @NotNull final String url,
-      @NotNull final Path output)
+  public static  SpotifyOGGTrackExtractor ofSpotifyTrackExtractor(
+       final EzMediaCore core,
+       final AudioConfiguration configuration,
+       final String url,
+       final Path output)
       throws IOException, ParseException, SpotifyWebApiException {
     return new SpotifyOGGTrackExtractor(core, configuration, url, output);
   }
 
   @Contract("_, _, _, _ -> new")
-  public static @NotNull SpotifyOGGTrackExtractor ofSpotifyTrackExtractor(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final AudioConfiguration configuration,
-      @NotNull final String url,
-      @NotNull final String fileName)
+  public static  SpotifyOGGTrackExtractor ofSpotifyTrackExtractor(
+       final EzMediaCore core,
+       final AudioConfiguration configuration,
+       final String url,
+       final String fileName)
       throws IOException, ParseException, SpotifyWebApiException {
     return ofSpotifyTrackExtractor(core, configuration, url, core.getAudioPath().resolve(fileName));
   }
 
   @Override
-  public void executeWithLogging(@Nullable final Consumer<String> logger) throws IOException {
+  public void executeWithLogging( final Consumer<String> logger) throws IOException {
     this.onStartAudioExtraction();
     this.downloader.downloadVideo(
         this.downloader.getSearcher().getYoutubeVideo().getVideoFormats().get(0).getQuality(),
@@ -105,12 +105,12 @@ public class SpotifyOGGTrackExtractor extends FFmpegCommandExecutor
   public void onFinishAudioExtraction() {}
 
   @Override
-  public @NotNull TrackDownloader getTrackDownloader() {
+  public  TrackDownloader getTrackDownloader() {
     return this.downloader;
   }
 
   @Override
-  public @NotNull YoutubeAudioExtractor getYoutubeExtractor() {
+  public  YoutubeAudioExtractor getYoutubeExtractor() {
     return this.extractor;
   }
 }

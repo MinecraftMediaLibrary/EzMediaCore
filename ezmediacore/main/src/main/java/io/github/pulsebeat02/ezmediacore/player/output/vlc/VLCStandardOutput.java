@@ -27,7 +27,7 @@ import io.github.pulsebeat02.ezmediacore.player.output.OutputConfiguration;
 import java.util.Map;
 
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public class VLCStandardOutput extends OutputConfiguration {
 
@@ -57,17 +57,17 @@ public class VLCStandardOutput extends OutputConfiguration {
 
   private final String section;
 
-  protected VLCStandardOutput(@NotNull final String section) {
+  protected VLCStandardOutput( final String section) {
     this.section = section;
   }
 
   @Contract("_ -> new")
-  public static @NotNull VLCStandardOutput ofSection(@NotNull final String section) {
+  public static  VLCStandardOutput ofSection( final String section) {
     return new VLCStandardOutput(section);
   }
 
   @Override
-  public @NotNull String toString() {
+  public  String toString() {
     final Map<String, String> configuration = this.getConfiguration();
     final StringBuilder builder = new StringBuilder("%s{".formatted(this.section));
     for (final Map.Entry<String, String> entry : configuration.entrySet()) {

@@ -28,7 +28,6 @@ import com.google.common.collect.Lists;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
-import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutput;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
@@ -36,20 +35,17 @@ import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegArguments;
 import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
-import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import io.github.pulsebeat02.ezmediacore.player.input.FFmpegMediaPlayerInputParser;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.output.PlayerOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.StreamOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.*;
-import io.github.pulsebeat02.ezmediacore.utility.concurrency.ThrowingRunnable;
-import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
+import io.github.pulsebeat02.ezmediacore.utility.throwing.ThrowingRunnable;
 
-import java.net.MalformedURLException;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -98,11 +94,11 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   private Process process;
 
   FFmpegMediaPlayer(
-      @NotNull final VideoCallback video,
-      @NotNull final AudioSource audio,
-      @NotNull final Viewers viewers,
-      @NotNull final Dimension pixelDimension,
-      @NotNull final BufferConfiguration buffer) {
+       final VideoCallback video,
+       final AudioSource audio,
+       final Viewers viewers,
+       final Dimension pixelDimension,
+       final BufferConfiguration buffer) {
     super(
         video,
         audio,
@@ -114,14 +110,14 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   }
 
   public void initializePlayer(
-      @NotNull final DelayConfiguration delay, @NotNull final Object @NotNull ... arguments) {
+       final DelayConfiguration delay,  final Object  ... arguments) {
     this.createProcess(delay, arguments);
     this.execute();
   }
 
   private void createProcess(
-      @NotNull final DelayConfiguration configuration,
-      @NotNull final Object @NotNull ... arguments) {
+       final DelayConfiguration configuration,
+       final Object  ... arguments) {
 
     final Dimension dimension = this.getDimensions();
     final String mrl = this.getInput().getDirectVideoMrl().toString();
@@ -142,7 +138,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
     this.addArgument(this.getOutput().toString());
   }
 
-  private void addExtraArguments(@NotNull final Object[] arguments) {
+  private void addExtraArguments( final Object[] arguments) {
     for (int i = 1; i < arguments.length; i++) {
       this.addArgument(arguments[i].toString());
     }
@@ -160,25 +156,24 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
     this.executeNutReader(raw);
   }
 
-  @NotNull
+
   private FFmpegPlayerOutput getRawFFmpegOutput() {
     final PlayerOutput output = this.getOutput();
     return (FFmpegPlayerOutput) output.getResultingOutput();
   }
 
   private void setNecessaryFFmpegOutput(
-      @NotNull final InputStream stream, @NotNull final FFmpegPlayerOutput raw) {
+       final InputStream stream,  final FFmpegPlayerOutput raw) {
     final FFmpegOutputConfiguration configuration = raw.getVariedOutput();
     configuration.setOptionalOutput(StreamOutput.ofStream(stream));
   }
 
-  private void executeNutReader(@NotNull final FFmpegPlayerOutput raw) {
+  private void executeNutReader( final FFmpegPlayerOutput raw) {
     final String internal = raw.getTcp().getResultingOutput().getRaw();
-    CompletableFuture.runAsync(this.readNutFormat(internal), ExecutorProvider.FRAME_CONSUMER)
-        .handle(Throwing.THROWING_FUTURE);
+    CompletableFuture.runAsync(this.readNutFormat(internal), ExecutorProvider.FRAME_CONSUMER);
   }
 
-  private @NotNull Runnable readNutFormat(@NotNull final String internal) {
+  private  Runnable readNutFormat( final String internal) {
     return (ThrowingRunnable)
         () -> {
           final InputStream url = new URL(internal).openStream();
@@ -194,7 +189,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
     this.startProcess(builder);
   }
 
-  private void startProcess(@NotNull final ProcessBuilder builder) {
+  private void startProcess( final ProcessBuilder builder) {
     try {
       this.process = builder.start();
     } catch (final IOException e) {
@@ -202,17 +197,17 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
     }
   }
 
-  private void addArgument(@NotNull final String argument) {
+  private void addArgument( final String argument) {
     this.arguments.add(argument);
   }
 
-  private void addArguments(@NotNull final String key, @NotNull final String value) {
+  private void addArguments( final String key,  final String value) {
     this.arguments.add(key);
     this.arguments.add(value);
   }
 
   @Contract(value = " -> new", pure = true)
-  private @NotNull NativeFrameConsumer getFrameConsumer() {
+  private  NativeFrameConsumer getFrameConsumer() {
     return new FFmpegFrameConsumer(this);
   }
 
@@ -238,7 +233,7 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
   }
 
   @Override
-  public void start(@NotNull final Input mrl, @NotNull final Object... arguments) {
+  public void start( final Input mrl,  final Object... arguments) {
     super.start(mrl, arguments);
     if (this.process == null) {
       this.initializePlayer(DelayConfiguration.DELAY_0_MS, arguments);
@@ -278,41 +273,41 @@ public final class FFmpegMediaPlayer extends BufferedMediaPlayer {
 
     @Contract("_ -> this")
     @Override
-    public Builder audio(@NotNull final AudioOutput audio) {
+    public Builder audio( final AudioOutput audio) {
       super.audio(audio);
       return this;
     }
 
     @Contract("_ -> this")
     @Override
-    public Builder video(@NotNull final VideoCallback callback) {
+    public Builder video( final VideoCallback callback) {
       super.video(callback);
       return this;
     }
 
     @Contract("_ -> this")
     @Override
-    public Builder frameRate(@NotNull final FrameConfiguration rate) {
+    public Builder frameRate( final FrameConfiguration rate) {
       super.frameRate(rate);
       return this;
     }
 
     @Contract("_ -> this")
     @Override
-    public Builder dims(@NotNull final Dimension dims) {
+    public Builder dims( final Dimension dims) {
       super.dims(dims);
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder buffer(@NotNull final BufferConfiguration bufferSize) {
+    public  Builder buffer( final BufferConfiguration bufferSize) {
       this.bufferSize = bufferSize;
       return this;
     }
 
     @Contract(" -> new")
     @Override
-    public @NotNull MediaPlayer build() {
+    public  MediaPlayer build() {
       super.init();
       final VideoCallback video = this.getVideo();
       final AudioSource audio = this.getAudio();

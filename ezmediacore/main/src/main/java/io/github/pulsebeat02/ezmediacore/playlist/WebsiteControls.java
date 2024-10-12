@@ -27,17 +27,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 import org.jetbrains.annotations.Unmodifiable;
 
 public class WebsiteControls implements WebPlayerControls {
 
-  public WebsiteControls(final String url, @NotNull final PlaylistType type) {
+  public WebsiteControls(final String url,  final PlaylistType type) {
     final Collection<String> songs = this.getSongs();
   }
 
   @Contract(pure = true)
-  private @NotNull @Unmodifiable List<String> getSongs() {
+  private  @Unmodifiable List<String> getSongs() {
     return Collections.emptyList();
   }
 

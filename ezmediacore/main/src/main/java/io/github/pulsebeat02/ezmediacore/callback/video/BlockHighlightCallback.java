@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.callback.video;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.entity.NamedStringCharacter;
@@ -34,7 +34,7 @@ import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.util.UUID;
 import org.bukkit.Location;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public class BlockHighlightCallback extends FrameCallback
     implements BlockHighlightCallbackDispatcher {
@@ -43,12 +43,12 @@ public class BlockHighlightCallback extends FrameCallback
   private final NamedStringCharacter character;
 
   BlockHighlightCallback(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Viewers viewers,
-      @NotNull final Dimension dimension,
-      @NotNull final Location location,
-      @NotNull final NamedStringCharacter character,
-      @NotNull final DelayConfiguration delay) {
+       final EzMediaCore core,
+       final Viewers viewers,
+       final Dimension dimension,
+       final Location location,
+       final NamedStringCharacter character,
+       final DelayConfiguration delay) {
     super(core, viewers, dimension, delay);
     checkNotNull(location, "Location cannot be null!");
     checkNotNull(character, "Character cannot be null!");
@@ -57,7 +57,7 @@ public class BlockHighlightCallback extends FrameCallback
   }
 
   @Override
-  public void process(final int @NotNull [] data) {
+  public void process(final int  [] data) {
     final long time = System.currentTimeMillis();
     final long delay = this.getDelayConfiguration().getDelay();
     final int z = (int) this.location.getZ();
@@ -75,7 +75,7 @@ public class BlockHighlightCallback extends FrameCallback
       final int height,
       final int z,
       final long delay,
-      final int @NotNull [] data) {
+      final int  [] data) {
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
         final UUID[] viewers = this.getWatchers().getViewers();
@@ -91,12 +91,12 @@ public class BlockHighlightCallback extends FrameCallback
   }
 
   @Override
-  public @NotNull Location getLocation() {
+  public  Location getLocation() {
     return this.location;
   }
 
   @Override
-  public @NotNull NamedStringCharacter getStringName() {
+  public  NamedStringCharacter getStringName() {
     return this.character;
   }
 
@@ -108,20 +108,20 @@ public class BlockHighlightCallback extends FrameCallback
     public Builder() {}
 
     @Contract("_ -> this")
-    public @NotNull Builder location(@NotNull final Location location) {
+    public  Builder location( final Location location) {
       this.location = location;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder character(@NotNull final NamedStringCharacter character) {
+    public  Builder character( final NamedStringCharacter character) {
       this.character = character;
       return this;
     }
 
     @Contract("_ -> new")
     @Override
-    public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
+    public  FrameCallback build( final EzMediaCore core) {
       checkNotNull(this.location, "Location cannot be null!");
       return new BlockHighlightCallback(
           core, this.getViewers(), this.getDims(), this.location, this.character, this.getDelay());

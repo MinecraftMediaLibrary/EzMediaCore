@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.player.output.ffmpeg;
 
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class FFmpegMediaStream implements FFmpegBufferedStream {
 
@@ -38,12 +38,12 @@ public final class FFmpegMediaStream implements FFmpegBufferedStream {
   }
 
   @Contract("_ -> new")
-  public static @NotNull FFmpegMediaStream ofStream(@NotNull final Stream stream) {
+  public static  FFmpegMediaStream ofStream( final Stream stream) {
     return new FFmpegMediaStream(stream.getId(), stream.getTimebase());
   }
 
   @Contract("_, _ -> new")
-  public static @NotNull FFmpegMediaStream ofStream(final int id, final long timebase) {
+  public static  FFmpegMediaStream ofStream(final int id, final long timebase) {
     return new FFmpegMediaStream(id, timebase);
   }
 

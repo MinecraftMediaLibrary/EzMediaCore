@@ -30,7 +30,7 @@ import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 /** See https://github.com/makeworld-the-better-one/dither/blob/master/pixelmappers.go */
 public final class OrderedDither implements DitherAlgorithm {
@@ -40,14 +40,14 @@ public final class OrderedDither implements DitherAlgorithm {
   private final int ydim;
 
   @Contract(pure = true)
-  public OrderedDither(@NotNull final OrderedPixelMapper mapper) {
+  public OrderedDither( final OrderedPixelMapper mapper) {
     this.precalc = mapper.getMatrix();
     this.ydim = this.precalc.length;
     this.xdim = this.precalc[0].length;
   }
 
   @Override
-  public @NotNull BufferCarrier ditherIntoMinecraft(final int @NotNull [] buffer, final int width) {
+  public  BufferCarrier ditherIntoMinecraft(final int  [] buffer, final int width) {
     final int length = buffer.length;
     final int height = length / width;
     final ByteBuf data = Unpooled.buffer(length);
@@ -69,7 +69,7 @@ public final class OrderedDither implements DitherAlgorithm {
   }
 
   @Override
-  public void dither(final int @NotNull [] buffer, final int width) {
+  public void dither(final int  [] buffer, final int width) {
     final int height = buffer.length / width;
     for (int y = 0; y < height; y++) {
       final int yIndex = y * width;

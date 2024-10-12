@@ -25,33 +25,38 @@ package io.github.pulsebeat02.ezmediacore;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.github.pulsebeat02.ezmediacore.analysis.Diagnostic;
-import io.github.pulsebeat02.ezmediacore.analysis.SystemDiagnostics;
+import io.github.pulsebeat02.ezmediacore.dependency.DependencyLoader;
 import io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil;
 import io.github.pulsebeat02.ezmediacore.listener.RegistrationListener;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
+import io.github.pulsebeat02.ezmediacore.logging.LibraryLogger;
+import io.github.pulsebeat02.ezmediacore.logging.Logger;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyProvider;
 import io.github.pulsebeat02.ezmediacore.reflect.NMSReflectionHandler;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
-import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
-import io.github.pulsebeat02.ezmediacore.utility.search.StringSearch;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public final class EzMediaCore implements MediaLibraryCore {
+public final class EzMediaCore {
+
+  /*
+
+  TODO:
+
+  - Rewrite whole library... (resourcepack package up)
+
+   */
 
   private final SpotifyClient spotifyClient;
   private final Plugin plugin;
+
   private final Path libraryPath;
   private final Path httpServerPath;
   private final Path dependencyPath;
@@ -59,27 +64,27 @@ public final class EzMediaCore implements MediaLibraryCore {
   private final Path audioPath;
   private final Path videoPath;
 
-  private LibraryLoader loader;
-  private Diagnostic diagnostics;
+  private DependencyLoader loader;
   private PacketHandler handler;
-  private CoreLogger logger;
+  private Logger logger;
   private Listener registrationListener;
   private Path ffmpegExecutable;
   private Path rtpExecutable;
   private Path vlcPath;
+
   private boolean vlcSupported;
   private boolean disabled;
 
   EzMediaCore(
-      @NotNull final Plugin plugin,
-      @Nullable final LibraryLoader loader,
-      @Nullable final Path libraryPath,
-      @Nullable final Path dependencyPath,
-      @Nullable final Path httpServerPath,
-      @Nullable final Path imagePath,
-      @Nullable final Path audioPath,
-      @Nullable final Path videoPath,
-      @Nullable final SpotifyClient client) {
+       final Plugin plugin,
+       final DependencyLoader loader,
+       final Path libraryPath,
+       final Path dependencyPath,
+       final Path httpServerPath,
+       final Path imagePath,
+       final Path audioPath,
+       final Path videoPath,
+       final SpotifyClient client) {
 
     checkNotNull(plugin, "Cannot initialize plugin that is null!");
 
@@ -95,31 +100,24 @@ public final class EzMediaCore implements MediaLibraryCore {
     this.videoPath = this.getFinalPath(videoPath, this.libraryPath, "video");
 
     this.initLogger();
-    this.initDiagnostics();
     this.initPacketHandler();
     this.initProviders();
     this.initStream();
     this.initDependencyLoader();
   }
 
-  private @NotNull Path getFinalPath(
-      @Nullable final Path path, @NotNull final Path folder, @NotNull final String name) {
+  private  Path getFinalPath(
+       final Path path,  final Path folder,  final String name) {
     return (path == null ? folder.resolve(name) : path).toAbsolutePath();
   }
 
   private void initLogger() {
     try {
-      this.logger = new ManualLogger(this);
+      this.logger = new LibraryLogger(this);
       this.logger.start();
     } catch (final IOException e) {
       throw new AssertionError(e);
     }
-  }
-
-  private void initDiagnostics() {
-    this.diagnostics = new SystemDiagnostics(this);
-    this.diagnostics.debugInformation();
-    this.logger.info(Locale.SYSTEM_DIAGNOSTIC.build());
   }
 
   private void initPacketHandler() {
@@ -152,7 +150,6 @@ public final class EzMediaCore implements MediaLibraryCore {
     this.loader = (this.loader == null ? new DependencyLoader(this) : this.loader);
   }
 
-  @Override
   public void initialize() {
     this.registerEvents();
     this.createResources();
@@ -199,17 +196,16 @@ public final class EzMediaCore implements MediaLibraryCore {
     return this.plugin.getServer().getOnlineMode();
   }
 
-  private void sendSpotifyWarningMessage(@NotNull final MediaLibraryCore core) {
+  private void sendSpotifyWarningMessage( final EzMediaCore core) {
     if (this.invalidSpotifyClient(core)) {
       this.logger.warn(Locale.SPOTIFY_AUTHENTICATION.build());
     }
   }
 
-  private boolean invalidSpotifyClient(@NotNull final MediaLibraryCore core) {
+  private boolean invalidSpotifyClient( final EzMediaCore core) {
     return core.getSpotifyClient() == null;
   }
 
-  @Override
   public void shutdown() {
     this.disabled = true;
     HandlerList.unregisterAll(this.registrationListener);
@@ -220,118 +216,83 @@ public final class EzMediaCore implements MediaLibraryCore {
     Try.closeable(this.logger);
   }
 
-  @Override
-  public @NotNull Plugin getPlugin() {
+  public  Plugin getPlugin() {
     return this.plugin;
   }
 
-  @Override
-  public @NotNull PacketHandler getHandler() {
+  public  PacketHandler getHandler() {
     return this.handler;
   }
 
-  @Override
-  public @NotNull Path getLibraryPath() {
+  public  Path getLibraryPath() {
     return this.libraryPath;
   }
 
-  @Override
-  public @NotNull Path getHttpServerPath() {
+  public  Path getHttpServerPath() {
     return this.httpServerPath;
   }
 
-  @Override
-  public @NotNull Path getDependencyPath() {
+  public  Path getDependencyPath() {
     return this.dependencyPath;
   }
 
-  @Override
-  public @NotNull Path getImagePath() {
+  public  Path getImagePath() {
     return this.imagePath;
   }
 
-  @Override
-  public @NotNull Path getAudioPath() {
+  public  Path getAudioPath() {
     return this.audioPath;
   }
 
-  @Override
-  public @NotNull Path getVideoPath() {
+  public  Path getVideoPath() {
     return this.videoPath;
   }
 
-  @Override
-  public @NotNull Path getFFmpegPath() {
+  public  Path getFFmpegPath() {
     return this.ffmpegExecutable;
   }
 
-  @Override
-  public void setFFmpegPath(@NotNull final Path path) {
+  public void setFFmpegPath( final Path path) {
     this.ffmpegExecutable = path.toAbsolutePath();
   }
 
-  @Override
-  public @NotNull Path getRTPPath() {
-    return this.rtpExecutable;
-  }
-
-  @Override
-  public void setRTPPath(@NotNull final Path path) {
-    this.rtpExecutable = path.toAbsolutePath();
-  }
-
-  @Override
-  public @NotNull Path getVlcPath() {
+  public  Path getVlcPath() {
     return this.vlcPath;
   }
 
-  @Override
-  public void setVlcPath(@NotNull final Path path) {
+  public void setVlcPath( final Path path) {
     this.vlcPath = path;
   }
 
-  @Override
   public boolean isDisabled() {
     return this.disabled;
   }
 
-  @Override
-  public @NotNull Listener getRegistrationHandler() {
+  public  Listener getRegistrationHandler() {
     return this.registrationListener;
   }
 
-  @Override
-  public void setRegistrationHandler(@NotNull final Listener listener) {
+  public void setRegistrationHandler( final Listener listener) {
     this.registrationListener = listener;
   }
 
-  @Override
-  public @NotNull LibraryLoader getLibraryLoader() {
+  public  DependencyLoader getLibraryLoader() {
     return this.loader;
   }
 
-  @Override
-  public @NotNull CoreLogger getLogger() {
+  public Logger getLogger() {
     return this.logger;
   }
 
-  @Override
-  public @Nullable SpotifyClient getSpotifyClient() {
+  public  SpotifyClient getSpotifyClient() {
     return this.spotifyClient;
   }
 
-  @Override
   public boolean isVLCSupported() {
     return this.vlcSupported;
   }
 
-  @Override
   public void setVLCStatus(final boolean vlcStatus) {
     this.vlcSupported = vlcStatus;
-  }
-
-  @Override
-  public @NotNull Diagnostic getDiagnostics() {
-    return this.diagnostics;
   }
 }

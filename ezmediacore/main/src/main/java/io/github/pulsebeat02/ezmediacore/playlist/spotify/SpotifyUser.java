@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 import se.michaelthelin.spotify.enums.ProductType;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 
@@ -58,7 +58,7 @@ public class SpotifyUser implements User {
   private final String url;
   private final Avatar[] avatars;
 
-  SpotifyUser(@NotNull final String url)
+  SpotifyUser( final String url)
       throws IOException, ParseException, SpotifyWebApiException {
     checkNotNull(url, "URL cannot be null!");
     this.url = url;
@@ -66,23 +66,23 @@ public class SpotifyUser implements User {
     this.avatars = this.getInternalAvatars();
   }
 
-  SpotifyUser(@NotNull final se.michaelthelin.spotify.model_objects.specification.User user) {
+  SpotifyUser( final se.michaelthelin.spotify.model_objects.specification.User user) {
     this.url = user.getUri();
     this.user = user;
     this.avatars = this.getInternalAvatars();
   }
 
   @Contract("_ -> new")
-  public static @NotNull SpotifyUser ofSpotifyUser(@NotNull final String url)
+  public static  SpotifyUser ofSpotifyUser( final String url)
       throws IOException, ParseException, SpotifyWebApiException {
     return new SpotifyUser(url);
   }
 
-  static @NotNull BiMap<ProductType, Subscription> getSubscriptionMappings() {
+  static  BiMap<ProductType, Subscription> getSubscriptionMappings() {
     return SUBSCRIPTIONS;
   }
 
-  private @NotNull se.michaelthelin.spotify.model_objects.specification.User getInternalUser()
+  private  se.michaelthelin.spotify.model_objects.specification.User getInternalUser()
       throws IOException, ParseException, SpotifyWebApiException {
     return SpotifyProvider.getSpotifyApi()
         .getUsersProfile(MediaExtractionUtils.getSpotifyIDExceptionally(this.url))
@@ -90,17 +90,17 @@ public class SpotifyUser implements User {
         .execute();
   }
 
-  private Avatar @NotNull [] getInternalAvatars() {
+  private Avatar  [] getInternalAvatars() {
     return Stream.of(this.user.getImages()).map(SpotifyAvatar::new).toArray(SpotifyAvatar[]::new);
   }
 
   @Override
-  public @NotNull String getUrl() {
+  public  String getUrl() {
     return this.url;
   }
 
   @Override
-  public @NotNull Map<String, String> getExternalUrls() {
+  public  Map<String, String> getExternalUrls() {
     return this.user.getExternalUrls().getExternalUrls();
   }
 
@@ -110,31 +110,31 @@ public class SpotifyUser implements User {
   }
 
   @Override
-  public @NotNull Avatar[] getImages() {
+  public  Avatar[] getImages() {
     return this.avatars;
   }
 
   @Override
-  public @NotNull String getBirthday() {
+  public  String getBirthday() {
     return this.user.getBirthdate();
   }
 
   @Override
-  public @NotNull String getDisplayName() {
+  public  String getDisplayName() {
     return this.user.getDisplayName();
   }
 
   @Override
-  public @NotNull String getEmail() {
+  public  String getEmail() {
     return this.user.getEmail();
   }
 
   @Override
-  public @NotNull Subscription getSubscription() {
+  public  Subscription getSubscription() {
     return SUBSCRIPTIONS.get(this.user.getProduct());
   }
 
-  @NotNull
+
   se.michaelthelin.spotify.model_objects.specification.User getUser() {
     return this.user;
   }

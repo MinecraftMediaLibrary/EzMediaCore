@@ -34,8 +34,8 @@ import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 public final class YoutubeDLRequest {
 
@@ -53,22 +53,22 @@ public final class YoutubeDLRequest {
     GSON = new Gson();
   }
 
-  public @Nullable MediaInfo request(@NotNull final String url)
+  public  MediaInfo request( final String url)
       throws IOException, InterruptedException {
     checkNotNull(url, "URL cannot be null!");
     return GSON.fromJson(this.getJson(url), MediaInfo.class);
   }
 
-  private @NotNull String getJson(@NotNull final String url)
+  private  String getJson( final String url)
       throws IOException, InterruptedException {
     return HTTP_CLIENT.send(this.createRequest(url), this.createResponse()).body();
   }
 
-  private @NotNull HttpRequest createRequest(@NotNull final String url) {
+  private  HttpRequest createRequest( final String url) {
     return HttpRequest.newBuilder().uri(URI.create(API_REQUEST_BASE.formatted(url))).build();
   }
 
-  private @NotNull HttpResponse.BodyHandler<String> createResponse() {
+  private  HttpResponse.BodyHandler<String> createResponse() {
     return HttpResponse.BodyHandlers.ofString();
   }
 }

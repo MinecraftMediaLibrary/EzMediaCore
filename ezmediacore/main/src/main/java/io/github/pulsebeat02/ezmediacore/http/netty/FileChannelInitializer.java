@@ -30,8 +30,8 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.stream.ChunkedWriteHandler;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 import java.nio.file.Path;
 
@@ -44,9 +44,9 @@ public final class FileChannelInitializer extends ChannelInitializer<Channel> {
   private final int port;
 
   public FileChannelInitializer(
-      @NotNull final Path directory,
-      @Nullable final SslContext context,
-      @NotNull final String ip,
+       final Path directory,
+       final SslContext context,
+       final String ip,
       final int port) {
     this.directory = directory;
     this.context = context;
@@ -56,7 +56,7 @@ public final class FileChannelInitializer extends ChannelInitializer<Channel> {
   }
 
   @Override
-  protected void initChannel(@NotNull final Channel ch) {
+  protected void initChannel( final Channel ch) {
 
     final ChannelPipeline pipeline = ch.pipeline();
     if (this.sslEnabled) {

@@ -35,7 +35,7 @@ import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class SimpleDither extends ForeignDitherAlgorithm {
 
@@ -48,8 +48,8 @@ public final class SimpleDither extends ForeignDitherAlgorithm {
   }
 
   @Override
-  public @NotNull BufferCarrier standardMinecraftDither(
-      final int @NotNull [] buffer, final int width) {
+  public  BufferCarrier standardMinecraftDither(
+      final int  [] buffer, final int width) {
     final int length = buffer.length;
     final int height = length / width;
     final ByteBuf data = Unpooled.buffer(length);
@@ -67,7 +67,7 @@ public final class SimpleDither extends ForeignDitherAlgorithm {
   }
 
   @Override
-  public void dither(final int @NotNull [] buffer, final int width) {
+  public void dither(final int  [] buffer, final int width) {
     final int height = buffer.length / width;
     for (int y = 0; y < height; y++) {
       final int yIndex = y * width;
@@ -83,8 +83,8 @@ public final class SimpleDither extends ForeignDitherAlgorithm {
   }
 
   @Override
-  public @NotNull BufferCarrier ditherIntoMinecraftNatively(
-      final int @NotNull [] buffer, final int width) {
+  public  BufferCarrier ditherIntoMinecraftNatively(
+      final int  [] buffer, final int width) {
     final DitherLibC library = requireNonNull(DitherLibC.INSTANCE);
     final Pointer pointer = library.simpleDither(FULL_COLOR_MAP, COLOR_MAP, buffer, width);
     final byte[] array = pointer.getByteArray(0L, buffer.length);

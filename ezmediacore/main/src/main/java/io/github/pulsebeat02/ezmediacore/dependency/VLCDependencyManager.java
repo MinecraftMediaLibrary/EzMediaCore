@@ -24,16 +24,16 @@
 package io.github.pulsebeat02.ezmediacore.dependency;
 
 import io.github.pulsebeat02.emcinstallers.implementation.vlc.search.EnhancedNativeDiscovery;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
-import org.jetbrains.annotations.NotNull;
+
 
 import java.io.IOException;
 import java.nio.file.Path;
 
 public final class VLCDependencyManager extends LibraryDependency {
 
-  public VLCDependencyManager(@NotNull final MediaLibraryCore core) throws IOException {
+  public VLCDependencyManager( final EzMediaCore core) throws IOException {
     super(core);
   }
 
@@ -48,8 +48,8 @@ public final class VLCDependencyManager extends LibraryDependency {
   }
 
   @Override
-  public void onInstallation(@NotNull final Path path) {
-    final MediaLibraryCore core = this.getCore();
+  public void onInstallation( final Path path) {
+    final EzMediaCore core = this.getCore();
     core.setVLCStatus(true);
     core.setVlcPath(path);
     core.getLogger().info(Locale.BINARY_PATHS.build("VLC", path));

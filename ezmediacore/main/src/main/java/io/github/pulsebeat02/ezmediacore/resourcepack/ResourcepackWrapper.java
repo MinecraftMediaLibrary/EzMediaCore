@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.resourcepack;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.gson.JsonObject;
-import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
+import rewrite.json.GsonProvider;
 import io.github.pulsebeat02.ezmediacore.throwable.IllegalPackFormatException;
 import io.github.pulsebeat02.ezmediacore.throwable.IllegalPackResourceException;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
@@ -39,9 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
 
 public class ResourcepackWrapper implements PackWrapper {
 
@@ -52,10 +50,10 @@ public class ResourcepackWrapper implements PackWrapper {
   private final Path icon;
 
   ResourcepackWrapper(
-      @NotNull final Path path,
-      @NotNull final String description,
+       final Path path,
+       final String description,
       final int format,
-      @Nullable final Path icon) {
+       final Path icon) {
     checkNotNull(path, "Path cannot be null!");
     checkNotNull(description, "Description cannot be null!");
     this.files = new HashMap<>();
@@ -66,30 +64,17 @@ public class ResourcepackWrapper implements PackWrapper {
     this.validatePack();
   }
 
-  @Contract("_, _, _ -> new")
-  public static @NotNull ResourcepackWrapper ofPack(
-      @NotNull final Path path, @NotNull final String description, final int format) {
+  public static  ResourcepackWrapper ofPack(
+       final Path path,  final String description, final int format) {
     return ofPack(path, description, format, null);
   }
 
-  @Contract("_, _, _, _ -> new")
-  public static @NotNull ResourcepackWrapper ofPack(
-      @NotNull final Path path,
-      @NotNull final String description,
-      final int format,
-      @Nullable final Path icon) {
+  public static  ResourcepackWrapper ofPack(
+       final Path path,
+       final String description,
+       final int format,
+       final Path icon) {
     return new ResourcepackWrapper(path, description, format, icon);
-  }
-
-  private void validatePack() {
-
-    if (!this.validPackExtension()) {
-      throw new IllegalPackFormatException(this.format);
-    }
-
-    if (this.checkIcon()) {
-      throw new IllegalPackResourceException("Invalid PNG pack icon");
-    }
   }
 
   private boolean checkIcon() {
@@ -124,7 +109,7 @@ public class ResourcepackWrapper implements PackWrapper {
     }
   }
 
-  private void writeFiles(@NotNull final ZipOutputStream out) throws IOException {
+  private void writeFiles( final ZipOutputStream out) throws IOException {
     for (final Map.Entry<String, byte[]> entry : this.files.entrySet()) {
       out.putNextEntry(new ZipEntry(entry.getKey()));
       out.write(entry.getValue());
@@ -139,42 +124,42 @@ public class ResourcepackWrapper implements PackWrapper {
   public void onPackFinishWrap() {}
 
   @Override
-  public void addFile(@NotNull final String path, @NotNull final Path file) throws IOException {
+  public void addFile( final String path,  final Path file) throws IOException {
     this.files.put(path, Files.readAllBytes(file));
   }
 
   @Override
-  public void addFile(@NotNull final String path, final byte[] file) {
+  public void addFile( final String path, final byte[] file) {
     this.files.put(path, file);
   }
 
   @Override
-  public void removeFile(@NotNull final String path) {
+  public void removeFile( final String path) {
     this.files.remove(path);
   }
 
   @Override
-  public @NotNull Map<String, byte[]> listFiles() {
+  public  Map<String, byte[]> listFiles() {
     return this.files;
   }
 
   @Override
-  public @NotNull Path getResourcepackFilePath() {
+  public  Path getResourcepackFilePath() {
     return this.path;
   }
 
   @Override
-  public @NotNull Path getIconPath() {
+  public  Path getIconPath() {
     return this.icon;
   }
 
   @Override
-  public @NotNull String getDescription() {
+  public  String getDescription() {
     return this.description;
   }
 
   @Override
-  public @NotNull String getPackMcmeta() {
+  public  String getPackMcmeta() {
 
     final JsonObject mcmeta = new JsonObject();
     final JsonObject pack = new JsonObject();

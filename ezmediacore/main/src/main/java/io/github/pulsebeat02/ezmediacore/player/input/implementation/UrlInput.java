@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Objects;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class UrlInput implements Input {
 
@@ -42,7 +42,7 @@ public final class UrlInput implements Input {
 
   private final URL url;
 
-  UrlInput(@NotNull final String url) {
+  UrlInput( final String url) {
     checkNotNull(url, "URL specified cannot be null!");
     try {
       this.url = new URL(url);
@@ -53,16 +53,16 @@ public final class UrlInput implements Input {
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull Input ofUrl(@NotNull final String url) {
+  public static  Input ofUrl( final String url) {
     return new UrlInput(url);
   }
 
-  public static @NotNull Input emptyUrl() {
+  public static  Input emptyUrl() {
     return EMPTY_URL;
   }
 
   @Override
-  public @NotNull String getInput() {
+  public  String getInput() {
     return this.url.toString();
   }
 
@@ -71,7 +71,7 @@ public final class UrlInput implements Input {
 
   @Contract(pure = true)
   @Override
-  public @NotNull String toString() {
+  public  String toString() {
     return "{url=%s}".formatted(this.url);
   }
 

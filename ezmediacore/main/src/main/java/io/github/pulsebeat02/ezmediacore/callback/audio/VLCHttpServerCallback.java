@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.audio;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.player.external.VLCMediaPlayer;
@@ -31,7 +31,7 @@ import io.github.pulsebeat02.ezmediacore.player.output.vlc.VLCFrameOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.vlc.VLCStandardOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.vlc.sout.VLCTranscoderOutput;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 import java.util.Map;
 
@@ -43,18 +43,18 @@ import java.util.Map;
 public final class VLCHttpServerCallback extends ServerCallback {
 
   VLCHttpServerCallback(
-      @NotNull final MediaLibraryCore core, @NotNull final String host, final int port) {
+       final EzMediaCore core,  final String host, final int port) {
     super(core, host, port);
   }
 
   @Override
   public void preparePlayerStateChange(
-      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
+       final VideoPlayer player,  final PlayerControls status) {
     this.createStream(player, status);
   }
 
   private void createStream(
-      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
+       final VideoPlayer player,  final PlayerControls status) {
     if (status == PlayerControls.START || status == PlayerControls.RESUME) {
       final VLCMediaPlayer vlc = (VLCMediaPlayer) player;
       final VLCFrameOutput output = (VLCFrameOutput) vlc.getOutput();
@@ -63,7 +63,7 @@ public final class VLCHttpServerCallback extends ServerCallback {
     }
   }
 
-  private @NotNull VLCTranscoderOutput getTranscoderOutput() {
+  private  VLCTranscoderOutput getTranscoderOutput() {
     final VLCTranscoderOutput output = VLCTranscoderOutput.ofOutput();
     Map.of(
             VLCTranscoderOutput.VCODEC, "x264",
@@ -73,7 +73,7 @@ public final class VLCHttpServerCallback extends ServerCallback {
     return output;
   }
 
-  private @NotNull VLCStandardOutput getStandardOutput() {
+  private  VLCStandardOutput getStandardOutput() {
     final VLCStandardOutput output = VLCStandardOutput.ofSection("http");
     final String host = this.getHost();
     final int port = this.getPort();
@@ -83,27 +83,27 @@ public final class VLCHttpServerCallback extends ServerCallback {
   }
 
   @Override
-  public void process(final byte @NotNull [] data) {}
+  public void process(final byte  [] data) {}
 
   public static final class Builder extends ServerCallback.Builder {
 
     @Contract("_ -> this")
     @Override
-    public @NotNull Builder host(@NotNull final String host) {
+    public  Builder host( final String host) {
       super.host(host);
       return this;
     }
 
     @Contract("_ -> this")
     @Override
-    public @NotNull Builder port(final int port) {
+    public  Builder port(final int port) {
       super.port(port);
       return this;
     }
 
     @Contract("_ -> new")
     @Override
-    public @NotNull AudioOutput build(@NotNull final MediaLibraryCore core) {
+    public  AudioOutput build( final EzMediaCore core) {
       final String host = this.getHost();
       final int port = this.getPort();
       return new VLCHttpServerCallback(core, host, port);

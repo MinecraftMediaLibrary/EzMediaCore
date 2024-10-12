@@ -30,12 +30,12 @@ import com.github.kiulian.downloader.downloader.response.Response;
 import com.github.kiulian.downloader.model.videos.VideoDetails;
 import com.github.kiulian.downloader.model.videos.VideoInfo;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
-import io.github.pulsebeat02.ezmediacore.utility.media.ResponseUtils;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public class YoutubeVideo implements Video {
 
@@ -46,7 +46,7 @@ public class YoutubeVideo implements Video {
   private final List<VideoFormat> videoFormats;
   private final List<AudioFormat> audioFormats;
 
-  YoutubeVideo(@NotNull final String url) {
+  YoutubeVideo( final String url) {
     checkNotNull(url, "URL cannot be null!");
     this.url = url;
     this.id = MediaExtractionUtils.getYoutubeIDExceptionally(url);
@@ -57,23 +57,23 @@ public class YoutubeVideo implements Video {
   }
 
   @Contract("_ -> new")
-  public static @NotNull YoutubeVideo ofYoutubeVideo(@NotNull final String url) {
+  public static  YoutubeVideo ofYoutubeVideo( final String url) {
     return new YoutubeVideo(url);
   }
 
-  private @NotNull List<AudioFormat> getInternalAudioFormats() {
+  private  List<AudioFormat> getInternalAudioFormats() {
     return this.video.audioFormats().stream()
         .map(YoutubeAudioFormat::new)
         .collect(Collectors.toList());
   }
 
-  private @NotNull List<VideoFormat> getInternalVideoFormats() {
+  private  List<VideoFormat> getInternalVideoFormats() {
     return this.video.videoFormats().stream()
         .map(YoutubeVideoFormat::new)
         .collect(Collectors.toList());
   }
 
-  private @NotNull VideoInfo getInternalVideoResponse() {
+  private  VideoInfo getInternalVideoResponse() {
     for (int i = 0; i < 10; i++) {
       final RequestVideoInfo videoInfo = new RequestVideoInfo(this.id);
       final Response<VideoInfo> response =
@@ -88,32 +88,32 @@ public class YoutubeVideo implements Video {
   }
 
   @Override
-  public @NotNull String getUrl() {
+  public  String getUrl() {
     return this.url;
   }
 
   @Override
-  public @NotNull String getId() {
+  public  String getId() {
     return this.details.videoId();
   }
 
   @Override
-  public @NotNull String getLiveUrl() {
+  public  String getLiveUrl() {
     return this.details.liveUrl();
   }
 
   @Override
-  public @NotNull List<String> getKeywords() {
+  public  List<String> getKeywords() {
     return this.details.keywords();
   }
 
   @Override
-  public @NotNull List<VideoFormat> getVideoFormats() {
+  public  List<VideoFormat> getVideoFormats() {
     return this.videoFormats;
   }
 
   @Override
-  public @NotNull List<AudioFormat> getAudioFormats() {
+  public  List<AudioFormat> getAudioFormats() {
     return this.audioFormats;
   }
 
@@ -132,7 +132,7 @@ public class YoutubeVideo implements Video {
     return this.details.isLiveContent();
   }
 
-  @NotNull
+
   VideoInfo getVideoInfo() {
     return this.video;
   }

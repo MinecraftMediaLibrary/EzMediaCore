@@ -1,4 +1,8 @@
+plugins {
+    id("io.papermc.paperweight.userdev") version "1.7.3"
+}
+
 dependencies {
-    compileOnly("org.spigotmc:spigot:1.19.3-R0.1-SNAPSHOT")
-    compileOnly(project(":ezmediacore:api"))
+    compileOnly(project(":ezmediacore:nms-api"))
+    paperweight.paperDevBundle("1.19.4-R0.1-SNAPSHOT")
 }

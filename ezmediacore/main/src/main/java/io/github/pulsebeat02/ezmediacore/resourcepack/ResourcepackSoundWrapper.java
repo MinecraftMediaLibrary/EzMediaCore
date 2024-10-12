@@ -25,15 +25,15 @@ package io.github.pulsebeat02.ezmediacore.resourcepack;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
+import rewrite.json.GsonProvider;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 public class ResourcepackSoundWrapper extends ResourcepackWrapper implements SoundPackWrapper {
 
@@ -44,25 +44,25 @@ public class ResourcepackSoundWrapper extends ResourcepackWrapper implements Sou
   }
 
   ResourcepackSoundWrapper(
-      @NotNull final Path path,
-      @NotNull final String description,
+       final Path path,
+       final String description,
       final int format,
-      @Nullable final Path icon) {
+       final Path icon) {
     super(path, description, format, icon);
   }
 
   @Contract("_, _, _ -> new")
-  public static @NotNull ResourcepackSoundWrapper ofSoundPack(
-      @NotNull final Path path, @NotNull final String description, final int format) {
+  public static  ResourcepackSoundWrapper ofSoundPack(
+       final Path path,  final String description, final int format) {
     return ofSoundPack(path, description, format, null);
   }
 
   @Contract("_, _, _, _ -> new")
-  public static @NotNull ResourcepackSoundWrapper ofSoundPack(
-      @NotNull final Path path,
-      @NotNull final String description,
+  public static  ResourcepackSoundWrapper ofSoundPack(
+       final Path path,
+       final String description,
       final int format,
-      @Nullable final Path icon) {
+       final Path icon) {
     return new ResourcepackSoundWrapper(path, description, format, icon);
   }
 
@@ -79,7 +79,7 @@ public class ResourcepackSoundWrapper extends ResourcepackWrapper implements Sou
     this.addFile("assets/minecraft/sounds.json", this.createSoundJson());
   }
 
-  private void addOgg(@NotNull final String key, @NotNull final Path value) {
+  private void addOgg( final String key,  final Path value) {
     try {
       this.addFile("assets/minecraft/sounds/%s.ogg".formatted(key), value);
     } catch (final IOException e) {
@@ -88,17 +88,17 @@ public class ResourcepackSoundWrapper extends ResourcepackWrapper implements Sou
   }
 
   @Override
-  public void addSound(@NotNull final String key, @NotNull final Path path) {
+  public void addSound( final String key,  final Path path) {
     this.sounds.put(key, path);
   }
 
   @Override
-  public void removeSound(@NotNull final String key) {
+  public void removeSound( final String key) {
     this.sounds.remove(key);
   }
 
   @Override
-  public byte @NotNull [] createSoundJson() {
+  public byte  [] createSoundJson() {
 
     final JsonObject category = new JsonObject();
     final JsonObject type = new JsonObject();
@@ -110,28 +110,28 @@ public class ResourcepackSoundWrapper extends ResourcepackWrapper implements Sou
     return GsonProvider.getPretty().toJson(type).getBytes(StandardCharsets.UTF_8);
   }
 
-  private void addCategory(@NotNull final JsonObject category, @NotNull final JsonArray sounds) {
+  private void addCategory( final JsonObject category,  final JsonArray sounds) {
     category.add("sounds", sounds);
   }
 
   private void addSounds(
-      @NotNull final JsonObject category,
-      @NotNull final JsonObject type,
-      @NotNull final JsonArray sounds) {
+       final JsonObject category,
+       final JsonObject type,
+       final JsonArray sounds) {
     this.sounds.forEach((key, value) -> this.addSound0(category, type, sounds, key));
   }
 
   private void addSound0(
-      @NotNull final JsonObject category,
-      @NotNull final JsonObject type,
-      @NotNull final JsonArray sounds,
-      @NotNull final String key) {
+       final JsonObject category,
+       final JsonObject type,
+       final JsonArray sounds,
+       final String key) {
     sounds.add(key);
     type.add("emc", category);
   }
 
   @Override
-  public @NotNull Map<String, Path> listSounds() {
+  public  Map<String, Path> listSounds() {
     return this.sounds;
   }
 }

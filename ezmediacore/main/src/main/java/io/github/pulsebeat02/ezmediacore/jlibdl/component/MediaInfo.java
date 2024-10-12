@@ -26,8 +26,8 @@ package io.github.pulsebeat02.ezmediacore.jlibdl.component;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 public final class MediaInfo {
 
@@ -167,39 +167,39 @@ public final class MediaInfo {
   @Expose
   private int width;
 
-  public @Nullable String getAcodec() {
+  public  String getAcodec() {
     return this.acodec;
   }
 
-  public @Nullable String getDescription() {
+  public  String getDescription() {
     return this.description;
   }
 
-  public @Nullable String getDisplayId() {
+  public  String getDisplayId() {
     return this.displayId;
   }
 
-  public @Nullable String getExt() {
+  public  String getExt() {
     return this.ext;
   }
 
-  public @NotNull String getExtractor() {
+  public  String getExtractor() {
     return this.extractor;
   }
 
-  public @Nullable String getExtractorKey() {
+  public  String getExtractorKey() {
     return this.extractorKey;
   }
 
-  public @Nullable String getFormat() {
+  public  String getFormat() {
     return this.format;
   }
 
-  public @Nullable String getFormatId() {
+  public  String getFormatId() {
     return this.formatId;
   }
 
-  public @NotNull List<Format> getFormats() {
+  public  List<Format> getFormats() {
     return this.formats;
   }
 
@@ -211,11 +211,11 @@ public final class MediaInfo {
     return this.height;
   }
 
-  public @Nullable MediaHttpHeaders getHttpHeaders() {
+  public  MediaHttpHeaders getHttpHeaders() {
     return this.httpHeaders;
   }
 
-  public @Nullable String getId() {
+  public  String getId() {
     return this.id;
   }
 
@@ -223,27 +223,27 @@ public final class MediaInfo {
     return this.live;
   }
 
-  public @Nullable String getManifestUrl() {
+  public  String getManifestUrl() {
     return this.manifestUrl;
   }
 
-  public @Nullable Object getPlaylist() {
+  public  Object getPlaylist() {
     return this.playlist;
   }
 
-  public @Nullable Object getPlaylistIndex() {
+  public  Object getPlaylistIndex() {
     return this.playlistIndex;
   }
 
-  public @Nullable Object getPreference() {
+  public  Object getPreference() {
     return this.preference;
   }
 
-  public @Nullable String getProtocol() {
+  public  String getProtocol() {
     return this.protocol;
   }
 
-  public @Nullable Object getRequestedSubtitles() {
+  public  Object getRequestedSubtitles() {
     return this.requestedSubtitles;
   }
 
@@ -251,11 +251,11 @@ public final class MediaInfo {
     return this.tbr;
   }
 
-  public @Nullable String getThumbnail() {
+  public  String getThumbnail() {
     return this.thumbnail;
   }
 
-  public @Nullable List<Thumbnail> getThumbnails() {
+  public  List<Thumbnail> getThumbnails() {
     return this.thumbnails;
   }
 
@@ -263,39 +263,39 @@ public final class MediaInfo {
     return this.timestamp;
   }
 
-  public @Nullable String getTitle() {
+  public  String getTitle() {
     return this.title;
   }
 
-  public @Nullable String getUploadDate() {
+  public  String getUploadDate() {
     return this.uploadDate;
   }
 
-  public @Nullable String getUploader() {
+  public  String getUploader() {
     return this.uploader;
   }
 
-  public @Nullable String getUploaderId() {
+  public  String getUploaderId() {
     return this.uploaderId;
   }
 
-  public @Nullable String getUrl() {
+  public  String getUrl() {
     return this.url;
   }
 
-  public @Nullable String getVcodec() {
+  public  String getVcodec() {
     return this.vcodec;
   }
 
-  public @Nullable Object getViewCount() {
+  public  Object getViewCount() {
     return this.viewCount;
   }
 
-  public @Nullable String getWebpageUrl() {
+  public  String getWebpageUrl() {
     return this.webpageUrl;
   }
 
-  public @Nullable String getWebpageUrlBasename() {
+  public  String getWebpageUrlBasename() {
     return this.webpageUrlBasename;
   }
 

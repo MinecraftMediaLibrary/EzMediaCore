@@ -1,8 +1,12 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "config:recommended"
   ],
-  "baseBranches": [
-    "dev"
+  "packageRules": [
+    {
+      "matchDatasources": ["maven"],
+      "versioning": "semver"
+    }
   ]
 }

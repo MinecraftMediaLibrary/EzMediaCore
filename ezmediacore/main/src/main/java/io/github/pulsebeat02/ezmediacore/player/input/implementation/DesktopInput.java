@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.player.input.implementation;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import java.util.Objects;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class DesktopInput implements Input {
 
@@ -47,7 +47,7 @@ public final class DesktopInput implements Input {
   }
 
   @Override
-  public @NotNull String getInput() {
+  public  String getInput() {
     return "desktop";
   }
 
@@ -56,7 +56,7 @@ public final class DesktopInput implements Input {
 
   @Contract(pure = true)
   @Override
-  public @NotNull String toString() {
+  public  String toString() {
     return "{desktop=%s}".formatted(this.getInput());
   }
 

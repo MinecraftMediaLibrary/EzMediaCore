@@ -30,7 +30,7 @@ import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.video.VideoCallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.callback.video.ChatCallback;
 import io.github.pulsebeat02.ezmediacore.callback.video.ChatCallback.Builder;
@@ -60,7 +60,7 @@ public class ChatOutput extends VideoOutput {
   private VideoBuilder createVideoBuilder(
       @NotNull final DeluxeMediaPlugin plugin, @NotNull final ScreenConfig attributes) {
 
-    final MediaLibraryCore core = plugin.library();
+    final EzMediaCore core = plugin.library();
     final ChatCallback.Builder builder = this.createChatBuilder(attributes);
 
     final VideoBuilder videoBuilder = this.getBuilder(attributes);

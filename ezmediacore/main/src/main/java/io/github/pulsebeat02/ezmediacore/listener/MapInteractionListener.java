@@ -25,8 +25,7 @@ package io.github.pulsebeat02.ezmediacore.listener;
 
 import static java.util.Objects.requireNonNull;
 
-import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import org.bukkit.Material;
 import org.bukkit.entity.Hanging;
 import org.bukkit.entity.ItemFrame;
@@ -35,18 +34,18 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
-import org.jetbrains.annotations.NotNull;
+
 
 public record MapInteractionListener(
-    MediaLibraryCore core) implements LibraryInjectable,
+    EzMediaCore core) implements
     Listener {
 
-  public MapInteractionListener(@NotNull final MediaLibraryCore core) {
+  public MapInteractionListener( final EzMediaCore core) {
     this.core = core;
   }
 
   @EventHandler
-  public void onPlayerInteract(@NotNull final HangingBreakByEntityEvent event) {
+  public void onPlayerInteract( final HangingBreakByEntityEvent event) {
 
     final Hanging hanging = event.getEntity();
     if (!this.isItemFrame(hanging)) {
@@ -61,35 +60,35 @@ public record MapInteractionListener(
     this.correctInteraction(event, stack);
   }
 
-  private boolean isFilledMap(@NotNull final ItemStack stack) {
+  private boolean isFilledMap( final ItemStack stack) {
     return stack.getType() == Material.FILLED_MAP;
   }
 
-  private boolean isItemFrame(@NotNull final Hanging hanging) {
+  private boolean isItemFrame( final Hanging hanging) {
     return hanging instanceof ItemFrame;
   }
 
-  private void correctInteraction(@NotNull final HangingBreakByEntityEvent event,
-      @NotNull final ItemStack stack) {
+  private void correctInteraction( final HangingBreakByEntityEvent event,
+       final ItemStack stack) {
     if (this.isMapRegistered(stack)) {
       event.setCancelled(true);
     }
   }
 
-  private boolean isMapRegistered(@NotNull final ItemStack stack) {
+  private boolean isMapRegistered( final ItemStack stack) {
     return this.core
         .getHandler()
         .isMapRegistered(this.getMapID(stack));
   }
 
-  private int getMapID(@NotNull final ItemStack stack) {
+  private int getMapID( final ItemStack stack) {
     //noinspection deprecation
     return ((MapMeta) requireNonNull(stack.getItemMeta())).getMapId();
   }
 
   @Override
-  public @NotNull
-  MediaLibraryCore getCore() {
+  public
+  EzMediaCore getCore() {
     return this.core;
   }
 }

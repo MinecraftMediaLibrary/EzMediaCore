@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.player;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioCallback;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
@@ -43,12 +43,12 @@ import io.github.pulsebeat02.ezmediacore.player.output.PlayerOutput;
 import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 import java.util.Arrays;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 public abstract class MediaPlayer implements VideoPlayer {
 
-  private final MediaLibraryCore core;
+  private final EzMediaCore core;
   private final Dimension dimensions;
   private final InputParser parser;
   private final VideoCallback video;
@@ -60,11 +60,11 @@ public abstract class MediaPlayer implements VideoPlayer {
   private PlayerControls controls;
 
   public MediaPlayer(
-      @NotNull final VideoCallback video,
-      @NotNull final AudioSource audio,
-      @NotNull final Viewers viewers,
-      @NotNull final Dimension pixelDimension,
-      @NotNull final InputParser parser) {
+       final VideoCallback video,
+       final AudioSource audio,
+       final Viewers viewers,
+       final Dimension pixelDimension,
+       final InputParser parser) {
     checkNotNull(video, "Video callback cannot be null!");
     checkNotNull(video, "Audio callback cannot be null!");
     checkNotNull(viewers, "Viewers cannot be null!");
@@ -78,17 +78,17 @@ public abstract class MediaPlayer implements VideoPlayer {
   }
 
   @Override
-  public @NotNull VideoCallback getVideoCallback() {
+  public  VideoCallback getVideoCallback() {
     return this.video;
   }
 
   @Override
-  public @NotNull PlayerControls getPlayerState() {
+  public  PlayerControls getPlayerState() {
     return this.controls;
   }
 
   @Override
-  public void start(@NotNull final Input mrl, @NotNull final Object... arguments) {
+  public void start( final Input mrl,  final Object... arguments) {
     checkNotNull(mrl, "MRL cannot be null!");
     final MediaRequest request = RequestUtils.requestMediaInformation(mrl);
     final Format video = request.getVideoLinks().get(0);
@@ -128,59 +128,59 @@ public abstract class MediaPlayer implements VideoPlayer {
 
   @Override
   public void onPlayerStateChange(
-      @Nullable final Input mrl,
-      @NotNull final PlayerControls controls,
-      @NotNull final Object... arguments) {
+       final Input mrl,
+       final PlayerControls controls,
+       final Object... arguments) {
     this.video.preparePlayerStateChange(this, controls);
     this.audio.preparePlayerStateChange(this, controls);
   }
 
   @Override
-  public @NotNull Dimension getDimensions() {
+  public  Dimension getDimensions() {
     return this.dimensions;
   }
 
   @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public  EzMediaCore getCore() {
     return this.core;
   }
 
   @Override
-  public @NotNull Viewers getWatchers() {
+  public  Viewers getWatchers() {
     return this.viewers;
   }
 
   @Override
-  public @NotNull AudioSource getAudioCallback() {
+  public  AudioSource getAudioCallback() {
     return this.audio;
   }
 
   @Override
-  public void setViewers(@NotNull final Viewers viewers) {
+  public void setViewers( final Viewers viewers) {
     this.viewers = viewers;
   }
 
   @Override
-  public @NotNull PlayerInput getInput() {
+  public  PlayerInput getInput() {
     return this.input;
   }
 
   @Override
-  public void setInput(@NotNull final PlayerInput input) {
+  public void setInput( final PlayerInput input) {
     this.input = input;
   }
 
   @Override
-  public @NotNull PlayerOutput getOutput() {
+  public  PlayerOutput getOutput() {
     return this.output;
   }
 
   @Override
-  public void setOutput(@NotNull final PlayerOutput output) {
+  public void setOutput( final PlayerOutput output) {
     this.output = output;
   }
 
-  public @NotNull InputParser getInputParser() {
+  public  InputParser getInputParser() {
     return this.parser;
   }
 }

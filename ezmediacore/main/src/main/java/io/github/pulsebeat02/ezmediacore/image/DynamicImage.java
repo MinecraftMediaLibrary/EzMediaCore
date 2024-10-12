@@ -23,10 +23,10 @@
  */
 package io.github.pulsebeat02.ezmediacore.image;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.GifDecoder;
-import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -36,7 +36,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.jetbrains.annotations.NotNull;
+
 
 public class DynamicImage extends Image
     implements io.github.pulsebeat02.ezmediacore.image.GifImage {
@@ -53,10 +53,10 @@ public class DynamicImage extends Image
   private int frame;
 
   public DynamicImage(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Path image,
-      @NotNull final List<Integer> maps,
-      @NotNull final Dimension dimension)
+       final EzMediaCore core,
+       final Path image,
+       final List<Integer> maps,
+       final Dimension dimension)
       throws IOException {
     super(core, image, maps, dimension);
     this.image = GifDecoder.read(new FileInputStream(image.toFile()));

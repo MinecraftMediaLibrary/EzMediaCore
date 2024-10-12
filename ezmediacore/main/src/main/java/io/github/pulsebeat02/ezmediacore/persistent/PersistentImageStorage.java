@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.persistent;
 
 import com.google.common.reflect.TypeToken;
 import io.github.pulsebeat02.ezmediacore.image.Image;
-import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
+import rewrite.json.GsonProvider;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -34,41 +34,41 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
+
 
 public class PersistentImageStorage extends PersistentObject<Image> {
 
-  public PersistentImageStorage(@NotNull final Path path) {
+  public PersistentImageStorage( final Path path) {
     super(path);
   }
 
   @Override
-  public void serialize(@NotNull final Collection<Image> list) throws IOException {
+  public void serialize( final Collection<Image> list) throws IOException {
     super.serialize(list);
     this.serializeWriter(list);
   }
 
-  private void serializeWriter(@NotNull final Collection<Image> list) throws IOException {
+  private void serializeWriter( final Collection<Image> list) throws IOException {
     try (final BufferedWriter writer = this.createWriter()) {
       this.write(list, writer);
     }
   }
 
-  private @NotNull BufferedWriter createWriter() throws IOException {
+  private  BufferedWriter createWriter() throws IOException {
     return Files.newBufferedWriter(this.getStorageFile());
   }
 
-  private void write(@NotNull final Collection<Image> list, @NotNull final BufferedWriter writer) {
+  private void write( final Collection<Image> list,  final BufferedWriter writer) {
     GsonProvider.getPretty().toJson(list, writer);
   }
 
   @Override
-  public @NotNull List<Image> deserialize() throws IOException {
+  public  List<Image> deserialize() throws IOException {
     super.deserialize();
     return this.deserializeReader();
   }
 
-  @NotNull
+  
   private List<Image> deserializeReader() throws IOException {
     try (final BufferedReader reader = this.createReader()) {
       final List<Image> images = this.read(reader);
@@ -76,11 +76,11 @@ public class PersistentImageStorage extends PersistentObject<Image> {
     }
   }
 
-  private @NotNull BufferedReader createReader() throws IOException {
+  private  BufferedReader createReader() throws IOException {
     return Files.newBufferedReader(this.getStorageFile());
   }
 
-  private List<Image> read(@NotNull final BufferedReader reader) {
+  private List<Image> read( final BufferedReader reader) {
     return GsonProvider.getSimple().fromJson(reader, new TypeToken<List<Image>>() {}.getType());
   }
 }

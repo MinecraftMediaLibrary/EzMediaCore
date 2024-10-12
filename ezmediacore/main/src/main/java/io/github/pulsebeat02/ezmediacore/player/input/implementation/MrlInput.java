@@ -30,7 +30,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class MrlInput implements Input {
 
@@ -42,32 +42,32 @@ public final class MrlInput implements Input {
 
   private final String mrl;
 
-  MrlInput(@NotNull final String mrl) {
+  MrlInput( final String mrl) {
     checkNotNull(mrl, "MRL specified cannot be null!");
     this.mrl = mrl;
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull Input ofMrl(@NotNull final String mrl) {
+  public static  Input ofMrl( final String mrl) {
     return new MrlInput(mrl);
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull Input ofMrl(@NotNull final Path path) {
+  public static  Input ofMrl( final Path path) {
     return ofMrl(path.toString());
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull Input ofMrl(@NotNull final File path) {
+  public static  Input ofMrl( final File path) {
     return ofMrl(path.getPath());
   }
 
-  public static @NotNull Input emptyMrl() {
+  public static  Input emptyMrl() {
     return EMPTY_MRL;
   }
 
   @Override
-  public @NotNull String getInput() {
+  public  String getInput() {
     return this.mrl;
   }
 
@@ -76,7 +76,7 @@ public final class MrlInput implements Input {
 
   @Contract(pure = true)
   @Override
-  public @NotNull String toString() {
+  public  String toString() {
     return "{mrl=%s}".formatted(this.mrl);
   }
 

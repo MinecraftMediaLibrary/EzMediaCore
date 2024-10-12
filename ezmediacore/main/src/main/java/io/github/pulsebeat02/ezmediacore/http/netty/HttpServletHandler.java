@@ -46,7 +46,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_0;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import static java.util.function.Predicate.not;
 
-import io.github.pulsebeat02.ezmediacore.utility.http.HttpUtils;
+import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
@@ -62,8 +62,6 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.CharsetUtil;
 import java.io.IOException;
@@ -84,19 +82,36 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.TimeZone;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
   public static final DateFormat HTTP_DATE_FORMAT;
   public static final int HTTP_CACHE_SECONDS;
+  private static final Pattern INSECURE_URI;
+  private static final Pattern VALID_FILE_NAME;
+  public static final String BASE_FOLDER_HTML_CONTENT;
+  public static final String FILE_HTML_CONTENT;
+  public static final String HTML_BODY;
 
   static {
+    VALID_FILE_NAME = Pattern.compile("[^-._]?[^<>&\"]*");
     HTTP_DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
     HTTP_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
     HTTP_CACHE_SECONDS = 60;
+    INSECURE_URI = Pattern.compile(".*[<>&\"].*");
+    BASE_FOLDER_HTML_CONTENT =
+            """
+                    <!DOCTYPE html>\r
+                    <html><head><meta charset='utf-8' /><title>Listing of: %s</title></head><body>\r
+                    <h3>Listing of: %s</h3>\r
+                    <ul><li><a href="../">..</a></li>\r
+                    """;
+    FILE_HTML_CONTENT = "<li><a href=\"%s\">%s</a></li>\r\n";
+    HTML_BODY = "</ul></body></html>\r\n";
   }
 
   private final Path directory;
@@ -104,14 +119,27 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
 
   private FullHttpRequest request;
 
-  public HttpServletHandler(@NotNull final Path directory, @NotNull final String ip) {
+  public HttpServletHandler( final Path directory,  final String ip) {
     this.directory = directory;
     this.ip = ip;
   }
 
+  public static boolean isValidFileName( final Path path) {
+    return VALID_FILE_NAME.matcher(PathUtils.getName(path)).matches();
+  }
+
+  public static String createBaseHtmlContent( final Path directory) {
+    return BASE_FOLDER_HTML_CONTENT.formatted(directory, directory);
+  }
+
+  public static String createFileHtmlContent(  final Path parent,  final Path file) {
+    final Path relative = parent.relativize(file);
+    return FILE_HTML_CONTENT.formatted(relative, relative);
+  }
+
   @Override
   public void channelRead0(
-      @NotNull final ChannelHandlerContext ctx, @NotNull final FullHttpRequest request)
+       final ChannelHandlerContext ctx,  final FullHttpRequest request)
       throws Exception {
 
     this.request = request;
@@ -160,9 +188,9 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
   }
 
   private boolean isModifiedFile(
-      @NotNull final ChannelHandlerContext ctx,
-      @NotNull final FullHttpRequest request,
-      @NotNull final Path file)
+       final ChannelHandlerContext ctx,
+       final FullHttpRequest request,
+       final Path file)
       throws ParseException, IOException {
     final String since = request.headers().get(IF_MODIFIED_SINCE);
     if (since != null && !since.isEmpty()) {
@@ -178,7 +206,7 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
   }
 
   private void handleFileTransfer(
-      @NotNull final ChannelHandlerContext ctx, @NotNull final RandomAccessFile raf)
+       final ChannelHandlerContext ctx,  final RandomAccessFile raf)
       throws IOException {
     final boolean keepAlive = HttpUtil.isKeepAlive(this.request);
     final long size = raf.length();
@@ -189,14 +217,14 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
   }
 
   private ChannelFuture getFileContentHandler(
-      @NotNull final ChannelHandlerContext ctx, final RandomAccessFile raf, final long size)
+       final ChannelHandlerContext ctx, final RandomAccessFile raf, final long size)
       throws IOException {
     return this.getFileChunkFuture(ctx, raf, size);
   }
 
   private ChannelFuture getFileChunkFuture(
-      @NotNull final ChannelHandlerContext ctx,
-      @NotNull final RandomAccessFile raf,
+       final ChannelHandlerContext ctx,
+       final RandomAccessFile raf,
       final long size)
       throws IOException {
     final ChannelFuture lastContentFuture;
@@ -206,7 +234,7 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
     return lastContentFuture;
   }
 
-  private boolean isInvalidFile(@NotNull final ChannelHandlerContext ctx, final Path file) {
+  private boolean isInvalidFile( final ChannelHandlerContext ctx, final Path file) {
     if (!Files.isRegularFile(file)) {
       this.sendError(ctx, FORBIDDEN);
       return true;
@@ -215,7 +243,7 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
   }
 
   private boolean isDirectory(
-      @NotNull final ChannelHandlerContext ctx, final String uri, final Path file)
+       final ChannelHandlerContext ctx, final String uri, final Path file)
       throws IOException {
     if (Files.isDirectory(file)) {
       if (uri.endsWith("/")) {
@@ -228,7 +256,7 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
     return false;
   }
 
-  private boolean isForbiddenFile(@NotNull final ChannelHandlerContext ctx, final Path file)
+  private boolean isForbiddenFile( final ChannelHandlerContext ctx, final Path file)
       throws IOException {
     if (Files.notExists(file) || Files.isHidden(file)) {
       this.sendError(ctx, NOT_FOUND);
@@ -237,7 +265,7 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
     return false;
   }
 
-  private boolean isInvalidPath(@NotNull final ChannelHandlerContext ctx, final String path) {
+  private boolean isInvalidPath( final ChannelHandlerContext ctx, final String path) {
     if (path == null) {
       this.sendError(ctx, FORBIDDEN);
       return true;
@@ -246,7 +274,7 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
   }
 
   private boolean isInvalidRequest(
-      @NotNull final ChannelHandlerContext ctx, @NotNull final FullHttpRequest request) {
+       final ChannelHandlerContext ctx,  final FullHttpRequest request) {
     if (!GET.equals(request.method())) {
       this.sendError(ctx, METHOD_NOT_ALLOWED);
       return true;
@@ -255,7 +283,7 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
   }
 
   private boolean isBadResult(
-      @NotNull final ChannelHandlerContext ctx, @NotNull final FullHttpRequest request) {
+       final ChannelHandlerContext ctx,  final FullHttpRequest request) {
     if (!request.decoderResult().isSuccess()) {
       this.sendError(ctx, BAD_REQUEST);
       return true;
@@ -264,20 +292,20 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
   }
 
   private void writeHttpResponse(
-      @NotNull final ChannelHandlerContext ctx, @NotNull final HttpResponse response) {
+       final ChannelHandlerContext ctx,  final HttpResponse response) {
     ctx.write(response);
   }
 
   @Override
   public void exceptionCaught(
-      @NotNull final ChannelHandlerContext ctx, @NotNull final Throwable cause) {
+       final ChannelHandlerContext ctx,  final Throwable cause) {
     cause.printStackTrace();
     if (ctx.channel().isActive()) {
       this.sendError(ctx, INTERNAL_SERVER_ERROR);
     }
   }
 
-  private @Nullable String sanitizeUri(@NotNull final String uri) {
+  private  String sanitizeUri( final String uri) {
 
     final String url = URLDecoder.decode(uri, StandardCharsets.UTF_8);
     if (url.isEmpty() || url.charAt(0) != '/') {
@@ -293,7 +321,15 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
     return this.directory.resolve(resolve).toString();
   }
 
-  private void sendListing(@NotNull final ChannelHandlerContext ctx, @NotNull final Path dir)
+  public static boolean checkTreeAttack( final String result) {
+    return result.contains("/.")
+            || result.contains("./")
+            || result.charAt(0) == '.'
+            || result.charAt(result.length() - 1) == '.'
+            || INSECURE_URI.matcher(result).matches();
+  }
+
+  private void sendListing( final ChannelHandlerContext ctx,  final Path dir)
       throws IOException {
     final StringBuilder buf = new StringBuilder(HttpUtils.createBaseHtmlContent(dir));
     this.appendFullFileList(buf, dir);
@@ -304,11 +340,11 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
     this.sendAndCleanupConnection(ctx, response);
   }
 
-  private void appendHtmlBody(@NotNull final StringBuilder buf) {
+  private void appendHtmlBody( final StringBuilder buf) {
     buf.append(HttpUtils.HTML_BODY);
   }
 
-  private void appendFullFileList(@NotNull final StringBuilder buf, @NotNull final Path dir)
+  private void appendFullFileList( final StringBuilder buf,  final Path dir)
       throws IOException {
     try (final Stream<Path> files = Files.walk(dir, 1)) {
       final List<Path> valid = files.filter(not(path -> path.equals(dir))).toList();
@@ -318,7 +354,7 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
     }
   }
 
-  private void appendFileListing(@NotNull final StringBuilder buf, @NotNull final Path path)
+  private void appendFileListing( final StringBuilder buf,  final Path path)
       throws IOException {
 
     if (Files.isHidden(path)) {
@@ -336,20 +372,20 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
     buf.append(HttpUtils.createFileHtmlContent(this.directory, path));
   }
 
-  @NotNull
+
   private ByteBuf createContentBuffer(
-      @NotNull final ChannelHandlerContext ctx, @NotNull final StringBuilder buf) {
+       final ChannelHandlerContext ctx,  final StringBuilder buf) {
     final ByteBuf buffer = ctx.alloc().buffer(buf.length());
     buffer.writeCharSequence(buf.toString(), CharsetUtil.UTF_8);
     return buffer;
   }
 
-  private void setHtmlHeader(@NotNull final HttpResponse response) {
+  private void setHtmlHeader( final HttpResponse response) {
     response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
   }
 
   private void sendRedirect(
-      @NotNull final ChannelHandlerContext ctx, @NotNull final String newUri) {
+       final ChannelHandlerContext ctx,  final String newUri) {
     final ByteBuf buffer = Unpooled.EMPTY_BUFFER;
     final FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, FOUND, buffer);
     response.headers().set(HttpHeaderNames.LOCATION, newUri);
@@ -357,7 +393,7 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
   }
 
   private void sendError(
-      @NotNull final ChannelHandlerContext ctx, @NotNull final HttpResponseStatus status) {
+       final ChannelHandlerContext ctx,  final HttpResponseStatus status) {
     final String message = "Failure: %s\r\n".formatted(status);
     final ByteBuf buf = Unpooled.copiedBuffer(message, CharsetUtil.UTF_8);
     final FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status, buf);
@@ -365,7 +401,7 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
     this.sendAndCleanupConnection(ctx, response);
   }
 
-  private void sendNotModified(@NotNull final ChannelHandlerContext ctx) {
+  private void sendNotModified( final ChannelHandlerContext ctx) {
     final ByteBuf buffer = Unpooled.EMPTY_BUFFER;
     final FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, NOT_MODIFIED, buffer);
     this.setDateHeader(response);
@@ -373,14 +409,14 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
   }
 
   private void sendAndCleanupConnection(
-      @NotNull final ChannelHandlerContext ctx, @NotNull final FullHttpResponse response) {
+       final ChannelHandlerContext ctx,  final FullHttpResponse response) {
     this.setContentLengthHeader(response, response.content().readableBytes());
     this.setConnectionStatus(response);
     this.flushConnection(ctx, response);
   }
 
   private void flushConnection(
-      @NotNull final ChannelHandlerContext ctx, @NotNull final HttpResponse response) {
+       final ChannelHandlerContext ctx,  final HttpResponse response) {
     final ChannelFuture flushPromise = ctx.writeAndFlush(response);
     final boolean keepAlive = HttpUtil.isKeepAlive(this.request);
     if (!keepAlive) {
@@ -388,7 +424,7 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
     }
   }
 
-  private void setConnectionStatus(@NotNull final HttpResponse response) {
+  private void setConnectionStatus( final HttpResponse response) {
     final FullHttpRequest request = this.request;
     final boolean keepAlive = HttpUtil.isKeepAlive(request);
     if (!keepAlive) {
@@ -398,17 +434,17 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
     }
   }
 
-  private void setContentLengthHeader(@NotNull final HttpResponse response, final long length) {
+  private void setContentLengthHeader( final HttpResponse response, final long length) {
     response.headers().set(CONTENT_LENGTH, length);
   }
 
-  private void setDateHeader(@NotNull final HttpResponse response) {
+  private void setDateHeader( final HttpResponse response) {
     final String date = HTTP_DATE_FORMAT.format(new GregorianCalendar().getTime());
     response.headers().set(DATE, date);
   }
 
   private void setDateAndCacheHeaders(
-      @NotNull final HttpResponse response, @NotNull final Path path) throws IOException {
+       final HttpResponse response,  final Path path) throws IOException {
     final Calendar calendar = new GregorianCalendar();
     this.addDate(response, calendar);
     calendar.add(Calendar.SECOND, HTTP_CACHE_SECONDS);
@@ -416,26 +452,26 @@ public final class HttpServletHandler extends SimpleChannelInboundHandler<FullHt
     this.addModifiedDate(response, path);
   }
 
-  private void addDate(@NotNull final HttpResponse response, @NotNull final Calendar calendar) {
+  private void addDate( final HttpResponse response,  final Calendar calendar) {
     final String time = HTTP_DATE_FORMAT.format(calendar.getTime());
     response.headers().set(DATE, time);
   }
 
   private void addCacheExpireDate(
-      @NotNull final HttpResponse response, @NotNull final Calendar calendar) {
+       final HttpResponse response,  final Calendar calendar) {
     final String expire = HTTP_DATE_FORMAT.format(calendar.getTime());
     response.headers().set(EXPIRES, expire);
     response.headers().set(CACHE_CONTROL, "private, max-age=%s".formatted(HTTP_CACHE_SECONDS));
   }
 
-  private void addModifiedDate(@NotNull final HttpResponse response, @NotNull final Path path)
+  private void addModifiedDate( final HttpResponse response,  final Path path)
       throws IOException {
     final Date time = new Date(Files.getLastModifiedTime(path).toMillis());
     final String modified = HTTP_DATE_FORMAT.format(time);
     response.headers().set(LAST_MODIFIED, modified);
   }
 
-  private void setContentTypeHeader(@NotNull final HttpResponse response, @NotNull final Path file)
+  private void setContentTypeHeader( final HttpResponse response,  final Path file)
       throws IOException {
     try (final InputStream is = Files.newInputStream(file)) {
       final String type = URLConnection.guessContentTypeFromStream(is);

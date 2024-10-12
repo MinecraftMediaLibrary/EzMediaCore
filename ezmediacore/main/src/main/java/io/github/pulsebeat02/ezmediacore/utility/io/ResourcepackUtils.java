@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.utility.io;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.listener.ForcefulResourcepackListener;
 import io.github.pulsebeat02.ezmediacore.resourcepack.PackFormat;
 import java.nio.file.Path;
@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class ResourcepackUtils {
 
@@ -43,15 +43,15 @@ public final class ResourcepackUtils {
     return Stream.of(PackFormat.values()).anyMatch(value -> value.getId() == format);
   }
 
-  public static boolean validateResourcepackIcon(@NotNull final Path icon) {
+  public static boolean validateResourcepackIcon( final Path icon) {
     return PathUtils.getName(icon).endsWith(".png");
   }
 
   public static void forceResourcepackLoad(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Collection<? extends Player> players,
-      @NotNull final String url,
-      final byte @NotNull [] hash) {
+       final EzMediaCore core,
+       final Collection<? extends Player> players,
+       final String url,
+      final byte  [] hash) {
     checkArguments(core, url, hash);
     checkNotNull(players, "Specified players cannot be null!");
     new ForcefulResourcepackListener(
@@ -59,10 +59,10 @@ public final class ResourcepackUtils {
   }
 
   private static void checkArguments(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final String url,
-      final byte @NotNull [] hash) {
-    checkNotNull(core, "MediaLibraryCore cannot be null!");
+       final EzMediaCore core,
+       final String url,
+      final byte  [] hash) {
+    checkNotNull(core, "EzMediaCore cannot be null!");
     checkNotNull(url, "Resourcepack URL cannot be null!");
     checkNotNull(hash, "Resourcepack Hash cannot be null!");
   }

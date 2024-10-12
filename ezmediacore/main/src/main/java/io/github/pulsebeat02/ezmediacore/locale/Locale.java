@@ -24,7 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.locale;
 
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 import java.nio.file.Path;
 
@@ -54,7 +54,7 @@ public interface Locale {
       key("ezmediacore.log.plugin")::formatted;
 
   @Contract(pure = true)
-  static @NotNull NullComponent toNullComponent(@NotNull final String key) {
+  static  NullComponent toNullComponent( final String key) {
     return () -> key(key);
   }
 

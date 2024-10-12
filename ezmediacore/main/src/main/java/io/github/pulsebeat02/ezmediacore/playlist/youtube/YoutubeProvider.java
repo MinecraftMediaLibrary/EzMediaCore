@@ -24,8 +24,8 @@
 package io.github.pulsebeat02.ezmediacore.playlist.youtube;
 
 import com.github.kiulian.downloader.YoutubeDownloader;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import org.jetbrains.annotations.NotNull;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+
 
 public final class YoutubeProvider {
 
@@ -37,7 +37,7 @@ public final class YoutubeProvider {
 
   private YoutubeProvider() {}
 
-  public static void init(@NotNull final MediaLibraryCore core) {}
+  public static void init( final EzMediaCore core) {}
 
   static YoutubeDownloader getYoutubeDownloader() {
     return YOUTUBE_DOWNLOADER;

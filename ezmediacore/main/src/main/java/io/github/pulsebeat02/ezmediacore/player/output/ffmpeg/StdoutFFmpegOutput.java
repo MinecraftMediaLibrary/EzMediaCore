@@ -29,7 +29,7 @@ import io.github.pulsebeat02.ezmediacore.player.output.StreamOutput;
 import io.github.pulsebeat02.ezmediacore.utility.misc.ConcatenationUtils;
 import java.util.Map;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -40,30 +40,30 @@ public final class StdoutFFmpegOutput extends FFmpegOutputConfiguration {
   StdoutFFmpegOutput() {}
 
   @Contract(" -> new")
-  public static @NotNull StdoutFFmpegOutput ofOutput() {
+  public static  StdoutFFmpegOutput ofOutput() {
     return new StdoutFFmpegOutput();
   }
 
   @Override
-  public @NotNull StreamOutput getResultingOutput() {
+  public  StreamOutput getResultingOutput() {
     return this.output;
   }
 
   @Override
-  public void setOutput(@NotNull final Object output) {
+  public void setOutput( final Object output) {
     checkArgument(output instanceof StreamOutput);
     this.output = (StreamOutput) output;
   }
 
   @Override
-  public @NotNull String toString() {
+  public  String toString() {
     final Map<String, String> configuration = this.getConfiguration();
     final String raw = "pipe\\:1";
     return ConcatenationUtils.mapOutputString(configuration, raw);
   }
 
   @Override
-  public void setOptionalOutput(@NotNull final OutputHandler<?> handler) {
+  public void setOptionalOutput( final OutputHandler<?> handler) {
     checkArgument(handler instanceof StreamOutput);
     this.output = (StreamOutput) handler;
   }

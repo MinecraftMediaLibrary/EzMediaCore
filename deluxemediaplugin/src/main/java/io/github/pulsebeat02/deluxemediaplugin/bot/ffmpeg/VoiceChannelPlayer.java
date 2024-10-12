@@ -26,8 +26,8 @@ package io.github.pulsebeat02.deluxemediaplugin.bot.ffmpeg;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+
 import java.util.concurrent.TimeUnit;
 import javax.sound.sampled.AudioInputStream;
 import net.dv8tion.jda.api.entities.Guild;
@@ -82,7 +82,7 @@ public final class VoiceChannelPlayer {
 
   @NotNull
   private FFmpegPipedOutput createPipedFFmpegOutput(@NotNull final String input) {
-    final MediaLibraryCore core = this.plugin.library();
+    final EzMediaCore core = this.plugin.library();
     final FFmpegPipedOutput output = new FFmpegPipedOutput(core, input);
     output.executeAsync(FixedExecutors.STREAM_THREAD_EXECUTOR);
     return output;

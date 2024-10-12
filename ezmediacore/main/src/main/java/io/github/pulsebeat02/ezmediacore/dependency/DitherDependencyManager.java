@@ -26,25 +26,20 @@ package io.github.pulsebeat02.ezmediacore.dependency;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.github.pulsebeat02.emcdependencymanagement.component.Repository;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import rewrite.json.GsonProvider;
 import io.github.pulsebeat02.ezmediacore.utility.io.ResourceUtils;
-import io.github.pulsebeat02.nativelibraryloader.NativeLibraryLoader;
-import io.github.pulsebeat02.nativelibraryloader.os.Arch;
-import io.github.pulsebeat02.nativelibraryloader.os.Bits;
-import io.github.pulsebeat02.nativelibraryloader.os.OS;
-import io.github.pulsebeat02.nativelibraryloader.os.Platform;
-import io.github.pulsebeat02.nativelibraryloader.strategy.LibraryLocation;
-import io.github.pulsebeat02.nativelibraryloader.strategy.implementation.NativeResourceLocator;
-import io.github.pulsebeat02.nativelibraryloader.strategy.implementation.ResourceLocator;
+import io.github.pulsebeat02.ezmediacore.nativelibraryloader.NativeLibraryLoader;
+import io.github.pulsebeat02.ezmediacore.nativelibraryloader.os.Platform;
+import io.github.pulsebeat02.ezmediacore.nativelibraryloader.strategy.implementation.NativeResourceLocator;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Set;
 
-import io.github.pulsebeat02.nativelibraryloader.strategy.implementation.UrlResourceNativeLibrary;
-import org.jetbrains.annotations.NotNull;
+import io.github.pulsebeat02.ezmediacore.nativelibraryloader.strategy.implementation.UrlResourceNativeLibrary;
+
 
 public final class DitherDependencyManager extends LibraryDependency {
 
@@ -61,7 +56,7 @@ public final class DitherDependencyManager extends LibraryDependency {
     }
   }
 
-  public DitherDependencyManager(@NotNull final MediaLibraryCore core) throws IOException {
+  public DitherDependencyManager( final EzMediaCore core) throws IOException {
     super(core);
   }
 
@@ -80,5 +75,5 @@ public final class DitherDependencyManager extends LibraryDependency {
   }
 
   @Override
-  public void onInstallation(@NotNull final Path path) {}
+  public void onInstallation( final Path path) {}
 }

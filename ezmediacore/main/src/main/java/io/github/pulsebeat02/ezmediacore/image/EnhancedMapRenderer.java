@@ -33,21 +33,21 @@ import org.bukkit.entity.Player;
 import org.bukkit.map.MapCanvas;
 import org.bukkit.map.MapView;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public class EnhancedMapRenderer implements MapRenderer {
 
   private final MapView[][] maps;
 
   public EnhancedMapRenderer(
-      @NotNull final Dimension dimension, @NotNull final List<Integer> maps) {
+       final Dimension dimension,  final List<Integer> maps) {
     checkNotNull(dimension);
     checkNotNull(maps);
     this.maps = new MapView[dimension.getHeight()][dimension.getWidth()];
     this.fillMaps(maps, dimension);
   }
 
-  private void fillMaps(@NotNull final List<Integer> maps, @NotNull final Dimension dimension) {
+  private void fillMaps( final List<Integer> maps,  final Dimension dimension) {
     final int length = dimension.getHeight();
     final int width = dimension.getWidth();
     int count = 0;
@@ -60,7 +60,7 @@ public class EnhancedMapRenderer implements MapRenderer {
   }
 
   @Override
-  public void drawMap(@NotNull final BufferedImage[][] images) {
+  public void drawMap( final BufferedImage[][] images) {
     for (int i = 0; i < this.maps.length; i++) {
       for (int j = 0; j < this.maps[i].length; j++) {
         final MapView view = this.maps[i][j];
@@ -71,8 +71,8 @@ public class EnhancedMapRenderer implements MapRenderer {
   }
 
   @Contract(value = "_, _, _ -> new", pure = true)
-  private org.bukkit.map.@NotNull MapRenderer createRenderer(
-      @NotNull final BufferedImage[][] images, final int x, final int y) {
+  private org.bukkit.map. MapRenderer createRenderer(
+       final BufferedImage[][] images, final int x, final int y) {
     return new CustomMapRender(images, x, y);
   }
 
@@ -82,7 +82,7 @@ public class EnhancedMapRenderer implements MapRenderer {
     private final int x;
     private final int y;
 
-    CustomMapRender(@NotNull final BufferedImage[][] images, final int x, final int y) {
+    CustomMapRender( final BufferedImage[][] images, final int x, final int y) {
       this.images = images;
       this.x = x;
       this.y = y;
@@ -90,7 +90,7 @@ public class EnhancedMapRenderer implements MapRenderer {
 
     @Override
     public void render(
-        @NotNull final MapView map, @NotNull final MapCanvas canvas, @NotNull final Player player) {
+         final MapView map,  final MapCanvas canvas,  final Player player) {
       canvas.drawImage(0, 0, this.images[this.x][this.y]);
     }
   }

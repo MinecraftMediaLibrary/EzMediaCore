@@ -50,7 +50,7 @@ import static org.bukkit.ChatColor.WHITE;
 import static org.bukkit.ChatColor.YELLOW;
 
 import com.google.common.base.Preconditions;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Identifier;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
@@ -70,7 +70,7 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public class ScoreboardCallback extends FrameCallback implements ScoreboardCallbackDispatcher {
 
@@ -110,12 +110,12 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
   private int id;
 
   ScoreboardCallback(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Viewers viewers,
-      @NotNull final Dimension dimension,
-      @NotNull final NamedStringCharacter character,
-      @NotNull final DelayConfiguration delay,
-      @NotNull final Identifier<Integer> id) {
+       final EzMediaCore core,
+       final Viewers viewers,
+       final Dimension dimension,
+       final NamedStringCharacter character,
+       final DelayConfiguration delay,
+       final Identifier<Integer> id) {
     super(core, viewers, dimension, delay);
     checkArgument(id.getValue() >= 0, "Scoreboard id must be greater than or equal to 0!");
     checkNotNull(character, "Character cannot be null!");
@@ -124,17 +124,17 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
     this.scoreboard = this.setScoreboard();
   }
 
-  private @NotNull Scoreboard setScoreboard() {
+  private  Scoreboard setScoreboard() {
     return requireNonNull(this.getCore().getPlugin().getServer().getScoreboardManager())
         .getNewScoreboard();
   }
 
   @Override
-  public void process(final int @NotNull [] data) {
-    TaskUtils.sync(this.getCore(), this.processRunnable(IntBuffer.wrap(data)));
+  public void process(final int  [] data) {
+    this.getCore().getPlugin().getServer().getScheduler().callSyncMethod(this.getCore().getPlugin(), this.processRunnable(IntBuffer.wrap(data)));
   }
 
-  private @NotNull <T> Callable<T> processRunnable(@NotNull final IntBuffer data) {
+  private  <T> Callable<T> processRunnable( final IntBuffer data) {
     return () -> {
       final long time = System.currentTimeMillis();
       final Viewers viewers = this.getWatchers();
@@ -156,9 +156,9 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
   }
 
   private void displayScoreboard(
-      @NotNull final Viewers viewers,
-      @NotNull final Dimension dimension,
-      @NotNull final IntBuffer data) {
+       final Viewers viewers,
+       final Dimension dimension,
+       final IntBuffer data) {
     final UUID[] watchers = viewers.getViewers();
     final int width = dimension.getWidth();
     final int height = dimension.getHeight();
@@ -170,7 +170,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
   @Override
   @SuppressWarnings("deprecated")
   public void preparePlayerStateChange(
-      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
+       final VideoPlayer player,  final PlayerControls status) {
     super.preparePlayerStateChange(player, status);
     if (status == PlayerControls.START) {
       this.registerScreen();
@@ -184,14 +184,14 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
     }
   }
 
-  private void registerTeam(@NotNull final Objective objective, final int i) {
+  private void registerTeam( final Objective objective, final int i) {
     final Team team = this.scoreboard.registerNewTeam("SLOT_" + i);
     final String entry = COLORS[i].toString();
     team.addEntry(entry);
     objective.getScore(entry).setScore(15 - i);
   }
 
-  private @NotNull Objective getObjective() {
+  private  Objective getObjective() {
     final Objective objective =
         this.scoreboard.registerNewObjective("rd-" + this.id++, "dummy", this.name);
     objective.setDisplaySlot(DisplaySlot.SIDEBAR);
@@ -199,7 +199,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
   }
 
   @Override
-  public @NotNull String getScoreboardName() {
+  public  String getScoreboardName() {
     return this.name;
   }
 
@@ -209,7 +209,7 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
   }
 
   @Override
-  public @NotNull NamedStringCharacter getStringName() {
+  public  NamedStringCharacter getStringName() {
     return this.character;
   }
 
@@ -221,20 +221,20 @@ public class ScoreboardCallback extends FrameCallback implements ScoreboardCallb
     public Builder() {}
 
     @Contract("_ -> this")
-    public @NotNull Builder id(@NotNull final Identifier<Integer> id) {
+    public  Builder id( final Identifier<Integer> id) {
       this.id = id;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder character(@NotNull final NamedStringCharacter character) {
+    public  Builder character( final NamedStringCharacter character) {
       this.character = character;
       return this;
     }
 
     @Contract("_ -> new")
     @Override
-    public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
+    public  FrameCallback build( final EzMediaCore core) {
 
       final Dimension dimension = this.getDims();
       final int width = dimension.getWidth();

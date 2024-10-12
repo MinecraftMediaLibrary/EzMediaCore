@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.audio;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.OGGAudioExtractor;
@@ -32,12 +32,12 @@ import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.resourcepack.PackFormat;
 import io.github.pulsebeat02.ezmediacore.resourcepack.ResourcepackSoundWrapper;
-import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
+import io.github.pulsebeat02.ezmediacore.resourcepack.provider.HttpServer;
 import io.github.pulsebeat02.ezmediacore.utility.io.HashingUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -55,11 +55,11 @@ public final class PackCallback extends AudioOutput implements PackSource {
   private CompletableFuture<Void> future;
 
   PackCallback(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final AudioConfiguration configuration,
-      @NotNull final Viewers viewers,
-      @Nullable final SoundKey key,
-      @NotNull final String host,
+       final EzMediaCore core,
+       final AudioConfiguration configuration,
+       final Viewers viewers,
+       final SoundKey key,
+       final String host,
       final int port) {
     super(core);
     this.configuration = configuration;
@@ -70,7 +70,7 @@ public final class PackCallback extends AudioOutput implements PackSource {
   }
 
   private HttpServer getServer(
-      @NotNull final MediaLibraryCore core, @NotNull final String host, final int port) {
+       final EzMediaCore core,  final String host, final int port) {
     try {
       return HttpServer.ofServer(core, host, port, true);
     } catch (final IOException e) {
@@ -78,7 +78,7 @@ public final class PackCallback extends AudioOutput implements PackSource {
     }
   }
 
-  private @NotNull SoundKey getInternalSoundKey(@Nullable final SoundKey key) {
+  private  SoundKey getInternalSoundKey( final SoundKey key) {
     if (key == null) {
       final String name = this.getCore().getPlugin().getName().toLowerCase(java.util.Locale.ROOT);
       return SoundKey.ofSound(name);
@@ -88,13 +88,13 @@ public final class PackCallback extends AudioOutput implements PackSource {
 
   @Override
   public void preparePlayerStateChange(
-      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
+       final VideoPlayer player,  final PlayerControls status) {
     this.startServer();
     this.handleStart(player, status);
     this.handleAudio(status);
   }
 
-  private void handleAudio(@NotNull final PlayerControls status) {
+  private void handleAudio( final PlayerControls status) {
     if (status == PlayerControls.START || status == PlayerControls.RESUME) {
       this.playAudio();
     } else {
@@ -117,7 +117,7 @@ public final class PackCallback extends AudioOutput implements PackSource {
   }
 
   private void handleStart(
-      @NotNull final VideoPlayer player, @NotNull final PlayerControls controls) {
+       final VideoPlayer player,  final PlayerControls controls) {
     if (controls == PlayerControls.START) {
       final String source = player.getInput().getDirectAudioMrl().toString();
       final OGGAudioExtractor extractor = this.createExtractor(source);
@@ -129,7 +129,7 @@ public final class PackCallback extends AudioOutput implements PackSource {
     }
   }
 
-  private void sendPack(@NotNull final ResourcepackSoundWrapper wrapper) {
+  private void sendPack( final ResourcepackSoundWrapper wrapper) {
     final Path target = wrapper.getResourcepackFilePath();
     final byte[] hash = HashingUtils.createHashSha1(target);
     final String url = this.server.createUrl(target);
@@ -138,7 +138,7 @@ public final class PackCallback extends AudioOutput implements PackSource {
     }
   }
 
-  private @NotNull ResourcepackSoundWrapper executeWrapper() {
+  private  ResourcepackSoundWrapper executeWrapper() {
     final String sound = this.key.getName();
     final Path http = this.server.getDaemon().getServerPath();
     final Path target = http.resolve("audio.zip");
@@ -146,9 +146,9 @@ public final class PackCallback extends AudioOutput implements PackSource {
     return this.wrapResourcepack(sound, target, id);
   }
 
-  @NotNull
+
   private ResourcepackSoundWrapper wrapResourcepack(
-      @NotNull final String sound, @NotNull final Path target, final int id) {
+       final String sound,  final Path target, final int id) {
     final ResourcepackSoundWrapper wrapper = createWrapper(target, id);
     wrapper.addSound(sound, this.ogg);
     try {
@@ -159,14 +159,14 @@ public final class PackCallback extends AudioOutput implements PackSource {
     return wrapper;
   }
 
-  @NotNull
-  private static ResourcepackSoundWrapper createWrapper(@NotNull final Path target, final int id) {
+
+  private static ResourcepackSoundWrapper createWrapper( final Path target, final int id) {
     return ResourcepackSoundWrapper.ofSoundPack(target, "Auto-Generated Audio Pack", id);
   }
 
-  @NotNull
-  private OGGAudioExtractor createExtractor(@NotNull final String source) {
-    final MediaLibraryCore core = this.getCore();
+
+  private OGGAudioExtractor createExtractor( final String source) {
+    final EzMediaCore core = this.getCore();
     return OGGAudioExtractor.ofFFmpegAudioExtractor(
         core, this.configuration, Path.of(source), this.ogg);
   }
@@ -178,10 +178,10 @@ public final class PackCallback extends AudioOutput implements PackSource {
   }
 
   @Override
-  public void process(final byte @NotNull [] data) {}
+  public void process(final byte  [] data) {}
 
   @Override
-  public @NotNull CompletableFuture<Void> getFuture() {
+  public  CompletableFuture<Void> getFuture() {
     return this.future;
   }
 
@@ -193,39 +193,39 @@ public final class PackCallback extends AudioOutput implements PackSource {
 
     @Contract("_ -> this")
     @Override
-    public @NotNull Builder host(@NotNull final String host) {
+    public  Builder host( final String host) {
       super.host(host);
       return this;
     }
 
     @Contract("_ -> this")
     @Override
-    public @NotNull Builder port(final int port) {
+    public  Builder port(final int port) {
       super.port(port);
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder audio(@NotNull final AudioConfiguration configuration) {
+    public  Builder audio( final AudioConfiguration configuration) {
       this.configuration = configuration;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder viewers(@NotNull final Viewers viewers) {
+    public  Builder viewers( final Viewers viewers) {
       this.viewers = viewers;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder key(@NotNull final SoundKey key) {
+    public  Builder key( final SoundKey key) {
       this.key = key;
       return this;
     }
 
     @Contract("_ -> new")
     @Override
-    public @NotNull AudioOutput build(@NotNull final MediaLibraryCore core) {
+    public  AudioOutput build( final EzMediaCore core) {
       final String host = this.getHost();
       final int port = this.getPort();
       return new PackCallback(core, this.configuration, this.viewers, this.key, host, port);

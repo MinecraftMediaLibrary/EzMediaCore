@@ -23,7 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.player;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import io.github.pulsebeat02.ezmediacore.utility.misc.OSType;
 import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutput;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
@@ -35,7 +36,7 @@ import io.github.pulsebeat02.ezmediacore.player.buffered.JCodecMediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.external.VLCMediaPlayer;
 import io.github.pulsebeat02.ezmediacore.throwable.UnsupportedPlatformException;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 import static java.util.Objects.requireNonNull;
 
@@ -48,45 +49,45 @@ public class VideoBuilder {
   private AudioOutput audio;
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull VLCMediaPlayer.Builder vlc() {
+  public static  VLCMediaPlayer.Builder vlc() {
     return new VLCMediaPlayer.Builder();
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull FFmpegMediaPlayer.Builder ffmpeg() {
+  public static  FFmpegMediaPlayer.Builder ffmpeg() {
     return new FFmpegMediaPlayer.Builder();
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull JCodecMediaPlayer.Builder jcodec() {
+  public static  JCodecMediaPlayer.Builder jcodec() {
     return new JCodecMediaPlayer.Builder();
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull VideoBuilder unspecified() {
+  public static  VideoBuilder unspecified() {
     return new VideoBuilder();
   }
 
   @Contract("_ -> this")
-  public VideoBuilder video(@NotNull final VideoCallback callback) {
+  public VideoBuilder video( final VideoCallback callback) {
     this.video = callback;
     return this;
   }
 
   @Contract("_ -> this")
-  public VideoBuilder frameRate(@NotNull final FrameConfiguration rate) {
+  public VideoBuilder frameRate( final FrameConfiguration rate) {
     this.rate = rate;
     return this;
   }
 
   @Contract("_ -> this")
-  public VideoBuilder dims(@NotNull final Dimension dims) {
+  public VideoBuilder dims( final Dimension dims) {
     this.dims = dims;
     return this;
   }
 
   @Contract("_ -> this")
-  public VideoBuilder audio(@NotNull final AudioOutput audio) {
+  public VideoBuilder audio( final AudioOutput audio) {
     this.audio = audio;
     return this;
   }
@@ -98,8 +99,8 @@ public class VideoBuilder {
 
   public MediaPlayer build() {
     this.init();
-    final MediaLibraryCore core = this.video.getCore();
-    switch (core.getDiagnostics().getSystem().getOSType()) {
+    final EzMediaCore core = this.video.getCore();
+    switch (OSType.getCurrentOS()) {
       case WINDOWS, MAC -> {
         return this.vlcOption();
       }
@@ -110,7 +111,7 @@ public class VideoBuilder {
     }
   }
 
-  @NotNull
+  
   private MediaPlayer createFFmpegMediaPlayer() {
     return new FFmpegMediaPlayer.Builder()
         .video(this.video)
@@ -122,7 +123,7 @@ public class VideoBuilder {
   }
 
   @Contract(" -> new")
-  private @NotNull MediaPlayer vlcOption() {
+  private  MediaPlayer vlcOption() {
     return vlc()
         .video(this.video)
         .audio(this.audio)

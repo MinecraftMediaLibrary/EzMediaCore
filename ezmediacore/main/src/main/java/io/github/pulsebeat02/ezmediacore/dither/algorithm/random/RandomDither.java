@@ -41,7 +41,7 @@ import java.util.SplittableRandom;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.random.RandomGenerator;
 
-import org.jetbrains.annotations.NotNull;
+
 
 public final class RandomDither extends ForeignDitherAlgorithm {
 
@@ -73,8 +73,8 @@ public final class RandomDither extends ForeignDitherAlgorithm {
   }
 
   @Override
-  public @NotNull BufferCarrier standardMinecraftDither(
-      final int @NotNull [] buffer, final int width) {
+  public  BufferCarrier standardMinecraftDither(
+      final int  [] buffer, final int width) {
     final int length = buffer.length;
     final int height = length / width;
     final ByteBuf data = Unpooled.buffer(length);
@@ -96,7 +96,7 @@ public final class RandomDither extends ForeignDitherAlgorithm {
   }
 
   @Override
-  public void dither(final int @NotNull [] buffer, final int width) {
+  public void dither(final int  [] buffer, final int width) {
     final int height = buffer.length / width;
     for (int y = 0; y < height; y++) {
       final int yIndex = y * width;
@@ -115,8 +115,8 @@ public final class RandomDither extends ForeignDitherAlgorithm {
   }
 
   @Override
-  public @NotNull BufferCarrier ditherIntoMinecraftNatively(
-      final int @NotNull [] buffer, final int width) {
+  public  BufferCarrier ditherIntoMinecraftNatively(
+      final int  [] buffer, final int width) {
     final DitherLibC library = requireNonNull(DitherLibC.INSTANCE);
     final Pointer pointer =
         library.randomDither(FULL_COLOR_MAP, COLOR_MAP, buffer, width, this.weight);

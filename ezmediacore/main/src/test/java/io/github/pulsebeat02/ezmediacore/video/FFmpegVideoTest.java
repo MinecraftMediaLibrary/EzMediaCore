@@ -7,7 +7,7 @@ import com.github.kokorin.jaffree.ffmpeg.FrameConsumer;
 import com.github.kokorin.jaffree.ffmpeg.FrameOutput;
 import com.github.kokorin.jaffree.ffmpeg.Stream;
 import com.github.kokorin.jaffree.ffmpeg.UrlInput;
-import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
+
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -24,7 +24,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public class FFmpegVideoTest {
 
@@ -46,7 +46,7 @@ public class FFmpegVideoTest {
     this.window.addWindowListener(
         new WindowAdapter() {
           @Override
-          public void windowClosing(@NotNull final WindowEvent windowEvent) {
+          public void windowClosing( final WindowEvent windowEvent) {
             FFmpegVideoTest.this.running.set(false);
           }
         });
@@ -58,7 +58,7 @@ public class FFmpegVideoTest {
     new FFmpegVideoTest();
   }
 
-  private void init(@NotNull final Path path, @NotNull final Path input) {
+  private void init( final Path path,  final Path input) {
     this.ffmpeg =
         new FFmpeg(path)
             .addInput(UrlInput.fromPath(input).setPosition(0).addArgument("-re"))
@@ -71,13 +71,13 @@ public class FFmpegVideoTest {
   }
 
   @Contract(value = " -> new", pure = true)
-  private @NotNull FrameConsumer getFrameConsumer() {
+  private  FrameConsumer getFrameConsumer() {
     return new FrameConsumer() {
 
       private float[] calculations;
 
       @Override
-      public void consumeStreams(@NotNull final List<Stream> streams) {
+      public void consumeStreams( final List<Stream> streams) {
 
         // if stream ids are not properly ordered, sometimes we need to rearrange them
         final int max = streams.stream().mapToInt(Stream::getId).max().orElseThrow();
@@ -117,7 +117,7 @@ public class FFmpegVideoTest {
         FFmpegVideoTest.this.frames.add(new SimpleImmutableEntry<>(image, stamp));
       }
 
-      private long calculateTimeStamp(@NotNull final Frame frame) {
+      private long calculateTimeStamp( final Frame frame) {
         return (long) (frame.getPts() * this.calculations[frame.getStreamId()]);
       }
     };
@@ -130,7 +130,7 @@ public class FFmpegVideoTest {
   }
 
   @Contract(pure = true)
-  private @NotNull Runnable getDisplayRunnable() {
+  private  Runnable getDisplayRunnable() {
     return () -> {
       while (this.running.get()) {
         try {
@@ -143,7 +143,7 @@ public class FFmpegVideoTest {
   }
 
   @Contract(pure = true)
-  private @NotNull Runnable getSkipRunnable() {
+  private  Runnable getSkipRunnable() {
     return () -> {
       while (this.running.get()) {
         // skip frames if necessary
@@ -163,7 +163,7 @@ public class FFmpegVideoTest {
     };
   }
 
-  private void displayFrame(@NotNull final BufferedImage image) {
+  private void displayFrame( final BufferedImage image) {
     this.window.getContentPane().removeAll();
     this.window.add(new JLabel("", new ImageIcon(image), JLabel.CENTER));
     this.window.repaint();

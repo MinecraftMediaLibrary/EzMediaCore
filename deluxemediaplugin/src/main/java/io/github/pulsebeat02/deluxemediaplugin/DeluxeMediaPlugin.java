@@ -38,14 +38,13 @@ import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.update.UpdateChecker;
 import io.github.pulsebeat02.deluxemediaplugin.utility.component.CommandUtils;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
-import io.github.pulsebeat02.ezmediacore.LibraryProvider;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
-import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
+import io.github.pulsebeat02.ezmediacore.resourcepack.provider.HttpServer;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
-import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Set;
@@ -65,7 +64,7 @@ public final class DeluxeMediaPlugin {
   private BukkitAudiences audiences;
   private Audience console;
   private AudioConfiguration audioConfiguration;
-  private MediaLibraryCore library;
+  private EzMediaCore library;
 
   private CommandHandler handler;
   private PersistentPictureManager manager;
@@ -292,7 +291,7 @@ public final class DeluxeMediaPlugin {
     return this.mediaBot;
   }
 
-  public @NotNull MediaLibraryCore library() {
+  public @NotNull EzMediaCore library() {
     return this.library;
   }
 

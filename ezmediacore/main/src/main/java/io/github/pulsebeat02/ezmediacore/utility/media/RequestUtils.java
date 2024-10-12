@@ -23,8 +23,6 @@
  */
 package io.github.pulsebeat02.ezmediacore.utility.media;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
@@ -33,16 +31,8 @@ import io.github.pulsebeat02.ezmediacore.jlibdl.component.MediaInfo;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 public final class RequestUtils {
 
@@ -61,7 +51,7 @@ public final class RequestUtils {
 
   private RequestUtils() {}
 
-  private static @NotNull Optional<MediaRequest> getRequestInternal(@NotNull final String url)
+  private static Optional<MediaRequest> getRequestInternal( final String url)
       throws InterruptedException {
     try {
       final MediaInfo request = JLibDL.request(url);
@@ -74,33 +64,9 @@ public final class RequestUtils {
     }
   }
 
-  public static @NotNull Path downloadFile(@NotNull final Path path, @NotNull final String url)
-      throws IOException {
-    checkNotNull(path, "Path cannot be null!");
-    checkNotNull(url, "URL cannot be null!");
-    return downloadInChunks(url, path);
-  }
-
-  @Contract("_, _ -> param2")
-  private static @NotNull Path downloadInChunks(
-      @NotNull final String source, @NotNull final Path path) throws IOException {
-    long start = 0;
-    long end = DOWNLOAD_CHUNK_SIZE;
-    final URL website = new URL(source);
-    try (final ReadableByteChannel in = Channels.newChannel(website.openStream());
-        final FileChannel out = FileChannel.open(path)) {
-      final ByteBuffer buffer = ByteBuffer.allocate(DOWNLOAD_CHUNK_SIZE);
-      while (in.read(buffer) != -1) {
-        out.transferFrom(in, start, DOWNLOAD_CHUNK_SIZE);
-        start = end;
-        end += DOWNLOAD_CHUNK_SIZE;
-      }
-      return path;
-    }
-  }
-
-  public static @NotNull MediaRequest requestMediaInformation(@NotNull final Input url) {
-    final Optional<MediaRequest> result = CACHED_RESULT.get(url.getInput());
+  public static MediaRequest requestMediaInformation( final Input url) {
+    final String input = url.getInput();
+    final Optional<MediaRequest> result = CACHED_RESULT.get(input);
     return result.orElseGet(MediaRequest::ofEmptyRequest);
   }
 }

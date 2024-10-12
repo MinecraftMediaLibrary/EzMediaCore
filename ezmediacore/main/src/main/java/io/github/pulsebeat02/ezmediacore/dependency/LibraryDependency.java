@@ -23,26 +23,26 @@
  */
 package io.github.pulsebeat02.ezmediacore.dependency;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import java.io.IOException;
 import java.nio.file.Path;
-import org.jetbrains.annotations.NotNull;
+
 
 public abstract sealed class LibraryDependency permits DitherDependencyManager,
     FFmpegDependencyManager, LibraryDependencyManager, SimpleRTSPServerDependencyManager,
     VLCDependencyManager {
 
-  private final MediaLibraryCore core;
+  private final EzMediaCore core;
 
-  LibraryDependency(@NotNull final MediaLibraryCore core) throws IOException {
+  LibraryDependency( final EzMediaCore core) throws IOException {
     this.core = core;
   }
 
   public abstract void start() throws IOException;
 
-  public abstract void onInstallation(@NotNull final Path path);
+  public abstract void onInstallation( final Path path);
 
-  public @NotNull MediaLibraryCore getCore() {
+  public  EzMediaCore getCore() {
     return this.core;
   }
 }

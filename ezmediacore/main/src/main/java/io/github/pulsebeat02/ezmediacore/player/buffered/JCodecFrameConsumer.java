@@ -35,14 +35,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.jcodec.api.FrameGrab;
 import org.jcodec.common.model.Picture;
-import org.jetbrains.annotations.NotNull;
+
 
 public class JCodecFrameConsumer implements Runnable {
 
   private final JCodecMediaPlayer player;
   private final FrameGrab grabber;
 
-  JCodecFrameConsumer(@NotNull final JCodecMediaPlayer player, @NotNull final FrameGrab grabber) {
+  JCodecFrameConsumer( final JCodecMediaPlayer player,  final FrameGrab grabber) {
     this.player = player;
     this.grabber = grabber;
   }

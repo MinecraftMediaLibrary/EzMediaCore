@@ -37,7 +37,7 @@ import static io.github.pulsebeat02.ezmediacore.playlist.youtube.AudioQuality.UN
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import java.util.Map;
-import org.jetbrains.annotations.NotNull;
+
 
 public class YoutubeAudioFormat implements AudioFormat {
 
@@ -59,11 +59,11 @@ public class YoutubeAudioFormat implements AudioFormat {
   private final com.github.kiulian.downloader.model.videos.formats.AudioFormat format;
 
   public YoutubeAudioFormat(
-      @NotNull final com.github.kiulian.downloader.model.videos.formats.AudioFormat format) {
+       final com.github.kiulian.downloader.model.videos.formats.AudioFormat format) {
     this.format = format;
   }
 
-  static @NotNull BiMap<
+  static  BiMap<
           com.github.kiulian.downloader.model.videos.quality.AudioQuality, AudioQuality>
       getAudioMappings() {
     return AUDIO_FORMATS;
@@ -80,7 +80,7 @@ public class YoutubeAudioFormat implements AudioFormat {
   }
 
   @Override
-  public @NotNull AudioQuality getAudioQuality() {
+  public  AudioQuality getAudioQuality() {
     return AUDIO_FORMATS.get(this.format.audioQuality());
   }
 }

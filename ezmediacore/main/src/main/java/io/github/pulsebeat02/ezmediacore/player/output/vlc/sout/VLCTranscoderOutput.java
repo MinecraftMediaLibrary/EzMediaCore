@@ -27,7 +27,7 @@ import io.github.pulsebeat02.ezmediacore.player.output.OutputConfiguration;
 import java.util.Map;
 
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class VLCTranscoderOutput extends OutputConfiguration {
 
@@ -96,12 +96,12 @@ public final class VLCTranscoderOutput extends OutputConfiguration {
   VLCTranscoderOutput() {}
 
   @Contract(" -> new")
-  public static @NotNull VLCTranscoderOutput ofOutput() {
+  public static  VLCTranscoderOutput ofOutput() {
     return new VLCTranscoderOutput();
   }
 
   @Override
-  public @NotNull String toString() {
+  public  String toString() {
     final Map<String, String> configuration = this.getConfiguration();
     final StringBuilder builder = new StringBuilder("transcode{");
     for (final Map.Entry<String, String> entry : configuration.entrySet()) {

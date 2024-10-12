@@ -24,8 +24,8 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.resourcepack.hosting.HttpServer;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import io.github.pulsebeat02.ezmediacore.resourcepack.provider.HttpServer;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -80,7 +80,7 @@ public final class HttpConfiguration extends ConfigurationProvider<HttpServer> {
       final int port,
       final boolean verbose,
       @NotNull final Path directory) {
-    final MediaLibraryCore core = this.getPlugin().library();
+    final EzMediaCore core = this.getPlugin().library();
     final HttpServer server =
         this.isPublicServer(ip)
             ? HttpServer.ofServer(core, directory, port)

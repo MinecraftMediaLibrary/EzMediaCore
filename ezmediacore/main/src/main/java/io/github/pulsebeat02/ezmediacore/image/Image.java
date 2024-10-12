@@ -27,7 +27,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.ImageUtils;
 import java.awt.image.BufferedImage;
@@ -35,11 +35,11 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 import org.bukkit.map.MapView;
-import org.jetbrains.annotations.NotNull;
+
 
 public abstract class Image implements MapImage {
 
-  private final transient MediaLibraryCore core;
+  private final transient EzMediaCore core;
   private final transient EnhancedMapRenderer renderer;
   private final Dimension dimension;
   private final List<Integer> maps;
@@ -47,11 +47,11 @@ public abstract class Image implements MapImage {
   private final UUID uuid;
 
   public Image(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Path image,
-      @NotNull final List<Integer> maps,
-      @NotNull final Dimension dimension) {
-    checkNotNull(core, "MediaLibraryCore cannot be null!");
+       final EzMediaCore core,
+       final Path image,
+       final List<Integer> maps,
+       final Dimension dimension) {
+    checkNotNull(core, "EzMediaCore cannot be null!");
     checkNotNull(image, "Image cannot be null!");
     checkNotNull(maps, "Maps cannot be null!");
     checkNotNull(dimension, "Dimensions cannot be null!");
@@ -71,19 +71,19 @@ public abstract class Image implements MapImage {
   public void onStartDrawImage() {}
 
   @Override
-  public @NotNull BufferedImage[][] process(@NotNull BufferedImage image, final boolean resize) {
+  public  BufferedImage[][] process( BufferedImage image, final boolean resize) {
     if (resize) {
       image = this.resizeImage(image);
     }
     return this.processImage(image);
   }
 
-  private @NotNull BufferedImage resizeImage(@NotNull final BufferedImage image) {
+  private  BufferedImage resizeImage( final BufferedImage image) {
     return ImageUtils.resize(
         image, this.dimension.getWidth() << 7, this.dimension.getHeight() << 7);
   }
 
-  private @NotNull BufferedImage[][] processImage(@NotNull final BufferedImage image) {
+  private  BufferedImage[][] processImage( final BufferedImage image) {
     final int width = this.dimension.getWidth();
     final int height = this.dimension.getHeight();
     final BufferedImage[][] matrix = new BufferedImage[width][height];
@@ -108,32 +108,32 @@ public abstract class Image implements MapImage {
   }
 
   @Override
-  public @NotNull List<Integer> getMaps() {
+  public  List<Integer> getMaps() {
     return this.maps;
   }
 
   @Override
-  public @NotNull Path getImagePath() {
+  public  Path getImagePath() {
     return this.image;
   }
 
   @Override
-  public @NotNull Dimension getDimensions() {
+  public  Dimension getDimensions() {
     return this.dimension;
   }
 
   @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public  EzMediaCore getCore() {
     return this.core;
   }
 
   @Override
-  public @NotNull MapRenderer getRenderer() {
+  public  MapRenderer getRenderer() {
     return this.renderer;
   }
 
   @Override
-  public @NotNull UUID getIdentifier() {
+  public  UUID getIdentifier() {
     return this.uuid;
   }
 }

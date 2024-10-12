@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.bot.ffmpeg;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegArguments;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegCommandExecutor;
 import java.io.BufferedInputStream;
@@ -41,7 +41,7 @@ public final class FFmpegPipedOutput extends FFmpegCommandExecutor {
   private final String input;
   private AudioInputStream inputStream;
 
-  public FFmpegPipedOutput(@NotNull final MediaLibraryCore core, @NotNull final String input) {
+  public FFmpegPipedOutput(@NotNull final EzMediaCore core, @NotNull final String input) {
     super(core);
     this.input = input;
     this.addPipeArguments();

@@ -30,11 +30,11 @@ import com.github.kiulian.downloader.downloader.response.Response;
 import com.github.kiulian.downloader.model.playlist.PlaylistDetails;
 import com.github.kiulian.downloader.model.playlist.PlaylistInfo;
 import io.github.pulsebeat02.ezmediacore.utility.media.MediaExtractionUtils;
-import io.github.pulsebeat02.ezmediacore.utility.media.ResponseUtils;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
+
 
 public class YoutubePlaylist implements Playlist {
 
@@ -44,7 +44,7 @@ public class YoutubePlaylist implements Playlist {
   private final PlaylistDetails details;
   private final List<Video> videos;
 
-  public YoutubePlaylist(@NotNull final String url) {
+  public YoutubePlaylist( final String url) {
     checkNotNull(url, "URL cannot be null!");
     this.url = url;
     this.id = MediaExtractionUtils.getYoutubeIDExceptionally(url);
@@ -59,7 +59,7 @@ public class YoutubePlaylist implements Playlist {
         .collect(Collectors.toList());
   }
 
-  private @NotNull PlaylistInfo getInternalPlaylistResponse() {
+  private  PlaylistInfo getInternalPlaylistResponse() {
     for (int i = 0; i < 10; i++) {
       final RequestPlaylistInfo playlistInfo = new RequestPlaylistInfo(this.id);
       final Response<PlaylistInfo> response =
@@ -74,7 +74,7 @@ public class YoutubePlaylist implements Playlist {
   }
 
   @Override
-  public @NotNull String getAuthor() {
+  public  String getAuthor() {
     return this.details.author();
   }
 
@@ -84,17 +84,17 @@ public class YoutubePlaylist implements Playlist {
   }
 
   @Override
-  public @NotNull String getUrl() {
+  public  String getUrl() {
     return this.url;
   }
 
   @Override
-  public @NotNull String getName() {
+  public  String getName() {
     return this.details.title();
   }
 
   @Override
-  public @NotNull List<Video> getVideos() {
+  public  List<Video> getVideos() {
     return this.videos;
   }
 
@@ -103,12 +103,12 @@ public class YoutubePlaylist implements Playlist {
     return this.details.viewCount();
   }
 
-  @NotNull
+  
   PlaylistInfo getPlaylistInfo() {
     return this.info;
   }
 
-  @NotNull
+  
   PlaylistDetails getPlaylistDetails() {
     return this.details;
   }

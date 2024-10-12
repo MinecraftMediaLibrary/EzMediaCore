@@ -25,11 +25,9 @@ package io.github.pulsebeat02.ezmediacore.locale;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
+import rewrite.json.GsonProvider;
 import io.github.pulsebeat02.ezmediacore.utility.io.ResourceUtils;
-import io.github.pulsebeat02.nativelibraryloader.os.Platform;
-import io.github.pulsebeat02.nativelibraryloader.strategy.implementation.UrlResourceNativeLibrary;
-import org.jetbrains.annotations.NotNull;
+
 
 import java.io.IOException;
 import java.io.Reader;
@@ -54,7 +52,7 @@ public final class MessageLoader {
     }
   }
 
-  public static @NotNull String key(@NotNull final String key) {
+  public static  String key( final String key) {
     return requireNonNull(INTERNAL_LOCALE.get(key), "Missing translation key %s".formatted(key));
   }
 }

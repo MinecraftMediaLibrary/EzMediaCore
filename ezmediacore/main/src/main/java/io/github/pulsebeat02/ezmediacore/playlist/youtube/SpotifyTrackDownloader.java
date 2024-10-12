@@ -29,13 +29,13 @@ import com.github.kiulian.downloader.downloader.request.RequestVideoFileDownload
 import com.github.kiulian.downloader.downloader.response.Response;
 import com.google.common.collect.BiMap;
 import com.google.common.io.Files;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.QuerySearch;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyTrack;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.Track;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.TrackDownloader;
 import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
-import io.github.pulsebeat02.ezmediacore.utility.media.ResponseUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -44,7 +44,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 
 public class SpotifyTrackDownloader implements TrackDownloader {
@@ -54,7 +54,7 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   private final Path videoPath;
   private final AtomicBoolean cancelled;
 
-  SpotifyTrackDownloader(@NotNull final Track track, @NotNull final Path videoPath) {
+  SpotifyTrackDownloader( final Track track,  final Path videoPath) {
     checkNotNull(track, "Track cannot be null!");
     checkNotNull(videoPath, "Path cannot be null!");
     this.searcher = SpotifyQuerySearch.ofSpotifyQuerySearch(track);
@@ -64,21 +64,21 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   }
 
   @Contract("_, _ -> new")
-  public static @NotNull SpotifyTrackDownloader ofSpotifyTrackDownloader(
-      @NotNull final Track track, @NotNull final Path videoPath) {
+  public static  SpotifyTrackDownloader ofSpotifyTrackDownloader(
+       final Track track,  final Path videoPath) {
     return new SpotifyTrackDownloader(track, videoPath);
   }
 
   @Contract("_, _ -> new")
-  public static @NotNull SpotifyTrackDownloader ofSpotifyTrackDownloader(
-      @NotNull final String url, @NotNull final Path videoPath)
+  public static  SpotifyTrackDownloader ofSpotifyTrackDownloader(
+       final String url,  final Path videoPath)
       throws IOException, ParseException, SpotifyWebApiException {
     return ofSpotifyTrackDownloader(SpotifyTrack.ofSpotifyTrack(url), videoPath);
   }
 
   @Contract("_, _ -> new")
-  public static @NotNull SpotifyTrackDownloader ofSpotifyTrackDownloader(
-      @NotNull final MediaLibraryCore core, @NotNull final String url)
+  public static  SpotifyTrackDownloader ofSpotifyTrackDownloader(
+       final EzMediaCore core,  final String url)
       throws IOException, ParseException, SpotifyWebApiException {
     return ofSpotifyTrackDownloader(
         SpotifyTrack.ofSpotifyTrack(url),
@@ -86,7 +86,7 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   }
 
   @Override
-  public void downloadVideo(@NotNull final VideoQuality format, final boolean overwrite) {
+  public void downloadVideo( final VideoQuality format, final boolean overwrite) {
     this.onStartVideoDownload();
     if (!this.cancelled.get()) {
       if (!this.makeVideoResponse(format, overwrite)) {
@@ -96,7 +96,7 @@ public class SpotifyTrackDownloader implements TrackDownloader {
     this.onFinishVideoDownload();
   }
 
-  private boolean makeVideoResponse(@NotNull final VideoQuality format, final boolean overwrite) {
+  private boolean makeVideoResponse( final VideoQuality format, final boolean overwrite) {
 
     final RequestVideoFileDownload request = this.createDownloadRequest(format, overwrite);
 
@@ -117,8 +117,8 @@ public class SpotifyTrackDownloader implements TrackDownloader {
     return false;
   }
 
-  private @NotNull RequestVideoFileDownload createDownloadRequest(
-      @NotNull final VideoQuality format, final boolean overwrite) {
+  private  RequestVideoFileDownload createDownloadRequest(
+       final VideoQuality format, final boolean overwrite) {
 
     return new RequestVideoFileDownload(this.getFormat(format))
         .saveTo(this.videoPath.getParent().toFile())
@@ -127,7 +127,7 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   }
 
   private com.github.kiulian.downloader.model.videos.formats.VideoFormat getFormat(
-      @NotNull final VideoQuality format) {
+       final VideoQuality format) {
     final BiMap<VideoQuality, com.github.kiulian.downloader.model.videos.quality.VideoQuality>
         inverse = YoutubeVideoFormat.getVideoFormatMappings().inverse();
     return this.searcher.getRawVideo().getVideoInfo().videoFormats().stream()
@@ -143,17 +143,17 @@ public class SpotifyTrackDownloader implements TrackDownloader {
   public void onFinishVideoDownload() {}
 
   @Override
-  public @NotNull Path getDownloadPath() {
+  public  Path getDownloadPath() {
     return this.videoPath;
   }
 
   @Override
-  public @NotNull Track getTrack() {
+  public  Track getTrack() {
     return this.track;
   }
 
   @Override
-  public @NotNull QuerySearch getSearcher() {
+  public  QuerySearch getSearcher() {
     return this.searcher;
   }
 

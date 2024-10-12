@@ -31,7 +31,6 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.throwable.DeadResourceLinkException;
 import io.github.pulsebeat02.ezmediacore.throwable.UnknownArtistException;
-import io.github.pulsebeat02.ezmediacore.utility.manipulation.FastStringUtils;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -44,7 +43,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class MediaExtractionUtils {
 
@@ -75,7 +74,7 @@ public final class MediaExtractionUtils {
    * @param url the url
    * @return an Optional containing the String url if existing
    */
-  public static @NotNull Optional<String> getYoutubeID(@NotNull final String url) {
+  public static  Optional<String> getYoutubeID( final String url) {
     checkNotNull(url, "Youtube Video URL cannot be null!");
     final Matcher matcher = YOUTUBE_ID_PATTERN.matcher(url);
     if (matcher.find()) {
@@ -84,7 +83,7 @@ public final class MediaExtractionUtils {
     return Optional.empty();
   }
 
-  public static @NotNull String getYoutubeIDExceptionally(@NotNull final String url) {
+  public static  String getYoutubeIDExceptionally( final String url) {
     checkNotNull(url, "Youtube URL cannot be null!");
     return getYoutubeID(url).orElseThrow(() -> new DeadResourceLinkException(url));
   }
@@ -95,7 +94,7 @@ public final class MediaExtractionUtils {
    * @param url the url
    * @return an Optional containing the String url if existing
    */
-  public static @NotNull Optional<String> getSpotifyID(@NotNull final String url) {
+  public static  Optional<String> getSpotifyID( final String url) {
     checkNotNull(url, "Spotify URL cannot be null!");
     if (!isSpotifyLink(url)) {
       return Optional.empty();
@@ -109,42 +108,42 @@ public final class MediaExtractionUtils {
     }
   }
 
-  private static boolean isSpotifyLink(@NotNull final String url) {
+  private static boolean isSpotifyLink( final String url) {
     return url.contains("spotify");
   }
 
-  public static @NotNull String getSpotifyIDExceptionally(@NotNull final String url) {
+  public static  String getSpotifyIDExceptionally( final String url) {
     checkNotNull(url, "Spotify URL cannot be null!");
     return getSpotifyID(url).orElseThrow(() -> new UnknownArtistException(url));
   }
 
-  public static @NotNull Optional<String> getFirstResultVideo(@NotNull final String query) {
+  public static  Optional<String> getFirstResultVideo( final String query) {
     checkQuery(query);
     return CACHED_RESULT.get(query.trim().toLowerCase(Locale.ROOT));
   }
 
-  public static @NotNull String getFirstResultVideoExceptionally(@NotNull final String query) {
+  public static  String getFirstResultVideoExceptionally( final String query) {
     checkQuery(query);
     return getFirstResultVideo(query).orElseThrow(() -> new DeadResourceLinkException(query));
   }
 
-  private static void checkQuery(@NotNull final String query) {
+  private static void checkQuery( final String query) {
     checkNotNull(query, "Query cannot be null!");
     checkArgument(query.length() != 0, "Query cannot be empty!");
   }
 
-  private static @NotNull Optional<String> getFirstResultVideoInternal(@NotNull final String query)
+  private static  Optional<String> getFirstResultVideoInternal( final String query)
       throws IOException, InterruptedException {
     final String content = HTTP_CLIENT.send(createRequest(query), createBodyHandler()).body();
-    final int start = FastStringUtils.fastQuerySearch(content, SEARCH_KEYWORD) + 10;
+    final int start = content.indexOf(SEARCH_KEYWORD) + 10;
     return Optional.of(content.substring(start, content.indexOf('"', start)));
   }
 
-  private static @NotNull BodyHandler<String> createBodyHandler() {
+  private static  BodyHandler<String> createBodyHandler() {
     return HttpResponse.BodyHandlers.ofString();
   }
 
-  private static @NotNull HttpRequest createRequest(@NotNull final String query) {
+  private static  HttpRequest createRequest( final String query) {
     return HttpRequest.newBuilder()
         .uri(URI.create(YOUTUBE_SEARCH_URL.formatted(query.replaceAll(" ", "+"))))
         .build();

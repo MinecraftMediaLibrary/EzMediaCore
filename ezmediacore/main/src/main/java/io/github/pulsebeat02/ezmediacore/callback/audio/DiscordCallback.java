@@ -23,12 +23,12 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.audio;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import org.jetbrains.annotations.NotNull;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+
 
 public abstract class DiscordCallback extends AudioOutput {
 
-  DiscordCallback(@NotNull final MediaLibraryCore core) {
+  DiscordCallback( final EzMediaCore core) {
     super(core);
   }
 }

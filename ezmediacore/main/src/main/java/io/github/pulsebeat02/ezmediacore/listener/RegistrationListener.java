@@ -23,21 +23,20 @@
  */
 package io.github.pulsebeat02.ezmediacore.listener;
 
-import io.github.pulsebeat02.ezmediacore.LibraryInjectable;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.NotNull;
+
 
 public record RegistrationListener(
-    MediaLibraryCore core) implements LibraryInjectable,
+    EzMediaCore core) implements
     Listener {
 
-  public RegistrationListener(@NotNull final MediaLibraryCore core) {
+  public RegistrationListener( final EzMediaCore core) {
     this.core = core;
     this.registerListener();
   }
@@ -48,7 +47,7 @@ public record RegistrationListener(
   }
 
   @EventHandler
-  public void onPlayerJoin(@NotNull final PlayerJoinEvent event) {
+  public void onPlayerJoin( final PlayerJoinEvent event) {
     final Player p = event.getPlayer();
     this.core.getHandler().injectPlayer(p);
   }
@@ -59,13 +58,13 @@ public record RegistrationListener(
    * @param event PlayerQuitEvent event
    */
   @EventHandler
-  public void onPlayerLeave(@NotNull final PlayerQuitEvent event) {
+  public void onPlayerLeave( final PlayerQuitEvent event) {
     final Player p = event.getPlayer();
     this.core.getHandler().uninjectPlayer(p);
   }
 
   @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public  EzMediaCore getCore() {
     return this.core;
   }
 }

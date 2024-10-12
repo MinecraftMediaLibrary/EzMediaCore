@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.extraction;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class AudioAttributes implements AudioConfiguration {
 
@@ -44,7 +44,7 @@ public final class AudioAttributes implements AudioConfiguration {
   private final int volume;
 
   AudioAttributes(
-      @NotNull final String codec,
+       final String codec,
       final int start,
       final int bitrate,
       final int channels,
@@ -64,7 +64,7 @@ public final class AudioAttributes implements AudioConfiguration {
   }
 
   AudioAttributes(
-      @NotNull final String codec,
+       final String codec,
       final int bitrate,
       final int channels,
       final int samplingRate,
@@ -73,8 +73,8 @@ public final class AudioAttributes implements AudioConfiguration {
   }
 
   @Contract("_, _, _, _, _, _ -> new")
-  public static @NotNull AudioAttributes ofAudioAttributes(
-      @NotNull final String codec,
+  public static  AudioAttributes ofAudioAttributes(
+       final String codec,
       final int start,
       final int bitrate,
       final int channels,
@@ -99,7 +99,7 @@ public final class AudioAttributes implements AudioConfiguration {
   }
 
   @Override
-  public @NotNull String getCodec() {
+  public  String getCodec() {
     return this.codec;
   }
 

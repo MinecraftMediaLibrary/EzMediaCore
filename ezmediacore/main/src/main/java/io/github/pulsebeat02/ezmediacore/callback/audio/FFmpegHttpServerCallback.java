@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.audio;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
@@ -32,10 +32,9 @@ import io.github.pulsebeat02.ezmediacore.player.output.ServerOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.FFmpegPlayerOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.RTSPFFmpegOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.TcpFFmpegOutput;
-import io.github.pulsebeat02.ezmediacore.rtp.RTPStreamingServer;
-import io.github.pulsebeat02.ezmediacore.utility.network.NetworkUtils;
+import io.github.pulsebeat02.ezmediacore.rtp.RTPServer;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class FFmpegHttpServerCallback extends ServerCallback {
 
@@ -45,24 +44,24 @@ public final class FFmpegHttpServerCallback extends ServerCallback {
     RTSP_SERVER_PATH = "live.stream";
   }
 
-  private final RTPStreamingServer server;
+  private final RTPServer server;
   private final int port;
 
   FFmpegHttpServerCallback(
-      @NotNull final MediaLibraryCore core, @NotNull final String host, final int port) {
+       final EzMediaCore core,  final String host, final int port) {
     super(core, host, port);
-    this.server = RTPStreamingServer.ofRtpServer(core, host, port);
+    this.server = RTPServer.ofRtpServer(core, host, port);
     this.port = NetworkUtils.getFreePort();
   }
 
   @Override
   public void preparePlayerStateChange(
-      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
+       final VideoPlayer player,  final PlayerControls status) {
     this.startServer(status);
     this.setOutput(player);
   }
 
-  private void setOutput(@NotNull final VideoPlayer player) {
+  private void setOutput( final VideoPlayer player) {
     final FFmpegMediaPlayer ffmpeg = (FFmpegMediaPlayer) player;
     final RTSPFFmpegOutput std = this.getRTSPFFmpegOutput();
     final TcpFFmpegOutput tcp = this.getTcpFFmpegOutput();
@@ -70,7 +69,7 @@ public final class FFmpegHttpServerCallback extends ServerCallback {
     ffmpeg.setOutput(output);
   }
 
-  private void startServer(@NotNull final PlayerControls status) {
+  private void startServer( final PlayerControls status) {
     if (status == PlayerControls.START || status == PlayerControls.RESUME) {
       this.server.executeAsync(ExecutorProvider.RTSP_SERVER);
     } else {
@@ -78,7 +77,7 @@ public final class FFmpegHttpServerCallback extends ServerCallback {
     }
   }
 
-  @NotNull
+  
   private TcpFFmpegOutput getTcpFFmpegOutput() {
     final TcpFFmpegOutput tcp = TcpFFmpegOutput.ofOutput();
     final String host = "tcp://localhost";
@@ -87,7 +86,7 @@ public final class FFmpegHttpServerCallback extends ServerCallback {
     return tcp;
   }
 
-  @NotNull
+  
   private RTSPFFmpegOutput getRTSPFFmpegOutput() {
     final RTSPFFmpegOutput rtsp = RTSPFFmpegOutput.ofOutput();
     final String host = "rtsp://%s".formatted(this.getHost());
@@ -98,27 +97,27 @@ public final class FFmpegHttpServerCallback extends ServerCallback {
   }
 
   @Override
-  public void process(final byte @NotNull [] data) {}
+  public void process(final byte  [] data) {}
 
   public static final class Builder extends ServerCallback.Builder {
 
     @Contract("_ -> this")
     @Override
-    public @NotNull Builder host(@NotNull final String host) {
+    public  Builder host( final String host) {
       super.host(host);
       return this;
     }
 
     @Contract("_ -> this")
     @Override
-    public @NotNull Builder port(final int port) {
+    public  Builder port(final int port) {
       super.port(port);
       return this;
     }
 
     @Contract("_ -> new")
     @Override
-    public @NotNull AudioOutput build(@NotNull final MediaLibraryCore core) {
+    public  AudioOutput build( final EzMediaCore core) {
       final String host = this.getHost();
       final int port = this.getPort();
       return new FFmpegHttpServerCallback(core, host, port);

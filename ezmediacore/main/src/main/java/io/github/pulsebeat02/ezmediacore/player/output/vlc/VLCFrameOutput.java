@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.player.output.vlc;
 import com.google.common.base.Preconditions;
 import io.github.pulsebeat02.ezmediacore.player.output.ConsumableOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.vlc.sout.VLCTranscoderOutput;
-import org.jetbrains.annotations.NotNull;
+
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -39,21 +39,21 @@ public final class VLCFrameOutput implements VLCOutput {
 
   public VLCFrameOutput() {}
 
-  public void setTranscoder(@NotNull final VLCTranscoderOutput transcoder) {
+  public void setTranscoder( final VLCTranscoderOutput transcoder) {
     this.transcoder = transcoder;
   }
 
-  public void setStandard(@NotNull final VLCStandardOutput standard) {
+  public void setStandard( final VLCStandardOutput standard) {
     this.standard = standard;
   }
 
   @Override
-  public @NotNull ConsumableOutput getResultingOutput() {
+  public  ConsumableOutput getResultingOutput() {
     return this.output;
   }
 
   @Override
-  public void setOutput(@NotNull final Object output) {
+  public void setOutput( final Object output) {
     checkArgument(output instanceof ConsumableOutput);
     this.output = (ConsumableOutput) output;
   }

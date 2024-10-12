@@ -31,29 +31,29 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
+
 
 public abstract class PersistentObject<T> implements SerializableComponent<T> {
 
   private final Path path;
 
-  public PersistentObject(@NotNull final Path path) {
+  public PersistentObject( final Path path) {
     checkNotNull(path, "Path cannot be null!");
     this.path = path;
   }
 
   @Override
-  public @NotNull Path getStorageFile() {
+  public  Path getStorageFile() {
     return this.path;
   }
 
   @Override
-  public void serialize(@NotNull final Collection<T> list) throws IOException {
+  public void serialize( final Collection<T> list) throws IOException {
     this.createFile();
   }
 
   @Override
-  public @NotNull List<T> deserialize() throws IOException {
+  public  List<T> deserialize() throws IOException {
     this.createFile();
     return Collections.emptyList();
   }

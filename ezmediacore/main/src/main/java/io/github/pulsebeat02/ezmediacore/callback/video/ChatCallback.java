@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.callback.video;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.entity.NamedStringCharacter;
@@ -34,25 +34,25 @@ import io.github.pulsebeat02.ezmediacore.dimension.Dimension;
 import java.nio.IntBuffer;
 import java.util.UUID;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public class ChatCallback extends FrameCallback implements ChatCallbackDispatcher {
 
   private final NamedStringCharacter character;
 
   ChatCallback(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Viewers viewers,
-      @NotNull final Dimension dimension,
-      @NotNull final NamedStringCharacter character,
-      @NotNull final DelayConfiguration delay) {
+       final EzMediaCore core,
+       final Viewers viewers,
+       final Dimension dimension,
+       final NamedStringCharacter character,
+       final DelayConfiguration delay) {
     super(core, viewers, dimension, delay);
     checkNotNull(character, "Entity name cannot be null!");
     this.character = character;
   }
 
   @Override
-  public void process(final int @NotNull [] data) {
+  public void process(final int  [] data) {
     final long time = System.currentTimeMillis();
     final UUID[] viewers = this.getWatchers().getViewers();
     final Dimension dimension = this.getDimensions();
@@ -63,9 +63,9 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
   }
 
   private void displayChat(
-      @NotNull final UUID[] viewers,
-      @NotNull final Dimension dimension,
-      @NotNull final IntBuffer data) {
+       final UUID[] viewers,
+       final Dimension dimension,
+       final IntBuffer data) {
     final UUID[] watchers = this.getWatchers().getViewers();
     final String character = this.character.getCharacter();
     final int width = dimension.getWidth();
@@ -74,7 +74,7 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
   }
 
   @Override
-  public @NotNull NamedStringCharacter getChatCharacter() {
+  public  NamedStringCharacter getChatCharacter() {
     return this.character;
   }
 
@@ -86,34 +86,34 @@ public class ChatCallback extends FrameCallback implements ChatCallbackDispatche
 
     @Contract("_ -> this")
     @Override
-    public @NotNull Builder delay(@NotNull final DelayConfiguration delay) {
+    public  Builder delay( final DelayConfiguration delay) {
       super.delay(delay);
       return this;
     }
 
     @Contract("_ -> this")
     @Override
-    public @NotNull Builder dims(@NotNull final Dimension dims) {
+    public  Builder dims( final Dimension dims) {
       super.dims(dims);
       return this;
     }
 
     @Contract("_ -> this")
     @Override
-    public @NotNull Builder viewers(@NotNull final Viewers viewers) {
+    public  Builder viewers( final Viewers viewers) {
       super.viewers(viewers);
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder character(@NotNull final NamedStringCharacter character) {
+    public  Builder character( final NamedStringCharacter character) {
       this.character = character;
       return this;
     }
 
     @Contract("_ -> new")
     @Override
-    public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
+    public  FrameCallback build( final EzMediaCore core) {
       return new ChatCallback(
           core, this.getViewers(), this.getDims(), this.character, this.getDelay());
     }

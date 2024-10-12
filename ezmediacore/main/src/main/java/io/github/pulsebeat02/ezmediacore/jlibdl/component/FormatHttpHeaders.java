@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.jlibdl.component;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import org.jetbrains.annotations.Nullable;
+
 
 public final class FormatHttpHeaders {
 
@@ -49,23 +49,23 @@ public final class FormatHttpHeaders {
   @Expose
   private String userAgent;
 
-  public @Nullable String getAccept() {
+  public  String getAccept() {
     return this.accept;
   }
 
-  public @Nullable String getAcceptCharset() {
+  public  String getAcceptCharset() {
     return this.acceptCharset;
   }
 
-  public @Nullable String getAcceptEncoding() {
+  public  String getAcceptEncoding() {
     return this.acceptEncoding;
   }
 
-  public @Nullable String getAcceptLanguage() {
+  public  String getAcceptLanguage() {
     return this.acceptLanguage;
   }
 
-  public @Nullable String getUserAgent() {
+  public  String getUserAgent() {
     return this.userAgent;
   }
 }

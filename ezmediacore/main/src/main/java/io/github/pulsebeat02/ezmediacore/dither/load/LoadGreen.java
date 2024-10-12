@@ -27,7 +27,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RecursiveTask;
-import org.jetbrains.annotations.NotNull;
+
 
 final class LoadGreen extends RecursiveTask<byte[]> {
 
@@ -44,13 +44,13 @@ final class LoadGreen extends RecursiveTask<byte[]> {
   }
 
   @Override
-  protected byte @NotNull [] compute() {
+  protected byte  [] compute() {
     final List<LoadBlue> blueSub = new ArrayList<>(128);
     this.forkBlue(blueSub);
     return this.getMatches(blueSub);
   }
 
-  private void forkBlue(@NotNull final List<LoadBlue> blueSub) {
+  private void forkBlue( final List<LoadBlue> blueSub) {
     for (int b = 0; b < 256; b += 2) {
       final LoadBlue blue = new LoadBlue(this.palette, this.r, this.g, b);
       blueSub.add(blue);
@@ -58,7 +58,7 @@ final class LoadGreen extends RecursiveTask<byte[]> {
     }
   }
 
-  private byte @NotNull [] getMatches(@NotNull final List<LoadBlue> blueSub) {
+  private byte  [] getMatches( final List<LoadBlue> blueSub) {
     final byte[] matches = new byte[128];
     for (int i = 0; i < 128; i++) {
       matches[i] = blueSub.get(i).join();

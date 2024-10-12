@@ -23,16 +23,11 @@
  */
 package io.github.pulsebeat02.ezmediacore.dither.load;
 
-import io.github.pulsebeat02.ezmediacore.annotation.Author;
 import io.github.pulsebeat02.ezmediacore.dither.MapPalette;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
-@Author(
-    authors = {"PulseBeat_02", "BananaPuncher714", "jetp250"},
-    emails = {"brandonli2006ma@gmail.com", "banana@aaaaahhhhhhh.com", "github.com/jetp250"})
 public final class DitherLookupUtil {
 
   public static final int[] PALETTE;
@@ -48,7 +43,7 @@ public final class DitherLookupUtil {
     createLookupTable(forkRed());
   }
 
-  private static void createLookupTable(@NotNull final List<LoadRed> tasks) {
+  private static void createLookupTable( final List<LoadRed> tasks) {
     for (int i = 0; i < 128; i++) {
       final byte[] sub = tasks.get(i).join();
       final int ci = i << 14;
@@ -59,7 +54,7 @@ public final class DitherLookupUtil {
     }
   }
 
-  private static @NotNull List<LoadRed> forkRed() {
+  private static  List<LoadRed> forkRed() {
     final List<LoadRed> tasks = new ArrayList<>(128);
     for (int r = 0; r < 256; r += 2) {
       final LoadRed red = new LoadRed(PALETTE, r);
@@ -69,7 +64,7 @@ public final class DitherLookupUtil {
     return tasks;
   }
 
-  private static void updateIndices(@NotNull final List<Integer> colors) {
+  private static void updateIndices( final List<Integer> colors) {
     int index = 0;
     for (final int color : colors) {
       PALETTE[index++] = color;
@@ -77,7 +72,7 @@ public final class DitherLookupUtil {
     PALETTE[0] = 0;
   }
 
-  private static @NotNull List<Integer> getPaletteColors() {
+  private static  List<Integer> getPaletteColors() {
     final List<Integer> colors = new ArrayList<>();
     for (int i = 0; i < 256; ++i) {
       try {

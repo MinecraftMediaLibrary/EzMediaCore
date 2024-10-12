@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.utility.graphics;
 import com.sun.jna.platform.DesktopWindow;
 import io.github.pulsebeat02.ezmediacore.player.input.Window;
 import java.awt.Rectangle;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class JNAWindow implements Window {
 
@@ -37,7 +37,7 @@ public final class JNAWindow implements Window {
   private final int x;
   private final int y;
 
-  JNAWindow(@NotNull final DesktopWindow window) {
+  JNAWindow( final DesktopWindow window) {
     final Rectangle rectangle = window.getLocAndSize();
     this.path = window.getFilePath();
     this.title = window.getTitle();
@@ -48,7 +48,7 @@ public final class JNAWindow implements Window {
   }
 
   @Override
-  public @NotNull String getFilePath() {
+  public  String getFilePath() {
     return this.path;
   }
 
@@ -73,7 +73,7 @@ public final class JNAWindow implements Window {
   }
 
   @Override
-  public @NotNull String getTitle() {
+  public  String getTitle() {
     return this.title;
   }
 }

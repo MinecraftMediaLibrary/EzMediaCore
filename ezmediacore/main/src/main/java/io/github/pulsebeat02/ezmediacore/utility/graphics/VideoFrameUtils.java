@@ -24,7 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.utility.graphics;
 
 import com.google.common.io.Files;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
 import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.awt.AlphaComposite;
@@ -48,7 +48,7 @@ import org.jcodec.common.model.ColorSpace;
 import org.jcodec.common.model.Picture;
 import org.jcodec.scale.ColorUtil;
 import org.jcodec.scale.RgbToBgr;
-import org.jetbrains.annotations.NotNull;
+
 
 /** Not my class, pulled from Jaffree */
 public final class VideoFrameUtils {
@@ -61,7 +61,7 @@ public final class VideoFrameUtils {
 
   private VideoFrameUtils() {}
 
-  public static @NotNull BufferedImage toBufferedImage(@NotNull Picture src) {
+  public static  BufferedImage toBufferedImage( Picture src) {
     final ColorSpace space = src.getColor();
     if (space != ColorSpace.BGR) {
       final Picture bgr =
@@ -85,7 +85,7 @@ public final class VideoFrameUtils {
     return dst;
   }
 
-  public static void toBufferedImage(@NotNull final Picture src, @NotNull final BufferedImage dst) {
+  public static void toBufferedImage( final Picture src,  final BufferedImage dst) {
     final byte[] data = ((DataBufferByte) dst.getRaster().getDataBuffer()).getData();
     final byte[] srcData = src.getPlaneData(0);
     for (int i = 0; i < data.length; i++) {
@@ -94,7 +94,7 @@ public final class VideoFrameUtils {
   }
 
   private static void toBufferedImageCropped(
-      @NotNull final Picture src, @NotNull final BufferedImage dst) {
+       final Picture src,  final BufferedImage dst) {
     final byte[] data = ((DataBufferByte) dst.getRaster().getDataBuffer()).getData();
     final byte[] srcData = src.getPlaneData(0);
     final int dstWidth = dst.getWidth();
@@ -112,21 +112,21 @@ public final class VideoFrameUtils {
     }
   }
 
-  public static int @NotNull [] getBuffer(@NotNull final BufferedImage image) {
+  public static int  [] getBuffer( final BufferedImage image) {
     return image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
   }
 
-  @NotNull
+
   public static BufferedImage getBufferedImage(
-      final int @NotNull [] rgb, final int width, final int height) {
+      final int  [] rgb, final int width, final int height) {
     final BufferedImage image = new BufferedImage(width, height, 1);
     image.setRGB(0, 0, width, height, rgb, 0, width);
     return image;
   }
 
-  @NotNull
+
   private static BufferedImage resizeBufferedImage(
-      @NotNull final BufferedImage originalImage, @NotNull final Dimension dim) {
+       final BufferedImage originalImage,  final Dimension dim) {
     final int type = BufferedImage.TYPE_INT_ARGB;
     final BufferedImage resizedImage = new BufferedImage(dim.width, dim.height, type);
     final Graphics2D g = resizedImage.createGraphics();
@@ -140,9 +140,9 @@ public final class VideoFrameUtils {
     return resizedImage;
   }
 
-  @NotNull
+
   public static Dimension getScaledDimension(
-      @NotNull final Dimension imgSize, @NotNull final Dimension boundary) {
+       final Dimension imgSize,  final Dimension boundary) {
     final int origWidth = imgSize.width;
     final int origHeight = imgSize.height;
     final int boundWidth = boundary.width;
@@ -160,9 +160,9 @@ public final class VideoFrameUtils {
     return new Dimension(newWidth, newHeight);
   }
 
-  @NotNull
+
   public static BufferedImage resizeImage(
-      @NotNull final BufferedImage image, final int width, final int height) {
+       final BufferedImage image, final int width, final int height) {
     return resizeBufferedImage(
         image,
         getScaledDimension(
@@ -170,8 +170,8 @@ public final class VideoFrameUtils {
   }
 
   @SuppressWarnings("LoopStatementThatDoesntLoop")
-  @NotNull
-  public static Dimension getDimensions(@NotNull final Path file) throws IOException {
+
+  public static Dimension getDimensions( final Path file) throws IOException {
     final Iterator<ImageReader> iter =
         ImageIO.getImageReadersBySuffix(Files.getFileExtension(PathUtils.getName(file)));
     while (iter.hasNext()) {
@@ -192,7 +192,7 @@ public final class VideoFrameUtils {
   }
 
   public static OptionalDouble getFrameRate(
-      @NotNull final MediaLibraryCore core, @NotNull final Path video) throws IOException {
+       final EzMediaCore core,  final Path video) throws IOException {
     final Path binary = core.getFFmpegPath();
     try (final BufferedReader br =
         createFastBufferedReader(
@@ -207,22 +207,22 @@ public final class VideoFrameUtils {
     return OptionalDouble.empty();
   }
 
-  private static double parseDoubleFrames(@NotNull final String line, final int fpsIndex) {
+  private static double parseDoubleFrames( final String line, final int fpsIndex) {
     return Double.parseDouble(line.substring(line.lastIndexOf(",", fpsIndex) + 1, fpsIndex).trim());
   }
 
-  private static @NotNull ProcessBuilder createProcess(
-      @NotNull final Path binary, @NotNull final Path video) {
+  private static  ProcessBuilder createProcess(
+       final Path binary,  final Path video) {
     return new ProcessBuilder(binary.toString(), "-i", video.toString());
   }
 
-  private static @NotNull BufferedReader createFastBufferedReader(
-      @NotNull final ProcessBuilder builder) throws IOException {
+  private static  BufferedReader createFastBufferedReader(
+       final ProcessBuilder builder) throws IOException {
     return new BufferedReader(
         new InputStreamReader(new FastBufferedInputStream(builder.start().getErrorStream())));
   }
 
-  public static int @NotNull [] getRGBParallel(@NotNull final BufferedImage image) {
+  public static int  [] getRGBParallel( final BufferedImage image) {
     final int width = image.getWidth();
     final int height = image.getHeight();
     final int[] rgb = new int[width * height];
@@ -234,7 +234,7 @@ public final class VideoFrameUtils {
   }
 
   private static void handleChunk(
-      @NotNull final BufferedImage image,
+       final BufferedImage image,
       final int width,
       final int height,
       final int[] rgb,

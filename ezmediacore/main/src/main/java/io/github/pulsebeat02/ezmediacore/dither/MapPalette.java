@@ -26,15 +26,14 @@ package io.github.pulsebeat02.ezmediacore.dither;
 import java.awt.Color;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.github.pulsebeat02.emcdependencymanagement.component.Repository;
-import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
+import rewrite.json.GsonProvider;
 import io.github.pulsebeat02.ezmediacore.utility.io.ResourceUtils;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class MapPalette {
 
@@ -55,7 +54,7 @@ public final class MapPalette {
     }
   }
 
-  @NotNull
+
   public static Color getColor(final byte val) {
     return NMS_PALETTE[val];
   }

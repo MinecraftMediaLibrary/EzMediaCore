@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.callback.video;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
 import io.github.pulsebeat02.ezmediacore.callback.Identifier;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
@@ -37,7 +37,7 @@ import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.error.FilterLiteDither;
 import java.util.UUID;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public class MapCallback extends FrameCallback implements MapCallbackDispatcher {
 
@@ -46,12 +46,12 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
   private final int blockWidth;
 
   MapCallback(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Viewers viewers,
-      @NotNull final Dimension dimension,
-      @NotNull final DitherAlgorithm algorithm,
-      @NotNull final Identifier<Integer> map,
-      @NotNull final DelayConfiguration delay,
+       final EzMediaCore core,
+       final Viewers viewers,
+       final Dimension dimension,
+       final DitherAlgorithm algorithm,
+       final Identifier<Integer> map,
+       final DelayConfiguration delay,
       final int blockWidth) {
     super(core, viewers, dimension, delay);
     checkArgument(map.getValue() >= 0, "Map id must be greater than or equal to 0!");
@@ -62,7 +62,7 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
   }
 
   @Override
-  public void process(final int @NotNull [] data) {
+  public void process(final int  [] data) {
     final long time = System.currentTimeMillis();
     final Dimension dimension = this.getDimensions();
     final UUID[] viewers = this.getWatchers().getViewers();
@@ -73,9 +73,9 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
   }
 
   private void displayMaps(
-      @NotNull final UUID[] viewers,
-      @NotNull final Dimension dimension,
-      final int @NotNull [] data) {
+       final UUID[] viewers,
+       final Dimension dimension,
+      final int  [] data) {
     final int blockWidth = this.blockWidth;
     final BufferCarrier dithered = this.algorithm.ditherIntoMinecraft(data, blockWidth);
     final int height = dimension.getHeight();
@@ -89,7 +89,7 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
   }
 
   @Override
-  public @NotNull DitherAlgorithm getAlgorithm() {
+  public  DitherAlgorithm getAlgorithm() {
     return this.algorithm;
   }
 
@@ -102,26 +102,26 @@ public class MapCallback extends FrameCallback implements MapCallbackDispatcher 
     public Builder() {}
 
     @Contract("_ -> this")
-    public @NotNull Builder algorithm(@NotNull final DitherAlgorithm algorithm) {
+    public  Builder algorithm( final DitherAlgorithm algorithm) {
       this.algorithm = algorithm;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder map(@NotNull final Identifier<Integer> id) {
+    public  Builder map( final Identifier<Integer> id) {
       this.map = id;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder blockWidth(final int blockWidth) {
+    public  Builder blockWidth(final int blockWidth) {
       this.blockWidth = blockWidth;
       return this;
     }
 
     @Contract("_ -> new")
     @Override
-    public @NotNull FrameCallback build(@NotNull final MediaLibraryCore core) {
+    public  FrameCallback build( final EzMediaCore core) {
       checkArgument(this.blockWidth > 0, "Block width cannot be 0!");
       return new MapCallback(
           core,

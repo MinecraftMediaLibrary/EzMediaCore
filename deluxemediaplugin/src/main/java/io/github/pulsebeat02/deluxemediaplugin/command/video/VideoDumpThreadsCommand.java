@@ -31,7 +31,6 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
-import io.github.pulsebeat02.ezmediacore.utility.concurrency.ThreadUtils;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -55,10 +54,6 @@ public final class VideoDumpThreadsCommand implements CommandSegment.Literal<Com
     final Audience audience = this.plugin.audience().sender(context.getSource());
     audience.sendMessage(Locale.DUMP_THREADS.build());
     return SINGLE_SUCCESS;
-  }
-
-  private void createThreadDump() {
-    ThreadUtils.createThreadDump();
   }
 
   @Override

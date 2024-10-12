@@ -25,14 +25,13 @@ package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
-import io.github.pulsebeat02.ezmediacore.utility.concurrency.ThrowingRunnable;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import io.github.pulsebeat02.ezmediacore.utility.throwing.ThrowingRunnable;
 import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -42,12 +41,12 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
 
-  private final MediaLibraryCore core;
+  private final EzMediaCore core;
   private final List<String> arguments;
   private final AtomicBoolean completion;
   private final AtomicBoolean cancelled;
@@ -55,8 +54,8 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   private Consumer<ProcessBuilder> consumer;
   private Process process;
 
-  public FFmpegCommandExecutor(@NotNull final MediaLibraryCore core) {
-    checkNotNull(core, "MediaLibraryCore cannot be null!");
+  public FFmpegCommandExecutor( final EzMediaCore core) {
+    checkNotNull(core, "EzMediaCore cannot be null!");
     this.core = core;
     this.arguments = new ArrayList<>();
     this.arguments.add(core.getFFmpegPath().toString());
@@ -65,35 +64,35 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Contract("_ -> new")
-  public static @NotNull FFmpegCommandExecutor ofFFmpegExecutor(
-      @NotNull final MediaLibraryCore core) {
+  public static  FFmpegCommandExecutor ofFFmpegExecutor(
+       final EzMediaCore core) {
     return new FFmpegCommandExecutor(core);
   }
 
   @Override
-  public @NotNull FFmpegArgumentPreparation addArgument(@NotNull final String arg) {
+  public  FFmpegArgumentPreparation addArgument( final String arg) {
     this.arguments.add(arg);
     return this;
   }
 
   @Override
-  public @NotNull FFmpegArgumentPreparation addArgument(
-      @NotNull final String arg, final int index) {
+  public  FFmpegArgumentPreparation addArgument(
+       final String arg, final int index) {
     this.arguments.add(index, arg);
     return this;
   }
 
   @Override
-  public @NotNull FFmpegArgumentPreparation addArguments(
-      @NotNull final String key, @NotNull final String value) {
+  public  FFmpegArgumentPreparation addArguments(
+       final String key,  final String value) {
     this.arguments.add(key);
     this.arguments.add(value);
     return this;
   }
 
   @Override
-  public @NotNull FFmpegArgumentPreparation addArguments(
-      @NotNull final String key, @NotNull final String value, final int index) {
+  public  FFmpegArgumentPreparation addArguments(
+       final String key,  final String value, final int index) {
 
     if (index < 0 || index > this.arguments.size() - 1) {
       return this;
@@ -106,40 +105,40 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public @NotNull FFmpegArgumentPreparation removeArgument(@NotNull final String arg) {
+  public  FFmpegArgumentPreparation removeArgument( final String arg) {
     this.arguments.removeIf(next -> next.equals(arg));
     return this;
   }
 
   @Override
-  public @NotNull FFmpegArgumentPreparation removeArgument(final int index) {
+  public  FFmpegArgumentPreparation removeArgument(final int index) {
     this.arguments.remove(index);
     return this;
   }
 
   @Override
-  public @NotNull FFmpegArgumentPreparation addMultipleArguments(
-      @NotNull final String[] arguments) {
+  public  FFmpegArgumentPreparation addMultipleArguments(
+       final String[] arguments) {
     Stream.of(arguments).forEach(this::addArgument);
     return this;
   }
 
   @Override
-  public @NotNull FFmpegArgumentPreparation addMultipleArguments(
-      @NotNull final Collection<String> arguments) {
+  public  FFmpegArgumentPreparation addMultipleArguments(
+       final Collection<String> arguments) {
     arguments.forEach(this::addArgument);
     return this;
   }
 
   @Override
-  public @NotNull FFmpegArgumentPreparation modifyProcess(
-      @NotNull final Consumer<ProcessBuilder> consumer) {
+  public  FFmpegArgumentPreparation modifyProcess(
+       final Consumer<ProcessBuilder> consumer) {
     this.consumer = consumer;
     return this;
   }
 
   @Override
-  public @NotNull MediaLibraryCore getCore() {
+  public  EzMediaCore getCore() {
     return this.core;
   }
 
@@ -149,7 +148,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public void executeWithLogging(@Nullable final Consumer<String> logger) throws IOException {
+  public void executeWithLogging( final Consumer<String> logger) throws IOException {
 
     this.onBeforeExecution();
 
@@ -162,7 +161,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
     this.onAfterExecution();
   }
 
-  private void executeProcess(@Nullable final Consumer<String> logger) throws IOException {
+  private void executeProcess( final Consumer<String> logger) throws IOException {
 
     final ProcessBuilder builder = new ProcessBuilder(this.arguments).redirectErrorStream(true);
     if (this.consumer != null) {
@@ -173,7 +172,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
     this.handleLogging(logger, logger != null);
   }
 
-  private void handleLogging(@Nullable final Consumer<String> logger, final boolean consume)
+  private void handleLogging( final Consumer<String> logger, final boolean consume)
       throws IOException {
     try (final BufferedReader br = this.createFastBufferedReader()) {
       String line;
@@ -184,7 +183,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   private void consumeLine(
-      final boolean consume, @Nullable final Consumer<String> logger, @NotNull final String line) {
+      final boolean consume,  final Consumer<String> logger,  final String line) {
     if (consume) {
       logger.accept(line);
     } else {
@@ -192,35 +191,35 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
     }
   }
 
-  private @NotNull BufferedReader createFastBufferedReader() {
+  private  BufferedReader createFastBufferedReader() {
     return new BufferedReader(
         new InputStreamReader(new FastBufferedInputStream(this.process.getInputStream())));
   }
 
   @Override
-  public void log(@NotNull final String line) {
+  public void log( final String line) {
     this.core.getLogger().ffmpegPlayer(line);
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> executeAsync() {
+  public  CompletableFuture<Void> executeAsync() {
     return CompletableFuture.runAsync((ThrowingRunnable) this::execute);
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> executeAsync(@NotNull final Executor executor) {
+  public  CompletableFuture<Void> executeAsync( final Executor executor) {
     return CompletableFuture.runAsync((ThrowingRunnable) this::execute, executor);
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> executeAsyncWithLogging(
-      @NotNull final Consumer<String> logger) {
+  public  CompletableFuture<Void> executeAsyncWithLogging(
+       final Consumer<String> logger) {
     return CompletableFuture.runAsync((ThrowingRunnable) () -> this.executeWithLogging(logger));
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> executeAsyncWithLogging(
-      @NotNull final Consumer<String> logger, @NotNull final Executor executor) {
+  public  CompletableFuture<Void> executeAsyncWithLogging(
+       final Consumer<String> logger,  final Executor executor) {
     return CompletableFuture.runAsync(
         (ThrowingRunnable) () -> this.executeWithLogging(logger), executor);
   }
@@ -252,11 +251,11 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public @NotNull Process getProcess() {
+  public  Process getProcess() {
     return this.process;
   }
 
-  public @NotNull List<String> getArguments() {
+  public  List<String> getArguments() {
     return this.arguments;
   }
 
@@ -266,7 +265,7 @@ public class FFmpegCommandExecutor implements FFmpegArgumentPreparation {
   }
 
   @Override
-  public void setProcess(@NotNull final Process process) {
+  public void setProcess( final Process process) {
     this.process = process;
   }
 

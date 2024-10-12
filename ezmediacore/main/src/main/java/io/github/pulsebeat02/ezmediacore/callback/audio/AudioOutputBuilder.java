@@ -23,10 +23,10 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.audio;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -37,34 +37,34 @@ public abstract sealed class AudioOutputBuilder
         VLCDiscordCallback.Builder {
   
   @Contract(value = " -> new", pure = true)
-  public static @NotNull FFmpegDiscordCallback.Builder ffmpegDiscord() {
+  public static  FFmpegDiscordCallback.Builder ffmpegDiscord() {
     return new FFmpegDiscordCallback.Builder();
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull FFmpegHttpServerCallback.Builder ffmpegHttpServer() {
+  public static  FFmpegHttpServerCallback.Builder ffmpegHttpServer() {
     return new FFmpegHttpServerCallback.Builder();
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull NullCallback.Builder empty() {
+  public static  NullCallback.Builder empty() {
     return new NullCallback.Builder();
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull PackCallback.Builder pack() {
+  public static  PackCallback.Builder pack() {
     return new PackCallback.Builder();
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull VLCDiscordCallback.Builder vlcDiscord() {
+  public static  VLCDiscordCallback.Builder vlcDiscord() {
     return new VLCDiscordCallback.Builder();
   }
 
   @Contract(value = " -> new", pure = true)
-  public static @NotNull VLCHttpServerCallback.Builder vlcHttpServer() {
+  public static  VLCHttpServerCallback.Builder vlcHttpServer() {
     return new VLCHttpServerCallback.Builder();
   }
 
-  public abstract @NotNull AudioOutput build(@NotNull final MediaLibraryCore core);
+  public abstract  AudioOutput build( final EzMediaCore core);
 }

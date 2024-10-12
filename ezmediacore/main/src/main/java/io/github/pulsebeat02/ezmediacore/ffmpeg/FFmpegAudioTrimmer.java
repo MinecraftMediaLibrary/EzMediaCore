@@ -23,12 +23,12 @@
  */
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.format.FormatterProvider;
 import java.nio.file.Path;
 import java.util.Date;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTrimmer {
 
@@ -37,9 +37,9 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
   private final long ms;
 
   FFmpegAudioTrimmer(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final String input,
-      @NotNull final String output,
+       final EzMediaCore core,
+       final String input,
+       final String output,
       final long ms) {
     super(core);
     this.input = input;
@@ -50,28 +50,28 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
   }
 
   @Contract("_, _, _, _ -> new")
-  public static @NotNull FFmpegAudioTrimmer ofFFmpegAudioTrimmer(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final String input,
-      @NotNull final String output,
+  public static  FFmpegAudioTrimmer ofFFmpegAudioTrimmer(
+       final EzMediaCore core,
+       final String input,
+       final String output,
       final long ms) {
     return new FFmpegAudioTrimmer(core, input, output, ms);
   }
 
   @Contract("_, _, _, _ -> new")
-  public static @NotNull FFmpegAudioTrimmer ofFFmpegAudioTrimmer(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Path input,
-      @NotNull final Path output,
+  public static  FFmpegAudioTrimmer ofFFmpegAudioTrimmer(
+       final EzMediaCore core,
+       final Path input,
+       final Path output,
       final long ms) {
     return ofFFmpegAudioTrimmer(core, input.toString(), output.toString(), ms);
   }
 
   @Contract("_, _, _, _ -> new")
-  public static @NotNull FFmpegAudioTrimmer ofFFmpegAudioTrimmer(
-      @NotNull final MediaLibraryCore core,
-      @NotNull final Path input,
-      @NotNull final String fileName,
+  public static  FFmpegAudioTrimmer ofFFmpegAudioTrimmer(
+       final EzMediaCore core,
+       final Path input,
+       final String fileName,
       final long ms) {
     return ofFFmpegAudioTrimmer(core, input, core.getAudioPath().resolve(fileName), ms);
   }
@@ -93,12 +93,12 @@ public class FFmpegAudioTrimmer extends FFmpegCommandExecutor implements AudioTr
   }
 
   @Override
-  public @NotNull String getInput() {
+  public  String getInput() {
     return this.input;
   }
 
   @Override
-  public @NotNull String getOutput() {
+  public  String getOutput() {
     return this.output;
   }
 

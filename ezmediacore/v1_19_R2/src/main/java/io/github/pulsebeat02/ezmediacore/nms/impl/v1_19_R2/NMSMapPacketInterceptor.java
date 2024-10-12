@@ -28,6 +28,7 @@ import static io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils.setFi
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.utility.unsafe.UnsafeUtils;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -44,33 +45,30 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
-import net.minecraft.network.PacketDataSerializer;
-import net.minecraft.network.chat.ChatHexColor;
-import net.minecraft.network.chat.ChatModifier;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.ComponentContents;
-import net.minecraft.network.chat.IChatBaseComponent;
-import net.minecraft.network.chat.IChatMutableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
-import net.minecraft.network.protocol.game.PacketPlayOutCustomPayload;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
-import net.minecraft.network.protocol.game.PacketPlayOutMap;
-import net.minecraft.network.syncher.DataWatcher;
-import net.minecraft.network.syncher.DataWatcher.Item;
-import net.minecraft.network.syncher.DataWatcherObject;
-import net.minecraft.network.syncher.DataWatcherRegistry;
-import net.minecraft.resources.MinecraftKey;
-import net.minecraft.server.network.PlayerConnection;
-import net.minecraft.world.level.saveddata.maps.MapIcon;
-import net.minecraft.world.level.saveddata.maps.WorldMap;
-import org.bukkit.craftbukkit.v1_19_R2.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_19_R2.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R2.util.CraftChatMessage;
+import net.minecraft.network.protocol.game.ClientboundCustomPayloadPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.network.syncher.SynchedEntityData.DataItem;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.level.saveddata.maps.MapDecoration;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.util.CraftChatMessage;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("CommentedOutCode")
 public final class NMSMapPacketInterceptor implements PacketHandler {
 
   private static final int PACKET_THRESHOLD_MS;
@@ -82,32 +80,32 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     PACKET_THRESHOLD_MS = 0;
     PACKET_DIFFERENTIATION = Collections.newSetFromMap(new WeakHashMap<>());
     try {
-      METADATA_ITEMS = PacketPlayOutEntityMetadata.class.getDeclaredField("b");
-      CHATMODIFIER = IChatMutableComponent.class.getDeclaredField("e");
+      METADATA_ITEMS = ClientboundSetEntityDataPacket.class.getDeclaredField("b");
+      CHATMODIFIER = MutableComponent.class.getDeclaredField("e");
       METADATA_ITEMS.setAccessible(true);
     } catch (final NoSuchFieldException e) {
       throw new AssertionError(e);
     }
   }
 
-  private final Map<UUID, PlayerConnection> connections;
+  private final Map<UUID, ServerGamePacketListenerImpl> connections;
   private final Map<UUID, Long> lastUpdated;
   private final Set<Integer> maps;
-  private final MinecraftKey debugMarker;
+  private final ResourceLocation debugMarker;
   private final String handlerName;
 
   {
     this.connections = new ConcurrentHashMap<>();
     this.lastUpdated = new ConcurrentHashMap<>();
     this.maps = new TreeSet<>();
-    this.debugMarker = new MinecraftKey("debug/game_test_add_marker");
+    this.debugMarker = new ResourceLocation("debug/game_test_add_marker");
     this.handlerName = "ezmediacore_handler_1171";
   }
 
   @Override
   public void displayDebugMarker(
-      final UUID @NotNull [] viewers,
-      @NotNull final String character,
+      final UUID  [] viewers,
+       final String character,
       final int y,
       final int z,
       final int x,
@@ -118,18 +116,18 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     buf.writeInt(color);
     writeString(buf, character);
     buf.writeInt(time);
-    final PacketPlayOutCustomPayload packet =
-        new PacketPlayOutCustomPayload(this.debugMarker, new PacketDataSerializer(buf));
+    final ClientboundCustomPayloadPacket packet =
+        new ClientboundCustomPayloadPacket(this.debugMarker, new FriendlyByteBuf(buf));
     for (final UUID uuid : viewers) {
-      final PlayerConnection connection = this.connections.get(uuid);
+      final ServerGamePacketListenerImpl connection = this.connections.get(uuid);
       if (connection == null) {
         continue;
       }
-      connection.a(packet);
+      connection.send(packet);
     }
   }
 
-  private static void writeString(@NotNull final ByteBuf packet, @NotNull final String s) {
+  private static void writeString( final ByteBuf packet,  final String s) {
     final byte[] bytes = s.getBytes();
     int length = bytes.length;
     while ((length & -128) != 0) {
@@ -143,7 +141,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   @Override
   public void displayMaps(
       final UUID[] viewers,
-      @NotNull final BufferCarrier rgb,
+       final BufferCarrier rgb,
       final int map,
       final int height,
       final int width,
@@ -157,8 +155,8 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     final int yLoopMin = Math.max(0, yOff >> 7);
     final int xLoopMax = Math.min(width, (int) Math.ceil(negXOff / 128.0));
     final int yLoopMax = Math.min(height, (int) Math.ceil(negYOff / 128.0));
-    final PacketPlayOutMap[] packetArray =
-        new PacketPlayOutMap[(xLoopMax - xLoopMin) * (yLoopMax - yLoopMin)];
+    final ClientboundMapItemDataPacket[] packetArray =
+        new ClientboundMapItemDataPacket[(xLoopMax - xLoopMin) * (yLoopMax - yLoopMin)];
     int arrIndex = 0;
     for (int y = yLoopMin; y < yLoopMax; y++) {
 
@@ -206,10 +204,10 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
         final int mapId = map + width * y + x;
         final byte b = (byte) 0;
         final boolean display = false;
-        final List<MapIcon> icons = new ArrayList<>();
-        final WorldMap.b worldmap = new WorldMap.b(topX, topY, xDiff, yDiff, mapData);
+        final List<MapDecoration> icons = new ArrayList<>();
+        final MapItemSavedData.MapPatch worldmap = new MapItemSavedData.MapPatch(topX, topY, xDiff, yDiff, mapData);
 
-        final PacketPlayOutMap packet = new PacketPlayOutMap(mapId, b, display, icons, worldmap);
+        final ClientboundMapItemDataPacket packet = new ClientboundMapItemDataPacket(mapId, b, display, icons, worldmap);
 
         packetArray[arrIndex++] = packet;
         PACKET_DIFFERENTIATION.add(packet);
@@ -219,7 +217,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   }
 
   private void sendMapPackets(
-      @NotNull final UUID[] viewers, @NotNull final PacketPlayOutMap[] packetArray) {
+       final UUID[] viewers,  final ClientboundMapItemDataPacket[] packetArray) {
     if (viewers == null) {
       this.sendMapPacketsToAll(packetArray);
     } else {
@@ -228,13 +226,13 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   }
 
   private void sendMapPacketsToSpecified(
-      @NotNull final UUID @NotNull [] viewers, @NotNull final PacketPlayOutMap[] packetArray) {
+       final UUID  [] viewers,  final ClientboundMapItemDataPacket[] packetArray) {
     for (final UUID uuid : viewers) {
       this.sendMapPacketsToViewers(uuid, packetArray);
     }
   }
 
-  private void sendMapPacketsToAll(@NotNull final PacketPlayOutMap[] packetArray) {
+  private void sendMapPacketsToAll( final ClientboundMapItemDataPacket[] packetArray) {
     for (final UUID uuid : this.connections.keySet()) {
       this.sendMapPacketsToViewers(uuid, packetArray);
     }
@@ -243,8 +241,8 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   @Override
   public void displayChat(
       final UUID[] viewers,
-      @NotNull final IntBuffer data,
-      @NotNull final String character,
+       final IntBuffer data,
+       final String character,
       final int width,
       final int height) {
     for (int y = 0; y < height; ++y) {
@@ -253,9 +251,9 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   }
 
   private void displayToUsers(
-      @NotNull final UUID[] viewers,
-      @NotNull final IntBuffer data,
-      @NotNull final String character,
+       final UUID[] viewers,
+       final IntBuffer data,
+       final String character,
       final int width,
       final int y) {
     for (final UUID uuid : viewers) {
@@ -264,37 +262,37 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   }
 
   private void displayComponent(
-      @NotNull final IntBuffer data,
-      @NotNull final String character,
+       final IntBuffer data,
+       final String character,
       final int width,
       final int y,
       final UUID uuid) {
 
-    final PlayerConnection connection = this.connections.get(uuid);
+    final ServerGamePacketListenerImpl connection = this.connections.get(uuid);
     if (connection == null) {
       return;
     }
 
-    final IChatBaseComponent[] base =
+    final Component[] base =
         CraftChatMessage.fromString(this.createChatComponent(character, data, width, y));
-    for (final IChatBaseComponent component : base) {
-      connection.a(new ClientboundSystemChatPacket(component, true));
+    for (final Component component : base) {
+      connection.send(new ClientboundSystemChatPacket(component, true));
     }
   }
 
   @Override
   public void displayEntities(
-      @NotNull final UUID[] viewers,
-      @NotNull final Entity[] entities,
-      @NotNull final IntBuffer data,
-      @NotNull final String character,
+       final UUID[] viewers,
+       final Entity[] entities,
+       final IntBuffer data,
+       final String character,
       final int width,
       final int height) {
     final int maxHeight = Math.min(height, entities.length);
-    final PacketPlayOutEntityMetadata[] packets = new PacketPlayOutEntityMetadata[maxHeight];
+    final ClientboundSetEntityDataPacket[] packets = new ClientboundSetEntityDataPacket[maxHeight];
     int index = 0;
     for (int i = 0; i < maxHeight; i++) {
-      final IChatMutableComponent component = IChatMutableComponent.a(ComponentContents.a);
+      final MutableComponent component = MutableComponent.create(ComponentContents.EMPTY);
       for (int x = 0; x < width; x++) {
         this.modifyComponent(character, component, data.get(index++));
       }
@@ -304,7 +302,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   }
 
   private void sendEntityPackets(
-      @NotNull final UUID[] viewers, @NotNull final PacketPlayOutEntityMetadata[] packets) {
+       final UUID[] viewers,  final ClientboundSetEntityDataPacket[] packets) {
     if (viewers == null) {
       this.sendEntityPacketsToAll(packets);
     } else {
@@ -313,42 +311,42 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   }
 
   private void sendEntityPacketsToSpecified(
-      @NotNull final UUID @NotNull [] viewers,
-      @NotNull final PacketPlayOutEntityMetadata[] packets) {
+       final UUID  [] viewers,
+       final ClientboundSetEntityDataPacket[] packets) {
     for (final UUID uuid : viewers) {
       this.sendEntityPacketToViewers(uuid, packets);
     }
   }
 
-  private void sendEntityPacketsToAll(@NotNull final PacketPlayOutEntityMetadata[] packets) {
+  private void sendEntityPacketsToAll( final ClientboundSetEntityDataPacket[] packets) {
     for (final UUID uuid : this.connections.keySet()) {
       this.sendEntityPacketToViewers(uuid, packets);
     }
   }
 
   private void modifyComponent(
-      @NotNull final String character,
-      @NotNull final IChatMutableComponent component,
+       final String character,
+       final MutableComponent component,
       final int c) {
-    final IChatMutableComponent p = IChatMutableComponent.a(ComponentContents.a);
-    UnsafeUtils.setFinalField(CHATMODIFIER, p, ChatModifier.a.a(ChatHexColor.a(c & 0xFFFFFF)));
-    p.a(IChatBaseComponent.a(character));
-    component.a(p);
+    final MutableComponent p = MutableComponent.create(ComponentContents.EMPTY);
+    UnsafeUtils.setFinalField(CHATMODIFIER, p, Style.EMPTY.withColor(TextColor.fromRgb(c & 0xFFFFFF)));
+    p.append(Component.literal(character));
+    component.append(p);
   }
 
-  @NotNull
-  private PacketPlayOutEntityMetadata createEntityPacket(
-      @NotNull final Entity entity, @NotNull final IChatBaseComponent component) {
+  
+  private ClientboundSetEntityDataPacket createEntityPacket(
+       final Entity entity,  final Component component) {
 
-    final int id = ((CraftEntity) entity).getHandle().ah();
-    final DataWatcher watcher = new DataWatcher(null);
-    final PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata(id, watcher.c());
+    final int id = ((CraftEntity) entity).getHandle().getId();
+    final SynchedEntityData watcher = new SynchedEntityData(null);
+    final ClientboundSetEntityDataPacket packet = new ClientboundSetEntityDataPacket(id, watcher.getNonDefaultValues());
 
-    final Optional<IChatBaseComponent> optional = Optional.of(component);
-    final DataWatcherObject<Optional<IChatBaseComponent>> object =
-        new DataWatcherObject<>(2, DataWatcherRegistry.g);
-    final Item<Optional<IChatBaseComponent>> item = new Item<>(object, optional);
-    final List<Item<Optional<IChatBaseComponent>>> list = Collections.singletonList(item);
+    final Optional<Component> optional = Optional.of(component);
+    final EntityDataAccessor<Optional<Component>> object =
+        new EntityDataAccessor<>(2, EntityDataSerializers.OPTIONAL_COMPONENT);
+    final DataItem<Optional<Component>> item = new DataItem<>(object, optional);
+    final List<DataItem<Optional<Component>>> list = Collections.singletonList(item);
 
     setFinalField(METADATA_ITEMS, packet, list);
 
@@ -356,23 +354,23 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   }
 
   private void sendEntityPacketToViewers(
-      @NotNull final UUID uuid, @NotNull final PacketPlayOutEntityMetadata @NotNull [] packets) {
+       final UUID uuid,  final ClientboundSetEntityDataPacket  [] packets) {
 
-    final PlayerConnection connection = this.connections.get(uuid);
+    final ServerGamePacketListenerImpl connection = this.connections.get(uuid);
     if (connection == null) {
       return;
     }
 
-    for (final PacketPlayOutEntityMetadata packet : packets) {
-      connection.a(packet);
+    for (final ClientboundSetEntityDataPacket packet : packets) {
+      connection.send(packet);
     }
   }
 
   private void sendMapPacketsToViewers(
-      @NotNull final UUID uuid, @NotNull final PacketPlayOutMap[] packetArray) {
+       final UUID uuid,  final ClientboundMapItemDataPacket[] packetArray) {
     final long val = this.lastUpdated.getOrDefault(uuid, 0L);
     if (System.currentTimeMillis() - val > PACKET_THRESHOLD_MS) {
-      final PlayerConnection connection = this.connections.get(uuid);
+      final ServerGamePacketListenerImpl connection = this.connections.get(uuid);
       if (connection == null) {
         return;
       }
@@ -381,26 +379,26 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     }
   }
 
-  private void updateTime(@NotNull final UUID uuid) {
+  private void updateTime( final UUID uuid) {
     this.lastUpdated.put(uuid, System.currentTimeMillis());
   }
 
   private void sendSeparatePackets(
-      @NotNull final PacketPlayOutMap[] packetArray, @Nullable final PlayerConnection connection) {
+       final ClientboundMapItemDataPacket[] packetArray,  final ServerGamePacketListenerImpl connection) {
 
     if (connection == null) {
       return;
     }
 
-    for (final PacketPlayOutMap packet : packetArray) {
-      connection.a(packet);
+    for (final ClientboundMapItemDataPacket packet : packetArray) {
+      connection.send(packet);
     }
   }
 
   @Override
-  public void injectPlayer(@NotNull final Player player) {
-    final PlayerConnection conn = ((CraftPlayer) player).getHandle().b;
-    final Channel channel = conn.b.m;
+  public void injectPlayer( final Player player) {
+    final ServerGamePacketListenerImpl conn = ((CraftPlayer) player).getHandle().connection;
+    final Channel channel = conn.connection.channel;
     this.addChannelPipeline(channel);
     this.addConnection(player, conn);
   }
@@ -411,31 +409,31 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     }
   }
 
-  private void addConnection(@NotNull final Player player, final PlayerConnection conn) {
+  private void addConnection( final Player player, final ServerGamePacketListenerImpl conn) {
     this.connections.put(player.getUniqueId(), conn);
   }
 
   @Override
-  public void uninjectPlayer(@NotNull final Player player) {
-    final Channel channel = ((CraftPlayer) player).getHandle().b.b.m;
+  public void uninjectPlayer( final Player player) {
+    final Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
     this.removeChannelPipeline(channel);
     this.removeConnection(player);
   }
 
-  private void removeChannelPipeline(@Nullable final Channel channel) {
+  private void removeChannelPipeline( final Channel channel) {
     if (channel != null) {
       this.removeChannelPipelineHandler(channel);
     }
   }
 
-  private void removeChannelPipelineHandler(@NotNull final Channel channel) {
+  private void removeChannelPipelineHandler( final Channel channel) {
     final ChannelPipeline pipeline = channel.pipeline();
     if (pipeline.get(this.handlerName) != null) {
       pipeline.remove(this.handlerName);
     }
   }
 
-  private void removeConnection(@NotNull final Player player) {
+  private void removeConnection( final Player player) {
     this.connections.remove(player.getUniqueId());
   }
 

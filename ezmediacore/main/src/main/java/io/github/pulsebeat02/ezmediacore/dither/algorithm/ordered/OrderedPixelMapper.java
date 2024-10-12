@@ -24,7 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.dither.algorithm.ordered;
 
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class OrderedPixelMapper {
 
@@ -35,7 +35,7 @@ public final class OrderedPixelMapper {
   }
 
   @Contract("_, _, _ -> new")
-  public static @NotNull OrderedPixelMapper ofPixelMapper(
+  public static  OrderedPixelMapper ofPixelMapper(
       final int[][] matrix, final int max, final float strength) {
     return new OrderedPixelMapper(matrix, max, strength);
   }
@@ -44,8 +44,8 @@ public final class OrderedPixelMapper {
     return (float) (scale * ((value + 1.0) / max - 0.50000006));
   }
 
-  private float[] @NotNull [] calculateMatrixArray(
-      final int[] @NotNull [] matrix, final int max, final float strength) {
+  private float[]  [] calculateMatrixArray(
+      final int[]  [] matrix, final int max, final float strength) {
     final int ydim = matrix.length;
     final int xdim = matrix[0].length;
     final float scale = 65535.0f * strength;

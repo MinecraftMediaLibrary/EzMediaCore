@@ -23,14 +23,14 @@
  */
 package io.github.pulsebeat02.ezmediacore.player.output.ffmpeg;
 
-import org.jetbrains.annotations.NotNull;
+
 
 public final class FFmpegPlayerOutput implements FFmpegOutput {
 
   private final TcpFFmpegOutput tcp;
   private final FFmpegOutputConfiguration varied; // doesn't have to be stdout
 
-  FFmpegPlayerOutput(@NotNull final TcpFFmpegOutput tcp, @NotNull final FFmpegOutputConfiguration varied) {
+  FFmpegPlayerOutput( final TcpFFmpegOutput tcp,  final FFmpegOutputConfiguration varied) {
     this.tcp = tcp;
     this.varied = varied;
   }
@@ -39,20 +39,20 @@ public final class FFmpegPlayerOutput implements FFmpegOutput {
     this(new TcpFFmpegOutput(), new StdoutFFmpegOutput());
   }
 
-  public static @NotNull FFmpegPlayerOutput of() {
+  public static  FFmpegPlayerOutput of() {
     return new FFmpegPlayerOutput();
   }
 
-  public static @NotNull FFmpegPlayerOutput of(
-      @NotNull final TcpFFmpegOutput tcp, @NotNull final FFmpegOutputConfiguration varied) {
+  public static  FFmpegPlayerOutput of(
+       final TcpFFmpegOutput tcp,  final FFmpegOutputConfiguration varied) {
     return new FFmpegPlayerOutput(tcp, varied);
   }
 
-  public @NotNull TcpFFmpegOutput getTcp() {
+  public  TcpFFmpegOutput getTcp() {
     return this.tcp;
   }
 
-  public @NotNull FFmpegOutputConfiguration getVariedOutput() {
+  public  FFmpegOutputConfiguration getVariedOutput() {
     return this.varied;
   }
 
@@ -61,12 +61,12 @@ public final class FFmpegPlayerOutput implements FFmpegOutput {
   have their respective output methods.
    */
   @Override
-  public @NotNull Void getResultingOutput() {
+  public  Void getResultingOutput() {
     return null;
   }
 
   @Override
-  public void setOutput(@NotNull final Object output) {}
+  public void setOutput( final Object output) {}
 
   @Override
   public String toString() {

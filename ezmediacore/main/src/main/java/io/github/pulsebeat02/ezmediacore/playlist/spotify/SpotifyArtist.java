@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
 
@@ -43,7 +43,7 @@ public class SpotifyArtist implements Artist {
   private final String url;
   private final Avatar[] avatars;
 
-  SpotifyArtist(@NotNull final String url)
+  SpotifyArtist( final String url)
       throws IOException, ParseException, SpotifyWebApiException {
     checkNotNull(url, "URL cannot be null!");
     this.url = url;
@@ -51,18 +51,18 @@ public class SpotifyArtist implements Artist {
     this.avatars = this.getInternalAvatars();
   }
 
-  SpotifyArtist(@NotNull final ArtistSimplified simplified)
+  SpotifyArtist( final ArtistSimplified simplified)
       throws IOException, ParseException, SpotifyWebApiException {
     this(simplified.getUri());
   }
 
   @Contract("_ -> new")
-  public static @NotNull SpotifyArtist ofSpotifyArtist(@NotNull final String url)
+  public static  SpotifyArtist ofSpotifyArtist( final String url)
       throws IOException, ParseException, SpotifyWebApiException {
     return new SpotifyArtist(url);
   }
 
-  private @NotNull se.michaelthelin.spotify.model_objects.specification.Artist getInternalArtist()
+  private  se.michaelthelin.spotify.model_objects.specification.Artist getInternalArtist()
       throws IOException, ParseException, SpotifyWebApiException {
     return SpotifyProvider.getSpotifyApi()
         .getArtist(MediaExtractionUtils.getSpotifyIDExceptionally(this.url))
@@ -70,22 +70,22 @@ public class SpotifyArtist implements Artist {
         .execute();
   }
 
-  private @NotNull Avatar @NotNull [] getInternalAvatars() {
+  private  Avatar  [] getInternalAvatars() {
     return Stream.of(this.artist.getImages()).map(SpotifyAvatar::new).toArray(SpotifyAvatar[]::new);
   }
 
   @Override
-  public @NotNull String getId() {
+  public  String getId() {
     return this.artist.getId();
   }
 
   @Override
-  public @NotNull String getName() {
+  public  String getName() {
     return this.artist.getName();
   }
 
   @Override
-  public @NotNull Map<String, String> getExternalUrls() {
+  public  Map<String, String> getExternalUrls() {
     return this.artist.getExternalUrls().getExternalUrls();
   }
 
@@ -100,21 +100,21 @@ public class SpotifyArtist implements Artist {
   }
 
   @Override
-  public @NotNull String[] getGenres() {
+  public  String[] getGenres() {
     return this.artist.getGenres();
   }
 
   @Override
-  public @NotNull Avatar[] getImages() {
+  public  Avatar[] getImages() {
     return this.avatars;
   }
 
   @Override
-  public @NotNull String getUrl() {
+  public  String getUrl() {
     return this.url;
   }
 
-  @NotNull
+
   se.michaelthelin.spotify.model_objects.specification.Artist getArtist() {
     return this.artist;
   }

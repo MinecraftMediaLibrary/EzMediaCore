@@ -36,7 +36,6 @@ import io.github.pulsebeat02.deluxemediaplugin.command.video.output.audio.AudioP
 import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
-import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutput;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutputBuilder;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioAttributes;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
@@ -44,10 +43,8 @@ import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
 import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
-import io.github.pulsebeat02.ezmediacore.utility.future.Throwing;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
-import io.github.pulsebeat02.ezmediacore.utility.misc.Try;
 
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
@@ -89,7 +86,6 @@ public final class LoadVideoCommand implements CommandSegment.Literal<CommandSen
 
     final CompletableFuture<Void> future =
         CompletableFuture.runAsync(() -> this.handleVideo(audience), RESOURCE_WRAPPER_EXECUTOR);
-    future.handle(Throwing.THROWING_FUTURE);
 
     this.config.setTask(future);
   }

@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class WindowInput implements Input {
 
@@ -44,21 +44,21 @@ public final class WindowInput implements Input {
 
   private final String windowName;
 
-  WindowInput(@NotNull final String windowName) {
+  WindowInput( final String windowName) {
     checkNotNull(windowName, "Window name specified cannot be null!");
     this.windowName = this.checkValidWindow(windowName);
   }
 
   @Contract(value = "_ -> new", pure = true)
-  public static @NotNull Input ofWindowName(@NotNull final String deviceName) {
+  public static  Input ofWindowName( final String deviceName) {
     return new WindowInput(deviceName);
   }
 
-  public static @NotNull Input emptyWindow() {
+  public static  Input emptyWindow() {
     return EMPTY_WINDOW;
   }
 
-  private @NotNull String checkValidWindow(@NotNull final String name) {
+  private  String checkValidWindow( final String name) {
     final String upper = name.toUpperCase(Locale.ROOT);
     final List<JNAWindow> windows = WindowUtils.getAllWindows();
     for (final JNAWindow window : windows) {
@@ -73,7 +73,7 @@ public final class WindowInput implements Input {
   }
 
   @Override
-  public @NotNull String getInput() {
+  public  String getInput() {
     return this.windowName;
   }
 
@@ -82,7 +82,7 @@ public final class WindowInput implements Input {
 
   @Contract(pure = true)
   @Override
-  public @NotNull String toString() {
+  public  String toString() {
     return "{window=%s}".formatted(this.windowName);
   }
 

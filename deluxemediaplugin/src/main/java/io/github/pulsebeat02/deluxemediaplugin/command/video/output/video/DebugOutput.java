@@ -30,7 +30,7 @@ import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.video.BlockHighlightCallback;
 import io.github.pulsebeat02.ezmediacore.callback.video.BlockHighlightCallback.Builder;
 import io.github.pulsebeat02.ezmediacore.callback.video.VideoCallbackBuilder;
@@ -69,7 +69,7 @@ public class DebugOutput extends VideoOutput {
       @NotNull final ScreenConfig attributes,
       @NotNull final Player player) {
 
-    final MediaLibraryCore core = plugin.library();
+    final EzMediaCore core = plugin.library();
     final BlockHighlightCallback.Builder builder =
         this.createBlockHighlightBuilder(attributes, player);
 

@@ -25,10 +25,10 @@ package io.github.pulsebeat02.ezmediacore.player.output.ffmpeg;
 
 import io.github.pulsebeat02.ezmediacore.player.output.OutputConfiguration;
 import io.github.pulsebeat02.ezmediacore.player.output.OutputHandler;
-import org.jetbrains.annotations.NotNull;
+
 
 public abstract class FFmpegOutputConfiguration extends OutputConfiguration
     implements FFmpegComponentOutput {
 
-  public void setOptionalOutput(@NotNull final OutputHandler<?> handler) {}
+  public void setOptionalOutput( final OutputHandler<?> handler) {}
 }

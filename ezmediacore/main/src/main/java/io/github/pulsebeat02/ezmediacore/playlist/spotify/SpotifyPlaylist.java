@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 
 import org.apache.hc.core5.http.ParseException;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.specification.Playlist;
 
@@ -45,7 +45,7 @@ public class SpotifyPlaylist implements TrackPlaylist {
   private final String url;
   private final List<PlaylistTrack> tracks;
 
-  SpotifyPlaylist(@NotNull final String url)
+  SpotifyPlaylist( final String url)
       throws IOException, ParseException, SpotifyWebApiException {
     checkNotNull(url, "URL cannot be null!");
     this.url = url;
@@ -54,18 +54,18 @@ public class SpotifyPlaylist implements TrackPlaylist {
   }
 
   @Contract("_ -> new")
-  public static @NotNull SpotifyPlaylist ofSpotifyPlaylist(@NotNull final String url)
+  public static  SpotifyPlaylist ofSpotifyPlaylist( final String url)
       throws IOException, ParseException, SpotifyWebApiException {
     return new SpotifyPlaylist(url);
   }
 
-  private @NotNull List<PlaylistTrack> getInternalTracks() {
+  private  List<PlaylistTrack> getInternalTracks() {
     return Stream.of(this.playlist.getTracks().getItems())
         .map(SpotifyPlaylistTrack::new)
         .collect(Collectors.toList());
   }
 
-  private @NotNull Playlist getInternalPlaylist()
+  private  Playlist getInternalPlaylist()
       throws IOException, ParseException, SpotifyWebApiException {
     return SpotifyProvider.getSpotifyApi()
         .getPlaylist(MediaExtractionUtils.getSpotifyIDExceptionally(this.url))
@@ -74,7 +74,7 @@ public class SpotifyPlaylist implements TrackPlaylist {
   }
 
   @Override
-  public @NotNull SpotifyUser getAuthor() {
+  public  SpotifyUser getAuthor() {
     return new SpotifyUser(this.playlist.getOwner());
   }
 
@@ -84,22 +84,22 @@ public class SpotifyPlaylist implements TrackPlaylist {
   }
 
   @Override
-  public @NotNull String getUrl() {
+  public  String getUrl() {
     return this.url;
   }
 
   @Override
-  public @NotNull String getName() {
+  public  String getName() {
     return this.playlist.getName();
   }
 
   @Override
-  public @NotNull List<PlaylistTrack> getTracks() {
+  public  List<PlaylistTrack> getTracks() {
     return this.tracks;
   }
 
   @Override
-  public @NotNull String getDescription() {
+  public  String getDescription() {
     return this.playlist.getDescription();
   }
 
@@ -119,11 +119,11 @@ public class SpotifyPlaylist implements TrackPlaylist {
   }
 
   @Override
-  public @NotNull Map<String, String> getExternalUrls() {
+  public  Map<String, String> getExternalUrls() {
     return this.playlist.getExternalUrls().getExternalUrls();
   }
 
-  @NotNull
+
   Playlist getPlaylist() {
     return this.playlist;
   }

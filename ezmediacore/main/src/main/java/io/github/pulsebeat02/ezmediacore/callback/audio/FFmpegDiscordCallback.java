@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.callback.audio;
 
-import io.github.pulsebeat02.ezmediacore.MediaLibraryCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.player.buffered.FFmpegMediaPlayer;
@@ -31,10 +31,9 @@ import io.github.pulsebeat02.ezmediacore.player.output.ServerOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.FFmpegPlayerOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.StdoutFFmpegOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.TcpFFmpegOutput;
-import io.github.pulsebeat02.ezmediacore.utility.network.NetworkUtils;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+
 
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -52,18 +51,18 @@ public final class FFmpegDiscordCallback extends DiscordCallback
 
   private final int port;
 
-  FFmpegDiscordCallback(@NotNull final MediaLibraryCore core) {
+  FFmpegDiscordCallback( final EzMediaCore core) {
     super(core);
     this.port = NetworkUtils.getFreePort();
   }
 
   @Override
   public void preparePlayerStateChange(
-      @NotNull final VideoPlayer player, @NotNull final PlayerControls status) {
+       final VideoPlayer player,  final PlayerControls status) {
     this.startServer(player);
   }
 
-  private void startServer(@NotNull final VideoPlayer player) {
+  private void startServer( final VideoPlayer player) {
     final FFmpegMediaPlayer ffmpeg = (FFmpegMediaPlayer) player;
     final StdoutFFmpegOutput std = this.getStdoutFFmpegOutput();
     final TcpFFmpegOutput tcp = this.getTcpFFmpegOutput();
@@ -73,7 +72,7 @@ public final class FFmpegDiscordCallback extends DiscordCallback
     this.setOutput(input);
   }
 
-  private void setOutput(@NotNull final InputStream input) {
+  private void setOutput( final InputStream input) {
     try {
       this.stream = new JDAAudioPlayerStreamSendHandler(AudioSystem.getAudioInputStream(input));
     } catch (final UnsupportedAudioFileException | IOException e) {
@@ -81,7 +80,7 @@ public final class FFmpegDiscordCallback extends DiscordCallback
     }
   }
 
-  @NotNull
+
   private TcpFFmpegOutput getTcpFFmpegOutput() {
     final TcpFFmpegOutput tcp = TcpFFmpegOutput.ofOutput();
     final String host = "tcp://localhost";
@@ -90,7 +89,7 @@ public final class FFmpegDiscordCallback extends DiscordCallback
     return tcp;
   }
 
-  @NotNull
+
   private StdoutFFmpegOutput getStdoutFFmpegOutput() {
     final StdoutFFmpegOutput std = StdoutFFmpegOutput.ofOutput();
     std.setProperty("select", "a");
@@ -99,18 +98,18 @@ public final class FFmpegDiscordCallback extends DiscordCallback
   }
 
   @Override
-  public @Nullable JDAAudioStream getStream() {
+  public  JDAAudioStream getStream() {
     return this.stream;
   }
 
   @Override
-  public void process(final byte @NotNull [] data) {}
+  public void process(final byte  [] data) {}
 
   public static final class Builder extends AudioOutputBuilder {
 
     @Contract("_ -> new")
     @Override
-    public @NotNull AudioOutput build(@NotNull final MediaLibraryCore core) {
+    public  AudioOutput build( final EzMediaCore core) {
       return new FFmpegDiscordCallback(core);
     }
   }

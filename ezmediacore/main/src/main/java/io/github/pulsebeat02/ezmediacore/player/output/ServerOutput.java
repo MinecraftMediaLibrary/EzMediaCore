@@ -24,24 +24,24 @@
 package io.github.pulsebeat02.ezmediacore.player.output;
 
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+
 
 public final class ServerOutput implements OutputHandler<String> {
 
   private final String ip;
 
-  ServerOutput(final String host, final int port, @NotNull final String... path) {
+  ServerOutput(final String host, final int port,  final String... path) {
     this.ip = "%s:%s/%s".formatted(host, port, String.join("/", path));
   }
 
   @Contract("_, _, _ -> new")
-  public static @NotNull ServerOutput ofHost(
-      @NotNull final String host, final int port, @NotNull final String... path) {
+  public static  ServerOutput ofHost(
+       final String host, final int port,  final String... path) {
     return new ServerOutput(host, port, path);
   }
 
   @Override
-  public @NotNull String getRaw() {
+  public  String getRaw() {
     return this.ip;
   }
 }

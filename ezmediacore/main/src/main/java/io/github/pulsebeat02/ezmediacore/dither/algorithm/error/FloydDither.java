@@ -35,7 +35,7 @@ import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.jetbrains.annotations.NotNull;
+
 
 /**
  * What a piece of optimization; Performs incredibly fast Minecraft color conversion and dithering.
@@ -53,7 +53,7 @@ public final class FloydDither extends ForeignDitherAlgorithm {
   }
 
   @Override
-  public void dither(final int @NotNull [] buffer, final int width) {
+  public void dither(final int  [] buffer, final int width) {
     final int height = buffer.length / width;
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;
@@ -150,8 +150,8 @@ public final class FloydDither extends ForeignDitherAlgorithm {
   }
 
   @Override
-  public @NotNull BufferCarrier standardMinecraftDither(
-      final int @NotNull [] buffer, final int width) {
+  public  BufferCarrier standardMinecraftDither(
+      final int  [] buffer, final int width) {
     final int length = buffer.length;
     final int height = length / width;
     final int widthMinus = width - 1;
@@ -253,8 +253,8 @@ public final class FloydDither extends ForeignDitherAlgorithm {
   }
 
   @Override
-  public @NotNull BufferCarrier ditherIntoMinecraftNatively(
-      final int @NotNull [] buffer, final int width) {
+  public  BufferCarrier ditherIntoMinecraftNatively(
+      final int  [] buffer, final int width) {
     final DitherLibC library = requireNonNull(DitherLibC.INSTANCE);
     final Pointer pointer = library.floydSteinbergDither(FULL_COLOR_MAP, COLOR_MAP, buffer, width);
     final byte[] array = pointer.getByteArray(0L, buffer.length);
