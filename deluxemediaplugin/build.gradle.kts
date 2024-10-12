@@ -33,7 +33,7 @@ dependencies {
     }
 
     // BRIGADIER USE ONLY
-    compileOnly("com.mojang:brigadier:1.0.18")
+    compileOnly("com.mojang:brigadier:1.0.500")
     implementation("me.lucko:commodore:2.2") {
         exclude("com.mojang", "brigadier")
     }
