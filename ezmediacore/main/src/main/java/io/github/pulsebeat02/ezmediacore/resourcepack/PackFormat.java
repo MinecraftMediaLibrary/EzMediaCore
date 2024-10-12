@@ -25,8 +25,7 @@ package io.github.pulsebeat02.ezmediacore.resourcepack;
 
 import java.util.Map;
 
-import io.github.pulsebeat02.ezmediacore.reflect.versioning.ServerEnvironment;
-import org.bukkit.Bukkit;
+import rewrite.reflect.versioning.ServerEnvironment;
 
 
 public enum PackFormat {

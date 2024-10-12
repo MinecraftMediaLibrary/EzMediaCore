@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.dependency;
 
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
-import io.github.pulsebeat02.ezmediacore.logging.Logger;
+import rewrite.logging.Logger;
 import io.github.pulsebeat02.ezmediacore.utility.throwing.ThrowingRunnable;
 
 import java.io.IOException;

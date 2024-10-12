@@ -29,7 +29,7 @@ import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
 import io.github.pulsebeat02.ezmediacore.image.DynamicImage;
 import io.github.pulsebeat02.ezmediacore.image.Image;
 import io.github.pulsebeat02.ezmediacore.image.StaticImage;
-import io.github.pulsebeat02.ezmediacore.persistent.PersistentImageStorage;
+import rewrite.persistent.PersistentImageStorage;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;

@@ -29,16 +29,16 @@ import io.github.pulsebeat02.emcdependencymanagement.component.Repository;
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import rewrite.json.GsonProvider;
 import io.github.pulsebeat02.ezmediacore.utility.io.ResourceUtils;
-import io.github.pulsebeat02.ezmediacore.nativelibraryloader.NativeLibraryLoader;
-import io.github.pulsebeat02.ezmediacore.nativelibraryloader.os.Platform;
-import io.github.pulsebeat02.ezmediacore.nativelibraryloader.strategy.implementation.NativeResourceLocator;
+import rewrite.natives.NativeLibraryLoader;
+import rewrite.natives.os.Platform;
+import rewrite.natives.strategy.implementation.NativeResourceLocator;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Path;
 import java.util.Map;
 
-import io.github.pulsebeat02.ezmediacore.nativelibraryloader.strategy.implementation.UrlResourceNativeLibrary;
+import rewrite.natives.strategy.implementation.UrlResourceNativeLibrary;
 
 
 public final class DitherDependencyManager extends LibraryDependency {

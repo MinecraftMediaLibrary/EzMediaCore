@@ -71,7 +71,7 @@ import io.github.pulsebeat02.ezmediacore.dither.algorithm.ordered.OrderedDither;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.ordered.OrderedPixelMapper;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.random.RandomDither;
 import io.github.pulsebeat02.ezmediacore.dither.algorithm.simple.SimpleDither;
-import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
+import rewrite.natives.DitherLibC;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

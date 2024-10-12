@@ -8,10 +8,10 @@ import java.util.List;
 public final class BasicPipelineResult implements FramePipelineResult {
 
   private final List<FramePipelineProcedure> steps;
-  private final FrameOutputSource output;
+  private final List<FrameOutputSource> output;
 
   BasicPipelineResult(final List<FramePipelineProcedure> steps,
-                      final FrameOutputSource output) {
+                      final List<FrameOutputSource> output) {
     this.steps = steps;
     this.output = output;
   }
@@ -25,6 +25,8 @@ public final class BasicPipelineResult implements FramePipelineResult {
         current = step.process(current);
       }
     }
-    this.output.output(current);
+    for (final FrameOutputSource output : this.output) {
+      output.output(current);
+    }
   }
 }

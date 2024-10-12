@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.dither.algorithm;
 
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import io.github.pulsebeat02.ezmediacore.dither.NativeDitherAlgorithm;
-import io.github.pulsebeat02.ezmediacore.natives.DitherLibC;
+import rewrite.natives.DitherLibC;
 import java.util.function.BiFunction;
 
 

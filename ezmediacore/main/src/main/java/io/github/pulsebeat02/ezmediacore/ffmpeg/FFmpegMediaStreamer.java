@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore.ffmpeg;
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
-import io.github.pulsebeat02.ezmediacore.rtp.RTPServer;
+import rewrite.rtp.RTPServer;
 import java.io.IOException;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.Contract;

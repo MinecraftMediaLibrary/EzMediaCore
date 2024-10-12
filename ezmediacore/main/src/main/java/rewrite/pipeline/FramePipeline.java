@@ -34,7 +34,8 @@ public final class FramePipeline<I, O> {
     return new FramePipeline<>(this.source, this.steps);
   }
 
-  public BasicPipelineResult thenFinally(final FrameOutputSource<O> output) {
-    return new BasicPipelineResult(this.steps, output);
+  public BasicPipelineResult thenFinally(final FrameOutputSource<O>... output) {
+    final List<FrameOutputSource> list = Arrays.asList(output);
+    return new BasicPipelineResult(this.steps, list);
   }
 }

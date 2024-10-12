@@ -34,7 +34,7 @@ import io.github.pulsebeat02.emcdependencymanagement.SimpleLogger;
 import io.github.pulsebeat02.emcdependencymanagement.component.Artifact;
 import io.github.pulsebeat02.emcdependencymanagement.component.Relocation;
 import io.github.pulsebeat02.emcdependencymanagement.component.Repository;
-import io.github.pulsebeat02.ezmediacore.logging.Logger;
+import rewrite.logging.Logger;
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import java.io.IOException;
 import java.io.Reader;

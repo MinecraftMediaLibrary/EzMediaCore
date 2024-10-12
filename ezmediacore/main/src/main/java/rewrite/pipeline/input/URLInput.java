@@ -1,28 +1,21 @@
 package rewrite.pipeline.input;
 
-import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 
 public final class URLInput implements Input {
 
-  private final String raw;
+  private final String url;
 
-  public URLInput(final String raw) {
-    this.raw = raw;
+  public URLInput(final String url) {
+    this.url = url;
   }
 
   @Override
-  public String getMediaRepresentation() {
-
-
-
-    return this.mrl;
+  public CompletableFuture<String> getMediaRepresentation() {
+    return CompletableFuture.completedFuture(this.url);
   }
 
-  private String getJSONDump() {
-    final Path executable = Path.of("");
-    final String raw = executable.toString();
-    
+  public String getUrl() {
+    return this.url;
   }
-
-
 }

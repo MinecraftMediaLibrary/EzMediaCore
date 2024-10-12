@@ -32,7 +32,7 @@ import io.github.pulsebeat02.ezmediacore.player.output.ServerOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.FFmpegPlayerOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.RTSPFFmpegOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.ffmpeg.TcpFFmpegOutput;
-import io.github.pulsebeat02.ezmediacore.rtp.RTPServer;
+import rewrite.rtp.RTPServer;
 import org.jetbrains.annotations.Contract;
 
 

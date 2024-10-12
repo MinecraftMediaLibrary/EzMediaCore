@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.player.external;
 
 import com.google.common.collect.Lists;
 import com.sun.jna.Pointer;
-import io.github.pulsebeat02.ezmediacore.logging.Logger;
+import rewrite.logging.Logger;
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.utility.misc.OSType;
 import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;

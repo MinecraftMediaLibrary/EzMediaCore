@@ -29,12 +29,12 @@ import io.github.pulsebeat02.ezmediacore.dependency.DependencyLoader;
 import io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil;
 import io.github.pulsebeat02.ezmediacore.listener.RegistrationListener;
 import io.github.pulsebeat02.ezmediacore.locale.Locale;
-import io.github.pulsebeat02.ezmediacore.logging.LibraryLogger;
-import io.github.pulsebeat02.ezmediacore.logging.Logger;
+import rewrite.logging.LibraryLogger;
+import rewrite.logging.Logger;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyProvider;
-import io.github.pulsebeat02.ezmediacore.reflect.NMSReflectionHandler;
+import rewrite.reflect.PacketToolsProvider;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -132,7 +132,7 @@ public final class EzMediaCore {
   }
 
   private void assignPacketHandler() {
-    this.handler = new NMSReflectionHandler(this).getNewPacketHandlerInstance();
+    this.handler = new PacketToolsProvider(this).getNewPacketHandlerInstance();
   }
 
   private void initProviders() {
