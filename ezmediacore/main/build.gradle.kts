@@ -28,7 +28,7 @@ dependencies {
     compileOnly("io.netty:netty-all:4.1.87.Final")
     compileOnly("com.mojang:authlib:3.16.29")
     compileOnly("com.google.guava:guava:31.1-jre")
-    compileOnly("it.unimi.dsi:fastutil:8.5.11")
+    compileOnly("it.unimi.dsi:fastutil:8.5.14")
 
     testImplementation("me.friwi:jcefmaven:109.1.11.1")
     testImplementation("io.netty:netty-all:4.1.87.Final")
@@ -44,7 +44,7 @@ dependencies {
     testImplementation("com.github.kokorin.jaffree:jaffree:2022.06.03")
     testImplementation("org.jcodec:jcodec:0.2.5")
     testImplementation("com.github.ben-manes.caffeine:caffeine:3.1.2")
-    testImplementation("it.unimi.dsi:fastutil:8.5.11")
+    testImplementation("it.unimi.dsi:fastutil:8.5.14")
 }
 
 tasks {
