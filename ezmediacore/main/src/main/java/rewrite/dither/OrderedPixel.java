@@ -21,16 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.callback.implementation;
+package rewrite.dither;
 
-import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
-import rewrite.dither.DitherAlgorithm;
+public final class OrderedPixel {
 
+  private final int r;
+  private final int g;
+  private final int b;
 
-public interface MapCallbackDispatcher extends VideoCallback {
+  private OrderedPixel(final int r, final int g, final int b) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+  }
 
-  long getMapId();
+  public static OrderedPixel ofPixel(final int r, final int g, final int b) {
+    return new OrderedPixel(r, g, b);
+  }
 
+  public int getR() {
+    return this.r;
+  }
 
-  DitherAlgorithm getAlgorithm();
+  public int getG() {
+    return this.g;
+  }
+
+  public int getB() {
+    return this.b;
+  }
 }

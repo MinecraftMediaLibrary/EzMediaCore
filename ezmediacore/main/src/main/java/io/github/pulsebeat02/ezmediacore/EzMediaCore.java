@@ -26,7 +26,7 @@ package io.github.pulsebeat02.ezmediacore;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import rewrite.dependency.DependencyLoader;
-import io.github.pulsebeat02.ezmediacore.dither.load.DitherLookupUtil;
+import rewrite.dither.load.DitherLookupUtil;
 import rewrite.listener.RegistrationListener;
 import rewrite.locale.Locale;
 import rewrite.logging.LibraryLogger;
@@ -45,6 +45,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
 public final class EzMediaCore {
+
+  /*
+
+  Play videos with shaders on https://hangar.papermc.io/JNNGL/VanillaMinimaps
+
+   */
 
   private final SpotifyClient spotifyClient;
   private final Plugin plugin;

@@ -21,16 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.callback.implementation;
+package rewrite.http.request;
 
-import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
-import rewrite.dither.DitherAlgorithm;
-
-
-public interface MapCallbackDispatcher extends VideoCallback {
-
-  long getMapId();
-
-
-  DitherAlgorithm getAlgorithm();
+/** Basic HTTP request arguments (not all as there are too much!) */
+public interface RequestHeaderArguments {
+  String HTTP_HEADER = "HTTP/1.0 200 OK";
+  String CONTENT_TYPE = "Content-Type: ";
+  String CONTENT_LENGTH = "Content-Length: ";
+  String DATE = "Date: ";
+  String SERVER = "Server: ";
+  String USER_AGENT = "User-Agent: ";
 }

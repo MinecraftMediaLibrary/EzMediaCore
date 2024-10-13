@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.callback.audio;
 
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.Viewers;
-import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.OGGAudioExtractor;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;

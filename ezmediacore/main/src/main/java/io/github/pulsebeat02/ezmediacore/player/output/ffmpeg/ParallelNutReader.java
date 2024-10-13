@@ -32,7 +32,7 @@ import com.github.kokorin.jaffree.nut.NutInputStream;
 import com.github.kokorin.jaffree.nut.NutReader;
 import com.github.kokorin.jaffree.nut.StreamHeader;
 import com.google.common.collect.Lists;
-import io.github.pulsebeat02.ezmediacore.dither.buffer.ByteBufCarrier;
+import rewrite.dither.buffer.ByteBufCarrier;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.VideoFrameUtils;
 import java.io.IOException;
 import java.io.InputStream;

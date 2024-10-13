@@ -21,16 +21,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.callback.implementation;
+package rewrite.dither.algorithm;
 
-import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
-import rewrite.dither.DitherAlgorithm;
+import rewrite.dither.NativeDitherAlgorithm;
+import rewrite.natives.DitherLibC;
+import java.util.function.BiFunction;
 
+public abstract class ForeignDitherAlgorithm implements NativeDitherAlgorithm {
 
-public interface MapCallbackDispatcher extends VideoCallback {
+  private final BiFunction<int[], Integer, byte[]> function;
 
-  long getMapId();
+  public ForeignDitherAlgorithm(final boolean useNative) {
+    if (useNative) {
+      this.tryUsingNative();
+    }
+    this.function = useNative ? this::ditherIntoMinecraftNatively : this::standardMinecraftDither;
+  }
 
+  public ForeignDitherAlgorithm() {
+    this(false);
+  }
 
-  DitherAlgorithm getAlgorithm();
+  private void tryUsingNative() {
+    if (!DitherLibC.isSupported()) {
+      this.throwException();
+    }
+  }
+
+  private void throwException() {
+    throw new UnsupportedOperationException(
+        "Your current platform does not support native dithering!");
+  }
+
+  public abstract byte[] standardMinecraftDither(int[] buffer, int width);
+
+  @Override
+  public byte[] ditherIntoMinecraft(final int  [] buffer, final int width) {
+    return this.function.apply(buffer, width);
+  }
 }

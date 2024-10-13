@@ -33,8 +33,8 @@ import io.github.pulsebeat02.ezmediacore.callback.Viewers;
 import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import io.github.pulsebeat02.ezmediacore.callback.implementation.MapCallbackDispatcher;
 import rewrite.dimension.Dimension;
-import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
-import io.github.pulsebeat02.ezmediacore.dither.algorithm.error.FilterLiteDither;
+import rewrite.dither.DitherAlgorithm;
+import rewrite.dither.algorithm.error.FilterLiteDither;
 import java.util.UUID;
 import org.jetbrains.annotations.Contract;
 

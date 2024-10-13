@@ -37,7 +37,7 @@ import io.github.pulsebeat02.deluxemediaplugin.config.ServerInfo;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutputBuilder;
-import io.github.pulsebeat02.ezmediacore.extraction.AudioAttributes;
+import io.github.pulsebeat02.ezmediacore.ffmpeg.AudioAttributes;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.player.SoundKey;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;

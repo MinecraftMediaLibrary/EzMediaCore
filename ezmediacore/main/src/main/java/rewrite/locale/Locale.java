@@ -28,29 +28,19 @@ import java.nio.file.Path;
 import static rewrite.locale.MessageLoader.key;
 
 public interface Locale {
-  NullComponent SYSTEM_DIAGNOSTIC = toNullComponent("ezmediacore.log.diagnostic");
   NullComponent PACKET_HANDLER = toNullComponent("ezmediacore.log.handle");
   NullComponent LOOKUP_CACHE = toNullComponent("ezmediacore.log.cache");
   NullComponent EVENT_REGISTRATION = toNullComponent("ezmediacore.log.event");
   NullComponent FILE_CREATION = toNullComponent("ezmediacore.log.folder");
   NullComponent DEPENDENCY_LOADING = toNullComponent("ezmediacore.log.dependency");
-  NullComponent NATIVE_LOG_REGISTRATION = toNullComponent("ezmediacore.log.native");
   NullComponent PLAYER_RELEASE = toNullComponent("ezmediacore.log.release");
   NullComponent PLAYER_PAUSE = toNullComponent("ezmediacore.log.pause");
   NullComponent PLAYER_RESUME = toNullComponent("ezmediacore.log.resume");
   NullComponent SERVER_SOFTWARE = toNullComponent("ezmediacore.log.server.software");
   NullComponent SPOTIFY_AUTHENTICATION = toNullComponent("ezmediacore.log.spotify.auth");
   UniComponent<String> UNSUPPORTED_SERVER = key("ezmediacore.error.server")::formatted;
-  UniComponent<String> DEPENDENCY_LOAD = key("ezmediacore.log.dependency.load")::formatted;
   BiComponent<String, String> PLAYER_START = key("ezmediacore.log.start")::formatted;
-  BiComponent<String, Path> BINARY_PATHS = key("ezmediacore.log.binary")::formatted;
-  TriComponent<String, String, Boolean> SERVER_INFO = key("ezmediacore.log.http")::formatted;
-  QuadComponent<String, String, String, String> SYSTEM_INFO =
-      key("ezmediacore.log.system")::formatted;
-  HeptaComponent<String, String, Boolean, Path, Path, Path, Path> PLUGIN_INFO =
-      key("ezmediacore.log.plugin")::formatted;
 
-  @Contract(pure = true)
   static  NullComponent toNullComponent( final String key) {
     return () -> key(key);
   }

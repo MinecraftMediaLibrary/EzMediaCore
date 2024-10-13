@@ -36,7 +36,7 @@ import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.callback.video.VideoCallbackBuilder;
 import io.github.pulsebeat02.ezmediacore.callback.video.MapCallback;
 import io.github.pulsebeat02.ezmediacore.callback.video.MapCallback.Builder;
-import io.github.pulsebeat02.ezmediacore.dither.DitherAlgorithm;
+import rewrite.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import java.util.Collection;
 import org.bukkit.command.CommandSender;

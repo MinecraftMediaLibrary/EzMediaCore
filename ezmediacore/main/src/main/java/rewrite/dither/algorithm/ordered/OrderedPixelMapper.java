@@ -21,46 +21,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.resourcepack.provider;
+package rewrite.dither.algorithm.ordered;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
-import rewrite.http.HttpDaemon;
-import rewrite.http.netty.NettyServer;
-import io.github.pulsebeat02.ezmediacore.utility.misc.NetworkUtils;
+public final class OrderedPixelMapper {
 
-import java.nio.file.Path;
+  private final float[][] matrix;
 
-public final class HttpServer {
-
-  private final HttpDaemon daemon;
-
-  public HttpServer(
-       final EzMediaCore core,
-       final Path path,
-       final String ip,
-       final int port,
-       final boolean verbose) {
-    final String address = ip == null ? NetworkUtils.getPublicAddress() : ip;
-    this.daemon = NettyServer.ofDaemon(core, path, address, port, verbose);
+  private OrderedPixelMapper(final int[][] matrix, final int max, final float strength) {
+    this.matrix = this.calculateMatrixArray(matrix, max, strength);
   }
 
-  public String createUrl(final String file) {
-    return "http://%s:%d/%s"
-        .formatted(
-            this.daemon.getAddress(),
-            this.daemon.getPort(),
-            this.daemon.getRelativePath(Path.of(file)));
+  public static OrderedPixelMapper ofPixelMapper(
+      final int[][] matrix, final int max, final float strength) {
+    return new OrderedPixelMapper(matrix, max, strength);
   }
 
-  public String createUrl(final Path path) {
-    return this.createUrl(path.toString());
+  private float convertThresholdToAddition(final float scale, final int value, final int max) {
+    return (float) (scale * ((value + 1.0) / max - 0.50000006));
   }
 
-  public void start() {
-    this.daemon.start();
+  private float[]  [] calculateMatrixArray(
+      final int[]  [] matrix, final int max, final float strength) {
+    final int ydim = matrix.length;
+    final int xdim = matrix[0].length;
+    final float scale = 65535.0f * strength;
+    final float[][] precalc = new float[ydim][xdim];
+    for (int i = 0; i < ydim; i++) {
+      for (int j = 0; j < xdim; j++) {
+        precalc[i][j] = this.convertThresholdToAddition(scale, matrix[i][j], max);
+      }
+    }
+    return precalc;
   }
 
-  public void shutdown() {
-    this.daemon.stop();
+  public float[][] getMatrix() {
+    return this.matrix;
   }
 }

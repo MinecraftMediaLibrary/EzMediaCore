@@ -21,16 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.callback.implementation;
+package rewrite.dither;
 
-import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
-import rewrite.dither.DitherAlgorithm;
+public interface NativeDitherAlgorithm extends DitherAlgorithm {
 
-
-public interface MapCallbackDispatcher extends VideoCallback {
-
-  long getMapId();
-
-
-  DitherAlgorithm getAlgorithm();
+  byte[] ditherIntoMinecraftNatively(final int[] buffer, final int width);
 }

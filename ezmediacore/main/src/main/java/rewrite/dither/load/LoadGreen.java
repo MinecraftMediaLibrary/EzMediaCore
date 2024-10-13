@@ -21,16 +21,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.callback.implementation;
+package rewrite.dither.load;
 
-import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
-import rewrite.dither.DitherAlgorithm;
-
-
-public interface MapCallbackDispatcher extends VideoCallback {
-
-  long getMapId();
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.RecursiveTask;
 
 
-  DitherAlgorithm getAlgorithm();
+final class LoadGreen extends RecursiveTask<byte[]> {
+
+  @Serial private static final long serialVersionUID = -1221290051151782146L;
+
+  private final int r;
+  private final int g;
+  private final int[] palette;
+
+  LoadGreen(final int[] palette, final int r, final int g) {
+    this.r = r;
+    this.g = g;
+    this.palette = palette;
+  }
+
+  @Override
+  protected byte  [] compute() {
+    final List<LoadBlue> blueSub = new ArrayList<>(128);
+    this.forkBlue(blueSub);
+    return this.getMatches(blueSub);
+  }
+
+  private void forkBlue( final List<LoadBlue> blueSub) {
+    for (int b = 0; b < 256; b += 2) {
+      final LoadBlue blue = new LoadBlue(this.palette, this.r, this.g, b);
+      blueSub.add(blue);
+      blue.fork();
+    }
+  }
+
+  private byte  [] getMatches( final List<LoadBlue> blueSub) {
+    final byte[] matches = new byte[128];
+    for (int i = 0; i < 128; i++) {
+      matches[i] = blueSub.get(i).join();
+    }
+    return matches;
+  }
 }

@@ -21,16 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.callback.implementation;
+package rewrite.http.request;
 
-import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
-import rewrite.dither.DitherAlgorithm;
+import java.nio.file.Path;
 
+public interface PathGETRequest extends GETRequest {
 
-public interface MapCallbackDispatcher extends VideoCallback {
+  Path requestFileCallback(final String request);
 
-  long getMapId();
-
-
-  DitherAlgorithm getAlgorithm();
+  ZipHeaderFormat getHeader();
 }

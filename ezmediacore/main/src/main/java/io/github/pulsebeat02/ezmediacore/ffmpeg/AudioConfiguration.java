@@ -21,16 +21,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.callback.implementation;
-
-import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
-import rewrite.dither.DitherAlgorithm;
+package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
 
-public interface MapCallbackDispatcher extends VideoCallback {
 
-  long getMapId();
+public interface AudioConfiguration {
 
+  int getBitrate();
 
-  DitherAlgorithm getAlgorithm();
+  int getChannels();
+
+  int getSamplingRate();
+
+  
+  String getCodec();
+
+  int getVolume();
+
+  int getStartTime();
 }

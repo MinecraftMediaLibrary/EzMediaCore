@@ -22,6 +22,7 @@ https://user-images.githubusercontent.com/40838203/132433665-a675fc35-e31f-4044-
 This library is capable of playing media in many sorts of outputs, such as maps, entities, chat, scoreboards, 
 debug markers and more. It is also capable of providing audio through a resourcepack, website, and Discord bot, so
 developers can implement many ways of playing media in their server.
+
 ---
 
 ### Prerequisites

@@ -1,26 +1,30 @@
 package rewrite.logging;
 
-import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import io.github.pulsebeat02.ezmediacore.utility.misc.OSType;
+import rewrite.util.ExecutorUtils;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public final class FileLogger {
 
   private final ReentrantReadWriteLock lock;
+  private final ExecutorService service;
   private final Path path;
 
   private PrintWriter writer;
 
   public FileLogger(final Path path) {
     this.lock = new ReentrantReadWriteLock();
+    this.service = Executors.newVirtualThreadPerTaskExecutor();
     this.path = path;
   }
 
@@ -34,10 +38,11 @@ public final class FileLogger {
   public synchronized void close() {
     this.writer.flush();
     this.writer.close();
+    ExecutorUtils.shutdownExecutorGracefully(this.service);
   }
 
   public synchronized void printLine(final String line) {
-    CompletableFuture.runAsync(this.print(line), ExecutorProvider.LOGGER_POOL);
+    CompletableFuture.runAsync(this.print(line), this.service);
   }
 
   private synchronized void createWriter() throws IOException {

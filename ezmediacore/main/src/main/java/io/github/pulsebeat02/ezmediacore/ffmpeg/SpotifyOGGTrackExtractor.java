@@ -24,7 +24,6 @@
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
-import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.playlist.spotify.TrackDownloader;
 import io.github.pulsebeat02.ezmediacore.playlist.youtube.SpotifyTrackDownloader;
 import java.io.IOException;

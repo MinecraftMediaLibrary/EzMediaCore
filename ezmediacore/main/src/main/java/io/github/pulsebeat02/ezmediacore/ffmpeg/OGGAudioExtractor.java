@@ -24,7 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.ffmpeg;
 
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
-import io.github.pulsebeat02.ezmediacore.extraction.AudioConfiguration;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.function.Consumer;

@@ -1,14 +1,14 @@
 package rewrite.pipeline.steps;
 
-import rewrite.dither.algorithm.error.FloydDither;
+import rewrite.dither.algorithm.error.FilterLiteDither;
 import rewrite.pipeline.frame.FramePacket;
 
-public final class FloydSteinbergDitherPipelineStep implements FramePipelineStep<FramePacket, FramePacket> {
+public final class FilterLiteDitherPipelineStep implements FramePipelineStep<FramePacket, FramePacket> {
 
-  private final FloydDither dither;
+  private final FilterLiteDither dither;
 
-  public FloydSteinbergDitherPipelineStep() {
-    this.dither = new FloydDither();
+  public FilterLiteDitherPipelineStep() {
+    this.dither = new FilterLiteDither();
   }
 
   @Override

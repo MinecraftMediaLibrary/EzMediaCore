@@ -21,16 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.callback.implementation;
+package rewrite.dither.algorithm.random;
 
-import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
-import rewrite.dither.DitherAlgorithm;
+public final class MurmurHash3 {
 
+  private MurmurHash3() {}
 
-public interface MapCallbackDispatcher extends VideoCallback {
+  public static int hash(int k) {
+    k ^= k >>> 16;
+    k *= 0x85ebca6b;
+    k ^= k >>> 13;
+    k *= 0xc2b2ae35;
+    k ^= k >>> 16;
+    return k;
+  }
 
-  long getMapId();
-
-
-  DitherAlgorithm getAlgorithm();
+  public static long hash(long k) {
+    k ^= k >>> 33;
+    k *= 0xff51afd7ed558ccdL;
+    k ^= k >>> 33;
+    k *= 0xc4ceb9fe1a85ec53L;
+    k ^= k >>> 33;
+    return k;
+  }
 }
