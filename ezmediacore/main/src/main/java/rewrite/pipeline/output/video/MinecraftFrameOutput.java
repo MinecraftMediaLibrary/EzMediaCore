@@ -7,7 +7,7 @@ import rewrite.dimension.Dimension;
 import rewrite.pipeline.frame.FramePacket;
 import rewrite.pipeline.output.FrameOutputSource;
 
-public abstract class MinecraftFrameOutput implements FrameOutputSource<FramePacket> {
+public abstract class MinecraftFrameOutput<T extends FramePacket> implements FrameOutputSource<T> {
 
   private final EzMediaCore core;
   private final Viewers viewers;

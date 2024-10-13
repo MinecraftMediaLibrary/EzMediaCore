@@ -2,9 +2,10 @@ package rewrite.pipeline.steps;
 
 import rewrite.dither.algorithm.error.FilterLiteDither;
 import rewrite.dither.load.ColorPalette;
+import rewrite.pipeline.frame.DitheredFramePacket;
 import rewrite.pipeline.frame.FramePacket;
 
-public final class FilterLiteDitherPipelineStep implements FramePipelineStep<FramePacket, FramePacket> {
+public final class FilterLiteDitherPipelineStep implements FramePipelineStep<FramePacket, DitheredFramePacket> {
 
   private final FilterLiteDither dither;
 
@@ -13,10 +14,10 @@ public final class FilterLiteDitherPipelineStep implements FramePipelineStep<Fra
   }
 
   @Override
-  public FramePacket process(final FramePacket input) {
+  public DitheredFramePacket process(final FramePacket input) {
     final int[] rgb = input.getRGBSamples();
     final int width = input.getImageWidth();
-    this.dither.dither(rgb, width);
-    return input;
+    final byte[] dithered = this.dither.standardMinecraftDither(rgb, width);
+    return DitheredFramePacket.create(input, dithered);
   }
 }

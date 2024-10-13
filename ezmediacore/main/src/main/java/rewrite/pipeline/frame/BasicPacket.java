@@ -1,6 +1,6 @@
 package rewrite.pipeline.frame;
 
-public final class BasicPacket implements FramePacket {
+public class BasicPacket implements FramePacket {
 
   private final int[] rgbSamples;
   private final byte[] audioSamples;

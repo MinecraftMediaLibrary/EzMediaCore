@@ -24,10 +24,8 @@
 package rewrite.dimension;
 
 import java.util.Map;
-import org.jetbrains.annotations.Contract;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
 public final class ImmutableDimension implements Dimension {
 
@@ -40,7 +38,7 @@ public final class ImmutableDimension implements Dimension {
   }
 
   @Override
-  public @Unmodifiable @NotNull Map<String, Object> serialize() {
+  public @NotNull Map<String, Object> serialize() {
     return Map.of(
         "width", this.width,
         "height", this.height);

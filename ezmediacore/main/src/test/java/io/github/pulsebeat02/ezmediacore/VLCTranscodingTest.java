@@ -9,7 +9,7 @@ import uk.co.caprica.vlcj.log.LogLevel;
 import uk.co.caprica.vlcj.log.NativeLog;
 import uk.co.caprica.vlcj.player.component.EmbeddedMediaPlayerComponent;
 
-public class Test {
+public class VLCTranscodingTest {
 
   public static void main(final String[] args) {
 

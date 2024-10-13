@@ -4,6 +4,7 @@ import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import rewrite.dimension.BlockDimension;
 import rewrite.dimension.Resolution;
+import rewrite.pipeline.frame.DitheredFramePacket;
 import rewrite.pipeline.output.DelayConfiguration;
 import rewrite.pipeline.output.Identifier;
 import rewrite.pipeline.output.Viewers;
@@ -12,7 +13,7 @@ import rewrite.pipeline.frame.FramePacket;
 
 import java.util.UUID;
 
-public final class MapFrameOutput extends MinecraftFrameOutput {
+public final class MapFrameOutput extends MinecraftFrameOutput<DitheredFramePacket> {
 
   private final Dimension blocks;
   private final Identifier<Integer> startingMap;
@@ -35,7 +36,7 @@ public final class MapFrameOutput extends MinecraftFrameOutput {
   }
 
   @Override
-  public void output(final FramePacket input) {
+  public void output(final DitheredFramePacket input) {
     final DelayConfiguration configuration = this.getDelayConfiguration();
     final long delay = configuration.getDelay();
     final long time = System.currentTimeMillis();
@@ -47,7 +48,7 @@ public final class MapFrameOutput extends MinecraftFrameOutput {
       final Dimension resolution = this.getResolution();
       final int height = resolution.getHeight();
       final int width = resolution.getWidth();
-      final int[] data = input.getRGBSamples();
+      final byte[] data = input.getMapDitheredSamples();
       final int id = this.startingMap.getValue();
       final UUID[] uuids = viewers.getViewers();
       handler.displayMaps(uuids, data, id, width, height, blockWidth);

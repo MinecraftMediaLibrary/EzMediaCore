@@ -38,8 +38,6 @@ import io.github.pulsebeat02.deluxemediaplugin.command.video.output.VideoPlaybac
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
-import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
-import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 
 import java.util.List;

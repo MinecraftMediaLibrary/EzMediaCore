@@ -3,9 +3,10 @@ package rewrite.pipeline.steps;
 import rewrite.dither.algorithm.ordered.OrderedDither;
 import rewrite.dither.algorithm.ordered.OrderedPixelMapper;
 import rewrite.dither.load.ColorPalette;
+import rewrite.pipeline.frame.DitheredFramePacket;
 import rewrite.pipeline.frame.FramePacket;
 
-public final class OrderedDitherPipelineStep implements FramePipelineStep<FramePacket, FramePacket> {
+public final class OrderedDitherPipelineStep implements FramePipelineStep<FramePacket, DitheredFramePacket> {
 
   private final OrderedDither dither;
 
@@ -14,10 +15,10 @@ public final class OrderedDitherPipelineStep implements FramePipelineStep<FrameP
   }
 
   @Override
-  public FramePacket process(final FramePacket input) {
+  public DitheredFramePacket process(final FramePacket input) {
     final int[] rgb = input.getRGBSamples();
     final int width = input.getImageWidth();
-    this.dither.dither(rgb, width);
-    return input;
+    final byte[] dithered = this.dither.ditherIntoMinecraft(rgb, width);
+    return DitheredFramePacket.create(input, dithered);
   }
 }

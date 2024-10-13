@@ -24,7 +24,6 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video.output.video;
 
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
-import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class VideoOutput implements PlaybackOutputHandle {

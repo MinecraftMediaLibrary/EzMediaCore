@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.player.external;
+package io.github.pulsebeat02.ezmediacore.player;
 
 import com.google.common.collect.Lists;
 import com.sun.jna.Pointer;
@@ -33,9 +33,6 @@ import rewrite.pipeline.output.Viewers;
 import io.github.pulsebeat02.ezmediacore.audio.AudioOutput;
 import io.github.pulsebeat02.ezmediacore.audio.AudioSource;
 import rewrite.dimension.Dimension;
-import io.github.pulsebeat02.ezmediacore.player.FrameConfiguration;
-import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
-import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.player.input.VLCMediaPlayerInputParser;

@@ -52,7 +52,7 @@ public final class MapPalette {
               .map(createColor())
               .toArray(Color[]::new);
     } catch (final IOException e) {
-      throw new RuntimeException(e);
+      throw new AssertionError(e);
     }
   }
 

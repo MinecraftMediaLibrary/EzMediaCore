@@ -33,7 +33,6 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.CommandSegment;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
-import io.github.pulsebeat02.ezmediacore.player.buffered.JCodecMediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.DesktopInput;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;

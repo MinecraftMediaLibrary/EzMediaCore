@@ -35,7 +35,7 @@ public interface Dimension extends ConfigurationSerializable {
     return ofDimension(side, side);
   }
 
-  static  Dimension inverse( final Dimension dimension) {
+  static Dimension inverse( final Dimension dimension) {
     return ofDimension(dimension.getHeight(), dimension.getWidth());
   }
 

@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package rewrite.rtp;
+package rewrite.rtsp;
 
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import rewrite.capabilities.Capabilities;
@@ -36,14 +36,14 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.Map;
 
-public class RTPServer {
+public class RTSPServer {
 
   private final EzMediaCore core;
   private final int hlsPort;
 
   private Process process;
 
-  public RTPServer(final EzMediaCore core, final int hlsPort) {
+  public RTSPServer(final EzMediaCore core, final int hlsPort) {
     this.core = core;
     this.hlsPort = hlsPort;
   }

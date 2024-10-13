@@ -12,7 +12,7 @@ import rewrite.pipeline.frame.FramePacket;
 
 import java.util.UUID;
 
-public final class DebugFrameOutput extends MinecraftFrameOutput {
+public final class DebugFrameOutput extends MinecraftFrameOutput<FramePacket> {
 
   private final Location location;
   private final NamedStringCharacter character;

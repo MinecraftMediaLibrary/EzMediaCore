@@ -67,7 +67,7 @@ public interface PacketHandler {
 
   void displayMaps(
        final UUID[] viewers,
-       final BufferCarrier rgb,
+       final byte[] rgb,
       final int map,
       final int mapHeight,
       final int mapWidth,
@@ -77,7 +77,7 @@ public interface PacketHandler {
 
   default void displayMaps(
        final UUID[] viewers,
-       final int[] rgb,
+       final byte[] rgb,
       final int map,
       final int mapWidth,
       final int mapHeight,
@@ -131,7 +131,7 @@ public interface PacketHandler {
   void registerMap(final int id);
 
   default  String createChatComponent(
-      final String character,  final IntBuffer data, final int width, final int y) {
+      final String character,  final int[] data, final int width, final int y) {
     int before = -1;
     final StringBuilder msg = new StringBuilder();
     for (int x = 0; x < width; ++x) {
@@ -144,12 +144,12 @@ public interface PacketHandler {
 
   private int appendRGB(
        final StringBuilder msg,
-       final IntBuffer data,
+       final int[] data,
       final int width,
       final int y,
       final int before,
       final int x) {
-    final int rgb = data.get(width * y + x);
+    final int rgb = data[width * y + x];
     if (before != rgb) {
       msg.append(ChatColor.of("#" + Integer.toHexString(rgb).substring(2)));
     }

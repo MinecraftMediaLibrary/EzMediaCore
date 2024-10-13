@@ -23,20 +23,28 @@
  */
 package rewrite.dimension;
 
-import static rewrite.dimension.Dimension.ofDimension;
+import rewrite.util.tuples.Pair;
 
-public interface Resolution {
+public interface Resolution extends Dimension {
 
-  Dimension X360_640 = ofDimension(360, 640);
-  Dimension X375_667 = ofDimension(375, 667);
-  Dimension X414_896 = ofDimension(414, 896);
-  Dimension X360_780 = ofDimension(360, 780);
-  Dimension X375_812 = ofDimension(375, 812);
+  default Pair<String, String> getFFmpegArguments() {
+    return Pair.ofPair("-vf", "scale=" + this.getWidth() + ":" + this.getHeight());
+  }
 
-  Dimension X1366_768 = ofDimension(1366, 768);
-  Dimension X1920_1080 = ofDimension(1920, 1080);
-  Dimension X1536_864 = ofDimension(1536, 864);
-  Dimension X1440_900 = ofDimension(1440, 900);
-  Dimension X1280_720 = ofDimension(1280, 720);
-  Dimension X3840_2160 = ofDimension(3840, 2160);
+  static Resolution ofResolution(final int width, final int height) {
+    return new ImmutableResolution(width, height);
+  }
+
+  Resolution X360_640 = ofResolution(360, 640);
+  Resolution X375_667 = ofResolution(375, 667);
+  Resolution X414_896 = ofResolution(414, 896);
+  Resolution X360_780 = ofResolution(360, 780);
+  Resolution X375_812 = ofResolution(375, 812);
+
+  Resolution X1366_768 = ofResolution(1366, 768);
+  Resolution X1920_1080 = ofResolution(1920, 1080);
+  Resolution X1536_864 = ofResolution(1536, 864);
+  Resolution X1440_900 = ofResolution(1440, 900);
+  Resolution X1280_720 = ofResolution(1280, 720);
+  Resolution X3840_2160 = ofResolution(3840, 2160);
 }

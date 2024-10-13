@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
 
-public final class EntityFrameOutput<T extends Entity> extends MinecraftFrameOutput {
+public final class EntityFrameOutput<T extends Entity> extends MinecraftFrameOutput<FramePacket> {
 
   private final Class<T> type;
   private final Consumer<T> consumer;

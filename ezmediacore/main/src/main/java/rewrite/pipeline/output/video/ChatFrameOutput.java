@@ -11,7 +11,7 @@ import rewrite.pipeline.frame.FramePacket;
 
 import java.util.UUID;
 
-public final class ChatFrameOutput extends MinecraftFrameOutput {
+public final class ChatFrameOutput extends MinecraftFrameOutput<FramePacket> {
 
   private final NamedStringCharacter character;
   private volatile long lastUpdated;

@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Objects.requireNonNull;
 
-public final class ScoreboardFrameOutput extends MinecraftFrameOutput {
+public final class ScoreboardFrameOutput extends MinecraftFrameOutput<FramePacket> {
 
   private final Scoreboard scoreboard;
   private final String name;

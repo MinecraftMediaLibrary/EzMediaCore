@@ -33,7 +33,7 @@ import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import rewrite.callback.video.BlockHighlightCallback;
 import rewrite.callback.video.BlockHighlightCallback.Builder;
-import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
+
 import java.util.Collection;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

@@ -141,14 +141,14 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   @Override
   public void displayMaps(
       final UUID[] viewers,
-       final BufferCarrier rgb,
+       final byte[] rgb,
       final int map,
       final int height,
       final int width,
       final int videoWidth,
       final int xOff,
       final int yOff) {
-    final int vidHeight = rgb.getCapacity() / videoWidth;
+    final int vidHeight = rgb.length / videoWidth;
     final int negXOff = xOff + videoWidth;
     final int negYOff = yOff + vidHeight;
     final int xLoopMin = Math.max(0, xOff >> 7);
@@ -197,7 +197,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
           final int yPos = relY + iy;
           final int indexY = (yPos - yOff) * videoWidth;
           for (int ix = topX; ix < xPixMax; ix++) {
-            mapData[(iy - topY) * xDiff + ix - topX] = rgb.getByte(indexY + relX + ix - xOff);
+            mapData[(iy - topY) * xDiff + ix - topX] = rgb[indexY + relX + ix - xOff];
           }
         }
 
@@ -241,7 +241,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   @Override
   public void displayChat(
       final UUID[] viewers,
-       final IntBuffer data,
+       final int[] data,
        final String character,
       final int width,
       final int height) {
@@ -252,7 +252,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
 
   private void displayToUsers(
        final UUID[] viewers,
-       final IntBuffer data,
+       final int[] data,
        final String character,
       final int width,
       final int y) {
@@ -262,7 +262,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   }
 
   private void displayComponent(
-       final IntBuffer data,
+       final int[] data,
        final String character,
       final int width,
       final int y,
@@ -284,7 +284,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
   public void displayEntities(
        final UUID[] viewers,
        final Entity[] entities,
-       final IntBuffer data,
+       final int[] data,
        final String character,
       final int width,
       final int height) {
@@ -294,7 +294,7 @@ public final class NMSMapPacketInterceptor implements PacketHandler {
     for (int i = 0; i < maxHeight; i++) {
       final MutableComponent component = MutableComponent.create(ComponentContents.EMPTY);
       for (int x = 0; x < width; x++) {
-        this.modifyComponent(character, component, data.get(index++));
+        this.modifyComponent(character, component, data[index++]);
       }
       packets[i] = this.createEntityPacket(entities[i], component);
     }
