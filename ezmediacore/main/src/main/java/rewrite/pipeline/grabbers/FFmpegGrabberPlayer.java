@@ -8,12 +8,13 @@ import rewrite.pipeline.FramePipelineResult;
 import rewrite.pipeline.frame.BasicPacket;
 import rewrite.pipeline.frame.FramePacket;
 import rewrite.pipeline.input.Input;
-import rewrite.util.ExecutorUtils;
 
+import javax.sound.sampled.AudioFormat;
 import java.awt.image.BufferedImage;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,8 +24,10 @@ public final class FFmpegGrabberPlayer implements GrabberPlayer<FramePacket> {
   private final FramePipelineResult result;
 
   private final ExecutorService executor;
+
   private FFmpegFrameGrabber videoGrabber;
   private FFmpegFrameGrabber audioGrabber;
+  private AudioFormat format;
 
   private final Collection<Input> sources;
   private int width;
@@ -45,26 +48,28 @@ public final class FFmpegGrabberPlayer implements GrabberPlayer<FramePacket> {
   }
 
   @Override
-  public void play(final Input video, final Input audio, final String[] arguments) {
-    CompletableFuture.runAsync(() -> this.recreateGrabber(video, audio), this.executor)
+  public void play(final Input video, final Input audio, final Map<String, String> arguments) {
+    CompletableFuture.runAsync(() -> this.recreateGrabber(video, audio, arguments), this.executor)
             .thenRun(this::consumeFrames);
   }
 
   @Override
-  public void play(final Input source, final String[] arguments) {
+  public void play(final Input source, final Map<String, String> arguments) {
     this.play(source, null, arguments);
   }
 
-  private void recreateGrabber(final Input video, final Input audio) {
+  private void recreateGrabber(final Input video, final Input audio, final Map<String, String> arguments) {
     this.release();
     final CompletableFuture<String> rawVideo = video.getMediaRepresentation();
     final String retrievedVideo = rawVideo.join();
     this.videoGrabber = new FFmpegFrameGrabber(retrievedVideo);
+    this.videoGrabber.setOptions(arguments);
     this.sources.add(video);
     if (audio != null) {
       final CompletableFuture<String> rawAudio = audio.getMediaRepresentation();
       final String retrievedAudio = rawAudio.join();
       this.audioGrabber = new FFmpegFrameGrabber(retrievedAudio);
+      this.audioGrabber.setOptions(arguments);
       this.sources.add(audio);
     }
   }
@@ -86,19 +91,25 @@ public final class FFmpegGrabberPlayer implements GrabberPlayer<FramePacket> {
   private void grabCurrentFrame() {
     while (true) {
       try {
+
         if (this.paused) {
           break;
         }
-        final boolean noVideo =  (this.capturedVideo = this.videoGrabber.grabAtFrameRate()) == null;
-        if (noVideo) {
+
+        final Frame frame = this.videoGrabber.grabAtFrameRate();
+        if (frame == null) {
           break;
         }
+        this.capturedVideo = frame;
         if (this.audioGrabber != null) {
-          final boolean noAudio = (this.capturedAudio = this.audioGrabber.grabAtFrameRate()) == null;
-          if (noAudio) {
+          this.capturedAudio = this.audioGrabber.grabAtFrameRate();
+          if (this.capturedAudio == null) {
             break;
           }
+        } else {
+          this.capturedAudio = frame;
         }
+
       } catch (final InterruptedException | FrameGrabber.Exception e) {
         throw new AssertionError(e);
       }
@@ -163,7 +174,7 @@ public final class FFmpegGrabberPlayer implements GrabberPlayer<FramePacket> {
 
   @Override
   public FramePacket grabOutputFrame() {
-    final FramePacket packet = new BasicPacket(this.getRGBSamples(), this.getAudioSamples(), this.width, this.height);
+    final FramePacket packet = new BasicPacket(this.getRGBSamples(), this.getAudioSamples(), this.width, this.height, this.capturedAudio);
     this.result.executePipeline(packet);
     return packet;
   }

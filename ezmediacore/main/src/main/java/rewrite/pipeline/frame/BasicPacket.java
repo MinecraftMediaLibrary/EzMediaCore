@@ -6,13 +6,15 @@ public final class BasicPacket implements FramePacket {
   private final byte[] audioSamples;
   private final int width;
   private final int height;
+  private final Object javaCVFrame;
 
   public BasicPacket(final int[] rgbSamples, final byte[] audioSamples
-      , final int width, final int height) {
+      , final int width, final int height, final Object javaCVFrame) {
     this.rgbSamples = rgbSamples;
     this.audioSamples = audioSamples;
     this.width = width;
     this.height = height;
+    this.javaCVFrame = javaCVFrame;
   }
 
   @Override
@@ -33,5 +35,10 @@ public final class BasicPacket implements FramePacket {
   @Override
   public int getImageHeight() {
     return this.height;
+  }
+
+  @Override
+  public Object getJavaCVAudioFrame() {
+    return null;
   }
 }

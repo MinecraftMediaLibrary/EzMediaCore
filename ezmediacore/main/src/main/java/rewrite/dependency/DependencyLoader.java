@@ -46,11 +46,11 @@ public class DependencyLoader {
   }
 
   private void downloadNativeLibraries() {
+    // exclude rtsp
     final CompletableFuture<Void> vlc = CompletableFuture.runAsync(Capabilities.VLC::isEnabled, this.service);
     final CompletableFuture<Void> ffmpeg = CompletableFuture.runAsync(Capabilities.FFMPEG::isEnabled, this.service);
-    final CompletableFuture<Void> rtsp = CompletableFuture.runAsync(Capabilities.RTSP::isEnabled, this.service);
     final CompletableFuture<Void> dither = CompletableFuture.runAsync(this::installNativeLibraries, this.service);
-    CompletableFuture.allOf(vlc, ffmpeg, rtsp, dither).join();
+    CompletableFuture.allOf(vlc, ffmpeg, dither).join();
   }
 
   private void shutdown() {

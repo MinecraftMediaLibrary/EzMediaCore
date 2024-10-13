@@ -17,6 +17,7 @@ dependencies {
     compileOnly("net.java.dev.jna:jna-platform:5.13.0")
     compileOnly("com.github.kokorin.jaffree:jaffree:2022.06.03")
     compileOnly("org.jcodec:jcodec:0.2.5")
+    compileOnly("net.dv8tion:JDA:5.1.2")
 
     // Provided dependencies
     compileOnly("org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT")

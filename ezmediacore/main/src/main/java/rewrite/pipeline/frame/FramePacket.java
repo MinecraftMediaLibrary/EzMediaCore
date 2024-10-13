@@ -9,4 +9,6 @@ public interface FramePacket {
   int getImageWidth();
 
   int getImageHeight();
+
+  Object getJavaCVAudioFrame();
 }
