@@ -16,10 +16,16 @@ import java.util.concurrent.Executors;
 public final class URLInputParser {
 
   private final String raw;
+  private final ExecutorService service;
   private URLParseDump dump;
 
   public URLInputParser(final String raw) {
+    this(raw, Executors.newSingleThreadExecutor());
+  }
+
+  public URLInputParser(final String raw, final ExecutorService service) {
     this.raw = raw;
+    this.service = service;
   }
 
   public CompletableFuture<Boolean> isLiveStream() {
@@ -36,11 +42,10 @@ public final class URLInputParser {
   }
 
   public CompletableFuture<URLParseDump> retrieveJSONDump() {
-    return this.retrieveJSONDump(Executors.newSingleThreadExecutor());
-  }
-
-  public CompletableFuture<URLParseDump> retrieveJSONDump(final ExecutorService service) {
-    return this.getJSONDump(service).thenApply(this::parseJSON).thenApply(this::assignAndReturn);
+    if (this.dump != null) {
+      return CompletableFuture.completedFuture(this.dump);
+    }
+    return this.getJSONDump().thenApply(this::parseJSON).thenApply(this::assignAndReturn);
   }
 
   private URLParseDump assignAndReturn(final URLParseDump dump) {
@@ -53,11 +58,13 @@ public final class URLInputParser {
     return gson.fromJson(json, URLParseDump.class);
   }
 
-  private CompletableFuture<String> getJSONDump(final ExecutorService service) {
-    final Path executable = Path.of("");
-    final String executablePath = executable.toString();
-    final CommandTask task = new CommandTask(executablePath, "--dump-json", this.raw);
-    return CompletableFuture.supplyAsync(() -> this.getTaskOutput(task), service);
+  private CompletableFuture<String> getJSONDump() {
+    try (this.service) {
+      final Path executable = Path.of("");
+      final String executablePath = executable.toString();
+      final CommandTask task = new CommandTask(executablePath, "--dump-json", this.raw);
+      return CompletableFuture.supplyAsync(() -> this.getTaskOutput(task), this.service);
+    }
   }
 
   private String getTaskOutput(final CommandTask task) {

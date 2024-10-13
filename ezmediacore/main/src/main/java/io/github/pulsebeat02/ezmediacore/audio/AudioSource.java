@@ -21,48 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.player;
-
-import rewrite.pipeline.output.Viewers;
-import io.github.pulsebeat02.ezmediacore.audio.AudioSource;
-import io.github.pulsebeat02.ezmediacore.player.input.Input;
-import io.github.pulsebeat02.ezmediacore.player.input.PlayerInput;
-import io.github.pulsebeat02.ezmediacore.player.output.PlayerOutput;
+package io.github.pulsebeat02.ezmediacore.audio;
 
 
-public interface VideoPlayer , Viewable, Dimensional {
+public interface AudioSource , PlayerListener {
 
-
-  VideoCallback getVideoCallback();
-
-
-  AudioSource getAudioCallback();
-
-  void start( final Input mrl,  final Object... arguments);
-
-  void pause();
-
-  void resume();
-
-  void release();
-
-  void setViewers( final Viewers viewers);
-
-  void onPlayerStateChange(
-       final Input mrl,
-       final PlayerControls controls,
-       final Object... arguments);
-
-
-  PlayerInput getInput();
-
-  void setInput( final PlayerInput input);
-
-
-  PlayerOutput getOutput();
-
-  void setOutput( final PlayerOutput output);
-
-
-  PlayerControls getPlayerState();
+    void process(final byte  [] data);
 }

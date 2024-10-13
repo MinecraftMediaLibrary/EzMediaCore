@@ -1,6 +1,6 @@
 package rewrite.pipeline;
 
-import rewrite.pipeline.outputs.FrameOutputSource;
+import rewrite.pipeline.output.FrameOutputSource;
 import rewrite.pipeline.steps.FramePipelineStep;
 
 import java.util.ArrayList;

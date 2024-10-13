@@ -45,8 +45,6 @@
 
 package rewrite.task;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -60,7 +58,7 @@ import java.util.concurrent.Executors;
 /** Constructs a chain of commands to be executed accordingly. */
 public class CommandTaskChain {
 
-  private static final ExecutorService EXTERNAL_PROCESS_POOL = Executors.newSingleThreadExecutor();
+  private static final ExecutorService EXTERNAL_PROCESS_POOL = Executors.newVirtualThreadPerTaskExecutor();
 
   private final Map<CommandTask, Boolean> chain;
 

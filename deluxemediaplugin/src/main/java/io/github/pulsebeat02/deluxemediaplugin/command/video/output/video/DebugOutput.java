@@ -24,16 +24,15 @@
 package io.github.pulsebeat02.deluxemediaplugin.command.video.output.video;
 
 import static io.github.pulsebeat02.deluxemediaplugin.utility.nullability.ArgumentUtils.requiresPlayer;
-import static io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration.ofDelay;
+import static rewrite.pipeline.output.DelayConfiguration.ofDelay;
 import static rewrite.dimension.Dimension.ofDimension;
 import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
-import io.github.pulsebeat02.ezmediacore.callback.video.BlockHighlightCallback;
-import io.github.pulsebeat02.ezmediacore.callback.video.BlockHighlightCallback.Builder;
-import io.github.pulsebeat02.ezmediacore.callback.video.VideoCallbackBuilder;
+import rewrite.callback.video.BlockHighlightCallback;
+import rewrite.callback.video.BlockHighlightCallback.Builder;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import java.util.Collection;
 import org.bukkit.command.CommandSender;

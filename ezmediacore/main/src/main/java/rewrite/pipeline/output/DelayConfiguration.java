@@ -21,48 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.player;
+package rewrite.pipeline.output;
 
-import rewrite.pipeline.output.Viewers;
-import io.github.pulsebeat02.ezmediacore.audio.AudioSource;
-import io.github.pulsebeat02.ezmediacore.player.input.Input;
-import io.github.pulsebeat02.ezmediacore.player.input.PlayerInput;
-import io.github.pulsebeat02.ezmediacore.player.output.PlayerOutput;
+import static com.google.common.base.Preconditions.checkArgument;
 
 
-public interface VideoPlayer , Viewable, Dimensional {
 
+public final class DelayConfiguration {
 
-  VideoCallback getVideoCallback();
+  public static final DelayConfiguration DELAY_0_MS;
+  public static final DelayConfiguration DELAY_5_MS;
+  public static final DelayConfiguration DELAY_10_MS;
+  public static final DelayConfiguration DELAY_15_MS;
+  public static final DelayConfiguration DELAY_20_MS;
 
+  static {
+    DELAY_0_MS = ofDelay(0L);
+    DELAY_5_MS = ofDelay(5L);
+    DELAY_10_MS = ofDelay(10L);
+    DELAY_15_MS = ofDelay(15L);
+    DELAY_20_MS = ofDelay(20L);
+  }
 
-  AudioSource getAudioCallback();
+  private final long delay;
 
-  void start( final Input mrl,  final Object... arguments);
+  DelayConfiguration(final long delay) {
+    checkArgument(delay >= 0, "Delay must be greater than or equal to 0!");
+    this.delay = delay;
+  }
 
-  void pause();
+  public static  DelayConfiguration ofDelay(final long delay) {
+    return new DelayConfiguration(delay);
+  }
 
-  void resume();
+  public static  DelayConfiguration ofDelay( final Number delay) {
+    return ofDelay((int) delay);
+  }
 
-  void release();
-
-  void setViewers( final Viewers viewers);
-
-  void onPlayerStateChange(
-       final Input mrl,
-       final PlayerControls controls,
-       final Object... arguments);
-
-
-  PlayerInput getInput();
-
-  void setInput( final PlayerInput input);
-
-
-  PlayerOutput getOutput();
-
-  void setOutput( final PlayerOutput output);
-
-
-  PlayerControls getPlayerState();
+  public long getDelay() {
+    return this.delay;
+  }
 }

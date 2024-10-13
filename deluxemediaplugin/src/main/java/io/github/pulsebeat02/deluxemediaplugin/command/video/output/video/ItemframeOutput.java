@@ -23,9 +23,9 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.command.video.output.video;
 
-import static io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration.DELAY_0_MS;
-import static io.github.pulsebeat02.ezmediacore.callback.Identifier.ofIdentifier;
-import static io.github.pulsebeat02.ezmediacore.callback.Viewers.ofPlayers;
+import static rewrite.pipeline.output.DelayConfiguration.DELAY_0_MS;
+import static rewrite.pipeline.output.Identifier.ofIdentifier;
+import static rewrite.pipeline.output.Viewers.ofPlayers;
 import static rewrite.dimension.Dimension.ofDimension;
 import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
@@ -33,9 +33,6 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.DitheringAlgorithm;
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
-import io.github.pulsebeat02.ezmediacore.callback.video.VideoCallbackBuilder;
-import io.github.pulsebeat02.ezmediacore.callback.video.MapCallback;
-import io.github.pulsebeat02.ezmediacore.callback.video.MapCallback.Builder;
 import rewrite.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import java.util.Collection;

@@ -25,11 +25,10 @@ package io.github.pulsebeat02.ezmediacore.player.buffered;
 
 import com.github.kokorin.jaffree.ffmpeg.ImageFormats;
 import com.google.common.collect.Lists;
-import io.github.pulsebeat02.ezmediacore.callback.DelayConfiguration;
-import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
-import io.github.pulsebeat02.ezmediacore.callback.Viewers;
-import io.github.pulsebeat02.ezmediacore.callback.audio.AudioOutput;
-import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
+import rewrite.pipeline.output.DelayConfiguration;
+import rewrite.pipeline.output.Viewers;
+import io.github.pulsebeat02.ezmediacore.audio.AudioOutput;
+import io.github.pulsebeat02.ezmediacore.audio.AudioSource;
 import rewrite.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.executor.ExecutorProvider;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegArguments;

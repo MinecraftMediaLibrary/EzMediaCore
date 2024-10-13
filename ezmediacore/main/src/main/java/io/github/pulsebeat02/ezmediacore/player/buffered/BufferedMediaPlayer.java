@@ -23,9 +23,8 @@
  */
 package io.github.pulsebeat02.ezmediacore.player.buffered;
 
-import io.github.pulsebeat02.ezmediacore.callback.VideoCallback;
-import io.github.pulsebeat02.ezmediacore.callback.Viewers;
-import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
+import rewrite.pipeline.output.Viewers;
+import io.github.pulsebeat02.ezmediacore.audio.AudioSource;
 import rewrite.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;

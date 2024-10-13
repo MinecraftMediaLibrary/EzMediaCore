@@ -77,12 +77,12 @@ public interface PacketHandler {
 
   default void displayMaps(
        final UUID[] viewers,
-       final BufferCarrier rgb,
+       final int[] rgb,
       final int map,
       final int mapWidth,
       final int mapHeight,
       final int videoWidth) {
-    final int vidHeight = rgb.getCapacity() / videoWidth;
+    final int vidHeight = rgb.length / videoWidth;
     final int pixW = mapWidth << 7;
     final int pixH = mapHeight << 7;
     final int xOff = (pixW - videoWidth) >> 1;
@@ -93,14 +93,14 @@ public interface PacketHandler {
   void displayEntities(
        final UUID[] viewers,
        final Entity[] entities,
-       final IntBuffer data,
+       final int[] data,
        final String character,
       final int width,
       final int height);
 
   void displayChat(
        final UUID[] viewers,
-       final IntBuffer data,
+       final int[] data,
        final String character,
       final int width,
       final int height);
@@ -108,7 +108,7 @@ public interface PacketHandler {
   default void displayScoreboard(
        final UUID[] viewers,
        final Scoreboard scoreboard,
-       final IntBuffer data,
+       final int[] data,
       final String character,
       final int width,
       final int height) {

@@ -21,48 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.player;
+package rewrite.pipeline.output;
 
-import rewrite.pipeline.output.Viewers;
-import io.github.pulsebeat02.ezmediacore.audio.AudioSource;
-import io.github.pulsebeat02.ezmediacore.player.input.Input;
-import io.github.pulsebeat02.ezmediacore.player.input.PlayerInput;
-import io.github.pulsebeat02.ezmediacore.player.output.PlayerOutput;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+public final class NamedStringCharacter {
 
-public interface VideoPlayer , Viewable, Dimensional {
+  public static final NamedStringCharacter DASH;
+  public static final NamedStringCharacter HYPHEN;
+  public static final NamedStringCharacter PERIOD;
 
+  public static final NamedStringCharacter TINY_SQUARE;
+  public static final NamedStringCharacter NORMAL_SQUARE;
+  public static final NamedStringCharacter VERTICAL_RECTANGLE;
+  public static final NamedStringCharacter HORIZONTAL_RECTANGLE;
 
-  VideoCallback getVideoCallback();
+  static {
+    DASH = ofString("-");
+    HYPHEN = ofString("—");
+    PERIOD = ofString(".");
 
+    TINY_SQUARE = ofString("■");
+    NORMAL_SQUARE = ofString("■");
+    VERTICAL_RECTANGLE = ofString("█");
+    HORIZONTAL_RECTANGLE = ofString("▬");
+  }
 
-  AudioSource getAudioCallback();
+  private final String character;
 
-  void start( final Input mrl,  final Object... arguments);
+  NamedStringCharacter( final String name) {
+    checkNotNull(name, "NamedEntityString cannot be null!");
+    this.character = name;
+  }
 
-  void pause();
+  public static  NamedStringCharacter ofString( final String name) {
+    return new NamedStringCharacter(name);
+  }
 
-  void resume();
-
-  void release();
-
-  void setViewers( final Viewers viewers);
-
-  void onPlayerStateChange(
-       final Input mrl,
-       final PlayerControls controls,
-       final Object... arguments);
-
-
-  PlayerInput getInput();
-
-  void setInput( final PlayerInput input);
-
-
-  PlayerOutput getOutput();
-
-  void setOutput( final PlayerOutput output);
-
-
-  PlayerControls getPlayerState();
+  public  String getCharacter() {
+    return this.character;
+  }
 }

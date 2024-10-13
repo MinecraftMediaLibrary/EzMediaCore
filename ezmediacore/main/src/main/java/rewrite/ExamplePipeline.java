@@ -11,7 +11,7 @@ import rewrite.pipeline.input.Input;
 import rewrite.pipeline.input.parser.URLInputParser;
 import rewrite.pipeline.input.parser.strategy.DefaultAudioStrategy;
 import rewrite.pipeline.input.parser.strategy.DefaultVideoStrategy;
-import rewrite.pipeline.outputs.video.MapFrameOutput;
+import rewrite.pipeline.output.video.MapFrameOutput;
 import rewrite.pipeline.steps.FloydSteinbergDitherPipelineStep;
 
 import java.util.concurrent.CompletableFuture;

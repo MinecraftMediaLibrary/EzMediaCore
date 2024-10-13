@@ -150,6 +150,7 @@ public final class FFmpegGrabberPlayer implements GrabberPlayer<FramePacket> {
         this.audioGrabber.release();
         this.audioGrabber = null;
       }
+      this.result.releasePipelines();
     } catch (final FFmpegFrameGrabber.Exception e) {
       throw new AssertionError(e);
     }

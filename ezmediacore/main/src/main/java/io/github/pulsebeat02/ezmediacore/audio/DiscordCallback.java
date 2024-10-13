@@ -21,48 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.player;
+package io.github.pulsebeat02.ezmediacore.audio;
 
-import rewrite.pipeline.output.Viewers;
-import io.github.pulsebeat02.ezmediacore.audio.AudioSource;
-import io.github.pulsebeat02.ezmediacore.player.input.Input;
-import io.github.pulsebeat02.ezmediacore.player.input.PlayerInput;
-import io.github.pulsebeat02.ezmediacore.player.output.PlayerOutput;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 
 
-public interface VideoPlayer , Viewable, Dimensional {
+public abstract class DiscordCallback extends AudioOutput {
 
-
-  VideoCallback getVideoCallback();
-
-
-  AudioSource getAudioCallback();
-
-  void start( final Input mrl,  final Object... arguments);
-
-  void pause();
-
-  void resume();
-
-  void release();
-
-  void setViewers( final Viewers viewers);
-
-  void onPlayerStateChange(
-       final Input mrl,
-       final PlayerControls controls,
-       final Object... arguments);
-
-
-  PlayerInput getInput();
-
-  void setInput( final PlayerInput input);
-
-
-  PlayerOutput getOutput();
-
-  void setOutput( final PlayerOutput output);
-
-
-  PlayerControls getPlayerState();
+  DiscordCallback( final EzMediaCore core) {
+    super(core);
+  }
 }

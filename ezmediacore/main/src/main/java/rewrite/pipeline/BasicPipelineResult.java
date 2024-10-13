@@ -1,6 +1,6 @@
 package rewrite.pipeline;
 
-import rewrite.pipeline.outputs.FrameOutputSource;
+import rewrite.pipeline.output.FrameOutputSource;
 import rewrite.pipeline.steps.FramePipelineStep;
 
 import java.util.List;
@@ -27,6 +27,13 @@ public final class BasicPipelineResult implements FramePipelineResult {
     }
     for (final FrameOutputSource output : this.output) {
       output.output(current);
+    }
+  }
+
+  @Override
+  public void releasePipelines() {
+    for (final FrameOutputSource output : this.output) {
+      output.release();
     }
   }
 }
