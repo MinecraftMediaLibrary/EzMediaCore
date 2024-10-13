@@ -23,10 +23,13 @@
  */
 package rewrite.dither;
 
-@FunctionalInterface
+import rewrite.dither.load.ColorPalette;
+
 public interface DitherAlgorithm {
 
   byte[] ditherIntoMinecraft(final int[] buffer, final int width);
 
-  default void dither(final int[] buffer, final int width) {}
+  void dither(final int[] buffer, final int width);
+
+  ColorPalette getPalette();
 }

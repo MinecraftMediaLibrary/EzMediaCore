@@ -29,7 +29,7 @@ import io.github.pulsebeat02.ezmediacore.callback.audio.AudioSource;
 import rewrite.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.MediaPlayer;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
-import io.github.pulsebeat02.ezmediacore.utility.structure.Triple;
+import rewrite.util.tuples.Triple;
 import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;

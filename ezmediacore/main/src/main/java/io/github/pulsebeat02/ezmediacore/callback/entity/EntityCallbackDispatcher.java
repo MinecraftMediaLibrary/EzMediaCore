@@ -31,6 +31,5 @@ import org.bukkit.entity.Entity;
 
 public interface EntityCallbackDispatcher extends VideoCallback, Locatable, CharacterBased {
 
-  
   Entity[] getEntities();
 }

@@ -34,7 +34,7 @@ import io.github.pulsebeat02.ezmediacore.callback.entity.NamedStringCharacter;
 import rewrite.dimension.Dimension;
 import io.github.pulsebeat02.ezmediacore.player.PlayerControls;
 import io.github.pulsebeat02.ezmediacore.player.VideoPlayer;
-import io.github.pulsebeat02.ezmediacore.utility.structure.Pair;
+import rewrite.util.tuples.Pair;
 import java.nio.IntBuffer;
 import java.util.UUID;
 import java.util.function.Consumer;

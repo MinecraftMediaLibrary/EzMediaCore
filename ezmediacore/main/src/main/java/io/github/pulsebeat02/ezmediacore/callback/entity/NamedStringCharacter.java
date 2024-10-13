@@ -25,8 +25,6 @@ package io.github.pulsebeat02.ezmediacore.callback.entity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-
-
 public final class NamedStringCharacter {
 
   public static final NamedStringCharacter DASH;

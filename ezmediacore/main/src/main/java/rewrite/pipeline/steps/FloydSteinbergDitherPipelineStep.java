@@ -1,14 +1,15 @@
 package rewrite.pipeline.steps;
 
 import rewrite.dither.algorithm.error.FloydDither;
+import rewrite.dither.load.ColorPalette;
 import rewrite.pipeline.frame.FramePacket;
 
 public final class FloydSteinbergDitherPipelineStep implements FramePipelineStep<FramePacket, FramePacket> {
 
   private final FloydDither dither;
 
-  public FloydSteinbergDitherPipelineStep() {
-    this.dither = new FloydDither();
+  public FloydSteinbergDitherPipelineStep(final ColorPalette palette) {
+    this.dither = new FloydDither(palette, false);
   }
 
   @Override

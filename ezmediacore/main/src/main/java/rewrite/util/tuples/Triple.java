@@ -21,9 +21,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.playlist;
+package rewrite.util.tuples;
 
-public interface Album extends ResourceUrl, Namespace {
+public class Triple<X, Y, Z> {
 
-  int getVideoCount();
+  private final X x;
+  private final Y y;
+  private final Z z;
+
+  Triple( final X x,  final Y y,  final Z z) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+
+  public static <X, Y, Z>  Triple<X, Y, Z> ofTriple(
+       final X x,  final Y y,  final Z z) {
+    return new Triple<>(x, y, z);
+  }
+
+  public  X getX() {
+    return this.x;
+  }
+
+  public  Y getY() {
+    return this.y;
+  }
+
+  public  final Z getZ() {
+    return this.z;
+  }
 }

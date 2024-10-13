@@ -23,13 +23,11 @@
  */
 package rewrite.dither.algorithm.error;
 
-import static rewrite.dither.load.DitherLookupUtil.COLOR_MAP;
-import static rewrite.dither.load.DitherLookupUtil.FULL_COLOR_MAP;
 import static java.util.Objects.requireNonNull;
 
 import com.sun.jna.Pointer;
-import io.github.pulsebeat02.ezmediacore.callback.buffer.BufferCarrier;
 import rewrite.dither.algorithm.ForeignDitherAlgorithm;
+import rewrite.dither.load.ColorPalette;
 import rewrite.natives.DitherLibC;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
 import io.netty.buffer.ByteBuf;
@@ -43,8 +41,8 @@ import io.netty.buffer.Unpooled;
  */
 public final class FloydDither extends ForeignDitherAlgorithm {
 
-  public FloydDither(final boolean useNative) {
-    super(useNative);
+  public FloydDither(final ColorPalette palette, final boolean useNative) {
+    super(palette, useNative);
   }
 
   public FloydDither() {
@@ -53,6 +51,7 @@ public final class FloydDither extends ForeignDitherAlgorithm {
 
   @Override
   public void dither(final int  [] buffer, final int width) {
+    final ColorPalette palette = this.getPalette();
     final int height = buffer.length / width;
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;
@@ -74,7 +73,7 @@ public final class FloydDither extends ForeignDitherAlgorithm {
           red = (red += buf1[bufferIndex++]) > 255 ? 255 : Math.max(red, 0);
           green = (green += buf1[bufferIndex++]) > 255 ? 255 : Math.max(green, 0);
           blue = (blue += buf1[bufferIndex++]) > 255 ? 255 : Math.max(blue, 0);
-          final int closest = DitherUtils.getBestFullColor(red, green, blue);
+          final int closest = DitherUtils.getBestFullColor(palette, red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
@@ -118,7 +117,7 @@ public final class FloydDither extends ForeignDitherAlgorithm {
           blue = (blue += buf1[bufferIndex--]) > 255 ? 255 : Math.max(blue, 0);
           green = (green += buf1[bufferIndex--]) > 255 ? 255 : Math.max(green, 0);
           red = (red += buf1[bufferIndex--]) > 255 ? 255 : Math.max(red, 0);
-          final int closest = DitherUtils.getBestFullColor(red, green, blue);
+          final int closest = DitherUtils.getBestFullColor(palette, red, green, blue);
           final int delta_r = red - (closest >> 16 & 0xFF);
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
@@ -151,6 +150,7 @@ public final class FloydDither extends ForeignDitherAlgorithm {
   @Override
   public byte[] standardMinecraftDither(
       final int  [] buffer, final int width) {
+    final ColorPalette palette = this.getPalette();
     final int length = buffer.length;
     final int height = length / width;
     final int widthMinus = width - 1;
@@ -174,7 +174,7 @@ public final class FloydDither extends ForeignDitherAlgorithm {
           red = (red += buf1[bufferIndex++]) > 255 ? 255 : Math.max(red, 0);
           green = (green += buf1[bufferIndex++]) > 255 ? 255 : Math.max(green, 0);
           blue = (blue += buf1[bufferIndex++]) > 255 ? 255 : Math.max(blue, 0);
-          final int closest = DitherUtils.getBestFullColor(red, green, blue);
+          final int closest = DitherUtils.getBestFullColor(palette, red, green, blue);
           final int r = closest >> 16 & 0xFF;
           final int g = closest >> 8 & 0xFF;
           final int b = closest & 0xFF;
@@ -201,7 +201,7 @@ public final class FloydDither extends ForeignDitherAlgorithm {
               buf2[bufferIndex + 2] = delta_b >> 4;
             }
           }
-          data.setByte(index, DitherUtils.getBestColor(r, g, b));
+          data.setByte(index, DitherUtils.getBestColor(palette, r, g, b));
         }
       } else {
         int bufferIndex = width + (width << 1) - 1;
@@ -217,7 +217,7 @@ public final class FloydDither extends ForeignDitherAlgorithm {
           blue = (blue += buf1[bufferIndex--]) > 255 ? 255 : Math.max(blue, 0);
           green = (green += buf1[bufferIndex--]) > 255 ? 255 : Math.max(green, 0);
           red = (red += buf1[bufferIndex--]) > 255 ? 255 : Math.max(red, 0);
-          final int closest = DitherUtils.getBestFullColor(red, green, blue);
+          final int closest = DitherUtils.getBestFullColor(palette, red, green, blue);
           final int r = closest >> 16 & 0xFF;
           final int g = closest >> 8 & 0xFF;
           final int b = closest & 0xFF;
@@ -244,7 +244,7 @@ public final class FloydDither extends ForeignDitherAlgorithm {
               buf2[bufferIndex - 2] = delta_r >> 4;
             }
           }
-          data.setByte(index, DitherUtils.getBestColor(r, g, b));
+          data.setByte(index, DitherUtils.getBestColor(palette, r, g, b));
         }
       }
     }
@@ -254,8 +254,11 @@ public final class FloydDither extends ForeignDitherAlgorithm {
   @Override
   public byte[] ditherIntoMinecraftNatively(
       final int  [] buffer, final int width) {
+    final ColorPalette palette = this.getPalette();
+    final int[] full = palette.getFullColorMap();
+    final byte[] colors = palette.getColorMap();
     final DitherLibC library = requireNonNull(DitherLibC.INSTANCE);
-    final Pointer pointer = library.floydSteinbergDither(FULL_COLOR_MAP, COLOR_MAP, buffer, width);
+    final Pointer pointer = library.floydSteinbergDither(full, colors, buffer, width);
     final byte[] array = pointer.getByteArray(0L, buffer.length);
     final ByteBuf data = Unpooled.buffer(array.length);
     return data.array();

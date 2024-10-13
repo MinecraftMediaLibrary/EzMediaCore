@@ -23,12 +23,11 @@
  */
 package rewrite.dither.algorithm.random;
 
-import static rewrite.dither.load.DitherLookupUtil.COLOR_MAP;
-import static rewrite.dither.load.DitherLookupUtil.FULL_COLOR_MAP;
 import static java.util.Objects.requireNonNull;
 
 import com.sun.jna.Pointer;
 import rewrite.dither.algorithm.ForeignDitherAlgorithm;
+import rewrite.dither.load.ColorPalette;
 import rewrite.natives.DitherLibC;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
 import io.netty.buffer.ByteBuf;
@@ -49,20 +48,21 @@ public final class RandomDither extends ForeignDitherAlgorithm {
   private final int min;
   private final int max;
 
-  public RandomDither(final int weight, final boolean useNative) {
-    super(useNative);
+  public RandomDither(final ColorPalette palette, final int weight, final boolean useNative) {
+    super(palette, useNative);
     this.weight = weight;
     this.min = -weight;
     this.max = weight + 1;
   }
 
-  public RandomDither(final int weight) {
-    this(weight, false);
+  public RandomDither(final ColorPalette palette, final int weight) {
+    this(palette, weight, false);
   }
 
   @Override
   public byte[] standardMinecraftDither(
       final int  [] buffer, final int width) {
+    final ColorPalette palette = this.getPalette();
     final int length = buffer.length;
     final int height = length / width;
     final ByteBuf data = Unpooled.buffer(length);
@@ -77,7 +77,7 @@ public final class RandomDither extends ForeignDitherAlgorithm {
         r = (r += this.random()) > 255 ? 255 : Math.max(r, 0);
         g = (g += this.random()) > 255 ? 255 : Math.max(g, 0);
         b = (b += this.random()) > 255 ? 255 : Math.max(b, 0);
-        data.setByte(index, DitherUtils.getBestColor(r, g, b));
+        data.setByte(index, DitherUtils.getBestColor(palette, r, g, b));
       }
     }
     return data.array();
@@ -85,6 +85,7 @@ public final class RandomDither extends ForeignDitherAlgorithm {
 
   @Override
   public void dither(final int  [] buffer, final int width) {
+    final ColorPalette palette = this.getPalette();
     final int height = buffer.length / width;
     for (int y = 0; y < height; y++) {
       final int yIndex = y * width;
@@ -97,7 +98,7 @@ public final class RandomDither extends ForeignDitherAlgorithm {
         r = (r += this.random()) > 255 ? 255 : Math.max(r, 0);
         g = (g += this.random()) > 255 ? 255 : Math.max(g, 0);
         b = (b += this.random()) > 255 ? 255 : Math.max(b, 0);
-        buffer[index] = DitherUtils.getBestColorNormal(r, g, b);
+        buffer[index] = DitherUtils.getBestColorNormal(palette, r, g, b);
       }
     }
   }
@@ -105,9 +106,12 @@ public final class RandomDither extends ForeignDitherAlgorithm {
   @Override
   public byte[] ditherIntoMinecraftNatively(
       final int  [] buffer, final int width) {
+    final ColorPalette palette = this.getPalette();
+    final int[] full = palette.getFullColorMap();
+    final byte[] colors = palette.getColorMap();
     final DitherLibC library = requireNonNull(DitherLibC.INSTANCE);
     final Pointer pointer =
-        library.randomDither(FULL_COLOR_MAP, COLOR_MAP, buffer, width, this.weight);
+        library.randomDither(full, colors, buffer, width, this.weight);
     final byte[] array = pointer.getByteArray(0L, buffer.length);
     final ByteBuf data = Unpooled.buffer(array.length);
     return data.array();

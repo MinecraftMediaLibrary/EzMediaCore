@@ -1,5 +1,8 @@
 package rewrite;
 
+import rewrite.dimension.BlockDimension;
+import rewrite.dimension.Resolution;
+import rewrite.dither.load.DefaultPalette;
 import rewrite.pipeline.FramePipeline;
 import rewrite.pipeline.BasicPipelineResult;
 import rewrite.pipeline.frame.FramePacket;
@@ -18,8 +21,8 @@ public final class ExamplePipeline {
   public void createPipeline() {
 
     final BasicPipelineResult result = FramePipeline.source(FramePacket.class)
-            .thenPipe(new FloydSteinbergDitherPipelineStep())
-            .thenFinally(new MapFrameOutput(640, 480, 4, 4, 0));
+            .thenPipe(new FloydSteinbergDitherPipelineStep(new DefaultPalette()))
+            .thenFinally(new MapFrameOutput(Resolution.X360_640, BlockDimension.X5_5, 0));
 
     final FFmpegGrabberPlayer player = new FFmpegGrabberPlayer(result);
     final URLInputParser parser = new URLInputParser("https://www.youtube.com/watch?v=dQw4w9WgXcQ");

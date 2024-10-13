@@ -36,7 +36,7 @@ final class LoadRed extends RecursiveTask<byte[]> {
   private final int r;
   private final int[] palette;
 
-  LoadRed(final int  [] palette, final int r) {
+  LoadRed(final int[] palette, final int r) {
     this.r = r;
     this.palette = palette;
   }

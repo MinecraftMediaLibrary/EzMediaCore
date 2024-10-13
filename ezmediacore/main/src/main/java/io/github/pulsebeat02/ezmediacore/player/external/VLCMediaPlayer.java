@@ -42,7 +42,7 @@ import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.player.input.VLCMediaPlayerInputParser;
 import io.github.pulsebeat02.ezmediacore.player.output.ConsumableOutput;
 import io.github.pulsebeat02.ezmediacore.player.output.vlc.VLCMediaFrame;
-import io.github.pulsebeat02.ezmediacore.utility.structure.Pair;
+import rewrite.util.tuples.Pair;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;

@@ -25,7 +25,7 @@ package io.github.pulsebeat02.ezmediacore.player.input;
 
 import com.github.kokorin.jaffree.ffmpeg.CaptureInput;
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
-import io.github.pulsebeat02.ezmediacore.utility.structure.Pair;
+import rewrite.util.tuples.Pair;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;

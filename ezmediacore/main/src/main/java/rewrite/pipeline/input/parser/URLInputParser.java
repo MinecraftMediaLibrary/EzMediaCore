@@ -10,6 +10,8 @@ import rewrite.task.CommandTask;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public final class URLInputParser {
 
@@ -24,12 +26,7 @@ public final class URLInputParser {
     return this.retrieveDumpInternal().thenApply(dump -> dump.is_live);
   }
 
-  public CompletableFuture<Input> retrieveVideoInput(final FormatStrategy strategy) {
-    return this.retrieveDumpInternal()
-            .thenApply(ignored -> strategy.getNeededInput(this.dump));
-  }
-
-  public CompletableFuture<Input> retrieveAudioInput(final FormatStrategy strategy) {
+  public CompletableFuture<Input> retrieveInput(final FormatStrategy strategy) {
     return this.retrieveDumpInternal()
             .thenApply(ignored -> strategy.getNeededInput(this.dump));
   }
@@ -39,7 +36,11 @@ public final class URLInputParser {
   }
 
   public CompletableFuture<URLParseDump> retrieveJSONDump() {
-    return this.getJSONDump().thenApply(this::parseJSON).thenApply(this::assignAndReturn);
+    return this.retrieveJSONDump(Executors.newSingleThreadExecutor());
+  }
+
+  public CompletableFuture<URLParseDump> retrieveJSONDump(final ExecutorService service) {
+    return this.getJSONDump(service).thenApply(this::parseJSON).thenApply(this::assignAndReturn);
   }
 
   private URLParseDump assignAndReturn(final URLParseDump dump) {
@@ -52,11 +53,11 @@ public final class URLInputParser {
     return gson.fromJson(json, URLParseDump.class);
   }
 
-  private CompletableFuture<String> getJSONDump() {
+  private CompletableFuture<String> getJSONDump(final ExecutorService service) {
     final Path executable = Path.of("");
     final String executablePath = executable.toString();
     final CommandTask task = new CommandTask(executablePath, "--dump-json", this.raw);
-    return CompletableFuture.supplyAsync(() -> this.getTaskOutput(task));
+    return CompletableFuture.supplyAsync(() -> this.getTaskOutput(task), service);
   }
 
   private String getTaskOutput(final CommandTask task) {

@@ -21,13 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.playlist.spotify;
+package rewrite.util.tuples;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 
+public class Pair<K, V> {
 
-@FunctionalInterface
-public interface ImageResource {
+  private final K key;
+  private final V value;
 
+  Pair( final K key,  final V value) {
+    checkNotNull(key, "Key cannot be null!");
+    checkNotNull(value, "Value cannot be null!");
+    this.key = key;
+    this.value = value;
+  }
 
-  Avatar[] getImages();
+  public static <K, V>  Pair<K, V> ofPair( final K key,  final V value) {
+    return new Pair<>(key, value);
+  }
+
+  public  K getKey() {
+    return this.key;
+  }
+
+  public  V getValue() {
+    return this.value;
+  }
 }

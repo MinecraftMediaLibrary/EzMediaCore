@@ -24,7 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.player.input;
 
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
-import io.github.pulsebeat02.ezmediacore.utility.structure.Pair;
+import rewrite.util.tuples.Pair;
 
 
 /** Yes I know. This is why you shouldn't use it. JCodec sucks. */

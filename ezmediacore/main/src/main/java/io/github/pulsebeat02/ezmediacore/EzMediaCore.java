@@ -26,14 +26,12 @@ package io.github.pulsebeat02.ezmediacore;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import rewrite.dependency.DependencyLoader;
-import rewrite.dither.load.DitherLookupUtil;
+import rewrite.dither.load.ColorPalette;
 import rewrite.listener.RegistrationListener;
 import rewrite.locale.Locale;
 import rewrite.logging.LibraryLogger;
 import rewrite.logging.Logger;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
-import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyClient;
-import io.github.pulsebeat02.ezmediacore.playlist.spotify.SpotifyProvider;
 import rewrite.reflect.PacketToolsProvider;
 import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
 import java.io.IOException;
@@ -52,7 +50,6 @@ public final class EzMediaCore {
 
    */
 
-  private final SpotifyClient spotifyClient;
   private final Plugin plugin;
 
   private final Path libraryPath;
@@ -76,13 +73,11 @@ public final class EzMediaCore {
        final Path httpServerPath,
        final Path imagePath,
        final Path audioPath,
-       final Path videoPath,
-       final SpotifyClient client) {
+       final Path videoPath) {
 
     checkNotNull(plugin, "Cannot initialize plugin that is null!");
 
     this.plugin = plugin;
-    this.spotifyClient = client;
     this.loader = loader;
 
     this.libraryPath = this.getFinalPath(libraryPath, plugin.getDataFolder().toPath(), "emc");
@@ -129,9 +124,7 @@ public final class EzMediaCore {
   }
 
   private void initProviders() {
-    DitherLookupUtil.init();
-    StringSearch.init();
-    SpotifyProvider.init(this);
+    ColorPalette.init();
     this.logger.info(Locale.LOOKUP_CACHE.build());
   }
 
@@ -259,9 +252,5 @@ public final class EzMediaCore {
 
   public Logger getLogger() {
     return this.logger;
-  }
-
-  public SpotifyClient getSpotifyClient() {
-    return this.spotifyClient;
   }
 }

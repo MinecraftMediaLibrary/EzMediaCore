@@ -1,14 +1,15 @@
 package rewrite.pipeline.steps;
 
 import rewrite.dither.algorithm.error.FilterLiteDither;
+import rewrite.dither.load.ColorPalette;
 import rewrite.pipeline.frame.FramePacket;
 
 public final class FilterLiteDitherPipelineStep implements FramePipelineStep<FramePacket, FramePacket> {
 
   private final FilterLiteDither dither;
 
-  public FilterLiteDitherPipelineStep() {
-    this.dither = new FilterLiteDither();
+  public FilterLiteDitherPipelineStep(final ColorPalette palette) {
+    this.dither = new FilterLiteDither(palette, false);
   }
 
   @Override

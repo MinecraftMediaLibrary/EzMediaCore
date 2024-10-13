@@ -24,22 +24,26 @@
 package rewrite.dither.algorithm;
 
 import rewrite.dither.NativeDitherAlgorithm;
+import rewrite.dither.load.ColorPalette;
+import rewrite.dither.load.DefaultPalette;
 import rewrite.natives.DitherLibC;
 import java.util.function.BiFunction;
 
 public abstract class ForeignDitherAlgorithm implements NativeDitherAlgorithm {
 
   private final BiFunction<int[], Integer, byte[]> function;
+  private final ColorPalette palette;
 
-  public ForeignDitherAlgorithm(final boolean useNative) {
+  public ForeignDitherAlgorithm(final ColorPalette palette, final boolean useNative) {
     if (useNative) {
       this.tryUsingNative();
     }
+    this.palette = palette;
     this.function = useNative ? this::ditherIntoMinecraftNatively : this::standardMinecraftDither;
   }
 
   public ForeignDitherAlgorithm() {
-    this(false);
+    this(new DefaultPalette(), false);
   }
 
   private void tryUsingNative() {
@@ -58,5 +62,10 @@ public abstract class ForeignDitherAlgorithm implements NativeDitherAlgorithm {
   @Override
   public byte[] ditherIntoMinecraft(final int  [] buffer, final int width) {
     return this.function.apply(buffer, width);
+  }
+
+  @Override
+  public ColorPalette getPalette() {
+    return this.palette;
   }
 }

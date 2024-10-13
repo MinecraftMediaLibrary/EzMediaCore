@@ -36,7 +36,7 @@ import io.github.pulsebeat02.ezmediacore.player.VideoBuilder;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.InputParser;
 import io.github.pulsebeat02.ezmediacore.player.input.JCodecMediaPlayerInputParser;
-import io.github.pulsebeat02.ezmediacore.utility.structure.Pair;
+import rewrite.util.tuples.Pair;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;

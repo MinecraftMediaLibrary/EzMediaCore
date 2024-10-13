@@ -21,13 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.pulsebeat02.ezmediacore.playlist.spotify;
+package rewrite.dimension;
 
-import io.github.pulsebeat02.ezmediacore.playlist.Album;
+import static rewrite.dimension.Dimension.ofDimension;
+import static rewrite.dimension.Dimension.square;
 
+public interface BlockDimension {
 
-public interface SpotifyAlbum extends Album, ExternalUrl {
+  Dimension X1_1 = square(1);
+  Dimension X1_2 = ofDimension(1, 2);
+  Dimension X3_3 = square(3);
+  Dimension X3_5 = ofDimension(3, 5);
+  Dimension X5_5 = square(5);
+  Dimension X6_10 = ofDimension(6, 10);
 
-  
-  User getAuthor();
+  Dimension X8_14 = ofDimension(8, 14);
+  Dimension X8_18 = ofDimension(8, 18);
+  Dimension X10_14 = ofDimension(10, 14);
 }

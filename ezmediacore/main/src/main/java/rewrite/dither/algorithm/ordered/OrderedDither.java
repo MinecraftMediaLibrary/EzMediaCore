@@ -27,16 +27,19 @@ import rewrite.dither.DitherAlgorithm;
 import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import rewrite.dither.load.ColorPalette;
 
 
 /** See https://github.com/makeworld-the-better-one/dither/blob/master/pixelmappers.go */
 public final class OrderedDither implements DitherAlgorithm {
 
+  private final ColorPalette palette;
   private final float[][] precalc;
   private final int xdim;
   private final int ydim;
 
-  public OrderedDither( final OrderedPixelMapper mapper) {
+  public OrderedDither(final ColorPalette palette, final OrderedPixelMapper mapper) {
+    this.palette = palette;
     this.precalc = mapper.getMatrix();
     this.ydim = this.precalc.length;
     this.xdim = this.precalc[0].length;
@@ -58,7 +61,7 @@ public final class OrderedDither implements DitherAlgorithm {
         r = (r += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(r, 0);
         g = (g += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(g, 0);
         b = (b += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(b, 0);
-        data.writeByte(DitherUtils.getBestColor(r, g, b));
+        data.writeByte(DitherUtils.getBestColor(this.palette, r, g, b));
       }
     }
     return data.array();
@@ -78,8 +81,13 @@ public final class OrderedDither implements DitherAlgorithm {
         r = (r += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(r, 0);
         g = (g += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(g, 0);
         b = (b += this.precalc[y % this.ydim][x % this.xdim]) > 255 ? 255 : Math.max(b, 0);
-        buffer[index] = DitherUtils.getBestColorNormal(r, g, b);
+        buffer[index] = DitherUtils.getBestColorNormal(this.palette, r, g, b);
       }
     }
+  }
+
+  @Override
+  public ColorPalette getPalette() {
+    return this.palette;
   }
 }

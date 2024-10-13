@@ -24,7 +24,7 @@
 package io.github.pulsebeat02.ezmediacore.player.input;
 
 import io.github.pulsebeat02.ezmediacore.EzMediaCore;
-import io.github.pulsebeat02.ezmediacore.utility.structure.Pair;
+import rewrite.util.tuples.Pair;
 
 
 public final class VLCMediaPlayerInputParser extends MediaPlayerInputParser {

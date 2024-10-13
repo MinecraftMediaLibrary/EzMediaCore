@@ -31,7 +31,7 @@ import io.github.pulsebeat02.ezmediacore.player.input.implementation.MrlInput;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.PathInput;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.WindowInput;
-import io.github.pulsebeat02.ezmediacore.utility.structure.Pair;
+import rewrite.util.tuples.Pair;
 
 
 public abstract class MediaPlayerInputParser implements InputParser {
