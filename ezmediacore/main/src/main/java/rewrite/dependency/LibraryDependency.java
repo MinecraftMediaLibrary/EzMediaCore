@@ -23,8 +23,8 @@
  */
 package rewrite.dependency;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
-import java.io.IOException;
+import rewrite.EzMediaCore;
+
 import java.nio.file.Path;
 
 

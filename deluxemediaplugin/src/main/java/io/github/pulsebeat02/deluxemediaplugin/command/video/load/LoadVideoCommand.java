@@ -42,7 +42,7 @@ import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
 import io.github.pulsebeat02.ezmediacore.player.input.Input;
 import io.github.pulsebeat02.ezmediacore.player.input.implementation.UrlInput;
 import io.github.pulsebeat02.ezmediacore.request.MediaRequest;
-import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
+import rewrite.util.io.FileUtils;
 import io.github.pulsebeat02.ezmediacore.utility.media.RequestUtils;
 
 import java.nio.file.Path;

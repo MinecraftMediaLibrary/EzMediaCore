@@ -1,6 +1,6 @@
 package rewrite.pipeline.output.video;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import rewrite.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import org.bukkit.Location;
 import rewrite.dimension.Resolution;
@@ -9,6 +9,7 @@ import rewrite.pipeline.output.NamedStringCharacter;
 import rewrite.pipeline.output.Viewers;
 import rewrite.dimension.Dimension;
 import rewrite.pipeline.frame.FramePacket;
+import rewrite.reflect.PacketToolsProvider;
 
 import java.util.UUID;
 
@@ -41,7 +42,7 @@ public final class DebugFrameOutput extends MinecraftFrameOutput<FramePacket> {
       final Viewers viewers = this.getViewers();
       final UUID[] uuids = viewers.getViewers();
       final EzMediaCore core = this.getCore();
-      final PacketHandler handler = core.getHandler();
+      final PacketHandler handler = PacketToolsProvider.getPacketHandler();
       final int[] data = input.getRGBSamples();
       final String name = this.character.getCharacter();
       for (int y = 0; y < height; y++) {

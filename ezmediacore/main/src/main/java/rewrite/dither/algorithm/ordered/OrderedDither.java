@@ -24,7 +24,7 @@
 package rewrite.dither.algorithm.ordered;
 
 import rewrite.dither.DitherAlgorithm;
-import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
+import rewrite.util.graphics.DitherUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import rewrite.dither.load.ColorPalette;

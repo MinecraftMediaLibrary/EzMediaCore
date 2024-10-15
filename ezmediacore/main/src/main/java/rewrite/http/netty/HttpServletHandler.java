@@ -46,7 +46,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_0;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import static java.util.function.Predicate.not;
 
-import io.github.pulsebeat02.ezmediacore.utility.io.PathUtils;
+import rewrite.util.io.PathUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;

@@ -25,9 +25,9 @@ package rewrite.dependency;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import rewrite.EzMediaCore;
 import rewrite.json.GsonProvider;
-import io.github.pulsebeat02.ezmediacore.utility.io.ResourceUtils;
+import rewrite.util.io.ResourceUtils;
 import rewrite.natives.NativeLibraryLoader;
 import rewrite.util.os.Platform;
 import rewrite.natives.strategy.implementation.NativeResourceLocator;
@@ -43,7 +43,7 @@ import rewrite.natives.strategy.implementation.UrlResourceNativeLibrary;
 
 public final class DitherDependencyManager extends LibraryDependency {
 
-  private static final String DITHER_RESOURCE_PATH = "/emc-json/dither/binaries.json";
+  private static final String DITHER_RESOURCE_PATH = "/dither.json";
 
   public static final Map<Platform, NativeResourceLocator> NATIVE_LIBRARY_MAP;
 

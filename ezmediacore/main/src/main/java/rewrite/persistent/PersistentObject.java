@@ -25,7 +25,7 @@ package rewrite.persistent;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
+import rewrite.util.io.FileUtils;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;

@@ -23,7 +23,7 @@
  */
 package rewrite.natives.strategy.implementation;
 
-import rewrite.util.NativeUtils;
+import rewrite.util.io.NativeUtils;
 
 /**
  * Defines an url resource native library. It automatically downloads the binary from the specified

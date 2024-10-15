@@ -1,6 +1,5 @@
 package rewrite;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import rewrite.dimension.BlockDimension;
 import rewrite.dimension.Dimension;
 import rewrite.dimension.Resolution;
@@ -8,7 +7,7 @@ import rewrite.dither.load.DefaultPalette;
 import rewrite.pipeline.FramePipeline;
 import rewrite.pipeline.BasicPipelineResult;
 import rewrite.pipeline.frame.FramePacket;
-import rewrite.pipeline.grabbers.FFmpegGrabberPlayer;
+import rewrite.pipeline.grabbers.ffmpeg.FFmpegGrabberPlayer;
 import rewrite.pipeline.input.Input;
 import rewrite.pipeline.input.parser.URLInputParser;
 import rewrite.pipeline.input.parser.strategy.DefaultAudioStrategy;
@@ -18,7 +17,6 @@ import rewrite.pipeline.output.Identifier;
 import rewrite.pipeline.output.Viewers;
 import rewrite.pipeline.output.video.MapFrameOutput;
 import rewrite.pipeline.steps.FloydSteinbergDitherPipelineStep;
-import rewrite.util.tuples.Pair;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;

@@ -23,7 +23,7 @@
  */
 package rewrite.natives.strategy.implementation;
 
-import rewrite.util.NativeUtils;
+import rewrite.util.io.NativeUtils;
 
 /**
  * Defines a JAR resource native library. It automatically fetches from the resources folder of the

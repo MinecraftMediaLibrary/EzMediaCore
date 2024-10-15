@@ -1,6 +1,9 @@
 package rewrite.pipeline.input.parser;
 
 import com.google.gson.Gson;
+import rewrite.capabilities.Capabilities;
+import rewrite.capabilities.Capability;
+import rewrite.capabilities.YTDLPCapability;
 import rewrite.json.GsonProvider;
 import rewrite.pipeline.input.Input;
 import rewrite.pipeline.input.parser.extractor.URLParseDump;
@@ -60,7 +63,8 @@ public final class URLInputParser {
 
   private CompletableFuture<String> getJSONDump() {
     try (this.service) {
-      final Path executable = Path.of("");
+      final YTDLPCapability capability = Capabilities.YT_DLP;
+      final Path executable = capability.getBinaryPath();
       final String executablePath = executable.toString();
       final CommandTask task = new CommandTask(executablePath, "--dump-json", this.raw);
       return CompletableFuture.supplyAsync(() -> this.getTaskOutput(task), this.service);

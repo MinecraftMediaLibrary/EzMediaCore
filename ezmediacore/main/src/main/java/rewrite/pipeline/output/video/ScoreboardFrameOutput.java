@@ -1,6 +1,6 @@
 package rewrite.pipeline.output.video;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import rewrite.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -14,6 +14,7 @@ import rewrite.pipeline.output.Viewers;
 import rewrite.pipeline.output.NamedStringCharacter;
 import rewrite.dimension.Dimension;
 import rewrite.pipeline.frame.FramePacket;
+import rewrite.reflect.PacketToolsProvider;
 
 import java.util.Set;
 import java.util.UUID;
@@ -74,7 +75,7 @@ public final class ScoreboardFrameOutput extends MinecraftFrameOutput<FramePacke
       final long delay = configuration.getDelay();
       if (time - this.lastUpdated > delay) {
         final EzMediaCore core = this.getCore();
-        final PacketHandler handler = core.getHandler();
+        final PacketHandler handler = PacketToolsProvider.getPacketHandler();
         final Viewers viewers = this.getViewers();
         final UUID[] watchers = viewers.getViewers();
         final Dimension resolution = this.getResolution();

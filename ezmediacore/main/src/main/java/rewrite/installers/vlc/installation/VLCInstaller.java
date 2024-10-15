@@ -27,7 +27,6 @@ import com.google.common.collect.Table;
 import rewrite.installers.BaseInstaller;
 import rewrite.util.os.OS;
 import rewrite.util.os.OSUtils;
-import rewrite.util.ResourceUtils;
 
 
 import java.io.IOException;
@@ -37,8 +36,8 @@ import java.util.Optional;
 public final class VLCInstaller extends BaseInstaller {
 
   public static final String VERSION = "3.0.18";
-  private static final Table<OS, Boolean, String> BITS_64 = ResourceUtils.parseTable("/emcinstallers-json/vlc/bits64.json");
-  private static final Table<OS, Boolean, String> BITS_32 = ResourceUtils.parseTable("/emcinstallers-json/vlc/bits32.json");
+  private static final Table<OS, Boolean, String> BITS_64 = ResourceUtils.parseTable("/installers/vlc/bits64.json");
+  private static final Table<OS, Boolean, String> BITS_32 = ResourceUtils.parseTable("/installers/vlc/bits32.json");
 
   VLCInstaller(final Path folder) {
     super(folder, "vlc", BITS_32, BITS_64);

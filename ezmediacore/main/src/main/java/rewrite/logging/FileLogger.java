@@ -1,8 +1,7 @@
 package rewrite.logging;
 
-import io.github.pulsebeat02.ezmediacore.utility.io.FileUtils;
-import io.github.pulsebeat02.ezmediacore.utility.misc.OSType;
-import rewrite.util.ExecutorUtils;
+import rewrite.util.io.FileUtils;
+import rewrite.util.concurrency.ExecutorUtils;
 
 import java.io.IOException;
 import java.io.PrintWriter;

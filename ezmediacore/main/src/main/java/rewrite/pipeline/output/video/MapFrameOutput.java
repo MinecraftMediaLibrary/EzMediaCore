@@ -1,16 +1,15 @@
 package rewrite.pipeline.output.video;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import rewrite.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import rewrite.dimension.BlockDimension;
 import rewrite.dimension.Resolution;
-import rewrite.pipeline.frame.DitheredFramePacket;
 import rewrite.pipeline.frame.DitheredPacket;
 import rewrite.pipeline.output.DelayConfiguration;
 import rewrite.pipeline.output.Identifier;
 import rewrite.pipeline.output.Viewers;
 import rewrite.dimension.Dimension;
-import rewrite.pipeline.frame.FramePacket;
+import rewrite.reflect.PacketToolsProvider;
 
 import java.util.UUID;
 
@@ -43,7 +42,7 @@ public final class MapFrameOutput extends MinecraftFrameOutput<DitheredPacket> {
     final long time = System.currentTimeMillis();
     if (time - this.lastUpdated > delay) {
       final EzMediaCore core = this.getCore();
-      final PacketHandler handler = core.getHandler();
+      final PacketHandler handler = PacketToolsProvider.getPacketHandler();
       final Viewers viewers = this.getViewers();
       final int blockWidth = this.blocks.getWidth();
       final Dimension resolution = this.getResolution();

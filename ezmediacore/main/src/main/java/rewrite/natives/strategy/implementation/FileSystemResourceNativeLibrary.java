@@ -23,7 +23,7 @@
  */
 package rewrite.natives.strategy.implementation;
 
-import rewrite.util.NativeUtils;
+import rewrite.util.io.NativeUtils;
 
 import java.nio.file.Path;
 

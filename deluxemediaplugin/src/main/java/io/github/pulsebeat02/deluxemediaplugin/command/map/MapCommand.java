@@ -34,8 +34,8 @@ import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.BaseCommand;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.locale.LocaleParent;
-import io.github.pulsebeat02.ezmediacore.utility.graphics.MapUtils;
-import rewrite.util.tuples.Pair;
+import rewrite.util.bukkit.MapUtils;
+import rewrite.util.tuple.Pair;
 import java.util.Map;
 import java.util.Optional;
 import net.kyori.adventure.audience.Audience;
@@ -81,7 +81,7 @@ public final class MapCommand extends BaseCommand {
   }
 
   private void addMap(@NotNull final Player player, final int id) {
-    player.getInventory().addItem(MapUtils.getMapFromID(id));
+    player.getInventory().addItem(MapUtils.generateMapItemStack(id));
   }
 
   private int giveMultipleMaps(@NotNull final CommandContext<CommandSender> context) {
@@ -131,7 +131,7 @@ public final class MapCommand extends BaseCommand {
     final PlayerInventory inventory = player.getInventory();
     boolean noSpace = false;
     for (int id = start; id <= end; id++) {
-      final ItemStack stack = MapUtils.getMapFromID(id);
+      final ItemStack stack = MapUtils.generateMapItemStack(id);
       if (inventory.firstEmpty() == -1) {
         noSpace = true;
       }

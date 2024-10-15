@@ -23,7 +23,7 @@
  */
 package rewrite.logging;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import rewrite.EzMediaCore;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -46,12 +46,16 @@ public final class LibraryLogger implements Logger {
   }
 
   @Override
-  public void start() throws IOException {
-    this.emcLogger.start();
-    this.vlcLogger.start();
-    this.rtpLogger.start();
-    this.ffmpegPlayerLogger.start();
-    this.ffmpegStreamLogger.start();
+  public void start() {
+    try {
+      this.emcLogger.start();
+      this.vlcLogger.start();
+      this.rtpLogger.start();
+      this.ffmpegPlayerLogger.start();
+      this.ffmpegStreamLogger.start();
+    } catch (final IOException e) {
+      throw new AssertionError(e);
+    }
   }
 
   @Override
@@ -95,7 +99,7 @@ public final class LibraryLogger implements Logger {
   }
 
   @Override
-  public void close() {
+  public void release() {
     this.emcLogger.close();
     this.vlcLogger.close();
     this.rtpLogger.close();

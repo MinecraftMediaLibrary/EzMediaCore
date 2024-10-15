@@ -32,7 +32,7 @@ import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.output.DitheringAlgorithm;
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import rewrite.EzMediaCore;
 import rewrite.dither.DitherAlgorithm;
 
 import java.util.Collection;

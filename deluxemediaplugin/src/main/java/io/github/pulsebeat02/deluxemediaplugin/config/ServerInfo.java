@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
-import io.github.pulsebeat02.ezmediacore.resourcepack.provider.HttpServer;
+import rewrite.resourcepack.provider.HttpServer;
 import org.jetbrains.annotations.NotNull;
 
 public class ServerInfo {

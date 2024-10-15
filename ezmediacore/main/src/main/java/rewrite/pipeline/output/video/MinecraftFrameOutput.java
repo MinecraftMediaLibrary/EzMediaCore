@@ -1,6 +1,6 @@
 package rewrite.pipeline.output.video;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import rewrite.EzMediaCore;
 import rewrite.pipeline.output.DelayConfiguration;
 import rewrite.pipeline.output.Viewers;
 import rewrite.dimension.Dimension;

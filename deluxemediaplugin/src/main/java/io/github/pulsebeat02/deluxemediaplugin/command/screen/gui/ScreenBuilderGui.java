@@ -37,7 +37,7 @@ import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.mutable.MutableInt;
-import io.github.pulsebeat02.ezmediacore.utility.graphics.MapUtils;
+import rewrite.util.bukkit.MapUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -126,7 +126,7 @@ public final class ScreenBuilderGui {
 
   private void handleBuildScreen(@NotNull final InventoryClickEvent event) {
     this.viewer.closeInventory();
-    MapUtils.buildMapScreen(
+    MapUtils.createVideoScreen(
         this.viewer,
         this.material,
         this.width.getNumber(),

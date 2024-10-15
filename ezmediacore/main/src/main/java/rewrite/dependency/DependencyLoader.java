@@ -23,7 +23,7 @@
  */
 package rewrite.dependency;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import rewrite.EzMediaCore;
 import rewrite.capabilities.Capabilities;
 
 import java.util.concurrent.CompletableFuture;
@@ -35,7 +35,7 @@ public class DependencyLoader {
   private final EzMediaCore core;
   private final ExecutorService service;
 
-  DependencyLoader( final EzMediaCore core) {
+  public DependencyLoader( final EzMediaCore core) {
     this.core = core;
     this.service = Executors.newFixedThreadPool(2);
   }
@@ -49,8 +49,9 @@ public class DependencyLoader {
     // exclude rtsp
     final CompletableFuture<Void> vlc = CompletableFuture.runAsync(Capabilities.VLC::isEnabled, this.service);
     final CompletableFuture<Void> ffmpeg = CompletableFuture.runAsync(Capabilities.FFMPEG::isEnabled, this.service);
+    final CompletableFuture<Void> ytdlp = CompletableFuture.runAsync(Capabilities.YT_DLP::isEnabled, this.service);
     final CompletableFuture<Void> dither = CompletableFuture.runAsync(this::installNativeLibraries, this.service);
-    CompletableFuture.allOf(vlc, ffmpeg, dither).join();
+    CompletableFuture.allOf(vlc, ffmpeg, ytdlp, dither).join();
   }
 
   private void shutdown() {

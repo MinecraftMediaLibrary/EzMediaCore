@@ -29,7 +29,7 @@ import com.sun.jna.Pointer;
 import rewrite.dither.algorithm.ForeignDitherAlgorithm;
 import rewrite.dither.load.ColorPalette;
 import rewrite.natives.DitherLibC;
-import io.github.pulsebeat02.ezmediacore.utility.graphics.DitherUtils;
+import rewrite.util.graphics.DitherUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 

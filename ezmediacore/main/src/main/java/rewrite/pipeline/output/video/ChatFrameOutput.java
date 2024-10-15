@@ -1,6 +1,6 @@
 package rewrite.pipeline.output.video;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import rewrite.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import rewrite.dimension.Resolution;
 import rewrite.pipeline.output.DelayConfiguration;
@@ -8,6 +8,7 @@ import rewrite.pipeline.output.Viewers;
 import rewrite.pipeline.output.NamedStringCharacter;
 import rewrite.dimension.Dimension;
 import rewrite.pipeline.frame.FramePacket;
+import rewrite.reflect.PacketToolsProvider;
 
 import java.util.UUID;
 
@@ -36,7 +37,7 @@ public final class ChatFrameOutput extends MinecraftFrameOutput<FramePacket> {
     final long delay = configuration.getDelay();
     if (time - this.lastUpdated > delay) {
       final EzMediaCore core = this.getCore();
-      final PacketHandler handler = core.getHandler();
+      final PacketHandler handler = PacketToolsProvider.getPacketHandler();
       final Viewers viewers = this.getViewers();
       final UUID[] uuids = viewers.getViewers();
       final int[] data = input.getRGBSamples();

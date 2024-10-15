@@ -23,7 +23,8 @@
  */
 package rewrite.listener;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
+import rewrite.EzMediaCore;
 import org.bukkit.Material;
 import org.bukkit.entity.Hanging;
 import org.bukkit.entity.ItemFrame;
@@ -33,6 +34,7 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MapMeta;
+import rewrite.reflect.PacketToolsProvider;
 
 public final class MapInteractionListener implements Listener {
 
@@ -75,9 +77,8 @@ public final class MapInteractionListener implements Listener {
   }
 
   private boolean isMapRegistered( final ItemStack stack) {
-    return this.core
-        .getHandler()
-        .isMapRegistered(this.getMapID(stack));
+    final PacketHandler handler = PacketToolsProvider.getPacketHandler();
+    return handler.isMapRegistered(this.getMapID(stack));
   }
 
   private int getMapID( final ItemStack stack) {

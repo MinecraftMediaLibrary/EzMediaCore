@@ -23,7 +23,7 @@
  */
 package rewrite.http.netty;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import rewrite.EzMediaCore;
 import io.netty.channel.ChannelFuture;
 import rewrite.http.HttpDaemon;
 import io.netty.bootstrap.ServerBootstrap;

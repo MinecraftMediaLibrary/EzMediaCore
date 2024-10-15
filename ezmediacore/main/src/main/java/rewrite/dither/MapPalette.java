@@ -33,11 +33,11 @@ import java.util.stream.Stream;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import rewrite.json.GsonProvider;
-import io.github.pulsebeat02.ezmediacore.utility.io.ResourceUtils;
+import rewrite.util.io.ResourceUtils;
 
 public final class MapPalette {
 
-  private static final String PALETTE_PATH = "/emc-json/palette/colors.json";
+  private static final String PALETTE_PATH = "/palette.json";
 
   public static final Color[] NMS_PALETTE;
 

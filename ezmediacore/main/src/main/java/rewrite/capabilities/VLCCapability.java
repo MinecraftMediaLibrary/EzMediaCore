@@ -24,6 +24,9 @@ public final class VLCCapability extends Capability {
   }
 
   public Path getBinaryPath() {
+    if (this.isDisabled()) {
+      throw new IllegalStateException("VLC capability is not enabled!");
+    }
     return VLC_BINARY_PATH;
   }
 }

@@ -39,7 +39,7 @@ public final class Platform {
   }
 
   private boolean checkMatching() {
-    return OSUtils.getOS() == this.os && OSUtils.getArm() == this.arch && OSUtils.getBits() == this.bits;
+    return OSUtils.getOS() == this.os && OSUtils.getArch() == this.arch && OSUtils.getBits() == this.bits;
   }
 
   /**

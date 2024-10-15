@@ -50,6 +50,10 @@ public final class OSUtils {
     ARM = isArm0();
   }
 
+  private OSUtils() {
+    throw new UnsupportedOperationException();
+  }
+
   private static OS getOperatingSystem0() {
     final String os = System.getProperty(OS_NAME);
     final String lower = os.toLowerCase();

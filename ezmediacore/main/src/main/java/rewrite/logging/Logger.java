@@ -23,11 +23,9 @@
  */
 package rewrite.logging;
 
-import java.io.IOException;
+public interface Logger {
 
-public interface Logger extends AutoCloseable {
-
-  void start() throws IOException;
+  void start();
 
   void info(final Object info);
 
@@ -44,4 +42,6 @@ public interface Logger extends AutoCloseable {
   void directPrint( final String line);
 
   void rtp( final String line);
+
+  void release();
 }

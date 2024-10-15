@@ -23,9 +23,8 @@
  */
 package rewrite.listener;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import rewrite.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
-import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -34,6 +33,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import rewrite.reflect.PacketToolsProvider;
 
 
 public final class RegistrationListener implements Listener{
@@ -46,7 +46,7 @@ public final class RegistrationListener implements Listener{
   }
 
   private void registerListener() {
-    final Plugin plugin = core.getPlugin();
+    final Plugin plugin = this.core.getPlugin();
     final Server server = plugin.getServer();
     final PluginManager manager = server.getPluginManager();
     manager.registerEvents(this, plugin);
@@ -55,14 +55,14 @@ public final class RegistrationListener implements Listener{
   @EventHandler
   public void onPlayerJoin( final PlayerJoinEvent event) {
     final Player p = event.getPlayer();
-    final PacketHandler handler = core.getHandler();
+    final PacketHandler handler = PacketToolsProvider.getPacketHandler();
     handler.injectPlayer(p);
   }
 
   @EventHandler
   public void onPlayerLeave( final PlayerQuitEvent event) {
     final Player p = event.getPlayer();
-    final PacketHandler handler = core.getHandler();
+    final PacketHandler handler = PacketToolsProvider.getPacketHandler();
     handler.uninjectPlayer(p);
   }
 

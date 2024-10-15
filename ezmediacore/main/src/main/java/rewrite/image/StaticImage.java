@@ -29,7 +29,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.map.MapRenderer;
 import rewrite.dimension.Dimension;
-import io.github.pulsebeat02.ezmediacore.utility.graphics.ImageUtils;
+import rewrite.util.graphics.ImageUtils;
 import java.awt.image.BufferedImage;
 import java.util.List;
 

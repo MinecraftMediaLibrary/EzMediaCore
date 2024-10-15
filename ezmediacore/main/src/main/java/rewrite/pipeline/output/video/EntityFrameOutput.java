@@ -1,6 +1,6 @@
 package rewrite.pipeline.output.video;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import rewrite.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -12,6 +12,7 @@ import rewrite.pipeline.output.NamedStringCharacter;
 import rewrite.pipeline.output.Viewers;
 import rewrite.dimension.Dimension;
 import rewrite.pipeline.frame.FramePacket;
+import rewrite.reflect.PacketToolsProvider;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -66,7 +67,7 @@ public final class EntityFrameOutput<T extends Entity> extends MinecraftFrameOut
     final long delay = configuration.getDelay();
     if (time - this.lastUpdated > delay) {
       final EzMediaCore core = this.getCore();
-      final PacketHandler handler = core.getHandler();
+      final PacketHandler handler = PacketToolsProvider.getPacketHandler();
       final Viewers viewers = this.getViewers();
       final UUID[] watchers = viewers.getViewers();
       final int height = this.entities.length;

@@ -23,11 +23,10 @@
  */
 package rewrite.rtsp;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import rewrite.EzMediaCore;
 import rewrite.capabilities.Capabilities;
 import rewrite.capabilities.RTSPCapability;
 import rewrite.logging.Logger;
-import org.jcodec.codecs.mjpeg.tools.AssertionException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -60,19 +59,11 @@ public class RTSPServer {
     }
   }
 
-  public boolean hasCapabilities() {
-    final RTSPCapability capability = Capabilities.RTSP;
-    return capability.isEnabled();
-  }
-
   private ProcessBuilder createProcessBuilder() {
     final RTSPCapability capability = Capabilities.RTSP;
-    if (capability.isEnabled()) {
-      final Path path = capability.getBinaryPath();
-      final String raw = path.toString();
-      return new ProcessBuilder(raw).redirectErrorStream(true);
-    }
-    throw new AssertionException("RTP Capability is not enabled!");
+    final Path path = capability.getBinaryPath();
+    final String raw = path.toString();
+    return new ProcessBuilder(raw).redirectErrorStream(true);
   }
 
   private void startServer(final ProcessBuilder builder) {
@@ -84,7 +75,7 @@ public class RTSPServer {
     }
   }
 
-  private void configureEnvironment( final ProcessBuilder builder) {
+  private void configureEnvironment(final ProcessBuilder builder) {
     final String key = "RTSP_HLSADDRESS";
     final String value = ":%s".formatted(this.hlsPort);
     final Map<String, String> env = builder.environment();
@@ -92,11 +83,11 @@ public class RTSPServer {
   }
 
   private void handleLogging()
-      throws IOException {
+          throws IOException {
     final Logger log = this.core.getLogger();
     try (final InputStream stream = this.process.getInputStream();
          final InputStreamReader reader = new InputStreamReader(stream);
-          final BufferedReader r = new BufferedReader(reader)) {
+         final BufferedReader r = new BufferedReader(reader)) {
       String line;
       while ((line = r.readLine()) != null) {
         log.rtp(line);

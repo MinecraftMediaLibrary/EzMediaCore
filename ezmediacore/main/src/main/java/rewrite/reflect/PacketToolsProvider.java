@@ -23,9 +23,6 @@
  */
 package rewrite.reflect;
 
-import io.github.pulsebeat02.ezmediacore.EzMediaCore;
-import rewrite.locale.Locale;
-import rewrite.logging.Logger;
 import io.github.pulsebeat02.ezmediacore.nms.PacketHandler;
 
 import java.lang.invoke.MethodHandle;
@@ -36,18 +33,18 @@ import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import rewrite.reflect.versioning.ServerEnvironment;
 
-
 public final class PacketToolsProvider {
 
   private static final String CLASS_PATH = "io.github.pulsebeat02.murderrun.reflect.%s.PacketTools";
+  private static final PacketHandler PACKET_HANDLER = getNewPacketHandlerInstance();
 
-  private final EzMediaCore core;
+  public static void init() {}
 
-  public PacketToolsProvider(final EzMediaCore core) {
-    this.core = core;
+  public static PacketHandler getPacketHandler() {
+    return PACKET_HANDLER;
   }
 
-  private PacketHandler getNewPacketHandlerInstance() {
+  private static PacketHandler getNewPacketHandlerInstance() {
     try {
       final String version = ServerEnvironment.getNMSRevision();
       final String path = CLASS_PATH.formatted(version);
@@ -58,9 +55,7 @@ public final class PacketToolsProvider {
       return  (PacketHandler) handle.invoke();
     } catch (final Throwable e) {
       final Server server = Bukkit.getServer();
-      final Logger logger = this.core.getLogger();
       final String software = server.getVersion();
-      logger.error(Locale.UNSUPPORTED_SERVER.build(software));
       throw new AssertionError(
               "Current server implementation (%s) is not supported!".formatted(software));
     }

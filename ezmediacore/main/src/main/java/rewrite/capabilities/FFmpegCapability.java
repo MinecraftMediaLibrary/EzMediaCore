@@ -1,6 +1,6 @@
 package rewrite.capabilities;
 
-import rewrite.installers.FFmpegInstaller;
+import rewrite.installers.ffmpeg.FFmpegInstaller;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -22,6 +22,9 @@ public final class FFmpegCapability extends Capability {
   }
 
   public Path getBinaryPath() {
+    if (this.isDisabled()) {
+      throw new IllegalStateException("FFmpeg capability is not enabled!");
+    }
     return FFMPEG_BINARY_PATH;
   }
 }
