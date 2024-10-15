@@ -2,12 +2,14 @@ package rewrite.pipeline.grabbers;
 
 import com.sun.jna.Pointer;
 import io.github.pulsebeat02.ezmediacore.utility.misc.OSType;
+import org.jetbrains.annotations.NotNull;
 import rewrite.pipeline.FramePipelineResult;
 import rewrite.pipeline.frame.BasicFramePacket;
 import rewrite.pipeline.frame.FramePacket;
 import rewrite.pipeline.input.Input;
 import uk.co.caprica.vlcj.factory.MediaPlayerApi;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.media.MediaSlaveType;
 import uk.co.caprica.vlcj.player.base.AudioApi;
 import uk.co.caprica.vlcj.player.base.ControlsApi;
 import uk.co.caprica.vlcj.player.base.MediaApi;
@@ -28,34 +30,33 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public final class VLCGrabberSource implements GrabberPlayer<FramePacket> {
+public final class VLCGrabberPlayer implements GrabberPlayer<FramePacket> {
 
   private final FramePipelineResult result;
   private final ExecutorService executor;
-  private final Queue<int[]> frames;
-  private final Queue<byte[]> audioFrames;
   private final Collection<Input> sources;
 
   private MediaPlayerFactory factory;
   private EmbeddedMediaPlayer player;
   private volatile int width;
   private volatile int height;
+  private volatile int[] frames;
+  private volatile byte[] audioFrames;
 
-  public VLCGrabberSource(final FramePipelineResult result) {
+  public VLCGrabberPlayer(final FramePipelineResult result) {
     this(result, Executors.newSingleThreadExecutor());
   }
 
-  public VLCGrabberSource(final FramePipelineResult result, final ExecutorService executor) {
+  public VLCGrabberPlayer(final FramePipelineResult result, final ExecutorService executor) {
     final MediaPlayerFactory factory = new MediaPlayerFactory();
     final MediaPlayerApi api = factory.mediaPlayers();
     this.factory = factory;
     this.player = api.newEmbeddedMediaPlayer();
-    this.frames = new LinkedList<>();
-    this.audioFrames = new LinkedList<>();
     this.sources = new ArrayList<>();
     this.result = result;
     this.executor = executor;
     this.setPlayerSurfaces();
+    this.setPlayerCodec();
   }
 
   private void setPlayerSurfaces() {
@@ -64,21 +65,22 @@ public final class VLCGrabberSource implements GrabberPlayer<FramePacket> {
     final VideoSurfaceAdapter adapter = this.getAdapter();
     final VideoSurface surface = new CallbackVideoSurface(callback, callbackAdapter, true, adapter);
     final VideoSurfaceApi surfaceApi = this.player.videoSurface();
-    final AudioApi api = this.player.audio();
-    final AudioCallback audioCallback = new MinecraftAudioCallback();
     surfaceApi.set(surface);
-    api.callback("", 160000, 2, audioCallback);
+  }
+
+  private void setPlayerCodec() {
+    final AudioCallback audioCallback = new MinecraftAudioCallback();
+    final AudioApi api = this.player.audio();
+    final GrabberAudioFormat standard = GrabberPlayer.AUDIO_FORMAT;
+    final String format = standard.getFormat();
+    final int sampleRate = standard.getSampleRate();
+    final int channels = standard.getChannels();
+    api.callback(format, sampleRate, channels, audioCallback);
   }
 
   @Override
   public void play(final Input source, final Map<String, String> arguments) {
-    final MediaApi api = this.player.media();
-    final String[] args = arguments.values().toArray(new String[0]);
-    final CompletableFuture<String> future = source.getMediaRepresentation();
-    final String result = future.join();
-    this.sources.clear();
-    this.sources.add(source);
-    api.play(result, args);
+    this.play(source, null, arguments);
   }
 
   private VideoSurfaceAdapter getAdapter() {
@@ -89,16 +91,38 @@ public final class VLCGrabberSource implements GrabberPlayer<FramePacket> {
     };
   }
 
-  /*
-  TODO: Write implementation to pipe from FFmpeg to VLC
-   */
   @Override
   public void play(final Input video, final Input audio, final Map<String, String> arguments) {
+    final MediaApi api = this.player.media();
+    final CompletableFuture<String> videoFuture = video.getMediaRepresentation();
+    final String videoUrl = videoFuture.join();
+    this.sources.clear();
+    if (audio != null) {
+      final CompletableFuture<String> audioFuture = audio.getMediaRepresentation();
+      final String audioUrl = audioFuture.join();
+      api.addSlave(MediaSlaveType.AUDIO, audioUrl, true);
+      this.sources.add(audio);
+    }
+    this.sources.add(video);
+    final String[] args = getArguments(arguments);
+    api.play(videoUrl, args);
+  }
+
+  private static String[] getArguments(final Map<String, String> arguments) {
     final Map<String, String> copy = new HashMap<>(arguments);
-    final CompletableFuture<String> future = audio.getMediaRepresentation();
-    final String audioResult = future.join();
-    copy.put("--input-slave", audioResult);
-    this.play(video, copy);
+    final int size = arguments.size() * 2 + 1;
+    final String[] args = new String[size];
+    final Set<Map.Entry<String, String>> entries = copy.entrySet();
+    int index = 0;
+    for (final Map.Entry<String, String> entry : entries) {
+      final String key = entry.getKey();
+      final String value = entry.getValue();
+      args[index++] = key;
+      args[index++] = value;
+    }
+    final int last = size - 1;
+    args[last] = "--sout-transcode-acodec=opus";
+    return args;
   }
 
   @Override
@@ -148,9 +172,7 @@ public final class VLCGrabberSource implements GrabberPlayer<FramePacket> {
 
   @Override
   public FramePacket grabOutputFrame() {
-    final int[] frame = this.frames.poll();
-    final byte[] audioFrame = this.audioFrames.poll();
-    return new BasicFramePacket(frame, audioFrame, this.width, this.height, null);
+    return new BasicFramePacket(this.frames, this.audioFrames, this.width, this.height, null);
   }
 
   private final class MinecraftAudioCallback extends AudioCallbackAdapter {
@@ -161,8 +183,7 @@ public final class VLCGrabberSource implements GrabberPlayer<FramePacket> {
             final Pointer samples,
             final int sampleCount,
             final long pts) {
-      final byte[] arr = samples.getByteArray(0, sampleCount);
-      VLCGrabberSource.this.audioFrames.add(arr);
+      VLCGrabberPlayer.this.audioFrames = samples.getByteArray(0, sampleCount);
     }
   }
 
@@ -170,8 +191,8 @@ public final class VLCGrabberSource implements GrabberPlayer<FramePacket> {
 
     @Override
     public BufferFormat getBufferFormat(final int sourceWidth, final int sourceHeight) {
-      VLCGrabberSource.this.width = sourceWidth;
-      VLCGrabberSource.this.height = sourceHeight;
+      VLCGrabberPlayer.this.width = sourceWidth;
+      VLCGrabberPlayer.this.height = sourceHeight;
       return new RV32BufferFormat(sourceWidth, sourceHeight);
     }
 
@@ -184,7 +205,7 @@ public final class VLCGrabberSource implements GrabberPlayer<FramePacket> {
     @Override
     protected void onDisplay(
             final MediaPlayer mediaPlayer, final int[] buffer) {
-      VLCGrabberSource.this.frames.add(buffer);
+      VLCGrabberPlayer.this.frames = buffer;
     }
   }
 }

@@ -46,7 +46,9 @@ public final class EzMediaCore {
 
   /*
 
-  Play videos with shaders on https://hangar.papermc.io/JNNGL/VanillaMinimaps
+  - Play videos with shaders on https://hangar.papermc.io/JNNGL/VanillaMinimaps
+  - Rewrite entire library
+  - Write YT-DLP Installation
 
    */
 

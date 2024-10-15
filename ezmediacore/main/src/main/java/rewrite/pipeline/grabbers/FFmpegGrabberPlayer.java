@@ -45,8 +45,8 @@ public final class FFmpegGrabberPlayer implements GrabberPlayer<FramePacket> {
 
   @Override
   public void play(final Input video, final Input audio, final Map<String, String> arguments) {
-    CompletableFuture.runAsync(() -> this.recreateGrabber(video, audio, arguments), this.executor)
-            .thenRun(this::consumeFrames);
+    this.recreateGrabber(video, audio, arguments);
+    this.consumeFrames();
   }
 
   @Override
@@ -67,7 +67,22 @@ public final class FFmpegGrabberPlayer implements GrabberPlayer<FramePacket> {
       this.audioGrabber = new FFmpegFrameGrabber(retrievedAudio);
       this.audioGrabber.setOptions(arguments);
       this.sources.add(audio);
+      this.setGrabberAudioFormat(this.audioGrabber);
+    } else {
+      this.setGrabberAudioFormat(this.videoGrabber);
     }
+  }
+
+  private void setGrabberAudioFormat(final FFmpegFrameGrabber grabber) {
+    final GrabberAudioFormat standard = GrabberPlayer.AUDIO_FORMAT;
+    final String format = standard.getFormat();
+    final String samplingFormat = standard.getSamplingFormat();
+    final int sampleRate = standard.getSampleRate();
+    final int channels = standard.getChannels();
+    grabber.setAudioChannels(channels);
+    grabber.setAudioCodecName(format);
+    grabber.setSampleRate(sampleRate);
+    grabber.setOption("f", samplingFormat);
   }
 
   private void consumeFrames() {
@@ -94,17 +109,20 @@ public final class FFmpegGrabberPlayer implements GrabberPlayer<FramePacket> {
 
         final Frame frame = this.videoGrabber.grabAtFrameRate();
         if (frame == null) {
-          break;
+          continue;
         }
+
         this.capturedVideo = frame;
         if (this.audioGrabber != null) {
           this.capturedAudio = this.audioGrabber.grabAtFrameRate();
           if (this.capturedAudio == null) {
-            break;
+            continue;
           }
         } else {
           this.capturedAudio = frame;
         }
+
+        this.grabOutputFrame();
 
       } catch (final InterruptedException | FrameGrabber.Exception e) {
         throw new AssertionError(e);
