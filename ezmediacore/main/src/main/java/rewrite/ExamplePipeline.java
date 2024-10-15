@@ -27,6 +27,8 @@ public final class ExamplePipeline {
 
   public void createPipeline() {
 
+    // merge with --merge-output-format (yt-dlp)
+
     final DefaultPalette palette = new DefaultPalette();
     final FloydSteinbergDitherPipelineStep step = new FloydSteinbergDitherPipelineStep(palette);
 
