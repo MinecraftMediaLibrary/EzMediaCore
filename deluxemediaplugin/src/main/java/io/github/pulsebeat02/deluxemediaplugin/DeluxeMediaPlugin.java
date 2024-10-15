@@ -38,11 +38,11 @@ import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.update.UpdateChecker;
 import io.github.pulsebeat02.deluxemediaplugin.utility.component.CommandUtils;
 import io.github.pulsebeat02.deluxemediaplugin.utility.nullability.Nill;
-import rewrite.EzMediaCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.AudioConfiguration;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.EnhancedExecution;
-import rewrite.resourcepack.provider.HttpServer;
-import rewrite.util.io.FileUtils;
+import io.github.pulsebeat02.ezmediacore.resourcepack.provider.HttpServer;
+import io.github.pulsebeat02.ezmediacore.util.io.FileUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;

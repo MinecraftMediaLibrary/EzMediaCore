@@ -1,8 +1,9 @@
 package io.github.pulsebeat02.ezmediacore;
 
-import rewrite.dither.MapPalette;
+import io.github.pulsebeat02.ezmediacore.dither.palette.MapPalette;
 
 import java.awt.*;
+import java.util.List;
 
 public final class DitheringColorTest {
 
@@ -23,6 +24,7 @@ public final class DitheringColorTest {
     System.out.println("Yellow: " + yellow);
     System.out.println("Cyan: " + cyan);
     System.out.println("Magenta: " + magenta);
+    System.out.println(List.of(red.getRGB(), green.getRGB(), blue.getRGB(), white.getRGB(), black.getRGB(), yellow.getRGB(), cyan.getRGB(), magenta.getRGB()));
   }
 
   private static Color findClosestColor(final Color other) {

@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.locale;
 
-import rewrite.util.io.ResourceUtils;
+import io.github.pulsebeat02.ezmediacore.util.io.ResourceUtils;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.translation.GlobalTranslator;

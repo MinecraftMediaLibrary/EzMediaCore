@@ -20,6 +20,7 @@ dependencies {
 
     testImplementation("uk.co.caprica:vlcj:4.8.2")
     testImplementation("uk.co.caprica:vlcj-natives:4.8.1")
+    testImplementation("com.google.guava:guava:31.1-jre")
 }
 
 tasks {

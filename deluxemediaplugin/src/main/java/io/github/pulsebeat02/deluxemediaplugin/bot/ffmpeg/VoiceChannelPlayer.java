@@ -26,7 +26,7 @@ package io.github.pulsebeat02.deluxemediaplugin.bot.ffmpeg;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
 import io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors;
-import rewrite.EzMediaCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 
 import java.util.concurrent.TimeUnit;
 import javax.sound.sampled.AudioInputStream;

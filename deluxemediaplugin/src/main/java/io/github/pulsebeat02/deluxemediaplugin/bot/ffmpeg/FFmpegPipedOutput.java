@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.bot.ffmpeg;
 
-import rewrite.EzMediaCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegArguments;
 import io.github.pulsebeat02.ezmediacore.ffmpeg.FFmpegCommandExecutor;
 import java.io.BufferedInputStream;

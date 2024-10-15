@@ -24,8 +24,8 @@
 package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
-import rewrite.EzMediaCore;
-import rewrite.resourcepack.provider.HttpServer;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
+import io.github.pulsebeat02.ezmediacore.resourcepack.provider.HttpServer;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.bukkit.configuration.file.FileConfiguration;

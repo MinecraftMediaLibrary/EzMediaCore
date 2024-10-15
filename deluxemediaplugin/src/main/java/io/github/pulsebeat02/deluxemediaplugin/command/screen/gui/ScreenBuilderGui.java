@@ -37,7 +37,7 @@ import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.locale.Locale;
 import io.github.pulsebeat02.deluxemediaplugin.utility.mutable.MutableInt;
-import rewrite.util.bukkit.MapUtils;
+import io.github.pulsebeat02.ezmediacore.util.bukkit.MapUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.Sound;

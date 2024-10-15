@@ -25,8 +25,8 @@ package io.github.pulsebeat02.deluxemediaplugin.config;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.executors.FixedExecutors;
-import rewrite.dimension.ImmutableDimension;
-import rewrite.image.Image;
+import io.github.pulsebeat02.ezmediacore.dimension.ImmutableDimension;
+import io.github.pulsebeat02.ezmediacore.image.Image;
 import rewrite.persistent.PersistentImageStorage;
 import java.io.IOException;
 import java.nio.file.Path;

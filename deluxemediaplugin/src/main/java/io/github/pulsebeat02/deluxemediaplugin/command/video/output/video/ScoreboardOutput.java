@@ -23,15 +23,15 @@
  */
 package io.github.pulsebeat02.deluxemediaplugin.command.video.output.video;
 
-import static rewrite.pipeline.output.DelayConfiguration.DELAY_20_MS;
-import static rewrite.pipeline.output.Identifier.ofIdentifier;
-import static rewrite.pipeline.output.Viewers.ofPlayers;
-import static rewrite.dimension.Dimension.ofDimension;
+import static io.github.pulsebeat02.ezmediacore.pipeline.output.DelayConfiguration.DELAY_20_MS;
+import static io.github.pulsebeat02.ezmediacore.pipeline.output.Identifier.ofIdentifier;
+import static io.github.pulsebeat02.ezmediacore.pipeline.output.Viewers.ofPlayers;
+import static io.github.pulsebeat02.ezmediacore.dimension.Dimension.ofDimension;
 import static io.github.pulsebeat02.ezmediacore.player.SoundKey.ofSound;
 
 import io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPlugin;
 import io.github.pulsebeat02.deluxemediaplugin.command.video.ScreenConfig;
-import rewrite.EzMediaCore;
+import io.github.pulsebeat02.ezmediacore.EzMediaCore;
 
 import java.util.Collection;
 import org.bukkit.command.CommandSender;
