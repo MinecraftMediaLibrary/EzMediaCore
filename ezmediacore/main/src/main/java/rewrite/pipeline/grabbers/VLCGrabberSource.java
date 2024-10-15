@@ -89,9 +89,16 @@ public final class VLCGrabberSource implements GrabberPlayer<FramePacket> {
     };
   }
 
+  /*
+  TODO: Write implementation to pipe from FFmpeg to VLC
+   */
   @Override
   public void play(final Input video, final Input audio, final Map<String, String> arguments) {
-
+    final Map<String, String> copy = new HashMap<>(arguments);
+    final CompletableFuture<String> future = audio.getMediaRepresentation();
+    final String audioResult = future.join();
+    copy.put("--input-slave", audioResult);
+    this.play(video, copy);
   }
 
   @Override
