@@ -23,12 +23,20 @@
  */
 package rewrite.dimension;
 
-import rewrite.util.tuples.Pair;
+import java.util.Map;
 
 public interface Resolution extends Dimension {
 
-  default Pair<String, String> getFFmpegArguments() {
-    return Pair.ofPair("-vf", "scale=" + this.getWidth() + ":" + this.getHeight());
+  default Map<String, String> getFFMPEGArguments() {
+    final String width = String.valueOf(this.getWidth());
+    final String height = String.valueOf(this.getHeight());
+    return Map.of("-vf", "scale=" + width + ":" + height);
+  }
+
+  default Map<String, String> getVLCArguments() {
+    final String width = String.valueOf(this.getWidth());
+    final String height = String.valueOf(this.getHeight());
+    return Map.of("--width", width, "--height", height);
   }
 
   static Resolution ofResolution(final int width, final int height) {

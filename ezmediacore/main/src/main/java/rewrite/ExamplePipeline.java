@@ -20,7 +20,6 @@ import rewrite.pipeline.output.video.MapFrameOutput;
 import rewrite.pipeline.steps.FloydSteinbergDitherPipelineStep;
 import rewrite.util.tuples.Pair;
 
-import javax.swing.text.View;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -48,8 +47,7 @@ public final class ExamplePipeline {
     final CompletableFuture<Input> video = parser.retrieveInput(new DefaultVideoStrategy());
     final CompletableFuture<Input> audio = parser.retrieveInput(new DefaultAudioStrategy());
 
-    final Pair<String, String> pair = resolution.getFFmpegArguments();
-    final Map<String, String> arguments = Map.of(pair.getKey(), pair.getValue());
+    final Map<String, String> arguments = resolution.getFFMPEGArguments();
     player.play(video.join(), audio.join(), arguments);
   }
 }

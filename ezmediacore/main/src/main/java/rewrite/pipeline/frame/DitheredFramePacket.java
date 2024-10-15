@@ -1,6 +1,6 @@
 package rewrite.pipeline.frame;
 
-public final class DitheredFramePacket extends BasicPacket {
+public final class DitheredFramePacket extends BasicFramePacket implements DitheredPacket {
 
   private final byte[] mapDitheredSamples;
 
@@ -24,6 +24,7 @@ public final class DitheredFramePacket extends BasicPacket {
     return new DitheredFramePacket(rgbSamples, audioSamples, imageWidth, imageHeight, javaCVFrame, dithered);
   }
 
+  @Override
   public byte[] getMapDitheredSamples() {
     return this.mapDitheredSamples;
   }

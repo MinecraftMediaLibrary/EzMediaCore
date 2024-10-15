@@ -1,6 +1,6 @@
 package rewrite.pipeline.frame;
 
-public class BasicPacket implements FramePacket {
+public class BasicFramePacket implements FramePacket {
 
   private final int[] rgbSamples;
   private final byte[] audioSamples;
@@ -8,7 +8,7 @@ public class BasicPacket implements FramePacket {
   private final int height;
   private final Object javaCVFrame;
 
-  public BasicPacket(final int[] rgbSamples, final byte[] audioSamples
+  public BasicFramePacket(final int[] rgbSamples, final byte[] audioSamples
       , final int width, final int height, final Object javaCVFrame) {
     this.rgbSamples = rgbSamples;
     this.audioSamples = audioSamples;

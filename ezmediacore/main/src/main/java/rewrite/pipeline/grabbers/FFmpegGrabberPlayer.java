@@ -5,11 +5,10 @@ import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import rewrite.pipeline.FramePipelineResult;
-import rewrite.pipeline.frame.BasicPacket;
+import rewrite.pipeline.frame.BasicFramePacket;
 import rewrite.pipeline.frame.FramePacket;
 import rewrite.pipeline.input.Input;
 
-import javax.sound.sampled.AudioFormat;
 import java.awt.image.BufferedImage;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
@@ -22,16 +21,14 @@ import java.util.concurrent.Executors;
 public final class FFmpegGrabberPlayer implements GrabberPlayer<FramePacket> {
 
   private final FramePipelineResult result;
-
   private final ExecutorService executor;
 
   private FFmpegFrameGrabber videoGrabber;
   private FFmpegFrameGrabber audioGrabber;
 
   private final Collection<Input> sources;
-  private int width;
-  private int height;
-
+  private volatile int width;
+  private volatile int height;
   private volatile boolean paused;
   private volatile Frame capturedVideo;
   private volatile Frame capturedAudio;
@@ -173,7 +170,7 @@ public final class FFmpegGrabberPlayer implements GrabberPlayer<FramePacket> {
 
   @Override
   public FramePacket grabOutputFrame() {
-    final FramePacket packet = new BasicPacket(this.getRGBSamples(), this.getAudioSamples(), this.width, this.height, this.capturedAudio);
+    final FramePacket packet = new BasicFramePacket(this.getRGBSamples(), this.getAudioSamples(), this.width, this.height, this.capturedAudio);
     this.result.executePipeline(packet);
     return packet;
   }

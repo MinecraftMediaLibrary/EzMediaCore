@@ -5,7 +5,7 @@ import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import rewrite.pipeline.FramePipelineResult;
-import rewrite.pipeline.frame.BasicPacket;
+import rewrite.pipeline.frame.BasicFramePacket;
 import rewrite.pipeline.frame.FramePacket;
 import rewrite.pipeline.input.Input;
 
@@ -137,7 +137,7 @@ public final class FFmpegGifGrabberPlayer implements GrabberPlayer<FramePacket> 
 
   @Override
   public FramePacket grabOutputFrame() {
-    final FramePacket packet = new BasicPacket(this.getRGBSamples(), null, this.width, this.height, null);
+    final FramePacket packet = new BasicFramePacket(this.getRGBSamples(), null, this.width, this.height, null);
     this.result.executePipeline(packet);
     return packet;
   }
