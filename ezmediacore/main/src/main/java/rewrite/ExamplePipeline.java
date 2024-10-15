@@ -31,7 +31,7 @@ public final class ExamplePipeline {
     final DefaultPalette palette = new DefaultPalette();
     final FloydSteinbergDitherPipelineStep step = new FloydSteinbergDitherPipelineStep(palette);
 
-    final EzMediaCore core = ...
+    final EzMediaCore core = null;
     final Dimension blockDimension = BlockDimension.X5_5;
     final Resolution resolution = Resolution.X360_640;
     final Viewers onlinePlayers = Viewers.onlinePlayers();

@@ -50,21 +50,21 @@ public final class DitherUtils {
     return colors[(val + 256) % 256];
   }
 
-  public static byte getBestColorIncludingTransparent(final int rgb) {
+  public static byte getBestColorIncludingTransparent(final ColorPalette palette, final int rgb) {
     final int r = (rgb >> 16) & 0xFF;
     final int g = (rgb >> 8) & 0xFF;
     final int b = rgb & 0xFF;
-    return (rgb >>> 24 & 0xFF) == 0 ? 0 : getBestColor(r, g, b);
+    return (rgb >>> 24 & 0xFF) == 0 ? 0 : getBestColor(palette, r, g, b);
   }
 
-  public static byte  [] simplify(final int  [] buffer) {
+  public static byte  [] simplify(final ColorPalette palette, final int [] buffer) {
     final byte[] map = new byte[buffer.length];
     for (int index = 0; index < buffer.length; index++) {
       final int rgb = buffer[index];
       final int red = rgb >> 16 & 0xFF;
       final int green = rgb >> 8 & 0xFF;
       final int blue = rgb & 0xFF;
-      final byte ptr = DitherUtils.getBestColor(red, green, blue);
+      final byte ptr = DitherUtils.getBestColor(palette, red, green, blue);
       map[index] = ptr;
     }
     return map;

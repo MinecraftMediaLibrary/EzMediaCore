@@ -25,7 +25,7 @@ package rewrite.persistent;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import io.github.pulsebeat02.ezmediacore.image.Image;
+import rewrite.image.Image;
 import rewrite.json.GsonProvider;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
