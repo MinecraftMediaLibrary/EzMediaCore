@@ -55,7 +55,7 @@ public final class FilterLiteDither extends ForeignDitherAlgorithm {
     final int height = buffer.length / width;
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;
-    final int[][] dither_buffer = new int[2][width + width << 1];
+    final int[][] ditherBuffer = new int[2][width + width << 1];
 
     /*
 
@@ -77,8 +77,8 @@ public final class FilterLiteDither extends ForeignDitherAlgorithm {
       final int yIndex = y * width;
       if ((y & 0x1) == 0) {
         int bufferIndex = 0;
-        final int[] buf1 = dither_buffer[0];
-        final int[] buf2 = dither_buffer[1];
+        final int[] buf1 = ditherBuffer[0];
+        final int[] buf2 = ditherBuffer[1];
         for (int x = 0; x < width; ++x) {
           final int index = yIndex + x;
           final int rgb = buffer[index];
@@ -111,8 +111,8 @@ public final class FilterLiteDither extends ForeignDitherAlgorithm {
         }
       } else {
         int bufferIndex = width + (width << 1) - 1;
-        final int[] buf1 = dither_buffer[1];
-        final int[] buf2 = dither_buffer[0];
+        final int[] buf1 = ditherBuffer[1];
+        final int[] buf2 = ditherBuffer[0];
         for (int x = width - 1; x >= 0; --x) {
           final int index = yIndex + x;
           final int rgb = buffer[index];
@@ -155,15 +155,15 @@ public final class FilterLiteDither extends ForeignDitherAlgorithm {
     final int height = length / width;
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;
-    final int[][] dither_buffer = new int[2][width << 2];
+    final int[][] ditherBuffer = new int[2][width << 2];
     final ByteBuf data = Unpooled.buffer(length);
     for (int y = 0; y < height; y++) {
       final boolean hasNextY = y < heightMinus;
       final int yIndex = y * width;
       if ((y & 0x1) == 0) {
         int bufferIndex = 0;
-        final int[] buf1 = dither_buffer[0];
-        final int[] buf2 = dither_buffer[1];
+        final int[] buf1 = ditherBuffer[0];
+        final int[] buf2 = ditherBuffer[1];
         for (int x = 0; x < width; ++x) {
           final int index = yIndex + x;
           final int rgb = buffer[index];
@@ -199,8 +199,8 @@ public final class FilterLiteDither extends ForeignDitherAlgorithm {
         }
       } else {
         int bufferIndex = width + (width << 1) - 1;
-        final int[] buf1 = dither_buffer[1];
-        final int[] buf2 = dither_buffer[0];
+        final int[] buf1 = ditherBuffer[1];
+        final int[] buf2 = ditherBuffer[0];
         for (int x = width - 1; x >= 0; --x) {
           final int index = yIndex + x;
           final int rgb = buffer[index];

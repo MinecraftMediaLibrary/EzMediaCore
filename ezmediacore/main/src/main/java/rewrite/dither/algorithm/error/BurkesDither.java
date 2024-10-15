@@ -1,56 +1,19 @@
-/*
- * MIT License
- *
- * Copyright (c) 2023 Brandon Li
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
 package rewrite.dither.algorithm.error;
 
-import static java.util.Objects.requireNonNull;
-
-import com.sun.jna.Pointer;
 import rewrite.dither.algorithm.ForeignDitherAlgorithm;
 import rewrite.dither.load.ColorPalette;
-import rewrite.natives.DitherLibC;
 import rewrite.util.graphics.DitherUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
+public final class BurkesDither extends ForeignDitherAlgorithm {
 
-/**
- * What a piece of optimization; Performs incredibly fast Minecraft color conversion and dithering.
- *
- * @author jetp250, BananaPuncher714
- */
-public final class FloydDither extends ForeignDitherAlgorithm {
-
-  public FloydDither(final ColorPalette palette, final boolean useNative) {
-    super(palette, useNative);
-  }
-
-  public FloydDither() {
-    super();
+  public BurkesDither(final ColorPalette palette) {
+    super(palette, false);
   }
 
   @Override
-  public void dither(final int  [] buffer, final int width) {
+  public void dither(final int[] buffer, final int width) {
     final ColorPalette palette = this.getPalette();
     final int height = buffer.length / width;
     final int widthMinus = width - 1;
@@ -78,27 +41,23 @@ public final class FloydDither extends ForeignDitherAlgorithm {
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
           if (hasNextX) {
-            // 0.4375 -> 7/16
-            buf1[bufferIndex] = (delta_r >> 4) * 7;
-            buf1[bufferIndex + 1] = (delta_g >> 4) * 7;
-            buf1[bufferIndex + 2] = (delta_b >> 4) * 7;
+            buf1[bufferIndex] = (delta_r << 3) >> 5; // 8/32
+            buf1[bufferIndex + 1] = (delta_g << 3) >> 5; // 8/32
+            buf1[bufferIndex + 2] = (delta_b << 3) >> 5; // 8/32
           }
           if (hasNextY) {
             if (x > 0) {
-              // 0.1875 -> 3/16
-              buf2[bufferIndex - 6] = (delta_r >> 4) * 3;
-              buf2[bufferIndex - 5] = (delta_g >> 4) * 3;
-              buf2[bufferIndex - 4] = (delta_b >> 4) * 3;
+              buf2[bufferIndex - 6] = (delta_r << 2) >> 5; // 4/32
+              buf2[bufferIndex - 5] = (delta_g << 2) >> 5; // 4/32
+              buf2[bufferIndex - 4] = (delta_b << 2) >> 5; // 4/32
             }
-            // 0.3125 -> 5/16
-            buf2[bufferIndex - 3] = (delta_r >> 4) * 5;
-            buf2[bufferIndex - 2] = (delta_g >> 4) * 5;
-            buf2[bufferIndex - 1] = (delta_b >> 4) * 5;
+            buf2[bufferIndex - 3] = (delta_r << 3) >> 5; // 8/32
+            buf2[bufferIndex - 2] = (delta_g << 3) >> 5; // 8/32
+            buf2[bufferIndex - 1] = (delta_b << 3) >> 5; // 8/32
             if (hasNextX) {
-              // 0.0625 -> 1/16
-              buf2[bufferIndex] = delta_r >> 4;
-              buf2[bufferIndex + 1] = delta_g >> 4;
-              buf2[bufferIndex + 2] = delta_b >> 4;
+              buf2[bufferIndex] = (delta_r << 2) >> 5; // 4/32
+              buf2[bufferIndex + 1] = (delta_g << 2) >> 5; // 4/32
+              buf2[bufferIndex + 2] = (delta_b << 2) >> 5; // 4/32
             }
           }
           buffer[index] = closest;
@@ -122,23 +81,23 @@ public final class FloydDither extends ForeignDitherAlgorithm {
           final int delta_g = green - (closest >> 8 & 0xFF);
           final int delta_b = blue - (closest & 0xFF);
           if (hasNextX) {
-            buf1[bufferIndex] = (delta_b >> 4) * 7;
-            buf1[bufferIndex - 1] = (delta_g >> 4) * 7;
-            buf1[bufferIndex - 2] = (delta_r >> 4) * 7;
+            buf1[bufferIndex] = (delta_b << 3) >> 5; // 8/32
+            buf1[bufferIndex - 1] = (delta_g << 3) >> 5; // 8/32
+            buf1[bufferIndex - 2] = (delta_r << 3) >> 5; // 8/32
           }
           if (hasNextY) {
             if (x < widthMinus) {
-              buf2[bufferIndex + 6] = (delta_b >> 4) * 3;
-              buf2[bufferIndex + 5] = (delta_g >> 4) * 3;
-              buf2[bufferIndex + 4] = (delta_r >> 4) * 3;
+              buf2[bufferIndex + 6] = (delta_b << 3) >> 5; // 8/32
+              buf2[bufferIndex + 5] = (delta_g << 3) >> 5; // 8/32
+              buf2[bufferIndex + 4] = (delta_r << 3) >> 5; // 8/32
             }
-            buf2[bufferIndex + 3] = (delta_b >> 4) * 5;
-            buf2[bufferIndex + 2] = (delta_g >> 4) * 5;
-            buf2[bufferIndex + 1] = (delta_r >> 4) * 5;
+            buf2[bufferIndex + 3] = (delta_b << 3) >> 5; // 8/32
+            buf2[bufferIndex + 2] = (delta_g << 3) >> 5; // 8/32
+            buf2[bufferIndex + 1] = (delta_r << 3) >> 5; // 8/32
             if (hasNextX) {
-              buf2[bufferIndex] = delta_b >> 4;
-              buf2[bufferIndex - 1] = delta_g >> 4;
-              buf2[bufferIndex - 2] = delta_r >> 4;
+              buf2[bufferIndex] = (delta_b << 2) >> 5; // 4/32
+              buf2[bufferIndex - 1] = (delta_g << 2) >> 5; // 4/32
+              buf2[bufferIndex - 2] = (delta_r << 2) >> 5; // 4/32
             }
           }
           buffer[index] = closest;
@@ -148,15 +107,14 @@ public final class FloydDither extends ForeignDitherAlgorithm {
   }
 
   @Override
-  public byte[] standardMinecraftDither(
-      final int  [] buffer, final int width) {
+  public byte[] standardMinecraftDither(final int[] buffer, final int width) {
     final ColorPalette palette = this.getPalette();
-    final int length = buffer.length;
-    final int height = length / width;
+    final int height = buffer.length / width;
     final int widthMinus = width - 1;
     final int heightMinus = height - 1;
     final int[][] ditherBuffer = new int[2][width + width << 1];
-    final ByteBuf data = Unpooled.buffer(length);
+    final ByteBuf data = Unpooled.buffer(buffer.length);
+
     for (int y = 0; y < height; y++) {
       final boolean hasNextY = y < heightMinus;
       final int yIndex = y * width;
@@ -182,23 +140,23 @@ public final class FloydDither extends ForeignDitherAlgorithm {
           final int delta_g = green - g;
           final int delta_b = blue - b;
           if (hasNextX) {
-            buf1[bufferIndex] = (delta_r >> 4) * 7;
-            buf1[bufferIndex + 1] = (delta_g >> 4) * 7;
-            buf1[bufferIndex + 2] = (delta_b >> 4) * 7;
+            buf1[bufferIndex] = (delta_r << 3) >> 5; // 8/32
+            buf1[bufferIndex + 1] = (delta_g << 3) >> 5; // 8/32
+            buf1[bufferIndex + 2] = (delta_b << 3) >> 5; // 8/32
           }
           if (hasNextY) {
             if (x > 0) {
-              buf2[bufferIndex - 6] = (delta_r >> 4) * 3;
-              buf2[bufferIndex - 5] = (delta_g >> 4) * 3;
-              buf2[bufferIndex - 4] = (delta_b >> 4) * 3;
+              buf2[bufferIndex - 6] = (delta_r << 2) >> 5; // 4/32
+              buf2[bufferIndex - 5] = (delta_g << 2) >> 5; // 4/32
+              buf2[bufferIndex - 4] = (delta_b << 2) >> 5; // 4/32
             }
-            buf2[bufferIndex - 3] = (delta_r >> 4) * 5;
-            buf2[bufferIndex - 2] = (delta_g >> 4) * 5;
-            buf2[bufferIndex - 1] = (delta_b >> 4) * 5;
+            buf2[bufferIndex - 3] = (delta_r << 3) >> 5; // 8/32
+            buf2[bufferIndex - 2] = (delta_g << 3) >> 5; // 8/32
+            buf2[bufferIndex - 1] = (delta_b << 3) >> 5; // 8/32
             if (hasNextX) {
-              buf2[bufferIndex] = delta_r >> 4;
-              buf2[bufferIndex + 1] = delta_g >> 4;
-              buf2[bufferIndex + 2] = delta_b >> 4;
+              buf2[bufferIndex] = (delta_r << 2) >> 5; // 4/32
+              buf2[bufferIndex + 1] = (delta_g << 2) >> 5; // 4/32
+              buf2[bufferIndex + 2] = (delta_b << 2) >> 5; // 4/32
             }
           }
           data.setByte(index, DitherUtils.getBestColor(palette, r, g, b));
@@ -225,23 +183,23 @@ public final class FloydDither extends ForeignDitherAlgorithm {
           final int delta_g = green - g;
           final int delta_b = blue - b;
           if (hasNextX) {
-            buf1[bufferIndex] = (delta_b >> 4) * 7;
-            buf1[bufferIndex - 1] = (delta_g >> 4) * 7;
-            buf1[bufferIndex - 2] = (delta_r >> 4) * 7;
+            buf1[bufferIndex] = (delta_b << 3) >> 5; // 8/32
+            buf1[bufferIndex - 1] = (delta_g << 3) >> 5; // 8/32
+            buf1[bufferIndex - 2] = (delta_r << 3) >> 5; // 8/32
           }
           if (hasNextY) {
             if (x < widthMinus) {
-              buf2[bufferIndex + 6] = (delta_b >> 4) * 3;
-              buf2[bufferIndex + 5] = (delta_g >> 4) * 3;
-              buf2[bufferIndex + 4] = (delta_r >> 4) * 3;
+              buf2[bufferIndex + 6] = (delta_b << 3) >> 5; // 8/32
+              buf2[bufferIndex + 5] = (delta_g << 3) >> 5; // 8/32
+              buf2[bufferIndex + 4] = (delta_r << 3) >> 5; // 8/32
             }
-            buf2[bufferIndex + 3] = (delta_b >> 4) * 5;
-            buf2[bufferIndex + 2] = (delta_g >> 4) * 5;
-            buf2[bufferIndex + 1] = (delta_r >> 4) * 5;
+            buf2[bufferIndex + 3] = (delta_b << 3) >> 5; // 8/32
+            buf2[bufferIndex + 2] = (delta_g << 3) >> 5; // 8/32
+            buf2[bufferIndex + 1] = (delta_r << 3) >> 5; // 8/32
             if (hasNextX) {
-              buf2[bufferIndex] = delta_b >> 4;
-              buf2[bufferIndex - 1] = delta_g >> 4;
-              buf2[bufferIndex - 2] = delta_r >> 4;
+              buf2[bufferIndex] = (delta_b << 2) >> 5; // 4/32
+              buf2[bufferIndex - 1] = (delta_g << 2) >> 5; // 4/32
+              buf2[bufferIndex - 2] = (delta_r << 2) >> 5; // 4/32
             }
           }
           data.setByte(index, DitherUtils.getBestColor(palette, r, g, b));
@@ -252,15 +210,7 @@ public final class FloydDither extends ForeignDitherAlgorithm {
   }
 
   @Override
-  public byte[] ditherIntoMinecraftNatively(
-      final int  [] buffer, final int width) {
-    final ColorPalette palette = this.getPalette();
-    final int[] full = palette.getFullColorMap();
-    final byte[] colors = palette.getColorMap();
-    final DitherLibC library = requireNonNull(DitherLibC.INSTANCE);
-    final Pointer pointer = library.floydSteinbergDither(full, colors, buffer, width);
-    final byte[] array = pointer.getByteArray(0L, buffer.length);
-    final ByteBuf data = Unpooled.buffer(array.length);
-    return data.array();
+  public byte[] ditherIntoMinecraftNatively(final int[] buffer, final int width) {
+    throw new UnsupportedOperationException();
   }
 }

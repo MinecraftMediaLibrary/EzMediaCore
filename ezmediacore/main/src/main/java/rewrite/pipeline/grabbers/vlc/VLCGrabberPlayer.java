@@ -28,13 +28,10 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32Buffe
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public final class VLCGrabberPlayer implements GrabberPlayer<FramePacket> {
 
   private final FramePipelineResult result;
-  private final ExecutorService executor;
   private final Collection<Input> sources;
 
   private MediaPlayerFactory factory;
@@ -45,17 +42,12 @@ public final class VLCGrabberPlayer implements GrabberPlayer<FramePacket> {
   private volatile byte[] audioFrames;
 
   public VLCGrabberPlayer(final FramePipelineResult result) {
-    this(result, Executors.newSingleThreadExecutor());
-  }
-
-  public VLCGrabberPlayer(final FramePipelineResult result, final ExecutorService executor) {
     final MediaPlayerFactory factory = new MediaPlayerFactory();
     final MediaPlayerApi api = factory.mediaPlayers();
     this.factory = factory;
     this.player = api.newEmbeddedMediaPlayer();
     this.sources = new ArrayList<>();
     this.result = result;
-    this.executor = executor;
     this.setPlayerSurfaces();
     this.setPlayerCodec();
   }

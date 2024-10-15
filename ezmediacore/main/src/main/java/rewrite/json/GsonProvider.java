@@ -30,10 +30,6 @@ import rewrite.json.adapter.PathAdapter;
 import java.nio.file.Path;
 import java.util.Map;
 
-import org.jetbrains.annotations.Contract;
-
-import org.jetbrains.annotations.Unmodifiable;
-
 public final class GsonProvider {
 
   private static final Gson SIMPLE;
@@ -53,8 +49,7 @@ public final class GsonProvider {
     return builder;
   }
 
-  @Contract(" -> new")
-  private static  @Unmodifiable Map<Class<?>, TypeAdapter<?>> getAdapters() {
+  private static Map<Class<?>, TypeAdapter<?>> getAdapters() {
     return Map.of(Path.class, new PathAdapter());
   }
 

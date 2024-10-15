@@ -51,15 +51,15 @@ public final class FileUtils {
     return path;
   }
 
-  public static boolean createFile( final Path file) throws IOException {
-    final Path parent = file.getParent();
-    if (Files.notExists(parent)) {
-      Files.createDirectories(file.getParent());
+  public static boolean createFile( final Path file) {
+    try {
+      final Path parent = file.getParent();
+      createDirectoryIfNotExists(parent);
+      createFileIfNotExists(file);
+      return true;
+    } catch (final IOException e) {
+      return false;
     }
-    if (Files.notExists(file)) {
-      Files.createFile(file);
-    }
-    return true;
   }
 
   public static boolean createFileIfNotExists(final Path file) throws IOException {

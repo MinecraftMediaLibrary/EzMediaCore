@@ -1,4 +1,4 @@
-package rewrite.pipeline.steps;
+package rewrite.pipeline.steps.dithering;
 
 import rewrite.dither.algorithm.ordered.OrderedDither;
 import rewrite.dither.algorithm.ordered.OrderedPixelMapper;
@@ -6,6 +6,7 @@ import rewrite.dither.load.ColorPalette;
 import rewrite.pipeline.frame.DitheredFramePacket;
 import rewrite.pipeline.frame.DitheredPacket;
 import rewrite.pipeline.frame.FramePacket;
+import rewrite.pipeline.steps.FramePipelineStep;
 
 public final class OrderedDitherPipelineStep implements FramePipelineStep<FramePacket, DitheredPacket> {
 

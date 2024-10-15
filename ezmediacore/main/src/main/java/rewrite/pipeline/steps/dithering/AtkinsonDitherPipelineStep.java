@@ -1,17 +1,18 @@
-package rewrite.pipeline.steps;
+package rewrite.pipeline.steps.dithering;
 
-import rewrite.dither.algorithm.error.FilterLiteDither;
+import rewrite.dither.algorithm.error.AtkinsonDither;
 import rewrite.dither.load.ColorPalette;
 import rewrite.pipeline.frame.DitheredFramePacket;
 import rewrite.pipeline.frame.DitheredPacket;
 import rewrite.pipeline.frame.FramePacket;
+import rewrite.pipeline.steps.FramePipelineStep;
 
-public final class FilterLiteDitherPipelineStep implements FramePipelineStep<FramePacket, DitheredPacket> {
+public final class AtkinsonDitherPipelineStep implements FramePipelineStep<FramePacket, DitheredPacket> {
 
-  private final FilterLiteDither dither;
+  private final AtkinsonDither dither;
 
-  public FilterLiteDitherPipelineStep(final ColorPalette palette) {
-    this.dither = new FilterLiteDither(palette, false);
+  public AtkinsonDitherPipelineStep(final ColorPalette palette) {
+    this.dither = new AtkinsonDither(palette);
   }
 
   @Override

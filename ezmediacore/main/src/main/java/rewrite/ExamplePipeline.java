@@ -16,7 +16,7 @@ import rewrite.pipeline.output.DelayConfiguration;
 import rewrite.pipeline.output.Identifier;
 import rewrite.pipeline.output.Viewers;
 import rewrite.pipeline.output.video.MapFrameOutput;
-import rewrite.pipeline.steps.FloydSteinbergDitherPipelineStep;
+import rewrite.pipeline.steps.dithering.FloydSteinbergDitherPipelineStep;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;

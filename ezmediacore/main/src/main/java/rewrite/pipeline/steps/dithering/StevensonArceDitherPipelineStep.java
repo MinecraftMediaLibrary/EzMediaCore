@@ -1,17 +1,18 @@
-package rewrite.pipeline.steps;
+package rewrite.pipeline.steps.dithering;
 
-import rewrite.dither.algorithm.random.RandomDither;
+import rewrite.dither.algorithm.error.StevensonArceDither;
 import rewrite.dither.load.ColorPalette;
 import rewrite.pipeline.frame.DitheredFramePacket;
 import rewrite.pipeline.frame.DitheredPacket;
 import rewrite.pipeline.frame.FramePacket;
+import rewrite.pipeline.steps.FramePipelineStep;
 
-public final class RandomDitherPipelineStep implements FramePipelineStep<FramePacket, DitheredPacket> {
+public final class StevensonArceDitherPipelineStep implements FramePipelineStep<FramePacket, DitheredPacket> {
 
-  private final RandomDither dither;
+  private final StevensonArceDither dither;
 
-  public RandomDitherPipelineStep(final ColorPalette palette, final int weight) {
-    this.dither = new RandomDither(palette, weight, false);
+  public StevensonArceDitherPipelineStep(final ColorPalette palette) {
+    this.dither = new StevensonArceDither(palette);
   }
 
   @Override

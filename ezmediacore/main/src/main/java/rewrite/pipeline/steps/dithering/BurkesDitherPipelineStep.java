@@ -1,17 +1,18 @@
-package rewrite.pipeline.steps;
+package rewrite.pipeline.steps.dithering;
 
-import rewrite.dither.algorithm.error.FloydDither;
+import rewrite.dither.algorithm.error.BurkesDither;
 import rewrite.dither.load.ColorPalette;
 import rewrite.pipeline.frame.DitheredFramePacket;
 import rewrite.pipeline.frame.DitheredPacket;
 import rewrite.pipeline.frame.FramePacket;
+import rewrite.pipeline.steps.FramePipelineStep;
 
-public final class FloydSteinbergDitherPipelineStep implements FramePipelineStep<FramePacket, DitheredPacket> {
+public final class BurkesDitherPipelineStep implements FramePipelineStep<FramePacket, DitheredPacket> {
 
-  private final FloydDither dither;
+  private final BurkesDither dither;
 
-  public FloydSteinbergDitherPipelineStep(final ColorPalette palette) {
-    this.dither = new FloydDither(palette, false);
+  public BurkesDitherPipelineStep(final ColorPalette palette) {
+    this.dither = new BurkesDither(palette);
   }
 
   @Override

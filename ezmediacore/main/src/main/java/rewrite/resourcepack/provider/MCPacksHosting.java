@@ -18,6 +18,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import rewrite.json.GsonProvider;
+import rewrite.util.io.FileUtils;
+import rewrite.util.io.PathUtils;
 
 public final class MCPacksHosting {
 
@@ -34,7 +37,7 @@ public final class MCPacksHosting {
   }
 
   private PackInfo createNewPackInfo(final Path zip) {
-    final String name = IOUtils.getName(zip);
+    final String name = PathUtils.getName(zip);
     try (final InputStream stream = Files.newInputStream(zip); final InputStream fast = new FastBufferedInputStream(stream)) {
       final Connection.Response uploadResponse = this.getResponse(name, fast);
       final Document document = uploadResponse.parse();
@@ -51,7 +54,7 @@ public final class MCPacksHosting {
     try (final Writer writer = Files.newBufferedWriter(path)) {
       final int loads = info.loads + 1;
       final PackInfo updated = new PackInfo(info.url, loads);
-      final Gson gson = GsonProvider.getGson();
+      final Gson gson = GsonProvider.getSimple();
       write.lock();
       gson.toJson(updated, writer);
       return updated.url;
@@ -64,7 +67,7 @@ public final class MCPacksHosting {
 
   private @Nullable PackInfo checkFileUrl(final ReentrantReadWriteLock lock) {
     final Path path = this.getCachedFilePath();
-    if (IOUtils.createFile(path)) {
+    if (FileUtils.createFile(path)) {
       return null;
     }
 
@@ -72,7 +75,7 @@ public final class MCPacksHosting {
     read.lock();
 
     try (final Reader reader = Files.newBufferedReader(path)) {
-      final Gson gson = GsonProvider.getGson();
+      final Gson gson = GsonProvider.getSimple();
       final PackInfo info = gson.fromJson(reader, PackInfo.class);
       return info == null ? null : (info.loads > 10 ? null : info);
     } catch (final IOException e) {
@@ -83,7 +86,7 @@ public final class MCPacksHosting {
   }
 
   private Path getCachedFilePath() {
-    final Path data = IOUtils.getPluginDataFolderPath();
+    final Path data = FileUtils.getPluginDataFolderPath();
     return data.resolve("cached-packs.json");
   }
 
