@@ -25,37 +25,41 @@ package rewrite.dependency;
 
 import rewrite.EzMediaCore;
 import rewrite.capabilities.Capabilities;
+import rewrite.capabilities.Capability;
+import rewrite.capabilities.SelectCapability;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class DependencyLoader {
 
   private final EzMediaCore core;
-  private final ExecutorService service;
+  private final SelectCapability[] capabilities;
 
-  public DependencyLoader( final EzMediaCore core) {
+  public DependencyLoader(final EzMediaCore core, final SelectCapability[] capabilities) {
     this.core = core;
-    this.service = Executors.newFixedThreadPool(2);
+    this.capabilities = capabilities;
   }
 
   public void start() {
-    this.downloadNativeLibraries();
-    this.shutdown();
+    final Set<CompletableFuture<Void>> tasks = new HashSet<>();
+    for (final SelectCapability capability : this.capabilities) {
+      final CompletableFuture<Void> install = CompletableFuture.runAsync(() -> this.getTrueCapability(capability));
+      tasks.add(install);
+    }
+    tasks.add(CompletableFuture.runAsync(this::installNativeLibraries));
+    CompletableFuture.allOf(tasks.toArray(CompletableFuture[]::new)).join();
   }
 
-  private void downloadNativeLibraries() {
-    // exclude rtsp
-    final CompletableFuture<Void> vlc = CompletableFuture.runAsync(Capabilities.VLC::isEnabled, this.service);
-    final CompletableFuture<Void> ffmpeg = CompletableFuture.runAsync(Capabilities.FFMPEG::isEnabled, this.service);
-    final CompletableFuture<Void> ytdlp = CompletableFuture.runAsync(Capabilities.YT_DLP::isEnabled, this.service);
-    final CompletableFuture<Void> dither = CompletableFuture.runAsync(this::installNativeLibraries, this.service);
-    CompletableFuture.allOf(vlc, ffmpeg, ytdlp, dither).join();
-  }
-
-  private void shutdown() {
-    this.service.shutdown();
+  public void getTrueCapability(final SelectCapability capability) {
+    final Capability switchCapability = switch (capability) {
+      case VLC -> Capabilities.VLC;
+      case FFMPEG -> Capabilities.FFMPEG;
+      case RTSP -> Capabilities.RTSP;
+      case YT_DLP -> Capabilities.YT_DLP;
+    };
+    switchCapability.isEnabled();
   }
 
   private void installNativeLibraries() {

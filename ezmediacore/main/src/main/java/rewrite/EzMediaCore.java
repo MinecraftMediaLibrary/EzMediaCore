@@ -23,6 +23,7 @@
  */
 package rewrite;
 
+import rewrite.capabilities.SelectCapability;
 import rewrite.dependency.DependencyLoader;
 import rewrite.dither.load.ColorPalette;
 import rewrite.listener.RegistrationListener;
@@ -57,11 +58,15 @@ public final class EzMediaCore {
   private Listener registrationListener;
 
   public EzMediaCore(final Plugin plugin) {
+    this(plugin, SelectCapability.DEFAULT_CAPABILITIES);
+  }
+
+  public EzMediaCore(final Plugin plugin, final SelectCapability... capabilities) {
     this.plugin = plugin;
     this.assignPaths(plugin);
     this.initLogger();
     this.cacheLookups();
-    this.loadDependencies();
+    this.loadDependencies(capabilities);
     this.registerEvents();
     this.createFolders();
   }
@@ -85,8 +90,8 @@ public final class EzMediaCore {
     PacketToolsProvider.init();
   }
 
-  private void loadDependencies() {
-    final DependencyLoader loader = new DependencyLoader(this);
+  private void loadDependencies(final SelectCapability[] capabilities) {
+    final DependencyLoader loader = new DependencyLoader(this, capabilities);
     loader.start();
   }
 
