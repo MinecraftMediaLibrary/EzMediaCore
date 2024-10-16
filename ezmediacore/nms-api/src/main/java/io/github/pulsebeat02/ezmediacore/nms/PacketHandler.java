@@ -124,13 +124,7 @@ public interface PacketHandler {
 
   void uninjectPlayer( final Player player);
 
-  boolean isMapRegistered(final int id);
-
-  void unregisterMap(final int id);
-
-  void registerMap(final int id);
-
-  default  String createChatComponent(
+  default String createChatComponent(
       final String character,  final int[] data, final int width, final int y) {
     int before = -1;
     final StringBuilder msg = new StringBuilder();

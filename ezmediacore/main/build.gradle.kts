@@ -1,6 +1,6 @@
 dependencies {
 
-    implementation(project(":ezmediacore:v1_19_R2"))
+    implementation(project(":ezmediacore:v1_21_R1"))
     implementation(project(":ezmediacore:nms-api"))
 
     // Project dependencies
@@ -31,7 +31,7 @@ tasks {
     }
 
     assemble {
-        dependsOn(":ezmediacore::v1_19_R2:reobfJar")
+        dependsOn(":ezmediacore::v1_21_R1:reobfJar")
         dependsOn("shadowJar")
     }
 
