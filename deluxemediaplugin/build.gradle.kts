@@ -26,7 +26,7 @@ dependencies {
     compileOnly("net.dv8tion:JDA:5.0.0-beta.3")
 
     // Project dependencies
-    implementation("org.bstats:bstats-bukkit:3.0.0")
+    implementation("org.bstats:bstats-bukkit:3.1.0")
     runtimeDeps.forEach(::compileOnly)
 }
 
