@@ -23,10 +23,10 @@ dependencies {
     // Provided dependencies
     compileOnly("org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT")
     compileOnly("com.mojang.authlib:authlib:1.5.26")
-    compileOnly("net.dv8tion:JDA:5.0.0-beta.3")
+    compileOnly("net.dv8tion:JDA:5.1.2")
 
     // Project dependencies
-    implementation("org.bstats:bstats-bukkit:3.0.0")
+    implementation("org.bstats:bstats-bukkit:3.1.0")
     runtimeDeps.forEach(::compileOnly)
 }
 
