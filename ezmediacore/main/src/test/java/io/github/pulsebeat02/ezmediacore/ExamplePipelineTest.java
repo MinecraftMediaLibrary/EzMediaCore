@@ -52,8 +52,8 @@ public final class ExamplePipelineTest {
     final CompletableFuture<Input> video = parser.retrieveInput(new DefaultVideoStrategy());
     final CompletableFuture<Input> audio = parser.retrieveInput(new DefaultAudioStrategy());
 
-    final Map<String, String> arguments = resolution.getFFMPEGArguments();
-    player.play(video.join(), audio.join(), arguments);
+    player.setResolution(resolution);
+    player.play(video.join(), audio.join());
   }
 
   private void createResourcePack() {

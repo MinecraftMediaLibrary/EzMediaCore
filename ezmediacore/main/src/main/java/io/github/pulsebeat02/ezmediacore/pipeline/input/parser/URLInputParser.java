@@ -7,7 +7,7 @@ import io.github.pulsebeat02.ezmediacore.json.GsonProvider;
 import io.github.pulsebeat02.ezmediacore.pipeline.input.Input;
 import io.github.pulsebeat02.ezmediacore.pipeline.input.parser.extractor.URLParseDump;
 import io.github.pulsebeat02.ezmediacore.pipeline.input.parser.strategy.FormatStrategy;
-import io.github.pulsebeat02.ezmediacore.task.CommandTask;
+import io.github.pulsebeat02.ezmediacore.util.task.CommandTask;
 
 import java.io.IOException;
 import java.nio.file.Path;

@@ -30,7 +30,7 @@ public final class HTTPFrameOutput implements FrameOutputSource<FramePacket>  {
 
   private void recordFrame(final FramePacket input) {
     try {
-      final Frame cursed = (Frame) input.getJavaCVAudioFrame();
+      final Frame cursed = (Frame) input.getMetadata();
       this.recorder.record(cursed);
     } catch (final FFmpegFrameRecorder.Exception e) {
       throw new AssertionError(e);

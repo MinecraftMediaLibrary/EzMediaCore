@@ -43,7 +43,7 @@
 .   SOFTWARE.                                                                               .
 ............................................................................................*/
 
-package io.github.pulsebeat02.ezmediacore.task;
+package io.github.pulsebeat02.ezmediacore.util.task;
 
 
 

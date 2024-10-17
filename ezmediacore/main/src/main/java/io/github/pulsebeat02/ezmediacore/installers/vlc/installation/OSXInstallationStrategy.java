@@ -23,7 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.installers.vlc.installation;
 
-import io.github.pulsebeat02.ezmediacore.task.CommandTask;
+import io.github.pulsebeat02.ezmediacore.util.task.CommandTask;
 
 import java.io.IOException;
 import java.nio.file.Files;

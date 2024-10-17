@@ -23,21 +23,7 @@
  */
 package io.github.pulsebeat02.ezmediacore.dimension;
 
-import java.util.Map;
-
 public interface Resolution extends Dimension {
-
-  default Map<String, String> getFFMPEGArguments() {
-    final String width = String.valueOf(this.getWidth());
-    final String height = String.valueOf(this.getHeight());
-    return Map.of("-vf", "scale=" + width + ":" + height);
-  }
-
-  default Map<String, String> getVLCArguments() {
-    final String width = String.valueOf(this.getWidth());
-    final String height = String.valueOf(this.getHeight());
-    return Map.of("--width", width, "--height", height);
-  }
 
   static Resolution ofResolution(final int width, final int height) {
     return new ImmutableResolution(width, height);

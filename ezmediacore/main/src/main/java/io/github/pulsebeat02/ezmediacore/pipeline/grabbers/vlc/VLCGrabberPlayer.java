@@ -1,12 +1,14 @@
 package io.github.pulsebeat02.ezmediacore.pipeline.grabbers.vlc;
 
 import com.sun.jna.Pointer;
+import io.github.pulsebeat02.ezmediacore.dimension.Resolution;
 import io.github.pulsebeat02.ezmediacore.pipeline.FramePipelineResult;
 import io.github.pulsebeat02.ezmediacore.pipeline.frame.BasicFramePacket;
 import io.github.pulsebeat02.ezmediacore.pipeline.frame.FramePacket;
 import io.github.pulsebeat02.ezmediacore.pipeline.grabbers.GrabberAudioFormat;
 import io.github.pulsebeat02.ezmediacore.pipeline.grabbers.GrabberPlayer;
 import io.github.pulsebeat02.ezmediacore.pipeline.input.Input;
+import io.github.pulsebeat02.ezmediacore.util.collections.CollectionUtils;
 import io.github.pulsebeat02.ezmediacore.util.os.OSUtils;
 import uk.co.caprica.vlcj.factory.MediaPlayerApi;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
@@ -36,6 +38,7 @@ public final class VLCGrabberPlayer implements GrabberPlayer<FramePacket> {
 
   private MediaPlayerFactory factory;
   private EmbeddedMediaPlayer player;
+  private String[] resolutionArguments;
   private volatile int width;
   private volatile int height;
   private volatile int[] frames;
@@ -71,6 +74,14 @@ public final class VLCGrabberPlayer implements GrabberPlayer<FramePacket> {
     api.callback(format, sampleRate, channels, audioCallback);
   }
 
+  public void setResolution(final Resolution resolution) {
+    this.width = resolution.getWidth();
+    this.height = resolution.getHeight();
+    final String widthString = String.valueOf(this.width);
+    final String heightString = String.valueOf(this.height);
+    this.resolutionArguments = new String[] {"--width", widthString, "--height", heightString};
+  }
+
   @Override
   public void play(final Input source, final Map<String, String> arguments) {
     this.play(source, null, arguments);
@@ -98,25 +109,15 @@ public final class VLCGrabberPlayer implements GrabberPlayer<FramePacket> {
       this.sources.add(audio);
     }
     this.sources.add(video);
-    final String[] args = getArguments(arguments);
+    final String[] args = this.getArguments(arguments);
     api.play(videoUrl, args);
   }
 
-  private static String[] getArguments(final Map<String, String> arguments) {
-    final Map<String, String> copy = new HashMap<>(arguments);
-    final int size = arguments.size() * 2 + 1;
-    final String[] args = new String[size];
-    final Set<Map.Entry<String, String>> entries = copy.entrySet();
-    int index = 0;
-    for (final Map.Entry<String, String> entry : entries) {
-      final String key = entry.getKey();
-      final String value = entry.getValue();
-      args[index++] = key;
-      args[index++] = value;
-    }
-    final int last = size - 1;
-    args[last] = ":sout=#transcode{acodec=opus}";
-    return args;
+  private String[] getArguments(final Map<String, String> arguments) {
+    final String[] pre = CollectionUtils.mapToArray(arguments);
+    final String[] resolution = this.resolutionArguments == null ? new String[0] : this.resolutionArguments;
+    final String[] format = new String[] {":sout=#transcode{acodec=opus}"};
+    return CollectionUtils.merge(resolution, format, pre);
   }
 
   @Override

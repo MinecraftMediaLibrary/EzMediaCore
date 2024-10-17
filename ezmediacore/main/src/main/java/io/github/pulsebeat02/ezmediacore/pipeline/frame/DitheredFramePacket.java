@@ -20,7 +20,7 @@ public final class DitheredFramePacket extends BasicFramePacket implements Dithe
     final byte[] audioSamples = packet.getAudioSamples();
     final int imageWidth = packet.getImageWidth();
     final int imageHeight = packet.getImageHeight();
-    final Object javaCVFrame = packet.getJavaCVAudioFrame();
+    final Object javaCVFrame = packet.getMetadata();
     return new DitheredFramePacket(rgbSamples, audioSamples, imageWidth, imageHeight, javaCVFrame, dithered);
   }
 
