@@ -1,42 +1,33 @@
 plugins {
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("xyz.jpenilla.run-paper") version "2.0.0"
+    id("com.gradleup.shadow") version "8.3.3"
+    id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
 }
+
+var runtimeDeps = listOf(
+    "net.kyori:adventure-api:4.17.0",
+    "net.kyori:adventure-platform-bukkit:4.3.4",
+    "net.kyori:adventure-text-minimessage:4.17.0",
+    "org.incendo:cloud-annotations:2.0.0",
+    "org.incendo:cloud-paper:2.0.0-beta.10",
+    "org.incendo:cloud-minecraft-extras:2.0.0-beta.10",
+    "me.lucko:commodore:2.2",
+    "com.github.stefvanschie.inventoryframework:IF:0.10.17"
+);
 
 dependencies {
 
-    compileOnly("org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT")
+    // Project modules
+    implementation(project(":ezmediacore:main"))
 
-    // PROJECT DEPENDENCIES
-    setOf(
-            project(":ezmediacore:main"),
-    ).forEach {
-        implementation(it)
-    }
+    // Provided dependencies
+    compileOnly("org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT")
+    compileOnly("com.mojang.authlib:authlib:1.5.26")
+    compileOnly("net.dv8tion:JDA:5.0.0-beta.3")
 
-    // PROVIDED DEPENDENCIES / DOWNLOADED AT RUNTIME
-    setOf(
-            "com.mojang:authlib:1.5.26",
-            "net.dv8tion:JDA:5.0.0-beta.3",
-    ).forEach {
-        compileOnly(it)
-    }
-
-    // MAIN SHADED DEPENDENCIES
-    setOf(
-            "org.bstats:bstats-bukkit:3.0.0",
-            "net.kyori:adventure-api:4.12.0",
-            "net.kyori:adventure-platform-bukkit:4.2.0",
-            "com.github.stefvanschie.inventoryframework:IF:0.10.8"
-    ).forEach {
-        implementation(it)
-    }
-
-    // BRIGADIER USE ONLY
-    compileOnly("com.mojang:brigadier:1.0.18")
-    implementation("me.lucko:commodore:2.2") {
-        exclude("com.mojang", "brigadier")
-    }
+    // Project dependencies
+    implementation("org.bstats:bstats-bukkit:3.0.0")
+    runtimeDeps.forEach(::compileOnly)
 }
 
 tasks {
@@ -45,35 +36,27 @@ tasks {
         dependsOn(shadowJar)
     }
 
-    processResources {
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
-        rename("plugin.json", "plugin.yml")
+    bukkit {
+        name = "DeluxeMediaPlugin"
+        version = "1.21.1-v1.0.0"
+        description = "Pulse's DeluxeMediaPlugin Plugin"
+        authors = listOf("PulseBeat_02")
+        apiVersion = "1.21"
+        prefix = "DeluxeMediaPlugin"
+        main = "io.github.pulsebeat02.deluxemediaplugin.DeluxeMediaPluginBootstrap"
+        libraries = runtimeDeps
     }
 
-    shadowJar {
-        archiveBaseName.set("DeluxeMediaPlugin")
-        val base = "io.github.pulsebeat02.deluxemediaplugin.lib"
-        relocate("org.bstats", "$base.bstats")
-        relocate("me.lucko", "$base.lucko")
-        relocate("net.kyori", "$base.kyori")
-        relocate("com.github.stefvanschie", "$base.stefvanschie")
+    build {
+        dependsOn("spotlessApply")
+    }
 
-        val libraryBase = "io.github.pulsebeat02.ezmediacore.lib"
-        relocate("uk.co.caprica", "$libraryBase.caprica")
-        relocate("com.github.kiulian", "$libraryBase.kiulian")
-        relocate("se.michaelthelin", "$libraryBase.michaelthelin")
-        relocate("com.github.kokorin", "$libraryBase.kokorin")
-        relocate("org.jcodec", "$libraryBase.jcodec")
-        relocate("com.github.benmanes", "$libraryBase.benmanes")
-        relocate("it.unimi.dsi", "$libraryBase.dsi")
-        relocate("com.alibaba", "$libraryBase.alibaba")
-        relocate("net.sourceforge.jaad.aac", "$libraryBase.sourceforge")
-        relocate("com.fasterxml", "$libraryBase.fasterxml")
-        relocate("org.apache", "$libraryBase.apache")
-        relocate("com.neovisionaries", "$libraryBase.neovisionaries")
+    processResources {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        filteringCharset = "UTF-8"
     }
 
     runServer {
-        minecraftVersion("1.19.2")
+        minecraftVersion("1.21.1")
     }
 }

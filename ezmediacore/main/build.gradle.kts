@@ -1,5 +1,6 @@
 dependencies {
 
+    // Project modules
     implementation(project(":ezmediacore:v1_21_R1"))
     implementation(project(":ezmediacore:nms-api"))
 
@@ -18,17 +19,13 @@ dependencies {
     compileOnly("com.google.guava:guava:31.1-jre")
     compileOnly("it.unimi.dsi:fastutil:8.5.11")
 
+    // Test dependencies
     testImplementation("uk.co.caprica:vlcj:4.8.2")
     testImplementation("uk.co.caprica:vlcj-natives:4.8.1")
     testImplementation("com.google.guava:guava:31.1-jre")
 }
 
 tasks {
-
-    processResources {
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
-        filteringCharset = "UTF-8"
-    }
 
     assemble {
         dependsOn(":ezmediacore::v1_21_R1:reobfJar")
