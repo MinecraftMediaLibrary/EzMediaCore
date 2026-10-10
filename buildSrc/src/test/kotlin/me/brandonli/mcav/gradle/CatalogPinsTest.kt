@@ -28,7 +28,7 @@ class CatalogPinsTest {
     fun readTheDocsUsesTheCatalogPythonMinor() {
         val repository = Path.of("..").toFile()
         val catalog = repository.resolve("gradle/libs.versions.toml").readText()
-        val python = Regex("(?m)^docs-python = \"([^\"]+)\"").find(catalog)!!.groupValues[1]
+        val python = Regex("(?m)^python = \"([^\"]+)\"").find(catalog)!!.groupValues[1]
         val readTheDocs = repository.resolve(".readthedocs.yaml").readText()
         val minor = Regex("(?m)^\\s+python: \"([0-9]+\\.[0-9]+)\"").find(readTheDocs)!!.groupValues[1]
         assertEquals(python.split('.').take(2).joinToString("."), minor)

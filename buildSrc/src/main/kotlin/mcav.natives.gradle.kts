@@ -18,14 +18,18 @@
 
 import java.util.Properties
 import me.brandonli.mcav.gradle.HostPlatform
-import me.brandonli.mcav.gradle.ToolVersions
 import me.brandonli.mcav.gradle.BuildMcv2Natives
+import me.brandonli.mcav.gradle.ClangFormat
 import me.brandonli.mcav.gradle.DownloadToolArchive
+import me.brandonli.mcav.gradle.McavPythonExtension
+import me.brandonli.mcav.gradle.PythonEnvironment
 import me.brandonli.mcav.gradle.libs
+import me.brandonli.mcav.gradle.venvExecutable
 import me.brandonli.mcav.gradle.versionOf
 
 plugins {
     java
+    id("mcav.python")
 }
 
 val host = HostPlatform.current()
@@ -80,17 +84,37 @@ artifacts.add(nativeResources.name, buildMcv2Natives.flatMap { it.outputDirector
     type = "directory"
 }
 
-val toolVersions = objects.newInstance<ToolVersions>()
-val clangFormatVersion = libs.versionOf("clang-format")
-val clangFormat = providers.environmentVariable("CLANG_FORMAT").getOrElse("clang-format")
-
-tasks.register<Exec>("formatMcv2Natives") {
-    group = "formatting"
-    description = "Formats the MCV2 native sources with clang-format $clangFormatVersion"
-    workingDir = nativeSources.asFile
-    doFirst {
-        toolVersions.requireVersion(clangFormat, "clang-format", clangFormatVersion, "clang-format version", nativeSources.asFile)
+val pinnedClangFormatVersion = libs.versionOf("clang-format")
+extensions.configure<McavPythonExtension> {
+    versions.put("clang-format", pinnedClangFormatVersion)
+    markers.put("clang-format", "sys_platform != 'win32' or platform_machine != 'ARM64'")
+}
+val clangFormatOverride = providers.environmentVariable("CLANG_FORMAT")
+val selectedClangFormat = if (clangFormatOverride.isPresent) {
+    layout.file(clangFormatOverride.map { file(it) })
+} else {
+    tasks.named<PythonEnvironment>("installPythonEnvironment").flatMap { environment ->
+        environment.installationDirectory.file("venv/" + venvExecutable("clang-format"))
     }
-    commandLine(listOf(clangFormat, "-i", "--style=file") +
-        fileTree(nativeSources) { include("*.cpp") }.files.sorted().map { it.absolutePath })
+}
+val formattedSources = fileTree(nativeSources) { include("*.cpp") }
+
+tasks.register<ClangFormat>("formatMcv2Natives") {
+    group = "formatting"
+    description = "Formats the MCV2 native sources with clang-format $pinnedClangFormatVersion"
+    sources.from(formattedSources)
+    clangFormat = selectedClangFormat
+    clangFormatVersion = pinnedClangFormatVersion
+    rewrite = true
+}
+val checkNativesFormat = tasks.register<ClangFormat>("checkMcv2NativesFormat") {
+    group = "verification"
+    description = "Checks that the MCV2 native sources are formatted with clang-format $pinnedClangFormatVersion"
+    sources.from(formattedSources)
+    clangFormat = selectedClangFormat
+    clangFormatVersion = pinnedClangFormatVersion
+    rewrite = false
+}
+tasks.named("check") {
+    dependsOn(checkNativesFormat)
 }

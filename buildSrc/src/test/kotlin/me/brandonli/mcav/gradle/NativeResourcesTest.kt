@@ -44,6 +44,8 @@ class NativeResourcesTest {
                     libs {
                         version('zig', 'fixture')
                         version('clang-format', 'fixture')
+                        version('uv', 'fixture')
+                        version('python', 'fixture')
                     }
                 }
             }

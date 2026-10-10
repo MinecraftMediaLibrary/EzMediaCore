@@ -52,6 +52,7 @@ spotless {
                     "mcav-docs/*.gradle.kts",
                     "buildSrc/src/main/resources/uv-checksums.properties",
                     "buildSrc/src/main/resources/zig-checksums.properties",
+                    "mcav-bukkit/requirements.lock",
                     "mcav-docs/requirements.lock",
                     ".github/**/*.md",
                     ".github/**/*.yml",

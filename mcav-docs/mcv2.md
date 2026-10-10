@@ -1659,11 +1659,13 @@ The measurements behind every chart are in `mcav-bukkit/src/test/resources/mcv2/
 MCV2's tools live in mcav-bukkit's test sources. The independent Python implementation is
 `mcav-bukkit/src/test/python/mcv2_reference.py`; it implements the format, serializer, decoder and six-bit transport
 without calling Java. All Python tool commands use `mcav-bukkit/src/test/python/mcv2_tools.py` followed by a
-subcommand. Use Python 3.12 or newer with numpy 2.5.3, Pillow 12.3.0, moderngl 5.12.0 and matplotlib 3.11.2 with
-Liberation Sans for figures. Python 3.12 is the supported minimum; select a suitable environment as `python` for
-the commands below. These tools and figure prerequisites are installed separately from Gradle's documentation environment.
-Neither these tools nor the Python unit tests below are part of `./gradlew build`, and neither is
-`./gradlew :mcav-bukkit:formatMcv2Natives`, which formats the C++ sources with a separately installed clang-format.
+subcommand. Gradle installs Python 3.13.16 with numpy 2.5.3, Pillow 12.3.0, moderngl 5.12.0, matplotlib 3.11.2,
+pytest and clang-format 18.1.8 from `mcav-bukkit/requirements.lock` into `mcav-bukkit/build/python/venv`.
+`./gradlew build` runs the Python unit tests on it and checks the format of the C++ sources, and
+`./gradlew :mcav-bukkit:formatMcv2Natives` formats them. moderngl 5.12.0, which only `shader_check`, `shader_timing`
+and `strip_fit_check` need, publishes no package for ARM64 Linux or Windows on ARM64, so the lock leaves it out there.
+Figures also need Liberation Sans. The tools themselves are not part of the build: select that environment, or another
+with Python 3.12 or newer and these packages, as `python` for the commands below.
 The Java commands share `me.brandonli.mcav.bukkit.media.mcv2.Mcv2Tools`. Its shaderc and SPIRV-Cross dependencies,
 including the current platform's LWJGL natives, are test dependencies and are absent from the plugin's runtime.
 Use a Java 25 JDK for `java` and `jfr`, including Java processes started by the Python tools. Gradle's Java toolchain
@@ -1683,7 +1685,7 @@ java --enable-native-access=ALL-UNNAMED -cp "$MCV2_CLASSPATH" "$MCV2_MAIN_CLASS"
   profile=DEFAULT budget=true verify=true natives=auto out=proxy.mcs decoded=proxy-decoded.rgb
 java -cp "$MCV2_CLASSPATH" "$MCV2_MAIN_CLASS" digests proxy.mcs
 python "$MCV2_PYTHON_TOOLS" differential "$MCV2_CLASSPATH" --out build/mcv2-differential
-python -m unittest discover -s mcav-bukkit/src/test/python
+./gradlew :mcav-bukkit:pythonTest
 python "$MCV2_PYTHON_TOOLS" fixtures "$MCV2_FIXTURES" all
 ```
 

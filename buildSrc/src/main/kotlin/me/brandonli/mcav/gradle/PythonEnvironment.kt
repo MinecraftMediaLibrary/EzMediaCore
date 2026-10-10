@@ -28,6 +28,7 @@ import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
@@ -47,7 +48,7 @@ fun uvEnvironment(installationDirectory: File, cacheDirectory: File): Map<String
 )
 
 @DisableCachingByDefault(because = "Python virtual environments contain absolute installation paths")
-abstract class DocsEnvironment : DefaultTask() {
+abstract class PythonEnvironment : DefaultTask() {
 
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
@@ -64,7 +65,10 @@ abstract class DocsEnvironment : DefaultTask() {
     abstract val requirements: RegularFileProperty
 
     @get:Input
-    abstract val pinnedRequirements: MapProperty<String, String>
+    abstract val versions: MapProperty<String, String>
+
+    @get:Internal
+    abstract val lockTask: Property<String>
 
     @get:Input
     abstract val pythonPath: Property<String>
@@ -81,10 +85,10 @@ abstract class DocsEnvironment : DefaultTask() {
     @TaskAction
     fun install() {
         val lock = requirements.get().asFile
-        val missing = RequirementsLock.missingPins(lock.readText(), pinnedRequirements.get())
+        val missing = RequirementsLock.missingPins(lock.readText(), versions.get())
         if (missing.isNotEmpty()) {
             throw GradleException(
-                "$lock does not pin ${missing.joinToString()} of gradle/libs.versions.toml; run ./gradlew :mcav-docs:lockDocsRequirements"
+                "$lock does not pin ${missing.joinToString()} of gradle/libs.versions.toml; run ./gradlew ${lockTask.get()}"
             )
         }
         val uv = uvExecutable.get().asFile

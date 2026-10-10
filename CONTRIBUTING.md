@@ -8,7 +8,7 @@ to follow the following guidelines:
 - Code formatting (run `./gradlew spotlessApply`, which adds the license header and formats the code with prettier-java)
 
 `./gradlew spotlessRepositoryCheck` checks whitespace in the repository text files, including
-`gradle/libs.versions.toml`, `buildSrc/src/main/resources/zig-checksums.properties` and `mcav-docs/requirements.lock`.
+`gradle/libs.versions.toml`, `buildSrc/src/main/resources/zig-checksums.properties` and the two `requirements.lock` files.
 
 ## Documentation
 
@@ -16,16 +16,17 @@ The documentation is the Jupyter Book in `mcav-docs`. `./gradlew :mcav-docs:buil
 `mcav-docs/build/html` (open `index.html`), and `./gradlew build` builds it too. Gradle downloads uv, checks it against
 the SHA-256 in `buildSrc/src/main/resources/uv-checksums.properties`, and with it installs the Python of
 `gradle/libs.versions.toml` and the packages of `mcav-docs/requirements.lock`, each checked against its hash, all into
-`mcav-docs/build`. Set `UV=/path/to/uv` to use an installed uv instead. Both
-`./gradlew :mcav-docs:installDocsEnvironment` and `./gradlew :mcav-docs:lockDocsRequirements` reject an executable
-reporting a version other than the catalog's uv 0.12.23. Jupyter Book runs with
+`mcav-docs/build`. `mcav-bukkit` installs the Python codec tests' packages and clang-format the same way, from
+`mcav-bukkit/requirements.lock` into `mcav-bukkit/build`. Set `UV=/path/to/uv` to use an installed uv instead. Both
+`installPythonEnvironment` and `lockPythonRequirements` reject an executable reporting a version other than the
+catalog's uv 0.12.23. Jupyter Book runs with
 `--warningiserror`, so a Sphinx warning fails the build. Downloading uv and Python needs GitHub, and the packages need
 PyPI.
 
-To change a documentation package or the Python, change its version in `gradle/libs.versions.toml`, run
-`./gradlew :mcav-docs:lockDocsRequirements`, which writes `mcav-docs/requirements.lock` with every package pinned and
-hashed, and commit both; the build fails while the lock pins other versions than the catalog. Read the Docs installs
-the same lock through `mcav-docs/requirements.txt`. Local builds use `docs-python` 3.13.16; `.readthedocs.yaml`
+To change a Python package or the Python, change its version in `gradle/libs.versions.toml`, run
+`./gradlew lockPythonRequirements`, which writes both `requirements.lock` files with every package pinned and hashed,
+and commit them; the build fails while a lock pins other versions than the catalog. Read the Docs installs the
+documentation lock through `mcav-docs/requirements.txt`. Local builds use `python` 3.13.16; `.readthedocs.yaml`
 selects the minor version 3.13. A buildSrc unit test enforces that minor match, without asserting which patch version
 the provider installs. To update uv, copy the SHA-256 of each archive from the `.sha256` files of its GitHub release
 into `buildSrc/src/main/resources/uv-checksums.properties`.
@@ -94,14 +95,16 @@ The downloaded compiler is cached in `mcav-bukkit/build/tools/zig/0.16.0`.
 `./gradlew :mcav-bukkit:buildMcv2Natives` runs the cacheable task directly; unchanged inputs are up to date. Generated
 libraries and their `SHA256SUMS` and `SOURCES` manifests live under `mcav-bukkit/build/generated/natives/mcav/mcv2/natives`.
 Commit only the sources. The loader checks the generated digests, and the tests compare the source manifest with the
-tree. `./gradlew :mcav-bukkit:formatMcv2Natives` formats the sources with clang-format (`CLANG_FORMAT=/path/to/clang-format`).
-The formatter is separate from `build` and needs clang-format 18.1.8 on `PATH` when no override is set. It validates
-the reported version before changing any source.
+tree. `./gradlew :mcav-bukkit:formatMcv2Natives` formats the sources with clang-format 18.1.8 from
+`mcav-bukkit/requirements.lock`; `build` runs `checkMcv2NativesFormat`, which fails on an unformatted line and changes
+nothing. `CLANG_FORMAT=/path/to/clang-format` names an installed clang-format instead; Windows on ARM64 needs it, as no
+clang-format 18.1.8 package exists for it. Both tasks check the reported version first.
 
 MCV2's Java tools live in `mcav-bukkit/src/test/java/me/brandonli/mcav/bukkit/media/mcv2/Mcv2Tools.java`.
-Its Python tools and independent reference decoder live in `mcav-bukkit/src/test/python`. Their tests run separately
-with `python3 -m unittest discover -s mcav-bukkit/src/test/python`, using Python 3.12 or newer with numpy, Pillow,
-moderngl and matplotlib. The
+Its Python tools and independent reference decoder live in `mcav-bukkit/src/test/python`. `check` runs their tests
+with `./gradlew :mcav-bukkit:pythonTest`: pytest runs the test files in parallel processes, no more than Gradle's
+workers, and then `test_shader_timing.py` alone, on the Python and packages of `mcav-bukkit/requirements.lock`. The
+JUnit reports are in `mcav-bukkit/build/test-results/pythonTest`. The
 [MCV2 article](https://mcav.readthedocs.io/en/latest/mcv2.html#reproducing-the-measurements-and-figures) lists the tools and
 their commands.
 

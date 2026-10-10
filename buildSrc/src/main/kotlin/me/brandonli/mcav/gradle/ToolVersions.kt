@@ -19,33 +19,21 @@
 package me.brandonli.mcav.gradle
 
 import java.io.ByteArrayOutputStream
-import java.io.File
-import javax.inject.Inject
 import org.gradle.api.GradleException
 import org.gradle.process.ExecOperations
 
-abstract class ToolVersions {
+object ToolVersions {
 
-    @get:Inject
-    protected abstract val processes: ExecOperations
-
-    fun requireVersion(executable: Any, tool: String, expected: String, prefix: String = tool, directory: File? = null) {
-        verify(processes, executable, tool, expected, prefix, directory)
-    }
-
-    companion object {
-        fun verify(processes: ExecOperations, executable: Any, tool: String, expected: String, prefix: String = tool, directory: File? = null) {
-            val output = ByteArrayOutputStream()
-            processes.exec {
-                if (directory != null) workingDir(directory)
-                commandLine(executable, "--version")
-                standardOutput = output
-            }
-            val reported = output.toString(Charsets.UTF_8).trim()
-            val actual = Regex("(?:^|\\s)${Regex.escape(prefix)} (\\S+)").find(reported)?.groupValues?.get(1)
-            if (actual != expected) {
-                throw GradleException("$executable must be $tool $expected, but it is $reported")
-            }
+    fun verify(processes: ExecOperations, executable: Any, tool: String, expected: String, prefix: String = tool) {
+        val output = ByteArrayOutputStream()
+        processes.exec {
+            commandLine(executable, "--version")
+            standardOutput = output
+        }
+        val reported = output.toString(Charsets.UTF_8).trim()
+        val actual = Regex("(?:^|\\s)${Regex.escape(prefix)} (\\S+)").find(reported)?.groupValues?.get(1)
+        if (actual != expected) {
+            throw GradleException("$executable must be $tool $expected, but it is $reported")
         }
     }
 }
