@@ -599,9 +599,9 @@ class LinuxLibrariesTest {
     );
     assertEquals(
       "The browser needs the Java runtime's libjawt.so, which " +
-      runtime +
-      " lacks: the headless Java packages of Debian and Ubuntu (openjdk-*-jre-headless) leave it out; install the full" +
-      " package of the same version (openjdk-*-jre), or run the server on a full Java runtime",
+        runtime +
+        " lacks: the headless Java packages of Debian and Ubuntu (openjdk-*-jre-headless) leave it out; install the full" +
+        " package of the same version (openjdk-*-jre), or run the server on a full Java runtime",
       refused.getMessage()
     );
     assertEquals(List.of(), this.downloads, "no library is downloaded for a runtime the browser cannot use");

@@ -534,11 +534,11 @@ final class LinuxLibraries {
     if (!Files.exists(runtime.resolve("lib").resolve(JAWT))) {
       throw new BrowserUnavailableException(
         "The browser needs the Java runtime's " +
-        JAWT +
-        ", which " +
-        runtime +
-        " lacks: the headless Java packages of Debian and Ubuntu (openjdk-*-jre-headless) leave it out; install the full" +
-        " package of the same version (openjdk-*-jre), or run the server on a full Java runtime"
+          JAWT +
+          ", which " +
+          runtime +
+          " lacks: the headless Java packages of Debian and Ubuntu (openjdk-*-jre-headless) leave it out; install the full" +
+          " package of the same version (openjdk-*-jre), or run the server on a full Java runtime"
       );
     }
   }
