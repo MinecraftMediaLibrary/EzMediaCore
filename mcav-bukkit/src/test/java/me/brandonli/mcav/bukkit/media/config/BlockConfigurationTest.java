@@ -35,12 +35,9 @@ import org.junit.jupiter.api.Test;
  */
 final class BlockConfigurationTest {
 
-  private static final Location POSITION = createPosition();
-
-  private static Location createPosition() {
-    final World world = mock(World.class);
-    return new Location(world, 1, 2, 3);
-  }
+  // a location refers to its world only weakly, so the test keeps the world itself
+  private static final World WORLD = mock(World.class);
+  private static final Location POSITION = new Location(WORLD, 1, 2, 3);
 
   @Test
   void rejectsPositionsWithoutAWorld() {
@@ -125,7 +122,11 @@ final class BlockConfigurationTest {
 
     assertThrows(NullPointerException.class, noViewers::build);
     assertThrows(NullPointerException.class, noPosition::build);
-    assertThrows(IllegalArgumentException.class, noWidth::build);
-    assertThrows(IllegalArgumentException.class, noHeight::build);
+    final IllegalArgumentException noWidthException = assertThrows(IllegalArgumentException.class, noWidth::build);
+    final IllegalArgumentException noHeightException = assertThrows(IllegalArgumentException.class, noHeight::build);
+    final String noWidthMessage = noWidthException.getMessage();
+    final String noHeightMessage = noHeightException.getMessage();
+    assertEquals("Block width must be positive", noWidthMessage);
+    assertEquals("Block height must be positive", noHeightMessage);
   }
 }

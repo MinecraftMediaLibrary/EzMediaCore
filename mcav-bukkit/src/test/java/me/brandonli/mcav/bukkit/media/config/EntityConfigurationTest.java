@@ -36,12 +36,9 @@ import org.junit.jupiter.api.Test;
  */
 final class EntityConfigurationTest {
 
-  private static final Location POSITION = createPosition();
-
-  private static Location createPosition() {
-    final World world = mock(World.class);
-    return new Location(world, 1, 2, 3);
-  }
+  // a location refers to its world only weakly, so the test keeps the world itself
+  private static final World WORLD = mock(World.class);
+  private static final Location POSITION = new Location(WORLD, 1, 2, 3);
 
   private static EntityConfiguration.Builder<?> completeBuilder() {
     final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
@@ -139,11 +136,17 @@ final class EntityConfigurationTest {
     final Location nowhere = new Location(null, 1, 2, 3);
     noWorld.position(nowhere);
 
-    assertThrows(IllegalArgumentException.class, emptyCharacter::build);
-    assertThrows(IllegalArgumentException.class, noWidth::build);
-    assertThrows(IllegalArgumentException.class, noHeight::build);
+    final IllegalArgumentException emptyCharacterException = assertThrows(IllegalArgumentException.class, emptyCharacter::build);
+    final IllegalArgumentException noWidthException = assertThrows(IllegalArgumentException.class, noWidth::build);
+    final IllegalArgumentException noHeightException = assertThrows(IllegalArgumentException.class, noHeight::build);
     final IllegalArgumentException noWorldException = assertThrows(IllegalArgumentException.class, noWorld::build);
+    final String emptyCharacterMessage = emptyCharacterException.getMessage();
+    final String noWidthMessage = noWidthException.getMessage();
+    final String noHeightMessage = noHeightException.getMessage();
     final String noWorldMessage = noWorldException.getMessage();
+    assertEquals("Character must not be empty", emptyCharacterMessage);
+    assertEquals("Entity width must be positive", noWidthMessage);
+    assertEquals("Entity height must be positive", noHeightMessage);
     assertEquals("Position must have a world", noWorldMessage);
   }
 }
