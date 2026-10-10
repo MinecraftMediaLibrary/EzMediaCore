@@ -733,7 +733,9 @@ frames after it, and keeps the last picture until it draws a frame while a keyfr
 A client that draws at least as many frames a second as the video has gets the next keyframe, at most four seconds
 later at 30 frames a second. A slower client gets only the keyframes that one of its frames happens to fall on: each
 keyframe is the newest frame for a thirtieth of a second, so a client drawing a frame every two seconds keeps one
-picture for minutes on average.
+picture for minutes on average. A still image from `/mcav image` is sent twice a second, every eighth time as a
+keyframe, so a client that missed one, for example while it compiled the pack's shaders as it first drew the screen,
+gets the next within four seconds.
 
 ## Part 9: The Encoder
 
