@@ -34,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -260,30 +261,57 @@ final class Mcv2PackTest {
     for (int symbol = 0; symbol < 64; symbol++) {
       assertEquals(MapColor.getColorFromPackedId(symbol + 4) & 0xFFFFFF, palette[symbol]);
     }
-    final Matcher matcher = Pattern.compile("ivec3\\((\\d+), (\\d+), (\\d+)\\)").matcher(Mcv2Pack.alphabet(palette));
+    final int[] symbols = new int[1 << 24];
+    Arrays.fill(symbols, -1);
     for (int symbol = 0; symbol < 64; symbol++) {
-      assertTrue(matcher.find());
-      final int rgb =
-        (Integer.parseInt(matcher.group(1)) << 16) | (Integer.parseInt(matcher.group(2)) << 8) | Integer.parseInt(matcher.group(3));
-      assertEquals(palette[symbol], rgb);
+      symbols[palette[symbol]] = symbol;
     }
-    assertFalse(matcher.find());
+    final String alphabet = Mcv2Pack.alphabet(palette);
+    final Matcher hash = Pattern.compile("MCV2_SYMBOL_HASH = (\\d+)u;\nconst uint MCV2_SYMBOL_SHIFT = (\\d+)u;").matcher(alphabet);
+    assertTrue(hash.find());
+    final int multiplier = Integer.parseInt(hash.group(1));
+    final int shift = Integer.parseInt(hash.group(2));
+    final int[] entries = Pattern.compile("(\\d+)u")
+      .matcher(alphabet.substring(alphabet.indexOf("MCV2_SYMBOLS")))
+      .results()
+      .mapToInt(entry -> Integer.parseUnsignedInt(entry.group(1)))
+      .toArray();
+    assertEquals(256, entries.length);
+    // every colour a map pixel can have, read as mcv2.glsl's mcv2Symbol reads it
+    int misread = 0;
+    for (int color = 0; color < 1 << 24; color++) {
+      final int entry = entries[(color * multiplier) >>> shift];
+      if ((entry >>> 6 == color ? entry & 63 : -1) != symbols[color]) {
+        misread++;
+      }
+    }
+    assertEquals(0, misread);
     final int[] clash = palette.clone();
     clash[5] = clash[4];
     assertEquals(
       "Map colours 9 and another symbol are the same RGB",
       assertThrows(IllegalStateException.class, () -> Mcv2Pack.alphabet(clash)).getMessage()
     );
-    final String line = System.lineSeparator();
+    final int[] two = { 0x010203, 0x040506 };
+    final String empty = " 4294967295u,";
     assertEquals(
       "#ifndef MCAV_MCV2_ALPHABET_GLSL\n#define MCAV_MCV2_ALPHABET_GLSL\n\n" +
-        "const ivec3 MCV2_ALPHABET[64] = ivec3[64](\n" +
-        "    ivec3(1, 2, 3)," +
-        line +
-        "    ivec3(4, 5, 6)" +
-        line +
-        ");\n\n#endif\n",
-      Mcv2Pack.alphabet(new int[] { 0x010203, 0x040506 })
+        "const uint MCV2_SYMBOL_HASH = 65u;\nconst uint MCV2_SYMBOL_SHIFT = 24u;\nconst uint MCV2_SYMBOLS[256] = uint[256](\n" +
+        "    4227264u, 16859521u," +
+        empty.repeat(6) +
+        "\n" +
+        ("   " + empty + empty.repeat(7) + "\n").repeat(30) +
+        "   " +
+        empty +
+        empty.repeat(6) +
+        " 4294967295u\n);\n\n#endif\n",
+      Mcv2Pack.alphabet(two)
+    );
+    // 65 is the first odd multiplier that tells these two colours apart
+    assertEquals(Mcv2Pack.alphabet(two), Mcv2Pack.alphabet(two, 65));
+    assertEquals(
+      "No odd multiplier up to 63 gives the map colours distinct symbol entries",
+      assertThrows(IllegalStateException.class, () -> Mcv2Pack.alphabet(two, 63)).getMessage()
     );
   }
 
