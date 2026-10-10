@@ -19,6 +19,7 @@ package me.brandonli.mcav.bukkit.utils;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.epoll.EpollChannelOption;
 import java.util.Collection;
@@ -26,7 +27,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import me.brandonli.mcav.bukkit.BukkitModule;
-import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -160,25 +160,31 @@ public final class PacketUtils {
   }
 
   /**
-   * Sends one packet to one player and calls the listener once its write completes or fails. May be called from any
-   * thread.
+   * Sends one packet to one player at once and calls the listener once its write completes or fails. May be called
+   * from any thread.
+   *
+   * <p>The packet is written to the player's connection and flushed right away. Paper holds most packets that a plugin
+   * sends from another thread, map packets among them, until the server's next tick, which would deliver the frames of
+   * a video faster than 20 a second two at a time; a packet sent here does not wait for packets that Paper holds that
+   * way.
    *
    * @param viewer   the UUID of the player
    * @param packet   the packet
    * @param listener called on the player's connection thread when the packet was written, or could not be
-   * @return true if the player is online and the packet was handed to the connection, false if nothing was sent, in
-   *     which case the listener is never called
+   * @return true if the packet was handed to the player's connection, false for a player who is not online or a
+   *     connection not open yet, in which case the listener is never called
    * @throws NullPointerException if {@code viewer}, {@code packet} or {@code listener} is null
    */
   public static boolean sendPacket(final UUID viewer, final Packet<?> packet, final ChannelFutureListener listener) {
     Preconditions.checkNotNull(viewer, "Viewer must not be null");
     Preconditions.checkNotNull(packet, "Packet must not be null");
     Preconditions.checkNotNull(listener, "Listener must not be null");
-    final CachedConnection connection = PLAYER_CONNECTIONS.get(viewer);
-    if (connection == null) {
+    final Channel channel = channel(viewer);
+    if (channel == null) {
       return false;
     }
-    connection.listener().send(packet, listener);
+    final ChannelFuture written = channel.writeAndFlush(packet);
+    written.addListener(listener);
     return true;
   }
 
@@ -203,10 +209,13 @@ public final class PacketUtils {
   public static boolean limitUnsent(final UUID player, final int bytes) {
     Preconditions.checkNotNull(player, "Player must not be null");
     Preconditions.checkArgument(bytes > 0, "Bytes must be positive");
-    final CachedConnection cached = PLAYER_CONNECTIONS.get(player);
-    final Connection connection = cached == null ? null : cached.listener().connection;
-    final Channel channel = connection == null ? null : connection.channel;
+    final Channel channel = channel(player);
     return channel != null && channel.config().setOption(EpollChannelOption.TCP_NOTSENT_LOWAT, (long) bytes);
+  }
+
+  private static @Nullable Channel channel(final UUID player) {
+    final CachedConnection cached = PLAYER_CONNECTIONS.get(player);
+    return cached == null ? null : cached.listener().connection.channel;
   }
 
   private static void handleJoin(final Event event) {

@@ -33,20 +33,22 @@ import static org.mockito.Mockito.when;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelConfig;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.channel.epoll.EpollChannelOption;
-import io.papermc.paper.configuration.GlobalConfiguration;
-import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import me.brandonli.mcav.bukkit.media.map.MapPacketFactory;
+import me.brandonli.mcav.bukkit.media.map.MapTilePatch;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
 import me.brandonli.mcav.bukkit.testing.UtilityClassAssertions;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
-import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.event.Event;
@@ -228,16 +230,13 @@ final class PacketUtilsTest {
   }
 
   /**
-   * Creates a network connection without a server: its class reads Paper's global configuration when it is loaded,
-   * which only a running server has, so the configuration is stubbed while the class loads.
+   * Gives the first player's packet listener a network connection of its own, without a channel.
    */
-  private static Connection connection() {
-    final GlobalConfiguration configuration = mock(GlobalConfiguration.class);
-    configuration.misc = mock(GlobalConfiguration.Misc.class);
-    try (final MockedStatic<GlobalConfiguration> global = Mockito.mockStatic(GlobalConfiguration.class)) {
-      global.when(GlobalConfiguration::get).thenReturn(configuration);
-      return mock(Connection.class);
-    }
+  private static Connection useConnection() {
+    final Connection connection = FakeServer.connection();
+    final CraftPlayer player = (CraftPlayer) Objects.requireNonNull(Bukkit.getPlayer(FIRST));
+    FakeServer.connect(player.getHandle().connection, connection);
+    return connection;
   }
 
   @Test
@@ -246,11 +245,7 @@ final class PacketUtilsTest {
     this.server.injectModule();
     assertFalse(PacketUtils.limitUnsent(SECOND, 1024));
     assertFalse(PacketUtils.limitUnsent(FIRST, 1024));
-    final Connection connection = connection();
-    final Field field = ServerCommonPacketListenerImpl.class.getDeclaredField("connection");
-    field.setAccessible(true);
-    final CraftPlayer player = (CraftPlayer) Objects.requireNonNull(Bukkit.getPlayer(FIRST));
-    field.set(player.getHandle().connection, connection);
+    final Connection connection = useConnection();
     assertFalse(PacketUtils.limitUnsent(FIRST, 1024));
     connection.channel = new EmbeddedChannel();
     assertFalse(PacketUtils.limitUnsent(FIRST, 1024));
@@ -263,6 +258,32 @@ final class PacketUtilsTest {
     verify(config).setOption(EpollChannelOption.TCP_NOTSENT_LOWAT, 1024L);
     assertThrows(NullPointerException.class, () -> PacketUtils.limitUnsent(null, 1));
     assertThrows(IllegalArgumentException.class, () -> PacketUtils.limitUnsent(FIRST, 0));
+  }
+
+  @Test
+  void writesAPacketWithAListenerToTheConnectionAtOnce() throws ReflectiveOperationException {
+    this.server.addPlayer(FIRST);
+    this.server.injectModule();
+    final Connection connection = useConnection();
+    final EmbeddedChannel channel = new EmbeddedChannel();
+    connection.channel = channel;
+    final MapTilePatch page = new MapTilePatch(100, 0, 0, 128, 1, new byte[128]);
+    final ClientboundBundlePacket bundle = MapPacketFactory.bundles(List.of(page)).getFirst().packet();
+    final List<ChannelFuture> writes = new ArrayList<>();
+    assertTrue(PacketUtils.sendPacket(FIRST, bundle, writes::add));
+    // Paper holds a map packet that a plugin sends from another thread until the server's next tick, which put two
+    // frames of a 30 fps MCV2 video into one tick about every other tick
+    assertSame(bundle, channel.readOutbound(), "the packet is written to the connection and flushed at once");
+    assertEquals(1, writes.size());
+    assertTrue(writes.getFirst().isSuccess(), "the listener runs once the write is done");
+    assertTrue(channel.close().isSuccess());
+    assertTrue(PacketUtils.sendPacket(FIRST, bundle, writes::add));
+    assertEquals(2, writes.size());
+    assertFalse(writes.getLast().isSuccess(), "a write that fails runs the listener too");
+    connection.channel = null;
+    assertFalse(PacketUtils.sendPacket(FIRST, bundle, writes::add), "a connection that is not open yet takes nothing");
+    assertFalse(PacketUtils.sendPacket(SECOND, bundle, writes::add), "a player who is not online takes nothing");
+    assertEquals(2, writes.size(), "the listener of a packet that was not sent never runs");
   }
 
   @Test

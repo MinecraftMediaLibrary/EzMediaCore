@@ -642,8 +642,11 @@ from the colour the client draws, so it uses 64 exactly distinguishable ones: 6 
 
 **Packets.** The server writes page `n` of a frame into the top rows of the map numbered `pageMap + n` (a shorter last
 page fills only whole rows of 128), one map packet per page, and sends all of a frame's pages in one bundle so they
-arrive together. Minecraft's zlib then compresses each packet, and because a map byte carrying six bits uses only 64 of
-its 256 values, zlib takes back a good part of the six-bit cost.
+arrive together. The bundle goes to each viewer's connection as soon as the frame is encoded: Paper holds the map
+packets a plugin sends from another thread until the server's next tick, 20 times a second, and at 30 frames a second
+two frames would often reach a client together. The client draws only the second, can't decode it without the first,
+and keeps its picture until the next keyframe. Minecraft's zlib then compresses each packet, and because a map byte
+carrying six bits uses only 64 of its 256 values, zlib takes back a good part of the six-bit cost.
 
 **Reassembly.** Pages can arrive in any order. A client keeps at most four unfinished frames; a page of a fifth evicts
 the oldest. A page must agree with the pages it already has for its frame (count, reference id, length and type), and a
