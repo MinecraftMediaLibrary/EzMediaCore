@@ -131,8 +131,9 @@ commands answer that VLC is not supported.
 ## Does the server's memory grow while videos play for days?
 
 Not by much anymore. FFmpeg and OpenCV free large buffers on many threads, and the C library of Linux keeps that memory
-for later, so a server's memory used to grow by about 20 MB an hour. MCAV now hands it back to the system once a
-minute. Start the server with `-Dmcav.nativeTrimSeconds=<n>` to do it every `n` seconds, or `0` to turn it off.
+for later, so a server's memory used to grow by about 20 MB an hour. MCAV now hands it back to the system once a minute,
+and has the C library hand back the free memory at the end of each thread's share of it as soon as a large buffer is
+freed. Start the server with `-Dmcav.nativeTrimSeconds=<n>` to trim every `n` seconds, or `0` to turn both off.
 
 ---
 
