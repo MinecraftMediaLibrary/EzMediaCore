@@ -32,7 +32,9 @@ to play back videos like the following. For Minecraft, MCAV even comes with its 
 | `mcav-lwjgl` | Video in [OpenGL textures](library/lwjgl.md) |
 | `mcav-installer` | Downloads the modules at run time for [plugins](library/installer.md) |
 | `mcav-plugin` | The [MCAV plugin](plugin/plugin.md) for Paper, which uses all of the above |
+| `mcav-mod` | The [client mod](mcv2.md#the-client-mod-for-iris-shader-players) for Fabric and NeoForge that shows MCV2 to players with Iris shaders on; not published yet |
 | `mcav-jcstress` | Concurrency tests on OpenJDK's jcstress harness ([building MCAV](library/compile.md)); a test module, not published |
+| `mcav-docs` | This documentation, built with `./gradlew :mcav-docs:build`; a build module, not published |
 
 MCAV requires Java 25, and runs on Windows (x86-64), macOS (x86-64 and Apple silicon) and Linux (x86-64 and ARM64),
 for which FFmpeg and OpenCV are bundled; the [prerequisites](library/prerequisites.md) say what each optional feature
