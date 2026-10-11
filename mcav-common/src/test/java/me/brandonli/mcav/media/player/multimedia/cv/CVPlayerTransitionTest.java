@@ -283,6 +283,7 @@ final class CVPlayerTransitionTest {
       final ScriptedPlayer player = new ScriptedPlayer(ScriptedFrameGrabber.of(first), ScriptedFrameGrabber.of(second));
       player.neverDropLateFrames();
       final Source source = source();
+      final CountDownLatch startReturned = new CountDownLatch(1);
       final CountDownLatch restarted = new CountDownLatch(1);
       final CountDownLatch releaseFirst = new CountDownLatch(1);
       final CountDownLatch secondEntered = new CountDownLatch(1);
@@ -300,6 +301,8 @@ final class CVPlayerTransitionTest {
       final IntConsumer enter = value -> {
         maximum.accumulateAndGet(active.incrementAndGet(), Math::max);
         if (value == firstValue) {
+          // start() refuses another start until it has returned, and the session can deliver its first frame before that
+          await(startReturned);
           assertTrue(player.start(source));
           restarted.countDown();
           await(releaseFirst);
@@ -332,6 +335,7 @@ final class CVPlayerTransitionTest {
       }
       try {
         assertTrue(player.start(source));
+        startReturned.countDown();
         assertTrue(restarted.await(10, TimeUnit.SECONDS));
         assertFalse(secondEntered.await(200, TimeUnit.MILLISECONDS), "the replacement entered a pipeline still processing the old session");
         releaseFirst.countDown();
