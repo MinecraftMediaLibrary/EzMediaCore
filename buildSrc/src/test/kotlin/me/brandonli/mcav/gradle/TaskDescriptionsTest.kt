@@ -28,7 +28,9 @@ class TaskDescriptionsTest {
     fun everyRegisteredTaskStartsWithItsGroupAndAOneLineDescriptionInTheThirdPerson() {
         val conventions = File("src/main/kotlin").listFiles { file -> file.name.endsWith(".gradle.kts") }!!.toList()
         val scripts = conventions + File("build.gradle.kts")
-        val registration = Regex("""tasks\.register(<\w+>)?\("\w+"\) \{\n( +)group = "[a-z ]+"\n\2description = "[A-Z][a-z]+s [^"\n]*[^."]"\n""")
+        val registration = Regex(
+            """tasks\.register(<\w+>)?\("\w+"\) \{\n( +)group = "[a-z ]+"\n\2description = "[A-Z][a-z]+s [^"\n]*[^."]"\n"""
+        )
         for (script in scripts.sorted()) {
             val text = script.readText()
             assertEquals(Regex("""tasks\.register\b""").findAll(text).count(), registration.findAll(text).count(), script.path)

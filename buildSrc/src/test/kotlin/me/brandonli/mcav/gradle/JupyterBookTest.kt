@@ -30,10 +30,10 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.RETURNS_SELF
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockingDetails
-import org.mockito.Mockito.RETURNS_SELF
 
 class JupyterBookTest {
 
@@ -48,7 +48,7 @@ class JupyterBookTest {
     @Test
     fun generatedConfigurationPrecedesTheHtmlBuildAndOnlyHtmlLeavesTheTask() {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val task = project.tasks.create("book", RecordingBook::class.java)
+        val task = project.tasks.register("book", RecordingBook::class.java).get()
         val source = directory.resolve("source").toFile()
         source.mkdirs()
         source.resolve("_config.yml").writeText("title: Fixture book\n")

@@ -108,8 +108,11 @@ class DownloadToolArchiveTest {
     @Test
     fun extractsGzipAndXzArchivesWithoutAnExternalUnpacker() {
         val archives = mapOf(
-            "tar.gz" to "H4sIAAAAAAACA+3NQQqCQAAF0Fl3Cm/gWInn0ZpAkAQbo+M3tQnaF0Hvbf7nb36e56kexnOdSwmfEYuubZ9ZvGeM2/2rP/Ym7romVDF8wXrJ/VLuw3+6pmU8jelYpVs6rLkfprQJAAAAAAAAAAAA/Lw7jjgM0wAoAAA=",
-            "tar.xz" to "/Td6WFoAAATm1rRGAgAhARYAAAB0L+Wj4Cf/AHNdADob7NgvJU6bwGN6v5a3JejC7neVC0X31phps0q2DkY/2CgXahtiZSmSEfj8sTJH859ZU5IrKQ3BNzSNn9Lgm5Pjp01y3THUEfiMj5qL+5NnvL7IiCthCBuqOOi+oVXsi4XON87LGOIoT5AAvVZcrNZukgAAAEjvLyQMjRxeAAGPAYBQAADrwzaQscRn+wIAAAAABFla"
+            "tar.gz" to "H4sIAAAAAAACA+3NQQqCQAAF0Fl3Cm/gWInn0ZpAkAQbo+M3tQnaF0Hvbf7nb36e56kexnOdSwmfEYuubZ9ZvGeM2/2rP/Ym7romVDF8wXrJ/VLu" +
+                "w3+6pmU8jelYpVs6rLkfprQJAAAAAAAAAAAA/Lw7jjgM0wAoAAA=",
+            "tar.xz" to "/Td6WFoAAATm1rRGAgAhARYAAAB0L+Wj4Cf/AHNdADob7NgvJU6bwGN6v5a3JejC7neVC0X31phps0q2DkY/2CgXahtiZSmSEfj8sTJH859ZU5Ir" +
+                "KQ3BNzSNn9Lgm5Pjp01y3THUEfiMj5qL+5NnvL7IiCthCBuqOOi+oVXsi4XON87LGOIoT5AAvVZcrNZukgAAAEjvLyQMjRxeAAGPAYBQAADrwzaQscRn+wIA" +
+                "AAAABFla"
         )
         archives.forEach { (extension, encoded) ->
             val archive = directory.resolve("tool.$extension").toFile()

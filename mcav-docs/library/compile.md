@@ -25,8 +25,8 @@ needed, except to publish. The project builds on any one of Windows, macOS or Li
 system, or a program the machine lacks (VLC, QEMU, a display), skip themselves. `build` also enforces the coverage lint,
 and the code those skipped tests would have run shows up there as uncovered lines, so on such a machine build with
 `-Pmcav.coverage=false`. The twelve Java modules using
-`buildSrc/src/main/kotlin/mcav.module.gradle.kts` are `mcav-common`, `mcav-bukkit`, `mcav-installer`, `mcav-discord`,
-`mcav-http`, `mcav-browser`, `mcav-vnc`, `mcav-vm`, `mcav-lwjgl`, `mcav-voicechat`, `mcav-mod` and `mcav-plugin`.
+`buildSrc/src/main/kotlin/mcav.module.gradle.kts` are `mcav-browser`, `mcav-bukkit`, `mcav-common`, `mcav-discord`,
+`mcav-http`, `mcav-installer`, `mcav-lwjgl`, `mcav-mod`, `mcav-plugin`, `mcav-vm`, `mcav-vnc` and `mcav-voicechat`.
 Their compilations run [Error Prone](https://errorprone.info/) and, for production code, the Checker Framework,
 and must stay free of warnings. The coverage, property, fuzz and PIT rows below apply to these twelve modules;
 `<module>` means one of their names.

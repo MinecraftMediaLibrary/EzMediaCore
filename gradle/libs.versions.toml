@@ -1,7 +1,72 @@
 [versions]
-zig = "0.16.0"
+bstats = "3.2.1"
+checker-framework = "4.2.3"
+checker-framework-gradle = "1.0.2"
+client-authlib = "10.0.77"
+client-brigadier = "1.3.11"
+client-commons-lang3 = "3.20.0"
+client-datafixerupper = "10.0.21"
+client-fastutil = "8.5.18"
+client-guava = "33.6.0-jre"
+client-jar = "e877b6a07acd633fb3bb475002175cec036e7b87"
+client-joml = "1.10.9"
+client-jspecify = "1.0.0"
+client-jtracy = "1.14.38"
+client-log4j = "2.26.0"
+client-logging = "1.7.12"
+client-netty = "4.2.16.Final"
+client-slf4j = "2.0.17"
+cloud = "2.1.0"
+cloud-minecraft = "2.0.1"
+commodore = "2.2"
+errorprone = "2.50.0"
+errorprone-gradle = "5.1.1"
+fabric-api-base = "2.0.6+fcdff87f5d"
+fabric-lifecycle-events = "4.1.9+ffef5f675d"
+fabric-loader = "0.19.5"
+fabric-networking-api = "6.3.8+fcdff87f5d"
+ffmpeg = "8.1.2-1.5.14"
+gremlin = "0.0.9"
+gson = "2.14.0"
+guava = "33.7.1-jre"
+iris = "1.11.7+26.3-fabric"
+# Security overrides: Jackson CVE-2026-89425 / CVE-2026-89407.
+jackson = "3.1.7"
+jackson2 = "2.22.3"
+jacoco = "0.8.15"
 java = "25"
-uv = "0.12.23"
+javacpp-platform-gradle = "1.5.10"
+javacv = "1.5.14"
+jazzer = "0.30.0"
+jcefmaven = "152.0.6"
+jcstress = "0.16"
+jda = "6.7.0"
+jimfs = "1.3.2"
+jna = "5.19.1"
+jqwik = "1.10.1"
+junit = "6.1.3"
+lwjgl = "3.4.3"
+maven-resolver = "2.0.23"
+minecraft = "26.3"
+mockito = "5.24.0"
+neoforge-bus = "8.0.5"
+neoforge-core = "26.3.0.43-beta"
+neoforge-loader = "12.0.8"
+neoforge-maven-artifact = "3.9.16"
+neoforge-mergetool = "2.0.7"
+netty = "4.2.18.Final"
+node = "24.21.0"
+node-gradle = "7.1.0"
+opencv = "4.14.0-1.5.14"
+osgi-annotation = "8.1.0"
+# Paper 26.3 is pinned to an alpha release.
+paper = "26.3.build.49-alpha"
+paperweight = "2.0.0-beta.24"
+pitest = "1.30.0"
+pitest-gradle = "1.19.0"
+pitest-junit5-plugin = "1.2.3"
+prettier = "3.9.9"
+prettier-plugin-java = "2.11.0"
 python = "3.13.16"
 python-clang-format = "18.1.8"
 python-jupyter-book = "1.0.4.post1"
@@ -12,185 +77,131 @@ python-pillow = "12.3.0"
 python-pytest = "9.1.1"
 python-pytest-xdist = "3.8.0"
 python-sphinx-design = "0.7.0"
-minecraft = "26.3"
-# Paper 26.3 is pinned to an alpha release.
-paper = "26.3.build.49-alpha"
-paperweight = "2.0.0-beta.24"
-node = "24.21.0"
-prettier = "3.9.9"
-prettier-plugin-java = "2.11.0"
-checker-framework = "4.2.3"
-checker-framework-gradle = "1.0.2"
-errorprone = "2.50.0"
-errorprone-gradle = "5.1.1"
-pitest = "1.30.0"
-pitest-junit5-plugin = "1.2.3"
-pitest-gradle = "1.19.0"
-spotless = "8.10.3"
-node-gradle = "7.1.0"
-jacoco = "0.8.15"
-junit = "6.1.3"
-mockito = "5.24.0"
-jqwik = "1.10.1"
-jazzer = "0.30.0"
-jcstress = "0.16"
-guava = "33.7.1-jre"
-gson = "2.14.0"
-jna = "5.19.1"
-slf4j = "2.0.20"
-osgi-annotation = "8.1.0"
-jimfs = "1.3.2"
-vlcj = "4.12.1"
-javacv = "1.5.14"
-ffmpeg = "8.1.2-1.5.14"
-opencv = "4.14.0-1.5.14"
-javacpp-platform-gradle = "1.5.10"
-netty = "4.2.18.Final"
-maven-resolver = "2.0.23"
-jda = "6.7.0"
-spring-boot = "4.1.1"
-# Security overrides: Tomcat GHSA-9xv2-5v5q-p794; Jackson CVE-2026-89425 / CVE-2026-89407.
-tomcat = "11.0.25"
-jackson = "3.1.7"
-jackson2 = "2.22.3"
-jcefmaven = "152.0.6"
-xz = "1.12"
-vernacular = "1.14"
-lwjgl = "3.4.3"
-voicechat-api = "2.6.24"
-gremlin = "0.0.9"
-cloud = "2.1.0"
-cloud-minecraft = "2.0.1"
-commodore = "2.2"
-bstats = "3.2.1"
-shadow = "9.6.1"
-run-paper = "3.1.0"
 resource-factory = "1.4.0"
-voicechat-plugin = "bukkit-2.6.24"
+run-paper = "3.1.0"
+shadow = "9.6.1"
+slf4j = "2.0.20"
 spark = "1.10.187"
 spark-build = "539"
-client-jar = "e877b6a07acd633fb3bb475002175cec036e7b87"
-fabric-loader = "0.19.5"
-fabric-api-base = "2.0.6+fcdff87f5d"
-fabric-networking-api = "6.3.8+fcdff87f5d"
-fabric-lifecycle-events = "4.1.9+ffef5f675d"
-neoforge-core = "26.3.0.43-beta"
-neoforge-loader = "12.0.8"
-neoforge-bus = "8.0.5"
-neoforge-mergetool = "2.0.7"
-iris = "1.11.7+26.3-fabric"
 sponge-mixin = "0.17.4+mixin.0.8.7"
-neoforge-maven-artifact = "3.9.16"
-client-netty = "4.2.16.Final"
-client-brigadier = "1.3.11"
-client-datafixerupper = "10.0.21"
-client-authlib = "10.0.77"
-client-logging = "1.7.12"
-client-fastutil = "8.5.18"
-client-joml = "1.10.9"
-client-commons-lang3 = "3.20.0"
-client-log4j = "2.26.0"
-client-guava = "33.6.0-jre"
-client-slf4j = "2.0.17"
-client-jspecify = "1.0.0"
-client-jtracy = "1.14.38"
+spotless = "8.10.3"
+spring-boot = "4.1.1"
+# Security override: Tomcat GHSA-9xv2-5v5q-p794.
+tomcat = "11.0.25"
+uv = "0.12.23"
+vernacular = "1.14"
+vlcj = "4.12.1"
+voicechat-api = "2.6.24"
+voicechat-plugin = "bukkit-2.6.24"
+xz = "1.12"
+zig = "0.16.0"
 
 [libraries]
+bstats-bukkit = { module = "org.bstats:bstats-bukkit", version.ref = "bstats" }
+client-authlib = { module = "com.mojang:authlib", version.ref = "client-authlib" }
+client-brigadier = { module = "com.mojang:brigadier", version.ref = "client-brigadier" }
+client-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "client-commons-lang3" }
+client-datafixerupper = { module = "com.mojang:datafixerupper", version.ref = "client-datafixerupper" }
+client-fastutil = { module = "it.unimi.dsi:fastutil", version.ref = "client-fastutil" }
+client-guava = { module = "com.google.guava:guava", version.ref = "client-guava" }
+client-jar = { module = "net.minecraft:client", version.ref = "client-jar" }
+client-joml = { module = "org.joml:joml", version.ref = "client-joml" }
+client-jspecify = { module = "org.jspecify:jspecify", version.ref = "client-jspecify" }
+client-jtracy = { module = "com.mojang:jtracy", version.ref = "client-jtracy" }
+client-log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "client-log4j" }
+client-logging = { module = "com.mojang:logging", version.ref = "client-logging" }
+client-netty-buffer = { module = "io.netty:netty-buffer", version.ref = "client-netty" }
+client-netty-codec-base = { module = "io.netty:netty-codec-base", version.ref = "client-netty" }
+client-netty-common = { module = "io.netty:netty-common", version.ref = "client-netty" }
+client-netty-transport = { module = "io.netty:netty-transport", version.ref = "client-netty" }
+client-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "client-slf4j" }
+cloud-annotations = { module = "org.incendo:cloud-annotations", version.ref = "cloud" }
+cloud-core = { module = "org.incendo:cloud-core", version.ref = "cloud" }
+cloud-minecraft-extras = { module = "org.incendo:cloud-minecraft-extras", version.ref = "cloud-minecraft" }
+cloud-paper = { module = "org.incendo:cloud-paper", version.ref = "cloud-minecraft" }
+commodore = { module = "me.lucko:commodore", version.ref = "commodore" }
 errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
-junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
-mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
-mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
-jqwik = { module = "net.jqwik:jqwik", version.ref = "jqwik" }
-jazzer-junit = { module = "com.code-intelligence:jazzer-junit", version.ref = "jazzer" }
-jcstress-core = { module = "org.openjdk.jcstress:jcstress-core", version.ref = "jcstress" }
-jimfs = { module = "com.google.jimfs:jimfs", version.ref = "jimfs" }
-slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
-
-guava = { module = "com.google.guava:guava", version.ref = "guava" }
-gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
-jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
-jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
-osgi-annotation = { module = "org.osgi:osgi.annotation", version.ref = "osgi-annotation" }
-vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
-javacv-platform = { module = "org.bytedeco:javacv-platform", version.ref = "javacv" }
-javacv = { module = "org.bytedeco:javacv", version.ref = "javacv" }
-javacpp = { module = "org.bytedeco:javacpp", version.ref = "javacv" }
+fabric-api-base = { module = "net.fabricmc.fabric-api:fabric-api-base", version.ref = "fabric-api-base" }
+fabric-lifecycle-events = { module = "net.fabricmc.fabric-api:fabric-lifecycle-events-v1", version.ref = "fabric-lifecycle-events" }
+fabric-loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric-loader" }
+fabric-networking-api = { module = "net.fabricmc.fabric-api:fabric-networking-api-v1", version.ref = "fabric-networking-api" }
 ffmpeg = { module = "org.bytedeco:ffmpeg", version.ref = "ffmpeg" }
-opencv = { module = "org.bytedeco:opencv", version.ref = "opencv" }
-netty-all = { module = "io.netty:netty-all", version.ref = "netty" }
-maven-resolver-supplier = { module = "org.apache.maven.resolver:maven-resolver-supplier-mvn3", version.ref = "maven-resolver" }
-jda = { module = "net.dv8tion:JDA", version.ref = "jda" }
-spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "spring-boot" }
-spring-boot-starter-websocket = { module = "org.springframework.boot:spring-boot-starter-websocket", version.ref = "spring-boot" }
-jcefmaven = { module = "me.friwi:jcefmaven", version.ref = "jcefmaven" }
-tomcat-embed-core = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "tomcat" }
-tomcat-embed-el = { module = "org.apache.tomcat.embed:tomcat-embed-el", version.ref = "tomcat" }
-tomcat-embed-websocket = { module = "org.apache.tomcat.embed:tomcat-embed-websocket", version.ref = "tomcat" }
+gremlin-runtime = { module = "xyz.jpenilla:gremlin-runtime", version.ref = "gremlin" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+iris = { module = "maven.modrinth:iris", version.ref = "iris" }
 jackson-bom = { module = "tools.jackson:jackson-bom", version.ref = "jackson" }
 jackson-core = { module = "tools.jackson.core:jackson-core", version.ref = "jackson" }
 jackson-databind = { module = "tools.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson2-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson2" }
 jackson2-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson2" }
 jackson2-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson2" }
-xz = { module = "org.tukaani:xz", version.ref = "xz" }
-vernacular = { module = "com.shinyhut:vernacular", version.ref = "vernacular" }
+javacpp = { module = "org.bytedeco:javacpp", version.ref = "javacv" }
+javacv = { module = "org.bytedeco:javacv", version.ref = "javacv" }
+javacv-platform = { module = "org.bytedeco:javacv-platform", version.ref = "javacv" }
+jazzer-junit = { module = "com.code-intelligence:jazzer-junit", version.ref = "jazzer" }
+jcefmaven = { module = "me.friwi:jcefmaven", version.ref = "jcefmaven" }
+jcstress-core = { module = "org.openjdk.jcstress:jcstress-core", version.ref = "jcstress" }
+jda = { module = "net.dv8tion:JDA", version.ref = "jda" }
+jimfs = { module = "com.google.jimfs:jimfs", version.ref = "jimfs" }
+jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
+jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
+jqwik = { module = "net.jqwik:jqwik", version.ref = "jqwik" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 lwjgl = { module = "org.lwjgl:lwjgl", version.ref = "lwjgl" }
+lwjgl-glfw = { module = "org.lwjgl:lwjgl-glfw", version.ref = "lwjgl" }
 lwjgl-opengl = { module = "org.lwjgl:lwjgl-opengl", version.ref = "lwjgl" }
 lwjgl-shaderc = { module = "org.lwjgl:lwjgl-shaderc", version.ref = "lwjgl" }
 lwjgl-spvc = { module = "org.lwjgl:lwjgl-spvc", version.ref = "lwjgl" }
-lwjgl-glfw = { module = "org.lwjgl:lwjgl-glfw", version.ref = "lwjgl" }
-voicechat-api = { module = "de.maxhenkel.voicechat:voicechat-api", version.ref = "voicechat-api" }
-
-paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
-gremlin-runtime = { module = "xyz.jpenilla:gremlin-runtime", version.ref = "gremlin" }
-cloud-core = { module = "org.incendo:cloud-core", version.ref = "cloud" }
-cloud-annotations = { module = "org.incendo:cloud-annotations", version.ref = "cloud" }
-cloud-paper = { module = "org.incendo:cloud-paper", version.ref = "cloud-minecraft" }
-cloud-minecraft-extras = { module = "org.incendo:cloud-minecraft-extras", version.ref = "cloud-minecraft" }
-commodore = { module = "me.lucko:commodore", version.ref = "commodore" }
-bstats-bukkit = { module = "org.bstats:bstats-bukkit", version.ref = "bstats" }
-
-minecraft-client = { module = "net.minecraft:client", version.ref = "client-jar" }
-fabric-loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric-loader" }
-fabric-api-base = { module = "net.fabricmc.fabric-api:fabric-api-base", version.ref = "fabric-api-base" }
-fabric-networking-api = { module = "net.fabricmc.fabric-api:fabric-networking-api-v1", version.ref = "fabric-networking-api" }
-fabric-lifecycle-events = { module = "net.fabricmc.fabric-api:fabric-lifecycle-events-v1", version.ref = "fabric-lifecycle-events" }
+maven-resolver-supplier = { module = "org.apache.maven.resolver:maven-resolver-supplier-mvn3", version.ref = "maven-resolver" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
+neoforge-bus = { module = "net.neoforged:bus", version.ref = "neoforge-bus" }
 neoforge-core = { module = "net.neoforged:neoforge", version.ref = "neoforge-core" }
 neoforge-loader = { module = "net.neoforged.fancymodloader:loader", version.ref = "neoforge-loader" }
-neoforge-bus = { module = "net.neoforged:bus", version.ref = "neoforge-bus" }
-neoforge-mergetool = { module = "net.neoforged:mergetool", version.ref = "neoforge-mergetool" }
-iris = { module = "maven.modrinth:iris", version.ref = "iris" }
-sponge-mixin = { module = "net.fabricmc:sponge-mixin", version.ref = "sponge-mixin" }
 neoforge-maven-artifact = { module = "org.apache.maven:maven-artifact", version.ref = "neoforge-maven-artifact" }
-minecraft-netty-buffer = { module = "io.netty:netty-buffer", version.ref = "client-netty" }
-minecraft-netty-common = { module = "io.netty:netty-common", version.ref = "client-netty" }
-minecraft-netty-transport = { module = "io.netty:netty-transport", version.ref = "client-netty" }
-minecraft-netty-codec-base = { module = "io.netty:netty-codec-base", version.ref = "client-netty" }
-minecraft-brigadier = { module = "com.mojang:brigadier", version.ref = "client-brigadier" }
-minecraft-datafixerupper = { module = "com.mojang:datafixerupper", version.ref = "client-datafixerupper" }
-minecraft-authlib = { module = "com.mojang:authlib", version.ref = "client-authlib" }
-minecraft-logging = { module = "com.mojang:logging", version.ref = "client-logging" }
-minecraft-fastutil = { module = "it.unimi.dsi:fastutil", version.ref = "client-fastutil" }
-minecraft-joml = { module = "org.joml:joml", version.ref = "client-joml" }
-minecraft-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "client-commons-lang3" }
-minecraft-log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "client-log4j" }
-minecraft-guava = { module = "com.google.guava:guava", version.ref = "client-guava" }
-minecraft-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "client-slf4j" }
-minecraft-jspecify = { module = "org.jspecify:jspecify", version.ref = "client-jspecify" }
-minecraft-jtracy = { module = "com.mojang:jtracy", version.ref = "client-jtracy" }
+neoforge-mergetool = { module = "net.neoforged:mergetool", version.ref = "neoforge-mergetool" }
+netty-all = { module = "io.netty:netty-all", version.ref = "netty" }
+opencv = { module = "org.bytedeco:opencv", version.ref = "opencv" }
+osgi-annotation = { module = "org.osgi:osgi.annotation", version.ref = "osgi-annotation" }
+paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+sponge-mixin = { module = "net.fabricmc:sponge-mixin", version.ref = "sponge-mixin" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "spring-boot" }
+spring-boot-starter-websocket = { module = "org.springframework.boot:spring-boot-starter-websocket", version.ref = "spring-boot" }
+tomcat-embed-core = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "tomcat" }
+tomcat-embed-el = { module = "org.apache.tomcat.embed:tomcat-embed-el", version.ref = "tomcat" }
+tomcat-embed-websocket = { module = "org.apache.tomcat.embed:tomcat-embed-websocket", version.ref = "tomcat" }
+vernacular = { module = "com.shinyhut:vernacular", version.ref = "vernacular" }
+vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
+voicechat-api = { module = "de.maxhenkel.voicechat:voicechat-api", version.ref = "voicechat-api" }
+xz = { module = "org.tukaani:xz", version.ref = "xz" }
 
 [bundles]
-testing = ["junit-jupiter", "mockito-core", "mockito-junit-jupiter", "jqwik", "jazzer-junit"]
-jna = ["jna", "jna-platform"]
-spring-boot-web = ["spring-boot-starter-web", "spring-boot-starter-websocket"]
-javacv-classes = ["javacv", "javacpp", "ffmpeg", "opencv"]
-lwjgl-opengl = ["lwjgl", "lwjgl-opengl"]
+client-libraries = [
+    "client-netty-transport",
+    "client-netty-codec-base",
+    "client-brigadier",
+    "client-datafixerupper",
+    "client-authlib",
+    "client-logging",
+    "client-fastutil",
+    "client-joml",
+    "client-commons-lang3",
+    "client-log4j-api",
+    "client-guava",
+    "client-jtracy",
+    "gson",
+]
 cloud = ["cloud-core", "cloud-annotations", "cloud-paper", "cloud-minecraft-extras"]
+javacv-classes = ["javacv", "javacpp", "ffmpeg", "opencv"]
+jna = ["jna", "jna-platform"]
+lwjgl-opengl = ["lwjgl", "lwjgl-opengl"]
 mod = [
-    "minecraft-client",
+    "client-jar",
     "fabric-loader",
     "fabric-api-base",
     "fabric-networking-api",
@@ -200,37 +211,24 @@ mod = [
     "iris",
     "sponge-mixin",
     "neoforge-maven-artifact",
-    "minecraft-datafixerupper",
-    "minecraft-netty-buffer",
-    "minecraft-netty-common",
-    "minecraft-jspecify",
-    "minecraft-slf4j-api",
+    "client-datafixerupper",
+    "client-netty-buffer",
+    "client-netty-common",
+    "client-jspecify",
+    "client-slf4j-api",
 ]
-minecraft-client-libraries = [
-    "minecraft-netty-transport",
-    "minecraft-netty-codec-base",
-    "minecraft-brigadier",
-    "minecraft-datafixerupper",
-    "minecraft-authlib",
-    "minecraft-logging",
-    "minecraft-fastutil",
-    "minecraft-joml",
-    "minecraft-commons-lang3",
-    "minecraft-log4j-api",
-    "minecraft-guava",
-    "minecraft-jtracy",
-    "gson",
-]
+spring-boot-web = ["spring-boot-starter-web", "spring-boot-starter-websocket"]
+testing = ["junit-jupiter", "mockito-core", "mockito-junit-jupiter", "jqwik", "jazzer-junit"]
 
 [plugins]
-spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 checker-framework = { id = "org.checkerframework", version.ref = "checker-framework-gradle" }
-node = { id = "com.github.node-gradle.node", version.ref = "node-gradle" }
 errorprone = { id = "net.ltgt.errorprone", version.ref = "errorprone-gradle" }
-pitest = { id = "info.solidsoft.pitest", version.ref = "pitest-gradle" }
-shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
-run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run-paper" }
-resource-factory-paper = { id = "xyz.jpenilla.resource-factory-paper-convention", version.ref = "resource-factory" }
 gremlin = { id = "xyz.jpenilla.gremlin-gradle", version.ref = "gremlin" }
 javacpp-platform = { id = "org.bytedeco.gradle-javacpp-platform", version.ref = "javacpp-platform-gradle" }
+node = { id = "com.github.node-gradle.node", version.ref = "node-gradle" }
 paperweight-userdev = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
+pitest = { id = "info.solidsoft.pitest", version.ref = "pitest-gradle" }
+resource-factory-paper = { id = "xyz.jpenilla.resource-factory-paper-convention", version.ref = "resource-factory" }
+run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run-paper" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

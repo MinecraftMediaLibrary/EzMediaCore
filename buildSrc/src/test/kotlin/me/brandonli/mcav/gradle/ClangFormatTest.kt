@@ -51,7 +51,8 @@ class ClangFormatTest {
     fun theFormatterRewritesTheSourcesInPlace() {
         val processes = RecordedProcesses("clang-format version 18.1.8\n")
         format(true, processes)
-        assertEquals(listOf(listOf(clangFormat(), "--version"), listOf(clangFormat(), "-i", "--style=file") + sources()), processes.commands)
+        val expected = listOf(listOf(clangFormat(), "--version"), listOf(clangFormat(), "-i", "--style=file") + sources())
+        assertEquals(expected, processes.commands)
     }
 
     @Test

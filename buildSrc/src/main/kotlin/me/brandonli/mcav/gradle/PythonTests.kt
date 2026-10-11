@@ -77,8 +77,8 @@ abstract class PythonTests : PythonTask() {
         val directory = testDirectory.get().asFile
         processes.exec {
             workingDir(directory)
-            commandLine(listOf(pythonExecutable.get().asFile.path, "-m", "pytest", "-p", "no:cacheprovider", "-ra", "--rootdir", directory.path,
-                "--junitxml", report.path) + arguments)
+            commandLine(listOf(pythonExecutable.get().asFile.path, "-m", "pytest", "-p", "no:cacheprovider", "-ra",
+                "--rootdir", directory.path, "--junitxml", report.path) + arguments)
             environment("PYTHONNOUSERSITE", "1")
             environment("PYTHONDONTWRITEBYTECODE", "1")
             environment("PYTHONHASHSEED", "0")

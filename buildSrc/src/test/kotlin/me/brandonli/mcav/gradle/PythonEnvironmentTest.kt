@@ -52,7 +52,8 @@ class PythonEnvironmentTest {
                 listOf(uv, "python", "install", "3.13.16", "--no-bin", "--no-registry"),
                 listOf(uv, "venv", "--clear", "--no-project", "--no-python-downloads", "--python", "3.13.16", virtualEnvironment.path),
                 listOf(uv, "pip", "sync", "--python", virtualEnvironment.resolve("bin/python").path, "--require-hashes",
-                    "--only-binary", ":all:", "--default-index", "https://pypi.org/simple", directory.resolve("requirements.lock").toString())
+                    "--only-binary", ":all:", "--default-index", "https://pypi.org/simple",
+                    directory.resolve("requirements.lock").toString())
             ),
             processes.commands
         )

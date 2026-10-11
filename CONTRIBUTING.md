@@ -10,6 +10,13 @@ to follow the following guidelines:
 `./gradlew spotlessRepositoryCheck` checks whitespace in the repository text files, including
 `gradle/libs.versions.toml`, `buildSrc/src/main/resources/tool-checksums.properties` and `requirements.lock`.
 
+Versions live in `gradle/libs.versions.toml`; only the toolchain resolver's stays in `settings.gradle.kts`, whose
+`plugins` block cannot read the catalog. buildSrc's `BuildFilesTest` (`./gradlew :buildSrc:test`) checks the other
+rules of the build files: a module's `build.gradle.kts` only applies `mcav.*` conventions and lists its dependencies,
+the modules in `settings.gradle.kts` and each section of the catalog are sorted by name, every Kotlin source of
+buildSrc starts with the license header of `HEADER` and no build script carries it, and no line is longer than 140
+columns.
+
 ## Documentation
 
 The documentation is the Jupyter Book in `mcav-docs`. `./gradlew :mcav-docs:build` builds it into
@@ -37,9 +44,9 @@ before reading `mcav-docs/conf.py`. Do not edit or commit either generated file.
 
 ## Tests
 
-The twelve Java modules using `buildSrc/src/main/kotlin/mcav.module.gradle.kts` are `mcav-common`, `mcav-bukkit`,
-`mcav-installer`, `mcav-discord`, `mcav-http`, `mcav-browser`, `mcav-vnc`, `mcav-vm`, `mcav-lwjgl`, `mcav-voicechat`,
-`mcav-mod` and `mcav-plugin`. They must stay at 100% line and branch coverage on a machine where every test can run,
+The twelve Java modules using `buildSrc/src/main/kotlin/mcav.module.gradle.kts` are `mcav-browser`, `mcav-bukkit`,
+`mcav-common`, `mcav-discord`, `mcav-http`, `mcav-installer`, `mcav-lwjgl`, `mcav-mod`, `mcav-plugin`, `mcav-vm`,
+`mcav-vnc` and `mcav-voicechat`. They must stay at 100% line and branch coverage on a machine where every test can run,
 and tests check the behavior the code should have, not whatever it happens to do. When a test fails, fix the code if
 the code is wrong. Coverage, property, fuzz and PIT commands below apply to these twelve modules; `<module>` means
 one of their names.

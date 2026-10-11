@@ -24,10 +24,10 @@ import org.gradle.process.ExecOperations
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.RETURNS_SELF
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockingDetails
-import org.mockito.Mockito.RETURNS_SELF
 
 class RecordedProcesses(private val versionOutput: String, private val onCommand: (List<String>) -> Unit = {}) {
 
