@@ -1,3 +1,4 @@
+import me.brandonli.mcav.gradle.ExclusiveResource
 import me.brandonli.mcav.gradle.bundleOf
 import me.brandonli.mcav.gradle.javaExecutable
 import me.brandonli.mcav.gradle.libraryOf
@@ -15,11 +16,15 @@ dependencies {
 
 val networkTests = providers.gradleProperty("mcav.networkTests").getOrElse("false")
 val syncMeasurement = providers.gradleProperty("mcav.syncMeasurement").getOrElse("false")
+val measuresSync = syncMeasurement.toBoolean()
 val testJavaHome = providers.gradleProperty("mcav.testJavaHome")
 val propertyTries = providers.gradleProperty("property.tries").getOrElse("200")
 val propertySmokeTries = providers.gradleProperty("property.smokeTries").getOrElse("10")
 val fuzzSeconds = providers.gradleProperty("fuzz.seconds").map { it.toInt() }.getOrElse(0)
 val testSourceSet = sourceSets.test.get()
+val quietMachine = gradle.sharedServices.registerIfAbsent("quietMachine", ExclusiveResource::class) {
+    maxParallelUsages = 1
+}
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
@@ -36,8 +41,11 @@ tasks.withType<Test>().configureEach {
     if (testJavaHome.isPresent) {
         executable = javaExecutable(testJavaHome.get())
     }
-    systemProperty("jqwik.database", "build/jqwik-database")
+    systemProperty("jqwik.database", "build/jqwik-database-$name")
     systemProperty("jqwik.failures.after.default", "PREVIOUS_SEED")
+    if (measuresSync) {
+        usesService(quietMachine)
+    }
 }
 
 tasks.test {
@@ -45,6 +53,8 @@ tasks.test {
         excludeTags("fuzz")
     }
     systemProperty("jqwik.tries.default", propertySmokeTries)
+    maxParallelForks = if (measuresSync) 1 else (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+    systemProperty("jqwik.database", "")
 }
 
 val propertyTest = tasks.register<Test>("propertyTest") {
@@ -56,7 +66,6 @@ val propertyTest = tasks.register<Test>("propertyTest") {
         includeEngines("jqwik")
     }
     systemProperty("jqwik.tries.default", propertyTries)
-    mustRunAfter(tasks.test)
 }
 
 val fuzzTest = tasks.register<Test>("fuzzTest") {
@@ -73,7 +82,8 @@ val fuzzTest = tasks.register<Test>("fuzzTest") {
         .withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.property("fuzzSeconds", fuzzSeconds)
     outputs.dir(layout.buildDirectory.dir("jazzer")).withPropertyName("jazzerDirectory")
-    outputs.cacheIf("only the replay of the committed inputs is deterministic") { fuzzSeconds == 0 }
+    val replaysOnly = fuzzSeconds == 0
+    outputs.cacheIf("only the replay of the committed inputs is deterministic") { replaysOnly }
     systemProperty("jazzer.internal.basedir", "build/jazzer")
     systemProperty("junit.jupiter.execution.timeout.testtemplate.method.default", "30s")
     maxHeapSize = "1g"
@@ -87,7 +97,6 @@ val fuzzTest = tasks.register<Test>("fuzzTest") {
             events("started", "failed", "skipped")
         }
     }
-    mustRunAfter(propertyTest)
 }
 
 tasks.check {

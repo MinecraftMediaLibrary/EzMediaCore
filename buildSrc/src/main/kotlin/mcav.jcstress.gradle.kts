@@ -65,14 +65,16 @@ tasks.register<JavaExec>("jcstressTest") {
     val budget = budgetMinutes.orNull
     val tests = selection.orNull
     val cpuCount = cpus.toInt()
+    val stressMode = mode
+    val iterationTime = ITERATION_TIME
     val console = workingDirectory.map { it.file("console.txt") }
     doFirst {
         workingDirectory.get().asFile.mkdirs()
         standardOutput = JcstressConsole.tee(System.out, console.get().asFile)
         if (budget != null) {
             val testCount = JcstressBudget.countTests(jar.get().asFile, tests)
-            val iterationMillis = JcstressBudget.iterationMillis(mode, budget, testCount, cpuCount)
-            logger.lifecycle(ITERATION_TIME, testCount, mode, budget, iterationMillis)
+            val iterationMillis = JcstressBudget.iterationMillis(stressMode, budget, testCount, cpuCount)
+            logger.lifecycle(iterationTime, testCount, stressMode, budget, iterationMillis)
             args("-time", iterationMillis.toString())
         }
     }

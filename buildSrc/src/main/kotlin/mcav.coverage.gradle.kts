@@ -51,10 +51,6 @@ tasks.withType<Test>().named { it == "propertyTest" || it == "fuzzTest" }.config
     }
 }
 
-tasks.withType<Test>().named { it == "propertyTest" }.configureEach {
-    mustRunAfter(coverageLint)
-}
-
 val coverageGate = providers.gradleProperty("mcav.coverage").map { !it.equals("false", ignoreCase = true) }.getOrElse(true)
 if (coverageGate) {
     tasks.check {

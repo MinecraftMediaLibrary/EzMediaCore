@@ -29,9 +29,10 @@ pitest {
 val helperCoverage = layout.buildDirectory.file("jacoco/helper.exec")
 
 tasks.test {
-    outputs.file(helperCoverage).withPropertyName("helperCoverage")
+    val coverage = helperCoverage
+    outputs.file(coverage).withPropertyName("helperCoverage")
     doFirst {
-        delete(helperCoverage)
+        coverage.get().asFile.delete()
     }
 }
 

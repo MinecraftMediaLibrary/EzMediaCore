@@ -70,6 +70,7 @@ val buildMcv2Natives = tasks.register<BuildMcv2Natives>("buildMcv2Natives") {
     toolchainChecksum = if (zigOverride.isPresent) provider { "ZIG override" } else zigChecksum
     outputDirectory = layout.buildDirectory.dir("generated/natives")
     cacheDirectory = layout.buildDirectory.dir("zig-cache")
+    processCount = gradle.startParameter.maxWorkerCount
 }
 sourceSets.main {
     resources.srcDir(buildMcv2Natives)

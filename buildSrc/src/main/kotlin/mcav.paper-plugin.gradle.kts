@@ -82,8 +82,8 @@ sourceSets.main {
     resources.srcDir(requiredModuleClasses)
 }
 
-val dependencyManifestPath = "mcav/plugin/dependencies.txt"
 tasks.processResources {
+    val dependencyManifestPath = "mcav/plugin/dependencies.txt"
     inputs.property("dependencyManifestPath", dependencyManifestPath)
     filesMatching("dependencies.txt") {
         path = dependencyManifestPath
@@ -144,7 +144,6 @@ tasks.register<Test>("e2eTest") {
     group = "verification"
     testClassesDirs = e2eTestSourceSet.output.classesDirs
     classpath = e2eTestSourceSet.runtimeClasspath
-    shouldRunAfter(tasks.test)
     val pluginJar = tasks.shadowJar.flatMap { it.archiveFile }
     inputs.file(pluginJar)
     outputs.upToDateWhen { false }
@@ -155,8 +154,9 @@ tasks.register<Test>("e2eTest") {
     systemProperty("mcav.e2e.repositoryDirectory", endToEndRepository.absolutePath)
     systemProperty("mcav.e2e.repositoryPort", endToEndPort)
     val launcher = javaLauncher()
+    val usesThisBuild = endToEnd
     doFirst {
-        if (!endToEnd) {
+        if (!usesThisBuild) {
             throw GradleException("Run the end-to-end test with -Pmcav.e2e=true, so the server uses the modules of this build")
         }
         systemProperty("mcav.e2e.pluginJar", pluginJar.get().asFile.absolutePath)

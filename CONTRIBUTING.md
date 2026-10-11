@@ -65,7 +65,11 @@ one of their names.
   as a server does (136–165 MB, into `~/.mcav/cache/jcef`), and on Linux the libraries the machine lacks (about
   13 MB, into `~/.mcav/cache/jcef-libraries`); they need no X server.
 - The measurements of how far the sound of a virtual machine or of a browser page drifts from its picture time real
-  events, which a busy machine delays, so they only run with `-Pmcav.syncMeasurement=true`, on a quiet machine.
+  events, which a busy machine delays, so they only run with `-Pmcav.syncMeasurement=true`, on a quiet machine; then
+  each test task runs in one JVM, and no two test tasks run at the same time.
+- `test` spreads the test classes of a module over as many JVMs as half the processors of the machine, at least one;
+  each JVM runs its tests one at a time. The JVMs run at the same time, so a test writes outside its temporary folders
+  only through a file lock or an atomic move, and no two test classes bind the same fixed port.
 
 ## Property, Fuzz and Concurrency Tests
 
@@ -75,7 +79,8 @@ source set of their module. `./gradlew check`, and so `./gradlew build`, runs bo
 
 - `./gradlew propertyTest` runs the properties of these twelve modules with 200 tries each (`-Pproperty.tries=<n>`); `test`
   runs them too, with 10 tries (`-Pproperty.smokeTries=<n>`). Every property pins its seed, so a run is reproducible
-  and a failure reports the seed and the shrunk sample.
+  and a failure reports the seed and the shrunk sample. `propertyTest` keeps jqwik's run database in
+  `build/jqwik-database-propertyTest` of the module; `test` keeps none, as its JVMs would overwrite one another's.
 - `./gradlew fuzzTest` replays the committed inputs of every fuzz test, the seed corpus and every crash reproducer in
   `src/test/resources/<package>/<class>Inputs/<method>`. With `-Pfuzz.seconds=<n>`, each fuzz test is also fuzzed
   for that many seconds, one JVM per test class; a crash is written to `build/jazzer` of the module. Commit the input
@@ -91,6 +96,9 @@ source set of their module. `./gradlew check`, and so `./gradlew build`, runs bo
 `mcav-bukkit` builds the MCV2 encoder's six native libraries (Linux, Windows and macOS on x86-64 and ARM64) from
 `src/main/native/mcv2` whenever resources are processed. Gradle downloads [Zig](https://ziglang.org/) 0.16.0 and checks
 its pinned SHA-256; no C/C++ toolchain needs to be installed. `ZIG=/path/to/zig` overrides the download with that version.
+The task hands the compiles and links to a Gradle worker, so the tasks of `mcav-bukkit` that do not need the libraries
+run meanwhile; it compiles the 22 objects, then links the six libraries, as many at once as Gradle has workers
+(`--max-workers`).
 The downloaded compiler is cached in `mcav-bukkit/build/tools/zig/0.16.0`.
 `./gradlew :mcav-bukkit:buildMcv2Natives` runs the cacheable task directly; unchanged inputs are up to date. Generated
 libraries and their `SHA256SUMS` and `SOURCES` manifests live under `mcav-bukkit/build/generated/natives/mcav/mcv2/natives`.

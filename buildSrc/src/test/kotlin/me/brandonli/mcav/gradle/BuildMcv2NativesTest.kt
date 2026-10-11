@@ -21,14 +21,22 @@ package me.brandonli.mcav.gradle
 import java.io.File
 import java.io.OutputStream
 import java.nio.file.Path
+import java.util.Collections
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
+import me.brandonli.mcav.gradle.BuildMcv2Natives.Work.Parameters
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.process.ExecOperations
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.workers.WorkQueue
+import org.gradle.workers.WorkerExecutor
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -47,15 +55,35 @@ class BuildMcv2NativesTest {
 
     abstract class RecordingBuild : BuildMcv2Natives() {
         lateinit var recordedProcesses: ExecOperations
+        lateinit var recordedWorkers: WorkerExecutor
         override val processes: ExecOperations get() = recordedProcesses
+        override val workers: WorkerExecutor get() = recordedWorkers
     }
 
-    private val commands = mutableListOf<List<String>>()
+    class RecordingWork(private val recordedParameters: Parameters, override val processes: ExecOperations) : BuildMcv2Natives.Work() {
+        override fun getParameters() = recordedParameters
+    }
+
+    private val commands = Collections.synchronizedList(mutableListOf<List<String>>())
+
+    private val submitted = mutableListOf<RecordingWork>()
+
+    @Test
+    fun handsTheCompilesAndLinksToAGradleWorker() {
+        val task = compiler("test-version")
+        task.build()
+        assertEquals(listOf(listOf("version")), commands)
+        assertTrue(task.outputDirectory.get().file("stale.dll").asFile.exists())
+        submitted.single().execute()
+        assertEquals(22, commands.count { it.first() == "c++" })
+        assertEquals(6, commands.count { it.first() == "cc" })
+        assertFalse(task.outputDirectory.get().file("stale.dll").asFile.exists())
+    }
 
     @Test
     fun buildsAllTargetsWithTheirBaselineAndOnlyTheirOwnExtensions() {
         val task = compiler("test-version")
-        task.build()
+        buildWithWorkers(task)
         val links = commands.filter { it.first() == "cc" }
         assertEquals(setOf("x86_64-linux-gnu.2.28", "aarch64-linux-gnu.2.28", "x86_64-windows-gnu",
             "aarch64-windows-gnu", "x86_64-macos.11.0", "aarch64-macos.11.0"), links.map { it[2] }.toSet())
@@ -89,6 +117,36 @@ class BuildMcv2NativesTest {
     }
 
     @Test
+    fun compilesAsManyObjectsAtOnceAsItHasProcesses() {
+        val bothStarted = CountDownLatch(2)
+        val running = AtomicInteger()
+        val mostAtOnce = AtomicInteger()
+        val task = compiler("test-version", 2) {
+            mostAtOnce.accumulateAndGet(running.incrementAndGet(), ::maxOf)
+            bothStarted.countDown()
+            bothStarted.await(30, TimeUnit.SECONDS)
+            running.decrementAndGet()
+        }
+        buildWithWorkers(task)
+        assertEquals(2, mostAtOnce.get())
+        assertEquals(22, commands.count { it.first() == "c++" })
+    }
+
+    @Test
+    fun aFailingCompileFailsTheBuildBeforeAnyLink() {
+        val failure = IllegalStateException("zig: error: unable to compile")
+        val task = compiler("test-version") { arguments ->
+            if ("level_avx2.cpp" in arguments) {
+                throw failure
+            }
+        }
+        val thrown = assertThrows(GradleException::class.java) { buildWithWorkers(task) }
+        assertEquals("Zig could not build MCV2's natives", thrown.message)
+        assertSame(failure, thrown.cause)
+        assertTrue(commands.none { it.first() == "cc" })
+    }
+
+    @Test
     fun wrongCompilerVersionFailsBeforeReplacingAnyOutput() {
         val task = compiler("wrong-version")
         val failure = assertThrows(GradleException::class.java) { task.build() }
@@ -96,9 +154,15 @@ class BuildMcv2NativesTest {
         assertTrue(failure.message!!.endsWith("is wrong-version"))
         assertTrue(task.outputDirectory.get().file("stale.dll").asFile.exists())
         assertEquals(listOf(listOf("version")), commands)
+        assertTrue(submitted.isEmpty())
     }
 
-    private fun compiler(version: String): RecordingBuild {
+    private fun buildWithWorkers(task: RecordingBuild) {
+        task.build()
+        submitted.forEach { it.execute() }
+    }
+
+    private fun compiler(version: String, processCount: Int = 4, onCompile: (List<String>) -> Unit = {}): RecordingBuild {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
         val task = project.tasks.register("natives", RecordingBuild::class.java).get()
         task.zigVersion.set("test-version")
@@ -109,6 +173,7 @@ class BuildMcv2NativesTest {
         task.outputDirectory.set(directory.resolve("output").toFile().apply { mkdirs() })
         task.outputDirectory.file("stale.dll").get().asFile.writeText("stale")
         task.cacheDirectory.set(directory.resolve("cache").toFile())
+        task.processCount.set(processCount)
         val operations = mock(ExecOperations::class.java)
         doAnswer { invocation ->
             val specification = mock(ExecSpec::class.java, RETURNS_SELF)
@@ -124,6 +189,9 @@ class BuildMcv2NativesTest {
                 (calls.single { it.method.name == "setStandardOutput" }.rawArguments[0] as OutputStream).write(version.toByteArray())
             } else {
                 assertTrue(calls.any { it.method.name == "environment" && it.rawArguments.toList() == listOf("SOURCE_DATE_EPOCH", "0") })
+                if (arguments.first() == "c++") {
+                    onCompile(arguments)
+                }
                 val output = File(arguments[arguments.indexOf("-o") + 1])
                 output.writeText("abc")
                 if (output.extension == "dll") output.resolveSibling("mcv2kernels.lib").writeText("unused")
@@ -131,6 +199,16 @@ class BuildMcv2NativesTest {
             mock(ExecResult::class.java).also { result -> `when`(result.assertNormalExitValue()).thenReturn(result) }
         }.`when`(operations).exec(any())
         task.recordedProcesses = operations
+        val queue = mock(WorkQueue::class.java)
+        doAnswer { invocation ->
+            assertEquals(BuildMcv2Natives.Work::class.java, invocation.getArgument<Class<*>>(0))
+            val parameters = project.objects.newInstance(Parameters::class.java)
+            invocation.getArgument<Action<Parameters>>(1).execute(parameters)
+            submitted.add(RecordingWork(parameters, operations))
+        }.`when`(queue).submit(any<Class<BuildMcv2Natives.Work>>(), any<Action<Parameters>>())
+        val workers = mock(WorkerExecutor::class.java)
+        `when`(workers.noIsolation()).thenReturn(queue)
+        task.recordedWorkers = workers
         return task
     }
 }
