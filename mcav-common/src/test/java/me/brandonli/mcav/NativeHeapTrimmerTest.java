@@ -31,9 +31,11 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import com.sun.management.HotSpotDiagnosticMXBean;
+import com.sun.management.VMOption;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.Linker;
 import java.lang.foreign.MemorySegment;
@@ -41,6 +43,7 @@ import java.lang.foreign.SymbolLookup;
 import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -53,6 +56,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.IntBinaryOperator;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -224,6 +228,59 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
+  void aThresholdThatGlibcRefusesIsReported() throws ReflectiveOperationException {
+    final List<List<Integer>> calls = new ArrayList<>();
+    final boolean taken;
+    final boolean refused;
+    try (final Arena arena = Arena.ofConfined()) {
+      taken = NativeHeapTrimmer.fixGlibcTrimThreshold(glibcWithMallopt(arena, recordingMallopt(calls, 1)));
+      refused = NativeHeapTrimmer.fixGlibcTrimThreshold(glibcWithMallopt(arena, recordingMallopt(calls, 0)));
+    }
+    final List<Integer> threshold = List.of(-1, NativeHeapTrimmer.TRIM_THRESHOLD_BYTES);
+
+    assertTrue(taken);
+    assertFalse(refused, "a threshold that glibc refuses is reported");
+    assertEquals(List.of(threshold, threshold), calls, "mallopt takes M_TRIM_THRESHOLD and the threshold");
+  }
+
+  @Test
+  void theCLibraryOfThisJvmAnswersForTheThreshold() {
+    final List<SymbolLookup> asked = new ArrayList<>();
+    final boolean fixed;
+    try (final MockedStatic<NativeHeapTrimmer> trimmer = mockStatic(NativeHeapTrimmer.class, CALLS_REAL_METHODS)) {
+      trimmer
+        .when(() -> NativeHeapTrimmer.fixGlibcTrimThreshold(any(SymbolLookup.class)))
+        .thenAnswer(call -> {
+          asked.add(call.getArgument(0));
+          return false;
+        });
+      fixed = NativeHeapTrimmer.fixGlibcTrimThreshold();
+    }
+    final SymbolLookup ownLibrary = Linker.nativeLinker().defaultLookup();
+
+    assertFalse(fixed, "a C library that keeps its threshold is reported");
+    assertEquals(1, asked.size());
+    assertEquals(ownLibrary.find("malloc"), asked.getFirst().find("malloc"), "the C library of this JVM is asked");
+  }
+
+  private static IntBinaryOperator recordingMallopt(final List<List<Integer>> calls, final int answer) {
+    return (parameter, value) -> {
+      calls.add(List.of(parameter, value));
+      return answer;
+    };
+  }
+
+  // a glibc whose mallopt is a native stub that calls the operator; the trimmer only looks gnu_get_libc_version up
+  @SuppressWarnings("restricted")
+  private static SymbolLookup glibcWithMallopt(final Arena arena, final IntBinaryOperator mallopt) throws ReflectiveOperationException {
+    final MethodType type = MethodType.methodType(int.class, int.class, int.class);
+    final MethodHandle operator = MethodHandles.lookup().findVirtual(IntBinaryOperator.class, "applyAsInt", type).bindTo(mallopt);
+    final FunctionDescriptor descriptor = FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.JAVA_INT, ValueLayout.JAVA_INT);
+    final MemorySegment stub = Linker.nativeLinker().upcallStub(operator, descriptor, arena);
+    return name -> name.equals("gnu_get_libc_version") || name.equals("mallopt") ? Optional.of(stub) : Optional.empty();
+  }
+
+  @Test
   void aMalloptThatCannotBeCalledIsAnIllegalState() {
     final IllegalCallerException refused = new IllegalCallerException("native access is not enabled");
     final MethodHandle mallopt = malloptThatThrows(refused);
@@ -378,6 +435,23 @@ final class NativeHeapTrimmerTest {
   @Test
   void readsTheIntervalOfTheJvmsOwnTrims() {
     assertEquals(0L, NativeHeapTrimmer.readJvmIntervalMillis(), "the JVM of the tests does not trim itself");
+  }
+
+  @Test
+  void aJvmThatTrimsItselfIsLeftToItsOwnTrims() {
+    final HotSpotDiagnosticMXBean trimmingItself = mock(HotSpotDiagnosticMXBean.class);
+    final VMOption option = new VMOption("TrimNativeHeapInterval", "5000", true, VMOption.Origin.VM_CREATION);
+    when(trimmingItself.getVMOption("TrimNativeHeapInterval")).thenReturn(option);
+    final long interval;
+    final NativeHeapTrimmer trimmer;
+    try (final MockedStatic<ManagementFactory> factory = mockStatic(ManagementFactory.class, CALLS_REAL_METHODS)) {
+      factory.when(() -> ManagementFactory.getPlatformMXBean(HotSpotDiagnosticMXBean.class)).thenReturn(trimmingItself);
+      interval = NativeHeapTrimmer.readJvmIntervalMillis();
+      trimmer = NativeHeapTrimmer.forThisJvm();
+    }
+
+    assertEquals(5000L, interval);
+    assertNeverTrims(trimmer, "a JVM started with -XX:TrimNativeHeapInterval is left to its own trims");
   }
 
   @Test
