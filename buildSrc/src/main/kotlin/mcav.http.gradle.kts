@@ -1,3 +1,22 @@
+/*
+ * This file is part of mcav, a media playback library for Java
+ * Copyright (C) Brandon Li <https://brandonli.me/>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import com.github.gradle.node.NodeExtension
 import me.brandonli.mcav.gradle.isWindows
 
 plugins {
@@ -5,13 +24,15 @@ plugins {
     id("mcav.publishing")
 }
 
+val node = rootProject.extensions.getByType<NodeExtension>()
+val nodeSetup = rootProject.tasks.named("nodeSetup")
 val npm = node.resolvedNodeDir.get().file(if (isWindows) "npm.cmd" else "bin/npm").asFile
 val npmPath = npm.parentFile.absolutePath + File.pathSeparator + System.getenv("PATH")
 
 val npmProjectInstall = tasks.register<Exec>("npmProjectInstall") {
     group = "build"
-    description = "Install npm dependencies for the website"
-    dependsOn("nodeSetup")
+    description = "Installs the npm dependencies of the website"
+    dependsOn(nodeSetup)
     workingDir = file("mcav-website")
     executable = npm.absolutePath
     environment("PATH", npmPath)
@@ -23,7 +44,7 @@ val npmProjectInstall = tasks.register<Exec>("npmProjectInstall") {
 
 val buildWebsite = tasks.register<Exec>("buildWebsite") {
     group = "build"
-    description = "Build the Next.js website"
+    description = "Builds the Next.js website"
     dependsOn(npmProjectInstall)
     workingDir = file("mcav-website")
     executable = npm.absolutePath
@@ -44,8 +65,8 @@ val buildWebsite = tasks.register<Exec>("buildWebsite") {
 
 val testWebsite = tasks.register<Exec>("testWebsite") {
     group = "verification"
-    description = "Run the tests of the website"
-    dependsOn("nodeSetup")
+    description = "Runs the tests of the website"
+    dependsOn(nodeSetup)
     workingDir = file("mcav-website")
     executable = npm.absolutePath
     environment("PATH", npmPath)

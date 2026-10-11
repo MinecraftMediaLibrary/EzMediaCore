@@ -23,8 +23,11 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelConfig;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import io.papermc.paper.configuration.GlobalConfiguration;
 import io.papermc.paper.connection.PlayerGameConnection;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -38,8 +41,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import me.brandonli.mcav.bukkit.BukkitModule;
 import me.brandonli.mcav.bukkit.utils.PacketUtils;
 import me.brandonli.mcav.bukkit.utils.versioning.ServerEnvironment;
+import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -62,7 +67,8 @@ import org.mockito.stubbing.Answer;
  * <p>{@link Bukkit} is mocked statically for the current thread until the server is closed. The server reports the
  * supported Minecraft version, runs on the main thread by default, and has a plugin manager, a scoreboard manager,
  * a scheduler, and Bukkit's own messenger of plugin channels. Scheduled tasks never run on their own; {@link #runTasks()} runs them like one server tick.
- * Players added with {@link #addPlayer(UUID)} are online, and every packet sent to them is recorded.
+ * Players added with {@link #addPlayer(UUID)} are online, and every packet sent to them is recorded, whether through
+ * their packet listener or written to their connection's channel.
  */
 public final class FakeServer implements AutoCloseable {
 
@@ -289,14 +295,9 @@ public final class FakeServer implements AutoCloseable {
     })
       .when(connection)
       .send(any(Packet.class));
-    doAnswer(invocation -> {
-      final Packet<?> packet = invocation.getArgument(0);
-      packets.add(packet);
-      pending.add(invocation.getArgument(1));
-      return null;
-    })
-      .when(connection)
-      .send(any(Packet.class), any(ChannelFutureListener.class));
+    final Connection network = connection();
+    network.channel = recordingChannel(packets, pending);
+    connect(connection, network);
     handle.connection = connection;
     // visibility as Paper keeps it: a grant inverts an entity's visibility by default, per session
     final Set<Entity> inverted = ConcurrentHashMap.newKeySet();
@@ -334,6 +335,57 @@ public final class FakeServer implements AutoCloseable {
     this.sentPackets.put(uuid, packets);
     this.pendingWrites.put(uuid, pending);
     return player;
+  }
+
+  /**
+   * Creates a network connection without a server: its class reads Paper's global configuration when it is loaded,
+   * which only a running server has, so the configuration is stubbed while the class loads.
+   *
+   * @return the connection, without a channel
+   */
+  public static Connection connection() {
+    final GlobalConfiguration configuration = mock(GlobalConfiguration.class);
+    configuration.misc = mock(GlobalConfiguration.Misc.class);
+    try (final MockedStatic<GlobalConfiguration> global = Mockito.mockStatic(GlobalConfiguration.class)) {
+      global.when(GlobalConfiguration::get).thenReturn(configuration);
+      return mock(Connection.class);
+    }
+  }
+
+  /**
+   * Gives a packet listener its network connection, as the server does when it creates the listener.
+   *
+   * @param listener   the packet listener
+   * @param connection the connection
+   */
+  public static void connect(final ServerCommonPacketListenerImpl listener, final Connection connection) {
+    try {
+      final Field field = ServerCommonPacketListenerImpl.class.getDeclaredField("connection");
+      field.setAccessible(true);
+      field.set(listener, connection);
+    } catch (final ReflectiveOperationException exception) {
+      throw new IllegalStateException(exception);
+    }
+  }
+
+  /**
+   * Creates a channel that records every packet written to it and holds the listeners of the writes until
+   * {@link #completeWrites(UUID)} runs them.
+   */
+  private static Channel recordingChannel(final List<Packet<?>> packets, final List<ChannelFutureListener> pending) {
+    final Channel channel = mock(Channel.class);
+    final ChannelFuture write = mock(ChannelFuture.class);
+    when(write.addListener(any())).thenAnswer(invocation -> {
+      pending.add(invocation.getArgument(0));
+      return write;
+    });
+    when(channel.writeAndFlush(any())).thenAnswer(invocation -> {
+      final Packet<?> packet = invocation.getArgument(0);
+      packets.add(packet);
+      return write;
+    });
+    when(channel.config()).thenReturn(mock(ChannelConfig.class));
+    return channel;
   }
 
   /**

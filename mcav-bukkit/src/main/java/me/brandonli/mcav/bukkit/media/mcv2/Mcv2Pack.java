@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -119,6 +120,17 @@ public final class Mcv2Pack {
   private static final int TEXEL_BYTES = 4;
 
   private static final int CELL_PIXELS = Mcv2Decoder.SMALLEST_BLOCK;
+
+  // Four times the alphabet, so a multiplier that gives its colours distinct entries is quick to find.
+  private static final int SYMBOL_ENTRIES = 256;
+
+  private static final int SYMBOL_SHIFT = Integer.SIZE - Integer.numberOfTrailingZeros(SYMBOL_ENTRIES);
+
+  // A colour shifted past its symbol bits never matches it.
+  private static final int NO_SYMBOL = -1;
+
+  // The map palette needs a multiplier of about 83,000.
+  private static final int MAX_SYMBOL_HASH = 1 << 24;
 
   private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
@@ -351,11 +363,15 @@ public final class Mcv2Pack {
   }
 
   static String alphabet(final int[] colors) {
+    return alphabet(colors, MAX_SYMBOL_HASH);
+  }
+
+  // A table read per symbol, not a search of the 64 colours: the text shaders read up to 55 symbols for each vertex of a
+  // map and 4 for each pixel of the strip, and the search made a wall of page frames cost an integrated GPU 50 ms a frame.
+  static String alphabet(final int[] colors, final int maxMultiplier) {
     final Set<Integer> seen = new HashSet<>();
-    final StringBuilder table = new StringBuilder();
     for (int symbol = 0; symbol < colors.length; symbol++) {
-      final int color = colors[symbol];
-      if (!seen.add(color)) {
+      if (!seen.add(colors[symbol])) {
         throw new IllegalStateException(
           String.format(
             Locale.getDefault(Locale.Category.FORMAT),
@@ -364,18 +380,57 @@ public final class Mcv2Pack {
           )
         );
       }
-      table.append(
-        String.format(
-          Locale.ROOT,
-          "    ivec3(%d, %d, %d)%s%n",
-          (color >> 16) & 255,
-          (color >> 8) & 255,
-          color & 255,
-          symbol < colors.length - 1 ? "," : ""
-        )
-      );
     }
-    return guarded("MCAV_MCV2_ALPHABET_GLSL", "const ivec3 MCV2_ALPHABET[64] = ivec3[64](\n" + table + ");\n");
+    final int multiplier = symbolHash(colors, maxMultiplier);
+    final int[] entries = new int[SYMBOL_ENTRIES];
+    Arrays.fill(entries, NO_SYMBOL);
+    for (int symbol = 0; symbol < colors.length; symbol++) {
+      entries[symbolEntry(colors[symbol], multiplier)] = (colors[symbol] << MapAlphabet.SYMBOL_BITS) | symbol;
+    }
+    final StringBuilder table = new StringBuilder();
+    for (int entry = 0; entry < entries.length; entry++) {
+      table
+        .append(entry % 8 == 0 ? "    " : " ")
+        .append(Integer.toUnsignedString(entries[entry]))
+        .append('u');
+      table.append(entry < entries.length - 1 ? "," : "").append(entry % 8 == 7 ? "\n" : "");
+    }
+    return guarded(
+      "MCAV_MCV2_ALPHABET_GLSL",
+      String.format(
+        Locale.ROOT,
+        "const uint MCV2_SYMBOL_HASH = %du;\nconst uint MCV2_SYMBOL_SHIFT = %du;\nconst uint MCV2_SYMBOLS[%d] = uint[%d](\n%s);\n",
+        multiplier,
+        SYMBOL_SHIFT,
+        SYMBOL_ENTRIES,
+        SYMBOL_ENTRIES,
+        table
+      )
+    );
+  }
+
+  // The entry the shader reads: the top bits of the colour's 32-bit product with the multiplier.
+  private static int symbolEntry(final int color, final int multiplier) {
+    return (color * multiplier) >>> SYMBOL_SHIFT;
+  }
+
+  private static int symbolHash(final int[] colors, final int maxMultiplier) {
+    final boolean[] taken = new boolean[SYMBOL_ENTRIES];
+    for (int multiplier = 1; multiplier <= maxMultiplier; multiplier += 2) {
+      Arrays.fill(taken, false);
+      boolean distinct = true;
+      for (int symbol = 0; symbol < colors.length && distinct; symbol++) {
+        final int entry = symbolEntry(colors[symbol], multiplier);
+        distinct = !taken[entry];
+        taken[entry] = true;
+      }
+      if (distinct) {
+        return multiplier;
+      }
+    }
+    throw new IllegalStateException(
+      String.format(Locale.ROOT, "No odd multiplier up to %d gives the map colours distinct symbol entries", maxMultiplier)
+    );
   }
 
   // Minecraft's shaderc inserts an include every time it is named, including through another include.

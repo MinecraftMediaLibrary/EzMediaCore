@@ -121,6 +121,12 @@ final class VncAllowListTest {
   }
 
   @Test
+  void takesAnEntryOnTheFirstOrTheLastTcpPort() {
+    assertEquals(1, new VncAllowList.Entry("desktop", 1, null).port());
+    assertEquals(65_535, new VncAllowList.Entry("desktop", 65_535, null).port());
+  }
+
+  @Test
   void keepsItsEntriesWhenTheListItWasGivenChanges() {
     final List<VncAllowList.Entry> entries = new ArrayList<>(List.of(DESKTOP));
     final VncAllowList list = new VncAllowList(entries);

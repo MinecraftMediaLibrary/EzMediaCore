@@ -18,6 +18,7 @@
 package me.brandonli.mcav.bukkit.media.mcv2;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -696,6 +697,14 @@ final class Mcv2ResultTest {
   }
 
   @Test
+  void countsNoKeyframeForAPredictedFrame() {
+    final Mcv2Result.Statistics statistics = new Mcv2Result.Statistics();
+    statistics.add(new MCV2.Stats(20, false, 1, 7, 72), 256);
+    assertEquals(1, statistics.getFrames());
+    assertEquals(0, statistics.getKeyframes());
+  }
+
+  @Test
   void pacesFromTheTopOfItsLadderOnceStarted() {
     final Mcv2Result result = this.result(this.configuration, null);
     assertNull(result.getRung());
@@ -1280,6 +1289,17 @@ final class Mcv2ResultTest {
       Mcv2Internals.call(Mcv2Result.class, null, "ladder", new Class<?>[] { Settings.class }, settings)
     );
     assertEquals(List.of(fast), Mcv2Internals.call(Mcv2Result.class, null, "ladder", new Class<?>[] { Settings.class }, fast));
+  }
+
+  @Test
+  void buildsAScreenWhoseLambdaTimesTheFastLambdaOverflows() {
+    final Settings largest = Settings.DEFAULT.withLambda(Double.MAX_VALUE);
+    final Mcv2Result result = assertDoesNotThrow(() -> this.result(packScreen(largest), null));
+    result.release();
+    assertEquals(
+      List.of(largest, new Settings(Double.MAX_VALUE * (Settings.FAST.lambda() / Settings.DEFAULT.lambda()), true)),
+      Mcv2Internals.call(Mcv2Result.class, null, "ladder", new Class<?>[] { Settings.class }, largest)
+    );
   }
 
   @Test

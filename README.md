@@ -47,7 +47,7 @@ Click to watch a demo video above.
 
 | What | Needs |
 |------|-------|
-| Building from source | A JDK 17 or newer to run Gradle, and network access; Gradle downloads the build tools. Full coverage also needs the runtime test prerequisites below |
+| Building from source | A JDK 17 or newer to run Gradle, and network access; Gradle downloads the build tools, Python and clang-format included. Full coverage also needs the runtime test prerequisites below |
 | Library and plugin | Java 25 or newer |
 | Minecraft | Paper 26.3, for the plugin and `mcav-bukkit`. Paper 26.3 has only **alpha** builds as of 2026-09-27; MCAV is built and tested against build 49 |
 | Platforms | Windows (x86-64), macOS (x86-64 and Apple silicon), and Linux (x86-64 and ARM64): FFmpeg and OpenCV are bundled for these, and their natives are extracted into the JavaCPP cache of the user |
@@ -126,17 +126,30 @@ where all runtime tests can run, as described below. Clone the repository and bu
 git clone https://github.com/PulseBeat02/mcav.git
 cd mcav
 ./gradlew build
-./gradlew :mcav-docs:build
 ```
 
 The plugin jar is `mcav-plugin/build/libs/mcav-plugin-<version>-all.jar`. Gradle downloads the Java 25 toolchain
-through foojay when the machine has none, and the Node.js used by the formatter and the web page of `mcav-http`.
+through foojay when the machine has none, and Node.js 24.21.0 into `build/tools/node/24.21.0` for the formatter and
+the web page of `mcav-http`.
 It downloads Zig 0.16.0 from ziglang.org, verifies its pinned SHA-256, and compiles MCV2's six native libraries from
 `mcav-bukkit/src/main/native/mcv2`. A failed download or compilation fails the build. The compiler is cached in
-`mcav-bukkit/build/tools/zig/0.16.0`; `ZIG` can name an installed Zig 0.16.0. Gradle also downloads checksum-verified uv,
-which installs the pinned Python and the hash-locked documentation packages. These tools need no separate
-installation. `build` writes the documentation to `mcav-docs/build/html`; `:mcav-docs:build` builds only the
-documentation. Open `index.html` to read it.
+`mcav-bukkit/build/tools/zig/0.16.0`; `ZIG` can name an installed Zig 0.16.0. Gradle also downloads checksum-verified
+uv 0.12.23 into `build/tools/uv/0.12.23`, and uv installs Python 3.13.16 and the hash-locked packages of
+`requirements.lock` into `build/tools/python/3.13.16`, the one environment of the documentation, the Python codec tests
+and clang-format; `UV` can name an installed uv 0.12.23. These tools need no separate installation. `build` writes the
+documentation to `mcav-docs/build/html`; `:mcav-docs:build` builds only the documentation. Open `index.html` to read it.
+
+`build` also runs the Python codec tests of `mcav-bukkit/src/test/python` with pytest, in parallel processes, and
+checks with clang-format 18.1.8, from the same lock, that the MCV2 native sources are formatted. To format them, run:
+
+```bash
+./gradlew :mcav-bukkit:formatMcv2Natives
+```
+
+`CLANG_FORMAT` can name an installed clang-format 18.1.8; Windows on ARM64 needs it, as no clang-format 18.1.8 package
+exists for it. Both tasks check the reported version first. The
+[MCV2 tools](https://mcav.readthedocs.io/en/latest/mcv2.html#reproducing-the-measurements-and-figures) describe the
+other codec checks.
 
 The project builds on Windows, macOS or Linux. Tests that need another operating system, or a program the machine
 lacks (VLC, QEMU, a display), skip themselves. `build` also enforces the coverage lint, where those skipped tests
@@ -145,19 +158,6 @@ leave gaps. On such a machine, use:
 ```bash
 ./gradlew build -Pmcav.coverage=false
 ```
-
-The Python codec tests and the native formatter run separately:
-
-```bash
-python3 -m unittest discover -s mcav-bukkit/src/test/python
-./gradlew :mcav-bukkit:formatMcv2Natives
-```
-
-The Python tests need Python 3.12 or newer with numpy, Pillow, moderngl and matplotlib. The formatter needs
-clang-format 18.1.8 on `PATH`, or `CLANG_FORMAT=/path/to/clang-format`; it checks the reported version before changing
-sources. Neither is needed for the default build. The
-[MCV2 tools](https://mcav.readthedocs.io/en/latest/mcv2.html#reproducing-the-measurements-and-figures) describe the
-other codec checks.
 
 Check the task plans for publishing the library modules and for the plugin's end-to-end test:
 

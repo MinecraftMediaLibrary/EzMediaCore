@@ -36,18 +36,11 @@ class NativeResourcesTest {
     @Test
     fun aShadowConsumerBuildsAndPackagesTheGeneratedResourceArtifact() {
         val project = directory.toFile()
-        project.resolve("settings.gradle").writeText("""
-            rootProject.name = 'native-resources'
-            include 'producer', 'consumer'
-            dependencyResolutionManagement {
-                versionCatalogs {
-                    libs {
-                        version('zig', 'fixture')
-                        version('clang-format', 'fixture')
-                    }
-                }
-            }
-        """.trimIndent())
+        project.resolve("settings.gradle").writeText("rootProject.name = 'native-resources'\ninclude 'producer', 'consumer'\n")
+        project.resolve("build.gradle").writeText("plugins { id 'mcav.python' }\n")
+        val catalog = project.resolve("gradle/libs.versions.toml")
+        catalog.parentFile.mkdirs()
+        Path.of("..", "gradle", "libs.versions.toml").toFile().copyTo(catalog)
         val producer = project.resolve("producer").apply { mkdirs() }
         val sources = producer.resolve("src/main/native/mcv2").apply { mkdirs() }
         sources.resolve("mcv2.cpp").writeText("native fixture bytes")
@@ -81,7 +74,7 @@ class NativeResourcesTest {
             .withEnvironment(System.getenv() + ("ZIG" to compiler.absolutePath))
             .withArguments(":consumer:shadowJar", "--stacktrace")
         val first = runner.build()
-        assertNull(first.task(":producer:downloadMcv2Zig"))
+        assertNull(first.task(":producer:downloadZig"))
         assertEquals(TaskOutcome.SUCCESS, first.task(":producer:buildMcv2Natives")!!.outcome)
         ZipFile(consumer.resolve("build/libs/consumer-all.jar")).use { archive ->
             val library = archive.getEntry("mcav/mcv2/natives/linux-x86_64/libmcv2kernels.so")

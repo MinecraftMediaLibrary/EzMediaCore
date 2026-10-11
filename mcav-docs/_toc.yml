@@ -1,7 +1,7 @@
 format: jb-book
 root: intro
 parts:
-  - caption: Sandbox Plugin 🏗️
+  - caption: MCAV Plugin 🏗️
     chapters:
       - file: plugin/plugin.md
       - file: plugin/tutorial.md

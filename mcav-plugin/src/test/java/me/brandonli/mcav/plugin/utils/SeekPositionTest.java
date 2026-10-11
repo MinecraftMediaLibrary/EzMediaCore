@@ -89,4 +89,9 @@ final class SeekPositionTest {
     assertEquals("1:02:03", SeekPosition.format(3_723_000L));
     assertThrows(IllegalArgumentException.class, () -> SeekPosition.format(-1L));
   }
+
+  @Test
+  void formatsTheStartOfAVideo() {
+    assertEquals("0:00", SeekPosition.format(0L));
+  }
 }

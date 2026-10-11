@@ -811,7 +811,8 @@ void main() {
     int strip = mcv2StripRows(size.x);
 
     ivec2 source = fromTop < strip && mcv2StripFits(size) && !MCV2_DEBUG_VIEW ? mcv2FromTop(size, pixel.x, strip) : pixel;
-    vec4 scene = texelFetch(MainSampler, source, 0);
+    // Only the first screen's pass covers the strip: covering it again would smear the earlier screens' pictures.
+    vec4 scene = texelFetch(MainSampler, MCV2_SCREEN_INDEX == 0 ? source : pixel, 0);
     fragColor = scene;
     int debugRow = fromTop - strip - MCV2_DEBUG_TOP;
     if (MCV2_DEBUG_VIEW && debugRow >= 0 && debugRow < 24 && pixel.x >= MCV2_VIDEO_WIDTH + 8) {
@@ -903,14 +904,13 @@ void main() {
 
 #if defined(MCV2_PASS_TEXT_VERTEX) || defined(MCV2_PASS_TEXT_FRAGMENT)
 
+// One read of the pack's symbol table (Mcv2Pack.alphabet) instead of a search of the 64 colours, which made a wall of
+// page frames cost an integrated GPU 50 ms a frame; a colour outside the alphabet finds another colour or no entry.
 int mcv2Symbol(vec4 texel) {
     ivec3 texelColor = ivec3(texel.rgb * 255.0 + 0.5);
-    for (int symbolIndex = 0; symbolIndex < 64; ++symbolIndex) {
-        if (MCV2_ALPHABET[symbolIndex] == texelColor) {
-            return symbolIndex;
-        }
-    }
-    return -1;
+    uint key = uint(texelColor.r << 16 | texelColor.g << 8 | texelColor.b);
+    uint entry = MCV2_SYMBOLS[(key * MCV2_SYMBOL_HASH) >> MCV2_SYMBOL_SHIFT];
+    return entry >> 6u == key ? int(entry & 63u) : -1;
 }
 
 int mcv2SymbolAt(sampler2D map, int index) {

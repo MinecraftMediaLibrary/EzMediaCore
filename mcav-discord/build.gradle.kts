@@ -4,12 +4,11 @@ plugins {
 }
 
 dependencies {
-    api(libs.jda)
-    compileOnlyApi(project(":mcav-common"))
-    testImplementation(libs.jda)
-    testImplementation(project(":mcav-common"))
-    testImplementation(libs.jna)
     api(platform(libs.jackson2.bom))
+    api(libs.jda)
     implementation(libs.jackson2.core)
     implementation(libs.jackson2.databind)
+    compileOnlyApi(project(":mcav-common"))
+    testImplementation(project(":mcav-common"))
+    testImplementation(libs.jna)
 }

@@ -38,9 +38,9 @@ class JavaLintTaskTest {
         val source = directory.resolve("Example.java").toFile()
         source.writeText("final class Example {}\n")
         val tasks = listOf(
-            project.tasks.create("logs", LogMessagesTask::class.java) to "no log call with an inline message in 1 files\n",
-            project.tasks.create("qualified", QualifiedNamesTask::class.java) to "no fully qualified type names in 1 files\n",
-            project.tasks.create("variables", VariableNamesTask::class.java) to "no undescriptive variable name in 1 files\n"
+            project.tasks.register("logs", LogMessagesTask::class.java).get() to "no log call with an inline message in 1 files\n",
+            project.tasks.register("qualified", QualifiedNamesTask::class.java).get() to "no fully qualified type names in 1 files\n",
+            project.tasks.register("variables", VariableNamesTask::class.java).get() to "no undescriptive variable name in 1 files\n"
         )
         tasks.forEach { (task, expected) ->
             task.sources.from(source)
@@ -55,9 +55,21 @@ class JavaLintTaskTest {
     fun eachLintCountsViolationsAndKeepsItsFailureMessage() {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
         val tasks = listOf(
-            Triple(project.tasks.create("logs", LogMessagesTask::class.java), "final class Example { void run() { logger.info(\"inline\"); logger.error(\"inline\"); } }", "2 log calls with an inline message"),
-            Triple(project.tasks.create("qualified", QualifiedNamesTask::class.java), "final class Example { java.time.Instant first; java.time.Instant second; }", "2 fully qualified type names in Java code"),
-            Triple(project.tasks.create("variables", VariableNamesTask::class.java), "final class Example { int x; int y; }", "2 undescriptive variable names")
+            Triple(
+                project.tasks.register("logs", LogMessagesTask::class.java).get(),
+                "final class Example { void run() { logger.info(\"inline\"); logger.error(\"inline\"); } }",
+                "2 log calls with an inline message"
+            ),
+            Triple(
+                project.tasks.register("qualified", QualifiedNamesTask::class.java).get(),
+                "final class Example { java.time.Instant first; java.time.Instant second; }",
+                "2 fully qualified type names in Java code"
+            ),
+            Triple(
+                project.tasks.register("variables", VariableNamesTask::class.java).get(),
+                "final class Example { int x; int y; }",
+                "2 undescriptive variable names"
+            )
         )
         tasks.forEach { (task, input, expected) ->
             val source = directory.resolve(task.name + ".java").toFile()
@@ -69,5 +81,18 @@ class JavaLintTaskTest {
             assertEquals(expected, failure.message)
             assertFalse(task.report.get().asFile.exists())
         }
+    }
+
+    @Test
+    fun aPublishedNameStaysWhileTheOtherNamesFail() {
+        val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val task = project.tasks.register("variables", VariableNamesTask::class.java).get()
+        val source = directory.resolve("Example.java").toFile()
+        source.writeText("package me.example;\nfinal class Example { int x; int y; }\n")
+        task.sources.from(source)
+        task.report.set(directory.resolve("variables.txt").toFile())
+        task.publishedNames.set(setOf("me.example.Example#x"))
+        val failure = assertThrows(GradleException::class.java) { task.check() }
+        assertEquals("1 undescriptive variable names", failure.message)
     }
 }

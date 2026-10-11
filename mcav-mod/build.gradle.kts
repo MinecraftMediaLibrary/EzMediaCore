@@ -9,5 +9,5 @@ dependencies {
     testImplementation(libs.bundles.mod)
     testImplementation(variantOf(libs.neoforge.core) { classifier("universal") })
     testImplementation(variantOf(libs.neoforge.mergetool) { classifier("api") })
-    testImplementation(libs.bundles.minecraft.client.libraries)
+    testImplementation(libs.bundles.client.libraries)
 }

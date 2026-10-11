@@ -32,6 +32,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Channel;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Result;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.metadata.OriginalVideoMetadata;
 import me.brandonli.mcav.plugin.command.video.Mcv2Output;
@@ -44,7 +46,7 @@ import org.mockito.ArgumentCaptor;
 
 /**
  * Tests {@link Mcv2Image}: the screen starts with the image and is given a copy of it twice a second, off the main
- * thread, until it is released.
+ * thread, until it is released, and is asked for a keyframe every fourth second.
  */
 final class Mcv2ImageTest {
 
@@ -103,6 +105,34 @@ final class Mcv2ImageTest {
     verify(this.output).release();
     image.release();
     verify(this.task, times(1)).cancel();
+  }
+
+  @Test
+  void asksForAKeyframeEveryFourthSecond() {
+    final Mcv2Result result = mock(Mcv2Result.class);
+    final Mcv2Channel channel = mock(Mcv2Channel.class);
+    when(this.output.getResult()).thenReturn(result);
+    when(result.getChannel()).thenReturn(channel);
+    final Mcv2Image image = new Mcv2Image(this.plugin, this.output);
+
+    image.displayImage(ImageBuffer.buffer(PIXELS.clone(), 3, 2));
+
+    final ArgumentCaptor<Runnable> feeds = ArgumentCaptor.forClass(Runnable.class);
+    verify(TestServer.scheduler()).runTaskTimerAsynchronously(eq(this.plugin), feeds.capture(), eq(0L), eq(Mcv2Image.PERIOD_TICKS));
+    // a client that missed the keyframe its viewer started with shows nothing until the next, which a video of 30
+    // frames a second has four seconds later, and the encoder's own every 120 frames, a minute at two a second
+    final int fourSeconds = (int) ((4 * 20) / Mcv2Image.PERIOD_TICKS);
+    for (int feed = 1; feed < fourSeconds; feed++) {
+      feeds.getValue().run();
+    }
+    verify(channel, never()).requestKeyframe();
+    feeds.getValue().run();
+    verify(channel).requestKeyframe();
+    for (int feed = 0; feed < fourSeconds; feed++) {
+      feeds.getValue().run();
+    }
+    verify(channel, times(2)).requestKeyframe();
+    assertEquals(2 * fourSeconds, this.given.size(), "every feed gives the image");
   }
 
   @Test

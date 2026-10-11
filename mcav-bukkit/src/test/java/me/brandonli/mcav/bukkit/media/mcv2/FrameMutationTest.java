@@ -33,8 +33,9 @@ import org.junit.jupiter.params.provider.MethodSource;
  * Every single-byte corruption of valid frames of every index form, deterministically: the parser accepts the result
  * or throws {@link Mcv2Exception}, never anything else, and an accepted frame decodes without failing, against a
  * matching reference when it is a P frame. The frames are the first keyframe and P frame of each committed
- * conformance and edge stream, which together use every v3 mode, compact quantizer and boundary geometry; every byte of
- * the first 4 KB, where headers and indexes live, is corrupted, and every 61st byte after it.
+ * conformance and edge stream (the keyframe alone when it is the stream's only frame), which together use every v3
+ * mode, compact quantizer and boundary geometry; every byte of the first 4 KB, where headers and indexes live, is
+ * corrupted, and every 61st byte after it.
  */
 final class FrameMutationTest {
 
@@ -50,7 +51,7 @@ final class FrameMutationTest {
     for (final String folder : List.of("conformance", "edge")) {
       for (final String stream : Mcv2Fixtures.digests(folder).keySet()) {
         final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + "/" + stream));
-        arguments.add(Arguments.of(stream, frames.get(0), frames.size() > 1 ? frames.get(1) : frames.get(0)));
+        arguments.add(Arguments.of(stream, frames.subList(0, Math.min(2, frames.size()))));
       }
     }
     return arguments.stream();
@@ -58,12 +59,12 @@ final class FrameMutationTest {
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("frames")
-  void everyCorruptionIsAcceptedOrDeclared(final String stream, final byte[] keyframe, final byte[] next) throws Mcv2Exception {
-    final Mcv2Decoder.Frame reference = Mcv2Decoder.parse(keyframe);
+  void everyCorruptionIsAcceptedOrDeclared(final String stream, final List<byte[]> frames) throws Mcv2Exception {
+    final Mcv2Decoder.Frame reference = Mcv2Decoder.parse(frames.getFirst());
     final byte[] picture = Mcv2Decoder.decode(reference, null, 0);
     int accepted = 0;
     int rejected = 0;
-    for (final byte[] frame : List.of(keyframe, next)) {
+    for (final byte[] frame : frames) {
       for (int offset = 0; offset < frame.length; offset += offset < DENSE ? 1 : STRIDE) {
         for (final int mask : MASKS) {
           final byte[] corrupted = frame.clone();

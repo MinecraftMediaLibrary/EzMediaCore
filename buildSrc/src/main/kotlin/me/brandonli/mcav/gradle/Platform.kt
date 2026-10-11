@@ -82,6 +82,8 @@ val isWindows: Boolean = HostPlatform.current().isWindows
 
 fun javaExecutable(javaHome: String): String = javaHome + "/bin/java" + if (isWindows) ".exe" else ""
 
+fun venvExecutable(name: String): String = if (isWindows) "Scripts/$name.exe" else "bin/$name"
+
 fun lwjglNatives(): String? = HostPlatform.current().lwjglNatives
 
 fun DependencyHandler.addLwjglTestNatives(libraries: Iterable<Provider<MinimalExternalModuleDependency>>) {

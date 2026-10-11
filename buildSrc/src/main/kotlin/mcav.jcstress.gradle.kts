@@ -1,3 +1,21 @@
+/*
+ * This file is part of mcav, a media playback library for Java
+ * Copyright (C) Brandon Li <https://brandonli.me/>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import me.brandonli.mcav.gradle.JcstressBudget
 import me.brandonli.mcav.gradle.JcstressConsole
 import me.brandonli.mcav.gradle.libraryOf
@@ -27,8 +45,8 @@ tasks.named<JavaCompile>("compileJava") {
 }
 
 val jcstressJar = tasks.register<Jar>("jcstressJar") {
-    description = "Packs the jcstress tests with everything they run"
     group = "build"
+    description = "Packs the jcstress tests with everything they run"
     archiveClassifier = "jcstress"
     manifest {
         attributes("Main-Class" to "org.openjdk.jcstress.Main")
@@ -49,8 +67,8 @@ val selection = providers.gradleProperty("jcstress.tests")
 val cpus = providers.gradleProperty("jcstress.cpus").getOrElse(minOf(4, Runtime.getRuntime().availableProcessors()).toString())
 
 tasks.register<JavaExec>("jcstressTest") {
-    description = "Runs the jcstress concurrency tests; -Pjcstress.mode, -Pjcstress.timeBudgetMinutes, -Pjcstress.tests"
     group = "verification"
+    description = "Runs the jcstress concurrency tests; -Pjcstress.mode, -Pjcstress.timeBudgetMinutes, -Pjcstress.tests"
     val jar = jcstressJar.flatMap { it.archiveFile }
     inputs.file(jar)
     classpath = files(jar)
@@ -65,14 +83,16 @@ tasks.register<JavaExec>("jcstressTest") {
     val budget = budgetMinutes.orNull
     val tests = selection.orNull
     val cpuCount = cpus.toInt()
+    val stressMode = mode
+    val iterationTime = ITERATION_TIME
     val console = workingDirectory.map { it.file("console.txt") }
     doFirst {
         workingDirectory.get().asFile.mkdirs()
         standardOutput = JcstressConsole.tee(System.out, console.get().asFile)
         if (budget != null) {
             val testCount = JcstressBudget.countTests(jar.get().asFile, tests)
-            val iterationMillis = JcstressBudget.iterationMillis(mode, budget, testCount, cpuCount)
-            logger.lifecycle(ITERATION_TIME, testCount, mode, budget, iterationMillis)
+            val iterationMillis = JcstressBudget.iterationMillis(stressMode, budget, testCount, cpuCount)
+            logger.lifecycle(iterationTime, testCount, stressMode, budget, iterationMillis)
             args("-time", iterationMillis.toString())
         }
     }

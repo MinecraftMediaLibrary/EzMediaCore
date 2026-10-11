@@ -1,3 +1,21 @@
+/*
+ * This file is part of mcav, a media playback library for Java
+ * Copyright (C) Brandon Li <https://brandonli.me/>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import me.brandonli.mcav.gradle.CatalogVersions
 import me.brandonli.mcav.gradle.CoverageLintTask
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
@@ -32,7 +50,7 @@ val testTask = tasks.named<Test>("test") {
 
 val coverageLint = tasks.register<CoverageLintTask>("coverageLint") {
     group = "verification"
-    description = "Runs the tests and reports every line and branch of production code that no test covers."
+    description = "Runs the tests and reports every line and branch of production code that no test covers"
     dependsOn(testTask, jacocoReport)
     report.from(layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml"))
     sourceDirectory = layout.projectDirectory.dir("src/main/java")
@@ -49,10 +67,6 @@ tasks.withType<Test>().named { it == "propertyTest" || it == "fuzzTest" }.config
     extensions.configure<JacocoTaskExtension> {
         isEnabled = false
     }
-}
-
-tasks.withType<Test>().named { it == "propertyTest" }.configureEach {
-    mustRunAfter(coverageLint)
 }
 
 val coverageGate = providers.gradleProperty("mcav.coverage").map { !it.equals("false", ignoreCase = true) }.getOrElse(true)

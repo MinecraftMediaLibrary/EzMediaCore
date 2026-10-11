@@ -8,27 +8,35 @@ to follow the following guidelines:
 - Code formatting (run `./gradlew spotlessApply`, which adds the license header and formats the code with prettier-java)
 
 `./gradlew spotlessRepositoryCheck` checks whitespace in the repository text files, including
-`gradle/libs.versions.toml`, `buildSrc/src/main/resources/zig-checksums.properties` and `mcav-docs/requirements.lock`.
+`gradle/libs.versions.toml`, `buildSrc/src/main/resources/tool-checksums.properties` and `requirements.lock`.
+
+Versions live in `gradle/libs.versions.toml`; only the toolchain resolver's stays in `settings.gradle.kts`, whose
+`plugins` block cannot read the catalog. buildSrc's `BuildFilesTest` (`./gradlew :buildSrc:test`) checks the other
+rules of the build files: a module's `build.gradle.kts` only applies `mcav.*` conventions and lists its dependencies,
+the modules in `settings.gradle.kts` and each section of the catalog are sorted by name, every Kotlin source of
+buildSrc starts with the license header of `HEADER` and no build script carries it, and no line is longer than 140
+columns.
 
 ## Documentation
 
 The documentation is the Jupyter Book in `mcav-docs`. `./gradlew :mcav-docs:build` builds it into
 `mcav-docs/build/html` (open `index.html`), and `./gradlew build` builds it too. Gradle downloads uv, checks it against
-the SHA-256 in `buildSrc/src/main/resources/uv-checksums.properties`, and with it installs the Python of
-`gradle/libs.versions.toml` and the packages of `mcav-docs/requirements.lock`, each checked against its hash, all into
-`mcav-docs/build`. Set `UV=/path/to/uv` to use an installed uv instead. Both
-`./gradlew :mcav-docs:installDocsEnvironment` and `./gradlew :mcav-docs:lockDocsRequirements` reject an executable
-reporting a version other than the catalog's uv 0.12.23. Jupyter Book runs with
-`--warningiserror`, so a Sphinx warning fails the build. Downloading uv and Python needs GitHub, and the packages need
-PyPI.
+the SHA-256 in `buildSrc/src/main/resources/tool-checksums.properties`, and with it installs the Python of
+`gradle/libs.versions.toml` and the packages of `requirements.lock`, each checked against its hash, all into
+`build/tools`. The documentation, the Python codec tests of `mcav-bukkit` and clang-format use this one environment.
+Set `UV=/path/to/uv` to use an installed uv instead. Both `installPythonEnvironment` and `lockPythonRequirements` reject
+an executable reporting a version other than the catalog's uv 0.12.23. Jupyter Book runs with `--warningiserror`, so a
+Sphinx warning fails the build. Downloading uv and Python needs GitHub, and the packages need PyPI.
 
-To change a documentation package or the Python, change its version in `gradle/libs.versions.toml`, run
-`./gradlew :mcav-docs:lockDocsRequirements`, which writes `mcav-docs/requirements.lock` with every package pinned and
-hashed, and commit both; the build fails while the lock pins other versions than the catalog. Read the Docs installs
-the same lock through `mcav-docs/requirements.txt`. Local builds use `docs-python` 3.13.16; `.readthedocs.yaml`
-selects the minor version 3.13. A buildSrc unit test enforces that minor match, without asserting which patch version
-the provider installs. To update uv, copy the SHA-256 of each archive from the `.sha256` files of its GitHub release
-into `buildSrc/src/main/resources/uv-checksums.properties`.
+To change a Python package or the Python, change its version in `gradle/libs.versions.toml`, run
+`./gradlew lockPythonRequirements`, which writes `requirements.lock` with every package pinned and hashed, and commit
+it; the build fails while the lock pins other versions than the catalog. Read the Docs installs the lock through
+`mcav-docs/requirements.txt`. Local builds use `python` 3.13.16; `.readthedocs.yaml` selects the minor version 3.13. A
+buildSrc unit test enforces that minor match, without asserting which patch version the provider installs. To update
+uv or Zig, put the SHA-256 of each of its six archives into `buildSrc/src/main/resources/tool-checksums.properties`,
+under `<tool>/<version>/<archive>`: uv's are in the `.sha256` files of its GitHub release, Zig's in
+`https://ziglang.org/download/index.json`. A buildSrc unit test checks that the file pins the six archives of the
+catalog's versions and nothing else.
 
 `mcav-docs/_config.yml` is the authored book configuration. Jupyter Book generates `conf.py` at
 `mcav-docs/build/tmp/buildDocs/book/conf.py` locally; Read the Docs runs `jupyter-book config sphinx mcav-docs/`
@@ -36,9 +44,9 @@ before reading `mcav-docs/conf.py`. Do not edit or commit either generated file.
 
 ## Tests
 
-The twelve Java modules using `buildSrc/src/main/kotlin/mcav.module.gradle.kts` are `mcav-common`, `mcav-bukkit`,
-`mcav-installer`, `mcav-discord`, `mcav-http`, `mcav-browser`, `mcav-vnc`, `mcav-vm`, `mcav-lwjgl`, `mcav-voicechat`,
-`mcav-mod` and `mcav-plugin`. They must stay at 100% line and branch coverage on a machine where every test can run,
+The twelve Java modules using `buildSrc/src/main/kotlin/mcav.module.gradle.kts` are `mcav-browser`, `mcav-bukkit`,
+`mcav-common`, `mcav-discord`, `mcav-http`, `mcav-installer`, `mcav-lwjgl`, `mcav-mod`, `mcav-plugin`, `mcav-vm`,
+`mcav-vnc` and `mcav-voicechat`. They must stay at 100% line and branch coverage on a machine where every test can run,
 and tests check the behavior the code should have, not whatever it happens to do. When a test fails, fix the code if
 the code is wrong. Coverage, property, fuzz and PIT commands below apply to these twelve modules; `<module>` means
 one of their names.
@@ -64,7 +72,11 @@ one of their names.
   as a server does (136–165 MB, into `~/.mcav/cache/jcef`), and on Linux the libraries the machine lacks (about
   13 MB, into `~/.mcav/cache/jcef-libraries`); they need no X server.
 - The measurements of how far the sound of a virtual machine or of a browser page drifts from its picture time real
-  events, which a busy machine delays, so they only run with `-Pmcav.syncMeasurement=true`, on a quiet machine.
+  events, which a busy machine delays, so they only run with `-Pmcav.syncMeasurement=true`, on a quiet machine; then
+  each test task runs in one JVM, and no two test tasks run at the same time.
+- `test` spreads the test classes of a module over as many JVMs as half the processors of the machine, at least one;
+  each JVM runs its tests one at a time. The JVMs run at the same time, so a test writes outside its temporary folders
+  only through a file lock or an atomic move, and no two test classes bind the same fixed port.
 
 ## Property, Fuzz and Concurrency Tests
 
@@ -74,7 +86,8 @@ source set of their module. `./gradlew check`, and so `./gradlew build`, runs bo
 
 - `./gradlew propertyTest` runs the properties of these twelve modules with 200 tries each (`-Pproperty.tries=<n>`); `test`
   runs them too, with 10 tries (`-Pproperty.smokeTries=<n>`). Every property pins its seed, so a run is reproducible
-  and a failure reports the seed and the shrunk sample.
+  and a failure reports the seed and the shrunk sample. `propertyTest` keeps jqwik's run database in
+  `build/jqwik-database-propertyTest` of the module; `test` keeps none, as its JVMs would overwrite one another's.
 - `./gradlew fuzzTest` replays the committed inputs of every fuzz test, the seed corpus and every crash reproducer in
   `src/test/resources/<package>/<class>Inputs/<method>`. With `-Pfuzz.seconds=<n>`, each fuzz test is also fuzzed
   for that many seconds, one JVM per test class; a crash is written to `build/jazzer` of the module. Commit the input
@@ -90,18 +103,23 @@ source set of their module. `./gradlew check`, and so `./gradlew build`, runs bo
 `mcav-bukkit` builds the MCV2 encoder's six native libraries (Linux, Windows and macOS on x86-64 and ARM64) from
 `src/main/native/mcv2` whenever resources are processed. Gradle downloads [Zig](https://ziglang.org/) 0.16.0 and checks
 its pinned SHA-256; no C/C++ toolchain needs to be installed. `ZIG=/path/to/zig` overrides the download with that version.
+The task hands the compiles and links to a Gradle worker, so the tasks of `mcav-bukkit` that do not need the libraries
+run meanwhile; it compiles the 22 objects, then links the six libraries, as many at once as Gradle has workers
+(`--max-workers`).
 The downloaded compiler is cached in `mcav-bukkit/build/tools/zig/0.16.0`.
 `./gradlew :mcav-bukkit:buildMcv2Natives` runs the cacheable task directly; unchanged inputs are up to date. Generated
 libraries and their `SHA256SUMS` and `SOURCES` manifests live under `mcav-bukkit/build/generated/natives/mcav/mcv2/natives`.
 Commit only the sources. The loader checks the generated digests, and the tests compare the source manifest with the
-tree. `./gradlew :mcav-bukkit:formatMcv2Natives` formats the sources with clang-format (`CLANG_FORMAT=/path/to/clang-format`).
-The formatter is separate from `build` and needs clang-format 18.1.8 on `PATH` when no override is set. It validates
-the reported version before changing any source.
+tree. `./gradlew :mcav-bukkit:formatMcv2Natives` formats the sources with clang-format 18.1.8 from
+`requirements.lock`; `build` runs `checkMcv2NativesFormat`, which fails on an unformatted line and changes
+nothing. `CLANG_FORMAT=/path/to/clang-format` names an installed clang-format instead; Windows on ARM64 needs it, as no
+clang-format 18.1.8 package exists for it. Both tasks check the reported version first.
 
 MCV2's Java tools live in `mcav-bukkit/src/test/java/me/brandonli/mcav/bukkit/media/mcv2/Mcv2Tools.java`.
-Its Python tools and independent reference decoder live in `mcav-bukkit/src/test/python`. Their tests run separately
-with `python3 -m unittest discover -s mcav-bukkit/src/test/python`, using Python 3.12 or newer with numpy, Pillow,
-moderngl and matplotlib. The
+Its Python tools and independent reference decoder live in `mcav-bukkit/src/test/python`. `check` runs their tests
+with `./gradlew :mcav-bukkit:pythonTest`: pytest runs the test files in parallel processes, no more than Gradle's
+workers, and then `test_shader_timing.py` alone, on the Python and packages of `requirements.lock`. The
+JUnit reports are in `mcav-bukkit/build/test-results/pythonTest`. The
 [MCV2 article](https://mcav.readthedocs.io/en/latest/mcv2.html#reproducing-the-measurements-and-figures) lists the tools and
 their commands.
 

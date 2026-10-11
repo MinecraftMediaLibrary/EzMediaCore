@@ -19,18 +19,39 @@
 package me.brandonli.mcav.gradle
 
 import java.nio.file.Path
+import java.util.Properties
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class CatalogPinsTest {
 
+    private val repository = Path.of("..").toFile()
+
+    private val catalog = repository.resolve("gradle/libs.versions.toml").readText()
+
+    private fun version(name: String): String = Regex("(?m)^$name = \"([^\"]+)\"").find(catalog)!!.groupValues[1]
+
     @Test
     fun readTheDocsUsesTheCatalogPythonMinor() {
-        val repository = Path.of("..").toFile()
-        val catalog = repository.resolve("gradle/libs.versions.toml").readText()
-        val python = Regex("(?m)^docs-python = \"([^\"]+)\"").find(catalog)!!.groupValues[1]
         val readTheDocs = repository.resolve(".readthedocs.yaml").readText()
         val minor = Regex("(?m)^\\s+python: \"([0-9]+\\.[0-9]+)\"").find(readTheDocs)!!.groupValues[1]
-        assertEquals(python.split('.').take(2).joinToString("."), minor)
+        assertEquals(version("python").split('.').take(2).joinToString("."), minor)
+    }
+
+    @Test
+    fun theToolChecksumsPinTheSixHostArchivesOfTheCatalogZigAndUvAndNothingElse() {
+        val zig = version("zig")
+        val uv = version("uv")
+        val archives = listOf("Linux", "Windows 11", "Mac OS X").flatMap { system ->
+            listOf("amd64", "arm64").map { HostPlatform.normalize(system, it) }
+        }.flatMap { host ->
+            listOf(
+                "zig/$zig/zig-${host.architecture}-${host.zigSystem}-$zig" + if (host.isWindows) ".zip" else ".tar.xz",
+                "uv/$uv/uv-${host.uvTarget}" + if (host.isWindows) ".zip" else ".tar.gz"
+            )
+        }
+        val pins = Properties()
+        repository.resolve("buildSrc/src/main/resources/tool-checksums.properties").inputStream().use { pins.load(it) }
+        assertEquals(archives.toSet(), pins.stringPropertyNames())
     }
 }

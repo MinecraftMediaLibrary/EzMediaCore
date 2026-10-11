@@ -265,6 +265,24 @@ final class FilterChainTest {
     assertTrue((blurred.getPixels()[1 + 5 * 2] & 0xff) > 0, "a blur of radius 1 reaches the next pixel");
   }
 
+  @Test
+  void aBlurReachesAsFarAsItsRadius() {
+    final ImageBuffer narrow = whiteDot();
+    this.parse("blur=1").apply(narrow);
+    assertEquals(0, narrow.getPixels()[5 * 2] & 0xff, "a blur of radius 1 stops before the second pixel");
+    final ImageBuffer wide = whiteDot();
+    this.parse("blur=2").apply(wide);
+    assertTrue((wide.getPixels()[5 * 2] & 0xff) > 0, "a blur of radius 2 reaches the second pixel");
+  }
+
+  // a white pixel in the middle of a black 5x5 picture
+  private static ImageBuffer whiteDot() {
+    final int[] dot = new int[5 * 5];
+    Arrays.fill(dot, OPAQUE);
+    dot[2 + 5 * 2] = OPAQUE | 0xffffff;
+    return ImageBuffer.buffer(dot, 5, 5);
+  }
+
   private static ImageBuffer quadrantPicture() {
     final int[] pixels = new int[100];
     final int[] colors = { 0x123456, 0x789ABC, 0xFEDCBA, 0xABCDEF };

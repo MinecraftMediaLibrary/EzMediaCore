@@ -402,9 +402,11 @@ final class Mcv2NativesTest {
     assumeTrue(NativeTesting.expected(), "no library loads here");
     final SymbolLookup library = NativeTesting.library();
     final int levels = NativeTesting.resolution().levels();
-    final Resolution best = Natives.bind(library, "here", null, Natives.ABI_VERSION);
+    // The resolution's platform, as bind passes the library the hardware capabilities (SVE's permission) only for Linux
+    final String platform = Objects.requireNonNull(Natives.platform(System.getProperty("os.name", ""), System.getProperty("os.arch", "")));
+    final Resolution best = Natives.bind(library, platform, null, Natives.ABI_VERSION);
     assertEquals(Natives.level(levels, null), Objects.requireNonNull(best.binding()).level());
-    assertEquals("native " + Natives.level(levels, null).symbol() + " (here)", best.description());
+    assertEquals("native " + Natives.level(levels, null).symbol() + " (" + platform + ")", best.description());
     assertInstanceOf(Mcv2Internals.nested("NativeKernels"), NativeTesting.factory(best).get());
     assertEquals(Level.SCALAR, Objects.requireNonNull(Natives.bind(library, "here", "scalar", Natives.ABI_VERSION).binding()).level());
     final Resolution unversioned = Natives.bind(
@@ -456,7 +458,9 @@ final class Mcv2NativesTest {
 
   @Test
   void publicInstallationSelectsEachLevelAndPreservesExistingEncoders() {
-    MCV2.installNatives(this.folder, MCV2.NATIVE_OFF);
+    // the library loads from NativeTesting's folder, not the temporary one: Windows keeps a loaded library locked, so
+    // JUnit could not delete the temporary folder after the test
+    MCV2.installNatives(NativeTesting.FOLDER, MCV2.NATIVE_OFF);
     final MCV2 java = new MCV2(MCV2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
     final Supplier<?> javaFactory = (Supplier<?>) Mcv2Internals.field(MCV2.class, java, "kernels");
     assertSame(NativeTesting.javaFactory(), javaFactory);
@@ -464,14 +468,14 @@ final class Mcv2NativesTest {
     for (final Level level : NativeTesting.levels()) {
       System.setProperty("mcv2.native.level", level.symbol());
       System.clearProperty(MCV2.NATIVE_PROPERTY);
-      MCV2.installNatives(this.folder, MCV2.NATIVE_AUTO);
+      MCV2.installNatives(NativeTesting.FOLDER, MCV2.NATIVE_AUTO);
       final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
       final Supplier<?> nativeFactory = (Supplier<?>) Mcv2Internals.field(MCV2.class, encoder, "kernels");
       assertEquals(level, NativeTesting.view(nativeFactory.get()).level());
       assertTrue(MCV2.describeNatives().startsWith("native " + level.symbol() + " ("));
       assertSame(javaFactory, Mcv2Internals.field(MCV2.class, java, "kernels"));
       System.setProperty(MCV2.NATIVE_PROPERTY, MCV2.NATIVE_OFF);
-      MCV2.installNatives(this.folder, MCV2.NATIVE_AUTO);
+      MCV2.installNatives(NativeTesting.FOLDER, MCV2.NATIVE_AUTO);
       final MCV2 disabled = new MCV2(MCV2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
       assertSame(javaFactory, Mcv2Internals.field(MCV2.class, disabled, "kernels"));
       assertSame(nativeFactory, Mcv2Internals.field(MCV2.class, encoder, "kernels"));

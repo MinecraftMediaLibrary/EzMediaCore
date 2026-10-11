@@ -2,7 +2,6 @@ plugins {
     id("mcav.common")
 }
 
-
 dependencies {
     api(libs.vlcj) {
         exclude(group = "net.java.dev.jna", module = "jna-jpms")

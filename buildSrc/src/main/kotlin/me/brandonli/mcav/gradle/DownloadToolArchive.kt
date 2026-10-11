@@ -95,13 +95,12 @@ abstract class DownloadToolArchive : DefaultTask() {
         files.sync {
             from(contents)
             into(installationDirectory)
+            filesMatching(executablePath.get()) {
+                permissions { unix("rwxr-xr-x") }
+            }
         }
-        val executable = installationDirectory.file(executablePath).get().asFile
-        if (!executable.isFile) {
+        if (!installationDirectory.file(executablePath).get().asFile.isFile) {
             throw GradleException("Tool archive $address does not contain ${executablePath.get()}")
-        }
-        if (!executable.canExecute() && !executable.setExecutable(true)) {
-            throw GradleException("Cannot make downloaded tool executable: $executable")
         }
     }
 }

@@ -23,14 +23,15 @@ dependencies {
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.mockito.core)
-    testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(gradleTestKit())
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 val catalogVersions = layout.buildDirectory.dir("generated/sources/catalog/kotlin")
-val jacocoVersion = libs.versions.jacoco.get()
+val jacocoVersion = libs.versions.jacoco
 val repositoryHeader = layout.projectDirectory.file("../HEADER")
 val generateCatalogVersions = tasks.register("generateCatalogVersions") {
+    group = "build"
     description = "Writes the catalog versions the plugins of this build need outside the main build"
     inputs.property("jacoco", jacocoVersion)
     inputs.file(repositoryHeader)
@@ -43,7 +44,7 @@ val generateCatalogVersions = tasks.register("generateCatalogVersions") {
             |package me.brandonli.mcav.gradle
             |
             |object CatalogVersions {
-            |    const val JACOCO = "$jacocoVersion"
+            |    const val JACOCO = "${jacocoVersion.get()}"
             |}
             |""".trimMargin()
         )

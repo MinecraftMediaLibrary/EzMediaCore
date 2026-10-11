@@ -36,7 +36,7 @@ class ModLicensingTest {
     fun everyModArchiveCarriesTheExactLicenseAndNoticesWhileKeepingLoaderResourcesSeparate() {
         val project = directory.toFile()
         project.resolve("settings.gradle").writeText("rootProject.name = 'mcav-mod'\n")
-        project.resolve("build.gradle").writeText("plugins { id 'mcav.mod' }\nversion = '1.0.0-SNAPSHOT'\n")
+        project.resolve("build.gradle").writeText("plugins { id 'mcav.node'; id 'mcav.mod' }\nversion = '1.0.0-SNAPSHOT'\n")
         val catalog = project.resolve("gradle/libs.versions.toml")
         catalog.parentFile.mkdirs()
         Path.of("..", "gradle", "libs.versions.toml").toFile().copyTo(catalog)
