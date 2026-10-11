@@ -697,6 +697,14 @@ final class Mcv2ResultTest {
   }
 
   @Test
+  void countsNoKeyframeForAPredictedFrame() {
+    final Mcv2Result.Statistics statistics = new Mcv2Result.Statistics();
+    statistics.add(new MCV2.Stats(20, false, 1, 7, 72), 256);
+    assertEquals(1, statistics.getFrames());
+    assertEquals(0, statistics.getKeyframes());
+  }
+
+  @Test
   void pacesFromTheTopOfItsLadderOnceStarted() {
     final Mcv2Result result = this.result(this.configuration, null);
     assertNull(result.getRung());

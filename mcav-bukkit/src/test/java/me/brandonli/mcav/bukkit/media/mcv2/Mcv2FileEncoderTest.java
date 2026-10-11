@@ -140,6 +140,51 @@ final class Mcv2FileEncoderTest {
   }
 
   @Test
+  void readsThePicturesOfAVideo() throws Exception {
+    final byte[] rgb = new byte[WIDTH * HEIGHT * Mcv2Decoder.CHANNELS];
+    try (final Mcv2FileEncoder.FrameReader reader = Mcv2FileEncoder.ffmpeg(TestMedia.video(), WIDTH, HEIGHT)) {
+      assertTrue(reader.read(rgb));
+    }
+    assertFalse(Arrays.equals(new byte[rgb.length], rgb), "the first picture of the test pattern is not all black");
+  }
+
+  @Test
+  void countsTheKeyframesOfTheStreamItWrites() throws Exception {
+    final ByteArrayOutputStream out = new ByteArrayOutputStream();
+    final Mcv2FileEncoder.Result result;
+    try (final Pool budget = new Pool(1)) {
+      result = Mcv2FileEncoder.encode(repeating(checkerboard(WIDTH, HEIGHT), 3), WIDTH, HEIGHT, Settings.DEFAULT, budget, out, _ -> {});
+    }
+    long keyframes = 0;
+    for (final byte[] frame : frames(out.toByteArray())) {
+      if (Mcv2Decoder.parse(frame).isKeyframe()) {
+        keyframes++;
+      }
+    }
+    assertEquals(3, result.frames());
+    assertEquals(keyframes, result.keyframes(), "the keyframes in the stream of three frames");
+  }
+
+  @Test
+  void measuresItsEncodesWithinTheTimeOfTheCall() throws Exception {
+    final Mcv2FileEncoder.Result result;
+    final long started = System.nanoTime();
+    try (final Pool budget = new Pool(1)) {
+      result = Mcv2FileEncoder.encode(
+        repeating(checkerboard(WIDTH, HEIGHT), 3),
+        WIDTH,
+        HEIGHT,
+        Settings.DEFAULT,
+        budget,
+        new ByteArrayOutputStream(),
+        _ -> {}
+      );
+    }
+    final long elapsed = System.nanoTime() - started;
+    assertTrue(result.nanoseconds() >= 0 && result.nanoseconds() <= elapsed, result.nanoseconds() + " ns in a call of " + elapsed + " ns");
+  }
+
+  @Test
   void limitsFramesToTheDefaultPageSlotsOfAWallOfTheVideosNativeSize() {
     final int capacity = TransportPages.capacity();
     assertEquals(capacity, Mcv2FileEncoder.screenFrameLimit(1, 1));
