@@ -55,7 +55,8 @@ and must stay free of warnings. The coverage, property, fuzz and PIT rows below 
 | `./gradlew :mcav-bukkit:pythonTest` | Runs the Python codec tests with pytest: the test files in parallel processes, then the timing tests alone. `check` runs it. |
 | `./gradlew lockPythonRequirements` | Writes `requirements.lock` again from the Python versions of the catalog. |
 
-The downloaded Zig compiler is cached in `mcav-bukkit/build/tools/zig/0.16.0`. uv 0.12.23 is downloaded into
+The downloaded Zig compiler is cached in `mcav-bukkit/build/tools/zig/0.16.0`. Node.js 24.21.0, which runs the formatter
+and builds the web page of `mcav-http`, is downloaded into `build/tools/node/24.21.0`. uv 0.12.23 is downloaded into
 `build/tools/uv/0.12.23` and installs Python 3.13.16 and the locked packages into `build/tools/python/3.13.16`, the one
 environment of the documentation, the Python codec tests and clang-format.
 

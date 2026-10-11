@@ -16,20 +16,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import com.github.gradle.node.NodeExtension
 import me.brandonli.mcav.gradle.isWindows
 
 plugins {
-    id("mcav.formatting")
     id("mcav.mutation")
 }
 
+val node = rootProject.extensions.getByType<NodeExtension>()
+val nodeSetup = rootProject.tasks.named("nodeSetup")
 val testNode = node.resolvedNodeDir.map { it.file(if (isWindows) "node.exe" else "bin/node").asFile }
 
 tasks.withType<Test>().configureEach {
-    dependsOn("nodeSetup")
+    dependsOn(nodeSetup)
     jvmArgs("-Dmcav.testNode=${testNode.get().absolutePath}")
 }
 
 tasks.named("pitest") {
-    dependsOn("nodeSetup")
+    dependsOn(nodeSetup)
 }

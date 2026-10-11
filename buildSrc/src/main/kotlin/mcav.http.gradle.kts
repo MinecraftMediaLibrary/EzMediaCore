@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import com.github.gradle.node.NodeExtension
 import me.brandonli.mcav.gradle.isWindows
 
 plugins {
@@ -23,13 +24,15 @@ plugins {
     id("mcav.publishing")
 }
 
+val node = rootProject.extensions.getByType<NodeExtension>()
+val nodeSetup = rootProject.tasks.named("nodeSetup")
 val npm = node.resolvedNodeDir.get().file(if (isWindows) "npm.cmd" else "bin/npm").asFile
 val npmPath = npm.parentFile.absolutePath + File.pathSeparator + System.getenv("PATH")
 
 val npmProjectInstall = tasks.register<Exec>("npmProjectInstall") {
     group = "build"
     description = "Installs the npm dependencies of the website"
-    dependsOn("nodeSetup")
+    dependsOn(nodeSetup)
     workingDir = file("mcav-website")
     executable = npm.absolutePath
     environment("PATH", npmPath)
@@ -63,7 +66,7 @@ val buildWebsite = tasks.register<Exec>("buildWebsite") {
 val testWebsite = tasks.register<Exec>("testWebsite") {
     group = "verification"
     description = "Runs the tests of the website"
-    dependsOn("nodeSetup")
+    dependsOn(nodeSetup)
     workingDir = file("mcav-website")
     executable = npm.absolutePath
     environment("PATH", npmPath)

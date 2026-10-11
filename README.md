@@ -129,7 +129,8 @@ cd mcav
 ```
 
 The plugin jar is `mcav-plugin/build/libs/mcav-plugin-<version>-all.jar`. Gradle downloads the Java 25 toolchain
-through foojay when the machine has none, and the Node.js used by the formatter and the web page of `mcav-http`.
+through foojay when the machine has none, and Node.js 24.21.0 into `build/tools/node/24.21.0` for the formatter and
+the web page of `mcav-http`.
 It downloads Zig 0.16.0 from ziglang.org, verifies its pinned SHA-256, and compiles MCV2's six native libraries from
 `mcav-bukkit/src/main/native/mcv2`. A failed download or compilation fails the build. The compiler is cached in
 `mcav-bukkit/build/tools/zig/0.16.0`; `ZIG` can name an installed Zig 0.16.0. Gradle also downloads checksum-verified

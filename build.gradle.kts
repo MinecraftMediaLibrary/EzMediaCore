@@ -1,5 +1,6 @@
 plugins {
     id("mcav.repository")
+    id("mcav.node")
     id("mcav.python")
 }
 

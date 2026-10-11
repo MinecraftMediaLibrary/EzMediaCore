@@ -16,24 +16,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import com.github.gradle.node.NodeExtension
 import me.brandonli.mcav.gradle.isWindows
 import me.brandonli.mcav.gradle.libs
 import me.brandonli.mcav.gradle.versionOf
 
 plugins {
     java
-    id("com.github.node-gradle.node")
     id("com.diffplug.spotless")
 }
 
-val pinnedNodeVersion = libs.versionOf("node")
-
-node {
-    download = true
-    version = pinnedNodeVersion
-    workDir = layout.buildDirectory.dir("tools/node/$pinnedNodeVersion")
-}
-
+val node = rootProject.extensions.getByType<NodeExtension>()
+val nodeSetup = rootProject.tasks.named("nodeSetup")
 val nodeExecutable = node.resolvedNodeDir.map { it.file(if (isWindows) "node.exe" else "bin/node").asFile }
 
 spotless {
@@ -70,5 +64,5 @@ spotless {
 }
 
 tasks.matching { it.name.startsWith("spotlessJava") }.configureEach {
-    dependsOn("nodeSetup")
+    dependsOn(nodeSetup)
 }
