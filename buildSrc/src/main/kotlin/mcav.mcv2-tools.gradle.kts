@@ -47,6 +47,11 @@ val writeToolsClasspath = tasks.register("writeMcv2ToolsClasspath") {
 tasks.test {
     inputs.files(writeToolsClasspath)
 }
+pluginManager.withPlugin("info.solidsoft.pitest") {
+    tasks.named("pitest") {
+        inputs.files(writeToolsClasspath)
+    }
+}
 
 val pythonEnvironment = rootProject.tasks.named<PythonEnvironment>("installPythonEnvironment")
 val pythonSources = layout.projectDirectory.dir("src/test/python")
