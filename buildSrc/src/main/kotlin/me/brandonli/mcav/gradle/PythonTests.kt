@@ -20,15 +20,11 @@ package me.brandonli.mcav.gradle
 
 import java.io.File
 import javax.inject.Inject
-import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
@@ -38,7 +34,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 
 @CacheableTask
-abstract class PythonTests : DefaultTask() {
+abstract class PythonTests : PythonTask() {
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
@@ -51,19 +47,6 @@ abstract class PythonTests : DefaultTask() {
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val sources: ConfigurableFileCollection
-
-    @get:InputFile
-    @get:PathSensitive(PathSensitivity.NONE)
-    abstract val requirements: RegularFileProperty
-
-    @get:Input
-    abstract val pythonVersion: Property<String>
-
-    @get:Input
-    abstract val platform: Property<String>
-
-    @get:Internal
-    abstract val pythonExecutable: RegularFileProperty
 
     @get:Internal
     abstract val testDirectory: DirectoryProperty

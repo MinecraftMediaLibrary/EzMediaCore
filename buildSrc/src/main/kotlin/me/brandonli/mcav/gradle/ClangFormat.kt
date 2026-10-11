@@ -55,7 +55,7 @@ abstract class ClangFormat : DefaultTask() {
     @TaskAction
     fun format() {
         val executable = clangFormat.get().asFile
-        ToolVersions.verify(processes, executable, "clang-format", clangFormatVersion.get(), "clang-format version")
+        ToolVersions.verify(processes, executable, "clang-format", clangFormatVersion.get(), "clang-format version ")
         val mode = if (rewrite.get()) listOf("-i") else listOf("--dry-run", "--Werror")
         processes.exec {
             commandLine(listOf(executable.path) + mode + "--style=file" + sources.files.sorted().map { it.path })

@@ -27,8 +27,8 @@ tasks.named<JavaCompile>("compileJava") {
 }
 
 val jcstressJar = tasks.register<Jar>("jcstressJar") {
-    description = "Packs the jcstress tests with everything they run"
     group = "build"
+    description = "Packs the jcstress tests with everything they run"
     archiveClassifier = "jcstress"
     manifest {
         attributes("Main-Class" to "org.openjdk.jcstress.Main")
@@ -49,8 +49,8 @@ val selection = providers.gradleProperty("jcstress.tests")
 val cpus = providers.gradleProperty("jcstress.cpus").getOrElse(minOf(4, Runtime.getRuntime().availableProcessors()).toString())
 
 tasks.register<JavaExec>("jcstressTest") {
-    description = "Runs the jcstress concurrency tests; -Pjcstress.mode, -Pjcstress.timeBudgetMinutes, -Pjcstress.tests"
     group = "verification"
+    description = "Runs the jcstress concurrency tests; -Pjcstress.mode, -Pjcstress.timeBudgetMinutes, -Pjcstress.tests"
     val jar = jcstressJar.flatMap { it.archiveFile }
     inputs.file(jar)
     classpath = files(jar)

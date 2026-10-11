@@ -18,7 +18,6 @@
 
 package me.brandonli.mcav.gradle
 
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
@@ -85,15 +84,7 @@ abstract class BuildMcv2Natives : DefaultTask() {
 
     @TaskAction
     fun build() {
-        val versionOutput = ByteArrayOutputStream()
-        processes.exec {
-            commandLine(zigExecutable.get().asFile, "version")
-            standardOutput = versionOutput
-        }.assertNormalExitValue()
-        val actualVersion = versionOutput.toString(Charsets.UTF_8).trim()
-        if (actualVersion != zigVersion.get()) {
-            throw GradleException("MCV2 requires Zig ${zigVersion.get()}, but ${zigExecutable.get().asFile} is $actualVersion")
-        }
+        ToolVersions.verify(processes, zigExecutable.get().asFile, "zig", zigVersion.get(), prefix = "", argument = "version")
         val task = this
         workers.noIsolation().submit(Work::class.java) {
             zigExecutable.set(task.zigExecutable)
@@ -214,7 +205,7 @@ abstract class BuildMcv2Natives : DefaultTask() {
                 commandLine(listOf(parameters.zigExecutable.get().asFile.absolutePath) + arguments)
                 environment("SOURCE_DATE_EPOCH", "0")
                 environment("ZIG_GLOBAL_CACHE_DIR", parameters.cacheDirectory.get().asFile.absolutePath)
-            }.assertNormalExitValue()
+            }
         }
 
         private fun writeManifest(manifest: File, root: File, files: List<File>) {

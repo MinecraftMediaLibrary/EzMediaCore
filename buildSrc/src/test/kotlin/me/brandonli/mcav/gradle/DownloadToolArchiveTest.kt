@@ -95,6 +95,17 @@ class DownloadToolArchiveTest {
     }
 
     @Test
+    fun aVerifiedArchiveOfAnotherFormatIsNotUnpacked() {
+        val task = zippedTool()
+        val archive = directory.resolve("tool.7z").toFile()
+        directory.resolve("tool.zip").toFile().copyTo(archive)
+        task.archiveUrl.set(archive.toURI().toString())
+        val failure = assertThrows(GradleException::class.java) { task.install() }
+        assertEquals("Unsupported tool archive format: ${task.archiveUrl.get()} (expected .zip, .tar.gz or .tar.xz)", failure.message)
+        assertFalse(directory.resolve("installed").toFile().exists())
+    }
+
+    @Test
     fun extractsGzipAndXzArchivesWithoutAnExternalUnpacker() {
         val archives = mapOf(
             "tar.gz" to "H4sIAAAAAAACA+3NQQqCQAAF0Fl3Cm/gWInn0ZpAkAQbo+M3tQnaF0Hvbf7nb36e56kexnOdSwmfEYuubZ9ZvGeM2/2rP/Ym7romVDF8wXrJ/VLuw3+6pmU8jelYpVs6rLkfprQJAAAAAAAAAAAA/Lw7jjgM0wAoAAA=",

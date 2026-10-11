@@ -18,7 +18,6 @@
 
 package me.brandonli.mcav.gradle
 
-import java.io.File
 import java.io.OutputStream
 import org.gradle.api.Action
 import org.gradle.process.ExecOperations
@@ -36,7 +35,7 @@ class RecordedProcesses(private val versionOutput: String, private val onCommand
 
     val environments = mutableListOf<Map<String, Any?>>()
 
-    val workingDirectories = mutableListOf<File?>()
+    val workingDirectories = mutableListOf<Any?>()
 
     val operations: ExecOperations = mock(ExecOperations::class.java)
 
@@ -56,10 +55,12 @@ class RecordedProcesses(private val versionOutput: String, private val onCommand
                     else -> environment[call.rawArguments[0] as String] = call.rawArguments[1]
                 }
             }
-            commands += command
-            environments += environment
-            workingDirectories += calls.singleOrNull { it.method.name == "workingDir" }?.rawArguments?.get(0) as File?
-            if (command.last() == "--version") {
+            synchronized(this) {
+                commands += command
+                environments += environment
+                workingDirectories += calls.singleOrNull { it.method.name == "workingDir" }?.rawArguments?.get(0)
+            }
+            if (command.last() == "--version" || command.last() == "version") {
                 (calls.single { it.method.name == "setStandardOutput" }.rawArguments[0] as OutputStream).write(versionOutput.toByteArray())
             }
             onCommand(command)

@@ -32,7 +32,7 @@ val testTask = tasks.named<Test>("test") {
 
 val coverageLint = tasks.register<CoverageLintTask>("coverageLint") {
     group = "verification"
-    description = "Runs the tests and reports every line and branch of production code that no test covers."
+    description = "Runs the tests and reports every line and branch of production code that no test covers"
     dependsOn(testTask, jacocoReport)
     report.from(layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml"))
     sourceDirectory = layout.projectDirectory.dir("src/main/java")

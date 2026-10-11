@@ -70,4 +70,17 @@ class JavaLintTaskTest {
             assertFalse(task.report.get().asFile.exists())
         }
     }
+
+    @Test
+    fun aPublishedNameStaysWhileTheOtherNamesFail() {
+        val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val task = project.tasks.register("variables", VariableNamesTask::class.java).get()
+        val source = directory.resolve("Example.java").toFile()
+        source.writeText("package me.example;\nfinal class Example { int x; int y; }\n")
+        task.sources.from(source)
+        task.report.set(directory.resolve("variables.txt").toFile())
+        task.publishedNames.set(setOf("me.example.Example#x"))
+        val failure = assertThrows(GradleException::class.java) { task.check() }
+        assertEquals("1 undescriptive variable names", failure.message)
+    }
 }

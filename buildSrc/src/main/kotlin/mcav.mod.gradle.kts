@@ -68,16 +68,16 @@ tasks.jar {
 }
 
 val fabricJar = tasks.register<Jar>("fabricJar") {
+    group = "build"
     description = "Assembles the mod for Fabric"
-    group = BasePlugin.BUILD_GROUP
     archiveClassifier = "fabric"
     from(sourceSets.main.map { it.output })
     exclude("**/NeoForge*.class", "META-INF/neoforge.mods.toml")
 }
 
 val neoforgeJar = tasks.register<Jar>("neoforgeJar") {
+    group = "build"
     description = "Assembles the mod for NeoForge"
-    group = BasePlugin.BUILD_GROUP
     archiveClassifier = "neoforge"
     from(sourceSets.main.map { it.output })
     exclude("**/Fabric*.class", "fabric.mod.json")

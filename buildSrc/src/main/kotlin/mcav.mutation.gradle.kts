@@ -16,7 +16,7 @@ pitest {
     timeoutConstInMillis = 4000
     outputFormats = setOf("HTML", "XML")
     timestampedReports = false
-    jvmArgs = provider { TestRuntimeProfile.forMutation(tasks.getByName<Test>("test")) }
+    jvmArgs = provider { TestRuntimeProfile.forMutation(tasks.test.get()) }
     val testJavaHome = providers.gradleProperty("mcav.testJavaHome")
     if (testJavaHome.isPresent) {
         jvmPath = file(javaExecutable(testJavaHome.get()))

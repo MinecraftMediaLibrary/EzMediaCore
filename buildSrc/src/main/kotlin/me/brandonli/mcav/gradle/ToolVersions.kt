@@ -24,14 +24,21 @@ import org.gradle.process.ExecOperations
 
 object ToolVersions {
 
-    fun verify(processes: ExecOperations, executable: Any, tool: String, expected: String, prefix: String = tool) {
+    fun verify(
+        processes: ExecOperations,
+        executable: Any,
+        tool: String,
+        expected: String,
+        prefix: String = "$tool ",
+        argument: String = "--version"
+    ) {
         val output = ByteArrayOutputStream()
         processes.exec {
-            commandLine(executable, "--version")
+            commandLine(executable, argument)
             standardOutput = output
         }
         val reported = output.toString(Charsets.UTF_8).trim()
-        val actual = Regex("(?:^|\\s)${Regex.escape(prefix)} (\\S+)").find(reported)?.groupValues?.get(1)
+        val actual = Regex("(?:^|\\s)${Regex.escape(prefix)}(\\S+)").find(reported)?.groupValues?.get(1)
         if (actual != expected) {
             throw GradleException("$executable must be $tool $expected, but it is $reported")
         }

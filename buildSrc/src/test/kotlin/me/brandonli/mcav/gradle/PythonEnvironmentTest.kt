@@ -58,6 +58,7 @@ class PythonEnvironmentTest {
         )
         val uvVariables = uvEnvironment(installation, directory.resolve("uv-cache").toFile())
         assertEquals(listOf(emptyMap(), uvVariables, uvVariables, uvVariables), processes.environments)
+        assertEquals(virtualEnvironment.resolve("bin/clang-format"), task.executable("clang-format").get().asFile)
     }
 
     @Test
@@ -68,7 +69,7 @@ class PythonEnvironmentTest {
         val failure = assertThrows(GradleException::class.java) { task.install() }
         assertEquals(
             "${directory.resolve("requirements.lock")} does not pin numpy==2.5.3, pytest==9.1.1 of gradle/libs.versions.toml; " +
-                "run ./gradlew :mcav-bukkit:lockPythonRequirements",
+                "run ./gradlew :lockPythonRequirements",
             failure.message
         )
         assertEquals(emptyList<List<String>>(), processes.commands)
@@ -84,8 +85,7 @@ class PythonEnvironmentTest {
         task.pythonVersion.set("3.13.16")
         task.requirements.set(requirements)
         task.versions.set(mapOf("numpy" to "2.5.3", "pytest" to "9.1.1"))
-        task.lockTask.set(":mcav-bukkit:lockPythonRequirements")
-        task.pythonPath.set("bin/python")
+        task.lockTask.set(":lockPythonRequirements")
         task.installationDirectory.set(directory.resolve("python").toFile())
         task.cacheDirectory.set(directory.resolve("uv-cache").toFile())
         return task

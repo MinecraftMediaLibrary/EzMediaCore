@@ -43,7 +43,7 @@ and must stay free of warnings. The coverage, property, fuzz and PIT rows below 
 | `./gradlew jcstressTest` | Runs the concurrency tests of `mcav-jcstress` on jcstress. |
 | `./gradlew :mcav-docs:build` | Builds only the documentation, into `mcav-docs/build/html/index.html`. |
 | `./gradlew spotlessApply` | Formats the sources; run before building after editing code. |
-| `./gradlew spotlessRepositoryCheck` | Checks whitespace in the repository text files, including the version catalog, Zig checksums and Python locks. |
+| `./gradlew spotlessRepositoryCheck` | Checks whitespace in the repository text files, including the version catalog, the tool checksums and the Python lock. |
 | `-Pmcav.testJavaHome=<path to a Java 25 JDK>` | Runs the tests on another JDK, for machines whose JDK cannot load the bundled OpenCV natives. |
 | `./gradlew coverageLint` | Prints every line and branch no test covers, as `file:line`. |
 | `-Pmcav.coverage=false` | Turns off the coverage lint, which `check`, and so `build`, enforces by default; any other value keeps it on. |
@@ -51,13 +51,13 @@ and must stay free of warnings. The coverage, property, fuzz and PIT rows below 
 | `-Pmcav.syncMeasurement=true` | Also measures how far the sound of a virtual machine drifts from its picture, with one JVM per test task and one test task at a time; run it on a quiet machine. |
 | `./gradlew :<module>:pitest` | Runs [PIT](https://pitest.org/) mutation testing on one module, writing its report to `build/reports/pitest`. |
 | `./gradlew :mcav-bukkit:buildMcv2Natives` | Builds the six MCV2 native libraries with Zig 0.16.0, which Gradle downloads and checksum-verifies, on a Gradle worker, so the module's tasks that do not need the libraries run meanwhile; it compiles as many objects at once as Gradle has workers. Resource processing runs this automatically; unchanged inputs are up to date. |
-| `./gradlew :mcav-bukkit:formatMcv2Natives` | Formats the native sources with clang-format 18.1.8 from `mcav-bukkit/requirements.lock`, checking its version first; `CLANG_FORMAT=/path/to/clang-format` names an installed one. `build` runs `checkMcv2NativesFormat`, which only checks the format. |
+| `./gradlew :mcav-bukkit:formatMcv2Natives` | Formats the native sources with clang-format 18.1.8 from `requirements.lock`, checking its version first; `CLANG_FORMAT=/path/to/clang-format` names an installed one. `build` runs `checkMcv2NativesFormat`, which only checks the format. |
 | `./gradlew :mcav-bukkit:pythonTest` | Runs the Python codec tests with pytest: the test files in parallel processes, then the timing tests alone. `check` runs it. |
-| `./gradlew lockPythonRequirements` | Writes `mcav-docs/requirements.lock` and `mcav-bukkit/requirements.lock` again from the Python versions of the catalog. |
+| `./gradlew lockPythonRequirements` | Writes `requirements.lock` again from the Python versions of the catalog. |
 
 The downloaded Zig compiler is cached in `mcav-bukkit/build/tools/zig/0.16.0`. uv 0.12.23 is downloaded into
-`build/tools/uv/0.12.23` of `mcav-docs` and `mcav-bukkit` and installs Python 3.13.16 and each module's locked
-packages into its `build/python`.
+`build/tools/uv/0.12.23` and installs Python 3.13.16 and the locked packages into `build/tools/python/3.13.16`, the one
+environment of the documentation, the Python codec tests and clang-format.
 
 [CONTRIBUTING.md](https://github.com/PulseBeat02/mcav/blob/master/CONTRIBUTING.md) describes the tests, the coverage
 lint, the property, fuzz and concurrency tests, mutation testing and the end-to-end test of the plugin in more detail.

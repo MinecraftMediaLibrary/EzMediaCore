@@ -1660,7 +1660,7 @@ MCV2's tools live in mcav-bukkit's test sources. The independent Python implemen
 `mcav-bukkit/src/test/python/mcv2_reference.py`; it implements the format, serializer, decoder and six-bit transport
 without calling Java. All Python tool commands use `mcav-bukkit/src/test/python/mcv2_tools.py` followed by a
 subcommand. Gradle installs Python 3.13.16 with numpy 2.5.3, Pillow 12.3.0, moderngl 5.12.0, matplotlib 3.11.2,
-pytest and clang-format 18.1.8 from `mcav-bukkit/requirements.lock` into `mcav-bukkit/build/python/venv`.
+pytest and clang-format 18.1.8 from `requirements.lock` into `build/tools/python/3.13.16/venv`.
 `./gradlew build` runs the Python unit tests on it and checks the format of the C++ sources, and
 `./gradlew :mcav-bukkit:formatMcv2Natives` formats them. moderngl 5.12.0, which only `shader_check`, `shader_timing`
 and `strip_fit_check` need, publishes no package for ARM64 Linux or Windows on ARM64, so the lock leaves it out there.

@@ -4,6 +4,7 @@ import java.io.File
 import java.nio.file.Path
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -77,6 +78,32 @@ class ModuleClassesTest {
         assertEquals(
             listOf("me/brandonli/mcav/MCAV", "me/brandonli/mcav/bukkit/media/mcv2/Mcv2PackServer"),
             ModuleClasses.required(listOf(plugin, folder.resolve("absent").toFile()), modules).toList()
+        )
+    }
+
+    @Test
+    fun theTaskWritesTheRequiredClassesOneALineIntoItsResource() {
+        val plugin = folder.resolve("plugin").toFile()
+        File(plugin, "me/brandonli/mcav/plugin").mkdirs()
+        File(plugin, "me/brandonli/mcav/plugin/MCAVSandbox.class").writeBytes(
+            classBytes(
+                "me/brandonli/mcav/plugin/MCAVSandbox",
+                "me/brandonli/mcav/MCAV",
+                "me/brandonli/mcav/bukkit/media/mcv2/Mcv2PackServer"
+            )
+        )
+        val project = ProjectBuilder.builder().withProjectDir(folder.resolve("project").toFile()).build()
+        val task = project.tasks.register("requiredModuleClasses", RequiredModuleClassesTask::class.java).get()
+        task.pluginClasses.from(plugin)
+        task.modules.from(
+            jar("mcav-common.jar", "me/brandonli/mcav/MCAV"),
+            jar("mcav-bukkit.jar", "me/brandonli/mcav/bukkit/media/mcv2/Mcv2PackServer")
+        )
+        task.output.set(folder.resolve("output").toFile())
+        task.list()
+        assertEquals(
+            "me/brandonli/mcav/MCAV\nme/brandonli/mcav/bukkit/media/mcv2/Mcv2PackServer\n",
+            folder.resolve("output/${RequiredModuleClassesTask.RESOURCE}").toFile().readText()
         )
     }
 }

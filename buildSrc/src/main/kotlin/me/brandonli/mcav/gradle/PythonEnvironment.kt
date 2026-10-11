@@ -23,9 +23,11 @@ import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
@@ -70,9 +72,6 @@ abstract class PythonEnvironment : DefaultTask() {
     @get:Internal
     abstract val lockTask: Property<String>
 
-    @get:Input
-    abstract val pythonPath: Property<String>
-
     @get:OutputDirectory
     abstract val installationDirectory: DirectoryProperty
 
@@ -81,6 +80,8 @@ abstract class PythonEnvironment : DefaultTask() {
 
     @get:Inject
     protected abstract val processes: ExecOperations
+
+    fun executable(name: String): Provider<RegularFile> = installationDirectory.file("venv/" + venvExecutable(name))
 
     @TaskAction
     fun install() {
@@ -100,7 +101,7 @@ abstract class PythonEnvironment : DefaultTask() {
         listOf(
             listOf("python", "install", python, "--no-bin", "--no-registry"),
             listOf("venv", "--clear", "--no-project", "--no-python-downloads", "--python", python, virtualEnvironment),
-            listOf("pip", "sync", "--python", virtualEnvironment.resolve(pythonPath.get()), "--require-hashes",
+            listOf("pip", "sync", "--python", virtualEnvironment.resolve(venvExecutable("python")), "--require-hashes",
                 "--only-binary", ":all:", "--default-index", "https://pypi.org/simple", lock)
         ).forEach { arguments ->
             processes.exec {

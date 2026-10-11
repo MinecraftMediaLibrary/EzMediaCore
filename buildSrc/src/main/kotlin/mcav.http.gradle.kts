@@ -10,7 +10,7 @@ val npmPath = npm.parentFile.absolutePath + File.pathSeparator + System.getenv("
 
 val npmProjectInstall = tasks.register<Exec>("npmProjectInstall") {
     group = "build"
-    description = "Install npm dependencies for the website"
+    description = "Installs the npm dependencies of the website"
     dependsOn("nodeSetup")
     workingDir = file("mcav-website")
     executable = npm.absolutePath
@@ -23,7 +23,7 @@ val npmProjectInstall = tasks.register<Exec>("npmProjectInstall") {
 
 val buildWebsite = tasks.register<Exec>("buildWebsite") {
     group = "build"
-    description = "Build the Next.js website"
+    description = "Builds the Next.js website"
     dependsOn(npmProjectInstall)
     workingDir = file("mcav-website")
     executable = npm.absolutePath
@@ -44,7 +44,7 @@ val buildWebsite = tasks.register<Exec>("buildWebsite") {
 
 val testWebsite = tasks.register<Exec>("testWebsite") {
     group = "verification"
-    description = "Run the tests of the website"
+    description = "Runs the tests of the website"
     dependsOn("nodeSetup")
     workingDir = file("mcav-website")
     executable = npm.absolutePath

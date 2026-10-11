@@ -58,8 +58,8 @@ tasks.test {
 }
 
 val propertyTest = tasks.register<Test>("propertyTest") {
-    description = "Runs the jqwik property tests of this module"
     group = "verification"
+    description = "Runs the jqwik property tests of this module"
     testClassesDirs = testSourceSet.output.classesDirs
     classpath = testSourceSet.runtimeClasspath
     useJUnitPlatform {
@@ -69,8 +69,8 @@ val propertyTest = tasks.register<Test>("propertyTest") {
 }
 
 val fuzzTest = tasks.register<Test>("fuzzTest") {
-    description = "Replays the committed fuzz inputs of this module, and fuzzes every fuzz test with -Pfuzz.seconds=<n>"
     group = "verification"
+    description = "Replays the committed fuzz inputs of this module, and fuzzes every fuzz test with -Pfuzz.seconds=<n>"
     testClassesDirs = testSourceSet.output.classesDirs
     classpath = testSourceSet.runtimeClasspath
     useJUnitPlatform {

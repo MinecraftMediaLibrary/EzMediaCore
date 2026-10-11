@@ -46,7 +46,7 @@ configurations.matching { it.name.endsWith("Classpath") }.configureEach {
     }
 }
 
-val nativeResources = configurations.create("mcv2NativeResources") {
+val nativeResources = configurations.register("mcv2NativeResources") {
     isCanBeConsumed = false
     isCanBeResolved = true
 }
@@ -61,15 +61,18 @@ tasks.assemble {
     dependsOn(tasks.shadowJar)
 }
 
-val requiredModuleClasses = tasks.register<RequiredModuleClassesTask>("requiredModuleClasses") {
-    description = "Lists the classes of the downloaded modules that the plugin uses, for its loader to check them"
-    val downloaded = configurations.runtimeDownload.get().dependencies
+val downloadedModules = configurations.runtimeDownload.map { configuration ->
+    configuration.dependencies
         .filter { it.group == rootProject.group.toString() && rootProject.findProject(":${it.name}") != null }
         .map { ":${it.name}" }
-        .toSet()
+}
+val requiredModuleClasses = tasks.register<RequiredModuleClassesTask>("requiredModuleClasses") {
+    group = "build"
+    description = "Lists the classes of the downloaded modules that the plugin uses, for its loader to check them"
     pluginClasses.from(sourceSets.main.map { it.output.classesDirs })
     modules.from(
         configurations.compileClasspath.map { classpath ->
+            val downloaded = downloadedModules.get()
             classpath.incoming.artifactView {
                 componentFilter { it is ProjectComponentIdentifier && it.projectPath in downloaded }
             }.files
@@ -120,9 +123,7 @@ if (endToEnd) {
     repositories.remove(repository)
     repositories.addFirst(repository)
     tasks.named<WriteDependencySet>("writeDependencies") {
-        val downloaded = configurations.runtimeDownload.get().dependencies
-            .filter { it.group == rootProject.group.toString() && rootProject.findProject(":${it.name}") != null }
-        dependsOn(downloaded.map { ":${it.name}:publishMavenPublicationToEndToEndRepository" })
+        dependsOn(downloadedModules.map { modules -> modules.map { "$it:publishMavenPublicationToEndToEndRepository" } })
         val publicRepositories = repositories.withType<MavenArtifactRepository>()
             .filter { it.url.scheme == "http" || it.url.scheme == "https" }
             .map { it.url.toString() }
@@ -140,8 +141,8 @@ dependencies {
 }
 
 tasks.register<Test>("e2eTest") {
-    description = "Runs the plugin on a real headless Paper server; needs the internet, -Pmcav.e2e=true and -Pmcav.acceptMinecraftEula=true."
     group = "verification"
+    description = "Runs the plugin on a real headless Paper server; needs the internet, -Pmcav.e2e=true and -Pmcav.acceptMinecraftEula=true"
     testClassesDirs = e2eTestSourceSet.output.classesDirs
     classpath = e2eTestSourceSet.runtimeClasspath
     val pluginJar = tasks.shadowJar.flatMap { it.archiveFile }

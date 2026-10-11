@@ -19,9 +19,7 @@
 package me.brandonli.mcav.gradle
 
 import java.io.File
-import java.io.OutputStream
 import java.nio.file.Path
-import java.util.Collections
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -29,8 +27,6 @@ import me.brandonli.mcav.gradle.BuildMcv2Natives.Work.Parameters
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.process.ExecOperations
-import org.gradle.process.ExecResult
-import org.gradle.process.ExecSpec
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.workers.WorkQueue
 import org.gradle.workers.WorkerExecutor
@@ -44,8 +40,6 @@ import org.junit.jupiter.api.io.TempDir
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.mockingDetails
-import org.mockito.Mockito.RETURNS_SELF
 import org.mockito.Mockito.`when`
 
 class BuildMcv2NativesTest {
@@ -64,7 +58,9 @@ class BuildMcv2NativesTest {
         override fun getParameters() = recordedParameters
     }
 
-    private val commands = Collections.synchronizedList(mutableListOf<List<String>>())
+    private lateinit var processes: RecordedProcesses
+
+    private val commands get() = processes.commands.map { it.drop(1) }
 
     private val submitted = mutableListOf<RecordingWork>()
 
@@ -103,6 +99,7 @@ class BuildMcv2NativesTest {
             assertEquals(source.startsWith("level_sve"), "-mcpu=baseline+sve" in command)
             assertEquals(command[2].startsWith("x86_64") && "macos" !in command[2], "-mbranches-within-32B-boundaries" in command)
         }
+        assertTrue(processes.environments.drop(1).all { it["SOURCE_DATE_EPOCH"] == "0" })
         val natives = task.outputDirectory.get().asFile.resolve("mcav/mcv2/natives")
         val expectedPaths = setOf("linux-x86_64/libmcv2kernels.so", "linux-aarch64/libmcv2kernels.so",
             "macos-x86_64/libmcv2kernels.dylib", "macos-aarch64/libmcv2kernels.dylib",
@@ -150,10 +147,10 @@ class BuildMcv2NativesTest {
     fun wrongCompilerVersionFailsBeforeReplacingAnyOutput() {
         val task = compiler("wrong-version")
         val failure = assertThrows(GradleException::class.java) { task.build() }
-        assertTrue(failure.message!!.contains("MCV2 requires Zig test-version"))
-        assertTrue(failure.message!!.endsWith("is wrong-version"))
+        val zig = directory.resolve("zig").toString()
+        assertEquals("$zig must be zig test-version, but it is wrong-version", failure.message)
         assertTrue(task.outputDirectory.get().file("stale.dll").asFile.exists())
-        assertEquals(listOf(listOf("version")), commands)
+        assertEquals(listOf(listOf(zig, "version")), processes.commands)
         assertTrue(submitted.isEmpty())
     }
 
@@ -174,21 +171,9 @@ class BuildMcv2NativesTest {
         task.outputDirectory.file("stale.dll").get().asFile.writeText("stale")
         task.cacheDirectory.set(directory.resolve("cache").toFile())
         task.processCount.set(processCount)
-        val operations = mock(ExecOperations::class.java)
-        doAnswer { invocation ->
-            val specification = mock(ExecSpec::class.java, RETURNS_SELF)
-            invocation.getArgument<Action<ExecSpec>>(0).execute(specification)
-            val calls = mockingDetails(specification).invocations
-            val command = calls.single { it.method.name == "commandLine" }.rawArguments.single()
-            val arguments = when (command) {
-                is List<*> -> command.map { it.toString() }.drop(1)
-                else -> (command as Array<*>).map { it.toString() }.drop(1)
-            }
-            commands.add(arguments)
-            if (arguments == listOf("version")) {
-                (calls.single { it.method.name == "setStandardOutput" }.rawArguments[0] as OutputStream).write(version.toByteArray())
-            } else {
-                assertTrue(calls.any { it.method.name == "environment" && it.rawArguments.toList() == listOf("SOURCE_DATE_EPOCH", "0") })
+        processes = RecordedProcesses("$version\n") { command ->
+            val arguments = command.drop(1)
+            if (arguments != listOf("version")) {
                 if (arguments.first() == "c++") {
                     onCompile(arguments)
                 }
@@ -196,15 +181,14 @@ class BuildMcv2NativesTest {
                 output.writeText("abc")
                 if (output.extension == "dll") output.resolveSibling("mcv2kernels.lib").writeText("unused")
             }
-            mock(ExecResult::class.java).also { result -> `when`(result.assertNormalExitValue()).thenReturn(result) }
-        }.`when`(operations).exec(any())
-        task.recordedProcesses = operations
+        }
+        task.recordedProcesses = processes.operations
         val queue = mock(WorkQueue::class.java)
         doAnswer { invocation ->
             assertEquals(BuildMcv2Natives.Work::class.java, invocation.getArgument<Class<*>>(0))
             val parameters = project.objects.newInstance(Parameters::class.java)
             invocation.getArgument<Action<Parameters>>(1).execute(parameters)
-            submitted.add(RecordingWork(parameters, operations))
+            submitted.add(RecordingWork(parameters, processes.operations))
         }.`when`(queue).submit(any<Class<BuildMcv2Natives.Work>>(), any<Action<Parameters>>())
         val workers = mock(WorkerExecutor::class.java)
         `when`(workers.noIsolation()).thenReturn(queue)

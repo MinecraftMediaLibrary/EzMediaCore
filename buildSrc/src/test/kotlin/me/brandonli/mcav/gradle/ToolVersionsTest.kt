@@ -19,54 +19,48 @@
 package me.brandonli.mcav.gradle
 
 import java.io.File
-import java.io.OutputStream
-import org.gradle.api.Action
 import org.gradle.api.GradleException
-import org.gradle.process.ExecOperations
-import org.gradle.process.ExecResult
-import org.gradle.process.ExecSpec
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.doAnswer
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.mockingDetails
-import org.mockito.Mockito.RETURNS_SELF
 
 class ToolVersionsTest {
 
     @Test
     fun uvAcceptsTheExactVersionIncludingItsBuildMetadataAndRejectsOtherVersions() {
-        ToolVersions.verify(processes("uv 0.12.23 (build 2026-10-01)\n"), File("uv"), "uv", "0.12.23")
+        val processes = RecordedProcesses("uv 0.12.23 (build 2026-10-01)\n")
+        ToolVersions.verify(processes.operations, File("uv"), "uv", "0.12.23")
+        assertEquals(listOf(listOf("uv", "--version")), processes.commands)
         val failure = assertThrows(GradleException::class.java) {
-            ToolVersions.verify(processes("uv 0.12.22\n"), File("uv"), "uv", "0.12.23")
+            ToolVersions.verify(RecordedProcesses("uv 0.12.22\n").operations, File("uv"), "uv", "0.12.23")
         }
         assertEquals("uv must be uv 0.12.23, but it is uv 0.12.22", failure.message)
     }
 
     @Test
     fun clangFormatAcceptsTheExactVersionWithAProviderPrefixAndRejectsOtherToolsOrVersions() {
-        ToolVersions.verify(processes("Ubuntu clang-format version 18.1.8 (distribution)\n"), "clang-format", "clang-format", "18.1.8", "clang-format version")
+        val prefix = "clang-format version "
+        val processes = RecordedProcesses("Ubuntu clang-format version 18.1.8 (distribution)\n")
+        ToolVersions.verify(processes.operations, "clang-format", "clang-format", "18.1.8", prefix)
+        assertEquals(listOf(listOf("clang-format", "--version")), processes.commands)
         listOf("clang-format version 18.1.7", "clang-format version 18.1.80", "clang version 18.1.8").forEach { reported ->
             val failure = assertThrows(GradleException::class.java) {
-                ToolVersions.verify(processes(reported), "clang-format", "clang-format", "18.1.8", "clang-format version")
+                ToolVersions.verify(RecordedProcesses(reported).operations, "clang-format", "clang-format", "18.1.8", prefix)
             }
             assertEquals("clang-format must be clang-format 18.1.8, but it is $reported", failure.message)
         }
     }
 
-    private fun processes(output: String): ExecOperations {
-        val processes = mock(ExecOperations::class.java)
-        doAnswer { invocation ->
-            val specification = mock(ExecSpec::class.java, RETURNS_SELF)
-            invocation.getArgument<Action<ExecSpec>>(0).execute(specification)
-            val calls = mockingDetails(specification).invocations
-            val command = calls.single { it.method.name == "commandLine" }.rawArguments[0] as Array<*>
-            assertEquals("--version", command[1])
-            (calls.single { it.method.name == "setStandardOutput" }.rawArguments[0] as OutputStream).write(output.toByteArray())
-            mock(ExecResult::class.java)
-        }.`when`(processes).exec(any())
-        return processes
+    @Test
+    fun zigAcceptsItsBareVersionAndRejectsOtherVersions() {
+        val processes = RecordedProcesses("0.16.0\n")
+        ToolVersions.verify(processes.operations, File("zig"), "zig", "0.16.0", prefix = "", argument = "version")
+        assertEquals(listOf(listOf("zig", "version")), processes.commands)
+        listOf("0.15.2", "0.16.0-dev.1+abc").forEach { reported ->
+            val failure = assertThrows(GradleException::class.java) {
+                ToolVersions.verify(RecordedProcesses(reported).operations, File("zig"), "zig", "0.16.0", prefix = "", argument = "version")
+            }
+            assertEquals("zig must be zig 0.16.0, but it is $reported", failure.message)
+        }
     }
 }

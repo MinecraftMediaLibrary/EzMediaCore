@@ -133,10 +133,10 @@ through foojay when the machine has none, and the Node.js used by the formatter 
 It downloads Zig 0.16.0 from ziglang.org, verifies its pinned SHA-256, and compiles MCV2's six native libraries from
 `mcav-bukkit/src/main/native/mcv2`. A failed download or compilation fails the build. The compiler is cached in
 `mcav-bukkit/build/tools/zig/0.16.0`; `ZIG` can name an installed Zig 0.16.0. Gradle also downloads checksum-verified
-uv 0.12.23 into `build/tools/uv/0.12.23` of `mcav-docs` and `mcav-bukkit`, and uv installs Python 3.13.16 and the
-hash-locked packages of each module's `requirements.lock` into its `build/python`; `UV` can name an installed uv
-0.12.23. These tools need no separate installation. `build` writes the documentation to `mcav-docs/build/html`;
-`:mcav-docs:build` builds only the documentation. Open `index.html` to read it.
+uv 0.12.23 into `build/tools/uv/0.12.23`, and uv installs Python 3.13.16 and the hash-locked packages of
+`requirements.lock` into `build/tools/python/3.13.16`, the one environment of the documentation, the Python codec tests
+and clang-format; `UV` can name an installed uv 0.12.23. These tools need no separate installation. `build` writes the
+documentation to `mcav-docs/build/html`; `:mcav-docs:build` builds only the documentation. Open `index.html` to read it.
 
 `build` also runs the Python codec tests of `mcav-bukkit/src/test/python` with pytest, in parallel processes, and
 checks with clang-format 18.1.8, from the same lock, that the MCV2 native sources are formatted. To format them, run:

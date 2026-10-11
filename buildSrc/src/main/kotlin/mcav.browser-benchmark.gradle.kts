@@ -37,12 +37,13 @@ dependencies {
 }
 
 tasks.register<JavaExec>("browserBenchmark") {
-    description = "Measures the frame rate and latency of a browser backend: -Pbenchmark.backend=<backend> -Pbenchmark.output=<file>"
     group = "verification"
+    description = "Measures the frame rate and latency of a browser backend: -Pbenchmark.backend=<backend> -Pbenchmark.output=<file>"
     classpath = benchmark.runtimeClasspath
     mainClass = "me.brandonli.mcav.plugin.benchmark.BrowserBenchmark"
     val backend = providers.gradleProperty("benchmark.backend").orElse("")
-    val output = providers.gradleProperty("benchmark.output").orElse(layout.buildDirectory.file("browser-benchmark.md").get().asFile.absolutePath)
+    val output = providers.gradleProperty("benchmark.output")
+        .orElse(layout.buildDirectory.file("browser-benchmark.md").map { it.asFile.absolutePath })
     argumentProviders.add(CommandLineArgumentProvider { listOf(backend.get(), output.get()) })
     javaLauncher = javaLauncher()
     maxHeapSize = "4g"

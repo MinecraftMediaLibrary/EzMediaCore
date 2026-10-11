@@ -50,10 +50,8 @@ spotless {
                     "mcav-docs/**/*.py",
                     "mcav-docs/**/*.txt",
                     "mcav-docs/*.gradle.kts",
-                    "buildSrc/src/main/resources/uv-checksums.properties",
-                    "buildSrc/src/main/resources/zig-checksums.properties",
-                    "mcav-bukkit/requirements.lock",
-                    "mcav-docs/requirements.lock",
+                    "buildSrc/src/main/resources/tool-checksums.properties",
+                    "requirements.lock",
                     ".github/**/*.md",
                     ".github/**/*.yml",
                     ".github/**/*.json",
@@ -73,8 +71,8 @@ spotless {
 }
 
 tasks.register("publishLibraries") {
-    description = "Publishes the library modules to the snapshot repository and to build/e2e-repository"
     group = "publishing"
+    description = "Publishes the library modules to the snapshot repository and to build/e2e-repository"
     dependsOn(
         listOf(
             "mcav-browser",

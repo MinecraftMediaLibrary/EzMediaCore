@@ -31,6 +31,7 @@ val catalogVersions = layout.buildDirectory.dir("generated/sources/catalog/kotli
 val jacocoVersion = libs.versions.jacoco.get()
 val repositoryHeader = layout.projectDirectory.file("../HEADER")
 val generateCatalogVersions = tasks.register("generateCatalogVersions") {
+    group = "build"
     description = "Writes the catalog versions the plugins of this build need outside the main build"
     inputs.property("jacoco", jacocoVersion)
     inputs.file(repositoryHeader)

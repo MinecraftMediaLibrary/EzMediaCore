@@ -8,10 +8,12 @@ plugins {
     id("com.diffplug.spotless")
 }
 
+val pinnedNodeVersion = libs.versionOf("node")
+
 node {
     download = true
-    version = libs.versionOf("node")
-    workDir = layout.buildDirectory.dir("nodejs")
+    version = pinnedNodeVersion
+    workDir = layout.buildDirectory.dir("tools/node/$pinnedNodeVersion")
 }
 
 val nodeExecutable = node.resolvedNodeDir.map { it.file(if (isWindows) "node.exe" else "bin/node").asFile }

@@ -1,5 +1,6 @@
 plugins {
     id("mcav.repository")
+    id("mcav.python")
 }
 
 group = "me.brandonli"
