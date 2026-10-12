@@ -26,37 +26,39 @@ plugins {
 
 val node = rootProject.extensions.getByType<NodeExtension>()
 val nodeSetup = rootProject.tasks.named("nodeSetup")
-val npm = node.resolvedNodeDir.get().file(if (isWindows) "npm.cmd" else "bin/npm").asFile
-val npmPath = npm.parentFile.absolutePath + File.pathSeparator + System.getenv("PATH")
+val corepack = node.resolvedNodeDir.get().file(if (isWindows) "corepack.cmd" else "bin/corepack").asFile
+val nodePath = corepack.parentFile.absolutePath + File.pathSeparator + System.getenv("PATH")
 
-val npmProjectInstall = tasks.register<Exec>("npmProjectInstall") {
+val pnpmProjectInstall = tasks.register<Exec>("pnpmProjectInstall") {
     group = "build"
-    description = "Installs the npm dependencies of the website"
+    description = "Installs the pnpm dependencies of the website"
     dependsOn(nodeSetup)
     workingDir = file("mcav-website")
-    executable = npm.absolutePath
-    environment("PATH", npmPath)
-    args("ci")
+    executable = corepack.absolutePath
+    environment("PATH", nodePath)
+    environment("COREPACK_ENABLE_DOWNLOAD_PROMPT", "0")
+    args("pnpm", "install", "--frozen-lockfile")
     inputs.file("mcav-website/package.json")
-    inputs.file("mcav-website/package-lock.json")
-    outputs.file("mcav-website/node_modules/.package-lock.json")
+    inputs.file("mcav-website/pnpm-lock.yaml")
+    outputs.file("mcav-website/node_modules/.modules.yaml")
 }
 
 val buildWebsite = tasks.register<Exec>("buildWebsite") {
     group = "build"
     description = "Builds the Next.js website"
-    dependsOn(npmProjectInstall)
+    dependsOn(pnpmProjectInstall)
     workingDir = file("mcav-website")
-    executable = npm.absolutePath
-    environment("PATH", npmPath)
+    executable = corepack.absolutePath
+    environment("PATH", nodePath)
+    environment("COREPACK_ENABLE_DOWNLOAD_PROMPT", "0")
     environment("NODE_OPTIONS", "--max-old-space-size=4096")
-    args("run", "build")
+    args("pnpm", "run", "build")
     inputs.dir("mcav-website/src")
     inputs.dir("mcav-website/public")
     inputs.file("mcav-website/package.json")
     inputs.file("mcav-website/next.config.ts")
     inputs.file("mcav-website/third-party-notices.mjs")
-    inputs.file("mcav-website/package-lock.json")
+    inputs.file("mcav-website/pnpm-lock.yaml")
     inputs.file("mcav-website/tsconfig.json")
     inputs.file("mcav-website/postcss.config.mjs")
     outputs.dir("mcav-website/out")
@@ -66,11 +68,12 @@ val buildWebsite = tasks.register<Exec>("buildWebsite") {
 val testWebsite = tasks.register<Exec>("testWebsite") {
     group = "verification"
     description = "Runs the tests of the website"
-    dependsOn(nodeSetup)
+    dependsOn(pnpmProjectInstall)
     workingDir = file("mcav-website")
-    executable = npm.absolutePath
-    environment("PATH", npmPath)
-    args("test")
+    executable = corepack.absolutePath
+    environment("PATH", nodePath)
+    environment("COREPACK_ENABLE_DOWNLOAD_PROMPT", "0")
+    args("pnpm", "test")
     inputs.dir("mcav-website/src")
     inputs.dir("mcav-website/test")
     inputs.file("mcav-website/package.json")

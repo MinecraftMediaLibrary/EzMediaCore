@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 const LICENSE_FILE = /^(licen[cs]e|copying|notice)([.-].*)?$/i;
 
@@ -27,15 +27,43 @@ if (!output) {
     process.exit(2);
 }
 
-const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
-const sections = [];
-for (const [path, entry] of Object.entries(lock.packages)) {
-    const shipped = path !== '' && !entry.dev && !entry.devOptional && !entry.optional;
-    if (!shipped || !existsSync(join(path, 'package.json'))) {
+function resolvePackage(name, fromDir) {
+    for (let dir = fromDir; ; dir = dirname(dir)) {
+        const candidate = join(dir, 'node_modules', name);
+        if (existsSync(join(candidate, 'package.json'))) {
+            return realpathSync(candidate);
+        }
+        if (dirname(dir) === dir) {
+            return null;
+        }
+    }
+}
+
+function requiredDependencies(manifest) {
+    const optionalPeers = manifest.peerDependenciesMeta ?? {};
+    const peers = Object.keys(manifest.peerDependencies ?? {}).filter((name) => !optionalPeers[name]?.optional);
+    return [...Object.keys(manifest.dependencies ?? {}), ...peers];
+}
+
+const root = JSON.parse(readFileSync('package.json', 'utf8'));
+const shipped = new Map();
+const pending = Object.keys(root.dependencies ?? {}).map((name) => [name, process.cwd()]);
+while (pending.length > 0) {
+    const [name, fromDir] = pending.pop();
+    const path = resolvePackage(name, fromDir);
+    if (path === null || shipped.has(path)) {
         continue;
     }
     const manifest = JSON.parse(readFileSync(join(path, 'package.json'), 'utf8'));
-    const license = entry.license ?? manifest.license ?? 'see the package';
+    shipped.set(path, manifest);
+    for (const dependency of requiredDependencies(manifest)) {
+        pending.push([dependency, path]);
+    }
+}
+
+const sections = [];
+for (const [path, manifest] of shipped) {
+    const license = manifest.license ?? 'see the package';
     const texts = readdirSync(path)
         .filter((file) => LICENSE_FILE.test(file))
         .sort()
