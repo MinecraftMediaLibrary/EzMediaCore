@@ -520,13 +520,14 @@ class HelperSessionTest {
       System.getenv(),
       5_000L
     );
+    final Path parent = this.shortDirectory();
     final Set<ProcessHandle> before = liveDescendants();
     final PlayerException failure = assertThrows(PlayerException.class, () ->
-      HelperSession.open(broken, NATIVES, source, BrowserOptions.DEFAULT, this.listener, this.directory)
+      HelperSession.open(broken, NATIVES, source, BrowserOptions.DEFAULT, this.listener, parent)
     );
     assertTrue(failure.getMessage().startsWith("The browser helper could not be started"), failure.getMessage());
     assertEquals(Set.of(), newSince(before));
-    try (final Stream<Path> left = Files.list(this.directory)) {
+    try (final Stream<Path> left = Files.list(parent)) {
       assertEquals(List.of(), left.toList());
     }
   }
@@ -1014,7 +1015,7 @@ class HelperSessionTest {
     final Path folder = Files.createDirectories(this.directory.resolve("kept").resolve("inner"));
     Files.writeString(folder.resolve("file"), "x");
     final File inner = folder.toFile();
-    assumeTrue(inner.setWritable(false), "the folder can be made read-only");
+    assumeTrue(inner.setWritable(false) && !Files.isWritable(folder), "the folder can be made read-only");
     try {
       HelperSession.deleteFolder(this.directory.resolve("kept"));
       assertTrue(Files.exists(folder.resolve("file")), "a folder that cannot be removed stays");
