@@ -28,6 +28,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -187,6 +188,11 @@ public final class LocalHttpServer implements AutoCloseable {
   public int getRequestCount(final String path) {
     final AtomicInteger count = this.requestCounts.get(path);
     return count == null ? 0 : count.get();
+  }
+
+  public int getTotalRequestCount() {
+    final Collection<AtomicInteger> counts = this.requestCounts.values();
+    return counts.stream().mapToInt(AtomicInteger::get).sum();
   }
 
   /**
