@@ -72,6 +72,8 @@ public final class MatImageBuffer implements ImageBuffer {
   private static final String EMPTY_MAT_MESSAGE = "Mat must not be empty!";
   private static final String BYTE_COUNT_MESSAGE = "Byte count %s must be %s!";
   private static final String PIXEL_COUNT_MESSAGE = "Pixel count %s must be %s!";
+  private static final String UNSUPPORTED_BYTES_MESSAGE = "Bytes are not a supported image format!";
+  private static final String UNSUPPORTED_FILE_MESSAGE = "File %s is not a supported image!";
 
   private Mat mat;
   private @Nullable Mat spare;
@@ -112,9 +114,9 @@ public final class MatImageBuffer implements ImageBuffer {
     // refused before it gets there
     DeclaredImageSize.checkBytes(encoded);
     try (final BytePointer pointer = new BytePointer(encoded); final Mat wrapper = new Mat(pointer)) {
-      final Mat decoded = opencv_imgcodecs.imdecode(wrapper, opencv_imgcodecs.IMREAD_COLOR);
+      final Mat decoded = decodeBytes(wrapper);
       final boolean empty = decoded.empty();
-      Preconditions.checkArgument(!empty, "Bytes are not a supported image format!");
+      Preconditions.checkArgument(!empty, UNSUPPORTED_BYTES_MESSAGE);
       this.mat = toContinuousBgr(decoded);
     }
   }
@@ -160,11 +162,30 @@ public final class MatImageBuffer implements ImageBuffer {
 
   private static Mat readFile(final Path path) {
     DeclaredImageSize.checkFile(path);
-    final String raw = path.toString();
-    final Mat decoded = opencv_imgcodecs.imread(raw, opencv_imgcodecs.IMREAD_COLOR);
+    final Mat decoded = decodeFile(path);
     final boolean empty = decoded.empty();
-    Preconditions.checkArgument(!empty, "File %s is not a supported image!", path);
+    Preconditions.checkArgument(!empty, UNSUPPORTED_FILE_MESSAGE, path);
     return toContinuousBgr(decoded);
+  }
+
+  private static Mat decodeBytes(final Mat encoded) {
+    try {
+      return opencv_imgcodecs.imdecode(encoded, opencv_imgcodecs.IMREAD_COLOR);
+    } catch (final RuntimeException exception) {
+      // OpenCV raises an error for some images instead of returning an empty matrix, such as a side over its own limit
+      throw new IllegalArgumentException(UNSUPPORTED_BYTES_MESSAGE, exception);
+    }
+  }
+
+  private static Mat decodeFile(final Path path) {
+    final String raw = path.toString();
+    try {
+      return opencv_imgcodecs.imread(raw, opencv_imgcodecs.IMREAD_COLOR);
+    } catch (final RuntimeException exception) {
+      // OpenCV raises an error for some images instead of returning an empty matrix, such as a side over its own limit
+      final String message = UNSUPPORTED_FILE_MESSAGE.formatted(path);
+      throw new IllegalArgumentException(message, exception);
+    }
   }
 
   private static FileSource downloadFile(final UriSource source) {

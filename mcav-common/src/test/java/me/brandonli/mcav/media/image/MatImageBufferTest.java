@@ -283,6 +283,25 @@ final class MatImageBufferTest {
     assertEquals("File " + file + " is not a supported image!", fileMessage);
   }
 
+  /**
+   * Found by {@code ImageDecodeFuzzTest}: OpenCV raises an error for a side longer than its own limit of 2^20 pixels,
+   * even when the whole picture is under the pixel limit of mcav, where it returns an empty matrix for other bad images.
+   */
+  @Test
+  void shouldRefuseAnImageWithASideLongerThanOpenCvAllows() throws IOException {
+    final byte[] tooTall = "P4\n16 2000000\n".getBytes(StandardCharsets.US_ASCII);
+    final IllegalArgumentException fromBytes = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.bytes(tooTall));
+    final String bytesMessage = fromBytes.getMessage();
+    assertEquals("Bytes are not a supported image format!", bytesMessage);
+
+    final Path file = this.directory.resolve("too-tall.pbm");
+    Files.write(file, tooTall);
+    final FileSource path = FileSource.path(file);
+    final IllegalArgumentException fromFile = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.path(path));
+    final String fileMessage = fromFile.getMessage();
+    assertEquals("File " + file + " is not a supported image!", fileMessage);
+  }
+
   private static void restoreMaxPixels(final @Nullable String previous) {
     if (previous == null) {
       System.clearProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);

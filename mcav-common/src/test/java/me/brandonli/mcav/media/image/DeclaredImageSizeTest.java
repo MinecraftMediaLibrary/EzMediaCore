@@ -66,6 +66,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 final class DeclaredImageSizeTest {
 
   private static final String SEEDS = "/me/brandonli/mcav/media/image/ImageDecodeFuzzTestInputs/shouldDecodeAnImageOrRefuseTheBytes";
+  private static final String CRASH_PREFIX = "crash-";
 
   @TempDir
   private Path directory;
@@ -284,13 +285,20 @@ final class DeclaredImageSizeTest {
     assertTrue(seeds != null, "the seed folder is on the class path");
     final Path folder = Path.of(seeds.toURI());
     try (final Stream<Path> files = Files.list(folder)) {
-      final List<Path> samples = files.sorted().toList();
+      final Stream<Path> seedFiles = files.filter(DeclaredImageSizeTest::isSeed);
+      final List<Path> samples = seedFiles.sorted().toList();
       final int sampleCount = samples.size();
       assertEquals(10, sampleCount);
       for (final Path sample : samples) {
         assertDeclaresWhatOpenCvDecodes(sample.getFileName().toString(), Files.readAllBytes(sample));
       }
     }
+  }
+
+  private static boolean isSeed(final Path sample) {
+    final Path fileName = sample.getFileName();
+    final String name = fileName.toString();
+    return !name.startsWith(CRASH_PREFIX);
   }
 
   @Test
