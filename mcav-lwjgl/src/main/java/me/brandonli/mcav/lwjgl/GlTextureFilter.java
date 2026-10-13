@@ -44,25 +44,29 @@ import org.lwjgl.opengl.GLCapabilities;
  * from other threads. Stop or detach producers before release so that they cannot stage more frames afterward.
  * The context belongs to the caller; releasing this filter does not close it.
  *
- * <pre><code>
- *   // render thread, context current
- *   final GlTextureFilter texture = new GlTextureFilter();
- *   texture.start();
- *   final VideoAttachableCallback video = player.getVideoAttachableCallback();
- *   video.attach(VideoPipelineStep.of(texture));
- *   while (running) {
- *     texture.upload();
- *     GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getTextureId());
- *     // draw a textured quad
- *   }
- *   texture.release();
- * </code></pre>
+ * {@snippet :
+ * // render thread, context current
+ * final GlTextureFilter texture = new GlTextureFilter();
+ * texture.start();
+ * final VideoAttachableCallback video = player.getVideoAttachableCallback();
+ * final VideoPipelineStep step = VideoPipelineStep.of(texture);
+ * video.attach(step);
+ * while (running) {
+ *   texture.upload();
+ *   final int textureId = texture.getTextureId();
+ *   GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
+ *   // draw a textured quad
+ * }
+ * texture.release();
+ * }
  *
  * <p>Frames are uploaded as {@code GL_BGR}, the pixel layout of the pipeline, so no conversion is needed; the
  * texture uses the {@code GL_RGB8} internal format. The OpenGL state of the caller is left as it was: the bound
  * texture and the unpack settings are restored after every call, and the unpack settings are reset for the upload
  * itself, so a row length or skip set by the caller never distorts a frame. A pixel unpack buffer must not be bound
  * while {@link #upload()} runs.
+ *
+ * @since 1.0.0
  */
 public class GlTextureFilter implements FunctionalVideoFilter {
 
@@ -91,6 +95,8 @@ public class GlTextureFilter implements FunctionalVideoFilter {
 
   /**
    * Constructs a filter that creates its own texture in {@link #start()}.
+   *
+   * @since 1.0.0
    */
   public GlTextureFilter() {
     this.lock = new Object();
@@ -105,6 +111,7 @@ public class GlTextureFilter implements FunctionalVideoFilter {
    *
    * @param textureId the positive name of a texture in the caller's context, created with {@code glGenTextures}
    * @throws IllegalArgumentException if {@code textureId} is zero or negative
+   * @since 1.0.0
    */
   public GlTextureFilter(final int textureId) {
     Preconditions.checkArgument(textureId > 0, "Texture id %s must be positive!", textureId);
@@ -123,6 +130,7 @@ public class GlTextureFilter implements FunctionalVideoFilter {
    * creates a new texture and resets its dimensions to zero.
    *
    * @throws IllegalStateException if no OpenGL context is current on the calling thread
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -158,6 +166,7 @@ public class GlTextureFilter implements FunctionalVideoFilter {
    *
    * @throws IllegalStateException if the filter created a texture and no OpenGL context is current on the calling
    *                               thread
+   * @since 1.0.0
    */
   @Override
   public void release() {
@@ -192,6 +201,7 @@ public class GlTextureFilter implements FunctionalVideoFilter {
    * @param metadata the non-null original video metadata; dimensions are read from {@code samples}
    * @return always false, because the frame is only copied into the staging buffer and never modified
    * @throws NullPointerException if the frame or the metadata is null
+   * @since 1.0.0
    */
   @Override
   public boolean applyFilter(final ImageBuffer samples, final OriginalVideoMetadata metadata) {
@@ -248,6 +258,7 @@ public class GlTextureFilter implements FunctionalVideoFilter {
    * @return true if a new frame was uploaded
    * @throws IllegalStateException if an owned texture has not been created or has been released, or LWJGL
    *                               capabilities are missing on the calling thread
+   * @since 1.0.0
    */
   public boolean upload() {
     Preconditions.checkState(this.textureId != NO_TEXTURE, "The texture was not created; call start() on the render thread first!");
@@ -358,6 +369,7 @@ public class GlTextureFilter implements FunctionalVideoFilter {
    *
    * @return true if a staged frame is waiting at the time of the call; this does not check the texture
    *         or context, and another upload or release can consume that frame
+   * @since 1.0.0
    */
   public boolean hasPendingFrame() {
     synchronized (this.lock) {
@@ -370,6 +382,7 @@ public class GlTextureFilter implements FunctionalVideoFilter {
    *
    * @return the borrowed texture name, or the owned texture name; an owned texture has ID 0 before
    *         {@link #start()} and after {@link #release()}
+   * @since 1.0.0
    */
   public int getTextureId() {
     return this.textureId;
@@ -380,6 +393,7 @@ public class GlTextureFilter implements FunctionalVideoFilter {
    *
    * @return the width in pixels of the last texture storage allocation, or 0 before the first upload
    *         and after recreating an owned texture; release alone leaves this cached value unchanged
+   * @since 1.0.0
    */
   public int getWidth() {
     return this.textureWidth;
@@ -390,6 +404,7 @@ public class GlTextureFilter implements FunctionalVideoFilter {
    *
    * @return the height in pixels of the last texture storage allocation, or 0 before the first upload
    *         and after recreating an owned texture; release alone leaves this cached value unchanged
+   * @since 1.0.0
    */
   public int getHeight() {
     return this.textureHeight;

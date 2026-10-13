@@ -22,6 +22,10 @@ import me.brandonli.mcav.module.MCAVModule;
 /**
  * Registers the OpenGL backend. Install it with {@code MCAV.api().install(LwjglModule.class)}. The OpenGL context
  * itself is created by your application, for example with GLFW or by Minecraft.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class LwjglModule implements MCAVModule {
 
@@ -29,18 +33,24 @@ public final class LwjglModule implements MCAVModule {
 
   /**
    * Constructs the module. The module loader creates it for you.
+   *
+   * @since 1.0.0
    */
   public LwjglModule() {}
 
   /**
    * Starts the module. Nothing is prepared here, because every {@link GlTextureFilter} creates its OpenGL resources
    * on the render thread of your application.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {}
 
   /**
    * Stops the module. Nothing is released here; release every {@link GlTextureFilter} on the render thread instead.
+   *
+   * @since 1.0.0
    */
   @Override
   public void stop() {}
@@ -49,6 +59,7 @@ public final class LwjglModule implements MCAVModule {
    * Returns the name of the module.
    *
    * @return {@code "lwjgl"}
+   * @since 1.0.0
    */
   @Override
   public String getModuleName() {
