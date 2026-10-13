@@ -76,6 +76,30 @@ imports and calls:
 | `DependencyLoader.installVLC()` | `installVlc()` |
 | `DependencyLoader.installYTDLP()` | `installYtdlp()` |
 
+Names that abbreviated a word now spell it out:
+
+| Former name | Current name |
+| --- | --- |
+| `AbstractInstaller.writePathToConfig` | `writePathToConfiguration` |
+| `AbstractVideoPlayerCV.MIN_SPEED` | `MINIMUM_SPEED` |
+| `AbstractVideoPlayerCV.MAX_SPEED` | `MAXIMUM_SPEED` |
+| `AbstractVideoPlayerCV.getPositionMillis()` | `getPositionMilliseconds()` |
+| `AudioResampler.MAX_CHANNELS` | `MAXIMUM_CHANNELS` |
+| `BayerDither.*_MAX` | `*_MAXIMUM`, such as `NORMAL_8X8_MAXIMUM` |
+| `DelayedAudioOutput.MAX_QUEUED_MILLIS` | `MAXIMUM_QUEUED_MILLISECONDS` |
+| `DelayedAudioOutput.SILENCE_MILLIS` | `SILENCE_MILLISECONDS` |
+| `DiffusionKernel.MAX_OFFSET` | `MAXIMUM_OFFSET` |
+| `DiffusionKernel.getMaxOffsetX()` | `getMaximumOffsetX()` |
+| `DiffusionKernel.getMaxOffsetY()` | `getMaximumOffsetY()` |
+| `DirectoryProviderDiscoveryStrategy.MAX_VISITED_DIRECTORIES` | `MAXIMUM_VISITED_DIRECTORIES` |
+| `DirectoryProviderDiscoveryStrategy.PLUGIN_ENV_NAME` | `PLUGIN_ENVIRONMENT_NAME` |
+| `FPSFilter` | `FramesPerSecondFilter` |
+| `IOUtils.MAX_IMAGE_BYTES` | `IoUtils.MAXIMUM_IMAGE_BYTES` |
+| `PixelMapper.MIN_STRENGTH` | `MINIMUM_STRENGTH` |
+| `PixelMapper.MAX_STRENGTH` | `MAXIMUM_STRENGTH` |
+| `VolumeFilter.MAX_VOLUME` | `MAXIMUM_VOLUME` |
+| `WinInstallationStrategy` | `WindowsInstallationStrategy` |
+
 ## Browser players
 
 The browser backend is now embedded Chromium through JCEF, in a helper process. The Selenium and Playwright player
