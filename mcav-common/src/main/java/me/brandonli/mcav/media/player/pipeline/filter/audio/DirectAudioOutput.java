@@ -139,14 +139,14 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
       final SourceDataLine opened = this.lineOpener.open(FORMAT, bufferSize);
       try {
         opened.start();
-      } catch (final RuntimeException | Error failure) {
-        ThrowableUtils.throwIfFatal(failure);
+      } catch (final RuntimeException | Error exception) {
+        ThrowableUtils.throwIfFatal(exception);
         try {
           opened.close();
-        } catch (final RuntimeException | Error cleanup) {
-          suppressCleanupFailure(failure, cleanup);
+        } catch (final RuntimeException | Error cleanupException) {
+          suppressCleanupFailure(exception, cleanupException);
         }
-        throw failure;
+        throw exception;
       }
       this.line = opened;
     } catch (final LineUnavailableException | IllegalArgumentException exception) {

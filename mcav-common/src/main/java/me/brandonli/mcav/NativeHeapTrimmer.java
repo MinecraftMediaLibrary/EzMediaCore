@@ -285,9 +285,9 @@ final class NativeHeapTrimmer implements AutoCloseable {
   static boolean setTrimThreshold(final MethodHandle mallopt) {
     try {
       return (int) mallopt.invokeExact(M_TRIM_THRESHOLD, TRIM_THRESHOLD_BYTES) == 1;
-    } catch (final Throwable failure) {
-      ThrowableUtils.throwIfFatal(failure);
-      throw new IllegalStateException("Could not fix the trim threshold of the native heap!", failure);
+    } catch (final Throwable exception) {
+      ThrowableUtils.throwIfFatal(exception);
+      throw new IllegalStateException("Could not fix the trim threshold of the native heap!", exception);
     }
   }
 

@@ -84,15 +84,15 @@ public final class AudioExtractor {
     try {
       task.runChecked();
       return outputFile;
-    } catch (final IOException | RuntimeException failure) {
+    } catch (final IOException | RuntimeException exception) {
       try {
         Files.deleteIfExists(outputFile);
-      } catch (final IOException | RuntimeException cleanupFailure) {
-        if (!FAILURE_IDENTITY.equivalent(failure, cleanupFailure)) {
-          failure.addSuppressed(cleanupFailure);
+      } catch (final IOException | RuntimeException cleanupException) {
+        if (!FAILURE_IDENTITY.equivalent(exception, cleanupException)) {
+          exception.addSuppressed(cleanupException);
         }
       }
-      throw failure;
+      throw exception;
     }
   }
 }

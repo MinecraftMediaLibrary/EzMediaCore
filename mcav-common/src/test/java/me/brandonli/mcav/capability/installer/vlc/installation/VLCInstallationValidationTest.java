@@ -224,8 +224,8 @@ final class VLCInstallationValidationTest {
     try {
       Files.createSymbolicLink(directory.resolve("libvlc.dylib"), mainTarget.getFileName());
       Files.createSymbolicLink(directory.resolve("libvlccore.dylib"), coreTarget.getFileName());
-    } catch (final IOException | UnsupportedOperationException failure) {
-      final String message = "Creating symbolic links failed with \"%s\" here!".formatted(failure);
+    } catch (final IOException | UnsupportedOperationException exception) {
+      final String message = "Creating symbolic links failed with \"%s\" here!".formatted(exception);
       Assumptions.abort(message);
     }
     final InstallationStrategy strategy = new OSXInstallationStrategy(installer, (_, _) -> {});

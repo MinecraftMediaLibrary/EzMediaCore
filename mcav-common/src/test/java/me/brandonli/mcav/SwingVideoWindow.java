@@ -79,17 +79,17 @@ public final class SwingVideoWindow implements AutoCloseable {
       };
       this.frame.addWindowListener(listener);
       this.frame.setVisible(true);
-    } catch (final RuntimeException | Error failure) {
-      ThrowableUtils.throwIfFatal(failure);
+    } catch (final RuntimeException | Error exception) {
+      ThrowableUtils.throwIfFatal(exception);
       try {
         this.frame.dispose();
-      } catch (final RuntimeException | Error cleanupFailure) {
-        ThrowableUtils.throwIfFatal(cleanupFailure);
-        if (!IDENTITY.equivalent(failure, cleanupFailure)) {
-          failure.addSuppressed(cleanupFailure);
+      } catch (final RuntimeException | Error cleanupException) {
+        ThrowableUtils.throwIfFatal(cleanupException);
+        if (!IDENTITY.equivalent(exception, cleanupException)) {
+          exception.addSuppressed(cleanupException);
         }
       }
-      throw failure;
+      throw exception;
     }
   }
 
@@ -100,10 +100,10 @@ public final class SwingVideoWindow implements AutoCloseable {
       try {
         final SwingVideoWindow window = new SwingVideoWindow(title, width, height, WindowConstants.DISPOSE_ON_CLOSE);
         result.complete(window);
-      } catch (final RuntimeException | Error failure) {
+      } catch (final RuntimeException | Error exception) {
         // Publish the failure before propagating it on Swing's thread, so the caller cannot be stranded.
-        result.completeExceptionally(failure);
-        ThrowableUtils.throwIfFatal(failure);
+        result.completeExceptionally(exception);
+        ThrowableUtils.throwIfFatal(exception);
       }
     };
     if (SwingUtilities.isEventDispatchThread()) {
@@ -113,10 +113,10 @@ public final class SwingVideoWindow implements AutoCloseable {
     }
     try {
       return result.join();
-    } catch (final CompletionException failure) {
+    } catch (final CompletionException exception) {
       final Throwable cause = result.exceptionNow();
       ThrowableUtils.throwIfFatal(cause);
-      throw failure;
+      throw exception;
     }
   }
 

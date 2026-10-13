@@ -283,21 +283,21 @@ final class PlaybackSession {
       final long length = grabber.getLengthInTime();
       this.seekable = length > 0;
       this.videoGrabber = grabber;
-    } catch (final RuntimeException | Error failure) {
-      ThrowableUtils.throwIfFatal(failure);
-      closeAfterFailedOpen(grabber, failure);
-      throw failure;
+    } catch (final RuntimeException | Error exception) {
+      ThrowableUtils.throwIfFatal(exception);
+      closeAfterFailedOpen(grabber, exception);
+      throw exception;
     }
   }
 
   private static void closeAfterFailedOpen(final FrameGrabber grabber, final Throwable failure) {
     try {
       grabber.close();
-    } catch (final FrameGrabber.Exception | RuntimeException | Error cleanup) {
-      ThrowableUtils.throwIfFatal(cleanup);
-      final boolean sameFailure = FAILURE_IDENTITY.equivalent(failure, cleanup);
+    } catch (final FrameGrabber.Exception | RuntimeException | Error exception) {
+      ThrowableUtils.throwIfFatal(exception);
+      final boolean sameFailure = FAILURE_IDENTITY.equivalent(failure, exception);
       if (!sameFailure) {
-        failure.addSuppressed(cleanup);
+        failure.addSuppressed(exception);
       }
     }
   }
@@ -605,10 +605,10 @@ final class PlaybackSession {
         this.renderVideoFrame(frame);
         frame = this.videoQueue.take();
       }
-    } catch (final RuntimeException | Error failure) {
+    } catch (final RuntimeException | Error exception) {
       // A failed error handler or fatal filter must not leave producers blocked behind this renderer.
       this.stop();
-      throw failure;
+      throw exception;
     } catch (final InterruptedException exception) {
       this.stop();
       final Thread currentThread = Thread.currentThread();
@@ -702,10 +702,10 @@ final class PlaybackSession {
         this.renderAudioChunk(chunk);
         chunk = this.audioQueue.take();
       }
-    } catch (final RuntimeException | Error failure) {
+    } catch (final RuntimeException | Error exception) {
       // A failed error handler or fatal filter must not leave producers blocked behind this renderer.
       this.stop();
-      throw failure;
+      throw exception;
     } catch (final InterruptedException exception) {
       this.stop();
       final Thread currentThread = Thread.currentThread();

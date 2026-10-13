@@ -84,7 +84,7 @@ final class YTDLPParserFuzzTest {
     final URLParseDump dump;
     try {
       dump = parser.parse(PAGE);
-    } catch (final YTDLPParseException refused) {
+    } catch (final YTDLPParseException exception) {
       return;
     }
     assertEquals(0, exitCode, "only metadata of a successful run is read");
@@ -100,7 +100,7 @@ final class YTDLPParserFuzzTest {
       assertTrue(accepted, "a strategy picks only a stream it accepts");
       try {
         format.toUriSource();
-      } catch (final IllegalStateException | IllegalArgumentException refused) {
+      } catch (final IllegalStateException | IllegalArgumentException exception) {
         // a stream without a URL, or with one that is no URI, as documented
       }
     }

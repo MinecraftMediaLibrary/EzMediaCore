@@ -113,9 +113,9 @@ public final class OSXInstallationStrategy extends ManualInstallationStrategy {
       final Path mountedApp = mountPoint.resolve(VLC_APP);
       final String rawMountedApp = mountedApp.toString();
       this.runProcess(null, "cp", "-R", rawMountedApp, rawInstallDirectory);
-    } catch (final IOException copyFailure) {
-      this.detachAfterFailure(mountPoint, copyFailure);
-      throw copyFailure;
+    } catch (final IOException exception) {
+      this.detachAfterFailure(mountPoint, exception);
+      throw exception;
     }
     this.detach(mountPoint);
   }
@@ -123,8 +123,8 @@ public final class OSXInstallationStrategy extends ManualInstallationStrategy {
   private void detachAfterFailure(final Path mountPoint, final IOException copyFailure) {
     try {
       this.detach(mountPoint);
-    } catch (final IOException detachFailure) {
-      copyFailure.addSuppressed(detachFailure);
+    } catch (final IOException exception) {
+      copyFailure.addSuppressed(exception);
     }
   }
 
@@ -137,8 +137,8 @@ public final class OSXInstallationStrategy extends ManualInstallationStrategy {
     final String rawMountPoint = mountPoint.toString();
     try {
       this.runProcess(null, "hdiutil", "detach", rawMountPoint);
-    } catch (final IOException detachFailure) {
-      this.forceDetach(rawMountPoint, detachFailure);
+    } catch (final IOException exception) {
+      this.forceDetach(rawMountPoint, exception);
     }
     deleteRecursively(mountPoint);
   }
@@ -146,8 +146,8 @@ public final class OSXInstallationStrategy extends ManualInstallationStrategy {
   private void forceDetach(final String rawMountPoint, final IOException detachFailure) throws IOException {
     try {
       this.runProcess(null, "hdiutil", "detach", "-force", rawMountPoint);
-    } catch (final IOException forcedFailure) {
-      detachFailure.addSuppressed(forcedFailure);
+    } catch (final IOException exception) {
+      detachFailure.addSuppressed(exception);
       throw detachFailure;
     }
   }

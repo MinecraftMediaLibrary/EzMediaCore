@@ -217,8 +217,8 @@ public final class DependencyLoader {
     try {
       nativeLoader.run();
       return true;
-    } catch (final LinkageError error) {
-      final String reason = error.getMessage();
+    } catch (final LinkageError exception) {
+      final String reason = exception.getMessage();
       LOGGER.warn("{} is not available on this system, because its native libraries failed with \"{}\" while loading.", feature, reason);
       return false;
     }

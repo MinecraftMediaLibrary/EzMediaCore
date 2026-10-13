@@ -199,13 +199,13 @@ public abstract class AbstractInstaller implements Installer {
     if (executable) {
       try {
         markExecutable(destination);
-      } catch (final IOException failure) {
+      } catch (final IOException exception) {
         try {
           Files.deleteIfExists(destination);
-        } catch (final IOException cleanupFailure) {
-          failure.addSuppressed(cleanupFailure);
+        } catch (final IOException cleanupException) {
+          exception.addSuppressed(cleanupException);
         }
-        throw failure;
+        throw exception;
       }
     }
     final Path installed = this.install(destination);

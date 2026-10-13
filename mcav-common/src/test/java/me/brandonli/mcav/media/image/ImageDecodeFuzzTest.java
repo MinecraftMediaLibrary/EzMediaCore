@@ -37,7 +37,7 @@ final class ImageDecodeFuzzTest {
     final ImageBuffer image;
     try {
       image = ImageBuffer.bytes(encoded);
-    } catch (final IllegalArgumentException refused) {
+    } catch (final IllegalArgumentException exception) {
       return;
     }
     try {

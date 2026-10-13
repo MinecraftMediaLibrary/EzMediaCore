@@ -109,7 +109,7 @@ final class OpenCvPlayersTest {
       grabber.start();
       final int width = grabber.getImageWidth();
       return width > 0;
-    } catch (final FrameGrabber.Exception refused) {
+    } catch (final FrameGrabber.Exception exception) {
       return false;
     } finally {
       releaseQuietly(grabber);
@@ -119,7 +119,7 @@ final class OpenCvPlayersTest {
   private static void releaseQuietly(final OpenCVFrameGrabber grabber) {
     try {
       grabber.release();
-    } catch (final FrameGrabber.Exception failure) {
+    } catch (final FrameGrabber.Exception exception) {
       // a grabber that never opened has nothing to release
     }
   }

@@ -149,8 +149,8 @@ final class YTDLPReleaseTest {
       final String printed = new String(output, StandardCharsets.UTF_8);
       assertEquals(0, exitCode, printed);
       return printed.strip();
-    } catch (final ExecutionException | TimeoutException failure) {
-      throw new IOException("The yt-dlp --version output could not be read!", failure);
+    } catch (final ExecutionException | TimeoutException exception) {
+      throw new IOException("The yt-dlp --version output could not be read!", exception);
     } finally {
       process.destroyForcibly();
       try {

@@ -113,8 +113,8 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
     try {
       this.corePreloader.accept(path);
       return true;
-    } catch (final UnsatisfiedLinkError error) {
-      final String reason = error.getMessage();
+    } catch (final UnsatisfiedLinkError exception) {
+      final String reason = exception.getMessage();
       LOGGER.warn(
         "The VLC core library in {} failed with \"{}\" while loading, for example because it was built for another processor.",
         path,

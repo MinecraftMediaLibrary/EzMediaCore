@@ -443,9 +443,9 @@ public final class MatImageBuffer implements ImageBuffer {
       final boolean empty = target.empty();
       Preconditions.checkArgument(!empty, "The operation must write its result into the target matrix!");
       result = toContinuousBgr(target);
-    } catch (final RuntimeException failure) {
+    } catch (final RuntimeException exception) {
       target.close();
-      throw failure;
+      throw exception;
     }
     this.exchange(result);
   }

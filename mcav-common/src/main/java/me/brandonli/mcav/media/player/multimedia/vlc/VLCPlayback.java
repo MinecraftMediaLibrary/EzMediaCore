@@ -157,11 +157,11 @@ final class VLCPlayback {
     try {
       action.run();
       return true;
-    } catch (final RuntimeException | Error secondary) {
-      ThrowableUtils.throwIfFatal(secondary);
-      final boolean sameFailure = FAILURE_IDENTITY.equivalent(primary, secondary);
+    } catch (final RuntimeException | Error exception) {
+      ThrowableUtils.throwIfFatal(exception);
+      final boolean sameFailure = FAILURE_IDENTITY.equivalent(primary, exception);
       if (!sameFailure) {
-        primary.addSuppressed(secondary);
+        primary.addSuppressed(exception);
       }
       return false;
     }
@@ -473,13 +473,13 @@ final class VLCPlayback {
     void run(final Runnable action) {
       try {
         action.run();
-      } catch (final RuntimeException | Error failure) {
-        ThrowableUtils.throwIfFatal(failure);
+      } catch (final RuntimeException | Error exception) {
+        ThrowableUtils.throwIfFatal(exception);
         final Throwable previous = this.first;
         if (previous == null) {
-          this.first = failure;
-        } else if (!IDENTITY.equivalent(previous, failure)) {
-          previous.addSuppressed(failure);
+          this.first = exception;
+        } else if (!IDENTITY.equivalent(previous, exception)) {
+          previous.addSuppressed(exception);
         }
       }
     }

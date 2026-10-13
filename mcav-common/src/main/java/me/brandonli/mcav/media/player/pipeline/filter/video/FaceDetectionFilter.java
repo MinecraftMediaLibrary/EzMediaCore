@@ -112,11 +112,11 @@ public class FaceDetectionFilter extends MatVideoFilter {
     final CascadeClassifier classifier;
     try {
       classifier = factory.apply(cascadePath);
-    } catch (final LinkageError error) {
-      final String reason = error.getMessage();
+    } catch (final LinkageError exception) {
+      final String reason = exception.getMessage();
       final String message =
         "Face detection is not available, because the error %s stopped the OpenCV object detection natives from loading!".formatted(reason);
-      throw new IllegalStateException(message, error);
+      throw new IllegalStateException(message, exception);
     } catch (final RuntimeException exception) {
       final String message = UNLOADABLE_CASCADE_MESSAGE.formatted(cascadeFile);
       throw new IllegalArgumentException(message, exception);

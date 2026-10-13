@@ -221,9 +221,9 @@ final class ExampleResourcesTest {
                   final int constructedCount = constructed.size();
                   assertEquals(1, constructedCount, "fatal dispatch must attempt exactly one frame construction");
                 }
-              } catch (final Throwable failure) {
+              } catch (final Throwable exception) {
                 // Transport the synthetic fatal error to the test thread; do not lose it to an uncaught-handler log.
-                dispatchFailure.complete(failure);
+                dispatchFailure.complete(exception);
               }
             }, "example-fatal-window-dispatch");
             dispatcher.setDaemon(true);
@@ -232,8 +232,8 @@ final class ExampleResourcesTest {
           });
         SwingVideoWindow.open("test", 1, 1);
         callerFailure.complete(new AssertionError("fatal creation unexpectedly returned!"));
-      } catch (final Throwable failure) {
-        callerFailure.complete(failure);
+      } catch (final Throwable exception) {
+        callerFailure.complete(exception);
       }
     }, "example-fatal-window-caller");
     caller.setDaemon(true);

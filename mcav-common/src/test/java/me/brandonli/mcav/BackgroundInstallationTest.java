@@ -181,7 +181,7 @@ final class BackgroundInstallationTest {
       started.countDown();
       try {
         finish.await();
-      } catch (final InterruptedException expected) {
+      } catch (final InterruptedException exception) {
         interrupted.countDown();
         final boolean released = Uninterruptibles.awaitUninterruptibly(finish, WAIT_SECONDS, TimeUnit.SECONDS);
         assertTrue(released);

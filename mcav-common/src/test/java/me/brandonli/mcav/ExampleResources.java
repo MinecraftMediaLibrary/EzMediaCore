@@ -84,7 +84,7 @@ final class ExampleResources implements AutoCloseable {
     } finally {
       try {
         this.runtime.removeShutdownHook(this.shutdownHook);
-      } catch (final IllegalStateException shutdownInProgress) {
+      } catch (final IllegalStateException exception) {
         // Hooks cannot be removed after JVM shutdown has begun.
       } finally {
         this.completion.complete(null);
@@ -97,12 +97,12 @@ final class ExampleResources implements AutoCloseable {
     for (final Runnable release : releases) {
       try {
         release.run();
-      } catch (final RuntimeException | Error failure) {
-        ThrowableUtils.throwIfFatal(failure);
+      } catch (final RuntimeException | Error exception) {
+        ThrowableUtils.throwIfFatal(exception);
         if (first == null) {
-          first = failure;
-        } else if (!IDENTITY.equivalent(first, failure)) {
-          first.addSuppressed(failure);
+          first = exception;
+        } else if (!IDENTITY.equivalent(first, exception)) {
+          first.addSuppressed(exception);
         }
       }
     }

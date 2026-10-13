@@ -394,8 +394,8 @@ final class PlaybackSessionStopStressTest {
         gate.await();
         this.session.stop();
         this.assertStoppedForItsCaller(caller);
-      } catch (final InterruptedException | AssertionError failure) {
-        failures.add(failure);
+      } catch (final InterruptedException | AssertionError exception) {
+        failures.add(exception);
       }
     }
 

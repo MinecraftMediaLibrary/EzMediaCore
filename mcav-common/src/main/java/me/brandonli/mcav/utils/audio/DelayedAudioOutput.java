@@ -374,18 +374,18 @@ public final class DelayedAudioOutput implements AutoCloseable {
       if (!step.isNoOp()) {
         step.processAll(samples, METADATA);
       }
-    } catch (final RuntimeException | Error failure) {
+    } catch (final RuntimeException | Error exception) {
       // filters are user code and native code, which can fail with any Error; only errors of the JVM are thrown
-      ThrowableUtils.throwIfFatal(failure);
-      this.report(failure);
+      ThrowableUtils.throwIfFatal(exception);
+      this.report(exception);
     }
   }
 
   private void report(final Throwable failure) {
     try {
       this.failures.accept("Failed to process the audio of " + this.source, failure);
-    } catch (final RuntimeException | Error handlerFailure) {
-      ThrowableUtils.throwIfFatal(handlerFailure);
+    } catch (final RuntimeException | Error exception) {
+      ThrowableUtils.throwIfFatal(exception);
       // the exception handler is user code too; the sound goes on, and nothing else is left to tell
     }
   }

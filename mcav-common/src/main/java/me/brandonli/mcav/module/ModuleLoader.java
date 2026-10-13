@@ -140,12 +140,12 @@ public final class ModuleLoader {
   private static void stopAfterFailedStart(final MCAVModule module, final String moduleName, final ModuleException startFailure) {
     try {
       module.stop();
-    } catch (final RuntimeException | Error stopFailure) {
-      ThrowableUtils.throwIfFatal(stopFailure);
-      LOGGER.error("Module {} failed to stop after it failed to start.", moduleName, stopFailure);
+    } catch (final RuntimeException | Error exception) {
+      ThrowableUtils.throwIfFatal(exception);
+      LOGGER.error("Module {} failed to stop after it failed to start.", moduleName, exception);
       final Equivalence<Object> identity = Equivalence.identity();
-      if (!identity.equivalent(stopFailure, startFailure)) {
-        startFailure.addSuppressed(stopFailure);
+      if (!identity.equivalent(exception, startFailure)) {
+        startFailure.addSuppressed(exception);
       }
     }
   }
@@ -156,12 +156,12 @@ public final class ModuleLoader {
       final MethodHandle constructor = privateLookup.findConstructor(moduleClass, constructorType);
       final Object instance = constructor.invoke();
       return (MCAVModule) instance;
-    } catch (final Throwable throwable) {
-      ThrowableUtils.throwIfFatal(throwable);
+    } catch (final Throwable exception) {
+      ThrowableUtils.throwIfFatal(exception);
       final String name = moduleClass.getSimpleName();
-      final String reason = throwable.getMessage();
+      final String reason = exception.getMessage();
       final String message = "Module %s failed with \"%s\" while being created!".formatted(name, reason);
-      throw new ModuleException(message, throwable);
+      throw new ModuleException(message, exception);
     }
   }
 

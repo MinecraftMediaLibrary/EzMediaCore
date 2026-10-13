@@ -436,9 +436,9 @@ final class NativeHeapTrimmerTest {
         block.fill((byte) 1);
         free.invokeExact(block);
       }
-    } catch (final Throwable failure) {
-      ThrowableUtils.throwIfFatal(failure);
-      throw new IllegalStateException(failure);
+    } catch (final Throwable exception) {
+      ThrowableUtils.throwIfFatal(exception);
+      throw new IllegalStateException(exception);
     }
   }
 

@@ -69,12 +69,12 @@ public final class GeneratedMedia {
   static synchronized Path generate(final Path output, final Function<Path, List<String>> command, final Duration timeout) {
     try {
       return generateChecked(output, command, timeout);
-    } catch (final IOException failure) {
-      throw new UncheckedIOException(failure);
-    } catch (final InterruptedException failure) {
+    } catch (final IOException exception) {
+      throw new UncheckedIOException(exception);
+    } catch (final InterruptedException exception) {
       final Thread current = Thread.currentThread();
       current.interrupt();
-      throw new IllegalStateException("Interrupted while generating test media!", failure);
+      throw new IllegalStateException("Interrupted while generating test media!", exception);
     }
   }
 
@@ -104,9 +104,9 @@ public final class GeneratedMedia {
       publish(temporary, destination);
       COMPLETED.add(destination);
       return destination;
-    } catch (final IOException | InterruptedException | RuntimeException | Error failure) {
-      primary = failure;
-      throw failure;
+    } catch (final IOException | InterruptedException | RuntimeException | Error exception) {
+      primary = exception;
+      throw exception;
     } finally {
       cleanup(temporary, log, primary);
     }
@@ -115,7 +115,7 @@ public final class GeneratedMedia {
   private static void publish(final Path temporary, final Path destination) throws IOException {
     try {
       Files.move(temporary, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-    } catch (final AtomicMoveNotSupportedException unavailable) {
+    } catch (final AtomicMoveNotSupportedException exception) {
       Files.move(temporary, destination, StandardCopyOption.REPLACE_EXISTING);
     }
   }
@@ -175,7 +175,7 @@ public final class GeneratedMedia {
     try {
       // A bounded grace period lets Windows release handles before temporary files are deleted.
       process.waitFor(3, TimeUnit.SECONDS);
-    } catch (final InterruptedException interrupted) {
+    } catch (final InterruptedException exception) {
       final Thread current = Thread.currentThread();
       current.interrupt();
     }
@@ -187,11 +187,11 @@ public final class GeneratedMedia {
     for (final Path path : paths) {
       try {
         Files.deleteIfExists(path);
-      } catch (final IOException failure) {
+      } catch (final IOException exception) {
         if (cleanup == null) {
-          cleanup = failure;
+          cleanup = exception;
         } else {
-          cleanup.addSuppressed(failure);
+          cleanup.addSuppressed(exception);
         }
       }
     }

@@ -60,7 +60,7 @@ final class DitherFuzzTest {
       final AlgorithmRecipe recipe = new AlgorithmRecipe(kind, data);
       forColors = recipe.create(seed);
       forIndices = recipe.create(seed);
-    } catch (final IllegalArgumentException refused) {
+    } catch (final IllegalArgumentException exception) {
       return;
     }
     final int width = data.consumeInt(1, MAX_SIDE);

@@ -56,7 +56,7 @@ final class IdleTimeoutInputStreamFuzzTest {
         final int count;
         try {
           count = stream.read(buffer, offset, length);
-        } catch (final IndexOutOfBoundsException refused) {
+        } catch (final IndexOutOfBoundsException exception) {
           assertFalse(valid, "a valid range was refused");
           continue;
         }

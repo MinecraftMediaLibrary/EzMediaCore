@@ -143,9 +143,9 @@ final class BackgroundInstallation {
     try {
       final boolean succeeded = this.runStep(capability, step);
       this.finish(capability, succeeded);
-    } catch (final Error error) {
+    } catch (final Error exception) {
       this.finish(capability, false);
-      throw error;
+      throw exception;
     }
   }
 

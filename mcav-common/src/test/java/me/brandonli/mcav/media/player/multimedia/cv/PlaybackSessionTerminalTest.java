@@ -53,9 +53,9 @@ final class PlaybackSessionTerminalTest {
           this.timedOut.countDown();
         }
         return accepted;
-      } catch (final InterruptedException failure) {
+      } catch (final InterruptedException exception) {
         this.interrupted.countDown();
-        throw failure;
+        throw exception;
       }
     }
   }

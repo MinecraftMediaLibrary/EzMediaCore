@@ -962,9 +962,9 @@ final class PlaybackSessionTest {
       assertTrue(released);
       try {
         return invocation.callRealMethod();
-      } catch (final FrameGrabber.Exception failure) {
-        thrown.set(failure);
-        throw failure;
+      } catch (final FrameGrabber.Exception exception) {
+        thrown.set(exception);
+        throw exception;
       }
     })
       .when(grabber)

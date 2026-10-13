@@ -109,8 +109,8 @@ final class EnvironmentVariables {
     try {
       final LibC loaded = this.libc.get();
       return Optional.of(loaded);
-    } catch (final LinkageError error) {
-      final String reason = error.getMessage();
+    } catch (final LinkageError exception) {
+      final String reason = exception.getMessage();
       LOGGER.warn("The C library of this process failed with \"{}\" while loading, so the VLC plugin path cannot be set.", reason);
       return Optional.empty();
     }

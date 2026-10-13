@@ -69,7 +69,7 @@ final class UnzipFuzzTest {
     final List<Path> before = listTree(scope);
     try {
       IOUtils.unzip(archive, destination);
-    } catch (final UncheckedIOException | ZipEntryIntegrityException refused) {
+    } catch (final UncheckedIOException | ZipEntryIntegrityException exception) {
       // a broken or unsafe archive; what matters is where anything was written
     }
     final List<Path> after = listTree(scope);

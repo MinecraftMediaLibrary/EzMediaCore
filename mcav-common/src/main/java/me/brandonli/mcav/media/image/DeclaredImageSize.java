@@ -103,9 +103,9 @@ final class DeclaredImageSize {
       final long length = channel.size();
       final MemorySegment segment = channel.map(FileChannel.MapMode.READ_ONLY, 0, length, arena);
       size = read(segment);
-    } catch (final IOException failure) {
+    } catch (final IOException exception) {
       final String message = UNSUPPORTED_FILE.formatted(path);
-      throw new IllegalArgumentException(message, failure);
+      throw new IllegalArgumentException(message, exception);
     }
     if (size == null) {
       final String message = UNSUPPORTED_FILE.formatted(path);

@@ -185,7 +185,7 @@ final class DeclaredImageSizeTest {
     try {
       DeclaredImageSize.checkBytes(encoded, limit);
       return false;
-    } catch (final IllegalArgumentException refused) {
+    } catch (final IllegalArgumentException exception) {
       return true;
     }
   }
