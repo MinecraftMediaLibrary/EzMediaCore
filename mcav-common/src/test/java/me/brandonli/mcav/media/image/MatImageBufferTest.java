@@ -813,6 +813,27 @@ final class MatImageBufferTest {
     }
   }
 
+  @Test
+  void shouldRefreshTheCacheWhenItsMatIsReplacedByAnotherHeaderOfTheSamePixels() {
+    try (final ImageBuffer image = Images.solid(2, 2, 0xFF000000)) {
+      final MatImageBuffer buffer = (MatImageBuffer) image;
+      final Mat own = buffer.getMat();
+      final Mat sharing = new Mat(own);
+      image.getPixels();
+      opencv_core.bitwise_not(sharing, sharing);
+
+      buffer.setMat(sharing);
+
+      final int inverted = argbAt(image, 0, 0);
+      assertEquals(0xFFFFFFFF, inverted);
+    }
+  }
+
+  @Test
+  void shouldRejectABufferedImageThatReportsNoWidth() {
+    assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.image(new ZeroWidthImage()));
+  }
+
   private static long pixelAddress(final Mat mat) {
     final BytePointer data = mat.data();
     return data.address();
@@ -1114,5 +1135,17 @@ final class MatImageBufferTest {
     }
     final int firstInput = translucent[0];
     assertEquals(0x00123456, firstInput, "the input is not modified");
+  }
+
+  private static final class ZeroWidthImage extends BufferedImage {
+
+    ZeroWidthImage() {
+      super(1, 1, BufferedImage.TYPE_3BYTE_BGR);
+    }
+
+    @Override
+    public int getWidth() {
+      return 0;
+    }
   }
 }
