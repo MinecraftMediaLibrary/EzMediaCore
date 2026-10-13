@@ -35,7 +35,6 @@ val enforcedChecks = listOf(
     "FieldCanBeFinal",
     "FieldCanBeStatic",
     "FieldCanBeLocal",
-    "MethodCanBeStatic",
     "ClassCanBeStatic",
     "PrivateConstructorForUtilityClass",
     "ConstantField",
@@ -95,6 +94,8 @@ tasks.withType<JavaCompile>().configureEach {
     options.errorprone {
         disableWarningsInGeneratedCode = true
         error(*enforcedChecks.toTypedArray())
+        // the style guide keeps stateless private helpers as instance methods called with this.
+        disable("MethodCanBeStatic")
     }
 }
 
