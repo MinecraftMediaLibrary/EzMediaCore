@@ -681,8 +681,8 @@ final class GlTextureFilterTest {
   }
 
   private static void runWithMockedOpenGl(final Runnable action, final List<Throwable> failures) {
-    // A removed context guard must fail an assertion instead of dispatching into a native driver without
-    // a current context. The mock is confined to this worker; real GL remains active on the render thread.
+    // A GL call without a context fails the test here instead of crashing the native driver.
+    // The mock covers only this thread; the render thread keeps real GL.
     try (final MockedStatic<GL11> calls = mockStatic(GL11.class)) {
       try {
         action.run();
