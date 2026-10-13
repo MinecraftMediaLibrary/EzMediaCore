@@ -44,7 +44,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.AfterEach;
@@ -500,7 +500,7 @@ final class HttpResultImplTest {
     final MediaInfo initial = http.getCurrentMedia();
     assertSame(MediaInfo.EMPTY, initial);
 
-    final URLParseDump dump = MediaInfoTest.completeDump();
+    final UrlParseDump dump = MediaInfoTest.completeDump();
     http.setCurrentMedia(dump);
     final MediaInfo fromDump = http.getCurrentMedia();
     final Map<String, Object> json = fromDump.toJson();
@@ -515,7 +515,7 @@ final class HttpResultImplTest {
     http.setCurrentMedia((MediaInfo) null);
     final MediaInfo cleared = http.getCurrentMedia();
     assertSame(MediaInfo.EMPTY, cleared);
-    assertThrows(NullPointerException.class, () -> http.setCurrentMedia((URLParseDump) null));
+    assertThrows(NullPointerException.class, () -> http.setCurrentMedia((UrlParseDump) null));
   }
 
   @Test

@@ -20,7 +20,7 @@ package me.brandonli.mcav.json.ytdlp.strategy;
 import com.google.common.base.Preconditions;
 import java.util.Optional;
 import me.brandonli.mcav.json.ytdlp.format.Format;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 
 /**
  * The default {@link StrategySelector}.
@@ -50,7 +50,7 @@ public final class StrategySelectorImpl implements StrategySelector {
    * @throws NullPointerException if {@code dump} is null
    */
   @Override
-  public Format getAudioSource(final URLParseDump dump) {
+  public Format getAudioSource(final UrlParseDump dump) {
     Preconditions.checkNotNull(dump, "Dump must not be null!");
     final Optional<Format> selected = this.audio.select(dump);
     if (selected.isEmpty()) {
@@ -66,7 +66,7 @@ public final class StrategySelectorImpl implements StrategySelector {
    * @throws NullPointerException if {@code dump} is null
    */
   @Override
-  public Format getVideoSource(final URLParseDump dump) {
+  public Format getVideoSource(final UrlParseDump dump) {
     Preconditions.checkNotNull(dump, "Dump must not be null!");
     final Optional<Format> selected = this.video.select(dump);
     if (selected.isEmpty()) {
@@ -77,7 +77,7 @@ public final class StrategySelectorImpl implements StrategySelector {
     return selected.get();
   }
 
-  private static String describe(final URLParseDump dump) {
+  private static String describe(final UrlParseDump dump) {
     final String title = dump.title;
     final String url = dump.webpage_url;
     if (title != null) {

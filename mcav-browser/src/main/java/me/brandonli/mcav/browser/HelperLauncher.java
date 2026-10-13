@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import me.brandonli.mcav.media.player.PlayerException;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import me.friwi.jcefmaven.CefAppBuilder;
 import org.cef.CefApp;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -60,7 +60,7 @@ final class HelperLauncher {
   private final String mainClass;
   private final List<Path> classPath;
   private final List<String> extraJvmOptions;
-  private final OS os;
+  private final Os os;
   private final Map<String, String> environment;
   private final long startTimeoutMillis;
   private final @Nullable LibraryLinker libraries;
@@ -82,7 +82,7 @@ final class HelperLauncher {
     final String mainClass,
     final List<Path> classPath,
     final List<String> extraJvmOptions,
-    final OS os,
+    final Os os,
     final Map<String, String> environment,
     final long startTimeoutMillis
   ) {
@@ -94,7 +94,7 @@ final class HelperLauncher {
     final String mainClass,
     final List<Path> classPath,
     final List<String> extraJvmOptions,
-    final OS os,
+    final Os os,
     final Map<String, String> environment,
     final long startTimeoutMillis,
     final @Nullable LibraryLinker libraries
@@ -115,8 +115,8 @@ final class HelperLauncher {
    * @param os the operating system
    * @return {@code java.exe} on Windows, {@code java} elsewhere
    */
-  static String javaExecutable(final OS os) {
-    return os == OS.WINDOWS ? "java.exe" : "java";
+  static String javaExecutable(final Os os) {
+    return os == Os.WINDOWS ? "java.exe" : "java";
   }
 
   /**
@@ -130,7 +130,7 @@ final class HelperLauncher {
    */
   static HelperLauncher createDefault(final long startTimeoutMillis, final List<String> extraJvmOptions) {
     final String javaHome = System.getProperty("java.home");
-    final OS os = OSUtils.getOS();
+    final Os os = OsUtils.getOs();
     final Path java = Path.of(javaHome, "bin", javaExecutable(os));
     final Set<Path> entries = new LinkedHashSet<>();
     entries.add(locate(BrowserHelper.class));
@@ -202,14 +202,14 @@ final class HelperLauncher {
    */
   Map<String, String> createEnvironment(final Path folder, final @Nullable Path libraries) {
     final Map<String, String> kept = HelperEnvironment.filter(this.environment);
-    if (this.os == OS.LINUX) {
+    if (this.os == Os.LINUX) {
       final Path authority = authorityOf(folder);
       kept.put("XAUTHORITY", authority.toString());
       // TMPDIR and XDG_DATA_HOME must keep Chromium temporary files and certificates inside its writable sandbox.
       kept.put("TMPDIR", folder.toString());
       kept.put("XDG_DATA_HOME", folder.toString());
     }
-    if (this.os == OS.MAC) {
+    if (this.os == Os.MAC) {
       // Chromium writes temporary files as it starts, where a confined Chromium may write: MAC_CHROMIUM_TMPDIR is the
       // temporary folder Chromium asks for first on macOS
       kept.put("TMPDIR", folder.toString());
@@ -270,7 +270,7 @@ final class HelperLauncher {
     return this.startTimeoutMillis;
   }
 
-  OS getOs() {
+  Os getOs() {
     return this.os;
   }
 

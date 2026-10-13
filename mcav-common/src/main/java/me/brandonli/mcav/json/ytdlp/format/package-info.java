@@ -18,7 +18,7 @@
 /**
  * Mutable data models for the JSON emitted by yt-dlp.
  *
- * <p>{@link me.brandonli.mcav.json.ytdlp.format.URLParseDump} describes a resolved video and its available
+ * <p>{@link me.brandonli.mcav.json.ytdlp.format.UrlParseDump} describes a resolved video and its available
  * {@link me.brandonli.mcav.json.ytdlp.format.Format} objects. Other models describe thumbnails, fragments,
  * headers, download hints and extractor version metadata. Gson fills public fields directly; absent nullable
  * references remain null and absent primitive values remain zero or false. These models do not validate ranges,

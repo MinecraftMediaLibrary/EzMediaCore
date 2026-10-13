@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 import me.brandonli.mcav.discord.DiscordPlayer;
 import me.brandonli.mcav.http.HttpResult;
 import me.brandonli.mcav.http.MediaInfo;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import me.brandonli.mcav.plugin.MCAVSandbox;
 import me.brandonli.mcav.plugin.data.PluginDataConfigurationMapper;
@@ -322,7 +322,7 @@ public final class AudioProvider {
    * @return the filter to attach to the audio pipeline
    * @throws IllegalStateException if the Discord bot or the web page is chosen but not ready
    */
-  public AudioFilter constructFilter(final AudioArgument argument, final URLParseDump dump, final Object[] players) {
+  public AudioFilter constructFilter(final AudioArgument argument, final UrlParseDump dump, final Object[] players) {
     return this.constructFilter(argument, dump, players, VIDEO);
   }
 
@@ -339,7 +339,7 @@ public final class AudioProvider {
    * @return the filter to attach to the audio pipeline
    * @throws IllegalStateException if the Discord bot or the web page is chosen but not ready
    */
-  public AudioFilter constructFilter(final AudioArgument argument, final URLParseDump dump, final Object[] players, final Object source) {
+  public AudioFilter constructFilter(final AudioArgument argument, final UrlParseDump dump, final Object[] players, final Object source) {
     Preconditions.checkNotNull(argument, "Audio argument must not be null");
     Preconditions.checkNotNull(dump, "Dump must not be null");
     Preconditions.checkNotNull(players, "Players must not be null");
@@ -387,7 +387,7 @@ public final class AudioProvider {
     return filter;
   }
 
-  private AudioFilter constructHttpFilter(final URLParseDump dump) {
+  private AudioFilter constructHttpFilter(final UrlParseDump dump) {
     final HttpResult server = this.httpServer;
     if (server == null) {
       throw new IllegalStateException("The audio web page is not ready");
@@ -396,7 +396,7 @@ public final class AudioProvider {
     return server;
   }
 
-  private AudioFilter constructDiscordFilter(final URLParseDump dump) {
+  private AudioFilter constructDiscordFilter(final UrlParseDump dump) {
     final DiscordConnection connection = this.discord;
     if (connection == null) {
       throw new IllegalStateException("The Discord bot is not ready");
@@ -526,11 +526,11 @@ public final class AudioProvider {
 
     private final Object source;
     private final AudioArgument argument;
-    private final URLParseDump dump;
+    private final UrlParseDump dump;
     private final Object[] players;
     private volatile AudioFilter output;
 
-    private Claim(final Object source, final AudioArgument argument, final URLParseDump dump, final Object[] players) {
+    private Claim(final Object source, final AudioArgument argument, final UrlParseDump dump, final Object[] players) {
       this.source = source;
       this.argument = argument;
       this.dump = dump;

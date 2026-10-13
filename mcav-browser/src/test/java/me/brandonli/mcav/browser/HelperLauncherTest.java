@@ -51,7 +51,7 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import me.brandonli.mcav.media.player.PlayerException;
-import me.brandonli.mcav.utils.os.OS;
+import me.brandonli.mcav.utils.os.Os;
 import org.cef.CefApp;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -66,14 +66,14 @@ class HelperLauncherTest {
   @TempDir
   Path folder;
 
-  private static HelperLauncher launcher(final OS os, final Map<String, String> environment) {
+  private static HelperLauncher launcher(final Os os, final Map<String, String> environment) {
     return new HelperLauncher(JAVA, HelperLauncher.MAIN_CLASS, CLASS_PATH, List.of("-javaagent:/agent.jar"), os, environment, 5_000L);
   }
 
   @Test
   void theHelperJvmIsHeadlessMayLoadNativesAndKeepsItsFilesInTheSession() {
     final Path session = Path.of("/tmp/mcav-browser-1");
-    final List<String> command = launcher(OS.LINUX, Map.of()).createCommand(session);
+    final List<String> command = launcher(Os.LINUX, Map.of()).createCommand(session);
     assertEquals(JAVA.toString(), command.getFirst());
     assertTrue(command.contains("-Djava.awt.headless=true"));
     assertTrue(command.contains("--enable-native-access=ALL-UNNAMED"));
@@ -100,7 +100,7 @@ class HelperLauncherTest {
       "TMPDIR",
       "/var/tmp"
     );
-    final HelperLauncher linux = launcher(OS.LINUX, server);
+    final HelperLauncher linux = launcher(Os.LINUX, server);
     final Path authority = this.folder.resolve(NullDisplay.AUTHORITY_FILE);
     final String session = this.folder.toString();
     assertEquals(
@@ -125,16 +125,16 @@ class HelperLauncherTest {
     );
     assertEquals(
       Map.of("PATH", "/usr/bin", "TMPDIR", session, "MAC_CHROMIUM_TMPDIR", session),
-      launcher(OS.MAC, server).createEnvironment(this.folder, null)
+      launcher(Os.MAC, server).createEnvironment(this.folder, null)
     );
-    assertEquals(Map.of("PATH", "/usr/bin", "TMPDIR", "/var/tmp"), launcher(OS.WINDOWS, server).createEnvironment(this.folder, null));
-    assertEquals(OS.LINUX, linux.getOs());
+    assertEquals(Map.of("PATH", "/usr/bin", "TMPDIR", "/var/tmp"), launcher(Os.WINDOWS, server).createEnvironment(this.folder, null));
+    assertEquals(Os.LINUX, linux.getOs());
     assertEquals(5_000L, linux.getStartTimeoutMillis());
   }
 
   @Test
   void aLauncherWithLibrariesLinksThemIntoEverySession() throws IOException {
-    final HelperLauncher plain = launcher(OS.LINUX, Map.of());
+    final HelperLauncher plain = launcher(Os.LINUX, Map.of());
     assertNull(plain.linkLibraries(this.folder));
     final Path linked = this.folder.resolve("lib");
     final HelperLauncher withLibraries = plain.withLibraries(session -> Files.createDirectory(session.resolve("lib")));
@@ -142,7 +142,7 @@ class HelperLauncherTest {
     assertTrue(Files.isDirectory(linked));
     assertEquals(plain.createCommand(this.folder), withLibraries.createCommand(this.folder));
     assertEquals(plain.getStartTimeoutMillis(), withLibraries.getStartTimeoutMillis());
-    assertEquals(OS.LINUX, withLibraries.getOs());
+    assertEquals(Os.LINUX, withLibraries.getOs());
   }
 
   @Test
@@ -186,9 +186,9 @@ class HelperLauncherTest {
 
   @Test
   void theJvmProgramIsNamedForItsSystem() {
-    assertEquals("java.exe", HelperLauncher.javaExecutable(OS.WINDOWS));
-    assertEquals("java", HelperLauncher.javaExecutable(OS.LINUX));
-    assertEquals("java", HelperLauncher.javaExecutable(OS.MAC));
+    assertEquals("java.exe", HelperLauncher.javaExecutable(Os.WINDOWS));
+    assertEquals("java", HelperLauncher.javaExecutable(Os.LINUX));
+    assertEquals("java", HelperLauncher.javaExecutable(Os.MAC));
   }
 
   @Test

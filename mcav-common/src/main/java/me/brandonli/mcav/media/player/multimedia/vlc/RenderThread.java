@@ -25,7 +25,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * A daemon thread that runs one step of a rendering loop again and again until it is stopped.
  *
- * <p>The renderers of {@link VLCPlayer} hand work from VLC's threads to render threads, so VLC's threads never wait
+ * <p>The renderers of {@link VlcPlayer} hand work from VLC's threads to render threads, so VLC's threads never wait
  * for a pipeline. A step that throws a runtime exception is reported to the failure handler and the loop goes on
  * with the next step, so one broken frame does not end the playback; errors such as running out of memory are not
  * caught. Stopping interrupts the current step and waits up to five seconds for the thread to exit. A step that

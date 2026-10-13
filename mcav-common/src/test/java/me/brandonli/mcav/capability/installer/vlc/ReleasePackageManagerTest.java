@@ -29,7 +29,7 @@ import me.brandonli.mcav.testing.UtilityClassAssertions;
 import me.brandonli.mcav.utils.http.HttpDownloader;
 import me.brandonli.mcav.utils.os.Arch;
 import me.brandonli.mcav.utils.os.Bits;
-import me.brandonli.mcav.utils.os.OS;
+import me.brandonli.mcav.utils.os.Os;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -39,9 +39,9 @@ import org.mockito.Mockito;
  */
 final class ReleasePackageManagerTest {
 
-  private static List<Download> downloadsFor(final OS operatingSystem, final Arch architecture, final Bits bits) {
-    return Arrays.stream(ReleasePackageManager.readVLCDownloadsFromJsonResource("mcav/common/installers/vlc.json"))
-      .filter(download -> download.getPlatform().getOS() == operatingSystem)
+  private static List<Download> downloadsFor(final Os operatingSystem, final Arch architecture, final Bits bits) {
+    return Arrays.stream(ReleasePackageManager.readVlcDownloadsFromJsonResource("mcav/common/installers/vlc.json"))
+      .filter(download -> download.getPlatform().getOs() == operatingSystem)
       .filter(download -> download.getPlatform().getArch() == architecture)
       .filter(download -> download.getPlatform().getBits() == bits)
       .toList();
@@ -49,7 +49,7 @@ final class ReleasePackageManagerTest {
 
   @Test
   void shouldPinTheLinuxAppImageToOneReviewedBuild() {
-    final List<Download> linux = downloadsFor(OS.LINUX, Arch.X86, Bits.BITS_64);
+    final List<Download> linux = downloadsFor(Os.LINUX, Arch.X86, Bits.BITS_64);
     final int linuxCount = linux.size();
     assertEquals(1, linuxCount);
     final Download appImage = linux.getFirst();
@@ -65,7 +65,7 @@ final class ReleasePackageManagerTest {
   @Test
   void shouldResolveTheDownloadsWithoutAskingTheNetwork() {
     try (final MockedStatic<HttpDownloader> downloader = Mockito.mockStatic(HttpDownloader.class)) {
-      final Download[] downloads = ReleasePackageManager.readVLCDownloadsFromJsonResource("mcav/common/installers/vlc.json");
+      final Download[] downloads = ReleasePackageManager.readVlcDownloadsFromJsonResource("mcav/common/installers/vlc.json");
       assertEquals(5, downloads.length, "Windows and macOS, two each, and Linux on x86-64");
       downloader.verifyNoInteractions();
     }
@@ -73,7 +73,7 @@ final class ReleasePackageManagerTest {
 
   @Test
   void shouldVerifyEveryDownloadWithAHash() {
-    for (final Download download : ReleasePackageManager.readVLCDownloadsFromJsonResource("mcav/common/installers/vlc.json")) {
+    for (final Download download : ReleasePackageManager.readVlcDownloadsFromJsonResource("mcav/common/installers/vlc.json")) {
       final String hash = download.getHash();
       assertNotNull(hash, "Every VLC download must be verified with a hash: " + download.getUrl());
       final boolean hexadecimal = hash.matches("[0-9a-f]{64}");
@@ -84,13 +84,13 @@ final class ReleasePackageManagerTest {
   @Test
   void shouldOfferNoBuildForThirtyTwoBitLinux() {
     // Java 25, which mcav needs, has no port for 32-bit x86 Linux
-    final List<Download> downloads = downloadsFor(OS.LINUX, Arch.X86, Bits.BITS_32);
+    final List<Download> downloads = downloadsFor(Os.LINUX, Arch.X86, Bits.BITS_32);
     assertEquals(List.of(), downloads);
   }
 
   @Test
   void shouldRejectANullResourcePath() {
-    assertThrows(NullPointerException.class, () -> ReleasePackageManager.readVLCDownloadsFromJsonResource(null));
+    assertThrows(NullPointerException.class, () -> ReleasePackageManager.readVlcDownloadsFromJsonResource(null));
   }
 
   @Test

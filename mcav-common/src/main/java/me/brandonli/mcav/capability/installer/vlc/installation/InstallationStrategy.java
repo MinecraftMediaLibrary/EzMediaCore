@@ -27,7 +27,7 @@ import java.util.Optional;
  *
  * @see LinuxInstallationStrategy
  * @see WinInstallationStrategy
- * @see OSXInstallationStrategy
+ * @see OsxInstallationStrategy
  */
 public interface InstallationStrategy {
   /**

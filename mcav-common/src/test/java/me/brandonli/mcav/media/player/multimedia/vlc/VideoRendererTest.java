@@ -76,7 +76,7 @@ final class VideoRendererTest {
   private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
   private final MockVlc vlc = new MockVlc();
-  private final VLCPlayer owner = this.vlc.newPlayer(1_000L);
+  private final VlcPlayer owner = this.vlc.newPlayer(1_000L);
   private final VideoRenderer renderer = new VideoRenderer(this.owner);
   private final MediaPlayer mediaPlayer = mock(MediaPlayer.class);
   private final BlockingQueue<RecordedFrame> frames = new LinkedBlockingQueue<>();

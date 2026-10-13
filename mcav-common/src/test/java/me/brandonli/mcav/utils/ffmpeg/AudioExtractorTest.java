@@ -44,7 +44,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.runtime.CommandTask;
 import me.brandonli.mcav.utils.runtime.ProcessException;
 import org.junit.jupiter.api.AfterEach;
@@ -78,8 +78,8 @@ final class AudioExtractorTest {
    * deleted.
    */
   @BeforeAll
-  static void extractFFmpeg() {
-    final Path executable = FFmpegExecutableProvider.getFFmpegPath();
+  static void extractFfmpeg() {
+    final Path executable = FfmpegExecutableProvider.getFfmpegPath();
     final boolean exists = Files.isRegularFile(executable);
     assertTrue(exists, "the bundled FFmpeg is available");
   }
@@ -123,7 +123,7 @@ final class AudioExtractorTest {
     final FileSource source = FileSource.path(wave);
     final Path first = AudioExtractor.extractOggVorbis(source);
     final Path second = AudioExtractor.extractOggVorbis(source);
-    final Path cache = IOUtils.getCachedFolder();
+    final Path cache = IoUtils.getCachedFolder();
     final Path parent = first.getParent();
     final Path fileName = first.getFileName();
     final String name = fileName.toString();
@@ -141,7 +141,7 @@ final class AudioExtractorTest {
   }
 
   @Test
-  void shouldReportMediaThatFFmpegCannotRead() {
+  void shouldReportMediaThatFfmpegCannotRead() {
     final Path missing = this.directory.resolve("missing.wav");
     final FileSource source = FileSource.path(missing);
     assertThrows(ProcessException.class, () -> AudioExtractor.extractOggVorbis(source));
@@ -160,10 +160,10 @@ final class AudioExtractorTest {
   }
 
   private void checkFailedExtraction(final boolean cleanupFails, final boolean sameFailure) throws IOException {
-    final Path cache = IOUtils.getCachedFolder();
+    final Path cache = IoUtils.getCachedFolder();
     final Path existing = Files.writeString(cache.resolve("keep.ogg"), "existing audio");
     final AtomicReference<Path> partial = new AtomicReference<>();
-    final FFmpegCommand command = mock(FFmpegCommand.class);
+    final FfmpegCommand command = mock(FfmpegCommand.class);
     final CommandTask task = mock(CommandTask.class);
     final IOException failure = new IOException("output failed after writing bytes!");
     final IOException cleanupFailure = sameFailure ? failure : new IOException("partial output could not be deleted!");
@@ -175,11 +175,11 @@ final class AudioExtractorTest {
       .when(task)
       .runChecked();
     try (
-      final MockedStatic<FFmpegTemplates> templates = Mockito.mockStatic(FFmpegTemplates.class);
+      final MockedStatic<FfmpegTemplates> templates = Mockito.mockStatic(FfmpegTemplates.class);
       final MockedStatic<Files> files = Mockito.mockStatic(Files.class, Mockito.CALLS_REAL_METHODS)
     ) {
       templates
-        .when(() -> FFmpegTemplates.extractOggVorbis(anyString(), anyString()))
+        .when(() -> FfmpegTemplates.extractOggVorbis(anyString(), anyString()))
         .thenAnswer(invocation -> {
           final String output = invocation.getArgument(1);
           final Path outputPath = Path.of(output);

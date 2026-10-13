@@ -29,9 +29,9 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import me.brandonli.mcav.capability.installer.vlc.VLCInstaller;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -48,9 +48,9 @@ final class ManualInstallationStrategyTest {
 
   @Test
   void shouldExposeTheInstallerAndItsInstallationDirectory() {
-    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
+    final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final TestStrategy strategy = new TestStrategy(installer);
-    final VLCInstaller strategyInstaller = strategy.getInstaller();
+    final VlcInstaller strategyInstaller = strategy.getInstaller();
     final Path installDirectory = strategy.getInstallDirectory();
     final Path expectedDirectory = this.temporaryDirectory.resolve("vlc");
     assertSame(installer, strategyInstaller);
@@ -59,7 +59,7 @@ final class ManualInstallationStrategyTest {
 
   @Test
   void shouldRejectMissingCollaborators() {
-    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
+    final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     assertThrows(NullPointerException.class, () -> new TestStrategy(null));
     assertThrows(NullPointerException.class, () -> new TestStrategy(installer, null));
     assertThrows(NullPointerException.class, () -> ManualInstallationStrategy.findLibraryDirectory(null, LIBRARY));
@@ -159,7 +159,7 @@ final class ManualInstallationStrategyTest {
 
   @Test
   void shouldDeleteAFileThroughTheInstanceHelper() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
+    final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final TestStrategy strategy = new TestStrategy(installer);
     final Path file = createFile(this.temporaryDirectory, "archive.zip");
     strategy.deleteFile(file);
@@ -171,7 +171,7 @@ final class ManualInstallationStrategyTest {
 
   @Test
   void shouldRunToolsAsChildProcesses() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
+    final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final TestStrategy strategy = new TestStrategy(installer);
     final Path workingDirectory = createDirectory(this.temporaryDirectory, "work");
     final Path marker = workingDirectory.resolve("marker.txt");
@@ -186,7 +186,7 @@ final class ManualInstallationStrategyTest {
 
   @Test
   void shouldFailWhenAToolExitsWithAnError() {
-    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
+    final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final TestStrategy strategy = new TestStrategy(installer);
     final String[] failing = shellCommand("exit 3");
     final IOException thrown = assertThrows(IOException.class, () -> strategy.runProcess(null, failing));
@@ -224,8 +224,8 @@ final class ManualInstallationStrategyTest {
   }
 
   private static String[] shellCommand(final String command) {
-    final OS operatingSystem = OSUtils.getOS();
-    if (operatingSystem == OS.WINDOWS) {
+    final Os operatingSystem = OsUtils.getOs();
+    if (operatingSystem == Os.WINDOWS) {
       return new String[] { "cmd", "/c", command };
     }
     return new String[] { "sh", "-c", command };
@@ -236,11 +236,11 @@ final class ManualInstallationStrategyTest {
    */
   private static final class TestStrategy extends ManualInstallationStrategy {
 
-    TestStrategy(final VLCInstaller installer) {
+    TestStrategy(final VlcInstaller installer) {
       super(installer);
     }
 
-    TestStrategy(final VLCInstaller installer, final ProcessRunner processRunner) {
+    TestStrategy(final VlcInstaller installer, final ProcessRunner processRunner) {
       super(installer, processRunner);
     }
 

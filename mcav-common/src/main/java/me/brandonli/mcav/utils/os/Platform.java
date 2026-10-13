@@ -30,11 +30,11 @@ public final class Platform {
 
   private static final Platform CURRENT_PLATFORM = detectCurrentPlatform();
 
-  private final OS os;
+  private final Os os;
   private final Arch arch;
   private final Bits bits;
 
-  Platform(final OS os, final Arch arch, final Bits bits) {
+  Platform(final Os os, final Arch arch, final Bits bits) {
     Preconditions.checkNotNull(os, "OS must not be null!");
     Preconditions.checkNotNull(arch, "Arch must not be null!");
     Preconditions.checkNotNull(bits, "Bits must not be null!");
@@ -44,9 +44,9 @@ public final class Platform {
   }
 
   private static Platform detectCurrentPlatform() {
-    final OS os = OSUtils.getOS();
-    final Arch arch = OSUtils.getArch();
-    final Bits bits = OSUtils.getBits();
+    final Os os = OsUtils.getOs();
+    final Arch arch = OsUtils.getArch();
+    final Bits bits = OsUtils.getBits();
     return new Platform(os, arch, bits);
   }
 
@@ -59,7 +59,7 @@ public final class Platform {
    * @return the platform
    * @throws NullPointerException if any platform component is null
    */
-  public static Platform ofPlatform(final OS os, final Arch arch, final Bits bits) {
+  public static Platform ofPlatform(final Os os, final Arch arch, final Bits bits) {
     return new Platform(os, arch, bits);
   }
 
@@ -77,7 +77,7 @@ public final class Platform {
    *
    * @return the operating system
    */
-  public OS getOS() {
+  public Os getOs() {
     return this.os;
   }
 
@@ -106,7 +106,7 @@ public final class Platform {
    * @return false if the operating system or the architecture is {@code OTHER}
    */
   public boolean isKnown() {
-    return this.os != OS.OTHER && this.arch != Arch.OTHER;
+    return this.os != Os.OTHER && this.arch != Arch.OTHER;
   }
 
   @Override

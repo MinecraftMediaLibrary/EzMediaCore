@@ -36,7 +36,7 @@ import java.util.HexFormat;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
@@ -65,7 +65,7 @@ import org.slf4j.LoggerFactory;
  * temporary file, and the
  * finished files are moved into place one after another, so the destination always holds one complete, verified
  * download. A move that another process denies for a moment, such as a virus scanner inspecting the new file, is
- * retried briefly by {@link IOUtils#moveReplacing(Path, Path)}. A known limitation: another process that replaces the
+ * retried briefly by {@link IoUtils#moveReplacing(Path, Path)}. A known limitation: another process that replaces the
  * same destination at the same moment is not coordinated with, and such a move can still fail on Windows.
  */
 public final class HttpDownloader {
@@ -425,7 +425,7 @@ public final class HttpDownloader {
     final Lock lock = TARGET_LOCKS.get(normalizedTarget);
     lock.lock();
     try {
-      IOUtils.moveReplacing(partFile, target);
+      IoUtils.moveReplacing(partFile, target);
     } finally {
       lock.unlock();
     }

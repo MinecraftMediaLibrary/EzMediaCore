@@ -24,7 +24,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
 /**
- * A VLC instance shared by every {@link VLCPlayer}.
+ * A VLC instance shared by every {@link VlcPlayer}.
  *
  * <p>Creating a {@link MediaPlayerFactory} starts a whole VLC instance, which loads hundreds of plugins and takes
  * noticeable time and memory, so one instance is shared and reference counted. The instance is created when the

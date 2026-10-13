@@ -28,8 +28,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import me.brandonli.mcav.capability.installer.vlc.VLCInstaller;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
+import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.runtime.CommandTask;
 import me.brandonli.mcav.utils.runtime.ProcessException;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -44,7 +44,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
   private static final Duration TOOL_TIMEOUT = Duration.ofMinutes(10);
   private static final ProcessRunner COMMAND_RUNNER = ManualInstallationStrategy::runCommand;
 
-  private final VLCInstaller installer;
+  private final VlcInstaller installer;
   private final ProcessRunner processRunner;
 
   /**
@@ -53,7 +53,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * @param installer the installer whose installation directory is used
    * @throws NullPointerException if {@code installer} is null
    */
-  protected ManualInstallationStrategy(final VLCInstaller installer) {
+  protected ManualInstallationStrategy(final VlcInstaller installer) {
     this(installer, COMMAND_RUNNER);
   }
 
@@ -64,7 +64,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * @param processRunner runs the external tools the installation needs
    * @throws NullPointerException if {@code installer} or {@code processRunner} is null
    */
-  protected ManualInstallationStrategy(final VLCInstaller installer, final ProcessRunner processRunner) {
+  protected ManualInstallationStrategy(final VlcInstaller installer, final ProcessRunner processRunner) {
     Preconditions.checkNotNull(installer, "Installer must not be null!");
     Preconditions.checkNotNull(processRunner, "Process runner must not be null!");
     this.installer = installer;
@@ -76,7 +76,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    *
    * @return the installer
    */
-  public VLCInstaller getInstaller() {
+  public VlcInstaller getInstaller() {
     return this.installer;
   }
 
@@ -204,11 +204,11 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * @param path the file or directory to delete
    * @throws IOException          if a file cannot be deleted
    * @throws NullPointerException if {@code path} is null
-   * @see IOUtils#deleteRecursively(Path)
+   * @see IoUtils#deleteRecursively(Path)
    */
   public static void deleteRecursively(final Path path) throws IOException {
     Preconditions.checkNotNull(path, "Path must not be null!");
-    IOUtils.deleteRecursively(path);
+    IoUtils.deleteRecursively(path);
   }
 
   /**

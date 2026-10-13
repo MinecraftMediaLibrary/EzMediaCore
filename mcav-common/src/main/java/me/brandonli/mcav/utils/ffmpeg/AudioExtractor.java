@@ -25,7 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 import me.brandonli.mcav.media.source.Source;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.runtime.CommandTask;
 import me.brandonli.mcav.utils.runtime.ProcessException;
 
@@ -73,13 +73,13 @@ public final class AudioExtractor {
   public static Path extractOggVorbis(final Source source) throws IOException {
     Preconditions.checkNotNull(source, "Source must not be null!");
     final String input = source.getResource();
-    final Path outputDirectory = IOUtils.getCachedFolder();
+    final Path outputDirectory = IoUtils.getCachedFolder();
     final UUID id = UUID.randomUUID();
     final String fileName = id + OGG_EXTENSION;
     final Path outputFile = outputDirectory.resolve(fileName);
     final String output = outputFile.toString();
 
-    final FFmpegCommand command = FFmpegTemplates.extractOggVorbis(input, output);
+    final FfmpegCommand command = FfmpegTemplates.extractOggVorbis(input, output);
     final CommandTask task = command.createTask();
     try {
       task.runChecked();

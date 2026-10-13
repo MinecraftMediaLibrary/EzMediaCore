@@ -23,7 +23,7 @@ import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import me.brandonli.mcav.json.ytdlp.format.Format;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -94,7 +94,7 @@ public interface FormatStrategy {
    * @return the selected stream, or empty if no stream matches
    * @throws NullPointerException if {@code dump} is null when using a built-in strategy
    */
-  Optional<Format> select(final URLParseDump dump);
+  Optional<Format> select(final UrlParseDump dump);
 
   /**
    * Classifies a stream by its audio-extension marker. A non-null {@link Format#audio_ext} other than
@@ -136,7 +136,7 @@ public interface FormatStrategy {
     return "https".equals(format.protocol);
   }
 
-  private static List<Format> formats(final URLParseDump dump) {
+  private static List<Format> formats(final UrlParseDump dump) {
     Preconditions.checkNotNull(dump, "Dump must not be null!");
     final List<Format> formats = dump.formats;
     if (formats == null) {
@@ -145,7 +145,7 @@ public interface FormatStrategy {
     return formats;
   }
 
-  private static Optional<Format> first(final URLParseDump dump, final Predicate<Format> filter) {
+  private static Optional<Format> first(final UrlParseDump dump, final Predicate<Format> filter) {
     final List<Format> formats = formats(dump);
     for (final Format format : formats) {
       if (format != null && filter.test(format)) {
@@ -161,7 +161,7 @@ public interface FormatStrategy {
    * @param replaces decides whether a later candidate replaces the stream picked so far
    */
   private static Optional<Format> pick(
-    final URLParseDump dump,
+    final UrlParseDump dump,
     final Predicate<Format> filter,
     final BiPredicate<Format, Format> replaces
   ) {

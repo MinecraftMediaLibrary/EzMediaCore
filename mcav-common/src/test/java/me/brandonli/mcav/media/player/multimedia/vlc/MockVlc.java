@@ -53,7 +53,7 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCall
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.RenderCallback;
 
 /**
- * A VLC engine made of Mockito mocks, so {@link VLCPlayer} and {@link VLCPlayback} can be tested without libvlc.
+ * A VLC engine made of Mockito mocks, so {@link VlcPlayer} and {@link VlcPlayback} can be tested without libvlc.
  *
  * <p>Every media player it creates behaves like VLC: asking it to play media records the resource and the options
  * and, depending on the {@link Outcome} of the player, reports playing or an error to the registered event
@@ -161,8 +161,8 @@ final class MockVlc {
    * @param options           the media options of the player
    * @return the player
    */
-  VLCPlayer newPlayer(final long openTimeoutMilliseconds, final String... options) {
-    return new VLCPlayer(this.sharedFactory, openTimeoutMilliseconds, options);
+  VlcPlayer newPlayer(final long openTimeoutMilliseconds, final String... options) {
+    return new VlcPlayer(this.sharedFactory, openTimeoutMilliseconds, options);
   }
 
   /**

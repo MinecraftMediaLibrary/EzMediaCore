@@ -38,7 +38,7 @@ import me.brandonli.mcav.module.MCAVModule;
  *   <li>{@link #whenCapabilityReady(Capability)} returns a future that completes once the preparation finished;
  *   <li>the features behind the capability refuse with an {@link IllegalStateException} that says the program is
  *   still being prepared: {@link me.brandonli.mcav.media.player.multimedia.VideoPlayer#vlc(String...)} and the default
- *   {@link me.brandonli.mcav.json.ytdlp.YTDLPParser}.
+ *   {@link me.brandonli.mcav.json.ytdlp.YtdlpParser}.
  * </ul>
  * {@link #release()} cancels a preparation that is still running.
  *

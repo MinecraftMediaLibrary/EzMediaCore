@@ -48,7 +48,7 @@ import uk.co.caprica.vlcj.player.base.MediaPlayer;
 final class PlaybackEventListenerTest {
 
   private final MockVlc vlc = new MockVlc();
-  private final VLCPlayer owner = this.vlc.newPlayer(1_000L);
+  private final VlcPlayer owner = this.vlc.newPlayer(1_000L);
   private final AtomicBoolean active = new AtomicBoolean(true);
   private final PlaybackEventListener listener = new PlaybackEventListener(this.owner, "movie.mkv", this.active);
   private final MediaPlayer mediaPlayer = mock(MediaPlayer.class);

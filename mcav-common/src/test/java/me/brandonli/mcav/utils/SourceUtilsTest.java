@@ -33,10 +33,10 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
-import me.brandonli.mcav.capability.installer.ytdlp.YTDLPInstaller;
+import me.brandonli.mcav.capability.installer.ytdlp.YtdlpInstaller;
 import me.brandonli.mcav.json.GsonProvider;
-import me.brandonli.mcav.json.ytdlp.YTDLPParser;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.YtdlpParser;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.source.Source;
 import me.brandonli.mcav.media.source.device.DeviceSource;
 import me.brandonli.mcav.media.source.file.FileSource;
@@ -167,15 +167,15 @@ final class SourceUtilsTest {
 
   @Test
   void shouldAskTheParserWhetherAStreamIsLive() {
-    final URLParseDump live = parseDump("{\"id\": \"live\", \"is_live\": true}");
-    final URLParseDump recorded = parseDump("{\"id\": \"recorded\", \"is_live\": false}");
+    final UrlParseDump live = parseDump("{\"id\": \"live\", \"is_live\": true}");
+    final UrlParseDump recorded = parseDump("{\"id\": \"recorded\", \"is_live\": false}");
     final List<URI> asked = new ArrayList<>();
-    final YTDLPParser liveParser = (input, _) -> {
+    final YtdlpParser liveParser = (input, _) -> {
       final URI uri = input.getUri();
       asked.add(uri);
       return live;
     };
-    final YTDLPParser recordedParser = (_, _) -> recorded;
+    final YtdlpParser recordedParser = (_, _) -> recorded;
 
     final boolean liveResult = SourceUtils.isDynamicStream("https://example.com/live", liveParser);
     final boolean recordedResult = SourceUtils.isDynamicStream("https://example.com/recorded", recordedParser);
@@ -191,10 +191,10 @@ final class SourceUtilsTest {
 
   @Test
   void shouldReportNoLiveStreamWhenTheParserFails() {
-    final YTDLPParser offlineParser = (_, _) -> {
+    final YtdlpParser offlineParser = (_, _) -> {
       throw new IOException("offline!");
     };
-    final YTDLPParser rejectingParser = (_, _) -> {
+    final YtdlpParser rejectingParser = (_, _) -> {
       throw new IllegalArgumentException("not a web URL!");
     };
 
@@ -205,22 +205,22 @@ final class SourceUtilsTest {
     assertFalse(rejectedResult, "a URL the parser rejects is not a live stream");
   }
 
-  private static URLParseDump parseDump(final String json) {
+  private static UrlParseDump parseDump(final String json) {
     final Gson gson = GsonProvider.getSimple();
-    return gson.fromJson(json, URLParseDump.class);
+    return gson.fromJson(json, UrlParseDump.class);
   }
 
   @Test
   void shouldAskTheSharedYtdlpInstallationWithoutTouchingTheNetwork() throws IOException {
-    final YTDLPInstaller installer = Mockito.mock(YTDLPInstaller.class);
+    final YtdlpInstaller installer = Mockito.mock(YtdlpInstaller.class);
     final IOException offline = new IOException("offline!");
     Mockito.when(installer.download(true)).thenThrow(offline);
-    try (final MockedStatic<YTDLPInstaller> installers = Mockito.mockStatic(YTDLPInstaller.class)) {
-      installers.when(YTDLPInstaller::shared).thenReturn(installer);
+    try (final MockedStatic<YtdlpInstaller> installers = Mockito.mockStatic(YtdlpInstaller.class)) {
+      installers.when(YtdlpInstaller::shared).thenReturn(installer);
       final boolean live = SourceUtils.isDynamicStream("https://example.com/live");
       assertFalse(live, "yt-dlp that cannot be installed reports no live stream");
     }
-    final YTDLPInstaller verifiedInstaller = Mockito.verify(installer);
+    final YtdlpInstaller verifiedInstaller = Mockito.verify(installer);
     verifiedInstaller.download(true);
     assertThrows(NullPointerException.class, () -> SourceUtils.isDynamicStream(null));
   }
@@ -233,10 +233,10 @@ final class SourceUtilsTest {
     final Path script = this.directory.resolve("yt-dlp");
     Files.writeString(script, "#!/bin/sh\necho '{\"is_live\": true}'\n", StandardCharsets.UTF_8);
     Files.setPosixFilePermissions(script, PosixFilePermissions.fromString("rwx------"));
-    final YTDLPInstaller installer = Mockito.mock(YTDLPInstaller.class);
+    final YtdlpInstaller installer = Mockito.mock(YtdlpInstaller.class);
     Mockito.when(installer.download(true)).thenReturn(script);
-    try (final MockedStatic<YTDLPInstaller> installers = Mockito.mockStatic(YTDLPInstaller.class)) {
-      installers.when(YTDLPInstaller::shared).thenReturn(installer);
+    try (final MockedStatic<YtdlpInstaller> installers = Mockito.mockStatic(YtdlpInstaller.class)) {
+      installers.when(YtdlpInstaller::shared).thenReturn(installer);
 
       final boolean live = SourceUtils.isDynamicStream("https://example.com/live");
       assertTrue(live);

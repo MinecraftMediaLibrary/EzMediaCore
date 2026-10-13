@@ -18,13 +18,13 @@
 /**
  * Installs the pinned yt-dlp executable used to resolve media URLs from web pages.
  *
- * <p>{@link me.brandonli.mcav.capability.installer.ytdlp.YTDLPInstaller#shared()} provides the normal installer,
+ * <p>{@link me.brandonli.mcav.capability.installer.ytdlp.YtdlpInstaller#shared()} provides the normal installer,
  * serializing concurrent downloads to the default cache folder. Factories also allow a separate destination.
  * Download descriptors and digests are read from the bundled installer resource; zip distributions are extracted
  * and return the executable inside them.
  *
  * <p>Downloading and extraction block the caller and keep installed files for reuse. This package prepares the
- * program; {@link me.brandonli.mcav.json.ytdlp.YTDLPParser} runs it and parses its output. Coordinate separate
+ * program; {@link me.brandonli.mcav.json.ytdlp.YtdlpParser} runs it and parses its output. Coordinate separate
  * installer instances that target the same folder, and use the capability readiness API during normal bootstrap.
  *
  * <p>Reference parameters and return values are non-null unless marked {@code @Nullable};

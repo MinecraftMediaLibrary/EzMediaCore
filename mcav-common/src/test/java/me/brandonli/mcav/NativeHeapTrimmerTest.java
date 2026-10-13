@@ -61,8 +61,8 @@ import javax.management.InstanceNotFoundException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import me.brandonli.mcav.utils.ThrowableUtils;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
@@ -142,20 +142,20 @@ final class NativeHeapTrimmerTest {
   @Test
   void shouldTrimOnlyOnLinuxInAJvmThatDoesNotTrimItselfAtAPositiveInterval() {
     final Runnable nothing = () -> {};
-    final NativeHeapTrimmer trimming = NativeHeapTrimmer.create(OS.LINUX, 0L, 60L, nothing, nothing);
+    final NativeHeapTrimmer trimming = NativeHeapTrimmer.create(Os.LINUX, 0L, 60L, nothing, nothing);
     trimming.start();
     final boolean trims = trimming.isTrimming();
     trimming.close();
 
     assertTrue(trims);
-    assertNeverTrims(NativeHeapTrimmer.create(OS.WINDOWS, 0L, 60L, nothing, nothing), "off Linux");
-    assertNeverTrims(NativeHeapTrimmer.create(OS.LINUX, 1L, 60L, nothing, nothing), "in a JVM that trims itself");
+    assertNeverTrims(NativeHeapTrimmer.create(Os.WINDOWS, 0L, 60L, nothing, nothing), "off Linux");
+    assertNeverTrims(NativeHeapTrimmer.create(Os.LINUX, 1L, 60L, nothing, nothing), "in a JVM that trims itself");
     assertNeverTrims(
-      NativeHeapTrimmer.create(OS.LINUX, NativeHeapTrimmer.NO_JVM_INTERVAL, 60L, nothing, nothing),
+      NativeHeapTrimmer.create(Os.LINUX, NativeHeapTrimmer.NO_JVM_INTERVAL, 60L, nothing, nothing),
       "in a JVM other than HotSpot"
     );
-    assertNeverTrims(NativeHeapTrimmer.create(OS.LINUX, 0L, 0L, nothing, nothing), "turned off");
-    assertNeverTrims(NativeHeapTrimmer.create(OS.LINUX, 0L, -1L, nothing, nothing), "turned off by a negative interval");
+    assertNeverTrims(NativeHeapTrimmer.create(Os.LINUX, 0L, 0L, nothing, nothing), "turned off");
+    assertNeverTrims(NativeHeapTrimmer.create(Os.LINUX, 0L, -1L, nothing, nothing), "turned off by a negative interval");
   }
 
   @Test
@@ -163,17 +163,17 @@ final class NativeHeapTrimmerTest {
     final Runnable nothing = () -> {};
     final AtomicInteger fixes = new AtomicInteger();
     final Runnable fix = fixes::incrementAndGet;
-    final NativeHeapTrimmer trimming = NativeHeapTrimmer.create(OS.LINUX, 0L, 60L, nothing, fix);
+    final NativeHeapTrimmer trimming = NativeHeapTrimmer.create(Os.LINUX, 0L, 60L, nothing, fix);
     final int created = fixes.get();
     trimming.start();
     final int started = fixes.get();
     trimming.close();
     for (final NativeHeapTrimmer never : List.of(
-      NativeHeapTrimmer.create(OS.WINDOWS, 0L, 60L, nothing, fix),
-      NativeHeapTrimmer.create(OS.LINUX, 1L, 60L, nothing, fix),
-      NativeHeapTrimmer.create(OS.LINUX, NativeHeapTrimmer.NO_JVM_INTERVAL, 60L, nothing, fix),
-      NativeHeapTrimmer.create(OS.LINUX, 0L, 0L, nothing, fix),
-      NativeHeapTrimmer.create(OS.LINUX, 0L, -1L, nothing, fix)
+      NativeHeapTrimmer.create(Os.WINDOWS, 0L, 60L, nothing, fix),
+      NativeHeapTrimmer.create(Os.LINUX, 1L, 60L, nothing, fix),
+      NativeHeapTrimmer.create(Os.LINUX, NativeHeapTrimmer.NO_JVM_INTERVAL, 60L, nothing, fix),
+      NativeHeapTrimmer.create(Os.LINUX, 0L, 0L, nothing, fix),
+      NativeHeapTrimmer.create(Os.LINUX, 0L, -1L, nothing, fix)
     )) {
       never.start();
       never.close();
@@ -217,7 +217,7 @@ final class NativeHeapTrimmerTest {
   @Test
   void shouldGiveGlibcTheThreshold() {
     final SymbolLookup library = Linker.nativeLinker().defaultLookup();
-    final boolean glibc = OSUtils.getOS() == OS.LINUX && library.find("gnu_get_libc_version").isPresent();
+    final boolean glibc = OsUtils.getOs() == Os.LINUX && library.find("gnu_get_libc_version").isPresent();
     final boolean fixed = NativeHeapTrimmer.fixGlibcTrimThreshold();
     assertEquals(glibc, fixed);
   }
@@ -371,7 +371,7 @@ final class NativeHeapTrimmerTest {
 
   @Test
   void shouldFollowTheIntervalOfTheSystemProperty() {
-    final boolean linux = OSUtils.getOS() == OS.LINUX;
+    final boolean linux = OsUtils.getOs() == Os.LINUX;
     final String previous = System.getProperty(NativeHeapTrimmer.INTERVAL_PROPERTY);
     try {
       System.setProperty(NativeHeapTrimmer.INTERVAL_PROPERTY, "0");
@@ -396,7 +396,7 @@ final class NativeHeapTrimmerTest {
   void shouldGiveTheTopOfAThreadArenaBackToTheSystemWhileTrimming() throws InterruptedException, IOException {
     final Linker linker = Linker.nativeLinker();
     final SymbolLookup library = linker.defaultLookup();
-    assumeTrue(OSUtils.getOS() == OS.LINUX && library.find("gnu_get_libc_version").isPresent(), "glibc's thread arenas!");
+    assumeTrue(OsUtils.getOs() == Os.LINUX && library.find("gnu_get_libc_version").isPresent(), "glibc's thread arenas!");
     final MethodHandle malloc = linker.downcallHandle(
       library.find("malloc").orElseThrow(),
       FunctionDescriptor.of(ValueLayout.ADDRESS, ValueLayout.JAVA_LONG)
@@ -495,7 +495,7 @@ final class NativeHeapTrimmerTest {
     final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
     final String answer = NativeHeapTrimmer.trimWithJdk(server);
     final String ownAnswer = NativeHeapTrimmer.trimThisJvm();
-    final boolean linux = OSUtils.getOS() == OS.LINUX;
+    final boolean linux = OsUtils.getOs() == Os.LINUX;
     final String expected = linux ? "Trim native heap" : "Not available";
     final boolean answered = answer.startsWith(expected);
     assertTrue(answered, answer);

@@ -31,7 +31,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import me.brandonli.mcav.media.player.multimedia.VideoPlayerMultiplexer;
-import me.brandonli.mcav.media.player.multimedia.cv.AbstractVideoPlayerCV;
+import me.brandonli.mcav.media.player.multimedia.cv.AbstractVideoPlayerCv;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.VolumeFilter;
 import me.brandonli.mcav.plugin.MCAVSandbox;
 import me.brandonli.mcav.plugin.locale.Message;
@@ -59,7 +59,7 @@ final class VideoPlaybackCommandTest {
   /** A player of another kind than FFmpeg's and OpenCV's, such as VLC's. */
   private VideoPlayerMultiplexer other;
 
-  private AbstractVideoPlayerCV decoded;
+  private AbstractVideoPlayerCv decoded;
 
   @BeforeEach
   void createCommand() {
@@ -72,7 +72,7 @@ final class VideoPlaybackCommandTest {
     this.command = new VideoPlaybackCommand(plugin);
     this.sender = mock(CommandSender.class);
     this.other = mock(VideoPlayerMultiplexer.class);
-    this.decoded = mock(AbstractVideoPlayerCV.class);
+    this.decoded = mock(AbstractVideoPlayerCv.class);
   }
 
   @AfterEach

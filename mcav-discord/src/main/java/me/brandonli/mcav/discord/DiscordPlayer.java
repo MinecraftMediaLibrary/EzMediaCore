@@ -18,7 +18,7 @@
 package me.brandonli.mcav.discord;
 
 import com.google.common.base.Preconditions;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
@@ -68,7 +68,7 @@ public interface DiscordPlayer extends AudioFilter, AudioSendHandler {
    * @param dump the non-null media information from yt-dlp; its title may be null
    * @throws NullPointerException if {@code dump} is null
    */
-  void setCurrentMedia(final URLParseDump dump);
+  void setCurrentMedia(final UrlParseDump dump);
 
   /**
    * Sets the presence of the bot to "Playing" a title. Any title is accepted and adjusted to the rules of

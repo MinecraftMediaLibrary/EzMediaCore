@@ -51,7 +51,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.LongSupplier;
 import me.brandonli.mcav.media.player.PlayerException;
-import me.brandonli.mcav.utils.os.OS;
+import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.vm.testing.FakeProcess;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.AfterEach;
@@ -139,7 +139,7 @@ final class VMProcessTest {
     return new VMSettings(unusedPort, 64, 48, 10);
   }
 
-  private VMProcess process(final VMSettings settings, final VMConfiguration configuration, final OS os, final Object... results) {
+  private VMProcess process(final VMSettings settings, final VMConfiguration configuration, final Os os, final Object... results) {
     for (final Object result : results) {
       this.outcomes.addLast(result);
     }
@@ -169,7 +169,7 @@ final class VMProcessTest {
     );
   }
 
-  private VMProcess reachable(final OS os, final Object... results) {
+  private VMProcess reachable(final Os os, final Object... results) {
     final VMSettings settings = this.reachableSettings();
     final VMConfiguration configuration = VMConfiguration.builder();
     return this.process(settings, configuration, os, results);
@@ -206,7 +206,7 @@ final class VMProcessTest {
   }
 
   private List<String> commandWithoutAccelerator(final VMSettings settings, final VMConfiguration configuration) {
-    final VMProcess process = this.process(settings, configuration, OS.LINUX);
+    final VMProcess process = this.process(settings, configuration, Os.LINUX);
     return process.buildCommand(null, this.passwordFile());
   }
 
@@ -242,7 +242,7 @@ final class VMProcessTest {
     final VMSettings settings = this.reachableSettings();
     final VMConfiguration configuration = VMConfiguration.builder();
     configuration.memory(64);
-    final VMProcess process = this.process(settings, configuration, OS.WINDOWS, qemu);
+    final VMProcess process = this.process(settings, configuration, Os.WINDOWS, qemu);
     final boolean aliveBefore = process.isAlive();
     process.start();
     final boolean alive = process.isAlive();
@@ -272,7 +272,7 @@ final class VMProcessTest {
   void retriesWithSoftwareEmulationWhenTheAcceleratorFails(final String failure) {
     final FakeProcess failed = FakeProcess.exited(1, failure + "\n");
     final FakeProcess working = FakeProcess.running("");
-    final VMProcess process = this.reachable(OS.WINDOWS, failed, working);
+    final VMProcess process = this.reachable(Os.WINDOWS, failed, working);
     process.start();
     final boolean alive = process.isAlive();
     final List<String> first = this.command("-accel", "whpx");
@@ -286,7 +286,7 @@ final class VMProcessTest {
   void forgetsTheOutputOfTheAttemptThatFailed() {
     final FakeProcess failed = FakeProcess.exited(1, "WHPX: No accelerator found\n");
     final FakeProcess failedAgain = FakeProcess.exited(2, "could not open disk image alpine.qcow2\n");
-    final VMProcess process = this.reachable(OS.WINDOWS, failed, failedAgain);
+    final VMProcess process = this.reachable(Os.WINDOWS, failed, failedAgain);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     assertEquals("QEMU exited with code 2: could not open disk image alpine.qcow2", message);
@@ -295,7 +295,7 @@ final class VMProcessTest {
   @Test
   void failsWithoutRetryingWhenTheFailureIsUnrelatedToTheAccelerator() {
     final FakeProcess failed = FakeProcess.exited(1, "could not open disk image alpine.qcow2\n");
-    final VMProcess process = this.reachable(OS.MAC, failed);
+    final VMProcess process = this.reachable(Os.MAC, failed);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final int launches = this.commands.size();
@@ -311,7 +311,7 @@ final class VMProcessTest {
     final FakeProcess failed = FakeProcess.running(late);
     failed.exit(1);
     final FakeProcess working = FakeProcess.running("");
-    final VMProcess process = this.reachable(OS.WINDOWS, failed, working);
+    final VMProcess process = this.reachable(Os.WINDOWS, failed, working);
     process.start();
     final int launches = this.commands.size();
     assertEquals(2, launches);
@@ -320,7 +320,7 @@ final class VMProcessTest {
   @Test
   void usesSoftwareEmulationDirectlyWhenTheMachineHasNoAccelerator() {
     final FakeProcess qemu = FakeProcess.running("");
-    final VMProcess process = this.reachable(OS.FREEBSD, qemu);
+    final VMProcess process = this.reachable(Os.FREEBSD, qemu);
     process.start();
     final List<String> expected = this.command("-accel", "tcg");
     final List<List<String>> expectedCommands = List.of(expected);
@@ -330,7 +330,7 @@ final class VMProcessTest {
   @Test
   void doesNotRetrySoftwareEmulation() {
     final FakeProcess failed = FakeProcess.exited(3, "tcg accel failed to start\n");
-    final VMProcess process = this.reachable(OS.LINUX, failed);
+    final VMProcess process = this.reachable(Os.LINUX, failed);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final int launches = this.commands.size();
@@ -357,7 +357,7 @@ final class VMProcessTest {
       QEMU,
       configuration,
       launcher,
-      OS.FREEBSD,
+      Os.FREEBSD,
       this.missingKvm,
       SHORT_TIMEOUT_MILLIS,
       clock,
@@ -386,7 +386,7 @@ final class VMProcessTest {
       QEMU,
       configuration,
       launcher,
-      OS.FREEBSD,
+      Os.FREEBSD,
       this.missingKvm,
       SHORT_TIMEOUT_MILLIS,
       clock,
@@ -407,7 +407,7 @@ final class VMProcessTest {
     final VMSettings settings = this.reachableSettings();
     final VMConfiguration configuration = VMConfiguration.builder();
     configuration.accelerator("kvm");
-    final VMProcess process = this.process(settings, configuration, OS.WINDOWS, failed);
+    final VMProcess process = this.process(settings, configuration, Os.WINDOWS, failed);
     assertThrows(PlayerException.class, process::start);
     final List<String> expected = this.command("-accel", "kvm");
     final List<List<String>> expectedCommands = List.of(expected);
@@ -420,7 +420,7 @@ final class VMProcessTest {
     final VMSettings settings = this.reachableSettings();
     final VMConfiguration configuration = VMConfiguration.builder();
     configuration.flag("enable-kvm");
-    final VMProcess process = this.process(settings, configuration, OS.MAC, qemu);
+    final VMProcess process = this.process(settings, configuration, Os.MAC, qemu);
     process.start();
     final List<String> expected = this.command("-enable-kvm");
     final List<List<String>> expectedCommands = List.of(expected);
@@ -449,7 +449,7 @@ final class VMProcessTest {
       QEMU,
       VMConfiguration.builder(),
       launcher,
-      OS.LINUX,
+      Os.LINUX,
       this.missingKvm,
       SHORT_TIMEOUT_MILLIS,
       this::secretFolder
@@ -472,8 +472,8 @@ final class VMProcessTest {
 
   @Test
   void everyProcessHasAPasswordOfItsOwn() {
-    final VMProcess first = this.reachable(OS.LINUX);
-    final VMProcess second = this.reachable(OS.LINUX);
+    final VMProcess first = this.reachable(Os.LINUX);
+    final VMProcess second = this.reachable(Os.LINUX);
     final String firstPassword = first.getPassword();
     final String secondPassword = second.getPassword();
     assertTrue(firstPassword.matches("[A-Za-z0-9]{8}"), firstPassword);
@@ -521,7 +521,7 @@ final class VMProcessTest {
       QEMU,
       VMConfiguration.builder(),
       launcher,
-      OS.WINDOWS,
+      Os.WINDOWS,
       this.missingKvm,
       SHORT_TIMEOUT_MILLIS,
       this::secretFolder
@@ -549,7 +549,7 @@ final class VMProcessTest {
       QEMU,
       VMConfiguration.builder(),
       launcher,
-      OS.LINUX,
+      Os.LINUX,
       this.missingKvm,
       SHORT_TIMEOUT_MILLIS,
       () -> Files.createDirectories(folder)
@@ -573,7 +573,7 @@ final class VMProcessTest {
       QEMU,
       VMConfiguration.builder(),
       launcher,
-      OS.LINUX,
+      Os.LINUX,
       this.missingKvm,
       SHORT_TIMEOUT_MILLIS,
       () -> {
@@ -587,7 +587,7 @@ final class VMProcessTest {
 
   @Test
   void aFailedStartDeletesThePasswordToo() {
-    final VMProcess process = this.reachable(OS.LINUX, new IOException("no QEMU"));
+    final VMProcess process = this.reachable(Os.LINUX, new IOException("no QEMU"));
     assertThrows(PlayerException.class, process::start);
     final Path folder = this.directory.resolve("secret");
     assertFalse(Files.exists(folder), "the password and its folder are gone");
@@ -608,7 +608,7 @@ final class VMProcessTest {
       QEMU,
       VMConfiguration.builder(),
       launcher,
-      OS.LINUX,
+      Os.LINUX,
       this.missingKvm,
       SHORT_TIMEOUT_MILLIS,
       this::secretFolder
@@ -662,7 +662,7 @@ final class VMProcessTest {
     configuration.vga("virtio");
     configuration.option("display", "gtk");
     configuration.option("usbdevice", "tablet");
-    final VMProcess process = this.process(settings, configuration, OS.LINUX);
+    final VMProcess process = this.process(settings, configuration, Os.LINUX);
     final List<String> command = process.buildCommand(null, this.passwordFile());
     final String program = QEMU.toString();
     final List<String> expected = List.of(
@@ -694,7 +694,7 @@ final class VMProcessTest {
       QEMU,
       configuration,
       launcher,
-      OS.LINUX,
+      Os.LINUX,
       this.missingKvm,
       SHORT_TIMEOUT_MILLIS,
       this::secretFolder
@@ -861,7 +861,7 @@ final class VMProcessTest {
     final VMSettings settings = this.reachableSettings();
     final VMConfiguration display = VMConfiguration.builder();
     display.option("vnc", ":7");
-    final VMProcess process = this.process(settings, display, OS.LINUX);
+    final VMProcess process = this.process(settings, display, Os.LINUX);
     assertThrows(PlayerException.class, process::start);
     assertEquals(List.of(), this.commands, "a refused configuration never starts QEMU");
   }
@@ -871,7 +871,7 @@ final class VMProcessTest {
     final VMSettings settings = new VMSettings(5901, 64, 48, 10);
     final VMConfiguration configuration = VMConfiguration.builder();
     configuration.flag("nographic");
-    final VMProcess process = this.process(settings, configuration, OS.LINUX);
+    final VMProcess process = this.process(settings, configuration, Os.LINUX);
     final List<String> command = process.buildCommand("tcg", this.passwordFile());
     final String program = QEMU.toString();
     final List<String> expected = List.of(
@@ -898,11 +898,11 @@ final class VMProcessTest {
   void picksTheAcceleratorOfEveryOperatingSystem() throws IOException {
     final Path writableKvm = this.directory.resolve("writable-kvm");
     Files.writeString(writableKvm, "");
-    final String windows = VMProcess.detectAccelerator(OS.WINDOWS, this.missingKvm);
-    final String mac = VMProcess.detectAccelerator(OS.MAC, this.missingKvm);
-    final String freeBsd = VMProcess.detectAccelerator(OS.FREEBSD, this.missingKvm);
-    final String linuxWithoutKvm = VMProcess.detectAccelerator(OS.LINUX, this.missingKvm);
-    final String linuxWithKvm = VMProcess.detectAccelerator(OS.LINUX, writableKvm);
+    final String windows = VMProcess.detectAccelerator(Os.WINDOWS, this.missingKvm);
+    final String mac = VMProcess.detectAccelerator(Os.MAC, this.missingKvm);
+    final String freeBsd = VMProcess.detectAccelerator(Os.FREEBSD, this.missingKvm);
+    final String linuxWithoutKvm = VMProcess.detectAccelerator(Os.LINUX, this.missingKvm);
+    final String linuxWithKvm = VMProcess.detectAccelerator(Os.LINUX, writableKvm);
     assertEquals("whpx", windows);
     assertEquals("hvf", mac);
     assertEquals("tcg", freeBsd);
@@ -929,7 +929,7 @@ final class VMProcessTest {
   @Test
   void failsWhenQemuCannotBeLaunched() {
     final IOException failure = new IOException("CreateProcess error=2");
-    final VMProcess process = this.reachable(OS.FREEBSD, failure);
+    final VMProcess process = this.reachable(Os.FREEBSD, failure);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
@@ -951,7 +951,7 @@ final class VMProcessTest {
     }
     final String text = output.toString();
     final FakeProcess failed = FakeProcess.exited(2, text);
-    final VMProcess process = this.reachable(OS.FREEBSD, failed);
+    final VMProcess process = this.reachable(Os.FREEBSD, failed);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final List<String> kept = new ArrayList<>();
@@ -970,7 +970,7 @@ final class VMProcessTest {
     final String discarded = "x".repeat(100_000);
     final String suffix = "z".repeat(4090) + "-tail!";
     final FakeProcess failed = FakeProcess.exited(1, discarded + suffix + ending);
-    final VMProcess process = this.reachable(OS.FREEBSD, failed);
+    final VMProcess process = this.reachable(Os.FREEBSD, failed);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     assertEquals("QEMU exited with code 1: " + suffix, message);
@@ -979,7 +979,7 @@ final class VMProcessTest {
   @Test
   void keepsTheLastLineWithoutALineBreak() {
     final FakeProcess failed = FakeProcess.exited(1, "first\nlast words");
-    final VMProcess process = this.reachable(OS.FREEBSD, failed);
+    final VMProcess process = this.reachable(Os.FREEBSD, failed);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final String separator = System.lineSeparator();
@@ -991,7 +991,7 @@ final class VMProcessTest {
     final InputStream broken = new FailingStream("first\nsecond");
     final FakeProcess failed = FakeProcess.running(broken);
     failed.exit(1);
-    final VMProcess process = this.reachable(OS.FREEBSD, failed);
+    final VMProcess process = this.reachable(Os.FREEBSD, failed);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final String separator = System.lineSeparator();
@@ -1003,7 +1003,7 @@ final class VMProcessTest {
     final InputStream trickle = new OneByteStream("Gerät nicht gefunden: 磁盘\n");
     final FakeProcess failed = FakeProcess.running(trickle);
     failed.exit(1);
-    final VMProcess process = this.reachable(OS.FREEBSD, failed);
+    final VMProcess process = this.reachable(Os.FREEBSD, failed);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     assertEquals("QEMU exited with code 1: Gerät nicht gefunden: 磁盘", message);
@@ -1014,7 +1014,7 @@ final class VMProcessTest {
     final FakeProcess qemu = FakeProcess.running("VNC server running on 127.0.0.1:5999\n");
     final VMSettings settings = unreachableSettings();
     final VMConfiguration configuration = VMConfiguration.builder();
-    final VMProcess process = this.process(settings, configuration, OS.FREEBSD, qemu);
+    final VMProcess process = this.process(settings, configuration, Os.FREEBSD, qemu);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final int port = settings.getPort();
@@ -1033,7 +1033,7 @@ final class VMProcessTest {
     qemu.interruptingWaits();
     final VMSettings settings = unreachableSettings();
     final VMConfiguration configuration = VMConfiguration.builder();
-    final VMProcess process = this.process(settings, configuration, OS.FREEBSD, qemu);
+    final VMProcess process = this.process(settings, configuration, Os.FREEBSD, qemu);
     final PlayerException exception;
     try {
       exception = assertThrows(PlayerException.class, process::start);
@@ -1056,7 +1056,7 @@ final class VMProcessTest {
     final InputStream late = new DelayedStream("too late\n", 1_000L);
     final FakeProcess failed = FakeProcess.running(late);
     failed.exit(4);
-    final VMProcess process = this.reachable(OS.FREEBSD, failed);
+    final VMProcess process = this.reachable(Os.FREEBSD, failed);
     final Thread current = Thread.currentThread();
     current.interrupt();
     final PlayerException exception;
@@ -1075,7 +1075,7 @@ final class VMProcessTest {
   void forcesProcessesThatIgnoreTheShutdownRequest() {
     final FakeProcess qemu = FakeProcess.running("");
     qemu.ignoringDestroy();
-    final VMProcess process = this.reachable(OS.FREEBSD, qemu);
+    final VMProcess process = this.reachable(Os.FREEBSD, qemu);
     process.start();
     process.shutdown();
     final int destroyCalls = qemu.getDestroyCalls();
@@ -1089,7 +1089,7 @@ final class VMProcessTest {
   @Test
   void forcesTheShutdownWhenInterrupted() {
     final FakeProcess qemu = FakeProcess.running("");
-    final VMProcess process = this.reachable(OS.FREEBSD, qemu);
+    final VMProcess process = this.reachable(Os.FREEBSD, qemu);
     process.start();
     qemu.interruptingWaits();
     process.shutdown();
@@ -1105,7 +1105,7 @@ final class VMProcessTest {
     final FakeProcess qemu = FakeProcess.running("");
     qemu.ignoringDestroy();
     qemu.delayingForcedExit(50L);
-    final VMProcess process = this.reachable(OS.FREEBSD, qemu);
+    final VMProcess process = this.reachable(Os.FREEBSD, qemu);
     process.start();
     if (interruptShutdown) {
       qemu.interruptingFirstWait();
@@ -1128,7 +1128,7 @@ final class VMProcessTest {
     final FakeProcess qemu = Mockito.spy(original);
     qemu.ignoringDestroy();
     qemu.delayingForcedExit(100L);
-    final VMProcess process = this.reachable(OS.FREEBSD, qemu);
+    final VMProcess process = this.reachable(Os.FREEBSD, qemu);
     process.start();
     final AtomicBoolean interruptedOnce = new AtomicBoolean();
     Mockito.doAnswer(invocation -> {
@@ -1167,7 +1167,7 @@ final class VMProcessTest {
     final FakeProcess qemu = Mockito.spy(original);
     qemu.ignoringDestroy();
     Mockito.doReturn(qemu).when(qemu).destroyForcibly();
-    final VMProcess process = this.reachable(OS.FREEBSD, qemu);
+    final VMProcess process = this.reachable(Os.FREEBSD, qemu);
     process.start();
     final Thread stopping = new Thread(process::shutdown, "stubborn-process-shutdown");
     stopping.setDaemon(true);
@@ -1193,7 +1193,7 @@ final class VMProcessTest {
     final CountDownLatch finish = new CountDownLatch(1);
     final BlockingStream output = new BlockingStream(finish);
     final FakeProcess qemu = FakeProcess.running(output);
-    final VMProcess process = this.reachable(OS.FREEBSD, qemu);
+    final VMProcess process = this.reachable(Os.FREEBSD, qemu);
     process.start();
     final Thread stopping = new Thread(process::shutdown, "bounded-output-shutdown");
     stopping.setDaemon(true);
@@ -1227,7 +1227,7 @@ final class VMProcessTest {
     final CountDownLatch finish = new CountDownLatch(1);
     final BlockingStream output = new BlockingStream(finish);
     final FakeProcess qemu = FakeProcess.running(output);
-    final VMProcess process = this.reachable(OS.FREEBSD, qemu);
+    final VMProcess process = this.reachable(Os.FREEBSD, qemu);
     process.start();
     final AtomicBoolean restored = new AtomicBoolean();
     final AtomicReference<Throwable> failure = new AtomicReference<>();
@@ -1287,7 +1287,7 @@ final class VMProcessTest {
   void drainsFinalOutputBeforeReturningFromShutdown() {
     final DelayedStream output = new DelayedStream("final diagnostic\n", 500L);
     final FakeProcess qemu = FakeProcess.running(output);
-    final VMProcess process = this.reachable(OS.FREEBSD, qemu);
+    final VMProcess process = this.reachable(Os.FREEBSD, qemu);
     process.start();
     process.shutdown();
     final boolean alive = qemu.isAlive();
@@ -1300,7 +1300,7 @@ final class VMProcessTest {
   @Test
   void shutsDownOnlyOnce() {
     final FakeProcess qemu = FakeProcess.running("");
-    final VMProcess process = this.reachable(OS.FREEBSD, qemu);
+    final VMProcess process = this.reachable(Os.FREEBSD, qemu);
     process.shutdown();
     process.start();
     process.shutdown();
@@ -1313,7 +1313,7 @@ final class VMProcessTest {
   void failsFastWhenTheVncPortIsTaken() throws IOException {
     final ServerSocket other = this.listen(this.port);
     final FakeProcess qemu = FakeProcess.running("");
-    final VMProcess process = this.reachable(OS.FREEBSD, qemu);
+    final VMProcess process = this.reachable(Os.FREEBSD, qemu);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final int launches = this.commands.size();
@@ -1328,7 +1328,7 @@ final class VMProcessTest {
   void failsWhenQemuExitsRightAfterItsDisplayOpens() {
     final FakeProcess qemu = FakeProcess.running("Failed to start VNC server: address in use\n");
     qemu.exitingWhenWaitedOn(1);
-    final VMProcess process = this.reachable(OS.FREEBSD, qemu);
+    final VMProcess process = this.reachable(Os.FREEBSD, qemu);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final boolean alive = process.isAlive();
@@ -1416,7 +1416,7 @@ final class VMProcessTest {
   @Test
   void noticesWhenQemuExitsOnItsOwn() {
     final FakeProcess qemu = FakeProcess.running("");
-    final VMProcess process = this.reachable(OS.FREEBSD, qemu);
+    final VMProcess process = this.reachable(Os.FREEBSD, qemu);
     process.start();
     qemu.exit(0);
     final boolean alive = process.isAlive();
@@ -1428,7 +1428,7 @@ final class VMProcessTest {
     final CountDownLatch finish = new CountDownLatch(1);
     final InputStream blocking = new BlockingStream(finish);
     final FakeProcess qemu = FakeProcess.running(blocking);
-    final VMProcess process = this.reachable(OS.FREEBSD, qemu);
+    final VMProcess process = this.reachable(Os.FREEBSD, qemu);
     try {
       process.start();
       final List<Thread> drains = awaitDrainThreads();
@@ -1487,7 +1487,7 @@ final class VMProcessTest {
     qemu.interruptingFirstWait();
     final VMSettings settings = unreachableSettings();
     final VMConfiguration configuration = VMConfiguration.builder();
-    final VMProcess process = this.process(settings, configuration, OS.FREEBSD, qemu);
+    final VMProcess process = this.process(settings, configuration, Os.FREEBSD, qemu);
     final PlayerException exception;
     try {
       exception = assertThrows(PlayerException.class, process::start);

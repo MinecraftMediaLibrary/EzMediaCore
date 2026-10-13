@@ -31,7 +31,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import me.brandonli.mcav.utils.os.OS;
+import me.brandonli.mcav.utils.os.Os;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -52,7 +52,7 @@ final class VMModuleTest {
     final String path = folder.toString();
     final Map<String, String> environment = Map.of("PATH", path);
     final Path macPaths = this.directory.resolve("no-paths-file");
-    return new ExecutableFinder(OS.LINUX, environment, macPaths);
+    return new ExecutableFinder(Os.LINUX, environment, macPaths);
   }
 
   @Test

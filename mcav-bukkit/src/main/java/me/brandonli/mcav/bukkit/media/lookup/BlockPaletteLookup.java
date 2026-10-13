@@ -31,7 +31,7 @@ import java.util.Set;
 import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.FilterLiteDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -123,7 +123,7 @@ public final class BlockPaletteLookup {
     private static final BlockData AIR;
 
     static {
-      final Reader reader = IOUtils.getResourceAsStreamReader(PALETTE_RESOURCE);
+      final Reader reader = IoUtils.getResourceAsStreamReader(PALETTE_RESOURCE);
       final Map<String, int @Nullable []> palette = parsePalette(reader);
       final Map<Integer, Material> materials = resolveMaterials(palette);
 

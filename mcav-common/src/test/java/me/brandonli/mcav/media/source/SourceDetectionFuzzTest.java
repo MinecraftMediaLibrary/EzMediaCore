@@ -28,7 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import me.brandonli.mcav.media.source.device.DeviceSource;
-import me.brandonli.mcav.media.source.ffmpeg.FFmpegDirectSource;
+import me.brandonli.mcav.media.source.ffmpeg.FfmpegDirectSource;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.media.source.uri.UriSource;
 import org.junit.jupiter.api.Tag;
@@ -60,7 +60,7 @@ final class SourceDetectionFuzzTest {
         final int written = Integer.parseInt(resource);
         assertEquals(written, index, "a device is the number that was written");
       }
-      case final FFmpegDirectSource direct -> {
+      case final FfmpegDirectSource direct -> {
         final String format = direct.getFormat();
         final boolean blank = format.isBlank();
         assertFalse(blank, () -> "a raw FFmpeg input without a format from '" + resource + "'");

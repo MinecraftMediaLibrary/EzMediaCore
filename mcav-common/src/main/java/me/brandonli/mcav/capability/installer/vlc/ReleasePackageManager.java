@@ -19,7 +19,7 @@ package me.brandonli.mcav.capability.installer.vlc;
 
 import com.google.common.base.Preconditions;
 import me.brandonli.mcav.capability.installer.Download;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 
 /**
  * Resolves the VLC downloads for every platform: the releases listed in the {@code mcav/common/installers/vlc.json} resource, each
@@ -44,8 +44,8 @@ public final class ReleasePackageManager {
    * @return the downloads for every supported platform
    * @throws NullPointerException if {@code resourcePath} is null
    */
-  public static Download[] readVLCDownloadsFromJsonResource(final String resourcePath) {
+  public static Download[] readVlcDownloadsFromJsonResource(final String resourcePath) {
     Preconditions.checkNotNull(resourcePath, "Resource path must not be null!");
-    return IOUtils.readDownloadsFromJsonResource(resourcePath);
+    return IoUtils.readDownloadsFromJsonResource(resourcePath);
   }
 }

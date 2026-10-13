@@ -31,8 +31,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.installer.Installer;
-import me.brandonli.mcav.capability.installer.vlc.VLCInstallationKit;
-import me.brandonli.mcav.capability.installer.ytdlp.YTDLPInstaller;
+import me.brandonli.mcav.capability.installer.vlc.VlcInstallationKit;
+import me.brandonli.mcav.capability.installer.ytdlp.YtdlpInstaller;
 import me.brandonli.mcav.utils.natives.NativeLoadingException;
 import org.bytedeco.ffmpeg.ffmpeg;
 import org.bytedeco.ffmpeg.global.avutil;
@@ -144,7 +144,7 @@ public final class DependencyLoader {
   private void loadNatives() {
     configureJavaCpp();
     Loader.load(Loader.class);
-    loadFFmpeg(DependencyLoader::loadFFmpegLibraries, DependencyLoader::configureFFmpegLogging);
+    loadFfmpeg(DependencyLoader::loadFfmpegLibraries, DependencyLoader::configureFfmpegLogging);
     for (final Class<?> module : OPENCV_MODULES) {
       Loader.load(module);
     }
@@ -235,7 +235,7 @@ public final class DependencyLoader {
    * @throws NativeLoadingException if any other FFmpeg library cannot be linked
    */
   @VisibleForTesting
-  static void loadFFmpeg(final Runnable ffmpegLoader, final Runnable setup) {
+  static void loadFfmpeg(final Runnable ffmpegLoader, final Runnable setup) {
     try {
       ffmpegLoader.run();
     } catch (final UnsatisfiedLinkError | NoClassDefFoundError exception) {
@@ -253,11 +253,11 @@ public final class DependencyLoader {
     setup.run();
   }
 
-  private static void loadFFmpegLibraries() {
+  private static void loadFfmpegLibraries() {
     Loader.load(ffmpeg.class);
   }
 
-  private static void configureFFmpegLogging() {
+  private static void configureFfmpegLogging() {
     FFmpegLogCallback.set();
     FFmpegLogCallback.setLevel(avutil.AV_LOG_ERROR);
   }
@@ -266,8 +266,8 @@ public final class DependencyLoader {
    * Finds or installs VLC. If VLC is not available for this platform or the installation fails, the
    * {@link Capability#VLC} capability is removed.
    */
-  public void installVLC() {
-    this.installVLC(DependencyLoader::startInstallationKit);
+  public void installVlc() {
+    this.installVlc(DependencyLoader::startInstallationKit);
   }
 
   /**
@@ -278,7 +278,7 @@ public final class DependencyLoader {
    * @param starter finds or installs VLC
    */
   @VisibleForTesting
-  void installVLC(final VLCStarter starter) {
+  void installVlc(final VlcStarter starter) {
     final Object preparation = this.beginPreparation(Capability.VLC);
     this.logger.info("Preparing VLC...");
     final long start = System.currentTimeMillis();
@@ -321,7 +321,7 @@ public final class DependencyLoader {
   }
 
   private static Optional<Path> startInstallationKit() throws IOException {
-    final VLCInstallationKit kit = VLCInstallationKit.create();
+    final VlcInstallationKit kit = VlcInstallationKit.create();
     return kit.start();
   }
 
@@ -347,9 +347,9 @@ public final class DependencyLoader {
    * Installs yt-dlp. If yt-dlp is not available for this platform or the installation fails, the
    * {@link Capability#YT_DLP} capability is removed.
    */
-  public void installYTDLP() {
-    final YTDLPInstaller installer = YTDLPInstaller.shared();
-    this.installYTDLP(installer);
+  public void installYtdlp() {
+    final YtdlpInstaller installer = YtdlpInstaller.shared();
+    this.installYtdlp(installer);
   }
 
   /**
@@ -360,7 +360,7 @@ public final class DependencyLoader {
    * @param installer the yt-dlp installer
    */
   @VisibleForTesting
-  void installYTDLP(final Installer installer) {
+  void installYtdlp(final Installer installer) {
     final Object preparation = this.beginPreparation(Capability.YT_DLP);
     final boolean supported = installer.isSupported();
     if (!supported) {
@@ -390,7 +390,7 @@ public final class DependencyLoader {
    * Finds or installs VLC.
    */
   @FunctionalInterface
-  interface VLCStarter {
+  interface VlcStarter {
     /**
      * Finds or installs VLC and loads its libraries.
      *

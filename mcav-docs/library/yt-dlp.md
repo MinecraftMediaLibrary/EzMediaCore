@@ -32,25 +32,25 @@ YouTube still works, but yt-dlp may find fewer formats; see the
 
 ## Using the Parser
 
-The `YTDLPParser` runs yt-dlp for a `UriSource` and returns a `URLParseDump` with every format yt-dlp found, together
+The `YtdlpParser` runs yt-dlp for a `UriSource` and returns a `UrlParseDump` with every format yt-dlp found, together
 with the title, uploader, thumbnail, and other information about the media. Parsing runs yt-dlp as a separate program,
 so it blocks for a few seconds; call it off threads that must stay responsive. It fails in the following cases:
 
 | Exception                  | Meaning                                                                             |
 |----------------------------|-------------------------------------------------------------------------------------|
 | `IOException`              | yt-dlp cannot be installed or run, or does not finish within two minutes.          |
-| `YTDLPParseException`      | yt-dlp reports an error, for example because the video is private, or prints no usable JSON. |
+| `YtdlpParseException`      | yt-dlp reports an error, for example because the video is private, or prints no usable JSON. |
 | `IllegalArgumentException` | The source is not an absolute `http` or `https` URL.                                |
 | `IllegalStateException`    | The library is still preparing yt-dlp in the background after `install`; wait for `api.whenCapabilityReady(Capability.YT_DLP)` or try again shortly. |
 
-`YTDLPParseException` and `NoMatchingFormatException` (below) are unchecked exceptions that extend
+`YtdlpParseException` and `NoMatchingFormatException` (below) are unchecked exceptions that extend
 `RuntimeException`.
 
 ```java
   final URI pageUri = URI.create("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
   final UriSource page = UriSource.uri(pageUri);
-  final YTDLPParser parser = YTDLPParser.simple();
-  final URLParseDump dump = parser.parse(page);
+  final YtdlpParser parser = YtdlpParser.simple();
+  final UrlParseDump dump = parser.parse(page);
 ```
 
 Extra yt-dlp arguments, such as `--cookies`, can be passed after the source.
@@ -60,7 +60,7 @@ Sites usually offer many formats, so a `StrategySelector` picks one for video an
 `FIRST_AUDIO`, `PREFER_WEBM_AUDIO`, and `PREFER_MP4_VIDEO`, all constants of `FormatStrategy`.
 
 ```java
-  public static boolean playBestQuality(final URLParseDump dump, final VideoPlayerMultiplexer player) {
+  public static boolean playBestQuality(final UrlParseDump dump, final VideoPlayerMultiplexer player) {
     final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
     final Format videoFormat = selector.getVideoSource(dump);
     final Format audioFormat = selector.getAudioSource(dump);

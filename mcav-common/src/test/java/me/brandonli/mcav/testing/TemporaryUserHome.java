@@ -27,7 +27,7 @@ import java.nio.file.Path;
  * <pre><code>
  *   try (final TemporaryUserHome redirected = TemporaryUserHome.redirectTo(tempDirectory)) {
  *     final Path home = redirected.getHome();
- *     final Path cache = IOUtils.getCachedFolder();
+ *     final Path cache = IoUtils.getCachedFolder();
  *   }
  * </code></pre>
  */

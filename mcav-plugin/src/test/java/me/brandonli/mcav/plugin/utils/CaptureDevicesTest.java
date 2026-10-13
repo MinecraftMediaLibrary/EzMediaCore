@@ -36,8 +36,8 @@ import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.List;
 import java.util.Set;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
 import org.junit.jupiter.api.Test;
@@ -62,8 +62,8 @@ final class CaptureDevicesTest {
   @Test
   void listsWhatLinuxNamesOnLinuxAndTriesNumbersElsewhere() throws IOException {
     Files.writeString(Files.createDirectory(this.folder.resolve("video3")).resolve("name"), "Capture Card");
-    assertEquals(List.of(new CaptureDevices.Device(3, "Capture Card")), CaptureDevices.list(OS.LINUX, this.folder, _ -> true));
-    final List<CaptureDevices.Device> tried = CaptureDevices.list(OS.WINDOWS, this.folder, index -> index == 1);
+    assertEquals(List.of(new CaptureDevices.Device(3, "Capture Card")), CaptureDevices.list(Os.LINUX, this.folder, _ -> true));
+    final List<CaptureDevices.Device> tried = CaptureDevices.list(Os.WINDOWS, this.folder, index -> index == 1);
     assertEquals(List.of(new CaptureDevices.Device(1, "device 1")), tried);
   }
 
@@ -128,15 +128,15 @@ final class CaptureDevicesTest {
   void triesDevicesOnlyWhereTheSystemDoesNotListThem() {
     final FrameGrabber.Exception noCamera = new FrameGrabber.Exception("no camera");
     try (
-      final MockedStatic<OSUtils> systems = Mockito.mockStatic(OSUtils.class);
+      final MockedStatic<OsUtils> systems = Mockito.mockStatic(OsUtils.class);
       final MockedConstruction<OpenCVFrameGrabber> grabbers = Mockito.mockConstruction(OpenCVFrameGrabber.class, (grabber, _) ->
         doThrow(noCamera).when(grabber).start()
       )
     ) {
-      systems.when(OSUtils::getOS).thenReturn(OS.WINDOWS);
+      systems.when(OsUtils::getOs).thenReturn(Os.WINDOWS);
       assertEquals(List.of(), CaptureDevices.list());
       final int tried = grabbers.constructed().size();
-      systems.when(OSUtils::getOS).thenReturn(OS.LINUX);
+      systems.when(OsUtils::getOs).thenReturn(Os.LINUX);
       assertEquals(CaptureDevices.listSysfs(CaptureDevices.SYSFS), CaptureDevices.list());
 
       assertTrue(tried > 0, "the numbers are tried");
@@ -147,10 +147,10 @@ final class CaptureDevicesTest {
   @Test
   void listsTheNumbersWhoseOpenCvGrabberStartsWhereTheSystemDoesNotListDevices() throws IOException {
     try (
-      final MockedStatic<OSUtils> systems = Mockito.mockStatic(OSUtils.class);
+      final MockedStatic<OsUtils> systems = Mockito.mockStatic(OsUtils.class);
       final MockedConstruction<OpenCVFrameGrabber> grabbers = Mockito.mockConstruction(OpenCVFrameGrabber.class)
     ) {
-      systems.when(OSUtils::getOS).thenReturn(OS.WINDOWS);
+      systems.when(OsUtils::getOs).thenReturn(Os.WINDOWS);
       final List<CaptureDevices.Device> devices = CaptureDevices.list();
       assertEquals(new CaptureDevices.Device(0, "device 0"), devices.getFirst());
       assertTrue(CaptureDevices.opens(5));

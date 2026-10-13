@@ -19,7 +19,7 @@ package me.brandonli.mcav.json.ytdlp.strategy;
 
 import com.google.common.base.Preconditions;
 import me.brandonli.mcav.json.ytdlp.format.Format;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 
 /**
  * Pairs an audio strategy with a video strategy, so both streams of a video can be selected together.
@@ -53,7 +53,7 @@ public interface StrategySelector {
    * @throws NoMatchingFormatException if no stream matches the audio strategy
    * @throws NullPointerException      if {@code dump} is null
    */
-  Format getAudioSource(final URLParseDump dump);
+  Format getAudioSource(final UrlParseDump dump);
 
   /**
    * Selects the video stream.
@@ -63,7 +63,7 @@ public interface StrategySelector {
    * @throws NoMatchingFormatException if no stream matches the video strategy
    * @throws NullPointerException      if {@code dump} is null
    */
-  Format getVideoSource(final URLParseDump dump);
+  Format getVideoSource(final UrlParseDump dump);
 
   /**
    * Creates a selector.

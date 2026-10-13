@@ -26,7 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -34,8 +34,8 @@ import org.junit.jupiter.api.Test;
  */
 final class MediaInfoTest {
 
-  static URLParseDump completeDump() {
-    final URLParseDump dump = new URLParseDump();
+  static UrlParseDump completeDump() {
+    final UrlParseDump dump = new UrlParseDump();
     dump.title = "Song";
     dump.uploader = "Artist";
     dump.channel = "Artist Channel";
@@ -52,7 +52,7 @@ final class MediaInfoTest {
 
   @Test
   void takesTheShownFieldsFromYtDlpInYtDlpOrderAndNames() {
-    final URLParseDump dump = completeDump();
+    final UrlParseDump dump = completeDump();
     final MediaInfo info = MediaInfo.of(dump);
     final Map<String, Object> json = info.toJson();
     final Map<String, Object> expected = new LinkedHashMap<>();
@@ -78,7 +78,7 @@ final class MediaInfoTest {
 
   @Test
   void leavesOutUnknownTextFieldsButKeepsTheNumbers() {
-    final URLParseDump dump = new URLParseDump();
+    final UrlParseDump dump = new UrlParseDump();
     dump.uploader = "Artist";
     final MediaInfo info = MediaInfo.of(dump);
     final Map<String, Object> json = info.toJson();

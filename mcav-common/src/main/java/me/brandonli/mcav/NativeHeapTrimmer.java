@@ -33,8 +33,8 @@ import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import me.brandonli.mcav.utils.ThrowableUtils;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,7 +120,7 @@ final class NativeHeapTrimmer implements AutoCloseable {
    *         system property turns trimming off
    */
   static NativeHeapTrimmer forThisJvm() {
-    final OS os = OSUtils.getOS();
+    final Os os = OsUtils.getOs();
     final long jvmIntervalMilliseconds = readJvmIntervalMilliseconds();
     final long seconds = Long.getLong(INTERVAL_PROPERTY, DEFAULT_INTERVAL_SECONDS);
     return create(os, jvmIntervalMilliseconds, seconds, NativeHeapTrimmer::trimThisJvm, NativeHeapTrimmer::fixGlibcTrimThreshold);
@@ -140,13 +140,13 @@ final class NativeHeapTrimmer implements AutoCloseable {
    */
   @VisibleForTesting
   static NativeHeapTrimmer create(
-    final OS os,
+    final Os os,
     final long jvmIntervalMilliseconds,
     final long seconds,
     final Runnable trim,
     final Runnable fixThreshold
   ) {
-    final boolean trims = os == OS.LINUX && jvmIntervalMilliseconds == 0;
+    final boolean trims = os == Os.LINUX && jvmIntervalMilliseconds == 0;
     final Duration interval = trims ? Duration.ofSeconds(seconds) : Duration.ZERO;
     return new NativeHeapTrimmer(interval, trim, fixThreshold);
   }

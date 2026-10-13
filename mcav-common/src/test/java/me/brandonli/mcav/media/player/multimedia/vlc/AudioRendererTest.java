@@ -61,7 +61,7 @@ final class AudioRendererTest {
   private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
   private final MockVlc vlc = new MockVlc();
-  private final VLCPlayer owner = this.vlc.newPlayer(1_000L);
+  private final VlcPlayer owner = this.vlc.newPlayer(1_000L);
   private final AudioRenderer renderer = new AudioRenderer(this.owner);
   private final MediaPlayer mediaPlayer = mock(MediaPlayer.class);
   private final List<String> messages = Collections.synchronizedList(new ArrayList<>());

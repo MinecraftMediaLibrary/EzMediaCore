@@ -18,10 +18,10 @@
 /**
  * Provides bounded native VLC discovery strategies for vlcj.
  *
- * <p>{@link me.brandonli.mcav.capability.installer.vlc.discovery.VLCDiscoveryStrategies} creates strategies
+ * <p>{@link me.brandonli.mcav.capability.installer.vlc.discovery.VlcDiscoveryStrategies} creates strategies
  * for system locations or one known library directory. Strategies search supported providers in priority order,
  * require the platform's library file names, and publish the corresponding plugin directory to native VLC.
- * Use {@link me.brandonli.mcav.capability.installer.vlc.VLCInstallationKit} for the normal discovery/load workflow.
+ * Use {@link me.brandonli.mcav.capability.installer.vlc.VlcInstallationKit} for the normal discovery/load workflow.
  *
  * <p>Discovery performs file-system I/O. Publishing a plugin path changes process-wide native environment state,
  * and macOS discovery preloads the core native library. Coordinate native discovery/loading rather than racing

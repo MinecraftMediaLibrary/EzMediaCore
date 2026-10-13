@@ -47,7 +47,7 @@ import java.util.concurrent.TimeoutException;
 import me.brandonli.mcav.discord.DiscordPlayer;
 import me.brandonli.mcav.http.HttpResult;
 import me.brandonli.mcav.http.MediaInfo;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import me.brandonli.mcav.plugin.MCAVSandbox;
@@ -80,7 +80,7 @@ import org.mockito.Mockito;
  */
 final class AudioProviderTest {
 
-  private final URLParseDump dump = new URLParseDump();
+  private final UrlParseDump dump = new UrlParseDump();
   private final Object[] players = { "Steve" };
   private final List<Runnable> deferred = new ArrayList<>();
 
@@ -470,7 +470,7 @@ final class AudioProviderTest {
     this.provider.initialize();
     final Object machine = new Object();
     final AudioFilter video = this.provider.constructFilter(AudioArgument.HTTP_SERVER, this.dump, this.players);
-    this.provider.constructFilter(AudioArgument.HTTP_SERVER, mock(URLParseDump.class), this.players, machine);
+    this.provider.constructFilter(AudioArgument.HTTP_SERVER, mock(UrlParseDump.class), this.players, machine);
     this.provider.releaseAudioFilter(machine);
     assertPlaysInto(this.httpServer, video);
     verify(this.httpServer, times(2)).setCurrentMedia(this.dump);
@@ -482,7 +482,7 @@ final class AudioProviderTest {
     this.provider.initialize();
     final Object machine = new Object();
     final AudioFilter video = this.provider.constructFilter(AudioArgument.DISCORD_BOT, this.dump, this.players);
-    this.provider.constructFilter(AudioArgument.DISCORD_BOT, mock(URLParseDump.class), this.players, machine);
+    this.provider.constructFilter(AudioArgument.DISCORD_BOT, mock(UrlParseDump.class), this.players, machine);
     this.provider.releaseAudioFilter(machine);
     assertPlaysInto(this.discord, video);
     verify(this.audioManager, times(3)).openAudioConnection(this.channel);
@@ -510,7 +510,7 @@ final class AudioProviderTest {
     this.provider.initialize();
     final Object machine = new Object();
     final AudioFilter video = this.provider.constructFilter(AudioArgument.HTTP_SERVER, this.dump, this.players);
-    this.provider.constructFilter(AudioArgument.HTTP_SERVER, mock(URLParseDump.class), this.players, machine);
+    this.provider.constructFilter(AudioArgument.HTTP_SERVER, mock(UrlParseDump.class), this.players, machine);
     this.provider.releaseAudioFilter();
     this.provider.releaseAudioFilter(machine);
     assertFalse(video.applyFilter(ByteBuffer.allocate(4), OriginalAudioMetadata.of("pcm_s16le", 1_536_000, 48_000, 2, 1)));
@@ -525,7 +525,7 @@ final class AudioProviderTest {
     this.provider.initialize();
     final Object machine = new Object();
     final AudioFilter video = this.provider.constructFilter(AudioArgument.DISCORD_BOT, this.dump, this.players);
-    this.provider.constructFilter(AudioArgument.HTTP_SERVER, mock(URLParseDump.class), this.players, machine);
+    this.provider.constructFilter(AudioArgument.HTTP_SERVER, mock(UrlParseDump.class), this.players, machine);
     doThrow(new IllegalStateException("Missing permission VOICE_CONNECT")).when(this.audioManager).openAudioConnection(this.channel);
     this.provider.releaseAudioFilter(machine);
     assertFalse(video.applyFilter(ByteBuffer.allocate(4), OriginalAudioMetadata.of("pcm_s16le", 1_536_000, 48_000, 2, 1)));

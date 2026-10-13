@@ -42,8 +42,8 @@ import me.brandonli.mcav.capability.installer.vlc.discovery.DirectoryProviderDis
 import me.brandonli.mcav.capability.installer.vlc.discovery.DirectoryProviderDiscoveryStrategy.SearchProvider;
 import me.brandonli.mcav.capability.installer.vlc.discovery.DirectoryProviderDiscoveryStrategyTest.StaticDirectoryProvider;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -55,7 +55,7 @@ import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 
 /**
  * Tests the platform strategies {@link LinuxNativeDiscoveryStrategy}, {@link OsxNativeDiscoveryStrategy} and
- * {@link WindowsNativeDiscoveryStrategy}, together with {@link VLCDiscoveryStrategies}, {@link FixedDirectoryProvider}
+ * {@link WindowsNativeDiscoveryStrategy}, together with {@link VlcDiscoveryStrategies}, {@link FixedDirectoryProvider}
  * and {@link EnvironmentVariables}.
  */
 final class PlatformDiscoveryStrategiesTest {
@@ -79,13 +79,13 @@ final class PlatformDiscoveryStrategiesTest {
     final LinuxNativeDiscoveryStrategy linux = new LinuxNativeDiscoveryStrategy();
     final OsxNativeDiscoveryStrategy osx = new OsxNativeDiscoveryStrategy();
     final WindowsNativeDiscoveryStrategy windowsStrategy = new WindowsNativeDiscoveryStrategy();
-    final OS operatingSystem = OSUtils.getOS();
+    final Os operatingSystem = OsUtils.getOs();
     final boolean linuxSupported = linux.supported();
     final boolean osxSupported = osx.supported();
     final boolean windowsSupported = windowsStrategy.supported();
-    assertEquals(operatingSystem == OS.LINUX || operatingSystem == OS.FREEBSD || operatingSystem == OS.OTHER, linuxSupported);
-    assertEquals(operatingSystem == OS.MAC, osxSupported);
-    assertEquals(operatingSystem == OS.WINDOWS, windowsSupported);
+    assertEquals(operatingSystem == Os.LINUX || operatingSystem == Os.FREEBSD || operatingSystem == Os.OTHER, linuxSupported);
+    assertEquals(operatingSystem == Os.MAC, osxSupported);
+    assertEquals(operatingSystem == Os.WINDOWS, windowsSupported);
   }
 
   @ParameterizedTest
@@ -191,8 +191,8 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldPublishThePluginsBelowTheInstallationDirectoryOnWindows() throws IOException {
-    final OS operatingSystem = OSUtils.getOS();
-    Assumptions.assumeTrue(operatingSystem == OS.WINDOWS, "Windows plugin paths use backslashes!");
+    final Os operatingSystem = OsUtils.getOs();
+    Assumptions.assumeTrue(operatingSystem == Os.WINDOWS, "Windows plugin paths use backslashes!");
     final Path directory = createFiles(this.temporaryDirectory, "VLC", "libvlc.dll", "libvlccore.dll");
     final Path plugins = directory.resolve("plugins");
     Files.createDirectories(plugins);
@@ -209,7 +209,7 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldCoverEveryOperatingSystemWithSystemStrategies() {
-    final NativeDiscoveryStrategy[] strategies = VLCDiscoveryStrategies.createSystemStrategies();
+    final NativeDiscoveryStrategy[] strategies = VlcDiscoveryStrategies.createSystemStrategies();
     assertEquals(3, strategies.length);
     final NativeDiscoveryStrategy linux = strategies[0];
     assertInstanceOf(LinuxNativeDiscoveryStrategy.class, linux);
@@ -222,7 +222,7 @@ final class PlatformDiscoveryStrategiesTest {
   @Test
   void shouldFindTheLibrariesOfEveryPlatformInTheGivenDirectoryWithDirectoryStrategies() throws IOException {
     final Path directory = createFiles(this.temporaryDirectory, "vlc", EVERY_LIBRARY);
-    final NativeDiscoveryStrategy[] strategies = VLCDiscoveryStrategies.createDirectoryStrategies(directory);
+    final NativeDiscoveryStrategy[] strategies = VlcDiscoveryStrategies.createDirectoryStrategies(directory);
     assertEquals(3, strategies.length);
     final String rawDirectory = directory.toString();
     final List<String> expectedDirectories = List.of(rawDirectory);
@@ -240,7 +240,7 @@ final class PlatformDiscoveryStrategiesTest {
     final Path empty = this.temporaryDirectory.resolve("empty");
     Files.createDirectories(empty);
     createFiles(empty, "child", EVERY_LIBRARY);
-    final NativeDiscoveryStrategy[] strategies = VLCDiscoveryStrategies.createDirectoryStrategies(empty);
+    final NativeDiscoveryStrategy[] strategies = VlcDiscoveryStrategies.createDirectoryStrategies(empty);
     for (final NativeDiscoveryStrategy strategy : strategies) {
       final String found = strategy.discover();
       assertNull(found);
@@ -249,7 +249,7 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldRejectANullDirectoryInDirectoryStrategies() {
-    assertThrows(NullPointerException.class, () -> VLCDiscoveryStrategies.createDirectoryStrategies(null));
+    assertThrows(NullPointerException.class, () -> VlcDiscoveryStrategies.createDirectoryStrategies(null));
   }
 
   @Test
@@ -295,8 +295,8 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldSetVariablesThroughTheCLibraryOfThisProcess() {
-    final OS operatingSystem = OSUtils.getOS();
-    final boolean isWindows = operatingSystem == OS.WINDOWS;
+    final Os operatingSystem = OsUtils.getOs();
+    final boolean isWindows = operatingSystem == Os.WINDOWS;
     final EnvironmentSetter setter = isWindows
       ? WindowsNativeDiscoveryStrategy.nativeSetter()
       : LinuxNativeDiscoveryStrategy.nativeSetter();
@@ -358,7 +358,7 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldNotInstantiateHelperClasses() throws ReflectiveOperationException {
-    UtilityClassAssertions.assertNotInstantiable(VLCDiscoveryStrategies.class);
+    UtilityClassAssertions.assertNotInstantiable(VlcDiscoveryStrategies.class);
   }
 
   /**
@@ -384,7 +384,7 @@ final class PlatformDiscoveryStrategiesTest {
   }
 
   private static Path findSystemInstallation() {
-    final NativeDiscoveryStrategy[] strategies = VLCDiscoveryStrategies.createSystemStrategies();
+    final NativeDiscoveryStrategy[] strategies = VlcDiscoveryStrategies.createSystemStrategies();
     for (final NativeDiscoveryStrategy strategy : strategies) {
       final boolean supported = strategy.supported();
       if (supported) {

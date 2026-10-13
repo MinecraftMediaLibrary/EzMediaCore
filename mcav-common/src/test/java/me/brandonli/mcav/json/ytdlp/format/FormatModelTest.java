@@ -35,20 +35,20 @@ import me.brandonli.mcav.media.source.uri.UriSource;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the yt-dlp JSON model: {@link URLParseDump}, {@link Format}, {@link Fragment}, {@link Heatmap},
+ * Tests the yt-dlp JSON model: {@link UrlParseDump}, {@link Format}, {@link Fragment}, {@link Heatmap},
  * {@link HttpHeaders}, {@link Thumbnail}, {@link Version} and {@link DownloaderOptions}.
  */
 final class FormatModelTest {
 
   private static final double DELTA = 1.0e-9;
 
-  private static URLParseDump fixture() throws IOException {
+  private static UrlParseDump fixture() throws IOException {
     try (final InputStream stream = FormatModelTest.class.getResourceAsStream("/ytdlp/video.json")) {
       assertNotNull(stream, "the fixture must be on the test classpath");
       final byte[] bytes = stream.readAllBytes();
       final String json = new String(bytes, StandardCharsets.UTF_8);
       final Gson gson = GsonProvider.getSimple();
-      return gson.fromJson(json, URLParseDump.class);
+      return gson.fromJson(json, UrlParseDump.class);
     }
   }
 
@@ -59,7 +59,7 @@ final class FormatModelTest {
 
   @Test
   void shouldReadTheVideoMetadata() throws IOException {
-    final URLParseDump dump = fixture();
+    final UrlParseDump dump = fixture();
     final List<String> categories = dump.categories;
     final List<String> tags = dump.tags;
     final List<String> sortFields = dump._format_sort_fields;
@@ -108,7 +108,7 @@ final class FormatModelTest {
 
   @Test
   void shouldReadTheRequestedFormatAtTheTopLevel() throws IOException {
-    final URLParseDump dump = fixture();
+    final UrlParseDump dump = fixture();
     final DownloaderOptions options = dump.downloader_options;
     final HttpHeaders headers = dump.http_headers;
     assertEquals("137+251", dump.format_id);
@@ -143,7 +143,7 @@ final class FormatModelTest {
 
   @Test
   void shouldReadCountsAndSizesBeyondTheIntRange() throws IOException {
-    final URLParseDump dump = fixture();
+    final UrlParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
     final Format video = formats.get(2);
@@ -156,7 +156,7 @@ final class FormatModelTest {
 
   @Test
   void shouldLeaveUnknownValuesNullOrZero() throws IOException {
-    final URLParseDump dump = fixture();
+    final UrlParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
     final Format audio = formats.get(1);
@@ -179,7 +179,7 @@ final class FormatModelTest {
     assertNull(audio.preference);
     assertNull(audio.dynamic_range);
     assertNull(audio.fragments);
-    final URLParseDump empty = new URLParseDump();
+    final UrlParseDump empty = new UrlParseDump();
     assertNull(empty.id);
     assertNull(empty.formats);
     assertEquals(0, empty.duration);
@@ -187,7 +187,7 @@ final class FormatModelTest {
 
   @Test
   void shouldReadEveryFormatField() throws IOException {
-    final URLParseDump dump = fixture();
+    final UrlParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
     final Format audio = formats.get(1);
@@ -230,7 +230,7 @@ final class FormatModelTest {
 
   @Test
   void shouldReadStoryboardFragments() throws IOException {
-    final URLParseDump dump = fixture();
+    final UrlParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
     final Format storyboard = formats.getFirst();
@@ -250,7 +250,7 @@ final class FormatModelTest {
 
   @Test
   void shouldMapTheHttpHeaderNames() throws IOException {
-    final URLParseDump dump = fixture();
+    final UrlParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
     final Format storyboard = formats.getFirst();
@@ -270,7 +270,7 @@ final class FormatModelTest {
 
   @Test
   void shouldReadThumbnailsHeatmapAndVersion() throws IOException {
-    final URLParseDump dump = fixture();
+    final UrlParseDump dump = fixture();
     final List<Thumbnail> thumbnails = dump.thumbnails;
     final List<Heatmap> heatmap = dump.heatmap;
     final Version version = dump._version;

@@ -25,8 +25,8 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import me.brandonli.mcav.capability.installer.vlc.VLCInstaller;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
+import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.ZipEntryIntegrityException;
 
 /**
@@ -48,7 +48,7 @@ public final class WinInstallationStrategy extends ManualInstallationStrategy {
    * @param installer the installer whose installation directory is used
    * @throws NullPointerException if {@code installer} is null
    */
-  public WinInstallationStrategy(final VLCInstaller installer) {
+  public WinInstallationStrategy(final VlcInstaller installer) {
     super(installer);
   }
 
@@ -102,13 +102,13 @@ public final class WinInstallationStrategy extends ManualInstallationStrategy {
   }
 
   /**
-   * Extracts the zip. {@link IOUtils#unzip(Path, Path)} reports failures unchecked, as an {@link UncheckedIOException}
+   * Extracts the zip. {@link IoUtils#unzip(Path, Path)} reports failures unchecked, as an {@link UncheckedIOException}
    * for an archive that cannot be read and as a {@link ZipEntryIntegrityException} for an archive that is unsafe, but an
    * installation must fail with an {@link IOException} like every other installation failure.
    */
   private static void unzip(final Path archive, final Path temporary) throws IOException {
     try {
-      IOUtils.unzip(archive, temporary);
+      IoUtils.unzip(archive, temporary);
     } catch (final UncheckedIOException | ZipEntryIntegrityException exception) {
       final String reason = exception.getMessage();
       final String message = "Failed with \"%s\" while extracting the VLC zip!".formatted(reason);

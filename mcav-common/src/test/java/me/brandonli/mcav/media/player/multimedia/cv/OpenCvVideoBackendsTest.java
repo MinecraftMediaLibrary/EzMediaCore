@@ -164,10 +164,10 @@ final class OpenCvVideoBackendsTest {
 
   @Test
   void shouldPickTheGrabberThatMatchesTheBuild() throws FrameGrabber.Exception {
-    try (final FrameGrabber reader = OpenCVPlayer.createFrameGrabber("file.mp4", true)) {
+    try (final FrameGrabber reader = OpenCvPlayer.createFrameGrabber("file.mp4", true)) {
       assertInstanceOf(OpenCVFrameGrabber.class, reader);
     }
-    try (final FrameGrabber fallback = OpenCVPlayer.createFrameGrabber("file.mp4", false)) {
+    try (final FrameGrabber fallback = OpenCvPlayer.createFrameGrabber("file.mp4", false)) {
       assertInstanceOf(FFmpegFrameGrabber.class, fallback, "a build without a file backend reads the file with FFmpeg");
     }
   }

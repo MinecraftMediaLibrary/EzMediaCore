@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.OptionalInt;
 import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.media.player.PlayerException;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 
 /**
  * The X11 keysym table used to translate key names such as {@code Return} into the codes the VNC protocol
@@ -45,7 +45,7 @@ final class KeySymbols {
   }
 
   private static Map<String, Integer> load() {
-    final Reader reader = IOUtils.getResourceAsStreamReader(RESOURCE);
+    final Reader reader = IoUtils.getResourceAsStreamReader(RESOURCE);
     return parse(reader);
   }
 

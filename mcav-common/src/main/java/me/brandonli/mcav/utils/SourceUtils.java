@@ -26,9 +26,9 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Set;
-import me.brandonli.mcav.json.ytdlp.YTDLPParseException;
-import me.brandonli.mcav.json.ytdlp.YTDLPParser;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.YtdlpParseException;
+import me.brandonli.mcav.json.ytdlp.YtdlpParser;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.source.Source;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.media.source.uri.UriSource;
@@ -195,7 +195,7 @@ public final class SourceUtils {
    */
   public static boolean isDynamicStream(final String url) {
     Preconditions.checkNotNull(url, "URL must not be null!");
-    final YTDLPParser parser = YTDLPParser.simple();
+    final YtdlpParser parser = YtdlpParser.simple();
     return isDynamicStream(url, parser);
   }
 
@@ -208,13 +208,13 @@ public final class SourceUtils {
    * parser fails
    */
   @VisibleForTesting
-  static boolean isDynamicStream(final String url, final YTDLPParser parser) {
+  static boolean isDynamicStream(final String url, final YtdlpParser parser) {
     try {
       final URI uri = URI.create(url);
       final UriSource source = UriSource.uri(uri);
-      final URLParseDump dump = parser.parse(source);
+      final UrlParseDump dump = parser.parse(source);
       return dump.is_live;
-    } catch (final IOException | IllegalArgumentException | YTDLPParseException exception) {
+    } catch (final IOException | IllegalArgumentException | YtdlpParseException exception) {
       return false;
     }
   }

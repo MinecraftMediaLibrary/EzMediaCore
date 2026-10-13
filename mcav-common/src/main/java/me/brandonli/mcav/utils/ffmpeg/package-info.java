@@ -18,7 +18,7 @@
 /**
  * Builds and executes command-line FFmpeg jobs using the bundled platform executable.
  *
- * <p>{@link me.brandonli.mcav.utils.ffmpeg.FFmpegCommand} stores an immutable argument snapshot. Its builder is
+ * <p>{@link me.brandonli.mcav.utils.ffmpeg.FfmpegCommand} stores an immutable argument snapshot. Its builder is
  * mutable and not thread-safe; input and output option order matters. Arguments are separate process tokens,
  * not shell expressions, so paths with spaces need no added quotes. Templates build commands without running them.
  * Resolving an executable or creating a task can extract native resources on first use.

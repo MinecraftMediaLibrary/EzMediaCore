@@ -21,7 +21,7 @@
  * <p>{@link me.brandonli.mcav.capability.installer.vlc.installation.InstallationStrategy} implementations handle
  * Windows zip archives, macOS disk images and Linux AppImages. They search for nonempty companion native libraries,
  * return their containing directory and delete the downloaded archive after extraction succeeds. Normally
- * {@link me.brandonli.mcav.capability.installer.vlc.VLCInstaller} chooses and invokes the strategy.
+ * {@link me.brandonli.mcav.capability.installer.vlc.VlcInstaller} chooses and invokes the strategy.
  *
  * <p>Extraction can launch external tools and performs blocking file operations, including removal of earlier
  * installation directories. Callers must supply trusted, verified archives and serialize strategies that share

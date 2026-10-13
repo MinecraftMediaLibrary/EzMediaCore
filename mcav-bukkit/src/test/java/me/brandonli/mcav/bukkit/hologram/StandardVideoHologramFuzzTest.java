@@ -31,7 +31,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Location;
@@ -96,7 +96,7 @@ final class StandardVideoHologramFuzzTest {
     final int timestamp = ByteBuffer.wrap(input, 1, Integer.BYTES).getInt();
     final String text = new String(input, HEADER_BYTES, input.length - HEADER_BYTES, StandardCharsets.UTF_8);
     final int separator = text.indexOf('\0');
-    final URLParseDump dump = new URLParseDump();
+    final UrlParseDump dump = new UrlParseDump();
     dump.title = (flags & 1) != 0 ? (separator < 0 ? text : text.substring(0, separator)) : null;
     dump.uploader = (flags & 2) != 0 ? (separator < 0 ? "" : text.substring(separator + 1)) : null;
     dump.timestamp = (flags & 4) != 0 ? timestamp : 0;

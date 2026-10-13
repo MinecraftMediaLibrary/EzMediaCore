@@ -60,9 +60,9 @@ import java.util.regex.Pattern;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.installer.Installer;
 import me.brandonli.mcav.capability.installer.vlc.UnsupportedOperatingSystemException;
-import me.brandonli.mcav.capability.installer.vlc.VLCInstallationKit;
+import me.brandonli.mcav.capability.installer.vlc.VlcInstallationKit;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstallerFailures;
-import me.brandonli.mcav.capability.installer.ytdlp.YTDLPInstaller;
+import me.brandonli.mcav.capability.installer.ytdlp.YtdlpInstaller;
 import me.brandonli.mcav.utils.natives.NativeLoadingException;
 import org.bytedeco.ffmpeg.avutil.Callback_Pointer_int_String_Pointer;
 import org.bytedeco.ffmpeg.global.avutil;
@@ -130,7 +130,7 @@ final class DependencyLoaderTest {
 
   @Test
   @ResourceLock(Resources.SYSTEM_ERR)
-  void shouldSendFFmpegErrorsToTheJavaLogOnceTheNativesAreLoaded() {
+  void shouldSendFfmpegErrorsToTheJavaLogOnceTheNativesAreLoaded() {
     final DependencyLoader loader = new DependencyLoader();
     loader.loadModules();
     avutil.av_log_set_level(avutil.AV_LOG_INFO);
@@ -257,11 +257,11 @@ final class DependencyLoaderTest {
   }
 
   @Test
-  void shouldTolerateAMissingFFmpegDeviceLibraryAndStillConfigureFFmpeg() {
+  void shouldTolerateAMissingFfmpegDeviceLibraryAndStillConfigureFfmpeg() {
     final UnsatisfiedLinkError deviceError = new UnsatisfiedLinkError("no jniavdevice in java.library.path!");
     final AtomicBoolean configured = new AtomicBoolean();
     assertDoesNotThrow(() ->
-      DependencyLoader.loadFFmpeg(
+      DependencyLoader.loadFfmpeg(
         () -> {
           throw deviceError;
         },
@@ -273,12 +273,12 @@ final class DependencyLoaderTest {
   }
 
   @Test
-  void shouldTolerateTheMissingDeviceLibraryAgainWhenFFmpegIsLoadedASecondTime() {
+  void shouldTolerateTheMissingDeviceLibraryAgainWhenFfmpegIsLoadedASecondTime() {
     final AtomicInteger configured = new AtomicInteger();
     final Runnable loader = FailingDeviceLibrary::touch;
-    assertDoesNotThrow(() -> DependencyLoader.loadFFmpeg(loader, configured::incrementAndGet));
+    assertDoesNotThrow(() -> DependencyLoader.loadFfmpeg(loader, configured::incrementAndGet));
     final NoClassDefFoundError again = assertThrows(NoClassDefFoundError.class, loader::run);
-    assertDoesNotThrow(() -> DependencyLoader.loadFFmpeg(loader, configured::incrementAndGet));
+    assertDoesNotThrow(() -> DependencyLoader.loadFfmpeg(loader, configured::incrementAndGet));
     final int configuredCount = configured.get();
     assertEquals(2, configuredCount);
     final String stackTrace = Throwables.getStackTraceAsString(again);
@@ -291,7 +291,7 @@ final class DependencyLoaderTest {
     final NoClassDefFoundError deviceClass = new NoClassDefFoundError("Could not initialize class org.bytedeco.ffmpeg.global.avdevice");
     final AtomicBoolean configured = new AtomicBoolean();
     assertDoesNotThrow(() ->
-      DependencyLoader.loadFFmpeg(
+      DependencyLoader.loadFfmpeg(
         () -> {
           throw deviceClass;
         },
@@ -303,11 +303,11 @@ final class DependencyLoaderTest {
   }
 
   @Test
-  void shouldReportAnotherFFmpegClassThatFailedBefore() {
+  void shouldReportAnotherFfmpegClassThatFailedBefore() {
     final NoClassDefFoundError codecClass = new NoClassDefFoundError("Could not initialize class avcodec");
     codecClass.initCause(new ExceptionInInitializerError("Exception java.lang.UnsatisfiedLinkError: no jniavcodec!"));
     final AtomicBoolean configured = new AtomicBoolean();
-    final NativeLoadingException failure = loadFFmpegFailingWith(codecClass, configured);
+    final NativeLoadingException failure = loadFfmpegFailingWith(codecClass, configured);
     final Throwable cause = failure.getCause();
     assertSame(codecClass, cause);
     final String message = failure.getMessage();
@@ -318,18 +318,18 @@ final class DependencyLoaderTest {
   }
 
   @Test
-  void shouldConfigureFFmpegAfterLoadingIt() {
+  void shouldConfigureFfmpegAfterLoadingIt() {
     final List<String> steps = new ArrayList<>();
-    DependencyLoader.loadFFmpeg(() -> steps.add("load"), () -> steps.add("setup"));
+    DependencyLoader.loadFfmpeg(() -> steps.add("load"), () -> steps.add("setup"));
     final List<String> expected = List.of("load", "setup");
     assertEquals(expected, steps);
   }
 
   @Test
-  void shouldReportEveryOtherFFmpegLinkFailure() {
+  void shouldReportEveryOtherFfmpegLinkFailure() {
     final UnsatisfiedLinkError codecError = new UnsatisfiedLinkError("no jniavcodec!");
     final AtomicBoolean configured = new AtomicBoolean();
-    final NativeLoadingException codecFailure = loadFFmpegFailingWith(codecError, configured);
+    final NativeLoadingException codecFailure = loadFfmpegFailingWith(codecError, configured);
 
     final Throwable codecCause = codecFailure.getCause();
     final String codecMessage = codecFailure.getMessage();
@@ -342,10 +342,10 @@ final class DependencyLoaderTest {
   }
 
   @Test
-  void shouldReportFFmpegLinkFailuresWithoutAMessage() {
+  void shouldReportFfmpegLinkFailuresWithoutAMessage() {
     final UnsatisfiedLinkError silentError = new UnsatisfiedLinkError();
     final AtomicBoolean configured = new AtomicBoolean();
-    final NativeLoadingException silentFailure = loadFFmpegFailingWith(silentError, configured);
+    final NativeLoadingException silentFailure = loadFfmpegFailingWith(silentError, configured);
 
     final Throwable silentCause = silentFailure.getCause();
     final boolean setupRan = configured.get();
@@ -365,7 +365,7 @@ final class DependencyLoaderTest {
   @Test
   void shouldRemoveOnlyTheVlcCapabilityWhenTheDownloadFails() {
     final DependencyLoader loader = new DependencyLoader();
-    loader.installVLC(() -> {
+    loader.installVlc(() -> {
       throw new IOException("offline!");
     });
     final boolean hasVlc = loader.hasCapability(Capability.VLC);
@@ -420,7 +420,7 @@ final class DependencyLoaderTest {
 
   private static void prepareProgram(final DependencyLoader loader, final Capability capability, final Runnable prepare) {
     if (capability == Capability.VLC) {
-      loader.installVLC(() -> {
+      loader.installVlc(() -> {
         prepare.run();
         return Optional.empty();
       });
@@ -435,20 +435,20 @@ final class DependencyLoaderTest {
       } catch (final IOException exception) {
         throw new AssertionError(exception);
       }
-      loader.installYTDLP(installer);
+      loader.installYtdlp(installer);
     }
   }
 
   @Test
   void shouldRestoreTheCapabilitiesWhenALaterPreparationSucceeds() throws IOException {
     final DependencyLoader loader = new DependencyLoader();
-    loader.installVLC(() -> {
+    loader.installVlc(() -> {
       throw new IOException("offline!");
     });
     final Installer installer = mock(Installer.class);
     when(installer.isSupported()).thenReturn(true);
     when(installer.download(true)).thenThrow(new IOException("offline!")).thenReturn(Path.of("yt-dlp"));
-    loader.installYTDLP(installer);
+    loader.installYtdlp(installer);
     loader.loadFaceDetection(() -> {
       throw new UnsatisfiedLinkError("no libgtk-x11-2.0!");
     });
@@ -458,8 +458,8 @@ final class DependencyLoaderTest {
     assertFalse(ytdlpBeforeRetry);
     final boolean faceDetectionBeforeRetry = loader.hasCapability(Capability.FACE_DETECTION);
     assertFalse(faceDetectionBeforeRetry);
-    loader.installVLC(() -> Optional.of(Path.of("vlc")));
-    loader.installYTDLP(installer);
+    loader.installVlc(() -> Optional.of(Path.of("vlc")));
+    loader.installYtdlp(installer);
     loader.loadFaceDetection(() -> {});
     final boolean vlcAfterRetry = loader.hasCapability(Capability.VLC);
     assertTrue(vlcAfterRetry);
@@ -485,7 +485,7 @@ final class DependencyLoaderTest {
     final DependencyLoader loader = new DependencyLoader();
     final OutOfMemoryError outOfMemory = new OutOfMemoryError("heap is full!");
     final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, () ->
-      loader.installVLC(() -> {
+      loader.installVlc(() -> {
         throw outOfMemory;
       })
     );
@@ -499,7 +499,7 @@ final class DependencyLoaderTest {
     when(installer.isSupported()).thenReturn(true);
     when(installer.download(true)).thenThrow(failure);
     final DependencyLoader loader = new DependencyLoader();
-    loader.installYTDLP(installer);
+    loader.installYtdlp(installer);
     final boolean hasYtdlp = loader.hasCapability(Capability.YT_DLP);
     assertFalse(hasYtdlp);
   }
@@ -529,12 +529,12 @@ final class DependencyLoaderTest {
 
   @Test
   void shouldStartTheInstallationKitOfTheLibrary() throws IOException {
-    final VLCInstallationKit kit = mock(VLCInstallationKit.class);
+    final VlcInstallationKit kit = mock(VlcInstallationKit.class);
     when(kit.start()).thenReturn(Optional.empty());
-    try (final MockedStatic<VLCInstallationKit> kits = mockStatic(VLCInstallationKit.class)) {
-      kits.when(VLCInstallationKit::create).thenReturn(kit);
+    try (final MockedStatic<VlcInstallationKit> kits = mockStatic(VlcInstallationKit.class)) {
+      kits.when(VlcInstallationKit::create).thenReturn(kit);
       final DependencyLoader loader = new DependencyLoader();
-      loader.installVLC();
+      loader.installVlc();
       final boolean hasVlc = loader.hasCapability(Capability.VLC);
       assertTrue(hasVlc);
     }
@@ -548,7 +548,7 @@ final class DependencyLoaderTest {
     when(installer.isSupported()).thenReturn(true);
     when(installer.download(true)).thenReturn(installed);
     final DependencyLoader loader = new DependencyLoader();
-    loader.installYTDLP(installer);
+    loader.installYtdlp(installer);
     final boolean hasYtdlp = loader.hasCapability(Capability.YT_DLP);
     assertTrue(hasYtdlp);
     verify(installer).download(true);
@@ -559,7 +559,7 @@ final class DependencyLoaderTest {
     final Installer installer = mock(Installer.class);
     when(installer.isSupported()).thenReturn(false);
     final DependencyLoader loader = new DependencyLoader();
-    loader.installYTDLP(installer);
+    loader.installYtdlp(installer);
     final boolean hasYtdlp = loader.hasCapability(Capability.YT_DLP);
     final boolean hasVlc = loader.hasCapability(Capability.VLC);
     assertFalse(hasYtdlp);
@@ -574,7 +574,7 @@ final class DependencyLoaderTest {
     when(installer.isSupported()).thenReturn(true);
     when(installer.download(true)).thenThrow(offline);
     final DependencyLoader loader = new DependencyLoader();
-    loader.installYTDLP(installer);
+    loader.installYtdlp(installer);
     final boolean hasYtdlp = loader.hasCapability(Capability.YT_DLP);
     assertFalse(hasYtdlp);
   }
@@ -587,7 +587,7 @@ final class DependencyLoaderTest {
     when(installer.isSupported()).thenReturn(true);
     when(installer.download(true)).thenThrow(chmodFailure);
     final DependencyLoader loader = new DependencyLoader();
-    loader.installYTDLP(installer);
+    loader.installYtdlp(installer);
     final boolean hasYtdlp = loader.hasCapability(Capability.YT_DLP);
     final boolean hasVlc = loader.hasCapability(Capability.VLC);
     assertFalse(hasYtdlp);
@@ -596,14 +596,14 @@ final class DependencyLoaderTest {
 
   @Test
   void shouldUseTheSharedYtdlpInstallerOfTheLibrary() throws IOException {
-    final YTDLPInstaller installer = mock(YTDLPInstaller.class);
+    final YtdlpInstaller installer = mock(YtdlpInstaller.class);
     final Path installed = Path.of("yt-dlp");
     when(installer.isSupported()).thenReturn(true);
     when(installer.download(true)).thenReturn(installed);
-    try (final MockedStatic<YTDLPInstaller> installers = mockStatic(YTDLPInstaller.class)) {
-      installers.when(YTDLPInstaller::shared).thenReturn(installer);
+    try (final MockedStatic<YtdlpInstaller> installers = mockStatic(YtdlpInstaller.class)) {
+      installers.when(YtdlpInstaller::shared).thenReturn(installer);
       final DependencyLoader loader = new DependencyLoader();
-      loader.installYTDLP();
+      loader.installYtdlp();
       final boolean hasYtdlp = loader.hasCapability(Capability.YT_DLP);
       assertTrue(hasYtdlp);
     }
@@ -633,14 +633,14 @@ final class DependencyLoaderTest {
     final CyclicBarrier barrier = new CyclicBarrier(2);
     final Future<?> vlcInstallation = executor.submit(() -> {
       barrier.await();
-      loader.installVLC(() -> {
+      loader.installVlc(() -> {
         throw new IOException("offline!");
       });
       return null;
     });
     final Future<?> ytdlpInstallation = executor.submit(() -> {
       barrier.await();
-      loader.installYTDLP(unsupported);
+      loader.installYtdlp(unsupported);
       return null;
     });
     vlcInstallation.get(10, TimeUnit.SECONDS);
@@ -693,7 +693,7 @@ final class DependencyLoaderTest {
   void shouldLogHowLongPreparingVlcTook() {
     final Logger logger = mock(Logger.class);
     final DependencyLoader loader = new DependencyLoader(logger);
-    loader.installVLC(Optional::empty);
+    loader.installVlc(Optional::empty);
     verify(logger).info("Preparing VLC...");
     assertLoggedAPlausibleTime(logger, "VLC ready in {} ms.");
   }
@@ -710,7 +710,7 @@ final class DependencyLoaderTest {
   void shouldWarnWhenVlcCannotBePrepared() {
     final Logger logger = mock(Logger.class);
     final DependencyLoader offline = new DependencyLoader(logger);
-    offline.installVLC(() -> {
+    offline.installVlc(() -> {
       throw new IOException("offline!");
     });
     final UnsupportedOperatingSystemException unsupported = VlcInstallerFailures.unsupportedSystem(
@@ -718,7 +718,7 @@ final class DependencyLoaderTest {
     );
     final String unsupportedReason = unsupported.getMessage();
     final DependencyLoader unsupportedLoader = new DependencyLoader(logger);
-    unsupportedLoader.installVLC(() -> {
+    unsupportedLoader.installVlc(() -> {
       throw unsupported;
     });
     verify(logger).warn("VLC is not available because of \"{}\", so VLC players cannot be used.", "offline!");
@@ -729,7 +729,7 @@ final class DependencyLoaderTest {
   void shouldLogACancelledVlcPreparationInsteadOfWarning() {
     final Logger logger = mock(Logger.class);
     final DependencyLoader loader = new DependencyLoader(logger);
-    loader.installVLC(() -> {
+    loader.installVlc(() -> {
       final Thread current = Thread.currentThread();
       current.interrupt();
       throw new IOException("Interrupted while downloading!");
@@ -756,11 +756,11 @@ final class DependencyLoaderTest {
     final Installer unsupported = mock(Installer.class);
     when(unsupported.isSupported()).thenReturn(false);
     final DependencyLoader workingLoader = new DependencyLoader(logger);
-    workingLoader.installYTDLP(working);
+    workingLoader.installYtdlp(working);
     final DependencyLoader offlineLoader = new DependencyLoader(logger);
-    offlineLoader.installYTDLP(offline);
+    offlineLoader.installYtdlp(offline);
     final DependencyLoader unsupportedLoader = new DependencyLoader(logger);
-    unsupportedLoader.installYTDLP(unsupported);
+    unsupportedLoader.installYtdlp(unsupported);
     assertLoggedAPlausibleTime(logger, "yt-dlp ready in {} ms.");
     verify(logger).warn("yt-dlp could not be installed because of \"{}\", so URL parsing cannot be used.", "offline!");
     verify(logger).warn("yt-dlp is not available for this platform, URL parsing cannot be used.");
@@ -777,7 +777,7 @@ final class DependencyLoaderTest {
       throw new IOException("Interrupted while downloading!");
     });
     final DependencyLoader loader = new DependencyLoader(logger);
-    loader.installYTDLP(installer);
+    loader.installYtdlp(installer);
     final boolean interrupted = Thread.interrupted();
     final boolean hasYtdlp = loader.hasCapability(Capability.YT_DLP);
     assertTrue(interrupted, "the interrupt is kept, so the installation thread ends");
@@ -786,18 +786,18 @@ final class DependencyLoaderTest {
     verify(logger, never()).warn(anyString(), any(Object.class));
   }
 
-  private static boolean vlcAvailableAfter(final DependencyLoader.VLCStarter starter) {
+  private static boolean vlcAvailableAfter(final DependencyLoader.VlcStarter starter) {
     final DependencyLoader loader = new DependencyLoader();
-    loader.installVLC(starter);
+    loader.installVlc(starter);
     return loader.hasCapability(Capability.VLC);
   }
 
-  private static NativeLoadingException loadFFmpegFailingWith(final LinkageError error, final AtomicBoolean configured) {
+  private static NativeLoadingException loadFfmpegFailingWith(final LinkageError error, final AtomicBoolean configured) {
     final Runnable failingLoader = () -> {
       throw error;
     };
     final Runnable setup = () -> configured.set(true);
-    return assertThrows(NativeLoadingException.class, () -> DependencyLoader.loadFFmpeg(failingLoader, setup));
+    return assertThrows(NativeLoadingException.class, () -> DependencyLoader.loadFfmpeg(failingLoader, setup));
   }
 
   /**

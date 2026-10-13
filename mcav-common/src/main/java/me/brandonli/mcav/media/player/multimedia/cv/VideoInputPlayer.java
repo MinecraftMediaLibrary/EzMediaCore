@@ -28,7 +28,7 @@ import org.bytedeco.javacv.OpenCVFrameGrabber;
  * instances with {@link me.brandonli.mcav.media.player.multimedia.VideoPlayer#device()} and start them with a
  * {@link me.brandonli.mcav.media.source.device.DeviceSource}.
  */
-public class VideoInputPlayer extends AbstractVideoPlayerCV {
+public class VideoInputPlayer extends AbstractVideoPlayerCv {
 
   /**
    * Constructs a new capture device player.

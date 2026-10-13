@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import org.apache.commons.compress.archivers.ar.ArArchiveEntry;
 import org.apache.commons.compress.archivers.ar.ArArchiveOutputStream;
 import org.junit.jupiter.api.Tag;
@@ -92,7 +92,7 @@ final class LinuxLibrariesFuzzTest {
       }
       check(root, file, target, extracted);
     } finally {
-      IOUtils.deleteRecursively(root);
+      IoUtils.deleteRecursively(root);
     }
   }
 

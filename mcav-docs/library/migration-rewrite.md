@@ -39,6 +39,43 @@ dependency, the imports and the installer's `Artifact` constant:
 | `me.brandonli:mcav-jda`, package `me.brandonli.mcav.jda`, `Artifact.JDA` | `me.brandonli:mcav-discord`, package `me.brandonli.mcav.discord`, `Artifact.DISCORD` |
 | `me.brandonli:mcav-svc`, package `me.brandonli.mcav.svc`, `Artifact.SVC` | `me.brandonli:mcav-voicechat`, package `me.brandonli.mcav.voicechat`, `Artifact.VOICECHAT` |
 
+Types and methods of `mcav-common` whose names held an upper-case acronym now case it as a word. Change the
+imports and calls:
+
+| Former name | Current name |
+| --- | --- |
+| `AbstractVideoPlayerCV` | `AbstractVideoPlayerCv` |
+| `FFmpegCommand` | `FfmpegCommand` |
+| `FFmpegDirectSource` | `FfmpegDirectSource` |
+| `FFmpegDirectSourceDetector` | `FfmpegDirectSourceDetector` |
+| `FFmpegDirectSourceImpl` | `FfmpegDirectSourceImpl` |
+| `FFmpegExecutableProvider` | `FfmpegExecutableProvider` |
+| `FFmpegPlayer` | `FfmpegPlayer` |
+| `FFmpegTemplates` | `FfmpegTemplates` |
+| `IOUtils` | `IoUtils` |
+| `OpenCVPlayer` | `OpenCvPlayer` |
+| `OS` | `Os` |
+| `OSUtils` | `OsUtils` |
+| `OSXInstallationStrategy` | `OsxInstallationStrategy` |
+| `URLParseDump` | `UrlParseDump` |
+| `VLCDiscoveryStrategies` | `VlcDiscoveryStrategies` |
+| `VLCInstallationKit` | `VlcInstallationKit` |
+| `VLCInstaller` | `VlcInstaller` |
+| `VLCPlayer` | `VlcPlayer` |
+| `YTDLPInstaller` | `YtdlpInstaller` |
+| `YTDLPParseException` | `YtdlpParseException` |
+| `YTDLPParser` | `YtdlpParser` |
+| `YTDLPParserImpl` | `YtdlpParserImpl` |
+| `FFmpegExecutableProvider.getFFmpegPath()` | `getFfmpegPath()` |
+| `IOUtils.getSHA1Hash` | `getSha1Hash` |
+| `IOUtils.getSHA256Hash` | `getSha256Hash` |
+| `IOUtils.getNextFreeVNCPort` | `getNextFreeVncPort` |
+| `OSUtils.getOS()` | `getOs()` |
+| `Platform.getOS()` | `getOs()` |
+| `ReleasePackageManager.readVLCDownloadsFromJsonResource` | `readVlcDownloadsFromJsonResource` |
+| `DependencyLoader.installVLC()` | `installVlc()` |
+| `DependencyLoader.installYTDLP()` | `installYtdlp()` |
+
 ## Browser players
 
 The browser backend is now embedded Chromium through JCEF, in a helper process. The Selenium and Playwright player
@@ -83,7 +120,7 @@ that threw it. The examinable-property access to `MatImageBuffer` is removed. Us
 owned buffers.
 
 `VideoPlayer.jcodec()` is removed. Choose a current `VideoPlayer` factory for the backend needed by the application.
-Subclasses of `AbstractVideoPlayerCV` must use its current constructor and implement `createFrameGrabber` instead of
+Subclasses of `AbstractVideoPlayerCv` must use its current constructor and implement `createFrameGrabber` instead of
 `getFrameGrabber`. Several supplied player and callback implementations are now final, and their old `retrieve`
 helpers are removed; use the callback interfaces to attach and invoke pipelines. `OriginalVideoMetadata.NO_OP` is
 also removed: use the metadata factories and their documented values.
@@ -179,16 +216,16 @@ Other utility callers need these updates:
 | --- | --- |
 | `ModuleLoader.loadPlugins` / `shutdownPlugins` | `loadModules` / `shutdownModules` |
 | `AudioResampler` constructors and `resample(byte[])` | `create` or `fromPipelineFormat`, `resample(ByteBuffer)`, then `flush` and `close` as appropriate |
-| `FFmpegCommand.execute()` | `createTask()`, then explicitly run the returned `CommandTask` |
+| `FFmpegCommand.execute()` | `FfmpegCommand.createTask()`, then explicitly run the returned `CommandTask` |
 | `CommandTask.run(String...)` | Construct the task with its command and call `run()` or `runChecked()` |
 | `CommandTask.getCommand()` returning `String[]` | Consume the returned `List<String>` |
 | Checked-exception catches around `getOutput()` / `getErrorOutput()` | Handle execution failures at the run operation; the getters no longer declare that exception |
-| `IOUtils.getSHA256Hash(String)` | Pass a `Path` |
+| `IOUtils.getSHA256Hash(String)` | `IoUtils.getSha256Hash(Path)` |
 | `KeyCode.charAt(int)` | Use `getKeyChar`, `getCodePoint` or `asString` for the needed representation |
 | Removed `SourceUtils.getSource` and `ByteUtils` conversion helpers | Use the current source and buffer APIs; do not depend on their former implementation helpers |
 
 The yt-dlp DTOs also have field-type changes: `Format.filesize` and `filesize_approx`, and the count/size fields of
-`URLParseDump`, use `long`; `URLParseDump.duration` and `fps` use `double`. Update arithmetic, serialization bindings
+`UrlParseDump`, use `long`; `UrlParseDump.duration` and `fps` use `double`. Update arithmetic, serialization bindings
 and reflective field access. Several exception types no longer inherit the removed MCAV unchecked-I/O type; review
 catches for the concrete exception or its current superclass, not just imports.
 

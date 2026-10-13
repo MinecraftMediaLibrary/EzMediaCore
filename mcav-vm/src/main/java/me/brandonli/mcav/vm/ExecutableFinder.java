@@ -33,8 +33,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -65,7 +65,7 @@ public final class ExecutableFinder {
   private static final String DEFAULT_PROGRAM_FILES = "C:\\Program Files";
   private static final File[] NO_FILES = new File[0];
 
-  private final OS os;
+  private final Os os;
   private final Map<String, String> environment;
   private final Path root;
 
@@ -73,7 +73,7 @@ public final class ExecutableFinder {
    * Constructs a finder for the current operating system.
    */
   public ExecutableFinder() {
-    final OS currentOs = OSUtils.getOS();
+    final Os currentOs = OsUtils.getOs();
     final Map<String, String> currentEnvironment = System.getenv();
     this.os = currentOs;
     this.environment = Map.copyOf(currentEnvironment);
@@ -89,7 +89,7 @@ public final class ExecutableFinder {
    * @param root        the root folder the fixed Unix folders such as {@code /etc/paths} are resolved against
    */
   @VisibleForTesting
-  ExecutableFinder(final OS os, final Map<String, String> environment, final Path root) {
+  ExecutableFinder(final Os os, final Map<String, String> environment, final Path root) {
     this.os = os;
     this.environment = Map.copyOf(environment);
     this.root = root;
@@ -143,7 +143,7 @@ public final class ExecutableFinder {
    * if it already has one; elsewhere the name itself.
    */
   private List<String> getCandidateNames(final String name) {
-    if (this.os != OS.WINDOWS) {
+    if (this.os != Os.WINDOWS) {
       return List.of(name);
     }
 

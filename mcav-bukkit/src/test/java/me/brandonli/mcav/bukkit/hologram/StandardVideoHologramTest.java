@@ -41,7 +41,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -106,8 +106,8 @@ final class StandardVideoHologramTest {
     TimeZone.setDefault(this.previousTimeZone);
   }
 
-  private static URLParseDump createDump(final String title, final String uploader, final int timestamp, final double duration) {
-    final URLParseDump dump = new URLParseDump();
+  private static UrlParseDump createDump(final String title, final String uploader, final int timestamp, final double duration) {
+    final UrlParseDump dump = new UrlParseDump();
     dump.title = title;
     dump.uploader = uploader;
     dump.timestamp = timestamp;
@@ -177,7 +177,7 @@ final class StandardVideoHologramTest {
   void spawnsAConfiguredDisplayWithTheMetadataOfTheVideo() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
     final int timestamp = epochSecond(1);
-    final URLParseDump dump = createDump("Some Video", "Some Channel", timestamp, 60);
+    final UrlParseDump dump = createDump("Some Video", "Some Channel", timestamp, 60);
     hologram.handleRequest(this.location, dump);
     final TextDisplay display = this.spawnedDisplays.getFirst();
     final TextDisplay current = hologram.getDisplay();
@@ -201,7 +201,7 @@ final class StandardVideoHologramTest {
     for (int index = 0; index < days.length; index++) {
       final StandardVideoHologram hologram = new StandardVideoHologram();
       final int timestamp = epochSecond(days[index]);
-      final URLParseDump dump = createDump("t", "u", timestamp, 1);
+      final UrlParseDump dump = createDump("t", "u", timestamp, 1);
       hologram.handleRequest(this.location, dump);
       final TextDisplay display = hologram.getDisplay();
       final Component text = lastText(display);
@@ -214,12 +214,12 @@ final class StandardVideoHologramTest {
   @Test
   void usesPlaceholdersForMissingMetadataAndDoesNotParseTagsInIt() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final URLParseDump missing = createDump(null, null, 0, 1);
+    final UrlParseDump missing = createDump(null, null, 0, 1);
     hologram.handleRequest(this.location, missing);
     final TextDisplay first = hologram.getDisplay();
     final Component missingText = lastText(first);
     final String missingPlain = PLAIN.serialize(missingText);
-    final URLParseDump tagged = createDump("<red>Title</red>", "<bold>Me", -5, 1);
+    final UrlParseDump tagged = createDump("<red>Title</red>", "<bold>Me", -5, 1);
     hologram.handleRequest(this.location, tagged);
     final TextDisplay second = hologram.getDisplay();
     final Component taggedText = lastText(second);
@@ -231,7 +231,7 @@ final class StandardVideoHologramTest {
   @Test
   void showsMetadataWithBackslashesAsItIs() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final URLParseDump dump = createDump("Paths like C:\\", "a\\<red>b\\", -5, 1);
+    final UrlParseDump dump = createDump("Paths like C:\\", "a\\<red>b\\", -5, 1);
     hologram.handleRequest(this.location, dump);
     final Component text = lastText(hologram.getDisplay());
     final String plain = PLAIN.serialize(text);
@@ -241,7 +241,7 @@ final class StandardVideoHologramTest {
   @Test
   void replacesThePreviousDisplayOnANewRequest() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final URLParseDump dump = createDump("t", "u", 0, 1);
+    final UrlParseDump dump = createDump("t", "u", 0, 1);
     hologram.handleRequest(this.location, dump);
     hologram.handleRequest(this.location, dump);
     final TextDisplay first = this.spawnedDisplays.get(0);
@@ -255,7 +255,7 @@ final class StandardVideoHologramTest {
   @Test
   void rejectsInvalidRequests() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final URLParseDump dump = createDump("t", "u", 0, 1);
+    final UrlParseDump dump = createDump("t", "u", 0, 1);
     final Location nowhere = new Location(null, 0, 0, 0);
     assertThrows(NullPointerException.class, () -> hologram.handleRequest(null, dump));
     assertThrows(NullPointerException.class, () -> hologram.handleRequest(this.location, null));
@@ -272,7 +272,7 @@ final class StandardVideoHologramTest {
 
   private TextDisplay startHologram(final double duration) {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final URLParseDump dump = createDump("t", "u", 0, duration);
+    final UrlParseDump dump = createDump("t", "u", 0, duration);
     hologram.handleRequest(this.location, dump);
     hologram.start();
     return this.spawnedDisplays.getLast();
@@ -281,7 +281,7 @@ final class StandardVideoHologramTest {
   @Test
   void startsOneProgressTaskThatRunsEverySecond() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final URLParseDump dump = createDump("t", "u", 0, 10);
+    final UrlParseDump dump = createDump("t", "u", 0, 10);
     hologram.handleRequest(this.location, dump);
     hologram.start();
     hologram.start();
@@ -349,14 +349,14 @@ final class StandardVideoHologramTest {
   @Test
   void showsMinutesAndAnEmptyBarForVideosWithoutDuration() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final URLParseDump longDump = createDump("t", "u", 0, 125);
+    final UrlParseDump longDump = createDump("t", "u", 0, 125);
     hologram.handleRequest(this.location, longDump);
     hologram.start();
     this.server.runTasks();
     final TextDisplay longDisplay = hologram.getDisplay();
     final Component longText = lastText(longDisplay);
     final String longPlain = PLAIN.serialize(longText);
-    final URLParseDump negativeDump = createDump("t", "u", 0, -3);
+    final UrlParseDump negativeDump = createDump("t", "u", 0, -3);
     hologram.handleRequest(this.location, negativeDump);
     hologram.start();
     this.server.runTasks();
@@ -376,7 +376,7 @@ final class StandardVideoHologramTest {
   @Test
   void stopsTheProgressWhenTheDisplayIsGone() {
     final StandardVideoHologram invalid = new StandardVideoHologram();
-    final URLParseDump dump = createDump("t", "u", 0, 100);
+    final UrlParseDump dump = createDump("t", "u", 0, 100);
     invalid.handleRequest(this.location, dump);
     final TextDisplay invalidDisplay = this.spawnedDisplays.getFirst();
     when(invalidDisplay.isValid()).thenReturn(false);
@@ -397,7 +397,7 @@ final class StandardVideoHologramTest {
   @Test
   void killingRemovesTheDisplayAndStopsTheProgress() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final URLParseDump dump = createDump("t", "u", 0, 100);
+    final UrlParseDump dump = createDump("t", "u", 0, 100);
     hologram.handleRequest(this.location, dump);
     hologram.start();
     final TextDisplay display = hologram.getDisplay();

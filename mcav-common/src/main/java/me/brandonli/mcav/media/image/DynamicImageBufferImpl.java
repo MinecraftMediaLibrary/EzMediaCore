@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.media.source.uri.UriSource;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.opencv.FramePixels;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
@@ -83,7 +83,7 @@ final class DynamicImageBufferImpl implements DynamicImageBuffer {
   }
 
   private static FileSource download(final UriSource source) {
-    final Path downloaded = IOUtils.downloadImage(source);
+    final Path downloaded = IoUtils.downloadImage(source);
     return FileSource.path(downloaded);
   }
 

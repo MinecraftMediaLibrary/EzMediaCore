@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import me.brandonli.mcav.utils.os.Arch;
 import me.brandonli.mcav.utils.os.Bits;
-import me.brandonli.mcav.utils.os.OS;
+import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.Platform;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
  */
 final class DownloadTest {
 
-  private static final Platform LINUX = Platform.ofPlatform(OS.LINUX, Arch.X86, Bits.BITS_64);
+  private static final Platform LINUX = Platform.ofPlatform(Os.LINUX, Arch.X86, Bits.BITS_64);
 
   @Test
   void shouldStorePlatformUrlAndHash() {
@@ -48,8 +48,8 @@ final class DownloadTest {
   @Test
   void shouldDescribeTheSameDownloadWithEveryConstructor() {
     final Download withoutHash = new Download(LINUX, "https://example.com/tool");
-    final Download fromPartsWithHash = new Download(OS.LINUX, Arch.X86, Bits.BITS_64, "https://example.com/tool", "abc");
-    final Download fromParts = new Download(OS.LINUX, Arch.X86, Bits.BITS_64, "https://example.com/tool");
+    final Download fromPartsWithHash = new Download(Os.LINUX, Arch.X86, Bits.BITS_64, "https://example.com/tool", "abc");
+    final Download fromParts = new Download(Os.LINUX, Arch.X86, Bits.BITS_64, "https://example.com/tool");
     final String missingHash = withoutHash.getHash();
     final Platform partsPlatform = fromPartsWithHash.getPlatform();
     final String partsHash = fromPartsWithHash.getHash();

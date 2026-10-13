@@ -1,0 +1,132 @@
+/*
+ * This file is part of mcav, a media playback library for Java
+ * Copyright (C) Brandon Li <https://brandonli.me/>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+package me.brandonli.mcav.capability.installer.vlc;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.lang.reflect.Field;
+import java.nio.file.Path;
+import me.brandonli.mcav.capability.installer.vlc.discovery.VlcDiscoveryStrategies;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
+import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
+
+/**
+ * Tests {@link NativeVlcDiscovery} against the VLC installed on this machine. The tests are skipped where VLC is not
+ * installed.
+ *
+ * <p>vlcj remembers a successful discovery in a static field for the rest of the JVM's lifetime. Each test clears
+ * that memory first, so it sees a fresh discovery no matter which tests ran before. Loading libvlc a second time is
+ * harmless, because the library stays loaded.
+ */
+final class NativeVlcDiscoveryTest {
+
+  private boolean previouslyFound;
+
+  @BeforeEach
+  void rememberVlcjState() throws ReflectiveOperationException {
+    final Field alreadyFound = alreadyFoundField();
+    this.previouslyFound = alreadyFound.getBoolean(null);
+  }
+
+  @AfterEach
+  void restoreVlcjState() throws ReflectiveOperationException {
+    final Field alreadyFound = alreadyFoundField();
+    alreadyFound.setBoolean(null, this.previouslyFound);
+  }
+
+  @Test
+  void shouldLoadTheSystemInstallationAndThenRememberIt(@TempDir final Path emptyDirectory) throws ReflectiveOperationException {
+    final Path systemDirectory = requireSystemInstallation();
+    forgetEarlierDiscoveries();
+    final NativeVlcDiscovery discovery = new NativeVlcDiscovery();
+    final boolean loadedFromEmptyDirectory = discovery.loadInstalledLibraries(emptyDirectory);
+    final Path pathAfterFailure = discovery.getDiscoveredPath();
+    assertFalse(loadedFromEmptyDirectory);
+    assertNull(pathAfterFailure);
+    final boolean found = discovery.discoverSystemInstallation();
+    final Path discoveredPath = discovery.getDiscoveredPath();
+    assertTrue(found);
+    assertEquals(systemDirectory, discoveredPath);
+    final boolean foundAgain = discovery.loadInstalledLibraries(emptyDirectory);
+    final Path pathOfRememberedDiscovery = discovery.getDiscoveredPath();
+    assertTrue(foundAgain, "vlcj remembers a successful discovery");
+    assertNull(pathOfRememberedDiscovery);
+  }
+
+  @Test
+  void shouldLoadAnInstallationFromItsLibraryDirectory() throws ReflectiveOperationException {
+    final Path systemDirectory = requireSystemInstallation();
+    forgetEarlierDiscoveries();
+    final NativeVlcDiscovery discovery = new NativeVlcDiscovery();
+    final boolean loaded = discovery.loadInstalledLibraries(systemDirectory);
+    final Path discoveredPath = discovery.getDiscoveredPath();
+    assertTrue(loaded);
+    assertEquals(systemDirectory, discoveredPath);
+  }
+
+  /**
+   * Returns the directory of a VLC installation this machine can actually load, and skips the test otherwise.
+   *
+   * <p>Finding {@code libvlc.so} is not enough. libvlc refuses to start without its plugins, and vlcj's discovery
+   * reports failure when no plugin directory belongs to the libraries it found. Distributions package the two
+   * separately, so a server that installs only {@code libvlc5} — the usual case on a headless machine that pulled
+   * the library in as a transitive dependency — has the libraries without the plugins. The precondition therefore
+   * asks each strategy for both, exactly as a real discovery does, instead of settling for the libraries alone.
+   */
+  private static Path requireSystemInstallation() {
+    final NativeDiscoveryStrategy[] strategies = VlcDiscoveryStrategies.createSystemStrategies();
+    boolean librariesWithoutPlugins = false;
+
+    for (final NativeDiscoveryStrategy strategy : strategies) {
+      final boolean supported = strategy.supported();
+      final String directory = supported ? strategy.discover() : null;
+      if (directory != null) {
+        final boolean pluginsAvailable = strategy.onSetPluginPath(directory);
+        if (pluginsAvailable) {
+          return Path.of(directory);
+        }
+        librariesWithoutPlugins = true;
+      }
+    }
+
+    final String reason = librariesWithoutPlugins
+      ? "The VLC libraries of this machine have no plugin directory, so libvlc cannot start!"
+      : "VLC is not installed on this machine!";
+    Assumptions.abort(reason);
+    throw new AssertionError("Unreachable!");
+  }
+
+  private static Field alreadyFoundField() throws ReflectiveOperationException {
+    final Field alreadyFound = NativeDiscovery.class.getDeclaredField("alreadyFound");
+    alreadyFound.setAccessible(true);
+    return alreadyFound;
+  }
+
+  private static void forgetEarlierDiscoveries() throws ReflectiveOperationException {
+    final Field alreadyFound = alreadyFoundField();
+    alreadyFound.setBoolean(null, false);
+  }
+}

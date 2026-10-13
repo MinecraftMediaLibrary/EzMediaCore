@@ -29,7 +29,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import me.brandonli.mcav.media.source.device.DeviceSource;
-import me.brandonli.mcav.media.source.ffmpeg.FFmpegDirectSource;
+import me.brandonli.mcav.media.source.ffmpeg.FfmpegDirectSource;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.media.source.uri.UriSource;
 import org.junit.jupiter.api.Test;
@@ -57,7 +57,7 @@ final class SourceDetectionHelperTest {
   }
 
   @Test
-  void shouldDetectUrisDevicesAndFFmpegInputs() {
+  void shouldDetectUrisDevicesAndFfmpegInputs() {
     final SourceDetectionHelper helper = new SourceDetectionHelper();
     final Optional<Source> uri = helper.detectSource("https://example.com/video.mp4");
     final Optional<Source> device = helper.detectSource("2");
@@ -67,7 +67,7 @@ final class SourceDetectionHelperTest {
     final Source ffmpegSource = ffmpeg.orElseThrow();
     assertInstanceOf(UriSource.class, uriSource);
     assertInstanceOf(DeviceSource.class, deviceSource);
-    assertInstanceOf(FFmpegDirectSource.class, ffmpegSource);
+    assertInstanceOf(FfmpegDirectSource.class, ffmpegSource);
   }
 
   @Test

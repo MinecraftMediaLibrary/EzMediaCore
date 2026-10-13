@@ -48,8 +48,8 @@ import me.brandonli.mcav.loader.DependencyLoader;
 import me.brandonli.mcav.module.MCAVModule;
 import me.brandonli.mcav.module.ModuleException;
 import me.brandonli.mcav.module.ModuleLoader;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -212,7 +212,7 @@ final class MCAVTest {
    */
   @Test
   void shouldTrimTheNativeHeapWhileInstalled() {
-    final boolean linux = OSUtils.getOS() == OS.LINUX;
+    final boolean linux = OsUtils.getOs() == Os.LINUX;
     final boolean beforeInstall = this.mcav.isTrimmingNativeHeap();
     this.mcav.install();
     final boolean installed = this.mcav.isTrimmingNativeHeap();
@@ -359,7 +359,7 @@ final class MCAVTest {
     };
     final Stubber stubber = Mockito.doAnswer(blockUntilInterrupted);
     final DependencyLoader stubbed = stubber.when(this.dependencies);
-    stubbed.installVLC();
+    stubbed.installVlc();
     this.stubCapability(Capability.VLC, true);
     this.mcav.install(TrackedModule.class);
     final boolean started = vlcStarted.await(WAIT_SECONDS, TimeUnit.SECONDS);
@@ -414,7 +414,7 @@ final class MCAVTest {
     assertEquals(1, starts);
     this.awaitBackgroundInstallation();
     final DependencyLoader verifiedDependencies = Mockito.verify(this.dependencies);
-    verifiedDependencies.installVLC();
+    verifiedDependencies.installVlc();
   }
 
   @Test
@@ -468,7 +468,7 @@ final class MCAVTest {
     assertThrows(MCAVLoadingException.class, () -> this.mcav.hasCapability(Capability.VLC));
     final VerificationMode never = Mockito.never();
     final DependencyLoader notPrepared = Mockito.verify(this.dependencies, never);
-    notPrepared.installVLC();
+    notPrepared.installVlc();
     final Stubber workingNatives = Mockito.doNothing();
     final DependencyLoader workingLoader = workingNatives.when(this.dependencies);
     workingLoader.loadModules();
@@ -548,7 +548,7 @@ final class MCAVTest {
     this.mcav.install();
     this.awaitBackgroundInstallation();
     final DependencyLoader verifiedDependencies = Mockito.verify(this.dependencies);
-    verifiedDependencies.installVLC();
+    verifiedDependencies.installVlc();
   }
 
   @Test
@@ -575,7 +575,7 @@ final class MCAVTest {
     final Answer<Void> blockingInstallation = blockUntil(vlcStarted, finishVlc);
     final Stubber stubber = Mockito.doAnswer(blockingInstallation);
     final DependencyLoader stubbed = stubber.when(this.dependencies);
-    stubbed.installVLC();
+    stubbed.installVlc();
   }
 
   private void blockNativeLoading(final CountDownLatch nativesStarted, final CountDownLatch finishNatives) {
@@ -606,9 +606,9 @@ final class MCAVTest {
 
   private void verifyEveryInstallationStep() {
     final DependencyLoader verifiedVlc = Mockito.verify(this.dependencies);
-    verifiedVlc.installVLC();
+    verifiedVlc.installVlc();
     final DependencyLoader verifiedYtdlp = Mockito.verify(this.dependencies);
-    verifiedYtdlp.installYTDLP();
+    verifiedYtdlp.installYtdlp();
     final DependencyLoader verifiedNatives = Mockito.verify(this.dependencies);
     verifiedNatives.loadModules();
   }

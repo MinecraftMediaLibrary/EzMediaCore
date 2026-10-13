@@ -64,7 +64,7 @@ environment variables, so that no secret ends up in the source:
 
 ## Activity
 
-`setPlaying(String)` sets the bot online and shows the title as its "Playing" activity. `setCurrentMedia(URLParseDump)`
+`setPlaying(String)` sets the bot online and shows the title as its "Playing" activity. `setCurrentMedia(UrlParseDump)`
 does the same with the title yt-dlp resolved. Any title is accepted and adjusted to the rules of Discord:
 
 - Surrounding whitespace is removed.

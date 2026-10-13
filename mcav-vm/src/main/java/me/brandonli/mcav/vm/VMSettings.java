@@ -18,7 +18,7 @@
 package me.brandonli.mcav.vm;
 
 import com.google.common.base.Preconditions;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -52,7 +52,7 @@ public final class VMSettings {
    * @throws java.io.UncheckedIOException if no port in the VNC range can be bound by the probe
    */
   public static VMSettings of(final int width, final int height, final int targetFrameRate) {
-    final int port = IOUtils.getNextFreeVNCPort();
+    final int port = IoUtils.getNextFreeVncPort();
     return of(port, width, height, targetFrameRate);
   }
 

@@ -36,7 +36,7 @@ import me.brandonli.mcav.bukkit.media.config.MapConfiguration;
 import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Configuration;
 import me.brandonli.mcav.bukkit.media.result.CompressedMapResult;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.player.attachable.AudioAttachableCallback;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.FunctionalVideoFilter;
@@ -284,7 +284,7 @@ public abstract class AbstractInteractiveCommand<T> implements AnnotationCommand
     }
     final AudioProvider provider = this.plugin.getAudioProvider();
     this.soundProvider = provider;
-    final URLParseDump dump = new URLParseDump();
+    final UrlParseDump dump = new UrlParseDump();
     dump.title = title;
     final AudioFilter filter = provider.constructFilter(type, dump, sound.getViewers(), owner);
     audio.attach(AudioPipelineStep.of(filter));

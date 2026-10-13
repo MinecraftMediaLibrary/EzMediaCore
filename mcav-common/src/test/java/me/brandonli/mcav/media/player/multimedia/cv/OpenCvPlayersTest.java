@@ -46,7 +46,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests {@link OpenCVPlayer}, {@link VideoInputPlayer} and the player factories of {@link VideoPlayer}.
+ * Tests {@link OpenCvPlayer}, {@link VideoInputPlayer} and the player factories of {@link VideoPlayer}.
  */
 final class OpenCvPlayersTest {
 
@@ -66,7 +66,7 @@ final class OpenCvPlayersTest {
 
   @Test
   void shouldCreateTheFileGrabberOfThisPlatformWithoutOpeningTheFile() throws FrameGrabber.Exception {
-    final OpenCVPlayer player = new OpenCVPlayer();
+    final OpenCvPlayer player = new OpenCvPlayer();
     final boolean openCvReadsFiles = OpenCvVideoBackends.canDecodeFiles();
     try (final FrameGrabber grabber = player.createFrameGrabber("unopened-file.mp4")) {
       if (openCvReadsFiles) {
@@ -134,7 +134,7 @@ final class OpenCvPlayersTest {
   private static int[] playTestVideo(final Dimension size) throws InterruptedException {
     final AtomicInteger frames = new AtomicInteger();
     final AtomicInteger width = new AtomicInteger();
-    final OpenCVPlayer player = new OpenCVPlayer();
+    final OpenCvPlayer player = new OpenCvPlayer();
     player.neverDropLateFrames();
     final VideoFilter counter = (image, _) -> {
       final int frameWidth = image.getWidth();
@@ -177,7 +177,7 @@ final class OpenCvPlayersTest {
     assertTrue(decoded, "frames " + frames);
     assertEquals(TestMedia.VIDEO_WIDTH, width);
 
-    final OpenCVPlayer openCv = new OpenCVPlayer();
+    final OpenCvPlayer openCv = new OpenCvPlayer();
     assertThrowsWhileOpening(NullPointerException.class, () -> openCv.createFrameGrabber(null));
   }
 
@@ -207,8 +207,8 @@ final class OpenCvPlayersTest {
   void shouldCreateEveryKindOfPlayerFromTheFactories() {
     final VideoPlayerMultiplexer ffmpeg = VideoPlayer.ffmpeg();
     final VideoPlayerMultiplexer openCv = VideoPlayer.opencv();
-    assertInstanceOf(FFmpegPlayer.class, ffmpeg);
-    assertInstanceOf(OpenCVPlayer.class, openCv);
+    assertInstanceOf(FfmpegPlayer.class, ffmpeg);
+    assertInstanceOf(OpenCvPlayer.class, openCv);
     assertThrows(NullPointerException.class, () -> VideoPlayer.vlc((String[]) null));
   }
 }

@@ -101,8 +101,8 @@ final class BackgroundInstallation {
 
   private static Map<Capability, Runnable> createSteps(final DependencyLoader dependencyLoader) {
     final Map<Capability, Runnable> steps = new EnumMap<>(Capability.class);
-    steps.put(Capability.VLC, dependencyLoader::installVLC);
-    steps.put(Capability.YT_DLP, dependencyLoader::installYTDLP);
+    steps.put(Capability.VLC, dependencyLoader::installVlc);
+    steps.put(Capability.YT_DLP, dependencyLoader::installYtdlp);
     return steps;
   }
 

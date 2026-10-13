@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.json.ytdlp.format.Format;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -38,12 +38,12 @@ final class StrategySelectorTest {
   private static final String STREAMS =
     "\"formats\": [{\"format_id\": \"audio\", \"audio_ext\": \"webm\", \"video_ext\": \"none\"}, {\"format_id\": \"video\", \"audio_ext\": \"none\", \"video_ext\": \"mp4\"}]";
 
-  private static URLParseDump dump(final String json) {
+  private static UrlParseDump dump(final String json) {
     final Gson gson = GsonProvider.getSimple();
-    return gson.fromJson(json, URLParseDump.class);
+    return gson.fromJson(json, UrlParseDump.class);
   }
 
-  private static Format firstFormat(final URLParseDump dump) {
+  private static Format firstFormat(final UrlParseDump dump) {
     final List<Format> formats = dump.formats;
     return formats == null ? null : formats.getFirst();
   }
@@ -66,7 +66,7 @@ final class StrategySelectorTest {
 
   @Test
   void shouldSelectTheAudioStreamWithTheAudioStrategyAndTheVideoStreamWithTheVideoStrategy() {
-    final URLParseDump dump = dump("{" + STREAMS + "}");
+    final UrlParseDump dump = dump("{" + STREAMS + "}");
     final StrategySelector selector = StrategySelector.of(FormatStrategy.FIRST_AUDIO, FormatStrategy.FIRST_VIDEO);
     final Format audio = selector.getAudioSource(dump);
     final Format video = selector.getVideoSource(dump);
@@ -76,7 +76,7 @@ final class StrategySelectorTest {
 
   @Test
   void shouldUseExactlyTheStrategyItWasGiven() {
-    final URLParseDump dump = dump("{" + STREAMS + "}");
+    final UrlParseDump dump = dump("{" + STREAMS + "}");
     final FormatStrategy firstListed = candidate -> {
       final Format first = firstFormat(candidate);
       return Optional.ofNullable(first);
@@ -97,7 +97,7 @@ final class StrategySelectorTest {
 
   @Test
   void shouldNameTheTitleWhenNoStreamMatches() {
-    final URLParseDump dump = dump("{\"title\": \"Example Video\", \"webpage_url\": \"https://example.com/watch\"}");
+    final UrlParseDump dump = dump("{\"title\": \"Example Video\", \"webpage_url\": \"https://example.com/watch\"}");
     final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
     final NoMatchingFormatException audio = assertThrows(NoMatchingFormatException.class, () -> selector.getAudioSource(dump));
     final NoMatchingFormatException video = assertThrows(NoMatchingFormatException.class, () -> selector.getVideoSource(dump));
@@ -109,7 +109,7 @@ final class StrategySelectorTest {
 
   @Test
   void shouldNameThePageUrlWhenTheTitleIsUnknown() {
-    final URLParseDump dump = dump("{\"webpage_url\": \"https://example.com/watch\"}");
+    final UrlParseDump dump = dump("{\"webpage_url\": \"https://example.com/watch\"}");
     final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
     final NoMatchingFormatException audio = assertThrows(NoMatchingFormatException.class, () -> selector.getAudioSource(dump));
     final NoMatchingFormatException video = assertThrows(NoMatchingFormatException.class, () -> selector.getVideoSource(dump));
@@ -121,7 +121,7 @@ final class StrategySelectorTest {
 
   @Test
   void shouldFallBackToAGenericDescription() {
-    final URLParseDump dump = new URLParseDump();
+    final UrlParseDump dump = new UrlParseDump();
     final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
     final NoMatchingFormatException audio = assertThrows(NoMatchingFormatException.class, () -> selector.getAudioSource(dump));
     final NoMatchingFormatException video = assertThrows(NoMatchingFormatException.class, () -> selector.getVideoSource(dump));

@@ -20,7 +20,7 @@ package me.brandonli.mcav.http;
 import com.google.common.base.Preconditions;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -176,7 +176,7 @@ public interface HttpResult extends AudioFilter {
    * @param dump the non-null output of yt-dlp; selected fields are copied into an immutable snapshot
    * @throws NullPointerException if {@code dump} is null
    */
-  void setCurrentMedia(final URLParseDump dump);
+  void setCurrentMedia(final UrlParseDump dump);
 
   /**
    * Shows information about the current media.

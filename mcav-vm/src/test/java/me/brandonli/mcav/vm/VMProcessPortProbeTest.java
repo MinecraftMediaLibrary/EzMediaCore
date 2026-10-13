@@ -32,7 +32,7 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 import me.brandonli.mcav.media.player.PlayerException;
-import me.brandonli.mcav.utils.os.OS;
+import me.brandonli.mcav.utils.os.Os;
 import org.junit.jupiter.api.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.MockSettings;
@@ -76,7 +76,7 @@ final class VMProcessPortProbeTest {
           executable,
           configuration,
           launcher,
-          OS.LINUX,
+          Os.LINUX,
           kvm,
           1,
           () -> {

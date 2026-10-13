@@ -24,10 +24,10 @@ import java.util.concurrent.ForkJoinPool;
 import me.brandonli.mcav.media.player.attachable.AudioAttachableCallback;
 import me.brandonli.mcav.media.player.attachable.DimensionAttachableCallback;
 import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
-import me.brandonli.mcav.media.player.multimedia.cv.FFmpegPlayer;
-import me.brandonli.mcav.media.player.multimedia.cv.OpenCVPlayer;
+import me.brandonli.mcav.media.player.multimedia.cv.FfmpegPlayer;
+import me.brandonli.mcav.media.player.multimedia.cv.OpenCvPlayer;
 import me.brandonli.mcav.media.player.multimedia.cv.VideoInputPlayer;
-import me.brandonli.mcav.media.player.multimedia.vlc.VLCPlayer;
+import me.brandonli.mcav.media.player.multimedia.vlc.VlcPlayer;
 import me.brandonli.mcav.media.source.Source;
 
 /**
@@ -52,7 +52,7 @@ import me.brandonli.mcav.media.source.Source;
 public interface VideoPlayer extends ExceptionHandler {
   /**
    * Creates a player backed by VLC. VLC must be installed or installable; see
-   * {@link me.brandonli.mcav.capability.installer.vlc.VLCInstallationKit}. VLC handles the widest range of
+   * {@link me.brandonli.mcav.capability.installer.vlc.VlcInstallationKit}. VLC handles the widest range of
    * formats and streams.
    *
    * <p>{@link me.brandonli.mcav.MCAVApi#install(Class[])} prepares VLC in the background, which can take several
@@ -69,7 +69,7 @@ public interface VideoPlayer extends ExceptionHandler {
    */
   static VideoPlayerMultiplexer vlc(final String... arguments) {
     Preconditions.checkNotNull(arguments, "Arguments must not be null!");
-    return new VLCPlayer(arguments);
+    return new VlcPlayer(arguments);
   }
 
   /**
@@ -79,7 +79,7 @@ public interface VideoPlayer extends ExceptionHandler {
    * @return the player
    */
   static VideoPlayerMultiplexer ffmpeg() {
-    return new FFmpegPlayer();
+    return new FfmpegPlayer();
   }
 
   /**
@@ -94,7 +94,7 @@ public interface VideoPlayer extends ExceptionHandler {
    * @return the player
    */
   static VideoPlayerMultiplexer opencv() {
-    return new OpenCVPlayer();
+    return new OpenCvPlayer();
   }
 
   /**

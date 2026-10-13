@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.CapabilityGuard;
-import me.brandonli.mcav.media.player.multimedia.vlc.VLCPlayer;
+import me.brandonli.mcav.media.player.multimedia.vlc.VlcPlayer;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
@@ -57,7 +57,7 @@ final class VideoPlayerFactoriesTest {
     final CapabilityGuard guard = CapabilityGuard.shared();
     guard.markPrepared(Capability.VLC, false);
     try {
-      final IllegalStateException exception = assertThrows(IllegalStateException.class, () -> new VLCPlayer("--x"));
+      final IllegalStateException exception = assertThrows(IllegalStateException.class, () -> new VlcPlayer("--x"));
       final String message = exception.getMessage();
       assertEquals("VLC is not available on this system!", message);
     } finally {
@@ -70,8 +70,8 @@ final class VideoPlayerFactoriesTest {
     try (final MockedConstruction<MediaPlayerFactory> factories = Mockito.mockConstruction(MediaPlayerFactory.class)) {
       final VideoPlayer withoutOptions = VideoPlayer.vlc();
       final VideoPlayer withOptions = VideoPlayer.vlc("--no-video-title-show");
-      final VLCPlayer first = assertInstanceOf(VLCPlayer.class, withoutOptions);
-      final VLCPlayer second = assertInstanceOf(VLCPlayer.class, withOptions);
+      final VlcPlayer first = assertInstanceOf(VlcPlayer.class, withoutOptions);
+      final VlcPlayer second = assertInstanceOf(VlcPlayer.class, withOptions);
       final List<MediaPlayerFactory> constructed = factories.constructed();
       assertEquals(List.of(), constructed, "creating a player must not initialize the VLC engine");
       first.release();

@@ -259,8 +259,8 @@ final class ExampleResourcesTest {
     try (final MockedStatic<MCAV> entry = mockStatic(MCAV.class)) {
       entry.when(MCAV::api).thenReturn(api);
       final Executable run = switch (example) {
-        case "ffmpeg" -> FFmpegPlayerExample::main;
-        case "vlc" -> VLCPlayerExample::main;
+        case "ffmpeg" -> FfmpegPlayerExample::main;
+        case "vlc" -> VlcPlayerExample::main;
         case "multiplexer" -> MultiplexerInputExample::main;
         default -> throw new IllegalArgumentException(example);
       };
@@ -281,7 +281,7 @@ final class ExampleResourcesTest {
       final MockedStatic<SwingVideoWindow> windows = mockStatic(SwingVideoWindow.class)
     ) {
       entry.when(MCAV::api).thenReturn(api);
-      assertThrows(IllegalStateException.class, VLCPlayerExample::main);
+      assertThrows(IllegalStateException.class, VlcPlayerExample::main);
       verify(api).install();
       verify(api).whenCapabilityReady(Capability.VLC);
       verify(api).release();

@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import me.brandonli.mcav.media.source.device.DeviceSourceDetector;
-import me.brandonli.mcav.media.source.ffmpeg.FFmpegDirectSourceDetector;
+import me.brandonli.mcav.media.source.ffmpeg.FfmpegDirectSourceDetector;
 import me.brandonli.mcav.media.source.file.FileSourceDetector;
 import me.brandonli.mcav.media.source.uri.UriSourceDetector;
 
@@ -41,7 +41,7 @@ public class SourceDetectionHelper {
 
   private static final Collection<SourceDetector<? extends Source>> DEFAULT_DETECTORS = List.of(
     new DeviceSourceDetector(),
-    new FFmpegDirectSourceDetector(),
+    new FfmpegDirectSourceDetector(),
     new FileSourceDetector(),
     new UriSourceDetector()
   );

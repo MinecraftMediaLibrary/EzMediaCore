@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Tag;
 /**
  * Fuzzes the extraction of zip archives, which the installers of mcav run on archives they download: whatever the
  * archive, nothing is written outside the destination, and a bad archive fails with one of the exceptions
- * {@link IOUtils#unzip(Path, Path)} documents. The seeds are archives shaped like those the tests of the method build: an
+ * {@link IoUtils#unzip(Path, Path)} documents. The seeds are archives shaped like those the tests of the method build: an
  * ordinary one, one that escapes with {@code ..}, one with an absolute entry, a nested one and an empty one.
  */
 @Tag("fuzz")
@@ -68,7 +68,7 @@ final class UnzipFuzzTest {
     Files.write(archive, archiveBytes);
     final List<Path> before = listTree(scope);
     try {
-      IOUtils.unzip(archive, destination);
+      IoUtils.unzip(archive, destination);
     } catch (final UncheckedIOException | ZipEntryIntegrityException exception) {
       // a broken or unsafe archive; what matters is where anything was written
     }

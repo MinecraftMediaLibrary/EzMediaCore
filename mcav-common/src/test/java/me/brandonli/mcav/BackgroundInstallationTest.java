@@ -89,9 +89,9 @@ final class BackgroundInstallationTest {
     assertTrue(vlcDaemon, "an installation thread never keeps the JVM alive");
     assertTrue(vlcAvailable);
     final DependencyLoader verifiedVlc = Mockito.verify(this.dependencies);
-    verifiedVlc.installVLC();
+    verifiedVlc.installVlc();
     final DependencyLoader verifiedYtdlp = Mockito.verify(this.dependencies);
-    verifiedYtdlp.installYTDLP();
+    verifiedYtdlp.installYtdlp();
   }
 
   @Test
@@ -115,7 +115,7 @@ final class BackgroundInstallationTest {
     final IllegalStateException failure = new IllegalStateException("broken plugin cache!");
     final Stubber failingVlc = Mockito.doThrow(failure);
     final DependencyLoader stubbed = failingVlc.when(this.dependencies);
-    stubbed.installVLC();
+    stubbed.installVlc();
     this.stubCapability(Capability.VLC, true);
     this.stubCapability(Capability.YT_DLP, true);
     final BackgroundInstallation installation = this.createInstallation();
@@ -136,7 +136,7 @@ final class BackgroundInstallationTest {
     final OutOfMemoryError error = new OutOfMemoryError("heap is full!");
     final Stubber failingYtdlp = Mockito.doThrow(error);
     final DependencyLoader stubbed = failingYtdlp.when(this.dependencies);
-    stubbed.installYTDLP();
+    stubbed.installYtdlp();
     this.stubCapability(Capability.YT_DLP, true);
     final BackgroundInstallation installation = this.createInstallation();
     installation.start();
@@ -189,7 +189,7 @@ final class BackgroundInstallationTest {
       return null;
     })
       .when(this.dependencies)
-      .installVLC();
+      .installVlc();
     final BackgroundInstallation installation = new BackgroundInstallation(
       this.dependencies,
       this.guard,
@@ -361,7 +361,7 @@ final class BackgroundInstallationTest {
     };
     final Stubber stubber = Mockito.doAnswer(blocking);
     final DependencyLoader stubbed = stubber.when(this.dependencies);
-    stubbed.installVLC();
+    stubbed.installVlc();
   }
 
   private void blockVlcUninterruptibly(final CountDownLatch vlcStarted, final CountDownLatch finishVlc) {
@@ -373,7 +373,7 @@ final class BackgroundInstallationTest {
     };
     final Stubber stubber = Mockito.doAnswer(ignoringInterrupts);
     final DependencyLoader stubbed = stubber.when(this.dependencies);
-    stubbed.installVLC();
+    stubbed.installVlc();
   }
 
   private static Boolean await(final BackgroundInstallation installation, final Capability capability) throws Exception {

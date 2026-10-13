@@ -65,7 +65,7 @@ import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import me.brandonli.mcav.utils.audio.DelayedAudioOutput;
 import me.brandonli.mcav.utils.interaction.MouseClick;
-import me.brandonli.mcav.utils.os.OS;
+import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.vnc.VNCPlayer;
 import me.brandonli.mcav.vnc.VNCSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -135,7 +135,7 @@ final class VMPlayerImplTest {
     final String path = bin.toString();
     final Map<String, String> environment = Map.of("PATH", path);
     final Path root = this.directory.resolve("empty-root");
-    this.finder = new ExecutableFinder(OS.LINUX, environment, root);
+    this.finder = new ExecutableFinder(Os.LINUX, environment, root);
   }
 
   private static void installFakePrograms(final Path bin) throws IOException {
@@ -154,7 +154,7 @@ final class VMPlayerImplTest {
   private void useFinderWithoutQemu() {
     final Path root = this.directory.resolve("empty-root");
     final Map<String, String> environment = Map.of("PATH", "");
-    this.finder = new ExecutableFinder(OS.LINUX, environment, root);
+    this.finder = new ExecutableFinder(Os.LINUX, environment, root);
   }
 
   private VMPlayerImpl player() {

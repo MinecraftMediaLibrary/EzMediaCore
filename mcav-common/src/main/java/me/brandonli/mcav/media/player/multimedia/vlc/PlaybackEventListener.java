@@ -32,7 +32,7 @@ import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
  *
  * <p>VLC opens media asynchronously, so asking it to play a file that does not exist succeeds, and the failure only
  * arrives later as an error event. The playback therefore waits for the first playing, finished, or error event, so
- * that {@link VLCPlayer#start} can return false for media that cannot be opened. Errors that happen later, while the
+ * that {@link VlcPlayer#start} can return false for media that cannot be opened. Errors that happen later, while the
  * media plays, are reported to the exception handler as well.
  */
 final class PlaybackEventListener extends MediaPlayerEventAdapter {

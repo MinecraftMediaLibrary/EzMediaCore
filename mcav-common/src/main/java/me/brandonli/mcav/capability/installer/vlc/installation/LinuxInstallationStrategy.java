@@ -24,8 +24,8 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import me.brandonli.mcav.capability.installer.vlc.VLCInstaller;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
+import me.brandonli.mcav.utils.IoUtils;
 
 /**
  * Installs VLC on Linux by extracting an AppImage.
@@ -47,7 +47,7 @@ public final class LinuxInstallationStrategy extends ManualInstallationStrategy 
    * @param installer the installer whose installation directory is used
    * @throws NullPointerException if {@code installer} is null
    */
-  public LinuxInstallationStrategy(final VLCInstaller installer) {
+  public LinuxInstallationStrategy(final VlcInstaller installer) {
     super(installer);
   }
 
@@ -57,7 +57,7 @@ public final class LinuxInstallationStrategy extends ManualInstallationStrategy 
    * @param installer     the installer whose installation directory is used
    * @param processRunner runs the AppImage extraction
    */
-  LinuxInstallationStrategy(final VLCInstaller installer, final ProcessRunner processRunner) {
+  LinuxInstallationStrategy(final VlcInstaller installer, final ProcessRunner processRunner) {
     super(installer, processRunner);
   }
 
@@ -102,7 +102,7 @@ public final class LinuxInstallationStrategy extends ManualInstallationStrategy 
   }
 
   private void extractAppImage(final Path archive, final Path workingDirectory, final Path extracted) throws IOException {
-    IOUtils.markExecutable(archive);
+    IoUtils.markExecutable(archive);
     final String rawArchive = archive.toString();
     this.runProcess(workingDirectory, rawArchive, EXTRACT_OPTION);
     final boolean extractedExists = Files.isDirectory(extracted);

@@ -21,9 +21,9 @@ import javax.swing.WindowConstants;
 import me.brandonli.mcav.MCAV;
 import me.brandonli.mcav.MCAVApi;
 import me.brandonli.mcav.capability.Capability;
-import me.brandonli.mcav.json.ytdlp.YTDLPParser;
+import me.brandonli.mcav.json.ytdlp.YtdlpParser;
 import me.brandonli.mcav.json.ytdlp.format.Format;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.json.ytdlp.strategy.FormatStrategy;
 import me.brandonli.mcav.json.ytdlp.strategy.StrategySelector;
 import me.brandonli.mcav.media.player.attachable.AudioAttachableCallback;
@@ -65,8 +65,8 @@ public final class YouTubeExample {
     try {
       final URI page = URI.create("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
       final UriSource source = UriSource.uri(page);
-      final YTDLPParser parser = YTDLPParser.simple();
-      final URLParseDump dump = parser.parse(source);
+      final YtdlpParser parser = YtdlpParser.simple();
+      final UrlParseDump dump = parser.parse(source);
       final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
       final Format videoFormat = selector.getVideoSource(dump);
       final Format audioFormat = selector.getAudioSource(dump);

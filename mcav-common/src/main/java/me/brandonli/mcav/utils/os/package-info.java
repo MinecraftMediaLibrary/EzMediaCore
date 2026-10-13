@@ -18,7 +18,7 @@
 /**
  * Classifies the JVM's operating system, processor family and word size for native dependency selection.
  *
- * <p>{@link me.brandonli.mcav.utils.os.OSUtils} caches its classification when initialized, using
+ * <p>{@link me.brandonli.mcav.utils.os.OsUtils} caches its classification when initialized, using
  * {@code os.name}, {@code os.arch} and {@code sun.arch.data.model}. It describes the running JVM, including any
  * emulation, rather than independently probing the physical CPU. Later property changes do not update it.
  *

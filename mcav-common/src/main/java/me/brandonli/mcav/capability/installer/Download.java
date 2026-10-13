@@ -20,7 +20,7 @@ package me.brandonli.mcav.capability.installer;
 import com.google.common.base.Preconditions;
 import me.brandonli.mcav.utils.os.Arch;
 import me.brandonli.mcav.utils.os.Bits;
-import me.brandonli.mcav.utils.os.OS;
+import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.Platform;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -78,7 +78,7 @@ public final class Download {
    * @throws IllegalArgumentException if {@code url} is blank
    * @throws NullPointerException     if {@code operatingSystem}, {@code architecture}, {@code bits} or {@code url} is null
    */
-  public Download(final OS operatingSystem, final Arch architecture, final Bits bits, final String url, final @Nullable String hash) {
+  public Download(final Os operatingSystem, final Arch architecture, final Bits bits, final String url, final @Nullable String hash) {
     final Platform platform = Platform.ofPlatform(operatingSystem, architecture, bits);
     this(platform, url, hash);
   }
@@ -93,7 +93,7 @@ public final class Download {
    * @throws IllegalArgumentException if {@code url} is blank
    * @throws NullPointerException     if {@code operatingSystem}, {@code architecture}, {@code bits} or {@code url} is null
    */
-  public Download(final OS operatingSystem, final Arch architecture, final Bits bits, final String url) {
+  public Download(final Os operatingSystem, final Arch architecture, final Bits bits, final String url) {
     final Platform platform = Platform.ofPlatform(operatingSystem, architecture, bits);
     this(platform, url, null);
   }

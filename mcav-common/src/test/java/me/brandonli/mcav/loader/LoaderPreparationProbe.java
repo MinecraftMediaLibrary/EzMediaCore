@@ -35,15 +35,15 @@ public final class LoaderPreparationProbe {
   public static DependencyLoader vlc(final Logger logger, final Runnable prepare) {
     final DependencyLoader loader = Mockito.spy(new DependencyLoader(logger));
     Mockito.doAnswer(_ -> {
-      loader.installVLC(() -> {
+      loader.installVlc(() -> {
         prepare.run();
         return Optional.empty();
       });
       return null;
     })
       .when(loader)
-      .installVLC();
-    Mockito.doNothing().when(loader).installYTDLP();
+      .installVlc();
+    Mockito.doNothing().when(loader).installYtdlp();
     return loader;
   }
 }

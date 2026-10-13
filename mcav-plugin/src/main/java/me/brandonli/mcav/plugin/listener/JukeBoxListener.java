@@ -24,7 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import me.brandonli.mcav.plugin.MCAVSandbox;
 import me.brandonli.mcav.plugin.utils.DiskImages;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
@@ -67,7 +67,7 @@ public final class JukeBoxListener implements Listener {
     this.sandbox = sandbox;
     final Path dataFolder = sandbox.getDataPath();
     this.isoFolder = DiskImages.folderOf(dataFolder);
-    IOUtils.createDirectoryIfNotExists(this.isoFolder);
+    IoUtils.createDirectoryIfNotExists(this.isoFolder);
   }
 
   /**

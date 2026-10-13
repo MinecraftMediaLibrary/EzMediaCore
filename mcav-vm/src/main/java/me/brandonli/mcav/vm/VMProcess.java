@@ -47,8 +47,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,7 +123,7 @@ final class VMProcess {
   private final Path executable;
   private final VMConfiguration configuration;
   private final Launcher launcher;
-  private final OS os;
+  private final Os os;
   private final Path kvmDevice;
   private final long startTimeoutNanos;
   private final LongSupplier nanoClock;
@@ -149,7 +149,7 @@ final class VMProcess {
     final Path executable,
     final VMConfiguration configuration
   ) {
-    final OS currentOs = OSUtils.getOS();
+    final Os currentOs = OsUtils.getOs();
     return new VMProcess(
       settings,
       architecture,
@@ -183,7 +183,7 @@ final class VMProcess {
     final Path executable,
     final VMConfiguration configuration,
     final Launcher launcher,
-    final OS os,
+    final Os os,
     final Path kvmDevice,
     final long startTimeoutMillis,
     final SecretFolder secretFolder
@@ -199,7 +199,7 @@ final class VMProcess {
     final Path executable,
     final VMConfiguration configuration,
     final Launcher launcher,
-    final OS os,
+    final Os os,
     final Path kvmDevice,
     final long startTimeoutMillis,
     final LongSupplier nanoClock,
@@ -629,7 +629,7 @@ final class VMProcess {
    * @return the accelerator name
    */
   @VisibleForTesting
-  static String detectAccelerator(final OS os, final Path kvmDevice) {
+  static String detectAccelerator(final Os os, final Path kvmDevice) {
     return switch (os) {
       case LINUX -> Files.isWritable(kvmDevice) ? "kvm" : SOFTWARE_ACCELERATOR;
       case WINDOWS -> "whpx";

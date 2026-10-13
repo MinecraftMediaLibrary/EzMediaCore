@@ -18,7 +18,7 @@
 /**
  * Implements multimedia playback with JavaCV frame grabbers for FFmpeg, OpenCV and capture devices.
  *
- * <p>{@link me.brandonli.mcav.media.player.multimedia.cv.AbstractVideoPlayerCV} owns sessions with separate
+ * <p>{@link me.brandonli.mcav.media.player.multimedia.cv.AbstractVideoPlayerCv} owns sessions with separate
  * decoding and rendering workers, bounded queues and a playback clock. It normalizes output to packed BGR video
  * and 48 kHz signed 16-bit little-endian stereo audio. Pipelines run on render workers and must copy borrowed
  * data before retaining it. Native libraries must be loadable on the host.

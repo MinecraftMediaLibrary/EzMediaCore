@@ -21,9 +21,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import me.brandonli.mcav.capability.Capability;
-import me.brandonli.mcav.json.ytdlp.YTDLPParser;
+import me.brandonli.mcav.json.ytdlp.YtdlpParser;
 import me.brandonli.mcav.json.ytdlp.format.Format;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.json.ytdlp.strategy.FormatStrategy;
 import me.brandonli.mcav.json.ytdlp.strategy.StrategySelector;
 import me.brandonli.mcav.media.player.attachable.AudioAttachableCallback;
@@ -64,8 +64,8 @@ public final class MultiplexerInputExample {
 
       final URI uri = URI.create("https://www.youtube.com/watch?v=47dtFZ8CFo8");
       final UriSource page = UriSource.uri(uri);
-      final YTDLPParser parser = YTDLPParser.simple();
-      final URLParseDump dump = parser.parse(page);
+      final YtdlpParser parser = YtdlpParser.simple();
+      final UrlParseDump dump = parser.parse(page);
       final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
       final Format videoFormat = selector.getVideoSource(dump);
       final Format audioFormat = selector.getAudioSource(dump);

@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.json.ytdlp.format.Format;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -46,12 +46,12 @@ final class FormatStrategyTest {
     FormatStrategy.PREFER_MP4_VIDEO
   );
 
-  private static URLParseDump dump(final String json) {
+  private static UrlParseDump dump(final String json) {
     final Gson gson = GsonProvider.getSimple();
-    return gson.fromJson(json, URLParseDump.class);
+    return gson.fromJson(json, UrlParseDump.class);
   }
 
-  private static URLParseDump formats(final String... formats) {
+  private static UrlParseDump formats(final String... formats) {
     final String joined = String.join(", ", formats);
     return dump("{\"formats\": [" + joined + "]}");
   }
@@ -79,7 +79,7 @@ final class FormatStrategyTest {
     );
   }
 
-  private static String select(final FormatStrategy strategy, final URLParseDump dump) {
+  private static String select(final FormatStrategy strategy, final UrlParseDump dump) {
     final Optional<Format> selected = strategy.select(dump);
     final Format format = selected.orElseThrow();
     return format.format_id;
@@ -87,10 +87,10 @@ final class FormatStrategyTest {
 
   @Test
   void shouldSelectNothingWithoutStreams() {
-    final URLParseDump missing = dump("{}");
-    final URLParseDump empty = formats();
-    final URLParseDump onlyNulls = formats("null", "null");
-    final URLParseDump storyboards = formats("{\"format_id\": \"sb0\", \"audio_ext\": \"none\", \"video_ext\": \"none\", \"quality\": 99}");
+    final UrlParseDump missing = dump("{}");
+    final UrlParseDump empty = formats();
+    final UrlParseDump onlyNulls = formats("null", "null");
+    final UrlParseDump storyboards = formats("{\"format_id\": \"sb0\", \"audio_ext\": \"none\", \"video_ext\": \"none\", \"quality\": 99}");
     for (final FormatStrategy strategy : ALL_STRATEGIES) {
       final Optional<Format> fromMissing = strategy.select(missing);
       final Optional<Format> fromEmpty = strategy.select(empty);
@@ -118,7 +118,7 @@ final class FormatStrategyTest {
   void shouldSkipNullEntries() {
     final String audioStream = audio("a", 1, "webm", "https");
     final String videoStream = video("v", 5, "mp4", "https");
-    final URLParseDump dump = formats("null", audioStream, "null", videoStream, "null");
+    final UrlParseDump dump = formats("null", audioStream, "null", videoStream, "null");
     final String firstAudio = select(FormatStrategy.FIRST_AUDIO, dump);
     final String firstVideo = select(FormatStrategy.FIRST_VIDEO, dump);
     final String bestAudio = select(FormatStrategy.BEST_QUALITY_AUDIO, dump);
@@ -143,7 +143,7 @@ final class FormatStrategyTest {
     final String hlsVideo7 = video("v7", 7, "mp4", "m3u8_native");
     final String audio1 = audio("a1", 1, "m4a", "https");
     final String negativeVideo = video("v-1", -1, "mp4", "https");
-    final URLParseDump dump = formats(storyboard, video5, audio2, video9, audio3, hlsVideo7, audio1, negativeVideo);
+    final UrlParseDump dump = formats(storyboard, video5, audio2, video9, audio3, hlsVideo7, audio1, negativeVideo);
     final String bestAudio = select(FormatStrategy.BEST_QUALITY_AUDIO, dump);
     final String lowestAudio = select(FormatStrategy.LOWEST_QUALITY_AUDIO, dump);
     final String bestVideo = select(FormatStrategy.BEST_QUALITY_VIDEO, dump);
@@ -163,7 +163,7 @@ final class FormatStrategyTest {
     final String avc1High = video("avc1-high", 9, "mp4", "https");
     final String opus = audio("opus", 3, "webm", "https");
     final String vp9High = video("vp9-high", 9, "webm", "https");
-    final URLParseDump dump = formats(avc1Low, vp9Low, m4a, avc1High, opus, vp9High);
+    final UrlParseDump dump = formats(avc1Low, vp9Low, m4a, avc1High, opus, vp9High);
     final String bestVideo = select(FormatStrategy.BEST_QUALITY_VIDEO, dump);
     final String lowestVideo = select(FormatStrategy.LOWEST_QUALITY_VIDEO, dump);
     final String bestAudio = select(FormatStrategy.BEST_QUALITY_AUDIO, dump);
@@ -176,7 +176,7 @@ final class FormatStrategyTest {
 
   @Test
   void shouldFallBackToTheYtdlpOrderWhenNoQualityIsReported() {
-    final URLParseDump dump = formats(
+    final UrlParseDump dump = formats(
       "{\"format_id\": \"worst\", \"video_ext\": \"mp4\"}",
       "{\"format_id\": \"middle\", \"video_ext\": \"mp4\"}",
       "{\"format_id\": \"best\", \"video_ext\": \"mp4\"}"
@@ -194,7 +194,7 @@ final class FormatStrategyTest {
     final String audio1Stream = audio("a1", 1, "m4a", "https");
     final String video2Stream = video("v2", 1, "webm", "https");
     final String audio2Stream = audio("a2", 3, "webm", "https");
-    final URLParseDump dump = formats(storyboard, video1Stream, audio1Stream, video2Stream, audio2Stream);
+    final UrlParseDump dump = formats(storyboard, video1Stream, audio1Stream, video2Stream, audio2Stream);
     final String firstAudio = select(FormatStrategy.FIRST_AUDIO, dump);
     final String firstVideo = select(FormatStrategy.FIRST_VIDEO, dump);
     assertEquals("a1", firstAudio);
@@ -209,8 +209,8 @@ final class FormatStrategyTest {
     final String webmVideo = video("video-webm", 3, "webm", "https");
     final String webmHttps = audio("webm-https", 1, "webm", "https");
     final String webmHttpsLater = audio("webm-https-later", 3, "webm", "https");
-    final URLParseDump dump = formats(m4aHttps, webmHls, webmHttp, webmVideo, webmHttps, webmHttpsLater);
-    final URLParseDump withoutMatch = formats(m4aHttps, webmHls);
+    final UrlParseDump dump = formats(m4aHttps, webmHls, webmHttp, webmVideo, webmHttps, webmHttpsLater);
+    final UrlParseDump withoutMatch = formats(m4aHttps, webmHls);
     final String selected = select(FormatStrategy.PREFER_WEBM_AUDIO, dump);
     final Optional<Format> none = FormatStrategy.PREFER_WEBM_AUDIO.select(withoutMatch);
     assertEquals("webm-https", selected);
@@ -225,8 +225,8 @@ final class FormatStrategyTest {
     final String mp4Audio = audio("audio-mp4", 9, "mp4", "https");
     final String mp4Https = video("mp4-https", 5, "mp4", "https");
     final String mp4HttpsLater = video("mp4-https-later", 9, "mp4", "https");
-    final URLParseDump dump = formats(webmHttps, mp4Dash, mp4Audio, mp4Https, mp4HttpsLater);
-    final URLParseDump withoutMatch = formats(webmHttps);
+    final UrlParseDump dump = formats(webmHttps, mp4Dash, mp4Audio, mp4Https, mp4HttpsLater);
+    final UrlParseDump withoutMatch = formats(webmHttps);
     final String selected = select(FormatStrategy.PREFER_MP4_VIDEO, dump);
     final Optional<Format> none = FormatStrategy.PREFER_MP4_VIDEO.select(withoutMatch);
     assertEquals("mp4-https", selected);

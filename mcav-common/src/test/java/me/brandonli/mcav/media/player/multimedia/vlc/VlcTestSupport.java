@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import me.brandonli.mcav.capability.installer.vlc.UnsupportedOperatingSystemException;
-import me.brandonli.mcav.capability.installer.vlc.VLCInstallationKit;
-import me.brandonli.mcav.capability.installer.vlc.VLCInstaller;
+import me.brandonli.mcav.capability.installer.vlc.VlcInstallationKit;
+import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
 import me.brandonli.mcav.testing.GeneratedMedia;
 import org.junit.jupiter.api.Assumptions;
 import org.mockito.Mockito;
@@ -47,9 +47,9 @@ final class VlcTestSupport {
    * @return null if VLC was loaded, otherwise why not
    */
   private static String loadVlc() {
-    final VLCInstaller installer = Mockito.mock(VLCInstaller.class);
+    final VlcInstaller installer = Mockito.mock(VlcInstaller.class);
     Mockito.when(installer.isSupported()).thenReturn(false);
-    final VLCInstallationKit kit = VLCInstallationKit.create(installer);
+    final VlcInstallationKit kit = VlcInstallationKit.create(installer);
     try {
       final Optional<Path> directory = kit.start();
       final Optional<String> location = directory.map(Path::toString);

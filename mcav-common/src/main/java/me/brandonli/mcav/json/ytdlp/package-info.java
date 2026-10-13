@@ -18,12 +18,12 @@
 /**
  * Resolves web-page media through the installed yt-dlp program.
  *
- * <p>Call {@link me.brandonli.mcav.json.ytdlp.YTDLPParser#simple()} and parse an absolute HTTP or HTTPS
+ * <p>Call {@link me.brandonli.mcav.json.ytdlp.YtdlpParser#simple()} and parse an absolute HTTP or HTTPS
  * {@link me.brandonli.mcav.media.source.uri.UriSource}. Parsing blocks on a child process and returns mutable
- * {@link me.brandonli.mcav.json.ytdlp.format.URLParseDump} metadata; use a
+ * {@link me.brandonli.mcav.json.ytdlp.format.UrlParseDump} metadata; use a
  * {@link me.brandonli.mcav.json.ytdlp.strategy.FormatStrategy} to choose streams. The parser interface contains
  * an example. The default parser waits at most two minutes for each command and reports nonzero exits or
- * unusable output as {@link me.brandonli.mcav.json.ytdlp.YTDLPParseException}.
+ * unusable output as {@link me.brandonli.mcav.json.ytdlp.YtdlpParseException}.
  *
  * <p>The shared parser may run concurrent calls. During normal bootstrap it refuses to run while the library
  * is preparing yt-dlp; use capability readiness notification instead of blocking a server's main thread.

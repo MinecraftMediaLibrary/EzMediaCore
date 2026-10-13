@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
 import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -493,14 +493,14 @@ public final class HttpResultImpl implements HttpResult {
   }
 
   /**
-   * Shows the title, artist, thumbnail, and statistics yt-dlp reported, as {@link MediaInfo#of(URLParseDump)}
+   * Shows the title, artist, thumbnail, and statistics yt-dlp reported, as {@link MediaInfo#of(UrlParseDump)}
    * takes them.
    *
    * @param dump the output of yt-dlp
    * @throws NullPointerException if {@code dump} is null
    */
   @Override
-  public void setCurrentMedia(final URLParseDump dump) {
+  public void setCurrentMedia(final UrlParseDump dump) {
     Preconditions.checkNotNull(dump, "Dump must not be null");
     this.currentMedia = MediaInfo.of(dump);
   }

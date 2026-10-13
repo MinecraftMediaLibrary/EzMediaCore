@@ -32,10 +32,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Supplier;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.http.HttpDownloader;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import me.brandonli.mcav.utils.os.Platform;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
@@ -144,7 +144,7 @@ public abstract class AbstractInstaller implements Installer {
    * @throws UncheckedIOException if the folder cannot be created
    */
   public static Path getDefaultExecutableFolderPath() {
-    return IOUtils.getCachedFolder();
+    return IoUtils.getCachedFolder();
   }
 
   /**
@@ -155,8 +155,8 @@ public abstract class AbstractInstaller implements Installer {
    * @return the file name
    */
   @VisibleForTesting
-  static String getExecutableFileName(final String name, final OS operatingSystem) {
-    if (operatingSystem == OS.WINDOWS) {
+  static String getExecutableFileName(final String name, final Os operatingSystem) {
+    if (operatingSystem == Os.WINDOWS) {
       return name + WINDOWS_EXECUTABLE_SUFFIX;
     }
     return name;
@@ -214,7 +214,7 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   /**
-   * Marks a downloaded or extracted file as executable. {@link IOUtils#markExecutable(Path)} reports failures
+   * Marks a downloaded or extracted file as executable. {@link IoUtils#markExecutable(Path)} reports failures
    * unchecked, but a failed installation must be reported as an {@link IOException}, like every other installation
    * failure.
    *
@@ -225,7 +225,7 @@ public abstract class AbstractInstaller implements Installer {
   protected static void markExecutable(final Path file) throws IOException {
     Preconditions.checkNotNull(file, "File must not be null!");
     try {
-      IOUtils.markExecutable(file);
+      IoUtils.markExecutable(file);
     } catch (final UncheckedIOException exception) {
       final String reason = exception.getMessage();
       final String message = "Failed with \"%s\" while marking %s as executable!".formatted(reason, file);
@@ -296,7 +296,7 @@ public abstract class AbstractInstaller implements Installer {
    * @return the default installation path
    */
   protected Path getDefaultPath() {
-    final OS operatingSystem = OSUtils.getOS();
+    final Os operatingSystem = OsUtils.getOs();
     final String executableName = getExecutableFileName(this.name, operatingSystem);
     return this.folder.resolve(executableName);
   }
@@ -367,11 +367,11 @@ public abstract class AbstractInstaller implements Installer {
   protected String getFileName() {
     final boolean isArchive = this.isArchive();
     if (!isArchive) {
-      final OS operatingSystem = OSUtils.getOS();
+      final Os operatingSystem = OsUtils.getOs();
       return getExecutableFileName(this.name, operatingSystem);
     }
     final String url = this.getUrl();
-    final String urlFileName = IOUtils.getFileNameFromUrl(url);
+    final String urlFileName = IoUtils.getFileNameFromUrl(url);
     final boolean usable = isPlainFileName(urlFileName);
     if (usable) {
       return urlFileName;
@@ -523,7 +523,7 @@ public abstract class AbstractInstaller implements Installer {
       try (final OutputStream configurationOutput = Files.newOutputStream(temporary)) {
         properties.store(configurationOutput, CONFIGURATION_COMMENT);
       }
-      IOUtils.moveReplacing(temporary, configurationFile);
+      IoUtils.moveReplacing(temporary, configurationFile);
     } finally {
       Files.deleteIfExists(temporary);
     }

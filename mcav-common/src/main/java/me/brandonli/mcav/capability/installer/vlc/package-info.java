@@ -18,9 +18,9 @@
 /**
  * Finds a system VLC installation or prepares a private copy for vlcj.
  *
- * <p>{@link me.brandonli.mcav.capability.installer.vlc.VLCInstallationKit} first tries system discovery,
+ * <p>{@link me.brandonli.mcav.capability.installer.vlc.VlcInstallationKit} first tries system discovery,
  * then an existing cached installation, then a download through
- * {@link me.brandonli.mcav.capability.installer.vlc.VLCInstaller}. Factory-created kits serialize native loading
+ * {@link me.brandonli.mcav.capability.installer.vlc.VlcInstaller}. Factory-created kits serialize native loading
  * and reuse the first successful result. The installer selects a platform archive and delegates extraction
  * to an operating-system-specific strategy.
  *

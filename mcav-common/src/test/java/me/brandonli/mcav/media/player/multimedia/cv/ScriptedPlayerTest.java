@@ -54,7 +54,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the control logic of {@link AbstractVideoPlayerCV} with scripted grabbers.
+ * Tests the control logic of {@link AbstractVideoPlayerCv} with scripted grabbers.
  */
 final class ScriptedPlayerTest {
 
@@ -102,7 +102,7 @@ final class ScriptedPlayerTest {
     Polling.awaitCondition(description, TIMEOUT, condition);
   }
 
-  private static void awaitEnd(final AbstractVideoPlayerCV player) throws InterruptedException {
+  private static void awaitEnd(final AbstractVideoPlayerCv player) throws InterruptedException {
     await("playback finished", () -> !player.isPlaying());
   }
 
@@ -345,8 +345,8 @@ final class ScriptedPlayerTest {
       assertEquals(2, afterSeek, "a seek keeps the speed");
       assertTrue(allFaster, "and the new session plays at it: " + chunks);
       assertEquals(1, newMedia, "new media plays at normal speed");
-      assertThrows(IllegalArgumentException.class, () -> player.setSpeed(AbstractVideoPlayerCV.MINIMUM_SPEED - 0.01));
-      assertThrows(IllegalArgumentException.class, () -> player.setSpeed(AbstractVideoPlayerCV.MAXIMUM_SPEED + 0.01));
+      assertThrows(IllegalArgumentException.class, () -> player.setSpeed(AbstractVideoPlayerCv.MINIMUM_SPEED - 0.01));
+      assertThrows(IllegalArgumentException.class, () -> player.setSpeed(AbstractVideoPlayerCv.MAXIMUM_SPEED + 0.01));
       assertThrows(IllegalArgumentException.class, () -> player.setSpeed(Double.NaN));
     } finally {
       player.release();
@@ -363,7 +363,7 @@ final class ScriptedPlayerTest {
     final ScriptedPlayer player = new ScriptedPlayer(live);
     try {
       player.start(VIDEO);
-      final boolean changed = player.setSpeed(AbstractVideoPlayerCV.MAXIMUM_SPEED);
+      final boolean changed = player.setSpeed(AbstractVideoPlayerCv.MAXIMUM_SPEED);
       assertFalse(changed, "a live stream cannot be played ahead of itself");
       final double speed = player.getSpeed();
       assertEquals(1, speed);
@@ -621,7 +621,7 @@ final class ScriptedPlayerTest {
    * A player whose grabbers come from a supplier and that remembers which resources it opened and on which threads
    * it was called.
    */
-  private static final class ScriptedPlayer extends AbstractVideoPlayerCV {
+  private static final class ScriptedPlayer extends AbstractVideoPlayerCv {
 
     private final Supplier<ScriptedFrameGrabber> grabbers;
     private final List<String> openedResources;

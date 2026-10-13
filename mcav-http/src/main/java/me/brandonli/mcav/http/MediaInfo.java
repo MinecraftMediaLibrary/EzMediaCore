@@ -20,7 +20,7 @@ package me.brandonli.mcav.http;
 import com.google.common.base.Preconditions;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -78,7 +78,7 @@ public final class MediaInfo {
    * @return a new immutable snapshot, with missing text fields retained as null
    * @throws NullPointerException if {@code dump} is null
    */
-  public static MediaInfo of(final URLParseDump dump) {
+  public static MediaInfo of(final UrlParseDump dump) {
     Preconditions.checkNotNull(dump, "Dump must not be null");
     final double wholeSeconds = Math.ceil(dump.duration);
     final long duration = (long) wholeSeconds;

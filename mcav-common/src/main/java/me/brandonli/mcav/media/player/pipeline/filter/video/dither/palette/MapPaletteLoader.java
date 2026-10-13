@@ -28,7 +28,7 @@ import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Type;
 import me.brandonli.mcav.json.GsonProvider;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -55,7 +55,7 @@ public final class MapPaletteLoader {
    */
   @VisibleForTesting
   static int[] loadColors(final String resource) {
-    try (final Reader reader = IOUtils.getResourceAsStreamReader(resource)) {
+    try (final Reader reader = IoUtils.getResourceAsStreamReader(resource)) {
       return parseColors(reader);
     } catch (final IOException | UncheckedIOException exception) {
       final String message = "Map palette resource %s could not be read!".formatted(resource);

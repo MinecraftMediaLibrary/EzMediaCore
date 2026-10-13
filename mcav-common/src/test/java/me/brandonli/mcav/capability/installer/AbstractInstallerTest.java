@@ -60,11 +60,11 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import me.brandonli.mcav.testing.LocalHttpServer;
 import me.brandonli.mcav.testing.TemporaryUserHome;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.os.Arch;
 import me.brandonli.mcav.utils.os.Bits;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import me.brandonli.mcav.utils.os.Platform;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -84,8 +84,8 @@ final class AbstractInstallerTest {
   private static final byte[] PROGRAM = "#!/bin/sh\necho tool\n".getBytes(StandardCharsets.US_ASCII);
   private static final String PROGRAM_HASH = sha256(PROGRAM);
   private static final Platform CURRENT_PLATFORM = Platform.getCurrentPlatform();
-  private static final Platform OTHER_PLATFORM = Platform.ofPlatform(OS.FREEBSD, Arch.ARM, Bits.BITS_32);
-  private static final Platform LINUX_X86_64 = Platform.ofPlatform(OS.LINUX, Arch.X86, Bits.BITS_64);
+  private static final Platform OTHER_PLATFORM = Platform.ofPlatform(Os.FREEBSD, Arch.ARM, Bits.BITS_32);
+  private static final Platform LINUX_X86_64 = Platform.ofPlatform(Os.LINUX, Arch.X86, Bits.BITS_64);
   private static final int CONCURRENT_DOWNLOADS = 4;
   private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(10);
 
@@ -94,10 +94,10 @@ final class AbstractInstallerTest {
 
   @Test
   void shouldNameExecutablesWithTheSuffixOfTheOperatingSystem() {
-    final String windows = AbstractInstaller.getExecutableFileName(NAME, OS.WINDOWS);
-    final String linux = AbstractInstaller.getExecutableFileName(NAME, OS.LINUX);
-    final String mac = AbstractInstaller.getExecutableFileName(NAME, OS.MAC);
-    final String freeBsd = AbstractInstaller.getExecutableFileName(NAME, OS.FREEBSD);
+    final String windows = AbstractInstaller.getExecutableFileName(NAME, Os.WINDOWS);
+    final String linux = AbstractInstaller.getExecutableFileName(NAME, Os.LINUX);
+    final String mac = AbstractInstaller.getExecutableFileName(NAME, Os.MAC);
+    final String freeBsd = AbstractInstaller.getExecutableFileName(NAME, Os.FREEBSD);
     assertEquals("tool.exe", windows);
     assertEquals(NAME, linux);
     assertEquals(NAME, mac);
@@ -122,7 +122,7 @@ final class AbstractInstallerTest {
       final TestInstaller installer = new TestInstaller(NAME, downloads);
       final Path installerFolder = installer.getFolder();
       final Path defaultFolder = AbstractInstaller.getDefaultExecutableFolderPath();
-      final Path cachedFolder = IOUtils.getCachedFolder();
+      final Path cachedFolder = IoUtils.getCachedFolder();
       final Path redirectedHome = redirected.getHome();
       final Path mcavFolder = redirectedHome.resolve(".mcav");
       final Path expected = mcavFolder.resolve("cache");
@@ -169,7 +169,7 @@ final class AbstractInstallerTest {
 
   @Test
   void shouldFallBackToCompatiblePlatformsInOrder() {
-    final Platform second = Platform.ofPlatform(OS.LINUX, Arch.X86, Bits.BITS_32);
+    final Platform second = Platform.ofPlatform(Os.LINUX, Arch.X86, Bits.BITS_32);
     final Download secondDownload = new Download(second, "https://example.com/second", null);
     final Download firstDownload = new Download(LINUX_X86_64, "https://example.com/first", null);
     final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[] { secondDownload, firstDownload });
@@ -183,7 +183,7 @@ final class AbstractInstallerTest {
 
   @Test
   void shouldFindNothingWithoutAMatchingOrCompatiblePlatform() {
-    final Platform unrelated = Platform.ofPlatform(OS.MAC, Arch.ARM, Bits.BITS_64);
+    final Platform unrelated = Platform.ofPlatform(Os.MAC, Arch.ARM, Bits.BITS_64);
     final Download download = new Download(unrelated, "https://example.com/mac", null);
     final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[] { download });
     final List<Platform> fallbacks = List.of(LINUX_X86_64);
@@ -223,7 +223,7 @@ final class AbstractInstallerTest {
   void shouldPointAtTheExecutableBeforeTheProgramIsInstalled() {
     final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[0]);
     final Path path = installer.getPath();
-    final OS operatingSystem = OSUtils.getOS();
+    final Os operatingSystem = OsUtils.getOs();
     final String expectedName = AbstractInstaller.getExecutableFileName(NAME, operatingSystem);
     final Path expected = this.folder.resolve(expectedName);
     assertEquals(expected, path);
@@ -399,10 +399,10 @@ final class AbstractInstallerTest {
     final UncheckedIOException chmodFailure = new UncheckedIOException("Operation not permitted!", permissionDenied);
     try (
       final LocalHttpServer server = LocalHttpServer.start();
-      final MockedStatic<IOUtils> ioUtils = Mockito.mockStatic(IOUtils.class, Mockito.CALLS_REAL_METHODS)
+      final MockedStatic<IoUtils> ioUtils = Mockito.mockStatic(IoUtils.class, Mockito.CALLS_REAL_METHODS)
     ) {
       server.respond(TOOL_PATH, 200, PROGRAM);
-      ioUtils.when(() -> IOUtils.markExecutable(ArgumentMatchers.any(Path.class))).thenThrow(chmodFailure);
+      ioUtils.when(() -> IoUtils.markExecutable(ArgumentMatchers.any(Path.class))).thenThrow(chmodFailure);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, null);
       final IOException thrown = assertThrows(IOException.class, () -> installer.download(true));
 
@@ -422,13 +422,13 @@ final class AbstractInstallerTest {
     final UncheckedIOException permissionFailure = new UncheckedIOException(new IOException("permission denied!"));
     try (
       final LocalHttpServer server = LocalHttpServer.start();
-      final MockedStatic<IOUtils> ioUtils = Mockito.mockStatic(IOUtils.class, Mockito.CALLS_REAL_METHODS)
+      final MockedStatic<IoUtils> ioUtils = Mockito.mockStatic(IoUtils.class, Mockito.CALLS_REAL_METHODS)
     ) {
       server.respond(TOOL_PATH, 200, PROGRAM);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, null);
       final Path destination = installer.getDefaultPath();
       ioUtils
-        .when(() -> IOUtils.markExecutable(destination))
+        .when(() -> IoUtils.markExecutable(destination))
         .thenAnswer(_ -> {
           // A nonempty replacement makes cleanup fail on every platform without relying on OS permissions.
           Files.delete(destination);
@@ -462,7 +462,7 @@ final class AbstractInstallerTest {
     try (
       final FileSystem fileSystem = Jimfs.newFileSystem(posixConfiguration());
       final LocalHttpServer server = LocalHttpServer.start();
-      final MockedStatic<IOUtils> ioUtils = Mockito.mockStatic(IOUtils.class, Mockito.CALLS_REAL_METHODS)
+      final MockedStatic<IoUtils> ioUtils = Mockito.mockStatic(IoUtils.class, Mockito.CALLS_REAL_METHODS)
     ) {
       server.respond(TOOL_PATH, 200, PROGRAM);
       final Download download = new Download(CURRENT_PLATFORM, server.uri(TOOL_PATH).toString(), null);
@@ -470,7 +470,7 @@ final class AbstractInstallerTest {
       final TestInstaller first = new TestInstaller(tools, NAME, new Download[] { download });
       final AtomicInteger permissionAttempts = new AtomicInteger();
       ioUtils
-        .when(() -> IOUtils.markExecutable(ArgumentMatchers.any(Path.class)))
+        .when(() -> IoUtils.markExecutable(ArgumentMatchers.any(Path.class)))
         .thenAnswer(invocation -> {
           if (permissionAttempts.getAndIncrement() == 0) {
             throw new UncheckedIOException(new IOException("temporary permission failure!"));
@@ -529,8 +529,8 @@ final class AbstractInstallerTest {
 
   @Test
   void shouldNeverOfferADownloadForAnUnknownPlatform() {
-    final Platform unknownOs = Platform.ofPlatform(OS.OTHER, Arch.X86, Bits.BITS_64);
-    final Platform unknownArch = Platform.ofPlatform(OS.LINUX, Arch.OTHER, Bits.BITS_64);
+    final Platform unknownOs = Platform.ofPlatform(Os.OTHER, Arch.X86, Bits.BITS_64);
+    final Platform unknownArch = Platform.ofPlatform(Os.LINUX, Arch.OTHER, Bits.BITS_64);
     final Download forUnknownOs = new Download(unknownOs, "https://example.com/unknown-os", null);
     final Download forUnknownArch = new Download(unknownArch, "https://example.com/unknown-arch", null);
     final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[] { forUnknownOs, forUnknownArch });
@@ -599,7 +599,7 @@ final class AbstractInstallerTest {
     final PlainInstaller installer = new PlainInstaller(this.folder);
     final boolean isArchive = installer.isArchive();
     final String fileName = installer.getFileName();
-    final OS operatingSystem = OSUtils.getOS();
+    final Os operatingSystem = OsUtils.getOs();
     final String expected = AbstractInstaller.getExecutableFileName(NAME, operatingSystem);
     assertFalse(isArchive);
     assertEquals(expected, fileName);
@@ -611,7 +611,7 @@ final class AbstractInstallerTest {
     final String fileName = installer.getFileName();
     final boolean isArchive = installer.isArchive();
     final String name = installer.getName();
-    final OS operatingSystem = OSUtils.getOS();
+    final Os operatingSystem = OsUtils.getOs();
     final String expected = AbstractInstaller.getExecutableFileName(NAME, operatingSystem);
     assertEquals(expected, fileName);
     assertFalse(isArchive);

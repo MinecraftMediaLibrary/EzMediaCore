@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import java.util.zip.GZIPOutputStream;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import org.junit.jupiter.api.Tag;
 
 /**
@@ -72,7 +72,7 @@ final class ArchiveExtractorFuzzTest {
       check(root, target);
       checkWholeFileSystem(root.resolve("observed.zip"), compressed.toByteArray());
     } finally {
-      IOUtils.deleteRecursively(root);
+      IoUtils.deleteRecursively(root);
     }
   }
 
