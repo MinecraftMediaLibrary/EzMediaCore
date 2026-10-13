@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
@@ -49,6 +50,15 @@ final class PlatformTest {
     final Platform otherArch = Platform.ofPlatform(OS.LINUX, Arch.ARM, Bits.BITS_64);
     final Platform otherBits = Platform.ofPlatform(OS.LINUX, Arch.X86, Bits.BITS_32);
     EqualityAssertions.assertEqualityContract(platform, equalPlatform, otherOs, otherArch, otherBits);
+  }
+
+  @Test
+  void shouldHashTheSystemTheArchitectureAndTheBits() {
+    final Platform platform = Platform.ofPlatform(OS.LINUX, Arch.X86, Bits.BITS_64);
+
+    final int hash = platform.hashCode();
+    final int expected = Objects.hash(OS.LINUX, Arch.X86, Bits.BITS_64);
+    assertEquals(expected, hash);
   }
 
   @Test

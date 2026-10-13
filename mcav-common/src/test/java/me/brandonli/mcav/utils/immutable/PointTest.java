@@ -46,6 +46,16 @@ final class PointTest {
   }
 
   @Test
+  void shouldHashTheBitsOfBothCoordinates() {
+    final Point point = Point.point(1.5, 3.0);
+
+    final int hash = point.hashCode();
+    final int xHash = Double.hashCode(1.5);
+    final int yHash = Double.hashCode(3.0);
+    assertEquals(xHash * 31 + yHash, hash);
+  }
+
+  @Test
   void shouldTreatNotANumberAsEqualToItself() {
     final Point point = Point.point(Double.NaN, 0.0);
     final Point equalPoint = Point.point(Double.NaN, 0.0);

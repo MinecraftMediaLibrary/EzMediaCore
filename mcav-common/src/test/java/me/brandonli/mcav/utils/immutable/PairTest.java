@@ -20,6 +20,7 @@ package me.brandonli.mcav.utils.immutable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
@@ -44,6 +45,15 @@ final class PairTest {
     final Pair<String, Integer> otherFirst = Pair.pair("b", 1);
     final Pair<String, Integer> otherSecond = Pair.pair("a", 2);
     EqualityAssertions.assertEqualityContract(pair, equalPair, otherFirst, otherSecond);
+  }
+
+  @Test
+  void shouldHashBothValues() {
+    final Pair<String, Integer> pair = Pair.pair("a", 1);
+
+    final int hash = pair.hashCode();
+    final int expected = Objects.hash("a", 1);
+    assertEquals(expected, hash);
   }
 
   @Test

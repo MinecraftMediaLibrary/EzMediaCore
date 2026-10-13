@@ -49,6 +49,14 @@ final class DimensionTest {
   }
 
   @Test
+  void shouldHashTheWidthThenTheHeight() {
+    final Dimension dimension = Dimension.of(3, 4);
+
+    final int hash = dimension.hashCode();
+    assertEquals(3 * 31 + 4, hash);
+  }
+
+  @Test
   void shouldRejectNegativeSides() {
     assertThrows(IllegalArgumentException.class, () -> Dimension.of(-1, 1));
     assertThrows(IllegalArgumentException.class, () -> Dimension.of(1, -1));

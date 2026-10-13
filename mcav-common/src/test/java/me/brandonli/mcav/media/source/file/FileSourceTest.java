@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import me.brandonli.mcav.media.source.SourceDetector;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
@@ -68,6 +69,16 @@ final class FileSourceTest {
     final FileSource equalSource = FileSource.path(path);
     final FileSource otherSource = FileSource.path(otherPath);
     EqualityAssertions.assertEqualityContract(source, equalSource, otherSource);
+  }
+
+  @Test
+  void shouldHashThePath() {
+    final Path path = this.directory.resolve("video.mp4");
+    final FileSource source = FileSource.path(path);
+
+    final int hash = source.hashCode();
+    final int expected = Objects.hash(path);
+    assertEquals(expected, hash);
   }
 
   @Test

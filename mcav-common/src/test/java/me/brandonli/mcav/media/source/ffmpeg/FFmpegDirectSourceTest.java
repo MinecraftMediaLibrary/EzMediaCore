@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Objects;
 import me.brandonli.mcav.media.source.SourceDetector;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,15 @@ final class FFmpegDirectSourceTest {
     final FFmpegDirectSource otherMrl = FFmpegDirectSource.mrl("title=Game", "gdigrab");
     final FFmpegDirectSource otherFormat = FFmpegDirectSource.mrl("desktop", "dshow");
     EqualityAssertions.assertEqualityContract(source, equalSource, otherMrl, otherFormat);
+  }
+
+  @Test
+  void shouldHashTheMrlAndTheFormat() {
+    final FFmpegDirectSource source = FFmpegDirectSource.mrl("desktop", "gdigrab");
+
+    final int hash = source.hashCode();
+    final int expected = Objects.hash("desktop", "gdigrab");
+    assertEquals(expected, hash);
   }
 
   @Test

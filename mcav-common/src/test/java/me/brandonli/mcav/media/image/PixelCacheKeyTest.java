@@ -38,6 +38,15 @@ final class PixelCacheKeyTest {
   }
 
   @Test
+  void shouldHashTheAddressThenTheWidthThenTheHeight() {
+    final PixelCacheKey key = new PixelCacheKey(0x1000L, 4, 3);
+
+    final int hash = key.hashCode();
+    final int expected = (Long.hashCode(0x1000L) * 31 + 4) * 31 + 3;
+    assertEquals(expected, hash);
+  }
+
+  @Test
   void shouldExposeTheShape() {
     final PixelCacheKey key = new PixelCacheKey(0xABCL, 16, 9);
     final int width = key.getWidth();

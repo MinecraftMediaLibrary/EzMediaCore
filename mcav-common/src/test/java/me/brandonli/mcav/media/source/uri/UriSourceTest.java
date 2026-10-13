@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
+import java.util.Objects;
 import me.brandonli.mcav.media.source.SourceDetector;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
@@ -68,6 +69,16 @@ final class UriSourceTest {
     final UriSource equalSource = UriSource.uri(uri);
     final UriSource otherSource = UriSource.uri(otherUri);
     EqualityAssertions.assertEqualityContract(source, equalSource, otherSource);
+  }
+
+  @Test
+  void shouldHashTheUri() {
+    final URI uri = URI.create("https://example.com/video.mp4");
+    final UriSource source = UriSource.uri(uri);
+
+    final int hash = source.hashCode();
+    final int expected = Objects.hash(uri);
+    assertEquals(expected, hash);
   }
 
   @Test

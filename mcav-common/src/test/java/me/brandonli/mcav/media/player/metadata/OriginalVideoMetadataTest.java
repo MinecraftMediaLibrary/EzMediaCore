@@ -74,6 +74,15 @@ final class OriginalVideoMetadataTest {
   }
 
   @Test
+  void shouldHashTheWidthThenTheHeightThenTheBitrateThenTheFrameRate() {
+    final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(4, 3, 100, 30.0f);
+
+    final int hash = metadata.hashCode();
+    final int expected = ((4 * 31 + 3) * 31 + 100) * 31 + Float.hashCode(30.0f);
+    assertEquals(expected, hash);
+  }
+
+  @Test
   void shouldRejectNonPositiveSizes() {
     assertThrows(IllegalArgumentException.class, () -> OriginalVideoMetadata.of(0, 10));
     assertThrows(IllegalArgumentException.class, () -> OriginalVideoMetadata.of(10, 0));

@@ -20,6 +20,7 @@ package me.brandonli.mcav.media.player.metadata;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
@@ -61,6 +62,15 @@ final class OriginalAudioMetadataTest {
       otherChannels,
       otherFormat
     );
+  }
+
+  @Test
+  void shouldHashEveryProperty() {
+    final OriginalAudioMetadata metadata = OriginalAudioMetadata.of("aac", 128_000, 44_100, 2, 1);
+
+    final int hash = metadata.hashCode();
+    final int expected = Objects.hash("aac", 128_000, 44_100, 2, 1);
+    assertEquals(expected, hash);
   }
 
   @Test

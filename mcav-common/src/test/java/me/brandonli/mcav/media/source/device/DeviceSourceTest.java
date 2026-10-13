@@ -57,6 +57,14 @@ final class DeviceSourceTest {
   }
 
   @Test
+  void shouldHashTheDeviceIndex() {
+    final DeviceSource source = DeviceSource.device(7);
+
+    final int hash = source.hashCode();
+    assertEquals(7, hash);
+  }
+
+  @Test
   void shouldRejectNegativeIndices() {
     assertThrows(IllegalArgumentException.class, () -> DeviceSource.device(-1));
   }
