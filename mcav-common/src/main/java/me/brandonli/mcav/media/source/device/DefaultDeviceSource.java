@@ -15,42 +15,44 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package me.brandonli.mcav.media.source.frame;
+package me.brandonli.mcav.media.source.device;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * The default {@link FrameSource}.
+ * The default {@link DeviceSource}.
  */
-public final class FrameSourceImpl implements FrameSource {
+public final class DefaultDeviceSource implements DeviceSource {
 
-  private final SampleSupplier supplier;
-  private final int width;
-  private final int height;
-  private final float frameRate;
+  private final int deviceId;
 
-  FrameSourceImpl(final SampleSupplier supplier, final int width, final int height, final float frameRate) {
-    this.supplier = supplier;
-    this.width = width;
-    this.height = height;
-    this.frameRate = frameRate;
+  DefaultDeviceSource(final int deviceId) {
+    this.deviceId = deviceId;
   }
 
   @Override
-  public SampleSupplier supplyFrameSamples() {
-    return this.supplier;
+  public int getDeviceId() {
+    return this.deviceId;
   }
 
   @Override
-  public int getFrameWidth() {
-    return this.width;
+  public boolean equals(final @Nullable Object other) {
+    if (this == other) {
+      return true;
+    }
+    if (!(other instanceof final DefaultDeviceSource source)) {
+      return false;
+    }
+    return this.deviceId == source.deviceId;
   }
 
   @Override
-  public int getFrameHeight() {
-    return this.height;
+  public int hashCode() {
+    return Integer.hashCode(this.deviceId);
   }
 
   @Override
-  public float getFrameRate() {
-    return this.frameRate;
+  public String toString() {
+    return "DeviceSource[" + this.deviceId + "]";
   }
 }

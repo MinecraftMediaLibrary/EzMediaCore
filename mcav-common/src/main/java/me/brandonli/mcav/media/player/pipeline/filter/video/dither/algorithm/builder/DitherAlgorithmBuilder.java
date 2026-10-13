@@ -24,7 +24,7 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * The base of the fluent builders that create dithering algorithms.
  *
  * <pre><code>
- *   final ErrorDiffusionDitherBuilder&lt;ErrorDiffusionDither, ErrorDiffusionDitherBuilderImpl&gt; builder = DitherAlgorithm.errorDiffusion();
+ *   final ErrorDiffusionDitherBuilder&lt;ErrorDiffusionDither, DefaultErrorDiffusionDitherBuilder&gt; builder = DitherAlgorithm.errorDiffusion();
  *   builder.withAlgorithm(ErrorDiffusionDitherBuilder.Algorithm.FLOYD_STEINBERG);
  *   builder.withPalette(DitherPalette.DEFAULT_MAP_PALETTE);
  *   final ErrorDiffusionDither algorithm = builder.build();

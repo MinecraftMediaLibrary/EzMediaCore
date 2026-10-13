@@ -30,7 +30,7 @@ import me.brandonli.mcav.media.image.ImageBuffer;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests {@link RepeatingFrameSource} and {@link RepeatingFrameSourceImpl}.
+ * Tests {@link RepeatingFrameSource} and {@link DefaultRepeatingFrameSource}.
  */
 final class RepeatingFrameSourceTest {
 

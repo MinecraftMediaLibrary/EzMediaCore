@@ -57,7 +57,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests {@link ImagePlayer} and {@link ImagePlayerImpl}.
+ * Tests {@link ImagePlayer} and {@link ThreadedImagePlayer}.
  */
 final class ImagePlayerTest {
 
@@ -250,7 +250,7 @@ final class ImagePlayerTest {
     final AtomicLong clock = new AtomicLong();
     final List<Long> starts = new ArrayList<>();
     final CountDownLatch finished = new CountDownLatch(1);
-    final ImagePlayer player = new ImagePlayerImpl(clock::get, clock::addAndGet);
+    final ImagePlayer player = new ThreadedImagePlayer(clock::get, clock::addAndGet);
     attach(player, (_, _) -> {
       starts.add(clock.get());
       if (starts.size() == 1) {
@@ -280,7 +280,7 @@ final class ImagePlayerTest {
     final LongConsumer park = recordPark.andThen(clock::addAndGet);
     final AtomicInteger frames = new AtomicInteger();
     final CountDownLatch finished = new CountDownLatch(1);
-    final ImagePlayer player = new ImagePlayerImpl(clock::get, park);
+    final ImagePlayer player = new ThreadedImagePlayer(clock::get, park);
     attach(player, (_, _) -> {
       if (frames.incrementAndGet() == 1) {
         clock.addAndGet(10_000_000L);

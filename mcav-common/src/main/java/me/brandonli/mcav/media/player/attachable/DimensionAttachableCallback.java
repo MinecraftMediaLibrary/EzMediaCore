@@ -30,6 +30,6 @@ public interface DimensionAttachableCallback extends AttachableCallback<Dimensio
    * @return the slot
    */
   static DimensionAttachableCallback create() {
-    return new DimensionAttachableCallbackImpl();
+    return new DefaultDimensionAttachableCallback();
   }
 }

@@ -17,46 +17,46 @@
  */
 package me.brandonli.mcav.media.player.pipeline.builder;
 
-import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
-import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
+import me.brandonli.mcav.media.player.pipeline.filter.video.VideoFilter;
+import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * The default {@link AudioPipelineStepBuilder}.
+ * The default {@link VideoPipelineStepBuilder}.
  */
-public final class AudioPipelineStepBuilderImpl extends AudioPipelineStepBuilder {
+public final class DefaultVideoPipelineStepBuilder extends VideoPipelineStepBuilder {
 
-  AudioPipelineStepBuilderImpl() {}
+  DefaultVideoPipelineStepBuilder() {}
 
   /**
-   * Creates an audio step that applies a filter and continues with the next step.
+   * Creates a video step that applies a filter and continues with the next step.
    *
    * @param next   the step that follows, or null for the last step
    * @param filter the filter of the step
    * @return the step
    */
   @Override
-  protected AudioPipelineStep createStep(final @Nullable AudioPipelineStep next, final AudioFilter filter) {
-    return AudioPipelineStep.of(next, filter);
+  protected VideoPipelineStep createStep(final @Nullable VideoPipelineStep next, final VideoFilter filter) {
+    return VideoPipelineStep.of(next, filter);
   }
 
   /**
-   * Returns {@link AudioPipelineStep#NO_OP}, the audio step built when no filter was added.
+   * Returns {@link VideoPipelineStep#NO_OP}, the video step built when no filter was added.
    *
-   * @return the no-op audio step
+   * @return the no-op video step
    */
   @Override
-  protected AudioPipelineStep createEmptyStep() {
-    return AudioPipelineStep.NO_OP;
+  protected VideoPipelineStep createEmptyStep() {
+    return VideoPipelineStep.NO_OP;
   }
 
   /**
-   * Returns this builder typed as an audio builder.
+   * Returns this builder typed as a video builder.
    *
    * @return this builder
    */
   @Override
-  protected AudioPipelineStepBuilder self() {
+  protected VideoPipelineStepBuilder self() {
     return this;
   }
 }

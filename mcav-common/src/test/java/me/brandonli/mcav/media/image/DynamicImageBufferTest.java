@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Tests {@link DynamicImageBuffer} and {@link DynamicImageBufferImpl}.
+ * Tests {@link DynamicImageBuffer} and {@link FfmpegDynamicImageBuffer}.
  */
 final class DynamicImageBufferTest {
 
@@ -142,15 +142,15 @@ final class DynamicImageBufferTest {
 
   @Test
   void shouldPreferTheReportedFrameRate() {
-    final float reported = DynamicImageBufferImpl.resolveFrameRate(25.0, 3, 0L, 1_000_000L);
+    final float reported = FfmpegDynamicImageBuffer.resolveFrameRate(25.0, 3, 0L, 1_000_000L);
     assertEquals(25.0f, reported);
   }
 
   @Test
   void shouldDeriveTheFrameRateFromTimestampsWhenNoneIsReported() {
-    final float zero = DynamicImageBufferImpl.resolveFrameRate(0.0, 3, 0L, 2_000_000L);
-    final float notANumber = DynamicImageBufferImpl.resolveFrameRate(Double.NaN, 5, 0L, 1_000_000L);
-    final float infinite = DynamicImageBufferImpl.resolveFrameRate(Double.POSITIVE_INFINITY, 3, 0L, 1_000_000L);
+    final float zero = FfmpegDynamicImageBuffer.resolveFrameRate(0.0, 3, 0L, 2_000_000L);
+    final float notANumber = FfmpegDynamicImageBuffer.resolveFrameRate(Double.NaN, 5, 0L, 1_000_000L);
+    final float infinite = FfmpegDynamicImageBuffer.resolveFrameRate(Double.POSITIVE_INFINITY, 3, 0L, 1_000_000L);
     assertEquals(1.0f, zero);
     assertEquals(4.0f, notANumber);
     assertEquals(2.0f, infinite);
@@ -158,16 +158,16 @@ final class DynamicImageBufferTest {
 
   @Test
   void shouldDeriveTheFrameRateFromTheTimeBetweenTheFirstAndTheLastFrame() {
-    final float lateStart = DynamicImageBufferImpl.resolveFrameRate(0.0, 3, 1_000_000L, 2_000_000L);
-    final float sameTimestamps = DynamicImageBufferImpl.resolveFrameRate(0.0, 3, 1_000_000L, 1_000_000L);
+    final float lateStart = FfmpegDynamicImageBuffer.resolveFrameRate(0.0, 3, 1_000_000L, 2_000_000L);
+    final float sameTimestamps = FfmpegDynamicImageBuffer.resolveFrameRate(0.0, 3, 1_000_000L, 1_000_000L);
     assertEquals(2.0f, lateStart, "two frame periods fit between one and two seconds, however late the first frame is");
     assertEquals(10.0f, sameTimestamps);
   }
 
   @Test
   void shouldFallBackToTheDefaultFrameRate() {
-    final float singleFrame = DynamicImageBufferImpl.resolveFrameRate(-1.0, 1, 0L, 1_000_000L);
-    final float noTimestamps = DynamicImageBufferImpl.resolveFrameRate(0.0, 3, 0L, 0L);
+    final float singleFrame = FfmpegDynamicImageBuffer.resolveFrameRate(-1.0, 1, 0L, 1_000_000L);
+    final float noTimestamps = FfmpegDynamicImageBuffer.resolveFrameRate(0.0, 3, 0L, 0L);
     assertEquals(10.0f, singleFrame);
     assertEquals(10.0f, noTimestamps);
     final boolean positive = singleFrame > 0;

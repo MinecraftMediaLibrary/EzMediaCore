@@ -46,7 +46,7 @@ public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
    * @return the player
    */
   static ImagePlayer player() {
-    return new ImagePlayerImpl();
+    return new ThreadedImagePlayer();
   }
 
   /**

@@ -27,8 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import me.brandonli.mcav.media.image.ImageBuffer;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultErrorDiffusionDitherBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.ErrorDiffusionDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.ErrorDiffusionDitherBuilderImpl;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.AtkinsonDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.BurkesDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.DiffusionKernel;
@@ -72,9 +72,9 @@ final class ErrorDiffusionDitherTest {
   );
 
   private static ErrorDiffusionDither build(final ErrorDiffusionDitherBuilder.Algorithm algorithm) {
-    final ErrorDiffusionDitherBuilder<ErrorDiffusionDither, ErrorDiffusionDitherBuilderImpl> builder = DitherAlgorithm.errorDiffusion();
-    final ErrorDiffusionDitherBuilderImpl withAlgorithm = builder.withAlgorithm(algorithm);
-    final ErrorDiffusionDitherBuilderImpl configured = withAlgorithm.withPalette(DitherTestImages.BLACK_WHITE);
+    final ErrorDiffusionDitherBuilder<ErrorDiffusionDither, DefaultErrorDiffusionDitherBuilder> builder = DitherAlgorithm.errorDiffusion();
+    final DefaultErrorDiffusionDitherBuilder withAlgorithm = builder.withAlgorithm(algorithm);
+    final DefaultErrorDiffusionDitherBuilder configured = withAlgorithm.withPalette(DitherTestImages.BLACK_WHITE);
     return configured.build();
   }
 
@@ -177,14 +177,14 @@ final class ErrorDiffusionDitherTest {
 
   @Test
   void shouldReturnTheBuilderFromBuilderMethodsForChaining() {
-    final ErrorDiffusionDitherBuilder<ErrorDiffusionDither, ErrorDiffusionDitherBuilderImpl> builder = DitherAlgorithm.errorDiffusion();
-    final ErrorDiffusionDitherBuilderImpl withAlgorithm = builder.withAlgorithm(
+    final ErrorDiffusionDitherBuilder<ErrorDiffusionDither, DefaultErrorDiffusionDitherBuilder> builder = DitherAlgorithm.errorDiffusion();
+    final DefaultErrorDiffusionDitherBuilder withAlgorithm = builder.withAlgorithm(
       ErrorDiffusionDitherBuilder.Algorithm.TEMPORAL_FLOYD_STEINBERG
     );
-    final ErrorDiffusionDitherBuilderImpl withTemporalThreshold = builder.withTemporalThreshold(20);
-    final ErrorDiffusionDitherBuilderImpl withErrorThreshold = builder.withErrorThreshold(7);
-    final ErrorDiffusionDitherBuilderImpl withErrorStrength = builder.withErrorStrength(0.5f);
-    final ErrorDiffusionDitherBuilderImpl withPalette = builder.withPalette(DitherPalette.DEFAULT_MAP_PALETTE);
+    final DefaultErrorDiffusionDitherBuilder withTemporalThreshold = builder.withTemporalThreshold(20);
+    final DefaultErrorDiffusionDitherBuilder withErrorThreshold = builder.withErrorThreshold(7);
+    final DefaultErrorDiffusionDitherBuilder withErrorStrength = builder.withErrorStrength(0.5f);
+    final DefaultErrorDiffusionDitherBuilder withPalette = builder.withPalette(DitherPalette.DEFAULT_MAP_PALETTE);
     assertSame(builder, withAlgorithm);
     assertSame(builder, withTemporalThreshold);
     assertSame(builder, withErrorThreshold);
@@ -194,13 +194,13 @@ final class ErrorDiffusionDitherTest {
 
   @Test
   void shouldAcceptTheBoundaryValuesOfEveryTemporalSettingInTheBuilder() {
-    final ErrorDiffusionDitherBuilder<ErrorDiffusionDither, ErrorDiffusionDitherBuilderImpl> lowest = DitherAlgorithm.errorDiffusion();
-    final ErrorDiffusionDitherBuilderImpl lowestTemporal = lowest.withAlgorithm(
+    final ErrorDiffusionDitherBuilder<ErrorDiffusionDither, DefaultErrorDiffusionDitherBuilder> lowest = DitherAlgorithm.errorDiffusion();
+    final DefaultErrorDiffusionDitherBuilder lowestTemporal = lowest.withAlgorithm(
       ErrorDiffusionDitherBuilder.Algorithm.TEMPORAL_FLOYD_STEINBERG
     );
-    final ErrorDiffusionDitherBuilderImpl noThreshold = lowestTemporal.withTemporalThreshold(0);
-    final ErrorDiffusionDitherBuilderImpl noError = noThreshold.withErrorThreshold(0);
-    final ErrorDiffusionDitherBuilderImpl noStrength = noError.withErrorStrength(0.0f);
+    final DefaultErrorDiffusionDitherBuilder noThreshold = lowestTemporal.withTemporalThreshold(0);
+    final DefaultErrorDiffusionDitherBuilder noError = noThreshold.withErrorThreshold(0);
+    final DefaultErrorDiffusionDitherBuilder noStrength = noError.withErrorStrength(0.0f);
     final ErrorDiffusionDither lowestBuilt = noStrength.build();
     final TemporalDitherAlgorithm lowestTemporalDither = assertInstanceOf(TemporalDitherAlgorithm.class, lowestBuilt);
     final int lowestTemporalThreshold = lowestTemporalDither.getTemporalThreshold();
@@ -210,12 +210,12 @@ final class ErrorDiffusionDitherTest {
     assertEquals(0, lowestErrorThreshold, "an error threshold of zero is the lowest allowed value");
     assertEquals(0.0f, lowestErrorStrength, "an error strength of zero is the lowest allowed value");
 
-    final ErrorDiffusionDitherBuilder<ErrorDiffusionDither, ErrorDiffusionDitherBuilderImpl> highest = DitherAlgorithm.errorDiffusion();
-    final ErrorDiffusionDitherBuilderImpl highestTemporal = highest.withAlgorithm(
+    final ErrorDiffusionDitherBuilder<ErrorDiffusionDither, DefaultErrorDiffusionDitherBuilder> highest = DitherAlgorithm.errorDiffusion();
+    final DefaultErrorDiffusionDitherBuilder highestTemporal = highest.withAlgorithm(
       ErrorDiffusionDitherBuilder.Algorithm.TEMPORAL_FLOYD_STEINBERG
     );
-    final ErrorDiffusionDitherBuilderImpl fullThreshold = highestTemporal.withTemporalThreshold(255);
-    final ErrorDiffusionDitherBuilderImpl fullStrength = fullThreshold.withErrorStrength(1.0f);
+    final DefaultErrorDiffusionDitherBuilder fullThreshold = highestTemporal.withTemporalThreshold(255);
+    final DefaultErrorDiffusionDitherBuilder fullStrength = fullThreshold.withErrorStrength(1.0f);
     final ErrorDiffusionDither highestBuilt = fullStrength.build();
     final TemporalDitherAlgorithm highestTemporalDither = assertInstanceOf(TemporalDitherAlgorithm.class, highestBuilt);
     final int highestTemporalThreshold = highestTemporalDither.getTemporalThreshold();
@@ -226,13 +226,13 @@ final class ErrorDiffusionDitherTest {
 
   @Test
   void shouldPassTheTemporalSettingsFromTheBuilder() {
-    final ErrorDiffusionDitherBuilder<ErrorDiffusionDither, ErrorDiffusionDitherBuilderImpl> builder = DitherAlgorithm.errorDiffusion();
-    final ErrorDiffusionDitherBuilderImpl temporalBuilder = builder.withAlgorithm(
+    final ErrorDiffusionDitherBuilder<ErrorDiffusionDither, DefaultErrorDiffusionDitherBuilder> builder = DitherAlgorithm.errorDiffusion();
+    final DefaultErrorDiffusionDitherBuilder temporalBuilder = builder.withAlgorithm(
       ErrorDiffusionDitherBuilder.Algorithm.TEMPORAL_FLOYD_STEINBERG
     );
-    final ErrorDiffusionDitherBuilderImpl stableBuilder = temporalBuilder.withTemporalThreshold(20);
-    final ErrorDiffusionDitherBuilderImpl quietBuilder = stableBuilder.withErrorThreshold(7);
-    final ErrorDiffusionDitherBuilderImpl dampedBuilder = quietBuilder.withErrorStrength(0.5f);
+    final DefaultErrorDiffusionDitherBuilder stableBuilder = temporalBuilder.withTemporalThreshold(20);
+    final DefaultErrorDiffusionDitherBuilder quietBuilder = stableBuilder.withErrorThreshold(7);
+    final DefaultErrorDiffusionDitherBuilder dampedBuilder = quietBuilder.withErrorStrength(0.5f);
     final ErrorDiffusionDither built = dampedBuilder.build();
     final TemporalDitherAlgorithm temporal = assertInstanceOf(TemporalDitherAlgorithm.class, built);
     final int temporalThreshold = temporal.getTemporalThreshold();
@@ -247,7 +247,7 @@ final class ErrorDiffusionDitherTest {
 
   @Test
   void shouldRejectInvalidSettingsInTheBuilder() {
-    final ErrorDiffusionDitherBuilder<ErrorDiffusionDither, ErrorDiffusionDitherBuilderImpl> builder = DitherAlgorithm.errorDiffusion();
+    final ErrorDiffusionDitherBuilder<ErrorDiffusionDither, DefaultErrorDiffusionDitherBuilder> builder = DitherAlgorithm.errorDiffusion();
     assertThrows(IllegalArgumentException.class, () -> builder.withTemporalThreshold(-1));
     assertThrows(IllegalArgumentException.class, () -> builder.withTemporalThreshold(256));
     assertThrows(IllegalArgumentException.class, () -> builder.withErrorThreshold(-1));

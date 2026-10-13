@@ -17,29 +17,14 @@
  */
 package me.brandonli.mcav.media.player.attachable;
 
-import com.google.common.base.Preconditions;
-import me.brandonli.mcav.utils.immutable.Dimension;
+import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 
 /**
- * The default {@link DimensionAttachableCallback}.
+ * The default {@link VideoAttachableCallback}.
  */
-public final class DimensionAttachableCallbackImpl extends AbstractAttachableCallback<Dimension> implements DimensionAttachableCallback {
+public final class DefaultVideoAttachableCallback extends AbstractAttachableCallback<VideoPipelineStep> implements VideoAttachableCallback {
 
-  DimensionAttachableCallbackImpl() {
-    super(Dimension.NONE);
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @throws IllegalArgumentException if either dimension is zero
-   * @throws NullPointerException     if {@code value} is null
-   */
-  @Override
-  public void attach(final Dimension value) {
-    Preconditions.checkNotNull(value, "Dimension must not be null!");
-    final boolean empty = value.isEmpty();
-    Preconditions.checkArgument(!empty, "Dimension %s must not be empty!", value);
-    super.attach(value);
+  DefaultVideoAttachableCallback() {
+    super(VideoPipelineStep.NO_OP);
   }
 }

@@ -34,7 +34,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * shared by any number of players and threads. An algorithm created with a provider hands that one provider to every
  * thread, so it is only thread-safe if the provider is.
  */
-public final class RandomDitherImpl extends AbstractDitherAlgorithm implements RandomDither {
+public final class UniformNoiseDither extends AbstractDitherAlgorithm implements RandomDither {
 
   private final int weight;
   private final ThreadLocal<@Nullable RandomNumberProvider> providers;
@@ -48,7 +48,7 @@ public final class RandomDitherImpl extends AbstractDitherAlgorithm implements R
    * @throws NullPointerException     if {@code palette} is null
    * @throws IllegalArgumentException if the weight is outside 0 through 255
    */
-  public RandomDitherImpl(final DitherPalette palette, final int weight) {
+  public UniformNoiseDither(final DitherPalette palette, final int weight) {
     super(palette);
     checkWeight(weight);
     this.weight = weight;
@@ -65,7 +65,7 @@ public final class RandomDitherImpl extends AbstractDitherAlgorithm implements R
    * @throws NullPointerException     if {@code palette}, {@code random} is null
    * @throws IllegalArgumentException if the weight is outside 0 through 255
    */
-  public RandomDitherImpl(final DitherPalette palette, final int weight, final RandomNumberProvider random) {
+  public UniformNoiseDither(final DitherPalette palette, final int weight, final RandomNumberProvider random) {
     super(palette);
     checkWeight(weight);
     Preconditions.checkNotNull(random, "Random number provider must not be null!");

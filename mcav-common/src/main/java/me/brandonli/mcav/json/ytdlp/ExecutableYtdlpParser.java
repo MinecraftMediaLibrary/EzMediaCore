@@ -47,9 +47,9 @@ import me.brandonli.mcav.utils.runtime.CommandTask;
  * marker, so it can never be read as an option, and only absolute {@code http} and {@code https} URLs are accepted.
  * yt-dlp is killed if it takes longer than two minutes.
  */
-public final class YtdlpParserImpl implements YtdlpParser {
+public final class ExecutableYtdlpParser implements YtdlpParser {
 
-  static final YtdlpParser INSTANCE = new YtdlpParserImpl();
+  static final YtdlpParser INSTANCE = new ExecutableYtdlpParser();
 
   private static final String DUMP_JSON = "--dump-json";
   private static final String NO_CACHE = "--no-cache-dir";
@@ -68,8 +68,8 @@ public final class YtdlpParserImpl implements YtdlpParser {
   private final ExecutableLocator locator;
   private final Function<String[], CommandTask> taskFactory;
 
-  private YtdlpParserImpl() {
-    this(YtdlpParserImpl::installYtdlp, CommandTask::new);
+  private ExecutableYtdlpParser() {
+    this(ExecutableYtdlpParser::installYtdlp, CommandTask::new);
   }
 
   /**
@@ -79,7 +79,7 @@ public final class YtdlpParserImpl implements YtdlpParser {
    * @param taskFactory creates the task that runs a command line
    */
   @VisibleForTesting
-  YtdlpParserImpl(final ExecutableLocator locator, final Function<String[], CommandTask> taskFactory) {
+  ExecutableYtdlpParser(final ExecutableLocator locator, final Function<String[], CommandTask> taskFactory) {
     this.locator = locator;
     this.taskFactory = taskFactory;
   }

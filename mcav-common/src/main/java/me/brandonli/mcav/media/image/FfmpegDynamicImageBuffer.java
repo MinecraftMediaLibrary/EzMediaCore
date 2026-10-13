@@ -37,7 +37,7 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * Decodes animated images with FFmpeg, which supports GIF, APNG, WebP, and every video container. Every frame is
  * copied once, straight from the decoder into the matrix of its image buffer.
  */
-final class DynamicImageBufferImpl implements DynamicImageBuffer {
+final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
 
   private static final float DEFAULT_FRAME_RATE = 10.0f;
   private static final double MICROSECONDS_PER_SECOND = 1_000_000.0;
@@ -45,14 +45,14 @@ final class DynamicImageBufferImpl implements DynamicImageBuffer {
   private final List<ImageBuffer> frames;
   private final float frameRate;
 
-  DynamicImageBufferImpl(final FileSource source) throws IOException {
+  FfmpegDynamicImageBuffer(final FileSource source) throws IOException {
     final Path path = source.getPath();
     final Animation animation = decode(path);
     this.frames = animation.getFrames();
     this.frameRate = animation.getFrameRate();
   }
 
-  DynamicImageBufferImpl(final UriSource source) throws IOException {
+  FfmpegDynamicImageBuffer(final UriSource source) throws IOException {
     final FileSource downloaded = download(source);
     final Path path = downloaded.getPath();
     final Animation animation = decode(path);

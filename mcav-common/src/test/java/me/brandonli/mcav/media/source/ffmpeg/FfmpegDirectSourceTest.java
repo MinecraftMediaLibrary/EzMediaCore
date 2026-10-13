@@ -30,7 +30,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * Tests {@link FfmpegDirectSource}, {@link FfmpegDirectSourceImpl} and {@link FfmpegDirectSourceDetector}.
+ * Tests {@link FfmpegDirectSource}, {@link DefaultFfmpegDirectSource} and {@link FfmpegDirectSourceDetector}.
  */
 final class FfmpegDirectSourceTest {
 

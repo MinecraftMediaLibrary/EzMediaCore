@@ -34,7 +34,7 @@ public interface FileSource extends StaticSource {
    */
   static FileSource path(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
-    return new FileSourceImpl(path);
+    return new DefaultFileSource(path);
   }
 
   /**
@@ -51,7 +51,7 @@ public interface FileSource extends StaticSource {
    */
   default Writable createWritable() {
     final Path path = this.getPath();
-    return new WritableImpl(path);
+    return new DefaultWritable(path);
   }
 
   @Override

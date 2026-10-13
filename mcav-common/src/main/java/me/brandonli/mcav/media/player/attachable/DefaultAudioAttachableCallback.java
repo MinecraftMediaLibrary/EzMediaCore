@@ -15,23 +15,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package me.brandonli.mcav.media.source.file;
+package me.brandonli.mcav.media.player.attachable;
 
-import java.nio.file.Path;
+import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
 
 /**
- * The default {@link Writable}.
+ * The default {@link AudioAttachableCallback}.
  */
-public final class WritableImpl implements Writable {
+public final class DefaultAudioAttachableCallback extends AbstractAttachableCallback<AudioPipelineStep> implements AudioAttachableCallback {
 
-  private final Path path;
-
-  WritableImpl(final Path path) {
-    this.path = path;
-  }
-
-  @Override
-  public Path getPath() {
-    return this.path;
+  DefaultAudioAttachableCallback() {
+    super(AudioPipelineStep.NO_OP);
   }
 }

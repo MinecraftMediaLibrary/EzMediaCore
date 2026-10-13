@@ -24,7 +24,7 @@ import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests {@link OriginalVideoMetadata} and {@link OriginalVideoMetadataImpl}.
+ * Tests {@link OriginalVideoMetadata} and {@link DefaultOriginalVideoMetadata}.
  */
 final class OriginalVideoMetadataTest {
 

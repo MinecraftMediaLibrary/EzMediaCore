@@ -29,7 +29,7 @@ import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests {@link UriSource}, {@link UriSourceImpl} and {@link UriSourceDetector}.
+ * Tests {@link UriSource}, {@link DefaultUriSource} and {@link UriSourceDetector}.
  */
 final class UriSourceTest {
 

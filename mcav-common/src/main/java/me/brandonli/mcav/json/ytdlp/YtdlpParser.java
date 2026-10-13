@@ -66,6 +66,6 @@ public interface YtdlpParser {
    * @return the parser
    */
   static YtdlpParser simple() {
-    return YtdlpParserImpl.INSTANCE;
+    return ExecutableYtdlpParser.INSTANCE;
   }
 }

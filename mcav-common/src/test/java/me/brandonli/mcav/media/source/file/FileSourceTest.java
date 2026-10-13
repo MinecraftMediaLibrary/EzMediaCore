@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Tests {@link FileSource}, {@link FileSourceImpl}, {@link FileSourceDetector} and {@link Writable}.
+ * Tests {@link FileSource}, {@link DefaultFileSource}, {@link FileSourceDetector} and {@link Writable}.
  */
 final class FileSourceTest {
 

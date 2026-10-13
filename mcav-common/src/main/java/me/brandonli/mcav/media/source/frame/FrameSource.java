@@ -78,7 +78,7 @@ public interface FrameSource extends DynamicSource {
     Preconditions.checkNotNull(supplier, "Sample supplier must not be null!");
     Preconditions.checkArgument(width > 0 && height > 0, "Frame size must be positive!");
     Preconditions.checkArgument(frameRate > 0 && Float.isFinite(frameRate), "Frame rate must be positive!");
-    return new FrameSourceImpl(supplier, width, height, frameRate);
+    return new SupplierFrameSource(supplier, width, height, frameRate);
   }
 
   /**

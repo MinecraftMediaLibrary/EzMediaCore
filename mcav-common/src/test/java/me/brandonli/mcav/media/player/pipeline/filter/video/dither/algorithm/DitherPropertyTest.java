@@ -37,11 +37,11 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.err
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.StevensonArceDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.StuckiDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.TemporalFloydSteinbergDither;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.NearestDitherImpl;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.ColorMapNearestDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.BayerDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.OrderedDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.PixelMapper;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.RandomDitherImpl;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.UniformNoiseDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.XoroshiroRandomProvider;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 import net.jqwik.api.Arbitraries;
@@ -86,7 +86,7 @@ final class DitherPropertyTest {
     new NamedAlgorithm("Stucki", StuckiDither::new),
     new NamedAlgorithm("Stevenson-Arce", StevensonArceDither::new),
     new NamedAlgorithm("temporal Floyd-Steinberg", TemporalFloydSteinbergDither::new),
-    new NamedAlgorithm("nearest", NearestDitherImpl::new),
+    new NamedAlgorithm("nearest", ColorMapNearestDither::new),
     new NamedAlgorithm("ordered 8x8", DitherPropertyTest::createOrdered),
     new NamedAlgorithm("random", DitherPropertyTest::createRandom)
   );
@@ -102,7 +102,7 @@ final class DitherPropertyTest {
 
   private static DitherAlgorithm createRandom(final DitherPalette palette) {
     final XoroshiroRandomProvider random = new XoroshiroRandomProvider(42L);
-    return new RandomDitherImpl(palette, 64, random);
+    return new UniformNoiseDither(palette, 64, random);
   }
 
   /**

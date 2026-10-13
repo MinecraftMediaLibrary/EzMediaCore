@@ -35,7 +35,7 @@ public interface PipelineBuilder {
    * @return a new builder
    */
   static AudioPipelineStepBuilder audio() {
-    return new AudioPipelineStepBuilderImpl();
+    return new DefaultAudioPipelineStepBuilder();
   }
 
   /**
@@ -44,6 +44,6 @@ public interface PipelineBuilder {
    * @return a new builder
    */
   static VideoPipelineStepBuilder video() {
-    return new VideoPipelineStepBuilderImpl();
+    return new DefaultVideoPipelineStepBuilder();
   }
 }

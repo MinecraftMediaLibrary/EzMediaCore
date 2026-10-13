@@ -18,32 +18,35 @@
 package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder;
 
 import com.google.common.base.Preconditions;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.NearestDither;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.NearestDitherImpl;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.RandomDither;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.UniformNoiseDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 
 /**
- * The default {@link NearestDitherBuilder}.
+ * The default {@link RandomDitherBuilder}.
  */
-public class NearestDitherBuilderImpl implements NearestDitherBuilder<NearestDither, NearestDitherBuilderImpl> {
+public class DefaultRandomDitherBuilder implements RandomDitherBuilder<RandomDither, DefaultRandomDitherBuilder> {
 
   private DitherPalette palette;
+  private int weight;
 
   /**
-   * Constructs a builder that creates a nearest color algorithm on the Minecraft map palette.
+   * Constructs a builder that creates a normal-weight random dither on the Minecraft map palette.
    */
-  public NearestDitherBuilderImpl() {
+  public DefaultRandomDitherBuilder() {
     this.palette = DitherPalette.DEFAULT_MAP_PALETTE;
+    this.weight = RandomDither.NORMAL_WEIGHT;
   }
 
   /**
-   * Creates a nearest color algorithm for the chosen palette.
+   * Creates a random dithering algorithm with the chosen palette and weight. The algorithm gives every thread its own
+   * random number generator, so it can be shared.
    *
-   * @return the algorithm, which is stateless and can be shared
+   * @return the algorithm
    */
   @Override
-  public NearestDither build() {
-    return new NearestDitherImpl(this.palette);
+  public RandomDither build() {
+    return new UniformNoiseDither(this.palette, this.weight);
   }
 
   /**
@@ -54,9 +57,24 @@ public class NearestDitherBuilderImpl implements NearestDitherBuilder<NearestDit
    * @throws NullPointerException if {@code palette} is null
    */
   @Override
-  public NearestDitherBuilderImpl withPalette(final DitherPalette palette) {
+  public DefaultRandomDitherBuilder withPalette(final DitherPalette palette) {
     Preconditions.checkNotNull(palette, "Palette must not be null!");
     this.palette = palette;
+    return this;
+  }
+
+  /**
+   * Sets the largest noise value added to or subtracted from a channel. Defaults to
+   * {@link RandomDither#NORMAL_WEIGHT}.
+   *
+   * @param weight the weight from 0 to 255
+   * @return this builder
+   * @throws IllegalArgumentException if the weight is outside the range from 0 to 255
+   */
+  @Override
+  public DefaultRandomDitherBuilder withWeight(final int weight) {
+    Preconditions.checkArgument(weight >= 0 && weight <= 255, "Weight must be between 0 and 255!");
+    this.weight = weight;
     return this;
   }
 }

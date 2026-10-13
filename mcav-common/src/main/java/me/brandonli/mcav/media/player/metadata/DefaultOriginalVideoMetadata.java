@@ -22,14 +22,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * The default {@link OriginalVideoMetadata}.
  */
-public final class OriginalVideoMetadataImpl implements OriginalVideoMetadata {
+public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata {
 
   private final int videoWidth;
   private final int videoHeight;
   private final int videoBitrate;
   private final float videoFrameRate;
 
-  OriginalVideoMetadataImpl(final int videoWidth, final int videoHeight, final int videoBitrate, final float videoFrameRate) {
+  DefaultOriginalVideoMetadata(final int videoWidth, final int videoHeight, final int videoBitrate, final float videoFrameRate) {
     this.videoWidth = videoWidth;
     this.videoHeight = videoHeight;
     this.videoBitrate = videoBitrate;
@@ -61,7 +61,7 @@ public final class OriginalVideoMetadataImpl implements OriginalVideoMetadata {
     if (this == other) {
       return true;
     }
-    if (!(other instanceof final OriginalVideoMetadataImpl metadata)) {
+    if (!(other instanceof final DefaultOriginalVideoMetadata metadata)) {
       return false;
     }
     final int frameRateComparison = Float.compare(this.videoFrameRate, metadata.videoFrameRate);

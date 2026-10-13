@@ -33,7 +33,9 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 /**
  * The default {@link ErrorDiffusionDitherBuilder}.
  */
-public class ErrorDiffusionDitherBuilderImpl implements ErrorDiffusionDitherBuilder<ErrorDiffusionDither, ErrorDiffusionDitherBuilderImpl> {
+public class DefaultErrorDiffusionDitherBuilder
+  implements ErrorDiffusionDitherBuilder<ErrorDiffusionDither, DefaultErrorDiffusionDitherBuilder>
+{
 
   private DitherPalette palette;
   private Algorithm algorithm;
@@ -44,7 +46,7 @@ public class ErrorDiffusionDitherBuilderImpl implements ErrorDiffusionDitherBuil
   /**
    * Constructs a builder that creates Filter Lite on the Minecraft map palette.
    */
-  public ErrorDiffusionDitherBuilderImpl() {
+  public DefaultErrorDiffusionDitherBuilder() {
     this.palette = DitherPalette.DEFAULT_MAP_PALETTE;
     this.algorithm = Algorithm.FILTER_LITE;
     this.temporalThreshold = TemporalDitherAlgorithm.DEFAULT_TEMPORAL_THRESHOLD;
@@ -85,7 +87,7 @@ public class ErrorDiffusionDitherBuilderImpl implements ErrorDiffusionDitherBuil
    * @throws NullPointerException if {@code palette} is null
    */
   @Override
-  public ErrorDiffusionDitherBuilderImpl withPalette(final DitherPalette palette) {
+  public DefaultErrorDiffusionDitherBuilder withPalette(final DitherPalette palette) {
     Preconditions.checkNotNull(palette, "Palette must not be null!");
     this.palette = palette;
     return this;
@@ -99,7 +101,7 @@ public class ErrorDiffusionDitherBuilderImpl implements ErrorDiffusionDitherBuil
    * @throws NullPointerException if {@code algorithm} is null
    */
   @Override
-  public ErrorDiffusionDitherBuilderImpl withAlgorithm(final Algorithm algorithm) {
+  public DefaultErrorDiffusionDitherBuilder withAlgorithm(final Algorithm algorithm) {
     Preconditions.checkNotNull(algorithm, "Algorithm must not be null!");
     this.algorithm = algorithm;
     return this;
@@ -114,7 +116,7 @@ public class ErrorDiffusionDitherBuilderImpl implements ErrorDiffusionDitherBuil
    * @throws IllegalArgumentException if the threshold is outside the range from 0 to 255
    */
   @Override
-  public ErrorDiffusionDitherBuilderImpl withTemporalThreshold(final int threshold) {
+  public DefaultErrorDiffusionDitherBuilder withTemporalThreshold(final int threshold) {
     Preconditions.checkArgument(threshold >= 0 && threshold <= 255, "Temporal threshold must be between 0 and 255!");
     this.temporalThreshold = threshold;
     return this;
@@ -129,7 +131,7 @@ public class ErrorDiffusionDitherBuilderImpl implements ErrorDiffusionDitherBuil
    * @throws IllegalArgumentException if the threshold is negative
    */
   @Override
-  public ErrorDiffusionDitherBuilderImpl withErrorThreshold(final int threshold) {
+  public DefaultErrorDiffusionDitherBuilder withErrorThreshold(final int threshold) {
     Preconditions.checkArgument(threshold >= 0, "Error threshold must not be negative!");
     this.errorThreshold = threshold;
     return this;
@@ -144,7 +146,7 @@ public class ErrorDiffusionDitherBuilderImpl implements ErrorDiffusionDitherBuil
    * @throws IllegalArgumentException if the strength is outside the range from 0 to 1
    */
   @Override
-  public ErrorDiffusionDitherBuilderImpl withErrorStrength(final float strength) {
+  public DefaultErrorDiffusionDitherBuilder withErrorStrength(final float strength) {
     Preconditions.checkArgument(strength >= 0 && strength <= 1, "Error strength must be between 0 and 1!");
     this.errorStrength = strength;
     return this;

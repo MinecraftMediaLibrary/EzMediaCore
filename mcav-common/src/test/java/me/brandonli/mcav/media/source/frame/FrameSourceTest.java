@@ -28,7 +28,7 @@ import java.awt.image.WritableRaster;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests {@link FrameSource}, {@link FrameSourceImpl}, {@link ImageSupplier} and {@link SampleSupplier}.
+ * Tests {@link FrameSource}, {@link SupplierFrameSource}, {@link ImageSupplier} and {@link SampleSupplier}.
  */
 final class FrameSourceTest {
 

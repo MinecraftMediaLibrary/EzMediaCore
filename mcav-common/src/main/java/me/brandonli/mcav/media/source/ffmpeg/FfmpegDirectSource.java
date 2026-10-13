@@ -41,7 +41,7 @@ public interface FfmpegDirectSource extends DynamicSource {
     Preconditions.checkNotNull(format, "Format must not be null!");
     final boolean blank = format.isBlank();
     Preconditions.checkArgument(!blank, "Format must not be blank!");
-    return new FfmpegDirectSourceImpl(mrl, format);
+    return new DefaultFfmpegDirectSource(mrl, format);
   }
 
   /**

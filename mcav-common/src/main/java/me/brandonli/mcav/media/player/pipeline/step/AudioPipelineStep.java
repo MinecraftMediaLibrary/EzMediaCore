@@ -44,7 +44,7 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
    */
   static AudioPipelineStep of(final @Nullable AudioPipelineStep next, final AudioFilter filter) {
     Preconditions.checkNotNull(filter, "Filter must not be null!");
-    return new AudioPipelineStepImpl(next, filter);
+    return new DefaultAudioPipelineStep(next, filter);
   }
 
   /**
@@ -56,7 +56,7 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
    */
   static AudioPipelineStep of(final AudioFilter filter) {
     Preconditions.checkNotNull(filter, "Filter must not be null!");
-    return new AudioPipelineStepImpl(null, filter);
+    return new DefaultAudioPipelineStep(null, filter);
   }
 
   /**

@@ -25,12 +25,12 @@ import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 /**
  * The default {@link StrategySelector}.
  */
-public final class StrategySelectorImpl implements StrategySelector {
+public final class DefaultStrategySelector implements StrategySelector {
 
   private final FormatStrategy audio;
   private final FormatStrategy video;
 
-  StrategySelectorImpl(final FormatStrategy audio, final FormatStrategy video) {
+  DefaultStrategySelector(final FormatStrategy audio, final FormatStrategy video) {
     this.audio = audio;
     this.video = video;
   }

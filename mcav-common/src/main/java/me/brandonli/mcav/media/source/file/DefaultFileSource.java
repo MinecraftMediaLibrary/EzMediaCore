@@ -15,32 +15,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package me.brandonli.mcav.media.source.ffmpeg;
+package me.brandonli.mcav.media.source.file;
 
+import java.nio.file.Path;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * The default {@link FfmpegDirectSource}.
+ * The default {@link FileSource}.
  */
-public final class FfmpegDirectSourceImpl implements FfmpegDirectSource {
+public final class DefaultFileSource implements FileSource {
 
-  private final String mrl;
-  private final String format;
+  private final Path path;
 
-  FfmpegDirectSourceImpl(final String mrl, final String format) {
-    this.mrl = mrl;
-    this.format = format;
+  DefaultFileSource(final Path path) {
+    this.path = path;
   }
 
   @Override
-  public String getFormat() {
-    return this.format;
-  }
-
-  @Override
-  public String getMrl() {
-    return this.mrl;
+  public Path getPath() {
+    return this.path;
   }
 
   @Override
@@ -48,19 +42,19 @@ public final class FfmpegDirectSourceImpl implements FfmpegDirectSource {
     if (this == other) {
       return true;
     }
-    if (!(other instanceof final FfmpegDirectSourceImpl source)) {
+    if (!(other instanceof final DefaultFileSource source)) {
       return false;
     }
-    return this.mrl.equals(source.mrl) && this.format.equals(source.format);
+    return this.path.equals(source.path);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.mrl, this.format);
+    return Objects.hash(this.path);
   }
 
   @Override
   public String toString() {
-    return "FfmpegDirectSource[" + this.format + "||" + this.mrl + "]";
+    return "FileSource[" + this.path + "]";
   }
 }

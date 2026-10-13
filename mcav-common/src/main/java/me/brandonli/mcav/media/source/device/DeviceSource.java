@@ -34,7 +34,7 @@ public interface DeviceSource extends DynamicSource {
    */
   static DeviceSource device(final int deviceId) {
     Preconditions.checkArgument(deviceId >= 0, "Device index must not be negative!");
-    return new DeviceSourceImpl(deviceId);
+    return new DefaultDeviceSource(deviceId);
   }
 
   /**

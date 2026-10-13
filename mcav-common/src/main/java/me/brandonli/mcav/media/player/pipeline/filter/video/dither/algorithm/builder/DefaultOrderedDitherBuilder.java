@@ -26,7 +26,7 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 /**
  * The default {@link OrderedDitherBuilder}.
  */
-public class OrderedDitherBuilderImpl implements OrderedDitherBuilder<BayerDither, OrderedDitherBuilderImpl> {
+public class DefaultOrderedDitherBuilder implements OrderedDitherBuilder<BayerDither, DefaultOrderedDitherBuilder> {
 
   private DitherPalette palette;
   private PixelMapper mapper;
@@ -34,7 +34,7 @@ public class OrderedDitherBuilderImpl implements OrderedDitherBuilder<BayerDithe
   /**
    * Constructs a builder that creates a 2x2 Bayer dither on the Minecraft map palette.
    */
-  public OrderedDitherBuilderImpl() {
+  public DefaultOrderedDitherBuilder() {
     this.palette = DitherPalette.DEFAULT_MAP_PALETTE;
     this.mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, BayerDither.NORMAL_2X2_MAXIMUM, PixelMapper.NORMAL_STRENGTH);
   }
@@ -57,7 +57,7 @@ public class OrderedDitherBuilderImpl implements OrderedDitherBuilder<BayerDithe
    * @throws NullPointerException if {@code palette} is null
    */
   @Override
-  public OrderedDitherBuilderImpl withPalette(final DitherPalette palette) {
+  public DefaultOrderedDitherBuilder withPalette(final DitherPalette palette) {
     Preconditions.checkNotNull(palette, "Palette must not be null!");
     this.palette = palette;
     return this;
@@ -71,7 +71,7 @@ public class OrderedDitherBuilderImpl implements OrderedDitherBuilder<BayerDithe
    * @throws NullPointerException if {@code mapper} is null
    */
   @Override
-  public OrderedDitherBuilderImpl withDitherMatrix(final PixelMapper mapper) {
+  public DefaultOrderedDitherBuilder withDitherMatrix(final PixelMapper mapper) {
     Preconditions.checkNotNull(mapper, "Pixel mapper must not be null!");
     this.mapper = mapper;
     return this;

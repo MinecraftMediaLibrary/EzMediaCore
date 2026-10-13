@@ -28,13 +28,13 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests how {@link RandomDitherImpl} hands out its random number generators to threads.
+ * Tests how {@link UniformNoiseDither} hands out its random number generators to threads.
  */
-final class RandomDitherImplTest {
+final class UniformNoiseDitherTest {
 
   private static final DitherPalette BLACK_WHITE = DitherPalette.colors(0x000000, 0xFFFFFF);
 
-  private static RandomNumberProvider providerOfAnotherThread(final RandomDitherImpl algorithm) throws InterruptedException {
+  private static RandomNumberProvider providerOfAnotherThread(final UniformNoiseDither algorithm) throws InterruptedException {
     final AtomicReference<RandomNumberProvider> provider = new AtomicReference<>();
     final Thread thread = new Thread(() -> {
       final RandomNumberProvider own = algorithm.getRandomNumberProvider();
@@ -54,7 +54,7 @@ final class RandomDitherImplTest {
 
   @Test
   void shouldGiveEveryThreadItsOwnGenerator() throws Exception {
-    final RandomDitherImpl shared = new RandomDitherImpl(BLACK_WHITE, RandomDither.NORMAL_WEIGHT);
+    final UniformNoiseDither shared = new UniformNoiseDither(BLACK_WHITE, RandomDither.NORMAL_WEIGHT);
     final RandomNumberProvider mine = shared.getRandomNumberProvider();
     final RandomNumberProvider mineAgain = shared.getRandomNumberProvider();
     final RandomNumberProvider other = providerOfAnotherThread(shared);
@@ -65,7 +65,7 @@ final class RandomDitherImplTest {
   @Test
   void shouldHandAnExplicitProviderToEveryThread() throws Exception {
     final RandomNumberProvider provider = mock(RandomNumberProvider.class);
-    final RandomDitherImpl explicit = new RandomDitherImpl(BLACK_WHITE, 1, provider);
+    final UniformNoiseDither explicit = new UniformNoiseDither(BLACK_WHITE, 1, provider);
     final RandomNumberProvider mine = explicit.getRandomNumberProvider();
     final RandomNumberProvider other = providerOfAnotherThread(explicit);
     assertSame(provider, mine);

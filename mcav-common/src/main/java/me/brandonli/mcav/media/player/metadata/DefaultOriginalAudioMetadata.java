@@ -23,7 +23,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * The default {@link OriginalAudioMetadata}.
  */
-public final class OriginalAudioMetadataImpl implements OriginalAudioMetadata {
+public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata {
 
   private final String codec;
   private final int audioBitrate;
@@ -31,7 +31,7 @@ public final class OriginalAudioMetadataImpl implements OriginalAudioMetadata {
   private final int audioChannels;
   private final int samplingFormat;
 
-  OriginalAudioMetadataImpl(
+  DefaultOriginalAudioMetadata(
     final String codec,
     final int audioBitrate,
     final int audioSampleRate,
@@ -75,7 +75,7 @@ public final class OriginalAudioMetadataImpl implements OriginalAudioMetadata {
     if (this == other) {
       return true;
     }
-    if (!(other instanceof final OriginalAudioMetadataImpl metadata)) {
+    if (!(other instanceof final DefaultOriginalAudioMetadata metadata)) {
       return false;
     }
     return (

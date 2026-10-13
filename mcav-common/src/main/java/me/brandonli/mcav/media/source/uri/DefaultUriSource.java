@@ -15,24 +15,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package me.brandonli.mcav.media.source.device;
+package me.brandonli.mcav.media.source.uri;
 
+import java.net.URI;
+import java.util.Objects;
+import me.brandonli.mcav.utils.SourceUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * The default {@link DeviceSource}.
+ * The default {@link UriSource}.
  */
-public final class DeviceSourceImpl implements DeviceSource {
+public final class DefaultUriSource implements UriSource {
 
-  private final int deviceId;
+  private final URI uri;
+  private final boolean direct;
 
-  DeviceSourceImpl(final int deviceId) {
-    this.deviceId = deviceId;
+  DefaultUriSource(final URI uri) {
+    this.uri = uri;
+    final String raw = uri.toString();
+    this.direct = SourceUtils.isDirectVideo(raw);
   }
 
   @Override
-  public int getDeviceId() {
-    return this.deviceId;
+  public URI getUri() {
+    return this.uri;
+  }
+
+  @Override
+  public boolean isDirect() {
+    return this.direct;
   }
 
   @Override
@@ -40,19 +51,19 @@ public final class DeviceSourceImpl implements DeviceSource {
     if (this == other) {
       return true;
     }
-    if (!(other instanceof final DeviceSourceImpl source)) {
+    if (!(other instanceof final DefaultUriSource source)) {
       return false;
     }
-    return this.deviceId == source.deviceId;
+    return this.uri.equals(source.uri);
   }
 
   @Override
   public int hashCode() {
-    return Integer.hashCode(this.deviceId);
+    return Objects.hash(this.uri);
   }
 
   @Override
   public String toString() {
-    return "DeviceSource[" + this.deviceId + "]";
+    return "UriSource[" + this.uri + "]";
   }
 }

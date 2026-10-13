@@ -31,7 +31,7 @@ import me.brandonli.mcav.media.image.ImageBuffer;
  * {@link me.brandonli.mcav.media.image.ImageBuffer#copyPixels()} and
  * {@link me.brandonli.mcav.media.image.ImageBuffer#getReadOnlyPixels()}.
  */
-public final class RepeatingFrameSourceImpl implements RepeatingFrameSource {
+public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
 
   private final List<ImageBuffer> frames;
   private final int repeatCount;
@@ -42,7 +42,7 @@ public final class RepeatingFrameSourceImpl implements RepeatingFrameSource {
   private int nextFrame;
   private int completedLoops;
 
-  RepeatingFrameSourceImpl(final DynamicImageBuffer animation, final int repeatCount) {
+  DefaultRepeatingFrameSource(final DynamicImageBuffer animation, final int repeatCount) {
     final List<ImageBuffer> animationFrames = animation.getFrames();
     final boolean empty = animationFrames.isEmpty();
     Preconditions.checkArgument(!empty, "Animation has no frames!");

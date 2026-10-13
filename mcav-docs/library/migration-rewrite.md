@@ -48,7 +48,7 @@ imports and calls:
 | `FFmpegCommand` | `FfmpegCommand` |
 | `FFmpegDirectSource` | `FfmpegDirectSource` |
 | `FFmpegDirectSourceDetector` | `FfmpegDirectSourceDetector` |
-| `FFmpegDirectSourceImpl` | `FfmpegDirectSourceImpl` |
+| `FFmpegDirectSourceImpl` | `DefaultFfmpegDirectSource` |
 | `FFmpegExecutableProvider` | `FfmpegExecutableProvider` |
 | `FFmpegPlayer` | `FfmpegPlayer` |
 | `FFmpegTemplates` | `FfmpegTemplates` |
@@ -65,7 +65,7 @@ imports and calls:
 | `YTDLPInstaller` | `YtdlpInstaller` |
 | `YTDLPParseException` | `YtdlpParseException` |
 | `YTDLPParser` | `YtdlpParser` |
-| `YTDLPParserImpl` | `YtdlpParserImpl` |
+| `YTDLPParserImpl` | `ExecutableYtdlpParser` |
 | `FFmpegExecutableProvider.getFFmpegPath()` | `getFfmpegPath()` |
 | `IOUtils.getSHA1Hash` | `getSha1Hash` |
 | `IOUtils.getSHA256Hash` | `getSha256Hash` |
@@ -99,6 +99,35 @@ Names that abbreviated a word now spell it out:
 | `PixelMapper.MAX_STRENGTH` | `MAXIMUM_STRENGTH` |
 | `VolumeFilter.MAX_VOLUME` | `MAXIMUM_VOLUME` |
 | `WinInstallationStrategy` | `WindowsInstallationStrategy` |
+
+Implementation classes are named for how they work, or start with `Default` when nothing else sets them apart:
+
+| Former name | Current name |
+| --- | --- |
+| `AudioAttachableCallbackImpl` | `DefaultAudioAttachableCallback` |
+| `AudioPipelineStepBuilderImpl` | `DefaultAudioPipelineStepBuilder` |
+| `AudioPipelineStepImpl` | `DefaultAudioPipelineStep` |
+| `DeviceSourceImpl` | `DefaultDeviceSource` |
+| `DimensionAttachableCallbackImpl` | `DefaultDimensionAttachableCallback` |
+| `DynamicImageBufferImpl` | `FfmpegDynamicImageBuffer` |
+| `ErrorDiffusionDitherBuilderImpl` | `DefaultErrorDiffusionDitherBuilder` |
+| `FileSourceImpl` | `DefaultFileSource` |
+| `FrameSourceImpl` | `SupplierFrameSource` |
+| `ImagePlayerImpl` | `ThreadedImagePlayer` |
+| `NearestDitherBuilderImpl` | `DefaultNearestDitherBuilder` |
+| `NearestDitherImpl` | `ColorMapNearestDither` |
+| `OrderedDitherBuilderImpl` | `DefaultOrderedDitherBuilder` |
+| `OriginalAudioMetadataImpl` | `DefaultOriginalAudioMetadata` |
+| `OriginalVideoMetadataImpl` | `DefaultOriginalVideoMetadata` |
+| `RandomDitherBuilderImpl` | `DefaultRandomDitherBuilder` |
+| `RandomDitherImpl` | `UniformNoiseDither` |
+| `RepeatingFrameSourceImpl` | `DefaultRepeatingFrameSource` |
+| `StrategySelectorImpl` | `DefaultStrategySelector` |
+| `UriSourceImpl` | `DefaultUriSource` |
+| `VideoAttachableCallbackImpl` | `DefaultVideoAttachableCallback` |
+| `VideoPipelineStepBuilderImpl` | `DefaultVideoPipelineStepBuilder` |
+| `VideoPipelineStepImpl` | `DefaultVideoPipelineStep` |
+| `WritableImpl` | `DefaultWritable` |
 
 ## Browser players
 

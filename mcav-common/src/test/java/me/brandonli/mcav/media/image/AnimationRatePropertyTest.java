@@ -53,13 +53,13 @@ final class AnimationRatePropertyTest {
   ) {
     final long first = 1_000_000L;
     final long last = first + (frames - 1L) * 40_000L;
-    final float rate = DynamicImageBufferImpl.resolveFrameRate(reported, frames, first, last);
+    final float rate = FfmpegDynamicImageBuffer.resolveFrameRate(reported, frames, first, last);
     assertEquals(25.0f, rate, "the timestamps show one frame every 40 milliseconds");
   }
 
   @Property(seed = SEED)
   void shouldStillProduceAPlayableDefaultWithoutAUsableRateOrTimestamp(@ForAll("unusableReportedRates") final double reported) {
-    final float rate = DynamicImageBufferImpl.resolveFrameRate(reported, 1, 0, 0);
+    final float rate = FfmpegDynamicImageBuffer.resolveFrameRate(reported, 1, 0, 0);
     assertEquals(10.0f, rate);
     final boolean positiveAndFinite = rate > 0 && Float.isFinite(rate);
     assertTrue(positiveAndFinite);
@@ -72,7 +72,7 @@ final class AnimationRatePropertyTest {
 
   @Property(seed = SEED)
   void shouldRetainEveryRepresentableRate(@ForAll("representableReportedRates") final float reported) {
-    final float rate = DynamicImageBufferImpl.resolveFrameRate(reported, 3, 0, 80_000L);
+    final float rate = FfmpegDynamicImageBuffer.resolveFrameRate(reported, 3, 0, 80_000L);
     assertEquals(reported, rate);
   }
 }

@@ -28,8 +28,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import me.brandonli.mcav.media.image.ImageBuffer;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultOrderedDitherBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.OrderedDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.OrderedDitherBuilderImpl;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.BayerDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.OrderedDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.PixelMapper;
@@ -81,9 +81,9 @@ final class OrderedDitherTest {
       BayerDither.NORMAL_4X4_MAXIMUM,
       PixelMapper.NORMAL_STRENGTH
     );
-    final OrderedDitherBuilder<BayerDither, OrderedDitherBuilderImpl> builder = DitherAlgorithm.ordered();
-    final OrderedDitherBuilderImpl blackWhite = builder.withPalette(DitherTestImages.BLACK_WHITE);
-    final OrderedDitherBuilderImpl configured = blackWhite.withDitherMatrix(mapper);
+    final OrderedDitherBuilder<BayerDither, DefaultOrderedDitherBuilder> builder = DitherAlgorithm.ordered();
+    final DefaultOrderedDitherBuilder blackWhite = builder.withPalette(DitherTestImages.BLACK_WHITE);
+    final DefaultOrderedDitherBuilder configured = blackWhite.withDitherMatrix(mapper);
     return configured.build();
   }
 
@@ -152,7 +152,7 @@ final class OrderedDitherTest {
 
   @Test
   void shouldUseTheMapPaletteInTheDefaultBuilder() {
-    final OrderedDitherBuilder<BayerDither, OrderedDitherBuilderImpl> builder = DitherAlgorithm.ordered();
+    final OrderedDitherBuilder<BayerDither, DefaultOrderedDitherBuilder> builder = DitherAlgorithm.ordered();
     final BayerDither dither = builder.build();
     final DitherPalette palette = dither.getPalette();
     assertSame(DitherPalette.DEFAULT_MAP_PALETTE, palette);
@@ -160,8 +160,8 @@ final class OrderedDitherTest {
 
   @Test
   void shouldUseA2x2MatrixInTheDefaultBuilder() {
-    final OrderedDitherBuilder<BayerDither, OrderedDitherBuilderImpl> builder = DitherAlgorithm.ordered();
-    final OrderedDitherBuilderImpl blackWhite = builder.withPalette(DitherTestImages.BLACK_WHITE);
+    final OrderedDitherBuilder<BayerDither, DefaultOrderedDitherBuilder> builder = DitherAlgorithm.ordered();
+    final DefaultOrderedDitherBuilder blackWhite = builder.withPalette(DitherTestImages.BLACK_WHITE);
     final BayerDither dither = blackWhite.build();
     final byte[] indices = ditherMidGray(dither, 8, 8);
     final byte[] expected = new byte[64];
@@ -184,17 +184,17 @@ final class OrderedDitherTest {
 
   @Test
   void shouldReturnTheBuilderFromBuilderMethodsForChaining() {
-    final OrderedDitherBuilder<BayerDither, OrderedDitherBuilderImpl> builder = DitherAlgorithm.ordered();
+    final OrderedDitherBuilder<BayerDither, DefaultOrderedDitherBuilder> builder = DitherAlgorithm.ordered();
     final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_8X8, PixelMapper.MINIMUM_STRENGTH);
-    final OrderedDitherBuilderImpl withPalette = builder.withPalette(DitherTestImages.BLACK_WHITE);
-    final OrderedDitherBuilderImpl withMatrix = builder.withDitherMatrix(mapper);
+    final DefaultOrderedDitherBuilder withPalette = builder.withPalette(DitherTestImages.BLACK_WHITE);
+    final DefaultOrderedDitherBuilder withMatrix = builder.withDitherMatrix(mapper);
     assertSame(builder, withPalette);
     assertSame(builder, withMatrix);
   }
 
   @Test
   void shouldRejectMissingArgumentsInTheBuilder() {
-    final OrderedDitherBuilder<BayerDither, OrderedDitherBuilderImpl> builder = DitherAlgorithm.ordered();
+    final OrderedDitherBuilder<BayerDither, DefaultOrderedDitherBuilder> builder = DitherAlgorithm.ordered();
     assertThrows(NullPointerException.class, () -> builder.withPalette(null));
     assertThrows(NullPointerException.class, () -> builder.withDitherMatrix(null));
     assertThrows(NullPointerException.class, () -> new OrderedDither(DitherTestImages.BLACK_WHITE, null));

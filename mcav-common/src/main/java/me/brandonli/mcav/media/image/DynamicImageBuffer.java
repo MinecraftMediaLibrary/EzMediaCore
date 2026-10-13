@@ -73,7 +73,7 @@ public interface DynamicImageBuffer extends Image {
    */
   static DynamicImageBuffer path(final FileSource source) throws IOException {
     Preconditions.checkNotNull(source, "Source must not be null!");
-    return new DynamicImageBufferImpl(source);
+    return new FfmpegDynamicImageBuffer(source);
   }
 
   /**
@@ -88,6 +88,6 @@ public interface DynamicImageBuffer extends Image {
    */
   static DynamicImageBuffer uri(final UriSource source) throws IOException {
     Preconditions.checkNotNull(source, "Source must not be null!");
-    return new DynamicImageBufferImpl(source);
+    return new FfmpegDynamicImageBuffer(source);
   }
 }

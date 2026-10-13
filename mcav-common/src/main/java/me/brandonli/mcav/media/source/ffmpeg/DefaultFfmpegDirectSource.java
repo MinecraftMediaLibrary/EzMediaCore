@@ -15,35 +15,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package me.brandonli.mcav.media.source.uri;
+package me.brandonli.mcav.media.source.ffmpeg;
 
-import java.net.URI;
 import java.util.Objects;
-import me.brandonli.mcav.utils.SourceUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * The default {@link UriSource}.
+ * The default {@link FfmpegDirectSource}.
  */
-public final class UriSourceImpl implements UriSource {
+public final class DefaultFfmpegDirectSource implements FfmpegDirectSource {
 
-  private final URI uri;
-  private final boolean direct;
+  private final String mrl;
+  private final String format;
 
-  UriSourceImpl(final URI uri) {
-    this.uri = uri;
-    final String raw = uri.toString();
-    this.direct = SourceUtils.isDirectVideo(raw);
+  DefaultFfmpegDirectSource(final String mrl, final String format) {
+    this.mrl = mrl;
+    this.format = format;
   }
 
   @Override
-  public URI getUri() {
-    return this.uri;
+  public String getFormat() {
+    return this.format;
   }
 
   @Override
-  public boolean isDirect() {
-    return this.direct;
+  public String getMrl() {
+    return this.mrl;
   }
 
   @Override
@@ -51,19 +48,19 @@ public final class UriSourceImpl implements UriSource {
     if (this == other) {
       return true;
     }
-    if (!(other instanceof final UriSourceImpl source)) {
+    if (!(other instanceof final DefaultFfmpegDirectSource source)) {
       return false;
     }
-    return this.uri.equals(source.uri);
+    return this.mrl.equals(source.mrl) && this.format.equals(source.format);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.uri);
+    return Objects.hash(this.mrl, this.format);
   }
 
   @Override
   public String toString() {
-    return "UriSource[" + this.uri + "]";
+    return "FfmpegDirectSource[" + this.format + "||" + this.mrl + "]";
   }
 }

@@ -29,6 +29,6 @@ public interface VideoAttachableCallback extends AttachableCallback<VideoPipelin
    * @return the slot
    */
   static VideoAttachableCallback create() {
-    return new VideoAttachableCallbackImpl();
+    return new DefaultVideoAttachableCallback();
   }
 }

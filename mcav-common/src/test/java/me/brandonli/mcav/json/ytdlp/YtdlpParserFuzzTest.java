@@ -79,7 +79,7 @@ final class YtdlpParserFuzzTest {
     when(task.run(any(Duration.class))).thenReturn(exitCode);
     when(task.getOutput()).thenReturn(output);
     when(task.getErrorOutput()).thenReturn("");
-    final YtdlpParserImpl parser = new YtdlpParserImpl(() -> EXECUTABLE, arguments -> task);
+    final ExecutableYtdlpParser parser = new ExecutableYtdlpParser(() -> EXECUTABLE, arguments -> task);
 
     final UrlParseDump dump;
     try {

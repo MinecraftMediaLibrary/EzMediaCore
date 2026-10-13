@@ -44,7 +44,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
    */
   static VideoPipelineStep of(final @Nullable VideoPipelineStep next, final VideoFilter filter) {
     Preconditions.checkNotNull(filter, "Filter must not be null!");
-    return new VideoPipelineStepImpl(next, filter);
+    return new DefaultVideoPipelineStep(next, filter);
   }
 
   /**
@@ -56,7 +56,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
    */
   static VideoPipelineStep of(final VideoFilter filter) {
     Preconditions.checkNotNull(filter, "Filter must not be null!");
-    return new VideoPipelineStepImpl(null, filter);
+    return new DefaultVideoPipelineStep(null, filter);
   }
 
   /**

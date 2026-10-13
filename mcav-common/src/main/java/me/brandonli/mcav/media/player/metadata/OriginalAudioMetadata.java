@@ -52,7 +52,7 @@ public interface OriginalAudioMetadata extends OriginalMetadata {
     Preconditions.checkNotNull(codec, "Codec must not be null!");
     Preconditions.checkArgument(audioSampleRate > 0, "Sample rate %s must be positive!", audioSampleRate);
     Preconditions.checkArgument(audioChannels > 0, "Channel count %s must be positive!", audioChannels);
-    return new OriginalAudioMetadataImpl(codec, audioBitrate, audioSampleRate, audioChannels, samplingFormat);
+    return new DefaultOriginalAudioMetadata(codec, audioBitrate, audioSampleRate, audioChannels, samplingFormat);
   }
 
   /**

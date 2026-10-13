@@ -31,7 +31,7 @@ import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests {@link StrategySelector}, {@link StrategySelectorImpl} and {@link NoMatchingFormatException}.
+ * Tests {@link StrategySelector}, {@link DefaultStrategySelector} and {@link NoMatchingFormatException}.
  */
 final class StrategySelectorTest {
 
@@ -53,7 +53,7 @@ final class StrategySelectorTest {
     final StrategySelector selector = StrategySelector.of(FormatStrategy.FIRST_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
     final FormatStrategy audio = selector.getAudioStrategy();
     final FormatStrategy video = selector.getVideoStrategy();
-    assertInstanceOf(StrategySelectorImpl.class, selector);
+    assertInstanceOf(DefaultStrategySelector.class, selector);
     assertSame(FormatStrategy.FIRST_AUDIO, audio);
     assertSame(FormatStrategy.BEST_QUALITY_VIDEO, video);
   }

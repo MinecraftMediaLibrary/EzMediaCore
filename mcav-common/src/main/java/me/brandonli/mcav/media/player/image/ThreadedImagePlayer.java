@@ -41,7 +41,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * playback. When the source itself cannot be set up, the thread reports it and ends, and the player can be started
  * again.
  */
-public final class ImagePlayerImpl implements ImagePlayer {
+public final class ThreadedImagePlayer implements ImagePlayer {
 
   private static final long STOP_TIMEOUT_MILLISECONDS = 2_000L;
 
@@ -55,11 +55,11 @@ public final class ImagePlayerImpl implements ImagePlayer {
 
   private @Nullable Thread thread;
 
-  ImagePlayerImpl() {
+  ThreadedImagePlayer() {
     this(System::nanoTime, LockSupport::parkNanos);
   }
 
-  ImagePlayerImpl(final LongSupplier clock, final LongConsumer park) {
+  ThreadedImagePlayer(final LongSupplier clock, final LongConsumer park) {
     this.clock = clock;
     this.park = park;
     this.callback = VideoAttachableCallback.create();
@@ -230,16 +230,16 @@ public final class ImagePlayerImpl implements ImagePlayer {
     }
 
     void run(final long periodNanoseconds) {
-      long deadline = ImagePlayerImpl.this.clock.getAsLong();
+      long deadline = ThreadedImagePlayer.this.clock.getAsLong();
       try {
-        while (ImagePlayerImpl.this.playing.get()) {
+        while (ThreadedImagePlayer.this.playing.get()) {
           deadline += periodNanoseconds;
           this.renderFrame();
-          final long remaining = deadline - ImagePlayerImpl.this.clock.getAsLong();
+          final long remaining = deadline - ThreadedImagePlayer.this.clock.getAsLong();
           if (remaining > 0) {
-            ImagePlayerImpl.this.park.accept(remaining);
+            ThreadedImagePlayer.this.park.accept(remaining);
           } else {
-            deadline = ImagePlayerImpl.this.clock.getAsLong();
+            deadline = ThreadedImagePlayer.this.clock.getAsLong();
           }
         }
       } finally {
@@ -261,10 +261,10 @@ public final class ImagePlayerImpl implements ImagePlayer {
           return;
         }
         final ImageBuffer filled = this.fill(pixels);
-        final VideoPipelineStep pipeline = ImagePlayerImpl.this.callback.retrieve();
+        final VideoPipelineStep pipeline = ThreadedImagePlayer.this.callback.retrieve();
         pipeline.processAll(filled, this.metadata);
       } catch (final RuntimeException exception) {
-        ImagePlayerImpl.this.report("Failed to render a frame", exception);
+        ThreadedImagePlayer.this.report("Failed to render a frame", exception);
       }
     }
 

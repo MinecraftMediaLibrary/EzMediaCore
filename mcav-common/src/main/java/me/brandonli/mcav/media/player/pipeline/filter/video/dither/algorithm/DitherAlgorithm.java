@@ -18,21 +18,21 @@
 package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm;
 
 import me.brandonli.mcav.media.image.ImageBuffer;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultErrorDiffusionDitherBuilder;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultNearestDitherBuilder;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultOrderedDitherBuilder;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultRandomDitherBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.ErrorDiffusionDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.ErrorDiffusionDitherBuilderImpl;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.NearestDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.NearestDitherBuilderImpl;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.OrderedDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.OrderedDitherBuilderImpl;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.RandomDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.RandomDitherBuilderImpl;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.ErrorDiffusionDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.FilterLiteDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.FloydDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.TemporalDitherAlgorithm;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.TemporalFloydSteinbergDither;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.ColorMapNearestDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.NearestDither;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.NearestDitherImpl;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.BayerDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.RandomDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.RandomNumberProvider;
@@ -102,8 +102,8 @@ public interface DitherAlgorithm {
    *
    * @return the builder, which defaults to Filter Lite on the map palette
    */
-  static ErrorDiffusionDitherBuilder<ErrorDiffusionDither, ErrorDiffusionDitherBuilderImpl> errorDiffusion() {
-    return new ErrorDiffusionDitherBuilderImpl();
+  static ErrorDiffusionDitherBuilder<ErrorDiffusionDither, DefaultErrorDiffusionDitherBuilder> errorDiffusion() {
+    return new DefaultErrorDiffusionDitherBuilder();
   }
 
   /**
@@ -111,8 +111,8 @@ public interface DitherAlgorithm {
    *
    * @return the builder, which defaults to a normal weight on the map palette
    */
-  static RandomDitherBuilder<RandomDither, RandomDitherBuilderImpl> random() {
-    return new RandomDitherBuilderImpl();
+  static RandomDitherBuilder<RandomDither, DefaultRandomDitherBuilder> random() {
+    return new DefaultRandomDitherBuilder();
   }
 
   /**
@@ -121,8 +121,8 @@ public interface DitherAlgorithm {
    *
    * @return the builder, which defaults to a 2x2 Bayer matrix on the map palette
    */
-  static OrderedDitherBuilder<BayerDither, OrderedDitherBuilderImpl> ordered() {
-    return new OrderedDitherBuilderImpl();
+  static OrderedDitherBuilder<BayerDither, DefaultOrderedDitherBuilder> ordered() {
+    return new DefaultOrderedDitherBuilder();
   }
 
   /**
@@ -130,8 +130,8 @@ public interface DitherAlgorithm {
    *
    * @return the builder, which defaults to the map palette
    */
-  static NearestDitherBuilder<NearestDither, NearestDitherBuilderImpl> nearest() {
-    return new NearestDitherBuilderImpl();
+  static NearestDitherBuilder<NearestDither, DefaultNearestDitherBuilder> nearest() {
+    return new DefaultNearestDitherBuilder();
   }
 
   /**
@@ -159,7 +159,7 @@ public interface DitherAlgorithm {
    * @return the algorithm
    */
   static NearestDither nearestColor() {
-    return new NearestDitherImpl(DitherPalette.DEFAULT_MAP_PALETTE);
+    return new ColorMapNearestDither(DitherPalette.DEFAULT_MAP_PALETTE);
   }
 
   /**

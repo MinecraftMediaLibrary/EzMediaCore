@@ -25,7 +25,7 @@ import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests {@link OriginalAudioMetadata} and {@link OriginalAudioMetadataImpl}.
+ * Tests {@link OriginalAudioMetadata} and {@link DefaultOriginalAudioMetadata}.
  */
 final class OriginalAudioMetadataTest {
 

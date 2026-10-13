@@ -18,43 +18,20 @@
 package me.brandonli.mcav.media.source.file;
 
 import java.nio.file.Path;
-import java.util.Objects;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * The default {@link FileSource}.
+ * The default {@link Writable}.
  */
-public final class FileSourceImpl implements FileSource {
+public final class DefaultWritable implements Writable {
 
   private final Path path;
 
-  FileSourceImpl(final Path path) {
+  DefaultWritable(final Path path) {
     this.path = path;
   }
 
   @Override
   public Path getPath() {
     return this.path;
-  }
-
-  @Override
-  public boolean equals(final @Nullable Object other) {
-    if (this == other) {
-      return true;
-    }
-    if (!(other instanceof final FileSourceImpl source)) {
-      return false;
-    }
-    return this.path.equals(source.path);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(this.path);
-  }
-
-  @Override
-  public String toString() {
-    return "FileSource[" + this.path + "]";
   }
 }

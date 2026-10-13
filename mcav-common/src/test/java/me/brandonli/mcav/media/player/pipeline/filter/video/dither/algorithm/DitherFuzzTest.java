@@ -32,7 +32,7 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.err
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.OrderedDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.PixelMapper;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.ThresholdMatrix;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.RandomDitherImpl;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.UniformNoiseDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.XoroshiroRandomProvider;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 import org.junit.jupiter.api.Tag;
@@ -158,7 +158,7 @@ final class DitherFuzzTest {
         }
         case 2 -> {
           final XoroshiroRandomProvider random = new XoroshiroRandomProvider(seed);
-          yield new RandomDitherImpl(PALETTE, this.weight, random);
+          yield new UniformNoiseDither(PALETTE, this.weight, random);
         }
         default -> new TemporalFloydSteinbergDither(PALETTE, this.temporalThreshold, this.errorThreshold, this.strength);
       };

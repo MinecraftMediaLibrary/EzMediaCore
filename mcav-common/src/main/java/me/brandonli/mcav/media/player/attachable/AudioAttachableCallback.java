@@ -29,6 +29,6 @@ public interface AudioAttachableCallback extends AttachableCallback<AudioPipelin
    * @return the slot
    */
   static AudioAttachableCallback create() {
-    return new AudioAttachableCallbackImpl();
+    return new DefaultAudioAttachableCallback();
   }
 }

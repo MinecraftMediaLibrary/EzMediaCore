@@ -54,9 +54,9 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 /**
- * Tests {@link YtdlpParserImpl} with canned yt-dlp output instead of the real executable.
+ * Tests {@link ExecutableYtdlpParser} with canned yt-dlp output instead of the real executable.
  */
-final class YtdlpParserImplTest {
+final class ExecutableYtdlpParserTest {
 
   private static final String URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
   private static final Path EXECUTABLE = Path.of("tools", "yt-dlp");
@@ -68,7 +68,7 @@ final class YtdlpParserImplTest {
   }
 
   private static String fixture() throws IOException {
-    try (final InputStream stream = YtdlpParserImplTest.class.getResourceAsStream("/ytdlp/video.json")) {
+    try (final InputStream stream = ExecutableYtdlpParserTest.class.getResourceAsStream("/ytdlp/video.json")) {
       assertNotNull(stream, "the fixture must be on the test classpath");
       final byte[] bytes = stream.readAllBytes();
       final String content = new String(bytes, StandardCharsets.UTF_8);
@@ -84,18 +84,18 @@ final class YtdlpParserImplTest {
     return task;
   }
 
-  private static YtdlpParserImpl parser(final CommandTask task, final AtomicReference<String[]> command) {
+  private static ExecutableYtdlpParser parser(final CommandTask task, final AtomicReference<String[]> command) {
     final Function<String[], CommandTask> factory = arguments -> {
       command.set(arguments);
       return task;
     };
-    return new YtdlpParserImpl(() -> EXECUTABLE, factory);
+    return new ExecutableYtdlpParser(() -> EXECUTABLE, factory);
   }
 
   private static YtdlpParseException assertParseFails(final String output) throws IOException {
     final CommandTask task = task(0, output, "");
     final AtomicReference<String[]> command = new AtomicReference<>();
-    final YtdlpParserImpl parser = parser(task, command);
+    final ExecutableYtdlpParser parser = parser(task, command);
     final UriSource source = source();
     return assertThrows(YtdlpParseException.class, () -> parser.parse(source));
   }
@@ -106,7 +106,7 @@ final class YtdlpParserImplTest {
     final String output = fixture + "\n{\"id\": \"second\", \"title\": \"Second Video\"}\n";
     final CommandTask task = task(0, output, "");
     final AtomicReference<String[]> command = new AtomicReference<>();
-    final YtdlpParserImpl parser = parser(task, command);
+    final ExecutableYtdlpParser parser = parser(task, command);
     final UriSource source = source();
     final UrlParseDump dump = parser.parse(source, "--cookies-from-browser", "firefox");
     final String executable = EXECUTABLE.toString();
@@ -139,7 +139,7 @@ final class YtdlpParserImplTest {
   void shouldAcceptMoreExtraArgumentsThanItsFixedOptions() throws IOException {
     final CommandTask task = task(0, "{\"id\":\"many\"}", "");
     final AtomicReference<String[]> command = new AtomicReference<>();
-    final YtdlpParserImpl parser = parser(task, command);
+    final ExecutableYtdlpParser parser = parser(task, command);
     final UriSource source = source();
     final String[] options = {
       "--format",
@@ -174,7 +174,7 @@ final class YtdlpParserImplTest {
   void shouldRunWithoutExtraArguments() throws IOException {
     final CommandTask task = task(0, "{\"id\": \"plain\"}", "");
     final AtomicReference<String[]> command = new AtomicReference<>();
-    final YtdlpParserImpl parser = parser(task, command);
+    final ExecutableYtdlpParser parser = parser(task, command);
     final UriSource source = source();
     final UrlParseDump dump = parser.parse(source);
     final String executable = EXECUTABLE.toString();
@@ -199,8 +199,8 @@ final class YtdlpParserImplTest {
     final CommandTask windowsTask = task(0, "\r\n  {\"id\": \"first\"}  \r\n{\"id\": \"second\"}\r\n", "");
     final CommandTask singleLineTask = task(0, "  {\"id\": \"only\"}  \n\n", "");
     final AtomicReference<String[]> command = new AtomicReference<>();
-    final YtdlpParserImpl windowsParser = parser(windowsTask, command);
-    final YtdlpParserImpl singleLineParser = parser(singleLineTask, command);
+    final ExecutableYtdlpParser windowsParser = parser(windowsTask, command);
+    final ExecutableYtdlpParser singleLineParser = parser(singleLineTask, command);
     final UriSource source = source();
     final UrlParseDump windowsDump = windowsParser.parse(source);
     final UrlParseDump singleLineDump = singleLineParser.parse(source);
@@ -278,7 +278,7 @@ final class YtdlpParserImplTest {
   void shouldReportTheErrorOutputWhenYtdlpFails() throws IOException {
     final CommandTask task = task(1, "partial output", "ERROR: [youtube] dQw4w9WgXcQ: Private video\n");
     final AtomicReference<String[]> command = new AtomicReference<>();
-    final YtdlpParserImpl parser = parser(task, command);
+    final ExecutableYtdlpParser parser = parser(task, command);
     final UriSource source = source();
     final YtdlpParseException exception = assertThrows(YtdlpParseException.class, () -> parser.parse(source));
     final String message = exception.getMessage();
@@ -292,7 +292,7 @@ final class YtdlpParserImplTest {
   void shouldReportTheStandardOutputWhenTheErrorOutputIsBlank() throws IOException {
     final CommandTask task = task(2, "  Usage: yt-dlp [OPTIONS] URL\n", " \n");
     final AtomicReference<String[]> command = new AtomicReference<>();
-    final YtdlpParserImpl parser = parser(task, command);
+    final ExecutableYtdlpParser parser = parser(task, command);
     final UriSource source = source();
     final YtdlpParseException exception = assertThrows(YtdlpParseException.class, () -> parser.parse(source));
     final String message = exception.getMessage();
@@ -304,7 +304,7 @@ final class YtdlpParserImplTest {
   void shouldPropagateInstallationFailuresWithoutRunningAnything() {
     final IOException failure = new IOException("no network!");
     final AtomicBoolean created = new AtomicBoolean();
-    final YtdlpParserImpl parser = new YtdlpParserImpl(
+    final ExecutableYtdlpParser parser = new ExecutableYtdlpParser(
       () -> {
         throw failure;
       },
@@ -326,7 +326,7 @@ final class YtdlpParserImplTest {
     final CommandTask task = Mockito.mock(CommandTask.class);
     Mockito.when(task.run(ArgumentMatchers.any(Duration.class))).thenThrow(failure);
     final AtomicReference<String[]> command = new AtomicReference<>();
-    final YtdlpParserImpl parser = parser(task, command);
+    final ExecutableYtdlpParser parser = parser(task, command);
     final UriSource source = source();
     final IOException thrown = assertThrows(IOException.class, () -> parser.parse(source));
     assertSame(failure, thrown);
@@ -335,7 +335,7 @@ final class YtdlpParserImplTest {
   @Test
   void shouldRejectNullArgumentsBeforeInstallingAnything() {
     final AtomicBoolean located = new AtomicBoolean();
-    final YtdlpParserImpl parser = new YtdlpParserImpl(
+    final ExecutableYtdlpParser parser = new ExecutableYtdlpParser(
       () -> {
         located.set(true);
         return EXECUTABLE;
@@ -358,7 +358,7 @@ final class YtdlpParserImplTest {
     Mockito.when(source.getUri()).thenReturn(uri);
     final AtomicBoolean located = new AtomicBoolean();
     final AtomicBoolean created = new AtomicBoolean();
-    final YtdlpParserImpl parser = new YtdlpParserImpl(
+    final ExecutableYtdlpParser parser = new ExecutableYtdlpParser(
       () -> {
         located.set(true);
         return EXECUTABLE;
@@ -382,7 +382,7 @@ final class YtdlpParserImplTest {
   void shouldAcceptWebUrlsWhateverTheCaseOfTheScheme() throws IOException {
     final CommandTask task = task(0, "{\"id\": \"upper\"}", "");
     final AtomicReference<String[]> command = new AtomicReference<>();
-    final YtdlpParserImpl parser = parser(task, command);
+    final ExecutableYtdlpParser parser = parser(task, command);
     final URI uri = URI.create("HTTPS://www.youtube.com/watch?v=upper");
     final UriSource source = UriSource.uri(uri);
     final UrlParseDump dump = parser.parse(source);
@@ -397,8 +397,8 @@ final class YtdlpParserImplTest {
     final YtdlpParser first = YtdlpParser.simple();
     final YtdlpParser second = YtdlpParser.simple();
     assertSame(first, second);
-    assertSame(YtdlpParserImpl.INSTANCE, first);
-    assertInstanceOf(YtdlpParserImpl.class, first);
+    assertSame(ExecutableYtdlpParser.INSTANCE, first);
+    assertInstanceOf(ExecutableYtdlpParser.class, first);
   }
 
   @Test

@@ -32,7 +32,7 @@ public interface OriginalVideoMetadata extends OriginalMetadata {
   /**
    * Metadata with every property unknown.
    */
-  OriginalVideoMetadata EMPTY = new OriginalVideoMetadataImpl(UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN);
+  OriginalVideoMetadata EMPTY = new DefaultOriginalVideoMetadata(UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN);
 
   /**
    * Creates metadata with every property.
@@ -46,7 +46,7 @@ public interface OriginalVideoMetadata extends OriginalMetadata {
    */
   static OriginalVideoMetadata of(final int videoWidth, final int videoHeight, final int videoBitrate, final float videoFrameRate) {
     Preconditions.checkArgument(videoWidth > 0 && videoHeight > 0, "Video size %sx%s must be positive!", videoWidth, videoHeight);
-    return new OriginalVideoMetadataImpl(videoWidth, videoHeight, videoBitrate, videoFrameRate);
+    return new DefaultOriginalVideoMetadata(videoWidth, videoHeight, videoBitrate, videoFrameRate);
   }
 
   /**
