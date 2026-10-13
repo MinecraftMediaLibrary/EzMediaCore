@@ -76,7 +76,7 @@ final class ImageBufferPropertyTest {
   }
 
   @Property(seed = SEED, tries = 100)
-  void rawPixelsAreCopiedFromEveryBufferLayout(@ForAll("images") final ImageCase image) {
+  void shouldCopyRawPixelsFromEveryBufferLayout(@ForAll("images") final ImageCase image) {
     final byte[] bgr = image.createBgr();
     final ByteBuffer source = image.wrap(bgr);
     final int position = source.position();
@@ -102,7 +102,7 @@ final class ImageBufferPropertyTest {
   }
 
   @Property(seed = SEED, tries = 100)
-  void argbPixelsComeBackOpaqueAndAsTheirBgrBytes(@ForAll("images") final ImageCase image) {
+  void shouldReturnArgbPixelsOpaqueAndAsTheirBgrBytes(@ForAll("images") final ImageCase image) {
     final int[] argb = image.createArgb();
     final ImageBuffer buffer = ImageBuffer.buffer(argb, image.getWidth(), image.getHeight());
     try {
@@ -125,7 +125,7 @@ final class ImageBufferPropertyTest {
   }
 
   @Property(seed = SEED, tries = 100)
-  void copiesShareNothingAndTheCachedPixelsAreReplacedOnChange(@ForAll("images") final ImageCase image) {
+  void shouldShareNothingWithCopiesAndReplaceTheCachedPixelsOnChange(@ForAll("images") final ImageCase image) {
     final int[] argb = image.createArgb();
     final int width = image.getWidth();
     final int height = image.getHeight();
@@ -161,7 +161,7 @@ final class ImageBufferPropertyTest {
   }
 
   @Property(seed = SEED, tries = 100)
-  void writesThroughTheDataViewChangeTheImage(@ForAll("images") final ImageCase image) {
+  void shouldChangeTheImageOnWritesThroughTheDataView(@ForAll("images") final ImageCase image) {
     final int[] argb = image.createArgb();
     final ImageBuffer buffer = ImageBuffer.buffer(argb, image.getWidth(), image.getHeight());
     try {

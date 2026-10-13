@@ -47,7 +47,7 @@ final class AnimationRatePropertyTest {
   }
 
   @Property(seed = SEED)
-  void unusableRatesUseTheDecodedTimestamps(
+  void shouldUseTheDecodedTimestampsForUnusableRates(
     @ForAll("unusableReportedRates") final double reported,
     @ForAll @IntRange(min = 2, max = 101) final int frames
   ) {
@@ -58,7 +58,7 @@ final class AnimationRatePropertyTest {
   }
 
   @Property(seed = SEED)
-  void noUsableRateOrTimestampStillProducesAPlayableDefault(@ForAll("unusableReportedRates") final double reported) {
+  void shouldStillProduceAPlayableDefaultWithoutAUsableRateOrTimestamp(@ForAll("unusableReportedRates") final double reported) {
     final float rate = DynamicImageBufferImpl.resolveFrameRate(reported, 1, 0, 0);
     assertEquals(10.0f, rate);
     final boolean positiveAndFinite = rate > 0 && Float.isFinite(rate);
@@ -71,7 +71,7 @@ final class AnimationRatePropertyTest {
   }
 
   @Property(seed = SEED)
-  void everyRepresentableRateIsRetained(@ForAll("representableReportedRates") final float reported) {
+  void shouldRetainEveryRepresentableRate(@ForAll("representableReportedRates") final float reported) {
     final float rate = DynamicImageBufferImpl.resolveFrameRate(reported, 3, 0, 80_000L);
     assertEquals(reported, rate);
   }

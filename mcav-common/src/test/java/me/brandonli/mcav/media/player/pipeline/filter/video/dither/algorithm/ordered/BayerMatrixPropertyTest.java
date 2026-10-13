@@ -60,7 +60,7 @@ final class BayerMatrixPropertyTest {
   }
 
   @Property(seed = SEED, generation = GenerationMode.EXHAUSTIVE)
-  void theGeneratorMatchesTheClosedFormAndRanksEveryCellOnce(@ForAll @IntRange(min = 0, max = 9) final int bits) {
+  void shouldMatchTheClosedFormAndRankEveryCellOnceWithTheGenerator(@ForAll @IntRange(min = 0, max = 9) final int bits) {
     final int size = 1 << bits;
     final int[][] matrix = BayerDither.createBayerMatrix(size);
     final boolean[] seen = new boolean[size * size];
@@ -91,7 +91,7 @@ final class BayerMatrixPropertyTest {
   }
 
   @Property(seed = SEED, generation = GenerationMode.EXHAUSTIVE)
-  void theConstantsAreTheGeneratorsMatricesCountedFromOne(@ForAll("constantSizes") final int size) {
+  void shouldMakeTheConstantsTheGeneratorsMatricesCountedFromOne(@ForAll("constantSizes") final int size) {
     final ThresholdMatrix constant = switch (size) {
       case 2 -> BayerDither.NORMAL_2X2;
       case 4 -> BayerDither.NORMAL_4X4;

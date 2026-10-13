@@ -41,7 +41,7 @@ final class FramePixelsPropertyTest {
   private static final byte SENTINEL = 93;
 
   @Property(seed = SEED)
-  void compactingPaddedRowsPreservesPixelsAndBufferWindows(
+  void shouldPreservePixelsAndBufferWindowsWhenCompactingPaddedRows(
     @ForAll @IntRange(min = 0, max = 32) final int width,
     @ForAll @IntRange(min = 0, max = 24) final int height,
     @ForAll @IntRange(min = 0, max = 16) final int padding,
@@ -96,7 +96,7 @@ final class FramePixelsPropertyTest {
   }
 
   @Property(seed = SEED)
-  void aWrappedByteCountNeverMakesAHugeRowValid(@ForAll("widthsWhoseByteCountsWrap") final int width) {
+  void shouldNeverMakeAHugeRowValidWithAWrappedByteCount(@ForAll("widthsWhoseByteCountsWrap") final int width) {
     try (final Frame frame = new Frame()) {
       frame.imageWidth = width;
       frame.imageHeight = 1;

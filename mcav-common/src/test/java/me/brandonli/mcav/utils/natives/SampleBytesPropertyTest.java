@@ -76,7 +76,7 @@ final class SampleBytesPropertyTest {
   }
 
   @Property(seed = SEED)
-  void bigEndianSamplesAreTheSamplesOfTheSourceOrder(@ForAll("buffers") final SampleBuffer sample) {
+  void shouldReadBigEndianSamplesInTheSourceOrder(@ForAll("buffers") final SampleBuffer sample) {
     final ByteBuffer source = sample.create();
     final ByteOrder sourceOrder = source.order();
 
@@ -90,7 +90,7 @@ final class SampleBytesPropertyTest {
   }
 
   @Property(seed = SEED)
-  void littleEndianSamplesAreTheSamplesOfTheSourceOrder(@ForAll("buffers") final SampleBuffer sample) {
+  void shouldReadLittleEndianSamplesInTheSourceOrder(@ForAll("buffers") final SampleBuffer sample) {
     final ByteBuffer source = sample.create();
     final ByteOrder sourceOrder = source.order();
 
@@ -104,7 +104,7 @@ final class SampleBytesPropertyTest {
   }
 
   @Property(seed = SEED)
-  void shortAndFloatViewsKeepEveryValue(@ForAll("buffers") final SampleBuffer sample) {
+  void shouldKeepEveryValueInShortAndFloatViews(@ForAll("buffers") final SampleBuffer sample) {
     final ByteBuffer bytes = sample.create();
     final ShortBuffer shorts = bytes.asShortBuffer();
     final FloatBuffer floats = bytes.asFloatBuffer();
@@ -135,7 +135,7 @@ final class SampleBytesPropertyTest {
   }
 
   @Property(seed = SEED)
-  void monoIsTheRoundedDownAverageOfTheLittleEndianChannels(@ForAll("buffers") final SampleBuffer sample) {
+  void shouldMixMonoAsTheRoundedDownAverageOfTheLittleEndianChannels(@ForAll("buffers") final SampleBuffer sample) {
     final ByteBuffer stereo = sample.create();
     final byte[] content = sample.getContent();
 

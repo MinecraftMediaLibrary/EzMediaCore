@@ -124,7 +124,7 @@ final class DitherPropertyTest {
   }
 
   @Property(seed = SEED, generation = GenerationMode.EXHAUSTIVE)
-  void everyKernelSpreadsTheWholeErrorExceptAtkinsonWhichSpreadsThreeQuarters(@ForAll("kernels") final Field constant)
+  void shouldSpreadTheWholeErrorWithEveryKernelExceptAtkinsonWhichSpreadsThreeQuarters(@ForAll("kernels") final Field constant)
     throws IllegalAccessException {
     final DiffusionKernel kernel = (DiffusionKernel) constant.get(null);
     final int divisor = kernel.getDivisor();
@@ -169,7 +169,7 @@ final class DitherPropertyTest {
   }
 
   @Property(seed = SEED)
-  void everyPixelBecomesAColorOfThePaletteAndTheIndexNamesIt(@ForAll("cases") final DitherCase ditherCase) {
+  void shouldTurnEveryPixelIntoAColorOfThePaletteThatTheIndexNames(@ForAll("cases") final DitherCase ditherCase) {
     final int[] image = ditherCase.createImage();
     final int[] mirrored = mirror(image, ditherCase.getWidth());
 
