@@ -75,8 +75,10 @@ final class SourceDetectionHelperTest {
     final SourceDetectionHelper helper = new SourceDetectionHelper();
     final Optional<Source> text = helper.detectSource("not a source");
     final Optional<Source> negative = helper.detectSource("-1");
-    assertTrue(text.isEmpty());
-    assertTrue(negative.isEmpty());
+    final boolean textMissing = text.isEmpty();
+    assertTrue(textMissing);
+    final boolean negativeMissing = negative.isEmpty();
+    assertTrue(negativeMissing);
   }
 
   @Test

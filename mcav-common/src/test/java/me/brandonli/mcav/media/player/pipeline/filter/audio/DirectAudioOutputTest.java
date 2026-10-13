@@ -298,9 +298,13 @@ final class DirectAudioOutputTest {
     samples.position(1).limit(3).mark();
     final boolean changed = AudioFilter.NO_OP.applyFilter(samples, METADATA);
     assertFalse(changed);
-    assertArrayEquals(original, samples.array());
-    assertEquals(1, samples.position());
-    assertEquals(3, samples.limit());
-    assertEquals(1, samples.reset().position());
+    final byte[] sampleBytes = samples.array();
+    assertArrayEquals(original, sampleBytes);
+    final int position = samples.position();
+    assertEquals(1, position);
+    final int limit = samples.limit();
+    assertEquals(3, limit);
+    final int markedPosition = samples.reset().position();
+    assertEquals(1, markedPosition);
   }
 }

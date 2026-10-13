@@ -199,9 +199,11 @@ final class ErrorRowsTest {
     final DiffusionKernel kernel = new DiffusionKernel("Amplified right", 1, new int[][] { { 1, 0, Integer.MAX_VALUE } });
     final ErrorRows rows = new ErrorRows(kernel, 2);
     rows.diffuse(0, 0, 1, 100, -100, 1);
-    assertEquals(0xFF00FF, rows.applyPendingError(GRAY, 1, 0));
+    final int amplifiedColor = rows.applyPendingError(GRAY, 1, 0);
+    assertEquals(0xFF00FF, amplifiedColor);
     rows.diffuse(0, 0, 1, -100, 100, -1);
-    assertEquals(GRAY, rows.applyPendingError(GRAY, 1, 0), "opposing errors cancel before clamping");
+    final int cancelledColor = rows.applyPendingError(GRAY, 1, 0);
+    assertEquals(GRAY, cancelledColor, "opposing errors cancel before clamping");
   }
 
   @Test
@@ -212,9 +214,11 @@ final class ErrorRowsTest {
     });
     final ErrorRows rows = new ErrorRows(kernel, 2);
     rows.diffuse(0, 0, 1, 2, -2, 2);
-    assertEquals(0xFF00FF, rows.applyPendingError(GRAY, 1, 0));
+    final int accumulatedColor = rows.applyPendingError(GRAY, 1, 0);
+    assertEquals(0xFF00FF, accumulatedColor);
     rows.finishRow(0);
-    assertEquals(GRAY, rows.applyPendingError(GRAY, 1, 1));
+    final int nextRowColor = rows.applyPendingError(GRAY, 1, 1);
+    assertEquals(GRAY, nextRowColor);
   }
 
   @Test

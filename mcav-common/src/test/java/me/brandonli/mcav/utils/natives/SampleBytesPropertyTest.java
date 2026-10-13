@@ -147,7 +147,8 @@ final class SampleBytesPropertyTest {
       final int left = littleEndianShort(content, frame * 4);
       final int right = littleEndianShort(content, frame * 4 + 2);
       final int expected = Math.floorDiv(left + right, 2);
-      assertEquals(expected, mono[frame], "frame " + frame);
+      final short downmixed = mono[frame];
+      assertEquals(expected, downmixed, "frame " + frame);
     }
     sample.assertUnchanged(stereo);
   }

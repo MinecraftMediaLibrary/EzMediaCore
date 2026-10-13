@@ -43,8 +43,10 @@ final class FPSFilterTest {
     final LongSupplier clock = (LongSupplier) clockField.get(filter);
     final long observed = clock.getAsLong();
     final long after = System.nanoTime();
-    assertTrue(observed - before >= 0L, "the clock is in the monotonic nanosecond time domain");
-    assertTrue(after - observed >= 0L, "the clock sample belongs to this observation window");
+    final boolean observedAfterStart = observed - before >= 0L;
+    assertTrue(observedAfterStart, "the clock is in the monotonic nanosecond time domain");
+    final boolean observedBeforeEnd = after - observed >= 0L;
+    assertTrue(observedBeforeEnd, "the clock sample belongs to this observation window");
   }
 
   @Test

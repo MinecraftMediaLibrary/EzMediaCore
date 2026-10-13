@@ -154,11 +154,13 @@ final class YTDLPReleaseTest {
     } finally {
       process.destroyForcibly();
       try {
-        assertTrue(process.waitFor(10, TimeUnit.SECONDS), "yt-dlp child did not terminate after forced exit");
+        final boolean terminated = process.waitFor(10, TimeUnit.SECONDS);
+        assertTrue(terminated, "yt-dlp child did not terminate after forced exit");
       } finally {
         reader.interrupt();
         reader.join(10_000L);
-        assertTrue(!reader.isAlive(), "yt-dlp output reader did not finish");
+        final boolean readerFinished = !reader.isAlive();
+        assertTrue(readerFinished, "yt-dlp output reader did not finish");
       }
     }
   }

@@ -365,7 +365,8 @@ final class ScriptedPlayerTest {
       player.start(VIDEO);
       final boolean changed = player.setSpeed(AbstractVideoPlayerCV.MAX_SPEED);
       assertFalse(changed, "a live stream cannot be played ahead of itself");
-      assertEquals(1, player.getSpeed());
+      final double speed = player.getSpeed();
+      assertEquals(1, speed);
     } finally {
       player.release();
     }
@@ -590,9 +591,12 @@ final class ScriptedPlayerTest {
     final long releaseNanos = releasedAt - releaseStart;
     final long pauseNanos = pauseEnd - pauseStart;
     assertFalse(paused);
-    assertTrue(releaseNanos > 1_000_000_000L, "release waits for the stuck decoder, took " + releaseNanos);
-    assertTrue(pauseNanos < 500_000_000L, "other calls do not wait for the release, pause took " + pauseNanos);
-    assertTrue(pauseEnd < releasedAt, "the pause ran while the release was still waiting");
+    final boolean releaseWaited = releaseNanos > 1_000_000_000L;
+    assertTrue(releaseWaited, "release waits for the stuck decoder, took " + releaseNanos);
+    final boolean pauseWasQuick = pauseNanos < 500_000_000L;
+    assertTrue(pauseWasQuick, "other calls do not wait for the release, pause took " + pauseNanos);
+    final boolean pausedDuringRelease = pauseEnd < releasedAt;
+    assertTrue(pausedDuringRelease, "the pause ran while the release was still waiting");
   }
 
   @Test

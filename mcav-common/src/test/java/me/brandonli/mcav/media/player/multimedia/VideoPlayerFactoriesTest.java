@@ -72,7 +72,8 @@ final class VideoPlayerFactoriesTest {
       final VideoPlayer withOptions = VideoPlayer.vlc("--no-video-title-show");
       final VLCPlayer first = assertInstanceOf(VLCPlayer.class, withoutOptions);
       final VLCPlayer second = assertInstanceOf(VLCPlayer.class, withOptions);
-      assertEquals(List.of(), factories.constructed(), "creating a player must not initialize the VLC engine");
+      final List<MediaPlayerFactory> constructed = factories.constructed();
+      assertEquals(List.of(), constructed, "creating a player must not initialize the VLC engine");
       first.release();
       second.release();
     }

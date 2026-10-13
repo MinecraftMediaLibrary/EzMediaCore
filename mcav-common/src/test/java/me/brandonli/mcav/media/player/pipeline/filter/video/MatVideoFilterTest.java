@@ -131,9 +131,12 @@ final class MatVideoFilterTest {
       assertTrue(changed);
       assertFalse(noOp, "the no-op filter leaves every frame untouched");
       assertSame(OriginalVideoMetadata.EMPTY, metadata);
-      assertEquals(before, image.getData());
-      assertEquals(2, image.getWidth());
-      assertEquals(2, image.getHeight());
+      final ByteBuffer data = image.getData();
+      assertEquals(before, data);
+      final int width = image.getWidth();
+      assertEquals(2, width);
+      final int height = image.getHeight();
+      assertEquals(2, height);
     }
   }
 

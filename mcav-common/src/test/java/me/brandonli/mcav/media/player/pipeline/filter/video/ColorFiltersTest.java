@@ -134,7 +134,8 @@ final class ColorFiltersTest {
     final AtomicReference<?> idle = (AtomicReference<?>) idleField.get(holderField.get(filter));
     final Object kept = idle.get();
     final int sameSize = tintedBlue(filter, 3, 3);
-    assertSame(kept, idle.get(), "a stable frame size reuses the cached tint matrix");
+    final Object reused = idle.get();
+    assertSame(kept, reused, "a stable frame size reuses the cached tint matrix");
     final int otherWidth = tintedBlue(filter, 2, 3);
     final int otherHeight = tintedBlue(filter, 2, 2);
     final int grayLevel;
@@ -144,12 +145,18 @@ final class ColorFiltersTest {
       grayLevel = levels.get(0) & 0xFF;
     }
     final int afterGray = tintedBlue(filter, 2, 2);
-    assertTrue(isHalf(first), "first " + first);
-    assertTrue(isHalf(sameSize), "the kept color is reused " + sameSize);
-    assertTrue(isHalf(otherWidth), "another width " + otherWidth);
-    assertTrue(isHalf(otherHeight), "another height " + otherHeight);
-    assertTrue(isHalf(grayLevel), "a single channel is tinted with the first component " + grayLevel);
-    assertTrue(isHalf(afterGray), "and the next color frame gets three channels again " + afterGray);
+    final boolean firstHalf = isHalf(first);
+    assertTrue(firstHalf, "first " + first);
+    final boolean sameSizeHalf = isHalf(sameSize);
+    assertTrue(sameSizeHalf, "the kept color is reused " + sameSize);
+    final boolean otherWidthHalf = isHalf(otherWidth);
+    assertTrue(otherWidthHalf, "another width " + otherWidth);
+    final boolean otherHeightHalf = isHalf(otherHeight);
+    assertTrue(otherHeightHalf, "another height " + otherHeight);
+    final boolean grayHalf = isHalf(grayLevel);
+    assertTrue(grayHalf, "a single channel is tinted with the first component " + grayLevel);
+    final boolean afterGrayHalf = isHalf(afterGray);
+    assertTrue(afterGrayHalf, "and the next color frame gets three channels again " + afterGray);
   }
 
   @Test
@@ -234,9 +241,12 @@ final class ColorFiltersTest {
       final boolean modified = filter.modifyMat(mat);
       final ByteBuffer pixels = mat.createBuffer();
       assertTrue(modified);
-      assertEquals(20, pixels.get(3 * 12 + 2) & 0xFF);
-      assertEquals(20, pixels.get(3 * 11 + 2) & 0xFF);
-      assertEquals(0, pixels.get(2) & 0xFF);
+      final int center = pixels.get(3 * 12 + 2) & 0xFF;
+      assertEquals(20, center);
+      final int neighbor = pixels.get(3 * 11 + 2) & 0xFF;
+      assertEquals(20, neighbor);
+      final int corner = pixels.get(2) & 0xFF;
+      assertEquals(0, corner);
     }
   }
 
@@ -267,18 +277,24 @@ final class ColorFiltersTest {
       final ByteBuffer before = ByteBuffer.allocate(image.getData().remaining()).put(image.getData()).flip();
       final boolean modified = filter.applyFilter(image);
       assertFalse(modified);
-      assertEquals(before, image.getData());
-      assertEquals(3, image.getWidth());
-      assertEquals(3, image.getHeight());
+      final ByteBuffer after = image.getData();
+      assertEquals(before, after);
+      final int width = image.getWidth();
+      assertEquals(3, width);
+      final int height = image.getHeight();
+      assertEquals(3, height);
     }
     try (final ImageBuffer tall = Images.solid(3, 4, 0xFFFFFFFF); final ImageBuffer image = Images.solid(3, 3, 0xFF000000)) {
       final BlendFilter filter = new BlendFilter(tall, 0.5);
       final ByteBuffer before = ByteBuffer.allocate(image.getData().remaining()).put(image.getData()).flip();
       final boolean modified = filter.applyFilter(image);
       assertFalse(modified);
-      assertEquals(before, image.getData());
-      assertEquals(3, image.getWidth());
-      assertEquals(3, image.getHeight());
+      final ByteBuffer after = image.getData();
+      assertEquals(before, after);
+      final int width = image.getWidth();
+      assertEquals(3, width);
+      final int height = image.getHeight();
+      assertEquals(3, height);
     }
   }
 
@@ -329,7 +345,8 @@ final class ColorFiltersTest {
         final String name = type.name();
         assertTrue(modified, name);
         assertNotEquals(0xFFFFFFFF, center, name + " darkens the bright pixel");
-        assertTrue(neighborBlue > 0, name + " brightens its neighbors");
+        final boolean brightened = neighborBlue > 0;
+        assertTrue(brightened, name + " brightens its neighbors");
       }
     }
   }

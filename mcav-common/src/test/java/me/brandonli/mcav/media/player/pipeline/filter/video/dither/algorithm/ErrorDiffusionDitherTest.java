@@ -91,8 +91,10 @@ final class ErrorDiffusionDitherTest {
     dither.dither(inPlace, 2);
     assertArrayEquals(new int[] { 0xFF000000, 0xFFFFFFFF }, inPlace);
     try (final ImageBuffer image = ImageBuffer.buffer(source, 2, 1)) {
-      assertArrayEquals(new byte[] { 0, 1 }, dither.ditherIntoBytes(image));
-      assertArrayEquals(new int[] { 0xFF646464, 0xFF646464 }, image.getPixels());
+      final byte[] ditheredIndices = dither.ditherIntoBytes(image);
+      assertArrayEquals(new byte[] { 0, 1 }, ditheredIndices);
+      final int[] untouchedPixels = image.getPixels();
+      assertArrayEquals(new int[] { 0xFF646464, 0xFF646464 }, untouchedPixels);
     }
   }
 
@@ -111,9 +113,12 @@ final class ErrorDiffusionDitherTest {
           rightWhite += indices[row * WIDTH + WIDTH - 1];
         }
         assertEquals(pixels.length, indices.length);
-        assertTrue(ratio > 0.45 && ratio < 0.55, algorithm + " ratio " + ratio);
-        assertTrue(leftWhite < HEIGHT / 4, algorithm + " left edge");
-        assertTrue(rightWhite > (HEIGHT * 3) / 4, algorithm + " right edge");
+        final boolean balanced = ratio > 0.45 && ratio < 0.55;
+        assertTrue(balanced, algorithm + " ratio " + ratio);
+        final boolean leftMostlyBlack = leftWhite < HEIGHT / 4;
+        assertTrue(leftMostlyBlack, algorithm + " left edge");
+        final boolean rightMostlyWhite = rightWhite > (HEIGHT * 3) / 4;
+        assertTrue(rightMostlyWhite, algorithm + " right edge");
       }
     }
   }
@@ -303,7 +308,8 @@ final class ErrorDiffusionDitherTest {
   void shouldRejectInvalidInput() {
     final ErrorDiffusionDither dither = build(ErrorDiffusionDitherBuilder.Algorithm.FLOYD_STEINBERG);
     final NullPointerException missingImage = assertThrows(NullPointerException.class, () -> dither.ditherIntoBytes(null));
-    assertEquals("Image must not be null", missingImage.getMessage());
+    final String missingImageMessage = missingImage.getMessage();
+    assertEquals("Image must not be null", missingImageMessage);
     assertThrows(NullPointerException.class, () -> dither.dither(null, 1));
     assertThrows(IllegalArgumentException.class, () -> dither.dither(new int[4], 0));
     assertThrows(IllegalArgumentException.class, () -> dither.dither(new int[5], 2));

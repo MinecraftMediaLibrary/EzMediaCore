@@ -81,7 +81,8 @@ final class IdleTimeoutInputStreamTest {
       final boolean namesTheTimeout = message.contains("100 ms");
       assertTrue(namesTheTimeout, message);
       assertTrue(closed, "the stalled source is closed, which releases its connection");
-      assertInstanceOf(TimeoutException.class, exception.getCause(), "the timeout it came from is kept");
+      final Throwable timeoutCause = exception.getCause();
+      assertInstanceOf(TimeoutException.class, timeoutCause, "the timeout it came from is kept");
     }
   }
 
@@ -118,7 +119,8 @@ final class IdleTimeoutInputStreamTest {
       final InterruptedIOException thrown = assertThrows(InterruptedIOException.class, stream::read);
       final boolean interrupted = Thread.interrupted();
       assertTrue(interrupted, "the interrupt must be restored");
-      assertInstanceOf(InterruptedException.class, thrown.getCause(), "the interrupt it came from is kept");
+      final Throwable interruptCause = thrown.getCause();
+      assertInstanceOf(InterruptedException.class, interruptCause, "the interrupt it came from is kept");
     }
   }
 

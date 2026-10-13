@@ -89,7 +89,8 @@ final class PlaybackSessionFailureTest {
     session.stop();
     session.stop();
     Mockito.verify(grabber).close();
-    assertFalse(session.isActive());
+    final boolean active = session.isActive();
+    assertFalse(active);
   }
 
   @Test
@@ -102,7 +103,8 @@ final class PlaybackSessionFailureTest {
       (_, _) -> {}
     );
     session.stop();
-    assertFalse(session.isActive());
+    final boolean active = session.isActive();
+    assertFalse(active);
   }
 
   private static void awaitNaturalEnd(final PlaybackSession session) throws InterruptedException {
@@ -251,7 +253,8 @@ final class PlaybackSessionFailureTest {
     assertTrue(closed);
     assertFalse(active);
     assertEquals(1, suppressed.length);
-    assertSame(cleanup, suppressed[0]);
+    final Throwable suppressedCleanup = suppressed[0];
+    assertSame(cleanup, suppressedCleanup);
     assertThrows(IllegalStateException.class, playback::startThreads);
     verify(video).close();
   }
@@ -540,7 +543,8 @@ final class PlaybackSessionFailureTest {
       final long elapsed = System.nanoTime() - before;
       final boolean active = playback.isActive();
       assertFalse(active);
-      assertTrue(elapsed < 1_000_000_000L, "terminal marker wait must end when stop takes ownership");
+      final boolean stoppedQuickly = elapsed < 1_000_000_000L;
+      assertTrue(stoppedQuickly, "terminal marker wait must end when stop takes ownership");
     } finally {
       playback.stop();
     }

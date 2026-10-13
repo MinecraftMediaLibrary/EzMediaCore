@@ -102,7 +102,8 @@ final class DitherUtilsTest {
     final int opaqueIndex = opaque & 0xFF;
     final int reserved = mapPalette.getReservedIndices();
     assertEquals(0, transparent, "index 0 of the map palette is transparent");
-    assertTrue(opaqueIndex >= reserved, "opaque pixels never get a transparent index, got " + opaqueIndex);
+    final boolean opaqueIndexReserved = opaqueIndex >= reserved;
+    assertTrue(opaqueIndexReserved, "opaque pixels never get a transparent index, got " + opaqueIndex);
   }
 
   @Test

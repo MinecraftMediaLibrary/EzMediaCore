@@ -190,7 +190,8 @@ final class VLCPlayerIntegrationTest {
     assertEquals(AudioFilter.SAMPLE_RATE, sampleRate);
     assertEquals(AudioFilter.CHANNELS, channels);
     assertEquals(0, misaligned, "every chunk holds whole stereo frames");
-    assertTrue(loudest > 1_000, "the sine tone is audible, loudest sample " + loudest);
+    final boolean audible = loudest > 1_000;
+    assertTrue(audible, "the sine tone is audible, loudest sample " + loudest);
   }
 
   @Test
@@ -224,7 +225,8 @@ final class VLCPlayerIntegrationTest {
     final int height = this.frameHeight.get();
     assertEquals(100, width, "the visible width, not the padded decoder width");
     assertEquals(60, height, "the visible height, not the padded decoder height");
-    assertTrue(redChannel > 200 && greenChannel < 60 && blueChannel < 60, "expected red but got " + centerHex);
+    final boolean centerRed = redChannel > 200 && greenChannel < 60 && blueChannel < 60;
+    assertTrue(centerRed, "expected red but got " + centerHex);
   }
 
   @Test
@@ -277,14 +279,17 @@ final class VLCPlayerIntegrationTest {
     final long playedMillis = TimeUnit.NANOSECONDS.toMillis(lastFrameAt - seekedAt);
     final boolean pausedAfterTheEnd = this.player.pause();
     final boolean seekedAfterTheEnd = this.player.seek(0L);
-    assertTrue(playedMillis < 2_500L, "played " + playedMillis + " ms after seeking to 4 of 5 seconds");
-    assertTrue(this.frames.get() > framesBeforeSeek, "seeking still delivers a frame from the requested position");
+    final boolean stoppedPromptly = playedMillis < 2_500L;
+    assertTrue(stoppedPromptly, "played " + playedMillis + " ms after seeking to 4 of 5 seconds");
+    final boolean deliveredAfterSeek = this.frames.get() > framesBeforeSeek;
+    assertTrue(deliveredAfterSeek, "seeking still delivers a frame from the requested position");
     final int[] finalPixels = this.lastFrame.get();
     for (final int pixel : finalPixels) {
       final int red = (pixel >>> 16) & 0xFF;
       final int green = (pixel >>> 8) & 0xFF;
       final int blue = pixel & 0xFF;
-      assertTrue(red <= 5 && green <= 5 && blue >= 250, "the frame near four seconds is blue: " + Integer.toHexString(pixel));
+      final boolean pixelBlue = red <= 5 && green <= 5 && blue >= 250;
+      assertTrue(pixelBlue, "the frame near four seconds is blue: " + Integer.toHexString(pixel));
     }
     assertFalse(pausedAfterTheEnd, "nothing plays after the end");
     assertFalse(seekedAfterTheEnd, "media that has ended cannot be seeked");

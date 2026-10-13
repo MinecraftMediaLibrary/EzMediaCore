@@ -417,14 +417,20 @@ final class AbstractInstallerTest {
           throw permissionFailure;
         });
       final IOException failure = assertThrows(IOException.class, () -> installer.download(true));
-      assertSame(permissionFailure, failure.getCause());
-      assertEquals("Cannot mark " + destination + " as executable: " + permissionFailure.getMessage(), failure.getMessage());
+      final Throwable cause = failure.getCause();
+      assertSame(permissionFailure, cause);
+      final String message = failure.getMessage();
+      assertEquals("Cannot mark " + destination + " as executable: " + permissionFailure.getMessage(), message);
       final Throwable[] suppressed = failure.getSuppressed();
       assertEquals(1, suppressed.length, "cleanup must not hide either failure");
-      assertEquals(DirectoryNotEmptyException.class, suppressed[0].getClass());
-      assertEquals(destination.toString(), ((DirectoryNotEmptyException) suppressed[0]).getFile());
-      assertEquals(new Properties(), this.readConfig(), "a failed installation is not remembered");
-      assertEquals("retained", Files.readString(destination.resolve("busy")));
+      final Class<?> suppressedType = suppressed[0].getClass();
+      assertEquals(DirectoryNotEmptyException.class, suppressedType);
+      final String suppressedFile = ((DirectoryNotEmptyException) suppressed[0]).getFile();
+      assertEquals(destination.toString(), suppressedFile);
+      final Properties config = this.readConfig();
+      assertEquals(new Properties(), config, "a failed installation is not remembered");
+      final String retained = Files.readString(destination.resolve("busy"));
+      assertEquals("retained", retained);
     }
   }
 
@@ -452,9 +458,12 @@ final class AbstractInstallerTest {
       assertThrows(IOException.class, () -> first.download(true));
       final TestInstaller retry = freshInstaller ? new TestInstaller(tools, NAME, new Download[] { download }) : first;
       final Path installed = retry.download(true);
-      assertEquals(PosixFilePermissions.fromString("rwxr-xr-x"), Files.getPosixFilePermissions(installed));
-      assertEquals(2, permissionAttempts.get(), "a failed preparation is retried even by a new installer");
-      assertArrayEquals(PROGRAM, Files.readAllBytes(installed));
+      final Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(installed);
+      assertEquals(PosixFilePermissions.fromString("rwxr-xr-x"), permissions);
+      final int attempts = permissionAttempts.get();
+      assertEquals(2, attempts, "a failed preparation is retried even by a new installer");
+      final byte[] content = Files.readAllBytes(installed);
+      assertArrayEquals(PROGRAM, content);
     }
   }
 

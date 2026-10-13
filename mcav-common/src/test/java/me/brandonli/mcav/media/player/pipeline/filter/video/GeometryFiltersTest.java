@@ -52,9 +52,12 @@ final class GeometryFiltersTest {
       final ByteBuffer before = ByteBuffer.allocate(image.getData().remaining()).put(image.getData()).flip();
       final boolean changed = filter.applyFilter(image);
       if (!changed) {
-        assertEquals(before, image.getData());
-        assertEquals(4, image.getWidth());
-        assertEquals(4, image.getHeight());
+        final ByteBuffer imageData = image.getData();
+        assertEquals(before, imageData);
+        final int imageWidth = image.getWidth();
+        assertEquals(4, imageWidth);
+        final int imageHeight = image.getHeight();
+        assertEquals(4, imageHeight);
       }
       return changed;
     }

@@ -195,7 +195,8 @@ final class ExampleResourcesTest {
       final MockedStatic<SwingUtilities> warmSwing = mockStatic(SwingUtilities.class);
       final MockedConstruction<JFrame> warmFrames = mockConstruction(JFrame.class)
     ) {
-      assertTrue(warmFrames.constructed().isEmpty());
+      final boolean noFramesConstructed = warmFrames.constructed().isEmpty();
+      assertTrue(noFramesConstructed);
       warmSwing.verifyNoInteractions();
     }
     final CompletableFuture<Throwable> callerFailure = new CompletableFuture<>();

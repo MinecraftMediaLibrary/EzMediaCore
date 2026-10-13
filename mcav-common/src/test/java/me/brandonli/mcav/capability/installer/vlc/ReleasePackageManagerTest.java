@@ -50,13 +50,16 @@ final class ReleasePackageManagerTest {
   @Test
   void shouldPinTheLinuxAppImageToOneReviewedBuild() {
     final List<Download> linux = downloadsFor(OS.LINUX, Arch.X86, Bits.BITS_64);
-    assertEquals(1, linux.size());
+    final int linuxCount = linux.size();
+    assertEquals(1, linuxCount);
     final Download appImage = linux.getFirst();
+    final String url = appImage.getUrl();
     assertEquals(
       "https://github.com/ivan-hc/VLC-appimage/releases/download/20261001-112729/VLC-media-player_3.0.23_2-16-archimage5.0-x86_64.AppImage",
-      appImage.getUrl()
+      url
     );
-    assertEquals("7f6772a5a0e1d242b233e597a2833d38d0b1d1ec83ccae4e905430dfad754ab9", appImage.getHash());
+    final String hash = appImage.getHash();
+    assertEquals("7f6772a5a0e1d242b233e597a2833d38d0b1d1ec83ccae4e905430dfad754ab9", hash);
   }
 
   @Test
@@ -73,14 +76,16 @@ final class ReleasePackageManagerTest {
     for (final Download download : ReleasePackageManager.readVLCDownloadsFromJsonResource("mcav/common/installers/vlc.json")) {
       final String hash = download.getHash();
       assertNotNull(hash, "Every VLC download must be verified with a hash: " + download.getUrl());
-      assertTrue(hash.matches("[0-9a-f]{64}"), hash);
+      final boolean hexadecimal = hash.matches("[0-9a-f]{64}");
+      assertTrue(hexadecimal, hash);
     }
   }
 
   @Test
   void shouldOfferNoBuildForThirtyTwoBitLinux() {
     // Java 25, which mcav needs, has no port for 32-bit x86 Linux
-    assertEquals(List.of(), downloadsFor(OS.LINUX, Arch.X86, Bits.BITS_32));
+    final List<Download> downloads = downloadsFor(OS.LINUX, Arch.X86, Bits.BITS_32);
+    assertEquals(List.of(), downloads);
   }
 
   @Test

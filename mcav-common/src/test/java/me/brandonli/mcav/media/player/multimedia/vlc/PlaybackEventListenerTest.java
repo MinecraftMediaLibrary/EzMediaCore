@@ -116,7 +116,8 @@ final class PlaybackEventListenerTest {
     assertTrue(waiterStarted);
     assertTrue(returned);
     assertFalse(returnedEarly, "a start that returns false finds the reason in the handler");
-    assertEquals(1, notificationCountAtReport.get(), "notification cannot be released before its failure report");
+    final long countAtReport = notificationCountAtReport.get();
+    assertEquals(1, countAtReport, "notification cannot be released before its failure report");
   }
 
   @Test
@@ -126,21 +127,27 @@ final class PlaybackEventListenerTest {
     final AtomicReference<Throwable> reportingFailure = new AtomicReference<>();
     this.owner.setExceptionHandler((_, _) -> {
       reporting.countDown();
-      assertTrue(Uninterruptibles.awaitUninterruptibly(finishReport, 10, TimeUnit.SECONDS));
+      final boolean finished = Uninterruptibles.awaitUninterruptibly(finishReport, 10, TimeUnit.SECONDS);
+      assertTrue(finished);
     });
     final Thread reporter = new Thread(() -> this.listener.error(this.mediaPlayer));
     reporter.setUncaughtExceptionHandler((_, failure) -> reportingFailure.set(failure));
     reporter.start();
     try {
-      assertTrue(reporting.await(10, TimeUnit.SECONDS), "the opening error reached its handler");
-      assertFalse(this.listener.awaitOpened(0), "a known failure cannot become a successful open at the timeout");
+      final boolean reported = reporting.await(10, TimeUnit.SECONDS);
+      assertTrue(reported, "the opening error reached its handler");
+      final boolean openedAtTimeout = this.listener.awaitOpened(0);
+      assertFalse(openedAtTimeout, "a known failure cannot become a successful open at the timeout");
     } finally {
       finishReport.countDown();
       reporter.join(10_000L);
     }
-    assertFalse(reporter.isAlive());
-    assertEquals(null, reportingFailure.get());
-    assertFalse(this.listener.awaitOpened(0));
+    final boolean alive = reporter.isAlive();
+    assertFalse(alive);
+    final Throwable reportedFailure = reportingFailure.get();
+    assertEquals(null, reportedFailure);
+    final boolean opened = this.listener.awaitOpened(0);
+    assertFalse(opened);
   }
 
   @Test
@@ -150,7 +157,8 @@ final class PlaybackEventListenerTest {
     final boolean opened = this.listener.awaitOpened(10_000L);
     final boolean noErrors = this.errors.isEmpty();
     assertTrue(opened);
-    assertTrue(elapsed < 1_000L, "no waiting once playing, took " + elapsed);
+    final boolean quick = elapsed < 1_000L;
+    assertTrue(quick, "no waiting once playing, took " + elapsed);
     assertTrue(noErrors);
   }
 
@@ -171,7 +179,8 @@ final class PlaybackEventListenerTest {
     final PlayerException exception = assertInstanceOf(PlayerException.class, error);
     final String reason = exception.getMessage();
     assertFalse(opened);
-    assertTrue(elapsed < 1_000L, "no waiting after an error, took " + elapsed);
+    final boolean quick = elapsed < 1_000L;
+    assertTrue(quick, "no waiting after an error, took " + elapsed);
     assertEquals(expectedMessages, this.messages);
     assertEquals("VLC could not play movie.mkv", reason);
   }
@@ -200,8 +209,10 @@ final class PlaybackEventListenerTest {
     final long elapsed = this.awaitMillis(100L);
     final boolean opened = this.listener.awaitOpened(10L);
     assertTrue(opened, "VLC may still open slow streams; later failures are reported");
-    assertTrue(elapsed >= 90L, "waited only " + elapsed);
-    assertTrue(elapsed < 2_000L, "waited " + elapsed);
+    final boolean waitedTheTimeout = elapsed >= 90L;
+    assertTrue(waitedTheTimeout, "waited only " + elapsed);
+    final boolean waitedNotMuchLonger = elapsed < 2_000L;
+    assertTrue(waitedNotMuchLonger, "waited " + elapsed);
   }
 
   @Test

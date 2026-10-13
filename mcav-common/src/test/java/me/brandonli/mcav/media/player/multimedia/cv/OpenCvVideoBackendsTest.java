@@ -123,7 +123,8 @@ final class OpenCvVideoBackendsTest {
   void shouldAnswerTheSameEveryTime() {
     final boolean firstAnswer = OpenCvVideoBackends.canDecodeFiles();
     final boolean secondAnswer = OpenCvVideoBackends.canDecodeFiles();
-    assertTrue(firstAnswer == secondAnswer, "the answer cannot change while the library runs");
+    final boolean sameAnswer = firstAnswer == secondAnswer;
+    assertTrue(sameAnswer, "the answer cannot change while the library runs");
   }
 
   @Test

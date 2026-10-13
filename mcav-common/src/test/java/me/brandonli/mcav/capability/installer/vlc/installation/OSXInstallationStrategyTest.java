@@ -219,8 +219,10 @@ final class OSXInstallationStrategyTest {
       ChildProbe.class.getName(),
       marker.toString()
     );
-    assertTrue(Files.isRegularFile(marker), "the default runner executes its child process");
-    assertEquals("child ran", Files.readString(marker));
+    final boolean markerWritten = Files.isRegularFile(marker);
+    assertTrue(markerWritten, "the default runner executes its child process");
+    final String markerText = Files.readString(marker);
+    assertEquals("child ran", markerText);
   }
 
   /** A portable child that proves the strategy ran the requested program. */

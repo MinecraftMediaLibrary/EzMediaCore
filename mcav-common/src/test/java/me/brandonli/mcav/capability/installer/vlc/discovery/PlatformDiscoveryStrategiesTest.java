@@ -211,9 +211,12 @@ final class PlatformDiscoveryStrategiesTest {
   void shouldCoverEveryOperatingSystemWithSystemStrategies() {
     final NativeDiscoveryStrategy[] strategies = VLCDiscoveryStrategies.createSystemStrategies();
     assertEquals(3, strategies.length);
-    assertInstanceOf(LinuxNativeDiscoveryStrategy.class, strategies[0]);
-    assertInstanceOf(OsxNativeDiscoveryStrategy.class, strategies[1]);
-    assertInstanceOf(WindowsNativeDiscoveryStrategy.class, strategies[2]);
+    final NativeDiscoveryStrategy linux = strategies[0];
+    assertInstanceOf(LinuxNativeDiscoveryStrategy.class, linux);
+    final NativeDiscoveryStrategy osx = strategies[1];
+    assertInstanceOf(OsxNativeDiscoveryStrategy.class, osx);
+    final NativeDiscoveryStrategy windows = strategies[2];
+    assertInstanceOf(WindowsNativeDiscoveryStrategy.class, windows);
   }
 
   @Test

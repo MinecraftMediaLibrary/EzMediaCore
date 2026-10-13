@@ -315,7 +315,8 @@ final class VLCPlayerTest {
       final MockVlc.Player only = this.vlc.player(0);
       final boolean noErrorsYet = slowErrors.isEmpty();
       assertTrue(started, "a stream that is still opening counts as started");
-      assertTrue(elapsedMillis >= 90L, "start waits for the open timeout, took " + elapsedMillis);
+      final boolean waitedForTimeout = elapsedMillis >= 90L;
+      assertTrue(waitedForTimeout, "start waits for the open timeout, took " + elapsedMillis);
       assertTrue(noErrorsYet);
 
       only.fireError();
@@ -340,8 +341,10 @@ final class VLCPlayerTest {
       final boolean started = slow.start(this.video, this.audio);
       final long elapsedMillis = elapsedMillisSince(start);
       assertTrue(started, "sources that are still opening count as started");
-      assertTrue(elapsedMillis >= 350L, "start waits for the open timeout, took " + elapsedMillis);
-      assertTrue(elapsedMillis < 700L, "both sources open at the same time, so start waits the timeout once, took " + elapsedMillis);
+      final boolean waitedForTimeout = elapsedMillis >= 350L;
+      assertTrue(waitedForTimeout, "start waits for the open timeout, took " + elapsedMillis);
+      final boolean waitedOnce = elapsedMillis < 700L;
+      assertTrue(waitedOnce, "both sources open at the same time, so start waits the timeout once, took " + elapsedMillis);
     } finally {
       slow.release();
     }
@@ -359,7 +362,8 @@ final class VLCPlayerTest {
     final boolean stillInterrupted = Thread.interrupted();
     assertFalse(started);
     assertTrue(stillInterrupted, "the interrupt is kept");
-    assertTrue(elapsedMillis < 5_000L, "took " + elapsedMillis);
+    final boolean gaveUpPromptly = elapsedMillis < 5_000L;
+    assertTrue(gaveUpPromptly, "took " + elapsedMillis);
 
     final MockVlc.Player only = this.vlc.player(0);
     final EmbeddedMediaPlayer mediaPlayer = only.getPlayer();
@@ -459,7 +463,8 @@ final class VLCPlayerTest {
     assertFalse(started);
     assertSame(failure, reported);
     assertEquals(1, suppressed.length);
-    assertSame(cleanup, suppressed[0]);
+    final Throwable firstSuppressed = suppressed[0];
+    assertSame(cleanup, firstSuppressed);
     verify(factory).release();
     this.assertEverythingReleased();
   }
@@ -479,7 +484,8 @@ final class VLCPlayerTest {
     assertFalse(started);
     assertSame(failure, reported);
     assertEquals(1, suppressed.length);
-    assertSame(cleanup, suppressed[0]);
+    final Throwable firstSuppressed = suppressed[0];
+    assertSame(cleanup, firstSuppressed);
     verify(first).release();
     verify(factory).release();
     this.assertEverythingReleased();
@@ -498,7 +504,8 @@ final class VLCPlayerTest {
     final Throwable[] suppressed = thrown.getSuppressed();
     assertSame(failure, thrown);
     assertEquals(1, suppressed.length);
-    assertSame(reporting, suppressed[0]);
+    final Throwable firstSuppressed = suppressed[0];
+    assertSame(reporting, firstSuppressed);
     this.assertEverythingReleased();
   }
 
@@ -547,7 +554,8 @@ final class VLCPlayerTest {
     final Throwable[] suppressed = thrown.getSuppressed();
     assertSame(failure, thrown);
     assertEquals(1, suppressed.length);
-    assertSame(cleanup, suppressed[0]);
+    final Throwable firstSuppressed = suppressed[0];
+    assertSame(cleanup, firstSuppressed);
     this.assertEverythingReleased();
   }
 
@@ -625,7 +633,8 @@ final class VLCPlayerTest {
     final int references = this.references();
     assertSame(failure, thrown);
     assertEquals(1, suppressed.length);
-    assertSame(reporting, suppressed[0]);
+    final Throwable firstSuppressed = suppressed[0];
+    assertSame(reporting, firstSuppressed);
     assertEquals(0, references);
   }
 

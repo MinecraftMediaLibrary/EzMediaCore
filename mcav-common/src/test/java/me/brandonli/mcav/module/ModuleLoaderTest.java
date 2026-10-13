@@ -317,7 +317,8 @@ final class ModuleLoaderTest {
     assertEquals(expected, modules);
     assertEquals(1, secondStarts);
     assertEquals(1, firstStarts);
-    assertTrue(second.startedAt < first.startedAt);
+    final boolean secondStartedFirst = second.startedAt < first.startedAt;
+    assertTrue(secondStartedFirst);
   }
 
   @Test
@@ -472,7 +473,8 @@ final class ModuleLoaderTest {
     assertSame(AssertionStartAndStopModule.START_FAILURE, cause);
     assertEquals(1, stops);
     assertEquals(1, suppressed.length);
-    assertSame(AssertionStartAndStopModule.STOP_FAILURE, suppressed[0]);
+    final Throwable firstSuppressed = suppressed[0];
+    assertSame(AssertionStartAndStopModule.STOP_FAILURE, firstSuppressed);
     assertEquals("Module asserting module failed to start: startup invariant failed", message);
     assertTrue(empty);
   }
@@ -525,9 +527,12 @@ final class ModuleLoaderTest {
     final ErrorStopModule error = loader.getModule(ErrorStopModule.class);
     loader.shutdownModules();
     final Collection<MCAVModule> modules = loader.getModules();
-    assertTrue(error.stoppedAt < second.stoppedAt);
-    assertTrue(second.stoppedAt < failing.stoppedAt);
-    assertTrue(failing.stoppedAt < first.stoppedAt);
+    final boolean errorStoppedFirst = error.stoppedAt < second.stoppedAt;
+    assertTrue(errorStoppedFirst);
+    final boolean secondStoppedBeforeFailing = second.stoppedAt < failing.stoppedAt;
+    assertTrue(secondStoppedBeforeFailing);
+    final boolean failingStoppedBeforeFirst = failing.stoppedAt < first.stoppedAt;
+    assertTrue(failingStoppedBeforeFirst);
     final boolean modulesEmpty = modules.isEmpty();
     assertTrue(modulesEmpty);
     assertThrows(ModuleException.class, () -> loader.getModule(FirstModule.class));

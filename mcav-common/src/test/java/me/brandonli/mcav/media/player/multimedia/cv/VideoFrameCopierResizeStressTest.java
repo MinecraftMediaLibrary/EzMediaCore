@@ -72,7 +72,8 @@ final class VideoFrameCopierResizeStressTest {
     final boolean onlyAllowed = ALLOWED.containsAll(sizes);
     final int sizeCount = sizes.size();
     assertTrue(onlyAllowed, () -> "copies of sizes that were never attached: " + sizes);
-    assertTrue(sizeCount > 1, () -> "the size never changed while copying, so nothing raced: " + sizes);
+    final boolean sizeChanged = sizeCount > 1;
+    assertTrue(sizeChanged, () -> "the size never changed while copying, so nothing raced: " + sizes);
   }
 
   /**

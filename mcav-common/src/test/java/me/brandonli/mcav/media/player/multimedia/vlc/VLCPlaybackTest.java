@@ -255,7 +255,8 @@ final class VLCPlaybackTest {
     assertSame(failure, thrown);
     final Throwable[] suppressed = thrown.getSuppressed();
     assertEquals(1, suppressed.length);
-    assertSame(releaseFailure, suppressed[0]);
+    final Throwable firstSuppressed = suppressed[0];
+    assertSame(releaseFailure, firstSuppressed);
     playback.stop();
 
     final List<MockVlc.Player> players = this.vlc.getPlayers();
@@ -317,15 +318,18 @@ final class VLCPlaybackTest {
       .start(() -> started.set(playback.start()));
     starter.join();
     try {
-      assertTrue(started.get());
+      final boolean playbackStarted = started.get();
+      assertTrue(playbackStarted);
       final List<Thread> synchronizers = Thread.getAllStackTraces()
         .keySet()
         .stream()
         .filter(thread -> thread.getName().equals("mcav-vlc-sync"))
         .toList();
-      assertFalse(synchronizers.isEmpty(), "the synchronizer runs");
+      final boolean noneRunning = synchronizers.isEmpty();
+      assertFalse(noneRunning, "the synchronizer runs");
       for (final Thread thread : synchronizers) {
-        assertTrue(thread.isDaemon(), "the synchronizer would keep the JVM alive");
+        final boolean daemon = thread.isDaemon();
+        assertTrue(daemon, "the synchronizer would keep the JVM alive");
       }
     } finally {
       playback.stop();

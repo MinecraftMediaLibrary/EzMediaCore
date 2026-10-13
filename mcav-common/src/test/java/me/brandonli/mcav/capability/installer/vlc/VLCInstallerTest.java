@@ -122,15 +122,18 @@ final class VLCInstallerTest {
     if (expectedPrefix.isEmpty()) {
       assertEquals("", url);
     } else {
-      assertTrue(url.startsWith(expectedPrefix), url);
+      final boolean expectedHost = url.startsWith(expectedPrefix);
+      assertTrue(expectedHost, url);
     }
     for (final OS unsupported : new OS[] { OS.FREEBSD, OS.OTHER }) {
       final Platform unavailable = Platform.ofPlatform(unsupported, Arch.X86, Bits.BITS_64);
       try (final MockedStatic<Platform> platforms = Mockito.mockStatic(Platform.class, Mockito.CALLS_REAL_METHODS)) {
         platforms.when(Platform::getCurrentPlatform).thenReturn(unavailable);
         final VLCInstaller missing = VLCInstaller.create(this.folder);
-        assertEquals("", missing.getUrl(), "an unsupported platform has no download URL");
-        assertFalse(missing.isSupported());
+        final String missingUrl = missing.getUrl();
+        assertEquals("", missingUrl, "an unsupported platform has no download URL");
+        final boolean supported = missing.isSupported();
+        assertFalse(supported);
       }
     }
   }
@@ -276,7 +279,8 @@ final class VLCInstallerTest {
       VLCInstaller.removeLegacyInstallations(this.folder);
       final long length = open.length();
       final boolean lockedExists = Files.exists(locked);
-      assertTrue(length > 0);
+      final boolean hasContent = length > 0;
+      assertTrue(hasContent);
       assertTrue(lockedExists, "a file that cannot be deleted is left behind without failing");
     }
   }
@@ -385,7 +389,8 @@ final class VLCInstallerTest {
   void shouldBundleVerifiedDownloadsOfTheAdvertisedVersion() {
     final Download[] downloads = IOUtils.readDownloadsFromJsonResource("mcav/common/installers/vlc.json");
     final String versionDirectory = "/" + VLCInstaller.VERSION + "/";
-    assertTrue(downloads.length > 0);
+    final boolean anyDownloads = downloads.length > 0;
+    assertTrue(anyDownloads);
     for (final Download download : downloads) {
       final String url = download.getUrl();
       final String hash = download.getHash();
@@ -402,7 +407,8 @@ final class VLCInstallerTest {
     assertNotNull(hash, url);
     final int length = hash.length();
     assertEquals(64, length, url);
-    assertTrue(hash.matches("[0-9a-f]{64}"), "a SHA-256 digest must be hexadecimal: " + url);
+    final boolean hexadecimal = hash.matches("[0-9a-f]{64}");
+    assertTrue(hexadecimal, "a SHA-256 digest must be hexadecimal: " + url);
   }
 
   private VLCInstaller installerDownloadingFrom(final LocalHttpServer server) {

@@ -103,7 +103,8 @@ final class GeneratedMediaTest {
     assertEquals(output.toAbsolutePath(), generated);
     final Path staged = temporary.get();
     assertNotNull(staged);
-    assertFalse(staged.equals(output), "the encoder writes into a temporary sibling");
+    final boolean stagedAtOutput = staged.equals(output);
+    assertFalse(stagedAtOutput, "the encoder writes into a temporary sibling");
     final Path cached = GeneratedMedia.generate(output, _ -> {
       throw new AssertionError("successfully generated media must be reused");
     });
@@ -121,8 +122,10 @@ final class GeneratedMediaTest {
       GeneratedMedia.generate(output, path -> this.command(path, "failure"))
     );
     final String message = thrown.getMessage();
-    assertTrue(message.contains("exit code 7"));
-    assertTrue(message.contains("fixture encoder diagnostic"));
+    final boolean namesExitCode = message.contains("exit code 7");
+    assertTrue(namesExitCode);
+    final boolean namesDiagnostic = message.contains("fixture encoder diagnostic");
+    assertTrue(namesDiagnostic);
     final String kept = Files.readString(output);
     assertEquals("old complete media", kept, "failed temporary output is never published");
     this.assertNoPartialFiles();
@@ -142,8 +145,10 @@ final class GeneratedMediaTest {
     );
     final long elapsed = System.nanoTime() - before;
     final String message = thrown.getMessage();
-    assertTrue(message.contains("exceeded"));
-    assertTrue(elapsed < 6_000_000_000L, "the deadline plus bounded process cleanup must not wait for the 30 second fixture");
+    final boolean namesDeadline = message.contains("exceeded");
+    assertTrue(namesDeadline);
+    final boolean boundedWait = elapsed < 6_000_000_000L;
+    assertTrue(boundedWait, "the deadline plus bounded process cleanup must not wait for the 30 second fixture");
     final boolean published = Files.exists(output);
     assertFalse(published);
     this.assertNoPartialFiles();

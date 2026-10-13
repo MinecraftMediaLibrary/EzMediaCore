@@ -228,7 +228,8 @@ final class CommandTaskTest {
     final boolean reportsTheTimeout = message.contains("did not finish");
     assertTrue(reportsTheTimeout, message);
     assertTrue(exited, "the program is killed instead of being left running");
-    assertTrue(elapsed < 15_000_000_000L, "run returns once the timeout passed, took " + elapsed + " ns");
+    final boolean returnedInTime = elapsed < 15_000_000_000L;
+    assertTrue(returnedInTime, "run returns once the timeout passed, took " + elapsed + " ns");
     assertThrows(IllegalStateException.class, task::getExitCode);
   }
 
@@ -279,6 +280,7 @@ final class CommandTaskTest {
     final boolean exited = process.waitFor(10, TimeUnit.SECONDS);
     assertTrue(interrupted);
     assertTrue(exited, "the program is killed instead of being left running");
-    assertTrue(elapsed < 15_000_000_000L, "run returns without waiting for the program, took " + elapsed + " ns");
+    final boolean returnedInTime = elapsed < 15_000_000_000L;
+    assertTrue(returnedInTime, "run returns without waiting for the program, took " + elapsed + " ns");
   }
 }

@@ -402,7 +402,8 @@ final class PlaybackSessionStopStressTest {
       final long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MILLIS);
       while (this.session.isActive()) {
         final long now = System.nanoTime();
-        assertTrue(now - deadline < 0, () -> this.description + ", the session never stopped itself or ended");
+        final boolean beforeDeadline = now - deadline < 0;
+        assertTrue(beforeDeadline, () -> this.description + ", the session never stopped itself or ended");
         Thread.onSpinWait();
       }
       this.stopFromOutside();

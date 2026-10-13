@@ -310,15 +310,18 @@ final class PlaybackSessionTest {
       });
     starter.join();
     try {
-      assertEquals(null, failure.get());
+      final Exception reported = failure.get();
+      assertEquals(null, reported);
       final List<Thread> threads = Thread.getAllStackTraces()
         .keySet()
         .stream()
         .filter(thread -> thread.getName().startsWith("mcav-decode-") || thread.getName().startsWith("mcav-render-"))
         .toList();
-      assertFalse(threads.isEmpty(), "the session runs its threads");
+      final boolean noThreads = threads.isEmpty();
+      assertFalse(noThreads, "the session runs its threads");
       for (final Thread thread : threads) {
-        assertTrue(thread.isDaemon(), thread.getName() + " would keep the JVM alive");
+        final boolean daemon = thread.isDaemon();
+        assertTrue(daemon, thread.getName() + " would keep the JVM alive");
       }
     } finally {
       session.stop();
@@ -574,7 +577,8 @@ final class PlaybackSessionTest {
     final boolean noReports = this.reports.isEmpty();
     assertTrue(noReports, "the picture was never copied: " + this.reports);
     assertEquals(400_000L, position, "the frames still move the position");
-    assertTrue(elapsedNanos >= 350_000_000L, "the frames still keep time, took " + elapsedNanos);
+    final boolean keptTime = elapsedNanos >= 350_000_000L;
+    assertTrue(keptTime, "the frames still keep time, took " + elapsedNanos);
   }
 
   @Test
@@ -609,7 +613,8 @@ final class PlaybackSessionTest {
     final int images = distinct.size();
     final int frameCount = frames.get();
     assertEquals(24, frameCount);
-    assertTrue(images <= 6, "at most as many images as frames can be in flight are allocated, got " + images);
+    final boolean fewImages = images <= 6;
+    assertTrue(fewImages, "at most as many images as frames can be in flight are allocated, got " + images);
   }
 
   @Test
@@ -650,7 +655,8 @@ final class PlaybackSessionTest {
     final int frameCount = frames.get();
     assertEquals(5, frameCount, "every frame is shown");
     assertEquals(400_000L, position, "every frame is one period of 10 frames per second after the previous one");
-    assertTrue(elapsedNanos >= 350_000_000L, "the frames are paced instead of racing by, took " + elapsedNanos);
+    final boolean paced = elapsedNanos >= 350_000_000L;
+    assertTrue(paced, "the frames are paced instead of racing by, took " + elapsedNanos);
   }
 
   @Test
@@ -672,7 +678,8 @@ final class PlaybackSessionTest {
     final long position = session.getPositionMicros();
     final int frameCount = frames.get();
     assertEquals(5, frameCount, "every frame that arrives in real time is shown");
-    assertTrue(position >= 120_000L, "the position follows the time the frames arrived at, got " + position);
+    final boolean followedArrival = position >= 120_000L;
+    assertTrue(followedArrival, "the position follows the time the frames arrived at, got " + position);
   }
 
   /**
@@ -705,7 +712,8 @@ final class PlaybackSessionTest {
         retained::getWidth,
         "the detached frame returns to the pool and is released when rendering ends"
       );
-      assertEquals("Image buffer has been released", released.getMessage());
+      final String message = released.getMessage();
+      assertEquals("Image buffer has been released", message);
     }
 
     final long position = session.getPositionMicros();
@@ -753,7 +761,8 @@ final class PlaybackSessionTest {
     final long elapsed = end - start;
     final int frameCount = frames.get();
     assertEquals(2, frameCount);
-    assertTrue(elapsed < 3_000_000_000L, "a jump of 30 seconds is not waited out");
+    final boolean jumpNotWaited = elapsed < 3_000_000_000L;
+    assertTrue(jumpNotWaited, "a jump of 30 seconds is not waited out");
   }
 
   @Test
@@ -804,7 +813,8 @@ final class PlaybackSessionTest {
     assertTrue(activeBeforeStop);
     assertFalse(activeAfterStop);
     assertEquals(1, frameCount);
-    assertTrue(stopTime < 1_000_000_000L, "stopping interrupts the waiting threads");
+    final boolean stoppedPromptly = stopTime < 1_000_000_000L;
+    assertTrue(stoppedPromptly, "stopping interrupts the waiting threads");
   }
 
   /**
@@ -845,7 +855,8 @@ final class PlaybackSessionTest {
     awaitCondition("the decoder closed its grabber", grabber::isClosed);
     final boolean active = session.isActive();
     assertFalse(active);
-    assertTrue(stopTime < 1_000_000_000L, "the blocked decoder is interrupted, took " + stopTime);
+    final boolean stoppedPromptly = stopTime < 1_000_000_000L;
+    assertTrue(stoppedPromptly, "the blocked decoder is interrupted, took " + stopTime);
   }
 
   /**
@@ -887,7 +898,8 @@ final class PlaybackSessionTest {
     final int frameCount = frames.get();
     assertFalse(active);
     assertTrue(closed, "the decoder finished");
-    assertTrue(stopTime < 1_000_000_000L, "stopping from a filter does not wait for its own thread, took " + stopTime);
+    final boolean stoppedPromptly = stopTime < 1_000_000_000L;
+    assertTrue(stoppedPromptly, "stopping from a filter does not wait for its own thread, took " + stopTime);
     assertEquals(1, frameCount, "frames queued before the stop are discarded");
   }
 
@@ -916,7 +928,8 @@ final class PlaybackSessionTest {
     final boolean closed = grabber.isClosed();
     final long ownStopTime = stopNanos.get();
     assertTrue(closed, "the stop returned while the decoder was still running");
-    assertTrue(ownStopTime >= 0, "the stop returned while the session was still stopping itself");
+    final boolean stoppedEarly = ownStopTime >= 0;
+    assertTrue(stoppedEarly, "the stop returned while the session was still stopping itself");
   }
 
   @Test
@@ -945,7 +958,8 @@ final class PlaybackSessionTest {
     final ScriptedFrameGrabber grabber = spy(ScriptedFrameGrabber.of(lateFailure));
     doAnswer(invocation -> {
       entered.countDown();
-      assertTrue(Uninterruptibles.awaitUninterruptibly(releaseFailure, TIMEOUT_MILLIS, TimeUnit.MILLISECONDS));
+      final boolean released = Uninterruptibles.awaitUninterruptibly(releaseFailure, TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+      assertTrue(released);
       try {
         return invocation.callRealMethod();
       } catch (final FrameGrabber.Exception failure) {
@@ -961,16 +975,22 @@ final class PlaybackSessionTest {
     try {
       session.start();
       awaitCondition("the decoder entered grab or closed", () -> entered.getCount() == 0 || grabber.isClosed());
-      assertEquals(0, entered.getCount(), "the late failure must be in progress before stopping");
+      final long remainingEntries = entered.getCount();
+      assertEquals(0, remainingEntries, "the late failure must be in progress before stopping");
       stopper.start();
       awaitCondition("the session stopped accepting reports", () -> !session.isActive());
       releaseFailure.countDown();
       stopper.join(TIMEOUT_MILLIS);
-      assertFalse(stopper.isAlive(), "stop waited for the decoder");
-      assertEquals(null, stopFailure.get());
-      assertTrue(grabber.isClosed());
-      assertSame(lateFailure, thrown.get(), "the decoder actually threw after stop");
-      assertEquals(0, grabber.getRemainingSteps());
+      final boolean stopperAlive = stopper.isAlive();
+      assertFalse(stopperAlive, "stop waited for the decoder");
+      final Throwable stopThrown = stopFailure.get();
+      assertEquals(null, stopThrown);
+      final boolean grabberClosed = grabber.isClosed();
+      assertTrue(grabberClosed);
+      final Throwable decoderThrown = thrown.get();
+      assertSame(lateFailure, decoderThrown, "the decoder actually threw after stop");
+      final int remainingSteps = grabber.getRemainingSteps();
+      assertEquals(0, remainingSteps);
       assertEquals(List.of(), this.reports);
     } finally {
       releaseFailure.countDown();
@@ -1063,7 +1083,8 @@ final class PlaybackSessionTest {
     final long first = deliveries.getFirst();
     final long second = deliveries.get(1);
     final long gap = second - first;
-    assertTrue(gap < 450_000_000L, "the chunk is handed on ahead of its timestamp, gap " + gap);
+    final boolean handedOnEarly = gap < 450_000_000L;
+    assertTrue(handedOnEarly, "the chunk is handed on ahead of its timestamp, gap " + gap);
   }
 
   @Test
@@ -1076,9 +1097,12 @@ final class PlaybackSessionTest {
     final PlaybackSession session = this.session(factoryOf(grabber), null, this.videoCallback, timing, 0L, false);
     session.start();
     awaitEnd(session);
-    assertEquals(2, deliveredAt.size());
-    assertTrue(deliveredAt.getFirst() < 100_000_000L, "the initial audio needs no timestamp delay");
-    assertTrue(deliveredAt.get(1) >= 100_000_000L, "the 400ms lead leaves 100ms of the 500ms timestamp");
+    final int deliveries = deliveredAt.size();
+    assertEquals(2, deliveries);
+    final boolean initialWithoutDelay = deliveredAt.getFirst() < 100_000_000L;
+    assertTrue(initialWithoutDelay, "the initial audio needs no timestamp delay");
+    final boolean secondDelayed = deliveredAt.get(1) >= 100_000_000L;
+    assertTrue(secondDelayed, "the 400ms lead leaves 100ms of the 500ms timestamp");
   }
 
   @Test

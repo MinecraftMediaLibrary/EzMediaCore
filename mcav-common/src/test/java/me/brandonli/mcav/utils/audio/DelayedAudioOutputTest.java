@@ -107,12 +107,17 @@ class DelayedAudioOutputTest {
     samples[0] = 99;
     this.output.accept(samples, 0);
     waitUntil(() -> this.processed.size() == 1);
-    assertEquals(1, this.processed.getFirst()[0], "the reused buffer of the caller is copied");
+    final byte firstSample = this.processed.getFirst()[0];
+    assertEquals(1, firstSample, "the reused buffer of the caller is copied");
     final OriginalAudioMetadata metadata = this.formats.getFirst();
-    assertEquals(48_000, metadata.getAudioSampleRate());
-    assertEquals(2, metadata.getAudioChannels());
-    assertEquals("pcm_s16le", metadata.getAudioCodec());
-    assertEquals(48_000 * 4 * 8, metadata.getAudioBitrate());
+    final int sampleRate = metadata.getAudioSampleRate();
+    assertEquals(48_000, sampleRate);
+    final int channels = metadata.getAudioChannels();
+    assertEquals(2, channels);
+    final String codec = metadata.getAudioCodec();
+    assertEquals("pcm_s16le", codec);
+    final int bitrate = metadata.getAudioBitrate();
+    assertEquals(48_000 * 4 * 8, bitrate);
   }
 
   @Test
@@ -125,20 +130,24 @@ class DelayedAudioOutputTest {
       chunk[0] = (byte) count;
       this.output.accept(chunk, chunk.length);
     }
-    assertEquals(MAX_BYTES, this.output.getQueuedBytes(), "at most the limit waits");
+    final int queuedBytes = this.output.getQueuedBytes();
+    assertEquals(MAX_BYTES, queuedBytes, "at most the limit waits");
     final byte[] huge = new byte[MAX_BYTES * 3];
     huge[huge.length - MAX_BYTES] = 41;
     huge[huge.length - MAX_BYTES - 4] = 40;
     huge[huge.length - 1] = 42;
     this.output.accept(huge, huge.length);
-    assertEquals(MAX_BYTES, this.output.getQueuedBytes(), "a chunk longer than the limit keeps its newest samples");
+    final int queuedAfterHuge = this.output.getQueuedBytes();
+    assertEquals(MAX_BYTES, queuedAfterHuge, "a chunk longer than the limit keeps its newest samples");
     this.blocking = false;
     this.gate.countDown();
     waitUntil(() -> this.processed.size() == 2);
     final byte[] kept = this.processed.get(1);
     assertEquals(MAX_BYTES, kept.length);
-    assertEquals(41, kept[0], "the kept samples start a whole frame into the newest limit");
-    assertEquals(42, kept[MAX_BYTES - 1]);
+    final byte firstKept = kept[0];
+    assertEquals(41, firstKept, "the kept samples start a whole frame into the newest limit");
+    final byte lastKept = kept[MAX_BYTES - 1];
+    assertEquals(42, lastKept);
   }
 
   @Test
@@ -163,7 +172,8 @@ class DelayedAudioOutputTest {
       failing.accept(new byte[] { 1, 0, 0, 0 }, 4);
       failing.accept(new byte[] { 2, 0, 0, 0 }, 4);
       waitUntil(() -> heard.size() == 1);
-      assertEquals(2, heard.getFirst()[0], "the chunk after the failures still plays");
+      final byte firstHeard = heard.getFirst()[0];
+      assertEquals(2, firstHeard, "the chunk after the failures still plays");
     } finally {
       failing.close();
     }
@@ -199,14 +209,19 @@ class DelayedAudioOutputTest {
     try {
       failing.accept(new byte[] { 1, 0, 0, 0 }, 4);
       failing.accept(new byte[] { 2, 3, 4, 5 }, 4);
-      assertTrue(settled.await(10, TimeUnit.SECONDS), "delivery or an escaped failure must be observed");
-      assertNull(escaped.get(), "a recoverable reporting error must stay inside the delivery boundary");
-      assertArrayEquals(new byte[] { 2, 3, 4, 5 }, heard.get());
-      assertTrue(failing.getThread().isAlive());
+      final boolean observed = settled.await(10, TimeUnit.SECONDS);
+      assertTrue(observed, "delivery or an escaped failure must be observed");
+      final Throwable escapedFailure = escaped.get();
+      assertNull(escapedFailure, "a recoverable reporting error must stay inside the delivery boundary");
+      final byte[] heardSamples = heard.get();
+      assertArrayEquals(new byte[] { 2, 3, 4, 5 }, heardSamples);
+      final boolean alive = failing.getThread().isAlive();
+      assertTrue(alive);
     } finally {
       failing.close();
     }
-    assertFalse(failing.getThread().isAlive());
+    final boolean aliveAfterClose = failing.getThread().isAlive();
+    assertFalse(aliveAfterClose);
   }
 
   @Test
@@ -236,11 +251,15 @@ class DelayedAudioOutputTest {
     try {
       failing.accept(new byte[] { 1, 0, 0, 0 }, 4);
       failing.accept(new byte[] { 2, 0, 0, 0 }, 4);
-      assertTrue(settled.await(10, TimeUnit.SECONDS), "the failure or the next chunk must be observed");
-      assertSame(reportFailure, escaped.get(), "a fatal reporting error must reach the thread's uncaught handler");
-      assertFalse(continued.get(), "a fatal reporting error ends delivery before the next chunk");
+      final boolean observed = settled.await(10, TimeUnit.SECONDS);
+      assertTrue(observed, "the failure or the next chunk must be observed");
+      final Throwable escapedFailure = escaped.get();
+      assertSame(reportFailure, escapedFailure, "a fatal reporting error must reach the thread's uncaught handler");
+      final boolean delivered = continued.get();
+      assertFalse(delivered, "a fatal reporting error ends delivery before the next chunk");
       failing.getThread().join(10_000);
-      assertFalse(failing.getThread().isAlive());
+      final boolean alive = failing.getThread().isAlive();
+      assertFalse(alive);
     } finally {
       failing.close();
     }
@@ -263,26 +282,32 @@ class DelayedAudioOutputTest {
     self.set(closing);
     closing.accept(new byte[4], 4);
     waitUntil(() -> closeNanos.get() >= 0);
-    assertTrue(closeNanos.get() < TimeUnit.SECONDS.toNanos(1), "closed without waiting for its own thread");
+    final boolean closedQuickly = closeNanos.get() < TimeUnit.SECONDS.toNanos(1);
+    assertTrue(closedQuickly, "closed without waiting for its own thread");
     assertEquals(List.of(), this.failures);
   }
 
   @Test
   void shouldRunTheOutputAsADaemonAndDropWhatWaitsWhenClosing() {
-    assertTrue(this.output.getThread().isDaemon(), "the sound never keeps the JVM alive");
-    assertEquals(DelayedAudioOutput.THREAD_NAME, this.output.getThread().getName());
+    final boolean daemon = this.output.getThread().isDaemon();
+    assertTrue(daemon, "the sound never keeps the JVM alive");
+    final String threadName = this.output.getThread().getName();
+    assertEquals(DelayedAudioOutput.THREAD_NAME, threadName);
     this.blocking = true;
     this.output.accept(new byte[4], 4);
     waitUntil(() -> this.output.getQueuedBytes() == 0);
     this.output.accept(new byte[8], 8);
-    assertEquals(8, this.output.getQueuedBytes());
+    final int queuedBytes = this.output.getQueuedBytes();
+    assertEquals(8, queuedBytes);
     final CompletableFuture<Void> released = CompletableFuture.runAsync(
       this.gate::countDown,
       CompletableFuture.delayedExecutor(200, TimeUnit.MILLISECONDS)
     );
     this.output.close();
-    assertFalse(this.output.getThread().isAlive(), "closing waits for the delivery thread");
-    assertEquals(0, this.output.getQueuedBytes(), "a closed output holds no sound");
+    final boolean alive = this.output.getThread().isAlive();
+    assertFalse(alive, "closing waits for the delivery thread");
+    final int queuedAfterClose = this.output.getQueuedBytes();
+    assertEquals(0, queuedAfterClose, "a closed output holds no sound");
     released.join();
   }
 
@@ -311,10 +336,12 @@ class DelayedAudioOutputTest {
       DelayedAudioOutput.SILENCE_MILLIS
     );
     stuck.accept(new byte[4], 4);
-    assertTrue(entered.await(10, TimeUnit.SECONDS), "the pipeline got the samples");
+    final boolean pipelineEntered = entered.await(10, TimeUnit.SECONDS);
+    assertTrue(pipelineEntered, "the pipeline got the samples");
     stuck.close();
     waitUntil(() -> !stuck.getThread().isAlive());
-    assertTrue(interrupted.get(), "the pipeline was asked to let go of the thread");
+    final boolean pipelineInterrupted = interrupted.get();
+    assertTrue(pipelineInterrupted, "the pipeline was asked to let go of the thread");
     assertEquals(List.of(), this.failures);
   }
 
@@ -334,7 +361,8 @@ class DelayedAudioOutputTest {
     );
     this.output.accept(new byte[4], 4);
     Thread.sleep(3L * DELAY_MILLIS);
-    assertEquals(0, this.processed.size(), "not due before the clock passed the delay");
+    final int processedCount = this.processed.size();
+    assertEquals(0, processedCount, "not due before the clock passed the delay");
     now.set(TimeUnit.MILLISECONDS.toNanos(DELAY_MILLIS));
     waitUntil(() -> this.processed.size() == 1);
   }
@@ -392,18 +420,23 @@ class DelayedAudioOutputTest {
     sound[0] = 7;
     quiet.accept(sound, sound.length);
     this.at(now, DELAY_MILLIS, 1);
-    assertEquals(7, this.processed.getFirst()[0], "the sound comes first");
+    final byte firstSample = this.processed.getFirst()[0];
+    assertEquals(7, firstSample, "the sound comes first");
     quiet.quiet();
     this.at(now, 80, 2);
-    assertEquals(3840, this.processed.get(1).length, "20 ms of silence");
-    assertTrue(isSilence(this.processed.get(1)));
+    final int silenceLength = this.processed.get(1).length;
+    assertEquals(3840, silenceLength, "20 ms of silence");
+    final boolean silent = isSilence(this.processed.get(1));
+    assertTrue(silent);
     this.at(now, 100, 3);
     this.at(now, 120, 4);
     now.set(TimeUnit.MILLISECONDS.toNanos(400));
     quiet.accept(new byte[] { 2, 0, 2, 0 }, 4);
     this.at(now, 470, 5);
-    assertEquals(2, this.processed.getLast()[0]);
-    assertEquals(3 * 3840, this.silentBytes(), "60 ms of silence at most, then the stream waits for the sound");
+    final byte lastSample = this.processed.getLast()[0];
+    assertEquals(2, lastSample);
+    final int silentBytes = this.silentBytes();
+    assertEquals(3 * 3840, silentBytes, "60 ms of silence at most, then the stream waits for the sound");
   }
 
   @Test
@@ -419,12 +452,15 @@ class DelayedAudioOutputTest {
     this.at(now, 60, 4);
     this.at(now, 80, 5);
     this.at(now, 100, 6);
-    assertEquals(9, this.processed.getLast()[0], "the sound, right after the silence");
-    assertEquals(100 * 192, this.silentBytes(), "silence up to the sound, and no more");
+    final byte lastSample = this.processed.getLast()[0];
+    assertEquals(9, lastSample, "the sound, right after the silence");
+    final int silentBytes = this.silentBytes();
+    assertEquals(100 * 192, silentBytes, "silence up to the sound, and no more");
     now.set(TimeUnit.MILLISECONDS.toNanos(400));
     quiet.accept(new byte[] { 1, 0, 1, 0 }, 4);
     this.at(now, 470, 7);
-    assertEquals(100 * 192, this.silentBytes());
+    final int silentBytesLater = this.silentBytes();
+    assertEquals(100 * 192, silentBytesLater);
   }
 
   @Test
@@ -437,21 +473,26 @@ class DelayedAudioOutputTest {
     now.set(due - FRAME_NANOS - 1);
     quiet.quiet();
     waitUntil(() -> this.processed.size() == 1);
-    assertArrayEquals(new byte[4], this.processed.getFirst());
+    final byte[] firstChunk = this.processed.getFirst();
+    assertArrayEquals(new byte[4], firstChunk);
     now.set(due);
     waitUntil(() -> this.processed.size() == 2);
-    assertEquals(5, this.processed.get(1)[0], "the samples, then the rest of the silence");
+    final byte secondChunkStart = this.processed.get(1)[0];
+    assertEquals(5, secondChunkStart, "the samples, then the rest of the silence");
     now.set(due + FRAME_NANOS);
     waitUntil(() -> this.processed.size() == 3);
     now.addAndGet(TimeUnit.MILLISECONDS.toNanos(20));
     waitUntil(() -> this.processed.size() == 4);
     now.addAndGet(TimeUnit.MILLISECONDS.toNanos(20));
     waitUntil(() -> this.processed.size() == 5);
-    assertEquals(3836, this.processed.get(4).length, "the last chunk is shorter by the rounding of the first");
+    final int lastChunkLength = this.processed.get(4).length;
+    assertEquals(3836, lastChunkLength, "the last chunk is shorter by the rounding of the first");
     now.addAndGet(TimeUnit.MILLISECONDS.toNanos(20));
     waitUntil(() -> quiet.getThread().getState() == Thread.State.WAITING);
-    assertEquals(5, this.processed.size());
-    assertEquals(60 * 192, this.silentBytes());
+    final int processedCount = this.processed.size();
+    assertEquals(5, processedCount);
+    final int silentBytes = this.silentBytes();
+    assertEquals(60 * 192, silentBytes);
   }
 
   @Test
@@ -469,17 +510,20 @@ class DelayedAudioOutputTest {
     quiet.quiet();
     final int seen = reads.get();
     waitUntil(() -> reads.get() >= seen + 2);
-    assertTrue(this.processed.isEmpty(), "nothing comes before the samples");
+    final boolean nothingProcessed = this.processed.isEmpty();
+    assertTrue(nothingProcessed, "nothing comes before the samples");
     now.set(due);
     waitUntil(() -> this.processed.size() == 1);
-    assertEquals(6, this.processed.getFirst()[0]);
+    final byte firstSample = this.processed.getFirst()[0];
+    assertEquals(6, firstSample);
     now.set(due + FRAME_NANOS);
     waitUntil(() -> this.processed.size() == 2);
     now.addAndGet(TimeUnit.MILLISECONDS.toNanos(20));
     waitUntil(() -> this.processed.size() == 3);
     now.addAndGet(TimeUnit.MILLISECONDS.toNanos(20));
     waitUntil(() -> this.processed.size() == 4);
-    assertEquals(60 * 192, this.silentBytes());
+    final int silentBytes = this.silentBytes();
+    assertEquals(60 * 192, silentBytes);
   }
 
   @Test
@@ -493,16 +537,20 @@ class DelayedAudioOutputTest {
     quiet.accept(new byte[] { 3, 0, 3, 0 }, 4);
     now.set(TimeUnit.MILLISECONDS.toNanos(570));
     waitUntil(() -> this.processed.size() == 1);
-    assertEquals(3, this.processed.getFirst()[0], "no silence was asked for while paused");
+    final byte firstSample = this.processed.getFirst()[0];
+    assertEquals(3, firstSample, "no silence was asked for while paused");
     quiet.quiet();
     quiet.pause();
     now.set(TimeUnit.MILLISECONDS.toNanos(900));
     quiet.accept(new byte[4], 4);
-    assertEquals(0, quiet.getQueuedBytes(), "paused");
-    assertEquals(0, this.silentBytes(), "pausing ends the silence");
+    final int queuedBytes = quiet.getQueuedBytes();
+    assertEquals(0, queuedBytes, "paused");
+    final int silentBytes = this.silentBytes();
+    assertEquals(0, silentBytes, "pausing ends the silence");
     quiet.close();
     quiet.quiet();
-    assertEquals(1, this.processed.size());
+    final int processedCount = this.processed.size();
+    assertEquals(1, processedCount);
   }
 
   @Test
@@ -512,15 +560,18 @@ class DelayedAudioOutputTest {
     waitUntil(() -> this.output.getQueuedBytes() == 0);
     this.output.accept(new byte[8], 8);
     this.output.pause();
-    assertEquals(0, this.output.getQueuedBytes(), "pausing drops what waits");
+    final int queuedAfterPause = this.output.getQueuedBytes();
+    assertEquals(0, queuedAfterPause, "pausing drops what waits");
     this.output.accept(new byte[8], 8);
-    assertEquals(0, this.output.getQueuedBytes(), "and what arrives");
+    final int queuedWhilePaused = this.output.getQueuedBytes();
+    assertEquals(0, queuedWhilePaused, "and what arrives");
     this.output.resume();
     this.output.accept(new byte[] { 5, 0, 5, 0 }, 4);
     this.blocking = false;
     this.gate.countDown();
     waitUntil(() -> this.processed.size() == 2);
-    assertEquals(5, this.processed.get(1)[0]);
+    final byte resumedSample = this.processed.get(1)[0];
+    assertEquals(5, resumedSample);
   }
 
   @Test
@@ -549,30 +600,36 @@ class DelayedAudioOutputTest {
     );
     fatal.accept(new byte[4], 4);
     waitUntil(() -> !fatal.getThread().isAlive());
-    assertEquals(1, this.failures.size(), "an error of the virtual machine ends the thread instead");
+    final int failureCount = this.failures.size();
+    assertEquals(1, failureCount, "an error of the virtual machine ends the thread instead");
   }
 
   @Test
   void shouldEndAClosedOrInterruptedOutput() throws InterruptedException {
     this.output.close();
-    assertFalse(this.output.getThread().isAlive());
+    final boolean closedAlive = this.output.getThread().isAlive();
+    assertFalse(closedAlive);
     this.output.accept(new byte[4], 4);
-    assertEquals(0, this.output.getQueuedBytes());
+    final int queuedBytes = this.output.getQueuedBytes();
+    assertEquals(0, queuedBytes);
     this.output = start(() -> this.step, (message, failure) -> this.failures.add(message));
     final Thread thread = this.output.getThread();
     thread.interrupt();
     thread.join(10_000L);
-    assertFalse(thread.isAlive());
+    final boolean interruptedAlive = thread.isAlive();
+    assertFalse(interruptedAlive);
     final DelayedAudioOutput live = start(() -> this.step, (message, failure) -> this.failures.add(message));
     Thread.currentThread().interrupt();
     try {
       live.close();
-      assertTrue(Thread.currentThread().isInterrupted(), "an interrupted close keeps the interrupt");
+      final boolean interrupted = Thread.currentThread().isInterrupted();
+      assertTrue(interrupted, "an interrupted close keeps the interrupt");
     } finally {
       Thread.interrupted();
     }
     live.getThread().join(10_000L);
-    assertFalse(live.getThread().isAlive());
+    final boolean liveAlive = live.getThread().isAlive();
+    assertFalse(liveAlive);
   }
 
   @Test
@@ -605,9 +662,12 @@ class DelayedAudioOutputTest {
       Deque.class.getMethod("addLast", Object.class).invoke(queue, chunk);
       counterField.setInt(this.output, capacity);
       this.output.accept(new byte[192], 192);
-      assertEquals(192, this.output.getQueuedBytes(), "the oldest chunk must be evicted before the counter wraps");
-      assertEquals(1, ((Deque<?>) queue).size());
-      assertFalse(((Deque<?>) queue).contains(chunk));
+      final int queuedBytes = this.output.getQueuedBytes();
+      assertEquals(192, queuedBytes, "the oldest chunk must be evicted before the counter wraps");
+      final int queueSize = ((Deque<?>) queue).size();
+      assertEquals(1, queueSize);
+      final boolean containsChunk = ((Deque<?>) queue).contains(chunk);
+      assertFalse(containsChunk);
     }
   }
 
@@ -618,7 +678,8 @@ class DelayedAudioOutputTest {
     final IllegalArgumentException tooLong = assertThrows(IllegalArgumentException.class, () ->
       DelayedAudioOutput.start("a source", 0, 11_184_811, pipeline, ignored)
     );
-    assertEquals("At most 11184810 ms of sound may wait, but 11184811 ms were asked for", tooLong.getMessage());
+    final String tooLongMessage = tooLong.getMessage();
+    assertEquals("At most 11184810 ms of sound may wait, but 11184811 ms were asked for", tooLongMessage);
     final DelayedAudioOutput longest = DelayedAudioOutput.start("a source", 0, 11_184_810, pipeline, ignored);
     try {
       longest.accept(new byte[] { 7, 0, 7, 0 }, 4);
@@ -635,11 +696,13 @@ class DelayedAudioOutputTest {
     final IllegalArgumentException negative = assertThrows(IllegalArgumentException.class, () ->
       DelayedAudioOutput.start("a source", -1, 10, pipeline, ignored)
     );
-    assertEquals("The delay must not be negative but was -1", negative.getMessage());
+    final String negativeMessage = negative.getMessage();
+    assertEquals("The delay must not be negative but was -1", negativeMessage);
     final IllegalArgumentException full = assertThrows(IllegalArgumentException.class, () ->
       DelayedAudioOutput.start("a source", 10, 10, pipeline, ignored)
     );
-    assertEquals("At most 10 ms may wait, which leaves no room past the delay of 10 ms", full.getMessage());
+    final String fullMessage = full.getMessage();
+    assertEquals("At most 10 ms may wait, which leaves no room past the delay of 10 ms", fullMessage);
     assertThrows(NullPointerException.class, () -> DelayedAudioOutput.start(null, 0, 1, pipeline, ignored));
     assertThrows(NullPointerException.class, () -> DelayedAudioOutput.start("a source", 0, 1, null, ignored));
     assertThrows(NullPointerException.class, () -> DelayedAudioOutput.start("a source", 0, 1, pipeline, null));
@@ -647,9 +710,11 @@ class DelayedAudioOutputTest {
     try {
       immediate.accept(new byte[] { 7, 0, 7, 0 }, 4);
       waitUntil(() -> this.processed.size() == 1);
-      assertEquals(7, this.processed.getFirst()[0], "no delay hands the samples over at once");
+      final byte firstSample = this.processed.getFirst()[0];
+      assertEquals(7, firstSample, "no delay hands the samples over at once");
       immediate.accept(new byte[400], 400);
-      assertTrue(immediate.getQueuedBytes() <= 192, "1 ms holds 48 frames of 4 bytes");
+      final boolean withinOneMillisecond = immediate.getQueuedBytes() <= 192;
+      assertTrue(withinOneMillisecond, "1 ms holds 48 frames of 4 bytes");
     } finally {
       immediate.close();
     }

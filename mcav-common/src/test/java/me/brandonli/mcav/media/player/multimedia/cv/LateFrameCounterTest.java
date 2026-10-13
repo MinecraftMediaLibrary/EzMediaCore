@@ -138,6 +138,7 @@ final class LateFrameCounterTest {
       System.setErr(standardError);
     }
     final String log = captured.toString(StandardCharsets.UTF_8);
-    assertTrue(log.contains("Playback falls behind: 301 of the last 302 frames came too late to show"), log);
+    final boolean reported = log.contains("Playback falls behind: 301 of the last 302 frames came too late to show");
+    assertTrue(reported, log);
   }
 }

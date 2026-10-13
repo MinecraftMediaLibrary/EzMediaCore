@@ -229,7 +229,8 @@ final class RenderThreadTest {
     final boolean cleaned = cleanedUp.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertTrue(stepStarted);
     assertTrue(callerInterrupted, "the interrupt of the caller is kept");
-    assertTrue(elapsedMillis < 1_000L, "an interrupted caller does not wait, took " + elapsedMillis);
+    final boolean returnedQuickly = elapsedMillis < 1_000L;
+    assertTrue(returnedQuickly, "an interrupted caller does not wait, took " + elapsedMillis);
     assertTrue(cleaned);
   }
 

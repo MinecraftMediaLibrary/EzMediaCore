@@ -232,9 +232,11 @@ final class VLCInstallationValidationTest {
     assertEquals(Optional.of(directory), valid);
     Files.writeString(coreTarget, "");
     final Optional<Path> empty = strategy.getInstalledPath();
-    assertTrue(empty.isEmpty());
+    final boolean emptyMissing = empty.isEmpty();
+    assertTrue(emptyMissing);
     Files.delete(coreTarget);
     final Optional<Path> broken = strategy.getInstalledPath();
-    assertTrue(broken.isEmpty());
+    final boolean brokenMissing = broken.isEmpty();
+    assertTrue(brokenMissing);
   }
 }

@@ -131,7 +131,8 @@ final class NetworkUtilsTest {
     this.http.respondStalling("/ip", 200, "203.0".getBytes(StandardCharsets.US_ASCII), 11);
     final URI service = this.http.uri("/ip");
     final Optional<String> address = assertTimeoutPreemptively(Duration.ofSeconds(9), () -> NetworkUtils.lookUpPublicAddress(service));
-    assertTrue(address.isEmpty());
+    final boolean empty = address.isEmpty();
+    assertTrue(empty);
   }
 
   @Test
@@ -139,7 +140,8 @@ final class NetworkUtilsTest {
     final byte[] padded = (" ".repeat(300) + "203.0.113.7").getBytes(StandardCharsets.US_ASCII);
     this.http.respond("/padded", 200, padded);
     final Optional<String> address = NetworkUtils.lookUpPublicAddress(this.http.uri("/padded"));
-    assertTrue(address.isEmpty(), "an address is a few dozen characters");
+    final boolean empty = address.isEmpty();
+    assertTrue(empty, "an address is a few dozen characters");
   }
 
   @Test

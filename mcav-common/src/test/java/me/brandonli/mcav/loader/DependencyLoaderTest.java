@@ -100,15 +100,18 @@ final class DependencyLoaderTest {
     final DependencyLoader loader = new DependencyLoader();
     assertDoesNotThrow(() -> loader.loadModules());
     // OpenCV's own pool would outlive every player, a thread per processor but one, named after the first caller
-    assertEquals(1, opencv_core.getNumThreads());
+    final int threads = opencv_core.getNumThreads();
+    assertEquals(1, threads);
     opencv_core.setNumThreads(5);
     assertDoesNotThrow(() -> loader.loadModules());
-    assertEquals(1, opencv_core.getNumThreads(), "loading the natives sets OpenCV's threads");
+    final int threadsAfterReload = opencv_core.getNumThreads();
+    assertEquals(1, threadsAfterReload, "loading the natives sets OpenCV's threads");
     final String previous = System.getProperty(DependencyLoader.OPENCV_THREADS_PROPERTY);
     try {
       System.setProperty(DependencyLoader.OPENCV_THREADS_PROPERTY, "3");
       DependencyLoader.configureOpenCvThreads();
-      assertEquals(3, opencv_core.getNumThreads());
+      final int configuredThreads = opencv_core.getNumThreads();
+      assertEquals(3, configuredThreads);
     } finally {
       if (previous == null) {
         System.clearProperty(DependencyLoader.OPENCV_THREADS_PROPERTY);
@@ -182,8 +185,11 @@ final class DependencyLoaderTest {
     assertDoesNotThrow(() -> DependencyLoader.loadFFmpeg(loader, configured::incrementAndGet));
     final NoClassDefFoundError again = assertThrows(NoClassDefFoundError.class, loader::run);
     assertDoesNotThrow(() -> DependencyLoader.loadFFmpeg(loader, configured::incrementAndGet));
-    assertEquals(2, configured.get());
-    assertTrue(Throwables.getStackTraceAsString(again).contains("no jniavdevice"), again::toString);
+    final int configuredCount = configured.get();
+    assertEquals(2, configuredCount);
+    final String stackTrace = Throwables.getStackTraceAsString(again);
+    final boolean namesTheLibrary = stackTrace.contains("no jniavdevice");
+    assertTrue(namesTheLibrary, again::toString);
   }
 
   @Test
@@ -198,7 +204,8 @@ final class DependencyLoaderTest {
         () -> configured.set(true)
       )
     );
-    assertTrue(configured.get(), "FFmpeg is configured without the device library");
+    final boolean configuredWithoutDevice = configured.get();
+    assertTrue(configuredWithoutDevice, "FFmpeg is configured without the device library");
   }
 
   @Test
@@ -207,9 +214,13 @@ final class DependencyLoaderTest {
     codecClass.initCause(new ExceptionInInitializerError("Exception java.lang.UnsatisfiedLinkError: no jniavcodec"));
     final AtomicBoolean configured = new AtomicBoolean();
     final NativeLoadingException failure = loadFFmpegFailingWith(codecClass, configured);
-    assertSame(codecClass, failure.getCause());
-    assertTrue(failure.getMessage().contains("Could not initialize class avcodec"), failure.getMessage());
-    assertFalse(configured.get(), "FFmpeg that failed to load is not configured");
+    final Throwable cause = failure.getCause();
+    assertSame(codecClass, cause);
+    final String message = failure.getMessage();
+    final boolean namesTheClass = message.contains("Could not initialize class avcodec");
+    assertTrue(namesTheClass, failure.getMessage());
+    final boolean configuredAfterFailure = configured.get();
+    assertFalse(configuredAfterFailure, "FFmpeg that failed to load is not configured");
   }
 
   @Test
@@ -291,7 +302,8 @@ final class DependencyLoaderTest {
         );
         older.start();
         try {
-          assertTrue(entered.await(10, TimeUnit.SECONDS));
+          final boolean enteredInTime = entered.await(10, TimeUnit.SECONDS);
+          assertTrue(enteredInTime);
           older.interrupt();
           prepareProgram(loader, capability, () -> {
             if (!latestSucceeds) {
@@ -299,11 +311,14 @@ final class DependencyLoaderTest {
             }
           });
           finish.countDown();
-          assertTrue(older.join(Duration.ofSeconds(10)));
-          assertEquals(latestSucceeds, loader.hasCapability(capability), capability + " keeps the newest preparation outcome");
+          final boolean olderEnded = older.join(Duration.ofSeconds(10));
+          assertTrue(olderEnded);
+          final boolean capable = loader.hasCapability(capability);
+          assertEquals(latestSucceeds, capable, capability + " keeps the newest preparation outcome");
         } finally {
           finish.countDown();
-          assertTrue(older.join(Duration.ofSeconds(10)));
+          final boolean ended = older.join(Duration.ofSeconds(10));
+          assertTrue(ended);
         }
       }
     }
@@ -343,15 +358,21 @@ final class DependencyLoaderTest {
     loader.loadFaceDetection(() -> {
       throw new UnsatisfiedLinkError("no libgtk-x11-2.0");
     });
-    assertFalse(loader.hasCapability(Capability.VLC));
-    assertFalse(loader.hasCapability(Capability.YT_DLP));
-    assertFalse(loader.hasCapability(Capability.FACE_DETECTION));
+    final boolean vlcBeforeRetry = loader.hasCapability(Capability.VLC);
+    assertFalse(vlcBeforeRetry);
+    final boolean ytdlpBeforeRetry = loader.hasCapability(Capability.YT_DLP);
+    assertFalse(ytdlpBeforeRetry);
+    final boolean faceDetectionBeforeRetry = loader.hasCapability(Capability.FACE_DETECTION);
+    assertFalse(faceDetectionBeforeRetry);
     loader.installVLC(() -> Optional.of(Path.of("vlc")));
     loader.installYTDLP(installer);
     loader.loadFaceDetection(() -> {});
-    assertTrue(loader.hasCapability(Capability.VLC));
-    assertTrue(loader.hasCapability(Capability.YT_DLP));
-    assertTrue(loader.hasCapability(Capability.FACE_DETECTION));
+    final boolean vlcAfterRetry = loader.hasCapability(Capability.VLC);
+    assertTrue(vlcAfterRetry);
+    final boolean ytdlpAfterRetry = loader.hasCapability(Capability.YT_DLP);
+    assertTrue(ytdlpAfterRetry);
+    final boolean faceDetectionAfterRetry = loader.hasCapability(Capability.FACE_DETECTION);
+    assertTrue(faceDetectionAfterRetry);
   }
 
   @Test

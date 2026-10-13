@@ -129,7 +129,8 @@ final class AudioResamplerTest {
 
   private static void assertWithin(final int expected, final int actual, final int tolerance) {
     final int difference = Math.abs(expected - actual);
-    assertTrue(difference <= tolerance, "expected " + expected + " +- " + tolerance + " but was " + actual);
+    final boolean withinTolerance = difference <= tolerance;
+    assertTrue(withinTolerance, "expected " + expected + " +- " + tolerance + " but was " + actual);
   }
 
   private static AudioResampler pipelineIdentity() {
@@ -174,7 +175,8 @@ final class AudioResamplerTest {
       final byte[] remaining = resampler.flush();
       final byte[] whole = concat(converted, remaining);
       final short[] mono = toShorts(whole);
-      assertEquals(0, whole.length % Short.BYTES);
+      final int leftoverBytes = whole.length % Short.BYTES;
+      assertEquals(0, leftoverBytes);
       assertWithin(SPEECH_RATE, mono.length, 1);
     }
   }
@@ -227,8 +229,10 @@ final class AudioResamplerTest {
       final byte[] remaining = resampler.flush();
       final int convertedFrames = converted.length / Short.BYTES;
       final int remainingFrames = remaining.length / Short.BYTES;
-      assertTrue(convertedFrames < 1_600, "the resampler must hold back look-ahead samples");
-      assertTrue(remainingFrames > 0, "flush must return the held back samples");
+      final boolean heldBack = convertedFrames < 1_600;
+      assertTrue(heldBack, "the resampler must hold back look-ahead samples");
+      final boolean anyHeldBack = remainingFrames > 0;
+      assertTrue(anyHeldBack, "flush must return the held back samples");
       assertWithin(1_600, convertedFrames + remainingFrames, 1);
     }
   }
@@ -284,7 +288,8 @@ final class AudioResamplerTest {
         final short[] samples = toShorts(converted);
         final int loudest = peak(samples, 0, samples.length);
         assertEquals(2 * channels, samples.length, "channels: " + channels);
-        assertTrue(loudest <= 8_000, "channels: " + channels + ", peak: " + loudest);
+        final boolean quiet = loudest <= 8_000;
+        assertTrue(quiet, "channels: " + channels + ", peak: " + loudest);
       }
     }
   }

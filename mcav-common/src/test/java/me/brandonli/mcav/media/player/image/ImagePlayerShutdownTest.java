@@ -70,7 +70,8 @@ final class ImagePlayerShutdownTest {
       final Long releaseNanos = elapsed.get();
       final Boolean firstRelease = released.get();
       assertNotNull(releaseNanos);
-      assertTrue(releaseNanos < 1_000_000_000L, "self release must not spend two seconds joining itself");
+      final boolean releasedQuickly = releaseNanos < 1_000_000_000L;
+      assertTrue(releasedQuickly, "self release must not spend two seconds joining itself");
       assertEquals(true, firstRelease);
       final Thread thread = worker.get();
       assertNotNull(thread);

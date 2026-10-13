@@ -80,7 +80,8 @@ final class FramePixelsBoundsTest {
     try (final Frame frame = new Frame()) {
       frame.image = new Buffer[] { ByteBuffer.allocate(0) };
       final ByteBuffer copied = FramePixels.copyBgr(frame);
-      assertEquals(0, copied.remaining());
+      final int copiedBytes = copied.remaining();
+      assertEquals(0, copiedBytes);
     }
   }
 }

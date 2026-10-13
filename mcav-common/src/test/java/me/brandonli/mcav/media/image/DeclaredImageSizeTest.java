@@ -158,7 +158,8 @@ final class DeclaredImageSizeTest {
     try (final BytePointer pointer = new BytePointer(encoded); final Mat wrapper = new Mat(pointer)) {
       final Mat decoded = opencv_imgcodecs.imdecode(wrapper, opencv_imgcodecs.IMREAD_COLOR);
       try {
-        assertFalse(decoded.empty(), "OpenCV decodes the sample");
+        final boolean empty = decoded.empty();
+        assertFalse(empty, "OpenCV decodes the sample");
         return new Size(decoded.cols(), decoded.rows());
       } finally {
         decoded.release();
@@ -169,12 +170,14 @@ final class DeclaredImageSizeTest {
   private static void assertDeclaresWhatOpenCvDecodes(final String name, final byte[] encoded) {
     final Size decoded = decodedByOpenCv(encoded);
     final Size declared = read(encoded);
-    assertEquals(sizeOf(decoded), sizeOf(declared), name);
+    final String declaredSize = sizeOf(declared);
+    assertEquals(sizeOf(decoded), declaredSize, name);
     final long pixels = decoded.width() * decoded.height();
     assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(encoded, pixels), name);
     final long below = Math.max(1, pixels - 1);
     final boolean refusedBelow = pixels > 1;
-    assertEquals(refusedBelow, refuses(encoded, below), name);
+    final boolean refused = refuses(encoded, below);
+    assertEquals(refusedBelow, refused, name);
   }
 
   private static boolean refuses(final byte[] encoded, final long limit) {
@@ -239,13 +242,15 @@ final class DeclaredImageSizeTest {
   void shouldDeclareTheSizeOpenCvDecodesForLosslessWebpAndTextNetpbm() {
     try (final Mat picture = new Mat(7, 5, opencv_core.CV_8UC1, new Scalar(90)); final BytePointer output = new BytePointer()) {
       try (final IntPointer lossless = new IntPointer(opencv_imgcodecs.IMWRITE_WEBP_QUALITY, 101)) {
-        assertTrue(opencv_imgcodecs.imencode(".webp", picture, output, lossless));
+        final boolean encoded = opencv_imgcodecs.imencode(".webp", picture, output, lossless);
+        assertTrue(encoded);
       }
       final byte[] webp = new byte[(int) output.limit()];
       output.get(webp);
       assertDeclaresWhatOpenCvDecodes("lossless webp", webp);
       try (final IntPointer text = new IntPointer(opencv_imgcodecs.IMWRITE_PXM_BINARY, 0)) {
-        assertTrue(opencv_imgcodecs.imencode(".pgm", picture, output, text));
+        final boolean encoded = opencv_imgcodecs.imencode(".pgm", picture, output, text);
+        assertTrue(encoded);
       }
       final byte[] pgm = new byte[(int) output.limit()];
       output.get(pgm);
@@ -259,7 +264,8 @@ final class DeclaredImageSizeTest {
       final Mat picture = new Mat(2, 300, opencv_core.CV_8UC3, new Scalar(10, 200, 30, 0));
       final BytePointer output = new BytePointer()
     ) {
-      assertTrue(opencv_imgcodecs.imencode(".jpg", picture, output));
+      final boolean encoded = opencv_imgcodecs.imencode(".jpg", picture, output);
+      assertTrue(encoded);
       final byte[] jpeg = new byte[(int) output.limit()];
       output.get(jpeg);
       final int decoy = 4 + (((jpeg[2] & 0xFF) << 8) | (jpeg[3] & 0xFF));
@@ -279,7 +285,8 @@ final class DeclaredImageSizeTest {
     final Path folder = Path.of(seeds.toURI());
     try (final Stream<Path> files = Files.list(folder)) {
       final List<Path> samples = files.sorted().toList();
-      assertEquals(10, samples.size());
+      final int sampleCount = samples.size();
+      assertEquals(10, sampleCount);
       for (final Path sample : samples) {
         assertDeclaresWhatOpenCvDecodes(sample.getFileName().toString(), Files.readAllBytes(sample));
       }
@@ -305,7 +312,8 @@ final class DeclaredImageSizeTest {
       writer.dispose();
     }
     final byte[] bmp = output.toByteArray();
-    assertTrue(bmp[25] < 0, "the height of a top-down BMP is negative");
+    final boolean negativeHeight = bmp[25] < 0;
+    assertTrue(negativeHeight, "the height of a top-down BMP is negative");
     assertDeclaresWhatOpenCvDecodes("top-down bmp", bmp);
   }
 
@@ -570,7 +578,8 @@ final class DeclaredImageSizeTest {
   @MethodSource("declaredSizes")
   void shouldReadTheSizeTheHeaderDeclares(final String name, final byte[] encoded, final long width, final long height) {
     final Size size = read(encoded);
-    assertEquals(width + "x" + height, sizeOf(size), name);
+    final String declaredSize = sizeOf(size);
+    assertEquals(width + "x" + height, declaredSize, name);
   }
 
   static Stream<Arguments> unreadableHeaders() {
@@ -713,11 +722,13 @@ final class DeclaredImageSizeTest {
   @ParameterizedTest
   @MethodSource("unreadableHeaders")
   void shouldRefuseBytesWhoseHeaderItCannotRead(final String name, final byte[] encoded) {
-    assertNull(read(encoded), name);
+    final Size declared = read(encoded);
+    assertNull(declared, name);
     final IllegalArgumentException refused = assertThrows(IllegalArgumentException.class, () ->
       DeclaredImageSize.checkBytes(encoded, 1L << 40)
     );
-    assertEquals("Bytes are not a supported image format", refused.getMessage(), name);
+    final String message = refused.getMessage();
+    assertEquals("Bytes are not a supported image format", message, name);
   }
 
   @Test
@@ -732,7 +743,8 @@ final class DeclaredImageSizeTest {
       littleEndian(2, 8),
       entries
     );
-    assertEquals("30000x20000", sizeOf(read(bigTiff)));
+    final String declaredSize = sizeOf(read(bigTiff));
+    assertEquals("30000x20000", declaredSize);
   }
 
   @Test
@@ -741,9 +753,10 @@ final class DeclaredImageSizeTest {
     final IllegalArgumentException refused = assertThrows(IllegalArgumentException.class, () ->
       DeclaredImageSize.checkBytes(header, 599_999_999)
     );
+    final String message = refused.getMessage();
     assertEquals(
       "Image declares 30000x20000 pixels, more than the 599999999 pixels mcav decodes (the system property mcav.image.maxPixels raises the limit)",
-      refused.getMessage()
+      message
     );
     assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(header, 600_000_000));
     final byte[] huge = bytes(0x89, "PNG\r\n", 0x1A, "\n", bigEndian(13, 4), "IHDR", bigEndian(4294967295L, 4), bigEndian(4294967295L, 4));
@@ -766,22 +779,27 @@ final class DeclaredImageSizeTest {
     Files.write(file, png);
     assertDoesNotThrow(() -> DeclaredImageSize.checkFile(file, 256));
     final IllegalArgumentException tooLarge = assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(file, 255));
-    assertTrue(tooLarge.getMessage().startsWith("Image declares 16x16 pixels"), tooLarge.getMessage());
+    final boolean namesTheSize = tooLarge.getMessage().startsWith("Image declares 16x16 pixels");
+    assertTrue(namesTheSize, tooLarge.getMessage());
     final Path text = this.directory.resolve("text.png");
     Files.writeString(text, "not an image");
     final IllegalArgumentException unsupported = assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(text, 256));
-    assertEquals("File is not a supported image: " + text, unsupported.getMessage());
+    final String unsupportedMessage = unsupported.getMessage();
+    assertEquals("File is not a supported image: " + text, unsupportedMessage);
     final Path empty = this.directory.resolve("empty.png");
     Files.write(empty, new byte[0]);
     assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(empty, 256));
     final Path missing = this.directory.resolve("missing.png");
     final IllegalArgumentException absent = assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(missing, 256));
-    assertEquals("File is not a supported image: " + missing, absent.getMessage());
-    assertInstanceOf(NoSuchFileException.class, absent.getCause());
+    final String absentMessage = absent.getMessage();
+    assertEquals("File is not a supported image: " + missing, absentMessage);
+    final Throwable absentCause = absent.getCause();
+    assertInstanceOf(NoSuchFileException.class, absentCause);
     final IllegalArgumentException folder = assertThrows(IllegalArgumentException.class, () ->
       DeclaredImageSize.checkFile(this.directory, 256)
     );
-    assertInstanceOf(IOException.class, folder.getCause());
+    final Throwable folderCause = folder.getCause();
+    assertInstanceOf(IOException.class, folderCause);
   }
 
   @Test
@@ -789,11 +807,14 @@ final class DeclaredImageSizeTest {
     final String previous = System.getProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
     try {
       System.clearProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
-      assertEquals(67_108_864L, DeclaredImageSize.limit());
+      final long defaultLimit = DeclaredImageSize.limit();
+      assertEquals(67_108_864L, defaultLimit);
       System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, "123");
-      assertEquals(123L, DeclaredImageSize.limit());
+      final long raisedLimit = DeclaredImageSize.limit();
+      assertEquals(123L, raisedLimit);
       System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, "a lot");
-      assertEquals(67_108_864L, DeclaredImageSize.limit());
+      final long fallbackLimit = DeclaredImageSize.limit();
+      assertEquals(67_108_864L, fallbackLimit);
       final byte[] unknown = bytes("not an image");
       System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, "0");
       assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(unknown));
@@ -811,10 +832,12 @@ final class DeclaredImageSizeTest {
   @Test
   void shouldTreatOnlyCWhitespaceAsSpace() {
     for (final int code : new int[] { ' ', '\t', '\n', 0x0B, '\f', '\r' }) {
-      assertTrue(DeclaredImageSize.isSpace(code), Integer.toString(code));
+      final boolean space = DeclaredImageSize.isSpace(code);
+      assertTrue(space, Integer.toString(code));
     }
     for (final int code : new int[] { -1, 0, 0x08, 0x0E, 0x1C, 'a', 0xA0 }) {
-      assertFalse(DeclaredImageSize.isSpace(code), Integer.toString(code));
+      final boolean space = DeclaredImageSize.isSpace(code);
+      assertFalse(space, Integer.toString(code));
     }
   }
 

@@ -161,10 +161,13 @@ final class YTDLPParserImplTest {
     assertEquals("many", dump.id);
     assertEquals(21, actual.length);
     for (int index = 0; index < options.length; index++) {
-      assertEquals(options[index], actual[7 + index]);
+      final String option = actual[7 + index];
+      assertEquals(options[index], option);
     }
-    assertEquals("--", actual[19]);
-    assertEquals(URL, actual[20]);
+    final String separator = actual[19];
+    assertEquals("--", separator);
+    final String url = actual[20];
+    assertEquals(URL, url);
   }
 
   @Test

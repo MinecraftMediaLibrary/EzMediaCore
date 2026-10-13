@@ -40,7 +40,8 @@ final class KeyUtilsFuzzTest {
 
     final int typedLength = typed.length();
     final int replacedLength = replaced.length();
-    assertTrue(replacedLength <= typedLength, () -> "'" + typed + "' grew to '" + replaced + "'");
+    final boolean notLonger = replacedLength <= typedLength;
+    assertTrue(notLonger, () -> "'" + typed + "' grew to '" + replaced + "'");
     final boolean braces = typed.indexOf('{') >= 0;
     if (!braces) {
       assertEquals(typed, replaced, "a text without braces stays as it is");

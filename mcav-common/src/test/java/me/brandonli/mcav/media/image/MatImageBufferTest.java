@@ -97,9 +97,12 @@ final class MatImageBufferTest {
       assertEquals(2, width);
       assertEquals(2, height);
       assertEquals(4, count);
-      assertEquals(0x33, data.get(0) & 0xFF, "blue comes first");
-      assertEquals(0x22, data.get(1) & 0xFF);
-      assertEquals(0x11, data.get(2) & 0xFF);
+      final int blue = data.get(0) & 0xFF;
+      assertEquals(0x33, blue, "blue comes first");
+      final int green = data.get(1) & 0xFF;
+      assertEquals(0x22, green);
+      final int red = data.get(2) & 0xFF;
+      assertEquals(0x11, red);
       assertArrayEquals(new double[] { 0x66, 0x55, 0x44 }, pixel);
     }
   }
@@ -149,7 +152,8 @@ final class MatImageBufferTest {
       assertEquals(0xFFFF0000, red);
     }
     final IllegalArgumentException empty = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.bytes(new byte[0]));
-    assertEquals("Encoded image must not be empty", empty.getMessage());
+    final String emptyMessage = empty.getMessage();
+    assertEquals("Encoded image must not be empty", emptyMessage);
     assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.bytes(new byte[] { 1, 2, 3 }));
     assertThrowsWhileOpening(NullPointerException.class, () -> ImageBuffer.bytes(null));
   }
@@ -200,9 +204,11 @@ final class MatImageBufferTest {
     System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, "255");
     try {
       final IllegalArgumentException fromBytes = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.bytes(png));
-      assertEquals(expected, fromBytes.getMessage());
+      final String bytesMessage = fromBytes.getMessage();
+      assertEquals(expected, bytesMessage);
       final IllegalArgumentException fromFile = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.path(path));
-      assertEquals(expected, fromFile.getMessage());
+      final String fileMessage = fromFile.getMessage();
+      assertEquals(expected, fileMessage);
       System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, "256");
       try (final ImageBuffer atTheLimit = ImageBuffer.bytes(png); final ImageBuffer fileAtTheLimit = ImageBuffer.path(path)) {
         final int width = atTheLimit.getWidth();
@@ -252,9 +258,10 @@ final class MatImageBufferTest {
     System.clearProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
     try {
       final IllegalArgumentException refused = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.bytes(header));
+      final String message = refused.getMessage();
       assertEquals(
         "Image declares 65535x65535 pixels, more than the 67108864 pixels mcav decodes (the system property mcav.image.maxPixels raises the limit)",
-        refused.getMessage()
+        message
       );
     } finally {
       restoreMaxPixels(previous);
@@ -267,12 +274,14 @@ final class MatImageBufferTest {
     final IllegalArgumentException fromBytes = assertThrowsWhileOpening(IllegalArgumentException.class, () ->
       ImageBuffer.bytes(headerOnly)
     );
-    assertEquals("Bytes are not a supported image format", fromBytes.getMessage());
+    final String bytesMessage = fromBytes.getMessage();
+    assertEquals("Bytes are not a supported image format", bytesMessage);
     final Path file = this.directory.resolve("header-only.ppm");
     Files.write(file, headerOnly);
     final FileSource path = FileSource.path(file);
     final IllegalArgumentException fromFile = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.path(path));
-    assertEquals("File is not a supported image: " + file, fromFile.getMessage());
+    final String fileMessage = fromFile.getMessage();
+    assertEquals("File is not a supported image: " + file, fileMessage);
   }
 
   private static void restoreMaxPixels(final @Nullable String previous) {

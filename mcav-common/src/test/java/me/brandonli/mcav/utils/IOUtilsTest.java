@@ -133,7 +133,8 @@ final class IOUtilsTest {
     }
     final int single = IOUtils.findFreePort(probePort, probePort);
     assertEquals(probePort, single, "a range of one port includes that port");
-    assertTrue(found > firstFree && found <= firstFree + 100, "the occupied port is skipped, got " + found);
+    final boolean skipped = found > firstFree && found <= firstFree + 100;
+    assertTrue(skipped, "the occupied port is skipped, got " + found);
   }
 
   @Test
@@ -333,7 +334,8 @@ final class IOUtilsTest {
     final Path archive = this.writeZip("folder/", "x".repeat(1 << 16));
     final Path destination = this.directory.resolve("extracted");
     final ZipEntryIntegrityException refused = assertThrows(ZipEntryIntegrityException.class, () -> IOUtils.unzip(archive, destination));
-    assertEquals("Zip directory entry carries data: folder/", refused.getMessage());
+    final String message = refused.getMessage();
+    assertEquals("Zip directory entry carries data: folder/", message);
   }
 
   @Test
@@ -507,7 +509,8 @@ final class IOUtilsTest {
     final long written = firstSize + secondSize;
     final String message = failure.getMessage();
     assertEquals(20_000, firstSize);
-    assertTrue(written <= totalLimit, "bytes written across entries: " + written);
+    final boolean withinTotal = written <= totalLimit;
+    assertTrue(withinTotal, "bytes written across entries: " + written);
     assertEquals("Total extracted size exceeds the limit", message);
   }
 
@@ -522,7 +525,8 @@ final class IOUtilsTest {
     final Path extracted = destination.resolve("large.txt");
     final long written = Files.size(extracted);
     final String message = failure.getMessage();
-    assertTrue(written <= 100_000, "the cumulative entry limit applies before writing each chunk");
+    final boolean withinEntryLimit = written <= 100_000;
+    assertTrue(withinEntryLimit, "the cumulative entry limit applies before writing each chunk");
     assertEquals("Zip entry exceeds the maximum size: large.txt", message);
   }
 
@@ -592,8 +596,10 @@ final class IOUtilsTest {
         Files.write(truncated, Arrays.copyOf(archiveBytes, retained));
         final Path destination = this.directory.resolve("truncated-output");
         final UncheckedIOException failure = assertThrows(UncheckedIOException.class, () -> IOUtils.unzip(truncated, destination));
-        assertInstanceOf(ZipException.class, failure.getCause());
-        assertEquals("Truncated zip archive: " + truncated, failure.getMessage());
+        final Throwable cause = failure.getCause();
+        assertInstanceOf(ZipException.class, cause);
+        final String message = failure.getMessage();
+        assertEquals("Truncated zip archive: " + truncated, message);
       }
     }
   }
@@ -610,8 +616,10 @@ final class IOUtilsTest {
     final Path truncated = this.directory.resolve("comment-truncated.zip");
     Files.write(truncated, Arrays.copyOf(bytes, bytes.length - 1));
     final UncheckedIOException failure = assertThrows(UncheckedIOException.class, () -> IOUtils.unzip(truncated, destination));
-    assertInstanceOf(ZipException.class, failure.getCause());
-    assertEquals("Truncated zip archive: " + truncated, failure.getMessage());
+    final Throwable cause = failure.getCause();
+    assertInstanceOf(ZipException.class, cause);
+    final String message = failure.getMessage();
+    assertEquals("Truncated zip archive: " + truncated, message);
   }
 
   @Test

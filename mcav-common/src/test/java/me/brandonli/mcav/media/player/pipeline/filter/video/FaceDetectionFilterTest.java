@@ -86,7 +86,8 @@ final class FaceDetectionFilterTest {
       ) {
         opencv_imgproc.cvtColor(((MatImageBuffer) image).getMat(), gray, opencv_imgproc.COLOR_BGR2GRAY);
         detector.detectMultiScale(gray, rectangles);
-        assertTrue(rectangles.size() > 0, "the fixture must produce detections");
+        final boolean hasDetections = rectangles.size() > 0;
+        assertTrue(hasDetections, "the fixture must produce detections");
         for (long index = 0; index < rectangles.size(); index++) {
           final Rect rectangle = rectangles.get(index);
           final int left = rectangle.x();

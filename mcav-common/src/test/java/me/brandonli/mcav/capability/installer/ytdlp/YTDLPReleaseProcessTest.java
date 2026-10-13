@@ -49,7 +49,8 @@ final class YTDLPReleaseProcessTest {
       new InputStream() {
         @Override
         public int read() {
-          assertNotSame(caller, Thread.currentThread(), "stdout must not block the deadline waiter");
+          final Thread readingThread = Thread.currentThread();
+          assertNotSame(caller, readingThread, "stdout must not block the deadline waiter");
           return -1;
         }
 
@@ -62,7 +63,8 @@ final class YTDLPReleaseProcessTest {
     final AssertionFailedError failure = assertThrows(AssertionFailedError.class, () ->
       YTDLPReleaseTest.runVersion(process, Duration.ofMillis(250))
     );
-    assertTrue(failure.getMessage().startsWith("yt-dlp --version did not finish"), failure.getMessage());
+    final boolean didNotFinish = failure.getMessage().startsWith("yt-dlp --version did not finish");
+    assertTrue(didNotFinish, failure.getMessage());
   }
 
   @Test
@@ -73,12 +75,15 @@ final class YTDLPReleaseProcessTest {
         final AssertionFailedError failure = assertThrows(AssertionFailedError.class, () ->
           YTDLPReleaseTest.runVersion(process, Duration.ofMillis(250))
         );
-        assertTrue(failure.getMessage().startsWith("yt-dlp --version did not finish"));
-        assertFalse(process.isAlive(), "the deadline must reap its child");
+        final boolean didNotFinish = failure.getMessage().startsWith("yt-dlp --version did not finish");
+        assertTrue(didNotFinish);
+        final boolean alive = process.isAlive();
+        assertFalse(alive, "the deadline must reap its child");
       });
     } finally {
       process.destroyForcibly();
-      assertTrue(process.waitFor(10, TimeUnit.SECONDS));
+      final boolean exited = process.waitFor(10, TimeUnit.SECONDS);
+      assertTrue(exited);
     }
   }
 
@@ -86,11 +91,14 @@ final class YTDLPReleaseProcessTest {
   void shouldReturnTheCompleteVersionOutput() throws Exception {
     final Process process = startChild("version");
     try {
-      assertEquals("2026.08.19", YTDLPReleaseTest.runVersion(process, Duration.ofSeconds(10)));
-      assertFalse(process.isAlive());
+      final String version = YTDLPReleaseTest.runVersion(process, Duration.ofSeconds(10));
+      assertEquals("2026.08.19", version);
+      final boolean alive = process.isAlive();
+      assertFalse(alive);
     } finally {
       process.destroyForcibly();
-      assertTrue(process.waitFor(10, TimeUnit.SECONDS));
+      final boolean exited = process.waitFor(10, TimeUnit.SECONDS);
+      assertTrue(exited);
     }
   }
 
@@ -105,7 +113,8 @@ final class YTDLPReleaseProcessTest {
     final AssertionFailedError failure = assertThrows(AssertionFailedError.class, () ->
       YTDLPReleaseTest.runVersion(process, Duration.ofMillis(250))
     );
-    assertTrue(failure.getMessage().startsWith("yt-dlp --version did not finish"));
+    final boolean didNotFinish = failure.getMessage().startsWith("yt-dlp --version did not finish");
+    assertTrue(didNotFinish);
   }
 
   @Test
@@ -123,8 +132,10 @@ final class YTDLPReleaseProcessTest {
     );
     when(process.waitFor(10, TimeUnit.SECONDS)).thenReturn(true);
     assertThrows(AssertionFailedError.class, () -> YTDLPReleaseTest.runVersion(process, Duration.ofMillis(250)));
-    assertNotSame(caller, closer.get(), "closing stdout must not block the deadline waiter");
-    assertTrue(closer.get() != null, "the drain still owns closing stdout");
+    final Thread closingThread = closer.get();
+    assertNotSame(caller, closingThread, "closing stdout must not block the deadline waiter");
+    final boolean closed = closer.get() != null;
+    assertTrue(closed, "the drain still owns closing stdout");
   }
 
   private static Process startChild(final String mode) throws IOException, URISyntaxException {

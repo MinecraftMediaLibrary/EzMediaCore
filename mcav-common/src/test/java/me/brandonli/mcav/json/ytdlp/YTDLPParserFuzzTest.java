@@ -94,8 +94,10 @@ final class YTDLPParserFuzzTest {
         continue;
       }
       final Format format = picked.get();
-      assertTrue(dump.formats != null && dump.formats.contains(format), "a strategy picks a stream of the metadata");
-      assertTrue(strategy.accepts().test(format), "a strategy picks only a stream it accepts");
+      final boolean listed = dump.formats != null && dump.formats.contains(format);
+      assertTrue(listed, "a strategy picks a stream of the metadata");
+      final boolean accepted = strategy.accepts().test(format);
+      assertTrue(accepted, "a strategy picks only a stream it accepts");
       try {
         format.toUriSource();
       } catch (final IllegalStateException | IllegalArgumentException refused) {

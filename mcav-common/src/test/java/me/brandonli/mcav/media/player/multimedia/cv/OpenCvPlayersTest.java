@@ -173,7 +173,8 @@ final class OpenCvPlayersTest {
     final int[] result = playTestVideo(null);
     final int frames = result[0];
     final int width = result[1];
-    assertTrue(frames > 10, "frames " + frames);
+    final boolean decoded = frames > 10;
+    assertTrue(decoded, "frames " + frames);
     assertEquals(TestMedia.VIDEO_WIDTH, width);
 
     final OpenCVPlayer openCv = new OpenCVPlayer();
@@ -186,7 +187,8 @@ final class OpenCvPlayersTest {
     final int[] result = playTestVideo(size);
     final int frames = result[0];
     final int width = result[1];
-    assertTrue(frames > 10, "frames " + frames);
+    final boolean decoded = frames > 10;
+    assertTrue(decoded, "frames " + frames);
     assertEquals(160, width, "the frames arrive at the attached size, whether the reader scales them or the pipeline does");
   }
 

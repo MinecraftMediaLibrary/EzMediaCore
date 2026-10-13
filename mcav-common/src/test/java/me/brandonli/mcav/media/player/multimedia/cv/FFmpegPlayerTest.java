@@ -196,9 +196,12 @@ final class FFmpegPlayerTest {
       assertTrue(started);
       assertTrue(noErrors, "errors: " + this.errors);
       assertEquals(150, frameCount, "neverDropLateFrames must deliver every frame of the generated 5-second 30-fps file");
-      assertTrue(frameRate > 24.0 && frameRate < 36.0, "the frames are paced at about 30 per second, got " + frameRate);
-      assertTrue(seconds > 4.5, "playback runs in real time, not faster, took " + seconds);
-      assertTrue(bytes > 900_000 && bytes < 1_000_000, "five seconds of 48 kHz stereo, got " + bytes);
+      final boolean pacedAtThirty = frameRate > 24.0 && frameRate < 36.0;
+      assertTrue(pacedAtThirty, "the frames are paced at about 30 per second, got " + frameRate);
+      final boolean realTime = seconds > 4.5;
+      assertTrue(realTime, "playback runs in real time, not faster, took " + seconds);
+      final boolean fiveSecondsOfAudio = bytes > 900_000 && bytes < 1_000_000;
+      assertTrue(fiveSecondsOfAudio, "five seconds of 48 kHz stereo, got " + bytes);
       assertEquals(expectedSizes, distinctSizes, "every frame has the size of the video");
     }
   }
@@ -315,7 +318,8 @@ final class FFmpegPlayerTest {
       final boolean noErrors = errors.isEmpty();
       assertTrue(started);
       assertEquals(0, frameCount);
-      assertTrue(bytes > 300_000, "audio " + bytes);
+      final boolean audioPlayed = bytes > 300_000;
+      assertTrue(audioPlayed, "audio " + bytes);
       assertTrue(noErrors, "audio files must play: " + errors);
     } finally {
       player.release();
@@ -337,7 +341,8 @@ final class FFmpegPlayerTest {
       final int frameCount = frames.get();
       final int lastWidth = width.get();
       assertTrue(started);
-      assertTrue(frameCount > 20, "frames " + frameCount);
+      final boolean framesPlayed = frameCount > 20;
+      assertTrue(framesPlayed, "frames " + frameCount);
       assertEquals(64, lastWidth);
     } finally {
       player.release();

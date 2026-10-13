@@ -192,13 +192,17 @@ final class AudioExtractorTest {
       final FileSource source = FileSource.path(this.directory.resolve("input.wav"));
       final IOException thrown = assertThrows(IOException.class, () -> AudioExtractor.extractOggVorbis(source));
       assertSame(failure, thrown);
-      assertEquals(cleanupFails, Files.exists(partial.get()), "only a cleanup failure can leave the unowned partial output");
+      final boolean partialLeft = Files.exists(partial.get());
+      assertEquals(cleanupFails, partialLeft, "only a cleanup failure can leave the unowned partial output");
       final Throwable[] expectedFailures = cleanupFails && !sameFailure ? new Throwable[] { cleanupFailure } : new Throwable[0];
-      assertArrayEquals(expectedFailures, failure.getSuppressed());
-      assertEquals("existing audio", Files.readString(existing));
+      final Throwable[] suppressedFailures = failure.getSuppressed();
+      assertArrayEquals(expectedFailures, suppressedFailures);
+      final String existingText = Files.readString(existing);
+      assertEquals("existing audio", existingText);
       if (!cleanupFails) {
         try (final Stream<Path> cacheFiles = Files.list(cache)) {
-          assertEquals(List.of(existing), cacheFiles.toList());
+          final List<Path> cachedFiles = cacheFiles.toList();
+          assertEquals(List.of(existing), cachedFiles);
         }
       }
     }

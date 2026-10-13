@@ -98,7 +98,8 @@ final class CommandTaskDeadlineTest {
     final boolean cancelled = pending.isCancelled();
     assertInstanceOf(TimeoutException.class, cause);
     assertTrue(cancelled);
-    assertTrue(elapsed < 1_000_000_000L, "the output wait uses the command deadline");
+    final boolean withinDeadline = elapsed < 1_000_000_000L;
+    assertTrue(withinDeadline, "the output wait uses the command deadline");
   }
 
   @Test
@@ -138,9 +139,12 @@ final class CommandTaskDeadlineTest {
     assertThrows(IOException.class, () -> task.awaitCompletion(finished, output, errors, timeout));
     final long first = firstBudget.get();
     final long second = secondBudget.get();
-    assertTrue(first > 0L);
-    assertTrue(second > 0L);
-    assertTrue(second < first, "reading stderr must not start a fresh timeout");
+    final boolean firstPositive = first > 0L;
+    assertTrue(firstPositive);
+    final boolean secondPositive = second > 0L;
+    assertTrue(secondPositive);
+    final boolean budgetShrank = second < first;
+    assertTrue(budgetShrank, "reading stderr must not start a fresh timeout");
   }
 
   private static String javaExecutable() {
@@ -169,7 +173,8 @@ final class CommandTaskDeadlineTest {
       final boolean pidWritten = Files.exists(childPid);
       assertInstanceOf(TimeoutException.class, cause);
       assertTrue(pidWritten, "the parent must reach the inherited-pipe fixture before timing out");
-      assertTrue(elapsed < 8_000_000_000L, "reader executor teardown must not wait for the 30-second child");
+      final boolean beforeChildEnded = elapsed < 8_000_000_000L;
+      assertTrue(beforeChildEnded, "reader executor teardown must not wait for the 30-second child");
       final String pidText = Files.readString(childPid);
       final long pid = Long.parseLong(pidText);
       final ProcessHandle child = ProcessHandle.of(pid).orElse(null);

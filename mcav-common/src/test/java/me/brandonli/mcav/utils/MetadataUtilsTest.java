@@ -79,7 +79,8 @@ final class MetadataUtilsTest {
         final OriginalVideoMetadata actual = MetadataUtils.parseVideoMetadata(source);
         assertEquals(OriginalVideoMetadata.of(16, 8, 12_345, 24.0f), actual);
       }
-      assertEquals(30, frames.get(), "the probe includes its last allowed frame and stops there");
+      final int probedFrames = frames.get();
+      assertEquals(30, probedFrames, "the probe includes its last allowed frame and stops there");
       final FFmpegFrameGrabber grabber = grabbers.constructed().getFirst();
       verify(grabber, times(30)).grabFrame();
       verify(grabber).close();
@@ -104,9 +105,11 @@ final class MetadataUtilsTest {
       })
     ) {
       if (audio) {
-        assertEquals(OriginalAudioMetadata.of("fixture-codec", 96_000, 48_000, 2, 1), MetadataUtils.parseAudioMetadata(source));
+        final OriginalAudioMetadata actual = MetadataUtils.parseAudioMetadata(source);
+        assertEquals(OriginalAudioMetadata.of("fixture-codec", 96_000, 48_000, 2, 1), actual);
       } else {
-        assertEquals(OriginalVideoMetadata.of(16, 8, 12_345, 24.0f), MetadataUtils.parseVideoMetadata(source));
+        final OriginalVideoMetadata actual = MetadataUtils.parseVideoMetadata(source);
+        assertEquals(OriginalVideoMetadata.of(16, 8, 12_345, 24.0f), actual);
       }
       final FFmpegFrameGrabber grabber = grabbers.constructed().getFirst();
       verify(grabber, never()).grabFrame();
@@ -126,7 +129,8 @@ final class MetadataUtilsTest {
           MetadataUtils.parseVideoMetadata(source);
         }
       });
-      assertEquals("Source " + source.getResource() + " has no " + (audio ? "audio" : "video") + " track", failure.getMessage());
+      final String message = failure.getMessage();
+      assertEquals("Source " + source.getResource() + " has no " + (audio ? "audio" : "video") + " track", message);
       final FFmpegFrameGrabber grabber = grabbers.constructed().getFirst();
       verify(grabber).grabFrame();
       verify(grabber).close();

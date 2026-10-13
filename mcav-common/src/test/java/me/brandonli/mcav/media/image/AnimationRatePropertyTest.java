@@ -61,7 +61,8 @@ final class AnimationRatePropertyTest {
   void noUsableRateOrTimestampStillProducesAPlayableDefault(@ForAll("unusableReportedRates") final double reported) {
     final float rate = DynamicImageBufferImpl.resolveFrameRate(reported, 1, 0, 0);
     assertEquals(10.0f, rate);
-    assertTrue(rate > 0 && Float.isFinite(rate));
+    final boolean positiveAndFinite = rate > 0 && Float.isFinite(rate);
+    assertTrue(positiveAndFinite);
   }
 
   @Provide

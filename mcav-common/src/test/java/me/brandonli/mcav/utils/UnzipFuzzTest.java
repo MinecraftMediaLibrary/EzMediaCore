@@ -77,8 +77,10 @@ final class UnzipFuzzTest {
     final Stream<Path> escaped = created.filter(path -> !before.contains(path) && !path.startsWith(destination));
     final List<Path> outside = escaped.toList();
     assertEquals(List.of(), outside, "something was written outside the destination");
-    assertTrue(after.containsAll(before), "preexisting paths survive extraction");
-    assertArrayEquals(archiveBytes, Files.readAllBytes(archive), "extraction preserves the original archive");
+    final boolean survived = after.containsAll(before);
+    assertTrue(survived, "preexisting paths survive extraction");
+    final byte[] archiveAfter = Files.readAllBytes(archive);
+    assertArrayEquals(archiveBytes, archiveAfter, "extraction preserves the original archive");
   }
 
   private static List<Path> listTree(final Path directory) throws IOException {

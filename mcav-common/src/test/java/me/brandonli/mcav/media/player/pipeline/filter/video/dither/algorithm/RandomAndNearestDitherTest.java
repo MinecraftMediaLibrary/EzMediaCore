@@ -87,7 +87,8 @@ final class RandomAndNearestDitherTest {
     final byte[] secondIndices = dither(second, pixels, 64);
     final double ratio = DitherTestImages.whiteRatio(firstIndices);
     assertArrayEquals(firstIndices, secondIndices);
-    assertTrue(ratio > 0.4 && ratio < 0.6, "ratio " + ratio);
+    final boolean halfWhite = ratio > 0.4 && ratio < 0.6;
+    assertTrue(halfWhite, "ratio " + ratio);
   }
 
   @Test
@@ -132,7 +133,8 @@ final class RandomAndNearestDitherTest {
   void shouldReportAMissingImageBeforeReadingItsPixelsWhenRandomDithering() {
     final RandomDitherImpl random = new RandomDitherImpl(DitherTestImages.BLACK_WHITE, 0);
     final NullPointerException missingImage = assertThrows(NullPointerException.class, () -> random.ditherIntoBytes(null));
-    assertEquals("Image must not be null", missingImage.getMessage());
+    final String message = missingImage.getMessage();
+    assertEquals("Image must not be null", message);
   }
 
   @Test
@@ -224,10 +226,14 @@ final class RandomAndNearestDitherTest {
     final int[] pixels = DitherTestImages.gradient(128, 64);
     final NearestDither nearest = new NearestDitherImpl(DitherTestImages.BLACK_WHITE);
     final byte[] indices = dither(nearest, pixels, 128);
-    assertEquals(0, indices[0]);
-    assertEquals(0, indices[63], "126 is darker than the middle between black and white");
-    assertEquals(1, indices[64], "128 is brighter than the middle");
-    assertEquals(1, indices[127]);
+    final byte firstIndex = indices[0];
+    assertEquals(0, firstIndex);
+    final byte darkerIndex = indices[63];
+    assertEquals(0, darkerIndex, "126 is darker than the middle between black and white");
+    final byte brighterIndex = indices[64];
+    assertEquals(1, brighterIndex, "128 is brighter than the middle");
+    final byte lastIndex = indices[127];
+    assertEquals(1, lastIndex);
   }
 
   @Test
@@ -262,8 +268,10 @@ final class RandomAndNearestDitherTest {
     }
     final NullPointerException missingImage = assertThrows(NullPointerException.class, () -> nearest.ditherIntoBytes(null));
     final NullPointerException missingParallelImage = assertThrows(NullPointerException.class, () -> nearest.ditherIntoBytes(null, pool));
-    assertEquals("Image must not be null", missingImage.getMessage());
-    assertEquals("Image must not be null", missingParallelImage.getMessage());
+    final String message = missingImage.getMessage();
+    assertEquals("Image must not be null", message);
+    final String parallelMessage = missingParallelImage.getMessage();
+    assertEquals("Image must not be null", parallelMessage);
   }
 
   @Test
@@ -304,7 +312,8 @@ final class RandomAndNearestDitherTest {
       assertEquals(drawn, sameFlag);
     }
 
-    assertFalse(Arrays.equals(firstSequence, otherSequence), "different seeds differ at the same positions");
+    final boolean sameSequence = Arrays.equals(firstSequence, otherSequence);
+    assertFalse(sameSequence, "different seeds differ at the same positions");
     final int firstNext = first.nextInt(0, Integer.MAX_VALUE);
     final int otherNext = other.nextInt(0, Integer.MAX_VALUE);
     assertNotEquals(firstNext, otherNext, "another seed produces another sequence");
@@ -321,14 +330,17 @@ final class RandomAndNearestDitherTest {
       final int value = provider.nextInt(-2, 3);
       final double fraction = provider.nextDouble(1.0, 2.0);
       final boolean drawn = provider.nextBoolean();
-      assertTrue(value >= -2 && value < 3);
-      assertTrue(fraction >= 1.0 && fraction < 2.0);
+      final boolean valueInRange = value >= -2 && value < 3;
+      assertTrue(valueInRange);
+      final boolean fractionInRange = fraction >= 1.0 && fraction < 2.0;
+      assertTrue(fractionInRange);
       sawMinimum |= value == -2;
       sawMaximum |= value == 2;
       sawTrue |= drawn;
       sawFalse |= !drawn;
     }
-    assertTrue(sawMinimum && sawMaximum && sawTrue && sawFalse);
+    final boolean reachedEveryOutcome = sawMinimum && sawMaximum && sawTrue && sawFalse;
+    assertTrue(reachedEveryOutcome);
   }
 
   @Test
@@ -346,7 +358,8 @@ final class RandomAndNearestDitherTest {
       final double value = provider.nextDouble(-Double.MAX_VALUE, Double.MAX_VALUE);
       final boolean finite = Double.isFinite(value);
       assertTrue(finite);
-      assertTrue(value >= -Double.MAX_VALUE && value < Double.MAX_VALUE);
+      final boolean inRange = value >= -Double.MAX_VALUE && value < Double.MAX_VALUE;
+      assertTrue(inRange);
     }
   }
 

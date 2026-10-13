@@ -80,7 +80,8 @@ final class VLCReleaseTest {
   private static String fetchChecksum(final HttpClient client, final String url) throws IOException, InterruptedException {
     final HttpRequest request = HttpRequest.newBuilder(URI.create(url)).timeout(TIMEOUT).build();
     final HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-    assertEquals(HTTP_OK, response.statusCode(), url);
+    final int statusCode = response.statusCode();
+    assertEquals(HTTP_OK, statusCode, url);
     final String body = response.body().strip();
     return body.split("\\s+", 2)[0];
   }
@@ -94,7 +95,8 @@ final class VLCReleaseTest {
     System.out.println("VLC installed from " + installer.getUrl() + " into " + libraries);
     final String output = runProbe(folder, TestMedia.video());
     System.out.println(output);
-    assertTrue(output.contains(VLCPlaybackProbe.PASSED), output);
+    final boolean passed = output.contains(VLCPlaybackProbe.PASSED);
+    assertTrue(passed, output);
   }
 
   private static String runProbe(final Path folder, final Path video) throws IOException, InterruptedException {
@@ -125,7 +127,8 @@ final class VLCReleaseTest {
     drain.join(TimeUnit.SECONDS.toMillis(10));
     final String text = output.toString(StandardCharsets.UTF_8);
     assertTrue(exited, "the playback JVM finished in time: " + text);
-    assertEquals(0, process.exitValue(), text);
+    final int exitValue = process.exitValue();
+    assertEquals(0, exitValue, text);
     return text;
   }
 

@@ -40,8 +40,10 @@ final class PlaybackClockTest {
     final long first = clock.dueAt(5_000_000L);
     final long second = clock.dueAt(5_500_000L);
     final long after = System.nanoTime();
-    assertTrue(first >= before);
-    assertTrue(first <= after, "the first timestamp is due now");
+    final boolean notEarly = first >= before;
+    assertTrue(notEarly);
+    final boolean dueNow = first <= after;
+    assertTrue(dueNow, "the first timestamp is due now");
     assertEquals(first + 500_000_000L, second, "later media is due correspondingly later");
   }
 
@@ -52,8 +54,10 @@ final class PlaybackClockTest {
     final long beforeJump = System.nanoTime();
     final long afterForwardJump = clock.dueAt(60_000_000L);
     final long afterBackwardJump = clock.dueAt(0L);
-    assertTrue(afterForwardJump - beforeJump < 1_000_000_000L, "a jump ahead does not wait a minute");
-    assertTrue(afterBackwardJump >= afterForwardJump, "a jump back does not rush through the media");
+    final boolean forwardJumpIsDueSoon = afterForwardJump - beforeJump < 1_000_000_000L;
+    assertTrue(forwardJumpIsDueSoon, "a jump ahead does not wait a minute");
+    final boolean backwardJumpIsNotRushed = afterBackwardJump >= afterForwardJump;
+    assertTrue(backwardJumpIsNotRushed, "a jump back does not rush through the media");
   }
 
   @Test
@@ -64,8 +68,10 @@ final class PlaybackClockTest {
     final long before = System.nanoTime();
     final long due = clock.dueAt(1_000_000L);
     final long after = System.nanoTime();
-    assertTrue(due >= before, "the next timestamp is due now");
-    assertTrue(due <= after, "and not one second after the forgotten anchor");
+    final boolean notEarly = due >= before;
+    assertTrue(notEarly, "the next timestamp is due now");
+    final boolean dueNow = due <= after;
+    assertTrue(dueNow, "and not one second after the forgotten anchor");
   }
 
   @Test
@@ -87,23 +93,28 @@ final class PlaybackClockTest {
     final long shift = due - anchored - 100_000_000L;
     assertTrue(paused);
     assertTrue(resumed);
-    assertTrue(shift >= 65_000_000L, "the whole pause of 70 ms is added to the schedule, shift " + shift);
-    assertTrue(shift <= afterResume - beforePause, "only the paused time is added, shift " + shift);
+    final boolean wholePauseAdded = shift >= 65_000_000L;
+    assertTrue(wholePauseAdded, "the whole pause of 70 ms is added to the schedule, shift " + shift);
+    final boolean onlyPauseAdded = shift <= afterResume - beforePause;
+    assertTrue(onlyPauseAdded, "only the paused time is added, shift " + shift);
   }
 
   @Test
   void shouldPreserveTheRemainingMediaDelayWhenSchedulingDuringAPause() {
     final AtomicLong now = new AtomicLong();
     final PlaybackClock clock = new PlaybackClock(now::get);
-    assertEquals(0L, clock.dueAt(0L));
+    final long anchor = clock.dueAt(0L);
+    assertEquals(0L, anchor);
     now.set(100_000_000L);
     clock.pause();
     now.set(3_100_000_000L);
     clock.dueAt(500_000L);
-    assertTrue(clock.isPaused());
+    final boolean paused = clock.isPaused();
+    assertTrue(paused);
     now.set(3_200_000_000L);
     clock.resume();
-    assertEquals(3_600_000_000L, clock.dueAt(500_000L), "the pending frame keeps its remaining 400ms");
+    final long due = clock.dueAt(500_000L);
+    assertEquals(3_600_000_000L, due, "the pending frame keeps its remaining 400ms");
   }
 
   @Test
@@ -113,10 +124,12 @@ final class PlaybackClockTest {
     clock.pause();
     now.set(1_000_000_000L);
     clock.dueAt(0L);
-    assertTrue(clock.isPaused());
+    final boolean paused = clock.isPaused();
+    assertTrue(paused);
     now.set(1_500_000_000L);
     clock.resume();
-    assertEquals(1_500_000_000L, clock.dueAt(0L), "time before the first frame is not added twice");
+    final long due = clock.dueAt(0L);
+    assertEquals(1_500_000_000L, due, "time before the first frame is not added twice");
   }
 
   @Test
@@ -156,10 +169,13 @@ final class PlaybackClockTest {
     final long pausedStart = System.nanoTime();
     clock.awaitResume(30L);
     final long paused = System.nanoTime() - pausedStart;
-    assertTrue(running < 1_000_000_000L);
+    final boolean runningDidNotWait = running < 1_000_000_000L;
+    assertTrue(runningDidNotWait);
     final boolean stillPaused = clock.isPaused();
-    assertTrue(paused >= 25_000_000L, "a paused clock waits the timeout, waited " + paused);
-    assertTrue(paused < 2_000_000_000L, "but not much longer, waited " + paused);
+    final boolean waitedTheTimeout = paused >= 25_000_000L;
+    assertTrue(waitedTheTimeout, "a paused clock waits the timeout, waited " + paused);
+    final boolean waitedNotMuchLonger = paused < 2_000_000_000L;
+    assertTrue(waitedNotMuchLonger, "but not much longer, waited " + paused);
     assertTrue(stillPaused);
   }
 
@@ -180,20 +196,27 @@ final class PlaybackClockTest {
   void shouldPlayFasterAndSlowerFromTheMediaDueNow() {
     final AtomicLong now = new AtomicLong(1_000_000_000L);
     final PlaybackClock clock = new PlaybackClock(now::get);
-    assertEquals(PlaybackClock.NORMAL_SPEED, clock.getSpeed());
+    final double initialSpeed = clock.getSpeed();
+    assertEquals(PlaybackClock.NORMAL_SPEED, initialSpeed);
     clock.setSpeed(2);
-    assertEquals(2, clock.getSpeed());
-    assertEquals(1_000_000_000L, clock.dueAt(0L));
-    assertEquals(1_500_000_000L, clock.dueAt(1_000_000L));
+    final double doubledSpeed = clock.getSpeed();
+    assertEquals(2, doubledSpeed);
+    final long anchor = clock.dueAt(0L);
+    assertEquals(1_000_000_000L, anchor);
+    final long fasterDue = clock.dueAt(1_000_000L);
+    assertEquals(1_500_000_000L, fasterDue);
     now.set(1_250_000_000L);
     clock.setSpeed(0.5);
-    assertEquals(1_250_000_000L, clock.dueAt(500_000L));
-    assertEquals(1_450_000_000L, clock.dueAt(600_000L));
+    final long changedDue = clock.dueAt(500_000L);
+    assertEquals(1_250_000_000L, changedDue);
+    final long slowerDue = clock.dueAt(600_000L);
+    assertEquals(1_450_000_000L, slowerDue);
     assertThrows(IllegalArgumentException.class, () -> clock.setSpeed(0));
     assertThrows(IllegalArgumentException.class, () -> clock.setSpeed(-1));
     assertThrows(IllegalArgumentException.class, () -> clock.setSpeed(Double.NaN));
     assertThrows(IllegalArgumentException.class, () -> clock.setSpeed(Double.POSITIVE_INFINITY));
-    assertEquals(0.5, clock.getSpeed());
+    final double halvedSpeed = clock.getSpeed();
+    assertEquals(0.5, halvedSpeed);
   }
 
   @Test
@@ -201,10 +224,12 @@ final class PlaybackClockTest {
     final AtomicLong now = new AtomicLong(100_000_000L);
     final PlaybackClock clock = new PlaybackClock(now::get);
     clock.setSpeed(2);
-    assertEquals(100_000_000L, clock.dueAt(0L));
+    final long anchor = clock.dueAt(0L);
+    assertEquals(100_000_000L, anchor);
     now.set(350_000_000L);
     clock.setSpeed(0.5);
-    assertEquals(550_000_000L, clock.dueAt(600_000L));
+    final long slowerDue = clock.dueAt(600_000L);
+    assertEquals(550_000_000L, slowerDue);
   }
 
   @Test
@@ -218,8 +243,10 @@ final class PlaybackClockTest {
     clock.setSpeed(2);
     now.set(1_000_000_000L);
     clock.resume();
-    assertEquals(1_000_000_000L, clock.dueAt(400_000L));
-    assertEquals(1_100_000_000L, clock.dueAt(600_000L));
+    final long resumedDue = clock.dueAt(400_000L);
+    assertEquals(1_000_000_000L, resumedDue);
+    final long fasterDue = clock.dueAt(600_000L);
+    assertEquals(1_100_000_000L, fasterDue);
   }
 
   @Test

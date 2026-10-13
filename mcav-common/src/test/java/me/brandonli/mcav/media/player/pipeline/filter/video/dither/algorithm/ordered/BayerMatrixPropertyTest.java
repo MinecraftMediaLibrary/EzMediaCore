@@ -67,7 +67,8 @@ final class BayerMatrixPropertyTest {
 
     assertEquals(size, matrix.length, "rows");
     for (int row = 0; row < size; row++) {
-      assertEquals(size, matrix[row].length, "columns");
+      final int columnCount = matrix[row].length;
+      assertEquals(size, columnCount, "columns");
       for (int column = 0; column < size; column++) {
         final int threshold = matrix[row][column];
         final int expected = closedForm(column, row, bits);
@@ -76,7 +77,8 @@ final class BayerMatrixPropertyTest {
         assertEquals(expected, threshold, () -> "threshold at " + cellColumn + "," + cellRow + " of the " + size + "x" + size + " matrix");
         final boolean inRange = threshold >= 0 && threshold < size * size;
         assertTrue(inRange, "thresholds rank the cells from 0");
-        assertFalse(seen[threshold], "every threshold appears once");
+        final boolean seenBefore = seen[threshold];
+        assertFalse(seenBefore, "every threshold appears once");
         seen[threshold] = true;
       }
     }
@@ -109,7 +111,8 @@ final class BayerMatrixPropertyTest {
       for (int column = 0; column < size; column++) {
         expected[column] = generated[row][column] + 1;
       }
-      assertArrayEquals(expected, entries[row], "row " + row + " of the " + size + "x" + size + " constant");
+      final int[] entryRow = entries[row];
+      assertArrayEquals(expected, entryRow, "row " + row + " of the " + size + "x" + size + " constant");
     }
   }
 }

@@ -170,6 +170,7 @@ final class DynamicImageBufferTest {
     final float noTimestamps = DynamicImageBufferImpl.resolveFrameRate(0.0, 3, 0L, 0L);
     assertEquals(10.0f, singleFrame);
     assertEquals(10.0f, noTimestamps);
-    assertTrue(singleFrame > 0);
+    final boolean positive = singleFrame > 0;
+    assertTrue(positive);
   }
 }

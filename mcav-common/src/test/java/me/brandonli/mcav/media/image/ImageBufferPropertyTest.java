@@ -111,11 +111,13 @@ final class ImageBufferPropertyTest {
       assertEquals(argb.length, pixels.length, "one pixel per pixel");
       for (int pixel = 0; pixel < argb.length; pixel++) {
         final int expected = argb[pixel] | 0xFF000000;
-        assertEquals(expected, pixels[pixel], "pixel " + pixel + " is its color, opaque");
+        final int opaquePixel = pixels[pixel];
+        assertEquals(expected, opaquePixel, "pixel " + pixel + " is its color, opaque");
         final int blue = bgr[pixel * CHANNELS] & 0xFF;
         final int green = bgr[pixel * CHANNELS + 1] & 0xFF;
         final int red = bgr[pixel * CHANNELS + 2] & 0xFF;
-        assertEquals(expected & 0xFFFFFF, (red << 16) | (green << 8) | blue, "pixel " + pixel + " as blue, green, red");
+        final int storedColor = (red << 16) | (green << 8) | blue;
+        assertEquals(expected & 0xFFFFFF, storedColor, "pixel " + pixel + " as blue, green, red");
       }
     } finally {
       buffer.release();
@@ -149,7 +151,8 @@ final class ImageBufferPropertyTest {
       final int[] after = original.getPixels();
       for (int pixel = 0; pixel < changed.length; pixel++) {
         final int expected = changed[pixel] | 0xFF000000;
-        assertEquals(expected, after[pixel], "the image shows its new pixels");
+        final int afterPixel = after[pixel];
+        assertEquals(expected, afterPixel, "the image shows its new pixels");
       }
     } finally {
       copy.release();
@@ -177,7 +180,8 @@ final class ImageBufferPropertyTest {
         final int green = written[pixel * CHANNELS + 1] & 0xFF;
         final int red = written[pixel * CHANNELS + 2] & 0xFF;
         final int expected = 0xFF000000 | (red << 16) | (green << 8) | blue;
-        assertEquals(expected, pixels[pixel], "pixel " + pixel + " shows what was written through the view");
+        final int shownPixel = pixels[pixel];
+        assertEquals(expected, shownPixel, "pixel " + pixel + " shows what was written through the view");
       }
     } finally {
       buffer.release();

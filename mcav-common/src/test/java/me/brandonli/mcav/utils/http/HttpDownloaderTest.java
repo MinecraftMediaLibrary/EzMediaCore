@@ -212,7 +212,8 @@ final class HttpDownloaderTest {
       final boolean written = Files.exists(destination);
       assertFalse(written, "the file is published only after a complete download");
       final List<Path> leftovers = partFiles(this.directory);
-      assertTrue(leftovers.isEmpty(), leftovers::toString);
+      final boolean noLeftovers = leftovers.isEmpty();
+      assertTrue(noLeftovers, leftovers::toString);
       final int requests = server.getRequestCount("/big");
       assertEquals(1, requests, "a download that is too large is not retried");
     }
@@ -240,10 +241,12 @@ final class HttpDownloaderTest {
       final String sha256 = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(CONTENT));
       final Path destination = this.directory.resolve("pinned.bin");
       HttpDownloader.download(server.uri("/file"), destination, sha256, CONTENT.length);
-      assertArrayEquals(CONTENT, Files.readAllBytes(destination));
+      final byte[] content = Files.readAllBytes(destination);
+      assertArrayEquals(CONTENT, content);
       final Path big = this.directory.resolve("big.bin");
       assertThrows(DownloadTooLargeException.class, () -> HttpDownloader.download(server.uri("/big"), big, sha256, CONTENT.length));
-      assertFalse(Files.exists(big), "nothing larger than the pin is kept");
+      final boolean bigKept = Files.exists(big);
+      assertFalse(bigKept, "nothing larger than the pin is kept");
       final Path other = this.directory.resolve("other.bin");
       final String wrong = "0".repeat(64);
       assertThrows(ChecksumMismatchException.class, () -> HttpDownloader.download(server.uri("/file"), other, wrong, CONTENT.length));
@@ -296,17 +299,22 @@ final class HttpDownloaderTest {
       server.respondRedirect("/away", 302, other.uri("/file").toString());
       final Path moved = this.directory.resolve("moved.bin");
       HttpDownloader.download(server.uri("/moved"), moved, CONTENT_SHA256, CONTENT.length);
-      assertArrayEquals(CONTENT, Files.readAllBytes(moved));
+      final byte[] movedContent = Files.readAllBytes(moved);
+      assertArrayEquals(CONTENT, movedContent);
       final Path away = this.directory.resolve("away.bin");
       final IOException refused = assertThrows(IOException.class, () ->
         HttpDownloader.download(server.uri("/away"), away, CONTENT_SHA256, CONTENT.length)
       );
       assertInstanceOf(RedirectRefusedException.class, refused);
-      assertEquals(1, server.getRequestCount("/away"), "not tried again");
-      assertEquals(0, other.getRequestCount("/file"), "the other host is never asked");
-      assertFalse(Files.exists(away));
+      final int awayRequests = server.getRequestCount("/away");
+      assertEquals(1, awayRequests, "not tried again");
+      final int otherRequests = other.getRequestCount("/file");
+      assertEquals(0, otherRequests, "the other host is never asked");
+      final boolean awayKept = Files.exists(away);
+      assertFalse(awayKept);
       HttpDownloader.download(server.uri("/away"), away, CONTENT_SHA256);
-      assertArrayEquals(CONTENT, Files.readAllBytes(away));
+      final byte[] awayContent = Files.readAllBytes(away);
+      assertArrayEquals(CONTENT, awayContent);
     }
   }
 
@@ -317,17 +325,23 @@ final class HttpDownloaderTest {
       for (final int status : new int[] { 301, 302, 303, 307, 308 }) {
         server.respondRedirect("/" + status, status, "/file");
         try (final InputStream body = HttpDownloader.openPinnedStream(server.uri("/" + status))) {
-          assertArrayEquals(CONTENT, body.readAllBytes(), "after a " + status);
+          final byte[] content = body.readAllBytes();
+          assertArrayEquals(CONTENT, content, "after a " + status);
         }
       }
       server.respondRedirect("/loop", 307, "/loop");
       final IOException loop = assertThrows(IOException.class, () -> openAndClosePinned(server.uri("/loop")));
       assertInstanceOf(RedirectRefusedException.class, loop);
-      assertEquals(6, server.getRequestCount("/loop"), "the first request and five redirects");
+      final int loopRequests = server.getRequestCount("/loop");
+      assertEquals(6, loopRequests, "the first request and five redirects");
       server.respond("/nowhere", 302, new byte[0]);
-      assertEquals(302, assertThrows(HttpStatusException.class, () -> openAndClosePinned(server.uri("/nowhere"))).getStatusCode());
+      final HttpStatusException nowhere = assertThrows(HttpStatusException.class, () -> openAndClosePinned(server.uri("/nowhere")));
+      final int nowhereStatus = nowhere.getStatusCode();
+      assertEquals(302, nowhereStatus);
       server.respondRedirect("/choices", 300, "/file");
-      assertEquals(300, assertThrows(HttpStatusException.class, () -> openAndClosePinned(server.uri("/choices"))).getStatusCode());
+      final HttpStatusException choices = assertThrows(HttpStatusException.class, () -> openAndClosePinned(server.uri("/choices")));
+      final int choicesStatus = choices.getStatusCode();
+      assertEquals(300, choicesStatus);
     }
   }
 
@@ -338,11 +352,19 @@ final class HttpDownloaderTest {
   @Test
   void shouldMakeAnOriginOfItsSchemeItsHostAndItsPort() {
     final URI page = URI.create("https://mirror.example/debian/pool/a.deb");
-    assertTrue(HttpDownloader.isSameOrigin(page, URI.create("https://MIRROR.example:443/file/b.deb")));
-    assertTrue(HttpDownloader.isSameOrigin(URI.create("http://mirror.example/a"), URI.create("http://mirror.example:80/b")));
-    assertFalse(HttpDownloader.isSameOrigin(page, URI.create("http://mirror.example/a.deb")), "another scheme");
-    assertFalse(HttpDownloader.isSameOrigin(page, URI.create("https://other.example/a.deb")), "another host");
-    assertFalse(HttpDownloader.isSameOrigin(page, URI.create("https://mirror.example:8443/a.deb")), "another port");
+    final boolean defaultHttpsPort = HttpDownloader.isSameOrigin(page, URI.create("https://MIRROR.example:443/file/b.deb"));
+    assertTrue(defaultHttpsPort);
+    final boolean defaultHttpPort = HttpDownloader.isSameOrigin(
+      URI.create("http://mirror.example/a"),
+      URI.create("http://mirror.example:80/b")
+    );
+    assertTrue(defaultHttpPort);
+    final boolean otherScheme = HttpDownloader.isSameOrigin(page, URI.create("http://mirror.example/a.deb"));
+    assertFalse(otherScheme, "another scheme");
+    final boolean otherHost = HttpDownloader.isSameOrigin(page, URI.create("https://other.example/a.deb"));
+    assertFalse(otherHost, "another host");
+    final boolean otherPort = HttpDownloader.isSameOrigin(page, URI.create("https://mirror.example:8443/a.deb"));
+    assertFalse(otherPort, "another port");
   }
 
   @Test
@@ -355,8 +377,10 @@ final class HttpDownloaderTest {
         HttpDownloader.download(server.uri("/slow"), slow, CONTENT_SHA256, NO_DELAY, Duration.ofSeconds(10), CONTENT.length, deadline)
       );
       assertInstanceOf(DownloadTooSlowException.class, failure);
-      assertEquals(1, server.getRequestCount("/slow"));
-      assertFalse(Files.exists(slow));
+      final int requests = server.getRequestCount("/slow");
+      assertEquals(1, requests);
+      final boolean slowKept = Files.exists(slow);
+      assertFalse(slowKept);
     }
   }
 
@@ -366,15 +390,19 @@ final class HttpDownloaderTest {
       server.respond("/file", 200, CONTENT);
       final Path destination = this.directory.resolve("unbounded.bin");
       HttpDownloader.download(server.uri("/file"), destination, CONTENT_SHA256, HttpDownloader.NO_SIZE_LIMIT);
-      assertArrayEquals(CONTENT, Files.readAllBytes(destination));
+      final byte[] content = Files.readAllBytes(destination);
+      assertArrayEquals(CONTENT, content);
     }
   }
 
   @Test
   void shouldGiveAPinnedDownloadAMinuteAndASecondForEvery64KibOfItsSize() {
-    assertEquals(Duration.ofMinutes(1), HttpDownloader.pinnedDeadline(1));
-    assertEquals(Duration.ofSeconds(62), HttpDownloader.pinnedDeadline(2 * 64 * 1024));
-    assertEquals(Duration.ofSeconds(60 + 3051), HttpDownloader.pinnedDeadline(200_000_000L));
+    final Duration smallestDeadline = HttpDownloader.pinnedDeadline(1);
+    assertEquals(Duration.ofMinutes(1), smallestDeadline);
+    final Duration twoBlockDeadline = HttpDownloader.pinnedDeadline(2 * 64 * 1024);
+    assertEquals(Duration.ofSeconds(62), twoBlockDeadline);
+    final Duration largeDeadline = HttpDownloader.pinnedDeadline(200_000_000L);
+    assertEquals(Duration.ofSeconds(60 + 3051), largeDeadline);
   }
 
   @Test

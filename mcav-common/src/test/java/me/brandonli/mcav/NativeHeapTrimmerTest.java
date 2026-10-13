@@ -99,8 +99,10 @@ final class NativeHeapTrimmerTest {
     assertTrue(trimmed);
     assertTrue(trimming);
     assertTrue(daemon, "the trims never keep the JVM alive");
-    assertFalse(trimmer.isTrimming());
-    assertFalse(thread.isAlive(), "closing waits for the thread to end");
+    final boolean trimmingAfterClose = trimmer.isTrimming();
+    assertFalse(trimmingAfterClose);
+    final boolean alive = thread.isAlive();
+    assertFalse(alive, "closing waits for the thread to end");
   }
 
   @Test
@@ -131,8 +133,10 @@ final class NativeHeapTrimmerTest {
     final String log = captured.toString(StandardCharsets.UTF_8);
 
     assertTrue(trimmed, "the trim after the failed one ran");
-    assertTrue(log.contains("Could not trim the native heap"), log);
-    assertTrue(log.contains("the first trim fails on purpose"), log);
+    final boolean reportsTheFailure = log.contains("Could not trim the native heap");
+    assertTrue(reportsTheFailure, log);
+    final boolean reportsTheCause = log.contains("the first trim fails on purpose");
+    assertTrue(reportsTheCause, log);
   }
 
   @Test
@@ -177,7 +181,8 @@ final class NativeHeapTrimmerTest {
 
     assertEquals(0, created, "creating the trimmer leaves the threshold alone");
     assertEquals(1, started);
-    assertEquals(1, fixes.get(), "a trimmer that trims never leaves the threshold alone");
+    final int fixCount = fixes.get();
+    assertEquals(1, fixCount, "a trimmer that trims never leaves the threshold alone");
   }
 
   @Test
@@ -203,28 +208,34 @@ final class NativeHeapTrimmerTest {
     final String log = captured.toString(StandardCharsets.UTF_8);
 
     assertTrue(trimming);
-    assertTrue(log.contains("Could not fix the trim threshold of the native heap"), log);
-    assertTrue(log.contains("the threshold fails on purpose"), log);
+    final boolean reportsTheFailure = log.contains("Could not fix the trim threshold of the native heap");
+    assertTrue(reportsTheFailure, log);
+    final boolean reportsTheCause = log.contains("the threshold fails on purpose");
+    assertTrue(reportsTheCause, log);
   }
 
   @Test
   void shouldGiveGlibcTheThreshold() {
     final SymbolLookup library = Linker.nativeLinker().defaultLookup();
     final boolean glibc = OSUtils.getOS() == OS.LINUX && library.find("gnu_get_libc_version").isPresent();
-    assertEquals(glibc, NativeHeapTrimmer.fixGlibcTrimThreshold());
+    final boolean fixed = NativeHeapTrimmer.fixGlibcTrimThreshold();
+    assertEquals(glibc, fixed);
   }
 
   @Test
   void shouldKeepTheThresholdOfACLibraryOtherThanGlibc() {
     final SymbolLookup musl = name -> name.equals("mallopt") ? Optional.of(MemorySegment.NULL) : Optional.empty();
-    assertFalse(NativeHeapTrimmer.fixGlibcTrimThreshold(musl), "musl has a mallopt that ignores every parameter");
-    assertFalse(NativeHeapTrimmer.fixGlibcTrimThreshold(_ -> Optional.empty()));
+    final boolean fixedForMusl = NativeHeapTrimmer.fixGlibcTrimThreshold(musl);
+    assertFalse(fixedForMusl, "musl has a mallopt that ignores every parameter");
+    final boolean fixedWithoutLibrary = NativeHeapTrimmer.fixGlibcTrimThreshold(_ -> Optional.empty());
+    assertFalse(fixedWithoutLibrary);
   }
 
   @Test
   void shouldReportAThresholdThatMalloptRefuses() {
     final MethodHandle refusing = MethodHandles.dropArguments(MethodHandles.constant(int.class, 0), 0, int.class, int.class);
-    assertFalse(NativeHeapTrimmer.setTrimThreshold(refusing));
+    final boolean set = NativeHeapTrimmer.setTrimThreshold(refusing);
+    assertFalse(set);
   }
 
   @Test
@@ -259,8 +270,11 @@ final class NativeHeapTrimmerTest {
     final SymbolLookup ownLibrary = Linker.nativeLinker().defaultLookup();
 
     assertFalse(fixed, "a C library that keeps its threshold is reported");
-    assertEquals(1, asked.size());
-    assertEquals(ownLibrary.find("malloc"), asked.getFirst().find("malloc"), "the C library of this JVM is asked");
+    final int askedCount = asked.size();
+    assertEquals(1, askedCount);
+    final SymbolLookup askedLibrary = asked.getFirst();
+    final Optional<MemorySegment> askedMalloc = askedLibrary.find("malloc");
+    assertEquals(ownLibrary.find("malloc"), askedMalloc, "the C library of this JVM is asked");
   }
 
   private static IntBinaryOperator recordingMallopt(final List<List<Integer>> calls, final int answer) {
@@ -285,8 +299,10 @@ final class NativeHeapTrimmerTest {
     final IllegalCallerException refused = new IllegalCallerException("native access is not enabled");
     final MethodHandle mallopt = malloptThatThrows(refused);
     final IllegalStateException failure = assertThrows(IllegalStateException.class, () -> NativeHeapTrimmer.setTrimThreshold(mallopt));
-    assertEquals("Could not fix the trim threshold of the native heap", failure.getMessage());
-    assertSame(refused, failure.getCause());
+    final String message = failure.getMessage();
+    assertEquals("Could not fix the trim threshold of the native heap", message);
+    final Throwable cause = failure.getCause();
+    assertSame(refused, cause);
   }
 
   @Test
@@ -312,7 +328,8 @@ final class NativeHeapTrimmerTest {
   void shouldCloseWithoutTrimmingHarmlessly() {
     final NativeHeapTrimmer trimmer = new NativeHeapTrimmer(SHORT, () -> {}, () -> {});
     trimmer.close();
-    assertFalse(trimmer.isTrimming());
+    final boolean trimming = trimmer.isTrimming();
+    assertFalse(trimming);
   }
 
   @Test
@@ -348,7 +365,8 @@ final class NativeHeapTrimmerTest {
     assertTrue(started);
     assertTrue(interrupted);
     assertTrue(aliveAfterClose, "an interrupted close stops waiting for the trimming thread");
-    assertFalse(thread.isAlive(), "the trimming thread ends on its interrupt");
+    final boolean alive = thread.isAlive();
+    assertFalse(alive, "the trimming thread ends on its interrupt");
   }
 
   @Test
@@ -404,7 +422,8 @@ final class NativeHeapTrimmerTest {
     }
     final long freed = (ARENA_THREADS * FRAME_BYTES) / 1024;
 
-    assertTrue(after - before < freed / 2, "kept " + (after - before) + " KiB of the " + freed + " KiB the threads freed");
+    final boolean mostlyReturned = after - before < freed / 2;
+    assertTrue(mostlyReturned, "kept " + (after - before) + " KiB of the " + freed + " KiB the threads freed");
   }
 
   // glibc maps the first frame on its own and raises its thresholds when it is freed; the second comes from the thread's
@@ -434,7 +453,8 @@ final class NativeHeapTrimmerTest {
 
   @Test
   void shouldReadTheIntervalOfTheJvmsOwnTrims() {
-    assertEquals(0L, NativeHeapTrimmer.readJvmIntervalMillis(), "the JVM of the tests does not trim itself");
+    final long intervalMillis = NativeHeapTrimmer.readJvmIntervalMillis();
+    assertEquals(0L, intervalMillis, "the JVM of the tests does not trim itself");
   }
 
   @Test
@@ -477,8 +497,10 @@ final class NativeHeapTrimmerTest {
     final String ownAnswer = NativeHeapTrimmer.trimThisJvm();
     final boolean linux = OSUtils.getOS() == OS.LINUX;
     final String expected = linux ? "Trim native heap" : "Not available";
-    assertTrue(answer.startsWith(expected), answer);
-    assertTrue(ownAnswer.startsWith(expected), ownAnswer);
+    final boolean answered = answer.startsWith(expected);
+    assertTrue(answered, answer);
+    final boolean ownAnswered = ownAnswer.startsWith(expected);
+    assertTrue(ownAnswered, ownAnswer);
   }
 
   @Test
@@ -488,6 +510,7 @@ final class NativeHeapTrimmerTest {
     when(server.invoke(any(ObjectName.class), any(), any(), any())).thenThrow(missing);
 
     final IllegalStateException failure = assertThrows(IllegalStateException.class, () -> NativeHeapTrimmer.trimWithJdk(server));
-    assertInstanceOf(InstanceNotFoundException.class, failure.getCause());
+    final Throwable cause = failure.getCause();
+    assertInstanceOf(InstanceNotFoundException.class, cause);
   }
 }

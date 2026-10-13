@@ -86,7 +86,8 @@ final class ImagePlayerTest {
   private static void awaitCount(final AtomicInteger counter, final int expected) throws InterruptedException {
     Polling.pollUntil(FRAME_TIMEOUT, () -> counter.get() >= expected);
     final int count = counter.get();
-    assertTrue(count >= expected, "expected " + expected + " frames but got " + count);
+    final boolean reached = count >= expected;
+    assertTrue(reached, "expected " + expected + " frames but got " + count);
   }
 
   private static double rate(final List<Long> times) {
@@ -213,8 +214,10 @@ final class ImagePlayerTest {
     assertTrue(released);
     assertFalse(releasedTwice);
     assertFalse(startedAfterRelease);
-    assertTrue(total >= 30, "consumed " + total);
-    assertTrue(rate > 35.0 && rate < 65.0, "frames are delivered at about 50 per second, got " + rate);
+    final boolean consumedEnough = total >= 30;
+    assertTrue(consumedEnough, "consumed " + total);
+    final boolean rateNearFifty = rate > 35.0 && rate < 65.0;
+    assertTrue(rateNearFifty, "frames are delivered at about 50 per second, got " + rate);
     assertEquals(expectedFailures, failures);
   }
 
@@ -237,7 +240,8 @@ final class ImagePlayerTest {
     player.release();
 
     final long shortestGap = shortestGap(times);
-    assertTrue(shortestGap >= 50_000_000L, "a slow filter limits the frame rate instead of catching up in bursts, gap " + shortestGap);
+    final boolean limited = shortestGap >= 50_000_000L;
+    assertTrue(limited, "a slow filter limits the frame rate instead of catching up in bursts, gap " + shortestGap);
   }
 
   @Test
@@ -257,8 +261,10 @@ final class ImagePlayerTest {
       return true;
     });
     try {
-      assertTrue(player.start(solidFrames(4, 4, 100.0f)));
-      assertTrue(finished.await(10, TimeUnit.SECONDS), "three controlled frames are rendered");
+      final boolean started = player.start(solidFrames(4, 4, 100.0f));
+      assertTrue(started);
+      final boolean rendered = finished.await(10, TimeUnit.SECONDS);
+      assertTrue(rendered, "three controlled frames are rendered");
       assertEquals(List.of(0L, 60_000_000L, 70_000_000L), starts);
     } finally {
       player.release();
@@ -461,6 +467,8 @@ final class ImagePlayerTest {
     final ImagePlayer player = ImagePlayer.player();
     attach(player, (_, _) -> consumed.incrementAndGet() > 0);
     final FrameSource slow = solidFrames(2, 2, 0.1f);
+    // the frame thread of an earlier test may still be ending, and frameThread() must find this player's thread
+    Polling.awaitCondition("the earlier frame threads ended", LOCK_TIMEOUT, () -> frameThread() == null);
 
     final boolean started = player.start(slow);
     awaitCount(consumed, 1);

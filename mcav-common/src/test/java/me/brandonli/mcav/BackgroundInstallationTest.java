@@ -292,15 +292,19 @@ final class BackgroundInstallationTest {
     final BackgroundInstallation newInstallation = new BackgroundInstallation(loader, this.guard, this.logger, SHORT_CANCEL_TIMEOUT);
     try {
       oldInstallation.start();
-      assertTrue(oldStarted.await(WAIT_SECONDS, TimeUnit.SECONDS));
+      final boolean oldHasStarted = oldStarted.await(WAIT_SECONDS, TimeUnit.SECONDS);
+      assertTrue(oldHasStarted);
       oldInstallation.cancel();
-      assertFalse(await(oldInstallation, Capability.VLC));
+      final boolean oldReady = await(oldInstallation, Capability.VLC);
+      assertFalse(oldReady);
       newInstallation.start();
-      assertTrue(newRecorded.await(WAIT_SECONDS, TimeUnit.SECONDS));
+      final boolean newWasRecorded = newRecorded.await(WAIT_SECONDS, TimeUnit.SECONDS);
+      assertTrue(newWasRecorded);
       oldFinish.countDown();
       joinAll(oldInstallation);
       newFinish.countDown();
-      assertTrue(await(newInstallation, Capability.VLC), "the successful reinstall owns its readiness result");
+      final boolean newReady = await(newInstallation, Capability.VLC);
+      assertTrue(newReady, "the successful reinstall owns its readiness result");
       assertDoesNotThrow(() -> this.guard.checkUsable(Capability.VLC));
     } finally {
       oldFinish.countDown();

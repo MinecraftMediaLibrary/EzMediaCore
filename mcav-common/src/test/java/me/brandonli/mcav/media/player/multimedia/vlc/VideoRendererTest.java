@@ -317,7 +317,8 @@ final class VideoRendererTest {
     pendingField.setAccessible(true);
     final BlockingQueue<?> pending = (BlockingQueue<?>) pendingField.get(this.renderer);
     try {
-      assertTrue(pending.isEmpty(), "pause discards the queued frame before any new frame can replace it");
+      final boolean discarded = pending.isEmpty();
+      assertTrue(discarded, "pause discards the queued frame before any new frame can replace it");
     } finally {
       proceed.countDown();
     }

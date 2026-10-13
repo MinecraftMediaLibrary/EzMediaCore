@@ -98,13 +98,20 @@ final class OSUtilsTest {
     final boolean isIntel = isIntel();
     final boolean isArm = isARM();
     final boolean isSixtyFourBit = is64Bit();
-    assertEquals(isWindows, os == OS.WINDOWS);
-    assertEquals(isMac, os == OS.MAC);
-    assertEquals(isLinux, os == OS.LINUX);
-    assertEquals(freeBsd, os == OS.FREEBSD);
-    assertEquals(isIntel, arch == Arch.X86);
-    assertEquals(isArm, arch == Arch.ARM);
-    assertEquals(isSixtyFourBit, bits == Bits.BITS_64);
+    final boolean onWindows = os == OS.WINDOWS;
+    assertEquals(isWindows, onWindows);
+    final boolean onMac = os == OS.MAC;
+    assertEquals(isMac, onMac);
+    final boolean onLinux = os == OS.LINUX;
+    assertEquals(isLinux, onLinux);
+    final boolean onFreeBsd = os == OS.FREEBSD;
+    assertEquals(freeBsd, onFreeBsd);
+    final boolean onIntel = arch == Arch.X86;
+    assertEquals(isIntel, onIntel);
+    final boolean onArm = arch == Arch.ARM;
+    assertEquals(isArm, onArm);
+    final boolean onSixtyFourBit = bits == Bits.BITS_64;
+    assertEquals(isSixtyFourBit, onSixtyFourBit);
   }
 
   @Test
