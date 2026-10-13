@@ -19,7 +19,9 @@ package me.brandonli.mcav.utils.http;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.code_intelligence.jazzer.api.BugDetectors;
 import com.code_intelligence.jazzer.api.FuzzedDataProvider;
+import com.code_intelligence.jazzer.api.SilentCloseable;
 import com.code_intelligence.jazzer.junit.FuzzTest;
 import com.google.common.net.InetAddresses;
 import java.net.URI;
@@ -55,6 +57,9 @@ final class NetworkUtilsFuzzTest {
 
   @FuzzTest(maxDuration = "30s")
   void shouldTakeOnlyAnAddressThatTheServiceAnsweredWithSuccess(final FuzzedDataProvider data) {
+    // Jazzer forbids every connection once the fuzz target is ready, so the local servers are allowed in the target;
+    // the policy stays until Jazzer resets it for the next fuzz test
+    final SilentCloseable _ = BugDetectors.allowNetworkConnections(this.server::isServing);
     final int status = data.consumeInt(LOWEST_STATUS, HIGHEST_STATUS);
     final byte[] body = data.consumeRemainingAsBytes();
     this.answers++;

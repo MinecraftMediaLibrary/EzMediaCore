@@ -20,7 +20,9 @@ package me.brandonli.mcav.utils.http;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.code_intelligence.jazzer.api.BugDetectors;
 import com.code_intelligence.jazzer.api.FuzzedDataProvider;
+import com.code_intelligence.jazzer.api.SilentCloseable;
 import com.code_intelligence.jazzer.junit.FuzzTest;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,6 +60,10 @@ final class HttpDownloaderFuzzTest {
     this.other.respond(FILE_PATH, 200, OTHER_CONTENT);
   }
 
+  private boolean isLocalServer(final String host, final int port) {
+    return this.server.isServing(host, port) || this.other.isServing(host, port);
+  }
+
   @AfterEach
   void tearDown() {
     this.server.close();
@@ -66,6 +72,9 @@ final class HttpDownloaderFuzzTest {
 
   @FuzzTest(maxDuration = "30s")
   void shouldFollowARedirectWithinItsOriginOnlyOrRefuseIt(final FuzzedDataProvider data) {
+    // Jazzer forbids every connection once the fuzz target is ready, so the local servers are allowed in the target;
+    // the policy stays until Jazzer resets it for the next fuzz test
+    final SilentCloseable _ = BugDetectors.allowNetworkConnections(this::isLocalServer);
     final int status = data.pickValue(REDIRECT_STATUSES);
     final int origin = data.consumeInt(RELATIVE_LOCATION, OTHER_ORIGIN);
     final String suffix = data.consumeRemainingAsString();

@@ -199,6 +199,16 @@ public final class LocalHttpServer implements AutoCloseable {
     }
   }
 
+  public boolean isServing(final String host, final int port) {
+    final InetSocketAddress address = this.server.getAddress();
+    final InetAddress boundHost = address.getAddress();
+    final String boundHostName = boundHost.getHostName();
+    final String boundHostAddress = boundHost.getHostAddress();
+    final boolean sameHost = host.equals(boundHostName) || host.equals(boundHostAddress);
+    final int boundPort = address.getPort();
+    return sameHost && port == boundPort;
+  }
+
   /**
    * Gets how many requests a path received.
    *
