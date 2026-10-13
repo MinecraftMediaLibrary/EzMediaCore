@@ -28,7 +28,7 @@ public final class LoaderPreparationProbe {
 
   /**
    * Creates a loader whose VLC installation runs the action and whose yt-dlp step needs no external program.
-   * @param logger receives the real preparation messages
+   * @param logger  receives the real preparation messages
    * @param prepare the controlled VLC preparation
    * @return the real loader with the external entry points replaced
    */

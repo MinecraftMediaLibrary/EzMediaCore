@@ -100,7 +100,7 @@ public final class TestMedia {
   }
 
   /**
-   * Gets a five second 320x240 MPEG-4 video at 30 frames per second with a mono AAC sine tone.
+   * Returns a five second 320x240 MPEG-4 video at 30 frames per second with a mono AAC sine tone.
    *
    * @return the video file
    */
@@ -111,7 +111,7 @@ public final class TestMedia {
   }
 
   /**
-   * Gets a five second video that changes from red to blue after three seconds.
+   * Returns a five second video that changes from red to blue after three seconds.
    *
    * @return the video file
    */
@@ -126,7 +126,7 @@ public final class TestMedia {
   }
 
   /**
-   * Gets a one second 320x240 video without an audio track.
+   * Returns a one second 320x240 video without an audio track.
    *
    * @return the video file
    */
@@ -136,7 +136,7 @@ public final class TestMedia {
   }
 
   /**
-   * Gets a stereo AAC audio file with an 880 Hz sine tone and no video track.
+   * Returns a stereo AAC audio file with an 880 Hz sine tone and no video track.
    *
    * @param seconds the length of the audio in seconds, which must be positive
    * @return the audio file
@@ -150,7 +150,7 @@ public final class TestMedia {
   }
 
   /**
-   * Gets a white 16x8 PNG image.
+   * Returns a white 16x8 PNG image.
    *
    * @return the PNG file
    */

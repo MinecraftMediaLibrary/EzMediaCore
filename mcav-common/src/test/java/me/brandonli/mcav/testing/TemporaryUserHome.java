@@ -58,7 +58,7 @@ public final class TemporaryUserHome implements AutoCloseable {
   }
 
   /**
-   * Gets the directory {@code user.home} points at while this handle is open.
+   * Returns the directory {@code user.home} points at while this handle is open.
    *
    * @return the temporary home directory
    */

@@ -33,7 +33,7 @@ import me.brandonli.mcav.capability.installer.vlc.installation.InstallationStrat
 import me.brandonli.mcav.capability.installer.vlc.installation.LinuxInstallationStrategy;
 import me.brandonli.mcav.capability.installer.vlc.installation.ManualInstallationStrategy;
 import me.brandonli.mcav.capability.installer.vlc.installation.OsxInstallationStrategy;
-import me.brandonli.mcav.capability.installer.vlc.installation.WinInstallationStrategy;
+import me.brandonli.mcav.capability.installer.vlc.installation.WindowsInstallationStrategy;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.OsUtils;
 import org.slf4j.Logger;
@@ -277,7 +277,7 @@ public final class VlcInstaller extends AbstractInstaller {
   static InstallationStrategy createStrategy(final VlcInstaller installer, final Os operatingSystem) {
     return switch (operatingSystem) {
       case MAC -> new OsxInstallationStrategy(installer);
-      case WINDOWS -> new WinInstallationStrategy(installer);
+      case WINDOWS -> new WindowsInstallationStrategy(installer);
       case LINUX -> new LinuxInstallationStrategy(installer);
       case FREEBSD, OTHER -> {
         final String message = "Operating system %s does not support installing VLC automatically!".formatted(operatingSystem);

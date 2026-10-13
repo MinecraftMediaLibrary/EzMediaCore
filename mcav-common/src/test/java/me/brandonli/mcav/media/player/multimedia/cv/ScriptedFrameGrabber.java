@@ -99,7 +99,7 @@ final class ScriptedFrameGrabber extends FrameGrabber {
   }
 
   /**
-   * Gets the number of steps of the script that have not been reached yet.
+   * Returns the number of steps of the script that have not been reached yet.
    *
    * @return the remaining steps
    */

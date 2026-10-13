@@ -75,7 +75,7 @@ final class VlcInstallationValidationTest {
 
     InstallationStrategy strategy(final VlcInstaller installer, final ProcessRunner tools) {
       return switch (this) {
-        case WINDOWS -> new WinInstallationStrategy(installer);
+        case WINDOWS -> new WindowsInstallationStrategy(installer);
         case MAC -> new OsxInstallationStrategy(installer, tools);
         case LINUX -> new LinuxInstallationStrategy(installer, tools);
       };

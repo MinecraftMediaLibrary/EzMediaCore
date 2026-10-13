@@ -117,9 +117,9 @@ public final class LocalHttpServer implements AutoCloseable {
    * Adds a response that stalls: it announces more bytes than the body has, sends the body, and then sends nothing
    * more, without closing the connection, until the server is closed.
    *
-   * @param path           the path, starting with a slash
-   * @param status         the status code
-   * @param body           the part of the body that is sent
+   * @param path            the path, starting with a slash
+   * @param status          the status code
+   * @param body            the part of the body that is sent
    * @param announcedLength the length announced in the headers, which must be larger than the body
    */
   public void respondStalling(final String path, final int status, final byte[] body, final long announcedLength) {
@@ -163,9 +163,9 @@ public final class LocalHttpServer implements AutoCloseable {
    * Adds a response that trickles: it announces the length of the body and sends one byte of it at a time, a byte
    * every interval, until the body is sent or the server is closed.
    *
-   * @param path           the path, starting with a slash
-   * @param status         the status code
-   * @param body           the body
+   * @param path                 the path, starting with a slash
+   * @param status               the status code
+   * @param body                 the body
    * @param intervalMilliseconds the time between two bytes, in milliseconds
    */
   public void respondTrickling(final String path, final int status, final byte[] body, final long intervalMilliseconds) {
@@ -181,7 +181,7 @@ public final class LocalHttpServer implements AutoCloseable {
   }
 
   /**
-   * Gets the URI of a path on this server, built from the address the server is bound to.
+   * Returns the URI of a path on this server, built from the address the server is bound to.
    *
    * @param path the path, starting with a slash
    * @return the URI
@@ -210,7 +210,7 @@ public final class LocalHttpServer implements AutoCloseable {
   }
 
   /**
-   * Gets how many requests a path received.
+   * Returns how many requests a path received.
    *
    * @param path the path, starting with a slash
    * @return the number of requests

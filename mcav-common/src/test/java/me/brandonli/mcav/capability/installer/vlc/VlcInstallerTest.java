@@ -43,7 +43,7 @@ import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.capability.installer.vlc.installation.InstallationStrategy;
 import me.brandonli.mcav.capability.installer.vlc.installation.LinuxInstallationStrategy;
 import me.brandonli.mcav.capability.installer.vlc.installation.OsxInstallationStrategy;
-import me.brandonli.mcav.capability.installer.vlc.installation.WinInstallationStrategy;
+import me.brandonli.mcav.capability.installer.vlc.installation.WindowsInstallationStrategy;
 import me.brandonli.mcav.testing.LocalHttpServer;
 import me.brandonli.mcav.testing.TemporaryUserHome;
 import me.brandonli.mcav.utils.IoUtils;
@@ -149,7 +149,7 @@ final class VlcInstallerTest {
     final InstallationStrategy windowsStrategy = VlcInstaller.createStrategy(installer, Os.WINDOWS);
     final InstallationStrategy macStrategy = VlcInstaller.createStrategy(installer, Os.MAC);
     final InstallationStrategy linuxStrategy = VlcInstaller.createStrategy(installer, Os.LINUX);
-    assertInstanceOf(WinInstallationStrategy.class, windowsStrategy);
+    assertInstanceOf(WindowsInstallationStrategy.class, windowsStrategy);
     assertInstanceOf(OsxInstallationStrategy.class, macStrategy);
     assertInstanceOf(LinuxInstallationStrategy.class, linuxStrategy);
     assertThrows(UnsupportedOperatingSystemException.class, () -> VlcInstaller.createStrategy(installer, Os.FREEBSD));

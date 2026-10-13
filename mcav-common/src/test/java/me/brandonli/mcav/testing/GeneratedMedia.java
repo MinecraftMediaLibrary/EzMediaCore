@@ -58,7 +58,7 @@ public final class GeneratedMedia {
    * Generates a file into a temporary sibling with the same extension and publishes it only after a successful
    * nonempty result. A fixture process has a 120 second deadline. Successful paths are reused within this JVM.
    *
-   * @param output the destination media file
+   * @param output  the destination media file
    * @param command constructs the command using the temporary media destination
    * @return the absolute published path
    */

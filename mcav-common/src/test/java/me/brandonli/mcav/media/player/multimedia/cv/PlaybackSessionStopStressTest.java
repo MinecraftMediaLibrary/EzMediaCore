@@ -178,7 +178,7 @@ final class PlaybackSessionStopStressTest {
   }
 
   /**
-   * Gets the threads of playback sessions that are alive, which includes threads of sessions of other tests that are
+   * Returns the threads of playback sessions that are alive, which includes threads of sessions of other tests that are
    * still ending; a round only looks at the threads that were not there before it began.
    */
   private static Set<Thread> liveSessionThreads() {

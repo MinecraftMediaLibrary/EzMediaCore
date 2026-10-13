@@ -26,7 +26,7 @@ import java.util.Optional;
  * archive format, so each has its own strategy.
  *
  * @see LinuxInstallationStrategy
- * @see WinInstallationStrategy
+ * @see WindowsInstallationStrategy
  * @see OsxInstallationStrategy
  */
 public interface InstallationStrategy {

@@ -39,9 +39,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Tests {@link WinInstallationStrategy} with small zips shaped like the portable VLC zip.
+ * Tests {@link WindowsInstallationStrategy} with small zips shaped like the portable VLC zip.
  */
-final class WinInstallationStrategyTest {
+final class WindowsInstallationStrategyTest {
 
   private static final String TEMPORARY_DIRECTORY = "vlc-extract";
 
@@ -51,7 +51,7 @@ final class WinInstallationStrategyTest {
   @Test
   void shouldExtractTheInnerDirectoryIntoTheInstallationDirectory() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
-    final WinInstallationStrategy strategy = new WinInstallationStrategy(installer);
+    final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
     final Path archive = this.createZip(
       "vlc-3.0.24-win64.zip",
       "vlc-3.0.24/libvlc.dll",
@@ -76,7 +76,7 @@ final class WinInstallationStrategyTest {
   @Test
   void shouldNotPromoteStaleFilesFromAnEarlierExtraction() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
-    final WinInstallationStrategy strategy = new WinInstallationStrategy(installer);
+    final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
     final Path temporary = this.temporaryDirectory.resolve(TEMPORARY_DIRECTORY);
     final Path previousRoot = temporary.resolve("vlc-3.0.24");
     Files.createDirectories(previousRoot);
@@ -92,7 +92,7 @@ final class WinInstallationStrategyTest {
   @Test
   void shouldReportTheInstallationOnlyOnceItExists() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
-    final WinInstallationStrategy strategy = new WinInstallationStrategy(installer);
+    final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
     final Optional<Path> before = strategy.getInstalledPath();
     final Path archive = this.createZip("vlc.zip", "vlc-3.0.24/libvlc.dll", "vlc-3.0.24/libvlccore.dll");
     final Path installed = strategy.execute(archive);
@@ -106,7 +106,7 @@ final class WinInstallationStrategyTest {
   @Test
   void shouldReplaceAnEarlierInstallation() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
-    final WinInstallationStrategy strategy = new WinInstallationStrategy(installer);
+    final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
     final Path installDirectory = installer.getInstallDirectory();
     Files.createDirectories(installDirectory);
     final Path stale = installDirectory.resolve("stale.dll");
@@ -122,7 +122,7 @@ final class WinInstallationStrategyTest {
   @Test
   void shouldFailAndCleanUpWhenTheZipHasNoLibrary() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
-    final WinInstallationStrategy strategy = new WinInstallationStrategy(installer);
+    final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
     final Path archive = this.createZip("vlc.zip", "vlc-3.0.24/readme.txt");
     final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
     final String message = thrown.getMessage();
@@ -138,7 +138,7 @@ final class WinInstallationStrategyTest {
   @Test
   void shouldReportAFileThatIsNotAZipAndCleanUp() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
-    final WinInstallationStrategy strategy = new WinInstallationStrategy(installer);
+    final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
     final Path archive = this.temporaryDirectory.resolve("vlc.zip");
     Files.writeString(archive, "this is not a zip", StandardCharsets.US_ASCII);
     final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
@@ -153,7 +153,7 @@ final class WinInstallationStrategyTest {
   @Test
   void shouldReportUnsafeZipEntriesAsAnInstallationFailure() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
-    final WinInstallationStrategy strategy = new WinInstallationStrategy(installer);
+    final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
     final Path archive = this.createZip("vlc.zip", "../escaped.dll");
     final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
     final Throwable cause = thrown.getCause();
@@ -168,7 +168,7 @@ final class WinInstallationStrategyTest {
   @Test
   void shouldRejectANullArchive() {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
-    final WinInstallationStrategy strategy = new WinInstallationStrategy(installer);
+    final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
     assertThrows(NullPointerException.class, () -> strategy.execute(null));
   }
 

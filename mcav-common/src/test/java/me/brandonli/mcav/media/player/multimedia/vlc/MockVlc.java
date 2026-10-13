@@ -158,7 +158,7 @@ final class MockVlc {
    * Creates a player that uses this engine.
    *
    * @param openTimeoutMilliseconds how long starting waits for the media to open
-   * @param options           the media options of the player
+   * @param options                 the media options of the player
    * @return the player
    */
   VlcPlayer newPlayer(final long openTimeoutMilliseconds, final String... options) {

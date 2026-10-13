@@ -36,7 +36,7 @@ import me.brandonli.mcav.utils.ZipEntryIntegrityException;
  * extracted into a temporary directory, that inner directory is moved to the installation directory, and the
  * temporary directory and the zip are deleted. The temporary directory is also deleted when the extraction fails.
  */
-public final class WinInstallationStrategy extends ManualInstallationStrategy {
+public final class WindowsInstallationStrategy extends ManualInstallationStrategy {
 
   private static final Pattern LIBRARY = Pattern.compile("libvlc\\.dll");
   private static final Pattern CORE_LIBRARY = Pattern.compile("libvlccore\\.dll");
@@ -48,7 +48,7 @@ public final class WinInstallationStrategy extends ManualInstallationStrategy {
    * @param installer the installer whose installation directory is used
    * @throws NullPointerException if {@code installer} is null
    */
-  public WinInstallationStrategy(final VlcInstaller installer) {
+  public WindowsInstallationStrategy(final VlcInstaller installer) {
     super(installer);
   }
 
