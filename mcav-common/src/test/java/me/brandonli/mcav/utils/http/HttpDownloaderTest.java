@@ -345,6 +345,20 @@ final class HttpDownloaderTest {
     }
   }
 
+  @Test
+  void shouldRefuseARedirectOfAPinnedDownloadToALocationThatIsNotAUri() {
+    try (final LocalHttpServer server = LocalHttpServer.start()) {
+      server.respondRedirect("/broken", 302, "http://[not-a-host");
+
+      final URI broken = server.uri("/broken");
+      final IOException refused = assertThrows(IOException.class, () -> openAndClosePinned(broken));
+      assertInstanceOf(RedirectRefusedException.class, refused);
+
+      final Throwable cause = refused.getCause();
+      assertInstanceOf(IllegalArgumentException.class, cause);
+    }
+  }
+
   private static void openAndClosePinned(final URI uri) throws IOException {
     HttpDownloader.openPinnedStream(uri).close();
   }

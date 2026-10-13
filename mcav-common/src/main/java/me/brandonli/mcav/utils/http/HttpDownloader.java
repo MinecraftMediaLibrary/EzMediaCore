@@ -159,7 +159,7 @@ public final class HttpDownloader {
    *
    * @param uri the URI to download
    * @return the body of the response, which closes its client
-   * @throws RedirectRefusedException if the server redirects elsewhere, or too often
+   * @throws RedirectRefusedException if the server redirects elsewhere, to a location that is not a URI, or too often
    * @throws IOException if a request fails or the server answers with an error status
    */
   @VisibleForTesting
@@ -176,7 +176,7 @@ public final class HttpDownloader {
       }
       response.body().close();
       client.close();
-      final URI next = current.resolve(location.get());
+      final URI next = resolveRedirect(uri, current, location.get());
       if (!isSameOrigin(uri, next)) {
         final String message = "Pinned download %s may not redirect to %s on another host!".formatted(uri, next);
         throw new RedirectRefusedException(message);
@@ -186,6 +186,15 @@ public final class HttpDownloader {
         throw new RedirectRefusedException(message);
       }
       current = next;
+    }
+  }
+
+  private static URI resolveRedirect(final URI uri, final URI current, final String location) throws RedirectRefusedException {
+    try {
+      return current.resolve(location);
+    } catch (final IllegalArgumentException exception) {
+      final String message = "Pinned download %s may not redirect to %s, which is not a URI!".formatted(uri, location);
+      throw new RedirectRefusedException(message, exception);
     }
   }
 
