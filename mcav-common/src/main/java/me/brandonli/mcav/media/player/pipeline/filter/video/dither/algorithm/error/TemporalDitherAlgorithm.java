@@ -164,7 +164,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
     }
     final int height = buffer.length / width;
     final byte[] indices = new byte[buffer.length];
-    this.processStrip(buffer, width, 0, height, null, indices);
+    this.ditherStrip(buffer, width, 0, height, null, indices);
     final DitherPalette palette = this.getPalette();
     final int[] colors = palette.getPalette();
     for (int pixel = 0; pixel < buffer.length; pixel++) {
@@ -190,7 +190,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
     final int height = pixels.length / width;
     final byte[] previous = this.getPreviousIndices(pixels.length);
     final byte[] indices = new byte[pixels.length];
-    this.processStrip(pixels, width, 0, height, previous, indices);
+    this.ditherStrip(pixels, width, 0, height, previous, indices);
     this.remember(indices, previous);
     return indices;
   }
@@ -215,7 +215,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
     final byte[] indices = new byte[pixels.length];
     final int poolParallelism = pool.getParallelism();
     final int parallelism = Math.max(1, poolParallelism);
-    this.processStrips(pixels, width, previous, indices, pool, parallelism);
+    this.ditherStrips(pixels, width, previous, indices, pool, parallelism);
     this.remember(indices, previous);
     return indices;
   }
@@ -237,7 +237,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
     this.previousIndices = previous;
   }
 
-  private void processStrips(
+  private void ditherStrips(
     final int[] pixels,
     final int width,
     final byte @Nullable [] previous,
@@ -254,7 +254,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
       parallelStrips.forEach(strip -> {
         final int startY = strip * stripHeight;
         final int endY = Math.min(startY + stripHeight, height);
-        this.processStrip(pixels, width, startY, endY, previous, indices);
+        this.ditherStrip(pixels, width, startY, endY, previous, indices);
       });
     });
     task.join();
@@ -272,7 +272,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
    * Dithers the rows from {@code startY} to {@code endY}, warming up on the rows above so the strip joins its
    * neighbors seamlessly.
    */
-  private void processStrip(
+  private void ditherStrip(
     final int[] pixels,
     final int width,
     final int startY,

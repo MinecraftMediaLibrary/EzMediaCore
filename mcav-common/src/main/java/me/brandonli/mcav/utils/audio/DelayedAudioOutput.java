@@ -369,7 +369,7 @@ public final class DelayedAudioOutput implements AutoCloseable {
     try {
       ByteBuffer next = this.take();
       while (next != null) {
-        this.process(next);
+        this.sendToPipeline(next);
         next = this.take();
       }
     } catch (final InterruptedException exception) {
@@ -377,7 +377,7 @@ public final class DelayedAudioOutput implements AutoCloseable {
     }
   }
 
-  private void process(final ByteBuffer samples) {
+  private void sendToPipeline(final ByteBuffer samples) {
     try {
       final AudioPipelineStep step = this.pipeline.get();
       if (!step.isNoOp()) {

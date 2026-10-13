@@ -256,7 +256,7 @@ final class VLCInstallerTest {
     final Path appLink = this.folder.resolve("VLC.app");
     final Path junest = createTree(this.folder, "vlc-junest");
     final Path innerLink = junest.resolve("link-to-outside");
-    final boolean linksCreated = tryCreateLink(appLink, outside) && tryCreateLink(innerLink, outside);
+    final boolean linksCreated = createSymbolicLink(appLink, outside) && createSymbolicLink(innerLink, outside);
     Assumptions.assumeTrue(linksCreated, "Symbolic links cannot be created here!");
 
     VLCInstaller.removeLegacyInstallations(this.folder);
@@ -441,7 +441,7 @@ final class VLCInstallerTest {
     return root;
   }
 
-  private static boolean tryCreateLink(final Path link, final Path target) {
+  private static boolean createSymbolicLink(final Path link, final Path target) {
     try {
       Files.createSymbolicLink(link, target);
       return true;
