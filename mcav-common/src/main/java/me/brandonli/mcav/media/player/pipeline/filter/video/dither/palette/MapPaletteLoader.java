@@ -79,7 +79,8 @@ public final class MapPaletteLoader {
     final int[][] components;
     try {
       components = gson.fromJson(reader, type);
-    } catch (final JsonSyntaxException exception) {
+    } catch (final JsonSyntaxException | IllegalArgumentException exception) {
+      // Gson reads an empty element of an int array as a null and reports it with an IllegalArgumentException
       throw new PaletteLoadingException("Map palette resource is malformed!", exception);
     }
     if (components == null || components.length == 0) {

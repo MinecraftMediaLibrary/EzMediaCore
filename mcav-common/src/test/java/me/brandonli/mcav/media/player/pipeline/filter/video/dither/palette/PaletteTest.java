@@ -269,6 +269,15 @@ final class PaletteTest {
     assertThrows(PaletteLoadingException.class, () -> MapPaletteLoader.loadColors("no-such-palette.json"));
   }
 
+  /**
+   * Found by {@code MapPaletteLoaderFuzzTest}: Gson reads the empty element of {@code [[0,,1]]} as a null, which it
+   * cannot store in an {@code int[]}, and reported that with an {@link IllegalArgumentException} instead of a syntax error.
+   */
+  @Test
+  void shouldRejectAColorWithAnEmptyComponent() {
+    assertThrows(PaletteLoadingException.class, () -> parse("[[0,,1]]"));
+  }
+
   @Test
   void shouldNotInstantiateTheLoader() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(MapPaletteLoader.class);
