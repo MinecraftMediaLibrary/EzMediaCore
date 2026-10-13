@@ -624,6 +624,22 @@ final class IOUtilsTest {
   }
 
   @Test
+  void shouldReadBothBytesOfTheCommentLengthOfAnEmptyArchive() throws IOException {
+    final Path archive = this.directory.resolve("long-comment.zip");
+    try (final ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(archive))) {
+      output.setComment("x".repeat(300));
+    }
+    final byte[] bytes = Files.readAllBytes(archive);
+    final Path truncated = this.directory.resolve("long-comment-truncated.zip");
+    Files.write(truncated, Arrays.copyOf(bytes, bytes.length - 1));
+    final Path destination = this.directory.resolve("long-comment-output");
+
+    final UncheckedIOException failure = assertThrows(UncheckedIOException.class, () -> IOUtils.unzip(truncated, destination));
+    final Throwable cause = failure.getCause();
+    assertInstanceOf(ZipException.class, cause);
+  }
+
+  @Test
   void shouldExtractEmptyArchives() throws IOException {
     final Path archive = this.writeZip();
     final Path destination = this.directory.resolve("empty-out");

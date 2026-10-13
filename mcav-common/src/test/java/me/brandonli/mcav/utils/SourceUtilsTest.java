@@ -21,12 +21,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
 import me.brandonli.mcav.capability.installer.ytdlp.YTDLPInstaller;
@@ -85,6 +89,12 @@ final class SourceUtilsTest {
     assertFalse(opaqueDetected);
     assertFalse(deviceDetected);
     assertThrows(NullPointerException.class, () -> SourceUtils.isImageGif(null));
+  }
+
+  @Test
+  void shouldNotTakeANameWithoutADotForAnExtension() {
+    final boolean bareName = isGif("gif");
+    assertFalse(bareName);
   }
 
   @Test
@@ -213,6 +223,24 @@ final class SourceUtilsTest {
     final YTDLPInstaller verifiedInstaller = Mockito.verify(installer);
     verifiedInstaller.download(true);
     assertThrows(NullPointerException.class, () -> SourceUtils.isDynamicStream(null));
+  }
+
+  @Test
+  void shouldReportALiveStreamThatTheSharedYtdlpInstallationFinds() throws IOException {
+    final boolean posix = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
+    assumeTrue(posix, "A shell script stands in for yt-dlp only on a POSIX file system!");
+
+    final Path script = this.directory.resolve("yt-dlp");
+    Files.writeString(script, "#!/bin/sh\necho '{\"is_live\": true}'\n", StandardCharsets.UTF_8);
+    Files.setPosixFilePermissions(script, PosixFilePermissions.fromString("rwx------"));
+    final YTDLPInstaller installer = Mockito.mock(YTDLPInstaller.class);
+    Mockito.when(installer.download(true)).thenReturn(script);
+    try (final MockedStatic<YTDLPInstaller> installers = Mockito.mockStatic(YTDLPInstaller.class)) {
+      installers.when(YTDLPInstaller::shared).thenReturn(installer);
+
+      final boolean live = SourceUtils.isDynamicStream("https://example.com/live");
+      assertTrue(live);
+    }
   }
 
   @Test

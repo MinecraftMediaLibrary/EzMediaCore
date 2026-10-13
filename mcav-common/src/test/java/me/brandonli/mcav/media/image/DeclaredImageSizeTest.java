@@ -748,6 +748,28 @@ final class DeclaredImageSizeTest {
   }
 
   @Test
+  void shouldRefuseANetpbmWidthThatGrowsPastTheLargestIntOnlyByItsLastDigit() {
+    final byte[] largest = bytes("P6 2147483647 1\n");
+    final byte[] tooLong = bytes("P6 21474836470 1\n");
+
+    final String largestSize = sizeOf(read(largest));
+    final Size tooLongSize = read(tooLong);
+    assertEquals("2147483647x1", largestSize);
+    assertNull(tooLongSize);
+  }
+
+  @Test
+  void shouldReadOnlyTheTiffEntriesThatFitInTheDataWhole() {
+    final byte[] header = bytes("II", littleEndian(42, 2), littleEndian(0, 4), new byte[6]);
+    final byte[] entries = bytes(tiffEntry(false, 256, 3, 1, 30000), tiffEntry(false, 257, 4, 1, 20000));
+    final byte[] truncatedRepeat = littleEndian(256, 2);
+    final byte[] tiff = bytes(header, entries, truncatedRepeat);
+
+    final String declaredSize = sizeOf(read(tiff));
+    assertEquals("30000x20000", declaredSize);
+  }
+
+  @Test
   void shouldRefuseAnImageLargerThanTheLimitWithoutDecodingIt() {
     final byte[] header = bytes(0x89, "PNG\r\n", 0x1A, "\n", bigEndian(13, 4), "IHDR", bigEndian(30000, 4), bigEndian(20000, 4));
     final IllegalArgumentException refused = assertThrows(IllegalArgumentException.class, () ->

@@ -230,6 +230,14 @@ final class PaletteTest {
   }
 
   @Test
+  void shouldLoadTheBundledPaletteFromItsResource() {
+    final int[] loaded = MapPaletteLoader.loadColors("mcav/common/palette.json");
+
+    final int[] colors = MapPaletteLoader.getColors();
+    assertArrayEquals(colors, loaded);
+  }
+
+  @Test
   void shouldProvideColorObjectsFromTheLoader() {
     final int[] colors = MapPaletteLoader.getColors();
     final Color color = MapPaletteLoader.getColor((byte) 4);
