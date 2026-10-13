@@ -166,6 +166,47 @@ final class HttpDownloaderTest {
   }
 
   @Test
+  void shouldWaitBetweenAttemptsButNotAfterTheLast() throws Exception {
+    try (final LocalHttpServer server = LocalHttpServer.start(); final ExecutorService executor = Executors.newSingleThreadExecutor()) {
+      server.respond("/broken", 500, CONTENT);
+      final URI broken = server.uri("/broken");
+      final Path destination = this.directory.resolve("broken.bin");
+      final Duration retryDelay = Duration.ofMillis(500);
+      final Future<Long> failedAt = executor.submit(() -> failAndTime(broken, destination, retryDelay));
+
+      final boolean secondAttemptEarly = server.awaitRequests("/broken", 2, Duration.ofMillis(250));
+      assertFalse(secondAttemptEarly, "the second attempt waits for the retry delay");
+
+      final boolean thirdAttempt = server.awaitRequests("/broken", 3, Duration.ofSeconds(10));
+      final long thirdAttemptAt = System.nanoTime();
+      final Duration afterLastAttempt = Duration.ofNanos(failedAt.get() - thirdAttemptAt);
+      final boolean failedPromptly = afterLastAttempt.compareTo(retryDelay) < 0;
+      assertTrue(thirdAttempt);
+      assertTrue(failedPromptly, "no wait after the last attempt, but " + afterLastAttempt);
+    }
+  }
+
+  private static long failAndTime(final URI uri, final Path destination, final Duration retryDelay) {
+    assertThrows(IOException.class, () -> HttpDownloader.download(uri, destination, null, retryDelay));
+    return System.nanoTime();
+  }
+
+  @Test
+  void shouldGiveUpOnAnErrorWhoseBodyStalls() {
+    try (final LocalHttpServer server = LocalHttpServer.start()) {
+      server.respondStalling("/stalled", 500, CONTENT, CONTENT.length + 1);
+      final URI stalled = server.uri("/stalled");
+      final Path destination = this.directory.resolve("stalled.bin");
+
+      final IOException failure = assertTimeoutPreemptively(Duration.ofSeconds(10), () ->
+        assertThrows(IOException.class, () -> HttpDownloader.download(stalled, destination, null, NO_DELAY))
+      );
+      final Throwable cause = failure.getCause();
+      assertInstanceOf(HttpStatusException.class, cause);
+    }
+  }
+
+  @Test
   void shouldKeepTheExistingFileWhenADownloadFails() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond("/broken", 500, CONTENT);
@@ -346,6 +387,24 @@ final class HttpDownloaderTest {
   }
 
   @Test
+  void shouldFollowARedirectWhoseBodyStalls() {
+    try (final LocalHttpServer server = LocalHttpServer.start()) {
+      server.respond("/file", 200, CONTENT);
+      server.respondStallingRedirect("/moved", 302, "/file", CONTENT, CONTENT.length + 1);
+      final URI moved = server.uri("/moved");
+
+      final byte[] content = assertTimeoutPreemptively(Duration.ofSeconds(10), () -> readPinned(moved));
+      assertArrayEquals(CONTENT, content);
+    }
+  }
+
+  private static byte[] readPinned(final URI uri) throws IOException {
+    try (final InputStream body = HttpDownloader.openPinnedStream(uri)) {
+      return body.readAllBytes();
+    }
+  }
+
+  @Test
   void shouldRefuseARedirectOfAPinnedDownloadToALocationThatIsNotAUri() {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respondRedirect("/broken", 302, "http://[not-a-host");
@@ -379,6 +438,15 @@ final class HttpDownloaderTest {
     assertFalse(otherHost, "another host");
     final boolean otherPort = HttpDownloader.isSameOrigin(page, URI.create("https://mirror.example:8443/a.deb"));
     assertFalse(otherPort, "another port");
+  }
+
+  @Test
+  void shouldTakePortZeroForAPortOfItsOwn() {
+    final URI portZero = URI.create("http://mirror.example:0/a");
+    final URI defaultPort = URI.create("http://mirror.example/b");
+
+    final boolean sameOrigin = HttpDownloader.isSameOrigin(portZero, defaultPort);
+    assertFalse(sameOrigin);
   }
 
   @Test

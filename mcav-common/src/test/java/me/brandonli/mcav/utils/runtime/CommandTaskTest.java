@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -188,6 +190,26 @@ final class CommandTaskTest {
   }
 
   @Test
+  @EnabledOnOs({ OS.LINUX, OS.MAC })
+  void shouldEndAProgramThatAppearedAfterTheLastLookAtTheChildren() throws IOException, InterruptedException {
+    final Process sleeper = new ProcessBuilder("sleep", "60").start();
+    try {
+      final ProcessHandle sleeperHandle = sleeper.toHandle();
+      final Process parent = new LateChildProcess(sleeperHandle);
+      final CommandTask task = new CommandTask("sh");
+      final Future<String> failedOutput = CompletableFuture.failedFuture(new IOException("broken pipe!"));
+      final Future<String> errorOutput = CompletableFuture.completedFuture("");
+
+      assertThrows(IOException.class, () -> task.awaitCompletion(parent, failedOutput, errorOutput, null));
+
+      final boolean ended = sleeper.waitFor(10, TimeUnit.SECONDS);
+      assertTrue(ended, "the child that appeared after the last look is ended too");
+    } finally {
+      sleeper.destroyForcibly();
+    }
+  }
+
+  @Test
   void shouldWrapStreamFailuresWhileReading() throws IOException {
     try (
       final InputStream broken = new InputStream() {
@@ -282,5 +304,54 @@ final class CommandTaskTest {
     assertTrue(exited, "the program is killed instead of being left running");
     final boolean returnedInTime = elapsed < 15_000_000_000L;
     assertTrue(returnedInTime, "run returns without waiting for the program, took " + elapsed + " ns");
+  }
+
+  private static final class LateChildProcess extends Process {
+
+    private final ProcessHandle child;
+
+    private boolean looked;
+
+    LateChildProcess(final ProcessHandle child) {
+      this.child = child;
+    }
+
+    @Override
+    public Stream<ProcessHandle> descendants() {
+      if (!this.looked) {
+        this.looked = true;
+        return Stream.empty();
+      }
+
+      return Stream.of(this.child);
+    }
+
+    @Override
+    public OutputStream getOutputStream() {
+      return OutputStream.nullOutputStream();
+    }
+
+    @Override
+    public InputStream getInputStream() {
+      return InputStream.nullInputStream();
+    }
+
+    @Override
+    public InputStream getErrorStream() {
+      return InputStream.nullInputStream();
+    }
+
+    @Override
+    public int waitFor() {
+      return 0;
+    }
+
+    @Override
+    public int exitValue() {
+      return 0;
+    }
+
+    @Override
+    public void destroy() {}
   }
 }

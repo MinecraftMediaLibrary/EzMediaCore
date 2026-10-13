@@ -27,6 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
@@ -50,6 +53,8 @@ import me.brandonli.mcav.utils.os.OSUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
@@ -217,6 +222,23 @@ final class MCAVTest {
     assertFalse(beforeInstall);
     assertEquals(linux, installed);
     assertFalse(released);
+  }
+
+  @Test
+  @ResourceLock(Resources.SYSTEM_ERR)
+  void shouldBuildTheMapColorLookupTableOnInstall() {
+    final PrintStream standardError = System.err;
+    final ByteArrayOutputStream captured = new ByteArrayOutputStream();
+    System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
+    try {
+      this.mcav.install();
+    } finally {
+      System.setErr(standardError);
+    }
+    final String log = captured.toString(StandardCharsets.UTF_8);
+
+    final boolean built = log.contains("Map color lookup table built in");
+    assertTrue(built, log);
   }
 
   @Test

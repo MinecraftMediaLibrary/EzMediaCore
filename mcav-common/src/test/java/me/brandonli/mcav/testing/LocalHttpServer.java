@@ -140,6 +140,26 @@ public final class LocalHttpServer implements AutoCloseable {
   }
 
   /**
+   * Adds a redirect to another place whose body stalls like {@link #respondStalling(String, int, byte[], long)}.
+   *
+   * @param path            the path, starting with a slash
+   * @param status          the status code, such as 302
+   * @param location        the place, which may be relative
+   * @param body            the part of the body that is sent
+   * @param announcedLength the length announced in the headers, which must be larger than the body
+   */
+  public void respondStallingRedirect(
+    final String path,
+    final int status,
+    final String location,
+    final byte[] body,
+    final long announcedLength
+  ) {
+    final Response response = new Response(status, body, null, announcedLength, location, 0);
+    this.addResponse(path, response);
+  }
+
+  /**
    * Adds a response that trickles: it announces the length of the body and sends one byte of it at a time, a byte
    * every interval, until the body is sent or the server is closed.
    *
@@ -241,12 +261,12 @@ public final class LocalHttpServer implements AutoCloseable {
     if (gate != null) {
       this.awaitGateOrClose(gate);
     }
+    if (response.location != null) {
+      exchange.getResponseHeaders().add("Location", response.location);
+    }
     if (response.announcedLength >= 0) {
       this.stall(exchange, response);
       return;
-    }
-    if (response.location != null) {
-      exchange.getResponseHeaders().add("Location", response.location);
     }
     if (response.trickleMillis > 0) {
       this.trickle(exchange, response);

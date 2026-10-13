@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -36,8 +37,11 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.Uninterruptibles;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -51,6 +55,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.installer.Installer;
 import me.brandonli.mcav.capability.installer.vlc.UnsupportedOperatingSystemException;
@@ -58,8 +64,16 @@ import me.brandonli.mcav.capability.installer.vlc.VLCInstallationKit;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstallerFailures;
 import me.brandonli.mcav.capability.installer.ytdlp.YTDLPInstaller;
 import me.brandonli.mcav.utils.natives.NativeLoadingException;
+import org.bytedeco.ffmpeg.avutil.Callback_Pointer_int_String_Pointer;
+import org.bytedeco.ffmpeg.global.avutil;
+import org.bytedeco.javacpp.Loader;
 import org.bytedeco.opencv.global.opencv_core;
+import org.bytedeco.opencv.presets.opencv_objdetect;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.slf4j.Logger;
 
@@ -71,6 +85,10 @@ final class DependencyLoaderTest {
   private static final String OPENBLAS_LOAD = "org.bytedeco.openblas.load";
   private static final String PATHS_FIRST = "org.bytedeco.javacpp.pathsFirst";
   private static final int CONCURRENT_ROUNDS = 500;
+  private static final long MAXIMUM_PLAUSIBLE_MILLISECONDS = 60_000L;
+
+  private static final Pattern NATIVES_LOADED = Pattern.compile("JavaCV natives loaded in (\\d+) ms");
+
   private static final List<String> OBJECT_DETECTION_LOADED = List.of("objdetect");
 
   @Test
@@ -86,13 +104,67 @@ final class DependencyLoaderTest {
   @Test
   void shouldLoadTheBundledNativesAheadOfTheSystemLibraries() {
     final DependencyLoader loader = new DependencyLoader();
-    assertDoesNotThrow(() -> loader.loadModules());
-    final String pathsFirst = System.getProperty(PATHS_FIRST);
+    final String previousPathsFirst = System.getProperty(PATHS_FIRST);
+    System.clearProperty(PATHS_FIRST);
+    final String pathsFirst;
+    try {
+      assertDoesNotThrow(() -> loader.loadModules());
+      pathsFirst = System.getProperty(PATHS_FIRST);
+    } finally {
+      restoreProperty(PATHS_FIRST, previousPathsFirst);
+    }
     final String openBlas = System.getProperty(OPENBLAS_LOAD);
     final boolean hasFfmpeg = loader.hasCapability(Capability.FFMPEG);
     assertEquals("false", pathsFirst);
     assertNull(openBlas, "OpenCV links OpenBLAS, so the library must not disable it");
     assertTrue(hasFfmpeg);
+  }
+
+  private static void restoreProperty(final String key, final @Nullable String value) {
+    if (value == null) {
+      return;
+    }
+
+    System.setProperty(key, value);
+  }
+
+  @Test
+  @ResourceLock(Resources.SYSTEM_ERR)
+  void shouldSendFFmpegErrorsToTheJavaLogOnceTheNativesAreLoaded() {
+    final DependencyLoader loader = new DependencyLoader();
+    loader.loadModules();
+    avutil.av_log_set_level(avutil.AV_LOG_INFO);
+    avutil.av_log_set_callback((Callback_Pointer_int_String_Pointer) null);
+    final PrintStream standardError = System.err;
+    final ByteArrayOutputStream captured = new ByteArrayOutputStream();
+    System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
+    try {
+      loader.loadModules();
+      avutil.av_log(null, avutil.AV_LOG_ERROR, "mcav ffmpeg log marker\n");
+    } finally {
+      System.setErr(standardError);
+    }
+    final String log = captured.toString(StandardCharsets.UTF_8);
+
+    final int level = avutil.av_log_get_level();
+    final boolean forwarded = log.contains("mcav ffmpeg log marker");
+    assertEquals(avutil.AV_LOG_ERROR, level);
+    assertTrue(forwarded, log);
+  }
+
+  @Test
+  void shouldLoadFaceDetectionAgainWhenTheNativesAreLoaded() {
+    final DependencyLoader loader = new DependencyLoader();
+    final boolean objectDetectionLinks = DependencyLoader.loadOptionalModule(() -> Loader.load(opencv_objdetect.class), "face detection");
+    assumeTrue(objectDetectionLinks, "The object detection natives must link on this system!");
+    loader.loadFaceDetection(() -> {
+      throw new UnsatisfiedLinkError("no GTK!");
+    });
+
+    loader.loadModules();
+
+    final boolean hasFaceDetection = loader.hasCapability(Capability.FACE_DETECTION);
+    assertTrue(hasFaceDetection);
   }
 
   @Test
@@ -160,6 +232,28 @@ final class DependencyLoaderTest {
     assertSame(linkError, linkCause);
     assertSame(missingClass, classCause);
     assertTrue(namesTheLibrary, linkMessage);
+  }
+
+  @Test
+  @ResourceLock(Resources.SYSTEM_ERR)
+  void shouldReportHowLongTheNativesTookToLoad() {
+    final PrintStream standardError = System.err;
+    final ByteArrayOutputStream captured = new ByteArrayOutputStream();
+    System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
+    try {
+      DependencyLoader.loadModules(() -> {});
+    } finally {
+      System.setErr(standardError);
+    }
+    final String log = captured.toString(StandardCharsets.UTF_8);
+
+    final Matcher loaded = NATIVES_LOADED.matcher(log);
+    final boolean reported = loaded.find();
+    assertTrue(reported, log);
+
+    final long elapsed = Long.parseLong(loaded.group(1));
+    final boolean plausible = elapsed < MAXIMUM_PLAUSIBLE_MILLISECONDS;
+    assertTrue(plausible, log);
   }
 
   @Test
@@ -601,7 +695,15 @@ final class DependencyLoaderTest {
     final DependencyLoader loader = new DependencyLoader(logger);
     loader.installVLC(Optional::empty);
     verify(logger).info("Preparing VLC...");
-    verify(logger).info(eq("VLC ready in {} ms."), any(Object.class));
+    assertLoggedAPlausibleTime(logger, "VLC ready in {} ms.");
+  }
+
+  private static void assertLoggedAPlausibleTime(final Logger logger, final String template) {
+    final ArgumentCaptor<Object> elapsedCaptor = ArgumentCaptor.forClass(Object.class);
+    verify(logger).info(eq(template), elapsedCaptor.capture());
+    final long elapsed = (Long) elapsedCaptor.getValue();
+    final boolean plausible = elapsed >= 0 && elapsed < MAXIMUM_PLAUSIBLE_MILLISECONDS;
+    assertTrue(plausible, "elapsed " + elapsed + " ms");
   }
 
   @Test
@@ -659,7 +761,7 @@ final class DependencyLoaderTest {
     offlineLoader.installYTDLP(offline);
     final DependencyLoader unsupportedLoader = new DependencyLoader(logger);
     unsupportedLoader.installYTDLP(unsupported);
-    verify(logger).info(eq("yt-dlp ready in {} ms."), any(Object.class));
+    assertLoggedAPlausibleTime(logger, "yt-dlp ready in {} ms.");
     verify(logger).warn("yt-dlp could not be installed because of \"{}\", so URL parsing cannot be used.", "offline!");
     verify(logger).warn("yt-dlp is not available for this platform, URL parsing cannot be used.");
   }

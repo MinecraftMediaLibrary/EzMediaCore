@@ -296,7 +296,8 @@ final class DirectoryProviderDiscoveryStrategyTest {
   @Test
   void shouldGiveUpAfterTheMaximumNumberOfDirectories() throws IOException {
     final Path crowded = this.temp.resolve("crowded");
-    for (int index = 0; index < DirectoryProviderDiscoveryStrategy.MAX_VISITED_DIRECTORIES; index++) {
+    final int childCount = DirectoryProviderDiscoveryStrategy.MAX_VISITED_DIRECTORIES - 1;
+    for (int index = 0; index < childCount; index++) {
       createDirectory(crowded, "empty-" + index);
     }
     final Path libraries = createLibraries(this.temp, "vlc");
