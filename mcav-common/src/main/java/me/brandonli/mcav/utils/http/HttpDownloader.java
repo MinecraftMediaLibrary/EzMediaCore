@@ -122,7 +122,7 @@ public final class HttpDownloader {
    * @param uri the URI to request
    * @return the request
    * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host
-   * @throws NullPointerException if {@code uri} is null
+   * @throws NullPointerException     if {@code uri} is null
    */
   public static HttpRequest createRequest(final URI uri) {
     Preconditions.checkNotNull(uri, "URI must not be null!");
@@ -141,9 +141,9 @@ public final class HttpDownloader {
    *
    * @param uri the URI to download
    * @return the body of the response
-   * @throws IOException if the request fails or the server answers with an error status
+   * @throws IOException              if the request fails or the server answers with an error status
    * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host
-   * @throws NullPointerException if {@code uri} is null
+   * @throws NullPointerException     if {@code uri} is null
    */
   public static InputStream openStream(final URI uri) throws IOException {
     Preconditions.checkNotNull(uri, "URI must not be null!");
@@ -160,7 +160,7 @@ public final class HttpDownloader {
    * @param uri the URI to download
    * @return the body of the response, which closes its client
    * @throws RedirectRefusedException if the server redirects elsewhere, to a location that is not a URI, or too often
-   * @throws IOException if a request fails or the server answers with an error status
+   * @throws IOException              if a request fails or the server answers with an error status
    */
   @VisibleForTesting
   static InputStream openPinnedStream(final URI uri) throws IOException {
@@ -257,8 +257,8 @@ public final class HttpDownloader {
    *
    * @param uri         the URI to download
    * @param destination the file to write, which is replaced if it exists
-   * @throws IOException if the download fails after all retries
-   * @throws NullPointerException if {@code uri}, {@code destination} is null
+   * @throws IOException              if the download fails after all retries
+   * @throws NullPointerException     if {@code uri}, {@code destination} is null
    * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host,
    *                                  the destination has no file name
    */
@@ -272,11 +272,11 @@ public final class HttpDownloader {
    * @param uri            the URI to download
    * @param destination    the file to write, which is replaced if it exists
    * @param expectedSha256 the expected SHA-256 hash in hexadecimal, or null to skip verification
-   * @throws IOException                if the download fails after all retries or the file cannot be moved into place
+   * @throws IOException               if the download fails after all retries or the file cannot be moved into place
    * @throws ChecksumMismatchException if the hash does not match, which is not retried
-   * @throws NullPointerException if {@code uri}, {@code destination} is null
-   * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host,
-   *                                  the destination has no file name
+   * @throws NullPointerException      if {@code uri}, {@code destination} is null
+   * @throws IllegalArgumentException  if the URI is not an absolute HTTP or HTTPS URI with a valid host,
+   *                                   the destination has no file name
    */
   public static void download(final URI uri, final Path destination, final @Nullable String expectedSha256) throws IOException {
     download(uri, destination, expectedSha256, RETRY_DELAY, IDLE_TIMEOUT, NO_SIZE_LIMIT);
@@ -292,9 +292,9 @@ public final class HttpDownloader {
    * @param maxBytes    the largest number of bytes the download may have, at least 1
    * @throws DownloadTooLargeException if the download is larger than the limit
    * @throws IOException               if the download fails
-   * @throws NullPointerException if {@code uri}, {@code destination} is null
-   * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host,
-   *                                  the destination has no file name, or {@code maxBytes} is nonpositive
+   * @throws NullPointerException      if {@code uri}, {@code destination} is null
+   * @throws IllegalArgumentException  if the URI is not an absolute HTTP or HTTPS URI with a valid host,
+   *                                   the destination has no file name, or {@code maxBytes} is nonpositive
    */
   public static void download(final URI uri, final Path destination, final long maxBytes) throws IOException {
     Preconditions.checkArgument(maxBytes > 0, SIZE_LIMIT_MESSAGE, maxBytes);
@@ -313,9 +313,9 @@ public final class HttpDownloader {
    * @throws DownloadTooLargeException if the download is larger than the limit
    * @throws ChecksumMismatchException if the hash does not match
    * @throws IOException               if the download fails
-   * @throws NullPointerException if {@code uri}, {@code destination}, {@code expectedSha256} is null
-   * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host,
-   *                                  the destination has no file name, or {@code maxBytes} is nonpositive
+   * @throws NullPointerException      if {@code uri}, {@code destination}, {@code expectedSha256} is null
+   * @throws IllegalArgumentException  if the URI is not an absolute HTTP or HTTPS URI with a valid host,
+   *                                   the destination has no file name, or {@code maxBytes} is nonpositive
    */
   public static void download(final URI uri, final Path destination, final String expectedSha256, final long maxBytes) throws IOException {
     Preconditions.checkNotNull(expectedSha256, "Expected SHA-256 must not be null!");
@@ -403,7 +403,7 @@ public final class HttpDownloader {
   }
 
   /**
-   * Gets how long a pinned download may take: a minute, and a second for every 64 KiB of its size.
+   * Returns how long a pinned download may take: a minute, and a second for every 64 KiB of its size.
    *
    * @param maxBytes the pinned size
    * @return the time it may take
@@ -578,9 +578,9 @@ public final class HttpDownloader {
    * @param uri the URI to fetch
    * @return the body decoded using the response charset, or UTF-8 if none is supplied, or empty for a
    *         non-2xx status; the response is accumulated in memory
-   * @throws IOException if the request cannot be sent
+   * @throws IOException              if the request cannot be sent
    * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host
-   * @throws NullPointerException if {@code uri} is null
+   * @throws NullPointerException     if {@code uri} is null
    */
   public static Optional<String> fetchText(final URI uri) throws IOException {
     Preconditions.checkNotNull(uri, "URI must not be null!");
@@ -624,7 +624,7 @@ public final class HttpDownloader {
     }
 
     /**
-     * Gets the client this stream shuts down when it is closed.
+     * Returns the client this stream shuts down when it is closed.
      *
      * @return the client
      */

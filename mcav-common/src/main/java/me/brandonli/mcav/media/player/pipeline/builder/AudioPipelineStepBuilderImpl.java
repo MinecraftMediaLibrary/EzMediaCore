@@ -41,7 +41,7 @@ public final class AudioPipelineStepBuilderImpl extends AudioPipelineStepBuilder
   }
 
   /**
-   * Gets {@link AudioPipelineStep#NO_OP}, the audio step built when no filter was added.
+   * Returns {@link AudioPipelineStep#NO_OP}, the audio step built when no filter was added.
    *
    * @return the no-op audio step
    */
@@ -51,7 +51,7 @@ public final class AudioPipelineStepBuilderImpl extends AudioPipelineStepBuilder
   }
 
   /**
-   * Gets this builder typed as an audio builder.
+   * Returns this builder typed as an audio builder.
    *
    * @return this builder
    */

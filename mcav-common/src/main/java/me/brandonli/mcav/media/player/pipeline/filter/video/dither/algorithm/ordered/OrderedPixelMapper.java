@@ -98,7 +98,7 @@ public final class OrderedPixelMapper implements PixelMapper {
   }
 
   /**
-   * Gets the normalized threshold pattern, indexed by row and then column, with every entry from -0.5 to 0.5 times
+   * Returns the normalized threshold pattern, indexed by row and then column, with every entry from -0.5 to 0.5 times
    * the strength.
    *
    * @return the pattern, which is shared and must not be modified
@@ -109,7 +109,7 @@ public final class OrderedPixelMapper implements PixelMapper {
   }
 
   /**
-   * Gets the strength the pattern was scaled by.
+   * Returns the strength the pattern was scaled by.
    *
    * @return the strength
    */

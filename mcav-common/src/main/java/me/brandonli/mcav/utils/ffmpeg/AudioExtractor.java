@@ -62,13 +62,13 @@ public final class AudioExtractor {
    *
    * @param source the media to extract the audio from, such as a file or a URL
    * @return the absolute path of the new Ogg Vorbis file
-   * @throws NullPointerException  if the source is null
-   * @throws IOException           if FFmpeg cannot be started, its output cannot be read, or the thread is
-   *                               interrupted while waiting for FFmpeg
-   * @throws ProcessException      if FFmpeg exits with a non-zero exit code, for example because the source does
-   *                               not exist, cannot be decoded, or has no audio track
-   * @throws UncheckedIOException  if the cache folder cannot be created
-   * @throws UnsatisfiedLinkError  if the bundled FFmpeg is not available for this platform
+   * @throws NullPointerException if the source is null
+   * @throws IOException          if FFmpeg cannot be started, its output cannot be read, or the thread is
+   *                              interrupted while waiting for FFmpeg
+   * @throws ProcessException     if FFmpeg exits with a non-zero exit code, for example because the source does
+   *                              not exist, cannot be decoded, or has no audio track
+   * @throws UncheckedIOException if the cache folder cannot be created
+   * @throws UnsatisfiedLinkError if the bundled FFmpeg is not available for this platform
    */
   public static Path extractOggVorbis(final Source source) throws IOException {
     Preconditions.checkNotNull(source, "Source must not be null!");

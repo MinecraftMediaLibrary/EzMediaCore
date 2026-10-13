@@ -56,7 +56,7 @@ final class VideoTimestamps {
   }
 
   /**
-   * Gets the timestamp of the next video frame.
+   * Returns the timestamp of the next video frame.
    *
    * @param reported the timestamp the decoder reported in microseconds
    * @return the reported timestamp if it comes after the previous frame, a derived one otherwise

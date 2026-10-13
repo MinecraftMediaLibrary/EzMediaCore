@@ -42,7 +42,7 @@ public class RectangleFilter extends MatVideoFilter {
    * @param height the height of the rectangle, which must be positive
    * @param color  the blue, green, and red components of the color, normally 0 to 255; the non-null array is copied
    * @throws IllegalArgumentException if either size is nonpositive
-   * @throws NullPointerException if {@code color} is null
+   * @throws NullPointerException     if {@code color} is null
    */
   public RectangleFilter(final int left, final int top, final int width, final int height, final double[] color) {
     Preconditions.checkArgument(width > 0 && height > 0, "Rectangle size must be positive!");

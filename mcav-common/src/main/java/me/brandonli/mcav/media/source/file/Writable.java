@@ -42,7 +42,7 @@ public interface Writable {
   }
 
   /**
-   * Gets the path of the file.
+   * Returns the path of the file.
    *
    * @return the path
    */
@@ -53,9 +53,9 @@ public interface Writable {
    *
    * @param options the open options, see {@link Files#newInputStream(Path, OpenOption...)}
    * @return the stream, which the caller must close
-   * @throws IOException if the file cannot be opened
+   * @throws IOException                   if the file cannot be opened
    * @throws UnsupportedOperationException if an option is unsupported by the file-system provider
-   * @throws NullPointerException if {@code options} is null
+   * @throws NullPointerException          if {@code options} is null
    */
   default InputStream newInputStream(final OpenOption... options) throws IOException {
     Preconditions.checkNotNull(options, "Options must not be null!");
@@ -68,9 +68,9 @@ public interface Writable {
    *
    * @param options the open options, see {@link Files#newOutputStream(Path, OpenOption...)}
    * @return the stream, which the caller must close
-   * @throws IOException if the file cannot be opened
+   * @throws IOException                   if the file cannot be opened
    * @throws UnsupportedOperationException if an option is unsupported by the file-system provider
-   * @throws NullPointerException if {@code options} is null
+   * @throws NullPointerException          if {@code options} is null
    */
   default OutputStream newOutputStream(final OpenOption... options) throws IOException {
     Preconditions.checkNotNull(options, "Options must not be null!");

@@ -342,7 +342,7 @@ final class VideoRenderer implements RenderCallback {
   }
 
   /**
-   * Gets a resize filter for the target size, reusing the filter of the previous frame while the size stays the same.
+   * Returns a resize filter for the target size, reusing the filter of the previous frame while the size stays the same.
    */
   private ResizeFilter obtainResizeFilter(final int targetWidth, final int targetHeight) {
     final ResizeFilter existing = this.resizeFilter;

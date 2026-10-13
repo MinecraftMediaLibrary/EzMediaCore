@@ -70,7 +70,7 @@ public final class WinInstallationStrategy extends ManualInstallationStrategy {
    *
    * @param archive the downloaded zip
    * @return the installation directory, which contains {@code libvlc.dll}
-   * @throws IOException if the zip cannot be extracted or does not contain the library
+   * @throws IOException          if the zip cannot be extracted or does not contain the library
    * @throws NullPointerException if {@code archive} is null
    */
   @Override

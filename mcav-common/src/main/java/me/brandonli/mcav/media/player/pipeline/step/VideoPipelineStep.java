@@ -60,14 +60,14 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
   }
 
   /**
-   * Gets the filter of this step.
+   * Returns the filter of this step.
    *
    * @return the filter
    */
   VideoFilter getFilter();
 
   /**
-   * Gets this step typed as a video step.
+   * Returns this step typed as a video step.
    *
    * @return this step
    */
@@ -86,7 +86,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
     private NoOperationStep() {}
 
     /**
-     * Gets the step that follows this one, which is none.
+     * Returns the step that follows this one, which is none.
      *
      * @return null
      */
@@ -96,7 +96,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
     }
 
     /**
-     * Gets the filter of this step, which does nothing.
+     * Returns the filter of this step, which does nothing.
      *
      * @return {@link VideoFilter#NO_OP}
      */

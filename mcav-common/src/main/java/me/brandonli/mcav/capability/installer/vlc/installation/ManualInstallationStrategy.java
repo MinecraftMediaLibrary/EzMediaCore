@@ -72,7 +72,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
   }
 
   /**
-   * Gets the installer this strategy installs for.
+   * Returns the installer this strategy installs for.
    *
    * @return the installer
    */
@@ -81,7 +81,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
   }
 
   /**
-   * Gets the directory VLC is installed into.
+   * Returns the directory VLC is installed into.
    *
    * @return the installation directory
    */
@@ -92,10 +92,10 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
   /**
    * Finds the first nonempty library matching one pattern, searching at most eight levels below the root.
    *
-   * @param root the directory to search
+   * @param root    the directory to search
    * @param pattern the complete library file-name pattern
    * @return the parent directory of a matching library, or empty if none exists
-   * @throws IOException if a candidate directory or library cannot be read
+   * @throws IOException          if a candidate directory or library cannot be read
    * @throws NullPointerException if {@code root} or {@code pattern} is null
    */
   protected static Optional<Path> findLibraryDirectory(final Path root, final Pattern pattern) throws IOException {
@@ -107,11 +107,11 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * when their targets are regular and nonempty. The recursive search does not follow directory symlinks, and files
    * are searched at most eight levels below the root.
    *
-   * @param root the directory to search
-   * @param pattern the pattern for the main library file name
+   * @param root       the directory to search
+   * @param pattern    the pattern for the main library file name
    * @param companions additional library patterns that must match files in the same directory
    * @return the first complete library directory, or empty if no complete directory exists
-   * @throws IOException if a candidate directory or library cannot be read
+   * @throws IOException          if a candidate directory or library cannot be read
    * @throws NullPointerException if {@code root}, {@code pattern}, the companion array or a companion pattern is null
    */
   protected static Optional<Path> findLibraryDirectory(final Path root, final Pattern pattern, final Pattern... companions)
@@ -202,9 +202,9 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * them, including links whose target no longer exists.
    *
    * @param path the file or directory to delete
-   * @throws IOException if a file cannot be deleted
-   * @see IOUtils#deleteRecursively(Path)
+   * @throws IOException          if a file cannot be deleted
    * @throws NullPointerException if {@code path} is null
+   * @see IOUtils#deleteRecursively(Path)
    */
   public static void deleteRecursively(final Path path) throws IOException {
     Preconditions.checkNotNull(path, "Path must not be null!");
@@ -215,7 +215,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * Deletes a single file if it exists.
    *
    * @param file the file to delete
-   * @throws IOException if the file cannot be deleted
+   * @throws IOException          if the file cannot be deleted
    * @throws NullPointerException if {@code file} is null
    */
   public void deleteFile(final Path file) throws IOException {

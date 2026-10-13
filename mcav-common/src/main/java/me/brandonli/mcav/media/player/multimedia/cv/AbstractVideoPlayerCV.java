@@ -463,7 +463,7 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Gets the speed the media plays at.
+   * Returns the speed the media plays at.
    *
    * @return the media time that passes per unit of wall time, 1 for normal speed
    */
@@ -472,7 +472,7 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Gets the playback position, which is the timestamp of the last rendered frame.
+   * Returns the playback position, which is the timestamp of the last rendered frame.
    *
    * @return the position in milliseconds, or 0 if nothing has been played
    */
@@ -527,7 +527,7 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Gets the slot that holds the video pipeline. Frames reach the pipeline as 8-bit BGR on the video rendering thread
+   * Returns the slot that holds the video pipeline. Frames reach the pipeline as 8-bit BGR on the video rendering thread
    * of the playback, and the pipeline can be swapped while playing.
    *
    * @return the video pipeline slot
@@ -538,7 +538,7 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Gets the slot that holds the audio pipeline. Samples reach the pipeline as signed 16-bit little-endian stereo at
+   * Returns the slot that holds the audio pipeline. Samples reach the pipeline as signed 16-bit little-endian stereo at
    * 48 kHz on the audio rendering thread of the playback, and the pipeline can be swapped while playing.
    *
    * @return the audio pipeline slot
@@ -549,7 +549,7 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Gets the slot that holds the size frames are scaled to before they reach the video pipeline. The size is read
+   * Returns the slot that holds the size frames are scaled to before they reach the video pipeline. The size is read
    * when a source is opened, so attach it before starting or seeking.
    *
    * @return the target size slot
@@ -560,7 +560,7 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Gets the handler that receives failures to open, decode, and filter media, which logs them by default.
+   * Returns the handler that receives failures to open, decode, and filter media, which logs them by default.
    *
    * @return the current handler
    */

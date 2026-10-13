@@ -65,7 +65,7 @@ public interface VideoPlayer extends ExceptionHandler {
    * @return the player
    * @throws IllegalStateException if VLC is still being prepared in the background, or its preparation found that VLC
    *                               is not available on this system; the message says which
-   * @throws NullPointerException if the options array or any option is null
+   * @throws NullPointerException  if the options array or any option is null
    */
   static VideoPlayerMultiplexer vlc(final String... args) {
     Preconditions.checkNotNull(args, "Arguments must not be null!");
@@ -126,8 +126,8 @@ public interface VideoPlayer extends ExceptionHandler {
    * @param executor the executor that opens the source
    * @return a future that completes with the result of {@link #start(Source)}
    * @throws java.util.concurrent.RejectedExecutionException if the executor rejects the task
+   * @throws NullPointerException                            if {@code combined} or {@code executor} is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
-   * @throws NullPointerException if {@code combined} or {@code executor} is null
    */
   default CompletableFuture<Boolean> startAsync(final Source combined, final ExecutorService executor) {
     Preconditions.checkNotNull(combined, "Source must not be null!");
@@ -149,7 +149,7 @@ public interface VideoPlayer extends ExceptionHandler {
   }
 
   /**
-   * Gets the slot that holds the video pipeline. Attach a pipeline before starting; it can be swapped while
+   * Returns the slot that holds the video pipeline. Attach a pipeline before starting; it can be swapped while
    * playing.
    *
    * @return the video pipeline slot
@@ -157,7 +157,7 @@ public interface VideoPlayer extends ExceptionHandler {
   VideoAttachableCallback getVideoAttachableCallback();
 
   /**
-   * Gets the slot that holds the audio pipeline. Attach a pipeline before starting; it can be swapped while
+   * Returns the slot that holds the audio pipeline. Attach a pipeline before starting; it can be swapped while
    * playing.
    *
    * @return the audio pipeline slot
@@ -165,7 +165,7 @@ public interface VideoPlayer extends ExceptionHandler {
   AudioAttachableCallback getAudioAttachableCallback();
 
   /**
-   * Gets the slot that holds the size frames are scaled to before they reach the video pipeline. Leave it
+   * Returns the slot that holds the size frames are scaled to before they reach the video pipeline. Leave it
    * detached to receive frames at their original size.
    *
    * @return the target size slot

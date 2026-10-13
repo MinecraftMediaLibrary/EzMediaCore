@@ -93,7 +93,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
    *                          recomputed
    * @param errorThreshold    the total error at or below which no error is diffused
    * @param errorStrength     the fraction of the error that is diffused, from 0 to 1
-   * @throws NullPointerException if {@code palette}, {@code kernel} is null
+   * @throws NullPointerException     if {@code palette}, {@code kernel} is null
    * @throws IllegalArgumentException if the temporal threshold is outside 0 through 255, the error
    *                                  threshold is negative, or the strength is outside 0 through 1 or NaN
    */
@@ -114,7 +114,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
   }
 
   /**
-   * Gets the temporal threshold per channel.
+   * Returns the temporal threshold per channel.
    *
    * @return the temporal threshold
    */
@@ -123,7 +123,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
   }
 
   /**
-   * Gets the total error at or below which nothing is diffused.
+   * Returns the total error at or below which nothing is diffused.
    *
    * @return the error threshold
    */
@@ -132,7 +132,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
   }
 
   /**
-   * Gets the fraction of the error that is diffused.
+   * Returns the fraction of the error that is diffused.
    *
    * @return the error strength from 0 to 1, rounded to the nearest multiple of 1/256
    */
@@ -154,7 +154,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
    * reads nor replaces the previous video frame; temporal reuse applies only to the palette-index methods.
    *
    * @param buffer the ARGB pixels, replaced with palette colors
-   * @param width the positive image width, which must divide the buffer length
+   * @param width  the positive image width, which must divide the buffer length
    */
   @Override
   public void dither(final int[] buffer, final int width) {

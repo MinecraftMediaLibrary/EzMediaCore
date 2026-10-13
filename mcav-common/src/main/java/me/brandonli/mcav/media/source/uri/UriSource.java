@@ -39,7 +39,7 @@ public interface UriSource extends DynamicSource {
   }
 
   /**
-   * Gets the URL.
+   * Returns the URL.
    *
    * @return the URL
    */

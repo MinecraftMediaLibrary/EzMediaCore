@@ -136,7 +136,7 @@ public class ColorPalette implements DitherPalette {
   }
 
   /**
-   * Gets the colors of the palette as opaque ARGB integers, indexed by palette index. Reserved transparent indices
+   * Returns the colors of the palette as opaque ARGB integers, indexed by palette index. Reserved transparent indices
    * hold zero.
    *
    * @return the colors, which are shared and must not be modified
@@ -147,7 +147,7 @@ public class ColorPalette implements DitherPalette {
   }
 
   /**
-   * Gets the number of colors, including reserved indices.
+   * Returns the number of colors, including reserved indices.
    *
    * @return the palette size
    */
@@ -157,7 +157,7 @@ public class ColorPalette implements DitherPalette {
   }
 
   /**
-   * Gets the number of leading indices that are reserved for transparency and never returned by the lookup tables.
+   * Returns the number of leading indices that are reserved for transparency and never returned by the lookup tables.
    *
    * @return the reserved index count
    */
@@ -167,7 +167,7 @@ public class ColorPalette implements DitherPalette {
   }
 
   /**
-   * Gets the lookup table from 7-bit RGB colors to palette indices, indexed with
+   * Returns the lookup table from 7-bit RGB colors to palette indices, indexed with
    * {@link me.brandonli.mcav.media.player.pipeline.filter.video.dither.DitherUtils#getLookupIndex(int, int, int)}.
    *
    * @return the index lookup table, which is shared and must not be modified
@@ -178,7 +178,7 @@ public class ColorPalette implements DitherPalette {
   }
 
   /**
-   * Gets the lookup table from 7-bit RGB colors to the closest palette color as opaque ARGB, indexed like
+   * Returns the lookup table from 7-bit RGB colors to the closest palette color as opaque ARGB, indexed like
    * {@link #getColorMap()}.
    *
    * @return the color lookup table, which is shared and must not be modified

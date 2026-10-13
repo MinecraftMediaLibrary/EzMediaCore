@@ -102,7 +102,7 @@ public final class OSUtils {
   }
 
   /**
-   * Gets the operating system of the JVM.
+   * Returns the operating system of the JVM.
    *
    * @return the operating system
    */
@@ -111,7 +111,7 @@ public final class OSUtils {
   }
 
   /**
-   * Gets the bitness of the JVM.
+   * Returns the bitness of the JVM.
    *
    * @return 32-bit or 64-bit
    */
@@ -120,7 +120,7 @@ public final class OSUtils {
   }
 
   /**
-   * Gets the CPU architecture family of the JVM.
+   * Returns the CPU architecture family of the JVM.
    *
    * @return x86, ARM, or {@link Arch#OTHER} for processor families the installers do not know
    */

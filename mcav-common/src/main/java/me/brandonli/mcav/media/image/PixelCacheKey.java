@@ -46,7 +46,7 @@ final class PixelCacheKey {
   }
 
   /**
-   * Gets the width of the matrix.
+   * Returns the width of the matrix.
    *
    * @return the width
    */
@@ -55,7 +55,7 @@ final class PixelCacheKey {
   }
 
   /**
-   * Gets the height of the matrix.
+   * Returns the height of the matrix.
    *
    * @return the height
    */

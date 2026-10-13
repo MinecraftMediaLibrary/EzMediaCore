@@ -155,7 +155,7 @@ public final class DiffusionKernel {
    * @param divisor the strictly positive divisor of each weight
    * @param taps    the nonempty array of non-null {@code {dx, dy, weight}} triples, copied by this constructor
    * @throws IllegalArgumentException if the divisor is nonpositive, there are no taps, a tap has other than
-   *                                 three elements, or a tap points to an already processed pixel, reaches farther than
+   *                                  three elements, or a tap points to an already processed pixel, reaches farther than
    *                                  {@link #MAX_OFFSET} pixels, or has a non-positive weight
    * @throws NullPointerException     if the name, the taps or one of the taps is null
    */
@@ -209,7 +209,7 @@ public final class DiffusionKernel {
   }
 
   /**
-   * Gets the name of the algorithm the kernel belongs to.
+   * Returns the name of the algorithm the kernel belongs to.
    *
    * @return the name
    */
@@ -218,7 +218,7 @@ public final class DiffusionKernel {
   }
 
   /**
-   * Gets the number the weights are divided by.
+   * Returns the number the weights are divided by.
    *
    * @return the divisor
    */
@@ -227,7 +227,7 @@ public final class DiffusionKernel {
   }
 
   /**
-   * Gets the number of taps.
+   * Returns the number of taps.
    *
    * @return the tap count
    */
@@ -236,7 +236,7 @@ public final class DiffusionKernel {
   }
 
   /**
-   * Gets the horizontal offset of a tap, relative to the scanning direction.
+   * Returns the horizontal offset of a tap, relative to the scanning direction.
    *
    * @param tap the zero-based tap index, less than {@link #getTapCount()}
    * @return the horizontal offset
@@ -247,7 +247,7 @@ public final class DiffusionKernel {
   }
 
   /**
-   * Gets the vertical offset of a tap.
+   * Returns the vertical offset of a tap.
    *
    * @param tap the zero-based tap index, less than {@link #getTapCount()}
    * @return the vertical offset, which is never negative
@@ -258,7 +258,7 @@ public final class DiffusionKernel {
   }
 
   /**
-   * Gets the weight of a tap.
+   * Returns the weight of a tap.
    *
    * @param tap the zero-based tap index, less than {@link #getTapCount()}
    * @return the weight
@@ -269,7 +269,7 @@ public final class DiffusionKernel {
   }
 
   /**
-   * Gets the largest horizontal distance any tap reaches.
+   * Returns the largest horizontal distance any tap reaches.
    *
    * @return the maximum horizontal offset
    */
@@ -278,7 +278,7 @@ public final class DiffusionKernel {
   }
 
   /**
-   * Gets the largest number of rows any tap reaches ahead.
+   * Returns the largest number of rows any tap reaches ahead.
    *
    * @return the maximum vertical offset
    */
@@ -287,7 +287,7 @@ public final class DiffusionKernel {
   }
 
   /**
-   * Gets the name of the algorithm the kernel belongs to, such as {@code Floyd-Steinberg}.
+   * Returns the name of the algorithm the kernel belongs to, such as {@code Floyd-Steinberg}.
    *
    * @return the name
    */

@@ -34,7 +34,7 @@ public interface FFmpegDirectSource extends DynamicSource {
    * @param format the non-null, nonblank FFmpeg input format, such as {@code gdigrab}
    * @return the source
    * @throws IllegalArgumentException if {@code format} is blank
-   * @throws NullPointerException if {@code mrl} or {@code format} is null
+   * @throws NullPointerException     if {@code mrl} or {@code format} is null
    */
   static FFmpegDirectSource mrl(final String mrl, final String format) {
     Preconditions.checkNotNull(mrl, "MRL must not be null!");
@@ -45,14 +45,14 @@ public interface FFmpegDirectSource extends DynamicSource {
   }
 
   /**
-   * Gets the input FFmpeg opens.
+   * Returns the input FFmpeg opens.
    *
    * @return the media resource locator
    */
   String getMrl();
 
   /**
-   * Gets the FFmpeg input format.
+   * Returns the FFmpeg input format.
    *
    * @return the format name
    */

@@ -52,7 +52,7 @@ public interface ReleasablePlayer {
    * @param executor the non-null caller-owned executor that runs the release
    * @return a future that completes with the result of {@link #release()}
    * @throws java.util.concurrent.RejectedExecutionException if the executor rejects the task
-   * @throws NullPointerException if {@code executor} is null
+   * @throws NullPointerException                            if {@code executor} is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
    */
   default CompletableFuture<Boolean> releaseAsync(final ExecutorService executor) {

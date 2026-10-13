@@ -55,12 +55,12 @@ public interface YTDLPParser {
    *                                  library is still preparing yt-dlp in the background; wait for
    *                                  {@link me.brandonli.mcav.MCAVApi#whenCapabilityReady(me.brandonli.mcav.capability.Capability)}
    *                                  with {@link me.brandonli.mcav.capability.Capability#YT_DLP} or try again shortly
-   * @throws NullPointerException if {@code input}, the argument array or an argument is null
+   * @throws NullPointerException     if {@code input}, the argument array or an argument is null
    */
   URLParseDump parse(final UriSource input, final String... arguments) throws IOException;
 
   /**
-   * Gets the shared parser, which uses the yt-dlp installed by the library. It refuses to parse while the library
+   * Returns the shared parser, which uses the yt-dlp installed by the library. It refuses to parse while the library
    * still prepares yt-dlp in the background, see {@link #parse(UriSource, String...)}.
    *
    * @return the parser

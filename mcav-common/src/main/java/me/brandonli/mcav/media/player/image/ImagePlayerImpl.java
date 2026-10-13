@@ -75,7 +75,7 @@ public final class ImagePlayerImpl implements ImagePlayer {
    * @param source the source, whose frame rate must be positive and finite
    * @return true if playback started, false if the player is already playing or was released
    * @throws IllegalArgumentException if the frame rate of the source is not positive and finite
-   * @throws NullPointerException if {@code source} is null
+   * @throws NullPointerException     if {@code source} is null
    */
   @Override
   public boolean start(final FrameSource source) {
@@ -178,7 +178,7 @@ public final class ImagePlayerImpl implements ImagePlayer {
   }
 
   /**
-   * Gets the slot that holds the video pipeline, which can be swapped while playing.
+   * Returns the slot that holds the video pipeline, which can be swapped while playing.
    *
    * @return the video pipeline slot
    */
@@ -188,7 +188,7 @@ public final class ImagePlayerImpl implements ImagePlayer {
   }
 
   /**
-   * Gets the handler that receives failures of the source and the filters, which logs them by default.
+   * Returns the handler that receives failures of the source and the filters, which logs them by default.
    *
    * @return the current handler
    */

@@ -90,8 +90,8 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
    * @param pluginPathFormats a non-null array of non-null format strings, each with a {@code %s} for the library
    *                          directory, copied and tried in order; an empty array publishes no plugin path
    * @param environmentSetter sets the environment variable that tells libvlc where its plugins are
-   * @throws NullPointerException if an array, filename expression or the environment setter is null
-   * @throws IllegalArgumentException if no filename pattern is supplied
+   * @throws NullPointerException                   if an array, filename expression or the environment setter is null
+   * @throws IllegalArgumentException               if no filename pattern is supplied
    * @throws java.util.regex.PatternSyntaxException if a filename expression is not a valid regular expression
    */
   protected DirectoryProviderDiscoveryStrategy(
@@ -187,7 +187,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
   }
 
   /**
-   * Gets the directories that are searched, in order, without searching them.
+   * Returns the directories that are searched, in order, without searching them.
    *
    * @return a new mutable list of directory names from supported providers, highest priority first;
    *         modifying it does not change the strategy
@@ -313,7 +313,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
   }
 
   /**
-   * Gets the providers this strategy searches, in the order they were created, before any of them is filtered out for
+   * Returns the providers this strategy searches, in the order they were created, before any of them is filtered out for
    * being unsupported on this machine. Visible for testing.
    *
    * @return the providers of the strategy
@@ -355,7 +355,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
    * @param path the directory that contains the libraries
    * @return {@code true} if a plugin directory exists and was published
    * @throws java.util.IllegalFormatException if a configured plugin path format cannot accept a directory string
-   * @throws NullPointerException if {@code path} is null
+   * @throws NullPointerException             if {@code path} is null
    */
   @Override
   public final boolean onSetPluginPath(final String path) {

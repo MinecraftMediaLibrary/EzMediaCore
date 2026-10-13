@@ -70,7 +70,7 @@ public final class ThresholdMatrix {
   }
 
   /**
-   * Gets the number of rows, which is the height of the pattern.
+   * Returns the number of rows, which is the height of the pattern.
    *
    * @return the number of rows
    */
@@ -79,7 +79,7 @@ public final class ThresholdMatrix {
   }
 
   /**
-   * Gets the number of entries of every row, which is the width of the pattern.
+   * Returns the number of entries of every row, which is the width of the pattern.
    *
    * @return the number of columns
    */
@@ -88,7 +88,7 @@ public final class ThresholdMatrix {
   }
 
   /**
-   * Gets a copy of the entries, indexed by row and then column. Changing the copy does not change this matrix.
+   * Returns a copy of the entries, indexed by row and then column. Changing the copy does not change this matrix.
    *
    * @return a new array with the entries
    */

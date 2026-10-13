@@ -65,7 +65,7 @@ public final class ByteUtils {
    *
    * @param buffer the samples, read from position to limit without changing the buffer
    * @return a new buffer with the samples in little-endian order, ready to read
-   * @throws PlayerException if the buffer is not a short, float, or byte buffer
+   * @throws PlayerException      if the buffer is not a short, float, or byte buffer
    * @throws NullPointerException if {@code buffer} is null
    */
   public static ByteBuffer toLittleEndian(final Buffer buffer) {

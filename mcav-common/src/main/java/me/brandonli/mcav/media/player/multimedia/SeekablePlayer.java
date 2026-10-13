@@ -55,8 +55,8 @@ public interface SeekablePlayer {
    * @param time     the position in milliseconds from the start of the media, not negative
    * @return a future that completes with the result of {@link #seek(long)}
    * @throws java.util.concurrent.RejectedExecutionException if the executor rejects the task
+   * @throws NullPointerException                            if {@code executor} is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
-   * @throws NullPointerException if {@code executor} is null
    */
   default CompletableFuture<Boolean> seekAsync(final ExecutorService executor, final long time) {
     Preconditions.checkNotNull(executor, "Executor must not be null!");

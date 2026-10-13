@@ -150,7 +150,7 @@ public class Format {
    * {@link #http_headers}; a caller must separately configure any headers required by its playback backend.
    *
    * @return the stream URL as a source
-   * @throws IllegalStateException if yt-dlp did not report a URL for this stream
+   * @throws IllegalStateException    if yt-dlp did not report a URL for this stream
    * @throws IllegalArgumentException if the reported URL is not a syntactically valid URI
    */
   public UriSource toUriSource() {

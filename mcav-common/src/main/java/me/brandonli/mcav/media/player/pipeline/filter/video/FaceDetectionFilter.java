@@ -59,9 +59,9 @@ public class FaceDetectionFilter extends MatVideoFilter {
    * @param cascadeFile the path of the Haar cascade XML file
    * @param color       the blue, green, and red components of the rectangle color, normally 0 to 255; the non-null array is copied
    * @throws IllegalArgumentException if the cascade file does not exist or cannot be loaded
-   * @throws IllegalStateException if face detection is not available on this system, because the OpenCV object
-   *                               detection natives cannot be loaded; on Linux they need GTK 2
-   * @throws NullPointerException if {@code cascadeFile} or {@code color} is null
+   * @throws IllegalStateException    if face detection is not available on this system, because the OpenCV object
+   *                                  detection natives cannot be loaded; on Linux they need GTK 2
+   * @throws NullPointerException     if {@code cascadeFile} or {@code color} is null
    */
   public FaceDetectionFilter(final Path cascadeFile, final double[] color) {
     Preconditions.checkNotNull(cascadeFile, CASCADE_FILE_NULL_MESSAGE);
@@ -76,10 +76,10 @@ public class FaceDetectionFilter extends MatVideoFilter {
    *
    * @param cascadeFile the path of the Haar cascade XML file
    * @param color       the blue, green, and red components of the rectangle color, normally 0 to 255; the non-null array is copied
-   * @throws IllegalArgumentException if the cascade file does not exist or cannot be loaded
-   * @throws IllegalStateException if face detection is not available on this system, because the OpenCV object
-   *                               detection natives cannot be loaded; on Linux they need GTK 2
-   * @throws NullPointerException if {@code cascadeFile} or {@code color} is null
+   * @throws IllegalArgumentException           if the cascade file does not exist or cannot be loaded
+   * @throws IllegalStateException              if face detection is not available on this system, because the OpenCV object
+   *                                            detection natives cannot be loaded; on Linux they need GTK 2
+   * @throws NullPointerException               if {@code cascadeFile} or {@code color} is null
    * @throws java.nio.file.InvalidPathException if the path string is invalid
    */
   public FaceDetectionFilter(final String cascadeFile, final double[] color) {

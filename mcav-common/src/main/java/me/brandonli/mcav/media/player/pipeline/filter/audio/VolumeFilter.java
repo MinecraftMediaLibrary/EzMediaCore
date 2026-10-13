@@ -56,7 +56,7 @@ public final class VolumeFilter implements AudioFilter {
   }
 
   /**
-   * Gets the volume.
+   * Returns the volume.
    *
    * @return the factor every sample is multiplied by
    */
@@ -72,7 +72,7 @@ public final class VolumeFilter implements AudioFilter {
    * @param metadata the metadata of the original stream
    * @return true if the samples were scaled
    * @throws java.nio.ReadOnlyBufferException if scaling writes to a read-only buffer
-   * @throws NullPointerException if {@code samples} is null
+   * @throws NullPointerException             if {@code samples} is null
    */
   @Override
   public boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {

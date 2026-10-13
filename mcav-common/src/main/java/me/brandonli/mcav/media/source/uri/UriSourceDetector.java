@@ -46,7 +46,7 @@ public class UriSourceDetector implements SourceDetector<UriSource> {
    * {@inheritDoc}
    *
    * @throws IllegalArgumentException if the string is not syntactically a URI
-   * @throws NullPointerException if {@code raw} is null
+   * @throws NullPointerException     if {@code raw} is null
    */
   @Override
   public UriSource createSource(final String raw) {

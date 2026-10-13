@@ -41,7 +41,7 @@ public final class VideoPipelineStepBuilderImpl extends VideoPipelineStepBuilder
   }
 
   /**
-   * Gets {@link VideoPipelineStep#NO_OP}, the video step built when no filter was added.
+   * Returns {@link VideoPipelineStep#NO_OP}, the video step built when no filter was added.
    *
    * @return the no-op video step
    */
@@ -51,7 +51,7 @@ public final class VideoPipelineStepBuilderImpl extends VideoPipelineStepBuilder
   }
 
   /**
-   * Gets this builder typed as a video builder.
+   * Returns this builder typed as a video builder.
    *
    * @return this builder
    */

@@ -101,7 +101,7 @@ final class ImagePool {
   }
 
   /**
-   * Gets the number of unused images in the pool.
+   * Returns the number of unused images in the pool.
    *
    * @return the number of images {@link #acquire()} can hand out without allocating
    */

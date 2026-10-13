@@ -38,7 +38,7 @@ public interface FileSource extends StaticSource {
   }
 
   /**
-   * Gets the path of the file.
+   * Returns the path of the file.
    *
    * @return the path
    */

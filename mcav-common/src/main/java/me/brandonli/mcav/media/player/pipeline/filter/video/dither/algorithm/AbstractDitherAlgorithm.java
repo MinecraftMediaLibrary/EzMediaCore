@@ -47,7 +47,7 @@ public abstract class AbstractDitherAlgorithm implements DitherAlgorithm {
   }
 
   /**
-   * Gets the palette the algorithm reduces images to.
+   * Returns the palette the algorithm reduces images to.
    *
    * @return the palette
    */
@@ -62,7 +62,7 @@ public abstract class AbstractDitherAlgorithm implements DitherAlgorithm {
    * @param buffer the pixels
    * @param width  the width of the image
    * @throws IllegalArgumentException if width is nonpositive or does not divide the buffer length
-   * @throws NullPointerException if {@code buffer} is null
+   * @throws NullPointerException     if {@code buffer} is null
    */
   protected static void checkBuffer(final int[] buffer, final int width) {
     Preconditions.checkNotNull(buffer, "Buffer must not be null!");

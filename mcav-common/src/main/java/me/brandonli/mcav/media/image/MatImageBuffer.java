@@ -357,7 +357,7 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Gets the byte array this image converts pixels with, growing it when it is too small, so repeated conversions
+   * Returns the byte array this image converts pixels with, growing it when it is too small, so repeated conversions
    * of frames of the same size reuse one array.
    *
    * @param length the number of bytes needed
@@ -375,7 +375,7 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Gets the OpenCV matrix of this image, which is continuous 8-bit BGR. The matrix is owned by this buffer and
+   * Returns the OpenCV matrix of this image, which is continuous 8-bit BGR. The matrix is owned by this buffer and
    * must not be released. Call {@link #invalidateCache()} after modifying it.
    *
    * @return the matrix

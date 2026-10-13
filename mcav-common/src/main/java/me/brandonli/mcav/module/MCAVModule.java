@@ -38,7 +38,7 @@ public interface MCAVModule {
   void stop();
 
   /**
-   * Gets a short, unique name of the module for log messages, such as {@code bukkit}.
+   * Returns a short, unique name of the module for log messages, such as {@code bukkit}.
    *
    * @return the name of the module
    */

@@ -33,7 +33,7 @@ public final class DimensionAttachableCallbackImpl extends AbstractAttachableCal
    * {@inheritDoc}
    *
    * @throws IllegalArgumentException if either dimension is zero
-   * @throws NullPointerException if {@code value} is null
+   * @throws NullPointerException     if {@code value} is null
    */
   @Override
   public void attach(final Dimension value) {

@@ -42,7 +42,7 @@ public class TintFilter extends MatVideoFilter {
    * @param color    the blue, green, and red components of the tint color, normally 0 to 255; the non-null array is copied
    * @param strength how strongly the color is applied, from 0 for no tint to 1 for a solid color
    * @throws IllegalArgumentException if {@code strength} is outside 0 through 1 or is NaN
-   * @throws NullPointerException if {@code color} is null
+   * @throws NullPointerException     if {@code color} is null
    */
   public TintFilter(final double[] color, final double strength) {
     Preconditions.checkArgument(strength >= 0 && strength <= 1, "Strength must be between 0 and 1!");

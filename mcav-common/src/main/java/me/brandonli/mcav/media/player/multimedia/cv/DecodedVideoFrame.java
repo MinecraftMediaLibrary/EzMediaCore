@@ -44,7 +44,7 @@ final class DecodedVideoFrame {
   }
 
   /**
-   * Gets the picture of the frame.
+   * Returns the picture of the frame.
    *
    * @return the picture as 8-bit BGR, or {@code null} if the frame was decoded without a video pipeline
    */
@@ -53,7 +53,7 @@ final class DecodedVideoFrame {
   }
 
   /**
-   * Gets the presentation time of the frame.
+   * Returns the presentation time of the frame.
    *
    * @return the timestamp in microseconds
    */

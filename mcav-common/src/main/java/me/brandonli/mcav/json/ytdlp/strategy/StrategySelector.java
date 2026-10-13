@@ -32,14 +32,14 @@ import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
  */
 public interface StrategySelector {
   /**
-   * Gets the strategy used for audio.
+   * Returns the strategy used for audio.
    *
    * @return the audio strategy
    */
   FormatStrategy getAudioStrategy();
 
   /**
-   * Gets the strategy used for video.
+   * Returns the strategy used for video.
    *
    * @return the video strategy
    */
@@ -51,7 +51,7 @@ public interface StrategySelector {
    * @param dump the metadata yt-dlp produced
    * @return the selected format object from the dump, borrowed rather than copied
    * @throws NoMatchingFormatException if no stream matches the audio strategy
-   * @throws NullPointerException if {@code dump} is null
+   * @throws NullPointerException      if {@code dump} is null
    */
   Format getAudioSource(final URLParseDump dump);
 
@@ -61,7 +61,7 @@ public interface StrategySelector {
    * @param dump the metadata yt-dlp produced
    * @return the selected format object from the dump, borrowed rather than copied
    * @throws NoMatchingFormatException if no stream matches the video strategy
-   * @throws NullPointerException if {@code dump} is null
+   * @throws NullPointerException      if {@code dump} is null
    */
   Format getVideoSource(final URLParseDump dump);
 

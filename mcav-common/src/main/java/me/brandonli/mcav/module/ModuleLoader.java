@@ -58,12 +58,12 @@ public final class ModuleLoader {
   }
 
   /**
-   * Gets a started module.
+   * Returns a started module.
    *
    * @param moduleClass the class of the module
    * @param <T>         the type of the module
    * @return the module
-   * @throws ModuleException if no module of that class was started
+   * @throws ModuleException      if no module of that class was started
    * @throws NullPointerException if {@code moduleClass} is null
    */
   public <T extends MCAVModule> T getModule(final Class<T> moduleClass) {
@@ -87,7 +87,7 @@ public final class ModuleLoader {
    *
    * @param moduleClasses the non-null array of non-null module classes implementing {@link MCAVModule};
    *                      each needs an accessible no-argument constructor, duplicates are skipped
-   * @throws ModuleException if a class is not a module, cannot be created, or fails to start
+   * @throws ModuleException      if a class is not a module, cannot be created, or fails to start
    * @throws NullPointerException if the array or a module class is null
    */
   public synchronized void loadModules(final Class<?>... moduleClasses) {
@@ -187,7 +187,7 @@ public final class ModuleLoader {
   }
 
   /**
-   * Gets every started module.
+   * Returns every started module.
    *
    * @return an unmodifiable snapshot of started modules in start order; module instances are borrowed
    *         and later shutdown may stop them

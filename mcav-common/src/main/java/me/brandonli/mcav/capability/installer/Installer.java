@@ -61,7 +61,7 @@ public interface Installer {
   }
 
   /**
-   * Gets the path the program is installed to, whether or not it has been installed yet.
+   * Returns the path the program is installed to, whether or not it has been installed yet.
    *
    * @return the installation path
    */

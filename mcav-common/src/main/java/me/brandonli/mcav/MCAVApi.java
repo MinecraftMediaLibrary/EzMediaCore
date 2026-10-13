@@ -68,7 +68,7 @@ public interface MCAVApi {
   boolean hasCapability(final Capability capability);
 
   /**
-   * Gets a future that completes once a capability is ready, without polling. It completes with true when the
+   * Returns a future that completes once a capability is ready, without polling. It completes with true when the
    * capability is available, and with false when it cannot be provided: the system does not support it, its
    * installation failed, or {@link #release()} cancelled the installation first. Once the future completed with
    * true, {@link #hasCapability(Capability)} reports the capability as available for that installation until
@@ -117,13 +117,13 @@ public interface MCAVApi {
   void release();
 
   /**
-   * Gets a module that was started by {@link #install(Class[])}.
+   * Returns a module that was started by {@link #install(Class[])}.
    *
    * @param moduleClass the class of the module
    * @param <T>         the type of the module
    * @return the module instance
    * @throws me.brandonli.mcav.module.ModuleException if the module was not installed
-   * @throws NullPointerException if {@code moduleClass} is null
+   * @throws NullPointerException                     if {@code moduleClass} is null
    */
   <T extends MCAVModule> T getModule(final Class<T> moduleClass);
 }

@@ -50,8 +50,8 @@ public interface VideoPlayerMultiplexer extends VideoPlayer, ControllablePlayer,
    * @param executor the executor that opens the sources
    * @return a future that completes with the result of {@link #start(Source, Source)}
    * @throws java.util.concurrent.RejectedExecutionException if the executor rejects the task
+   * @throws NullPointerException                            if {@code video}, {@code audio} or {@code executor} is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
-   * @throws NullPointerException if {@code video}, {@code audio} or {@code executor} is null
    */
   default CompletableFuture<Boolean> startAsync(final Source video, final Source audio, final ExecutorService executor) {
     Preconditions.checkNotNull(video, "Video source must not be null!");

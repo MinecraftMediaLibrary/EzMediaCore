@@ -94,7 +94,7 @@ public final class VLCInstallationKit {
   }
 
   /**
-   * Gets the installer this kit uses when the system has no VLC.
+   * Returns the installer this kit uses when the system has no VLC.
    *
    * @return the installer
    */
@@ -104,7 +104,7 @@ public final class VLCInstallationKit {
   }
 
   /**
-   * Gets the state that remembers whether libvlc was loaded, which kits created by the factory methods share.
+   * Returns the state that remembers whether libvlc was loaded, which kits created by the factory methods share.
    *
    * @return the load state
    */
@@ -120,7 +120,7 @@ public final class VLCInstallationKit {
    *
    * @return the directory the native libraries were loaded from, or empty if vlcj had already loaded them without
    * reporting a location
-   * @throws IOException if installation discovery, download, verification or extraction fails
+   * @throws IOException                         if installation discovery, download, verification or extraction fails
    * @throws UnsupportedOperatingSystemException if VLC cannot be found or installed on this system, or
    *                                             the discovered private libraries cannot be loaded
    */

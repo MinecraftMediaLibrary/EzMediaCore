@@ -49,7 +49,7 @@ public enum MouseClick {
   }
 
   /**
-   * Gets a small stable number for the event, useful for tables and protocols.
+   * Returns a small stable number for the event, useful for tables and protocols.
    *
    * @return the identifier
    */

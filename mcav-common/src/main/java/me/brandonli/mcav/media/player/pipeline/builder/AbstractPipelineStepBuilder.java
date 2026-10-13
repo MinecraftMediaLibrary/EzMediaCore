@@ -64,7 +64,7 @@ public abstract class AbstractPipelineStepBuilder<
   }
 
   /**
-   * Gets the number of filters added so far.
+   * Returns the number of filters added so far.
    *
    * @return the filter count
    */
@@ -102,14 +102,14 @@ public abstract class AbstractPipelineStepBuilder<
   protected abstract S createStep(final @Nullable S next, final F filter);
 
   /**
-   * Gets the step returned when no filter was added.
+   * Returns the step returned when no filter was added.
    *
    * @return the no-op step
    */
   protected abstract S createEmptyStep();
 
   /**
-   * Gets this builder typed as the concrete builder.
+   * Returns this builder typed as the concrete builder.
    *
    * @return this builder
    */

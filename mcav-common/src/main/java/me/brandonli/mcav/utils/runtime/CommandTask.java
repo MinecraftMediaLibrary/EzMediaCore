@@ -76,7 +76,7 @@ public final class CommandTask {
    * Creates a task that runs the command in the working directory of the JVM.
    *
    * @param command the program followed by its arguments
-   * @throws NullPointerException if the command array or any argument is null
+   * @throws NullPointerException     if the command array or any argument is null
    * @throws IllegalArgumentException if the command array is empty
    */
   public CommandTask(final String... command) {
@@ -88,7 +88,7 @@ public final class CommandTask {
    *
    * @param workingDirectory the working directory of the program, or null for the working directory of the JVM
    * @param command          the program followed by its arguments
-   * @throws NullPointerException if the command array or any argument is null
+   * @throws NullPointerException     if the command array or any argument is null
    * @throws IllegalArgumentException if the command array is empty
    */
   public CommandTask(final @Nullable Path workingDirectory, final String... command) {
@@ -107,8 +107,8 @@ public final class CommandTask {
    *
    * @param command       the program followed by its arguments
    * @param runOnCreation true to run the command before the constructor returns
-   * @throws IOException if the program cannot be started
-   * @throws NullPointerException if the command array or any argument is null
+   * @throws IOException              if the program cannot be started
+   * @throws NullPointerException     if the command array or any argument is null
    * @throws IllegalArgumentException if the command array is empty
    */
   public CommandTask(final String[] command, final boolean runOnCreation) throws IOException {
@@ -136,10 +136,10 @@ public final class CommandTask {
    *
    * @param timeout how long to wait for the program, which must be positive
    * @return the exit code of the program
-   * @throws IOException           if the program cannot be started, its output cannot be read, or it does not exit
-   *                               in time
-   * @throws IllegalStateException if the task was already run
-   * @throws NullPointerException if {@code timeout} is null
+   * @throws IOException              if the program cannot be started, its output cannot be read, or it does not exit
+   *                                  in time
+   * @throws IllegalStateException    if the task was already run
+   * @throws NullPointerException     if {@code timeout} is null
    * @throws IllegalArgumentException if the timeout is zero or negative
    */
   public int run(final Duration timeout) throws IOException {
@@ -178,8 +178,8 @@ public final class CommandTask {
   /**
    * Runs the program, waits until it exits, and fails if the exit code is not zero.
    *
-   * @throws IOException      if the program cannot be started or its output cannot be read
-   * @throws ProcessException if the program exits with a non-zero exit code
+   * @throws IOException           if the program cannot be started or its output cannot be read
+   * @throws ProcessException      if the program exits with a non-zero exit code
    * @throws IllegalStateException if a process was already launched by this task
    */
   public void runChecked() throws IOException {
@@ -192,12 +192,12 @@ public final class CommandTask {
    * When the timeout passes, termination of the program and its observed descendants is requested.
    *
    * @param timeout how long to wait for the program, which must be positive
-   * @throws IOException      if the program cannot be started, its output cannot be read, or it does not exit in
-   *                          time
-   * @throws ProcessException if the program exits with a non-zero exit code
-   * @throws NullPointerException if {@code timeout} is null
+   * @throws IOException              if the program cannot be started, its output cannot be read, or it does not exit in
+   *                                  time
+   * @throws ProcessException         if the program exits with a non-zero exit code
+   * @throws NullPointerException     if {@code timeout} is null
    * @throws IllegalArgumentException if the timeout is zero or negative
-   * @throws IllegalStateException if a process was already launched by this task
+   * @throws IllegalStateException    if a process was already launched by this task
    */
   public void runChecked(final Duration timeout) throws IOException {
     final int code = this.run(timeout);
@@ -328,7 +328,7 @@ public final class CommandTask {
   }
 
   /**
-   * Gets the standard output of the program.
+   * Returns the standard output of the program.
    *
    * @return the standard output, or an empty string if the task has not been run
    */
@@ -337,7 +337,7 @@ public final class CommandTask {
   }
 
   /**
-   * Gets the standard error of the program.
+   * Returns the standard error of the program.
    *
    * @return the standard error, or an empty string if the task has not been run
    */
@@ -346,7 +346,7 @@ public final class CommandTask {
   }
 
   /**
-   * Gets the exit code of the program.
+   * Returns the exit code of the program.
    *
    * @return the exit code
    * @throws IllegalStateException if no exit code was recorded, including after a launch or wait failure
@@ -357,7 +357,7 @@ public final class CommandTask {
   }
 
   /**
-   * Gets the program and its arguments.
+   * Returns the program and its arguments.
    *
    * @return the command as an unmodifiable list
    */
@@ -366,7 +366,7 @@ public final class CommandTask {
   }
 
   /**
-   * Gets the process of the program.
+   * Returns the process of the program.
    *
    * @return the process after a successful launch, even if waiting failed, or null if none was launched
    */

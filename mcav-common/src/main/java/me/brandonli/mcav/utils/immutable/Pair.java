@@ -54,7 +54,7 @@ public final class Pair<A, B> {
   }
 
   /**
-   * Gets the first value.
+   * Returns the first value.
    *
    * @return the first value
    */
@@ -63,7 +63,7 @@ public final class Pair<A, B> {
   }
 
   /**
-   * Gets the second value.
+   * Returns the second value.
    *
    * @return the second value
    */

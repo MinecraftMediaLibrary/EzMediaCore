@@ -39,7 +39,7 @@ final class FixedDirectoryProvider implements DiscoveryDirectoryProvider {
   }
 
   /**
-   * Gets the priority of the provider, which is the highest possible because the directory was chosen explicitly.
+   * Returns the priority of the provider, which is the highest possible because the directory was chosen explicitly.
    *
    * @return {@link Integer#MAX_VALUE}
    */
@@ -49,7 +49,7 @@ final class FixedDirectoryProvider implements DiscoveryDirectoryProvider {
   }
 
   /**
-   * Gets the provided directory.
+   * Returns the provided directory.
    *
    * @return an array holding the absolute path of the directory
    */

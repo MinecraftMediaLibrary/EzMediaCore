@@ -46,7 +46,7 @@ public interface AttachableCallback<T> {
   boolean isAttached();
 
   /**
-   * Gets the attached value, or the default when nothing is attached.
+   * Returns the attached value, or the default when nothing is attached.
    *
    * @return the value
    */

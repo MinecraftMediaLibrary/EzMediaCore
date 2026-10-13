@@ -48,7 +48,7 @@ public class BlurFilter extends MatVideoFilter {
    *                   horizontal value
    * @throws IllegalArgumentException if the kernel is nonpositive, even for a non-normal blur,
    *                                  or a sigma is negative or NaN
-   * @throws NullPointerException if {@code type} is null
+   * @throws NullPointerException     if {@code type} is null
    */
   public BlurFilter(final BlurType type, final int kernelSize, final double sigmaX, final double sigmaY) {
     Preconditions.checkNotNull(type, "Blur type must not be null!");
@@ -69,7 +69,7 @@ public class BlurFilter extends MatVideoFilter {
    * @param type       the blur algorithm
    * @param kernelSize the size of the blur kernel, which must be positive, and odd for every type but
    *                   {@link BlurType#NORMAL}
-   * @throws NullPointerException if {@code type} is null
+   * @throws NullPointerException     if {@code type} is null
    * @throws IllegalArgumentException if the kernel is nonpositive or even for a non-normal blur
    */
   public BlurFilter(final BlurType type, final int kernelSize) {

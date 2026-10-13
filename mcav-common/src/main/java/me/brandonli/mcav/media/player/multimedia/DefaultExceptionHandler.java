@@ -41,7 +41,7 @@ public final class DefaultExceptionHandler implements ExceptionHandler {
   }
 
   /**
-   * Gets the handler that receives failures, which logs them at error level until another handler is set.
+   * Returns the handler that receives failures, which logs them at error level until another handler is set.
    *
    * @return the current handler
    */

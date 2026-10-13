@@ -112,7 +112,7 @@ public final class VLCInstaller extends AbstractInstaller {
   }
 
   /**
-   * Gets the directory the VLC installation is extracted into.
+   * Returns the directory the VLC installation is extracted into.
    *
    * @return the installation directory
    */
@@ -132,7 +132,7 @@ public final class VLCInstaller extends AbstractInstaller {
   }
 
   /**
-   * Gets the directory VLC is extracted into. The libraries themselves live somewhere inside it, depending on the
+   * Returns the directory VLC is extracted into. The libraries themselves live somewhere inside it, depending on the
    * operating system; {@link #download(boolean)} returns their exact location.
    *
    * @return the installation directory

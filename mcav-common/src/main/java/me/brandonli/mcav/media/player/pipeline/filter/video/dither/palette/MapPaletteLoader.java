@@ -114,7 +114,7 @@ public final class MapPaletteLoader {
   }
 
   /**
-   * Gets every map color as opaque ARGB, indexed by map color index.
+   * Returns every map color as opaque ARGB, indexed by map color index.
    *
    * @return a copy of the map colors
    */
@@ -123,7 +123,7 @@ public final class MapPaletteLoader {
   }
 
   /**
-   * Gets the number of map colors.
+   * Returns the number of map colors.
    *
    * @return the color count
    */
@@ -132,7 +132,7 @@ public final class MapPaletteLoader {
   }
 
   /**
-   * Gets a map color by its index.
+   * Returns a map color by its index.
    *
    * @param index the map color index, as stored in map data; negative bytes are treated as unsigned
    * @return the color

@@ -811,7 +811,7 @@ final class PlaybackSession {
   }
 
   /**
-   * Gets the timestamp of the last rendered frame.
+   * Returns the timestamp of the last rendered frame.
    *
    * @return the position in microseconds
    */

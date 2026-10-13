@@ -113,7 +113,7 @@ final class PlaybackClock {
   }
 
   /**
-   * Gets how fast media passes.
+   * Returns how fast media passes.
    *
    * @return the media time that passes per unit of wall time
    */

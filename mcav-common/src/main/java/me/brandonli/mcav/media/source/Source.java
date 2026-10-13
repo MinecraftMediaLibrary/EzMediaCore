@@ -29,7 +29,7 @@ package me.brandonli.mcav.media.source;
  */
 public interface Source {
   /**
-   * Gets the resource description, such as a file path, a URL, or a device index. Generated and specialized
+   * Returns the resource description, such as a file path, a URL, or a device index. Generated and specialized
    * sources may return a diagnostic string that cannot be opened by an arbitrary backend.
    *
    * @return the resource string
@@ -37,7 +37,7 @@ public interface Source {
   String getResource();
 
   /**
-   * Gets a short name of the source type, such as {@code file} or {@code uri}, for log messages.
+   * Returns a short name of the source type, such as {@code file} or {@code uri}, for log messages.
    *
    * @return the type name
    */

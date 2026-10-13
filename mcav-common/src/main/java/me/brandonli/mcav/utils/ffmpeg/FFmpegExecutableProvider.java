@@ -32,7 +32,7 @@ public final class FFmpegExecutableProvider {
   }
 
   /**
-   * Gets the path of the FFmpeg executable, extracting it on first use.
+   * Returns the path of the FFmpeg executable, extracting it on first use.
    *
    * @return the path of the executable
    * @throws UnsatisfiedLinkError if JavaCV does not ship FFmpeg for this platform

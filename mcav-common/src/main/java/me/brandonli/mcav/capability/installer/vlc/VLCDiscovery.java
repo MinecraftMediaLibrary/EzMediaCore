@@ -32,7 +32,7 @@ interface VLCDiscovery {
   boolean discoverSystemInstallation();
 
   /**
-   * Gets the directory the last successful discovery loaded the libraries from.
+   * Returns the directory the last successful discovery loaded the libraries from.
    *
    * @return the directory, or {@code null} if vlcj had loaded the libraries earlier without reporting where from
    */

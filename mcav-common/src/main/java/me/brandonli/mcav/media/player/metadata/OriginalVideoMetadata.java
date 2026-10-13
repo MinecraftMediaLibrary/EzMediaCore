@@ -75,28 +75,28 @@ public interface OriginalVideoMetadata extends OriginalMetadata {
   }
 
   /**
-   * Gets the width of the decoded frames.
+   * Returns the width of the decoded frames.
    *
    * @return the width in pixels, or {@link #UNKNOWN} in {@link #EMPTY}
    */
   int getVideoWidth();
 
   /**
-   * Gets the height of the decoded frames.
+   * Returns the height of the decoded frames.
    *
    * @return the height in pixels, or {@link #UNKNOWN} in {@link #EMPTY}
    */
   int getVideoHeight();
 
   /**
-   * Gets the bitrate of the video stream.
+   * Returns the bitrate of the video stream.
    *
    * @return the bitrate in bits per second, or {@link #UNKNOWN}
    */
   int getVideoBitrate();
 
   /**
-   * Gets the frame rate of the video stream.
+   * Returns the frame rate of the video stream.
    *
    * @return the frame rate in frames per second, or {@link #UNKNOWN}
    */

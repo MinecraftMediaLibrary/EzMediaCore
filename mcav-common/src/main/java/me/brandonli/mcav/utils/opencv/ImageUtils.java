@@ -60,7 +60,7 @@ public final class ImageUtils {
    * @return the pixels of the resized image, laid out row by row
    * @throws IllegalArgumentException if a dimension is nonpositive, the input pixel count differs from
    *                                  its dimensions, or the original packed BGR size exceeds {@link Integer#MAX_VALUE}
-   * @throws NullPointerException if {@code pixels} is null
+   * @throws NullPointerException     if {@code pixels} is null
    */
   public static int[] resizeIntArrayImage(
     final int[] pixels,

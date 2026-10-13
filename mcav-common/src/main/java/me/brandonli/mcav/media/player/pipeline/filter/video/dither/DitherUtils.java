@@ -60,7 +60,7 @@ public final class DitherUtils {
    * @param blue    the blue component from 0 to 255
    * @return the palette index
    * @throws IllegalArgumentException if a component is outside the range from 0 to 255
-   * @throws NullPointerException if {@code palette} is null
+   * @throws NullPointerException     if {@code palette} is null
    */
   public static byte getBestColor(final DitherPalette palette, final int red, final int green, final int blue) {
     Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
@@ -80,7 +80,7 @@ public final class DitherUtils {
    * @param blue    the blue component from 0 to 255
    * @return the closest palette color as opaque ARGB
    * @throws IllegalArgumentException if a component is outside the range from 0 to 255
-   * @throws NullPointerException if {@code palette} is null
+   * @throws NullPointerException     if {@code palette} is null
    */
   public static int getBestFullColor(final DitherPalette palette, final int red, final int green, final int blue) {
     Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
@@ -107,20 +107,20 @@ public final class DitherUtils {
    * @param blue    the blue component from 0 to 255
    * @return the closest palette color as opaque ARGB
    * @throws IllegalArgumentException if a component is outside the range from 0 to 255
-   * @throws NullPointerException if {@code palette} is null
+   * @throws NullPointerException     if {@code palette} is null
    */
   public static int getBestColorNormal(final DitherPalette palette, final int red, final int green, final int blue) {
     return getBestFullColor(palette, red, green, blue);
   }
 
   /**
-   * Gets the color of a palette index.
+   * Returns the color of a palette index.
    *
    * @param palette the palette
    * @param index   the palette index, as stored in map data; negative bytes are treated as unsigned
    * @return the color as opaque ARGB, or zero for a reserved transparent index
    * @throws IndexOutOfBoundsException if the palette has no color at the index
-   * @throws NullPointerException if {@code palette} is null
+   * @throws NullPointerException      if {@code palette} is null
    */
   public static int getColorFromMinecraftPalette(final DitherPalette palette, final byte index) {
     Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);

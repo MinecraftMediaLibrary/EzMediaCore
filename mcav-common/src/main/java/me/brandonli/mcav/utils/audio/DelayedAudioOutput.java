@@ -136,7 +136,7 @@ public final class DelayedAudioOutput implements AutoCloseable {
    * @return the running output
    * @throws IllegalArgumentException if the delay is negative or leaves no room in the queue, or the queue is longer
    *                                  than {@link #MAX_QUEUED_MILLIS}
-   * @throws NullPointerException if {@code source}, {@code pipeline} or {@code failures} is null
+   * @throws NullPointerException     if {@code source}, {@code pipeline} or {@code failures} is null
    */
   public static DelayedAudioOutput start(
     final String source,
@@ -151,11 +151,11 @@ public final class DelayedAudioOutput implements AutoCloseable {
   /**
    * Creates an output with another clock, so tests can check the delay, and starts its thread.
    *
-   * @param source          names the source in the failures it reports
-   * @param delayMillis     how long every chunk is held, in milliseconds
-   * @param maxQueuedMillis the most sound that waits, the delay included, in milliseconds
-   * @param pipeline        gives the audio pipeline of the player for every chunk
-   * @param failures        receives a failure of the pipeline
+   * @param source            names the source in the failures it reports
+   * @param delayMillis       how long every chunk is held, in milliseconds
+   * @param maxQueuedMillis   the most sound that waits, the delay included, in milliseconds
+   * @param pipeline          gives the audio pipeline of the player for every chunk
+   * @param failures          receives a failure of the pipeline
    * @param clock             a monotonic clock in nanoseconds
    * @param joinTimeoutMillis how long closing waits for a pipeline that holds the thread, in milliseconds
    * @param silenceMillis     how much silence follows {@link #quiet()} at most, in milliseconds
@@ -211,8 +211,8 @@ public final class DelayedAudioOutput implements AutoCloseable {
    * @param samples the buffer, which the caller may reuse
    * @param length  the byte count at the start of the array, from 0 through its length and a multiple of
    *                four for complete stereo frames; frame alignment is a caller precondition
-   * @throws NullPointerException if samples are actually queued and {@code samples} is null
-   * @throws IllegalArgumentException if samples are queued with a negative length
+   * @throws NullPointerException      if samples are actually queued and {@code samples} is null
+   * @throws IllegalArgumentException  if samples are queued with a negative length
    * @throws IndexOutOfBoundsException if the requested byte range exceeds the array while queuing
    */
   public synchronized void accept(final byte[] samples, final int length) {
@@ -270,7 +270,7 @@ public final class DelayedAudioOutput implements AutoCloseable {
   }
 
   /**
-   * Gets the number of bytes that wait for the pipeline.
+   * Returns the number of bytes that wait for the pipeline.
    *
    * @return the queued bytes
    */
@@ -280,7 +280,7 @@ public final class DelayedAudioOutput implements AutoCloseable {
   }
 
   /**
-   * Gets the thread that hands the samples over, so tests can interrupt it.
+   * Returns the thread that hands the samples over, so tests can interrupt it.
    *
    * @return the thread
    */

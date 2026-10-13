@@ -92,7 +92,7 @@ public abstract class AbstractInstaller implements Installer {
    *                  platform resolution, whose successful result (including no match) is cached; a failure
    *                  before resolution completes can cause the supplier to be called again
    * @throws IllegalArgumentException if {@code name} is blank
-   * @throws NullPointerException if {@code folder}, {@code name} or {@code downloads} is null
+   * @throws NullPointerException     if {@code folder}, {@code name} or {@code downloads} is null
    */
   protected AbstractInstaller(final Path folder, final String name, final Supplier<Download[]> downloads) {
     Preconditions.checkNotNull(folder, "Folder must not be null!");
@@ -113,7 +113,7 @@ public abstract class AbstractInstaller implements Installer {
    * @param name      the non-null, nonblank program name, used as the file name and configuration key
    * @param downloads the non-null array of non-null downloads, retained without copying; do not mutate it
    * @throws IllegalArgumentException if {@code name} is blank
-   * @throws NullPointerException if {@code folder}, {@code name} or {@code downloads} is null
+   * @throws NullPointerException     if {@code folder}, {@code name} or {@code downloads} is null
    */
   protected AbstractInstaller(final Path folder, final String name, final Download[] downloads) {
     Preconditions.checkNotNull(downloads, "Downloads must not be null!");
@@ -127,8 +127,8 @@ public abstract class AbstractInstaller implements Installer {
    * @param name      the non-null, nonblank program name, used as the file name and configuration key
    * @param downloads the non-null array of non-null downloads, retained without copying; do not mutate it
    * @throws IllegalArgumentException if {@code name} is blank
-   * @throws NullPointerException if {@code name} or {@code downloads} is null
-   * @throws UncheckedIOException if the default cache folder cannot be created
+   * @throws NullPointerException     if {@code name} or {@code downloads} is null
+   * @throws UncheckedIOException     if the default cache folder cannot be created
    */
   protected AbstractInstaller(final String name, final Download[] downloads) {
     final Path defaultFolder = getDefaultExecutableFolderPath();
@@ -136,7 +136,7 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   /**
-   * Gets the folder programs are installed into by default, which is the cache folder of the library,
+   * Returns the folder programs are installed into by default, which is the cache folder of the library,
    * {@code ~/.mcav/cache}. The folder is looked up and created on every call rather than when the class is loaded,
    * so merely loading an installer class never touches the home directory.
    *
@@ -148,7 +148,7 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   /**
-   * Gets the file name of an executable on an operating system, which carries the {@code .exe} suffix on Windows.
+   * Returns the file name of an executable on an operating system, which carries the {@code .exe} suffix on Windows.
    *
    * @param name            the name of the program
    * @param operatingSystem the operating system
@@ -168,8 +168,8 @@ public abstract class AbstractInstaller implements Installer {
    *
    * @param executable true to mark the downloaded file as executable
    * @return the path of the installation
-   * @throws IOException if the download fails, the file cannot be written or marked as executable, or the hash does
-   *                     not match
+   * @throws IOException              if the download fails, the file cannot be written or marked as executable, or the hash does
+   *                                  not match
    * @throws IllegalArgumentException if a configured download URL is not a valid URI
    */
   @Override
@@ -219,7 +219,7 @@ public abstract class AbstractInstaller implements Installer {
    * failure.
    *
    * @param file the file to mark
-   * @throws IOException if the permissions of the file cannot be changed
+   * @throws IOException          if the permissions of the file cannot be changed
    * @throws NullPointerException if {@code file} is null
    */
   protected static void markExecutable(final Path file) throws IOException {
@@ -275,7 +275,7 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   /**
-   * Gets the path of the installation: the path found or created by the last call to {@link #download(boolean)},
+   * Returns the path of the installation: the path found or created by the last call to {@link #download(boolean)},
    * or {@link #getDefaultPath()} before the program has been installed.
    *
    * @return the installation path
@@ -290,7 +290,7 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   /**
-   * Gets the path this installer installs the program to. The default implementation is the executable file inside
+   * Returns the path this installer installs the program to. The default implementation is the executable file inside
    * the installation folder, named after the program with an {@code .exe} suffix on Windows.
    *
    * @return the default installation path
@@ -302,7 +302,7 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   /**
-   * Gets the name of the program, which is also the key of the program in the configuration file.
+   * Returns the name of the program, which is also the key of the program in the configuration file.
    *
    * @return the name
    */
@@ -311,7 +311,7 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   /**
-   * Gets the folder the program is installed into.
+   * Returns the folder the program is installed into.
    *
    * @return the installation folder
    */
@@ -320,7 +320,7 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   /**
-   * Gets the URL of the download for the current platform.
+   * Returns the URL of the download for the current platform.
    *
    * @return the download URL, or an empty string if the platform is not supported
    */
@@ -334,7 +334,7 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   /**
-   * Gets the expected SHA-256 hash of the download for the current platform.
+   * Returns the expected SHA-256 hash of the download for the current platform.
    *
    * @return the hash in hexadecimal, or null if the platform is not supported or the download is not verified
    */
@@ -358,7 +358,7 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   /**
-   * Gets the file name the download is stored under inside the installation folder. Programs are stored under
+   * Returns the file name the download is stored under inside the installation folder. Programs are stored under
    * their name, with an {@code .exe} suffix on Windows. Archives are stored under the file name of their URL, or
    * under the name of the program with an {@code .archive} suffix if the URL does not end in a usable file name.
    *
@@ -386,7 +386,7 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   /**
-   * Gets the download for the current platform.
+   * Returns the download for the current platform.
    *
    * @return the download
    * @throws IOException if the platform is not supported
@@ -453,7 +453,7 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   /**
-   * Gets the platforms whose downloads also run on the specified platform, in order of preference. The default
+   * Returns the platforms whose downloads also run on the specified platform, in order of preference. The default
    * implementation returns no fallbacks. Installers of standalone executables can allow, for example, 64-bit x86
    * builds on ARM machines that emulate x86, which is not safe for native libraries loaded into the JVM.
    *
@@ -501,7 +501,7 @@ public abstract class AbstractInstaller implements Installer {
    * immediately. The file is replaced atomically, so a crash never leaves a half-written configuration behind.
    *
    * @param installedPath the path of the installation
-   * @throws IOException if the configuration file cannot be written
+   * @throws IOException          if the configuration file cannot be written
    * @throws NullPointerException if {@code installedPath} is null
    */
   public void writePathToConfig(final Path installedPath) throws IOException {

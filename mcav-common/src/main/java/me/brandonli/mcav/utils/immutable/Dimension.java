@@ -60,7 +60,7 @@ public final class Dimension {
   }
 
   /**
-   * Gets the width.
+   * Returns the width.
    *
    * @return the width in pixels
    */
@@ -69,7 +69,7 @@ public final class Dimension {
   }
 
   /**
-   * Gets the height.
+   * Returns the height.
    *
    * @return the height in pixels
    */

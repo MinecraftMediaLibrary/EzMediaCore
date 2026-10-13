@@ -123,7 +123,7 @@ final class VideoFrameCopier {
   }
 
   /**
-   * Gets the copy of an unscaled frame the copier holds, see {@link #hasUnscaledCopy()}.
+   * Returns the copy of an unscaled frame the copier holds, see {@link #hasUnscaledCopy()}.
    *
    * @return the copy, or null if the copier holds none
    */

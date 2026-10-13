@@ -55,7 +55,7 @@ public final class FFmpegCommand {
   }
 
   /**
-   * Gets the arguments after the executable.
+   * Returns the arguments after the executable.
    *
    * @return the arguments, which cannot be modified
    */
@@ -64,7 +64,7 @@ public final class FFmpegCommand {
   }
 
   /**
-   * Gets the FFmpeg executable the command runs with.
+   * Returns the FFmpeg executable the command runs with.
    *
    * @return the path of the executable
    * @throws UnsatisfiedLinkError if the bundled executable cannot be extracted for this platform
@@ -74,7 +74,7 @@ public final class FFmpegCommand {
   }
 
   /**
-   * Gets the complete command line, starting with the executable.
+   * Returns the complete command line, starting with the executable.
    *
    * @return the command line as separate arguments
    * @throws UnsatisfiedLinkError if the bundled executable cannot be extracted for this platform

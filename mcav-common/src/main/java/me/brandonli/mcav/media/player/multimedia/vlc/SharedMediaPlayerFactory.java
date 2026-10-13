@@ -55,7 +55,7 @@ final class SharedMediaPlayerFactory {
   }
 
   /**
-   * Gets the VLC instance shared by every player.
+   * Returns the VLC instance shared by every player.
    *
    * @return the shared factory
    */
@@ -106,7 +106,7 @@ final class SharedMediaPlayerFactory {
   }
 
   /**
-   * Gets the number of references currently held.
+   * Returns the number of references currently held.
    *
    * @return the number of acquisitions that have not been released yet
    */

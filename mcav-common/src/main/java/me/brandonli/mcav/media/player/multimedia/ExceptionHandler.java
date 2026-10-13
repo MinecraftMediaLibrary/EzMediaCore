@@ -31,7 +31,7 @@ import java.util.function.BiConsumer;
  */
 public interface ExceptionHandler {
   /**
-   * Gets the handler that receives failures.
+   * Returns the handler that receives failures.
    *
    * @return the handler
    */

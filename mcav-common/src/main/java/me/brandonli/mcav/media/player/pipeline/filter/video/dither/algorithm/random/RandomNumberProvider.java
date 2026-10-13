@@ -23,7 +23,7 @@ package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ra
  */
 public interface RandomNumberProvider {
   /**
-   * Gets a random integer in a range.
+   * Returns a random integer in a range.
    *
    * @param min the smallest value, inclusive
    * @param max the largest value, exclusive
@@ -32,7 +32,7 @@ public interface RandomNumberProvider {
   int nextInt(final int min, final int max);
 
   /**
-   * Gets a random floating point number in a range.
+   * Returns a random floating point number in a range.
    *
    * @param min the smallest value, inclusive
    * @param max the largest value, exclusive
@@ -41,7 +41,7 @@ public interface RandomNumberProvider {
   double nextDouble(final double min, final double max);
 
   /**
-   * Gets a random boolean.
+   * Returns a random boolean.
    *
    * @return true or false with equal probability
    */

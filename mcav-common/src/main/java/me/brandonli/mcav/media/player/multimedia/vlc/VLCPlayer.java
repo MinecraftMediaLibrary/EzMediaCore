@@ -102,7 +102,7 @@ public final class VLCPlayer implements VideoPlayerMultiplexer {
    *                     such as {@code :network-caching=1000}
    * @throws IllegalStateException if VLC is still being prepared, or is not available on this system; the message
    *                               says which
-   * @throws NullPointerException if the options array or any option is null
+   * @throws NullPointerException  if the options array or any option is null
    */
   public VLCPlayer(final String... mediaOptions) {
     final CapabilityGuard guard = CapabilityGuard.shared();
@@ -435,7 +435,7 @@ public final class VLCPlayer implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Gets the slot of the video pipeline. The render thread looks the pipeline up for every frame, so a pipeline
+   * Returns the slot of the video pipeline. The render thread looks the pipeline up for every frame, so a pipeline
    * attached while the player plays takes effect with the next frame.
    *
    * @return the video slot, the same instance for the whole life of the player
@@ -446,7 +446,7 @@ public final class VLCPlayer implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Gets the slot of the audio pipeline. The render thread looks the pipeline up for every chunk of samples, so a
+   * Returns the slot of the audio pipeline. The render thread looks the pipeline up for every chunk of samples, so a
    * pipeline attached while the player plays takes effect with the next chunk.
    *
    * @return the audio slot, the same instance for the whole life of the player
@@ -457,7 +457,7 @@ public final class VLCPlayer implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Gets the slot of the size frames are scaled to. A size attached before VLC chooses its buffer, which it does once
+   * Returns the slot of the size frames are scaled to. A size attached before VLC chooses its buffer, which it does once
    * it knows the format of the video, makes VLC render at that size; a size attached or changed later is applied by
    * resizing each frame on the render thread.
    *
@@ -469,7 +469,7 @@ public final class VLCPlayer implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Gets the handler that receives failures, such as media that cannot be opened or a filter that throws.
+   * Returns the handler that receives failures, such as media that cannot be opened or a filter that throws.
    *
    * @return the exception handler, which receives a description of the failure and its cause
    */
@@ -492,7 +492,7 @@ public final class VLCPlayer implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Gets the VLC instance the playbacks of this player use.
+   * Returns the VLC instance the playbacks of this player use.
    *
    * @return the shared factory
    */
@@ -501,7 +501,7 @@ public final class VLCPlayer implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Gets how long starting waits at most for VLC to open the media.
+   * Returns how long starting waits at most for VLC to open the media.
    *
    * @return the timeout in milliseconds
    */

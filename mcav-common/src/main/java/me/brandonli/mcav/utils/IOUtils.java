@@ -107,7 +107,7 @@ public final class IOUtils {
    * @param url the URL, such as {@code https://example.com/files/video.mp4}
    * @return the last segment of the path, such as {@code video.mp4}, or an empty string if the path is empty
    * @throws IllegalArgumentException if the URL is not a valid URI
-   * @throws NullPointerException if {@code url} is null
+   * @throws NullPointerException     if {@code url} is null
    */
   public static String getFileNameFromUrl(final String url) {
     Preconditions.checkNotNull(url, "URL must not be null!");
@@ -234,7 +234,7 @@ public final class IOUtils {
    * checked {@link IOException}, because its callers are installers that report every failure that way.
    *
    * @param path the file or directory to delete
-   * @throws IOException if a file cannot be deleted
+   * @throws IOException          if a file cannot be deleted
    * @throws NullPointerException if {@code path} is null
    */
   public static void deleteRecursively(final Path path) throws IOException {
@@ -268,7 +268,7 @@ public final class IOUtils {
    *
    * @param source the file to move
    * @param target the destination, which is replaced if it exists
-   * @throws IOException if the file cannot be moved
+   * @throws IOException          if the file cannot be moved
    * @throws NullPointerException if {@code source} or {@code target} is null
    */
   public static void moveReplacing(final Path source, final Path target) throws IOException {
@@ -418,12 +418,12 @@ public final class IOUtils {
   }
 
   /**
-   * Gets the name of the file or directory a path points to.
+   * Returns the name of the file or directory a path points to.
    *
    * @param path the path
    * @return the last element of the path
    * @throws IllegalArgumentException if the path has no elements, such as a root directory
-   * @throws NullPointerException if {@code path} is null
+   * @throws NullPointerException     if {@code path} is null
    */
   public static String getName(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
@@ -444,10 +444,10 @@ public final class IOUtils {
    *
    * @param source the URL of the image
    * @return the cached file path; releasing a decoded image does not remove this file
-   * @throws UncheckedIOException if the image cannot be downloaded, including when it is larger than
-   *                              {@link #MAX_IMAGE_BYTES}
+   * @throws UncheckedIOException     if the image cannot be downloaded, including when it is larger than
+   *                                  {@link #MAX_IMAGE_BYTES}
    * @throws IllegalArgumentException if the source does not describe an absolute HTTP or HTTPS URI with a host
-   * @throws NullPointerException if {@code source} is null
+   * @throws NullPointerException     if {@code source} is null
    */
   public static Path downloadImage(final UriSource source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
@@ -468,7 +468,7 @@ public final class IOUtils {
   }
 
   /**
-   * Gets the cache folder of the library, which is {@code ~/.mcav/cache}. The folder is created if it does not
+   * Returns the cache folder of the library, which is {@code ~/.mcav/cache}. The folder is created if it does not
    * exist.
    *
    * @return the absolute path of the cache folder
@@ -580,10 +580,10 @@ public final class IOUtils {
    *
    * @param archive     the zip archive
    * @param destination the directory to extract into, which is created if it does not exist
-   * @throws UncheckedIOException        if the file is not a zip archive, cannot be read, or the files cannot be
-   *                                     written
+   * @throws UncheckedIOException       if the file is not a zip archive, cannot be read, or the files cannot be
+   *                                    written
    * @throws ZipEntryIntegrityException if the archive contains an entry that is not safe to extract
-   * @throws NullPointerException        if the archive or the destination is null
+   * @throws NullPointerException       if the archive or the destination is null
    */
   public static void unzip(final Path archive, final Path destination) {
     Preconditions.checkNotNull(archive, "Archive must not be null!");

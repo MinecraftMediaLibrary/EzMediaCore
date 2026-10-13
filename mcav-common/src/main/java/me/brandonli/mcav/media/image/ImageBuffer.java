@@ -61,7 +61,7 @@ public interface ImageBuffer extends Image {
    * @param mat the non-null, nonempty matrix with 1, 3 or 4 channels; ownership transfers on success
    * @return the image buffer
    * @throws IllegalArgumentException if the matrix is empty or has a channel count other than 1, 3 or 4
-   * @throws NullPointerException if {@code mat} is null
+   * @throws NullPointerException     if {@code mat} is null
    */
   static ImageBuffer mat(final Mat mat) {
     Preconditions.checkNotNull(mat, "Mat must not be null!");
@@ -78,7 +78,7 @@ public interface ImageBuffer extends Image {
    * @return the image buffer
    * @throws IllegalArgumentException if dimensions are nonpositive, the packed BGR size exceeds
    *                                  {@link Integer#MAX_VALUE}, or the byte count differs from that size
-   * @throws NullPointerException if {@code data} is null
+   * @throws NullPointerException     if {@code data} is null
    */
   static ImageBuffer bytes(final byte[] data, final int width, final int height) {
     Preconditions.checkNotNull(data, "Data must not be null!");
@@ -96,7 +96,7 @@ public interface ImageBuffer extends Image {
    * @return the image buffer
    * @throws IllegalArgumentException if dimensions are nonpositive, the packed BGR size exceeds
    *                                  {@link Integer#MAX_VALUE}, or the byte count differs from that size
-   * @throws NullPointerException if {@code data} is null
+   * @throws NullPointerException     if {@code data} is null
    */
   static ImageBuffer bytes(final ByteBuffer data, final int width, final int height) {
     Preconditions.checkNotNull(data, "Data must not be null!");
@@ -111,7 +111,7 @@ public interface ImageBuffer extends Image {
    * @throws IllegalArgumentException if the bytes are not a supported image format, or their header declares more pixels
    *                                  than the system property {@code mcav.image.maxPixels} allows (8192 by 8192 if it
    *                                  is not set)
-   * @throws NullPointerException if {@code bytes} is null
+   * @throws NullPointerException     if {@code bytes} is null
    */
   static ImageBuffer bytes(final byte[] bytes) {
     Preconditions.checkNotNull(bytes, "Bytes must not be null!");
@@ -125,7 +125,7 @@ public interface ImageBuffer extends Image {
    * @param frame the non-null frame containing an image; its pixels are copied and the caller keeps ownership
    * @return the image buffer
    * @throws IllegalArgumentException if the frame has no image or has a channel count other than 1, 3 or 4
-   * @throws NullPointerException if {@code frame} is null
+   * @throws NullPointerException     if {@code frame} is null
    */
   static ImageBuffer frame(final Frame frame) {
     Preconditions.checkNotNull(frame, "Frame must not be null!");
@@ -140,7 +140,7 @@ public interface ImageBuffer extends Image {
    * @throws java.io.UncheckedIOException if the image cannot be downloaded
    * @throws IllegalArgumentException     if the file is not a supported image format, or its header declares more
    *                                      pixels than the system property {@code mcav.image.maxPixels} allows
-   * @throws NullPointerException if {@code source} is null
+   * @throws NullPointerException         if {@code source} is null
    */
   static ImageBuffer uri(final UriSource source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
@@ -154,7 +154,7 @@ public interface ImageBuffer extends Image {
    * @return the image buffer
    * @throws IllegalArgumentException if the file does not exist or is not a supported image format, or its header
    *                                  declares more pixels than the system property {@code mcav.image.maxPixels} allows
-   * @throws NullPointerException if {@code source} is null
+   * @throws NullPointerException     if {@code source} is null
    */
   static ImageBuffer path(final FileSource source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
@@ -172,7 +172,7 @@ public interface ImageBuffer extends Image {
    * @return the image buffer
    * @throws IllegalArgumentException if dimensions are nonpositive, the packed BGR size exceeds
    *                                  {@link Integer#MAX_VALUE}, or the pixel count differs from the dimensions
-   * @throws NullPointerException if {@code data} is null
+   * @throws NullPointerException     if {@code data} is null
    */
   static ImageBuffer buffer(final int[] data, final int width, final int height) {
     Preconditions.checkNotNull(data, "Data must not be null!");
@@ -186,7 +186,7 @@ public interface ImageBuffer extends Image {
    * @param image the image to copy
    * @return the image buffer
    * @throws IllegalArgumentException if the image dimensions exceed the maximum packed BGR buffer size
-   * @throws NullPointerException if {@code image} is null
+   * @throws NullPointerException     if {@code image} is null
    */
   static ImageBuffer image(final BufferedImage image) {
     Preconditions.checkNotNull(image, "Image must not be null!");
@@ -205,7 +205,7 @@ public interface ImageBuffer extends Image {
    * Replaces the content of this buffer with a Java image, resizing the buffer if necessary.
    *
    * @param image the image to copy
-   * @throws NullPointerException if {@code image} is null
+   * @throws NullPointerException  if {@code image} is null
    * @throws IllegalStateException if the image was released
    */
   void setAsBufferedImage(final BufferedImage image);
@@ -219,24 +219,24 @@ public interface ImageBuffer extends Image {
    *               values are rounded and clamped to 0 through 255, missing components are unchanged,
    *               and additional components are ignored
    * @throws IllegalArgumentException if the row or column is outside the image
-   * @throws NullPointerException if {@code value} is null
-   * @throws IllegalStateException if the image was released
+   * @throws NullPointerException     if {@code value} is null
+   * @throws IllegalStateException    if the image was released
    */
   void setPixel(final int column, final int row, final double[] value);
 
   /**
-   * Gets the color of one pixel.
+   * Returns the color of one pixel.
    *
    * @param column the zero-based column, less than {@link #getWidth()}
    * @param row    the zero-based row, less than {@link #getHeight()}
    * @return a new three-element array containing blue, green and red, each from 0 to 255
    * @throws IllegalArgumentException if the row or column is outside the image
-   * @throws IllegalStateException if the image was released
+   * @throws IllegalStateException    if the image was released
    */
   double[] getPixel(final int column, final int row);
 
   /**
-   * Gets every pixel as packed ARGB integers, laid out row by row, without copying them.
+   * Returns every pixel as packed ARGB integers, laid out row by row, without copying them.
    *
    * <p><strong>The array is shared and must be treated as read-only.</strong> It is computed once and cached, and
    * every caller receives the same instance until the image changes. Writing into it does not change the image
@@ -269,7 +269,7 @@ public interface ImageBuffer extends Image {
   }
 
   /**
-   * Gets a read-only view of the shared pixels of {@link #getPixels()}, as packed ARGB integers laid out row by row.
+   * Returns a read-only view of the shared pixels of {@link #getPixels()}, as packed ARGB integers laid out row by row.
    * The view does not copy the pixels, so it costs almost nothing, and every attempt to write through it throws a
    * {@link java.nio.ReadOnlyBufferException}. Hand it to code that must not be able to corrupt the shared array.
    *
@@ -286,7 +286,7 @@ public interface ImageBuffer extends Image {
   }
 
   /**
-   * Gets the width of the image.
+   * Returns the width of the image.
    *
    * @return the width in pixels
    * @throws IllegalStateException if the image was released
@@ -294,7 +294,7 @@ public interface ImageBuffer extends Image {
   int getWidth();
 
   /**
-   * Gets the height of the image.
+   * Returns the height of the image.
    *
    * @return the height in pixels
    * @throws IllegalStateException if the image was released
@@ -302,7 +302,7 @@ public interface ImageBuffer extends Image {
   int getHeight();
 
   /**
-   * Gets the number of pixels of the image.
+   * Returns the number of pixels of the image.
    *
    * @return the width multiplied by the height
    * @throws IllegalStateException if the image was released
@@ -310,7 +310,7 @@ public interface ImageBuffer extends Image {
   int getPixelCount();
 
   /**
-   * Gets a view of the raw 8-bit BGR pixels of the image, without padding. The pixels are the bytes between the
+   * Returns a view of the raw 8-bit BGR pixels of the image, without padding. The pixels are the bytes between the
    * position and the limit of the returned buffer. The buffer shares memory with the image: changes to it change the
    * image, and it becomes invalid when the image is resized, transformed or released.
    *
@@ -328,10 +328,10 @@ public interface ImageBuffer extends Image {
    * @param data   the pixels, exactly {@code width * height * 3} bytes remaining
    * @param width  the new width in pixels
    * @param height the new height in pixels
-   * @throws NullPointerException if {@code data} is null
+   * @throws NullPointerException     if {@code data} is null
    * @throws IllegalArgumentException if dimensions are nonpositive, the packed BGR size exceeds
    *                                  {@link Integer#MAX_VALUE}, or the input count differs from the dimensions
-   * @throws IllegalStateException if the image was released
+   * @throws IllegalStateException    if the image was released
    */
   void updateData(final ByteBuffer data, final int width, final int height);
 
@@ -343,10 +343,10 @@ public interface ImageBuffer extends Image {
    * @param pixels the pixels, exactly {@code width * height} integers laid out row by row
    * @param width  the new width in pixels
    * @param height the new height in pixels
-   * @throws NullPointerException if {@code pixels} is null
+   * @throws NullPointerException     if {@code pixels} is null
    * @throws IllegalArgumentException if dimensions are nonpositive, the packed BGR size exceeds
    *                                  {@link Integer#MAX_VALUE}, or the input count differs from the dimensions
-   * @throws IllegalStateException if the image was released
+   * @throws IllegalStateException    if the image was released
    */
   void updateArgb(final int[] pixels, final int width, final int height);
 

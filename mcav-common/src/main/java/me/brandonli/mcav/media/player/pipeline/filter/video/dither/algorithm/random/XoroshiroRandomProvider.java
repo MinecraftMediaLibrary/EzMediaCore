@@ -86,7 +86,7 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
   }
 
   /**
-   * Gets a random integer in a range, scaled from the high bits of the next output.
+   * Returns a random integer in a range, scaled from the high bits of the next output.
    *
    * <p>The offset is the high half of the unsigned product of the output and the width of the range, which is the
    * multiply-shift reduction of Lemire. It is taken from the high bits on purpose: the authors of xoroshiro128+
@@ -109,7 +109,7 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
   }
 
   /**
-   * Gets a random floating point number in a range, drawn from the top 53 bits of the next output.
+   * Returns a random floating point number in a range, drawn from the top 53 bits of the next output.
    *
    * @param min the finite smallest value, inclusive
    * @param max the finite largest value, exclusive
@@ -138,7 +138,7 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
   }
 
   /**
-   * Gets a random boolean from the highest bit of the next output, which is the best bit of xoroshiro128+.
+   * Returns a random boolean from the highest bit of the next output, which is the best bit of xoroshiro128+.
    *
    * @return true or false with equal probability
    */

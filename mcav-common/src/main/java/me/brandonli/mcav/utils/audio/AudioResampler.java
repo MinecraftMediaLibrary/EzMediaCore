@@ -117,7 +117,7 @@ public final class AudioResampler implements AutoCloseable {
    * @return a new resampler, which must be closed by the caller
    * @throws IllegalArgumentException if a sample rate is not positive or a channel count is out of range
    * @throws IllegalStateException    if FFmpeg cannot set up the conversion
-   * @throws NullPointerException if {@code inputFormat} or {@code outputFormat} is null
+   * @throws NullPointerException     if {@code inputFormat} or {@code outputFormat} is null
    */
   public static AudioResampler create(
     final int inputSampleRate,
@@ -156,7 +156,7 @@ public final class AudioResampler implements AutoCloseable {
    * @return a new resampler, which must be closed by the caller
    * @throws IllegalArgumentException if the sample rate is not positive or the channel count is out of range
    * @throws IllegalStateException    if FFmpeg cannot set up the conversion
-   * @throws NullPointerException if {@code outputFormat} is null
+   * @throws NullPointerException     if {@code outputFormat} is null
    */
   public static AudioResampler fromPipelineFormat(final int outputSampleRate, final int outputChannels, final SampleFormat outputFormat) {
     return create(
@@ -211,7 +211,7 @@ public final class AudioResampler implements AutoCloseable {
    * @return a new caller-owned array of interleaved samples in the output format and native byte order,
    *         possibly empty; the byte-order property of the input buffer is not consulted
    * @throws IllegalStateException if the resampler is closed or FFmpeg fails to convert the samples
-   * @throws NullPointerException if {@code input} is null
+   * @throws NullPointerException  if {@code input} is null
    */
   public byte[] resample(final ByteBuffer input) {
     Preconditions.checkNotNull(input, "Input must not be null!");
@@ -376,7 +376,7 @@ public final class AudioResampler implements AutoCloseable {
   }
 
   /**
-   * Gets the native objects this resampler owns: its context and the layouts of its input and output channels.
+   * Returns the native objects this resampler owns: its context and the layouts of its input and output channels.
    *
    * @return the context, the input layout and the output layout
    */

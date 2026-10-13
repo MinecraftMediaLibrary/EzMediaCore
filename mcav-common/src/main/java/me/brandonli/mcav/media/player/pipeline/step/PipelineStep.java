@@ -31,7 +31,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public interface PipelineStep<T, M, S extends PipelineStep<T, M, S>> {
   /**
-   * Gets the step that follows this one.
+   * Returns the step that follows this one.
    *
    * @return the next step, or null if this is the last step
    */
@@ -74,7 +74,7 @@ public interface PipelineStep<T, M, S extends PipelineStep<T, M, S>> {
    * @param buffer   the data
    * @param metadata the metadata of the data
    * @throws NullPointerException if the data or the metadata is null
-   * @throws RuntimeException if a step or filter fails; subsequent steps are not invoked
+   * @throws RuntimeException     if a step or filter fails; subsequent steps are not invoked
    */
   default void processAll(final T buffer, final M metadata) {
     Preconditions.checkNotNull(buffer, "Buffer must not be null!");
@@ -87,7 +87,7 @@ public interface PipelineStep<T, M, S extends PipelineStep<T, M, S>> {
   }
 
   /**
-   * Gets this step typed as the step type of the pipeline.
+   * Returns this step typed as the step type of the pipeline.
    *
    * @return this step
    */

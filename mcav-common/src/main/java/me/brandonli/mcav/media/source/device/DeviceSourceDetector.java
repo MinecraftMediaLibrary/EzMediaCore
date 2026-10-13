@@ -45,9 +45,9 @@ public class DeviceSourceDetector implements SourceDetector<DeviceSource> {
   /**
    * {@inheritDoc}
    *
-   * @throws NumberFormatException if the string is not a decimal {@code int}
+   * @throws NumberFormatException    if the string is not a decimal {@code int}
    * @throws IllegalArgumentException if the parsed index is negative
-   * @throws NullPointerException if {@code raw} is null
+   * @throws NullPointerException     if {@code raw} is null
    */
   @Override
   public DeviceSource createSource(final String raw) {

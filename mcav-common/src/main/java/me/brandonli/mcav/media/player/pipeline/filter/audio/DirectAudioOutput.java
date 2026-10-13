@@ -89,7 +89,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
    * @param metadata the metadata of the original stream
    * @return false, because the samples are never changed
    * @throws IllegalArgumentException if the sound line rejects a byte count that is not a whole PCM frame
-   * @throws NullPointerException if {@code samples} is null
+   * @throws NullPointerException     if {@code samples} is null
    */
   @Override
   public boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
@@ -107,7 +107,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
   }
 
   /**
-   * Gets the array chunks are copied into, growing it when a chunk does not fit.
+   * Returns the array chunks are copied into, growing it when a chunk does not fit.
    *
    * @param length the length of the chunk in bytes
    * @return an array of at least that length
@@ -161,7 +161,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
    * not prevent closing the line; the first failure is rethrown with later failures suppressed. Fatal VM errors
    * propagate immediately.
    * @throws RuntimeException if stopping, flushing or closing the line fails
-   * @throws Error if the sound line reports an error during cleanup
+   * @throws Error            if the sound line reports an error during cleanup
    */
   @Override
   public synchronized void release() {

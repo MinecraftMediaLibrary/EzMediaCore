@@ -54,7 +54,7 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
   }
 
   /**
-   * Gets the kernel of this algorithm.
+   * Returns the kernel of this algorithm.
    *
    * @return the kernel
    */

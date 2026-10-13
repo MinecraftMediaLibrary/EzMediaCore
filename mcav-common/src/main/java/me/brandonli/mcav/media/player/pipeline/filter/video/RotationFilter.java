@@ -100,7 +100,7 @@ public class RotationFilter extends MatVideoFilter {
     }
 
     /**
-     * Gets the OpenCV rotate code of this rotation.
+     * Returns the OpenCV rotate code of this rotation.
      *
      * @return the rotate code
      */

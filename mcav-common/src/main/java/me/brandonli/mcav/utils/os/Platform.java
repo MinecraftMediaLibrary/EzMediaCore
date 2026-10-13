@@ -64,7 +64,7 @@ public final class Platform {
   }
 
   /**
-   * Gets the platform of the running JVM.
+   * Returns the platform of the running JVM.
    *
    * @return the current platform
    */
@@ -73,7 +73,7 @@ public final class Platform {
   }
 
   /**
-   * Gets the operating system.
+   * Returns the operating system.
    *
    * @return the operating system
    */
@@ -82,7 +82,7 @@ public final class Platform {
   }
 
   /**
-   * Gets the CPU architecture family.
+   * Returns the CPU architecture family.
    *
    * @return the architecture
    */
@@ -91,7 +91,7 @@ public final class Platform {
   }
 
   /**
-   * Gets the bitness.
+   * Returns the bitness.
    *
    * @return 32-bit or 64-bit
    */

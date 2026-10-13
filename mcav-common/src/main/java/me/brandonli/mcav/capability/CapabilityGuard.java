@@ -49,7 +49,7 @@ public final class CapabilityGuard {
   }
 
   /**
-   * Gets the guard of the JVM, which the library records its background installations in and which VLC players and
+   * Returns the guard of the JVM, which the library records its background installations in and which VLC players and
    * the default yt-dlp parser consult.
    *
    * @return the shared guard
@@ -117,7 +117,7 @@ public final class CapabilityGuard {
    *
    * @param capability the capability
    * @throws IllegalStateException if the capability is still being prepared
-   * @throws NullPointerException if {@code capability} is null
+   * @throws NullPointerException  if {@code capability} is null
    */
   public void checkNotPreparing(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
@@ -134,7 +134,7 @@ public final class CapabilityGuard {
    *
    * @param capability the capability
    * @throws IllegalStateException if the capability is still being prepared or is not available on this system
-   * @throws NullPointerException if {@code capability} is null
+   * @throws NullPointerException  if {@code capability} is null
    */
   public void checkUsable(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");

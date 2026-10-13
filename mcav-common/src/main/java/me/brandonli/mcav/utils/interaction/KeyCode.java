@@ -192,7 +192,7 @@ public enum KeyCode {
   }
 
   /**
-   * Gets the character that represents this key. The characters are taken from the private use area of Unicode
+   * Returns the character that represents this key. The characters are taken from the private use area of Unicode
    * and are understood by WebDriver-based browsers.
    *
    * @return the key character
@@ -202,7 +202,7 @@ public enum KeyCode {
   }
 
   /**
-   * Gets the code point of {@link #getKeyChar()}.
+   * Returns the code point of {@link #getKeyChar()}.
    *
    * @return the code point
    */
@@ -211,7 +211,7 @@ public enum KeyCode {
   }
 
   /**
-   * Gets the key as a one-character string, for example to pass to a keyboard API.
+   * Returns the key as a one-character string, for example to pass to a keyboard API.
    *
    * @return the key character as a string
    */

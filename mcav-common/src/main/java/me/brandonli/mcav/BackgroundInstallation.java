@@ -197,7 +197,7 @@ final class BackgroundInstallation {
   }
 
   /**
-   * Gets a future that completes once a capability is ready. A capability that is not prepared in the background, or
+   * Returns a future that completes once a capability is ready. A capability that is not prepared in the background, or
    * whose preparation already finished, gets a future that is complete already.
    *
    * @param capability the capability
@@ -269,7 +269,7 @@ final class BackgroundInstallation {
   }
 
   /**
-   * Gets the threads the programs are prepared on.
+   * Returns the threads the programs are prepared on.
    *
    * @return the installation threads, in the order they were started
    */

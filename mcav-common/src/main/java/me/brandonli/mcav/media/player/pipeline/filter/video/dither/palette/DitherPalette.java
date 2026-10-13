@@ -57,7 +57,7 @@ public interface DitherPalette {
    * @param colors the non-null colors, from 1 through 256, copied during construction
    * @return the palette
    * @throws IllegalArgumentException if the palette is empty or contains more than 256 colors
-   * @throws NullPointerException if {@code colors} is null
+   * @throws NullPointerException     if {@code colors} is null
    */
   static DitherPalette colors(final int... colors) {
     Preconditions.checkNotNull(colors, "Colors must not be null!");
@@ -71,7 +71,7 @@ public interface DitherPalette {
    * @param colors the non-null colors, from 1 through 256, copied during construction, none of them null
    * @return the palette
    * @throws IllegalArgumentException if the palette is empty or contains more than 256 colors
-   * @throws NullPointerException if the list or any color is null
+   * @throws NullPointerException     if the list or any color is null
    */
   static DitherPalette colors(final List<Integer> colors) {
     Preconditions.checkNotNull(colors, "Colors must not be null!");
@@ -87,7 +87,7 @@ public interface DitherPalette {
   }
 
   /**
-   * Gets the colors of the palette as opaque ARGB integers, indexed by palette index. Reserved transparent
+   * Returns the colors of the palette as opaque ARGB integers, indexed by palette index. Reserved transparent
    * indices hold zero.
    *
    * @return the colors, which must not be modified
@@ -95,21 +95,21 @@ public interface DitherPalette {
   int[] getPalette();
 
   /**
-   * Gets the number of colors, including reserved indices.
+   * Returns the number of colors, including reserved indices.
    *
    * @return the palette size
    */
   int getSize();
 
   /**
-   * Gets the number of leading indices that are reserved for transparency and never returned by the lookup tables.
+   * Returns the number of leading indices that are reserved for transparency and never returned by the lookup tables.
    *
    * @return the reserved index count
    */
   int getReservedIndices();
 
   /**
-   * Gets the lookup table from 7-bit RGB colors to palette indices. The table is indexed with
+   * Returns the lookup table from 7-bit RGB colors to palette indices. The table is indexed with
    * {@code ((r >> 1) << 14) | ((g >> 1) << 7) | (b >> 1)}.
    *
    * @return the index lookup table, which must not be modified
@@ -117,7 +117,7 @@ public interface DitherPalette {
   byte[] getColorMap();
 
   /**
-   * Gets the lookup table from 7-bit RGB colors to the closest palette color as opaque ARGB. The table is indexed
+   * Returns the lookup table from 7-bit RGB colors to the closest palette color as opaque ARGB. The table is indexed
    * like {@link #getColorMap()}.
    *
    * @return the color lookup table, which must not be modified

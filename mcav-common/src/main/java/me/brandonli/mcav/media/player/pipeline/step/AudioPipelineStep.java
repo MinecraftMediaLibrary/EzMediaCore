@@ -60,14 +60,14 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
   }
 
   /**
-   * Gets the filter of this step.
+   * Returns the filter of this step.
    *
    * @return the filter
    */
   AudioFilter getFilter();
 
   /**
-   * Gets this step typed as an audio step.
+   * Returns this step typed as an audio step.
    *
    * @return this step
    */
@@ -84,7 +84,7 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
    * @param buffer   the samples
    * @param metadata the metadata of the original audio stream
    * @throws NullPointerException if the samples or the metadata are null
-   * @throws RuntimeException if a step or filter fails; subsequent steps are not invoked
+   * @throws RuntimeException     if a step or filter fails; subsequent steps are not invoked
    */
   @Override
   default void processAll(final ByteBuffer buffer, final OriginalAudioMetadata metadata) {
@@ -108,7 +108,7 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
     private NoOperationStep() {}
 
     /**
-     * Gets the step that follows this one, which is none.
+     * Returns the step that follows this one, which is none.
      *
      * @return null
      */
@@ -118,7 +118,7 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
     }
 
     /**
-     * Gets the filter of this step, which does nothing.
+     * Returns the filter of this step, which does nothing.
      *
      * @return {@link AudioFilter#NO_OP}
      */

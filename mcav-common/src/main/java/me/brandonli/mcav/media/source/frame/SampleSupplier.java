@@ -27,7 +27,7 @@ package me.brandonli.mcav.media.source.frame;
 @FunctionalInterface
 public interface SampleSupplier {
   /**
-   * Gets the next frame.
+   * Returns the next frame.
    *
    * @return the pixels of the frame laid out row by row, or an empty array if no frame is available yet. The array
    *     may be shared and is read-only, as the pixels of

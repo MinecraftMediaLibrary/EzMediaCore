@@ -89,7 +89,7 @@ final class ErrorRows {
   }
 
   /**
-   * Gets the first column of a row in scan order.
+   * Returns the first column of a row in scan order.
    *
    * @param row   the row
    * @param width the width of the image
@@ -100,7 +100,7 @@ final class ErrorRows {
   }
 
   /**
-   * Gets the column just past the last column of a row in scan order.
+   * Returns the column just past the last column of a row in scan order.
    *
    * @param row   the row
    * @param width the width of the image
@@ -111,7 +111,7 @@ final class ErrorRows {
   }
 
   /**
-   * Gets the direction a row is scanned in.
+   * Returns the direction a row is scanned in.
    *
    * @param row the row
    * @return {@code 1} for left to right, {@code -1} for right to left
@@ -125,7 +125,7 @@ final class ErrorRows {
   }
 
   /**
-   * Gets the red channel of a packed color.
+   * Returns the red channel of a packed color.
    *
    * @param color the packed color
    * @return the red channel from 0 to 255
@@ -135,7 +135,7 @@ final class ErrorRows {
   }
 
   /**
-   * Gets the green channel of a packed color.
+   * Returns the green channel of a packed color.
    *
    * @param color the packed color
    * @return the green channel from 0 to 255
@@ -145,7 +145,7 @@ final class ErrorRows {
   }
 
   /**
-   * Gets the blue channel of a packed color.
+   * Returns the blue channel of a packed color.
    *
    * @param color the packed color
    * @return the blue channel from 0 to 255
@@ -155,7 +155,7 @@ final class ErrorRows {
   }
 
   /**
-   * Gets the index of the color lookup table that belongs to a packed color.
+   * Returns the index of the color lookup table that belongs to a packed color.
    *
    * @param color the packed color
    * @return the lookup index

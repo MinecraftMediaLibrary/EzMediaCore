@@ -32,7 +32,7 @@ public final class GsonProvider {
   }
 
   /**
-   * Gets the shared instance, configured with the Gson defaults.
+   * Returns the shared instance, configured with the Gson defaults.
    *
    * @return the shared instance
    */

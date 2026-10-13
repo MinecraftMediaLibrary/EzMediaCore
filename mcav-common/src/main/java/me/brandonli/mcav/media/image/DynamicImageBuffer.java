@@ -32,14 +32,14 @@ import me.brandonli.mcav.media.source.uri.UriSource;
  */
 public interface DynamicImageBuffer extends Image {
   /**
-   * Gets every frame of the animation in playback order.
+   * Returns every frame of the animation in playback order.
    *
    * @return an unmodifiable list of borrowed frames; the images must not be released individually, and the image data becomes invalid when the animation closes
    */
   List<ImageBuffer> getFrames();
 
   /**
-   * Gets the playback speed of the animation.
+   * Returns the playback speed of the animation.
    *
    * @return the decoder's positive finite reported rate in frames per second, or a rate derived from
    *         frame timestamps; the fallback is 10 frames per second when neither is available
@@ -47,7 +47,7 @@ public interface DynamicImageBuffer extends Image {
   float getFrameRate();
 
   /**
-   * Gets one frame of the animation.
+   * Returns one frame of the animation.
    *
    * @param index the index of the frame, from 0 to {@code getFrameCount() - 1}
    * @return the frame, which must not be released individually
@@ -56,7 +56,7 @@ public interface DynamicImageBuffer extends Image {
   ImageBuffer getFrame(final int index);
 
   /**
-   * Gets the number of frames of the animation.
+   * Returns the number of frames of the animation.
    *
    * @return the frame count
    */
@@ -67,9 +67,9 @@ public interface DynamicImageBuffer extends Image {
    *
    * @param source the image file
    * @return the decoded animation
-   * @throws IOException if the file cannot be decoded
+   * @throws IOException              if the file cannot be decoded
    * @throws IllegalArgumentException if decoding succeeds but yields no image frames
-   * @throws NullPointerException if {@code source} is null
+   * @throws NullPointerException     if {@code source} is null
    */
   static DynamicImageBuffer path(final FileSource source) throws IOException {
     Preconditions.checkNotNull(source, "Source must not be null!");
@@ -81,10 +81,10 @@ public interface DynamicImageBuffer extends Image {
    *
    * @param source the URL of the image
    * @return the decoded animation
-   * @throws IOException if the downloaded file cannot be decoded
+   * @throws IOException                  if the downloaded file cannot be decoded
    * @throws java.io.UncheckedIOException if the image cannot be downloaded
-   * @throws IllegalArgumentException if decoding succeeds but yields no image frames
-   * @throws NullPointerException if {@code source} is null
+   * @throws IllegalArgumentException     if decoding succeeds but yields no image frames
+   * @throws NullPointerException         if {@code source} is null
    */
   static DynamicImageBuffer uri(final UriSource source) throws IOException {
     Preconditions.checkNotNull(source, "Source must not be null!");

@@ -37,7 +37,7 @@ public final class VideoPipelineStepImpl implements VideoPipelineStep {
   }
 
   /**
-   * Gets the step that follows this one.
+   * Returns the step that follows this one.
    *
    * @return the next step, or null if this is the last step
    */
@@ -47,7 +47,7 @@ public final class VideoPipelineStepImpl implements VideoPipelineStep {
   }
 
   /**
-   * Gets the filter this step applies.
+   * Returns the filter this step applies.
    *
    * @return the filter
    */

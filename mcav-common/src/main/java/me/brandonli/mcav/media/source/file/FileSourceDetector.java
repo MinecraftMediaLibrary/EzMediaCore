@@ -46,7 +46,7 @@ public class FileSourceDetector implements SourceDetector<FileSource> {
    * {@inheritDoc}
    *
    * @throws java.nio.file.InvalidPathException if the string is not a valid path on this file system
-   * @throws NullPointerException if {@code raw} is null
+   * @throws NullPointerException               if {@code raw} is null
    */
   @Override
   public FileSource createSource(final String raw) {

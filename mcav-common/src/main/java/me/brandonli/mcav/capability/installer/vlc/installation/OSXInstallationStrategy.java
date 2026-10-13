@@ -78,7 +78,7 @@ public final class OSXInstallationStrategy extends ManualInstallationStrategy {
    *
    * @param archive the downloaded disk image
    * @return the directory that contains {@code libvlc.dylib}
-   * @throws IOException if the disk image cannot be mounted or copied, or does not contain the library
+   * @throws IOException          if the disk image cannot be mounted or copied, or does not contain the library
    * @throws NullPointerException if {@code archive} is null
    */
   @Override

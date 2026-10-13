@@ -30,7 +30,7 @@ import java.awt.image.WritableRaster;
 @FunctionalInterface
 public interface ImageSupplier {
   /**
-   * Gets the next frame.
+   * Returns the next frame.
    *
    * @return a non-null frame matching the source dimensions, stable until its pixels have been copied
    */

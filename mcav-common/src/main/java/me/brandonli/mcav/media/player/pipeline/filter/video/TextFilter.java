@@ -50,7 +50,7 @@ public class TextFilter extends MatVideoFilter {
    * @param scale    the size of the text relative to the base size of the font, which must be positive
    * @param color    the blue, green, and red components of the color, normally 0 to 255; the non-null array is copied
    * @throws IllegalArgumentException if {@code scale} is nonpositive or NaN
-   * @throws NullPointerException if {@code text} or {@code color} is null
+   * @throws NullPointerException     if {@code text} or {@code color} is null
    */
   public TextFilter(final String text, final int left, final int baseline, final int font, final double scale, final double[] color) {
     Preconditions.checkNotNull(text, "Text must not be null!");

@@ -38,7 +38,7 @@ public interface DeviceSource extends DynamicSource {
   }
 
   /**
-   * Gets the index of the device.
+   * Returns the index of the device.
    *
    * @return the device index
    */

@@ -50,8 +50,8 @@ public interface ControllablePlayer {
    * @param executor the executor that runs the call
    * @return a future that completes with the result of {@link #pause()}
    * @throws java.util.concurrent.RejectedExecutionException if the executor rejects the task
+   * @throws NullPointerException                            if {@code executor} is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
-   * @throws NullPointerException if {@code executor} is null
    */
   default CompletableFuture<Boolean> pauseAsync(final ExecutorService executor) {
     Preconditions.checkNotNull(executor, "Executor must not be null!");
@@ -82,8 +82,8 @@ public interface ControllablePlayer {
    * @param executor the executor that runs the call
    * @return a future that completes with the result of {@link #resume()}
    * @throws java.util.concurrent.RejectedExecutionException if the executor rejects the task
+   * @throws NullPointerException                            if {@code executor} is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
-   * @throws NullPointerException if {@code executor} is null
    */
   default CompletableFuture<Boolean> resumeAsync(final ExecutorService executor) {
     Preconditions.checkNotNull(executor, "Executor must not be null!");

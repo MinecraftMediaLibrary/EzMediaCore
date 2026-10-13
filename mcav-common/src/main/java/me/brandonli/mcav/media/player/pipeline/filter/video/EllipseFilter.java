@@ -49,7 +49,7 @@ public class EllipseFilter extends MatVideoFilter {
    * @param endAngle   the angle in degrees the arc ends at
    * @param color      the blue, green, and red components of the color, normally 0 to 255; the non-null array is copied
    * @throws IllegalArgumentException if either axis length is nonpositive
-   * @throws NullPointerException if {@code color} is null
+   * @throws NullPointerException     if {@code color} is null
    */
   public EllipseFilter(
     final int centerX,

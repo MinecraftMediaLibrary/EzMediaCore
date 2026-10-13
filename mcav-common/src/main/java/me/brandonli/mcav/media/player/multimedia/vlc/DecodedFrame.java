@@ -40,7 +40,7 @@ final class DecodedFrame {
   }
 
   /**
-   * Gets the pixels of the frame.
+   * Returns the pixels of the frame.
    *
    * @return the packed ARGB pixels, laid out row by row
    */
@@ -49,7 +49,7 @@ final class DecodedFrame {
   }
 
   /**
-   * Gets the width of the frame.
+   * Returns the width of the frame.
    *
    * @return the width in pixels
    */
@@ -58,7 +58,7 @@ final class DecodedFrame {
   }
 
   /**
-   * Gets the height of the frame.
+   * Returns the height of the frame.
    *
    * @return the height in pixels
    */

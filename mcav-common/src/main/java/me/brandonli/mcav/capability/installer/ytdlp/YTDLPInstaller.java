@@ -95,7 +95,7 @@ public final class YTDLPInstaller extends AbstractInstaller {
   }
 
   /**
-   * Gets the installer of the cache folder that the whole library shares. Concurrent downloads through one installer
+   * Returns the installer of the cache folder that the whole library shares. Concurrent downloads through one installer
    * are serialized, so yt-dlp is downloaded at most once.
    *
    * @return the shared installer, which installs into {@code ~/.mcav/cache}
@@ -120,7 +120,7 @@ public final class YTDLPInstaller extends AbstractInstaller {
   }
 
   /**
-   * Gets the path of the yt-dlp executable. A standalone executable lies in the installation folder; the executable of
+   * Returns the path of the yt-dlp executable. A standalone executable lies in the installation folder; the executable of
    * a zip lies in the {@code yt-dlp-unpacked} folder, named like the zip without {@code .zip}.
    *
    * @return the path of the yt-dlp executable
@@ -202,7 +202,7 @@ public final class YTDLPInstaller extends AbstractInstaller {
   }
 
   /**
-   * Gets the name of the executable inside the zip of the current platform: the file name of the zip without
+   * Returns the name of the executable inside the zip of the current platform: the file name of the zip without
    * {@code .zip}, or the name of the program if nothing is left.
    */
   private String getArchiveExecutableName() {
@@ -215,7 +215,7 @@ public final class YTDLPInstaller extends AbstractInstaller {
   }
 
   /**
-   * Gets fallback download candidates when no exact build is listed. 64-bit ARM Windows and macOS consider
+   * Returns fallback download candidates when no exact build is listed. 64-bit ARM Windows and macOS consider
    * their corresponding 64-bit x86 build; this method does not verify that host emulation is installed.
    * Other platforms receive no fallback candidates.
    *

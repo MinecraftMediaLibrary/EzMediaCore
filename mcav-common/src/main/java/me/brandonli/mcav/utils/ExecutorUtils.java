@@ -59,7 +59,7 @@ public final class ExecutorUtils {
    *                request an immediate termination check
    * @return true if every task finished in time, false if tasks had to be interrupted or the wait was interrupted
    * @throws NullPointerException if the executor or the timeout is null
-   * @throws ArithmeticException if the timeout cannot be represented as a {@code long} number of milliseconds
+   * @throws ArithmeticException  if the timeout cannot be represented as a {@code long} number of milliseconds
    */
   public static boolean shutdownExecutorGracefully(final ExecutorService service, final Duration timeout) {
     Preconditions.checkNotNull(service, "Executor must not be null!");

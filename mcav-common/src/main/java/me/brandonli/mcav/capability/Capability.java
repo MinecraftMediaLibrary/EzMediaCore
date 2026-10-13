@@ -57,7 +57,7 @@ public enum Capability {
   }
 
   /**
-   * Gets the name of the capability as it is written in log and error messages, such as {@code yt-dlp}.
+   * Returns the name of the capability as it is written in log and error messages, such as {@code yt-dlp}.
    *
    * @return the display name
    */

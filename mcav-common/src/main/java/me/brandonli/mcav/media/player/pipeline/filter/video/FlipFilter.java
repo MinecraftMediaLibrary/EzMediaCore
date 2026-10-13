@@ -77,7 +77,7 @@ public class FlipFilter extends MatVideoFilter {
     }
 
     /**
-     * Gets the OpenCV flip code of this direction.
+     * Returns the OpenCV flip code of this direction.
      *
      * @return the flip code
      */

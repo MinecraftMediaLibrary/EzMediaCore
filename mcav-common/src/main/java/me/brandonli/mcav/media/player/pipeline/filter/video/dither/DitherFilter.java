@@ -61,7 +61,7 @@ public final class DitherFilter implements FunctionalVideoFilter {
   }
 
   /**
-   * Gets the dithering algorithm.
+   * Returns the dithering algorithm.
    *
    * @return the algorithm
    */
@@ -70,7 +70,7 @@ public final class DitherFilter implements FunctionalVideoFilter {
   }
 
   /**
-   * Gets the step that receives the frames.
+   * Returns the step that receives the frames.
    *
    * @return the result step
    */

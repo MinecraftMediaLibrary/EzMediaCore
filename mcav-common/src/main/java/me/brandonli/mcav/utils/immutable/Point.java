@@ -45,7 +45,7 @@ public final class Point {
   }
 
   /**
-   * Gets the x coordinate.
+   * Returns the x coordinate.
    *
    * @return the x coordinate
    */
@@ -54,7 +54,7 @@ public final class Point {
   }
 
   /**
-   * Gets the y coordinate.
+   * Returns the y coordinate.
    *
    * @return the y coordinate
    */

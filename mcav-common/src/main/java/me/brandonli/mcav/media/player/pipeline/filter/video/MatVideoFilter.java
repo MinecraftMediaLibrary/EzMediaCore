@@ -52,7 +52,7 @@ public abstract class MatVideoFilter implements VideoFilter {
    * @param samples  the frame to process
    * @param metadata the metadata of the original video, which OpenCV filters do not use
    * @return true if the filter changed the frame or may have changed it, false if it left the frame untouched
-   * @throws NullPointerException if the frame is null
+   * @throws NullPointerException  if the frame is null
    * @throws IllegalStateException if the image has been released
    */
   @Override

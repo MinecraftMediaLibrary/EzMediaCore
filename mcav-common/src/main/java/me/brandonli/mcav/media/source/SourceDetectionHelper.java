@@ -73,8 +73,8 @@ public class SourceDetectionHelper {
    * @param resource the string entered by a user
    * @return the source created by the accepting detector with the highest priority, or empty if no detector
    * accepts the string; the first detector wins a priority tie
-   * @throws RuntimeException if a detector fails while testing or creating the source; failures propagate
-   *                          and no lower-priority detector is tried as a fallback
+   * @throws RuntimeException     if a detector fails while testing or creating the source; failures propagate
+   *                              and no lower-priority detector is tried as a fallback
    * @throws NullPointerException if {@code resource} is null
    */
   public Optional<Source> detectSource(final String resource) {

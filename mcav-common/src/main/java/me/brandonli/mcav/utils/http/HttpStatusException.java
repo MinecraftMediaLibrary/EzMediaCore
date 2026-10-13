@@ -50,7 +50,7 @@ public class HttpStatusException extends IOException {
   }
 
   /**
-   * Gets the status code the server answered with.
+   * Returns the status code the server answered with.
    *
    * @return the status code
    */

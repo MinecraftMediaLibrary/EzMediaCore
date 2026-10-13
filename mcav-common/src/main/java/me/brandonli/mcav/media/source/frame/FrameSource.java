@@ -41,7 +41,7 @@ public interface FrameSource extends DynamicSource {
    * @param height the strictly positive height of the frames in pixels
    * @return the source, played at {@link #DEFAULT_FRAME_RATE}
    * @throws IllegalArgumentException if a dimension is nonpositive
-   * @throws NullPointerException if {@code images} is null
+   * @throws NullPointerException     if {@code images} is null
    */
   static FrameSource image(final ImageSupplier images, final int width, final int height) {
     Preconditions.checkNotNull(images, "Image supplier must not be null!");
@@ -57,7 +57,7 @@ public interface FrameSource extends DynamicSource {
    * @param height   the strictly positive height of the frames in pixels
    * @return the source, played at {@link #DEFAULT_FRAME_RATE}
    * @throws IllegalArgumentException if a dimension is nonpositive
-   * @throws NullPointerException if {@code supplier} is null
+   * @throws NullPointerException     if {@code supplier} is null
    */
   static FrameSource supplier(final SampleSupplier supplier, final int width, final int height) {
     return supplier(supplier, width, height, DEFAULT_FRAME_RATE);
@@ -72,7 +72,7 @@ public interface FrameSource extends DynamicSource {
    * @param frameRate the finite, strictly positive frame rate in frames per second
    * @return the source
    * @throws IllegalArgumentException if a dimension is nonpositive or the frame rate is nonpositive or nonfinite
-   * @throws NullPointerException if {@code supplier} is null
+   * @throws NullPointerException     if {@code supplier} is null
    */
   static FrameSource supplier(final SampleSupplier supplier, final int width, final int height, final float frameRate) {
     Preconditions.checkNotNull(supplier, "Sample supplier must not be null!");
@@ -82,28 +82,28 @@ public interface FrameSource extends DynamicSource {
   }
 
   /**
-   * Gets the supplier of frames.
+   * Returns the supplier of frames.
    *
    * @return the supplier
    */
   SampleSupplier supplyFrameSamples();
 
   /**
-   * Gets the width of the frames.
+   * Returns the width of the frames.
    *
    * @return the width in pixels
    */
   int getFrameWidth();
 
   /**
-   * Gets the height of the frames.
+   * Returns the height of the frames.
    *
    * @return the height in pixels
    */
   int getFrameHeight();
 
   /**
-   * Gets the rate at which frames are requested from the supplier.
+   * Returns the rate at which frames are requested from the supplier.
    *
    * @return the frame rate in frames per second
    */

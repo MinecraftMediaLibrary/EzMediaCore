@@ -56,7 +56,7 @@ public class FFmpegDirectSourceDetector implements SourceDetector<FFmpegDirectSo
    * {@inheritDoc}
    *
    * @throws IllegalArgumentException if there is not exactly one {@code ||} separator or the format is blank
-   * @throws NullPointerException if {@code raw} is null
+   * @throws NullPointerException     if {@code raw} is null
    */
   @Override
   public FFmpegDirectSource createSource(final String raw) {

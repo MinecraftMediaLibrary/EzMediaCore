@@ -191,7 +191,7 @@ public final class SourceUtils {
    * @return true if yt-dlp reports the URL as live, false if it does not or if yt-dlp fails
    * @throws IllegalStateException if the library is still preparing yt-dlp in the background, so the answer is not
    *                               known yet
-   * @throws NullPointerException if {@code url} is null
+   * @throws NullPointerException  if {@code url} is null
    */
   public static boolean isDynamicStream(final String url) {
     Preconditions.checkNotNull(url, "URL must not be null!");

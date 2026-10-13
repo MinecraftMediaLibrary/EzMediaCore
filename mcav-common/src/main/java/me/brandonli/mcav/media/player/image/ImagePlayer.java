@@ -56,7 +56,7 @@ public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
    *
    * @param source the source of frames
    * @return true if playback started, false if the player is already playing or released
-   * @throws NullPointerException if {@code source} is null
+   * @throws NullPointerException     if {@code source} is null
    * @throws IllegalArgumentException if the source frame rate is nonpositive or nonfinite
    */
   boolean start(final FrameSource source);
@@ -67,7 +67,7 @@ public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
    * @param source   the source of frames
    * @param executor the executor that runs the call
    * @return a future that completes with the result of {@link #start(FrameSource)}
-   * @throws NullPointerException if {@code source} or {@code executor} is null
+   * @throws NullPointerException                            if {@code source} or {@code executor} is null
    * @throws java.util.concurrent.RejectedExecutionException if the executor rejects the task
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
    */
@@ -91,7 +91,7 @@ public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
   }
 
   /**
-   * Gets the slot that holds the video pipeline.
+   * Returns the slot that holds the video pipeline.
    *
    * @return the video pipeline slot
    */

@@ -40,7 +40,7 @@ public interface OriginalAudioMetadata extends OriginalMetadata {
    * @param samplingFormat  the FFmpeg sample format identifier, or {@link #UNKNOWN}
    * @return the metadata
    * @throws IllegalArgumentException if the sample rate or channel count is nonpositive
-   * @throws NullPointerException if {@code codec} is null
+   * @throws NullPointerException     if {@code codec} is null
    */
   static OriginalAudioMetadata of(
     final String codec,
@@ -56,35 +56,35 @@ public interface OriginalAudioMetadata extends OriginalMetadata {
   }
 
   /**
-   * Gets the bitrate of the audio stream.
+   * Returns the bitrate of the audio stream.
    *
    * @return the bitrate in bits per second, or {@link #UNKNOWN}
    */
   int getAudioBitrate();
 
   /**
-   * Gets the sample rate of the audio stream.
+   * Returns the sample rate of the audio stream.
    *
    * @return the sample rate in hertz
    */
   int getAudioSampleRate();
 
   /**
-   * Gets the number of channels of the audio stream.
+   * Returns the number of channels of the audio stream.
    *
    * @return the channel count
    */
   int getAudioChannels();
 
   /**
-   * Gets the name of the codec of the audio stream.
+   * Returns the name of the codec of the audio stream.
    *
    * @return the codec name
    */
   String getAudioCodec();
 
   /**
-   * Gets the FFmpeg sample format identifier of the audio stream.
+   * Returns the FFmpeg sample format identifier of the audio stream.
    *
    * @return the sample format, or {@link #UNKNOWN}
    */

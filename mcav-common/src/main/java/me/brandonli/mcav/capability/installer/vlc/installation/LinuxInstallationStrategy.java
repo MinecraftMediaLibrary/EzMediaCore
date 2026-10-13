@@ -78,7 +78,7 @@ public final class LinuxInstallationStrategy extends ManualInstallationStrategy 
    *
    * @param archive the downloaded AppImage
    * @return the directory that contains {@code libvlccore.so}
-   * @throws IOException if the AppImage cannot be extracted or does not contain the library
+   * @throws IOException          if the AppImage cannot be extracted or does not contain the library
    * @throws NullPointerException if {@code archive} is null
    */
   @Override

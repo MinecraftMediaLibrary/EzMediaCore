@@ -57,7 +57,7 @@ public interface SourceDetector<T extends Source> {
   T createSource(final String raw);
 
   /**
-   * Gets the priority of this detector.
+   * Returns the priority of this detector.
    *
    * @return the priority, higher wins
    */
